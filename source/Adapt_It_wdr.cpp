@@ -7930,7 +7930,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
         _("%s Collaboration O&FF")
     };
     wxRadioBox *item9 = new wxRadioBox( parent, ID_RADIOBOX_COLLABORATION_ON_OFF, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs9, 1, wxRA_SPECIFY_ROWS );
-    item7->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
     item7->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
