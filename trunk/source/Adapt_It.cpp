@@ -37132,16 +37132,13 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 													// m_curProjectPath can hardly be wrong!
 			if (!bOK)
 			{
-				bOK = ::wxSetWorkingDirectory(m_lastKbOutputPath = _T("C:"));
-				if (!bOK)
-				{
-					// we should never get a failure for the above, 
-					// so just an English message will do
-					wxMessageBox(_T(
-					"OnFileExportKb() failed, the export has been aborted"),
-					_T(""),wxICON_WARNING);
-					return;
-				}
+				// we should never get a failure for the above, 
+				// so just an English message will do
+				wxString msg = _T("OnFileExportKb() failed, when setting current directory to:\n%s");
+				msg = msg.Format(msg,m_lastKbOutputPath.c_str());
+				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				LogUserAction(msg);
+				return;
 			}
 		}
 	}
