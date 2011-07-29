@@ -39,6 +39,7 @@ public:
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
 	bool m_bTempCollaborationExpectsFreeTrans;
+	wxSizer* pSetupEditorCollabSizer;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
