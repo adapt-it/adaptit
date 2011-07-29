@@ -122,7 +122,7 @@ class CSourcePhrase;
 
 	// the md5Array chunking and mapping by offsets into originalText string are done by
 	// the following chunking function
-	void GetNextVerse_ForChunk(const wxArrayString& md5Array, const wxString& originalText, 
+	void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& originalText, 
 				const int& curLineVerseInArr, const int& curOffsetVerseInText, 
 				int& endLineVerseInArr, int& endOffsetVerseInText, int& chapterLineIndex);
 

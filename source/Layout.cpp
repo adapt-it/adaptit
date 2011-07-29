@@ -1689,7 +1689,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 							// the end of the document)
 	CPile* pActivePile = NULL;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
-	if (!gbDoingInitialSetup)
+	// BEW added 2nd test, for sn == -1, because reliance on gbDoingInitialSetup is risky
+	// -- for example, in collab mode the flag stayed TRUE, and so bAtDocEnd didn't get
+	// set when the last bit of adapting in the file was done and the phrase box moved
+	// past the doc end - giving a crash because the app thought the doc end was not yet
+	// reached (at doc end, before RecalcLayout() is called, sn is set to -1, so we can
+	// rely on this here)
+	if (!gbDoingInitialSetup || m_pApp->m_nActiveSequNum == -1)
 	{
 		// the above test is to exclude setting bAtDocEnd to TRUE if the pActivePile is
 		// NULL which can be the case on launch or opening a doc or creating a new one, at

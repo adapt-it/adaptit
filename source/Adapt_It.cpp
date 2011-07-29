@@ -20986,6 +20986,8 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 	// Paratext/Bibledit Project" dialog.
 	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
+		gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
+									 // fail after phrase box gets past end of doc
 		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
 		dlg.Center();
 		dlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
