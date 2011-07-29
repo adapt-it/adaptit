@@ -440,7 +440,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports && m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
 	{
 		wxString msg, msg1;
-		msg = _("The projects selected for getting source texts and receiving translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
+		msg = _("The projects selected for getting source texts and receiving translation drafts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
 		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
 		//msg = msg + _T("\n") + msg1;
 		wxMessageBox(msg);

@@ -37431,7 +37431,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	// without specific permission of UBS).
 	// So, we read each <file>.ssf within the folder and determine if the project
 	// represented is a candidate for Adapt It collaboration (either for reading
-	// as source texts, or for transferring AI-produced translation texts).
+	// as source texts, or for transferring AI-produced translation drafts).
 	
 	// PT's ssf files are small xml formatted files. We only need some values from
 	// the file, so rather than using our XML reading routines, I think it will be

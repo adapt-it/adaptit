@@ -2498,8 +2498,8 @@ void CMainFrame::OnUpdateViewStatusBar(wxUpdateUIEvent& event)
 void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
+	//wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+	//wxASSERT(pMenuBar != NULL);
 	
 	if (pApp->m_bShowAdministratorMenu)
 	{

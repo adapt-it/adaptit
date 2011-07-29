@@ -1317,7 +1317,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 
 		wxString msg;
-		msg = _("The %s projects selected for obtaining source texts, and for transferring translation texts cannot be the same. Use the drop down list boxes to select different projects.");
+		msg = _("The %s projects selected for obtaining source texts, and for transferring translation drafts cannot be the same. Use the drop down list boxes to select different projects.");
 		msg = msg.Format(msg,m_collabEditorName.c_str());
 		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
 		// most likely the target drop down list would need to be changed so set focus to it before returning
@@ -1736,12 +1736,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxString msg1,msg2;
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
@@ -1764,12 +1764,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxString msg1,msg2;
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
