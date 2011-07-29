@@ -1401,7 +1401,7 @@ go:	pAux = pPos; // save start of tag location
 	// branch, depending on what the pPos is pointing at - either white space,
 	// or /> for an empty element, or > for a normal element (which could still
 	// be empty)
-	int numBytes = 1;
+	int numBytes; // = 1;
 	// exclude ZWSP from the test, since we are testing xml's metalanguage, not data
 	bIsWhite = (IsWhiteSpace(pPos,pEnd,numBytes) && numBytes != 3); 
 	if (bIsWhite)
