@@ -47,6 +47,7 @@
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
 		C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
+		C837D1BD13E265570008C2BF /* CollabUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C837D1BC13E265570008C2BF /* CollabUtilities.cpp */; };
 		C8442B86135FADD300981EB2 /* MergeUpdatedSrc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */; };
 		C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */ = {isa = PBXBuildFile; fileRef = C85085A21338466C006E9457 /* curl-ca-bundle.crt */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
@@ -206,6 +207,8 @@
 		C8141435112256EF006764C6 /* FreeTrans.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTrans.h; path = ../../source/FreeTrans.h; sourceTree = SOURCE_ROOT; };
 		C8141436112256EF006764C6 /* FreeTrans.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTrans.cpp; path = ../../source/FreeTrans.cpp; sourceTree = SOURCE_ROOT; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
+		C837D1BB13E265570008C2BF /* CollabUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollabUtilities.h; path = ../../source/CollabUtilities.h; sourceTree = SOURCE_ROOT; };
+		C837D1BC13E265570008C2BF /* CollabUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CollabUtilities.cpp; path = ../../source/CollabUtilities.cpp; sourceTree = SOURCE_ROOT; };
 		C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MergeUpdatedSrc.cpp; path = ../../source/MergeUpdatedSrc.cpp; sourceTree = SOURCE_ROOT; };
 		C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MergeUpdatedSrc.h; path = ../../source/MergeUpdatedSrc.h; sourceTree = SOURCE_ROOT; };
 		C85085A21338466C006E9457 /* curl-ca-bundle.crt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "curl-ca-bundle.crt"; path = "../../docs/curl-ca-bundle.crt"; sourceTree = SOURCE_ROOT; };
@@ -414,6 +417,7 @@
 				20286C2CFDCF999611CA2CEA /* Resources */,
 				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
 				195DF8CFFE9D517E11CA2CBB /* Products */,
+				C8EF76DB13BDB308004A43BF /* testDocs */,
 			);
 			name = AdaptIt;
 			sourceTree = "<group>";
@@ -421,6 +425,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C837D1BB13E265570008C2BF /* CollabUtilities.h */,
+				C837D1BC13E265570008C2BF /* CollabUtilities.cpp */,
 				7D8A044F13ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp */,
 				7D8A045013ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.h */,
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
@@ -702,6 +708,13 @@
 			path = scripts;
 			sourceTree = "<group>";
 		};
+		C8EF76DB13BDB308004A43BF /* testDocs */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = testDocs;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -900,6 +913,7 @@
 				C8442B86135FADD300981EB2 /* MergeUpdatedSrc.cpp in Sources */,
 				7D98196C139C7002009F4E93 /* md5.cpp in Sources */,
 				7D8A045113ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp in Sources */,
+				C837D1BD13E265570008C2BF /* CollabUtilities.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
