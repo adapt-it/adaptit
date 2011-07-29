@@ -3529,10 +3529,14 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 			wxString mkr2 = MakeReverse(rev);
 			wxString shortMkr = mkr2.Left(2); // footnote, endnote, xref give \f or \x for this
 			USFMAnalysis* pSfm =  pDoc->LookupSFM((wxChar*)mkr.GetData());
-			if (!pSfm->inLine  || (pSfm->inLine && (shortMkr == _T("\\f") || shortMkr == _T("\\x")))
-				&& mkr != _T("\\fig"))
+			if (mkr == _T("\\fig"))
 			{
-				// we accept for placement any which satisfy that test
+				// exclude this one from acceptance
+				;
+			}
+			else if (!pSfm->inLine  || (pSfm->inLine && (shortMkr == _T("\\f") || shortMkr == _T("\\x"))))
+			{
+				// we accept for placement any which satisfy that 2nd test
 				arrTemp.Add(mkr);
 			}
 		}

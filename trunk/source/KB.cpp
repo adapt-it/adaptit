@@ -386,6 +386,10 @@ enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptat
 // BEW 13May10, moved here from CAdapt_ItView class
 // BEW 18Jun10, no changes needed for support of kbVersion 2
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
+// BEW added 29Jul11, removed the alternative uppercase lookup which formerly was done if
+// autocaps was on and the lowercase lookup failed to find a matching CTargetUnit
+// instance. This gives a more transparent management performance, in conjunction with some
+// changes of same date within StoreText() etc, of data entries in the KB maps.
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
 	wxString saveKey;
@@ -412,7 +416,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 		if (gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
 			// we will have to change the case for the first lookup attempt
-			saveKey = keyStr; // save for an upper case lookup 
+			//saveKey = keyStr; // save for an upper case lookup << BEW removed 29Jul11
 							  // if the first lookup fails
 			// make the first character of keyStr be the appropriate lower case one
 			keyStr.SetChar(0,gcharSrcLC); // gcharSrcLC is set within the 
@@ -426,11 +430,42 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 				wxASSERT(pTU != NULL);
 				return TRUE;
 			}
-            // if we get here, then the match failed, so just in case there is an upper
-            // case entry in the knowledge base (from when autocapitalization was OFF),
-            // look it up; if there, then set the gbMatchedKB_UCentry to TRUE so the caller
-            // will know that no restoration of upper case will be required for the gloss
-            // or adaptation that it returns
+            // if we get here, then the match failed...
+            
+			// BEW added 29Jul11, if the lowercase lookup failed, return FALSE with pTU
+			// NULL so that caller (eg. StoreText() etc) will create a new CTargetUnit to
+			// carry the converted to initial lowercase translation keyed to the 
+			// lowercase key value. This is better. Formerly if auto-caps was off and a
+			// entry with key uppercase, such as "Kristus" was added to the KB, then the
+			// user's choice to later use the KB with auto-caps on would not manage the
+			// entries nicely. A further "Kristus" would have the first lookup done with
+			// "kristus" and that would fail as there is no lowercase entry yet, and then
+			// the second lookup would be attempted with "Kristus" - and that would
+			// succeed. Then the translation, converted from "Christ" as received from the
+			// tgtPhrase value (as typed within the phrase box) to "christ" is added to
+			// this entry with uppercase key. There is then no way to get a KB entry with
+			// key lowercase, "kristus" (except by turning off autocaps and doing
+			// something clever which the average user wouldn't think to do); whereas
+			// other entries with source text beginning with uppercase, with auto-caps ON,
+			// DO get their key converted to lower case -- so there is a noticeable
+			// assymmetry in the management of KB entries in such a scenario. The way to
+			// avoid this is do force a lowercase lookup every time autocaps is ON, and if
+			// it fails, (ie. the "Kristus" <-> "Christ" entry is not seen by the lookup)
+			// then just return FALSE to the caller so that a new CTargetUnit instance is
+			// created with key "kristus" and it's CRefString will then have "christ" in
+			// the normal way. The negative in this is that it could result in a few extra
+			// uppercase entries laying about unused in the KB. But that's a small price
+			// to pay for management transparency. Besides, the user can see these
+			// uppercase entries and if he wants, he can remove them using the KB editor.
+			pTU = (CTargetUnit*)NULL;
+			return FALSE;
+
+
+            /* BEW removed 29Jul11 
+            // in case there is an upper case entry in the knowledge base (from when
+            // autocapitalization was OFF), look it up; if there, then set the
+            // gbMatchedKB_UCentry to TRUE so the caller will know that no restoration of
+            // upper case will be required for the gloss or adaptation that it returns
 			iter = pMap->find(saveKey);
 			if (iter != pMap->end())
 			{
@@ -447,6 +482,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 				pTU = (CTargetUnit*)NULL;
 				return FALSE;
 			}
+			*/
 		}
 		else
 		{
@@ -2355,6 +2391,7 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps,
 // including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
 // map 1 rather than map 2.
+// BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -2421,7 +2458,30 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	{
 		if (tgtPhrase != _T("<Not In KB>"))
 		{
-			pSrcPhrase->m_adaption = tgtPhrase;
+			// BEW 29Jul11 added auto-caps code here so that m_adaption gets
+			// set in the same way that MakeTargetStringIncludingPunctuation() will do the
+			// capitalization for m_targetStr, formerly m_adaption was just set to
+			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+			// because the view only shows m_targetStr)
+			wxString s = tgtPhrase;
+			if (gbAutoCaps)
+			{
+				bool bNoError = TRUE;
+				if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+				{
+					bNoError = m_pApp->GetDocument()->SetCaseParameters(s,FALSE); // FALSE is bIsSrcText
+					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// change it to upper case
+						s.SetChar(0,gcharNonSrcUC);
+					}
+				}
+				pSrcPhrase->m_adaption = s;
+			}
+			else
+			{
+				pSrcPhrase->m_adaption = tgtPhrase;
+			}
 			if (!gbInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, and handles auto-capitalization
@@ -2445,23 +2505,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	else // adapting or glossing
 	{
 		// BEW changed, 13Nov10, to support Bob Eaton's request for a 10map glossing KB
-		//if (m_bGlossingKB)
-		//{
-			//nMapIndex = 0;
-		//	nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
-		//}
-		//else
-		//{
-			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
-			{
-				nMapIndex = 0;
-			}
-			else
-			{
-				nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-			}
-			//nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
-		//}
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			nMapIndex = 0;
+		}
+		else
+		{
+			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+		}
 	}
 	// if there is a CTargetUnit associated with the current key, then get it; if not,
 	// create one and add it to the appropriate map
@@ -2502,7 +2553,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		// add the translation string, or gloss string
 		if (bNoError)
 		{
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			if (gbAutoCaps)
+			{
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase;
+			}
 		}
 		else
 		{
@@ -2535,7 +2593,10 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	else // do next block when the map is not empty
 	{
         // there might be a pre-existing association between this key and a CTargetUnit, 
-        // so check it out
+        // so check it out 
+		// BEW 29Jul11, the following function had changes made today too, I removed the
+		// alternate uppercase lookup which used to be done when auto-caps is ON and the
+		// lowercase lookup (tried first) failed
 		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey); 
 
         // if not found, then create a targetUnit, and add the refString, etc, as above;
@@ -2550,9 +2611,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			wxASSERT(pRefString != NULL);
 
 			pRefString->m_refCount = 1; // set the count
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE); // FALSE
+			if (gbAutoCaps)
+			{
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE); // FALSE
 								// is value of bIsSrc (auto-caps needs to know whether the
 								// string is source text versus adaptation (or gloss) text
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase;
+			}
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
@@ -2591,10 +2659,19 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
             // looked up only on the second attempt, for which gbMatchedKB_UCentry will
             // have been set TRUE, and which means the gloss or adaptation will not have
             // been made lower case - so we must allow for this possibility
-			if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
-				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
-			else
+            // BEW changedd 29Jul11
+			//if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
+			//	pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
+			//else
+			//	pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			if (gbAutoCaps)
+			{
 				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
+			}
 
 			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
 			while (pos != NULL)
@@ -2681,9 +2758,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						return TRUE; // make caller think all is well
 					}
 
-					// recalculate the string to be stored, in case we looked up a
-					// stored upper case entry earlier
-					pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+					// recalculate the string to be stored
+					// BEW changed 29Jul11
+					if (gbAutoCaps)
+					{
+						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+					}
+					else
+					{
+						pRefString->m_translation = tgtPhrase;
+					}
 					pTU->m_pTranslations->Append(pRefString); 
 					if (m_bGlossingKB)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
@@ -2730,6 +2814,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 // including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
 // map 1 rather than map 2.
+// BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -2956,7 +3041,30 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		if (tgtPhrase != _T("<Not In KB>"))
 		{
-			pSrcPhrase->m_adaption = tgtPhrase;
+			// BEW 29Jul11 added auto-caps code here so that m_adaption gets
+			// set in the same way that MakeTargetStringIncludingPunctuation() will do the
+			// capitalization for m_targetStr, formerly m_adaption was just set to
+			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+			// because the view only shows m_targetStr)
+			wxString s = tgtPhrase;
+			if (gbAutoCaps)
+			{
+				bool bNoError = TRUE;
+				if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+				{
+					bNoError = m_pApp->GetDocument()->SetCaseParameters(s,FALSE); // FALSE is bIsSrcText
+					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// change it to upper case
+						s.SetChar(0,gcharNonSrcUC);
+					}
+				}
+				pSrcPhrase->m_adaption = s;
+			}
+			else
+			{
+				pSrcPhrase->m_adaption = tgtPhrase;
+			}
 			if (!gbInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, also does auto-capitalization adjustments
@@ -2996,7 +3104,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	// restored for that current source text key, what does DoNotInKB() do? It does not
 	// call StoreText(), and neither does it's OnCheckKBSave() caller. This means that the
 	// block below is NEVER entered, and so I have commented it out
-	/* I verified this block is never called, whether the checkbox is on or off
+	/* I verified this block is never entered, whether the checkbox is on or off
 	if (!m_bGlossingKB && !m_pApp->m_bSaveToKB)
 	{
 		pSrcPhrase->m_bNotInKB = TRUE;
@@ -3025,7 +3133,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
 	}
-		//nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
 
     // if we have too many source words, then we cannot save to the KB, so detect this and
     // warn the user that it will not be put in the KB, then return TRUE since all is
@@ -3090,6 +3197,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// add the translation string
 		if (bNoError)
 		{
+			// FALSE in next call is  bool bIsSrc
 			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
 		}
 		else
@@ -3134,6 +3242,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	{
 		// there might be a pre-existing association between this key and a CTargetUnit,
 		// so check it out
+		// BEW 29Jul11, AutoCapsLookup() has been changed on this date too, it now does
+		// not (when auto-caps is ON) do an uppercase lookup if the lowercase lookup
+		// fails. This gives better behaviour - the reason is explained in the source
+		// comments for the function.
 		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey);
 
 		// check we have a valid pTU
@@ -3192,7 +3304,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 			pRefString->m_refCount = 1; // set the count
 			// add the translation or gloss string
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			// BEW 29Jul11, what we add should depend on auto-caps setting, if ON, then
+			// force first character to lowercase if it is upper case; if OFF, then store
+			// whatever string tgtPhrase has - whether starting with ucase or lcase
+			if (gbAutoCaps)
+			{
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase;
+			}
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
 			{
@@ -3240,11 +3362,32 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // looked up only on the second attempt, for which gbMatchedKB_UCentry will
             // have been set TRUE, and which means the gloss or adaptation will not have
             // been made lower case - so we must allow for this possibility
-			if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
-				pRefString->m_translation = tgtPhrase; // use the unchanged string, 
-													   // could be upper case
-			else
+            //
+			// BEW 29Jul11, commented out next 3 lines so that we always use lower case
+			// for what is put into m_translation when auto-caps is turned on. The legacy
+			// code would check auto-caps on, and for an upper case src like "Kristus" it
+			// would use the unchanged phrase box value -- which, even if typed as
+			// "christ" it will have been auto-caps changed to "Christ" before getting to
+			// here, and so m_translation is given "Christ" wrongly as the adaptation.
+            // Then, when the loop which follows searches for a match, if there is a
+            // deleted or non-deleted entry already present and made with m_translation =
+            // "christ", no match gets made with "Christ", and so the if (!bMatched) block
+            // is then entered, and a new entry created and added to pTU, and the new entry
+            // would be a second value "christ". In this way, the KB has for some years,
+			// unfortunately, been wrongly adding a second duplicate entry in this
+			// particular circumstance. The fix is to unilaterally make the entry with
+			// AutoCapsMakeStorageString() when auto-caps is on, and unilaterally make it
+			// with the unchanged value of tgtPhrase when it is not on. Trying to be
+			// smarter than that because the user may have only recently turned auto-caps
+			// on leads to these unnecessary errors. 
+			//if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
+			//	pRefString->m_translation = tgtPhrase; // use the unchanged string, 
+			//										   // could be upper case
+			//else
+			if (gbAutoCaps)
 				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			else
+				pRefString->m_translation = tgtPhrase;
 
 			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
 			while (pos != NULL)
@@ -3345,9 +3488,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						}
 					}
 
-					// recalculate the string to be stored, in case we looked up a
-					// stored upper case entry earlier
-					pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+					// calculate the string to be stored...
+					// BEW 29Jul11, force lowercase if gbAutoCaps is ON, if OFF, use
+					// whatever is in the phrase box (unchanged)
+					if (gbAutoCaps)
+					{
+						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+					}
+					else
+					{
+						pRefString->m_translation = tgtPhrase;
+					}
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
 					{

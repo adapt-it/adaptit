@@ -5153,21 +5153,33 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 		// BEW changed 02Oct08: I don't see any good reason why user should be prevented
 		// from overriding lookup of a single word by going immediately to a selection for
 		// merger, so I've made the button be shown in this situation
-		bool bOK = pApp->m_pTargetBox->ChooseTranslation(); // default for param bHideCancelAndSelectButton is FALSE
-		pCurTargetUnit = (CTargetUnit*)NULL; // ensure the global var is cleared 
-											 // after the dialog has used it
-		curKey.Empty(); // ditto for the current key string (global)
-		if (!bOK)
+		// BEW 29Jul11; added test of gbUserCancelledChooseTranslationDlg here to suppress
+		// the 2nd call of ChooseTranslation() that this would be if the user chose to
+		// Cancel earlier from the dialog. Without it, Cancel takes to Cancel button presses.
+		if (gbUserCancelledChooseTranslationDlg)
 		{
-            // user cancelled, so return FALSE for a 'non-match' situation; the
-            // m_bCancelAndSelectButtonPressed private member variable (set from
-            // CChooseTranslation's m_bCancelAndSelect member) will have already been set
-            // (if relevant) and can be used in the caller (ie. in MoveToNextPile)
-			return FALSE;
+			// prohibit the lookup
+			gbUserCancelledChooseTranslationDlg = FALSE; // restore default value
+			return FALSE; // user cancelled, for a 'non-match' result
 		}
-		// if bOK was TRUE, translation static var will have been set via the dialog; and
-		// if autocaps is ON and a change to upper case was needed, it will not have been done
-		// within the dialog's handler code
+		else
+		{
+			bool bOK = pApp->m_pTargetBox->ChooseTranslation(); // default for param bHideCancelAndSelectButton is FALSE
+			pCurTargetUnit = (CTargetUnit*)NULL; // ensure the global var is cleared 
+												 // after the dialog has used it
+			curKey.Empty(); // ditto for the current key string (global)
+			if (!bOK)
+			{
+				// user cancelled, so return FALSE for a 'non-match' situation; the
+				// m_bCancelAndSelectButtonPressed private member variable (set from
+				// CChooseTranslation's m_bCancelAndSelect member) will have already been set
+				// (if relevant) and can be used in the caller (ie. in MoveToNextPile)
+				return FALSE;
+			}
+			// if bOK was TRUE, translation static var will have been set via the dialog; and
+			// if autocaps is ON and a change to upper case was needed, it will not have been done
+			// within the dialog's handler code
+		}
 	}
 	else
 	{
