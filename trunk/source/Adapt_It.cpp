@@ -8473,6 +8473,12 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 
 		int posTabOpen;
 		label = pFileMenu->GetLabel(wxID_OPEN);
+		// whm added 28Jul11. Remove any initial underscore characters that seem
+		// to creep in in the Linux implementation of GetLabel()
+		while (label.Find(_T('_')) == 0)
+		{
+			label.Remove(0,1);
+		}
 		posTabOpen = label.Find(_T('\t'));
 		if (posTabOpen != wxNOT_FOUND)
 		{
@@ -8519,6 +8525,12 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		
 		int posTabSave;
 		label = pFileMenu->GetLabel(wxID_SAVE);
+		// whm added 28Jul11. Remove any initial underscore characters that seem
+		// to creep in in the Linux implementation of GetLabel()
+		while (label.Find(_T('_')) == 0)
+		{
+			label.Remove(0,1);
+		}
 		posTabSave = label.Find(_T('\t'));
 		if (posTabSave != wxNOT_FOUND)
 		{
@@ -8603,6 +8615,12 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		// wxMenu::GetLabel() gets menu item label including any mnemonics and
 		// accelerators.
 		label = pAdministratorMenu->GetLabel(ID_SETUP_EDITOR_COLLABORATION);
+		// whm added 28Jul11. Remove any initial underscore characters that seem
+		// to creep in in the Linux implementation of GetLabel()
+		while (label.Find(_T('_')) == 0)
+		{
+			label.Remove(0,1);
+		}
 		if (label.Find(_T("%s")) != wxNOT_FOUND)
 		{
 			label = label.Format(label,m_collaborationEditor.c_str());
