@@ -164,7 +164,7 @@ void InsertEntities(CBString& s); // handle & " ' < and > using &amp; etc)
 void ReplaceEntities(CBString& s);
 
 // XML document parsing support
-bool IsWhiteSpace(char* pPos,char* pEnd);
+bool IsWhiteSpace(char* pPos, char* pEnd, int& numBytes);
 void SkipWhiteSpace(char*& pPos,char* pEnd);
 void MakeStrFromPtrs(char* pStart,char* pFinish,CBString& s);
 char* FindElemEnd(char* pPos,char* pEnd); // scans to next /> or >
