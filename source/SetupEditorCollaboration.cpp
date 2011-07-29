@@ -76,7 +76,7 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	SetupEditorCollaborationFunc(this, TRUE, TRUE);
+	pSetupEditorCollabSizer = SetupEditorCollaborationFunc(this, TRUE, TRUE);
 	// The declaration is: SetupParatextCollaborationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -181,6 +181,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = pRadioBoxCollabOnOrOff->GetString(1);
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pRadioBoxCollabOnOrOff->SetString(1,text);
+	pSetupEditorCollabSizer->Layout()
 
 	int nProjectCount = 0;
 	// get list of PT/BE projects
