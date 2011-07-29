@@ -8421,10 +8421,26 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
-/// Adjusts some menu labels and hot key assignments for the different platforms - 
+/// Called from: the App's OnInit(), OnEditUserMenuSettingsProfiles(), and from the 
+/// CSetupEditorCollaboration::OnOK() handler.
+/// Makes the following adjustments to AI menus:
+/// 1. Adds parenthetical info in the Open... and Save menu labels of the File menu
+///    when collaboration with Paratext or Bibledit is ON, removes the parenthetical
+///    material when PT/BE collaboration is OFF.
+/// 2. Displays or removes the top-level Administrator menu depending on the current
+///    value of the App's m_bShowAdministratorMenu flag.
+/// 3. Adjusts the Administrator menu's "Setup %s Collaboration" menu item to include
+///    "Paratext" or "Bibledit" within its label substituted for %s.
+/// 4. Make menu accelerator key adjustments required for the different platform's
+///    needs - some platforms reserve certain accelerator keys for their own system
+///    use.
+/// 5. Remove the Layout menu if building for ANSI version (leave it for Unicode
+///    version).
+/// 6. Adjust the accelerator key for the Mac platform for the Layout menu's item.
+/// 7. Set toggle menu items to reflect the current values of their GUI flags.
+/// some menu labels and hot key assignments for the different platforms - 
 /// different platforms reserve certain hot key combinations for their own system use. 
-/// Adjustments are also made here for certain modes such as Paratext collaboration.
+/// Adjustments are also made here for certain modes such as Paratext/Bibledit collaboration.
 /// This function also sets the initial checked/unchecked state of menu items which are 
 /// checkable.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -8442,7 +8458,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// collaboration is in effect. We modify the labels for Open... and Save... 
 	// on the File menu to include parenthetical explanations as follows:
 	// Open... (Get Source Text From Paratext) or Open... (Get Source Text From Bibledit)
-	// Save... (Transfer Translation Draft To Paratext) or Save... (Transfer Translation Draft To Bibledit)
+	// Save (Transfer Translation Draft To Paratext) or Save... (Transfer Translation Draft To Bibledit)
 	// Note: We do not need conditional define here for Windows because 
 	// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit will
 	// only be TRUE on the platforms that host Paratext, i.e., Windows, or Bibledit,
@@ -8548,32 +8564,53 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		pFileMenu->SetLabel(wxID_SAVE, label);
 	}
 	
+	// remove the Administrator menu until asked for
+	if (!m_bShowAdministratorMenu)
+	{
+		// is the Admin menu showing? If so, remove it
+		if (!m_bAdminMenuRemoved)
+		{
+			// whm Note: Bruce designed the Administrator menu item to be
+			// deleted in the CMainFrame's destructor rather than when it
+			// is "Removed" here.
+			int menuCount = pMenuBar->GetMenuCount();
+			m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
+			m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
+			m_bAdminMenuRemoved = TRUE;
+		}
+		pMenuBar->Refresh();
+	}
+	else
+	{
+		// is the Admin menu hidden? If so, Append it back to the pMenuBar
+		if (m_bAdminMenuRemoved)
+		{
+			bool bAppendedOK;
+			bAppendedOK = pMenuBar->Append(m_pRemovedAdminMenu,m_adminMenuTitle);
+			wxASSERT(bAppendedOK);
+			m_pRemovedAdminMenu = NULL;
+			m_bAdminMenuRemoved = FALSE;
+		}
+		pMenuBar->Refresh();
+	}
+	
+	// Format the "Setup %s Collaboration..." menu item for Paratext or Bibledit
 	wxMenu* pAdministratorMenu;
 	pAdministratorMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
 	if (pAdministratorMenu != NULL)
 	{
 		wxString label;
+		// wxMenu::GetLabel() gets menu item label including any mnemonics and
+		// accelerators.
 		label = pAdministratorMenu->GetLabel(ID_SETUP_EDITOR_COLLABORATION);
 		if (label.Find(_T("%s")) != wxNOT_FOUND)
 		{
-			if (m_bBibleditIsInstalled)
-			{
-				label = label.Format(label,_T("Bibledit"));
-			}
-			else if (m_bParatextIsInstalled)
-			{
-				label = label.Format(label,_T("Paratext"));
-			}
-			else
-			{
-				// neither Paratext nor Bibledit is installed, so just put "Paratext" in the label
-				label = label.Format(label,_T("Paratext"));
-			}
+			label = label.Format(label,m_collaborationEditor.c_str());
 		}
 		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 	}
 
-	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
+	// MAKE MENU ACCELERATOR KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
     // See also the CMainFrame::CMainFrame constructor where accelerator key assignments
     // are made to coordinate with these menu hot key adjustments.
 #if defined (__WXMAC__) || defined (__WXGTK__)
@@ -8750,28 +8787,47 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 
     // These toggle menu items should be initially set as follows (TRUE=checked;
     // FALSE=unchecked):
-    // whm verified 2Sep06 that at least some are needed to be pre-set as follows in order
-    // for the calls to menu handlers to operate successfully in the View's
-    // OnInitialUpdate() function where the initial state of toggled toolbar buttons is
-    // set.
+    // whm modified 28Jul11. This MakeMenuInitializationsAndPlatformAdjustments()
+    // function can now be called from places other than from OnInit(). Therefore,
+    // the menu toggle items below should be set not to absolute initial values
+    // but to values that reflect the current state of the GUI elements they 
+    // describe.
     if (pMenuBar->FindItem(ID_VIEW_TOOLBAR) != NULL)
-		pMenuBar->Check(ID_VIEW_TOOLBAR, TRUE);
+		pMenuBar->Check(ID_VIEW_TOOLBAR, pMainFrame->m_pToolBar != NULL); //pMenuBar->Check(ID_VIEW_TOOLBAR, TRUE);
     if (pMenuBar->FindItem(ID_VIEW_STATUS_BAR) != NULL)
-		pMenuBar->Check(ID_VIEW_STATUS_BAR, TRUE);
+		pMenuBar->Check(ID_VIEW_STATUS_BAR, pMainFrame->GetStatusBar() != NULL); //pMenuBar->Check(ID_VIEW_STATUS_BAR, TRUE);
     if (pMenuBar->FindItem(ID_VIEW_COMPOSE_BAR) != NULL)
-		pMenuBar->Check(ID_VIEW_COMPOSE_BAR, FALSE);
+		pMenuBar->Check(ID_VIEW_COMPOSE_BAR, pMainFrame->m_pComposeBar != NULL); //pMenuBar->Check(ID_VIEW_COMPOSE_BAR, FALSE);
     if (pMenuBar->FindItem(ID_COPY_SOURCE) != NULL)
-		pMenuBar->Check(ID_COPY_SOURCE, TRUE);
+		pMenuBar->Check(ID_COPY_SOURCE, m_bCopySource); //pMenuBar->Check(ID_COPY_SOURCE, TRUE);
     if (pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP) != NULL)
-		pMenuBar->Check(ID_MARKER_WRAPS_STRIP, TRUE);
+		pMenuBar->Check(ID_MARKER_WRAPS_STRIP, m_bMarkerWrapsStrip); //pMenuBar->Check(ID_MARKER_WRAPS_STRIP, TRUE);
     if (pMenuBar->FindItem(ID_USE_CC) != NULL)
-		pMenuBar->Check(ID_USE_CC, FALSE);
+		pMenuBar->Check(ID_USE_CC, m_bUseConsistentChanges); //pMenuBar->Check(ID_USE_CC, FALSE);
 	if (pMenuBar->FindItem(ID_ACCEPT_CHANGES) != NULL)
-		pMenuBar->Check(ID_ACCEPT_CHANGES, FALSE);
+		pMenuBar->Check(ID_ACCEPT_CHANGES, m_bAcceptDefaults); //pMenuBar->Check(ID_ACCEPT_CHANGES, FALSE);
+	if (pMenuBar->FindItem(ID_USE_SILCONVERTER) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_USE_SILCONVERTER, m_bUseSilConverter);
+	if (pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_TOOLS_AUTO_CAPITALIZATION, gbAutoCaps);
 	if (pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING) != NULL)
-		pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
+		pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, gbEnableGlossing); //pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
 	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
-		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, gbGlossingUsesNavFont); //pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+	if (pMenuBar->FindItem(ID_ADVANCED_BOOKMODE) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_BOOKMODE, m_bBookMode);
+	if (pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_FREE_TRANSLATION_MODE, m_bFreeTranslationMode);
+	if (pMenuBar->FindItem(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, m_bTargetIsDefaultFreeTrans);
+	if (pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, m_bGlossIsDefaultFreeTrans);
+	if (pMenuBar->FindItem(ID_ADVANCED_USETRANSLITERATIONMODE) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_USETRANSLITERATIONMODE, m_bTransliterationMode);
+	if (pMenuBar->FindItem(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, !gbIgnoreScriptureReference_Send);
+	if (pMenuBar->FindItem(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES) != NULL) // whm added 28Jul11
+		pMenuBar->Check(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, !gbIgnoreScriptureReference_Receive);
 	// whm added 20Jul11 to initialize the View menu's "Show Administrator Menu... (Password protected)" item
 	if (pMenuBar->FindItem(ID_VIEW_SHOW_ADMIN_MENU) != NULL)
 		pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,m_bShowAdministratorMenu);
@@ -16506,10 +16562,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		ConfigureInterfaceForUserProfile();
 	}
 
+	// whm 28Jul11 moved the initialization of m_bShowAdministratorMenu here before the
+	// call to MakeMenuInitializationsAndPlatformAdjustments().
+	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
+#ifdef __WXDEBUG__
+	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
+#endif
+
 	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally 
 	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() 
 	// it makes better sense to do the menu modifications (mostly for the Mac) here at this 
-	// point in OnInit().
+	// point in OnInit(). It also configures the initial state of the Administrator menu 
+	// according to the m_bShowAdministratorMenu flag set above.
  	MakeMenuInitializationsAndPlatformAdjustments();
 
 	// whm Note: We should associate the file history with the File menu, and load 
@@ -17160,25 +17224,7 @@ int ii = 1;
 	m_bJustLaunched = TRUE;// set false in OnIdle call
 	m_bExportingGlossesAsText = FALSE;   // set TRUE during export of glosses
 	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
-
-	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
-#ifdef __WXDEBUG__
-	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
-#endif
-
-	// remove the Administrator menu until asked for
-	if (!m_bShowAdministratorMenu)
-	{
-		int menuCount = pMenuBar->GetMenuCount();
-		//wxMenu* pAdminMenu = pMenuBar->GetMenu(administratorMenu); // no, a menu may be
-							//removed already, so this index may not be correct presently
-		//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
-		//wxASSERT(pAdminMenu != NULL);
-		m_adminMenuTitle = pMenuBar->GetMenuLabelText(menuCount - 1);
-		m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
-		m_bAdminMenuRemoved = TRUE;
-		pMenuBar->Refresh();
-	}
+	
 	m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
 
 	// override the default for m_bDrafting if the frm switch was found
