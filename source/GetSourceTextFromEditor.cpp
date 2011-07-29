@@ -565,6 +565,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// from/to its project data files.
 	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
 	// files (not using command-line interface.
+	int chNumForBEDirect = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
+	if (chNumForBEDirect == 0)
+	{
+		// 0 is the Paratext parameter value for whole book, but we change this to -1
+		// for Bibledit whole book collection in the CopyTextFromBibleditDataToTempFolder()
+		// function call below.
+		chNumForBEDirect = -1;
+	}
 	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
 	{
 		// Use the wxExecute() override that takes the two wxStringArray parameters. This
@@ -583,17 +591,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		wxString beProjPathSrc, beProjPathTgt;
 		beProjPathSrc = beProjPath + m_pApp->PathSeparator + shortProjNameSrc;
 		beProjPathTgt = beProjPath + m_pApp->PathSeparator + shortProjNameTgt;
-		int chNum = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
 		bool bWriteOK;
 		wxString fullBookName = m_TempCollabBookSelected;
-		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNum, sourceTempFileName, errorsSrc);
+		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, sourceTempFileName, errorsSrc);
 		if (bWriteOK)
 			resultSrc = 0; // 0 means same as wxExecute() success
 		else // bWriteOK was FALSE
 			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
 		if (resultSrc == 0)
 		{
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNum, targetTempFileName, errorsTgt);
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNumForBEDirect, targetTempFileName, errorsTgt);
 			if (bWriteOK)
 				resultTgt = 0; // 0 means same as wxExecute() success
 			else // bWriteOK was FALSE
@@ -613,10 +620,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
 			wxString beProjPathFreeTrans;
 			beProjPathFreeTrans = beProjPath + m_pApp->PathSeparator + shortProjNameFreeTrans;
-			int chNum = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
 			bool bWriteOK;
 			wxString fullBookName = m_TempCollabBookSelected;
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathFreeTrans, fullBookName, chNum, freeTransTempFileName, errorsFreeTrans);
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathFreeTrans, fullBookName, chNumForBEDirect, freeTransTempFileName, errorsFreeTrans);
 			if (bWriteOK)
 				resultFreeTrans = 0; // 0 means same as wxExecute() success
 			else // bWriteOK was FALSE
@@ -1505,16 +1511,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxString beProjPathSrc, beProjPathTgt;
 		beProjPathSrc = beProjPath + m_pApp->PathSeparator + sourceProjShortName;
 		beProjPathTgt = beProjPath + m_pApp->PathSeparator + targetProjShortName;
-		int chNum = -1; // for Bibledit to get whole book
+		int chNumForBEDirect = -1; // for Bibledit to get whole book
 		bool bWriteOK;
-		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNum, sourceTempFileName, errorsSrc);
+		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, sourceTempFileName, errorsSrc);
 		if (bWriteOK)
 			resultSrc = 0; // 0 means same as wxExecute() success
 		else // bWriteOK was FALSE
 			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
 		if (resultSrc == 0)
 		{
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNum, targetTempFileName, errorsTgt);
+			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNumForBEDirect, targetTempFileName, errorsTgt);
 			if (bWriteOK)
 				resultTgt = 0; // 0 means same as wxExecute() success
 			else // bWriteOK was FALSE
