@@ -76,6 +76,7 @@ extern int  gnBeginInsertionsSequNum;
 extern int  gnEndInsertionsSequNum;
 extern bool gbTryingMRUOpen;
 extern bool gbConsistencyCheckCurrent;
+extern bool gbDoingInitialSetup;
 
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -201,6 +202,10 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	pApp->m_bEarlierProjectChosen = FALSE;
 	pApp->m_lastDocPath.Empty();
 
+	// must have this off, if it is left TRUE and we get to end of doc, RecalcLayout() may
+	// fail if the phrase box is not in existence
+	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
+
 	// open the two knowledge bases and load their contents;
 	pApp->m_pKB = new CKB(FALSE);
 	wxASSERT(pApp->m_pKB != NULL);
@@ -316,6 +321,9 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	
 	// mark document as modified
 	pDoc->Modify(TRUE);
+
+	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
+			// fail after phrase box gets past end of doc
 
 	// do this too... (from DocPage.cpp line 839)
 	CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
@@ -647,6 +655,9 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		wxBell();
 		return TRUE;
 	}
+	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
+			// fail after phrase box gets past end of doc
+
 	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
 	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
 	bool bBookMode;
@@ -1044,6 +1055,8 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 							pApp->m_curProjectPath, projectConfigFile);
 	bOK = bOK; // ignore errors (shouldn't fail anyway), 
 			   // and avoid compiler warning
+	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
+			// fail after phrase box gets past end of doc
 	return TRUE;
 }
 
@@ -2262,7 +2275,7 @@ void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap)
 ///                                 will be for the chunk following this
 ///                                 currently-being-delineated one.
 ////////////////////////////////////////////////////////////////////////////////////////// 
-void GetNextVerse_ForChunk(const wxArrayString& md5Array, const wxString& originalText, 
+void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& originalText, 
 				const int& curLineVerseInArr, const int& curOffsetVerseInText, 
 				int& endLineVerseInArr, int& endOffsetVerseInText, int& chapterLineIndex)
 {
