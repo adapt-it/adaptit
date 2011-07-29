@@ -3570,7 +3570,7 @@ void DoExportInterlinearRTF()
 	// 
 	// We now have all the info to output the entire RTF Header for Interlinear
 	// RTF output. Most of this header is similar to the non-interlinear
-	// RTF output of the Source and/or Translation texts.
+	// RTF output of the Source and/or Translation drafts.
 	// Build the header string
 	hstr = _T("{") // The whole RTF file must be enclosed in {}
 			+Hrtf1+Hcharset+Hcodepg+HUnicodeNumBytes+Hdeffont+gpApp->m_eolStr //_T("\n") // the basic header line
