@@ -7106,12 +7106,8 @@ bool CAdapt_ItDoc::IsPrevCharANewline(wxChar* ptr, wxChar* pBufStart)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
-	// BEW 29Jul11, support ZWSP (zero-width space character, U+200B) as well
-	wxChar ZWSP = (wxChar)0x200B;
-	if (*pChar == ZWSP)
-		return TRUE;
+	// returns true for tab 0x09, return 0x0D or space 0x20
 
-	// next bit returns true for tab 0x09, return 0x0D or space 0x20...
 	// _istspace not recognized by g++ under Linux
 	if (wxIsspace(*pChar) == 0)
 		return FALSE;
