@@ -38,6 +38,7 @@ public:
 	wxStaticText* pStaticSelectAChapter;
 	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnCancel;
+	wxButton* pBtnOK;
 
 	// The following m_Temp... variables are used while the dialog is active until
 	// the user clicks on OK. In the OnOK() handler the Apps persistent values are
