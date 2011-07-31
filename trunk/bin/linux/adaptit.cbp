@@ -43,7 +43,6 @@
 			<Add option="-Wall" />
 			<Add directory="$(WXWIN)/include" />
 			<Add directory="$(WXWIN)/contrib/include" />
-			<Add directory="${BOOST_ROOT}" />
 		</Compiler>
 		<Unit filename="../../res/32x32/adaptit.png" />
 		<Unit filename="../../res/48x48/adaptit.png" />
