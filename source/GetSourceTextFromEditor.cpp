@@ -204,7 +204,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		wxString projShortName;
 		projShortName = projList.Item(ct);
-		projShortName = GetShortNameFromLBProjectItem(projShortName);
+		projShortName = GetShortNameFromProjectName(projShortName);
 		pComboSourceProjectName->Append(projList.Item(ct));
 		// We must restrict the list of potential destination projects to those
 		// which have the <Editable>T</Editable> attribute
@@ -456,7 +456,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	{
 		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION);
 		pListCtrlChapterNumberAndStatus->SetFocus();
-		return; // don't accept any changes until a book is selected
+		return; // don't accept any changes until a chapter is selected
 	}
 
 	CAdapt_ItView* pView = m_pApp->GetView();
@@ -464,14 +464,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
 
-	// save new project selection to the App's variables for writing to config file
-	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
-	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
-	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
-	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
-	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
-	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
-	m_pApp->m_CollabChapterSelected = m_TempCollabChapterSelected;
 	wxString bareChapterSelectedStr;
 	int chSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (chSel != wxNOT_FOUND)
@@ -486,199 +478,133 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	bareChapterSelectedStr << chSel;
 	wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
 	wxASSERT(bareChapterSelectedStr == derivedChStr);
-	
+
+	// save new project selection to the App's variables for writing to config file
+	// BEW 1Aug11, moved this block of assignments to after bareChapterSelectedStr is set
+	// just above, otherwise the value that m_CollabChapterSelected is that which came
+	// from reading the config file, not from what the user chose in the dialog (or so the
+	// code seems to be saying, but if I'm wrong, this move is harmless)
+	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
+	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
+	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
+	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
+	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
+	m_pApp->m_CollabChapterSelected = bareChapterSelectedStr;
+
 	// Set up (or access any existing) project for the selected book/chapter
 	// How this is handled will depend on whether the book/chapter selected
 	// amounts to an existing AI project or not
-	wxString shortProjNameSrc, shortProjNameTgt, shortProjNameFreeTrans;
-	shortProjNameSrc = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForSourceInputs);
-	shortProjNameTgt = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForTargetExports);
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
-	{
-		shortProjNameFreeTrans = this->GetShortNameFromLBProjectItem(m_pApp->m_CollabProjectForFreeTransExports);
-	}
+	
 	// whm Note: We don't import or merge a free translation text; BEW added 4Jul11, but
 	// we do need to get it so as to be able to compare it later with any changes to the
-	// free translation (if, of course, there is one defined in the document) - so that
-	// the conflict resolution dialog can operate in this situation as it would for
-	// conflicts in the target text
+	// free translation (if, of course, there is one defined in the document) BEW 1Aug11,
+	// removed the comment here about conflict resolution dialog- we won't be needing one
+	// in our new design, but we do need to get the free translation text if it exists,
+	// since our algorithms compare and make changes etc.
 
 	// Get the latest version of the source and target texts from the PT project. We retrieve
 	// only texts for the selected chapter. Also get free translation text, if it exists
 	// and user wants free translation supported in the transfers of data
-	// whm modified 27Jul11 to handle whole book filename creation (which does not
-	// have the _CHnn chapter part in it.
-	wxString chStrForFilename;
-	if (m_bTempCollabByChapterOnly)
-		chStrForFilename = bareChapterSelectedStr;
-	else
-		chStrForFilename = _T("");
-	wxString tempFolder;
-	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_TempCollabBookSelected);;
-	tempFolder = m_pApp->m_workFolderPath + m_pApp->PathSeparator + _T(".temp");
-	wxString sourceTempFileName;
-	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
-	sourceTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameSrc, chStrForFilename, _T(".tmp"));
-	wxString targetTempFileName;
-	targetTempFileName = tempFolder + m_pApp->PathSeparator;
-	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameTgt, chStrForFilename, _T(".tmp"));
-	wxString freeTransTempFileName; freeTransTempFileName.Empty();
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
-	{
-		freeTransTempFileName = tempFolder + m_pApp->PathSeparator;
-		freeTransTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameFreeTrans, chStrForFilename, _T(".tmp"));
-	}
 	
 	// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-gtk.
 	// whm modified 27Jul11 to pass _T("0") for whole book retrieval on the command-line
-	wxString chStrForCommandLine;
-	if (m_bTempCollabByChapterOnly)
-		chStrForCommandLine = bareChapterSelectedStr;
-	else
-		chStrForCommandLine = _T("0");
+	/* not needed here, TransferTextBetweenAdaptItAndExternalEditor() does it all
 	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
+	commandLineSrc = BuildCommandLineFor(reading, collab_source_text);
+	commandLineTgt = BuildCommandLineFor(reading, collab_target_text);
 	commandLineFreeTrans.Empty();
-	if (m_pApp->m_bCollaboratingWithParatext)
-	{
-		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-	}
-	else if (m_pApp->m_bCollaboratingWithBibledit)
-	{
-		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-	}
 	if (m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
-		if (m_pApp->m_bCollaboratingWithParatext)
-		{
-			commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			commandLineFreeTrans = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
-		}
+		commandLineFreeTrans = BuildCommandLineFor(reading, collab_freeTrans_text);
 	}
 	wxLogDebug(commandLineSrc);
+	*/
 
+	// BEW 1Aug11  ** NOTE **
+	// We only need to get the target text, and the free trans text if expected, at the
+	// time a File / Save is done. (However, OnLBBookSelected() will, when the user makes
+	// his choice of book, automatically get the target text for the whole book, even if
+	// he subsequently takes the "Get Chapter Only" radio button option, because we want
+	// the whole book's list of chapters and how much work has been done in any to be
+	// shown to the user in the dialog -- as an aid to help him make an intelligent
+	// choice.)
 	long resultSrc = -1;
-	long resultTgt = -1;
-	long resultFreeTrans = -1;
-    wxArrayString outputSrc, errorsSrc;
-	wxArrayString outputTgt, errorsTgt;
-	wxArrayString outputFreeTrans, errorsFreeTrans;
-	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
-	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
-	// from/to its project data files.
-	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
-	// files (not using command-line interface.
-	int chNumForBEDirect = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
-	if (chNumForBEDirect == 0)
-	{
-		// 0 is the Paratext parameter value for whole book, but we change this to -1
-		// for Bibledit whole book collection in the CopyTextFromBibleditDataToTempFolder()
-		// function call below.
-		chNumForBEDirect = -1;
-	}
-	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
-	{
-		// Use the wxExecute() override that takes the two wxStringArray parameters. This
-		// also redirects the output and suppresses the dos console window during execution.
-		resultSrc = ::wxExecute(commandLineSrc,outputSrc,errorsSrc);
-		if (resultSrc == 0)
-		{
-			resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
+	wxArrayString outputSrc, errorsSrc;
+	TransferTextBetweenAdaptItAndExternalEditor(reading, collab_source_text, outputSrc, 
+								errorsSrc, resultSrc);
+    // comment out the Transfer...() call for the target text, and also for the free trans
+	// text, we don't need them at this point - but later when File / Save is invoked; and
+	// comment out their error handling code too until such time as we need it
+	//long resultTgt = -1;
+	//wxArrayString outputTgt, errorsTgt;
+	//if (resultSrc == 0)
+	//{
+	//	TransferTextBetweenAdaptItAndExternalEditor(reading, collab_target_text, outputTgt, 
+	//							errorsTgt, resultTgt);
+	//}
 
-		}
-	}
-	else if (m_pApp->m_bCollaboratingWithBibledit)
-	{
-		// whm 27Jul11 TODO: modify code below to retrieve whole chapter if m_bTempCollabByChapterOnly is FALSE
-		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
-		wxString beProjPathSrc, beProjPathTgt;
-		beProjPathSrc = beProjPath + m_pApp->PathSeparator + shortProjNameSrc;
-		beProjPathTgt = beProjPath + m_pApp->PathSeparator + shortProjNameTgt;
-		bool bWriteOK;
-		wxString fullBookName = m_TempCollabBookSelected;
-		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, sourceTempFileName, errorsSrc);
-		if (bWriteOK)
-			resultSrc = 0; // 0 means same as wxExecute() success
-		else // bWriteOK was FALSE
-			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
-		if (resultSrc == 0)
-		{
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNumForBEDirect, targetTempFileName, errorsTgt);
-			if (bWriteOK)
-				resultTgt = 0; // 0 means same as wxExecute() success
-			else // bWriteOK was FALSE
-				resultTgt = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
-		}
-	}
-	// get any free translation too, if the expectation is to support it
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
-	{
-		if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
-		{
-			resultFreeTrans = ::wxExecute(commandLineFreeTrans,outputFreeTrans,errorsFreeTrans);
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			// whm 27Jul11 TODO: modify code below to retrieve whole chapter if m_bTempCollabByChapterOnly is FALSE
-			wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
-			wxString beProjPathFreeTrans;
-			beProjPathFreeTrans = beProjPath + m_pApp->PathSeparator + shortProjNameFreeTrans;
-			bool bWriteOK;
-			wxString fullBookName = m_TempCollabBookSelected;
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathFreeTrans, fullBookName, chNumForBEDirect, freeTransTempFileName, errorsFreeTrans);
-			if (bWriteOK)
-				resultFreeTrans = 0; // 0 means same as wxExecute() success
-			else // bWriteOK was FALSE
-				resultFreeTrans = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
-		}
-	}
-	if (resultSrc != 0 || resultTgt != 0)
+	//long resultFreeTrans = -1;
+	//wxArrayString outputFreeTrans, errorsFreeTrans;
+	//if (m_pApp->m_bCollaborationExpectsFreeTrans && resultSrc == 0 && resultTgt == 0)
+	//{
+	//	TransferTextBetweenAdaptItAndExternalEditor(reading, collab_freeTrans_text, 
+	//							outputfreeTrans, errorsfreeTrans, resultfreeTrans);
+	//}
+
+	if (resultSrc != 0)
 	{
 		// not likely to happen so an English warning will suffice
 		wxMessageBox(_T("Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
 		wxString temp;
-		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
+		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d "),resultSrc);
 		m_pApp->LogUserAction(temp);
 		wxLogDebug(temp);
 		int ct;
-		if (resultSrc != 0)
+		temp.Empty();
+		for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
 		{
-			temp.Empty();
-			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
-			{
-				temp += outputSrc.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
-			{
-				temp += errorsSrc.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
+			temp += outputSrc.Item(ct);
+			m_pApp->LogUserAction(temp);
+			wxLogDebug(temp);
 		}
-		if (resultTgt != 0)
+		for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
 		{
-			temp.Empty();
-			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
-			{
-				temp += outputTgt.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
-			{
-				temp += errorsTgt.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
+			temp += errorsSrc.Item(ct);
+			m_pApp->LogUserAction(temp);
+			wxLogDebug(temp);
+		}
+		pListBoxBookNames->SetSelection(-1); // remove any selection
+		// clear lists and static text box at bottom of dialog
+		pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		return;
+	}
+	/*  
+    // *** DON'T DELETE ***   Copy this error handling code to the handler which supports 
+    // File / Save, as that is when we have to do the target text read from the external
+    // editor, and ditto for free translation if the free translation is expected to be
+    // part of the data transfers
+    
+	if (resultTgt != 0)
+	{
+		// not likely to happen so an English warning will suffice
+		wxMessageBox(_T("Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+		wxString temp;
+		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultTgt = %d"),resultTgt);
+		wxString temp.Empty();
+		for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
+		{
+			temp += outputTgt.Item(ct);
+			m_pApp->LogUserAction(temp);
+			wxLogDebug(temp);
+		}
+		for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
+		{
+			temp += errorsTgt.Item(ct);
+			m_pApp->LogUserAction(temp);
+			wxLogDebug(temp);
 		}
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		// clear lists and static text box at bottom of dialog
@@ -714,6 +640,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		return;
 	} // end of TRUE block for test: if (m_pApp->m_bCollaborationExpectsFreeTrans && resultFreeTrans != 0)
+	*/
 
 	// whm Note to Bruce 27Jul11:
 	// I've made the list boxes and other elements of the GUI adjust for the
@@ -732,12 +659,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// been any changes since we last opened the AI document for that chapter. If there have been 
 	// changes, we can do a silent automatic merge of the edited source text with the corresponding 
 	// AI document, or
-	// (2) just always do a merge using Bruce's routines in MergeUpdatedSrc.cpp, regardless of
-	// whether there has been a change in the source text or not. This may be the preferred 
-	// option for chapter-sized text documents.
-	// *** We need to always do (2), (1) is dangerous because the user may elect not to
-	// send adaptations back to PT, and that can get the saved source in __SOURCE_INPUTS
-	// out of sync with the source text in the CSourcePhrases of the doc as at an earlier state
+    // (2) just always do a merge using Bruce's routines in MergeUpdatedSrc.cpp, regardless
+    // of whether there has been a change in the source text or not. This may be the
+    // preferred option for chapter-sized text documents.
+    // *** We need to always do (2), (1) is dangerous because the user may elect not to
+    //     send adaptations back to PT (BEW 1Aug11 -- I don't it would matter, but doing
+    //     the merge is about the same level of complexity/processingtime as the checksums,
+    //     so I'll leave it that we do the merge automatically), and that can get the saved
+    //     source in __SOURCE_INPUTS out of sync with the source text in the CSourcePhrases
+    //     of the doc as at an earlier state
 
 	// if free translation transfer is wanted, any free translation grabbed from the
 	// nominated 3rd project in PT or BE is to be stored in _FREETRANS_OUTPUTS folder
@@ -747,48 +677,143 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
 	// UNICODE BOM of ef bb bf (we store BOM-less data, but we convert to UTF-16 first,
 	// and remove the utf16 BOM, 0xFF 0xFE, before we store the utf-16 text later below)
-	
-	// sourceTempFileName is actually an absolute path to the file, not just a name
-	// string, ditto for targetTempFileName etc. Also, store the texts (these are pre-edit)
-	// in the private app member strings m_sourceChapterBuffer_PreEdit, etc
-	sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
-	m_pApp->StoreSourceChapter_PreEdit(sourceChapterBuffer);
-	targetChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName);
-	m_pApp->StoreTargetChapter_PreEdit(targetChapterBuffer);
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
-	{
-		// this might return an empty string
-		freeTransChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(freeTransTempFileName);
-		m_pApp->StoreFreeTransChapter_PreEdit(freeTransChapterBuffer);
-	}
 
-	SourceChapterUsfmStructureAndExtentArray.Clear();
-	SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
-	TargetChapterUsfmStructureAndExtentArray.Clear();
-	TargetChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetChapterBuffer);
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
+	// Explanatory Notes....
+	// SourceTempFileName is actually an absolute path to the file, not just a name
+	// string, ditto for targetTempFileName etc. Store the target texts (these are pre-edit)
+	// in the private app member strings m_sourceChapterBuffer_PreEdit, etc
+	// 
+	// BEW note on 1Aug11, (1) the *_PreEdit member variables on the app class store the
+	// target text and free translation text as they are at the start of a editing session
+	// - that is, when the doc is just constituted, and updated after each File / Save.
+	// The text in them is generated by doing the appropriate export from the document.
+	// (2) There isn't, unlike I previously thought, a 2-text versus 3-text distinction,
+	// there is only a 3-text distinction. We need to always store the pre-edit adaptation
+	// and free translation (if expected) for comparison purposes, even if they are empty
+	// of all but USFMs. (3) We may have to pick up working on an adaptation after some
+	// data has already been adapted, so we can't rely totally on the difference between
+	// pre-edit and post-edit being zero as indicating that the text to be sent to the
+	// external editor at that point doesn't need changing; if the latter is empty, we
+	// still have to copy to it at that point in the document. (4) the storage for 
+	// pre-edit texts being on the app class mean that the pre-edit versions of the
+	// target text and free translation text will disappear if the app is closed down.
+	// However, the app will ask for a File / Save if the doc is dirty, and that will
+	// (if answered in the affirmative) guarantee the pre-edit versions are used for
+	// informing the Save operation, and then they can be thrown away safely (they get
+	// updated anyway at that time, if the app isn't closing down). (5) The user changing
+	// the USFM structure (e.g introducing markers, or forming bridged verses etc) is a
+	// very high cost action - it changes the MD5 checksums even if no words are altered,
+	// and so we have to process that situation with much more complex code. (6) No 
+	// editing of the source text or USFM structure is permitted in AI during collaboration.
+	// Hence, the pre-edit and post-edit versions of the adaptation and free translation
+	// can be relied on to have the same USFM structure. However, the from-PT or from_BE
+	// adaptation or free translation can have USFM edits done in the external editor, so
+	// this possibility (being more complex - see (5) above, has to be dealt with 
+	// separately)
+
+    // Get the pre-edit free translation and target text stored in the app's member
+    // variables - these pre-edit versions are needed at File / Save time. Also get the
+    // from-external-editor grabbed USFM source text into the sourceChapterBuffer, or if
+    // whole-book adapting, the sourceWholeBookBuffer; & later below it is transferred to a
+    // persistent file in __SOURCE_INPUTS - because a new session will look there for the
+    // earlier source text in order to compare with what is coming from the external editor
+    // in the new session
+	wxString sourceTempFileName = MakePathToFileInTempFolder_For_Collab(collab_source_text); // understands
+			// the difference between chapter and wholebook filenames & builds accordingly
+	
+	// we could do the next bit without the test of the m_CollabByChapterOnly flag, but
+	// we'd need to avoid using Bill's declared class members, so we'll use them & keep
+	// the test
+	if (m_pApp->m_bCollabByChapterOnly)
 	{
-		FreeTransChapterUsfmStructureAndExtentArray.Clear();
-		if (!freeTransChapterBuffer.IsEmpty())
+		// sourceChapterBuffer, a wxString, stores temporarily the USFM source text
+		// until we further below have finished with it and store it in the
+		// __SOURCE_INPUTS folder
+		sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
+
+		// targetChapterBuff, a wxString, stores temporarily the USFM target text as
+		// exported from the document prior to the user doing any work, and we store it
+        // persistently in the app private member m_targetTextBuffer_PreEdit; the
+        // post-edit translation will be compared to it at the next File / Save - after
+        // which the post-edit translation will replace the one held in
+        // m_targetTextBuffer_PreEdit
+		targetChapterBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
+		m_pApp->StoreTargetText_PreEdit(targetChapterBuffer);
+
+		// likewise, if free translation transfer is expected, we get the pre-edit free
+		// translation exported and stored in app's private m_freeTransTextBuffer_PreEdit
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
 		{
-			FreeTransChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransChapterBuffer);
+			// this might return an empty string, or USFMs only string, if no work has yet
+			// been done on the free translation
+			freeTransChapterBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
+			m_pApp->StoreFreeTransText_PreEdit(freeTransChapterBuffer);
 		}
 	}
+	else
+	{
+		// BEW added 1Aug11, whole book was requested, the comments in the TRUE block
+		// above explain what is going on here, the only difference is that here we are
+		// dealing with a document which is a whole book
+		sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
 
-	// At this point the source text chapter text resides in the sourceChapterBuffer wxString buffer.
-	// At this point the target text chapter text resides in the targetChapterBuffer wxString buffer.
-	// At this point the free translation chapter text resides in the freeTransChapterBuffer wxString buffer.
-	// 
-	// At this point the structure of the source text is in SourceChapterUsfmStructureAndExtentArray.
-	// At this point the structure of the target text is in TargetChapterUsfmStructureAndExtentArray.
-	// And if free translations are to be transferred and there was one in PT or BE...
-	// At this point the structure of the free translation text is in FreeTransChapterUsfmStructureAndExtentArray.
+		targetWholeBookBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
+		m_pApp->StoreTargetText_PreEdit(targetWholeBookBuffer);
+
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			// this might return an empty string, or USFMs only string, if no work has yet
+			// been done on the free translation
+			freeTransWholeBookBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
+			m_pApp->StoreFreeTransText_PreEdit(freeTransWholeBookBuffer);
+		}
+	}
 	
-    // this next block, which saves the free trans in _FREETRANS_OUTPUTS, is as far as we
-    // take the free translation, the code next looks at it if and when the user has
-    // produced some in the AI doc, or edited the free translation in the AI doc, and we
-    // want to transfer the free translation to PT or BE (and may possibly need to use the
-    // conflict resolution dialog
+	// DO NOT REMOVE THE COMMENTED OUT CODE BELOW- WE WILL LATER USE BITS OF IT ELSEWHERE
+	// BEW removed these lines 1Aug11, because the string storage will disappear when the
+	// dialog closes, and we need the checksums not now, but later at the next File/Save
+	/*
+	// Make structure&extents arrays
+	if (m_pApp->m_bCollabByChapterOnly)
+	{
+		SourceChapterUsfmStructureAndExtentArray.Clear();
+		SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
+		TargetChapterUsfmStructureAndExtentArray.Clear();
+		TargetChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetChapterBuffer);
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			FreeTransChapterUsfmStructureAndExtentArray.Clear();
+			if (!freeTransChapterBuffer.IsEmpty())
+			{
+				FreeTransChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransChapterBuffer);
+			}
+		}
+	}
+	else
+	{
+		// BEW added 1Aug11, whole book was requested, so we use different members for storage
+		SourceTextUsfmStructureAndExtentArray.Clear();
+		SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
+		TargetTextUsfmStructureAndExtentArray.Clear();
+		TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			FreeTransTextUsfmStructureAndExtentArray.Clear();
+			if (!freeTransWholeBookBuffer.IsEmpty())
+			{
+				FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer);
+			}
+		}
+	}
+	*/
+
+	/* 
+	// deprecated, we will store the post-edit free translation not in _FREETRANS_OUTPUTS,
+	// but rather in a local variable while we use it at File / Save time, and then transfer
+	// it to the free translation pre-edit wxString on the app. It won't ever be put in
+	// the _FREETRANS_OUTPUTS folder. Only non-collaboration free translation exports will
+	// go there.
+	// KEEP THIS TEMPORARILY, IT MAY BE USEFUL TO CLONE FROM
 	if (m_pApp->m_bCollaborationExpectsFreeTrans && !freeTransChapterBuffer.IsEmpty())
 	{
 		wxString pathCreationErrors;
@@ -805,6 +830,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			_T(""), wxICON_WARNING);
 		}
 	}
+	*/
+	
+	// code for setting up the Adapt It project etc requires the following data be
+	// accessible
+	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_pApp->m_CollabBookSelected);
+	// we need to create standard filenames, so the following need to be calculated
+	wxString shortProjNameSrc, shortProjNameTgt;
+	shortProjNameSrc = GetShortNameFromProjectName(m_pApp->m_CollabProjectForSourceInputs);
+	shortProjNameTgt = GetShortNameFromProjectName(m_pApp->m_CollabProjectForTargetExports);
 
 	// update status bar
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar();
@@ -830,6 +864,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// the project complete with project config file, empty KB, etc., using the information gleaned
 	// from the PT source and PT target projects (i.e. language names, font choices and sizes,...) 
 	bool bCollaborationUsingExistingAIProject;
+
 	// BEW added 21Jun11, provide a storage location for the Adapt It project folder's
 	// name, in the event that we successfully obtain a matchup from the
 	// CollabProjectsExistAsAIProject() call below (aiMatchedProjectFolder will be an empty
@@ -868,24 +903,22 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    and m_targetStr members of the CSourcePhrase instances list from which it
 		//    was once generated. That's an interactive process we've not yet designed or
 		//    implemented, and may never do so. 
-        //    The conflict resolution dialog can only be used at the point that the user
+        //    Any conflict resolution dialog could only be used at the point that the user
         //    has signed off on his interlinear edits (done via the AI phrase box) for the
         //    whole chapter. It's then that the check of the new export of the target text
-        //    get's checked against whatever is the chapter's text currently in Paratext or
-        //    Bibledit - and at that point, any conflicts noted will have to be resolved on
-        //    a per-conflict basis, verse by verse, until all conflicts in the chapter have
-        //    been resolved - at which point the final versions of the verses are sent as
-        //    the single chapter back to the native PT or BE storage in the target PT or BE
-        //    project. 
+        //    would get checked against whatever is the chapter's text currently in
+        //    Paratext or Bibledit - and at that point, any conflicts noted will have to be
+        //    resolved. 
+		//    BEEW 1Aug11, changed comment, as we won't support a conflict resolution
+		//    dialog. We will get the target or free trans text from the external editor
+		//    at the start of the handler for File / Save, and that's when we'll do our
+		//    GUI-less comparisons and updating.
+        //     
         //    The appropriate time that we should grab the PT or BE target project's
-        //    chapter should be as late as possible, just in case the user flips back to
-        //    the running PT or BE editor and changes the target text there some more
-        //    before flipping back to AI to have his work sent back to PT or BE, so that
-        //    there is some hope that what we grab from PT or BE may have been saved to the
-        //    repository before the chapter flows back from AI updated - failure to do the
-        //    mercurial commit would make the AI changes coming back look like a conflict
-        //    resolution to be resolved in PT or BE, and we would like to avoid that, but
-        //    can't do anything to prevent it if the user breaks the rules.
+		//    chapter should be as late as possible, so we do it at File / Save. We check
+		//    PT or BE is not running before we allow the transfer to happen - this way we
+		//    avoid DVCS conflicts if the user happens to have made some edits back in the
+		//    external editor while the AI session is in progress.
 		//    
 		// 7. BEW added this note 27Ju11. We have to ALWAYS do a resursive merge of the
 		//    source text obtained from Paratext or Bibledit whenever there is an already
@@ -895,24 +928,24 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    has the option to do so or not, our code unilaterally copies the input (new)
 		//    source text which lead to the AI document he claimed to save, to the
 		//    __SOURCE_INPUTS folder. So the source text in AI is not in sync with what
-		//    the source text in the (old) document in AI is. This then becomes a problem
-		//    if he later in AI re-gets that source text (unchanged) from PT or BE. If we tested it
-		//    for differences with what AI is storing for the source text, it would then detect no
-		//    differences - because he's not made any, and if we used the result of that test as grounds for not
-		//    bothering with a recursive merge of the source text to the document, then
-		//    the (old) document would get opened and it would NOT reflect any of the
-		//    changes which the user actually did at some earlier time to that source
-		//    text. We can't let this happen. So either we have to delay moving the new
-		//    source text to the __SOURCE_INPUTS folder until the user has actually saved
-		//    the document rebuilt by merger or the edited source text (which is difficult
-		//    to do and is a cumbersome design), or, and this is far better, we
-		//    unilaterally do a source text merger every time the source text is grabbed
-		//    from PT or BE -- then we can be sure any changes, no matter whether the user
-		//    saved the doc previously or not, will make it into the doc before it is
-		//    displayed in the view window. We therefore use the MD5 checksum tests only
-		//    for determining which message to show the user, but not also for determining
-		//    whether or not to merge source text to the current document when source has
-		//    just been grabbed from PT or BE.
+        //    the source text in the (old) document in AI is. This then becomes a problem
+        //    if he later in AI re-gets that source text (unchanged) from PT or BE. If we
+        //    tested it for differences with what AI is storing for the source text, it
+        //    would then detect no differences - because he's not made any, and if we used
+        //    the result of that test as grounds for not bothering with a recursive merge
+        //    of the source text to the document, then the (old) document would get opened
+        //    and it would NOT reflect any of the changes which the user actually did at
+        //    some earlier time to that source text. We can't let this happen. So either we
+        //    have to delay moving the new source text to the __SOURCE_INPUTS folder until
+        //    the user has actually saved the document rebuilt by merger or the edited
+        //    source text (which is difficult to do and is a cumbersome design), or, and
+        //    this is far better, we unilaterally do a source text merger every time the
+        //    source text is grabbed from PT or BE -- then we can be sure any changes, no
+        //    matter whether the user saved the doc previously or not, will make it into
+        //    the doc before it is displayed in the view window. We therefore use the MD5
+        //    checksum tests only for determining which message to show the user, but not
+        //    also for determining whether or not to merge source text to the current
+        //    document when source has just been grabbed from PT or BE.
 		
 		// first, get the project hooked up, if there is indeed one pre-existing for the
 		// given language pair; if not, we create a new project
@@ -939,7 +972,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 							bookCode, _T(""), chForDocName, _T(""));
 			documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
 							bookCode, _T(""), chForDocName, _T(".xml"));
-			// create the absolute path to the document we are checking for
+			// create the absolute path to the document we are checking for the existence of
 			wxString docPath = aiMatchedProjectFolderPath + m_pApp->PathSeparator
 				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator
 				+ documentName;
@@ -969,6 +1002,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                 // temporary...
                 wxString oldSrcText = GetTextFromFileInFolder(m_pApp, 
 											m_pApp->m_sourceInputsFolderPath, docTitle);
+				// LHS of next 3 lines are private members of CGetSourceTextFromEditorDlg class
 				m_bTextOrPunctsChanged = IsTextOrPunctsChanged(oldSrcText, sourceChapterBuffer);
 				m_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, sourceChapterBuffer);
 				m_bUsfmStructureChanged = m_bUsfmStructureChanged; // avoid compiler warning
@@ -977,7 +1011,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// for safety's sake, turn off copying of the source text, but tell the
 					// user below that he can turn it back on if he wants
 					m_pApp->m_bSaveCopySourceFlag_For_Collaboration = m_pApp->m_bCopySource;
-					//m_pApp->m_bCopySource = FALSE;
 					wxCommandEvent dummy;
 					pView->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
 				}
@@ -1044,20 +1077,21 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// alone, and delete pSourcePhrases list itself
 					pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
 					delete pSourcePhrases;
-					// the single-chapter document is now ready for displaying in the view window
+					// the single-chapter or whole-book document is now ready for displaying 
+					// in the view window
 				}
 
 				SetupLayoutAndView(m_pApp, docTitle);
 
-                // 5. Copy the just-grabbed chapter source text from the .temp folder over
-                // to the Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS
-                // folder if it doesn't already exist). Note, the source text in
-                // sourceChapterBuffer has had its initial BOM removed. We never store the
-                // BOM permanently. Internally MoveTextToFolderAndSave() will add .txt
-                // extension to the docTitle string, to form the correct filename for
-				// saving. Since the AI project already exists, the
-				// m_sourceInputsFolderName member of the app class will point to an
-				// already created __SOURCE_INPUTS folder in the project folder.
+                // 5. Copy the just-grabbed chapter or book source text from the .temp
+                // folder over to the Project's __SOURCE_INPUTS folder (creating the
+                // __SOURCE_INPUTS folder if it doesn't already exist). Note, the source
+                // text in sourceChapterBuffer has had its initial BOM removed. We never
+                // store the BOM permanently. Internally MoveTextToFolderAndSave() will add
+                // .txt extension to the docTitle string, to form the correct filename for
+                // saving. Since the AI project already exists, the
+                // m_sourceInputsFolderName member of the app class will point to an
+                // already created __SOURCE_INPUTS folder in the project folder.
 				wxString pathCreationErrors;
 				bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
 										pathCreationErrors, sourceChapterBuffer, docTitle);
@@ -1145,13 +1179,13 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         //    need to ensure that book folder mode stays turned on when PT collaboration
         //    was turned off.
 		// 3. Compose an appropriate document name to be used for the document that will
-		//    contain the chapter grabbed from the PT source project's book.
+		//    contain the chapter or book grabbed from the PT or BE source project.
 		// 4. Create the document by parsing/tokenizing the string now existing in our 
 		//    sourceChapterBuffer, saving it's xml form to disk, and laying the doc out in 
 		//    the main window.
-		// 5. Copy the just-grabbed chapter source text from the .temp folder over to the
-        //    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it
-        //    doesn't already exist).
+        // 5. Copy the just-grabbed chapter source text or book source text from the .temp
+        //    folder over to the Project's __SOURCE_INPUTS folder (creating the
+        //    __SOURCE_INPUTS folder if it doesn't already exist).
 		
 		// Step 1 & 2
 		bool bDisableBookMode = TRUE;
@@ -1188,7 +1222,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 						bookCode, _T(""), chForDocName, _T(""));
 		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
 						bookCode, _T(""), chForDocName, _T(".xml"));
-		// create the absolute path to the document we are checking for
+		// create the absolute path to the document we are checking for the existence of
 		wxString docPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator
 			+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator + documentName;
 		// set the member used for creating the document name for saving to disk
@@ -1217,7 +1251,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			// alone, and delete pSourcePhrases list itself
 			pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
 			delete pSourcePhrases;
-			// the single-chapter document is now ready for displaying in the view window
+			// the single-chapter or whole-book document is now ready for displaying 
+			// in the view window
 		}
 
 		SetupLayoutAndView(m_pApp, docTitle);
@@ -1313,6 +1348,15 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEven
 	// selections for source and/or target project changes.
 }
 
+// BEW 1Aug11 **** NOTE ****
+// The code for obtaining the source and target text from the external editor, which in
+// this function, could be replaced by a single line call
+// TransferTextBetweenAdaptItAndExternalEditor() from CollabUtilities() EXCEPT for one
+// vital condition, namely: what is done here may be Cancelled by the user in the dialog,
+// and so the code here uses various temporary variables; whereas 
+// TransferTextBetweenAdaptItAndExternalEditor() accesses persistent (for the session)
+// variables stored on the app, which get populated only after the user has clicked the
+// dialog's OK button, hence invoking the OnOK() handler. 
 void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
 {
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
@@ -1462,8 +1506,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString targetProjShortName;
 	wxASSERT(!m_TempCollabProjectForSourceInputs.IsEmpty());
 	wxASSERT(!m_TempCollabProjectForTargetExports.IsEmpty());
-	sourceProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
-	targetProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
+	sourceProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
+	targetProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
 	// use our App's
 	
@@ -1598,6 +1642,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// verse status info (1:1:nnnn).
 	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
 	// UNICODE BOM of ef bb bf
+	// BEW changed 1Aug11 to use a function call to do the job, and have the BOM removed
+	/*
 	wxFile f_src(sourceTempFileName,wxFile::read);
 	wxFileOffset fileLenSrc;
 	fileLenSrc = f_src.Length();
@@ -1609,7 +1655,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	f_src.Close();
 	sourceWholeBookBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
 	free((void*)pSourceByteBuf);
+	*/
+	sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
 
+	/*
 	wxFile f_tgt(targetTempFileName,wxFile::read);
 	wxFileOffset fileLenTgt;
 	fileLenTgt = f_tgt.Length();
@@ -1623,6 +1672,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// Note: the wxConvUTF8 parameter above works UNICODE builds and does nothing
 	// in ANSI builds so this should work for both ANSI and Unicode data.
 	free((void*)pTargetByteBuf);
+	*/
+	targetWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName);
 
 	SourceTextUsfmStructureAndExtentArray.Clear();
 	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
@@ -2239,23 +2290,6 @@ bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxSt
 	return bAllVersesAreEmpty;
 }
 
-wxString CGetSourceTextFromEditorDlg::GetShortNameFromLBProjectItem(wxString LBProjItem)
-{
-	// the short name is the first field in the LBProjItem string
-	wxString collabProjShortName;
-	collabProjShortName.Empty();
-	int posColon;
-	posColon = LBProjItem.Find(_T(':'));
-	// Under Bibledit, the LBProjItem may not have any ':' chars. In such cases
-	// just return the incoming LBProjItem unchanged
-	if (!LBProjItem.IsEmpty() && posColon == wxNOT_FOUND)
-		return LBProjItem;
-	collabProjShortName = LBProjItem.Mid(0,posColon);
-	collabProjShortName.Trim(FALSE);
-	collabProjShortName.Trim(TRUE);
-	return collabProjShortName;
-}
-
 void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, wxArrayString& chapterList, wxArrayString& statusList)
 {
 	// Called from OnLBBookSelected().
@@ -2271,7 +2305,7 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 	wxString tempStr;
 	bool bChFound = FALSE;
 	bool bVsFound = FALSE;
-	wxString projShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
+	wxString projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 	Collab_Project_Info_Struct* pCollabInfo;
 	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
 															// pApp->m_pArrayOfCollabProjects
@@ -2391,7 +2425,7 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 	pStaticTextCtrlNote->ChangeValue(_T(""));
 
 	wxString collabProjShortName;
-	collabProjShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForSourceInputs);
+	collabProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
 	int ct, tot;
 	tot = (int)m_pApp->m_pArrayOfCollabProjects->GetCount();
 	wxString tempStr;
@@ -2496,7 +2530,7 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 	statusStr.Empty();
 	wxString emptyVersesStr;
 	emptyVersesStr.Empty();
-	wxString projShortName = GetShortNameFromLBProjectItem(m_TempCollabProjectForTargetExports);
+	wxString projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 	Collab_Project_Info_Struct* pCollabInfo;
 	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
 															// pApp->m_pArrayOfCollabProjects

@@ -3066,31 +3066,22 @@ public:
 	// other times besides when the dialog is in existence
 
 
-	// BEW added next 6 lines 10July, also the accessors for same immediately below them,
-    // for storing the USFM text strings received from an external editor such as Paratext
-    // or Bibledit, prior to their being edited by the user's adapting work -- they are
-    // needed for comparison of the before versus after state of such strings, although the
-    // comparisons will mostly be done with tokenized versions
+	// BEW added next 6 lines 10July, for storing and retrieving the USFM text strings for
+	// the exported target text, and exported free translation text, when collaborating
+	// with the external editor. The exports are done and stored here when the doc has
+	// just been built and before the user has any chance to change something, and the
+	// strings stored here are accessed at the next File / Save, used, and then replaced
+	// by the post-edit exports at the File / Save time. Of course, since stored here they
+	// can persist only for the life of the session, but since they need to persist only
+	// from Save to Save, or doc setup to next Save, that is sufficient.
 private:
-	wxString m_sourceChapterBuffer_PreEdit;
-	wxString m_targetChapterBuffer_PreEdit;
-	wxString m_freeTransChapterBuffer_PreEdit;
-	wxString m_sourceWholeBookBuffer_PreEdit;
-	wxString m_targetWholeBookBuffer_PreEdit;
-	wxString m_freeTransWholeBookBuffer_PreEdit;
+	wxString m_targetTextBuffer_PreEdit;
+	wxString m_freeTransTextBuffer_PreEdit;
 public:
-	void StoreSourceChapter_PreEdit(wxString s);
-	void StoreTargetChapter_PreEdit(wxString s);
-	void StoreFreeTransChapter_PreEdit(wxString s);
-	void StoreSourceWholeBook_PreEdit(wxString s);
-	void StoreTargetWholeBook_PreEdit(wxString s);
-	void StoreFreeTransWholeBook_PreEdit(wxString s);
-	wxString GetStoredSourceChapter_PreEdit();
-	wxString GetStoredTargetChapter_PreEdit();
-	wxString GetStoredFreeTransChapter_PreEdit();
-	wxString GetStoredSourceWholeBook_PreEdit();
-	wxString GetStoredTargetWholeBook_PreEdit();
-	wxString GetStoredFreeTransWholeBook_PreEdit();
+	void StoreTargetText_PreEdit(wxString s);
+	void StoreFreeTransText_PreEdit(wxString s);
+	wxString GetStoredTargetText_PreEdit();
+	wxString GetStoredFreeTransText_PreEdit();
 
 
 	// end of collaboration declarations

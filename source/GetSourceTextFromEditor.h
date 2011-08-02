@@ -91,7 +91,6 @@ protected:
 	bool CollabProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, 
 				wxString& aiProjectFolderName, wxString& aiProjectFolderPath);
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
-	wxString GetShortNameFromLBProjectItem(wxString LBProjItem);
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
 								wxArrayString& chapterList, wxArrayString& statusList);

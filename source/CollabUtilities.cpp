@@ -125,6 +125,246 @@ wxString SetWorkFolderPath_For_Collaboration()
 	return workPath;
 }
 
+// If textKind is collab_source_text, returns path in .temp folder to source text file
+// from the external editor (it could be a chapter, or whole book, and the function works
+// out which and it's filename using the m_bCollabByChapterOnly flag. Likewise, if the
+// enum value passed in is collab_target_text, it makes the path to the target text, and
+// if the value passed in is collab_freeTrans_text if makes the path to the free
+// translation file there, or an empty path string if m_bCollaborationExpectsFreeTrans is
+// FALSE.
+wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
+{
+	wxString chStrForFilename;
+	if (gpApp->m_bCollabByChapterOnly)
+		chStrForFilename = gpApp->m_CollabChapterSelected;
+	else
+		chStrForFilename = _T("");
+
+	wxString bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
+
+	wxString tempFolder;
+	wxString path;
+	wxString shortProjName;
+	tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
+	path = tempFolder + gpApp->PathSeparator;
+	switch (textKind)
+	{
+	case collab_source_text:
+		shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
+		path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+		break;
+	case collab_target_text:
+		shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
+		path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+		break;
+	case collab_freeTrans_text:
+		if (gpApp->m_bCollaborationExpectsFreeTrans)
+		{
+			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
+			path += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, shortProjName, chStrForFilename, _T(".tmp"));
+		}
+		else
+		{
+			path.Empty();
+		}
+		break;
+	}
+	return path;
+}
+
+// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-gtk.
+// whm modified 27Jul11 to use _T("0") for whole book retrieval on the command-line
+// BEW 1Aug11, removed code from GetSourceTextFromEditor.h&.cpp to put it here
+// For param 1 pass in 'reading' for a read command line, or writing for a write command
+// line, to be generated. For param 2, pass in one of collab_source_text,
+// collab_targetText, or collab_freeTrans_text. The function internally works out if
+// Paratext or Bible edit is being supported, and whether or not free translation is
+// expected, the bookCode required, and the shortName to be used for the project which
+// pertains to the textKind passed in
+wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
+{
+	wxString cmdLine; cmdLine.Empty();
+
+	wxString chStrForCommandLine;
+	if (gpApp->m_bCollabByChapterOnly)
+		chStrForCommandLine = gpApp->m_CollabChapterSelected;
+	else
+		chStrForCommandLine = _T("0");
+
+	wxString readwriteChoiceStr;
+	if (lineFor == reading)
+		readwriteChoiceStr = _T("-r"); // reading
+	else
+		readwriteChoiceStr = _T("-w"); // writing
+
+	wxString cmdLineAppPath;
+	if (gpApp->m_bCollaboratingWithParatext)
+	{
+		cmdLineAppPath = GetPathToRdwrtp7();
+	}
+	else
+	{
+		cmdLineAppPath = GetBibleditInstallPath();
+	}
+
+	wxString shortProjName;
+	wxString pathToFile;
+	switch (textKind)
+	{
+		case collab_source_text:
+			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
+			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind);
+			break;
+		case collab_target_text:
+			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
+			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind);
+			break;
+		case collab_freeTrans_text:
+			shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
+			pathToFile = MakePathToFileInTempFolder_For_Collab(textKind); // will  be returned empty if
+							// m_bCollaborationExpectsFreeTrans is FALSE
+			break;
+	}
+
+	wxString bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
+
+	// build the command line
+	if ((textKind == collab_freeTrans_text && gpApp->m_bCollaborationExpectsFreeTrans) ||
+		textKind != collab_freeTrans_text)
+	{
+		cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" ") + readwriteChoiceStr + _T(" ") + 
+					shortProjName + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + 
+					_T("\"") + pathToFile + _T("\"");
+	}
+	/* the following is Bill's old code from GetSourceTextFromEditor's OnOK() function, later we can delete it
+	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
+	commandLineFreeTrans.Empty();
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+	}
+	if (m_pApp->m_bCollaborationExpectsFreeTrans)
+	{
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			commandLineFreeTrans = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+		}
+	}
+	*/
+	return cmdLine;
+}
+
+wxString GetShortNameFromProjectName(wxString projName)
+{
+	// the short name is the first field in the projName string
+	wxString collabProjShortName;
+	collabProjShortName.Empty();
+	int posColon;
+	posColon = projName.Find(_T(':'));
+	// Under Bibledit, the projName may not have any ':' chars. In such cases
+	// just return the incoming projName unchanged
+	if (!projName.IsEmpty() && posColon == wxNOT_FOUND)
+		return projName;
+	collabProjShortName = projName.Mid(0,posColon);
+	collabProjShortName.Trim(FALSE);
+	collabProjShortName.Trim(TRUE);
+	return collabProjShortName;
+}
+
+// whm modified 27Jul11 to handle whole book filename creation (which does not
+// have the _CHnn chapter part in it.
+// BEW 1Aug11 moved the code from OnOK() in GetSourceTextFromEditor.cpp to here
+void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
+							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode)
+{
+	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
+	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+	// from/to its project data files.
+	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+	// files (not using command-line interface.
+	wxString bareChapterSelectedStr;
+	if (gpApp->m_bCollabByChapterOnly)
+	{
+		bareChapterSelectedStr = gpApp->m_CollabChapterSelected;
+	}
+	else
+	{
+		bareChapterSelectedStr = _T("0");
+	}
+	int chNumForBEDirect = wxAtoi(bareChapterSelectedStr); //actual chapter number to get chapter
+	if (chNumForBEDirect == 0)
+	{
+		// 0 is the Paratext parameter value for whole book, but we change this to -1
+		// for Bibledit whole book collection in the CopyTextFromBibleditDataToTempFolder()
+		// function call below.
+		chNumForBEDirect = -1;
+	}
+
+	if (lineFor == reading)
+	{
+		// we are transferring data from Paratext or Bibledit, to Adapt It
+		
+		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
+		{
+			// Use the wxExecute() override that takes the two wxStringArray parameters. This
+			// also redirects the output and suppresses the dos console window during execution.
+			wxString commandLine = BuildCommandLineFor(lineFor, textKind);
+			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
+		}
+		else if (gpApp->m_bCollaboratingWithBibledit)
+		{
+			// whm 27Jul11 TODO: modify code below to retrieve whole book if m_bTempCollabByChapterOnly is FALSE
+			wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
+			wxString shortProjName;
+			switch (textKind)
+			{
+			case collab_source_text:
+				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
+				break;
+			case  collab_target_text:
+				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
+				break;
+			case collab_freeTrans_text:
+				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
+				break;
+			}
+			beProjPath += gpApp->PathSeparator + shortProjName;
+			wxString fullBookName = gpApp->m_CollabBookSelected;
+			wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
+			bool bWriteOK;
+			bWriteOK = gpApp->CopyTextFromBibleditDataToTempFolder(beProjPath, fullBookName, chNumForBEDirect, 
+																	theFileName, errorsIOArray);
+			if (bWriteOK)
+				resultCode = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultCode = 1; // 1 means same as wxExecute() ERROR, errorsIOArray will contain error message(s)
+		}
+	} // end of TRUE block for test:  if (lineFor == reading)
+	else
+	{
+		// we are transferring data from Adapt It, to either Paratext or Bibledit
+
+
+
+
+		// TODO Bill said above he'd do the "whole book" option, so it needs to be done here
+		
+
+
+	}
+}
+
+
 // The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
 // tweaked so as to remove support for the latter's context of a wizard dialog; it should
 // be called only after an existing active project has been closed off. It will fail with
@@ -2295,11 +2535,33 @@ void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& ori
 	VChunkAndMap* pVChMap = NULL;
 
 
+// *** TODO ***
 
 
 
 
+}
 
+wxString ExportTargetText_For_Collab(SPList* pDocList)
+{
+	wxASSERT(pDocList != NULL);
+	int textLen = 0;
+	wxString text;
+	textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
+	// in next call, param 2 is from enum ExportType in Adapt_It.h
+	FormatMarkerBufferForOutput(text, targetTextExport);
+	return text;
+}
+
+wxString ExportFreeTransText_For_Collab(SPList* pDocList)
+{
+	wxASSERT(pDocList != NULL);
+	int textLen = 0;
+	wxString text;
+	textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
+	// in next call, param 2 is from enum ExportType in Adapt_It.h
+	FormatMarkerBufferForOutput(text, freeTransTextExport);
+	return text;
 }
 
 
@@ -2446,7 +2708,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	wxString textFromEditor; // the adaptation or free translation text just grabbed from PT or BE
 	textFromEditor.Empty();
 
-	/*
+	/* app member variables
 	bool m_bCollaboratingWithParatext;
 	bool m_bCollaboratingWithBibledit;
 	bool m_bCollaborationExpectsFreeTrans;
@@ -2491,45 +2753,19 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	{
 	case makeFreeTransText:
 		{
-			if (bWholeBook)
-			{
-				// working on a book
-				preEditText = gpApp->GetStoredFreeTransWholeBook_PreEdit();
+				preEditText = gpApp->GetStoredFreeTransText_PreEdit();
 
 // *** TODO *** get the latest text from PT, for textFromEditor
-
-			}
-			else
-			{
-				// working on a chapter
-				preEditText = gpApp->GetStoredFreeTransChapter_PreEdit();
-
-// *** TODO *** get the latest text from PT, for textFromEditor
-
-
-			}
+			
 		}
 		break;
 	default:
 	case makeTargetText:
 		{
-			if (bWholeBook)
-			{
-				// working on a book
-				preEditText = gpApp->GetStoredTargetWholeBook_PreEdit();
+				preEditText = gpApp->GetStoredTargetText_PreEdit();
 
 // *** TODO *** get the latest text from PT, for textFromEditor
 
-			}
-			else
-			{
-				// working on a chapter
-				preEditText = gpApp->GetStoredTargetChapter_PreEdit();
-
-// *** TODO *** get the latest text from PT, for textFromEditor
-
-
-			}
 		}
 		break;
 	};
@@ -2547,19 +2783,16 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 		// if no text was received from the external editor, then the document is being,
 		// or has just been, adapted for the first time - this simplifies our task to
 		// become just a simple export of the appropriate type...
-		int textLen = 0; // required for the calls below but we make no use of it
 		switch (makeTextType)
 		{
 		case makeFreeTransText:
 			// rebuild the free translation USFM marked-up text
-			textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
-			FormatMarkerBufferForOutput(text, freeTransTextExport);
+			text = ExportFreeTransText_For_Collab(pDocList);
 			break;
 		default:
 		case makeTargetText:
 			// rebuild the adaptation USFM marked-up text
-			textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
-			FormatMarkerBufferForOutput(text, targetTextExport);
+			text = ExportTargetText_For_Collab(pDocList);
 			break;
 		};
 		return text;
@@ -2741,5 +2974,75 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	return text;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return         the updated string which is ready to returned to the external editor
+/// \param      ->  aiText  ref to the USFM text as exported from the Adapt It document as
+///                 the first step in a File / Save which, in collaboration mode, is to
+///                 return the user's work (minimally changing the from-external-editor
+///                 text) to the external editor
+/// \param      ->  the from-external-editor (ie. from PT or BE) text which was obtained at
+///                 the beginning of the current File / Save. Parts of the aiText which
+///                 were not worked on do not cause the corresponding parts in edText to
+///                 receive any changes.
+/// \remarks
+/// This is for the 2-text problem, not the 3-text problem. There is no third text yet
+/// (that is, a previously exported from Adapt It at a File / Save operation for the
+/// current document which, at the File / Save (had there been one) would have been saved
+/// in the _TARGET_OUTPUTS folder if the input texts were adaptation ones, or in the
+/// _FREETRANS_OUTPUTS folder if the input texts were free translation ones.) So aiText is
+/// the first export done for the current chapter or document as part of the File / Save.
+/// The text from PT or BE, edText, may be one of the following (assuming adaptation text,
+/// but the same comment would apply to the free translation text if that were the inputs):
+/// (1) Minimal empty-of-content verses for the book or chapter, that is, just the USFM
+/// shell which, say, Paratext can generate - which has just the  \id line if chapter 1,
+/// and after that (and for other chapters, this is all there is) a chapter marker \c and
+/// chapter number, and verse markers, \v, with their verse numbers.
+/// (2) Like (1), but previously the user has in PT or BE done some editing of all or
+/// parts of the text in the external editor - so that some, many or all of the verses
+/// have content, and some, few or none have no content.
+/// 
+/// The from-Adapt-It export of the adaptation (or free translation) will have contentless
+/// verse markers for any verses not worked on in Adapt It up to the time at which the
+/// File / Save is invoked. Worked on verses will have content, which may or may not be
+/// complete. The function assumes the content of a verse, when non-empty, is complete,
+/// and whether it is or isn't makes no difference to what we do here.
+/// The algorithm for producing the updated text (accumulated in the local wxString
+/// outStr) aims to change within edText only what has been changed within Adapt It.
+/// Because this is the 2-text problem, there is no 3rd text to compare in order to find
+/// out which parts were changed, so any USFM in the aiText which has content is regarded
+/// as just-worked-on (which probably was the case - we are not providing a way to work on
+/// the document and save without sending updated text back to the external editor), and
+/// so such material unilaterally overwrites whatever is in the corresponding USFM of the
+/// edText.
+/// Note 1: as the name of this function indicates, the caller will have determined
+/// beforehand that aiText and edText have IDENTICAL USFMs in IDENTICAL order, and for
+/// that to be the case, the extent of the data will also be the same -- either all of a
+/// single chapter, or all of a book, for both aiText and edText. Because of this fact,
+/// the algorithm we use can and does work on smaller transfer units than a 'whole verse'.
+/// It works on a per-USFM basis. Some USFMS like \p and \c do not have text content, and
+/// so don't need to be considered as targets for updating. But ones like \v \s \s1 \s2
+/// \q1 \q2 \q3 and so forth normally do have text, and so will get updated as follows. If
+/// the corresponding aiText marker has content, it is tranferred to the corresponding
+/// edText marker in toto, overwriting whatever (if anything) was in the destination
+/// marker previously.
+/// Note 2: the 1-text problem is dealt with separately; that is when at File / Save there
+/// was no previously stored text from a previous File / Save for this document, and the
+/// external editor does not have the requested chapter or book as yet in the destination
+/// project - in the latter circumstance, obtaining a chapter or book from the external
+/// editor at the start of a File / Save just obtains an empty string. (Actually, from PT
+/// we get a file with just a BOM in it, but we preprocess this to remove the BOM and so
+/// end up with just an empty string.) So the 1-text problem boils down to a simple export
+/// from the AI document and sending that to the external editor - so we don't need to
+/// consider it here, the caller takes care of that case.
+//////////////////////////////////////////////////////////////////////////////////////////
+wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxString& edText)
+{
+	wxString outStr; outStr.Empty();
 
 
+
+
+
+
+	return outStr;
+}
