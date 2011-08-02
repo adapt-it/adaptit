@@ -5185,6 +5185,12 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	pApp->m_pTargetBox->SetEditable(TRUE);
 	
 	// restore focus and cursor position or selection
+	// whm 29Jul11 Note: The following SetFocus() call sometimes
+	// generates an API error logged in the Output window during
+	// debugging: "..\..\src\msw\window.cpp(643): 'SetFocus' failed 
+	// with error 0x00000057 (the parameter is incorrect.)."
+	// It is annoying to see it appear in the output window but
+	// it is of unknown cause and apparently harmless.
 	pApp->m_pTargetBox->SetFocus();
 	pApp->m_pTargetBox->SetSelection(nStartingChar,nEndingChar);
 	pApp->m_nStartChar = (int)nStartingChar;

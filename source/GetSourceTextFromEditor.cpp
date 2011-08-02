@@ -1973,7 +1973,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 		// Update the wxTextCtrl at the bottom of the dialog with more detailed
 		// info about the book and/or chapter that is selected.
 		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
-		// whm modified 29Jul11 We can't set focus on the OK button whenever the 
+		// whm note 29Jul11 We can't set focus on the OK button whenever the 
 		// chapter selection changes, because working via keyboard, the up and
 		// down button especially will them move the focus from OK to to one of
 		// the combo boxes resulting in changing a project!
