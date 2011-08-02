@@ -730,25 +730,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// until we further below have finished with it and store it in the
 		// __SOURCE_INPUTS folder
 		sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
-
-		// targetChapterBuff, a wxString, stores temporarily the USFM target text as
-		// exported from the document prior to the user doing any work, and we store it
-        // persistently in the app private member m_targetTextBuffer_PreEdit; the
-        // post-edit translation will be compared to it at the next File / Save - after
-        // which the post-edit translation will replace the one held in
-        // m_targetTextBuffer_PreEdit
-		targetChapterBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
-		m_pApp->StoreTargetText_PreEdit(targetChapterBuffer);
-
-		// likewise, if free translation transfer is expected, we get the pre-edit free
-		// translation exported and stored in app's private m_freeTransTextBuffer_PreEdit
-		if (m_pApp->m_bCollaborationExpectsFreeTrans)
-		{
-			// this might return an empty string, or USFMs only string, if no work has yet
-			// been done on the free translation
-			freeTransChapterBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
-			m_pApp->StoreFreeTransText_PreEdit(freeTransChapterBuffer);
-		}
 	}
 	else
 	{
@@ -756,84 +737,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// above explain what is going on here, the only difference is that here we are
 		// dealing with a document which is a whole book
 		sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
-
-		targetWholeBookBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
-		m_pApp->StoreTargetText_PreEdit(targetWholeBookBuffer);
-
-		if (m_pApp->m_bCollaborationExpectsFreeTrans)
-		{
-			// this might return an empty string, or USFMs only string, if no work has yet
-			// been done on the free translation
-			freeTransWholeBookBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
-			m_pApp->StoreFreeTransText_PreEdit(freeTransWholeBookBuffer);
-		}
 	}
-	
-	// DO NOT REMOVE THE COMMENTED OUT CODE BELOW- WE WILL LATER USE BITS OF IT ELSEWHERE
-	// BEW removed these lines 1Aug11, because the string storage will disappear when the
-	// dialog closes, and we need the checksums not now, but later at the next File/Save
-	/*
-	// Make structure&extents arrays
-	if (m_pApp->m_bCollabByChapterOnly)
-	{
-		SourceChapterUsfmStructureAndExtentArray.Clear();
-		SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
-		TargetChapterUsfmStructureAndExtentArray.Clear();
-		TargetChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetChapterBuffer);
-		if (m_pApp->m_bCollaborationExpectsFreeTrans)
-		{
-			FreeTransChapterUsfmStructureAndExtentArray.Clear();
-			if (!freeTransChapterBuffer.IsEmpty())
-			{
-				FreeTransChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransChapterBuffer);
-			}
-		}
-	}
-	else
-	{
-		// BEW added 1Aug11, whole book was requested, so we use different members for storage
-		SourceTextUsfmStructureAndExtentArray.Clear();
-		SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
-		TargetTextUsfmStructureAndExtentArray.Clear();
-		TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
-		if (m_pApp->m_bCollaborationExpectsFreeTrans)
-		{
-			FreeTransTextUsfmStructureAndExtentArray.Clear();
-			if (!freeTransWholeBookBuffer.IsEmpty())
-			{
-				FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer);
-			}
-		}
-	}
-	*/
-
-	/* 
-	// deprecated, we will store the post-edit free translation not in _FREETRANS_OUTPUTS,
-	// but rather in a local variable while we use it at File / Save time, and then transfer
-	// it to the free translation pre-edit wxString on the app. It won't ever be put in
-	// the _FREETRANS_OUTPUTS folder. Only non-collaboration free translation exports will
-	// go there.
-	// KEEP THIS TEMPORARILY, IT MAY BE USEFUL TO CLONE FROM
-	if (m_pApp->m_bCollaborationExpectsFreeTrans && !freeTransChapterBuffer.IsEmpty())
-	{
-		wxString pathCreationErrors;
-		wxString freeTransFileTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameFreeTrans, bareChapterSelectedStr, _T(""));
-		bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_freeTransOutputsFolderPath, 
-								pathCreationErrors, freeTransChapterBuffer, freeTransFileTitle);
-		// don't expect a failure in this, but if so, tell developer (English
-		// message is all that is needed)
-		if (!bMovedOK)
-		{
-			wxMessageBox(_T(
-"For the developer: MoveTextToFolderAndSave() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move free translation text to a file in _FREETRANS_OUTPUTS folder.\nThe free trans data won't have been saved to disk there."),
-			_T(""), wxICON_WARNING);
-		}
-	}
-	*/
-	
 	// code for setting up the Adapt It project etc requires the following data be
-	// accessible
+	// setup beforehand also
 	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_pApp->m_CollabBookSelected);
 	// we need to create standard filenames, so the following need to be calculated
 	wxString shortProjNameSrc, shortProjNameTgt;
@@ -1272,6 +1178,108 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
 
+	// we could do the next bit without the test of the m_CollabByChapterOnly flag, but
+	// we'd need to avoid using Bill's declared class members, so we'll use them & keep
+	// the test
+	if (m_pApp->m_bCollabByChapterOnly)
+	{
+		// targetChapterBuff, a wxString, stores temporarily the USFM target text as
+		// exported from the document prior to the user doing any work, and we store it
+        // persistently in the app private member m_targetTextBuffer_PreEdit; the
+        // post-edit translation will be compared to it at the next File / Save - after
+        // which the post-edit translation will replace the one held in
+        // m_targetTextBuffer_PreEdit
+		targetChapterBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
+		m_pApp->StoreTargetText_PreEdit(targetChapterBuffer);
+
+		// likewise, if free translation transfer is expected, we get the pre-edit free
+		// translation exported and stored in app's private m_freeTransTextBuffer_PreEdit
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			// this might return an empty string, or USFMs only string, if no work has yet
+			// been done on the free translation
+			freeTransChapterBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
+			m_pApp->StoreFreeTransText_PreEdit(freeTransChapterBuffer);
+		}
+	}
+	else
+	{
+
+		targetWholeBookBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
+		m_pApp->StoreTargetText_PreEdit(targetWholeBookBuffer);
+
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			// this might return an empty string, or USFMs only string, if no work has yet
+			// been done on the free translation
+			freeTransWholeBookBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
+			m_pApp->StoreFreeTransText_PreEdit(freeTransWholeBookBuffer);
+		}
+	}
+	
+	// DO NOT REMOVE THE COMMENTED OUT CODE BELOW- WE WILL LATER USE BITS OF IT ELSEWHERE
+	// BEW removed these lines 1Aug11, because the string storage will disappear when the
+	// dialog closes, and we don't need the checksums now, but later at the next File/Save
+	/*
+	// Make structure&extents arrays
+	if (m_pApp->m_bCollabByChapterOnly)
+	{
+		SourceChapterUsfmStructureAndExtentArray.Clear();
+		SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
+		TargetChapterUsfmStructureAndExtentArray.Clear();
+		TargetChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetChapterBuffer);
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			FreeTransChapterUsfmStructureAndExtentArray.Clear();
+			if (!freeTransChapterBuffer.IsEmpty())
+			{
+				FreeTransChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransChapterBuffer);
+			}
+		}
+	}
+	else
+	{
+		// BEW added 1Aug11, whole book was requested, so we use different members for storage
+		SourceTextUsfmStructureAndExtentArray.Clear();
+		SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
+		TargetTextUsfmStructureAndExtentArray.Clear();
+		TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
+		if (m_pApp->m_bCollaborationExpectsFreeTrans)
+		{
+			FreeTransTextUsfmStructureAndExtentArray.Clear();
+			if (!freeTransWholeBookBuffer.IsEmpty())
+			{
+				FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer);
+			}
+		}
+	}
+	*/
+
+	/* 
+	// deprecated, we will store the post-edit free translation not in _FREETRANS_OUTPUTS,
+	// but rather in a local variable while we use it at File / Save time, and then transfer
+	// it to the free translation pre-edit wxString on the app. It won't ever be put in
+	// the _FREETRANS_OUTPUTS folder. Only non-collaboration free translation exports will
+	// go there.
+	// KEEP THIS TEMPORARILY, IT MAY BE USEFUL TO CLONE FROM
+	if (m_pApp->m_bCollaborationExpectsFreeTrans && !freeTransChapterBuffer.IsEmpty())
+	{
+		wxString pathCreationErrors;
+		wxString freeTransFileTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
+							shortProjNameFreeTrans, bareChapterSelectedStr, _T(""));
+		bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_freeTransOutputsFolderPath, 
+								pathCreationErrors, freeTransChapterBuffer, freeTransFileTitle);
+		// don't expect a failure in this, but if so, tell developer (English
+		// message is all that is needed)
+		if (!bMovedOK)
+		{
+			wxMessageBox(_T(
+"For the developer: MoveTextToFolderAndSave() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move free translation text to a file in _FREETRANS_OUTPUTS folder.\nThe free trans data won't have been saved to disk there."),
+			_T(""), wxICON_WARNING);
+		}
+	}
+	*/
+	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 

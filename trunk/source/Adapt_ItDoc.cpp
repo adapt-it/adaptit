@@ -1334,7 +1334,9 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	{
 		// temporarily, for testing purposes, assume it's target text, and a
 		// single-chapter document...
-		wxString updatedText = MakePostEditTextForExternalEditor(gpApp->m_pSourcePhrases, makeTargetText, FALSE);
+		wxString postEditText;
+		wxString updatedText = MakePostEditTextForExternalEditor(gpApp->m_pSourcePhrases, 
+													makeTargetText, postEditText);
 		if (!updatedText.IsEmpty())
 		{
 			// use updatedText, to get it backc to PT or BE as the case may be

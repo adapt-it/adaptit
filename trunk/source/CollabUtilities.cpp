@@ -2578,9 +2578,12 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 ///                         normally it will be that list)
 /// \param              ->  Either makeTargetText (value is 1) or makeFreeTransText (value is
 ///                         2); our algorithms work almost the same for either kind of text.
-/// \param bWholeBook   ->  default is FALSE (i.e. working on a chapter only), pass TRUE when
-///                         the document being worked on is a whole book
+/// \param postEditText <-  the text to replace the pre-edit target text or free translation
 /// \remarks
+/// 
+/// Comments below are a bit out of date -- there is only a 3-text situation, shouldn't be
+/// two unless the from-external-editor text is an empty string
+/// 
 /// The document contains, of course, the adaptation and, if the user has done any free
 /// translation, also the latter. Sending either back to PT or BE after editing work in
 /// either or both is problematic, because the user may have done some work in PT or BE
@@ -2698,8 +2701,10 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// translation is expected to be be sent, it is sent after the adaptation is sent,
 /// automatically.
 ///////////////////////////////////////////////////////////////////////////////////////
-wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, bool bWholeBook)
+wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, 
+										   wxString& postEditText)
 {
+	wxString emptyStr = _T("");
 	CAdapt_ItView* pView = gpApp->GetView();
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	
@@ -2707,6 +2712,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
 	wxString textFromEditor; // the adaptation or free translation text just grabbed from PT or BE
 	textFromEditor.Empty();
+	postEditText.Empty(); // the exported adaptation or free translation text at File / Save time
 
 	/* app member variables
 	bool m_bCollaboratingWithParatext;
@@ -2749,23 +2755,49 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	}
 
 	// get the pre-edit saved text, and the from-PT or from-BE version of the same text
+	wxArrayString textIOArray; textIOArray.Clear(); // needed for the internal ::wxExecute() call
+	wxArrayString errorsIOArray; errorsIOArray.Clear(); // ditto
+	long resultCode = -1; // ditto
+	// if there was an error, a message will have been seen already
 	switch (makeTextType)
 	{
 	case makeFreeTransText:
 		{
-				preEditText = gpApp->GetStoredFreeTransText_PreEdit();
-
-// *** TODO *** get the latest text from PT, for textFromEditor
-			
+			preEditText = gpApp->GetStoredFreeTransText_PreEdit();
+			// next call gets the file of data into the .temp folder, with appropriate filename
+			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_freeTrans_text,
+							textIOArray, errorsIOArray, resultCode);
+			if (resultCode > 0)
+			{
+				// we don't expect this to fail, so a beep (plus the error message
+				// generated internally) should be enough, and just don't send anything to
+				// the external editor
+				wxBell();
+				return emptyStr;
+			}
+			// remove the BOM and get the data into wxString textFromEditor
+			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text);
+			textFromEditor = GetTextFromAbsolutePathAndRemoveBOM(absPath);
 		}
 		break;
 	default:
 	case makeTargetText:
 		{
-				preEditText = gpApp->GetStoredTargetText_PreEdit();
-
-// *** TODO *** get the latest text from PT, for textFromEditor
-
+			preEditText = gpApp->GetStoredTargetText_PreEdit();
+			// next call gets the file of data into the .temp folder, with appropriate filename
+			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_target_text,
+							textIOArray, errorsIOArray, resultCode);
+			if (resultCode > 0)
+			{
+				// we don't expect this to fail, so a beep (plus the error message
+				// generated internally) should be enough, and just don't send anything to
+				// the external editor
+				wxBell();
+				return emptyStr;
+			}
+			// remove the BOM and get the data into wxString textFromEditor
+			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_target_text);
+			textFromEditor = GetTextFromAbsolutePathAndRemoveBOM(absPath);
 		}
 		break;
 	};

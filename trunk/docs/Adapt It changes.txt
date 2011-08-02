@@ -4,6 +4,13 @@ Version 6.0.0 update working on release late 2010 or early 2011
 Feature changes and new features in 6.0.0
 ----------------------------------------------
 New Features in 6.0.0:
+* Additional "white space" characters are supported in the Unicode
+build, which means that when parsing in source text the presence of 
+any of these characters will result in a word break:
+	U+200B ZWSP (Zero Width SPace) 
+	U+2009 THSP (THin SPace)
+	U+200A HSP (Hair SPace - thinner than THSP)
+	U+200D ZWJ (Zero Width Joiner)
 * Words and phrases in the target text which differ from the source 
  text immediately above them are given a different colour. The 
  colour used is setable from the Preferences / Fonts page.
