@@ -174,7 +174,7 @@ void NavProtectNewDoc::OnItemSelected(wxCommandEvent& WXUNUSED(event))
 {
 	wxASSERT(m_pMonoclineListOfFiles);
 	int selIndex = m_pMonoclineListOfFiles->GetSelection();
-	wxASSERT(selIndex != wxNOT_FOUND && selIndex < (int)m_pMonoclineListOfFiles->GetCount());
+	//wxASSERT(selIndex != wxNOT_FOUND && selIndex < (int)m_pMonoclineListOfFiles->GetCount());
 	if (selIndex >= 0 && selIndex < (int)m_pMonoclineListOfFiles->GetCount())
 	{
 		m_userFilename = m_pMonoclineListOfFiles->GetString(selIndex);
