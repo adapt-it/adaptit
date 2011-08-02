@@ -636,11 +636,21 @@ _("Sorry, substituting a new empty knowledge base failed. Instead you should now
 			// close the progress dialog
 
 		}
-		// whm added 12Jun11. Ensure the inputs and outputs directories are created. SetupDirectories() normally
-		// takes care of this for a new project, but we also want existing projects created before version 6 to 
-		// have these directories too.
+        // whm added 12Jun11. Ensure the inputs and outputs directories are created.
+        // SetupDirectories() normally takes care of this for a new project, but we also
+        // want existing projects created before version 6 to have these directories too.
 		wxString pathCreationErrors = _T("");
-		pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
-		// ignore dealing with any unlikely pathCreationErrors at this point
+		// BEW 1Aug11, added test for m_curProjectPath not empty. The calls fails
+		// otherwise in the following scenario:
+		// Launch in Paratext or BE collaboration mode, Cancel out of the collaboration
+		// dialog, go to Administrator menu and turn off Paratext (or BE) collaboration -
+		// the wizard then shows the Projects list, select <New Project> and then the app
+		// will crash when control here calls CreateInputsAndOutputsDirectories() because
+		// at this point m_curProjectPath is empty
+		if (!pApp->m_curProjectPath.IsEmpty())
+		{
+			pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
+			// ignore dealing with any unlikely pathCreationErrors at this point
+		}
 	}
 }

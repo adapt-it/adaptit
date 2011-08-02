@@ -38865,59 +38865,28 @@ wxArrayString CAdapt_ItApp::GetBooksArrayFromBookFlagsString(wxString bookFlagsS
 	return booksArray;
 }
 
-// BEW 10Jul11, for collaborating with external editor...
+// BEW 10Jul11, for collaborating with external editor..., for
+// temporary storage and retieval of "pre-edit" USFM text for
+// the current active document
 
 //setters
-void CAdapt_ItApp::StoreSourceChapter_PreEdit(wxString s)
+void CAdapt_ItApp::StoreTargetText_PreEdit(wxString s)
 {
-	m_sourceChapterBuffer_PreEdit = s;
+	m_targetTextBuffer_PreEdit = s;
 }
-void CAdapt_ItApp::StoreTargetChapter_PreEdit(wxString s)
+void CAdapt_ItApp::StoreFreeTransText_PreEdit(wxString s)
 {
-	m_targetChapterBuffer_PreEdit = s;
-}
-void CAdapt_ItApp::StoreFreeTransChapter_PreEdit(wxString s)
-{
-	m_freeTransChapterBuffer_PreEdit = s;
-}
-void CAdapt_ItApp::StoreSourceWholeBook_PreEdit(wxString s)
-{
-	m_sourceWholeBookBuffer_PreEdit = s;
-}
-void CAdapt_ItApp::StoreTargetWholeBook_PreEdit(wxString s)
-{
-	m_targetWholeBookBuffer_PreEdit = s;
-}
-void CAdapt_ItApp::StoreFreeTransWholeBook_PreEdit(wxString s)
-{
-	m_freeTransWholeBookBuffer_PreEdit = s;
+	m_freeTransTextBuffer_PreEdit = s;
 }
 // getters
-wxString CAdapt_ItApp::GetStoredSourceChapter_PreEdit()
+wxString CAdapt_ItApp::GetStoredTargetText_PreEdit()
 {
-	return m_sourceChapterBuffer_PreEdit;
+	return m_targetTextBuffer_PreEdit;
 }
-wxString CAdapt_ItApp::GetStoredTargetChapter_PreEdit()
+wxString CAdapt_ItApp::GetStoredFreeTransText_PreEdit()
 {
-	return m_targetChapterBuffer_PreEdit;
+	return m_freeTransTextBuffer_PreEdit;
 }
-wxString CAdapt_ItApp::GetStoredFreeTransChapter_PreEdit()
-{
-	return m_freeTransChapterBuffer_PreEdit;
-}
-wxString CAdapt_ItApp::GetStoredSourceWholeBook_PreEdit()
-{
-	return m_sourceWholeBookBuffer_PreEdit;
-}
-wxString CAdapt_ItApp::GetStoredTargetWholeBook_PreEdit()
-{
-	return m_targetWholeBookBuffer_PreEdit;
-}
-wxString CAdapt_ItApp::GetStoredFreeTransWholeBook_PreEdit()
-{
-	return m_freeTransWholeBookBuffer_PreEdit;
-}
-
 
 
 

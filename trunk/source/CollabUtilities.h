@@ -31,6 +31,17 @@ enum SendBackTextType
 	makeTargetText = 1,
 	makeFreeTransText
 };
+enum DoFor 
+{
+	collab_source_text,
+	collab_target_text,
+	collab_freeTrans_text
+};
+enum CommandLineFor
+{
+	reading,
+	writing
+};
 
 // VChunkAndMap indexes into a wxArrayString of StructureAndExtents MD5 analysis, and also
 // with offsets to wxChar in the wxString text buffer from which the MD5 analysis is done;
@@ -87,6 +98,8 @@ class CSourcePhrase;
 	bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
 					wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
 					bool bAddBOM = FALSE);
+	wxString ExportTargetText_For_Collab(SPList* pDocList);
+	wxString ExportFreeTransText_For_Collab(SPList* pDocList);
 	wxString GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 	wxString GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 	wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
@@ -111,6 +124,7 @@ class CSourcePhrase;
 	bool GetNextVerseLine(const wxArrayString usfmText, int& index);
 	bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText); // text is usually src
 	bool IsUsfmStructureChanged(wxString& oldText, wxString& newText); // text is usually src
+	wxString GetShortNameFromProjectName(wxString projName);
 
 	bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChapter, 
 			wxString& strDelimiter, wxString& strStartingVerse, wxChar& charStartingVerseSuffix, 
@@ -119,6 +133,12 @@ class CSourcePhrase;
 	bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, 
 		VChunkAndMap*& pVChMap, bool bVerseMarkerSeenAlready);
 	void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap);
+	wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind);
+	wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind);
+	void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
+							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
+
+	wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxString& edText);
 
 	// the md5Array chunking and mapping by offsets into originalText string are done by
 	// the following chunking function

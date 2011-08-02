@@ -7103,18 +7103,30 @@ bool CAdapt_ItDoc::IsPrevCharANewline(wxChar* ptr, wxChar* pBufStart)
 /// does not use wxIsspace() internally but defines whitespace explicitly as a space, tab, \r 
 /// or \n.
 /// Whitespace is generally defined as a space, a tab, or an end-of-line character/sequence.
+/// BEW 30July11, add support in Unicode version for zero-width space (needed in Khmer
+/// scripts) and some other special characters
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
+#ifdef _UNICODE
+	// BEW 29Jul11, support ZWSP (zero-width space character, U+200B) as well, and from
+	// Ad Korten's email, also hair space, thin space, and zero width joiner (he may
+	// specify one or two others later -- if so add them only here)
+	wxChar ZWSP = (wxChar)0x200B; // ZWSP
+	wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace
+	wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
+	wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+	if (*pChar == ZWSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ)
+		return TRUE;
+#endif
 	// returns true for tab 0x09, return 0x0D or space 0x20
-
 	// _istspace not recognized by g++ under Linux
 	if (wxIsspace(*pChar) == 0)
 		return FALSE;
 	else
 		return TRUE;
 
-	// equivalent code:
+	// equivalent code (but only for the standard white space stuff):
 	//if (*pChar == _T(' ') || *pChar == _T('\t') || *pChar == _T('\n') || *pChar == _T('\r'))
 	//	return TRUE;
 	//else
