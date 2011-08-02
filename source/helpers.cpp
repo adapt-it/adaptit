@@ -462,6 +462,58 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	return returnStr;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return             the extracted substring
+/// \param str      ->  the string from which to extract a substring
+/// \param first    ->  index to the wxChar which is first to be extracted
+/// \param last     ->  index to the wxChar which is last to be extracted
+/// \remarks   
+/// If str is empty, an empty string is returned
+/// If last < first, an assert trips in the debug build, empty string returned in release build
+/// If first > (length - 1), an assert trips in the debug build, empty string returned in release build
+/// If last = first, an empty string is returned
+/// If last > (length - 1) of str, all of the substring from first onwards is returned
+//////////////////////////////////////////////////////////////////////////////////////////////////
+wxString ExtractSubstring(const wxString& str, int first, int last)
+{
+	wxString outStr; outStr.Empty();
+	if (last > first)
+	{
+#ifdef __WXDEBUG__
+		wxASSERT(FALSE);
+#endif
+		return outStr;
+	}
+	int length = str.Len();
+	if (first > length -1)
+	{
+#ifdef __WXDEBUG__
+		wxASSERT(FALSE);
+#endif
+		return outStr;
+	}
+	if (first == last)
+	{
+		return outStr;
+	}
+	if (length = 0)
+	{
+		return outStr;
+	}
+	if (last >= length)
+	{
+		outStr = str.Mid(first);
+		return outStr;
+	}
+	int index;
+	for (index = first; index <= last; index++)
+	{
+		outStr += str.GetChar(index);
+
+	}
+	return outStr;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return the index of the first space of one or more spaces which terminate the string, or if there are
 ///			no spaces at the end, return the length of the string (that is, the position at which appending
@@ -1223,7 +1275,7 @@ bool Is_Marker(wxChar *pChar, wxChar *pEnd)
 	// buffer.
 	// 
     // also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an
-    // alphabetic one; and in response to issues Bill raised in any email on Jan 31st about
+    // alphabetic one; and in response to issues Bill raised in an email on Jan 31st about
     // spurious marker match positives, make the test smarter so that more which is not a
     // genuine marker gets rejected (and also, use IsMarker() in ParseWord() etc, rather
     // than testing for *ptr == gSFescapechar)

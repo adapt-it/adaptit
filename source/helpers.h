@@ -160,6 +160,7 @@ int Parse_NonEol_WhiteSpace(wxChar *pChar);
 int Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
 
+wxString ExtractSubstring(const wxString& str, int firstChar, int lastChar);
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
 wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10

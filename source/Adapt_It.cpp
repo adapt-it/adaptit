@@ -16916,7 +16916,38 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int sizeofSPList = sizeof(SPList); // 28 bytes
 	int sizeofwxArrayString = sizeof(wxArrayString); // 16 bytes
 	*/
-
+	/*
+	// check what the character counts in GetUsfmStructureAndExtent(fileBuffer)
+	// actually count, from some known data
+	wxString fileAndPath = _T("C:\\testdata.txt");
+	wxString fileBuffer;
+	// now read the file into a buffer in preparation for analyzing their chapter and
+	// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// UNICODE BOM of ef bb bf
+	wxFile f(fileAndPath,wxFile::read);
+	wxFileOffset fileLen;
+	fileLen = f.Length();
+	// read the raw byte data into pByteBuf (char buffer on the heap)
+	char* pByteBuf = (char*)malloc(fileLen + 1);
+	memset(pByteBuf,0,fileLen + 1); // fill with nulls
+	f.Read(pByteBuf,fileLen);
+	wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
+	f.Close();
+	fileBuffer = wxString(pByteBuf,wxConvUTF8,fileLen);
+	free((void*)pByteBuf);
+	wxArrayString arr;
+	arr = GetUsfmStructureAndExtent(fileBuffer);
+	int count = arr.GetCount();
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		wxString s = arr.Item(index);
+		wxLogDebug(_T("Line %d    String:   %s"), index, s.c_str());
+	}
+	arr.Clear();
+	fileBuffer.Empty();
+	*/
 	//int ii = 1; ii = ii;
 /*
 	// This test compared with the same code under MFC shows that

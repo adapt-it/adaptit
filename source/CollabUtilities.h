@@ -148,9 +148,14 @@ class CSourcePhrase;
 
 
 	// BEW added 11July, to get changes to the adaptation and free translation back to the
-	// respective PT or BE projects
+	// respective PT or BE projects; the post-edit text from the document at the time of
+	// File / Save is returned in the postEditText parameter - it will be either target
+	// text, or freeTrans text, and the caller will use it to replace what is stored in
+	// the relevant app member for the pre-edit tgt or freeTrans text. The returned
+	// wxString is the updated USFM text string to be sent to PT or BE - or an empty
+	// string if there was an error.
 	wxString MakePostEditTextForExternalEditor(SPList* pDocList, 
-					enum SendBackTextType makeTextType, bool bWholeBook = FALSE);
+					enum SendBackTextType makeTextType, wxString& postEditText);
 
 #endif
 
