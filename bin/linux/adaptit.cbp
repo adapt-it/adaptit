@@ -18,7 +18,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
-					<Add option="-L$(WXWIN)/buildgtkud/lib -pthread   -Wl,-rpath,$(WXWIN)/buildgtkud/lib -lwx_gtk2ud_richtext-2.8 -lwx_gtk2ud_aui-2.8 -lwx_gtk2ud_xrc-2.8 -lwx_gtk2ud_qa-2.8 -lwx_gtk2ud_html-2.8 -lwx_gtk2ud_adv-2.8 -lwx_gtk2ud_core-2.8 -lwx_baseud_xml-2.8 -lwx_baseud_net-2.8 -lwx_baseud-2.8 -lcurl" />
+					<Add option="-L$(WXWIN)/buildgtkud/lib -pthread   -Wl,-rpath,$(WXWIN)/buildgtkud/lib -lwx_gtk2ud_richtext-2.8 -lwx_gtk2ud_aui-2.8 -lwx_gtk2ud_xrc-2.8 -lwx_gtk2ud_qa-2.8 -lwx_gtk2ud_html-2.8 -lwx_gtk2ud_adv-2.8 -lwx_gtk2ud_core-2.8 -lwx_baseud_xml-2.8 -lwx_baseud_net-2.8 -lwx_baseud-2.8 -lcurl -luuid" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -35,7 +35,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
-					<Add option="-L$(WXWIN)/buildgtku/lib -pthread   -Wl,-rpath,$(WXWIN)/buildgtku/lib -lwx_gtk2u_richtext-2.8 -lwx_gtk2u_aui-2.8 -lwx_gtk2u_xrc-2.8 -lwx_gtk2u_qa-2.8 -lwx_gtk2u_html-2.8 -lwx_gtk2u_adv-2.8 -lwx_gtk2u_core-2.8 -lwx_baseu_xml-2.8 -lwx_baseu_net-2.8 -lwx_baseu-2.8 -lcurl" />
+					<Add option="-L$(WXWIN)/buildgtku/lib -pthread   -Wl,-rpath,$(WXWIN)/buildgtku/lib -lwx_gtk2u_richtext-2.8 -lwx_gtk2u_aui-2.8 -lwx_gtk2u_xrc-2.8 -lwx_gtk2u_qa-2.8 -lwx_gtk2u_html-2.8 -lwx_gtk2u_adv-2.8 -lwx_gtk2u_core-2.8 -lwx_baseu_xml-2.8 -lwx_baseu_net-2.8 -lwx_baseu-2.8 -lcurl -luuid" />
 				</Linker>
 			</Target>
 		</Build>
