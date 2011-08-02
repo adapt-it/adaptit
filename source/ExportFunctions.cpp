@@ -1197,6 +1197,8 @@ void DoExportInterlinearRTF()
 
 	// make the working directory the "<Project Name>" one, unless there is a path in
 	// app's m_lastTargetOutputPath member
+	wxString saveWorkDir;
+	saveWorkDir = ::wxGetCwd();
 	bool bOK;
 	
 	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
@@ -1206,7 +1208,10 @@ void DoExportInterlinearRTF()
 		// Navigation protection in effect - limit source text exports to
 		// be saved in the _INTERLINEAR_RTF_OUTPUTS folder which is always a child folder
 		// of the folder that m_curProjectPath points to.
-		bOK = ::wxSetWorkingDirectory(gpApp->m_interlinearRTFOutputsFolderPath);
+		// whm modified 2Aug11. We don't need to call ::wxSetWorkingDirectory() when
+		// using protected navigation, because the path for the export is an absolute
+		// path directly pointing to the _INTERLINEAR_RTF_OUTPUTS folder.
+		//bOK = ::wxSetWorkingDirectory(gpApp->m_interlinearRTFOutputsFolderPath);
 	}
 	else
 	{
