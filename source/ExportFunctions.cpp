@@ -1181,6 +1181,8 @@ bool IsNoteInDoc(CSourcePhrase* pSrcPhrase)
 // whm added 15Jul03 and Revised 1Aug03
 // whm revised November 2007 to improve reliability with Word 2003
 // BEW 10Apr10, updated for support of doc version 5 (changes were needed)
+// whm revised July 2011 to improve formatting for OpenOffice/LibreOffice, 
+// while maintaining compatible with MS Word.
 void DoExportInterlinearRTF()
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -1420,6 +1422,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
+		bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 		return; // user cancelled
 	}
 
@@ -1464,7 +1467,10 @@ void DoExportInterlinearRTF()
 		fileDlg.Centre();
 
 		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 			return; // user cancelled
+		}
 
 		// get the user's desired path, & update m_lastTargetOutputPath
 		exportPath = fileDlg.GetPath();
@@ -1492,6 +1498,7 @@ void DoExportInterlinearRTF()
 		  wxLogError(_("Unable to open export file.\n"));
 		  wxMessageBox(_("Unable to open export file."),_T(""),wxICON_WARNING);
 	   #endif
+		  bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 		  return;	// whm - set it to return from this error rather than exit.
 	}
 
@@ -3490,75 +3497,6 @@ void DoExportInterlinearRTF()
 	// whm added 11Nov07 to help prevent text in cells from wrapping excessively in Word 2003
 	wxString TRautoFit = _T("\\trautofit1");
 
-
-	// Cell definition tags
-
-	//wxString Tclvertalt = _T("\\clvertalt");	// Text is vertically aligned to the top of the cell
-	//											// (as opposed to \clvertalc for center, and \clvertalb
-	//											// for bottom alignment). We can stick with top alignment
-	//											// even with RTL languages.
-	//											// Tests show that since the default is \clvertalt we can
-	//											// omit this from RTF output
-
-//#ifdef _RTL_FLAGS
-//	// Flow of cell text defaults to \cltxlrtb - "text in a cell flows from left to right
-//	// and top to bottom," According to the specification one would think we should
-//	// use \cltxtbrl for paragraphs displayed with RTL precedence. However, in tests
-//	// the text is turned 90 degrees clockwise, and it flows bottom to top first and
-//	// then right to left - NOT what we want.
-//	// For \cltxbtlr the spec says "the Text in a cell flows left to right and bottom to top."
-//	// However, tests show the \cltxbtlr tag makes cell text rotate 90 degrees counter clockwise
-//	// and flows top to bottom and left to right - also not what we want.
-//	// For the \cltxlrtbv tag the spec says "the Text in a cell flows left to right and top
-//	// to bottom, vertical." Tests show that the \cltxlrtbv tag appears to work the same
-//	// as the default \cltxlrtb tag (in spite of the vertical designation and letter arrangement).
-//	// For the \cltxtbrlv tag the spec says "the Text in a cell flows top to bottom and right
-//	// to left, vertical." However, test show text is rotated 90 degrees clockwise and flows
-//	// bottom to top, then right to left.
-//	// CONCLUSION: These tags may have an undiscovered conflict with other tags we are
-//	// using, so we will just use the default \cltxlrtb tag!
-//
-//	if (bReverseLayout)							// Normal text follows bReverseLayout value
-//		TCellTextFlowNrm = _T("\\cltxtbrl");
-//
-//	else
-//		TCellTextFlowNrm = _T("\\cltxlrtb");	// Text in a cell flows from left to right and top to
-//												// bottom.
-//
-//	if (gpApp->m_bSrcRTL)
-//		TCellTextFlowSrc = _T("\\cltxtbrl");
-//	else
-//		TCellTextFlowSrc = _T("\\cltxlrtb");
-//	if (gpApp->m_bTgtRTL)
-//		TCellTextFlowTgt = _T("\\cltxtbrl");
-//	else
-//		TCellTextFlowTgt = _T("\\cltxlrtb");
-//	if (gbGlossingUsesNavFont)
-//	{
-//		if (gpApp->m_bNavTextRTL)
-//			TCellTextFlowGls = _T("\\cltxtbrl");
-//		else
-//			TCellTextFlowGls = _T("\\cltxlrtb");
-//	}
-//	else
-//	{
-//		if (gpApp->m_bTgtRTL)
-//			TCellTextFlowGls = _T("\\cltxtbrl");
-//		else
-//			TCellTextFlowGls = _T("\\cltxlrtb");
-//	}
-//	if (gpApp->m_bNavTextRTL)
-//		TCellTextFlowNav = _T("\\cltxtbrl");
-//	else
-//		TCellTextFlowNav = _T("\\cltxlrtb");
-//#else
-//	TCellTextFlowNrm = _T("\\cltxlrtb");	// Text in a cell flows from left to right and top to bottom.
-//	TCellTextFlowSrc = _T("\\cltxlrtb");
-//	TCellTextFlowTgt = _T("\\cltxlrtb");
-//	TCellTextFlowGls = _T("\\cltxlrtb");
-//	TCellTextFlowNav = _T("\\cltxlrtb");
-//#endif
-
 	wxString Tcellx = _T("\\cellx");				// Tag for \cellxN which defines the right boundary of a
 												// table cell, including its half of the space between
 												// cells. N is calculated on the fly from the text
@@ -4032,96 +3970,6 @@ void DoExportInterlinearRTF()
             // I'll proceed on the assumption that the function call will be nearly all we need
 			// here and make tempStr have just m_endMarkers if there is no other filtered stuff.
 			//wxString tempStr = pSrcPhrase->m_markers;
-
-			/* 
-// note >>  // BEW 12Apr10, first, try make good use of doc version 5 structures directly,
-			// and if that doesn't work, comment out the code following this section and
-			// uncomment out this section
-			
-			// 2nd param, bDoCount is FALSE, 3rd param, bCountInTargetText doesn't
-			// matter so FALSE is simplest for that
-			wxString tempStr = GetFilteredStuffAsUnfiltered(pSrcPhrase, FALSE, FALSE)
-			//if (tempStr.Find(filterMkr) != -1)
-			//{
-			//	tempStr = pDoc->RemoveAnyFilterBracketsFromString(tempStr);
-			//}
-			if (tempStr.IsEmpty() && !pSrcPhrase->GetEndMarkers().IsEmpty())
-			{
-				tempStr = pSrcPhrase->GetEndMarkers();
-			}
-			// Except for any \note, \free and/or \bt... markers and associated texts, and
-			// except for anything that gets filtered by our export output filter,
-			// we need to add the remaining filtered/hidden material to BOTH the
-			// source phrase string SrcStr AND the target phrase string TgtStr, since by
-			// design, the hidden elements are to propagate through from input source to
-			// target output; and in our interlinear case we are displaying both the source
-			// and the target on the same display.
-			//
-			// Remove any material from m_markers (tempStr) that is marked in our output
-			// filter for removal from output.
-			//
-			// First handle the \note, \free and \bt... stuff. Rather than putting it into
-			// the SrcStr and TgtStr, we'll set it aside in some temporary strings to be
-			// formatted into the proper RTF form (comments, footnotes, or eventual extra
-			// table row). There may be more than one kind of marker in a given string, for
-			// example m_markers may have both a \free and a \bt... marker within it. However,
-			// we assume there are never more than one \free, or more than one \bt instance
-			// or one \note in the same m_markers.
-			if (tempStr.Find(_T("\\note")) != -1)
-			{
-				// A \note item starts at this source phrase. Here we just set a flag to tell
-				// the routine below (after GetTextExtent is called) to add the comment
-				// generating RTF tags to point to the current column/pile in the table.
-				tempStr = GetStringWithoutMarkerAndAssocText(_T("\\note"),_T("\\note*"),tempStr,assocNoteMarkerText,realMkr);
-				// add initial space for formatting below
-				// prefix the whole marker actually processed to the assoc string so the
-				// formatting routine can parse it out below
-				assocNoteMarkerText = realMkr + assocNoteMarkerText;
-				if (!MarkerIsToBeFilteredFromOutput(_T("note")))
-				{
-					bHasNoteMarker = TRUE;
-				}
-				else
-				{
-					bHasNoteMarker = FALSE;
-				}
-			}
-			if (tempStr.Find(_T("\\free")) != -1)
-			{
-				// a \free item starts at this source phrase. Just set the flag and handle below.
-				tempStr = GetStringWithoutMarkerAndAssocText(_T("\\free"),_T("\\free*"),tempStr,assocFreeMarkerText,realMkr);
-				// add initial space for formatting below
-				// prefix the whole marker actually processed to the assoc string so the
-				// formatting routine can parse it out below
-				assocFreeMarkerText = realMkr + assocFreeMarkerText;
-				if (!MarkerIsToBeFilteredFromOutput(_T("free")))
-				{
-					bHasFreeMarker = TRUE;
-				}
-				else
-				{
-					bHasFreeMarker = FALSE;
-				}
-			}
-			if (tempStr.Find(_T("\\bt")) != -1) // allow any \bt...
-			{
-				// a \bt... item starts at this source phrase. Just set the flag and handle below.
-				bareBTMarker = bareMarker;
-				tempStr = GetStringWithoutMarkerAndAssocText(_T("\\bt"),_T(""),tempStr,assocBTMarkerText,realMkr);
-				// add initial space for formatting below
-				// prefix the whole marker actually processed to the assoc string so the
-				// formatting routine can parse it out below
-				assocBTMarkerText = realMkr + assocBTMarkerText;
-				if (!MarkerIsToBeFilteredFromOutput(_T("bt")))
-				{
-					bHasBTMarker = TRUE;
-				}
-				else
-				{
-					bHasBTMarker = FALSE;
-				}
-			}
-			*/
 
 			// BEW 12Apr10, this section uses doc version 5 structures to advantage, if it
 			// doesn't give the desired results, comment it out and uncomment out the
@@ -5127,24 +4975,6 @@ a:
 			{										// of each table
 				// Process Row 0 PREFIXED DATA (this is not absolutely required for newer word processors,
 				// but is done for compatibility with older RTF readers - including Word 97 and earlier).
-/*
-				hstr = PardPlain					// start of hstr output string for this table
-				+gpApp->m_eolStr
-				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-				+TtsN+TtrgaphN						// \ts21\trgaph108
-				+TStartPos							// \trleft0
-				+Tjust								// \trqc if centered table, otherwise ""
-				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-				// the tags above are output once for a given row
-
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					return;
-*/
 				CellDimsSrc.Empty();
 				CellDimsTgt.Empty();
 				CellDimsGls.Empty();
@@ -5266,23 +5096,14 @@ a:
 						}
 					}
 				}
-/*
-				// output the prefix position \cellxN lines (arbitrarily using CellDimsNav as representative)
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,CellDimsNav))
-					return;
-*/
 			}// end of if nCurrentRow == 0
 			// Process Row 0 Data for 1st row selected for output. If bInclNavLangRow is TRUE
 			// this would be the Nav Lang row.
 			if (bInclNavLangRow && !bNavProcessed)
 			{
-				// whm 22Jul11 moved here from blocks above and below
 				hstr = PardPlain					// start of hstr output string for this table
 				+gpApp->m_eolStr
 				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 				+TtsN+TtrgaphN						// \ts21\trgaph108
 				+TStartPos							// \trleft0
 				+Tjust								// \trqc if centered table, otherwise ""
@@ -5296,14 +5117,9 @@ a:
 				
 				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
-				hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
+				hstr = CellDimsNav;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				// whm 22Jul11 moved here from blocks above and below
 				
 				// don't increment nCurrentRow here because it would still be row zero if
 				// the Nav Lang row is included
@@ -5311,19 +5127,13 @@ a:
 				TRowNum << nCurrentRow; 
 
 				wxString TLastRow;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//if (nCurrentRow == nNumRowsInTable-1)
-				//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-				//else
 				TLastRow = _T("");
 
 				bNavProcessed = TRUE;
 				hstr = gpApp->m_eolStr
 				+PardPlain
 				+SintblNav							// Nav Style
-				+ gpApp->m_eolStr; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{");
+				+ gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
 
@@ -5353,56 +5163,21 @@ a:
 						return;
 				}
 
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//hstr = _T("}")
-				hstr = Trow // whm moved Trow here 22Jul11 from below
+				hstr = Trow
 				+ gpApp->m_eolStr
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-				+PardPlain; // whm added ;
-				/*
-				+SintblNrm							// in-table Normal style
-				+gpApp->m_eolStr //_T("\n")
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{")
-				//+_T("\\f")+FNumNav					// Nav associated font
-				//+_T(" ")
-				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-				+TStartPos							// \trleft0
-				+Tjust								// \trqc if centered table, otherwise ""
-				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-				*/
+				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				/*
-				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
-				// increasing values for N
-				hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					return;
-				*/
 			}// end of if (bInclNavLangRow && !NavProcessed)
 
 			// Process Row 1 Data for 2nd row selected for output. If bInclSrcLangRow is TRUE
 			// this would be the Src Lang row.
 			if (bInclSrcLangRow && !bSrcProcessed)
 			{
-				// whm 22Jul11 moved here from blocks above and below
 				hstr = PardPlain					// start of hstr output string for this table
 				+gpApp->m_eolStr
 				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 				+TtsN+TtrgaphN						// \ts21\trgaph108
 				+TStartPos							// \trleft0
 				+Tjust								// \trqc if centered table, otherwise ""
@@ -5416,14 +5191,9 @@ a:
 				
 				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
-				hstr = CellDimsSrc; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
+				hstr = CellDimsSrc;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				// whm 22Jul11 moved here from blocks above and below
 				
 				// if the Nav Lang row above is included then this would be row index 1,
 				// otherwise this Src Lang row would still be row index 0
@@ -5433,10 +5203,6 @@ a:
 				TRowNum << nCurrentRow;
 
 				wxString TLastRow;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//if (nCurrentRow == nNumRowsInTable-1)
-				//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-				//else
 				TLastRow = _T("");
 
 				bSrcProcessed = TRUE;
@@ -5444,8 +5210,6 @@ a:
 				+PardPlain
 				+SintblSrc							// Src Style
 				+gpApp->m_eolStr;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{");
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
 
@@ -5461,43 +5225,12 @@ a:
 					srcpos = srcpos->GetNext();
 				}
 
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//hstr = _T("}")
-				hstr = Trow // whm moved Trow here 22Jul11 from below
+				hstr = Trow
 				+ gpApp->m_eolStr
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-				+PardPlain; // whm added ;
-				/*
-				+SintblNrm							// in-table Normal style
-				+gpApp->m_eolStr
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{")
-				//+_T("\\f")+FNumSrc					// Src associated font
-				//+_T(" ")
-				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-				+TStartPos							// \trleft0
-				+Tjust								// \trqc if centered table, otherwise ""
-				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-				*/
+				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				/*
-				// CellDimsSrc below contains as many \cellxN items as there are cells in this row, with
-				// increasing values for N
-				hstr = CellDimsSrc; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					return;
-				*/
 			}// end of if (bInclSrcLangRow && !SrcProcessed)
 
 			// Process Rows 2 & 3 Data for 3rd and 4th rows selected for output. If gbIsGlossing this
@@ -5509,13 +5242,9 @@ a:
 				// When Glossing place the Gls language row above the Tgt language row
 				if (bInclGlsLangRow && !bGlsProcessed)
 				{
-					// whm 22Jul11 moved here from blocks above and below
 					hstr = PardPlain					// start of hstr output string for this table
 					+gpApp->m_eolStr
 					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 					+TtsN+TtrgaphN						// \ts21\trgaph108
 					+TStartPos							// \trleft0
 					+Tjust								// \trqc if centered table, otherwise ""
@@ -5531,19 +5260,11 @@ a:
 					// in this row, with increasing values for N
 					if (gbGlossingUsesNavFont)
 					{
-						hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
+						hstr = CellDimsNav;
 					}
 					else
 					{
-						hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
+						hstr = CellDimsTgt;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
@@ -5554,19 +5275,13 @@ a:
 					TRowNum << nCurrentRow;
 
 					wxString TLastRow;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//if (nCurrentRow == nNumRowsInTable-1)
-					//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-					//else
 					TLastRow = _T("");
 
 					bGlsProcessed = TRUE;
 					hstr = gpApp->m_eolStr
 					+PardPlain
 					+SintblGls							// Gls Style
-					+gpApp->m_eolStr; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{");
+					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
 
@@ -5600,65 +5315,19 @@ a:
 						}
 					}
 
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//hstr = _T("}")
-					hstr = Trow // whm moved Trow here 22Jul11 from below
+					hstr = Trow
 					+ gpApp->m_eolStr
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-					+PardPlain; // whm added ;
-					/*
-					+SintblNrm							// in-table Normal style
-					+gpApp->m_eolStr //_T("\n")
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{")
-					//+_T("\\f")+FNumGls					// Gls associated font
-					//+_T(" ")
-					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-					+TStartPos							// \trleft0
-					+Tjust								// \trqc if centered table, otherwise ""
-					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-					*/
+					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
-					/*
-					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
-					// in this row, with increasing values for N
-					if (gbGlossingUsesNavFont)
-					{
-						hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
-					}
-					else
-					{
-						hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
-					}
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-						return;
-					*/
 				}// end of if (bInclGlsLangRow && !GlsProcessed)
 
 				if (bInclTgtLangRow && !bTgtProcessed)
 				{
-					// whm 22Jul11 moved here from blocks above and below
 					hstr = PardPlain					// start of hstr output string for this table
 					+gpApp->m_eolStr
 					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 					+TtsN+TtrgaphN						// \ts21\trgaph108
 					+TStartPos							// \trleft0
 					+Tjust								// \trqc if centered table, otherwise ""
@@ -5672,14 +5341,9 @@ a:
 					
 					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
 					// increasing values for N
-					hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+Trow
-					//+_T(" ")
-					//+_T('}');							// end of row
+					hstr = CellDimsTgt;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
-					// whm 22Jul11 moved here from blocks above and below
 					
 					if (bInclNavLangRow || bInclSrcLangRow)
 						nCurrentRow++;
@@ -5687,19 +5351,13 @@ a:
 					TRowNum << nCurrentRow;
 
 					wxString TLastRow;
-					//// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//if (nCurrentRow == nNumRowsInTable-1)
-					//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-					//else
 					TLastRow = _T("");
 
 					bTgtProcessed = TRUE;
 					hstr = gpApp->m_eolStr
 					+PardPlain
 					+SintblTgt							// Tgt Style
-					+gpApp->m_eolStr; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{");
+					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
 
@@ -5715,55 +5373,20 @@ a:
 						tgtpos = tgtpos->GetNext();
 					}
 
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//hstr = _T("}")
-					hstr = Trow // whm moved Trow here 22Jul11 from below
+					hstr = Trow
 					+ gpApp->m_eolStr
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-					+PardPlain; // whm added ;
-					/*
-					+SintblNrm							// in-table Normal style
-					+gpApp->m_eolStr
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{")
-					//+_T("\\f")+FNumTgt					// Tgt associated font
-					//+_T(" ")
-					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-					+TStartPos							// \trleft0
-					+Tjust								// \trqc if centered table, otherwise ""
-					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-					*/
+					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
-					/*
-					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
-					// increasing values for N
-					hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+Trow
-					//+_T(" ")
-					//+_T('}');							// end of row
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-						return;
-					*/
 				}// end of if (bInclTgtLangRow && !TgtProcessed)
 
 			}
 			else
 			{
-				// whm 22Jul11 moved here from blocks above and below
 				hstr = PardPlain					// start of hstr output string for this table
 				+gpApp->m_eolStr
 				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 				+TtsN+TtrgaphN						// \ts21\trgaph108
 				+TStartPos							// \trleft0
 				+Tjust								// \trqc if centered table, otherwise ""
@@ -5779,23 +5402,14 @@ a:
 				// in this row, with increasing values for N
 				if (gbGlossingUsesNavFont)
 				{
-					hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+Trow
-					//+_T(" ")
-					//+_T('}');						// end of row
+					hstr = CellDimsNav;
 				}
 				else
 				{
-					hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+Trow
-					//+_T(" ")
-					//+_T('}');						// end of row
+					hstr = CellDimsTgt;
 				}
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				// whm 22Jul11 moved here from blocks above and below
 				
 				// When not Glossing place Target Row then Gloss Row last
 				if (bInclTgtLangRow && !bTgtProcessed)
@@ -5806,18 +5420,13 @@ a:
 					TRowNum << nCurrentRow;
 
 					wxString TLastRow;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//if (nCurrentRow == nNumRowsInTable-1)
-					//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-					//else
 					TLastRow = _T("");
 
 					bTgtProcessed = TRUE;
 					hstr = gpApp->m_eolStr 
 					+PardPlain
 					+SintblTgt							// Tgt Style
-					+gpApp->m_eolStr; // whm modified 22Jul11 end line here with ;
-					//+_T("{");
+					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
 
@@ -5833,54 +5442,19 @@ a:
 						tgtpos = tgtpos->GetNext();
 					}
 
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//hstr = _T("}")
-					hstr = Trow // whm moved Trow here 22Jul11 from below
+					hstr = Trow
 					+ gpApp->m_eolStr
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-					+PardPlain; // whm added ;
-					/*
-					+SintblNrm							// in-table Normal style
-					+gpApp->m_eolStr
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{")
-					//+_T("\\f")+FNumTgt					// Tgt associated font
-					//+_T(" ")
-					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-					+TStartPos							// \trleft0
-					+Tjust								// \trqc if centered table, otherwise ""
-					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-					*/
+					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
-					/*
-					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
-					// increasing values for N
-					hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+Trow
-					//+_T(" ")
-					//+_T('}');							// end of row
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-						return;
-					*/
 				}// end of if (bInclTgtLangRow && !TgtProcessed)
 
 				if (bInclGlsLangRow && !bGlsProcessed)
 				{
-					// whm 22Jul11 moved here from blocks above and below
 					hstr = PardPlain					// start of hstr output string for this table
 					+gpApp->m_eolStr
 					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 					+TtsN+TtrgaphN						// \ts21\trgaph108
 					+TStartPos							// \trleft0
 					+Tjust								// \trqc if centered table, otherwise ""
@@ -5896,23 +5470,14 @@ a:
 					// in this row, with increasing values for N
 					if (gbGlossingUsesNavFont)
 					{
-						hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
+						hstr = CellDimsNav;
 					}
 					else
 					{
-						hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
+						hstr = CellDimsTgt;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
-					// whm 22Jul11 moved here from blocks above and below
 
 					if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow)
 						nCurrentRow++;
@@ -5920,19 +5485,13 @@ a:
 					TRowNum << nCurrentRow;
 
 					wxString TLastRow;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//if (nCurrentRow == nNumRowsInTable-1)
-					//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-					//else
 					TLastRow = _T("");
 
 					bGlsProcessed = TRUE;
 					hstr = gpApp->m_eolStr 
 					+PardPlain
 					+SintblGls							// Gls Style
-					+gpApp->m_eolStr; // whm modified 22Jul11 end line here with ;
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{");
+					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
 
@@ -5968,54 +5527,12 @@ a:
 						}
 					}
 
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//hstr = _T("}")
-					hstr = Trow // whm moved Trow here 22Jul11 from below
+					hstr = Trow
 					+ gpApp->m_eolStr
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-					+PardPlain; // whm added ;
-					/*
-					+SintblNrm							// in-table Normal style
-					+gpApp->m_eolStr
-					// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-					//+_T("{")
-					//+_T("\\f")+FNumGls					// Gls associated font
-					//+_T(" ")
-					+Trowd								// \trowd
-					// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-					//+_T(" ")
-					//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-					+TStartPos							// \trleft0
-					+Tjust								// \trqc if centered table, otherwise ""
-					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-					*/
+					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 						return;
-					/*
-					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
-					// in this row, with increasing values for N
-					if (gbGlossingUsesNavFont)
-					{
-						hstr = CellDimsNav; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
-					}
-					else
-					{
-						hstr = CellDimsTgt; // whm modified 22Jul11 end line here with ;
-						// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-						//+Trow
-						//+_T(" ")
-						//+_T('}');						// end of row
-					}
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-						return;
-					*/
 				}// end of if (bInclGlsLangRow && !GlsProcessed)
 			}// end of else when not glossing
 
@@ -6025,13 +5542,9 @@ a:
 			// is TRUE.
 			if (bInclFreeTransRow && !bFreeTransProcessed)
 			{
-				// whm 22Jul11 moved here from blocks above and below
 				hstr = PardPlain					// start of hstr output string for this table
 				+gpApp->m_eolStr
 				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 				+TtsN+TtrgaphN						// \ts21\trgaph108
 				+TStartPos							// \trleft0
 				+Tjust								// \trqc if centered table, otherwise ""
@@ -6045,14 +5558,9 @@ a:
 				
 				// cellDimsFree below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
-				hstr = cellDimsFree; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
+				hstr = cellDimsFree;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				// whm 22Jul11 moved here from blocks above and below
 
 				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
 					nCurrentRow++;
@@ -6060,10 +5568,6 @@ a:
 				TRowNum << nCurrentRow;
 
 				wxString TLastRow;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//if (nCurrentRow == nNumRowsInTable-1)
-				//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-				//else
 				TLastRow = _T("");
 
 				bFreeTransProcessed = TRUE;
@@ -6071,8 +5575,6 @@ a:
 				+PardPlain
 				+ SintblNav
 				+gpApp->m_eolStr // Note: end hstr line after Free Trans Style tag below
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{")
 				+SintblFree;						// Free Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
@@ -6175,43 +5677,12 @@ a:
 
 				}
 
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//hstr = _T("}")
-				hstr = Trow // whm moved Trow here 22Jul11 from below
+				hstr = Trow
 				+ gpApp->m_eolStr
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
-				/*
-				+SintblNrm							// in-table Normal style
-				+gpApp->m_eolStr //_T("\n")
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{")
-				//+_T("\\f")+FNumNav					// Free translation uses Nav associated font
-				//+_T(" ")
-				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-				+TStartPos							// \trleft0
-				+Tjust								// \trqc if centered table, otherwise ""
-				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-				*/
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				/*
-				// cellDimsFree below contains as many \cellxN items as there are cells in this row, with
-				// increasing values for N
-				hstr = cellDimsFree; // whm modified 22Jul11 end line here with ;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					return;
-				*/
 			}
 
 			// added for version 3
@@ -6220,13 +5691,9 @@ a:
 			// is TRUE.
 			if (bInclBackTransRow && !bBackTransProcessed)
 			{
-				// whm 22Jul11 moved here from blocks above and below
 				hstr = PardPlain					// start of hstr output string for this table
 				+gpApp->m_eolStr
 				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
 				+TtsN+TtrgaphN						// \ts21\trgaph108
 				+TStartPos							// \trleft0
 				+Tjust								// \trqc if centered table, otherwise ""
@@ -6240,13 +5707,9 @@ a:
 				
 				// cellDimsBack below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
-				hstr = cellDimsBack; // whm modified 22Jul11 end line here with ;
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
+				hstr = cellDimsBack;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				// whm 22Jul11 moved here from blocks above and below
 				
 				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
 					nCurrentRow++;
@@ -6254,10 +5717,6 @@ a:
 				TRowNum << nCurrentRow; //_itot(nCurrentRow,rbuf,10);
 
 				wxString TLastRow;
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//if (nCurrentRow == nNumRowsInTable-1)
-				//	TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
-				//else
 				TLastRow = _T("");
 
 				bBackTransProcessed = TRUE;
@@ -6265,8 +5724,6 @@ a:
 				+PardPlain
 				+ SintblNav
 				+gpApp->m_eolStr // Note: end hstr line after Back Trans Style tag below
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{")
 				+SintblBack;							// Back Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
@@ -6368,42 +5825,12 @@ a:
 
 				}
 
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//hstr = _T("}")
-				hstr = Trow // whm moved Trow here 22Jul11 from below
+				hstr = Trow
 				+ gpApp->m_eolStr
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
-				+PardPlain; // whm added ;
-				/*
-				+SintblNrm							// in-table Normal style
-				+gpApp->m_eolStr //_T("\n")
-				// whm modified 22Jul11 for better compatibility with OpenOffice/LibreOffice
-				//+_T("{")
-				//+_T("\\f")+FNumNav					// Back translation uses Nav associated font
-				//+_T(" ")
-				+Trowd								// \trowd
-				// whm modified 22Jul11 for simplicity and greater compatibility with OpenOffice/LibreOffice
-				//+_T(" ")
-				//+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
-				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
-				+TStartPos							// \trleft0
-				+Tjust								// \trqc if centered table, otherwise ""
-				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
-				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
-				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
-				*/
+				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					return;
-				/*
-				// cellDimsBack below contains as many \cellxN items as there are cells in this row, with
-				// increasing values for N
-				hstr = cellDimsBack; // whm modified 22Jul11 end line here with ;
-				//+Trow
-				//+_T(" ")
-				//+_T('}');							// end of row
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					return;
-				*/
 			}
 
 
@@ -6740,6 +6167,11 @@ b:						// b: is exit point to write the last columns of data
 		wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION);
 	}
 	
+#ifndef __WXGTK__
+	// TODO: Determine why the following wxMessageBox() call crashes the application
+	// on Linux when navigation protection is ON for _INTERLINEAR_RTF_OUTPUTS. For now
+	// I've conditionally compiled the code to omit this informational prompt on the
+	// wxGTK port.
 	if (bBypassFileDialog_ProtectedNavigation)
 	{
 		// whm 7Jul11 Note:
@@ -6757,6 +6189,7 @@ b:						// b: is exit point to write the last columns of data
 		msg = msg.Format(msg,fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
 		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
 	}
+#endif
 
 	// BEW changed next line 24Jun05 since this doc parameter can't change once the doc is created
 	//gbIsUnstructuredData = FALSE; // restore the default value
