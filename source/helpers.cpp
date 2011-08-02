@@ -496,7 +496,7 @@ wxString ExtractSubstring(const wxString& str, int first, int last)
 	{
 		return outStr;
 	}
-	if (length = 0)
+	if (length == 0)
 	{
 		return outStr;
 	}
