@@ -6753,8 +6753,8 @@ b:						// b: is exit point to write the last columns of data
 		wxFileName fn(uniqueFilenameAndPath);
 		wxString fileNameAndExtOnly = fn.GetFullName();
 
-		wxString msg;
-		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
+		wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
+		msg = msg.Format(msg,fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
 		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
 	}
 
