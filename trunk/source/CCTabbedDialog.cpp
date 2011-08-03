@@ -418,11 +418,17 @@ wxString CCCTabbedDialog::GetListItemWithoutUsedString(wxString inStr)
 
 void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event)) 
 {
+    // wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a
+    // call to Clear() so we must check to see if the listbox contains no items and if so
+    // return immediately.
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
+	{
+		return;
+	}
 
 	int nSel;
 	nSel = m_pListBox->GetSelection();
-	// whm: CCCTabbedDialog already deals with invalid selections so I won't use the
-	// ListBoxPassesSanityCheck routine here.
+
 	if (nSel != -1) //== m_nPrevSelection)
 	{
 		wxString listBoxStr = m_pListBox->GetString(nSel);
