@@ -61,6 +61,8 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 extern wxString szProjectConfiguration;
+extern wxArrayString m_exportBareMarkers;
+extern wxArrayInt m_exportFilterFlags;
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern const wxChar* filterMkr; // defined in the Doc
@@ -2087,6 +2089,7 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 // Advances index until usfmText array at that index points to a \v n line.
 // If there are no more \v n lines, then the function returns FALSE. The
 // index is returned to the caller via the index reference parameter.
+// Assumes that index is not already at a line with \v when called
 bool GetNextVerseLine(const wxArrayString usfmText, int& index)
 {
 	int totLines = (int)usfmText.GetCount();
@@ -2542,17 +2545,28 @@ void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& ori
 
 }
 
+// this function exports the target text from the document, and programmatically causes
+// \free \note and \bt (and any \bt-initial markers) and the contents of those markers to
+// be excluded from the export
 wxString ExportTargetText_For_Collab(SPList* pDocList)
 {
 	wxASSERT(pDocList != NULL);
 	int textLen = 0;
 	wxString text;
 	textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
+	// set \note, \bt, and \free as to be programmatically excluded from the export
+	ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
+	// cause the markers set for exclusion, plus their contents, to be actually removed
+	// from the exported text
+	bool bRTFOutput = FALSE; // we are working with USFM marked up text
+	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, targetTextExport);
 	return text;
 }
 
+// this function exports the free translation text from the document; any
+// un-free-translated sections are output as just empty USFM markers
 wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 {
 	wxASSERT(pDocList != NULL);
@@ -2710,8 +2724,8 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	
 	wxString text; text.Empty();
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
-	wxString textFromEditor; // the adaptation or free translation text just grabbed from PT or BE
-	textFromEditor.Empty();
+	wxString fromEditorText; // the adaptation or free translation text just grabbed from PT or BE
+	fromEditorText.Empty();
 	postEditText.Empty(); // the exported adaptation or free translation text at File / Save time
 
 	/* app member variables
@@ -2777,7 +2791,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 			}
 			// remove the BOM and get the data into wxString textFromEditor
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text);
-			textFromEditor = GetTextFromAbsolutePathAndRemoveBOM(absPath);
+			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath);
 		}
 		break;
 	default:
@@ -2797,7 +2811,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 			}
 			// remove the BOM and get the data into wxString textFromEditor
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_target_text);
-			textFromEditor = GetTextFromAbsolutePathAndRemoveBOM(absPath);
+			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath);
 		}
 		break;
 	};
@@ -2810,7 +2824,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	bool bTextFromEditor = FALSE;
 	// pDocList is not an empty list of CSourcePhrase instances, so build as much of the
 	// wanted data type as is done so far in the document & return it to caller
-	if (textFromEditor.IsEmpty())
+	if (fromEditorText.IsEmpty())
 	{
 		// if no text was received from the external editor, then the document is being,
 		// or has just been, adapted for the first time - this simplifies our task to
@@ -2826,139 +2840,53 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 			// rebuild the adaptation USFM marked-up text
 			text = ExportTargetText_For_Collab(pDocList);
 			break;
-		};
+		}
 		return text;
 	}
-	else
+
+	// if control gets here, then we've 3 text variants to manage & compare; pre-edit,
+	// post-edit, and fromEditor; we've not yet got the post-edit text from the document,
+	// so do it now
+	switch (makeTextType)
 	{
-		// adaptation text, or free trans text, depending on makeTextType value, was
-		// received from the external editor -- so we've a more complicated task - we
-		// need to work out below which parts of pTextFromEditor to update, and do so
-		bTextFromEditor = TRUE;
+	case makeFreeTransText:
+		postEditText = ExportFreeTransText_For_Collab(pDocList);
+			break;
+	default:
+	case makeTargetText:
+		text = ExportTargetText_For_Collab(pDocList);
+		break;
 	}
-	bool bFirstTimeForThisDoc = TRUE; // initialize to TRUE, that is, assume this doc has
-				// not been worked on yet. Normally there won't have been text received
-				// for the adaptation or free translation from Paratext or Bibledit either,
-				// but we can't be certain - there may have been work done already in the
-				// relevant external editor's project for this chapter or whole book - and
-				// if that is the case, we must do the more complex processing much further 
-				// below
-	if (preEditText.IsEmpty())
+
+	// If the user changes the USFM structure for the text within Paratext or Bibledit,
+	// such as to bridge or unbridge verses, and/or make part verses, and/or add new
+	// markers such as poetry markers, etc - such changes, even if no words or punctuation
+	// are altered, change the data which follows the marker and that will lead to MD5
+	// changes based on the structure changes. If the USFM in the text coming from the
+	// external editor is different, we must use more complex algorithms - chunking
+	// strategies and wrapping the corresponding sections of differing USFM structure text
+	// parts in a bigger chunk and doing, within that bigger chunk, more text transfer
+	// (and possibly rubbing out better text in the external editor as a result). The
+	// situation where USFM hasn't changed is much better - in that case, every marker is
+	// the same in the same part of every one of the 3 texts: the pre-edit text, the
+	// post-edit text, and the grabbed-text (ie. just grabbed from the external editor).
+	// This fact allows for a much simpler processing algorithm. We'll tackle this case
+	// first. Fortunately, it is the overwhelmingly most common situation. To determine
+	// whether or not the USFM structure has changed we must now calculate the
+	// UsfmStructure&Extents arrays for each of the 3 text variants, then test if the USFM
+	// in the post-edit text is any different from the USFM in the grabbed text. (The
+	// pre-edit text is ALWAYS the same in USFM structure as the post-edit text, because
+	// editing of the source text is not allowed when in collaboration mode.
+	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
+	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
+	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
+	bool bUsfmIsTheSame = TRUE;
+	if (IsUsfmStructureChanged(postEditText, fromEditorText))
 	{
-		// the user has not yet worked on this chapter or whole book in Adapt It (but
-		// bTextFromEditor will have been set TRUE above, so everything the user has
-		// worked on in the document so far will replace the equivalent parts of the text
-		// received from the external editor -- the complex code below will handle this
-		;
+		bUsfmIsTheSame = FALSE;
 	}
-	else
+	if (bUsfmIsTheSame)
 	{
-		// there's been at least one File / Save, or an earlier session of adapting or
-		// free translating for this document -- the complex code below deals with this
-		bFirstTimeForThisDoc = FALSE;
-	}
-	// The two flags, bFirstTimeForThisDoc and bTextFromEditor now have their appropriate
-	// values, and we will need these to distinguish processing paths below; when both are
-	// TRUE, the issue is semi-complex, any adapting or free translating for a chunk
-	// results in the text replacing the equivalent part of textFromEditor; but
-	// when the first is FALSE and the second TRUE, we have the full-complexity - we have
-	// to compare the preEdit and current states of the doc to find where the user made
-	// changes, and then only for the places equivalent to those locations within
-	// textFromEditor may replacements be made.
-
-
-
-
-
-
-
-	if (!bFirstTimeForThisDoc)
-	{
-		// This is the 3-way equivalence chunking situation - the most complex we need to
-		// deal with, so handle this after the 2-way equivalence situation is finished
-		 
-        // first, deal with the pre-edit text - build the code here then pull it out into a
-        // function
-		SPList preEditSrcPhraseList;
-		SPArray preEditSrcPhraseArray;
-		// if this document hasn't been worked on before, then pPreEditText will point at an
-		// empty string - in which case our task is simpler
-		bool bUseTargetTextPuncts = TRUE; // use target text punctuation for the parsing
-		int nInitialSequNum = 0; 
-		int numPreEditSrcPhrases = pView->TokenizeTargetTextString(&preEditSrcPhraseList, 
-									preEditText, nInitialSequNum, bUseTargetTextPuncts);
-		wxASSERT(numPreEditSrcPhrases > 0);
-		if (numPreEditSrcPhrases > 0)
-		{
-			// convert the SPList to the SPArray preferred storage
-			ConvertSPList2SPArray(&preEditSrcPhraseList, &preEditSrcPhraseArray);
-
-
-
-
-		// *** TODO ****
-
-
-
-
-
-		} // end of TRUE block for test: if (numPreEditSrcPhrases > 0)
-		else
-		{
-            // there isn't any preEditText to handle -- this should be impossible since
-            // we've dealt with this possibility above; so just return an empty string with
-            // a bell
-			wxBell();
-			wxString emptyStr = _T("");
-			return emptyStr;
-		}
-	}
-	else
-	{
-		// This is the 2-way equivalence chunking situation - the semi-complex one...
-		// we have a document from which we get either target text, or free translation
-		// text, and the comparison text is that which was grabbed from PT or BE - it may
-		// be contentless USFM verse and chapter markup, or the latter with some actual
-		// free translation in parts of it, or fully free translated USFM text
-
-		SPList fromEditorSrcPhraseList;
-		SPArray fromEditorSrcPhraseArray;
-		bool bUseTargetTextPuncts = TRUE; // use target text punctuation for the parsing
-		int nInitialSequNum = 0;
-		// in the following tokenization, the m_key and m_srcPhrase members of each
-		// CSourcePhrase instance contain target text, or free translation text, depending
-		// on the passed in makeTextType enum value (the caller is responsible for passing
-		// in the right kind of text for params 1 and 3, and we'll handle free trans USFM
-		// text in the same way as we do for adaptation text, as often as possible - it's
-		// only at certain points in the processing that we need to distinguish what type 
-		// of text it is)
-		int numFromEditorSrcPhrases = pView->TokenizeTargetTextString(&fromEditorSrcPhraseList, 
-									textFromEditor, nInitialSequNum, bUseTargetTextPuncts);
-		wxASSERT(numFromEditorSrcPhrases > 0);
-		if (numFromEditorSrcPhrases > 0)
-		{
-			// convert the SPList to the SPArray preferred storage
-			ConvertSPList2SPArray(&fromEditorSrcPhraseList, &fromEditorSrcPhraseArray);
-
-
-
-
-		// *** TODO ****
-
-
-
-
-
-		} // end of TRUE block for test: if (numPreEditSrcPhrases > 0)
-		else
-		{
-            // there isn't any preEditText to handle -- this should be impossible since
-            // we've dealt with this possibility above; so just return an empty string with
-            // a bell
-			wxBell();
-			wxString emptyStr = _T("");
-			return emptyStr;
-		}
 
 
 
@@ -2968,14 +2896,21 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 
 
 
-		// *** TODO ****
+
 
 
 
 	}
+	else
+	{
+		// the USFM structure has changed in at least one location in the text
+		
 
 
 
+
+
+	}
 
 	/* a template to copy as needed
 	switch (makeTextType)

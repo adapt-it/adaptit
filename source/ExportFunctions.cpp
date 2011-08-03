@@ -516,7 +516,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
 		// produced exports within the _TARGET_OUTPUTS folder from those generated automatically
 		// by our collaboration code, we adjust the exportFilename having a "_Collab..." prefix
-		// so that it will have "_Export..." prefix instead.
+		// so that it will have "_Target_Text" prefix instead.
 		exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
 		len = exportFilename.Length();
 
@@ -870,6 +870,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		nTextLength = RebuildTargetText(target);
 		// Apply output filter to the target text
 		target =  ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		//target = ExportTargetText_For_Collab(gpApp->m_pSourcePhrases); <<- for testing it works right - it does
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(target, targetTextExport);
@@ -1078,6 +1079,58 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 	f.Close();
 }
+
+// Looks in the global wxArrayString m_exportBareMarkers (the doc function,
+// GetMarkerInventoryFromCurrentDoc() should have been called just previously to ensure
+// the array is populated with the markers actually current in the document), passing in
+// the bare marker (ie. backslash removed) or a whole marker - if the latter, it will
+// strip off the backslash before using it, to search in the array for the index where the
+// marker is located, and then returns that index to the caller.
+// The function is used in ExcludeCustomMarkersFromExport() - see below, and the latter
+// does the call of GetMarkerInfentoryFromCurrentDoc() - the latter function sets all the
+// flags in the global wxArrayInt, m_exportFilterFlags to 0 (FALSE) at its start.
+// Returns wxNOT_FOUND if the passed in bareMkr is not in the inventory
+int	FindMkrInMarkerInventory(wxString bareMkr)
+{
+	wxASSERT(!bareMkr.IsEmpty() && bareMkr.Len() > 0);
+	if (bareMkr.GetChar(0) == _T('\\'))
+		bareMkr = bareMkr.Mid(1);
+	int index = m_exportBareMarkers.Index(bareMkr);
+	return index;
+}
+
+void ExcludeCustomMarkersFromExport()
+{
+	// populate global m_exportBareMarkers wxArrayString, and initialize global wxArrayInt
+	// m_exportFilterFlags to same size and all items 0 (ie. FALSE)
+	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc();
+	// define our custom markers, (doesn't matter if we include their backslash or not,
+	// the calls below would remove initial backslash if present) and get their indices
+	// within m_exportBareMarkers; and then set the item at same index in
+	// m_exportFilterFlags to 1 (ie. TRUE), and then a call of ApplyOutputFilterToText()
+	// after a USFM rebuild by a function like RebuildTargetText() will filter out the
+	// markers we here specify, wherever they occur, and also remove their text content as
+	// well.
+	wxString freeTrans = _T("free");
+	wxString note = _T("note");
+	wxString bt = _T("bt"); // this will also filter out any longer markers beginning with bt
+	int index = FindMkrInMarkerInventory(freeTrans);
+	if (index != wxNOT_FOUND)
+	{
+		m_exportFilterFlags[index] = 1;
+	}
+	index = FindMkrInMarkerInventory(note);
+	if (index != wxNOT_FOUND)
+	{
+		m_exportFilterFlags[index] = 1;
+	}
+	index = FindMkrInMarkerInventory(bt);
+	if (index != wxNOT_FOUND)
+	{
+		m_exportFilterFlags[index] = 1;
+	}
+}
+
 
 // The default option (2nd param is TRUE) for the following call is almost the functional
 // equivalent to a doc version 4 test for a non-empty m_markers member. The difference is

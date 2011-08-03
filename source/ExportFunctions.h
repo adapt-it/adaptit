@@ -209,5 +209,6 @@ wxString	RemoveFreeTransWordCountFromStr(wxString freeStr); // whm added 3Dec05
 wxString	GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 							wxArrayString& StyleDefStrArray, int& indx); // whm added 18Oct05
 void		RemoveMarkersOfType(enum TextType textType, wxString& text);
-
+int			FindMkrInMarkerInventory(wxString mkr); // BEW added 3Aug11
+void		ExcludeCustomMarkersFromExport(); // BEW added 3Aug11
 #endif //ExportFunctions_h
