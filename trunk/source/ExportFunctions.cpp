@@ -2901,10 +2901,14 @@ void DoExportInterlinearRTF()
 	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
+#ifdef _RTL_FLAGS
 	if (gpApp->m_bSrcRTL)
 		tempStr += _T("\\qr ");
 	else
 		tempStr += _T("\\ql ");
+#else
+	tempStr += _T("\\ql ");
+#endif
 	SintblSrc = tempStr;
 
 	// adjust Tgt Lang style number and font number, remove the "\\par \n\\pard\\plain " prefix,
@@ -2941,10 +2945,14 @@ void DoExportInterlinearRTF()
 	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
+#ifdef _RTL_FLAGS
 	if (gpApp->m_bTgtRTL)
 		tempStr += _T("\\qr ");
 	else
 		tempStr += _T("\\ql ");
+#else
+	tempStr += _T("\\ql ");
+#endif
 	SintblTgt = tempStr;
 
 	// adjust Gls Lang style number and font number, remove the "\\par \n\\pard\\plain " prefix,
@@ -2984,17 +2992,27 @@ void DoExportInterlinearRTF()
 	// and LibreOffice.
 	if (gbGlossingUsesNavFont)
 	{
+#ifdef _RTL_FLAGS
 		if (gpApp->m_bNavTextRTL)
 			tempStr = _T("\\qr");
 		else
 			tempStr = _T("\\ql");
+#else
+		tempStr = _T("\\ql");
+
+#endif
 	}
 	else
 	{
+#ifdef _RTL_FLAGS
 		if (gpApp->m_bTgtRTL)
 			tempStr = _T("\\qr");
 		else
 			tempStr = _T("\\ql");
+#else
+		tempStr = _T("\\ql");
+
+#endif
 	}
 	SintblGls = tempStr;
 
@@ -3029,11 +3047,14 @@ void DoExportInterlinearRTF()
 	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
+#ifdef _RTL_FLAGS
 	if (gpApp->m_bNavTextRTL)
 		tempStr += _T("\\qr ");
 	else
 		tempStr += _T("\\ql ");
-
+#else
+	tempStr += _T("\\ql ");
+#endif
 	SintblNav = tempStr;
 
 	// adjust Free Trans style number

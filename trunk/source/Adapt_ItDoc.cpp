@@ -7108,19 +7108,11 @@ bool CAdapt_ItDoc::IsPrevCharANewline(wxChar* ptr, wxChar* pBufStart)
 /// BEW 30July11, add support in Unicode version for zero-width space (needed in Khmer
 /// scripts) and some other special characters
 ///////////////////////////////////////////////////////////////////////////////
+/* 
+// deprecated, different logic is needed for supporting exotic spaces and joiners without 
+// wasting lots of time when such exotic ones are not in the data
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
-#ifdef _UNICODE
-	// BEW 29Jul11, support ZWSP (zero-width space character, U+200B) as well, and from
-	// Ad Korten's email, also hair space, thin space, and zero width joiner (he may
-	// specify one or two others later -- if so add them only here)
-	wxChar ZWSP = (wxChar)0x200B; // ZWSP
-	wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace
-	wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
-	wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
-	if (*pChar == ZWSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ)
-		return TRUE;
-#endif
 	// returns true for tab 0x09, return 0x0D or space 0x20
 	// _istspace not recognized by g++ under Linux
 	if (wxIsspace(*pChar) == 0)
@@ -7134,6 +7126,66 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 	//else
 	//	return FALSE;
 }
+*/
+
+bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
+{
+	// BEW 30July11 -- the following block also needs to be added to the beginning of the
+	// following similar functions in helpers.cpp: IsWhiteSpace() and
+	// Is_NonEol_WhiteSpace() and has been
+#ifdef _UNICODE
+	wxChar NBSP = (wxChar)0x00A0; // standard Non-Breaking SPace
+#else
+	wxChar NBSP = (unsigned char)0xA0;  // standard Non-Breaking SPace
+#endif
+	
+	// handle common ones first...
+	// returns true for tab 0x09, return 0x0D or space 0x20
+	// _istspace not recognized by g++ under Linux; the wxIsspace() fn and those it relies
+	// on return non-zero if a space type of character is passed in
+	if (wxIsspace(*pChar) != 0 || *pChar == NBSP)
+	{
+		return TRUE;
+	}
+	else
+	{
+#ifdef _UNICODE
+		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
+		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
+		// tried first, and if not those then the less common ones
+		wxChar ZWSP = (wxChar)0x200B; // ZWSP
+		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
+		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
+		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
+		{
+			return TRUE;
+		}
+		else
+		{
+			wxChar ENSP = (wxChar)0x2002; // ENSP is "EN SPace"
+			wxChar EMSP = (wxChar)0x2003; // ENSP is "EM SPace"
+			wxChar M3SP = (wxChar)0x2004; // M3SP is "3/MSP SPace"
+			wxChar M4SP = (wxChar)0x2005; // M4SP is "4/MSP SPace"
+			wxChar M6SP = (wxChar)0x2006; // M4SP is "6/MSP SPace"
+			wxChar FSP = (wxChar)0x2007; // FSP is "?? SPace" dunno, don't care
+			wxChar PSP = (wxChar)0x2008; // PSP is "?? SPace" dunno, don't care
+			wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace"
+			wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
+			wxChar NQSP = (wxChar)0x2000; // NQSP is "?? SPace" dunno, don't care
+			wxChar MQSP = (wxChar)0x2001; // MQSP is "?? SPace" dunno, don't care
+			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP 
+				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ  
+				|| *pChar == NQSP || *pChar == MQSP)
+			{
+				return TRUE;
+			}
+		}
+#endif
+	}
+	return FALSE;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of whitespace characters parsed
@@ -9273,26 +9325,51 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// parse across as many as there are, and the obligatory white space following
 			// each - normalizing \n or \r to a space at the same time
 			pUsfmAnalysis = LookupSFM(ptr);
-			wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
-			bareMkr = emptyStr;
-			bareMkr = pUsfmAnalysis->marker;
-			wholeMkr = gSFescapechar + bareMkr;
-			wholeMkrPlusSpace = wholeMkr + aSpace;
-			wxASSERT(pUsfmAnalysis->inLine == TRUE);
-			itemLen = wholeMkr.Len();
+			// BEW 3Aug11 added ==NULL block to handle an unknown marker
+			if (pUsfmAnalysis == NULL)
+			{
+				// should not be an unknown marker, but might be if legacy SFM is mixed in
+				// - if so, do the best we can - put it in m_markers and carry on parsing
+				wxString aWholeMkr = GetWholeMarker(ptr);
+				aWholeMkr += aSpace;
+				itemLen = aWholeMkr.Len();
+				pSrcPhrase->m_markers += aWholeMkr;
+				bParsedInlineBindingMkr = FALSE;
+			}
+			else
+			{
+				// it's a known marker; but it might be not inline - so check if it's \bt
+				// and if so store accordingly
+				bareMkr = emptyStr;
+				bareMkr = pUsfmAnalysis->marker;
+				wholeMkr = gSFescapechar + bareMkr;
+				wholeMkrPlusSpace = wholeMkr + aSpace;
+				if (wholeMkr == _T("\\bt"))
+				{
+					pSrcPhrase->SetCollectedBackTrans(wholeMkrPlusSpace);
+					itemLen = wholeMkr.Len();
+					bParsedInlineBindingMkr = FALSE;
+				}
+				else
+				{
+					wxASSERT(pUsfmAnalysis->inLine == TRUE);
+					itemLen = wholeMkr.Len();
 
-			// store the whole marker, and a following space
-			pSrcPhrase->AppendToInlineBindingMarkers(wholeMkrPlusSpace);
-			bParsedInlineBindingMkr = TRUE;
-
-			// shorten the buffer to point past the inline binding marker, and then parse
-			// over the white space following it, and shorten the buffer to exclude that too
+					// store the whole marker, and a following space
+					pSrcPhrase->AppendToInlineBindingMarkers(wholeMkrPlusSpace);
+					bParsedInlineBindingMkr = TRUE;
+				}
+			}
+            // shorten the buffer to point past the inline or binding marker, or the
+            // unknown marker, and then parse over the white space following it, and
+            // shorten the buffer to exclude that too
 			ptr += itemLen;
 			len += itemLen;
 			itemLen = ParseWhiteSpace(ptr);
 			ptr += itemLen;
 			len += itemLen;
 			wxASSERT(ptr < pEnd);
+			
 		}
 		// once control gets to here, ptr should be pointing at the first character of the
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation

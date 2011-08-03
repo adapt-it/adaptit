@@ -42,6 +42,11 @@ enum CommandLineFor
 	reading,
 	writing
 };
+struct MD5Map {
+	int md5Index;
+	size_t startOffset;
+	size_t endOffset;
+};
 
 // VChunkAndMap indexes into a wxArrayString of StructureAndExtents MD5 analysis, and also
 // with offsets to wxChar in the wxString text buffer from which the MD5 analysis is done;
@@ -120,6 +125,7 @@ class CSourcePhrase;
 	wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str);
 	wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str);
 	wxString GetFinalMD5FromStructExtentString(const wxString str);
+	int GetCharCountFromStructExtentString(const wxString str);
 	enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, const wxArrayString& usfmText2);
 	bool GetNextVerseLine(const wxArrayString usfmText, int& index);
 	bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText); // text is usually src
@@ -138,14 +144,15 @@ class CSourcePhrase;
 	void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
 							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
 
-	wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxString& edText);
+	//wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxString& edText);
 
 	// the md5Array chunking and mapping by offsets into originalText string are done by
 	// the following chunking function
+	/*
 	void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& originalText, 
 				const int& curLineVerseInArr, const int& curOffsetVerseInText, 
 				int& endLineVerseInArr, int& endOffsetVerseInText, int& chapterLineIndex);
-
+	*/
 
 	// BEW added 11July, to get changes to the adaptation and free translation back to the
 	// respective PT or BE projects; the post-edit text from the document at the time of
@@ -157,5 +164,7 @@ class CSourcePhrase;
 	wxString MakePostEditTextForExternalEditor(SPList* pDocList, 
 					enum SendBackTextType makeTextType, wxString& postEditText);
 
+	void	MapMd5ArrayToItsText(wxString& itsText, wxArrayPtrVoid& mappingsArr, wxArrayString& md5Arr);
+	void	DeleteMD5MapStructs(wxArrayPtrVoid& structsArr);
 #endif
 

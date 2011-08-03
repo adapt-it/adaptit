@@ -474,6 +474,7 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 /// If last = first, an empty string is returned
 /// If last > (length - 1) of str, all of the substring from first onwards is returned
 //////////////////////////////////////////////////////////////////////////////////////////////////
+/* so far it is looking like I won't need this
 wxString ExtractSubstring(const wxString& str, int first, int last)
 {
 	wxString outStr; outStr.Empty();
@@ -513,7 +514,7 @@ wxString ExtractSubstring(const wxString& str, int first, int last)
 	}
 	return outStr;
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return the index of the first space of one or more spaces which terminate the string, or if there are
 ///			no spaces at the end, return the length of the string (that is, the position at which appending
@@ -1206,9 +1207,20 @@ bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar)
 	//else
 	//	return TRUE;
 }
-
+/* deprecated, use the version with support for exotic spacers and joiners
 bool Is_NonEol_WhiteSpace(wxChar *pChar)
 {
+#ifdef _UNICODE
+	// BEW 29Jul11, support ZWSP (zero-width space character, U+200B) as well, and from
+	// Ad Korten's email, also hair space, thin space, and zero width joiner (he may
+	// specify one or two others later -- if so add them only here)
+	wxChar ZWSP = (wxChar)0x200B; // ZWSP
+	wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace
+	wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
+	wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+	if (*pChar == ZWSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ)
+		return TRUE;
+#endif
 	// The standard white-space characters are the following: space 0x20, tab 0x09, 
 	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
 	// returns true if pChar points to a non EOL white-space character, but FALSE
@@ -1234,6 +1246,77 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 		return FALSE;
 	}
 }
+*/
+bool Is_NonEol_WhiteSpace(wxChar *pChar)
+{
+	// The standard white-space characters are the following: space 0x20, tab 0x09, 
+	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
+	// returns true if pChar points to a non EOL white-space character, but FALSE
+	// if pChar points to an EOL char or any other character.
+#ifdef _UNICODE
+	wxChar NBSP = (wxChar)0x00A0; // standard Non-Breaking SPace
+#else
+	wxChar NBSP = (unsigned char)0xA0;  // standard Non-Breaking SPace
+#endif
+	if (*pChar == _T(' ')) // 0x20 space
+	{
+		return TRUE;
+	}
+	else if (*pChar == _T('\t')) // 0x09 tab
+	{
+		return TRUE;
+	}
+	else if (*pChar == _T('\v')) // 0x0B vertical tab
+	{
+		return TRUE;
+	}
+	else if (*pChar == _T('\f')) // 0x0C FF form-feed
+	{
+		return TRUE;
+	}
+	else if (*pChar == NBSP) // non-breaking space
+	{
+		return TRUE;
+	}
+	else
+	{
+#ifdef _UNICODE
+		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
+		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
+		// tried first, and if not those then the less common ones
+		wxChar ZWSP = (wxChar)0x200B; // ZWSP
+		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
+		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
+		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
+		{
+			return TRUE;
+		}
+		else
+		{
+			wxChar ENSP = (wxChar)0x2002; // ENSP is "EN SPace"
+			wxChar EMSP = (wxChar)0x2003; // ENSP is "EM SPace"
+			wxChar M3SP = (wxChar)0x2004; // M3SP is "3/MSP SPace"
+			wxChar M4SP = (wxChar)0x2005; // M4SP is "4/MSP SPace"
+			wxChar M6SP = (wxChar)0x2006; // M4SP is "6/MSP SPace"
+			wxChar FSP = (wxChar)0x2007; // FSP is "?? SPace" dunno, don't care
+			wxChar PSP = (wxChar)0x2008; // PSP is "?? SPace" dunno, don't care
+			wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace"
+			wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
+			wxChar NQSP = (wxChar)0x2000; // NQSP is "?? SPace" dunno, don't care
+			wxChar MQSP = (wxChar)0x2001; // MQSP is "?? SPace" dunno, don't care
+			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP 
+				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ  
+				|| *pChar == NQSP || *pChar == MQSP)
+			{
+				return TRUE;
+			}
+		}
+#endif
+	}
+	return FALSE;
+}
+
 
 int Parse_NonEol_WhiteSpace(wxChar *pChar)
 {
@@ -4966,16 +5049,86 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 // the next 3 functions are similar or identical to member functions of the document class
 // which are used in the parsing of text files to produce a document; one (ParseMarker())
 // is a modification of the one in the doc class; these are needed here for use in
-// CSourcePhrase - later we could replace IsWhatSpace() and ParseWhiteSpace() in the doc
+// CSourcePhrase - later we could replace IsWhiteSpace() and ParseWhiteSpace() in the doc
 // class with these ( *** TODO *** ?)
+/*
+// deprecated, copy the one from doc which now has support for 16 extra exotic spaces &
+// joiners - as requested by Dennis Drescher in email 3Aug11
 bool IsWhiteSpace(const wxChar *pChar)
 {
+#ifdef _UNICODE
+	// BEW 29Jul11, support ZWSP (zero-width space character, U+200B) as well, and from
+	// Ad Korten's email, also hair space, thin space, and zero width joiner (he may
+	// specify one or two others later -- if so add them only here)
+	wxChar ZWSP = (wxChar)0x200B; // ZWSP
+	wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace
+	wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
+	wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+	if (*pChar == ZWSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ)
+		return TRUE;
+#endif
 	// returns true for tab 0x09, return 0x0D or space 0x20
 	if (wxIsspace(*pChar) == 0)// _istspace not recognized by g++ under Linux
 		return FALSE;
 	else
 		return TRUE;
 }
+*/
+bool IsWhiteSpace(const wxChar *pChar)
+{
+#ifdef _UNICODE
+	wxChar NBSP = (wxChar)0x00A0; // standard Non-Breaking SPace
+#else
+	wxChar NBSP = (unsigned char)0xA0;  // standard Non-Breaking SPace
+#endif
+	// handle common ones first...
+	// returns true for tab 0x09, return 0x0D or space 0x20
+	// _istspace not recognized by g++ under Linux; the wxIsspace() fn and those it relies
+	// on return non-zero if a space type of character is passed in
+	if (wxIsspace(*pChar) != 0 || *pChar == NBSP)
+	{
+		return TRUE;
+	}
+	else
+	{
+#ifdef _UNICODE
+		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
+		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
+		// tried first, and if not those then the less common ones
+		wxChar ZWSP = (wxChar)0x200B; // ZWSP
+		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
+		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
+		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
+		{
+			return TRUE;
+		}
+		else
+		{
+			wxChar ENSP = (wxChar)0x2002; // ENSP is "EN SPace"
+			wxChar EMSP = (wxChar)0x2003; // ENSP is "EM SPace"
+			wxChar M3SP = (wxChar)0x2004; // M3SP is "3/MSP SPace"
+			wxChar M4SP = (wxChar)0x2005; // M4SP is "4/MSP SPace"
+			wxChar M6SP = (wxChar)0x2006; // M4SP is "6/MSP SPace"
+			wxChar FSP = (wxChar)0x2007; // FSP is "?? SPace" dunno, don't care
+			wxChar PSP = (wxChar)0x2008; // PSP is "?? SPace" dunno, don't care
+			wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace"
+			wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
+			wxChar NQSP = (wxChar)0x2000; // NQSP is "?? SPace" dunno, don't care
+			wxChar MQSP = (wxChar)0x2001; // MQSP is "?? SPace" dunno, don't care
+			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP 
+				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ  
+				|| *pChar == NQSP || *pChar == MQSP)
+			{
+				return TRUE;
+			}
+		}
+#endif
+	}
+	return FALSE;
+}
+
+
 int ParseWhiteSpace(const wxChar *pChar)
 {
 	int	length = 0;
