@@ -16919,7 +16919,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	/*
 	// check what the character counts in GetUsfmStructureAndExtent(fileBuffer)
 	// actually count, from some known data
-	wxString fileAndPath = _T("C:\\testdata.txt");
+	//wxString fileAndPath = _T("C:\\testdata.txt");
+	//wxString fileAndPath = _T("C:\\Hez7_target_Filtered.txt");
+	wxString fileAndPath = _T("C:\\Hez7_FreeTrans.txt");
 	wxString fileBuffer;
 	// now read the file into a buffer in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
@@ -16943,7 +16945,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	for (index = 0; index < count; index++)
 	{
 		wxString s = arr.Item(index);
-		wxLogDebug(_T("Line %d    String:   %s"), index, s.c_str());
+		//wxLogDebug(_T("Line  %d    String:   %s"), index, s.c_str());
+		wxLogDebug(_T("   %s"), s.c_str());
 	}
 	arr.Clear();
 	fileBuffer.Empty();

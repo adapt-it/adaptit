@@ -158,7 +158,7 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// so that if the user elects not to invoke the filter options dialog via the button for
 	// that purpose, we won't have m_exportFilterFlags left with zero size, leading to a crash
 	//m_exportFilterFlags.Copy(m_exportFilterFlagsBeforeEdit);
-	// whm Note: No, GetMarkerInventoryFromCurrentDoc() above insures that m_exportFilterFlags
+	// whm Note: No, GetMarkerInventoryFromCurrentDoc() above ensures that m_exportFilterFlags
 	// and m_exportFilterFlagsBeforeEdit are the same size and all values for both arrays are
 	// set to FALSE. Therefore, the code added below on 25Nov05 is not needed
 	//int ct;
