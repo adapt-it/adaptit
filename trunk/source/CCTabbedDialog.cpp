@@ -334,37 +334,40 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 		// on the current path as stored in m_folderPath[m_nCurPage]. A different tab page may have already
 		// been loaded with a .cct from a different path, but they won't be listed in the current Table
 		// tab's listbox.
-        bool bFileFound = FALSE;
-		int nReturned = m_pListBox->FindString(m_tblName[m_nCurPage]);
-		if (nReturned != -1)
+		if (!m_tblName[m_nCurPage].IsEmpty())
 		{
-			// path and file names match
-			bFileFound = TRUE;
-		}
-
-		if (bFileFound)
-		{
-			// we found m_tblName in m_pListBox, so select it
-			m_pListBox->SetSelection(nReturned);
-			m_nPrevSelection = nReturned;
-		}
-		else
-		{
-			// We didn't find m_tblName in m_pListBox on the current m_folderPath[m_nCurPage] path, so select
-			// instead the first unallocated item in the list.
-			int aCt;
-			for (aCt = 0; aCt < (int)m_pListBox->GetCount(); aCt++)
+			bool bFileFound = FALSE;
+			int nReturned = m_pListBox->FindString(m_tblName[m_nCurPage]);
+			if (nReturned != -1)
 			{
-				wxString listBoxStr;
-			 	listBoxStr = m_pListBox->GetString(aCt);
-				int nTableNum = -1;
-				if (!IsSelectedInAnyTable(listBoxStr,nTableNum))
+				// path and file names match
+				bFileFound = TRUE;
+			}
+
+			if (bFileFound)
+			{
+				// we found m_tblName in m_pListBox, so select it
+				m_pListBox->SetSelection(nReturned);
+				m_nPrevSelection = nReturned;
+			}
+			else
+			{
+				// We didn't find m_tblName in m_pListBox on the current m_folderPath[m_nCurPage] path, so select
+				// instead the first unallocated item in the list.
+				int aCt;
+				for (aCt = 0; aCt < (int)m_pListBox->GetCount(); aCt++)
 				{
-					// This item has not been allocated in a table so we can select it as the first
-					// unallocated item in the list.
-					m_pListBox->SetSelection(aCt);
-					m_nPrevSelection = aCt;
-					break; // we must stop looking since we want only the "first" unallocated item
+					wxString listBoxStr;
+			 		listBoxStr = m_pListBox->GetString(aCt);
+					int nTableNum = -1;
+					if (!IsSelectedInAnyTable(listBoxStr,nTableNum))
+					{
+						// This item has not been allocated in a table so we can select it as the first
+						// unallocated item in the list.
+						m_pListBox->SetSelection(aCt);
+						m_nPrevSelection = aCt;
+						break; // we must stop looking since we want only the "first" unallocated item
+					}
 				}
 			}
 		}
