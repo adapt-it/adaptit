@@ -1871,6 +1871,19 @@ wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str)
 	return tempStr;
 }
 
+// get the substring for thee character count, and return it's base-10 value
+int GetCharCountFromStructExtentString(const wxString str)
+{
+	wxASSERT(str.GetChar(0) == gSFescapechar);
+	int posColon = str.Find(_T(':'),FALSE);
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString astr = str.Mid(posColon + 1);
+	posColon = astr.Find(_T(':'),FALSE);
+	wxASSERT(posColon != wxNOT_FOUND);
+	wxString numStr = astr(0,posColon);
+	return wxAtoi(numStr);
+}
+
 
 wxString GetFinalMD5FromStructExtentString(const wxString str)
 {
@@ -2518,6 +2531,7 @@ void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap)
 ///                                 will be for the chunk following this
 ///                                 currently-being-delineated one.
 ////////////////////////////////////////////////////////////////////////////////////////// 
+/*
 void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& originalText, 
 				const int& curLineVerseInArr, const int& curOffsetVerseInText, 
 				int& endLineVerseInArr, int& endOffsetVerseInText, int& chapterLineIndex)
@@ -2544,7 +2558,7 @@ void GetNextVerse_ForChunking(const wxArrayString& md5Array, const wxString& ori
 
 
 }
-
+*/
 // this function exports the target text from the document, and programmatically causes
 // \free \note and \bt (and any \bt-initial markers) and the contents of those markers to
 // be excluded from the export
@@ -2719,7 +2733,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 										   wxString& postEditText)
 {
 	wxString emptyStr = _T("");
-	CAdapt_ItView* pView = gpApp->GetView();
+	//CAdapt_ItView* pView = gpApp->GetView();
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	
 	wxString text; text.Empty();
@@ -2821,7 +2835,6 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	{
 		return text;
 	}
-	bool bTextFromEditor = FALSE;
 	// pDocList is not an empty list of CSourcePhrase instances, so build as much of the
 	// wanted data type as is done so far in the document & return it to caller
 	if (fromEditorText.IsEmpty())
@@ -2854,8 +2867,26 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 			break;
 	default:
 	case makeTargetText:
-		text = ExportTargetText_For_Collab(pDocList);
+		postEditText = ExportTargetText_For_Collab(pDocList);
 		break;
+	}
+
+	// abandon any wxChars which precede first marker in text, for each of the 3 texts, so
+	// that we make sure each text we compare starts with a marker
+	int offset = postEditText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		postEditText = postEditText.Mid(offset); // guarantees postEditText starts with a marker
+	}
+	offset = preEditText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		preEditText = preEditText.Mid(offset); // guarantees preEditText starts with a marker
+	}
+	offset = fromEditorText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		fromEditorText = fromEditorText.Mid(offset); // guarantees fromEditorText starts with a marker
 	}
 
 	// If the user changes the USFM structure for the text within Paratext or Bibledit,
@@ -2880,6 +2911,29 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
+
+    // Now use MD5Map stucts to map the individual lines of each UsfmStructureAndExtent
+    // array to the associated subspans within text variant which gave rise to the
+    // UsfmStructureAndExtent array. In this way, for a given index value into the
+    // UsfmStructureAndExtent array, we can quickly get the offsets for start and end of
+    // the substring in the text which is associated with that md5 line.
+	size_t count = preEditMd5Arr.GetCount();
+	wxArrayPtrVoid preEditOffsetsArr;
+	preEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	MapMd5ArrayToItsText(preEditText, preEditOffsetsArr, preEditMd5Arr);
+
+	count = postEditMd5Arr.GetCount();
+	wxArrayPtrVoid postEditOffsetsArr;
+	postEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	MapMd5ArrayToItsText(postEditText, postEditOffsetsArr, postEditMd5Arr);
+
+	count = fromEditorMd5Arr.GetCount();
+	wxArrayPtrVoid fromEditorOffsetsArr;
+	fromEditorOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	MapMd5ArrayToItsText(fromEditorText, fromEditorOffsetsArr, fromEditorMd5Arr);
+
+
+
 	bool bUsfmIsTheSame = TRUE;
 	if (IsUsfmStructureChanged(postEditText, fromEditorText))
 	{
@@ -2935,8 +2989,10 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 
 
 
-
-
+	// delete from the heap all the MD5Map structs we created
+	DeleteMD5MapStructs(preEditOffsetsArr);
+	DeleteMD5MapStructs(postEditOffsetsArr);
+	DeleteMD5MapStructs(fromEditorOffsetsArr);
 
 	return text;
 }
@@ -3002,6 +3058,7 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 /// from the AI document and sending that to the external editor - so we don't need to
 /// consider it here, the caller takes care of that case.
 //////////////////////////////////////////////////////////////////////////////////////////
+/*
 wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxString& edText)
 {
 	wxString outStr; outStr.Empty();
@@ -3013,3 +3070,106 @@ wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxStri
 
 	return outStr;
 }
+*/
+
+void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
+{
+	int count = structsArr.GetCount();
+	int index;
+	MD5Map* pStruct = NULL;
+	for (index = 0; index < count; index++)
+	{	
+		pStruct = (MD5Map*)structsArr.Item(index);
+		delete pStruct;
+	}
+	structsArr.Clear();
+}
+
+// on invocation, the caller will have ensured that a USFM marker is the first character of
+// the text parameter
+void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArrayString& md5Arr)
+{
+	// work with wxChar pointers for the text
+	const wxChar* pBuffer = text.GetData();
+	int nBufLen = text.Length();
+	wxChar* pStart = (wxChar*)pBuffer;	// point to the first wxChar (start) of the buffer text
+	wxChar* pEnd = pStart + nBufLen;	// point past the last wxChar of the buffer text
+	wxASSERT(*pEnd == '\0');
+	// use  helpers.cpp versions of: bool Is_Marker(wxChar *pChar, wxChar *pEnd), 
+	// bool IsWhiteSpace(const wxChar *pChar) and
+	// int Parse_Marker(wxChar *pChar, wxChar *pEnd)
+	int md5ArrayCount = md5Arr.GetCount();
+	MD5Map* pMapStruct = NULL; // we create instances on the heap, store ptrs in mappingsArr
+	wxChar* ptr = pStart; // initialize iterator
+						   
+	int lineIndex;
+	wxString lineStr;
+	wxString mkrFromMD5Line;
+	size_t charCount = 0;
+	wxString md5Str;
+	int mkrCount = 0;
+	size_t charOffset = 0;
+	for (lineIndex = 0; lineIndex < md5ArrayCount; lineIndex++)
+	{
+		// get next line from md5Arr
+		lineStr = md5Arr.Item(lineIndex);
+		mkrFromMD5Line = GetStrictUsfmMarkerFromStructExtentString(lineStr);
+		charCount = (size_t)GetCharCountFromStructExtentString(lineStr);
+		//md5Str = GetFinalMD5FromStructExtentString(lineStr); // not needed here
+
+		// get the same marker in the passed in text
+		wxASSERT(*ptr == gSFescapechar); // ptr must be pointing at a USFM
+		// get the marker's character count
+		mkrCount = Parse_Marker(ptr, pEnd);
+		wxString wholeMkr = wxString(ptr, mkrCount);
+		// it must match the one in lineStr
+		wxASSERT(wholeMkr == mkrFromMD5Line);
+		charOffset = (size_t)(ptr - pStart);
+
+		// create an MD5Map instance & store it & start populating it
+		pMapStruct = new MD5Map;
+		pMapStruct->md5Index = lineIndex;
+		pMapStruct->startOffset = charOffset;
+		mappingsArr.Add(pMapStruct);
+
+		// make ptr point charCount wxChars further along, since what this count leaves
+		// out is the number of chars after the marker and before the first alphabetic
+		// character (if any), and any eol characters - so adding this value now decreases
+		// the number of iterations needed in the loop below in order to get to the next
+		// marker
+		if (charCount == 0)
+		{
+			// must advance ptr by at least one wxChar
+			ptr++;
+		}
+		else
+		{
+			ptr = ptr + charCount;
+		}
+		wxASSERT(ptr <= pEnd);
+		bool bReachedEnd = TRUE;
+		while (ptr < pEnd)
+		{
+			if (Is_Marker(ptr, pEnd))
+			{
+				bReachedEnd = FALSE;
+				break;
+			}
+			else
+			{
+				ptr++;
+			}
+		}
+		charOffset = (size_t)(ptr - pStart);
+		pMapStruct->endOffset = charOffset;
+		// the next test should be superfluous, but no harm in it
+		if (bReachedEnd)
+			break;
+	} // end of loop: for (lineIndex = 0; lineIndex < md5ArrayCount; lineIndex++)
+	text.UngetWriteBuf();
+}
+
+
+
+
+
