@@ -76,11 +76,30 @@ struct VChunkAndMap {
 	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
 };
 
+struct VerseAnalysis {
+	bool				bIsComplex; // TRUE if verse num is a range, or something like 6b,
+								// or is a gap in the chapter/verses; set to FALSE if 
+								// just a simple number
+	wxString			strDelimiter; // delimiter string used in a range, eg. - in 3-5
+	wxString			strStartingVerse; // string version of the verse number or first verse number of a range
+	wxChar				charStartingVerseSuffix;  // for the a in something like 6a-8, or 9a
+	wxString			strEndingVerse; // string version of the verse number or final verse number of a range
+	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
+};
+
 
 class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
+
+	bool DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
+	// this overload takes an array of structure& extent checksums, gets the
+	// wxString at the 0-based index given by lineIndex, and fills out the passed in
+	// VerseAnalysis struct; returns TRUE if the verse structure is complex, FALSE if it
+	// is simple
+	bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex);
+	void InitializeVerseAnalysis(VerseAnalysis& rVerseAnal);
 
 	// returns the absolute path to the folder being used as the Adapt It work folder, whether
 	// in standard location or in a custom location - but for the custom location only
@@ -122,29 +141,49 @@ class CSourcePhrase;
 
 	wxString GetNumberFromChapterOrVerseStr(const wxString& verseStr);
 	wxArrayString GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
+
 	wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str);
 	wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str);
 	wxString GetFinalMD5FromStructExtentString(const wxString str);
 	int GetCharCountFromStructExtentString(const wxString str);
 	enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, const wxArrayString& usfmText2);
-	bool GetNextVerseLine(const wxArrayString usfmText, int& index);
+	bool GetNextVerseLine(const wxArrayString& usfmText, int& index);
+	bool GetAnotherVerseLine(const wxArrayString& usfmText, int& index);
+	bool IsVerseLine(const wxArrayString& usfmText, int index);
+	bool IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex);
+	//bool IsComplexVersificationChunk(const wxArrayString* md5Arr, size_t nStart, size_t nLast); <<- don't need it
+	int FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
+	void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr, const wxArrayString& fromEditorMd5Arr,
+				int postEditStart, int postEditEnd, int& fromEditorStart, int& fromEditorEnd);
+
 	bool IsTextOrPunctsChanged(wxString& oldText, wxString& newText); // text is usually src
 	bool IsUsfmStructureChanged(wxString& oldText, wxString& newText); // text is usually src
 	wxString GetShortNameFromProjectName(wxString projName);
 
-	bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChapter, 
-			wxString& strDelimiter, wxString& strStartingVerse, wxChar& charStartingVerseSuffix, 
-			wxString& strEndingVerse, wxChar& charEndingVerseSuffix);
-	wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrRange);
-	bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, 
-		VChunkAndMap*& pVChMap, bool bVerseMarkerSeenAlready);
-	void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap);
+	//bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChapter, 
+	//		wxString& strDelimiter, wxString& strStartingVerse, wxChar& charStartingVerseSuffix, 
+	//		wxString& strEndingVerse, wxChar& charEndingVerseSuffix);
+	//wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrRange);
+	//bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, 
+	//	VChunkAndMap*& pVChMap, bool bVerseMarkerSeenAlready);
+	//void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap);
+	
 	wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind);
 	wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind);
 	void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
 							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
 
 	//wxString BuildUpdatedTextFrom2WithSameUSFMs(const wxString& aiText, const wxString& edText);
+	
+	wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
+			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr,
+			wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
+
+	wxString GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText,
+			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr,
+			wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
+
+	wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFinish); // inclusive of nStart & nFinish items
 
 	// the md5Array chunking and mapping by offsets into originalText string are done by
 	// the following chunking function
@@ -161,7 +200,7 @@ class CSourcePhrase;
 	// the relevant app member for the pre-edit tgt or freeTrans text. The returned
 	// wxString is the updated USFM text string to be sent to PT or BE - or an empty
 	// string if there was an error.
-	wxString MakePostEditTextForExternalEditor(SPList* pDocList, 
+	wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, 
 					enum SendBackTextType makeTextType, wxString& postEditText);
 
 	void	MapMd5ArrayToItsText(wxString& itsText, wxArrayPtrVoid& mappingsArr, wxArrayString& md5Arr);

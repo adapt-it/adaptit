@@ -16268,7 +16268,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // Go to the adaptit working copy folder, look for the xml folder, and inside
             // that is the repository's latest AI_Profiles.xml file. Copy it to the
             // ...\bin\win32 four object file folders for the 4 configurations we support,
-            // and all should be well on next launch
+			// and all should be well on next launch. If not so, the probably reason is
+			// that there is an older version of the file in the Adapt It Unicode Work
+			// folder, or in the Adapt It Work folder for the ANSI app.
 			wxASSERT(!adminModifiedStr.IsEmpty());
 			
 			if (adminModifiedStr == _T("No"))

@@ -153,14 +153,15 @@ bool Is_ChapterMarker(wxChar* pChar);
 bool Is_VerseMarker(wxChar *pChar, int& nCount);
 wxString GetStringFromBuffer(const wxChar* ptr, int itemLen);
 int Parse_Number(wxChar *pChar);
-bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar);
+//bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar); <<- unused, BEW removed 4Aug11
 bool Is_NonEol_WhiteSpace(wxChar *pChar);
 //int ParseWhiteSpace(wxChar *pChar);
 int Parse_NonEol_WhiteSpace(wxChar *pChar);
 int Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in the Doc
 bool Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
 
-// BEW removed ExtractSubstring() as it's looking like I won't need it
+wxString ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t first, size_t last);
+// BEW removed this version of ExtractSubstring() as it's looking like I won't need it
 //wxString ExtractSubstring(const wxString& str, int firstChar, int lastChar);
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser
