@@ -463,6 +463,31 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return                   the extracted substring
+/// \param pBufStart      ->  the start of the buffer containing the total string from which to 
+///                           extract a substring
+/// \param pBufEnd        ->  the end of the buffer containing the total string from which to 
+///                           extract a substring (points  at null wxChar terminating the string)
+/// \param first          ->  index to the wxChar which is first to be extracted
+/// \param firstAfter     ->  index to the wxChar which is one wxChar past the last to be
+///                           extracted (at the end, obtaining the last substring to extract,
+///                           firstAfter would point at pBufEnd)
+/// \remarks   
+/// The only tests we make are that first <= last, and last <= pBufEnd
+/// Used in GetUpdatedText_UsfmsUnchanged() of CollabUtilities.cpp
+//////////////////////////////////////////////////////////////////////////////////////////////////
+wxString ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t first, size_t last)
+{
+	wxASSERT(first <= last);
+	wxASSERT((wxChar*)((size_t)pBufStart + last) <= pBufEnd);
+	wxChar* ptr = NULL;
+	size_t span = (size_t)(last - first);
+	ptr = (wxChar*)((size_t)pBufStart + first);
+	return wxString(ptr,span);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return             the extracted substring
 /// \param str      ->  the string from which to extract a substring
 /// \param first    ->  index to the wxChar which is first to be extracted
@@ -1156,7 +1181,9 @@ int Parse_Number(wxChar *pChar)
 	}
 	return length;
 }
-
+/* 
+// BEW removed 4Aug11, it is not used anywhere yet, but I've also updated it 
+// to support the special spaces and joiners recommended by Dennis Drescher
 bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar)
 {
 	// The standard white-space characters are the following: space 0x20, tab 0x09, 
@@ -1199,14 +1226,19 @@ bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar)
 	else
 	{
 		IsEOLchar = FALSE;
-		return FALSE;
+		// BEW 4Aug11 changed the code to not test each individually, but just test if
+		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
+		// treat U+2060 individually
+		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
+		{
+			return TRUE;
+		}
 	}
-	
-	//if (wxIsspace(*pChar) == 0)// _istspace not recognized by g++ under Linux
-	//	return FALSE;
-	//else
-	//	return TRUE;
+	return FALSE;
 }
+*/
+
 /* deprecated, use the version with support for exotic spacers and joiners
 bool Is_NonEol_WhiteSpace(wxChar *pChar)
 {
@@ -1282,35 +1314,14 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 	{
 #ifdef _UNICODE
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
-		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
-		// tried first, and if not those then the less common ones
-		wxChar ZWSP = (wxChar)0x200B; // ZWSP
-		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
-		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+		// Dennis Drescher's email of 3Aug11, also various others
+		// BEW 4Aug11 changed the code to not test each individually, but just test if
+		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
+		// treat U+2060 individually
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
 		{
 			return TRUE;
-		}
-		else
-		{
-			wxChar ENSP = (wxChar)0x2002; // ENSP is "EN SPace"
-			wxChar EMSP = (wxChar)0x2003; // ENSP is "EM SPace"
-			wxChar M3SP = (wxChar)0x2004; // M3SP is "3/MSP SPace"
-			wxChar M4SP = (wxChar)0x2005; // M4SP is "4/MSP SPace"
-			wxChar M6SP = (wxChar)0x2006; // M4SP is "6/MSP SPace"
-			wxChar FSP = (wxChar)0x2007; // FSP is "?? SPace" dunno, don't care
-			wxChar PSP = (wxChar)0x2008; // PSP is "?? SPace" dunno, don't care
-			wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace"
-			wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
-			wxChar NQSP = (wxChar)0x2000; // NQSP is "?? SPace" dunno, don't care
-			wxChar MQSP = (wxChar)0x2001; // MQSP is "?? SPace" dunno, don't care
-			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP 
-				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ  
-				|| *pChar == NQSP || *pChar == MQSP)
-			{
-				return TRUE;
-			}
 		}
 #endif
 	}
@@ -5093,35 +5104,14 @@ bool IsWhiteSpace(const wxChar *pChar)
 	{
 #ifdef _UNICODE
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
-		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
-		// tried first, and if not those then the less common ones
-		wxChar ZWSP = (wxChar)0x200B; // ZWSP
-		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
-		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
+		// Dennis Drescher's email of 3Aug11, also various others
+		// BEW 4Aug11 changed the code to not test each individually, but just test if
+		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
+		// treat U+2060 individually
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
 		{
 			return TRUE;
-		}
-		else
-		{
-			wxChar ENSP = (wxChar)0x2002; // ENSP is "EN SPace"
-			wxChar EMSP = (wxChar)0x2003; // ENSP is "EM SPace"
-			wxChar M3SP = (wxChar)0x2004; // M3SP is "3/MSP SPace"
-			wxChar M4SP = (wxChar)0x2005; // M4SP is "4/MSP SPace"
-			wxChar M6SP = (wxChar)0x2006; // M4SP is "6/MSP SPace"
-			wxChar FSP = (wxChar)0x2007; // FSP is "?? SPace" dunno, don't care
-			wxChar PSP = (wxChar)0x2008; // PSP is "?? SPace" dunno, don't care
-			wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace"
-			wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
-			wxChar NQSP = (wxChar)0x2000; // NQSP is "?? SPace" dunno, don't care
-			wxChar MQSP = (wxChar)0x2001; // MQSP is "?? SPace" dunno, don't care
-			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP 
-				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ  
-				|| *pChar == NQSP || *pChar == MQSP)
-			{
-				return TRUE;
-			}
 		}
 #endif
 	}

@@ -1335,15 +1335,38 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 		// temporarily, for testing purposes, assume it's target text, and a
 		// single-chapter document...
 		wxString postEditText;
-		wxString updatedText = MakePostEditTextForExternalEditor(gpApp->m_pSourcePhrases, 
+		wxString updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
 		if (!updatedText.IsEmpty())
 		{
 			// use updatedText, to get it backc to PT or BE as the case may be
 			;
-// *** TODO ***
+// *** TODO *** make the command line for target text and transfer to external editor
 
-			// and then also do a local normal protected save to AI's native storage
+			// the returned postEditText (as exported from the AI document at the time the
+			// File / Save was invoked) now has to replace the saved preEditText in the
+			// private app member for that purpose, becoming the new preEditTargetText
+			gpApp->StoreTargetText_PreEdit(postEditText);
+
+			if (gpApp->m_bCollaborationExpectsFreeTrans)
+			{
+				// make a second call of MakeUpdatedTextForExternalEditor(), this time
+				// with param2 set to makeFreeTransText, param1 and param3 are the same,
+				// and when it returns, postEditText is the free translation which has to
+				// be saved in the app member for that purpose, becoming the new
+				// preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
+
+
+
+// *** TODO *** make the command line for freeTrans text and transfer to external editor
+
+			}
+
+
+			// and then also do a local normal protected save to AI's native storage;
+			// we put this call here so that if there was nothing to send to the external
+			// editor, then we don't save the document locally -- I think this is what
+			// we'd want to do, otherwise, we may get out of sync
 			DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
 		}
 		else
@@ -7153,10 +7176,19 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
 		// tried first, and if not those then the less common ones
+		// BEW 4Aug11 changed the code to not test each individually, but just test if
+		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
+		// treat U+2060 individually
+		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
+		{
+			return TRUE;
+		}
+
+		/*
 		wxChar ZWSP = (wxChar)0x200B; // ZWSP
 		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
 		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
-		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
 		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
 		{
 			return TRUE;
@@ -7181,6 +7213,7 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 				return TRUE;
 			}
 		}
+		*/
 #endif
 	}
 	return FALSE;

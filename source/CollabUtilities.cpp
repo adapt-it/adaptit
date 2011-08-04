@@ -2103,14 +2103,14 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 // If there are no more \v n lines, then the function returns FALSE. The
 // index is returned to the caller via the index reference parameter.
 // Assumes that index is not already at a line with \v when called
-bool GetNextVerseLine(const wxArrayString usfmText, int& index)
+bool GetNextVerseLine(const wxArrayString& usfmText, int& index)
 {
 	int totLines = (int)usfmText.GetCount();
-	wxString line = usfmText.Item(index);
+	//wxString line = usfmText.Item(index); ?? not needed or used
 	while (index < totLines)
 	{
 		wxString testingStr = usfmText.Item(index);
-		if (usfmText.Item(index).Find(_T("\\v")) != wxNOT_FOUND)
+		if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
 		{
 			return TRUE;
 		}
@@ -2120,6 +2120,44 @@ bool GetNextVerseLine(const wxArrayString usfmText, int& index)
 		}
 	}
 	return FALSE;
+}
+
+// Like GetNextVerseLine(), except that it assumes that index is at a line with \v when
+// called. Advances index until usfmText array at that index points to a \v n line. If
+// there are no more \v n lines, then the function returns FALSE. The index is returned to
+// the caller via the index reference parameter.
+bool GetAnotherVerseLine(const wxArrayString& usfmText, int& index)
+{
+	int totLines = (int)usfmText.GetCount();
+	index++;
+	while (index < totLines)
+	{
+		wxString testingStr = usfmText.Item(index);
+		if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		else
+		{
+			index++;
+		}
+	}
+	return FALSE;
+}
+
+
+bool IsVerseLine(const wxArrayString& usfmText, int index)
+{
+	int totLines = (int)usfmText.GetCount();
+	wxASSERT(index < totLines);
+	if (index < totLines)
+	{
+		return ((usfmText.Item(index)).Find(_T("\\v")) != wxNOT_FOUND);
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 /// returns                 TRUE for a successful analysis, FALSE if unsuccessful or an
@@ -2148,6 +2186,7 @@ bool GetNextVerseLine(const wxArrayString usfmText, int& index)
 /// information on separate lines - and so the caller will form the "chap:verse" string
 /// from those lines before passing it in to AnalyseChapterVerseRef_For_Collab() for
 /// analysis.
+/* not needed, BEW removed 4Aug11
 bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChapter, 
 		wxString& strDelimiter, wxString& strStartingVerse, wxChar& charStartingVerseSuffix, 
 		wxString& strEndingVerse, wxChar& charEndingVerseSuffix)
@@ -2197,7 +2236,7 @@ bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChap
 		{
 			aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
 		}
-#endif /* __WXMAC__ */
+#endif
 		int isDigit = wxIsdigit(aChar);
 		if (isDigit != 0)
 		{
@@ -2254,7 +2293,7 @@ bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChap
 				{
 					aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
 				}
-#endif /* __WXMAC__ */
+#endif 
 				int isDigit = wxIsdigit(aChar);
 				if (isDigit != 0)
 				{
@@ -2294,7 +2333,7 @@ bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChap
 					{
 						aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
 					}
-#endif /* __WXMAC__ */
+#endif
 					int isDigit = wxIsdigit(aChar);
 					if (isDigit != 0)
 					{
@@ -2359,9 +2398,304 @@ _T("The verse range was parsed, and the following remains unparsed: %s\nfrom the
 	} // end of else block for test: if (numChars == 0)
 	return TRUE;
 }
+*/
+
+// Pass in a VerseAnalysis struct by pointer, and fill out it's members internally by
+// analysing what verseNum contains, handling bridged verses, part verses, simple verses,
+// etc.
+bool DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal)
+{
+	InitializeVerseAnalysis(rVerseAnal);
+	wxString range = verseNum;
+
+	// deal with the verse range, or it might just be a simple verse number
+	int numChars = range.Len();
+	int index;
+	wxChar aChar = _T('\0');
+	// get the verse number, or the first verse number of the range
+	int count = 0;
+	for (index = 0; index < numChars; index++)
+	{
+		aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+		if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+		{
+			aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+		}
+#endif /* __WXMAC__ */
+		int isDigit = wxIsdigit(aChar); // returns non-zero number when TRUE, 0 when FALSE
+		if (isDigit != 0)
+		{
+			// it's a digit
+			rVerseAnal.strStartingVerse += aChar;
+			count++;
+		}
+		else
+		{
+			// it's not a digit, so exit with what we've collected so far
+			break;
+		}
+	}
+	if (count == numChars)
+	{
+		// all there was in the range variable was the digits of a verse number, so set
+		// the relevant members in pVerseAnal & return
+		rVerseAnal.strEndingVerse = verseNum;
+		return rVerseAnal.bIsComplex;
+	}
+	else
+	{
+		// there's more, but get what we've got so far and trim that stuff off of range
+		range = range.Mid(count);
+		numChars = range.Len();
+		// if a part-verse marker (assume one of a or b or c only), get it
+		aChar = range.GetChar(0);
+		if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
+		{
+			rVerseAnal.bIsComplex = TRUE;
+			rVerseAnal.charStartingVerseSuffix = aChar;
+			range = range.Mid(1); // remove the suffix character
+			numChars = range.Len();
+		}
+		if (numChars == 0)
+		{
+			// we've exhausted the range string, fill params and return TRUE
+			rVerseAnal.strEndingVerse = rVerseAnal.strStartingVerse;
+			rVerseAnal.charEndingVerseSuffix = rVerseAnal.charStartingVerseSuffix;
+			return rVerseAnal.bIsComplex;
+		}
+		else 
+		{
+			// there is more still, what follows must be the delimiter, we'll assume it is
+			// possible to have more than a single character (exotic scripts might need
+			// more than one) so search for a following digit as the end point, or string
+			// end; and handle Arabic digits too (ie. convert them)
+			count = 0;
+			rVerseAnal.bIsComplex = TRUE;
+			for (index = 0; index < numChars; index++)
+			{
+				aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+				if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+				{
+					aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+				}
+#endif /* __WXMAC__ */
+				int isDigit = wxIsdigit(aChar);
+				if (isDigit != 0)
+				{
+					// it's a digit, so we've reached the end of the delimiter
+					break;
+				}
+				else
+				{
+					// it's not a digit, so it's part of the delimiter string
+					rVerseAnal.strDelimiter += aChar;
+					count++;
+				}
+			}
+			if (count == numChars)
+			{
+				// it was "all delimiter" - a formatting error, as there is not verse
+				// number to indicate the end of the range - so just take the starting
+				// verse number (and any suffix) and return FALSE
+				rVerseAnal.strEndingVerse = rVerseAnal.strStartingVerse;
+				rVerseAnal.charEndingVerseSuffix = rVerseAnal.charStartingVerseSuffix;
+				return rVerseAnal.bIsComplex;
+			}
+			else
+			{
+                // we stopped earlier than the end of the range string, and so presumably
+                // we stopped at the first digit of the verse which ends the range
+				range = range.Mid(count); // now just the final verse and possibly an a, b or c suffix
+				numChars = range.Len();
+				// get the final verse...
+				count = 0;
+				for (index = 0; index < numChars; index++)
+				{
+					aChar = range.GetChar(index);
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+					if (aChar >= (wchar_t)0x6f0 && aChar <= (wchar_t)0x6f9)
+					{
+						aChar = aChar & (wchar_t)0x3f; // zero out the higher bits of this Arabic digit
+					}
+#endif /* __WXMAC__ */
+					int isDigit = wxIsdigit(aChar);
+					if (isDigit != 0)
+					{
+						// it's a digit
+						rVerseAnal.strEndingVerse += aChar;
+						count++;
+					}
+					else
+					{
+						// it's not a digit, so exit with what we've collected so far
+						break;
+					}
+				}
+				if (count == numChars)
+				{
+                    // all there was in the range variable was the digits of the ending
+                    // verse number, so set the return parameter values and return TRUE
+					return rVerseAnal.bIsComplex;
+				}
+				else
+				{
+					// there's more, but get what we've got so far and trim that stuff 
+					// off of range
+					range = range.Mid(count);
+					numChars = range.Len();
+					// if a part-verse marker (assume one of a or b or c only), get it
+					if (numChars > 0)
+					{
+						// what remains should just be a final a or b or c
+						aChar = range.GetChar(0);
+						if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
+						{
+							rVerseAnal.charEndingVerseSuffix = aChar;
+							range = range.Mid(1); // remove the suffix character
+							numChars = range.Len(); // numChars should now be 0
+						}
+						if (numChars != 0)
+						{
+							// rhere's still something remaining, so just ignore it, but
+							// alert the developer, not with a localizable string
+							wxString suffix1;
+							wxString suffix2;
+							if (rVerseAnal.charStartingVerseSuffix != _T('\0'))
+							{
+								suffix1 = rVerseAnal.charStartingVerseSuffix;
+							}
+							if (rVerseAnal.charEndingVerseSuffix != _T('\0'))
+							{
+								suffix2 = rVerseAnal.charEndingVerseSuffix;
+							}
+							wxString msg;
+							msg = msg.Format(
+_T("The verse range was parsed, and the following remains unparsed: %s\nfrom the specification %s:%s%s%s%s%s"),
+							range.c_str(),rVerseAnal.strStartingVerse.c_str(),suffix1.c_str(),
+							rVerseAnal.strDelimiter.c_str(),rVerseAnal.strEndingVerse.c_str(),suffix2.c_str(),range.c_str());
+							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_WARNING);
+						}
+					} //end of TRUE block for test: if (numChars > 0)
+				} // end of else block for test: if (count == numChars)
+			} // end of else block for test: if (count == numChars)
+		} // end of else block for test: if (count == numChars)
+	} // end of else block for test: if (numChars == 0)
+	return rVerseAnal.bIsComplex;
+}
+
+// overload for the one above (had to change param order, and make a ref param in order to
+// get the compiler to recognise this as different - it was failing to see the lineIndex param
+// when refVAnal was a ptr ref and was param 3 and lineIndex was param2)
+bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex)
+{
+	size_t count = md5Array.GetCount();
+	wxASSERT(count > 0); // it's not an empty array
+	wxASSERT( lineIndex < count); // no bounds error
+	wxString lineStr = md5Array.Item(lineIndex);
+	// test we really do have a line beginning with a verse marker
+	wxString mkr = GetStrictUsfmMarkerFromStructExtentString(lineStr);
+	if (mkr != _T("\\v") || mkr != _T("\\vn"))
+	{
+		// don't expect the error, a message to developer will do
+		wxString msg = _T("DoVerseAnalysis(), for the passed in lineIndex, the string returned does not start with a verse marker.\nFALSE will be returned - the logic will be wrong hereafter so exit without saving as soon as possible.");
+		wxMessageBox(msg,_T(""),wxICON_ERROR);
+		InitializeVerseAnalysis(refVAnal);
+		return FALSE;
+
+	}
+	wxString verseNum = GetNumberFromChapterOrVerseStr(lineStr);
+	bool bIsComplex = DoVerseAnalysis(verseNum, refVAnal);
+	return bIsComplex;
+}
+
+void InitializeVerseAnalysis(VerseAnalysis& rVerseAnal)
+{
+	rVerseAnal.bIsComplex = FALSE; // assume it's a simple verse number (ie. no bridge, etc)
+	rVerseAnal.strDelimiter = _T("-"); // it's usually a hyphen, but it doesn't matter what we put here
+	rVerseAnal.strStartingVerse = _T("0"); // this is an invalid verse number, we can test
+										 // for this to determine if the actual starting
+										 // verse was not set
+	rVerseAnal.strEndingVerse = _T("0");   // ditto 
+	rVerseAnal.charStartingVerseSuffix = _T('\0'); // a null wxChar
+	rVerseAnal.charEndingVerseSuffix = _T('\0'); // a null wxChar
+}
+
+// return TRUE if the versification at lineIndex's wxString from md5Arr is complex, that
+// is, not just a simple verse number. FALSE if it is not complex.
+bool IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex)
+{
+	size_t count = md5Arr.GetCount();
+	wxASSERT(lineIndex < count);
+	VerseAnalysis vAnal;
+	if (IsVerseLine(md5Arr, lineIndex))
+	{
+		return DoVerseAnalysis(vAnal, md5Arr, lineIndex);
+	}
+	return FALSE;
+}
+
+// Return the index in md5Arr at which there is an exact match of verseNum string in a
+// verse line at nStart or beyond; else wxNOT_FOUND (-1) if no match was made. verseNum can
+// be complex, such as 16b-18 or a part, like 7b, or whatever else scripture versification
+// allows. We must match it exactly, not match a substring within the verseNum stored in
+// the line being tested.
+int FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum)
+{
+	int count = md5Arr.GetCount();
+	wxASSERT(nStart < count);
+	int index;
+	wxString lineStr;
+	wxString strVsRange;
+	for (index = nStart; index < count; index++)
+	{
+		if (IsVerseLine(md5Arr, index))
+		{
+			lineStr = md5Arr.Item(index);
+			strVsRange = GetNumberFromChapterOrVerseStr(lineStr);
+			if (strVsRange == verseNum)
+			{
+				return index;
+			}
+		}
+	}
+	return wxNOT_FOUND;
+}
+
+// Return the top end of the two matched complex chunks, as indices into postEditMd5Arr
+// and fromEditorMd5Arr - namely, postEditEnd, and fromEditorEnd. postEditEnd, and
+// fromEditorEnd will point at either the last line string in the two md5 arrays, or at
+// the lines in those arrays which immediately precede lines with simple and matched to
+// each other versification lines, or at lines which immediately precede complex and matched to
+// each other versification lines in which the verseNum substring, although complex, is an
+// exact match for the verseNum substring for the matching verse line of the other array.
+void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr, const wxArrayString& fromEditorMd5Arr,
+				int postEditStart, int& postEditEnd, int fromEditorStart, int& fromEditorEnd)
+{
+	int postEditArrCount = postEditMd5Arr.GetCount();
+	int fromEditorArrCount = fromEditorMd5Arr.GetCount();
+	wxASSERT(postEditStart < postEditArrCount);
+	wxASSERT(fromEditorStart < fromEditorArrCount);
+	int postEditIndex = postEditStart;
+	int fromEditorIndex = fromEditorStart;
+
+
+
+
+
+
+
+}
+
+
 
 // combine a chapter string with a verse string (or part, like 6b, or a range, like 23-25
 // etc) and delimit them with an intervening colon; then return the result
+/* BEW removed 4Aug11, not needed
 wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrRange)
 {
 	wxString colon = _T(":");
@@ -2380,6 +2714,7 @@ wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrR
 	}
 	return chVerse;
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 TRUE if all went well, FALSE if there was a failure 
@@ -2404,7 +2739,8 @@ wxString MakeAnalysableChapterVerseRef(wxString strChapter, wxString strVerseOrR
 ///                         a -1 value and other chapter/verse members left with default values.
 ///                         bVerseMarkerSeenAlready should be passed in as TRUE even when
 ///                         the current line is the line for \v 1.
-////////////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////////////
+/* BEW removed 4Aug11, not needed
 bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseLine, 
 							VChunkAndMap*& pVChMap, bool bVerseMarkerSeenAlready)
 {
@@ -2483,7 +2819,8 @@ bool AnalyseChVs_For_Collab(wxArrayString& md5Array, int chapterLine, int verseL
 	}
 	return TRUE;
 }
-
+*/
+/* BEW removed 4Aug11, not needed
 void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap)
 {
 	// we only initialize chapter and verse information, because the indices members will
@@ -2500,6 +2837,7 @@ void InitializeVChunkAndMap_ChapterVerseInfoOnly(VChunkAndMap*& pVChMap)
 	pVChMap->charStartingVerseSuffix = _T('\0'); // a null wxChar
 	pVChMap->charEndingVerseSuffix = _T('\0'); // a null wxChar
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing 
@@ -2729,7 +3067,7 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// translation is expected to be be sent, it is sent after the adaptation is sent,
 /// automatically.
 ///////////////////////////////////////////////////////////////////////////////////////
-wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, 
+wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, 
 										   wxString& postEditText)
 {
 	wxString emptyStr = _T("");
@@ -2917,12 +3255,12 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
     // UsfmStructureAndExtent array. In this way, for a given index value into the
     // UsfmStructureAndExtent array, we can quickly get the offsets for start and end of
     // the substring in the text which is associated with that md5 line.
-	size_t count = preEditMd5Arr.GetCount();
-	wxArrayPtrVoid preEditOffsetsArr;
-	preEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
-	MapMd5ArrayToItsText(preEditText, preEditOffsetsArr, preEditMd5Arr);
+	//size_t count = preEditMd5Arr.GetCount(); <<- don't need to do this one
+	//wxArrayPtrVoid preEditOffsetsArr;
+	//preEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	//MapMd5ArrayToItsText(preEditText, preEditOffsetsArr, preEditMd5Arr);
 
-	count = postEditMd5Arr.GetCount();
+	size_t count = postEditMd5Arr.GetCount();
 	wxArrayPtrVoid postEditOffsetsArr;
 	postEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(postEditText, postEditOffsetsArr, postEditMd5Arr);
@@ -2941,56 +3279,20 @@ wxString MakePostEditTextForExternalEditor(SPList* pDocList, enum SendBackTextTy
 	}
 	if (bUsfmIsTheSame)
 	{
-
-
-
-
-
-
-
-
-
-
-
-
-
+		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
+									preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
+									postEditOffsetsArr, fromEditorOffsetsArr);
 	}
 	else
 	{
 		// the USFM structure has changed in at least one location in the text
-		
-
-
-
-
-
+		text = GetUpdatedText_UsfmsChanged(postEditText, fromEditorText,
+									preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
+									postEditOffsetsArr, fromEditorOffsetsArr);
 	}
 
-	/* a template to copy as needed
-	switch (makeTextType)
-	{
-	case makeFreeTransText:
-		{
-
-
-		}
-		break;
-	default:
-	case makeTargetText:
-		{
-
-
-		}
-		break;
-	};
-	*/
-
-
-
-
-
 	// delete from the heap all the MD5Map structs we created
-	DeleteMD5MapStructs(preEditOffsetsArr);
+	//DeleteMD5MapStructs(preEditOffsetsArr);
 	DeleteMD5MapStructs(postEditOffsetsArr);
 	DeleteMD5MapStructs(fromEditorOffsetsArr);
 
@@ -3085,13 +3387,114 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 	structsArr.Clear();
 }
 
+// GetUpdatedText_UsfmsUnchanged() is the simple-case (i.e. USFM markers have not been
+// changed, added or deleted) function which generates the USFM marked up text, either
+// target text, or free translation text, which the caller will pass back to the relevant
+// Paratext or Bibledit project, it's book or chapter as the case may be.
+// 
+// Note, we don't need to pass in a preEditOffsetsArr, nor preEditText, because we don't
+// need to map with indices into the preEditText itself; instead, we use the passed in MD5
+// checksums for preEditText to tell us all we need about that text in relation to the
+// same marker and content in postEditText.
+wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
+			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr,
+			wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr)
+{
+	wxString newText; newText.Empty();
+	wxString zeroStr = _T("0");
+    // each text variant's MD5 structure&extents array has exactly the same USFMs in the
+    // same order -- verify before beginning
+	size_t preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
+	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();					
+	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();					
+	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count && 
+			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
+	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
+	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
+	wxString preEditMd5Line;
+	wxString postEditMd5Line;
+	wxString fromEditorMd5Line;
+	wxString preEditMD5Sum;
+	wxString postEditMD5Sum;
+	wxString fromEditorMD5Sum;
+
+	// work with wxChar pointers for each of the postEditText and fromEditorText texts (we
+	// don't need a block like this for the preEditText because we don't access it's data
+	// directly in this function)
+	const wxChar* pPostEditBuffer = postEditText.GetData();
+	int nPostEditBufLen = postEditText.Len();
+	wxChar* pPostEditStart = (wxChar*)pPostEditBuffer;
+	wxChar* pPostEditEnd = pPostEditStart + nPostEditBufLen;
+	wxASSERT(*pPostEditEnd == '\0');
+
+	const wxChar* pFromEditorBuffer = fromEditorText.GetData();
+	int nFromEditorBufLen = fromEditorText.Len();
+	wxChar* pFromEditorStart = (wxChar*)pFromEditorBuffer;
+	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
+	wxASSERT(*pFromEditorEnd == '\0');
+
+	size_t index;
+	for (index = 0; index < postEditMd5Arr_Count; index++)
+	{
+		// get the next line from each of the MD5 structure&extents arrays
+		preEditMd5Line = preEditMd5Arr.Item(index);
+		postEditMd5Line = postEditMd5Arr.Item(index);
+		fromEditorMd5Line = fromEditorMd5Arr.Item(index);
+		// get the MD5 checksums from each line
+		preEditMD5Sum = GetFinalMD5FromStructExtentString(preEditMd5Line);
+		postEditMD5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
+		fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
+		
+		// start testing - first test: check for MD5 checksum of "0" in fromEditorMD5Sum,
+		// and if so, the copy the span over from postEditText unilaterally (marker and
+		// text, or marker an no text, as the case may be - doesn't matter since the
+		// fromEditorText's marker had no content anyway)
+		if (fromEditorMD5Sum == zeroStr)
+		{
+			// text from Paratext or Bibledit for this marker is absent so far, or the
+			// marker is a contentless one anyway (we have to transfer them too)
+			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
+			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+			newText += fragmentStr;
+		}
+		else
+		{
+			// the MD5 checksum for the external editor's marker contents for this
+			// particular marker is non-empty; so, if the preEditText and postEditText at
+			// the matching marker have the same checksum, then copy the fromEditorText's
+			// text (and marker) 'as is'; otherwise, if they have different checksums,
+			// then the user has done some adapting (or free translating if the text we
+			// are dealing with is free translation text) and so the from-AI-document text
+			// has to instead be copied to newText
+			if (preEditMD5Sum == postEditMD5Sum)
+			{
+				// no user edits, so keep the from-external-editor version for this marker
+				pFromEditorOffsets = (MD5Map*)fromEditorOffsetsArr.Item(index);
+				wxString fragmentStr = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
+								pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
+				newText += fragmentStr;
+			}
+			else
+			{
+				// must be user edits done, so send them to newText along with the marker
+				pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
+				wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+				newText += fragmentStr;
+			}
+		}
+	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
+	return newText;
+}
+
 // on invocation, the caller will have ensured that a USFM marker is the first character of
 // the text parameter
 void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArrayString& md5Arr)
 {
 	// work with wxChar pointers for the text
 	const wxChar* pBuffer = text.GetData();
-	int nBufLen = text.Length();
+	int nBufLen = text.Len();
 	wxChar* pStart = (wxChar*)pBuffer;	// point to the first wxChar (start) of the buffer text
 	wxChar* pEnd = pStart + nBufLen;	// point past the last wxChar of the buffer text
 	wxASSERT(*pEnd == '\0');
@@ -3167,6 +3570,190 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 			break;
 	} // end of loop: for (lineIndex = 0; lineIndex < md5ArrayCount; lineIndex++)
 	text.UngetWriteBuf();
+}
+
+wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFinish)
+{
+	wxArrayString newArray; newArray.Clear();
+	wxASSERT(nFinish >= nStart);
+	if (nStart == nFinish)
+	{
+		return newArray; // return the empty array
+	}
+	newArray.Alloc(nFinish + 1 - nStart);
+	size_t i;
+	wxString s;
+	for (i = nStart; i <= nFinish; i++)
+	{
+		s = arr.Item(i);
+		newArray.Add(s);
+	}
+	return newArray;
+}
+
+// GetUpdatedText_UsfmsChanged() is the complex case (i.e. USFM markers have been
+// changed - perhaps versification changes such as verse bridging, or markers added or
+// deleted, or edited because misspelled). This function generates the USFM marked up text, either
+// target text, or free translation text, which the caller will pass back to the relevant
+// Paratext or Bibledit project, it's book or chapter as the case may be, when parts of
+// the texts are not in sync with respect to USFM marker structure.
+// 
+// Note, we don't need to pass in a preEditOffsetsArr, nor preEditText, because we don't
+// need to map with indices into the preEditText itself; instead, we use the passed in MD5
+// checksums for preEditText to tell us all we need about that text in relation to the
+// same marker and content in postEditText.
+// 
+// Our approach is to proceed on a marker by marker basis, as is done in
+// GetUpdatedText_UsfmsUnchanged(), and vary from that only when we detect a mismatch of
+// USFM markers. Priority is given first and foremost to editing work in the actual words
+// - the editing may have been done in AI (in which case we flow the edits back to PT, and
+// they will carry their markup with them, overwriting any markup changes in the same
+// portion of the document in Paratext, if any, and that is something we can't do anything
+// about - we consider it vital to give precedence to meaning over markup); or the editing
+// may have only been done by the user in PT (in which case we detect that the AI document
+// doesn't have any meaning and/or punctuation changes in that subsection, and if so, we
+// leave the PT equivalent text subsection unchanged). So meaning has priority. However,
+// when meaning is not the issue, the next long paragraph explains what we do - that is,
+// when there are mismatched markers or versification changes or both.
+// 
+// The code works out the chunk which encompases the mismatched markers, and applies some
+// protocols based on what is found, for determining how to proceed in that mismatch chunk.
+// We honour, as best we can, where the changes have been made and try not to overwrite any
+// changes manually made in the PT or BE document by the user having done edits in PT or BE
+// before switching back to AI for more editing work on the same text. Versification
+// changes are a big problem because they give different MD5 checksums for their text data
+// which follows them and there may or may not have been meaning changes due to user edits,
+// and there is no way we can tell which is the case. So we give priority to where the
+// edits are done - provided we can work out which app they were done in. If the from-PT
+// chunk has complex verification, such as bridging (23-25) or part verses (6a) or both,
+// etc, but the AI doc has just simple consecutive verses in that chunk, then we know the
+// user did the versification changes in PT, and so we refrain from sending to PT any data
+// from that mismatch chunk in AI (that is, provided there were no editing changes to the
+// meaning also done in AI for that chunk, see the preceding paragraph). On the other hand,
+// if the versification changes were done in PT's source text project, then they flow (by
+// automatic merger) back to the AI document and will appear there, and not be in the PT
+// target project's text. In that case we honour the AI mismatched chunk's data as having
+// priority, and flow the AI data back to the PT target text - changing the versification
+// there in the process (typically, the user in AI will have also done some adaptation in
+// that section as well, and so the data will flow back to PT anyway because of the
+// meaning changes which our algorithm will detect before this - see previous paragraph).
+// Unfortunately, not all marker changes are versification ones. Most likely changes are
+// the addition of new markers, such as poetry markers and subheadings. Such changes could
+// be done in the source text PT project (in which case they flow into the AI document), or
+// may be done in the PT target text project (in which case AI doc knows nothing about
+// them). We can detect, in most situations, which is the case by counting markers in the
+// mismatched chunk - and we honour the text which has the higher marker count (but only
+// provided we detect there were no meaning changes done by the user's edits in AI for that
+// subsection, if there were, then the previous paragraph's comments apply instead). If the
+// text with the higher marker count is in the AI document, then we flow the AI doc's data
+// back to PT target text (overwriting whatever is there in that chunk in the PT doc); but
+// if the PT text has the higher marker count, we assume that that is correct 'as is' and
+// refrain from sending anything to PT from the mismatched chunk. When in doubt, such as
+// when both AI doc and the PT text have different, and complex, versification - we give
+// priority to the Adapt It data if the user did Adapt It edits there (and so flow it back
+// to Paratext), and to the Paratext data if he did no edits in AI for that text section
+// (and so keep unchanged what the Paratext text has there).
+// So, for our protocols to work, when we come to doc parts where markers are different, we
+// will be adding additional processing - 
+// (a) collecting info as to which sequence of versification markers is "simple" versus
+// "complex" (complex versification in both texts is not a problem provided it is identical
+// in both texts), and when that is not enough,
+// (b) counting markers over a range of indices in the md5 structure&extent arrays, so see
+// which text has the higher count, and
+// (c) working out if meaning changes were done in the AI document's mismatched chunk (we
+// will get md5 subarrays and text those with Bill's comparison function to obtain a
+// boolean result.) 
+// That should help explain the complexities in the code below, and why they are there.
+wxString GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText,
+			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr,
+			wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr)
+{
+	wxString newText; newText.Empty();
+	wxString zeroStr = _T("0");
+    // each text variant's MD5 structure&extents array has exactly the same USFMs in the
+    // same order -- verify before beginning
+	size_t preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
+	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();					
+	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();					
+	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count && 
+			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
+	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
+	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
+	wxString preEditMd5Line;
+	wxString postEditMd5Line;
+	wxString fromEditorMd5Line;
+	wxString preEditMD5Sum;
+	wxString postEditMD5Sum;
+	wxString fromEditorMD5Sum;
+
+	// work with wxChar pointers for each of the postEditText and fromEditorText texts (we
+	// don't need a block like this for the preEditText because we don't access it's data
+	// directly in this function)
+	const wxChar* pPostEditBuffer = postEditText.GetData();
+	int nPostEditBufLen = postEditText.Len();
+	wxChar* pPostEditStart = (wxChar*)pPostEditBuffer;
+	wxChar* pPostEditEnd = pPostEditStart + nPostEditBufLen;
+	wxASSERT(*pPostEditEnd == '\0');
+
+	const wxChar* pFromEditorBuffer = fromEditorText.GetData();
+	int nFromEditorBufLen = fromEditorText.Len();
+	wxChar* pFromEditorStart = (wxChar*)pFromEditorBuffer;
+	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
+	wxASSERT(*pFromEditorEnd == '\0');
+
+	size_t index;
+	for (index = 0; index < postEditMd5Arr_Count; index++)
+	{
+		// get the next line from each of the MD5 structure&extents arrays
+		preEditMd5Line = preEditMd5Arr.Item(index);
+		postEditMd5Line = postEditMd5Arr.Item(index);
+		fromEditorMd5Line = fromEditorMd5Arr.Item(index);
+		// get the MD5 checksums from each line
+		preEditMD5Sum = GetFinalMD5FromStructExtentString(preEditMd5Line);
+		postEditMD5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
+		fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
+		
+		// start testing - first test: check for MD5 checksum of "0" in fromEditorMD5Sum,
+		// and if so, the copy the span over from postEditText unilaterally (marker and
+		// text, or marker an no text, as the case may be - doesn't matter since the
+		// fromEditorText's marker had no content anyway)
+		if (fromEditorMD5Sum == zeroStr)
+		{
+			// text from Paratext or Bibledit for this marker is absent so far, or the
+			// marker is a contentless one anyway (we have to transfer them too)
+			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
+			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+			newText += fragmentStr;
+		}
+		else
+		{
+			// the MD5 checksum for the external editor's marker contents for this
+			// particular marker is non-empty; so, if the preEditText and postEditText at
+			// the matching marker have the same checksum, then copy the fromEditorText's
+			// text (and marker) 'as is'; otherwise, if they have different checksums,
+			// then the user has done some adapting (or free translating if the text we
+			// are dealing with is free translation text) and so the from-AI-document text
+			// has to instead be copied to newText
+			if (preEditMD5Sum == postEditMD5Sum)
+			{
+				// no user edits, so keep the from-external-editor version for this marker
+				pFromEditorOffsets = (MD5Map*)fromEditorOffsetsArr.Item(index);
+				wxString fragmentStr = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
+								pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
+				newText += fragmentStr;
+			}
+			else
+			{
+				// must be user edits done, so send them to newText along with the marker
+				pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
+				wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+				newText += fragmentStr;
+			}
+		}
+	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
+	return newText;
 }
 
 
