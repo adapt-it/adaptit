@@ -1525,7 +1525,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	canvas = pApp->GetMainFrame()->canvas;
 	canvas->pView = this;	// make the view pointer owned by MainFrame's canvas
 							// point to the current view
-    pCanvasFrame->SetTitle(_T("CAdapt_ItView"));
+    pCanvasFrame->SetTitle(_T("Adapt It"));
 	SetFrame(pCanvasFrame);
 
 #ifdef __X__
