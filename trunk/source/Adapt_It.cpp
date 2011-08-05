@@ -5600,6 +5600,11 @@ wxString szLastSourceExportPath = _T("LastSourceTextExportPath");
 /// It stores this path in the App's m_lastKbOutputPath member variable.
 wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_lastKbOutputPath
 
+/// The label that identifies the following string as the project's "KB_LIFT_ExportPath". This
+/// value is written in the "BasicSettings" part of the basic configuration file. Adapt
+/// It stores this path in the App's m_lastKbLiftOutputPath member variable.
+wxString szKBLIFTExportPath = _T("KB_LIFT_ExportPath"); // stored in the App's m_lastKbLiftOutputPath
+
 /// The label that identifies the following string as the project's
 /// "RetranslationReportPath". This value is written in the "BasicSettings" part of the
 /// basic configuration file. Adapt It stores this path in the App's m_lastRetransReportPath
@@ -12528,6 +12533,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_lastDocPath = _T(""); // config file will set this
 	m_lastSourceOutputPath = _T("");
 	m_lastKbOutputPath = _T("");
+	m_lastKbLiftOutputPath = _T("");
 	m_lastRtfOutputPath = _T("");
 	m_lastRetransReportPath = _T("");
 	m_lastGlossesOutputPath = _T("");
@@ -16220,9 +16226,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// a wxTextFile (pointing to the user's work folder), copies all of the 
 		// in-memory text lines from install setup folder's version to the newly
 		// created version. Finally it writes the newly created version out to the
-		// user's work folder.
-		// into memory (as a wxTextFile), the merging is done in memory, then the result is written
-		// out to disk afterwards to a newly created AI_UserProfiles.xml file.
+		// user's work folder as a newly created AI_UserProfiles.xml file.
 		bool bSetupFoldersVersionCanReplace = FALSE; // FALSE unless the next block changes it to TRUE
 		if (bInstallFolderUserProfileFileExists)
 		{
@@ -23843,6 +23847,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szRetranslationReportPath << tab << m_lastRetransReportPath;
 	pf->AddLine(data);
 
@@ -25404,6 +25412,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szKBExportPath)
 		{
 			m_lastKbOutputPath = strValue;
+		}
+		else if (name == szKBLIFTExportPath)
+		{
+			m_lastKbLiftOutputPath = strValue;
 		}
 		else if (name == szRetranslationReportPath)
 		{
@@ -37125,13 +37137,6 @@ void CAdapt_ItApp::OnUpdateFileExportKb(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 {
-	//CAdapt_ItDoc* pDoc;
-	//CPhraseBox* pBox;
-	//CAdapt_ItView* pView;
-	//GetBasePointers(pDoc,pView,pBox); // this is 'safe' when no doc is open
-	
-	bool bBypassFileDialog_ProtectedNavigation = FALSE;
-
 	// get a pointer to either the glossing KB or the adaptation one
 	CKB* pKB;
 	if (gbIsGlossing)
@@ -37140,107 +37145,156 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		pKB = m_pKB;
 	wxASSERT(pKB != NULL);
 
-    // get an output filename and put up file dialog make the working directory the
-    // "<Project Name>" one if no previous export path was defined, else make it the stored
-    // last export path for the kb
-	bool bOK = TRUE;
+	// whm revised 5Aug11. We don't know what protected folder to use for KB exports
+	// until the user specifies either SFM or LIFT. That specification previously
+	// would occur at the time the user gets the wxFileDialog and accesses the 
+	// "File Type" drop-down list of options. However, with navigation protection we 
+	// don't provide a standard wxFileDialog where a user can make that selection. 
+	// Therefore, I think the better way of handling the choice between SFM and LIFT
+	// KB exports is to get that decision earlier via a wxSingleChoice dialog, and
+	// not from the wxFileDialog - even when no protection is in effect. Doing so, I
+	// think will simplify the file naming process too.
 	
-	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
-	if (this->m_bProtectKbInputsAndOutputsFolder)
-	{
-		bBypassFileDialog_ProtectedNavigation = TRUE;
-		// Navigation protection in effect - limit source text exports to
-		// be saved in the _KB_INPUTS_OUTPUTS folder which is always a child folder
-		// of the folder that m_curProjectPath points to.
-		bOK = ::wxSetWorkingDirectory(this->m_kbInputsAndOutputsFolderPath);
-	}
+	// While nav protection is ON, the user doesn't see a wxFileDialog where the
+	// Save As Type dropdown box is an option. So, we have to ask the user directly 
+	// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
+	// filterIndex according to the user's response.
+	KBExportSaveAsType kbExportType = KBExportSaveAsSFM_TXT;
+	wxString choices[2];
+	choices[0] = _("1. Export the Knowledge Base in Standard Format (\\x and \\ge).");
+	choices[1] = _("2. Export the Knowledge Base in LIFT Format.");
+	wxString message = _("Choose Type of Knowledge Base Export (select 1 or 2), or Cancel (to abort the export)");
+	wxString myCaption = _("Export the Knowledge Base as SFM or LIFT dictionary records");
+	int returnValue = wxGetSingleChoiceIndex(
+		message,myCaption,2,choices,GetMainFrame(),-1,-1,TRUE,350,80);
+	if (returnValue == -1)
+		return; // user pressed Cancel
 	else
 	{
-		if (m_lastKbOutputPath.IsEmpty())
-			bOK = ::wxSetWorkingDirectory(m_curProjectPath);
-		else
-			bOK = ::wxSetWorkingDirectory(m_lastKbOutputPath);
-		
-		// the above may have failed, so if so use m_curProjectPath as the folder
-		// so we can proceed to the file dialog safely
-		if (!bOK)
-		{
-			m_lastKbOutputPath = m_curProjectPath;
-			bOK = ::wxSetWorkingDirectory(m_lastKbOutputPath); // this should work, since
-													// m_curProjectPath can hardly be wrong!
-			if (!bOK)
-			{
-				// we should never get a failure for the above, 
-				// so just an English message will do
-				wxString msg = _T("OnFileExportKb() failed, when setting current directory to:\n%s");
-				msg = msg.Format(msg,m_lastKbOutputPath.c_str());
-				wxMessageBox(msg,_T(""),wxICON_WARNING);
-				LogUserAction(msg);
-				return;
-			}
-		}
+		kbExportType = (KBExportSaveAsType)returnValue; // cast int to KBExportSaveAsType enum
+		wxASSERT(kbExportType == KBExportSaveAsSFM_TXT || kbExportType == KBExportSaveAsLIFT_XML);
 	}
 
-	// Set up default export file names
-    // whm Note: In the App's SetupDirectories() function the m_curProjectName is
+	// Calculate the appropriate KB export's dictFilename and defaultDir.
+    // Note: In the App's SetupDirectories() function the m_curProjectName is
     // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"), 
-    // so the "to" and "adaptations" parts are non-localized, i.e., we can depend on them
-    // being constant in project names. All KB exports use a default name based on
-    // m_curProjectName without " adaptations" part
+    // so the "to" and "adaptations" parts are non-localized, i.e., we can depend on 
+    // them being constant in project names. All KB exports use a default name based 
+    // on m_curProjectName without " adaptations" part.
 	wxString dictFilename;
-	dictFilename = m_curProjectName;
-	// whm modified 11Jul11 to use wxString::Find(x, TRUE) where TRUE - find from right end of string
-	// rather than 2x use of MakeReverse() function.
-	//dictFilename = MakeReverse(dictFilename);
+	dictFilename = m_curProjectName; // m_curProjectName is of the form "x to y adaptations"
 	int offset = dictFilename.Find(_T(' '),TRUE); // TRUE - find from right end
 	dictFilename = dictFilename.Mid(0,offset); // remove "adaptations" or Tok Pisin equivalent
-	//dictFilename = MakeReverse(dictFilename);
 	// The base dictFilename is now in the form of "x to y"
-
-	wxString glossStr;
-	wxString defaultKBLiftExportFileName;
-	wxString extToBeUsed;
-	wxString tempStr;
-
-	// use the SFM .txt extension as default
-	extToBeUsed = _T(".txt"); // the extension is not localizable
-	if (gbIsGlossing)
-	{
-		glossStr = _("Glossing");
-		// no space added here to glossStr since we don't add 
-		// "dictionary records" to this one
-		dictFilename += glossStr; // ensure the glossing KB 
-								  // export has its own filename
-	}
-	else
-	{
-		dictFilename.Trim(TRUE); // trim any white space from right end
-	}
-	dictFilename = dictFilename + _T("%s");
-	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .txt 
-													// as the default export extension
-	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
-	// is set for protected navigation
+	
 	wxString defaultDir;
-	if (m_lastKbOutputPath.IsEmpty())
+	wxString glossStr;
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	if (kbExportType == KBExportSaveAsSFM_TXT)
 	{
-		defaultDir = m_curProjectPath;
+		// The user wants KB export in standard format (\x and \ge).
+		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
+		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
+		// and set the defaultDir for the export accordingly.
+		if (this->m_bProtectKbInputsAndOutputsFolder)
+		{
+			// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+			// and force the use of the special protected folder for the export.
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			defaultDir = m_kbInputsAndOutputsFolderPath;
+		}
+		else if (m_lastKbOutputPath.IsEmpty()
+			|| (!m_lastKbOutputPath.IsEmpty() && !::wxDirExists(m_lastKbOutputPath)))
+		{
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+			// to appear. But the m_lastKbOutputPath is either empty or, if not empty, 
+			// it points to an invalid path, so we initialize the defaultDir to point to 
+			// the special protected folder, even though Navigation protection is not ON. 
+			// In this case, the user could point the export path elsewhere using the 
+			// wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			defaultDir = m_kbInputsAndOutputsFolderPath;
+		}
+		else
+		{
+			// Navigation protection is OFF and we have a valid path in m_lastKbOutputPath,
+			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
+			// location of the export. The user could still point the export path elsewhere 
+			// in the wxFileDialog that will appear.
+			defaultDir = m_lastKbOutputPath;
+		}
+		// Add "dictionary records" and "glossing" (if gbIsGlossing) to the dictFilename
+		dictFilename += _T(' ');
+		dictFilename += _("dictionary records");
+		if (gbIsGlossing)
+		{
+			glossStr = _T(" ");
+			glossStr += _("glossing");
+			dictFilename += glossStr; // ensure the glossing KB 
+									  // export has its own filename
+		}
+		// Add the default extension for SFM KB exports
+		dictFilename += _T(".txt"); // the extension is not localizable
 	}
-	else
+	else if (kbExportType == KBExportSaveAsLIFT_XML)
 	{
-		defaultDir = m_lastKbOutputPath;
+		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
+		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
+		// and set the defaultDir for the export accordingly.
+		if (this->m_bProtectKbInputsAndOutputsFolder)
+		{
+			// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+			// and force the use of the special protected folder for the export.
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			defaultDir = m_liftInputsAndOutputsFolderPath;
+		}
+		else if (m_lastKbLiftOutputPath.IsEmpty()
+			|| (!m_lastKbLiftOutputPath.IsEmpty() && !::wxDirExists(m_lastKbLiftOutputPath)))
+		{
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+			// to appear. But the m_lastKbLiftOutputPath is either empty or, if not empty, 
+			// it points to an invalid path, so we initialize the defaultDir to point to 
+			// the special protected folder, even though Navigation protection is not ON. 
+			// In this case, the user could point the export path elsewhere using the 
+			// wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			defaultDir = m_liftInputsAndOutputsFolderPath;
+		}
+		else
+		{
+			// Navigation protection is OFF and we have a valid path in m_lastKbLiftOutputPath,
+			// so we initialize the defaultDir to point to the m_lastKbLiftOutputPath for the 
+			// location of the export. The user could still point the export path elsewhere 
+			// in the wxFileDialog that will appear.
+			defaultDir = m_lastKbLiftOutputPath;
+		}
+		// Add " glossing" (if gbIsGlossing) to the dictFilename
+		if (gbIsGlossing)
+		{
+			glossStr = _T(" ");
+			glossStr += _("glossing");
+			dictFilename += glossStr; // ensure the glossing KB 
+									  // export has its own filename
+		}
+		// Add the default extension for LIFT KB exports
+		dictFilename += _T(".lift"); // the extension is not localizable
 	}
 
-	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
-	// navigation.
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
-	int filterIndex;
+	// Allow the wxFileDialog only when the export is not protected from navigation
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
 		// get a file dialog
 		wxString filter;
-		filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"); 
+		if (kbExportType == KBExportSaveAsSFM_TXT)
+		{
+			filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+		}
+		else if (kbExportType == KBExportSaveAsLIFT_XML)
+		{
+			filter = _("XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"); 
+		}
 		wxFileDialog fileDlg(
 			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 			_("Filename For KB Export"),
@@ -37256,74 +37310,55 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		if (fileDlg.ShowModal() != wxID_OK)
 			return; // user cancelled
 
-		exportPath = fileDlg.GetPath();
-		wxString name = fileDlg.GetFilename();
-		int nameLen = name.Length();
-		int pathLen = exportPath.Length();
-		wxASSERT(nameLen > 0 && pathLen > 0);
-		// update m_lastKbOutputPath
-		m_lastKbOutputPath = exportPath.Left(pathLen - nameLen - 1);
-		
+		//exportPath = fileDlg.GetPath();
+		//wxString name = fileDlg.GetFilename();
+		//int nameLen = name.Length();
+		//int pathLen = exportPath.Length();
+		//wxASSERT(nameLen > 0 && pathLen > 0);
+		//// Update the m_last...Path variables as appropriate.
+		//if (kbExportType == KBExportSaveAsSFM_TXT)
+		//{
+		//	// update m_lastKbOutputPath
+		//	m_lastKbOutputPath = exportPath.Left(pathLen - nameLen - 1);
+		//}
+		//else if (kbExportType == KBExportSaveAsLIFT_XML)
+		//{
+		//	// update m_lastKbLiftOutputPath
+		//	m_lastKbLiftOutputPath = exportPath.Left(pathLen - nameLen - 1);
+		//}
+		//
 		// get the user's desired path and file name
 		exportPath = fileDlg.GetPath(); 
-		filterIndex = fileDlg.GetFilterIndex();
-		// NOTE: If you decide to change the default Export type you must make sure that 
-		// the KBExportSaveAsType enum ordering (in Adapt_It.h) has the same enum values 
-		// as the filterIndex value returned here by GetFilterIndex() !!!
-		/*
-		if (filterIndex == KBExportSaveAsSFM_TXT)
+
+		// whm 5Aug11 note: When nav protection is OFF, we allow the user to
+		// determine the dictFilename's extension for SFM exports (default is .txt)
+		// but we need to force the extension to be .lift for LIFT exports even if
+		// the user has typed a different extension
+		wxString path, fname, ext;
+		wxFileName::SplitPath(exportPath, &path, &fname, &ext);
+		if (kbExportType == KBExportSaveAsLIFT_XML)
 		{
-			// in SFM exports, add the " dictionary records" suffix to the base name of the
-			// export file, if the user has not already made that part of the name.
-			wxString path, fname, ext;
-			wxFileName::SplitPath(exportPath, &path, &fname, &ext);
-			if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+			if (ext != _T("lift"))
 			{
-				exportPath = path + PathSeparator + fname + _T(" ") + 
-							_("dictionary records") + _T(".") + ext;
+				exportPath = path + PathSeparator + fname + _T('.') + _T("lift");
 			}
 		}
-		*/
 	}
 	else
 	{
-		// While nav protection is ON, the user doesn't see a wxFileDialog where the
-		// Save As Type dropdown box is an option. So, we have to ask the user directly 
-		// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
-		// filterIndex according to the user's response.
-		wxString choices[2];
-		choices[0] = _("1. Export the Knowledge Base in Standard Format (\\x and \\ge).");
-		choices[1] = _("2. Export the Knowledge Base in LIFT Format.");
-		wxString message = _("Choose Type of Knowledge Base Export (select 1 or 2), or Cancel (to abort the export)");
-		wxString myCaption = _("Export the Knowledge Base as SFM or LIFT dictionary records");
-		int returnValue = wxGetSingleChoiceIndex(
-			message,myCaption,2,choices,GetMainFrame(),-1,-1,TRUE,350,80);
-		if (returnValue == -1)
-			return; // user pressed Cancel
-		else
+		// While nav protection is ON, the user doesn't see a wxFileDialog but we set
+		// the path and filename automatically depending on the kbExportType.
+		if (kbExportType == KBExportSaveAsSFM_TXT)
 		{
-			filterIndex = returnValue;
-			wxASSERT(filterIndex == 0 || filterIndex == 1);
+			// determine exportPath to the _KB_INPUTS_OUTPUTS folder using the dictFilename
+			exportPath = gpApp->m_kbInputsAndOutputsFolderPath + gpApp->PathSeparator + dictFilename;
 		}
-		exportPath = gpApp->m_kbInputsAndOutputsFolderPath + gpApp->PathSeparator + dictFilename;
-		wxString path, fname, ext;
-		wxFileName::SplitPath(exportPath, &path, &fname, &ext);
-		if (filterIndex == KBExportSaveAsSFM_TXT)
+		else if (kbExportType == KBExportSaveAsLIFT_XML)
 		{
-			// in SFM exports, add the " dictionary records" suffix to the base name of the
-			// export file, if the user has not already made that part of the name.
-			if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
-			{
-				exportPath = path + PathSeparator + fname + _T(" ") + 
-							_("dictionary records") + _T(".") + ext;
-			}
+			// determine exportPath to the _LIFT_INPUTS_OUTPUTS folder using the dictFilename
+			exportPath = gpApp->m_liftInputsAndOutputsFolderPath + gpApp->PathSeparator + dictFilename;
 		}
-		else if (filterIndex == KBExportSaveAsLIFT_XML)
-		{
-			exportPath = path + PathSeparator + fname + _T(" ") + 
-						_("dictionary records") + _T(".lift");
-		}
-		
+
 		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
 		// appropriate outputs folder.
 		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
@@ -37339,7 +37374,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		return; // return since it is not a fatal error
 	}
 
-	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 1, 
+	if (kbExportType == KBExportSaveAsLIFT_XML) // should be filterIndex == 1, 
 	{										   //i.e., second item in drop down list
 		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
 	}
@@ -37353,24 +37388,42 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	// close the file
 	f.Close();
-	
-	if (bBypassFileDialog_ProtectedNavigation)
-	{
-		// whm 7Jul11 Note:
-		// For protected navigation situations AI determines the actual
-		// filename that is used for the export, and the export itself is
-		// automatically saved in the appropriate outputs folder. Since the
-		// user has no opportunity to provide a file name nor navigate to
-		// a random path, we should inform the user at this point of the 
-		// successful completion of the export, and indicate the file name 
-		// that was used and its outputs folder name and location.
-		wxFileName fn(uniqueFilenameAndPath);
-		wxString fileNameAndExtOnly = fn.GetFullName();
 
-		wxString msg;
-		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
-		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	// whm Note: We set the App's m_lastKbOutputPath and/or m_lastKbLiftOutputPath
+	// variables with the path part of the exportPath just used. We do this even when 
+	// navigation protection is on, so that the special folders would be the initial 
+	// path suggested if the administrator were to switch Navigation Protection OFF.
+	wxString path, fname, ext;
+	wxFileName::SplitPath(exportPath, &path, &fname, &ext);
+	// Update the m_last...Path variables as appropriate.
+	if (kbExportType == KBExportSaveAsSFM_TXT)
+	{
+		// update m_lastKbOutputPath
+		m_lastKbOutputPath = path;
 	}
+	else if (kbExportType == KBExportSaveAsLIFT_XML)
+	{
+		// update m_lastKbLiftOutputPath
+		m_lastKbLiftOutputPath = path;
+	}
+	
+	
+	// whm revised 5Aug11 to always inform the user of the completion of
+	// the export operation.
+	// Report the completion of the export to the user.
+	// Note: For protected navigation situations AI determines the actual
+	// filename that is used for the export, and the export itself is 
+	// automatically saved in the appropriate outputs folder. Especially
+	// in these situations where the user has no opportunity to provide a 
+	// file name nor navigate to a random path, we should inform the user 
+	// of the successful completion of the export, and indicate the file 
+	// name that was used and its outputs folder name and location.
+	wxFileName fn(exportPath);
+	wxString fileNameAndExtOnly = fn.GetFullName();
+
+	wxString msg;
+	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
 }
 
 #ifdef __WXDEBUG__

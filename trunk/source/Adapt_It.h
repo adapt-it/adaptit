@@ -2135,6 +2135,7 @@ public:
 	wxString	m_lastSourceOutputPath; // for last source text export path (saved in basic config file) 
 	wxString	m_lastRtfOutputPath; // for last RTF documents export path (saved in basic config file)
 	wxString	m_lastKbOutputPath; // for last KB export/import path (saved in basic config file)
+	wxString	m_lastKbLiftOutputPath; // for last KB LIFT format export/import path (saved in basic config file)
 
 	wxString	m_lastGlossesOutputPath; // for last glosses as text export path (saved in project config file)
 	wxString	m_lastFreeTransOutputPath; // for last free translations export path (saved in project config file)
