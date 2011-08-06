@@ -20495,7 +20495,8 @@ void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 ///                             m_curAdaptionsPath member)
 /// \remarks
 /// Called from: the App's SetupDirectories(), OnFileRestoreKb(),
-/// AccessOtherAdaptionProject(), and OnAdvancedBookMode().
+/// AccessOtherAdaptionProject(), OnAdvancedBookMode(), and
+/// CRetranslation::OnRetranslationReport().
 /// Determines if the book folders have already been created or not in the dirPath. Note:
 /// AreBookFoldersCreated() has the side effect of changing the current work directory to
 /// the passed in dirPath.
@@ -37221,6 +37222,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
 			// location of the export. The user could still point the export path elsewhere 
 			// in the wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
 			defaultDir = m_lastKbOutputPath;
 		}
 		// Add "dictionary records" and "glossing" (if gbIsGlossing) to the dictFilename
@@ -37266,8 +37268,10 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 			// so we initialize the defaultDir to point to the m_lastKbLiftOutputPath for the 
 			// location of the export. The user could still point the export path elsewhere 
 			// in the wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
 			defaultDir = m_lastKbLiftOutputPath;
 		}
+		
 		// Add " glossing" (if gbIsGlossing) to the dictFilename
 		if (gbIsGlossing)
 		{
@@ -37310,23 +37314,6 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		if (fileDlg.ShowModal() != wxID_OK)
 			return; // user cancelled
 
-		//exportPath = fileDlg.GetPath();
-		//wxString name = fileDlg.GetFilename();
-		//int nameLen = name.Length();
-		//int pathLen = exportPath.Length();
-		//wxASSERT(nameLen > 0 && pathLen > 0);
-		//// Update the m_last...Path variables as appropriate.
-		//if (kbExportType == KBExportSaveAsSFM_TXT)
-		//{
-		//	// update m_lastKbOutputPath
-		//	m_lastKbOutputPath = exportPath.Left(pathLen - nameLen - 1);
-		//}
-		//else if (kbExportType == KBExportSaveAsLIFT_XML)
-		//{
-		//	// update m_lastKbLiftOutputPath
-		//	m_lastKbLiftOutputPath = exportPath.Left(pathLen - nameLen - 1);
-		//}
-		//
 		// get the user's desired path and file name
 		exportPath = fileDlg.GetPath(); 
 

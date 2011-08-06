@@ -2124,7 +2124,7 @@ public:
 	// m_lastTargetOutputPath, m_lastCcTablePath) are currently stored in both the basic and project config
 	// files. Two others (m_lastGlossesOutputPath and m_lastFreeTransOutputPath) are stored only in the 
 	// project config file. The remainder (m_lastRetransReportPath, m_lastDocPath, m_lastSourceOutputPath,
-	// m_lastRtfOutputPath, and m_lastKbOutputPath) are stored only in the basic config file.
+	// m_lastRtfOutputPath, m_lastKbOutputPath, and m_lastKbLiftOutputPath) are stored only in the basic config file.
 
 	wxString	m_lastSourceInputPath;	// for last source text input path (saved in basic & project config files)
 	wxString	m_lastCcTablePath; // for last cc table path (saved in basic & project config files)
@@ -2134,7 +2134,7 @@ public:
 	wxString	m_lastTargetOutputPath; // for last target text export path (saved in basic & project config files)
 	wxString	m_lastSourceOutputPath; // for last source text export path (saved in basic config file) 
 	wxString	m_lastRtfOutputPath; // for last RTF documents export path (saved in basic config file)
-	wxString	m_lastKbOutputPath; // for last KB export/import path (saved in basic config file)
+	wxString	m_lastKbOutputPath; // for last KB SFM export/import path (saved in basic config file)
 	wxString	m_lastKbLiftOutputPath; // for last KB LIFT format export/import path (saved in basic config file)
 
 	wxString	m_lastGlossesOutputPath; // for last glosses as text export path (saved in project config file)

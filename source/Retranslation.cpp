@@ -513,6 +513,13 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			indexingName.Remove(len-4,4); // remove the .adt or .xml extension
 			
 			// open the document
+			// whm TODO Note: This routine takes much longer than is really necessary just
+			// to glean the bits of information needed for doing the Retranslation report.
+			// The RetranslationReport() function never displays any View of a document, 
+			// its Layout etc. But, the OnOpenDocument() and ClobberDocument() calls below
+			// have a huge overhead because they do a lot of extra memory allocations and
+			// deallocations of stuff not needed to do the report - things that are done in 
+			// preparation for displaying and laying out a View (that is not needed here). 
 			bool bOK;
 			bOK = pDoc->OnOpenDocument(newName);
 			pDoc->SetFilename(newName,TRUE);
@@ -523,7 +530,9 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 				wxString str;
 				str = str.Format(_T("Bad file:  %s"),newName.c_str());
 				wxMessageBox(str,_T(""),wxICON_WARNING);
-				wxExit(); //AfxAbort();
+				// whm Note: Even though this error should not happen but rarely, it 
+				// shouldn't result in the entire application stopping!
+				return; //wxExit(); //AfxAbort();
 			}
 			
 			// get a local pointer to the list of source phrases
@@ -3627,8 +3636,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = m_pApp->GetDocument()->GetCurrentDirectory();
 	
-	bool bBypassFileDialog_ProtectedNavigation = FALSE;
-	
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
@@ -3647,7 +3654,13 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	m_pApp->m_acceptedFilesList.Clear();
 	int answer;
 
-    // only put up the message box if a document is open (and the update handler also
+    // whm TODO: Retranslation reports should be available for a whole project even when
+    // a document is currently open. The user should have a choice of whether to do the 
+    // report for the currently open document only or for the whole project. This OnRetransReport()
+    // handler could temporarily close the currently open doc if necessary, and reopen it
+    // again once the report is done.
+   
+	// only put up the message box if a document is open (and the update handler also
     // disables the command if glossing is on)
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
 	{
@@ -3671,28 +3684,48 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	
-	// can proceed, so get output filename and put up file dialog
-	// make the working directory the "<Project Name>" one
 	bool bOK;
-	
-	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+    
+	// whm modified 5Aug11.
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	wxString defaultDir;
+	// Check whether navigation protection is in effect for _REPORTS_OUTPUTS, 
+	// and whether the App's m_lastRetransReportPath is empty or has a valid path, 
+	// and set the defaultDir for the export accordingly.
 	if (m_pApp->m_bProtectReportsOutputsFolder)
 	{
+		// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+		// and force the use of the special protected folder for the export.
 		bBypassFileDialog_ProtectedNavigation = TRUE;
-		// Navigation protection in effect - limit source text exports to
-		// be saved in the _REPORTS_OUTPUTS folder which is always a child folder
-		// of the folder that m_curProjectPath points to.
-		bOK = ::wxSetWorkingDirectory(m_pApp->m_reportsOutputsFolderPath);
+		defaultDir = m_pApp->m_reportsOutputsFolderPath;
+	}
+	else if (m_pApp->m_lastRetransReportPath.IsEmpty()
+		|| (!m_pApp->m_lastRetransReportPath.IsEmpty() && !::wxDirExists(m_pApp->m_lastRetransReportPath)))
+	{
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+		// to appear. But the m_lastKbOutputPath is either empty or, if not empty, 
+		// it points to an invalid path, so we initialize the defaultDir to point to 
+		// the special protected folder, even though Navigation protection is not ON. 
+		// In this case, the user could point the export path elsewhere using the 
+		// wxFileDialog that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		defaultDir = m_pApp->m_reportsOutputsFolderPath;
 	}
 	else
 	{
-		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath); // ignore failures
+		// Navigation protection is OFF and we have a valid path in m_lastKbOutputPath,
+		// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
+		// location of the export. The user could still point the export path elsewhere 
+		// in the wxFileDialog that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		defaultDir = m_pApp->m_lastRetransReportPath;
 	}
-	
+
 	int len;
-	wxString reportFilename,defaultDir;
+	wxString reportFilename;
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
 	{
+		// a document is currently open
 		wxASSERT(pDoc != NULL);
 		reportFilename = m_pApp->m_curOutputFilename;
 		
@@ -3709,17 +3742,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		reportFilename = _("retranslation report.txt"); // localization?
 		name.Empty();
 	}
-	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
-	// is set for protected navigation
-	// set the default folder to be shown in the dialog 
-	if (m_pApp->m_lastRetransReportPath.IsEmpty())
-	{
-		defaultDir = m_pApp->m_curProjectPath;
-	}
-	else
-	{
-		defaultDir = m_pApp->m_lastRetransReportPath;
-	}
 	
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
 	// navigation.
@@ -3729,7 +3751,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	{
 		// get a file dialog
 		wxString filter;
-		filter = _("Adapt It Reports (*.txt)|*.txt||"); //IDS_REPORT_FILTER
+		filter = _("Adapt It Reports (*.txt)|*.txt||");
 		wxFileDialog fileDlg(
 							 (wxWindow*)m_pApp->GetMainFrame(), // MainFrame is parent window for file dialog
 							 _("Filename For Retranslation Report"),
@@ -3775,7 +3797,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	
 	wxLogNull logNo; // avoid spurious messages from the system
 
-	wxFile f; //CStdioFile f;
+	wxFile f;
 	if( !f.Open( reportPath, wxFile::write)) 
 	{
 #ifdef __WXDEBUG__
@@ -3880,8 +3902,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			int nCount;
 			wxDir finder;
 			// wxDir must call .Open() before enumerating files!
-			bool bOK = (::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath) && 
-						finder.Open(m_pApp->m_curAdaptionsPath));
+			bool bOK = (finder.Open(m_pApp->m_curAdaptionsPath));
 			if (!bOK)
 			{
 				// highly unlikely, so English will do
@@ -4036,23 +4057,22 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// to what it was on entry
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 	
-	if (bBypassFileDialog_ProtectedNavigation)
-	{
-		// whm 7Jul11 Note:
-		// For protected navigation situations AI determines the actual
-		// filename that is used for the export, and the export itself is
-		// automatically saved in the appropriate outputs folder. Since the
-		// user has no opportunity to provide a file name nor navigate to
-		// a random path, we should inform the user at this point of the 
-		// successful completion of the export, and indicate the file name 
-		// that was used and its outputs folder name and location.
-		wxFileName fn(uniqueFilenameAndPath);
-		wxString fileNameAndExtOnly = fn.GetFullName();
+	// whm revised 5Aug11 to always inform the user of the completion of
+	// the report operation.
+	// Report the completion of the report to the user.
+	// Note: For protected navigation situations AI determines the actual
+	// filename that is used for the report, and the report itself is
+	// automatically saved in the appropriate outputs folder. Especially
+	// in these situations where the user has no opportunity to provide a 
+	// file name nor navigate to a random path, we should inform the user 
+	// of the successful completion of the report, and indicate the file 
+	// name that was used and its outputs folder name and location.
+	wxFileName fn(reportPath);
+	wxString fileNameAndExtOnly = fn.GetFullName();
 
-		wxString msg;
-		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
-		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
-	}
+	wxString msg;
+	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),reportPath.c_str());
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
