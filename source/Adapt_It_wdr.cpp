@@ -8523,19 +8523,20 @@ wxMenuBar *AIMenuBarFunc()
     item0->Append( item8, _("&Help") );
     
     wxMenu* item9 = new wxMenu;
+    item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup %s Collaboration..."), _("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts") );
+    item9->AppendSeparator();
+    item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
+    item9->AppendSeparator();
+    item9->Append( ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, _("&Assign Locations For Inputs and Outputs..."), _("Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system") );
+    item9->AppendSeparator();
+    item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("&Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
+    item9->AppendSeparator();
+    item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password..."), _("Set a password, it will be stored in the clear in the basic configuration file") );
+    item9->AppendSeparator();
     item9->Append( ID_CUSTOM_WORK_FOLDER_LOCATION, _("&Custom Work Folder Location..."), _("Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere") );
     item9->Append( ID_LOCK_CUSTOM_LOCATION, _("&Lock Custom Location"), _("Make the custom work folder location permanent until explicitly changed") );
     item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
-    item9->AppendSeparator();
-    item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password..."), _("Set a password, it will be stored in the clear in the basic configuration file") );
-    item9->AppendSeparator();
-    item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup %s Collaboration..."), _("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts") );
-    item9->AppendSeparator();
-    item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("&Move Or Copy Folders Or Files...\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
-    item9->Append( ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, _("&Assign Locations For Inputs and Outputs..."), _("Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system") );
-    item9->AppendSeparator();
-    item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;
