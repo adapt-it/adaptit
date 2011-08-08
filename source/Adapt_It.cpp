@@ -5583,50 +5583,121 @@ wxString szCurKBPath = _T("KnowledgeBasePath");
 /// It stores this path in the App's m_curKBBackupPath member variable.
 wxString szCurKBBackupPath = _T("KBBackupPath");
 
+// BEGINNING of Last...Path variables below
+
 /// The label that identifies the following string as the project's
-/// "LastNewDocumentFolder". This value is written in the "BasicSettings" part of the
-/// basic configuration file. Adapt It stores this path in the App's
-/// m_lastSourceInputPath member variable.
+/// "LastNewDocumentFolder". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastSourceInputPath member variable.
 wxString szLastSourceFileFolder = _T("LastNewDocumentFolder");
 
 /// The label that identifies the following string as the project's
-/// "LastSourceTextExportPath". This value is written in the "BasicSettings" part of the
-/// basic configuration file. Adapt It stores this path in the App's m_lastSourceOutputPath
-/// member variable.
+/// "LastSourceTextExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastSourceOutputPath member variable.
 wxString szLastSourceExportPath = _T("LastSourceTextExportPath");
 
-/// The label that identifies the following string as the project's "KB_ExportPath". This
-/// value is written in the "BasicSettings" part of the basic configuration file. Adapt
-/// It stores this path in the App's m_lastKbOutputPath member variable.
-wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_lastKbOutputPath
+/// The label that identifies the following string as the project's
+/// "LastSourceTextRTFExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastSourceRTFOutputPath member variable.
+wxString szLastSourceRTFExportPath = _T("LastSourceTextRTFExportPath");
 
-/// The label that identifies the following string as the project's "KB_LIFT_ExportPath". This
-/// value is written in the "BasicSettings" part of the basic configuration file. Adapt
-/// It stores this path in the App's m_lastKbLiftOutputPath member variable.
-wxString szKBLIFTExportPath = _T("KB_LIFT_ExportPath"); // stored in the App's m_lastKbLiftOutputPath
+/// The label that identifies the following string as the project's 
+/// "LastKBExportPath". This value is written in the "BasicSettings" part 
+/// of the basic configuration file. Adapt It stores this path in the 
+/// App's m_lastKbOutputPath member variable.
+/// The old config label "KB_ExportPath" is retained for reading older
+/// config files.
+wxString szLastKBExportPath = _T("LastKBExportPath"); // new label for 6.x.x and later
+wxString szKBExportPath = _T("KB_ExportPath"); // old label - retain for reading older config files
+
+/// The label that identifies the following string as the project's 
+/// "LastKBLIFTExportPath". This value is written in the "BasicSettings" 
+/// part of the basic configuration file. Adapt It stores this path in the 
+/// App's m_lastKbLiftOutputPath member variable.
+wxString szLastKBLIFTExportPath = _T("LastKBLIFTExportPath"); // stored in the App's m_lastKbLiftOutputPath
 
 /// The label that identifies the following string as the project's
-/// "RetranslationReportPath". This value is written in the "BasicSettings" part of the
-/// basic configuration file. Adapt It stores this path in the App's m_lastRetransReportPath
-/// member variable.
-wxString szRetranslationReportPath = _T("RetranslationReportPath");
+/// "RetranslationReportPath". This value is written in the "BasicSettings" 
+/// part of the basic configuration file. Adapt It stores this path in the 
+/// App's m_lastRetransReportPath member variable.
+wxString szLastRetranslationReportPath = _T("LastRetranslationReportPath"); // new label for 6.x.x and later
+wxString szRetranslationReportPath = _T("RetranslationReportPath"); // old label - retain for reading older config files
 
-/// The label that identifies the following string as the project's "RTFExportPath". This
-/// value is written in the "BasicSettings" part of the basic configuration file. Adapt
-/// It stores this path in the App's m_lastRtfOutputPath member variable.
+/// whm 6Aug11 Note: The m_lastRtfOutputPath is no longer used, but is 
+/// replaced by more specific variables that are stored in project config files. 
+/// We keep the szRTFExportPath label in config reading routines however, since 
+/// we want to be able to recognize when an old basic config file is being read 
+/// that will have this field - we read it but just ignore it.
 wxString szRTFExportPath = _T("RTFExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastGlossesExportPath". This value is written in the "ProjectSettings" part of the
-/// project configuration file. Adapt It stores this path in the App's
-/// m_lastGlossesOutputPath member variable.
+/// "LastInterlinearRTFOutputPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastInterlinearRTFOutputPath member variable.
+wxString szLastInterlinearRTFOutputPath = _T("LastInterlinearRTFOutputPath");
+
+/// The label that identifies the following string as the project's
+/// "LastGlossesExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastGlossesOutputPath member variable.
 wxString szLastGlossesExportPath = _T("LastGlossesTextExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastFreeTranslationsExportPath". This value is written in the "ProjectSettings" part
-/// of the project configuration file. Adapt It stores this path in the App's
-/// m_lastFreeTransOutputPath member variable.
+/// "LastGlossesRTFExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastGlossesRTFOutputPath member variable.
+wxString szLastGlossesRTFExportPath = _T("LastGlossesTextRTFExportPath");
+
+/// The label that identifies the following string as the project's
+/// "LastFreeTranslationsExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastFreeTransOutputPath member variable.
 wxString szLastFreeTransExportPath = _T("LastFreeTransExportPath");
+
+/// The label that identifies the following string as the project's
+/// "LastFreeTranslationsRTFExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastFreeTransRTFOutputPath member variable.
+wxString szLastFreeTransRTFExportPath = _T("LastFreeTransRTFExportPath");
+
+/// The label that identifies the following string as the application's
+/// "LastCCTablePath". This value is written in the "Settings" part of 
+/// the basic configuration file. Adapt It stores this path in the 
+/// App's m_lastCcTablePath member variable.
+/// The old "DefaultCCTablePath" label is recognized for reading of older 
+/// config files.
+wxString szLastCCTablePath = _T("LastCCTablePath");
+wxString szDefaultTablePath = _T("DefaultCCTablePath");
+
+/// The label that identifies the following string as the application's
+/// "LastPackedDocumentPath". This value is written in the "Settings" 
+/// part of the basic configuration file. Adapt It stores this path in the 
+/// App's m_lastPackedOutputPath member variable.
+wxString szLastPackedDocumentPath = _T("LastPackedDocumentPath");
+
+/// The label that identifies the following string as the application's 
+/// "LastDocumentPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastDocPath member variable.
+wxString szLastDocPath = _T("LastDocumentPath");
+
+/// The label that identifies the following string as the application's 
+/// "LastExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path 
+/// in the App's m_lastTargetOutputPath member variable. The old 
+/// "LastExportPath" label is recognized for reading of older config
+/// files.
+wxString szLastTargetExportPath = _T("LastTargetExportPath"); // new 6.x.x label for config files
+wxString szLastExportPath = _T("LastExportPath"); // old pre-6.x.x label for reading old config files
+
+/// The label that identifies the following string as the application's 
+/// "LastTargetRTFExportPath". This value is written in the "ProjectSettings" 
+/// part of the project configuration file. Adapt It stores this path in the 
+/// App's m_lastTargetRTFOutputPath member variable.
+wxString szLastTargetRTFExportPath = _T("LastTargetRTFExportPath");
+// END of Last...Path variables
 
 /// The label that identifies the following string as the project's
 /// "FoldersProtectedFromNavigation". This value is written in the "ProjectSettings" part
@@ -5894,12 +5965,6 @@ wxString szPhraseBoxMoves = _T("PhraseBoxMovesForSave");
 /// convert between the integer and wx color enum symbols.
 wxString szNavTextColor = _T("ColorOfNavigationText");
 
-/// The label that identifies the following string as the application's
-/// "DefaultCCTablePath". This value is written in the "Settings" part of the basic
-/// configuration file. Adapt It stores this path in the App's m_lastCcTablePath member
-/// variable.
-wxString szDefaultTablePath = _T("DefaultCCTablePath");
-
 /// The label that identifies the following string encoded number as the application's
 /// "FitWithinWindowFlag(Boolean)". This value is written in the "Settings" part of the
 /// basic configuration file. Adapt It no longer uses this variable.
@@ -6004,11 +6069,6 @@ wxString szWSizeCY = _T("WinSizeCY");
 
 // restoring earlier doc location
 
-/// The label that identifies the following string as the application's "LastDocumentPath".
-/// This value is written in the "Settings" part of the basic configuration file. Adapt It
-/// stores this path in the App's m_lastDocPath member variable.
-wxString szLastDocPath = _T("LastDocumentPath");
-
 /// The label that identifies the following string encoded number as the application's
 /// "LastActiveSequenceNumber". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this value in the App's nLastActiveSequNum member
@@ -6019,11 +6079,6 @@ wxString szLastActiveSequNum = _T("LastActiveSequenceNumber");
 /// "IsMainWindowMaximized". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this value in the App's m_bZoomed member variable.
 wxString szZoomed = _T("IsMainWindowMaximized");
-
-/// The label that identifies the following string as the application's "LastExportPath".
-/// This value is written in the "Settings" part of the basic configuration file. Adapt It
-/// stores this path in the App's m_lastTargetOutputPath member variable.
-wxString szLastExportPath = _T("LastExportPath");
 
 // The label that identifies the following string as the application's
 // "CustomWorkFolderPath". This value is written in the "Settings" part of the Project
@@ -12530,14 +12585,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_tableFolderPath[3] = _T("");
 
 	m_lastTargetOutputPath = _T("");
+	m_lastTargetRTFOutputPath = _T("");
 	m_lastDocPath = _T(""); // config file will set this
 	m_lastSourceOutputPath = _T("");
+	m_lastSourceRTFOutputPath = _T("");
 	m_lastKbOutputPath = _T("");
 	m_lastKbLiftOutputPath = _T("");
-	m_lastRtfOutputPath = _T("");
+	m_lastPackedOutputPath = _T("");
+	//m_lastRtfOutputPath = _T("");
+	m_lastInterlinearRTFOutputPath = _T("");
 	m_lastRetransReportPath = _T("");
 	m_lastGlossesOutputPath = _T("");
+	m_lastGlossesRTFOutputPath = _T("");
 	m_lastFreeTransOutputPath = _T("");
+	m_lastFreeTransRTFOutputPath = _T("");
 	m_foldersProtectedFromNavigation = _T("");
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by 
@@ -23447,13 +23508,18 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szLastDocPath << tab << m_lastDocPath;
 	pf->AddLine(data);
 
-	data.Empty();
-	data << szLastSourceFileFolder << tab << m_lastSourceInputPath;
-	pf->AddLine(data);
+	// whm 6Aug11: From version 6.x.x on store the m_lastSourceInputPath 
+	// only in the appropriate project config file under szLastSourceFileFolder
+	//data.Empty();
+	//data << szLastSourceFileFolder << tab << m_lastSourceInputPath;
+	//pf->AddLine(data);
 
-	data.Empty();
-	data << szLastExportPath << tab << m_lastTargetOutputPath;
-	pf->AddLine(data);
+
+	// whm 6Aug11: From version 6.x.x on store the m_lastTargetOutputPath 
+	// only in the appropriate project config file under szLastTargetExportPath
+	//data.Empty();
+	//data << szLastExportPath << tab << m_lastTargetOutputPath;
+	//pf->AddLine(data);
 
 	data.Empty();
 	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
@@ -23467,9 +23533,12 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szLastActiveSequNum << tab << nLastActiveSequNum;
 	pf->AddLine(data);
 
-	// now for the view stuff
 	data.Empty();
-	data << szDefaultTablePath << tab << m_lastCcTablePath;
+	data << szLastCCTablePath << tab << m_lastCcTablePath; // old pre-6.x.x label was szDefaultTablePath
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szLastPackedDocumentPath << tab << m_lastPackedOutputPath;
 	pf->AddLine(data);
 
 #ifndef _UNICODE
@@ -23839,25 +23908,34 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 #endif // _RTL_FLAGS
 #endif // _UNICODE
 	
+	// whm 6Aug11 moved storage of the following two to the appropriate project config file
+	//data.Empty();
+	//data << szLastSourceExportPath << tab << m_lastSourceOutputPath;
+	//pf->AddLine(data);
+
+	//data.Empty();
+	//data << szLastSourceRTFExportPath << tab << m_lastSourceRTFOutputPath;
+	//pf->AddLine(data);
+
 	data.Empty();
-	data << szLastSourceExportPath << tab << m_lastSourceOutputPath;
+	data << szLastKBExportPath << tab << m_lastKbOutputPath; // prior to 6.x.x used szKBExportPath "KB_ExportPath"
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKBExportPath << tab << m_lastKbOutputPath;
+	data << szLastKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
+	data << szLastRetranslationReportPath << tab << m_lastRetransReportPath; // prior to 6.x.x used szRetranslationReportPath
 	pf->AddLine(data);
 
-	data.Empty();
-	data << szRetranslationReportPath << tab << m_lastRetransReportPath;
-	pf->AddLine(data);
-
-	data.Empty();
-	data << szRTFExportPath << tab << m_lastRtfOutputPath;
-	pf->AddLine(data);
+	// whm 6Aug11 Note: the m_lastRtfOutputPath is no longer used because it is
+	// replaced by other specific m_last...RTFOutputPath variables (in project
+	// config files). See GetBasicSettingsConfiguration() where we read the value
+	// from old basic config files (pre-version 6), but ignore them.
+	//data.Empty();
+	//data << szRTFExportPath << tab << m_lastRtfOutputPath;
+	//pf->AddLine(data);
 
 	if (m_bSuppressTargetHighlighting)
 		number = _T("1");
@@ -24553,14 +24631,20 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			m_lastDocPath = strValue;
 		}
-		else if (name == szLastSourceFileFolder)
+		// whm 6Aug11 From version 6.x.x on store the m_lastSourceInputPath 
+		// only in the appropriate project config file
+		else if (name == szLastSourceFileFolder) // for reading pre-6.x.x basic config files
 		{
 			m_lastSourceInputPath = strValue;
 		}
-		else if (name == szLastExportPath)
+		// whm 6Aug11 From version 6.x.x on store the m_lastTargetOutputPath 
+		// only in the appropriate project config file.
+		else if (name == szLastExportPath) // for reading pre-6.x.x basic config files
 		{
 			m_lastTargetOutputPath = strValue;
 		}
+		// whm 6Aug11 From version 6.x.x on store the m_lastTargetRTFOutputPath 
+		// only in the appropriate project config file.
 		else if (name == szFoldersProtectedFromNavigation)
 		{
 			m_foldersProtectedFromNavigation = strValue;
@@ -24579,9 +24663,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 0; // safe default is start of doc
 			nLastActiveSequNum = num;
 		}
-		else if (name == szDefaultTablePath)
+		else if (name == szLastCCTablePath || name == szDefaultTablePath) // szLastCCTablePath new in 6.x.x
 		{
 			m_lastCcTablePath = strValue; // can be empty
+		}
+		else if (name == szLastPackedDocumentPath)
+		{
+			m_lastPackedOutputPath = strValue; // can be empty
 		}
         // From version 2.3.0, we don't write out m_punctuation[0] and m_punctuation[1] and
         // m_punctWordBuilding[0] and [1] are no longer used, so we retain the reads here
@@ -25408,23 +25496,30 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		// added for v2.0.1 and onwards
 		else if (name == szLastSourceExportPath)
 		{
-			m_lastSourceOutputPath = strValue;
+			m_lastSourceOutputPath = strValue; // for reading old basic config files
 		}
-		else if (name == szKBExportPath)
+		else if (name == szLastSourceRTFExportPath)
+		{
+			m_lastSourceRTFOutputPath = strValue; // for reading old basic config files
+		}
+		else if (name == szLastKBExportPath || name == szKBExportPath) // new 6.x.x label for newer basic config files
 		{
 			m_lastKbOutputPath = strValue;
 		}
-		else if (name == szKBLIFTExportPath)
+		else if (name == szLastKBLIFTExportPath)
 		{
 			m_lastKbLiftOutputPath = strValue;
 		}
-		else if (name == szRetranslationReportPath)
+		else if (name == szLastRetranslationReportPath || name == szRetranslationReportPath) // new 6.x.x label for newer basic config files
 		{
 			m_lastRetransReportPath = strValue;
 		}
 		else if (name == szRTFExportPath)
 		{
-			m_lastRtfOutputPath = strValue;
+			// whm 6Aug11 Note: We no longer use m_lastRtfOutputPath, but it has been
+			// replaced by more specific m_last...RTFOutputPath variables in the project
+			// config files, so we here just ignore any value from old config files.
+			; //m_lastRtfOutputPath = strValue;
 		}
 
 		// added for v1.4.1 and onwards
@@ -26166,13 +26261,28 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szTargetLanguageCode << tab << m_targetLanguageCode;
 	pf->AddLine(data);
 
-	// now for the view stuff
+	//data.Empty();
+	//data << szDefaultTablePath << tab << m_lastCcTablePath; // as of 6.x.x stored only in basic config file
+	//pf->AddLine(data);
+
 	data.Empty();
-	data << szDefaultTablePath << tab << m_lastCcTablePath;
+	data << szLastSourceExportPath << tab << m_lastSourceOutputPath; // whm 6Aug 11 moved here from basic config file
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastExportPath << tab << m_lastTargetOutputPath;
+	data << szLastSourceRTFExportPath << tab << m_lastSourceRTFOutputPath; // whm 6Aug 11 moved here from basic config file
+	pf->AddLine(data);
+	
+	data.Empty();
+	data << szLastTargetExportPath << tab << m_lastTargetOutputPath; // use the new LastTargetExportPath label from 6.x.x on
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szLastTargetRTFExportPath << tab << m_lastTargetRTFOutputPath;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szLastInterlinearRTFOutputPath << tab << m_lastInterlinearRTFOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -26185,7 +26295,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szLastGlossesRTFExportPath << tab << m_lastGlossesRTFOutputPath;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szLastFreeTransExportPath << tab << m_lastFreeTransOutputPath;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szLastFreeTransRTFExportPath << tab << m_lastFreeTransRTFOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -26480,6 +26598,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 /// translation exports have to be after the line for getting the last export path,
 /// because the latter's code block sets the boolean bForeignConfigFile which is needed
 /// for handling the other paths safely
+/// // whm 7Aug11 removed the boolean bForeignConfigFile test - now unnecessary.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 {
@@ -26494,7 +26613,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 	// herein as a path valid in the current user's profile; when the profile name part of
 	// paths differ, set the following boolean TRUE, default is FALSE (meaning the config
 	// file is not of foreign source and the path is the user's own)
-	bool bForeignConfigFile = FALSE;
+	//bool bForeignConfigFile = FALSE; // whm 7Aug11 removed as unnecessary
 
 #ifdef _UNICODE
 	wxString strPunctPairsSrcSet;
@@ -26533,10 +26652,13 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szDefaultTablePath)
 		{
-			m_lastCcTablePath = strValue; // can be empty
+			m_lastCcTablePath = strValue; // read it - now only stored in basic config file
 		}
-		else if (name == szLastExportPath)
+		else if (name == szLastTargetExportPath || name == szLastExportPath) // whm 6Aug11 added szLastTargetExportPath
 		{
+			/*
+			// whm 7Aug11 removed this test as unnecessary.
+			// 
             // BEW added 16Oct05, so we can have a 'fixed' m_lastTargetOutputPath too... compare
             // the initial part of the path with what is in the initial part of the path as
             // a result of the MakeForeignBasicConfigFileSafe() call being done before
@@ -26565,34 +26687,92 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 // basic config file earlier
 				m_lastTargetOutputPath = strValue;
 			}
+			*/
+			m_lastTargetOutputPath = strValue;
+		}
+		else if (name == szLastSourceExportPath) // whm 6Aug11 moved here from basic config files
+		{
+			m_lastSourceOutputPath = strValue;
+		}
+		else if (name == szLastSourceRTFExportPath) // whm 6Aug11 moved here from basic config files
+		{
+			m_lastSourceRTFOutputPath = strValue;
+		}
+		else if (name == szLastInterlinearRTFOutputPath)
+		{
+			m_lastInterlinearRTFOutputPath = strValue;
 		}
 		else if (name == szLastSourceFileFolder)
 		{
 			m_lastSourceInputPath = strValue;
 		}
+		else if (name == szLastTargetRTFExportPath)
+		{
+			m_lastTargetRTFOutputPath = strValue;
+		}
 		else if (name == szLastGlossesExportPath)
 		{
+			/*
+			// whm 7Aug11 removed this test as unnecessary.
 			if (bForeignConfigFile)
 			{
 				// probably an unsafe path, so default it to current project folder
-				m_lastGlossesOutputPath = m_curProjectPath;
+				m_lastGlossesOutputPath = m_glossOutputsFolderPath; //m_curProjectPath; // whm revised 6Aug11
 			}
 			else
 			{
 				m_lastGlossesOutputPath = strValue;
 			}
+			*/
+			m_lastGlossesOutputPath = strValue;
 		}
-		else if (name == szLastFreeTransExportPath)
+		else if (name == szLastGlossesRTFExportPath)
 		{
+			/*
+			// whm 7Aug11 removed this test as unnecessary.
 			if (bForeignConfigFile)
 			{
 				// probably an unsafe path, so default it to current project folder
-				m_lastFreeTransOutputPath = m_curProjectPath;
+				m_lastGlossesRTFOutputPath = m_glossRTFOutputsFolderPath; //m_curProjectPath; // whm revised 6Aug11
+			}
+			else
+			{
+				m_lastGlossesRTFOutputPath = strValue;
+			}
+			*/
+			m_lastGlossesRTFOutputPath = strValue;
+		}
+		else if (name == szLastFreeTransExportPath)
+		{
+			/*
+			// whm 7Aug11 removed this test as unnecessary.
+			if (bForeignConfigFile)
+			{
+				// probably an unsafe path, so default it to current project folder
+				m_lastFreeTransOutputPath = m_freeTransOutputsFolderPath; //m_curProjectPath; // whm revised 6Aug11
 			}
 			else
 			{
 				m_lastFreeTransOutputPath = strValue;
 			}
+			*/
+			m_lastFreeTransOutputPath = strValue;
+		}
+		else if (name == szLastFreeTransRTFExportPath)
+		{
+			/*
+			// whm 7Aug11 removed this test as unnecessary.
+			if (bForeignConfigFile)
+			{
+				// probably an unsafe path, so default it to current project folder
+				m_lastFreeTransRTFOutputPath = m_freeTransRTFOutputsFolderPath; //m_curProjectPath; // whm revised 6Aug11
+			}
+			else
+			{
+				m_lastFreeTransRTFOutputPath = strValue;
+			}
+			*/
+			m_lastFreeTransRTFOutputPath = strValue;
 		}
 		else if (name == szFoldersProtectedFromNavigation)
 		{
@@ -27152,6 +27332,7 @@ t:				m_pCurrBookNamePair = NULL;
 			//num = wxAtoi(strValue);
 			// wx version: we only allow a value of TRUE for wx version
 			//m_bSaveAsXML = TRUE;
+			;
 		}
 		else if (name == szSilConverterName)	// rde added 03 Apr 06
 		{
@@ -37240,10 +37421,10 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	}
 	else if (kbExportType == KBExportSaveAsLIFT_XML)
 	{
-		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
-		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
+		// Check whether navigation protection is in effect for _LIFT_INPUTS_OUTPUTS, 
+		// and whether the App's m_lastKbLiftOutputPath is empty or has a valid path, 
 		// and set the defaultDir for the export accordingly.
-		if (this->m_bProtectKbInputsAndOutputsFolder)
+		if (this->m_bProtectLiftInputsAndOutputsFolder)
 		{
 			// Navigation protection is ON, so set the flag to bypass the wxFileDialog
 			// and force the use of the special protected folder for the export.
@@ -37361,39 +37542,33 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		return; // return since it is not a fatal error
 	}
 
-	if (kbExportType == KBExportSaveAsLIFT_XML) // should be filterIndex == 1, 
-	{										   //i.e., second item in drop down list
-		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
-	}
-	else
-	{
-        // the user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields)
-        // (*.txt)" or "All Files (*.*)" which we assume would be same as "SFM plain text
-        // export..."
-		pKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
-	}
-
-	// close the file
-	f.Close();
-
 	// whm Note: We set the App's m_lastKbOutputPath and/or m_lastKbLiftOutputPath
 	// variables with the path part of the exportPath just used. We do this even when 
 	// navigation protection is on, so that the special folders would be the initial 
 	// path suggested if the administrator were to switch Navigation Protection OFF.
 	wxString path, fname, ext;
 	wxFileName::SplitPath(exportPath, &path, &fname, &ext);
+
 	// Update the m_last...Path variables as appropriate.
 	if (kbExportType == KBExportSaveAsSFM_TXT)
 	{
+        // the user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields)
+        // (*.txt)" or "All Files (*.*)" which we assume would be same as "SFM plain text
+        // export..."
+		pKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
+
 		// update m_lastKbOutputPath
 		m_lastKbOutputPath = path;
 	}
 	else if (kbExportType == KBExportSaveAsLIFT_XML)
 	{
+		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
+
 		// update m_lastKbLiftOutputPath
 		m_lastKbLiftOutputPath = path;
 	}
-	
+	// close the file
+	f.Close();
 	
 	// whm revised 5Aug11 to always inform the user of the completion of
 	// the export operation.

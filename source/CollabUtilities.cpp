@@ -442,7 +442,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// earlier project or not, nor what the folder was for the last document opened, since
 	// this function may be used to hook up to different projects at each call!
 	pApp->m_bEarlierProjectChosen = FALSE;
-	pApp->m_lastDocPath.Empty();
+	//pApp->m_lastDocPath.Empty(); // whm removed 6Aug11
 
 	// must have this off, if it is left TRUE and we get to end of doc, RecalcLayout() may
 	// fail if the phrase box is not in existence

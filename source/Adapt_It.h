@@ -549,7 +549,7 @@ enum KBExportSaveAsType
 
 enum KBImportFileOfType
 {
-	// whm 31Mar11 changed default to be KBExportSaveAsSFM, i.e., enum 0
+	// whm 31Mar11 changed default to be KBImportFileOfSFM_TXT, i.e., enum 0
 	KBImportFileOfSFM_TXT,
 	KBImportFileOfLIFT_XML,
 	KBImportAllFiles
@@ -2112,33 +2112,135 @@ public:
 	wxString		m_tableName[4];
 	wxString		m_tableFolderPath[4];
 	
-	// whm 11Jul11 Note: The following path values are used mainly when navigation protection for
-	// the specific types of exports is NOT in effect. These values are saved in the indicated config 
-	// file(s). When navigation protection is in effect for the specific outputs, we use 
-	// the special (upper case) folders that are automatically used and manditory, but generally these
-	// values also record the last...Path that was used, so that if navigation protection is turned off
-	// for a given input/export type, the values here will still (at least initially) point to the 
-	// folder that was being used when nav protection was on.
+	// whm 6Aug11 Note: The following path values are used mainly when navigation 
+	// protection for the specific types of inputs/outputs is NOT in effect. These 
+	// values are saved in the indicated config file(s). When navigation 
+	// protection is in effect for the specific inputs/outputs, we use the special 
+	// (upper case) folders and generated file names that are automatically used 
+	// and manditory. Generally these values record the last...Path that was used 
+	// for the input/output, so that if navigation protection is OFF for a given 
+	// input/export type, the values here will still (at least initially) point to 
+	// the folder that was being used when nav protection was on in previous 
+	// session(s).
 
-	// TODO: whm Note: There is inconsistency in where the following are stored. Some (m_lastSourceInputPath,
-	// m_lastTargetOutputPath, m_lastCcTablePath) are currently stored in both the basic and project config
-	// files. Two others (m_lastGlossesOutputPath and m_lastFreeTransOutputPath) are stored only in the 
-	// project config file. The remainder (m_lastRetransReportPath, m_lastDocPath, m_lastSourceOutputPath,
-	// m_lastRtfOutputPath, m_lastKbOutputPath, and m_lastKbLiftOutputPath) are stored only in the basic config file.
+	// whm Note: There was some inconsistency in where some of the following paths 
+	// were stored in the config files in versions prior to version 6.x.x. and the 
+	// config file labels that were used. Starting with version 6.x.x I've 
+	// reassigned some of them to be saved in only one configuration file and the
+	// one that is most appropriate for the usage scenarios, with appropriate 
+	// coding modifications in the Read... and Write... configuration file routines 
+	// adjusted so that any older config values coming into version 6.x.x will be 
+	// preserved in the appropriate config file.
 
-	wxString	m_lastSourceInputPath;	// for last source text input path (saved in basic & project config files)
-	wxString	m_lastCcTablePath; // for last cc table path (saved in basic & project config files)
+	// Note: The following m_last...Path variables are grouped according to which 
+	// config file the are saved in.
+
+	// /////////// Basic config file (AI-BasicConfiguration.aic) ///////////
+
+	/// Use: m_lastCcTablePath stores the last cc table path.
+	/// Now: in version 6.x.x saved in basic config file under LastCCTablePath.
+	/// Previously: saved in both basic and project config files under DefaultCCTablePath
+	/// Related Nav Protect folder: _CCTABLE_INPUTS_OUTPUTS
+	wxString	m_lastCcTablePath;
 	
-	wxString	m_lastRetransReportPath; // for last retranslation reports path (saved in basic config file)
-	wxString	m_lastDocPath; // for last adaptation document path (saved in basic config file)
-	wxString	m_lastTargetOutputPath; // for last target text export path (saved in basic & project config files)
-	wxString	m_lastSourceOutputPath; // for last source text export path (saved in basic config file) 
-	wxString	m_lastRtfOutputPath; // for last RTF documents export path (saved in basic config file)
-	wxString	m_lastKbOutputPath; // for last KB SFM export/import path (saved in basic config file)
-	wxString	m_lastKbLiftOutputPath; // for last KB LIFT format export/import path (saved in basic config file)
+	/// Use: m_lastRetransReportPath stores the last retranslation reports path.
+	/// Now: in version 6.x.x saved in basic config file under LastRetranslationReportPath.
+	/// Previously: saved in basic config file under RetranslationReportPath.
+	/// Related Nav Protect folder: _REPORTS_OUTPUTS
+	wxString	m_lastRetransReportPath;
+	
+	/// Use: m_lastPackedOutputPath stores the last packed document output path.
+	/// Now: in version 6.x.x saved in basic config file under LastPackedDocumentPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _PACKED_INPUTS_OUTPUTS
+	wxString	m_lastPackedOutputPath;
+	
+	/// Use: m_lastKbOutputPath stores the last KB SFM export/import path.
+	/// Now: in version 6.x.x saved in basic config file under LastKBExportPath.
+	/// Previously: saved in basic config file under KB_ExportPath.
+	/// Related Nav Protect folder: _KB_INPUTS_OUTPUTS
+	wxString	m_lastKbOutputPath; 
+	
+	/// Use: m_lastKbLiftOutputPath stores the last KB LIFT format export/import path.
+	/// Now: in version 6.x.x saved in basic config file under LastKBLIFTExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _LIFT_INPUTS_OUTPUTS
+	wxString	m_lastKbLiftOutputPath; 
 
-	wxString	m_lastGlossesOutputPath; // for last glosses as text export path (saved in project config file)
-	wxString	m_lastFreeTransOutputPath; // for last free translations export path (saved in project config file)
+	// /////////// Project config file (AI-ProjectConfiguration.aic) ///////////
+	
+	/// Use: m_lastDocPath stores the last adaptation document path.
+	/// Now: in version 6.x.x saved in project config file under LastDocumentPath.
+	/// Previously: saved in basic config file under LastDocumentPath.
+	/// Related Nav Protect folder: None - always saved in a project's Adaptations folder.
+	wxString	m_lastDocPath;
+
+	/// Use: m_lastSourceInputPath stores the last source text input path.
+	/// Now: in version 6.x.x saved in project config files under LastNewDocumentFolder.
+	/// Previously: saved in both basic and project config files under LastNewDocumentFolder.
+	/// Related Nav Protect folder: __SOURCE_INPUTS.
+	wxString	m_lastSourceInputPath;			 
+
+	/// Use: m_lastInterlinearRTFOutputPath stores the last Interlinear RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastInterlinearRTFOutputPath.
+	/// Previously: Saved in basic config file under a generic RTFExportPath.
+	/// Related Nav Protect folder: _INTERLINEAR_RTF_OUTPUTS
+	wxString	m_lastInterlinearRTFOutputPath; 
+
+	/// Use: m_lastSourceOutputPath stores the last source text export path.
+	/// Now in version 6.x.x saved in project config file under LastSourceTextExportPath.
+	/// Previously: saved in basic config file under LastSourceTextExportPath.
+	/// Related Nav Protect folder: _SOURCE_OUTPUTS
+	wxString	m_lastSourceOutputPath;
+	
+	/// Use: m_lastSourceRTFOutputPath stores the last source text RTF export path.
+	/// Now: in version 6.x.x saved in project config file under .
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _SOURCE_RTF_OUTPUTS
+	wxString	m_lastSourceRTFOutputPath; 
+
+	/// Use: m_lastTargetOutputPath stores the last target text export  path.
+	/// Now: in version 6.x.x saved in project config file under LastTargetExportPath.
+	/// Previously: saved in both basic and project config files under LastExportPath.
+	/// Related Nav Protect folder: _TARGET_OUTPUTS
+	wxString	m_lastTargetOutputPath; 
+	
+	/// Use: m_lastTargetRTFOutputPath stores the last target text RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastTargetRTFExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _TARGET_RTF_OUTPUTS
+	wxString	m_lastTargetRTFOutputPath;
+
+	/// Use: m_lastGlossesOutputPath stores the last glosses as text export path.
+	/// Now: in version 6.x.x saved in project config file under LastGlossesTextExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _GLOSS_OUTPUTS
+	wxString	m_lastGlossesOutputPath; 
+	
+	/// Use: m_lastGlossesRTFOutputPath stores the last glosses as text RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastGlossesTextRTFExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _GLOSS_RTF_OUTPUTS
+	wxString	m_lastGlossesRTFOutputPath; 
+
+	/// Use: m_lastFreeTransOutputPath stores the last free translations export path.
+	/// Now: in version 6.x.x saved in project config file under LastFreeTransExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _FREETRANS_OUTPUTS
+	wxString	m_lastFreeTransOutputPath;
+	
+	/// Use: m_lastFreeTransRTFOutputPath stores the last free translations RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastFreeTransRTFExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _FREETRANS_RTF_OUTPUTS
+	wxString	m_lastFreeTransRTFOutputPath; 
+	
+	// Use: m_lastRtfOutputPath stores the last RTF documents export path
+	// Now: 6Aug11 - no longer used in lieu of more specific m_last...RTFOutputPath 
+	//      variables held in the project config files.
+	// Previously: saved in basic config file - for all types of RTF outputs.
+	//wxString	m_lastRtfOutputPath;
+	
 	
 	wxString	m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and 
 												// outputs dirs that are protected from 
