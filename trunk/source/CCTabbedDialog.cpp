@@ -229,24 +229,33 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
     // particular, we want the "Folder Path" editbox to show the actual path for any .cct file loaded in
     // a given Table tab page.
     // 
-    // whm modified 2Aug11. If navigation protection is in effect for _CCTABLE_INPUTS_OUTPUTS, or if 
-    // the App's m_lastCcTablePath is empty, or if m_lastCcTablePath is not empty but points to an 
-    // invalid path, we should force the use of the navigation protected folder. Otherwise we use any 
-    // valid/existing directory that m_lastCcTablePath points to.
-	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder 
-		|| gpApp->m_lastCcTablePath.IsEmpty()
+    // whm revised 6Aug11.
+	// Check whether navigation protection is in effect for _CCTABLE_INPUTS_OUTPUTS, 
+	// and whether the App's m_lastCcTablePath is empty or has a valid path, 
+	// and set the appropriate m_folderPath[] for the CC table accordingly.
+	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
+	{
+		// Navigation protection is ON, so force the use of the special protected 
+		// folder.
+		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
+	}
+	else if (gpApp->m_lastCcTablePath.IsEmpty()
 		|| (!gpApp->m_lastCcTablePath.IsEmpty() && !::wxDirExists(gpApp->m_lastCcTablePath)))
 	{
-		// Nav Protection is ON for the _CCTABLE_INPUTS_OUTPUTS folder or the App's m_lastCcTablePath
-		// is empty. Ensure that the path now stored in m_folderPath[m_nCurPage] agrees, and
-		// use the nav protected folder _CCTABLE_INPUTS_OUTPUTS.
-		wxASSERT(::wxDirExists(gpApp->m_ccTableInputsAndOutputsFolderPath));
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+		// to appear. But the m_lastCcTablePath is either empty or, if not empty, 
+		// it points to an invalid path, so we initialize the defaultDir to point to 
+		// the special protected folder _CCTABLE_INPUTS_OUTPUTS, even though Navigation 
+		// protection is not ON. In this case, the user could point the export path 
+		// elsewhere using the wxFileDialog that will appear.
 		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
 	}
 	else
 	{
-		// Navigation protection is OFF and gpApp->m_lastCcTablePath is NOT empty and it
-		// points to a valid directory, so we use it.
+		// Navigation protection is OFF and we have a valid path in m_lastCcTablePath,
+		// so we initialize the defaultDir to point to the m_lastCcTablePath for the 
+		// location of the export. The user could still point the export path elsewhere 
+		// in the wxFileDialog that will appear.
 		m_folderPath[m_nCurPage] = gpApp->m_lastCcTablePath; // this is where we will create it
 	}
 
@@ -586,24 +595,35 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 	// as appropriate.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	
-	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
+	// whm revised 6Aug11 in support of protecting inputs/outputs folder navigation
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	wxString defaultDir;
-	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder 
-		|| gpApp->m_lastCcTablePath.IsEmpty()
+	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
+	{
+		// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+		// and force the use of the special protected folder for the export.
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		defaultDir = gpApp->m_ccTableInputsAndOutputsFolderPath;
+	}
+	else if (gpApp->m_lastCcTablePath.IsEmpty()
 		|| (!gpApp->m_lastCcTablePath.IsEmpty() && !::wxDirExists(gpApp->m_lastCcTablePath)))
 	{
-		bBypassFileDialog_ProtectedNavigation = TRUE;
-		// Nav Protection is ON for the _CCTABLE_INPUTS_OUTPUTS folder or the App's m_lastCcTablePath
-		// is empty. Ensure that the path now stored in m_folderPath[m_nCurPage] agrees, and
-		// use the nav protected folder _CCTABLE_INPUTS_OUTPUTS.
-		wxASSERT(::wxDirExists(gpApp->m_ccTableInputsAndOutputsFolderPath));
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+		// to appear. But the m_lastCcTablePath is either empty or, if not empty, 
+		// it points to an invalid path, so we initialize the defaultDir to point to 
+		// the special protected folder (_CCTABLE_INPUTS_OUTPUTS), even though 
+		// Navigation protection is not ON. In this case, the user could point the 
+		// export path elsewhere using the wxFileDialog that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
 		defaultDir = gpApp->m_ccTableInputsAndOutputsFolderPath;
 	}
 	else
 	{
-		// Navigation protection is OFF and gpApp->m_lastCcTablePath is NOT empty and it
-		// points to a valid directory, so we use it.
+		// Navigation protection is OFF and we have a valid path in m_lastCcTablePath,
+		// so we initialize the defaultDir to point to the m_lastCcTablePath for the 
+		// location of the export. The user could still point the export path elsewhere 
+		// in the wxFileDialog that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
 		defaultDir = gpApp->m_lastCcTablePath;
 	}
 

@@ -14967,7 +14967,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 /// Called from: the Doc's OnFilePackDocument() and EmailReportDlg::OnBtnAttachPackedDoc.
 /// Assembles the raw contents that go into an Adapt It Packed Document into the packByteStr
 /// which is a CBString byte buffer. 
-/// whm 14Jul11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
+/// whm 6Aug11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
 /// folder. Note: The Pack Document... and the Unpack Document... commands are not available 
 /// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
@@ -15061,8 +15061,6 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		{
 			bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
 		}
-		// original code below
-		//bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
 	}
 	// we don't expect any failure here, so an English message hard coded will do
 	if (!bOK)
@@ -15247,31 +15245,64 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
     // format is based on the same free-ware zlib library, so there should be no problem
     // zipping and unzipping .aip files produced by the MFC version or the WX version.
 
-	// make a suitable default output filename for the packed data
-	// whm 14Jul11 modified. When _PACKED_INPUTS_OUTPUTS is nav protected, we
-	// use an automatically generated unique date/time stamped file name based
-	// on the m_curOutputFilename, and we don't invoke the wxFileDialog.
 	wxString exportFilename;
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
 	wxString defaultDir;
+	// whm 6Aug11 modified.
+	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS, 
+	// and whether the App's m_lastPackedOutputPath is empty or has a valid path, 
+	// and set the defaultDir for the export accordingly.
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
 	{
+		// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+		// and force the use of the special protected folder for the export.
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		exportPath = gpApp->m_packedInputsAndOutputsFolderPath;
+		defaultDir = gpApp->m_packedInputsAndOutputsFolderPath;
+	}
+	else if (gpApp->m_lastPackedOutputPath.IsEmpty()
+		|| (!gpApp->m_lastPackedOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastPackedOutputPath)))
+	{
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+		// to appear. But the m_lastPackedOutputPath is either empty or, if not empty, 
+		// it points to an invalid path, so we initialize the defaultDir to point to 
+		// the special protected folder, even though Navigation protection is not ON. 
+		// In this case, the user could point the export path elsewhere using the 
+		// wxFileDialog that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
 		exportPath = gpApp->m_packedInputsAndOutputsFolderPath;
 		defaultDir = gpApp->m_packedInputsAndOutputsFolderPath;
 	}
 	else
 	{
-		exportPath = gpApp->m_curProjectPath;
-		defaultDir = gpApp->m_curProjectPath;
+		// Navigation protection is OFF and we have a valid path in m_lastPackedOutputPath,
+		// so we initialize the defaultDir to point to the m_lastPackedOutputPath for the 
+		// location of the export. The user could still point the export path elsewhere 
+		// in the wxFileDialog that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		exportPath = gpApp->m_lastPackedOutputPath;
+		defaultDir = gpApp->m_lastPackedOutputPath;
 	}
+	// make a suitable default output filename for the packed data
 	exportFilename = gpApp->m_curOutputFilename;
 	int len = exportFilename.Length();
 	exportFilename.Remove(len-3,3); // remove the xml extension
 	exportFilename += _T("aip"); // make it a *.aip file type
 
-	if (!gpApp->m_bProtectPackedInputsAndOutputsFolder)
+	// Here we add the incoming parameter bInvokeFileDialog to the test. When DoPackDocument()
+	// is called from EmailReportDlg.cpp it calls it with the bInvokeFileDialog parameter 
+	// FALSE because it wants the document packed without user interaction in order to attach
+	// the currently open doc as a packed document to the email report.
+	if (!bBypassFileDialog_ProtectedNavigation && bInvokeFileDialog)
 	{
+		// Control goes through this block when Navigation protection is OFF for
+		// _PACKED_INPUTS_OUTPUTS and when the bInvokeFileDialog is TRUE (bInvokeFileDialog
+		// is TRUE when DoPackDocument() is called from the "Pack Document..." command,
+		// but FALSE when DoPackDocument() is called from EmailReportDlg.cpp). In other
+		// words this block is not executed when attaching packed documents to email
+		// reports, and not executed when Navigation Protection is ON.
 		wxString filter;
 		// get a file Save As dialog for Source Text Output
 		filter = _("Packed Documents (*.aip)|*.aip||"); // set to "Packed Document (*.aip) *.aip"
@@ -15286,10 +15317,6 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 			// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
 		fileDlg.Centre();
 
-		// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
-		// do it) Probably the project folder would be best.
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath);
-
 		if (fileDlg.ShowModal() != wxID_OK)
 		{
 			// user cancelled file dialog so return to what user was doing previously, because
@@ -15302,6 +15329,9 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	}
 	else
 	{
+		// Either Navigation Protection is ON, or the bInvokeFileDialog is FALSE. This
+		// block is executed when Nav Protection is ON and when packing documents for
+		// email reports.
 		exportPath = exportPath + gpApp->PathSeparator + exportFilename;
 		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
 		// appropriate outputs folder.
@@ -15357,6 +15387,11 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		// that was used and its outputs folder name and location.
 		wxFileName fn(exportPath);
 		wxString fileNameAndExtOnly = fn.GetFullName();
+		
+		// Store this export path in the App's m_lastPackedOutputPath. We do this
+		// only within this bInvokeFileDialog, so it doesn't remember a last path
+		// for packed documents that were prepared as part of email reports.
+		gpApp->m_lastPackedOutputPath = fn.GetPath();
 
 		wxString msg;
 		msg = msg.Format(_("The packed document file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
@@ -18725,15 +18760,36 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 {
 	// OnFileUnpackDoc is the handler for the Unpack Document... command on the File menu. 
 	// first, get the file and load it into a CBString
+	wxString defaultDir;
 	wxString packedDocPath;
-	if (!gpApp->m_bProtectPackedInputsAndOutputsFolder)
+	
+	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS, 
+	// and whether the App's m_lastPackedOutputPath is empty or has a valid path, 
+	// and set the defaultDir for the export accordingly.
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
+	{
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		defaultDir = gpApp->m_packedInputsAndOutputsFolderPath;
+	}
+	else if (gpApp->m_lastPackedOutputPath.IsEmpty()
+		|| (!gpApp->m_lastPackedOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastPackedOutputPath)))
+	{
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		defaultDir = gpApp->m_packedInputsAndOutputsFolderPath;
+	}
+	else
+	{
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		defaultDir = gpApp->m_lastPackedOutputPath;
+	}
+
+	if (!bBypassFileDialog_ProtectedNavigation)
 	{
 		wxString message;
-		message = _("Load And Unpack The Compressed Document"); //IDS_UNPACK_DOC_TITLE
+		message = _("Load And Unpack The Compressed Document");
 		wxString filter;
-		wxString defaultDir;
-		defaultDir = gpApp->m_curProjectPath; 
-		filter = _("Packed Documents (*.aip)|*.aip||"); //IDS_PACKED_DOC_EXTENSION
+		filter = _("Packed Documents (*.aip)|*.aip||");
 
 		wxFileDialog fileDlg(
 			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
@@ -18850,7 +18906,12 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(strMessage,_T(""), wxICON_EXCLAMATION);
 		return;
 	}
-	
+	// store the last packed doc's path in the App's m_lastPackedOutputPath member for storage in
+	// the basic config file.
+	wxFileName fn(packedDocPath);
+	gpApp->m_lastPackedOutputPath = fn.GetPath();
+	// Nothing else to report, the unpacked document will be displaying in the main window
+	// when this returns.
 	return;
 }
 

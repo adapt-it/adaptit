@@ -3649,7 +3649,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	CPhraseBox* pBox;
 	CAdapt_ItView* pView;
 	m_pApp->GetBasePointers(pDoc,pView,pBox); // this is 'safe' when no doc is open
-	wxString name; // name for the document, to be used in the report
+	wxString docName; // name for the document, to be used in the report
 	
 	m_pApp->m_acceptedFilesList.Clear();
 	int answer;
@@ -3732,7 +3732,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// make a suitable default output filename for the export function
 		len = reportFilename.Length();
 		reportFilename.Remove(len-4,4); // remove the .adt or .xml extension
-		name = reportFilename; // use for the document name in the report
+		docName = reportFilename; // use for the document name in the report
 		reportFilename += _(" report.txt"); // make it a *.txt file type // localization?
 	}
 	 else
@@ -3740,7 +3740,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// construct a general default filename, and "name" will be defined in
 		// DoRetranslationReport()
 		reportFilename = _("retranslation report.txt"); // localization?
-		name.Empty();
+		docName.Empty();
 	}
 	
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
@@ -3776,14 +3776,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			return; // user cancelled
 		}
-		
-		// update m_lastRetransReportPath
+		// get the user's desired path
 		reportPath = fileDlg.GetPath();
-		wxString fname = fileDlg.GetFilename(); 
-		int nameLen = fname.Length();
-		int pathLen = reportPath.Length();
-		wxASSERT(nameLen > 0 && pathLen > 0);
-		m_pApp->m_lastRetransReportPath = reportPath.Left(pathLen - nameLen - 1);
 	}
 	else
 	{
@@ -3794,6 +3788,15 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// Use the unique path for reportPath
 		reportPath = uniqueFilenameAndPath;
 	}
+	
+	// update m_lastRetransReportPath
+	// whm Note: We set the App's m_lastRetransReportPath variable with the 
+	// path part of the reportPath just used. We do this even when navigation 
+	// protection is on, so that the special folders would be the initial path 
+	// suggested if the administrator were to switch Navigation Protection OFF.
+	wxString path, fname, ext;
+	wxFileName::SplitPath(reportPath, &path, &fname, &ext);
+	m_pApp->m_lastRetransReportPath = path;
 	
 	wxLogNull logNo; // avoid spurious messages from the system
 
@@ -3848,7 +3851,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pFileList->IsEmpty()); // must be empty, 
 		// DoRetranslationReport() uses this as a flag
 		
-		DoRetranslationReport(pDoc,name,pFileList,m_pApp->m_pSourcePhrases,&f);
+		DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f);
 	}
 	else
 	{
@@ -3888,7 +3891,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
 			// document filenames in it
-			DoRetranslationReport(pDoc,name,pFileList,m_pApp->m_pSourcePhrases,&f);
+			DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f);
 		}
 		
 		// now do the book folders, if there are any
@@ -3992,7 +3995,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							
 							// There are files to be processed. TRUE parameter suppresses 
 							// the statistics dialog.
-							DoRetranslationReport(pDoc,name,pFileList,
+							DoRetranslationReport(pDoc,docName,pFileList,
 												  m_pApp->m_pSourcePhrases,&f);
 							// restore parent folder as current
 							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath); 

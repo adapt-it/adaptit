@@ -19351,55 +19351,135 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	
-	bool bBypassFileDialog_ProtectedNavigation = FALSE;
-	bool bOK;
-
+	// whm revised 6Aug11. See the App's OnFileExportToKb() for similar revisions.
+	// We don't know what protected folder to use for KB imports
+	// until the user specifies either SFM or LIFT. That specification previously
+	// would occur at the time the user gets the wxFileDialog and accesses the 
+	// "File Type" drop-down list of options. However, with navigation protection we 
+	// don't provide a standard wxFileDialog where a user can make that selection. 
+	// Therefore, I think the better way of handling the choice between SFM and LIFT
+	// KB exports is to get that decision earlier via a wxSingleChoice dialog, and
+	// not from the wxFileDialog - even when no protection is in effect. Doing so, I
+	// think will simplify the file naming process too.
+	
+	// While nav protection is ON, the user doesn't see a wxFileDialog where the
+	// Open File of Type dropdown box is an option. So, we have to ask the user directly 
+	// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
+	// kbImportType according to the user's response.
+	
+	KBImportFileOfType kbImportType = KBImportFileOfSFM_TXT;
+	wxString choices[2];
+	choices[0] = _("1. Import standard format records (\\x and \\ge) into the Knowledge Base.");
+	choices[1] = _("2. Import LIFT records into the Knowledge Base.");
+	wxString myCaption = _("Extend the knowledge base by importing SFM or LIFT dictionary records");
 	wxString message;
 	message = _("Choose Type of Knowledge Base Import (select 1 or 2), or Cancel (to abort the inport)");
-	wxString filter;
-	filter = _(
-	"SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||");
-	wxString importFilename = _T(""); // empty string
+	int returnValue = wxGetSingleChoiceIndex(
+		message,myCaption,2,choices,pApp->GetMainFrame(),-1,-1,TRUE,350,80);
+	if (returnValue == -1)
+		return; // user pressed Cancel
+	else
+	{
+		kbImportType = (KBImportFileOfType)returnValue; // cast int to KBImportFileOfType enum
+		wxASSERT(kbImportType == KBImportFileOfSFM_TXT || kbImportType == KBImportFileOfLIFT_XML);
+	}
+	//bool bOK;
+
 	wxString defaultDir;
-	// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
-	// is set for protected navigation
-	if (pApp->m_lastKbOutputPath.IsEmpty())
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+	if (kbImportType == KBImportFileOfSFM_TXT)
 	{
-		defaultDir = pApp->m_curProjectPath;
-	}
-	else
-	{
-		defaultDir = pApp->m_lastKbOutputPath;
-	}
-
-	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
-	if (pApp->m_bProtectKbInputsAndOutputsFolder)
-	{
-		bBypassFileDialog_ProtectedNavigation = TRUE;
-		// Navigation protection in effect - limit source text exports to
-		// be saved in the _KB_INPUTS_OUTPUTS folder which is always a child folder
-		// of the folder that m_curProjectPath points to.
-		bOK = ::wxSetWorkingDirectory(pApp->m_kbInputsAndOutputsFolderPath);
-	}
-	else
-	{
-		if (pApp->m_lastKbOutputPath.IsEmpty())
-			bOK = ::wxSetWorkingDirectory(pApp->m_curProjectPath);
+		// The user wants KB import in standard format (\x and \ge).
+		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
+		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
+		// and set the defaultDir for the export accordingly.
+		if (pApp->m_bProtectKbInputsAndOutputsFolder)
+		{
+			// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+			// and force the use of the special protected folder for the export.
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			defaultDir = pApp->m_kbInputsAndOutputsFolderPath;
+		}
+		else if (pApp->m_lastKbOutputPath.IsEmpty()
+			|| (!pApp->m_lastKbOutputPath.IsEmpty() && !::wxDirExists(pApp->m_lastKbOutputPath)))
+		{
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+			// to appear. But the m_lastKbOutputPath is either empty or, if not empty, 
+			// it points to an invalid path, so we initialize the defaultDir to point to 
+			// the special protected folder, even though Navigation protection is not ON. 
+			// In this case, the user could point the export path elsewhere using the 
+			// wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			defaultDir = pApp->m_kbInputsAndOutputsFolderPath;
+		}
 		else
-			bOK = ::wxSetWorkingDirectory(pApp->m_lastKbOutputPath);
+		{
+			// Navigation protection is OFF and we have a valid path in m_lastKbOutputPath,
+			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
+			// location of the export. The user could still point the export path elsewhere 
+			// in the wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			defaultDir = pApp->m_lastKbOutputPath;
+		}
+	}
+	else if (kbImportType == KBImportFileOfLIFT_XML)
+	{
+		// Check whether navigation protection is in effect for _LIFT_INPUTS_OUTPUTS, 
+		// and whether the App's m_lastKbLiftOutputPath is empty or has a valid path, 
+		// and set the defaultDir for the export accordingly.
+		if (pApp->m_bProtectLiftInputsAndOutputsFolder)
+		{
+			// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+			// and force the use of the special protected folder for the export.
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			defaultDir = pApp->m_liftInputsAndOutputsFolderPath;
+		}
+		else if (pApp->m_lastKbLiftOutputPath.IsEmpty()
+			|| (!pApp->m_lastKbLiftOutputPath.IsEmpty() && !::wxDirExists(pApp->m_lastKbLiftOutputPath)))
+		{
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+			// to appear. But the m_lastKbLiftOutputPath is either empty or, if not empty, 
+			// it points to an invalid path, so we initialize the defaultDir to point to 
+			// the special protected folder, even though Navigation protection is not ON. 
+			// In this case, the user could point the export path elsewhere using the 
+			// wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			defaultDir = pApp->m_liftInputsAndOutputsFolderPath;
+		}
+		else
+		{
+			// Navigation protection is OFF and we have a valid path in m_lastKbLiftOutputPath,
+			// so we initialize the defaultDir to point to the m_lastKbLiftOutputPath for the 
+			// location of the export. The user could still point the export path elsewhere 
+			// in the wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			defaultDir = pApp->m_lastKbLiftOutputPath;
+		}
 	}
 
-	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// whm modified 7Jul11 to bypass the wxFileDialog when the import is protected from
 	// navigation.
-	wxString exportPath;
+	//wxString exportPath;
 	wxString uniqueFilenameAndPath;
-	wxString pathName;
-	int filterIndex = 0;
+	wxString inputPath;
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
+		wxString filter;
+		
+		if (kbImportType == KBImportFileOfSFM_TXT)
+		{
+			filter = _(
+			"SFM plain text import (from \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||");
+		}
+		else if (kbImportType == KBImportFileOfLIFT_XML)
+		{
+			filter = _(
+			"XML LIFT import (*.lift)|*.lift|All Files (*.*)|*.*||");
+		}
+		wxString importFilename = _T(""); // empty string
 		wxFileDialog fileDlg(
 			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-			message,
+			_("Filename for KB import"),
 			defaultDir,	// empty string causes it to use the 
 						// current working directory (set above)
 			importFilename,	// default filename
@@ -19413,52 +19493,37 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		if (fileDlg.ShowModal() != wxID_OK)
 			return; // user cancelled
 
-		pathName = fileDlg.GetPath();
-
-		// update m_lastKbOutputPath
-		wxString importPath = fileDlg.GetPath();
-		wxString name = fileDlg.GetFilename();
-		int nameLen = name.Length();
-		int pathLen = importPath.Length();
-		wxASSERT(nameLen > 0 && pathLen > 0);
-		pApp->m_lastKbOutputPath = importPath.Left(pathLen - nameLen - 1);
-		filterIndex = fileDlg.GetFilterIndex();
-		
-		// NOTE: If you decide to change the default Import type you must make sure that 
-		// the KBImportFileOfType enum ordering (in Adapt_It.h) has the same enum values 
-		// as the filterIndex value returned here by GetFilterIndex() !!!
+		// get the user's desired path and file name
+		inputPath = fileDlg.GetPath();
 	}
 	else
 	{
-		// While nav protection is ON, the user doesn't see a wxFileDialog where the
-		// Save As Type dropdown box is an option. So, we have to ask the user directly 
-		// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
-		// filterIndex according to the user's response.
-		wxString choices[2];
-		choices[0] = _("1. Import standard format records (\\x and \\ge) into the Knowledge Base.");
-		choices[1] = _("2. Import LIFT records into the Knowledge Base.");
-		wxString myCaption = _("Extend the knowledge base by importing SFM or LIFT dictionary records");
-		//wxString message = _("Select from the type of KB import, then click OK. The Cancel button will abort the import.");
-		int returnValue = wxGetSingleChoiceIndex(
-			message,myCaption,2,choices,pApp->GetMainFrame(),-1,-1,TRUE,350,80);
-		if (returnValue == -1)
-			return; // user pressed Cancel
-		else
-		{
-			filterIndex = returnValue;
-			wxASSERT(filterIndex == 0 || filterIndex == 1);
-		}
-		// get list of files of the filterIndex type
-		
+		// While nav protection is ON, the user doesn't see a wxFileDialog. We set
+		// the path automatically to the special folder at m_kbInputsAndOutputsFolderPath
+		// and collect a list of possible filenames from that folder from which
+		// the user can choose from a monocline list via a wxGetSingleChoiceIndex()
+		// dialog.
 		wxString extStr;
-		if (filterIndex == 0)
+		if (kbImportType == KBImportFileOfSFM_TXT)
+		{
+			// determine exportPath to the _KB_INPUTS_OUTPUTS folder using the dictFilename
+			inputPath = pApp->m_kbInputsAndOutputsFolderPath;
 			extStr = _T("*.txt");
-		else if (filterIndex == 1)
+			myCaption = _("Import KB Records from SFM File");
+		}
+		else if (kbImportType == KBImportFileOfLIFT_XML)
+		{
+			// determine exportPath to the _LIFT_INPUTS_OUTPUTS folder using the dictFilename
+			inputPath = pApp->m_liftInputsAndOutputsFolderPath;
 			extStr = _T("*.lift");
-		wxArrayString kbImportFilesIncludingPaths,kbImportFilesNamesOnly;
-		// get an array list of .cct files
-		pathName = pApp->m_kbInputsAndOutputsFolderPath;
-		wxDir::GetAllFiles(pathName,&kbImportFilesIncludingPaths,extStr,wxDIR_FILES);
+			myCaption = _("Import KB Records from LIFT File");
+		}
+		
+		wxArrayString kbImportFilesIncludingPaths;
+		wxArrayString kbImportFilesNamesOnly;
+		// Get an array list of possible imput files. Note: wxDIR_FILES gets files only,
+		// no directories. The wxArrayString will contain file names only, no paths.
+		wxDir::GetAllFiles(inputPath,&kbImportFilesIncludingPaths,extStr,wxDIR_FILES);
 		int totFiles = (int)kbImportFilesIncludingPaths.GetCount();
 		if (totFiles > 0)
 		{
@@ -19471,33 +19536,45 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 			}
 		}
 		wxString message = _("Choose a file from the following list:\n(from the location: %s):");
-		message = message.Format(message,pathName.c_str());
-		if (filterIndex == 0)
-			myCaption = _("Import KB Records from SFM File");
-		else if (filterIndex == 1)
-			myCaption = _("Import KB Records from LIFT File");
+		message = message.Format(message,inputPath.c_str());
+		// whm 6Aug11 Note: We could use a ::wxGetMultipleChoices() call here which
+		// would enable a user to import multiple files into the KB (but would require
+		// changing the logic below to loop over each selected file).
 		returnValue = wxGetSingleChoiceIndex(message,myCaption,
 			kbImportFilesNamesOnly,(wxWindow*)pApp->GetMainFrame(),-1,-1,true,250,100);
 		if (returnValue == -1)
 			return; // user pressed Cancel or OK with nothing selected (list empty)
-		pathName = pathName + pApp->PathSeparator + kbImportFilesNamesOnly.Item(returnValue); // this has just the file name
+		inputPath = inputPath + pApp->PathSeparator + kbImportFilesNamesOnly.Item(returnValue); // this has just the file name
 	}
 
-	if (filterIndex == KBImportFileOfLIFT_XML)
-	{
-		if (gbIsGlossing)
-			pApp->m_pGlossingKB->DoKBImport(pathName,KBImportFileOfLIFT_XML);
-		else
-			pApp->m_pKB->DoKBImport(pathName,KBImportFileOfLIFT_XML);
-	}
-	else
+	// update m_lastKbOutputPath
+	// whm Note: We set the App's m_lastKbOutputPath variable with the 
+	// path part of the exportPath just used. We do this even when navigation 
+	// protection is on, so that the special folders would be the initial path 
+	// suggested if the administrator were to switch Navigation Protection OFF.
+	wxString path, fname, ext;
+	wxFileName::SplitPath(inputPath, &path, &fname, &ext);
+	if (kbImportType == KBImportFileOfSFM_TXT)
 	{
 		// the  user chose File Of Type of "SFM plain text import (from \\lx & \\ge fields) (*.txt)"
 		// or "All Files (*.*)" which we assume would be same as "SFM plain text import..."
 		if (gbIsGlossing)
-			pApp->m_pGlossingKB->DoKBImport(pathName,KBImportFileOfSFM_TXT);
+			pApp->m_pGlossingKB->DoKBImport(inputPath,KBImportFileOfSFM_TXT);
 		else
-			pApp->m_pKB->DoKBImport(pathName,KBImportFileOfSFM_TXT);
+			pApp->m_pKB->DoKBImport(inputPath,KBImportFileOfSFM_TXT);
+		
+		// update the last kb output path
+		pApp->m_lastKbOutputPath = path;
+	}
+	else if (kbImportType == KBImportFileOfLIFT_XML)
+	{
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->DoKBImport(inputPath,KBImportFileOfLIFT_XML);
+		else
+			pApp->m_pKB->DoKBImport(inputPath,KBImportFileOfLIFT_XML);
+		
+		// update the last kb Lift output path
+		pApp->m_lastKbLiftOutputPath = path;
 	}
 }
 
