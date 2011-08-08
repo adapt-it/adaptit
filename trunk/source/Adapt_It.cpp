@@ -26598,7 +26598,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 /// translation exports have to be after the line for getting the last export path,
 /// because the latter's code block sets the boolean bForeignConfigFile which is needed
 /// for handling the other paths safely
-/// // whm 7Aug11 removed the boolean bForeignConfigFile test - now unnecessary.
+/// whm 7Aug11 removed the boolean bForeignConfigFile test - as now unnecessary, therefore
+/// Bruce's comment above about additional order dependence for glosses and free 
+/// translation exports is no longer an issue. The only remaining order dependence in
+/// the project config file is for the BookModeFlag to preceed the BookIndexValue item.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 {
