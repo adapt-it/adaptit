@@ -6025,6 +6025,13 @@ wxString szCollabProjectForTargetExports = _T("CollabProjectForTargetExports");
 // m_CollabProjectForFreeTransExports member variable.
 wxString szCollabProjectForFreeTransExports = _T("CollabProjectForFreeTransExports");
 
+// whm added 30Jun11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
+// "CollabExpectsFreeTrans". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_bCollaborationExpectsFreeTrans member variable.
+wxString szCollabExpectsFreeTrans = _T("CollabExpectsFreeTrans");
+
 // whm added 27Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
 // "CollabBookSelected". This value is written in the "Settings" part of the basic
@@ -23693,6 +23700,14 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szCollabProjectForFreeTransExports << tab << m_CollabProjectForFreeTransExports;
 	pf->AddLine(data);
 
+	if (m_bCollaborationExpectsFreeTrans) // whm added 9Aug11
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szCollabExpectsFreeTrans << tab << number;
+	pf->AddLine(data);
+
 	data.Empty();
 	data << szCollabBookSelected << tab << m_CollabBookSelected;
 	pf->AddLine(data);
@@ -25077,6 +25092,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szCollabProjectForFreeTransExports) // whm added 30Jun11
 		{
 			m_CollabProjectForFreeTransExports = strValue;
+		}
+		else if (name == szCollabExpectsFreeTrans) // whm added 9Aug11
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0;
+			if (num == 1)
+				m_bCollaborationExpectsFreeTrans = TRUE;
+			else
+				m_bCollaborationExpectsFreeTrans = FALSE;
 		}
 		else if (name == szCollabBookSelected)
 		{
