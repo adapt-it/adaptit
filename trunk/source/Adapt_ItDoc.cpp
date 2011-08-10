@@ -16096,6 +16096,71 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	//		Modify(FALSE)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItView* pView;
+	CAdapt_ItDoc* pDoc;
+	CPhraseBox* pBox;
+	pApp->GetBasePointers(pDoc,pView,pBox);
+	wxASSERT(pView);
+
+#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
+#ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
+#ifdef __WXDEBUG__
+	// In collaboration mode, one or more CSourcePhrase instances are being prematurely
+	// deleted, and so when DeleteSingleSrcPhrase() is called on such ones (eg. as when
+	// shutting down the app with the X button at top of window, which causes
+	// OnCloseDocument() to be called) then a heap corruption error message results with
+	// the message:
+	// HEAP: Free Heap block <hex address> modified at <hex address> after it was freed
+	// and the error can happen at an unexpected time too (but much rarer). Doc layout
+	// doesn't crash, which makes me think it is in the saved m_pSavedWords instances that
+	// the bogus deletions have happened. The code below scans all the parent pSrcPhrase
+	// instances in the doc, and also any in their non-empty m_pSavedWords members, to
+	// show in the Output window the sequ number the m_srcPhrase member. The idea is that
+	// if there is a hanging ptr somewhere, the scan and display in the Output window will
+	// cease at that point -- which tells us at least something useful. Added display of
+	// the heap pointer value  (in hex) for each CSourcePhrase instance - so as to match
+	// with the error report, since the error happens after this successful display of all of
+	// the CSourcePhrase instances in the m_pSourcePhrase list.
+	{
+		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+		SPList::Node* pos = pSrcPhrases->GetFirst();
+		int sequnum = 0;
+		int originalSN = 0;
+		wxString srcStr;
+		wxString originalSrcStr;
+		CSourcePhrase* pOriginalSP = NULL;
+		CSourcePhrase* pSrcPhrase = NULL; // parent ones, the ones laid out by RecalcLayout()
+		// now scan over the whole doc, showing the info needed
+		while (pos != NULL)
+		{
+			pSrcPhrase = pos->GetData();
+			pos = pos->GetNext();
+			sequnum = pSrcPhrase->m_nSequNumber;
+			srcStr = pSrcPhrase->m_srcPhrase;
+			wxLogDebug(_T("\n ********************* Parent CSourcePhrase *************************"));
+			wxLogDebug(_T("sn = %d  srcPhrase = %s   HEX  %x"), sequnum, srcStr.c_str(), (unsigned int)pSrcPhrase);
+			if (!pSrcPhrase->m_pSavedWords->IsEmpty())
+			{
+			wxLogDebug(_T("\n              ********       Originals      ********"));
+				SPList* pOriginals = pSrcPhrase->m_pSavedWords;
+				SPList::Node* posOriginal = pOriginals->GetFirst();
+				while (posOriginal != NULL)
+				{
+					pOriginalSP = posOriginal->GetData();
+					posOriginal = posOriginal->GetNext();
+					// access members for display (this will crash if it's heap block has been freed)
+					originalSN = pOriginalSP->m_nSequNumber;
+					originalSrcStr = pOriginalSP->m_srcPhrase;
+					// display info in the Output window
+					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"), 
+						originalSN, originalSrcStr.c_str(), (unsigned int)pOriginalSP);
+				}
+			}
+			wxLogDebug(_T("    -------------------------------------------------"));
+		} // loop ends
+	}
+#endif
+#endif
 
 	// the EraseKB() call will also try to remove any read-only protection
 	EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
@@ -16104,11 +16169,6 @@ bool CAdapt_ItDoc::OnCloseDocument()
 								  // EraseKB in the App in wx
 	pApp->m_pGlossingKB = (CKB*)NULL; // whm added
 	
-	CAdapt_ItView* pView;
-	CAdapt_ItDoc* pDoc;
-	CPhraseBox* pBox;
-	pApp->GetBasePointers(pDoc,pView,pBox);
-	wxASSERT(pView);
 // GDLC 2010-03-27 pFreeTrans is now unused in this function
 //	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
 //	wxASSERT(pFreeTrans);

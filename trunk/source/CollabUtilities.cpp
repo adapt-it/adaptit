@@ -3481,7 +3481,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	int ct;
 	for (ct = 0; ct < ctmin; ct++)
 	{
-		wxLogDebug(_T("Same indices part:   %s          %s"),postEditMd5Arr.Item(ct), fromEditorMd5Arr.Item(ct));
+		wxLogDebug(_T("Same indices part:   %s          %s"),postEditMd5Arr.Item(ct).c_str(), fromEditorMd5Arr.Item(ct).c_str());
 	}
 #endif
 		// the USFM structure has changed in at least one location in the text
@@ -3869,7 +3869,7 @@ wxString GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditTe
 								pMap->startOffset, pMap->endOffset);
 				size_t numCharsInSpan = (size_t)(pMap->endOffset - pMap->startOffset);
 				wxLogDebug(_T("map index %d   start wxChar offset  %d  end offset  %d , span size = %d   textSpanned =  %s"),
-					i, pMap->startOffset, pMap->endOffset, numCharsInSpan, strSpan);
+					i, pMap->startOffset, pMap->endOffset, numCharsInSpan, strSpan.c_str());
 			}
 #endif
 
