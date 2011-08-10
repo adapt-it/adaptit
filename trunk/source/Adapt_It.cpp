@@ -16990,6 +16990,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int sizeofCTargetUnit = sizeof(CTargetUnit); // 16 bytes
 	int sizeofSPList = sizeof(SPList); // 28 bytes
 	int sizeofwxArrayString = sizeof(wxArrayString); // 16 bytes
+	int stophere = 1;
 	*/
 	/*
 	// check what the character counts in GetUsfmStructureAndExtent(fileBuffer)
