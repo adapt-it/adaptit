@@ -104,100 +104,102 @@ protected:
 
 	// implementation & interface
 public:
-	wxString		m_inform;		// text to be shown above the strip when info type changes
-	wxString		m_chapterVerse; // text for the chapter and verse is stored here, as required
-	bool			m_bFirstOfType; // TRUE when textType changes. Used for extending a type to
+    // BEW 10Aug11 changed the order of the members so that commonly examined ones in the
+    // debugger will appear at the top - the sequ num, how many words (indicates if merger
+    // or not and how big a merger it is) then the list of stored originals... other string
+    // members, and booleans are now in the 0 to 22 order, top down, that they appear in
+    // the xml f attribute's 22_binary_digit string, reading right to left. I've done this
+	// as a debugging aid, that's all. Comments below start with the byte offset at which the
+	// respective member is located within the class, on a 32-bit machine.
+	int				m_nSequNumber;	// 0: first word is 0, next 1, etc. to text end (for a single file)s
+	int				m_nSrcWords;	// 4: how many words are in the source phrase
+	SPList*			m_pSavedWords;	// 8 (ptr to 32): save list of CSourcePhrase instances comprising the phrase
+	wxString		m_srcPhrase;	// 12: the source phrase, including any punctuation (shown in line 1)
+	wxString		m_key;			// 16: the source phrase, with any puntuation stripped off (shown in line 2)
+	wxString		m_adaption;		// 20: a copy of the adaption (line 3) text, if user wants no save to 
+									// KB done, this will be the only place the adaption is preserved
+	wxString		m_targetStr;	// 24: final (line 4) adaptation phrase for the target language
+	wxString		m_markers;		// 28: the standard format markers which precede this source phrase, if any
+	wxArrayString*	m_pMedialPuncts; // 32 (ptr to 16): accumulate medial punctuations here, when merging 
+									 //words/phrases. MFC uses CStringList
+	wxArrayString*	m_pMedialMarkers; // 36 (ptr to 16): accumulate medial standard format markers here, 
+									  // when merging. MFC uses CStringList
+	wxString		m_precPunct;	// 40: punctuation characters which precede this source word or phrase
+	wxString		m_follPunct;	// 44: punction characters which follow this source word or phrase
+	wxString		m_inform;		// 48: text to be shown above the strip when info type changes
+	wxString		m_chapterVerse; // 52: text for the chapter and verse is stored here, as required
+	wxString		m_gloss;		// 56: save a 'gloss' - which can be anything, eg gloss, or an adaptation
+									// from a different project to a different target text, etc
+	// booleans and TextType last -- each takes 1 byte presumably even though memory is
+	// word-aligned, because the whole lot is 136 bytes for the CSourcePhrase class
+	bool			m_bHasKBEntry;	// 60: TRUE when m_key of this source phrase is used to put an entry in
+									// the KB
+	bool			m_bNotInKB;		// 61: set TRUE if user specifies no KB map entry for this adaption, and 
+									// obligatorily TRUE for retranslations, null source phrases, and 
+									// too-long phrases
+	// new attribute for VERSION_NUMBER 3, m_gloss  (used with gbEnableGlossing and gbIsGlossing
+	// flags) to allow the user to give word for word glosses and have them saved in a glossing KB
+	bool			m_bHasGlossingKBEntry; // 62: parallels the function of m_bHasKBEntry
+	bool			m_bSpecialText; // 63: TRUE if the text is special, such as \id contents, or 
+									// subheading, etc
+	bool			m_bFirstOfType; // 64: TRUE when textType changes. Used for extending a type to
 									//  succeeding source phrases (with this flag FALSE), until a 
 									// new TRUE value is set
-	bool			m_bFootnoteEnd;	// TRUE for the last source phrase in a section of footnote text
-	bool			m_bFootnote;	// TRUE for the first source phrase in a section of footnote text
-	bool			m_bChapter;		// TRUE if the source phrase is first one in a new chapter
-	bool			m_bVerse;		// TRUE if the source phrase is the first one in a new verse
-	// BEW 8Oct10, repurposed m_bParagraph to be m_bUnused
-	//bool			m_bParagraph;   // TRUE if the source phrase is the first one after a \p marker
-	bool			m_bUnused;   
-	bool			m_bSpecialText; // TRUE if the text is special, such as \id contents, or 
-									// subheading, etc
-	bool			m_bBoundary;	// marks right boundary for selection extension, to prevent spurious
+	bool			m_bBoundary;	// 65: marks right boundary for selection extension, to prevent spurious
 									// source phrases being created by the merge operation
-	bool			m_bHasInternalMarkers; // if TRUE, user will have to manually located the target
-									   // markers using a dialog in the Export... function
-	bool			m_bHasInternalPunct; // if TRUE, user will be asked to manually locate target 
-										// punctuation
-	bool			m_bRetranslation;	 // set when srcPhrase > 10 words, or target text approaches
+	bool			m_bNullSourcePhrase; // 66: TRUE if this is a placeholder inserted by the user 
+										// (shows as ...)
+	bool			m_bRetranslation;	// 67: set when srcPhrase > 10 words, or target text approaches
 									 // docWidth, or user explicitly marks a selection as a
 									 // retranslation, rather than an adaption; 
 									 // - scrPhrases so marked are not entered in KB 
-	bool			m_bNotInKB; // set TRUE if user specifies no KB map entry for this adaption, and 
-								// obligatorily TRUE for retranslations, null source phrases, and 
-								// too-long phrases
-	bool			m_bNullSourcePhrase; // TRUE if this is a null src phrase inserted by the user 
-										// (shows as ...)
-	bool			m_bHasKBEntry;		// TRUE when m_key of this source phrase is used to put an entry in
-										// the KB
-
-
 	// two new flags for version_number == 2, 
 	// these flags used for preventing concatenation of retranslations
 	// *** DONT FORGET TO UPDATE THE COPY CONSTRUCTOR AND THE OVERLOADED ASSIGNMENT OPERATOR AS WELL!
-	bool			m_bBeginRetranslation;
-	bool			m_bEndRetranslation;
-
-	TextType		m_curTextType;	// from the global enum. Used for setting the text type tag to 
-									// be shown in grey above line 1 of each strip
-	SPList*			m_pSavedWords;	// save list of CSourcePhrase instances comprising the phrase
-	wxString		m_adaption;		// a copy of the adaption (line 3) text, if user wants no save to 
-									// KB done, this will be the only place the adaption is preserved
-	wxString		m_markers;		// the standard format markers which precede this source phrase, if any
-	wxString		m_follPunct;	// punction characters which follow this source word or phrase
-	wxString		m_precPunct;	// punctuation characters which precede this source word or phrase
-	wxArrayString*	m_pMedialPuncts; // accumulate medial punctuations here, when merging 
-									 //words/phrases. MFC uses CStringList
-	wxArrayString*	m_pMedialMarkers; // accumulate medial standard format markers here, when merging. MFC uses CStringList
-	wxString		m_srcPhrase;	// the source phrase, including any punctuation (shown in line 1)
-	wxString		m_key;			// the source phrase, with any puntuation stripped off (shown in line 2)
-	wxString		m_targetStr;	// final (line 4) adaptation phrase for the target language
-	int				m_nSrcWords;	// how many words are in the source phrase
-	int				m_nSequNumber;	// first word is 0, next 1, etc. to text end (for a single file)s
-
-	// new attributes for VERSION_NUMBER 3, m_gloss  (used with gbEnableGlossing and gbIsGlossing
-	// flags) to allow the user to give word for word glosses and have them saved in a glossing KB
-	wxString		m_gloss; // save a 'gloss' - which can be anything, eg gloss, or an adaptation
-							 // from a different project to a different target text, etc
-	bool			m_bHasGlossingKBEntry; // parallels the function of m_bHasKBEntry
-
+	bool			m_bBeginRetranslation; // 68:
+	bool			m_bEndRetranslation;   // 69:
 	// new attributes for VERSION_NUMBER 4, for supporting free translations, notes and bookmarks
-	bool			m_bHasFreeTrans; // TRUE whenever this sourcephrase is associated with a free translation
-	bool			m_bStartFreeTrans; // TRUE if this sourcephrase is the first in a free translation
+	bool			m_bHasFreeTrans;   // 70: TRUE whenever this sourcephrase is associated with a free translation
+	bool			m_bStartFreeTrans; // 71: TRUE if this sourcephrase is the first in a free translation
 									   // section - this is the one which stores its text, in m_freeTrans
 									   // (considered filtered)
-	bool			m_bEndFreeTrans; // TRUE if this sourcephrase is the last in a free translation
-	bool			m_bHasNote; // TRUE if this sourcephrase contains a note (in m_note, considered filtered)
-	bool			m_bHasBookmark; // TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
+	bool			m_bEndFreeTrans;   // 72: TRUE if this sourcephrase is the last in a free translation
+	bool			m_bHasNote;        // 73: TRUE if this sourcephrase contains a note (in m_note, considered filtered)
+	bool			m_bHasBookmark;    // 74: TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
+	bool			m_bChapter;		   // 75: TRUE if the source phrase is first one in a new chapter
+	bool			m_bVerse;		   // 76: TRUE if the source phrase is the first one in a new verse
+	bool			m_bHasInternalMarkers; // 77: if TRUE, user will have to manually located the target
+									       // markers using a dialog in the Export... function
+	bool			m_bHasInternalPunct; // 78: if TRUE, user will be asked to manually locate target  punctuation
+	bool			m_bFootnoteEnd;	   // 79: TRUE for the last source phrase in a section of footnote text
+	bool			m_bFootnote;	   // 80: TRUE for the first source phrase in a section of footnote text
+	bool			m_bUnused;		   // 81:   
+	TextType		m_curTextType;	   // 82: from the global enum. Used for setting the text type tag to 
+									   // be shown in grey above line 1 of each strip
 
     // BEW added 9Feb10, extra wxString members for refactoring support for free
     // translations, notes, collected back translations, endMarkers, and filtered
 	// information; these are private as should have been the case for the above too, but
 	// that is a change we can defer to much later on
 private:
-	wxString		m_endMarkers;
-	wxString		m_freeTrans;
-	wxString		m_note;
-	wxString		m_collectedBackTrans;
-	wxString		m_filteredInfo;
+	wxString		m_endMarkers;			// 84:
+	wxString		m_freeTrans;			// 88:
+	wxString		m_note;					// 92:
+	wxString		m_collectedBackTrans;	// 96:
+	wxString		m_filteredInfo;			// 100
 	// BEW added 11Oct10, the next five are needed in order to properly handle inline
 	// (character formatting) markers, and the interactions of punctuation and marker
 	// types - in particular to support punctuation which follows inline markers (rather
 	// than assuming that punctuation binds more closely to the word than do endmarkers
 	// and beginmarkers)
-	wxString		m_inlineBindingMarkers;
-	wxString		m_inlineBindingEndMarkers;
-	wxString		m_inlineNonbindingMarkers;
-	wxString		m_inlineNonbindingEndMarkers;
-	wxString		m_follOuterPunct; // store any punctuation after endmarker (inline
+	wxString		m_inlineBindingMarkers;			// 104:
+	wxString		m_inlineBindingEndMarkers;		// 108:
+	wxString		m_inlineNonbindingMarkers;		// 112:
+	wxString		m_inlineNonbindingEndMarkers;	// 116:
+	wxString		m_follOuterPunct; // 146: store any punctuation after endmarker (inline
 									  // non-binding, or \f* or \x*) here; but puncts
 									  // after inline binding mkr go in m_follPunct
-
+													// 120:
 // Operations
 public:
 	bool			Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase* pSrcPhrase);
