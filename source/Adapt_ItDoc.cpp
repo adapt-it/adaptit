@@ -1332,15 +1332,34 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 {
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
-		// temporarily, for testing purposes, assume it's target text, and a
-		// single-chapter document...
+        // For testing purposes, assume it's target text, and a single-chapter
+        // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
+        // internals that predisposes towards a single chapter doc or a whole book doc - it
+        // is deliberately written so as to be agnostic about which is the case, it just
+        // knows there is a doc containing information to extract and send to PT or BE,
+        // with possibly some automated conflict resolution to be done when doing so.
+		
+
+        // we want the phrase box's contents put into the document, so that the export of
+        // the pre-user-editing-happens adaptation text will have the box contents in it -
+        // so get it done here, but don't bother about the save to KB because the
+        // DoFileSave_Protected(TRUE) call later below will get that job done
+		bool bAttemptStoreToKB = FALSE;
+		bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
+		bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't
+													  // attempt it anyway, here)
+		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
+
 		wxString postEditText;
 		wxString updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
+#ifdef __WXDEBUG__
+		// have a look at what we got
+		wxLogDebug(_T("\n *** updatedText returned to OnFileSave() in doc class ***\n"));
+		wxLogDebug(_T("%s\n"), updatedText.c_str());
+#endif
 		if (!updatedText.IsEmpty())
 		{
-			// use updatedText, to get it backc to PT or BE as the case may be
-			;
 // *** TODO *** make the command line for target text and transfer to external editor
 
 			// the returned postEditText (as exported from the AI document at the time the
@@ -1348,18 +1367,38 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			// private app member for that purpose, becoming the new preEditTargetText
 			gpApp->StoreTargetText_PreEdit(postEditText);
 
+// ********* TEMPORARY UNTIL BILL TELLS ME WHAT TO DO (save flag in & restore from basic config file?) ***************
+//gpApp->m_bCollaborationExpectsFreeTrans = TRUE;
+// ******* end temporary -- remove these 3 lines later *************
+
 			if (gpApp->m_bCollaborationExpectsFreeTrans)
 			{
-				// make a second call of MakeUpdatedTextForExternalEditor(), this time
-				// with param2 set to makeFreeTransText, param1 and param3 are the same,
-				// and when it returns, postEditText is the free translation which has to
-				// be saved in the app member for that purpose, becoming the new
-				// preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
-
-
-
+                // make a second call of MakeUpdatedTextForExternalEditor(), this time with
+                // param2 set to makeFreeTransText, param1 and param3 are the same, and
+                // when it returns, postEditFreeTransText is the free translation which has
+                // to be saved in the app member for that purpose, becoming the new
+                // preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
+				wxString postEditFreeTransText;
+				wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
+													makeFreeTransText, postEditFreeTransText);
+#ifdef __WXDEBUG__
+				// have a look at what we got
+				wxLogDebug(_T("\n *** updatedFreeTransText returned to OnFileSave() in doc class ***\n"));
+				wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
+#endif
+				if (!updatedFreeTransText.IsEmpty())
+				{
+					// use updatedFreeTransText, to get it back to PT or BE as the case may be
+					;
 // *** TODO *** make the command line for freeTrans text and transfer to external editor
+					
 
+
+					// the returned postEditFreeTransText (as exported from the AI document at the time the
+					// File / Save was invoked) now has to replace the saved preEditFreeTransText in the
+					// private app member for that purpose, becoming the new preEditFreeTransText
+					gpApp->StoreFreeTransText_PreEdit(postEditFreeTransText);
+				}
 			}
 
 
@@ -1663,6 +1702,14 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	bool bNoStore = FALSE;
 	bOK = FALSE;
 
+    // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+    // returns TRUE to the caller if the attempted store fails for some reason, for all
+    // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
+    // has its default value of FALSE; this call replaces the commented out stuff
+    // immediately following the call. The function is defined in helpers.cpp because we
+    // need it elsewhere besides here
+	UpdateDocWithPhraseBoxContents(TRUE, bNoStore);
+	/*
 	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
 	// should be a sufficient test. 
     // BEW 6July10, code added for handling situation when the phrase box location has just
@@ -1695,7 +1742,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 			if (!gbIsGlossing)
 			{
 				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase,pApp->m_targetPhrase);
-				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
+				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text);
 			}
 			gbInhibitMakeTargetStringCall = TRUE;
 			if (gbIsGlossing)
@@ -1751,6 +1798,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 			}
 		}
 	}
+	*/
 
 	// get the path correct, including correct filename extension (.xml) and the backup
     // doc filenames too; the m_curOutputPath returns is the full path, that is, it ends
@@ -2553,8 +2601,8 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-///                         to be displayed
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is
+///                        about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
@@ -2566,6 +2614,7 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 /// BEW modified 13Nov09, if the local user has only read-only access to a remote
 /// project folder, do not let him save his local copy of the remote document to the
 /// remote machine, otherwise the remote user is almost certainly to lose some edits
+/// BEW 9Aug11, disabled when in collaboration mode with Paratext or Bibledit
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event) 
 {
@@ -2577,6 +2626,13 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 		return;
 	}
 	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+    // BEW 9Aug11 disable SaveAs... when collaborating with an external editor (at such a
+    // time we don't want to support doc conversion to kbVersion 1, nor a doc name change)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
 		return;

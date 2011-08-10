@@ -212,7 +212,7 @@ public:
 									// Usage: for example: 
 									// CSourcePhrase oldSP; ....more application code defining oldSP contents....
 									// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); // uses operator=
-									//			pNewSP.DeepCopy(); // *pNewSP is now a deep copy of oldSP
+									//			pNewSP->DeepCopy(); // *pNewSP is now a deep copy of oldSP
 
 // Getters/Setters/Shorthands
 

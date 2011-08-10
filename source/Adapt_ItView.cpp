@@ -9319,6 +9319,60 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	Invalidate();
 	GetLayout()->PlaceBox();
 	gbMergeSucceeded = TRUE;
+#define MP_MM_BUG
+#ifdef MP_MM_BUG
+#ifdef __WXDEBUG__
+	// In collaboration mode, mergers are getting 3 empty <MP mp=""/> added to xml for the
+	// CSourcePhrase and also 6 empty <MM mm=""/> added too. No idea why. Every extra word
+	// merged adds an extra 3 & 6 as above, so seems like a merger bug. This block of code
+	// will scan for m_pMedialPuncts and m_pMedialMarkers wxArrayString members with
+	// m_count greater than zero, and list them, their sequ number, source text, etc in
+	// the hope of getting a handle on when & where these bogus empty strings get added in
+	{
+		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+		//int count = pSrcPhrases->GetCount();
+		SPList::Node* pos = pSrcPhrases->GetFirst();
+		int mpCount = 0;
+		int mmCount = 0;
+		wxString mpStr; // in case we get a legitimate one
+		wxString mmStr; // ditto
+		CSourcePhrase* pSrcPhrase = NULL;
+
+		wxLogDebug(_T("\n ********************* Merger with medials *************************"));
+		int thisSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		wxString thisSrcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+		wxLogDebug(_T("THIS sequNum = %d ;  THIS srcPhrase = %s"),thisSequNum,thisSrcPhrase.c_str());
+		// now scan over the whole doc, show where the bogus MP and MM ones are
+		while (pos != NULL)
+		{
+			bool bGotPuncts = FALSE;
+			bool bGotMarkers = FALSE;
+			pSrcPhrase = pos->GetData();
+			pos = pos->GetNext();
+			int sequNum = pSrcPhrase->m_nSequNumber;
+			wxString srctext = pSrcPhrase->m_srcPhrase;
+			if (!pSrcPhrase->m_pMedialPuncts->IsEmpty())
+			{
+				bGotPuncts = TRUE;
+				mpStr = pSrcPhrase->m_pMedialPuncts->Item(0); // just want first
+				mpCount = pSrcPhrase->m_pMedialPuncts->GetCount(); // count how many
+			}
+			if (!pSrcPhrase->m_pMedialMarkers->IsEmpty())
+			{
+				bGotMarkers = TRUE;
+				mmStr = pSrcPhrase->m_pMedialMarkers->Item(0); // just want first
+				mmCount = pSrcPhrase->m_pMedialMarkers->GetCount(); // count how many
+			}
+			if (bGotPuncts || bGotMarkers)
+			{
+				wxLogDebug(_T("sn = %d ; srcPhrase = %s ; MP count = %d , MP text = %s ; MM count = %d , MM text = %s"),
+					sequNum, srctext.c_str(), mpCount, mpStr.c_str(), mmCount, mmStr.c_str());
+			}
+		}
+		wxLogDebug(_T("    -------------------------------------------------"));
+	}
+#endif
+#endif
 }
 
 void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
@@ -19676,16 +19730,22 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			// now clear the pointers from the list
 			pApp->m_pSourcePhrases->Clear();
 			wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
+
+			// make deep copies of the pMergedList instances and add them to the emptied
+			// m_pSourcePhrases list, and delete the instance in pMergedList each time
 			SPList::Node* posnew = pMergedList->GetFirst();
+			CSourcePhrase* pSP = NULL;
 			while (posnew != NULL)
 			{
 				CSourcePhrase* pSrcPhrase = posnew->GetData();
 				posnew = posnew->GetNext();
-				pApp->m_pSourcePhrases->Append(pSrcPhrase); // ignore the Node* returned
+				pSP = new CSourcePhrase(*pSrcPhrase); // shallow copy
+				pSP->DeepCopy(); // make shallow copy into a deep one
+				pApp->m_pSourcePhrases->Append(pSP); // ignore the Node* returned
+				// we no longer need the one in pMergedList
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 			}
-			// the pointers are now managed by the m_pSourcePhrases document list (and
-			// also by pMergedList, but we'll clear it now)
-			pMergedList->Clear(); // doesn't delete the pointers' memory because
+			pMergedList->Clear(); // doesn't try to delete the pointers' memory because
 								  // DeleteContents(TRUE) was not called beforehand
 			delete pMergedList; // don't leak memory
 

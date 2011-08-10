@@ -366,6 +366,17 @@ void ConvertSPList2SPArray(SPList* pList, SPArray* pArray);
 // so take care when deleting
 void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pSubarray);
 
+// BEW 9Aug11, This uses code formerly only in DoFileSave() to get the doc updated with the
+// current active location's phrase box contents - first putting the box at sequ num = 0 if
+// not currently visible. We save the box contents to the KB - except here we make this
+// optional - settable by a bool param (param1). The bNoStore ref param2 passes back to
+// the caller the value TRUE if no store is done when attempted, of if a <Not In KB> entry
+// for the active CSourcePhrase forces no store be done. Param3 controls whether
+// or not the message to alert the user to a failure to store the contents in the KB gets
+// shown.
+void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
+									bool bSuppressWarningOnStoreKBFailure = FALSE); 
+
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
 // m_pSrcPhrase and m_pOwningPile, and so not being properly in sync with the doc list;

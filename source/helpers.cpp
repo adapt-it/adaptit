@@ -76,6 +76,7 @@ extern int  gnBeginInsertionsSequNum;
 extern int  gnEndInsertionsSequNum;
 extern bool gbTryingMRUOpen;
 extern bool gbConsistencyCheckCurrent;
+extern bool gbInhibitMakeTargetStringCall;
 
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -481,8 +482,9 @@ wxString ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t
 	wxASSERT(first <= last);
 	wxASSERT((wxChar*)((size_t)pBufStart + last) <= pBufEnd);
 	wxChar* ptr = NULL;
+	wxChar* pBufferStart = (wxChar*)pBufStart;
 	size_t span = (size_t)(last - first);
-	ptr = (wxChar*)((size_t)pBufStart + first);
+	ptr = pBufferStart + (size_t)first;
 	return wxString(ptr,span);
 }
 
@@ -7166,6 +7168,111 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 	}
 }
 
+// Moved the code in this function from DoFileSave() to here
+void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
+									bool bSuppressWarningOnStoreKBFailure)
+{
+    // BEW 6July10, code added for handling situation when the phrase box location has just
+    // been made a <Not In KB> one (which marks all CRefString instances for that key as
+    // m_bDeleted set TRUE and also stores a <Not In KB> for that key in the adaptation KB)
+    // and then the user saves or closes and saves the document. Without this extra code,
+    // the block immediatly below would re-store the active location's adaptation string
+    // under the same key, thereby undeleting one of the deleted CRefString entries in the
+    // KB for that key -- so we must prevent this happening by testing for m_bNotInKB set
+    // TRUE in the CSourcePhrase instance there and if so, inhibiting the save
+    bool bInhibitSave = FALSE;
+	bool bOK = TRUE;
+	CAdapt_ItView* pView = gpApp->GetView();
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	bNoStore = FALSE; // initialize to default value (i.e. assumes a KB store attempt
+					  // will succeed if tried)
+
+    // BEW changed 26Oct10 to remove the wxASSERT because if the phrasebox went past the
+    // doc end, and the user wants a save or saveAs, then this assert will trip; so we have
+    // to check and get start of doc as default active location in such a situation
+	//wxASSERT(pApp->m_pActivePile != NULL); // whm added 18Aug10
+	if (gpApp->m_pActivePile == NULL)
+	{
+		// phrase box is not visible, put it at sequnum = 0 location
+		gpApp->m_nActiveSequNum = 0;
+		gpApp->m_pActivePile = pDoc->GetPile(gpApp->m_nActiveSequNum);
+		CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+		pView->Jump(gpApp,pSrcPhrase);
+	}
+	CSourcePhrase* pActiveSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+	if (gpApp->m_pTargetBox != NULL)
+	{
+		if (gpApp->m_pTargetBox->IsShown())// not focused on app closure
+		{
+			if (!gbIsGlossing)
+			{
+				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase, gpApp->m_targetPhrase);
+				pView->RemovePunctuation(pDoc, &gpApp->m_targetPhrase, from_target_text);
+			}
+			gbInhibitMakeTargetStringCall = TRUE;
+			if (gbIsGlossing)
+			{
+				if (bAttemptStoreToKB)
+				{
+					bOK = gpApp->m_pGlossingKB->StoreText(pActiveSrcPhrase, gpApp->m_targetPhrase);
+				}
+			}
+			else
+			{
+				// do the store, but don't store if it is a <Not In KB> location
+				if (pActiveSrcPhrase->m_bNotInKB)
+				{
+					bInhibitSave = TRUE;
+					bOK = TRUE; // need this, otherwise the message below will get shown
+					// set the m_adaption member of the active CSourcePhrase instance,
+					// because not doing the StoreText() call means it would not otherwise
+					// get set; the above MakeTargetStringIncludingPunctuation() has
+					// already set the m_targetStr member to include any punctuation
+					// stored or typed
+					pActiveSrcPhrase->m_adaption = gpApp->m_targetPhrase; // punctuation was removed above
+				}
+				else
+				{
+					if (bAttemptStoreToKB)
+					{
+						bOK = gpApp->m_pKB->StoreText(pActiveSrcPhrase, gpApp->m_targetPhrase);
+					}
+				}
+			}
+			gbInhibitMakeTargetStringCall = FALSE;
+			if (!bOK)
+			{
+				// something is wrong if the store did not work, but we can tolerate the error 
+				// & continue
+				if (!bSuppressWarningOnStoreKBFailure)
+				{
+				wxMessageBox(_(
+"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
+				_T(""),wxICON_EXCLAMATION);
+				bNoStore = TRUE;
+				}
+			}
+			else
+			{
+				if (gbIsGlossing)
+				{
+					pActiveSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+				}
+				else
+				{
+					if (!bInhibitSave)
+					{
+						pActiveSrcPhrase->m_bHasKBEntry = TRUE;
+					}
+					else
+					{
+						bNoStore = TRUE;
+					}
+				}
+			}
+		}
+	}
+}
 
 // BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for
 // 5.2.4, but it could be put into the Save As... code for 6.x.y too - if so, we can retain
