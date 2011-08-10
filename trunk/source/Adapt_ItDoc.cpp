@@ -1350,8 +1350,10 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 													  // attempt it anyway, here)
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
-		wxString postEditText;
-		wxString updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
+		wxString postEditText; postEditText.Empty();
+		wxString updatedText; updatedText.Empty();
+		/* temporarily do this instead --->>  */ //DoFileSave_Protected(TRUE); return;
+		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
 #ifdef __WXDEBUG__
 		// have a look at what we got

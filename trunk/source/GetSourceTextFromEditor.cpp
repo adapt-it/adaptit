@@ -923,6 +923,13 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 				// get the layout, view etc done
 				bool bDoMerger = TRUE;
+// comment out next line when this modification is no longer wanted for debugging purposes
+#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
+#ifdef _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
+#ifdef __WXDEBUG__
+				bDoMerger = FALSE;
+#endif
+#endif
 				bool bDoLayout = TRUE;
 				bool bCopySourceWanted = m_pApp->m_bCopySource; // whatever the value now is
 				bool bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceChapterBuffer, 
