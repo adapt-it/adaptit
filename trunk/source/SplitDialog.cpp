@@ -246,8 +246,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 
 	// Verify first filename.
 	FirstFileName = pFileName1->GetValue();
-	FirstFileName = FirstFileName.Trim(FALSE); // trim left end
-	FirstFileName = FirstFileName.Trim(TRUE); // trim right end
+	FirstFileName.Trim(FALSE); // trim left end
+	FirstFileName.Trim(TRUE); // trim right end
 	if (FirstFileName.IsEmpty()) 
 	{
 		// IDS_SUPPLY_NAME_FOR_SPLIT

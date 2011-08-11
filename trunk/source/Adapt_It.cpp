@@ -12346,6 +12346,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 	
+	// testing of RemoveMultipleSpaces()
+	//wxString testMultiSpInitial = _T("  This is a test string with multiple spaces initially");
+	//wxString testMultiSpFinal = _T("This is a test string with multiple spaces initially  ");
+	//wxString testMultiSpMedial = _T("This is a test string with multiple spaces        medially");
+	//wxString testMultiSpAll = _T("        ");
+	//wxString testMultiSpNull = _T("");
+	//wxString testMultiSpNone = _T("Thisisateststringwithnospacesinthestringatall");
+	//wxString result1,result2,result3,result4,result5,result6;
+	//result1 = RemoveMultipleSpaces(testMultiSpInitial);
+	//result2 = RemoveMultipleSpaces(testMultiSpFinal);
+	//result3 = RemoveMultipleSpaces(testMultiSpMedial);
+	//result4 = RemoveMultipleSpaces(testMultiSpAll);
+	//result5 = RemoveMultipleSpaces(testMultiSpNull);
+	//result6 = RemoveMultipleSpaces(testMultiSpNone);
+
+	// end of testing of RemoveMultipleSpaces()
+	
 	/*
 	// test of ChangeFilenameExtensionTo() and ChangeFilenameExtension2() function
 	const int NUMTEST = 16;

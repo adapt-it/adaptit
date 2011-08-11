@@ -197,6 +197,9 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueFileIncrementMethod,
 									  bool bAlwaysModify, int digitWidth, wxString suffix);
 
+wxString RemoveMultipleSpaces(wxString& rString);
+
+
 // end of whm's additions
  
 // 2010 additions by BEW

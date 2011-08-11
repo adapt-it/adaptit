@@ -3087,7 +3087,7 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, targetTextExport);
-	text = gpApp->GetDocument()->RemoveMultipleSpaces(text);
+	text = RemoveMultipleSpaces(text);
 	return text;
 }
 
@@ -3101,7 +3101,7 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 	textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, freeTransTextExport);
-	text = gpApp->GetDocument()->RemoveMultipleSpaces(text);
+	text = RemoveMultipleSpaces(text);
 	return text;
 }
 

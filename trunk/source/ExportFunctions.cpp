@@ -309,7 +309,7 @@ void DoExportAsOxes(int versionNum)
 	// format for text oriented output
 	FormatMarkerBufferForOutput(target, targetTextExport);
 	
-	target = pDoc->RemoveMultipleSpaces(target);
+	target = RemoveMultipleSpaces(target);
 
 	// Decompose (by chunking the (U)SFM text) and then build the OXES version 1 xml
 	target = pToOxes->DoOxesExport(target);
@@ -395,7 +395,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 {
 	bForceUTF8Conversion = bForceUTF8Conversion; // to avoid unreferenced formal 
 												 // parameter warning
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename;
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
@@ -1031,7 +1031,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// format for text oriented output
 		FormatMarkerBufferForOutput(source, sourceTextExport);
 		
-		source = pDoc->RemoveMultipleSpaces(source);
+		source = RemoveMultipleSpaces(source);
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(source,bRTFOutput);
@@ -1064,7 +1064,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// format for text oriented output
 		FormatMarkerBufferForOutput(glosses, glossesTextExport);
 		
-		glosses = pDoc->RemoveMultipleSpaces(glosses);
+		glosses = RemoveMultipleSpaces(glosses);
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(glosses,bRTFOutput);
@@ -1088,7 +1088,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// format for text oriented output
 		FormatMarkerBufferForOutput(freeTrans, freeTransTextExport);
 		
-		freeTrans = pDoc->RemoveMultipleSpaces(freeTrans);
+		freeTrans = RemoveMultipleSpaces(freeTrans);
 
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(freeTrans,bRTFOutput);
@@ -1114,7 +1114,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// format for text oriented output
 		FormatMarkerBufferForOutput(target, targetTextExport);
 		
-		target = pDoc->RemoveMultipleSpaces(target);
+		target = RemoveMultipleSpaces(target);
 		
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(target,bRTFOutput);
@@ -14883,7 +14883,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 // (glosses as text, or free translations) as well, so they are supported too.
 wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType, bool bFilterCustomMarkers)
 {
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString usfmText; usfmText.Empty();
 	wxArrayString arrCustomBareMkrs;
 	wxString mkr = _T("note");
@@ -14918,7 +14918,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 		}
 		// format for text oriented output
 		FormatMarkerBufferForOutput(usfmText, exportType);
-		usfmText = pDoc->RemoveMultipleSpaces(usfmText);
+		usfmText = RemoveMultipleSpaces(usfmText);
 	}
 	return usfmText;
 }
@@ -16596,7 +16596,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 {
 	// remove any whitespace from the beginning of the string, and end
-	text = text.Trim(FALSE);
+	text.Trim(FALSE);
 	// BEW 13Jul11, wrapped the text.Trim() line in a test - when we have a doc parsed
 	// from contentless USFM from Paratext, the last bit of text will be "...\v 13 " if
 	// verse 13 happens to be the last verse parsed when forming the doc. We don't want
@@ -16608,7 +16608,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	// lot for something that matters little, so I won't bother)
 	if (expType != sourceTextExport)
 	{
-		text = text.Trim();
+		text.Trim();
 	}
 
 	// FormatMarkerBufferForOutput assumes the complete text to be output as a text file is
