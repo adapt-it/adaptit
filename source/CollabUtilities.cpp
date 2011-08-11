@@ -1712,7 +1712,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 				ptrSrc += itemLen; // point at chapter number
 				charCountMarkersOnly += itemLen;
 
-				itemLen = Parse_Number(ptrSrc); // ParseNumber doesn't parse over eol chars
+				itemLen = Parse_Number(ptrSrc, pEnd); // ParseNumber doesn't parse over eol chars
 				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the number
 				lastMarkerNumericAugment += temp;
 				
@@ -1755,7 +1755,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 				ptrSrc += itemLen; // point at verse number
 				charCountMarkersOnly += itemLen;
 
-				itemLen = Parse_Number(ptrSrc); // ParseNumber doesn't parse over eol chars
+				itemLen = Parse_Number(ptrSrc, pEnd); // ParseNumber doesn't parse over eol chars
 				temp = GetStringFromBuffer(ptrSrc,itemLen); // get the verse number
 				lastMarkerNumericAugment += temp;
 				ptrSrc += itemLen; // point past verse number

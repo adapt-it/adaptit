@@ -152,7 +152,7 @@ bool Is_AnsiLetter(wxChar c);
 bool Is_ChapterMarker(wxChar* pChar);
 bool Is_VerseMarker(wxChar *pChar, int& nCount);
 wxString GetStringFromBuffer(const wxChar* ptr, int itemLen);
-int Parse_Number(wxChar *pChar);
+int Parse_Number(wxChar *pChar, wxChar *pEnd);
 //bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar); <<- unused, BEW removed 4Aug11
 bool Is_NonEol_WhiteSpace(wxChar *pChar);
 //int ParseWhiteSpace(wxChar *pChar);

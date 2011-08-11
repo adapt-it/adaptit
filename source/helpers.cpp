@@ -1172,11 +1172,16 @@ wxString GetStringFromBuffer(const wxChar* ptr, int itemLen)
 	return wxString(ptr,itemLen);
 }
 
-int Parse_Number(wxChar *pChar)
+int Parse_Number(wxChar *pChar, wxChar *pEnd) // whm 10Aug11 added wxChar *pEnd parameter
 {
 	wxChar* ptr = pChar;
 	int length = 0;
-	while (!Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r'))
+	// whm 10Aug11 added ptr < pEnd test in while loop below because a 
+	// number can be at the end of a string followed by a null character. If the 
+	// ptr < pEnd test is not included the Is_NonEol_WhiteSpace() call would 
+	// return a FALSE result and the while loop would iterate one too many times 
+	// returning a bad length
+	while (ptr < pEnd && !Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r'))
 	{
 		ptr++;
 		length++;
@@ -1335,6 +1340,10 @@ int Parse_NonEol_WhiteSpace(wxChar *pChar)
 {
 	int	length = 0;
 	wxChar* ptr = pChar;
+	// whm 10Aug11 added. If ptr is pointing at the null at the end of the buffer
+	// just return the default zero length for safety sake.
+	if (*ptr == _T('\0'))
+		return length;
 	while (Is_NonEol_WhiteSpace(ptr))
 	{
 		length++;
