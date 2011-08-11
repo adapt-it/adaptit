@@ -2144,6 +2144,70 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 	return uniqueName;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString with any multiple spaces reduced to single spaces
+/// \param		rString		-> the string we are reading characters from
+/// \remarks
+/// Called from: the Doc's OnOpenDocument(); ExportTargetText_For_Collab(),
+/// ExportFreeTransText_For_Collab(), DoExportSfmText() and 
+/// RebuildText_For_Collaboration().
+/// Cleans up rString by reducing multiple spaces to single spaces.
+/// whm 11Aug11 revised this function to do its work much faster using both a 
+/// read buffer and a write buffer instead of reading each character from the 
+/// source buffer and concatenating the character onto a wxString - a process 
+/// which can be rather slow and inefficient for lengthy strings. Also I'm 
+/// using an algorithm that eliminates the unconditional jump the original
+/// function had.
+///////////////////////////////////////////////////////////////////////////////
+wxString RemoveMultipleSpaces(wxString& rString)
+{
+	// We are building a destination buffer which will eventually contain a string
+	// that is the same size or smaller than the string in the source buffer,
+	// i.e., smaller by the number of any multiple spaces that get reduced to single 
+	// spaces.
+	int nLen = rString.Length();
+	wxASSERT(nLen >= 0);
+	
+	// Set up a write buffer for atemp which is the same size as rString.
+	// Then copy characters using pointers from the rString buffer to the atemp buffer (not
+	// advancing the pointer for where multiple spaces are adjacent to each other).
+	wxString destString;
+	destString.Empty();
+	// Our copy-to buffer must be writeable so we use GetWriteBuf() for it.
+	wxChar* pDestBuffChar = destString.GetWriteBuf(nLen + 1); // pDestBuffChar is the pointer to the write buffer
+	wxChar* pEndDestBuff = pDestBuffChar + nLen;
+
+	const wxChar* pSourceBuffChar = rString.GetData(); // pSourceBuffChar is the pointer to the read buffer
+	wxChar* pEndSourceBuff = (wxChar*)pSourceBuffChar + nLen;
+	wxASSERT(*pEndSourceBuff == _T('\0')); // ensure there is a null there
+	wxChar* pNextSource;
+	while (pSourceBuffChar < pEndSourceBuff)
+	{
+		if (*pSourceBuffChar == _T(' '))
+		{
+			pNextSource = (wxChar*)pSourceBuffChar;
+			pNextSource++;
+			if (pNextSource < pEndSourceBuff && *pNextSource == _T(' '))
+			{
+				// Advance only the pSourceBuffChar pointer and continue which
+				// will bypass writing this space into the destination buffer 
+				// because the next character in the source buffer is a space.
+				pSourceBuffChar++;
+				continue; // skip this space because another one follows this one
+			};
+		}
+		*pDestBuffChar = *pSourceBuffChar;
+		// advance both buffer pointers
+		pDestBuffChar++;
+		pSourceBuffChar++;
+	}
+	wxASSERT(pSourceBuffChar == pEndSourceBuff);
+	wxASSERT(pDestBuffChar <= pEndDestBuff);
+	*pDestBuffChar = _T('\0'); // terminate the dest buffer string with null char
+	destString.UngetWriteBuf();
+	
+	return destString;
+}
 
 int	sortCompareFunc(const wxString& first, const wxString& second)
 {
@@ -2314,8 +2378,8 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 	while (tokenizer.HasMoreTokens())
 	{
 		aToken = tokenizer.GetNextToken();
-		aToken = aToken.Trim(FALSE); // FALSE means trim white space from left end
-		aToken = aToken.Trim(); // default TRUE means trim white space from right end
+		aToken.Trim(FALSE); // FALSE means trim white space from left end
+		aToken.Trim(); // default TRUE means trim white space from right end
 		if (aToken.IsEmpty())
 		{
 			if (bStoreEmptyStringsToo)
@@ -4992,8 +5056,8 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 			wrd2 = pWord2->m_precPunct + wrd2;
 		}
 		// form the composite, after making sure no spurious spaces are in the substrings
-		wrd1 = wrd1.Trim(); // trim white space from the end of wrd1
-		wrd2 = wrd2.Trim(FALSE); // trim white space from the start of wrd2
+		wrd1.Trim(); // trim white space from the end of wrd1
+		wrd2.Trim(FALSE); // trim white space from the start of wrd2
 		srcStr = wrd1 + theSymbol + wrd2;
 	}
 	else

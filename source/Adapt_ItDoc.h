@@ -309,7 +309,7 @@ public:
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
 	wxString		RemoveAnyFilterBracketsFromString(wxString str);
-	wxString		RemoveMultipleSpaces(wxString& rString);
+	//wxString		RemoveMultipleSpaces(wxString& rString); // whm 11Aug11 moved to helpers
 	void			ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, wxString unfilterMkrs);
 	void			ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, enum resetMarkers resetMkrs);
 	void			RestoreCurrentDocVersion(); // BEW added 19Apr10 for Save As... support

@@ -2822,8 +2822,8 @@ wxString CGetSourceTextFromEditorDlg::AbbreviateColonSeparatedVerses(const wxStr
 	while (tokens.HasMoreTokens())
 	{
 		aToken = tokens.GetNextToken();
-		aToken = aToken.Trim(FALSE); // FALSE means trim white space from left end
-		aToken = aToken.Trim(TRUE); // TRUE means trim white space from right end
+		aToken.Trim(FALSE); // FALSE means trim white space from left end
+		aToken.Trim(TRUE); // TRUE means trim white space from right end
 		int len = aToken.Length();
 		int ct;
 		bool bHasNonDigitChar = FALSE;
