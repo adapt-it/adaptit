@@ -1760,7 +1760,7 @@ void DoExportInterlinearRTF()
 			//bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 			return; // user cancelled
 		}
-
+		exportPath = fileDlg.GetPath();	// GDLC 11Aug11 Put this line back in.
 	}
 	else
 	{
