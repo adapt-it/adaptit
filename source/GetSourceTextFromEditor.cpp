@@ -1899,10 +1899,31 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	if (!m_TempCollabChapterSelected.IsEmpty())
 	{
-		int nSel = pListCtrlChapterNumberAndStatus->FindItem(-1,m_TempCollabChapterSelected,TRUE); // TRUE - partial, look for items beginning with m_TempCollabChapterSelected
-		if (nSel != wxNOT_FOUND)
+		int nSel = -1;
+		int ct;
+		wxString tempStr;
+		bool bFound = FALSE;
+		for (ct = 0; ct < (int)pListCtrlChapterNumberAndStatus->GetItemCount();ct++)
 		{
-			pListCtrlChapterNumberAndStatus->Select(nSel);
+			tempStr = pListCtrlChapterNumberAndStatus->GetItemText(ct);
+			tempStr.Trim(FALSE);
+			tempStr.Trim(TRUE);
+			if (tempStr.Find(fullBookName) == 0)
+			{
+				tempStr = tempStr.Mid(fullBookName.Length()+1);
+				if (tempStr == m_TempCollabChapterSelected)
+				{
+					bFound = TRUE;
+					nSel = ct;
+					break;
+				}
+			}
+		}
+
+		//int nSel = pListCtrlChapterNumberAndStatus->FindItem(-1,m_TempCollabChapterSelected,TRUE); // TRUE - partial, look for items beginning with m_TempCollabChapterSelected
+		if (bFound) //if (nSel != wxNOT_FOUND)
+		{
+			pListCtrlChapterNumberAndStatus->Select(nSel,TRUE);
 			//pListCtrlChapterNumberAndStatus->SetFocus(); // better to set focus on OK button (see below)
 			// Update the wxTextCtrl at the bottom of the dialog with more detailed
 			// info about the book and/or chapter that is selected. 
