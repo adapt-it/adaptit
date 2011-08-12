@@ -484,8 +484,16 @@ wxString ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t
 	wxChar* ptr = NULL;
 	wxChar* pBufferStart = (wxChar*)pBufStart;
 	size_t span = (size_t)(last - first);
-	ptr = pBufferStart + (size_t)first;
-	return wxString(ptr,span);
+	if (pBufferStart + span <= pBufEnd)
+	{
+		ptr = pBufferStart + (size_t)first;
+		return wxString(ptr,span);
+	}
+	else
+	{
+		wxString emptyStr = _T("");
+		return emptyStr;
+	}
 }
 
 
@@ -2176,6 +2184,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	// Our copy-to buffer must be writeable so we use GetWriteBuf() for it.
 	wxChar* pDestBuffChar = destString.GetWriteBuf(nLen + 1); // pDestBuffChar is the pointer to the write buffer
 	wxChar* pEndDestBuff = pDestBuffChar + nLen;
+	pEndDestBuff = pEndDestBuff; // avoid compiler warning in release build
 
 	const wxChar* pSourceBuffChar = rString.GetData(); // pSourceBuffChar is the pointer to the read buffer
 	wxChar* pEndSourceBuff = (wxChar*)pSourceBuffChar + nLen;
@@ -7245,6 +7254,9 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
 									bool bSuppressWarningOnStoreKBFailure)
 {
+//#ifdef __WXDEBUG__
+
+//#else
     // BEW 6July10, code added for handling situation when the phrase box location has just
     // been made a <Not In KB> one (which marks all CRefString instances for that key as
     // m_bDeleted set TRUE and also stores a <Not In KB> for that key in the adaptation KB)
@@ -7345,6 +7357,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 			}
 		}
 	}
+//#endif
 }
 
 // BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for
