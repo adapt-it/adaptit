@@ -3721,7 +3721,9 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		if (bReachedEnd)
 			break;
 	} // end of loop: for (lineIndex = 0; lineIndex < md5ArrayCount; lineIndex++)
-	text.UngetWriteBuf();
+	// whm 12Aug11 removed this UngetWriteBuf() call, which should NEVER be done on a READ-ONLY
+	// buffer established with ::GetData().
+	//text.UngetWriteBuf();
 }
 
 wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFinish)

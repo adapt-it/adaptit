@@ -12483,7 +12483,9 @@ wxString& CAdapt_ItDoc::AppendItem(wxString& dest,wxString& src, const wxChar* p
 		{
 			*(pEnd - 2) = _T('\0'); // overwrite with a null wxChar
 		}
-		src.UngetWriteBuf(); // cause str's length to be recalculated
+		// whm 12Aug11 removed this UngetWriteBuf() call, which should NEVER be done on a READ-ONLY
+		// buffer established with ::GetData().
+		//src.UngetWriteBuf(); // cause str's length to be recalculated
 	}
 #else
 	if (itemLen >= 1 && (*(ptr - 1) == _T('\n') || *(ptr - 1) == _T('\r')))
@@ -12496,7 +12498,9 @@ wxString& CAdapt_ItDoc::AppendItem(wxString& dest,wxString& src, const wxChar* p
 		{
 			*(pEnd - 1) = _T('\0'); // overwrite with a null wxChar
 		}
-		src.UngetWriteBuf(); // cause str's length to be recalculated
+		// whm 12Aug11 removed this UngetWriteBuf() call, which should NEVER be done on a READ-ONLY
+		// buffer established with ::GetData().
+		//src.UngetWriteBuf(); // cause str's length to be recalculated
 	}
 #endif
 	dest += src;
