@@ -2762,10 +2762,20 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 		// 1 and we need to deal with that material here
 		bool postEditArrHasPre_Chapter_One_Material = FALSE;
 		bool fromEditorArrHasPre_Chapter_One_Material = FALSE;
-		wxString postEditVerseNumStr = ((VerseInf*)postEditVerseArr.Item(0))->verseNumStr;
-		wxString fromEditorVerseNumStr = ((VerseInf*)fromEditorVerseArr.Item(0))->verseNumStr;
-		bool postEdit_ItsComplexFlag = ((VerseInf*)postEditVerseArr.Item(0))->bIsComplex;
-		bool fromEditor_ItsComplexFlag = ((VerseInf*)fromEditorVerseArr.Item(0))->bIsComplex;
+		wxString postEditVerseNumStr = _T("");
+		wxString fromEditorVerseNumStr = _T("");
+		bool postEdit_ItsComplexFlag = FALSE;
+		bool fromEditor_ItsComplexFlag = FALSE;
+		if (!postEditVerseArr.IsEmpty())
+		{
+			postEditVerseNumStr = ((VerseInf*)postEditVerseArr.Item(0))->verseNumStr;
+			postEdit_ItsComplexFlag = ((VerseInf*)postEditVerseArr.Item(0))->bIsComplex;
+		}
+		if (!fromEditorVerseArr.IsEmpty())
+		{
+			fromEditorVerseNumStr = ((VerseInf*)fromEditorVerseArr.Item(0))->verseNumStr;
+			fromEditor_ItsComplexFlag = ((VerseInf*)fromEditorVerseArr.Item(0))->bIsComplex;
+		}
 		if (postEditVerseNumStr == _T("0") && postEdit_ItsComplexFlag == TRUE)
 		{
 			// first test is the important one, if TRUE, then 2nd will always be TRUE; but
@@ -2808,9 +2818,9 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 				// the postEditArr has the pre-chapter-one material
 				postEdit_EndAt = ((VerseInf*)postEditVerseArr.Item(0))->indexIntoArray;
 			}
-			else
+			else if (fromEditorArrHasPre_Chapter_One_Material)
 			{
-				// the fromEditorArr must be the one with the pre-chapter-one material
+				// the fromEditorArr is the one with the pre-chapter-one material
 				fromEditor_EndAt = ((VerseInf*)fromEditorVerseArr.Item(0))->indexIntoArray;
 			}
 		}

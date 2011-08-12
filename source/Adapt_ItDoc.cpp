@@ -4663,12 +4663,14 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
-//#ifdef __WXDEBUG__
-//				wxString msg;
-//				msg = msg.Format(_T("Deleting    %s    at sequnum =  %d"),
-//					pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
-//				wxLogDebug(msg);
-//#endif
+#ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
+#ifdef __WXDEBUG__
+				wxString msg;
+				msg = msg.Format(_T("Deleting    %s    at sequ num =  %d"),
+					pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+				wxLogDebug(msg);
+#endif
+#endif
 				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // FALSE is the
 					// value for bDoPartnerPileDeletionAlso, because it is
 					// more efficient to delete them later en masse with a call
@@ -4679,6 +4681,15 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			pApp->m_pSourcePhrases->Clear(); 
 		}
 	}
+#ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
+#ifdef __WXDEBUG__
+	{
+		wxString msg;
+		msg = msg.Format(_T("Cleared  m_pSourcePhrases at end of DeleteSourcePhrases()"));
+		wxLogDebug(msg);
+	}
+#endif
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
