@@ -297,10 +297,16 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	// fill the list box with the folder name strings
 	wxString showItem;
 	size_t ct = possibleAdaptions.GetCount();
-	if (ct == 1)
+	// whm 11Aug11 modified test below to examine the first item in
+	// possibleAdaptions to see if it is _("<New Project>") rather 
+	// than testing if the count ct is 1 to determine whether the
+	// gbWizardNewProject flag should be set to TRUE or not. This is
+	// necessary because when the user profile removes the <New Project> 
+	// item from the list, the count is not a sufficient test.
+	if (ct == 1 && possibleAdaptions.Item(0) == _("<New Project>"))
 	{
-		// with just one in listbox the only possible choice is <New Project>
-		// so set the global gbWizardNewProject to TRUE
+		// with just one in listbox and the only possible choice is 
+		// <New Project>, set the global gbWizardNewProject to TRUE
 		gbWizardNewProject = TRUE;
 	}
 	for (size_t index = 0; index < ct; index++)
