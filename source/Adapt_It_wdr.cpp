@@ -8207,7 +8207,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_INFO, _("Note: Adapt It creates the following folders. Most are created within project folders. If you check the box labeled \"Protect from Navigation\" the user will not be allowed to navigate away from the named folder when obtaining inputs into Adapt It or when exporting texts from Adapt It, but must use the pre-defined folder."), wxDefaultPosition, wxSize(400,80), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_INFO, _("Note: Adapt It creates the following folders. Most are created within project folders. If you check the box labeled \"Protect from Navigation\" the user will not be allowed to navigate away from the named folder when obtaining inputs into Adapt It or when exporting texts from Adapt It, but must use the pre-defined folder."), wxDefaultPosition, wxSize(400,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8226,8 +8226,6 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
-
-    item9->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxCheckBox *item10 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_INPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8248,7 +8246,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Locations for specific types of outputs:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item14 = new wxFlexGridSizer( 2, 3, 4 );
+    wxFlexGridSizer *item14 = new wxFlexGridSizer( 4, 3, 10 );
 
     wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, wxT("_FREETRANS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8274,40 +8272,40 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxCheckBox *item22 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_GLOSS_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, wxT("_INTERLINEAR_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, wxT("_SOURCE_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_INTERLINEAR_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, wxT("_SOURCE_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, wxT("_SOURCE_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, wxT("_SOURCE_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, wxT("_TARGET_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item28 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_SOURCE_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item28 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, wxT("_TARGET_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, wxT("_TARGET_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, wxT("_TARGET_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, wxT("_REPORTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item32 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item32 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_REPORTS_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, wxT("_REPORTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, wxT("_INTERLINEAR_RTF_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item34 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_REPORTS_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item34 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_INTERLINEAR_RTF_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8318,7 +8316,7 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Locations where both inputs and outputs use the same folder:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item37 = new wxFlexGridSizer( 2, 3, 4 );
+    wxFlexGridSizer *item37 = new wxFlexGridSizer( 4, 3, 10 );
 
     wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, wxT("_KB_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
