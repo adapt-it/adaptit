@@ -157,15 +157,15 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	{
 		pBtnPreLoadSourceTexts->Disable();
 		pProtectSourceInputs->SetValue(TRUE);
-		pProtectSourceInputs->SetLabel(_("Using Paratext's project folder"));
+		pProtectSourceInputs->SetLabel(_("Using Paratext project"));
 		pProtectSourceInputs->Disable();
 		pProtectTargetOutputs->SetValue(TRUE);
-		pProtectTargetOutputs->SetLabel(_("Using Paratext's project folder"));
+		pProtectTargetOutputs->SetLabel(_("Using Paratext project"));
 		pProtectTargetOutputs->Disable();
 		if (!m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
 		{
 			pProtectFreeTransOutputs->SetValue(TRUE);
-			pProtectFreeTransOutputs->SetLabel(_("Using Paratext's project folder"));
+			pProtectFreeTransOutputs->SetLabel(_("Using Paratext project"));
 			pProtectFreeTransOutputs->Disable();
 		}
 	}
@@ -173,15 +173,15 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	{
 		pBtnPreLoadSourceTexts->Disable();
 		pProtectSourceInputs->SetValue(TRUE);
-		pProtectSourceInputs->SetLabel(_("Using Bibledit's project folder"));
+		pProtectSourceInputs->SetLabel(_("Using Bibledit project"));
 		pProtectSourceInputs->Disable();
 		pProtectTargetOutputs->SetValue(TRUE);
-		pProtectTargetOutputs->SetLabel(_("Using Bibledit's project folder"));
+		pProtectTargetOutputs->SetLabel(_("Using Bibledit project"));
 		pProtectTargetOutputs->Disable();
 		if (!m_pApp->m_CollabProjectForFreeTransExports.IsEmpty())
 		{
 			pProtectFreeTransOutputs->SetValue(TRUE);
-			pProtectFreeTransOutputs->SetLabel(_("Using Bibledit's project folder"));
+			pProtectFreeTransOutputs->SetLabel(_("Using Bibledit project"));
 			pProtectFreeTransOutputs->Disable();
 		}
 	}
