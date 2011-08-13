@@ -35144,6 +35144,24 @@ a:			wxString stdDocsDir = _T("");
 		// earlier one which was in effect at entry, or a different one.
 		m_bUseCustomWorkFolderPath = TRUE;
 		m_customWorkFolderPath = workFolderPath;
+		
+		// whm added 12Aug11. 
+		// The administrator has just successfully slected a folder to be used as a
+		// custom work folder. I think we should ask the administrator at this point
+		// if his intent is that this custom work folder be locked in or not. Otherwise
+		// if he forgets to tick the Administrator item "Lock Custom Location" 
+		// afterwards, he (or the MTT) may be dismayed to find out that the custom 
+		// work folder is not being used after it was set up. This is the way the
+		// Load Consistent Changes... and "Use Consistent Changes" menu items work.
+		wxString msg;
+		msg = _("You have selected the following folder to be used as a custom work folder:\n\n%s\n\nDo you want this custom work folder to be \"locked\" so that it becomes the user's permanent workk folder?");
+		msg = msg.Format(msg,m_customWorkFolderPath.c_str());
+		int response = wxMessageBox(msg,_T("Is this custom work folder permanent or temporary?"),wxICON_QUESTION | wxYES_NO);
+		if (response == wxYES)
+		{
+			wxCommandEvent dummyEvent;
+			OnLockCustomLocation(dummyEvent);
+		}
 	}
 
 	// whm 10Jun11 moved CloseProject() here from above.
