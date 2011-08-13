@@ -1582,14 +1582,14 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		beProjPathTgt = beProjPath + m_pApp->PathSeparator + targetProjShortName;
 		int chNumForBEDirect = -1; // for Bibledit to get whole book
 		bool bWriteOK;
-		bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, sourceTempFileName, errorsSrc);
+		bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, sourceTempFileName, errorsSrc);
 		if (bWriteOK)
 			resultSrc = 0; // 0 means same as wxExecute() success
 		else // bWriteOK was FALSE
 			resultSrc = 1; // 1 means same as wxExecute() ERROR, errorsSrc will contain error message(s)
 		if (resultSrc == 0)
 		{
-			bWriteOK = m_pApp->CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNumForBEDirect, targetTempFileName, errorsTgt);
+			bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathTgt, fullBookName, chNumForBEDirect, targetTempFileName, errorsTgt);
 			if (bWriteOK)
 				resultTgt = 0; // 0 means same as wxExecute() success
 			else // bWriteOK was FALSE
