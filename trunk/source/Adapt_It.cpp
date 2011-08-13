@@ -35154,7 +35154,7 @@ a:			wxString stdDocsDir = _T("");
 		// work folder is not being used after it was set up. This is the way the
 		// Load Consistent Changes... and "Use Consistent Changes" menu items work.
 		wxString msg;
-		msg = _("You have selected the following folder to be used as a custom work folder:\n\n%s\n\nDo you want this custom work folder to be \"locked\" so that it becomes the user's permanent workk folder?");
+		msg = _("You have selected the following folder to be used as a custom work folder:\n\n%s\n\nDo you want this custom work folder to be \"locked\" so that it becomes the user's permanent work folder?");
 		msg = msg.Format(msg,m_customWorkFolderPath.c_str());
 		int response = wxMessageBox(msg,_T("Is this custom work folder permanent or temporary?"),wxICON_QUESTION | wxYES_NO);
 		if (response == wxYES)
