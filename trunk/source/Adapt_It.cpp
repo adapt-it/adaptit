@@ -12346,6 +12346,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 	
+	// testing of BreakStringBufIntoChapters()
+	//wxString testBookStr1,testBookStr2,testBookStr3;
+	//testBookStr1 = _T("\\id MAT \n\\mt Matthew\n\\c 1\n\\s Subheading 1\n\\v 1\n\\c 2\n\\c 3\n\\v 1 \\v2 \\v3\n\\c 4\n\\v 1 Some verse text.\n\\c 5\n\\v 1");
+	//testBookStr2 = _T("This string has no chapters or verses");
+	//testBookStr3 = _T("\\c 1\n\\s Subheading 1\n\\v 1 This is the text of verse 1 of chapter 1\n\\c 2\n\\c 3\n\\v 1 \\v2 \\v3\n\\c 4\n\\v 1 Some verse text.\n\\c 5\n\\v 1");
+	//wxArrayString testBookArr1,testBookArr2,testBookArr3;
+	//testBookArr1 = BreakStringBufIntoChapters(testBookStr1);
+	//testBookArr2 = BreakStringBufIntoChapters(testBookStr2);
+	//testBookArr3 = BreakStringBufIntoChapters(testBookStr3);
+	//int testBSct;
+	//for (testBSct = 0; testBSct < (int)testBookArr1.GetCount(); testBSct++)
+	//	wxLogDebug(_T("testBookArr1[%d] = [%s]"),testBSct,testBookArr1.Item(testBSct).c_str());
+	//for (testBSct = 0; testBSct < (int)testBookArr2.GetCount(); testBSct++)
+	//	wxLogDebug(_T("testBookArr2[%d] = [%s]"),testBSct,testBookArr2.Item(testBSct).c_str());
+	//for (testBSct = 0; testBSct < (int)testBookArr3.GetCount(); testBSct++)
+	//	wxLogDebug(_T("testBookArr3[%d] = [%s]"),testBSct,testBookArr3.Item(testBSct).c_str());
+	//int endTest = 1;
+
 	// testing of RemoveMultipleSpaces()
 	//wxString testMultiSpInitial = _T("  This is a test string with multiple spaces initially");
 	//wxString testMultiSpFinal = _T("This is a test string with multiple spaces initially  ");
@@ -38528,153 +38546,6 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 		bookCode = wxString(bookCd,wxConvUTF8);
 	}
 	return bookCode;
-}
-
-bool CAdapt_ItApp::CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
-{
-	// construct the path to the Bibledit chapter data files
-	wxString pathToBookFolder;
-	wxString dataFolder = _T("data");
-	pathToBookFolder = projectPath + PathSeparator + dataFolder + PathSeparator + bookName;
-	wxString dataBuffer = _T("");
-	bool bGetWholeBook = FALSE;
-	if (chapterNumber == -1)
-	{
-		// get the whole book
-		bGetWholeBook = TRUE;
-	}
-	wxFile* pTempFile;
-	// We need to ensure it doesn't exist because we are concatenating in the pTempFile->Write() call below and
-	// we want to start afresh in the file.
-	if (::wxFileExists(tempFilePathName))
-	{
-		bool bRemoved = FALSE;
-		bRemoved = ::wxRemoveFile(tempFilePathName); 
-		if (!bRemoved)
-		{
-			// Not likely to happen, so an English message will suffice.
-			wxString msg = _T("Unable to remove existing temporary file at:\n%s");
-			msg = msg.Format(msg,tempFilePathName.c_str());
-			errors.Add(msg);
-			return FALSE;
-		}
-	}
-	pTempFile = new wxFile(tempFilePathName,wxFile::write_append); // just append new data to end of the temp file;
-	if (pTempFile == NULL)
-	{
-		// Not likely to happen, so an English message will suffice.
-		wxString msg = _T("Unable to create temporary file at:\n%s");
-		msg = msg.Format(msg,tempFilePathName.c_str());
-		errors.Add(msg);
-		// no need to delete pTempFile here
-		return FALSE;
-	}
-	if (bGetWholeBook)
-	{
-		// Get the whole book for bookName. We read the data file contents located within 
-		// each chapter folder, and concatenate them into a single string buffer
-		wxArrayString chNumArray;
-		wxDir finder(pathToBookFolder);
-		if (finder.Open(pathToBookFolder))
-		{
-			wxString str = _T("");
-			bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_DIRS); // only get directories
-			while (bWorking)
-			{
-				// str should be in the form of numbers "0", "1", "2" ... for as many chapters as are
-				// contained in the book.
-				// whm Note: The folders representing chapter numbers won't necessarily be traversed
-				// in numerical order, therefore we must put the numbers into an array and sort the
-				// array, before we concatenate the text chapters into a whole book
-				if (str.Length() == 1)
-					str = _T("00") + str;
-				else if (str.Length() == 2)
-					str = _T("0") + str;
-				chNumArray.Add(str);
-				bWorking = finder.GetNext(&str);
-			}
-			// now sort the array.
-			chNumArray.Sort();
-			int ct;
-			for (ct = 0; ct < (int)chNumArray.GetCount(); ct++)
-			{
-				wxString chNumStr;
-				chNumStr.Empty();
-				chNumStr << chNumArray.Item(ct);
-				while (chNumStr.GetChar(0) == _T('0') && chNumStr.Length() > 1)
-					chNumStr.Remove(0,1);
-				wxString pathToChapterDataFolder = pathToBookFolder + PathSeparator + chNumStr + PathSeparator + dataFolder;
-				bool bOK;
-				if (!::wxFileExists(pathToChapterDataFolder))
-				{
-					// Not likely to happen, so an English message will suffice.
-					wxString msg = _T("A Bibledit data folder was not found at:\n%s");
-					msg = msg.Format(msg,pathToChapterDataFolder.c_str());
-					errors.Add(msg);
-					delete pTempFile;
-					pTempFile = (wxFile*)NULL;
-					return FALSE;
-				}
-				dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
-				bOK = pTempFile->Write(dataBuffer);
-				if (!bOK)
-				{
-					// Not likely to happen, so an English message will suffice.
-					wxString msg = _T("Unable to write to temporary file at:\n%s");
-					msg = msg.Format(msg,tempFilePathName.c_str());
-					errors.Add(msg);
-					delete pTempFile;
-					pTempFile = (wxFile*)NULL;
-					return FALSE;
-				}
-			}
-
-		}
-		else
-		{
-			// Not likely to happen, so an English message will suffice.
-			wxString msg = _T("Unable to open book directory at:\n%s");
-			msg = msg.Format(msg,pathToBookFolder.c_str());
-			errors.Add(msg);
-			delete pTempFile;
-			pTempFile = (wxFile*)NULL;
-			return FALSE;
-		}
-	}
-	else
-	{
-		// Get only a chapter. This amounts to reading the data file content of the given
-		// chapter folder
-		wxString chNumStr = _T("");
-		chNumStr << chapterNumber;
-		wxString pathToChapterDataFolder = pathToBookFolder + PathSeparator + chNumStr + PathSeparator + dataFolder;
-		bool bOK;
-		if (!::wxFileExists(pathToChapterDataFolder))
-		{
-			// Not likely to happen, so an English message will suffice.
-			wxString msg = _T("A Bibledit data folder was not found at:\n%s");
-			msg = msg.Format(msg,pathToChapterDataFolder.c_str());
-			errors.Add(msg);
-			delete pTempFile;
-			pTempFile = (wxFile*)NULL;
-			return FALSE;
-		}
-		dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
-		bOK = pTempFile->Write(dataBuffer);
-		if (!bOK)
-		{
-			// Not likely to happen, so an English message will suffice.
-			wxString msg = _T("Unable to write to temporary file at:\n%s");
-			msg = msg.Format(msg,tempFilePathName.c_str());
-			errors.Add(msg);
-			delete pTempFile;
-			pTempFile = (wxFile*)NULL;
-			return FALSE;
-		}
-	}
-	delete pTempFile;
-	pTempFile = (wxFile*)NULL;
-	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

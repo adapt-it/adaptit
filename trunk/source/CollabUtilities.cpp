@@ -312,10 +312,29 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 		chNumForBEDirect = -1;
 	}
 
+	wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
+	wxString shortProjName;
+	switch (textKind)
+	{
+	case collab_source_text:
+		shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
+		break;
+	case  collab_target_text:
+		shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
+		break;
+	case collab_freeTrans_text:
+		shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
+		break;
+	}
+	beProjPath += gpApp->PathSeparator + shortProjName;
+	wxString fullBookName = gpApp->m_CollabBookSelected;
+	wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
+	
 	if (lineFor == reading)
 	{
 		// we are transferring data from Paratext or Bibledit, to Adapt It
-		
+		// whm Note: The feedback from textIOarray and errorsIOArray is handled
+		// in the calling function MakeUpdatedTextForExternalEditor().
 		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
 		{
 			// Use the wxExecute() override that takes the two wxStringArray parameters. This
@@ -325,26 +344,8 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 		}
 		else if (gpApp->m_bCollaboratingWithBibledit)
 		{
-			// whm 27Jul11 TODO: modify code below to retrieve whole book if m_bTempCollabByChapterOnly is FALSE
-			wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
-			wxString shortProjName;
-			switch (textKind)
-			{
-			case collab_source_text:
-				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForSourceInputs);
-				break;
-			case  collab_target_text:
-				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForTargetExports);
-				break;
-			case collab_freeTrans_text:
-				shortProjName = GetShortNameFromProjectName(gpApp->m_CollabProjectForFreeTransExports);
-				break;
-			}
-			beProjPath += gpApp->PathSeparator + shortProjName;
-			wxString fullBookName = gpApp->m_CollabBookSelected;
-			wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
 			bool bWriteOK;
-			bWriteOK = gpApp->CopyTextFromBibleditDataToTempFolder(beProjPath, fullBookName, chNumForBEDirect, 
+			bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPath, fullBookName, chNumForBEDirect, 
 																	theFileName, errorsIOArray);
 			if (bWriteOK)
 				resultCode = 0; // 0 means same as wxExecute() success
@@ -352,20 +353,297 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 				resultCode = 1; // 1 means same as wxExecute() ERROR, errorsIOArray will contain error message(s)
 		}
 	} // end of TRUE block for test:  if (lineFor == reading)
-	else
+	else // lineFor == writing
 	{
 		// we are transferring data from Adapt It, to either Paratext or Bibledit
-
-
-
-
-		// TODO Bill said above he'd do the "whole book" option, so it needs to be done here
-		
-
-
+		// whm 13Aug11 added this code for transferring data from Adapt It to Paratext or Bibledit
+		// whm Note: The feedback from textIOarray and errorsIOArray is handled
+		// in the calling function MakeUpdatedTextForExternalEditor().
+		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
+		{
+			// Use the wxExecute() override that takes the two wxStringArray parameters. This
+			// also redirects the output and suppresses the dos console window during execution.
+			wxString commandLine = BuildCommandLineFor(lineFor, textKind);
+			resultCode = ::wxExecute(commandLine,textIOArray,errorsIOArray);
+		}
+		else if (gpApp->m_bCollaboratingWithBibledit)
+		{
+			bool bWriteOK;
+			bWriteOK = CopyTextFromTempFolderToBibleditData(beProjPath, fullBookName, chNumForBEDirect,
+																	theFileName,errorsIOArray);
+			if (bWriteOK)
+				resultCode = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultCode = 1; // 1 means same as wxExecute() ERROR, errorsIOArray will contain error message(s)
+		}
 	}
 }
 
+bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
+{
+	// construct the path to the Bibledit chapter data files
+	wxString pathToBookFolder;
+	wxString dataFolder = _T("data");
+	pathToBookFolder = projectPath + gpApp->PathSeparator + dataFolder + gpApp->PathSeparator + bookName;
+	wxString dataBuffer = _T("");
+	bool bGetWholeBook = FALSE;
+	if (chapterNumber == -1)
+	{
+		// get the whole book
+		bGetWholeBook = TRUE;
+	}
+	wxFile* pTempFile;
+	// We need to ensure it doesn't exist because we are concatenating in the pTempFile->Write() call below and
+	// we want to start afresh in the file.
+	if (::wxFileExists(tempFilePathName))
+	{
+		bool bRemoved = FALSE;
+		bRemoved = ::wxRemoveFile(tempFilePathName); 
+		if (!bRemoved)
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("Unable to remove existing temporary file at:\n%s");
+			msg = msg.Format(msg,tempFilePathName.c_str());
+			errors.Add(msg);
+			return FALSE;
+		}
+	}
+	pTempFile = new wxFile(tempFilePathName,wxFile::write_append); // just append new data to end of the temp file;
+	if (pTempFile == NULL)
+	{
+		// Not likely to happen, so an English message will suffice.
+		wxString msg = _T("Unable to create temporary file at:\n%s");
+		msg = msg.Format(msg,tempFilePathName.c_str());
+		errors.Add(msg);
+		// no need to delete pTempFile here
+		return FALSE;
+	}
+	if (bGetWholeBook)
+	{
+		// Get the whole book for bookName. We read the data file contents located within 
+		// each chapter folder, and concatenate them into a single string buffer
+		wxArrayString chNumArray;
+		wxDir finder(pathToBookFolder);
+		if (finder.Open(pathToBookFolder))
+		{
+			wxString str = _T("");
+			bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_DIRS); // only get directories
+			while (bWorking)
+			{
+				// str should be in the form of numbers "0", "1", "2" ... for as many chapters as are
+				// contained in the book.
+				// whm Note: The folders representing chapter numbers won't necessarily be traversed
+				// in numerical order, therefore we must put the numbers into an array and sort the
+				// array, before we concatenate the text chapters into a whole book
+				if (str.Length() == 1)
+					str = _T("00") + str;
+				else if (str.Length() == 2)
+					str = _T("0") + str;
+				chNumArray.Add(str);
+				bWorking = finder.GetNext(&str);
+			}
+			// now sort the array.
+			chNumArray.Sort();
+			int ct;
+			for (ct = 0; ct < (int)chNumArray.GetCount(); ct++)
+			{
+				wxString chNumStr;
+				chNumStr.Empty();
+				chNumStr << chNumArray.Item(ct);
+				while (chNumStr.GetChar(0) == _T('0') && chNumStr.Length() > 1)
+					chNumStr.Remove(0,1);
+				wxString pathToChapterDataFolder = pathToBookFolder + gpApp->PathSeparator + chNumStr + gpApp->PathSeparator + dataFolder;
+				bool bOK;
+				if (!::wxFileExists(pathToChapterDataFolder))
+				{
+					// Not likely to happen, so an English message will suffice.
+					wxString msg = _T("A Bibledit data folder was not found at:\n%s");
+					msg = msg.Format(msg,pathToChapterDataFolder.c_str());
+					errors.Add(msg);
+					delete pTempFile;
+					pTempFile = (wxFile*)NULL;
+					return FALSE;
+				}
+				dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
+				bOK = pTempFile->Write(dataBuffer);
+				if (!bOK)
+				{
+					// Not likely to happen, so an English message will suffice.
+					wxString msg = _T("Unable to write to temporary file at:\n%s");
+					msg = msg.Format(msg,tempFilePathName.c_str());
+					errors.Add(msg);
+					delete pTempFile;
+					pTempFile = (wxFile*)NULL;
+					return FALSE;
+				}
+			}
+
+		}
+		else
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("Unable to open book directory at:\n%s");
+			msg = msg.Format(msg,pathToBookFolder.c_str());
+			errors.Add(msg);
+			delete pTempFile;
+			pTempFile = (wxFile*)NULL;
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Get only a chapter. This amounts to reading the data file content of the given
+		// chapter folder
+		wxString chNumStr = _T("");
+		chNumStr << chapterNumber;
+		wxString pathToChapterDataFolder = pathToBookFolder + gpApp->PathSeparator + chNumStr + gpApp->PathSeparator + dataFolder;
+		bool bOK;
+		if (!::wxFileExists(pathToChapterDataFolder))
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("A Bibledit data folder was not found at:\n%s");
+			msg = msg.Format(msg,pathToChapterDataFolder.c_str());
+			errors.Add(msg);
+			delete pTempFile;
+			pTempFile = (wxFile*)NULL;
+			return FALSE;
+		}
+		dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
+		bOK = pTempFile->Write(dataBuffer);
+		if (!bOK)
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("Unable to write to temporary file at:\n%s");
+			msg = msg.Format(msg,tempFilePathName.c_str());
+			errors.Add(msg);
+			delete pTempFile;
+			pTempFile = (wxFile*)NULL;
+			return FALSE;
+		}
+	}
+	delete pTempFile;
+	pTempFile = (wxFile*)NULL;
+	return TRUE;
+}
+
+bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
+{
+	// The objective is to split up the returning whole-book text 
+	// into chapters 0, 1, 2, 3, etc and copy them back to the 
+	// Bibledit's individual chapter data folders.
+
+	// construct the path to the Bibledit chapter data files
+	wxString pathToBookFolder;
+	wxString dataFolder = _T("data");
+	pathToBookFolder = projectPath + gpApp->PathSeparator + dataFolder + gpApp->PathSeparator + bookName;
+	wxString dataBuffer = _T("");
+	bool bDoWholeBook = FALSE;
+	if (chapterNumber == -1)
+	{
+		// get the whole book
+		bDoWholeBook = TRUE;
+	}
+	// We need to ensure it exists otherwise we've nothing to do.
+	if (!::wxFileExists(tempFilePathName))
+	{
+		// Not likely to happen, so an English message will suffice.
+		wxString msg = _T("Unable to locate temporary file at:\n%s");
+		msg = msg.Format(msg,tempFilePathName.c_str());
+		errors.Add(msg);
+		return FALSE;
+	}
+
+	wxString strBuffer;
+	strBuffer = GetTextFromFileInFolder(tempFilePathName);
+	wxArrayString chapterStringsForBE;
+	chapterStringsForBE = BreakStringBufIntoChapters(strBuffer);
+
+	// The chapterStringsForBE array now contains all parts of the
+	// Scripture book partitioned into intro material (0) and chapters
+	// (1, 2, 3, 4, etc).
+	// Now write the data back to the Bibledit data files
+	wxFFile ff;
+	int chCount;
+	wxString dataPath;
+	for (chCount = 0;chCount < (int)chapterStringsForBE.GetCount(); chCount++)
+	{
+		// Create the path to the "data" folder for the indicated chapter.
+		// Note: Except for element zero of the chapterStringsForBE array, we 
+		// need to look at the actual chapter number used in the \c n in the
+		// array element - we can't assume that all chapters are purely 
+		// in sequential order. Some chapters may be missing or skipped in
+		// the book text.
+		wxString tempChStr;
+		tempChStr = chapterStringsForBE.Item(chCount);
+		int nTheLen = tempChStr.Length();
+		// wx version the pBuffer is read-only so use GetData()
+		const wxChar* pBuffer = tempChStr.GetData();
+		wxChar* ptr = (wxChar*)pBuffer;		// save start address of Buffer
+		wxChar* pEnd;
+		pEnd = ptr + nTheLen;// bound past which we must not go
+		wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
+		int itemLen;
+		wxString chapterNumStr = _T("");
+		bool bFoundFirstVerse = FALSE;
+		bool bOK;
+		while (ptr < pEnd)
+		{
+			int nMkrLen = -1;
+			if (Is_VerseMarker(ptr,nMkrLen))
+			{
+				itemLen = Parse_Marker(ptr,pEnd);
+				ptr += itemLen; // point past the \c marker
+
+				itemLen = Parse_NonEol_WhiteSpace(ptr);
+				ptr += itemLen; // point past the space
+
+				itemLen = Parse_Number(ptr, pEnd); // ParseNumber doesn't parse over eol chars
+				chapterNumStr = GetStringFromBuffer(ptr,itemLen); // get the number
+				bFoundFirstVerse = TRUE;
+			}
+			ptr++;
+		}
+		if (chCount == 0)
+		{
+			// This is pre-chapter 1 material that goes into data for the "0" folder
+			dataPath = pathToBookFolder + gpApp->PathSeparator + _T("0") + gpApp->PathSeparator + dataFolder;
+			
+		}
+		else if (bFoundFirstVerse)
+		{
+			// verseNumStr contains the chapter number that followed the \c marker
+			dataPath = pathToBookFolder + gpApp->PathSeparator + chapterNumStr + gpApp->PathSeparator + dataFolder;
+			
+		}
+		// Verify that Bibledit actually has a "data" file at the path specified in dataPath
+		if (!::wxFileExists(dataPath))
+		{
+			// Not likely to happen, so an English message will suffice.
+			wxString msg = _T("A Bibledit data folder for chapter (%s) was not found at:\n%s");
+			msg = msg.Format(msg,chapterNumStr.c_str(),dataPath.c_str());
+			errors.Add(msg);
+			return FALSE;
+			// Any action to take here deferred to caller
+		}
+
+		const wxChar writemode[] = _T("w");
+		if (ff.Open(dataPath, writemode))
+		{
+			// no error  when opening
+			ff.Write(tempChStr, wxConvUTF8);
+			bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
+		}
+		else
+		{
+			wxString msg = _T("Unable to create a Bibledit data folder for chapter (%s) at:\n%s");
+			msg = msg.Format(msg,chapterNumStr.c_str(),dataPath.c_str());
+			errors.Add(msg);
+			return FALSE;
+			// Any action to take here deferred to caller
+		}
+	}
+	return TRUE;
+}
 
 // The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
 // tweaked so as to remove support for the latter's context of a wizard dialog; it should
@@ -791,6 +1069,56 @@ wxString GetTextFromFileInFolder(wxString folderPathAndName) // an override of a
 	return theText;
 }
 
+// Breaks a usfm formatted Scripture text into chapters, storing each chapter
+// in an element of the wxArrayString. The material preceding chapter 1 is
+// stored in element 0 of the array, the contents of chapter 1 in element 1,
+// the contents of chapter 2 in element 2, etc. This is used for 
+wxArrayString BreakStringBufIntoChapters(const wxString& bookString)
+{
+	wxArrayString tempArrayString;
+	const wxChar* pBuffer = bookString.GetData();
+	int nBufLen = bookString.Len();
+	wxChar* ptr = (wxChar*)pBuffer;	// point to the first wxChar (start) of the buffer text
+	wxChar* pEnd = (wxChar*)pBuffer + nBufLen;	// point past the last wxChar of the buffer text
+	wxASSERT(*pEnd == '\0');
+
+	wxChar* pFirstCharOfSubString = ptr;
+	int chapterCharCount = 0;
+	bool bHitFirstChapter = FALSE;
+	while (ptr < pEnd)
+	{
+		if (Is_ChapterMarker(ptr))
+		{
+			if (!bHitFirstChapter)
+			{
+				// Store the text preceding the first chapter \c marker
+				wxString chStr = wxString(pFirstCharOfSubString,chapterCharCount);
+				tempArrayString.Add(chStr);
+				chapterCharCount = 0;
+				pFirstCharOfSubString = ptr;
+				bHitFirstChapter = TRUE;
+			}
+			else
+			{
+				// store the previous chapter's text
+				wxString chStr = wxString(pFirstCharOfSubString,chapterCharCount);
+				tempArrayString.Add(chStr);
+				chapterCharCount = 0;
+				pFirstCharOfSubString = ptr;
+			}
+		}
+		chapterCharCount++;
+		ptr++;
+	}
+	// get the last chapter
+	if (chapterCharCount != 0)
+	{
+		wxString chStr = wxString(pFirstCharOfSubString,chapterCharCount);
+		tempArrayString.Add(chStr);
+		chapterCharCount = 0;
+	}
+	return tempArrayString;
+}
 
 // Pass in the absolute path to the file, which should be UTF-8. The function opens and
 // reads the file into a temporary byte buffer internally which is destroyed when the

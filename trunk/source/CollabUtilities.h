@@ -135,6 +135,7 @@ class CSourcePhrase;
 	wxString		ExportFreeTransText_For_Collab(SPList* pDocList);
 	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
+	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
 	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
 	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
 						   bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
@@ -164,6 +165,11 @@ class CSourcePhrase;
 	void			TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
 							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
 	
+	bool			CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
+							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+	bool			CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, 
+							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+
 	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
