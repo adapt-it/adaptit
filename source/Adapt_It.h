@@ -3144,8 +3144,11 @@ public:
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
-	bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
-					int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+	// whm 13Aug11 moved to CollabUtilities.h
+	//bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
+	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+	//bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, 
+	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 
