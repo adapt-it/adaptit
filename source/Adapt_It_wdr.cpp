@@ -7902,7 +7902,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_NOTE, _("Note: Before setting up %s collaboration, check the following list to see if the desired projects have been created within %s. If not, you should set up all %s projects needed by the user before you turn on %s collaboration below."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_NOTE, _("Note: Before setting up %s collaboration, check the following list to see if the desired projects have been created within %s. If not, you should set up all %s projects needed by the user before you turn on %s collaboration below."), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -7913,7 +7913,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, IDC_LIST_OF_COLLAB_PROJECTS, wxDefaultPosition, wxSize(400,100), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, IDC_LIST_OF_COLLAB_PROJECTS, wxDefaultPosition, wxSize(400,80), 0, strs6, wxLB_SINGLE );
     item6->SetToolTip( _("List of potential projects currently available for Adapt It use") );
     item4->Add( item6, 1, wxGROW|wxALL, 5 );
 
@@ -7921,7 +7921,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_IMPORTANT_BOTTOM_NOTE, _("Important: When %s Collaboration is ON, the Adapt It user can only select from the above list of projects; one project for obtaining source texts, and another project for transfering translated texts for storage. "), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_IMPORTANT_BOTTOM_NOTE, _("Important: When %s Collaboration is ON, the Adapt It user can only select from the above list of projects; one project for obtaining source texts, and another project for transfering translated texts for storage. "), wxDefaultPosition, wxSize(80,50), wxTE_MULTILINE|wxTE_READONLY );
     item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString strs9[] = 
@@ -7930,7 +7930,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
         _("%s Collaboration O&FF")
     };
     wxRadioBox *item9 = new wxRadioBox( parent, ID_RADIOBOX_COLLABORATION_ON_OFF, wxT(""), wxDefaultPosition, wxDefaultSize, 2, strs9, 1, wxRA_SPECIFY_ROWS );
-    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
     item7->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -7996,7 +7996,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     item24->SetDefault();
     item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -8078,7 +8078,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs17 = (wxString*) NULL;
-    wxListBox *item17 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,200), 0, strs17, wxLB_SINGLE );
+    wxListBox *item17 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,180), 0, strs17, wxLB_SINGLE );
     item17->SetToolTip( _("List of books available in this project") );
     item15->Add( item17, 1, wxGROW|wxALL, 5 );
 
@@ -8091,7 +8091,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticText *item19 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxListCtrl *item20 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,200), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
+    wxListCtrl *item20 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,180), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
     item20->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
     item18->Add( item20, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -8112,12 +8112,12 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item23->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item25 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
