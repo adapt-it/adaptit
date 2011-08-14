@@ -7452,7 +7452,7 @@ wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item9->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
 
@@ -7477,7 +7477,7 @@ wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item8->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
