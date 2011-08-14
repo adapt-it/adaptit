@@ -7128,7 +7128,7 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
     m_pHorizBox_for_textctrl = item3;
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_LINES100, wxT(""), wxDefaultPosition, wxSize(640,340), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
     item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
@@ -7149,7 +7149,7 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -7375,7 +7375,7 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs6 = (wxString*) NULL;
-    wxCheckListBox *item6 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,220), 0, strs6, wxLB_SINGLE|wxLB_ALWAYS_SB );
+    wxCheckListBox *item6 = new wxCheckListBox( parent, ID_CHECKLISTBOX_MENU_ITEMS, wxDefaultPosition, wxSize(160,180), 0, strs6, wxLB_SINGLE|wxLB_ALWAYS_SB );
     item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -7671,7 +7671,7 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
     STATIC_TEXT_DESCRIPTION = item10;
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION_BODY, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION_BODY, wxT(""), wxDefaultPosition, wxSize(400,80), wxTE_MULTILINE );
     item12->SetToolTip( _("Enter the details of your report here - this becomes the main body of your email message") );
     item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -7875,7 +7875,7 @@ wxSizer *LogViewerFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_LOGGED_TEXT, wxT(""), wxDefaultPosition, wxSize(500,300), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_LOGGED_TEXT, wxT(""), wxDefaultPosition, wxSize(500,200), wxTE_MULTILINE|wxTE_READONLY );
     item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxButton *item6 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
