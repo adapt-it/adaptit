@@ -1760,7 +1760,22 @@ public:
     /// files. On Windows this is \r\n; on Linux it is \n; on Macintosh it is \r. The
     /// appropriate end-of-line character sequence(s) is stored in m_eolStr by a call to
     /// wxTextFile::GetEOL() in the App's OnInit() function.
-	wxString m_eolStr;	
+	wxString m_eolStr;
+
+	// The next boolean is in support of Collaboration with Paratext or Bibledit. When the
+	// GetSourceTextFromEditor::OnOK() call returns, a lookup of the KB is safe because if
+	// at that time a Choose Translation dialog is put up, OnOK() will have finished. So
+	// we set this boolean at the end of that OnOK(), and then the internal call of
+	// OpenDocWithMerger() which calls PlacePhraseBox() (and the latter does lookup of the
+	// KB) can be wrapped with a test for this boolean TRUE and if so, the call to
+	// PlacePhraseBox is not made then. Instead, OnIdle() will look for this flag with a
+	// TRUE value, and when that is the case, it will make the appropriate
+	// PlacePhraseBox() call, with selector set to 2 ("don't do first block, do do second
+	// block" - see PlacePhraseBox description for explanation), and passing in a pCell
+	// value calculated from the current active pile. Then OnIdle() clears the boolean to
+	// FALSE so that this suppression is not done again unless a document is being set up
+	// in collaboration mode again
+	bool bDelay_PlacePhraseBox_Call_Until_Next_OnIdle;
 
     /// The m_strNR string originally held the string "NR " for signifying what was called
     /// the "Non-Roman" version of Adapt It. For version 2.0.6 and onwards, m_strNR holds

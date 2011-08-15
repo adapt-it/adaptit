@@ -3187,6 +3187,25 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	pApp->GetBasePointers(pDoc,pView,pBox);
 
+    // if a document has just been created or opened in collaboration mode - collaborating
+    // with Paratext or Bibledit, and the phrase box has been set up; and because setup of
+    // the box potentially could cause a premature opening of the Choose Translation dialog
+    // before the setup's OnOK() handler for the dialog has returned, we set this flag
+    // there, and here we check for it being TRUE, and at this point OnOK() will have
+    // returned and so we can now force the call of PlacePhraseBox() which we suppressed
+    // for safety's sake
+	if (pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle)
+	{
+		if (pApp->m_pActivePile != NULL && pApp->m_nActiveSequNum != -1)
+		{
+			CCell*pCell = pApp->m_pActivePile->GetCell(1);
+			int selector = 2; // don't do KB save in first block, but do do KB save in 2nd block
+			pView->PlacePhraseBox(pCell,selector);
+		}
+		// restore the flag's default ('not ON') value
+		pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE;
+	}
+
     // wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
     // true when __WXDEBUG__ is defined, so it will not appear in release versions.
 	if (m_bShowScrollData && this->m_pStatusBar->IsShown())

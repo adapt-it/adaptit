@@ -12246,6 +12246,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // can be seen and the only response possible is to hit the Esc key to close the wizard.
     // Hence, if the screen size is below 549h x 640w we notify the user and shut down the
     // application.
+    bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with 
+			// PT or BE; set when setting up a doc in collab mode, used to suppress the
+			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
     int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
 	::wxDisplaySize(&nDisplayWidthInPixels,&nDisplayHeightInPixels);
