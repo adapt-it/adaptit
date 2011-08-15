@@ -1352,13 +1352,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 
 		wxString postEditText; 
 		wxString updatedText;
-//#ifdef __WXDEBUG__
-		//postEditText.Empty();
-		//updatedText.Empty();
-		/* temporarily do this instead --->>  */ //DoFileSave_Protected(TRUE); 
-		//return;
 
-//#endif
 		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
 #ifdef __WXDEBUG__
@@ -1374,10 +1368,6 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			// File / Save was invoked) now has to replace the saved preEditText in the
 			// private app member for that purpose, becoming the new preEditTargetText
 			gpApp->StoreTargetText_PreEdit(postEditText);
-
-// ********* TEMPORARY UNTIL BILL TELLS ME WHAT TO DO (save flag in & restore from basic config file?) ***************
-//gpApp->m_bCollaborationExpectsFreeTrans = TRUE;
-// ******* end temporary -- remove these 3 lines later *************
 
 			if (gpApp->m_bCollaborationExpectsFreeTrans)
 			{
@@ -4596,7 +4586,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
-#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
+//#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef __WXDEBUG__
 	// In collaboration mode, one or more CSourcePhrase instances are being prematurely
@@ -4615,6 +4605,11 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 	// the heap pointer value  (in hex) for each CSourcePhrase instance - so as to match
 	// with the error report, since the error happens after this successful display of all of
 	// the CSourcePhrase instances in the m_pSourcePhrase list.
+	// 
+	// The bug fix? Bill found I'd used UngetWriteBuf() in wxString to restore a read-only
+	// buffer I'd created with GetData() call - this is verbotten, and leads to heap
+	// corruption; UngetWriteBuf() should only be used after a GetWriteBuf() call. I'd
+	// made this error in two places.
 	{
 		 
 		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
@@ -16197,7 +16192,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
 
-#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
+//#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef __WXDEBUG__
 	// In collaboration mode, one or more CSourcePhrase instances are being prematurely
@@ -16216,6 +16211,11 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	// the heap pointer value  (in hex) for each CSourcePhrase instance - so as to match
 	// with the error report, since the error happens after this successful display of all of
 	// the CSourcePhrase instances in the m_pSourcePhrase list.
+	// 
+	// The bug fix? Bill found I'd used UngetWriteBuf() in wxString to restore a read-only
+	// buffer I'd created with GetData() call - this is verbotten, and leads to heap
+	// corruption; UngetWriteBuf() should only be used after a GetWriteBuf() call. I'd
+	// made this error in two places.
 	{
 		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
 		SPList::Node* pos = pSrcPhrases->GetFirst();
