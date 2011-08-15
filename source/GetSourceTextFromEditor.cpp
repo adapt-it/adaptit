@@ -461,6 +461,13 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	CAdapt_ItView* pView = m_pApp->GetView();
 
+	// BEW added 15Aug11, because of the potential for an embedded PlacePhraseBox() call
+	// to cause the Choose Translation dialog to open before this OnOK() handler has
+	// returned, we set the following boolean which suppresses the call of
+	// PlacePhraseBox() until after OnOK() is called. Thereafter, OnIdle() detects the
+	// flag is TRUE, and does the required PlacePhraseBox() call, and clears the flag
+	m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = TRUE;
+
 	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
 
@@ -579,6 +586,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
 		return;
 	}
 	/*  
@@ -924,7 +932,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// get the layout, view etc done
 				bool bDoMerger = TRUE;
 // comment out next line when this modification is no longer wanted for debugging purposes
-#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
+//#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
 #ifdef _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
 #ifdef __WXDEBUG__
 				bDoMerger = FALSE;
@@ -1021,6 +1029,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		} // end of TRUE block for test: if (bSucceeded)
 		else
 		{
+			m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default
+
             // A very unexpected failure to hook up -- what should be done here? The KBs
             // are unloaded, but the app is in limbo - paths are current for a project
             // which didn't actually get set up, and so isn't actually current. But a
@@ -1040,6 +1050,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// create the AI project using information contained in the Collab_Project_Info_Struct structs
 		// that are populated dynamically in InitDialog() which calls the App's 
 		// GetListOfPTProjects() or GetListOfBEprojects.
+		
+		m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
 		
 		// Get the Collab_Project_Info_Struct structs for the source and target PT projects
 		Collab_Project_Info_Struct* pPTInfoSrc;

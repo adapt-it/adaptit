@@ -1350,9 +1350,15 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 													  // attempt it anyway, here)
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
-		wxString postEditText; postEditText.Empty();
-		wxString updatedText; updatedText.Empty();
-		/* temporarily do this instead --->>  */ //DoFileSave_Protected(TRUE); return;
+		wxString postEditText; 
+		wxString updatedText;
+//#ifdef __WXDEBUG__
+		//postEditText.Empty();
+		//updatedText.Empty();
+		/* temporarily do this instead --->>  */ //DoFileSave_Protected(TRUE); 
+		//return;
+
+//#endif
 		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
 #ifdef __WXDEBUG__
@@ -1381,6 +1387,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
                 // to be saved in the app member for that purpose, becoming the new
                 // preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
 				wxString postEditFreeTransText;
+
 				wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeFreeTransText, postEditFreeTransText);
 #ifdef __WXDEBUG__

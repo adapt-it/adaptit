@@ -899,7 +899,11 @@ void SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle)
 	pApp->m_targetPhrase = pView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
 	// we must place the box at the first pile
 	pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-	pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+	// delay the Place...() call until next OnIdle() if the flag is TRUE
+	if (!pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle)
+	{ 
+		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+	}
 	pView->Invalidate();
 	gnOldSequNum = -1; // no previous location exists yet
 }
@@ -1493,7 +1497,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		}
 		// we must place the box at the active pile's location
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+		// delay the Place...() call until next OnIdle() if the flag is TRUE
+		if (!pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle)
+		{
+			pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
+		}
 		pView->Invalidate();
 		gnOldSequNum = -1; // no previous location exists yet
 	}
