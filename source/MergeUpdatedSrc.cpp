@@ -2901,7 +2901,7 @@ int PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
 // does the same for the m_follPunct and m_follOuterPunct values for the parent; while the
 // medial information builds strFromMedials from the new material's m_key members plus
 // punctuation, and returns it to the caller by means of the signature, where it will have
-// the parents previous and following puncts added - to form a new m_srcPhrase value.
+// the parent's previous and following puncts added - to form a new m_srcPhrase value.
 // We also rebuild the m_targetStr members for both parent and it's children. 
 // This function is used within TransferPunctsAndMarkersToMerger()
 void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
@@ -2954,12 +2954,29 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 
 			// the first instance contributes only from stored end-marker fields, and
 			// following puncts and following outer puncts
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			// BEW 15Aug11, need to wrap each line in a test for non-empty string,
+			// otherwise it adds empty strings to m_pMedialMarkers and m_pMedialPuncts
+			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
+			}
+			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+			}
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			}
 
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
+			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			{
+				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
+			}
+			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+			{
+				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
+			}
 		}
 		else if (index == total - 1)
 		{
@@ -2987,11 +3004,23 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 
 			// the last instance contributes only from stored begin-marker fields, and
 			// preceding puncts
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+			if (!pSrcPhrase->m_markers.IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+			}
+			if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
+			}
+			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+			}
 
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
+			}
 		}
 		else
 		{
@@ -3022,16 +3051,43 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 
 			// any other instances contribute from both begin-marker fields and end-marker
 			// fields; and preceding and following and followingOuter punctuation fields
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
-			pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			if (!pSrcPhrase->m_markers.IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+			}
+			if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
+			}
+			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+			}
+			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
+			}
+			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+			}
+			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			{
+				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+			}
 
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
-			pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
+			}
+			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			{
+				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
+			}
+			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+			{
+				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
+			}
 		}
 	}
 }
