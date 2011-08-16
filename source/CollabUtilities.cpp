@@ -990,35 +990,43 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 	bool bBOM_PRESENT = FALSE;
 	wxString theBOM; theBOM.Empty();
 	const wxChar* pUtf16Buf = theText.GetData();
-	const unsigned char* const pCharBuf = (const unsigned char* const)pUtf16Buf;
-	CBString resultStr; // our own single-byte chars string class, is well suited here
-	resultStr.Empty();
-	resultStr = check_ucs_bom(pCharBuf);
-	if (resultStr == "utf-16le")
+	//const unsigned char* const pCharBuf = (const unsigned char* const)pUtf16Buf;
+	const unsigned char* pCharBuf = (const unsigned char*)pUtf16Buf;
+	// whm modified 16Aug11 to prevent crash when the is no BOM. In such cases
+	// check_ucs_bom() will return NULL, and NULL cannot be assigned to a CBString,
+	// so I've used a const char* instead; tested for NULL; and used strcmp() to 
+	// test for the possible return values from check_ucs_bom().
+	//CBString resultStr; // our own single-byte chars string class, is well suited here
+	//resultStr.Empty();
+	const char* result = check_ucs_bom(pCharBuf);
+	if (result != NULL)
 	{
-		// 32-bit, little-endian
-		bBOM_PRESENT = TRUE;
-		theBOM = (wxChar)0xFFFE;
-	}
-	else if (resultStr == "utf-16")
-	{
-		// 32-bit, big endian
-		bBOM_PRESENT = TRUE;
-		theBOM = (wxChar)0xFEFF;
-	}
-	else if (resultStr == "ucs-4le")
-	{
-		// 64bit, little endian
-		bBOM_PRESENT = TRUE;
-		unsigned char s64le[4] = {0xFF, 0xFE, 0x00, 0x00};
-		theBOM = (wxChar)s64le;
-	}
-	else if (resultStr == "ucs-4")
-	{
-		// 64bit, big endian
-		bBOM_PRESENT = TRUE;
-		unsigned char s64[4] = {0x00, 0x00, 0xFE, 0xFF};
-		theBOM = (wxChar)s64;
+		if (strcmp(result,"utf-16le") == 0) //if (resultStr == "utf-16le")
+		{
+			// 32-bit, little-endian
+			bBOM_PRESENT = TRUE;
+			theBOM = (wxChar)0xFFFE;
+		}
+		else if (strcmp(result,"utf-16") == 0) //else if (resultStr == "utf-16")
+		{
+			// 32-bit, big endian
+			bBOM_PRESENT = TRUE;
+			theBOM = (wxChar)0xFEFF;
+		}
+		else if (strcmp(result,"ucs-4le") == 0) //else if (resultStr == "ucs-4le")
+		{
+			// 64bit, little endian
+			bBOM_PRESENT = TRUE;
+			unsigned char s64le[4] = {0xFF, 0xFE, 0x00, 0x00};
+			theBOM = (wxChar)s64le;
+		}
+		else if (strcmp(result,"ucs-4") == 0) //else if (resultStr == "ucs-4")
+		{
+			// 64bit, big endian
+			bBOM_PRESENT = TRUE;
+			unsigned char s64[4] = {0x00, 0x00, 0xFE, 0xFF};
+			theBOM = (wxChar)s64;
+		}
 	}
 	/* this is only good for 32-bit machines, I think, so use the above
 	wxUint16 littleENDIANutf16BOM = 0xFFFE;
