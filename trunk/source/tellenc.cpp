@@ -260,7 +260,8 @@ static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
 }
 */
 
-static const char* check_ucs_bom(const unsigned char* const buffer)
+//static const char* check_ucs_bom(const unsigned char* const buffer)
+const char* check_ucs_bom(const unsigned char* const buffer)
 {
     const struct {
         const char* name;

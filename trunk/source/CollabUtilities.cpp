@@ -56,6 +56,7 @@
 #include "helpers.h"
 #include "tellenc.h"
 #include "md5.h"
+#include "tellenc.h"
 #include "CollabUtilities.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -957,21 +958,83 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 		return FALSE; // path to the project is empty (we don't expect this
 			// so won't even bother to give a message, a bell will do
 	}
+
+	/* use this, from tellenc.cpp, in next test - works for 32 or 64 bit machines
+
+	const char* check_ucs_bom(const unsigned char* const buffer)
+	{
+		const struct {
+			const char* name;
+			const char* pattern;
+			size_t pattern_len;
+		} patterns[] = {
+			{ "ucs-4",      "\x00\x00\xFE\xFF",     4 },
+			{ "ucs-4le",    "\xFF\xFE\x00\x00",     4 },
+			{ "utf-8",      "\xEF\xBB\xBF",         3 },
+			{ "utf-16",     "\xFE\xFF",             2 },
+			{ "utf-16le",   "\xFF\xFE",             2 },
+			{ NULL,         NULL,                   0 }
+		};
+		for (size_t i = 0; patterns[i].name; ++i) {
+			if (memcmp(buffer, patterns[i].pattern, patterns[i].pattern_len)
+					== 0) {
+				return patterns[i].name;
+			}
+		}
+		return NULL;
+	}
+
+	*/
 #ifdef _UNICODE
+	// the encoding won't be utf-8, so ignore that
 	bool bBOM_PRESENT = FALSE;
-	wxUint32 littleENDIANutf16BOM = 0xFFFE;
+	wxString theBOM; theBOM.Empty();
+	const wxChar* pUtf16Buf = theText.GetData();
+	const unsigned char* const pCharBuf = (const unsigned char* const)pUtf16Buf;
+	CBString resultStr; // our own single-byte chars string class, is well suited here
+	resultStr.Empty();
+	resultStr = check_ucs_bom(pCharBuf);
+	if (resultStr == "utf-16le")
+	{
+		// 32-bit, little-endian
+		bBOM_PRESENT = TRUE;
+		theBOM = (wxChar)0xFFFE;
+	}
+	else if (resultStr == "utf-16")
+	{
+		// 32-bit, big endian
+		bBOM_PRESENT = TRUE;
+		theBOM = (wxChar)0xFEFF;
+	}
+	else if (resultStr == "ucs-4le")
+	{
+		// 64bit, little endian
+		bBOM_PRESENT = TRUE;
+		unsigned char s64le[4] = {0xFF, 0xFE, 0x00, 0x00};
+		theBOM = (wxChar)s64le;
+	}
+	else if (resultStr == "ucs-4")
+	{
+		// 64bit, big endian
+		bBOM_PRESENT = TRUE;
+		unsigned char s64[4] = {0x00, 0x00, 0xFE, 0xFF};
+		theBOM = (wxChar)s64;
+	}
+	/* this is only good for 32-bit machines, I think, so use the above
+	wxUint16 littleENDIANutf16BOM = 0xFFFE;
 	// next line gives us the UTF16 BOM on a machine of either endianness
-	wxChar utf16BOM = (wxChar)wxUINT32_SWAP_ON_BE(littleENDIANutf16BOM);
+	wxChar utf16BOM = (wxChar)wxUINT16_SWAP_ON_BE(littleENDIANutf16BOM);
 	wxChar firstChar = theText.GetChar(0);
 	if (firstChar == utf16BOM)
 	{
 		bBOM_PRESENT = TRUE;
 	}
+	*/
 	if (!bBOM_PRESENT && bAddBOM)
 	{
-		wxString theBOM = utf16BOM;
 		theText = theBOM + theText;
 	}
+	
 #else
 	bAddBOM = bAddBOM; // to prevent compiler warning
 #endif

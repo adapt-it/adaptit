@@ -92,11 +92,12 @@ extern bool gbInhibitMakeTargetStringCall;
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
 /// this BOM.
-static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
+static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
 
 /// The UTF-16 byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
-/// in UTF-16 encoding.
-static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
+/// in UTF-16 encoding, reverse order if big-endian
+static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE};
+static wxUint8 szU16BOM_BigEndian[nU16BOMLen] = {0xFE, 0xFF};
 
 #endif
 
@@ -5683,10 +5684,12 @@ size_t GetFileSize_t(wxString& absPathToFile)
 	return len;
 }
 */
+
 // test that the file is suitable for creating an Adapt It adaptation document (we'll
 // believe that any extensions are reliable indicators of the file contents, for those
 // without extensions we'll use the tellenc.cpp function tellenc2()
 // (some tests of it are at Adapt_It.cpp about line 7783, using files in C:\Card1 folder)
+// BEW 16Aug11, changed to allow ucs-4le (little-endian) and ucs-4 (big-endian) as well
 bool IsLoadableFile(wxString& absPathToFile)
 {
 	wxArrayString illegalExtensions;
@@ -5813,7 +5816,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	// now find out what the file's data is
 	CBString resultStr;
 	resultStr.Empty();
-// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
+	// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 	resultStr = tellenc2(saved_ptr, len); // xml files are returned as "binary" too
 										  // so hopefull html files without an extension
 										  // will likewise be "binary" & so be rejected
@@ -5834,12 +5837,41 @@ bool IsLoadableFile(wxString& absPathToFile)
 	}
 	delete pBuffer;
 
-	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
+	// BEW 16Aug11, I think on a 64-bit machine we would want to allow ucs-4 and ucs-4le
+	//if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
+	if (bIsXML || resultStr == "binary")
 	{
 		return FALSE;
 	}
+	// this means it's either utf-8, or utf-16 (big endian), or utf-16le (little endian),
+	// or ucs-4 or ucs-4le, using the tellenc.cpp nomenclature
 	return TRUE;
 }
+
+bool IsLittleEndian(wxString& theText)
+{
+	// wchar_t is 2 bytes in Windows, 4 in Unix; we support non-Unicode app only for
+	// Windows, which is low-endian 
+	bool bIsLittleEndian = TRUE;
+#ifdef _UNICODE
+	unsigned int len = theText.Len();
+	unsigned int size_in_bytes = len * sizeof(wxChar); // len*2 or len*4
+	const wxChar* pUtf16Buf = theText.GetData();
+	char* ptr = (char*)pUtf16Buf;
+	const unsigned char* const pCharBuf = (const unsigned char* const)ptr;
+	CBString resultStr;
+	resultStr.Empty();
+	resultStr = tellenc2(pCharBuf, size_in_bytes);
+	if (resultStr == "utf-16" || resultStr == "ucs-4")
+	{
+		// this is running on a big-endian machine
+		bIsLittleEndian = FALSE;
+	}
+#endif
+	return bIsLittleEndian;
+}
+
+
 
 /* works, but should only be used for small files
 // returns TRUE if it succeeds, else FALSE, pText is a multiline text control (best if it
@@ -6213,6 +6245,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
     // buffer and use tellenc only once before handling the results with _UNICODE
     // conditional compiles.
 
+	bool bIsLittleEndian = TRUE; // this is valid for ANSI build, on non-Win platforms 
+								 // we only support Unicode
 #ifndef _UNICODE // ANSI version, no unicode support
 
 	// create the required buffer and then read in the file (no conversions needed)
@@ -6417,273 +6451,600 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	nNumRead = (wxUint32)file.Read(pbyteBuff,nLength);
 	nLength = nNumRead + sizeof(wxChar);
 
+	// BEW added 16Aug11, determine the endian value for the machine we are running on
+	wxString theBuf = wxString((wxChar*)pbyteBuff);
+	bIsLittleEndian = IsLittleEndian(theBuf);
+
 	if (bShorten)
 	{
-		// find out if CR is within the data (can't use strchr() because it may be null
-		// byte extended ascii now in the form UTF-16, so the null bytes will terminate
-		// the search prematurely, so have to scan over the data in a loop
-		char* pCharLoc = NULL;
-		wxUint32 i;
-		for (i = 0; i< nLength - sizeof(wxChar); i++)
+		// endian value complicates things, so since the code below is for little-endian
+		// platforms, leave it except for any needed utf16 tweaks to be added, and have a
+		// separate block of similar code for big-endian platforms
+		if (bIsLittleEndian)
 		{
-			if (*(pbyteBuff + i) == CR)
+			// find out if CR is within the data (can't use strchr() because it may be null
+			// byte extended ascii now in the form UTF-16, so the null bytes will terminate
+			// the search prematurely, so have to scan over the data in a loop
+			char* pCharLoc = NULL;
+			wxUint32 i;
+			for (i = 0; i< nLength - sizeof(wxChar); i++)
 			{
-				pCharLoc = pbyteBuff + i;
-				break;
-			}
-		}
-		bHasCR = pCharLoc == NULL ? FALSE : TRUE;
-
-		// if we shortened the data to be only a certain number of bytes, we may have made
-		// the final character invalid (eg. chopping the end off a UTF-8 byte sequence),
-		// so scan backwards in pbyteBuff from the last byte read, until we come to a
-		// suitable place to halt; adjust nLength accordingly and the removed bytes need
-		// to have their locations cleared to null bytes
-		if (!bTakeAll)
-		{
-			offset = nLength;
-			pBegin = pbyteBuff;
-			pEnd = (char*)(pBegin + nLength);
-			wxUint32 counter = 0;
-			ptr = pEnd; // start, pointing after last byte read in
-			do {
-				// this will back up over null bytes, so add the sizeof(wxChar)
-				// back in to the length when done
-				--ptr;
-				counter++;
-			} while ((*ptr != SP && *ptr != BSLASH && *ptr != LF && *ptr != CR) && ptr > pBegin);
-			if (bHasCR)
-			{
-				// we may have exitted at the \n of an \r\n sequence, so check if the
-				// preceding byte is a CR and if so, move back over it too, and count it
-				if (*(ptr - 1) == CR)
+				if (*(pbyteBuff + i) == CR)
 				{
-					--ptr;
-					counter++;
-				}
-			}
-			if (nLength - counter == 0)
-			{
-				// free the original read in (const) char data's chunk
-				free((void*)pbyteBuff);
-				return getNewFile_error_no_data_read;
-			}
-			nLength -= counter;
-			if (counter > sizeof(wxChar))
-			{
-				// the unwanted bytes have to be made into null bytes
-				wxUint32 index;
-				for (index = 0; index < counter; index++)
-				{
-					*(ptr + index) = NIX;
-				}
-				nLength += sizeof(wxChar); // put the final two null bytes back in
-			} // nLength now points at a null byte after a byte sequence of data
-			  // which is valid in the given encoding, even if UTF-16 was input,
-			  // plus an extra couple of null bytes which will remain null in order
-			  // to terminate the wxString which we return the data to
-		} // end of TRUE block for test: if (!bTakeAll)
-
-		// find out if one or other or both CR and LF are still within the data
-		pCharLoc = NULL;
-		for (i = 0; i< nLength - sizeof(wxChar); i++)
-		{
-			if (*(pbyteBuff + i) == CR)
-			{
-				pCharLoc = pbyteBuff + i;
-				break;
-			}
-		}
-		bHasCR = pCharLoc == NULL ? FALSE : TRUE;
-
-		pCharLoc = NULL;
-		for (i = 0; i< nLength - sizeof(wxChar); i++)
-		{
-			if (*(pbyteBuff + i) == LF)
-			{
-				pCharLoc = pbyteBuff + i;
-				break;
-			}
-		}
-		bHasLF = pCharLoc == NULL ? FALSE : TRUE;
-
-		// test for CR + LF in UTF-16
-		pCharLoc = NULL;
-		char eol_utf16[4] = {CR,NIX,LF,NIX};
-		for (i = 0; i < nLength - sizeof(wxChar) - sizeof(eol_utf16); i++)
-		{
-			if (*(pbyteBuff + i) == CR)
-			{
-				// we have a potential CR + emptybyte + LF + emptybyte sequence
-				char* pPotential = pbyteBuff + i;
-				if (	*(pPotential + 0) == eol_utf16[0]	&&
-						*(pPotential + 1) == eol_utf16[1]	&&
-						*(pPotential + 2) == eol_utf16[2]	&&
-						*(pPotential + 3) == eol_utf16[3]
-				)
-				{
-					// we have a match
-					pCharLoc = pPotential;
+					pCharLoc = pbyteBuff + i;
 					break;
 				}
 			}
-		}
-		bHasCRLF = pCharLoc == NULL ? FALSE : TRUE;
+			bHasCR = pCharLoc == NULL ? FALSE : TRUE;
 
-		// we are ready to copy the substrings across, but we don't need to do so if there
-		// are only LF line terminators in the data; but for CR+LF, and CR only, we'll
-		// need to use the pbyteBuff_COPY buffer, do the transfers, then write it all
-		// back over the contents in pbyteBuff after first clearing it to null bytes
-		if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
-		{
-			bool bHasBothCRandLF = bHasCR && bHasLF; // if FALSE, the data has only CR
-			if (bHasBothCRandLF)
+			// if we shortened the data to be only a certain number of bytes, we may have made
+			// the final character invalid (eg. chopping the end off a UTF-8 byte sequence),
+			// so scan backwards in pbyteBuff from the last byte read, until we come to a
+			// suitable place to halt; adjust nLength accordingly and the removed bytes need
+			// to have their locations cleared to null bytes
+            // BEW 16Aug11: Note, these byte pointer monkeyings here are sensitive to
+            // whether or not we have utf-8 or utf-16, so some extra code is needed here;
+            // later we work out what encoding we have, but here we have to assume it could
+            // be utf-16 or -8
+			if (!bTakeAll)
 			{
-				// this is the Windows string case, where line termination is CR+LF so
-				// this is more complex - the data will shorten so we need to use the
-				// second buffer and copy substrings there etc. However, the data could be
-				// UTF-8, or UTF-16, so these are handled in different ways. For UTF-8, CR
-				// and LF will be in sequence, and so we can search for that byte pair.
-				// For UTF-16, CR and LF will each be followed by a nullbyte, so we can't
-				// use c-string functions, and we'll need a scanning loop instead
-
-                // make a second buffer for receiving copied data substrings, with Unix
-                // line ending \n only (remember, the data may be already UTF-16, which
-                // could be zero byte extended ASCII, and so we can't assume there won't be
-                // null bytes in it)
-				pbyteBuff_COPY = (char*)malloc(nLength);
-				memset(pbyteBuff_COPY,0,nLength); // fill with nulls, at least 2 bytes at
-												  // the end will remain null
-				// do the loop...
-				if (bHasCRLF)
+				offset = nLength;
+				pBegin = pbyteBuff;
+				pEnd = (char*)(pBegin + nLength);
+				wxUint32 counter = 0;
+				ptr = pEnd; // start, pointing after last byte read in
+				do {
+					// this will back up over null bytes, so add the sizeof(wxChar)
+					// back in to the length when done
+					--ptr;
+					counter++;
+				} while ((*ptr != SP && *ptr != BSLASH && *ptr != LF && *ptr != CR) && ptr > pBegin);
+				if (bHasCR)
 				{
-					// it's UTF16, so we've a more complex scanning loop to do - but it's
-					// similar to the one above for determining the bHasBothCRandLF value,
-					// so just tweak that
-					aux = pbyteBuff;
-					ptr = pbyteBuff;
-					wxUint32 lineLen = 0;
-					pEnd = pbyteBuff + (nLength - sizeof(wxChar));
-					pBegin_COPY = pbyteBuff_COPY; // could reuse pBegin, but that is more opaque
-					for (i = 0; i< nLength - sizeof(wxChar) - sizeof(eol_utf16); i++)
+					// we may have exited at the \n of an \r\n sequence, so check if the
+					// preceding byte is a CR and if so, move back over it too, and count it;
+					// check also if 2nd-preceding is CR (for UTF16 text there will be an
+					// intervening null byte) & instead back up 2 bytes if so
+					if (*(ptr - 1) == CR)
+					{
+						// it's utf-8, so back up 1 byte
+						--ptr;
+						counter++; 
+					}
+					else if (*(ptr - 2) == CR && *(ptr -1) == NIX)
+					{
+						// it's utf-16, so back up 2 bytes, and we are at the WORD
+						// boundary too
+						ptr -= 2;
+						counter += 2; 
+					}
+				}
+				if (nLength - counter == 0)
+				{
+					// free the original read in (const) char data's chunk
+					free((void*)pbyteBuff);
+					return getNewFile_error_no_data_read;
+				}
+				nLength -= counter;
+				//if (counter > sizeof(wxChar)) // BEW changed 16Aug11 - anything backed
+				//over has to be made into a null byte
+				if (counter > 0)
+				{
+					// the unwanted bytes have to be made into null bytes
+					wxUint32 index;
+					for (index = 0; index < counter; index++)
+					{
+						*(ptr + index) = NIX;
+					}
+					nLength += sizeof(wxChar); // put the final two null bytes back in
+				} // nLength now points at a null byte after a byte sequence of data
+				  // which is valid in the given encoding, even if UTF-16 was input in either
+				  // endian value, plus an extra couple of null bytes which will remain null
+				  // in order to terminate the wxString which we return the data to the caller
+			} // end of TRUE block for test: if (!bTakeAll)
+
+			// find out if one or other or both CR and LF are still within the data
+			pCharLoc = NULL;
+			for (i = 0; i< nLength - sizeof(wxChar); i++)
+			{
+				if (*(pbyteBuff + i) == CR)
+				{
+					pCharLoc = pbyteBuff + i;
+					break;
+				}
+			}
+			bHasCR = pCharLoc == NULL ? FALSE : TRUE;
+
+			pCharLoc = NULL;
+			for (i = 0; i< nLength - sizeof(wxChar); i++)
+			{
+				if (*(pbyteBuff + i) == LF)
+				{
+					pCharLoc = pbyteBuff + i;
+					break;
+				}
+			}
+			bHasLF = pCharLoc == NULL ? FALSE : TRUE;
+
+			// test for CR + LF in UTF-16 -- this test is for little-endian platforms
+			pCharLoc = NULL;
+			char eol_utf16[4] = {CR,NIX,LF,NIX};
+			for (i = 0; i < nLength - sizeof(wxChar) - sizeof(eol_utf16); i++)
+			{
+				if (*(pbyteBuff + i) == CR)
+				{
+					// we have a potential CR + emptybyte + LF + emptybyte sequence
+					char* pPotential = pbyteBuff + i;
+					if (	*(pPotential + 0) == eol_utf16[0]	&&
+							*(pPotential + 1) == eol_utf16[1]	&&
+							*(pPotential + 2) == eol_utf16[2]	&&
+							*(pPotential + 3) == eol_utf16[3]
+					)
+					{
+						// we have a match
+						pCharLoc = pPotential;
+						break;
+					}
+				}
+			}
+			// when the following is TRUE, we also know it is UTF-16 data
+			bHasCRLF = pCharLoc == NULL ? FALSE : TRUE;
+
+			// we are ready to copy the substrings across, but we don't need to do so if there
+			// are only LF line terminators in the data; but for CR+LF, and CR only, we'll
+			// need to use the pbyteBuff_COPY buffer, do the transfers, then write it all
+			// back over the contents in pbyteBuff after first clearing it to null bytes
+			if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
+			{
+				bool bHasBothCRandLF = bHasCR && bHasLF; // if FALSE, the data has only CR
+				if (bHasBothCRandLF)
+				{
+					// This  is the Windows string case, where line termination is CR+LF so
+					// this is more complex - the data will shorten so we need to use the
+					// second buffer and copy substrings there etc. However, the data could be
+					// UTF-8, or UTF-16, so these are handled in different ways. For UTF-8, CR
+					// and LF will be in sequence, and so we can search for that byte pair.
+					// For UTF-16, CR and LF will each be followed by a nullbyte, so we can't
+					// use c-string functions, and we'll need a scanning loop instead
+
+					// make a second buffer for receiving copied data substrings, with Unix
+					// line ending \n only (remember, the data may be already UTF-16, which
+					// could be zero byte extended ASCII, and so we can't assume there won't be
+					// null bytes in it)
+					pbyteBuff_COPY = (char*)malloc(nLength);
+					memset(pbyteBuff_COPY,0,nLength); // fill with nulls, at least 2 bytes at
+													  // the end will remain null
+					// do the loop...
+					if (bHasCRLF)
+					{
+                        // it's utf-16 data, so we've a more complex scanning loop to
+                        // do - but it's similar to the one above for determining the
+                        // bHasBothCRandLF value, so just tweak that
+						aux = pbyteBuff;
+						ptr = pbyteBuff;
+						wxUint32 lineLen = 0;
+						pEnd = pbyteBuff + (nLength - sizeof(wxChar));
+						pBegin_COPY = pbyteBuff_COPY; // the iterator within pbyteBuff_COPY
+						for (i = 0; i< nLength - sizeof(wxChar) - sizeof(eol_utf16); i++)
+						{
+							if (*(pbyteBuff + i) == CR)
+							{
+								// we have a potential CR + emptybyte + LF + emptybyte sequence
+								char* pPotential = pbyteBuff + i;
+								if (	*(pPotential + 0) == eol_utf16[0]	&&
+										*(pPotential + 1) == eol_utf16[1]	&&
+										*(pPotential + 2) == eol_utf16[2]	&&
+										*(pPotential + 3) == eol_utf16[3]
+									)
+								{
+									// we have a match; aux points to start of this substring,
+									// and ptr points to char just past the last in the substring
+									ptr = pPotential;
+									lineLen = (wxUint32)(ptr - aux);
+									// next call, can't use strncpy as it halts at the first
+									// null byte (and in utf-16 built from ascii, there are
+									// heaps of them present)
+									pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
+									pBegin_COPY += lineLen; // point past what we just copied
+									// advance aux in the pbyteBuff buffer past the eol_utf16
+									// bytes and put ptr there too
+									aux = ptr + sizeof(eol_utf16);
+									ptr = aux;
+
+									// add an LF char after the substring in the copy buffer,
+									// then a null byte after it - since this block is for
+									// little-endian
+									*pBegin_COPY = LF;
+									++pBegin_COPY;
+									*pBegin_COPY = NIX;
+									++pBegin_COPY;
+
+									// advance the loop index past the 4 bytes of the CR & LF
+									// in the source buffer
+									i += sizeof(eol_utf16);
+
+								}
+							}
+						} // end of for loop
+						// get the last substring, which may not have been terminated by CR+LF
+						lineLen = (wxUint32)(pEnd - aux);
+						if (lineLen > 0)
+						{
+							pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
+							pBegin_COPY += lineLen; // this points at the next byte after
+														 // the last byte that was copied
+						}
+					} // end TRUE block for test: if (bHasCRLF)
+					else
+					{
+						// do the loop, it's not UTF-16, so could be ANSI or UTF-8; - find each CR
+						// followed immediately by LF - we can use strstr() & strncpy() safely
+						aux = pbyteBuff;
+						ptr = pbyteBuff;
+						char eol[3] = {CR,LF,NIX}; // must be a c-string for use in strstr()
+						pEnd = pbyteBuff + (nLength - sizeof(wxChar));
+						ptr = strstr(aux,eol);
+						wxUint32 lineLen = 0;
+						pBegin_COPY = pbyteBuff_COPY; // the *_COPY buffer's iterator
+						while (ptr != NULL)
+						{
+							// copy the substring across
+							lineLen = (wxUint32)(ptr - aux);
+							pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
+							pBegin_COPY += lineLen; // point past what we just copied
+							// advance ptr in the pbyteBuff buffer
+							aux = ptr + sizeof(eol) -1; // point past the CR&LF
+							ptr = aux;
+
+							// add an LF char after the substring
+							*pBegin_COPY = LF;
+							// update location in copy buffer
+							++pBegin_COPY;
+
+							// break out another line, if there is another which ends with the eol string
+							ptr = strstr(aux,eol);
+						}
+						// get the last substring, which may not have been terminated by CR+LF
+						lineLen = (wxUint32)(pEnd - aux);
+						if (lineLen > 0)
+						{
+							pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
+							pBegin_COPY += lineLen; // this points at the next byte after
+														 // the last byte that was copied
+						}
+					} // end FALSE block for test: if (bHasCRLF)
+
+					// now overwrite the old data in pbyteBuff
+					memset(pbyteBuff,0,originalBuffLen); // fill with nulls, originalBuffLen will be
+														 // greater than the number of chars
+														 // we want to copy back there, by several
+					wxUint32 numberOfBytes = (wxUint32)(pBegin_COPY - pbyteBuff_COPY);
+					// because the copy could be having to copy nullbyte extended ascii made
+					// into UTF-16, we can't use strncpy() here, but only our variant which
+					// can handle that kind of data
+					pbyteBuff = strncpy_utf16(pbyteBuff, pbyteBuff_COPY, numberOfBytes);
+					nNumRead = numberOfBytes;
+					nLength = numberOfBytes + sizeof(wxChar);
+
+					// free the memory used for the second buffer
+					free((void*)pbyteBuff_COPY);
+
+				} // end of TRUE block for text: if (bHasBothCRandLF)
+				else
+				{
+					// this is easy, just find each CR and overwrite with LF until done
+					for (i = 0; i< nLength - sizeof(wxChar); i++)
 					{
 						if (*(pbyteBuff + i) == CR)
 						{
-							// we have a potential CR + emptybyte + LF + emptybyte sequence
-							char* pPotential = pbyteBuff + i;
-							if (	*(pPotential + 0) == eol_utf16[0]	&&
-									*(pPotential + 1) == eol_utf16[1]	&&
-									*(pPotential + 2) == eol_utf16[2]	&&
-									*(pPotential + 3) == eol_utf16[3]
-							)
-							{
-								// we have a match; aux points to start of this substring,
-								// and ptr points to char just past the last in the substring
-								ptr = pPotential;
-								lineLen = (wxUint32)(ptr - aux);
-								// next call, can't use strncpy as it halts at the first
-								// null byte (and in utf-16 built from anscii, there are
-								// heaps of them present)
-								pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
-								pBegin_COPY += lineLen; // point past what we just copied
-								// advance aux in the pbyteBuff buffer past the eol_utf16
-								// bytes and put ptr there too
-								aux = ptr + sizeof(eol_utf16);
-								ptr = aux;
-
-								// add an LF char after the substring in the copy buffer,
-								// then a null byte after it
-								*pBegin_COPY = LF;
-								++pBegin_COPY;
-								*pBegin_COPY = NIX;
-								++pBegin_COPY;
-
-								// advance the loop index past the 4 bytes of the CR & LF
-								// in the source buffer
-								i += sizeof(eol_utf16);
-
-							}
+							// CR is not a valid UTF-8 non-initial byte, so this is safe
+							*(pbyteBuff + i) = LF; // overwrite CR with LF
 						}
-					} // end of for loop
-					// get the last substring, which may not have been terminated by CR+LF
-					lineLen = (wxUint32)(pEnd - aux);
-					if (lineLen > 0)
-					{
-						pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
-						pBegin_COPY += lineLen; // this points at the next byte after
-													 // the last byte that was copied
 					}
-				} // end TRUE block for test: if (bHasCRLF)
-				else
-				{
-					// do the loop, it's not UTF-16, so could be ANSI or UTF-8; - find each CR
-					// followed immediately by LF - we can use strstr() & strncpy() safely
-					aux = pbyteBuff;
-					ptr = pbyteBuff;
-					char eol[3] = {CR,LF,NIX}; // must be a c-string for use in strstr()
-					pEnd = pbyteBuff + (nLength - sizeof(wxChar));
-					ptr = strstr(aux,eol);
-					wxUint32 lineLen = 0;
-					pBegin_COPY = pbyteBuff_COPY; // could reuse pBegin, but that is more opaque
-					while (ptr != NULL)
-					{
-						// copy the substring across
-						lineLen = (wxUint32)(ptr - aux);
-						pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
-						pBegin_COPY += lineLen; // point past what we just copied
-						// advance ptr in the pbyteBuff buffer
-						aux = ptr + sizeof(eol) -1; // point past the CR&LF
-						ptr = aux;
-
-						// add an LF char after the substring
-						*pBegin_COPY = LF;
-						// update location in copy buffer
-						++pBegin_COPY;
-
-						// break out another line, if there is another which ends with the eol string
-						ptr = strstr(aux,eol);
-					}
-					// get the last substring, which may not have been terminated by CR+LF
-					lineLen = (wxUint32)(pEnd - aux);
-					if (lineLen > 0)
-					{
-						pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
-						pBegin_COPY += lineLen; // this points at the next byte after
-													 // the last byte that was copied
-					}
-				} // end FALSE block for test: if (bHasCRLF)
-
-				// now overwrite the old data in pbyteBuff
-				memset(pbyteBuff,0,originalBuffLen); // fill with nulls, originalBuffLen will be
-													 // greater than the number of chars
-													 // we want to copy back there, by several
-				wxUint32 numberOfBytes = (wxUint32)(pBegin_COPY - pbyteBuff_COPY);
-				// because the copy could be having to copy nullbyte extended ascii made
-				// into UTF-16, we can't use strncpy() here, but only our variant which
-				// can handle that kind of data
-				pbyteBuff = strncpy_utf16(pbyteBuff, pbyteBuff_COPY, numberOfBytes);
-				nNumRead = numberOfBytes;
-				nLength = numberOfBytes + sizeof(wxChar);
-
-				// free the memory used for the second buffer
-				free((void*)pbyteBuff_COPY);
-
-			} // end of TRUE block for text: if (bHasBothCRandLF)
-			else
+					nNumRead = nLength;
+				}
+			} // end of TRUE block for test: if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
+		} // end of TRUE block for test: if (bIsLittleEndian)
+		else
+		{
+			// it's a big-endian machine....
+			
+			// find out if CR is within the data (can't use strchr() because it may be null
+			// byte extended ascii now in the form UTF-16, so the null bytes will terminate
+			// the search prematurely, so have to scan over the data in a loop
+			char* pCharLoc = NULL;
+			wxUint32 i;
+			for (i = 0; i< nLength - sizeof(wxChar); i++)
 			{
-				// this is easy, just find each CR and overwrite with LF until done
-				for (i = 0; i< nLength - sizeof(wxChar); i++)
+				if (*(pbyteBuff + i) == CR)
 				{
-					if (*(pbyteBuff + i) == CR)
+					pCharLoc = pbyteBuff + i;
+					break;
+				}
+			}
+			bHasCR = pCharLoc == NULL ? FALSE : TRUE;
+
+			// if we shortened the data to be only a certain number of bytes, we may have made
+			// the final character invalid (eg. chopping the end off a UTF-8 byte sequence),
+			// so scan backwards in pbyteBuff from the last byte read, until we come to a
+			// suitable place to halt; adjust nLength accordingly and the removed bytes need
+			// to have their locations cleared to null bytes
+            // BEW 16Aug11: Note, these byte pointer monkeyings here are sensitive to
+            // whether or not we have utf-8 or utf-16, so some extra code is needed here;
+            // later we work out what encoding we have, but here we have to assume it could
+            // be utf-16 or -8
+			if (!bTakeAll)
+			{
+				offset = nLength;
+				pBegin = pbyteBuff;
+				pEnd = (char*)(pBegin + nLength);
+				wxUint32 counter = 0;
+				ptr = pEnd; // start, pointing after last byte read in
+				do {
+					// this will back up over null bytes, so add the sizeof(wxChar)
+					// back in to the length when done; since the data is big-endian, if
+					// it is UTF-16 a null byte will precede any of the test characters in
+					// the while test below
+					--ptr;
+					counter++;
+				} while ((*ptr != SP && *ptr != BSLASH && *ptr != LF && *ptr != CR) && ptr > pBegin);
+				if (bHasCR)
+				{
+					// we may have exited at the \n of an \r\n sequence, so check if the
+					// preceding byte is a CR and if so, move back over it too, and count it;
+					// check also if 2nd-preceding is CR (for UTF16 text there will be an
+					// intervening null byte) & instead back up 2 bytes if so
+					if (*(ptr - 1) == CR)
 					{
-						// CR is not a valid UTF-8 non-initial byte, so this is safe
-						*(pbyteBuff + i) = LF; // overwrite CR with LF
+						// it's utf-8, so back up 1 byte
+						--ptr;
+						counter++; 
+					}
+					else if (*(ptr - 2) == CR && *(ptr -1) == NIX)
+					{
+						// it's utf-16, so back up 2 bytes, and a further one to get to the
+						// WORD boundary too
+						ptr -= 2;
+						counter += 2;
+						if (*(ptr - 1) == NIX)
+						{
+							--ptr;
+							counter++;
+						}
 					}
 				}
-				nNumRead = nLength;
+				if (nLength - counter == 0)
+				{
+					// free the original read in (const) char data's chunk
+					free((void*)pbyteBuff);
+					return getNewFile_error_no_data_read;
+				}
+				nLength -= counter;
+				//if (counter > sizeof(wxChar)) // BEW changed 16Aug11 - anything backed
+				//over has to be made into a null byte
+				if (counter > 0)
+				{
+					// the unwanted bytes have to be made into null bytes
+					wxUint32 index;
+					for (index = 0; index < counter; index++)
+					{
+						*(ptr + index) = NIX;
+					}
+					nLength += sizeof(wxChar); // put the final two null bytes back in
+				} // nLength now points at a null byte after a byte sequence of data
+				  // which is valid in the given encoding, even if UTF-16 was input in either
+				  // endian value, plus an extra couple of null bytes which will remain null
+				  // in order to terminate the wxString which we return the data to the caller
+			} // end of TRUE block for test: if (!bTakeAll)
+
+			// find out if one or other or both CR and LF are still within the data
+			pCharLoc = NULL;
+			for (i = 0; i< nLength - sizeof(wxChar); i++)
+			{
+				if (*(pbyteBuff + i) == CR)
+				{
+					pCharLoc = pbyteBuff + i;
+					break;
+				}
 			}
-		} // end of TRUE block for test: if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
+			bHasCR = pCharLoc == NULL ? FALSE : TRUE;
+
+			pCharLoc = NULL;
+			for (i = 0; i< nLength - sizeof(wxChar); i++)
+			{
+				if (*(pbyteBuff + i) == LF)
+				{
+					pCharLoc = pbyteBuff + i;
+					break;
+				}
+			}
+			bHasLF = pCharLoc == NULL ? FALSE : TRUE;
+
+			// test for CR + LF in UTF-16 -- this test is for big-endian platforms
+			pCharLoc = NULL;
+			//char eol_utf16[4] = {CR,NIX,LF,NIX};
+			char eol_utf16[4] = {NIX,CR,NIX,LF};
+			for (i = 0; i < nLength - sizeof(wxChar) - sizeof(eol_utf16); i++)
+			{
+				if (*(pbyteBuff + i) == CR)
+				{
+					// we have a potential CR + emptybyte + LF + emptybyte sequence
+					char* pPotential = pbyteBuff + i;
+					if (	*(pPotential + 0) == eol_utf16[0]	&&
+							*(pPotential + 1) == eol_utf16[1]	&&
+							*(pPotential + 2) == eol_utf16[2]	&&
+							*(pPotential + 3) == eol_utf16[3]
+						)
+					{
+						// we have a match
+						pCharLoc = pPotential;
+						break;
+					}
+				}
+			}
+			// when the following is TRUE, we also know it is UTF-16 data
+			bHasCRLF = pCharLoc == NULL ? FALSE : TRUE;
+
+			// we are ready to copy the substrings across, but we don't need to do so if there
+			// are only LF line terminators in the data; but for CR+LF, and CR only, we'll
+			// need to use the pbyteBuff_COPY buffer, do the transfers, then write it all
+			// back over the contents in pbyteBuff after first clearing it to null bytes
+			if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
+			{
+				bool bHasBothCRandLF = bHasCR && bHasLF; // if FALSE, the data has only CR
+				if (bHasBothCRandLF)
+				{
+					// This  is the Windows string case, where line termination is CR+LF so
+					// this is more complex - the data will shorten so we need to use the
+					// second buffer and copy substrings there etc. However, the data could be
+					// UTF-8, or UTF-16, so these are handled in different ways. For UTF-8, CR
+					// and LF will be in sequence, and so we can search for that byte pair.
+					// For UTF-16, CR and LF will each be followed by a nullbyte, so we can't
+					// use c-string functions, and we'll need a scanning loop instead.
+					// Hmmm, do any big-endian machines use CR LF line endings? Probably
+					// not. Oh well, just in case....
+
+					// make a second buffer for receiving copied data substrings, with Unix
+					// line ending \n only (remember, the data may be already UTF-16, which
+					// could be zero byte extended ASCII, and so we can't assume there won't be
+					// null bytes in it)
+					pbyteBuff_COPY = (char*)malloc(nLength);
+					memset(pbyteBuff_COPY,0,nLength); // fill with nulls, at least 2 bytes at
+													  // the end will remain null
+					// do the loop...
+					if (bHasCRLF)
+					{
+                        // it's utf-16 data, so we've a more complex scanning loop to
+                        // do - but it's similar to the one above for determining the
+                        // bHasBothCRandLF value, so just tweak that
+						aux = pbyteBuff;
+						ptr = pbyteBuff;
+						wxUint32 lineLen = 0;
+						pEnd = pbyteBuff + (nLength - sizeof(wxChar));
+						pBegin_COPY = pbyteBuff_COPY; // the iterator within pbyteBuff_COPY
+						for (i = 0; i< nLength - sizeof(wxChar) - sizeof(eol_utf16); i++)
+						{
+							// bigendian requires a different test
+							if (*(pbyteBuff + i) == NIX && *(pbyteBuff + i + 1) == CR)
+							{
+								// we have a potential emptybyte + CR + emptybyte + LF sequence
+								char* pPotential = pbyteBuff + i;
+								if (	*(pPotential + 0) == eol_utf16[0]	&&
+										*(pPotential + 1) == eol_utf16[1]	&&
+										*(pPotential + 2) == eol_utf16[2]	&&
+										*(pPotential + 3) == eol_utf16[3]
+									)
+								{
+									// we have a match; aux points to start of this substring,
+									// and ptr points to char just past the last in the substring
+									ptr = pPotential;
+									lineLen = (wxUint32)(ptr - aux);
+									// next call, can't use strncpy as it halts at the first
+									// null byte (and in utf-16 built from ascii, there are
+									// heaps of them present)
+									pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
+									pBegin_COPY += lineLen; // point past what we just copied
+									// advance aux in the pbyteBuff buffer past the eol_utf16
+									// bytes and put ptr there too
+									aux = ptr + sizeof(eol_utf16);
+									ptr = aux;
+
+									// add an LF char after the substring in the copy buffer,
+									// and a null byte before it - since this block is for
+									// big-endian
+									*pBegin_COPY = NIX;
+									++pBegin_COPY;
+									*pBegin_COPY = LF;
+									++pBegin_COPY;
+
+									// advance the loop index past the 4 bytes of the CR & LF
+									// in the source buffer
+									i += sizeof(eol_utf16);
+								}
+							}
+						} // end of for loop
+						// get the last substring, which may not have been terminated by CR+LF
+						lineLen = (wxUint32)(pEnd - aux);
+						if (lineLen > 0)
+						{
+							pBegin_COPY = strncpy_utf16(pBegin_COPY,aux,lineLen);
+							pBegin_COPY += lineLen; // this points at the next byte after
+														 // the last byte that was copied
+						}
+					} // end TRUE block for test: if (bHasCRLF)
+					else
+					{
+						// do the loop, it's not UTF-16, so could be ANSI or UTF-8; - find each CR
+						// followed immediately by LF - we can use strstr() & strncpy() safely
+						aux = pbyteBuff;
+						ptr = pbyteBuff;
+						char eol[3] = {CR,LF,NIX}; // must be a c-string for use in strstr()
+						pEnd = pbyteBuff + (nLength - sizeof(wxChar));
+						ptr = strstr(aux,eol);
+						wxUint32 lineLen = 0;
+						pBegin_COPY = pbyteBuff_COPY; // the *_COPY buffer's iterator
+						while (ptr != NULL)
+						{
+							// copy the substring across
+							lineLen = (wxUint32)(ptr - aux);
+							pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
+							pBegin_COPY += lineLen; // point past what we just copied
+							// advance ptr in the pbyteBuff buffer
+							aux = ptr + sizeof(eol) -1; // point past the CR&LF
+							ptr = aux;
+
+							// add an LF char after the substring
+							*pBegin_COPY = LF;
+							// update location in copy buffer
+							++pBegin_COPY;
+
+							// break out another line, if there is another which ends with the eol string
+							ptr = strstr(aux,eol);
+						}
+						// get the last substring, which may not have been terminated by CR+LF
+						lineLen = (wxUint32)(pEnd - aux);
+						if (lineLen > 0)
+						{
+							pBegin_COPY = strncpy(pBegin_COPY,aux,lineLen);
+							pBegin_COPY += lineLen; // this points at the next byte after
+														 // the last byte that was copied
+						}
+					} // end FALSE block for test: if (bHasCRLF)
+
+					// now overwrite the old data in pbyteBuff
+					memset(pbyteBuff,0,originalBuffLen); // fill with nulls, originalBuffLen will be
+														 // greater than the number of chars
+														 // we want to copy back there, by several
+					wxUint32 numberOfBytes = (wxUint32)(pBegin_COPY - pbyteBuff_COPY);
+					// because the copy could be having to copy nullbyte extended ascii made
+					// into UTF-16, we can't use strncpy() here, but only our variant which
+					// can handle that kind of data
+					pbyteBuff = strncpy_utf16(pbyteBuff, pbyteBuff_COPY, numberOfBytes);
+					nNumRead = numberOfBytes;
+					nLength = numberOfBytes + sizeof(wxChar);
+
+					// free the memory used for the second buffer
+					free((void*)pbyteBuff_COPY);
+
+				} // end of TRUE block for text: if (bHasBothCRandLF)
+				else
+				{
+					// this is easy, just find each CR and overwrite with LF until done
+					for (i = 0; i< nLength - sizeof(wxChar); i++)
+					{
+						if (*(pbyteBuff + i) == CR)
+						{
+							// CR is not a valid UTF-8 non-initial byte, so this is safe
+							*(pbyteBuff + i) = LF; // overwrite CR with LF
+						}
+					}
+					nNumRead = nLength;
+				}
+			} // end of TRUE block for test: if ( (bHasCR && bHasLF) || (bHasCR && !bHasLF))
+		} // end of else block for test: if (bIsLittleEndian)
+
 	} // end of TRUE block for test: if (bShorten)
+
 
 	// now we have to find out what kind of encoding the data is in, and set the
 	// encoding and we convert to UTF-16 in the DoInputConversion() function
@@ -6693,11 +7054,20 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		free((void*)pbyteBuff);
 		return getNewFile_error_no_data_read;
 	}
-    // check for UTF-16 first; we allow it, but don't expect it (and we assume it would
-    // have a BOM)
-	if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
+
+	// BEW 16Aug11: DON'T ASSUME IT HAS A BOM -- use tellenc2() to get the encoding if BOM is absent
+
+    // check for UTF-16 first; we allow it, but don't expect it (but we won't assume it
+    // would have a BOM)
+	if (bIsLittleEndian && !memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
 	{
-		// it's UTF-16
+		// it's UTF-16 - little-endian
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+		bHasBOM = TRUE;
+	}
+	else if (!bIsLittleEndian && !memcmp(pbyteBuff,szU16BOM_BigEndian,nU16BOMLen))
+	{
+		// it's UTF-16 - big-endian
 		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
 		bHasBOM = TRUE;
 	}
@@ -6715,7 +7085,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 			if (gbForceUTF8)
 			{
 				// the app is mucking up the source data conversion, so the user wants
-				// to force UTF8 encoding to be used
+				// to force UTF8 encoding to be used; DocPage.cpp has handler for the
+				// checkbox, which is off by default (ie. UTF-8 is not forced, by default)
 				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
 			}
 			else
@@ -6735,7 +7106,11 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
                 // <wuyongwei@gmail.com>. See tellenc.cpp source file for Copyright,
                 // Permissions and Restrictions.
 
-// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
+				// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
+				
+				// BEW 16Aug11 -- Note, tellenc() calls tellenc2(), and tellenc() may
+				// still return utf-16 (ie. big-endian) or utf-16le (little-endian) here,
+				// since we've not handled the BOM-less case above
 				init_utf8_char_table();
 				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
 				if (!(enc) || strcmp(enc, "unknown") == 0)
@@ -6765,7 +7140,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				}
 				else if (strcmp(enc, "utf-16le") == 0)
 				{
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
+					// UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
+					gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // == same as wxFONTENCODING_UTF16
 				}
 				else if (strcmp(enc, "ucs-4") == 0)
 				{
@@ -6798,7 +7174,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	}
 
 	// do the converting and transfer the converted data to pstrBuffer (which then
-	// persists while doc lives)
+	// persists while doc lives) -- if m_srcEndoding is wxFONTENCODING_UTF16, then
+	// conversion is skipped and the text (minus the BOM if present) is returned 'as is'
 	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
 
 	// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
