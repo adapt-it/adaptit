@@ -325,7 +325,12 @@ wxString GetDateTimeNow(enum AppPreferedDateTime dt = adaptItDT);
 wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
 
 //size_t GetFileSize_t(wxString& absPathToFile);
+
+// next two use tellenc.cpp
 bool IsLoadableFile(wxString& absPathToFile);
+// determine endian value for the machine being run on, from how the bytes are ordered
+bool IsLittleEndian(wxString& theText);
+
 /* unused, but perfect good
 bool PopulateTextCtrlByLines(wxTextCtrl* pText, wxString* pPath, int numLines = -1);
 */
@@ -378,7 +383,7 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 // or not the message to alert the user to a failure to store the contents in the KB gets
 // shown.
 void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
-									bool bSuppressWarningOnStoreKBFailure = FALSE); 
+									bool bSuppressWarningOnStoreKBFailure = FALSE);
 
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
