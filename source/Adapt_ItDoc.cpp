@@ -1346,25 +1346,73 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
         // DoFileSave_Protected(TRUE) call later below will get that job done
 		bool bAttemptStoreToKB = FALSE;
 		bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
-		bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't
-													  // attempt it anyway, here)
+		bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't try
+													  // the store operation anyway here)
+		bool bMovedTextOK = TRUE;
+		long resultTgt = -1; // reset to 0 if all goes well
+		long resultFreeTrans = -1; // ditto
+		wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
+		wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
+
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
 		wxString postEditText; 
 		wxString updatedText;
-
 		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
+		// comment out the #define when a wxLogDebug listing of the updated text is not 
+		// wanted in the Ouput window when in the debugger
+#define _HAVE_A_LOOK
+#ifdef _HAVE_A_LOOK
 #ifdef __WXDEBUG__
 		// have a look at what we got
 		wxLogDebug(_T("\n *** updatedText returned to OnFileSave() in doc class ***\n"));
 		wxLogDebug(_T("%s\n"), updatedText.c_str());
 #endif
+#endif
 		if (!updatedText.IsEmpty())
 		{
-// *** TODO *** make the command line for target text and transfer to external editor
+            // Get the updatedText to a file of the required name (overwriting the older
+            // one already there) in the .temp folder; then make the command line for
+            // target text and transfer the text to the external editor -- the following
+            // calls internally make all the decisions necessary, such as whether a whole
+            // book or just a chapter is to be sent, its filename, whether to Bibledit or
+            // Paratext, and so forth, using member variables stored in the application
+            // class  (don't add a BOM)
+			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
+			resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
+			TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
+												outputTgt, errorsTgt, resultTgt);
 
-			// the returned postEditText (as exported from the AI document at the time the
+			// error handling
+			if (resultTgt != 0)
+			{
+				// not likely to happen so an English warning will suffice
+				wxMessageBox(_T(
+"Error when trying tp write target text to the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
+				_T(""),wxICON_WARNING);
+				wxString temp;
+				temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultTgt = %d"),resultTgt);
+				gpApp->LogUserAction(temp);
+				wxLogDebug(temp);
+				int ct;
+				temp.Empty();
+				for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
+				{
+					temp += outputTgt.Item(ct);
+					gpApp->LogUserAction(temp);
+					wxLogDebug(temp);
+				}
+				for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
+				{
+					temp += errorsTgt.Item(ct);
+					gpApp->LogUserAction(temp);
+					wxLogDebug(temp);
+				}
+				return;
+			} // end of TRUE block for test: if (resultTgt != 0)
+
+			// The returned postEditText (as exported from the AI document at the time the
 			// File / Save was invoked) now has to replace the saved preEditText in the
 			// private app member for that purpose, becoming the new preEditTargetText
 			gpApp->StoreTargetText_PreEdit(postEditText);
@@ -1377,40 +1425,78 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
                 // to be saved in the app member for that purpose, becoming the new
                 // preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
 				wxString postEditFreeTransText;
-
 				wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeFreeTransText, postEditFreeTransText);
+#ifdef _HAVE_A_LOOK
 #ifdef __WXDEBUG__
 				// have a look at what we got
 				wxLogDebug(_T("\n *** updatedFreeTransText returned to OnFileSave() in doc class ***\n"));
 				wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
 #endif
+#endif
 				if (!updatedFreeTransText.IsEmpty())
 				{
-					// use updatedFreeTransText, to get it back to PT or BE as the case may be
-					;
-// *** TODO *** make the command line for freeTrans text and transfer to external editor
-					
+                    // Get the updatedFreeTransText to a file of the required name
+                    // (overwriting the older one already there) in the .temp folder; then
+                    // make the command line for free translation text and transfer the
+                    // text to the external editor -- the following calls internally make
+                    // all the decisions necessary, such as whether a whole book or just a
+                    // chapter is to be sent, its filename, whether to Bibledit or
+                    // Paratext, and so forth, using member variables stored in the
+                    // application class (don't add a BOM)
+					bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
+					resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
+					TransferTextBetweenAdaptItAndExternalEditor(writing, collab_freeTrans_text,
+											outputFreeTrans, errorsFreeTrans, resultFreeTrans);
 
+					// error handling
+					if (resultFreeTrans != 0)
+					{
+						// not likely to happen so an English warning will suffice
+						wxMessageBox(_T(
+"Error when trying to write free translation to the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
+						_T(""),wxICON_WARNING);
+						wxString temp;
+						temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultFreeTrans = %d"),resultFreeTrans);
+						gpApp->LogUserAction(temp);
+						wxLogDebug(temp);
+						int ct;
+						temp.Empty();
+						for (ct = 0; ct < (int)outputFreeTrans.GetCount(); ct++)
+						{
+							temp += outputFreeTrans.Item(ct);
+							gpApp->LogUserAction(temp);
+							wxLogDebug(temp);
+						}
+						for (ct = 0; ct < (int)errorsFreeTrans.GetCount(); ct++)
+						{
+							temp += errorsFreeTrans.Item(ct);
+							gpApp->LogUserAction(temp);
+							wxLogDebug(temp);
+						}
+						return;
+					} // end of TRUE block for test: if (resultFreeTrans != 0)
 
-					// the returned postEditFreeTransText (as exported from the AI document at the time the
-					// File / Save was invoked) now has to replace the saved preEditFreeTransText in the
-					// private app member for that purpose, becoming the new preEditFreeTransText
+                    // the returned postEditFreeTransText (as exported from the AI document
+                    // at the time the File / Save was invoked) now has to replace the
+                    // saved preEditFreeTransText in the private app member for that
+                    // purpose, becoming the new preEditFreeTransText
 					gpApp->StoreFreeTransText_PreEdit(postEditFreeTransText);
 				}
 			}
 
 
 			// and then also do a local normal protected save to AI's native storage;
-			// we put this call here so that if there was nothing to send to the external
-			// editor, then we don't save the document locally -- I think this is what
-			// we'd want to do, otherwise, we may get out of sync
 			DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
 		}
 		else
 		{
-			// returned an empty string, this indicates some kind error or unsafe
-			// situation - which should have been seen already
+            // returned an empty string, this indicates some kind error or unsafe situation
+            // - which should have been seen already -- this is unlikely to ever happen so
+            // just beep but still do the protected local save - the word done should never
+            // be lost
+			wxBell();
+			DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
 			return;
 		}
 	}

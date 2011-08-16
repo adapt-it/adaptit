@@ -80,108 +80,37 @@ class CSourcePhrase;
 /// This group of functions are used for analysis of texts in order to get an updated text
 /// to return to the external editor
 ///////////////////////////////////////////////////////////////////////////////////
-	bool	DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
+	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
+	bool			DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
 	// this overload takes an array of structure& extent checksums, gets the
 	// wxString at the 0-based index given by lineIndex, and fills out the passed in
 	// VerseAnalysis struct; returns TRUE if the verse structure is complex, FALSE if it
 	// is simple
-	bool		DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex);
-	void		InitializeVerseAnalysis(VerseAnalysis& rVerseAnal);
-	bool		GetNextVerseLine(const wxArrayString& usfmText, int& index);
-	bool		GetAnotherVerseLine(const wxArrayString& usfmText, int& index);
-	bool		IsVerseLine(const wxArrayString& usfmText, int index);
-	bool		IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex);
-	bool		IsComplexVersificationLine(const wxString& verseLineStr);
-	wxString	GetInitialUsfmMarkerFromStructExtentString(const wxString str);
-	wxString	GetStrictUsfmMarkerFromStructExtentString(const wxString str);
-	wxString	GetFinalMD5FromStructExtentString(const wxString str);
-	int			GetCharCountFromStructExtentString(const wxString str);
-	int			FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
-	int			FindMatchingVerseNumInOtherChapterArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum);
-	void		DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr, 
-						const wxArrayString& fromEditorMd5Arr, int postEditStart, 
-						int& postEditEnd, int fromEditorStart, int& fromEditorEnd);
-	void		GetRemainingMd5VerseLinesInChapter(const wxArrayString& md5Arr, int nStart, wxArrayPtrVoid& verseLinesArr);
-	void		DeleteAllVerseInfStructs(wxArrayPtrVoid& arr);
-	int			FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
-	wxString	GetNumberFromChapterOrVerseStr(const wxString& verseStr);
+	bool			DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex);
+	void			DeleteAllVerseInfStructs(wxArrayPtrVoid& arr);
+	void			DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr, 
+							const wxArrayString& fromEditorMd5Arr, int postEditStart, 
+							int& postEditEnd, int fromEditorStart, int& fromEditorEnd);
+	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index);
+	bool			GetAnotherVerseLine(const wxArrayString& usfmText, int& index);
+	wxString		GetInitialUsfmMarkerFromStructExtentString(const wxString str);
+	wxString		GetStrictUsfmMarkerFromStructExtentString(const wxString str);
+	wxString		GetFinalMD5FromStructExtentString(const wxString str);
+	int				GetCharCountFromStructExtentString(const wxString str);
+	wxString		GetNumberFromChapterOrVerseStr(const wxString& verseStr);
+	void			GetRemainingMd5VerseLinesInChapter(const wxArrayString& md5Arr, int nStart, wxArrayPtrVoid& verseLinesArr);
+	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
+	int				FindMatchingVerseNumInOtherChapterArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum);
+	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
+	void			InitializeVerseAnalysis(VerseAnalysis& rVerseAnal);
+	bool			IsVerseLine(const wxArrayString& usfmText, int index);
+	bool			IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex);
+	bool			IsComplexVersificationLine(const wxString& verseLineStr);
 
-////////////////////// end of those for analysis of texts //////////////////////////
-
-
-	// returns the absolute path to the folder being used as the Adapt It work folder, whether
-	// in standard location or in a custom location - but for the custom location only
-	// provided it is a "locked" custom location (if not locked, then the path to the standard
-	// location is returned, i.e. m_workFolderPath, rather than m_customWorkFolderPath). The
-	// "lock" condition ensures that a snooper can't set up a PT or BE collaboration and
-	// the remote user not being aware of it.
-	wxString		SetWorkFolderPath_For_Collaboration();
-	bool			IsEthnologueCodeValid(wxString& code);
-	// the next function is created from OnWizardPageChanging() in Projectpage.cpp, and
-	// tweaked so as to remove support for the latter's context of a wizard dialog
-	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, 
-							wxString* pProjectFolderPath);
-	// a module for doing the layout and getting the view ready for the user to start
-	// adapting;; it is not limited to being used in a Collaboration scenario
-	void			SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
-	// move the newSrc string of just-obtained (from PT or BE) source text, currently in the
-	// .temp folder, to the __SOURCE_INPUTS folder, creating the latter folder if it doesn't
-	// already exist, and storing in a file with filename constructed from fileTitle plus an
-	// added .txt extension; if a file of that name already exists there, overwrite it.
-	bool			MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
-							wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
-							bool bAddBOM = FALSE);
-	wxString		ExportTargetText_For_Collab(SPList* pDocList);
-	wxString		ExportFreeTransText_For_Collab(SPList* pDocList);
-	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
-	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
-	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
-	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
-	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
-						   bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
-	void			UnloadKBs(CAdapt_ItApp* pApp);
-	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgtLangName,
-							wxString& srcEthnologueCode, wxString& tgtEthnologueCode,
-							bool bDisableBookMode);
-	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
-	bool			KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar); //BEW added 13Jun11
-
-	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit()
-	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
-
-	wxArrayString	GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
-	enum			CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, 
-							const wxArrayString& usfmText2);
-
-	bool			IsTextOrPunctsChanged(wxString& oldText, wxString& newText);
-	// overload of the above, taking arrays and start & finish item indices as parameters
-	bool			IsTextOrPunctsChanged(wxArrayString& oldMd5Arr, int oldStart, int oldEnd,
-							wxArrayString& newMd5Arr, int newStart, int newEnd);
-	bool			IsUsfmStructureChanged(wxString& oldText, wxString& newText);
-	wxString		GetShortNameFromProjectName(wxString projName);
-
-	wxString		MakePathToFileInTempFolder_For_Collab(enum DoFor textKind);
-	wxString		BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind);
-	void			TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
-							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
+	// The next subset are the main workhorses for the creation of the updated text...
 	
-	bool			CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
-							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
-	bool			CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, 
-							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
-
-	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
-							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
-							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr);
-
-	wxString		GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditText, 
-							wxString& fromEditorText, wxArrayString& preEditMd5Arr, 
-							wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr, 
-							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
-	// next function includes nStart & nFinish items within the subarray
+	// Next function includes the nStart & nFinish items within the subarray
 	wxArrayString	ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFinish); 
-
 	// BEW added 11July, to get changes to the adaptation and free translation back to the
 	// respective PT or BE projects; the post-edit text from the document at the time of
 	// File / Save is returned in the postEditText parameter - it will be either target
@@ -191,9 +120,98 @@ class CSourcePhrase;
 	// string if there was an error.
 	wxString		MakeUpdatedTextForExternalEditor(SPList* pDocList, 
 							enum SendBackTextType makeTextType, wxString& postEditText);
+	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
+						    bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
+	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
+							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
+							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
+							wxArrayPtrVoid& fromEditorOffsetsArr);
+	wxString		GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditText, 
+							wxString& fromEditorText, wxArrayString& preEditMd5Arr, 
+							wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr, 
+							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
+	////////////////// end of those for analysis of texts //////////////////////////
 
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	///   Functions for connecting  the externally obtained data into a new or existing
+	///   Adapt It project, and getting data out of the Adapt It document
+	/////////////////////////////////////////////////////////////////////////////////////
+	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, 
+							wxString& tgtLangName, wxString& srcEthnologueCode, 
+							wxString& tgtEthnologueCode, bool bDisableBookMode);
+	wxString		ExportTargetText_For_Collab(SPList* pDocList);
+	wxString		ExportFreeTransText_For_Collab(SPList* pDocList);
+	// The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
+	// tweaked so as to remove support for the latter's context of a wizard dialog
+	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, 
+							wxString* pProjectFolderPath);
+	bool			IsEthnologueCodeValid(wxString& code);
+	bool			KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar); //BEW added 13Jun11
+	// a module for doing the layout and getting the view ready for the user to start
+	// adapting;; it is not limited to being used in a Collaboration scenario
+	void			SetupLayoutAndView(CAdapt_ItApp* pApp, wxString& docTitle);
+	void			UnloadKBs(CAdapt_ItApp* pApp);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Functions for MD5 checksums and their manipulation
+	/////////////////////////////////////////////////////////////////////////////////////
+	enum			CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usfmText1, 
+							const wxArrayString& usfmText2);
+	void			DeleteMD5MapStructs(wxArrayPtrVoid& structsArr);
+	wxArrayString	GetUsfmStructureAndExtent(wxString& sourceFileBuffer);
+	bool			IsTextOrPunctsChanged(wxString& oldText, wxString& newText);
+	// overload of the above, taking arrays and start & finish item indices as parameters
+	bool			IsTextOrPunctsChanged(wxArrayString& oldMd5Arr, int oldStart, int oldEnd,
+							wxArrayString& newMd5Arr, int newStart, int newEnd);
+	bool			IsUsfmStructureChanged(wxString& oldText, wxString& newText);
 	void			MapMd5ArrayToItsText(wxString& itsText, wxArrayPtrVoid& mappingsArr, 
 							wxArrayString& md5Arr);
-	void			DeleteMD5MapStructs(wxArrayPtrVoid& structsArr);
+
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Functions for filename creation, path creation, file moving, and data transfer
+	///     to the external editor, when doing collaboration
+	/////////////////////////////////////////////////////////////////////////////////////
+	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit()
+	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
+	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
+	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
+	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
+	wxString		GetShortNameFromProjectName(wxString projName);
+	// The next three are the meaty ones, which together get the updated text back to the
+	// external editor, via the .temp folder (child of the work folder) as an
+	// intermediatory location for storage of the file holding the data being transferred
+	// in or out as the case may be - determined by the lineFor value, either 'reading' or
+	// 'writing'
+	wxString		MakePathToFileInTempFolder_For_Collab(enum DoFor textKind);
+	wxString		BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind);
+	void			TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, enum DoFor textKind,
+							wxArrayString& textIOArray, wxArrayString& errorsIOArray, long& resultCode);
+	// Move the newSrc string of just-obtained (from PT or BE) source text, currently in the
+	// .temp folder, to the __SOURCE_INPUTS folder, creating the latter folder if it doesn't
+	// already exist, and storing in a file with filename constructed from fileTitle plus an
+	// added .txt extension; if a file of that name already exists there, overwrite it.
+	bool			MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath, 
+							wxString& pathCreationErrors, wxString& theText, wxString& fileTitle,
+							bool bAddBOM = FALSE);
+	// The following is similar to MoveTextToFolderAndSave() except that it computes
+	// internally the path to the .temp folder, and adds the required filename to it (also
+	// internally) and so fewer parameters are needed in the signature
+	bool			MoveTextToTempFolderAndSave(enum DoFor textKind, wxString& theText, bool bAddBOM = FALSE);
+	// The next two move text to or from Bibledit's native storage structures
+	bool			CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
+							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+	bool			CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, 
+							int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
+	// Returns the absolute path to the folder being used as the Adapt It work folder, whether
+	// in standard location or in a custom location - but for the custom location only
+	// provided it is a "locked" custom location (if not locked, then the path to the standard
+	// location is returned, i.e. m_workFolderPath, rather than m_customWorkFolderPath). The
+	// "lock" condition ensures that a snooper can't set up a PT or BE collaboration and
+	// the remote user not being aware of it.
+	wxString		SetWorkFolderPath_For_Collaboration();
+	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
+
 #endif
 
