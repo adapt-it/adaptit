@@ -29147,11 +29147,18 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// Called from: the Doc's GetNewFile() and CCCTabbedDialog::DoEditor().
 /// Converts a UTF-8 or UTF-16 input text to the required UTF-16 for internal use in
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
+/// BEW 16Aug11, adjusted for the fact that wchar_t in Unix has size of 4 bytes
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, 
 									 wxFontEncoding eEncoding,bool bHasBOM)
 {
 	// for unicode conversions
+	// BEW 16Aug11, I read in the wx documentation, that wchar_t has size of 4 bytes in
+	// Unix, so the code below needs tweaking to take this into account for the utf-16
+	// case, otherwise for Unix (ie. Mac OS) skipping just two bytes when 4 need to be
+	// skipped leads to the first characters of the output being a couple of null bytes,
+	// which would make the wxString pBuf seem empty
+	unsigned int width_of_wchar_t = sizeof(wxChar);
 
 	// pbyteBuff is null terminated
 	wxChar* lpUnconvertedText;
@@ -29172,7 +29179,8 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
 		{
 		if (bHasBOM)
 		{
-			pbyteBuff += nU16BOMLen; // skip over BOM
+			//pbyteBuff += nU16BOMLen; // skip over BOM
+			pbyteBuff += width_of_wchar_t; // skip over BOM
 		}
 		lpUnconvertedText = (wxChar*)pbyteBuff;
 		pBuf = lpUnconvertedText;
