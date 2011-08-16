@@ -997,6 +997,55 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 	return bCreatedOK;
 }
 
+bool MoveTextToTempFolderAndSave(enum DoFor textKind, wxString& theText, bool bAddBOM)
+{
+	bool bCreatedOK = TRUE;
+
+	// add the BOM, if wanted (bAddBOM is default FALSE, so TRUE must be passed explicitly
+	// in order to have the addition made)
+#ifdef _UNICODE
+	bool bBOM_PRESENT = FALSE;
+	wxUint32 littleENDIANutf16BOM = 0xFFFE;
+	// next line gives us the UTF16 BOM on a machine of either endianness
+	wxChar utf16BOM = (wxChar)wxUINT32_SWAP_ON_BE(littleENDIANutf16BOM);
+	wxChar firstChar = theText.GetChar(0);
+	if (firstChar == utf16BOM)
+	{
+		bBOM_PRESENT = TRUE;
+	}
+	if (!bBOM_PRESENT && bAddBOM)
+	{
+		wxString theBOM = utf16BOM;
+		theText = theBOM + theText;
+	}
+#else
+	bAddBOM = bAddBOM; // to prevent compiler warning
+#endif
+	// make the file's path (the file will live in the .temp folder)
+	wxString path = MakePathToFileInTempFolder_For_Collab(textKind);
+	wxASSERT(path.Find(_T(".temp")) != wxNOT_FOUND);
+
+	// make the wxFFile object and save theText to the path created above
+	wxFFile ff;
+	bool bOK;
+	// NOTE: according to the wxWidgets documentation, both Unicode and non-Unicode builds
+	// should use char, and so the next line should be const char writemode[] = "w";, but
+	// in the Unicode build, this gives a compile error - wide characters are expected
+	const wxChar writemode[] = _T("w");
+	if (ff.Open(path, writemode))
+	{
+		// no error  when opening
+		ff.Write(theText, wxConvUTF8);
+		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
+	}
+	else
+	{
+		bCreatedOK = FALSE;
+	}
+	return bCreatedOK;
+}
+
+
 // Pass in a fileTitle, that is, filename without a dot or extension, (".txt will be added
 // internally) and it will look for a file of that name in a folder with absolute path
 // folderPath. The file (if using the Unicode app build) will expect the file's data to be

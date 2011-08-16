@@ -589,66 +589,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
 		return;
 	}
-	/*  
-    // *** DON'T DELETE ***   Copy this error handling code to the handler which supports 
-    // File / Save, as that is when we have to do the target text read from the external
-    // editor, and ditto for free translation if the free translation is expected to be
-    // part of the data transfers
-    
-	if (resultTgt != 0)
-	{
-		// not likely to happen so an English warning will suffice
-		wxMessageBox(_T("Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-		wxString temp;
-		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultTgt = %d"),resultTgt);
-		wxString temp.Empty();
-		for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
-		{
-			temp += outputTgt.Item(ct);
-			m_pApp->LogUserAction(temp);
-			wxLogDebug(temp);
-		}
-		for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
-		{
-			temp += errorsTgt.Item(ct);
-			m_pApp->LogUserAction(temp);
-			wxLogDebug(temp);
-		}
-		pListBoxBookNames->SetSelection(-1); // remove any selection
-		// clear lists and static text box at bottom of dialog
-		pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	} // end of TRUE block for test: if (resultSrc != 0 || resultTgt != 0)
-	// handle errors collecting the free translation
-	if (m_pApp->m_bCollaborationExpectsFreeTrans && resultFreeTrans != 0)
-	{
-		// not likely to happen so an English warning will suffice
-		wxMessageBox(_T("Could not read free translation data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-		wxString temp;
-		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultFreeTrans = %d"),resultFreeTrans);
-		m_pApp->LogUserAction(temp);
-		wxLogDebug(temp);
-		int ct;
-		if (resultFreeTrans != 0)
-		{
-			temp.Empty();
-			for (ct = 0; ct < (int)outputFreeTrans.GetCount(); ct++)
-			{
-				temp += outputFreeTrans.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
-			}
-		}
-		pListBoxBookNames->SetSelection(-1); // remove any selection
-		// clear lists and static text box at bottom of dialog
-		pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		return;
-	} // end of TRUE block for test: if (m_pApp->m_bCollaborationExpectsFreeTrans && resultFreeTrans != 0)
-	*/
 
 	// whm Note to Bruce 27Jul11:
 	// I've made the list boxes and other elements of the GUI adjust for the
@@ -671,8 +611,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
     // of whether there has been a change in the source text or not. This may be the
     // preferred option for chapter-sized text documents.
     // *** We need to always do (2), (1) is dangerous because the user may elect not to
-    //     send adaptations back to PT (BEW 1Aug11 -- I don't it would matter, but doing
-    //     the merge is about the same level of complexity/processingtime as the checksums,
+    //     send adaptations back to PT (BEW 1Aug11 -- I don't think it would matter, but doing
+    //     the merge is about the same level of complexity/processing-time as the checksums,
     //     so I'll leave it that we do the merge automatically), and that can get the saved
     //     source in __SOURCE_INPUTS out of sync with the source text in the CSourcePhrases
     //     of the doc as at an earlier state
