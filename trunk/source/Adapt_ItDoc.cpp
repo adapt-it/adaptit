@@ -564,7 +564,18 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// navigation-protection feature be forced on him when the Administrator menu is
 		// visible. I've also put a conditional compile here so that when the developer is
 		// debugging, he can choose which behaviour he wants for testing purposes
-		bool bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();
+		// 
+		// whm modified 16Aug11. When the __SOURCE_INPUTS folder is NOT protected we need
+		// to bypass the call to UseSourceDataFolderOnlyForInputFiles()
+		bool bUseSourceDataFolderOnly;
+		if (gpApp->m_bProtectSourceInputsFolder)
+		{
+			bUseSourceDataFolderOnly =  gpApp->UseSourceDataFolderOnlyForInputFiles();
+		}
+		else
+		{
+			bUseSourceDataFolderOnly = FALSE;
+		}
 		bool bUserNavProtectionInForce = FALSE;
 #ifdef __WXDEBUG__
 		// un-comment out the next line to have navigation protection for loading source
