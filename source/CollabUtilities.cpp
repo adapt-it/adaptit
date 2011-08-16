@@ -1013,21 +1013,24 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 			bBOM_PRESENT = TRUE;
 			theBOM = (wxChar)0xFEFF;
 		}
+		/* // whm 16Aug11 commented out these two blocks
 		else if (strcmp(result,"ucs-4le") == 0) //else if (resultStr == "ucs-4le")
 		{
 			// 64bit, little endian
 			bBOM_PRESENT = TRUE;
-			unsigned char s64le[4] = {0xFF, 0xFE, 0x00, 0x00};
-			theBOM = (wxChar)s64le;
+			theBOM = _T("\xFF\xFE\x00\x00"); //unsigned char s64le[4] = {0xFF, 0xFE, 0x00, 0x00};
+			//theBOM = (wxChar)s64le;
 		}
 		else if (strcmp(result,"ucs-4") == 0) //else if (resultStr == "ucs-4")
 		{
 			// 64bit, big endian
 			bBOM_PRESENT = TRUE;
-			unsigned char s64[4] = {0x00, 0x00, 0xFE, 0xFF};
-			theBOM = (wxChar)s64;
+			theBOM = _T("\x00\x00\xFE\xFF"); //unsigned char s64[4] = {0x00, 0x00, 0xFE, 0xFF};
+			//theBOM = (wxChar)s64;
 		}
+		*/
 	}
+
 	/* this is only good for 32-bit machines, I think, so use the above
 	wxUint16 littleENDIANutf16BOM = 0xFFFE;
 	// next line gives us the UTF16 BOM on a machine of either endianness
