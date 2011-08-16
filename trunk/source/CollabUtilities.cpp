@@ -95,11 +95,11 @@ extern bool gbDoingInitialSetup;
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
 /// this BOM.
-static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
+//static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
 
 /// The UTF-16 byte-order-mark (BOM) which consists of the two bytes 0xFF and 0xFE in
 /// in UTF-16 encoding.
-static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
+//static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
 
 #endif
 
@@ -3087,7 +3087,8 @@ _T("The verse range was parsed, and the following remains unparsed: %s\nfrom the
 // when refVAnal was a ptr ref and was param 3 and lineIndex was param2)
 bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex)
 {
-	size_t count = md5Array.GetCount();
+	size_t count;
+	count = md5Array.GetCount();
 	wxASSERT(count > 0); // it's not an empty array
 	wxASSERT( lineIndex < count); // no bounds error
 	wxString lineStr = md5Array.Item(lineIndex);
@@ -3123,7 +3124,8 @@ void InitializeVerseAnalysis(VerseAnalysis& rVerseAnal)
 // is, not just a simple verse number. FALSE if it is not complex.
 bool IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex)
 {
-	size_t count = md5Arr.GetCount();
+	size_t count;
+	count = md5Arr.GetCount();
 	wxASSERT(lineIndex < count);
 	VerseAnalysis vAnal;
 	if (IsVerseLine(md5Arr, lineIndex))
@@ -3171,8 +3173,10 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 				const wxArrayString& fromEditorMd5Arr, int postEditStart, int& postEditEnd, 
 				int fromEditorStart, int& fromEditorEnd)
 {
-	int postEditArrCount = postEditMd5Arr.GetCount();
-	int fromEditorArrCount = fromEditorMd5Arr.GetCount();
+	int postEditArrCount;
+	postEditArrCount = postEditMd5Arr.GetCount();
+	int fromEditorArrCount;
+	fromEditorArrCount = fromEditorMd5Arr.GetCount();
 	wxASSERT(postEditStart < postEditArrCount);
 	wxASSERT(fromEditorStart < fromEditorArrCount);
 
@@ -3997,9 +4001,11 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxString zeroStr = _T("0");
     // each text variant's MD5 structure&extents array has exactly the same USFMs in the
     // same order -- verify before beginning
-	size_t preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
+	size_t preEditMd5Arr_Count;
+	preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();					
-	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();					
+	size_t fromEditorMd5Arr_Count;
+	fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();					
 	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count && 
 			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
 	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
@@ -4238,7 +4244,8 @@ wxString GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditTe
 	// each text variant's MD5 structure&extents array has exactly the same USFMs, but
 	// only for preEdit and postEdit varieties; the fromEditor variant will be different
 	// otherwise this function won't be entered
-	size_t preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
+	size_t preEditMd5Arr_Count;
+	preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();					
 	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
 	// in debug build verify our assumptions are correct
@@ -4257,7 +4264,8 @@ wxString GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditTe
 	const wxChar* pPreEditBuffer = preEditText.GetData();
 	int nPreEditBufLen = preEditText.Len();
 	wxChar* pPreEditStart = (wxChar*)pPreEditBuffer;
-	wxChar* pPreEditEnd = pPreEditStart + nPreEditBufLen;
+	wxChar* pPreEditEnd;
+	pPreEditEnd = pPreEditStart + nPreEditBufLen;
 	wxASSERT(*pPreEditEnd == '\0');
 
 	const wxChar* pPostEditBuffer = postEditText.GetData();
