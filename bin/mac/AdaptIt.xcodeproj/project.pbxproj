@@ -34,20 +34,6 @@
 		7DCCD1A0128CF1CF00A42526 /* EmailReportDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DCCD19E128CF1CF00A42526 /* EmailReportDlg.cpp */; };
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
-		C801A21813F89D040003B56A /* docV5_additions_test3.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A20A13F89D040003B56A /* docV5_additions_test3.txt */; };
-		C801A21913F89D040003B56A /* aaa_verse6_test.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A20B13F89D040003B56A /* aaa_verse6_test.txt */; };
-		C801A21A13F89D040003B56A /* aaa_fixedspace_test_src.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A20C13F89D040003B56A /* aaa_fixedspace_test_src.txt */; };
-		C801A21B13F89D040003B56A /* a_xref_test.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A20D13F89D040003B56A /* a_xref_test.txt */; };
-		C801A21C13F89D040003B56A /* Tok Pisin fragment 1John.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A20E13F89D040003B56A /* Tok Pisin fragment 1John.txt */; };
-		C801A21D13F89D040003B56A /* _PunctChanges_with_FixedSpaces-1.xml in Resources */ = {isa = PBXBuildFile; fileRef = C801A20F13F89D040003B56A /* _PunctChanges_with_FixedSpaces-1.xml */; };
-		C801A21E13F89D040003B56A /* docV5_test_for change_puncts-1.xml in Resources */ = {isa = PBXBuildFile; fileRef = C801A21013F89D040003B56A /* docV5_test_for change_puncts-1.xml */; };
-		C801A21F13F89D040003B56A /* docV5_test_for change_puncts.xml in Resources */ = {isa = PBXBuildFile; fileRef = C801A21113F89D040003B56A /* docV5_test_for change_puncts.xml */; };
-		C801A22013F89D040003B56A /* _PunctChanges_with_FixedSpaces.xml in Resources */ = {isa = PBXBuildFile; fileRef = C801A21213F89D040003B56A /* _PunctChanges_with_FixedSpaces.xml */; };
-		C801A22113F89D040003B56A /* Tok Pisin fragment 1John Bill 19-Jan-11.xml in Resources */ = {isa = PBXBuildFile; fileRef = C801A21313F89D040003B56A /* Tok Pisin fragment 1John Bill 19-Jan-11.xml */; };
-		C801A22213F89D040003B56A /* docV5_additions_test_with_footnotes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A21413F89D040003B56A /* docV5_additions_test_with_footnotes.txt */; };
-		C801A22313F89D040003B56A /* docV5_additions_test_with_footnotes_and_br_and_merger.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A21513F89D040003B56A /* docV5_additions_test_with_footnotes_and_br_and_merger.txt */; };
-		C801A22513F89D040003B56A /* docV5_additions_test.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A21713F89D040003B56A /* docV5_additions_test.txt */; };
-		C801A26113F8A0350003B56A /* brackets_test_UTF8.txt in Resources */ = {isa = PBXBuildFile; fileRef = C801A26013F8A0350003B56A /* brackets_test_UTF8.txt */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
 		C805DBF011705519006919E2 /* Placeholder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C805DBEF11705519006919E2 /* Placeholder.cpp */; };
 		C80E02BB1222481000ECCA6A /* AdminEditMenuProfile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C80E02B71222481000ECCA6A /* AdminEditMenuProfile.cpp */; };
@@ -66,12 +52,6 @@
 		C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */ = {isa = PBXBuildFile; fileRef = C85085A21338466C006E9457 /* curl-ca-bundle.crt */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
-		C89295CE13F899FC00716331 /* Setting up libcurl and OpenSSL on Windows.rtf in Resources */ = {isa = PBXBuildFile; fileRef = C89295CA13F899FC00716331 /* Setting up libcurl and OpenSSL on Windows.rtf */; };
-		C89295CF13F899FC00716331 /* Setting up wxWidgets and Adapt It on OS X 14Aug2011.rtf in Resources */ = {isa = PBXBuildFile; fileRef = C89295CB13F899FC00716331 /* Setting up wxWidgets and Adapt It on OS X 14Aug2011.rtf */; };
-		C89295D013F899FC00716331 /* Setting up wxWidgets and Adapt It on Ubuntu Linux 14Aug2011.rtf in Resources */ = {isa = PBXBuildFile; fileRef = C89295CC13F899FC00716331 /* Setting up wxWidgets and Adapt It on Ubuntu Linux 14Aug2011.rtf */; };
-		C89295D113F899FC00716331 /* Setting up wxWidgets and Adapt It on Windows 14Aug2011.rtf in Resources */ = {isa = PBXBuildFile; fileRef = C89295CD13F899FC00716331 /* Setting up wxWidgets and Adapt It on Windows 14Aug2011.rtf */; };
-		C89295D713F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.rtf in Resources */ = {isa = PBXBuildFile; fileRef = C89295D513F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.rtf */; };
-		C89295D813F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.txt in Resources */ = {isa = PBXBuildFile; fileRef = C89295D613F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.txt */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
@@ -211,20 +191,6 @@
 		7DE437ED10FA707E0036CC92 /* FilenameConflictDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FilenameConflictDlg.h; path = ../../source/FilenameConflictDlg.h; sourceTree = SOURCE_ROOT; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		C801A20A13F89D040003B56A /* docV5_additions_test3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = docV5_additions_test3.txt; path = ../../testdocs/docV5_additions_test3.txt; sourceTree = SOURCE_ROOT; };
-		C801A20B13F89D040003B56A /* aaa_verse6_test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = aaa_verse6_test.txt; path = ../../testdocs/aaa_verse6_test.txt; sourceTree = SOURCE_ROOT; };
-		C801A20C13F89D040003B56A /* aaa_fixedspace_test_src.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = aaa_fixedspace_test_src.txt; path = ../../testdocs/aaa_fixedspace_test_src.txt; sourceTree = SOURCE_ROOT; };
-		C801A20D13F89D040003B56A /* a_xref_test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = a_xref_test.txt; path = ../../testdocs/a_xref_test.txt; sourceTree = SOURCE_ROOT; };
-		C801A20E13F89D040003B56A /* Tok Pisin fragment 1John.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Tok Pisin fragment 1John.txt"; path = "../../testdocs/Tok Pisin fragment 1John.txt"; sourceTree = SOURCE_ROOT; };
-		C801A20F13F89D040003B56A /* _PunctChanges_with_FixedSpaces-1.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "_PunctChanges_with_FixedSpaces-1.xml"; path = "../../testdocs/_PunctChanges_with_FixedSpaces-1.xml"; sourceTree = SOURCE_ROOT; };
-		C801A21013F89D040003B56A /* docV5_test_for change_puncts-1.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "docV5_test_for change_puncts-1.xml"; path = "../../testdocs/docV5_test_for change_puncts-1.xml"; sourceTree = SOURCE_ROOT; };
-		C801A21113F89D040003B56A /* docV5_test_for change_puncts.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "docV5_test_for change_puncts.xml"; path = "../../testdocs/docV5_test_for change_puncts.xml"; sourceTree = SOURCE_ROOT; };
-		C801A21213F89D040003B56A /* _PunctChanges_with_FixedSpaces.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = _PunctChanges_with_FixedSpaces.xml; path = ../../testdocs/_PunctChanges_with_FixedSpaces.xml; sourceTree = SOURCE_ROOT; };
-		C801A21313F89D040003B56A /* Tok Pisin fragment 1John Bill 19-Jan-11.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Tok Pisin fragment 1John Bill 19-Jan-11.xml"; path = "../../testdocs/Tok Pisin fragment 1John Bill 19-Jan-11.xml"; sourceTree = SOURCE_ROOT; };
-		C801A21413F89D040003B56A /* docV5_additions_test_with_footnotes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = docV5_additions_test_with_footnotes.txt; path = ../../testdocs/docV5_additions_test_with_footnotes.txt; sourceTree = SOURCE_ROOT; };
-		C801A21513F89D040003B56A /* docV5_additions_test_with_footnotes_and_br_and_merger.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = docV5_additions_test_with_footnotes_and_br_and_merger.txt; path = ../../testdocs/docV5_additions_test_with_footnotes_and_br_and_merger.txt; sourceTree = SOURCE_ROOT; };
-		C801A21713F89D040003B56A /* docV5_additions_test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = docV5_additions_test.txt; path = ../../testdocs/docV5_additions_test.txt; sourceTree = SOURCE_ROOT; };
-		C801A26013F8A0350003B56A /* brackets_test_UTF8.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = brackets_test_UTF8.txt; path = ../../testdocs/brackets_test_UTF8.txt; sourceTree = SOURCE_ROOT; };
 		C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItCanvas.cpp; path = ../../source/Adapt_ItCanvas.cpp; sourceTree = SOURCE_ROOT; };
 		C805DBEE11705519006919E2 /* Placeholder.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Placeholder.h; path = ../../source/Placeholder.h; sourceTree = SOURCE_ROOT; };
 		C805DBEF11705519006919E2 /* Placeholder.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Placeholder.cpp; path = ../../source/Placeholder.cpp; sourceTree = SOURCE_ROOT; };
@@ -249,12 +215,6 @@
 		C850F3A610C75D19008739FF /* AdminMoveOrCopy.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AdminMoveOrCopy.h; path = ../../source/AdminMoveOrCopy.h; sourceTree = SOURCE_ROOT; };
 		C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AdminMoveOrCopy.cpp; path = ../../source/AdminMoveOrCopy.cpp; sourceTree = SOURCE_ROOT; };
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
-		C89295CA13F899FC00716331 /* Setting up libcurl and OpenSSL on Windows.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = "Setting up libcurl and OpenSSL on Windows.rtf"; sourceTree = "<group>"; };
-		C89295CB13F899FC00716331 /* Setting up wxWidgets and Adapt It on OS X 14Aug2011.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = "Setting up wxWidgets and Adapt It on OS X 14Aug2011.rtf"; sourceTree = "<group>"; };
-		C89295CC13F899FC00716331 /* Setting up wxWidgets and Adapt It on Ubuntu Linux 14Aug2011.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = "Setting up wxWidgets and Adapt It on Ubuntu Linux 14Aug2011.rtf"; sourceTree = "<group>"; };
-		C89295CD13F899FC00716331 /* Setting up wxWidgets and Adapt It on Windows 14Aug2011.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = "Setting up wxWidgets and Adapt It on Windows 14Aug2011.rtf"; sourceTree = "<group>"; };
-		C89295D513F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; path = AnalysisOfLastPathVariablesInAI6.0.0.rtf; sourceTree = "<group>"; };
-		C89295D613F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = AnalysisOfLastPathVariablesInAI6.0.0.txt; sourceTree = "<group>"; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
 		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
 		C8DE45661323679C0030EC9B /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = ../../source/base64.cpp; sourceTree = SOURCE_ROOT; };
@@ -457,8 +417,6 @@
 				20286C2CFDCF999611CA2CEA /* Resources */,
 				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
 				195DF8CFFE9D517E11CA2CBB /* Products */,
-				C89295C913F899FC00716331 /* platform setup docs */,
-				C89295D413F89A5400716331 /* design docs */,
 				C8EF76DB13BDB308004A43BF /* testDocs */,
 			);
 			name = AdaptIt;
@@ -750,45 +708,9 @@
 			path = scripts;
 			sourceTree = "<group>";
 		};
-		C89295C913F899FC00716331 /* platform setup docs */ = {
-			isa = PBXGroup;
-			children = (
-				C89295CA13F899FC00716331 /* Setting up libcurl and OpenSSL on Windows.rtf */,
-				C89295CB13F899FC00716331 /* Setting up wxWidgets and Adapt It on OS X 14Aug2011.rtf */,
-				C89295CC13F899FC00716331 /* Setting up wxWidgets and Adapt It on Ubuntu Linux 14Aug2011.rtf */,
-				C89295CD13F899FC00716331 /* Setting up wxWidgets and Adapt It on Windows 14Aug2011.rtf */,
-			);
-			name = "platform setup docs";
-			path = "../../platform setup docs";
-			sourceTree = SOURCE_ROOT;
-		};
-		C89295D413F89A5400716331 /* design docs */ = {
-			isa = PBXGroup;
-			children = (
-				C89295D513F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.rtf */,
-				C89295D613F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.txt */,
-			);
-			name = "design docs";
-			path = "../../design docs";
-			sourceTree = SOURCE_ROOT;
-		};
 		C8EF76DB13BDB308004A43BF /* testDocs */ = {
 			isa = PBXGroup;
 			children = (
-				C801A26013F8A0350003B56A /* brackets_test_UTF8.txt */,
-				C801A20A13F89D040003B56A /* docV5_additions_test3.txt */,
-				C801A20B13F89D040003B56A /* aaa_verse6_test.txt */,
-				C801A20C13F89D040003B56A /* aaa_fixedspace_test_src.txt */,
-				C801A20D13F89D040003B56A /* a_xref_test.txt */,
-				C801A20E13F89D040003B56A /* Tok Pisin fragment 1John.txt */,
-				C801A20F13F89D040003B56A /* _PunctChanges_with_FixedSpaces-1.xml */,
-				C801A21013F89D040003B56A /* docV5_test_for change_puncts-1.xml */,
-				C801A21113F89D040003B56A /* docV5_test_for change_puncts.xml */,
-				C801A21213F89D040003B56A /* _PunctChanges_with_FixedSpaces.xml */,
-				C801A21313F89D040003B56A /* Tok Pisin fragment 1John Bill 19-Jan-11.xml */,
-				C801A21413F89D040003B56A /* docV5_additions_test_with_footnotes.txt */,
-				C801A21513F89D040003B56A /* docV5_additions_test_with_footnotes_and_br_and_merger.txt */,
-				C801A21713F89D040003B56A /* docV5_additions_test.txt */,
 			);
 			name = testDocs;
 			sourceTree = "<group>";
@@ -861,26 +783,6 @@
 				C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */,
 				7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */,
 				C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */,
-				C89295CE13F899FC00716331 /* Setting up libcurl and OpenSSL on Windows.rtf in Resources */,
-				C89295CF13F899FC00716331 /* Setting up wxWidgets and Adapt It on OS X 14Aug2011.rtf in Resources */,
-				C89295D013F899FC00716331 /* Setting up wxWidgets and Adapt It on Ubuntu Linux 14Aug2011.rtf in Resources */,
-				C89295D113F899FC00716331 /* Setting up wxWidgets and Adapt It on Windows 14Aug2011.rtf in Resources */,
-				C89295D713F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.rtf in Resources */,
-				C89295D813F89A5400716331 /* AnalysisOfLastPathVariablesInAI6.0.0.txt in Resources */,
-				C801A21813F89D040003B56A /* docV5_additions_test3.txt in Resources */,
-				C801A21913F89D040003B56A /* aaa_verse6_test.txt in Resources */,
-				C801A21A13F89D040003B56A /* aaa_fixedspace_test_src.txt in Resources */,
-				C801A21B13F89D040003B56A /* a_xref_test.txt in Resources */,
-				C801A21C13F89D040003B56A /* Tok Pisin fragment 1John.txt in Resources */,
-				C801A21D13F89D040003B56A /* _PunctChanges_with_FixedSpaces-1.xml in Resources */,
-				C801A21E13F89D040003B56A /* docV5_test_for change_puncts-1.xml in Resources */,
-				C801A21F13F89D040003B56A /* docV5_test_for change_puncts.xml in Resources */,
-				C801A22013F89D040003B56A /* _PunctChanges_with_FixedSpaces.xml in Resources */,
-				C801A22113F89D040003B56A /* Tok Pisin fragment 1John Bill 19-Jan-11.xml in Resources */,
-				C801A22213F89D040003B56A /* docV5_additions_test_with_footnotes.txt in Resources */,
-				C801A22313F89D040003B56A /* docV5_additions_test_with_footnotes_and_br_and_merger.txt in Resources */,
-				C801A22513F89D040003B56A /* docV5_additions_test.txt in Resources */,
-				C801A26113F8A0350003B56A /* brackets_test_UTF8.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
