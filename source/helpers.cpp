@@ -5837,14 +5837,12 @@ bool IsLoadableFile(wxString& absPathToFile)
 	}
 	delete pBuffer;
 
-	// BEW 16Aug11, I think on a 64-bit machine we would want to allow ucs-4 and ucs-4le
-	//if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
-	if (bIsXML || resultStr == "binary")
+	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
 	{
 		return FALSE;
 	}
-	// this means it's either utf-8, or utf-16 (big endian), or utf-16le (little endian),
-	// or ucs-4 or ucs-4le, using the tellenc.cpp nomenclature
+	// this means it's either utf-8, or utf-16 (big endian), or utf-16le (little endian)
+	// or a single-byte encoding (or a multibyte one)
 	return TRUE;
 }
 
