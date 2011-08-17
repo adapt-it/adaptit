@@ -9319,7 +9319,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	Invalidate();
 	GetLayout()->PlaceBox();
 	gbMergeSucceeded = TRUE;
-#define MP_MM_BUG
+
+//#define MP_MM_BUG
 #ifdef MP_MM_BUG
 #ifdef __WXDEBUG__
 	// In collaboration mode, mergers are getting 3 empty <MP mp=""/> added to xml for the
@@ -9338,7 +9339,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		wxString mmStr; // ditto
 		CSourcePhrase* pSrcPhrase = NULL;
 
-		wxLogDebug(_T("\n ********************* Merger with medials *************************"));
+		wxLogDebug(_T("\n ********************* Merger *************************"));
 		int thisSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 		wxString thisSrcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
 		wxLogDebug(_T("THIS sequNum = %d ;  THIS srcPhrase = %s"),thisSequNum,thisSrcPhrase.c_str());
