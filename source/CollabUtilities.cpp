@@ -3878,30 +3878,38 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // UsfmStructureAndExtent array. In this way, for a given index value into the
     // UsfmStructureAndExtent array, we can quickly get the offsets for start and end of
     // the substring in the text which is associated with that md5 line.
-	size_t count = preEditMd5Arr.GetCount();
+	size_t countPre = preEditMd5Arr.GetCount();
 	wxArrayPtrVoid preEditOffsetsArr;
-	preEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	preEditOffsetsArr.Alloc(countPre); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(preEditText, preEditOffsetsArr, preEditMd5Arr);
 
-	count = postEditMd5Arr.GetCount();
+	size_t countPost = postEditMd5Arr.GetCount();
 	wxArrayPtrVoid postEditOffsetsArr;
-	postEditOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	postEditOffsetsArr.Alloc(countPost); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(postEditText, postEditOffsetsArr, postEditMd5Arr);
 
-	count = fromEditorMd5Arr.GetCount();
+	size_t countFrom = fromEditorMd5Arr.GetCount();
 	wxArrayPtrVoid fromEditorOffsetsArr;
-	fromEditorOffsetsArr.Alloc(count); // pre-allocate sufficient space
+	fromEditorOffsetsArr.Alloc(countFrom); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(fromEditorText, fromEditorOffsetsArr, fromEditorMd5Arr);
 
-
-
-	bool bUsfmIsTheSame = TRUE;
-	if (IsUsfmStructureChanged(postEditText, fromEditorText))
+	// Beware, when starting out on a document, the preEditText might be empty of text,
+	// but have USFMs, or some such non-normal situation, and so countPre may be zero. We
+	// can't just interrogate whether the USFM structure of postEditText and fromEditText
+	// is unchanged, if the structure of preEditText is different from both - in that kind
+	// of situation is appropriate to call GetUpdatedText_UsfmsChanged() rather than
+	// GetUpdatedText_UsfmsUnchanged() so fix the next block to be a bit smarter
+	bool bUsfmIsTheSame = FALSE;
+	bool bIsChanged = IsUsfmStructureChanged(postEditText, fromEditorText);
+	if (!bIsChanged && countPre == countPost && countPre == countFrom)
 	{
-		bUsfmIsTheSame = FALSE;
+		// the preEdit array item count matches both the postEdit and fromExternalEditor
+		// count, so we can set the bUsfmIsTheSame flag safely
+		bUsfmIsTheSame = TRUE;
 	}
 	if (bUsfmIsTheSame)
 	{
+		// something's different, so do the more complex algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
 					postEditOffsetsArr, fromEditorOffsetsArr);
