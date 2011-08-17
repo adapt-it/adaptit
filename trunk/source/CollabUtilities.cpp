@@ -4058,8 +4058,6 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				newText += fragmentStr;
 			}
 		}
-		// advance index
-		index++;
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
 	return newText;
 }

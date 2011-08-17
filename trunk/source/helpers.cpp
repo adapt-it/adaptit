@@ -4830,10 +4830,17 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 								// it's a diagnostic marker for USFM set
 								count++;
 							}
-							else if (mkr[mkr.Len() - 1] == _T('*'))
+							// BEW 17Aug11, beware, mkr might be an empty string and the
+							// test below, without an IsEmpty() to protect it, would then
+							// lead to an index of -1 (huge) into the string - and wx will
+							// trip an assert in string.h
+							else if (!mkr.IsEmpty())
 							{
-								// it ends with an asterisk, so it's diagnostic of USFM
-								count++;
+								if (mkr[mkr.Len() - 1] == _T('*'))
+								{
+									// it ends with an asterisk, so it's diagnostic of USFM
+									count++;
+								}
 							}
 						}
 					}
