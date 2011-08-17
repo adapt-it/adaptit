@@ -481,6 +481,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	{
 		chSel = 0; // indicates we're dealing with Whole Book 
 	}
+	// if chSel is 0, the string returned to derivedChStr will be _T("0")
 	bareChapterSelectedStr.Empty();
 	bareChapterSelectedStr << chSel;
 	wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
@@ -499,9 +500,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = bareChapterSelectedStr;
 
-	// Set up (or access any existing) project for the selected book/chapter
+	// Set up (or access any existing) project for the selected book or chapter
 	// How this is handled will depend on whether the book/chapter selected
-	// amounts to an existing AI project or not
+	// amounts to an existing AI project or not. The m_bCollabByChapterOnly flag now
+	// guides what happens below. The differences for FALSE (the 'whole book' option) are
+	// just three: 
+	// (1) a filename difference (chapter number is omitted, the rest is the same)
+	// (2) the command line for rdwrtp7.exe or equivalent Bibledit executable will have 0
+	//     rather than a chapter number
+	// (3) storage of the text is done to sourceWholeBookBuffer, rather than
+	// sourceChapterBuffer
 	
 	// whm Note: We don't import or merge a free translation text; BEW added 4Jul11, but
 	// we do need to get it so as to be able to compare it later with any changes to the
@@ -515,18 +523,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// and user wants free translation supported in the transfers of data
 	
 	// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-gtk.
-	// whm modified 27Jul11 to pass _T("0") for whole book retrieval on the command-line
-	/* not needed here, TransferTextBetweenAdaptItAndExternalEditor() does it all
-	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
-	commandLineSrc = BuildCommandLineFor(reading, collab_source_text);
-	commandLineTgt = BuildCommandLineFor(reading, collab_target_text);
-	commandLineFreeTrans.Empty();
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
-	{
-		commandLineFreeTrans = BuildCommandLineFor(reading, collab_freeTrans_text);
-	}
-	wxLogDebug(commandLineSrc);
-	*/
+	// whm modified 27Jul11 to pass _T("0") for whole book retrieval on the command-line;
+	// get the book or chapter into the .temp folder with a suitable name...
+	// TransferTextBetweenAdaptItAndExternalEditor() does it all, and it (and subsequent
+	// functions) use the app member values set in the lines just above
 
 	// BEW 1Aug11  ** NOTE **
 	// We only need to get the target text, and the free trans text if expected, at the
@@ -538,75 +538,69 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// choice.)
 	long resultSrc = -1;
 	wxArrayString outputSrc, errorsSrc;
-	TransferTextBetweenAdaptItAndExternalEditor(reading, collab_source_text, outputSrc, 
-								errorsSrc, resultSrc);
-    // comment out the Transfer...() call for the target text, and also for the free trans
-	// text, we don't need them at this point - but later when File / Save is invoked; and
-	// comment out their error handling code too until such time as we need it
-	//long resultTgt = -1;
-	//wxArrayString outputTgt, errorsTgt;
-	//if (resultSrc == 0)
-	//{
-	//	TransferTextBetweenAdaptItAndExternalEditor(reading, collab_target_text, outputTgt, 
-	//							errorsTgt, resultTgt);
-	//}
-
-	//long resultFreeTrans = -1;
-	//wxArrayString outputFreeTrans, errorsFreeTrans;
-	//if (m_pApp->m_bCollaborationExpectsFreeTrans && resultSrc == 0 && resultTgt == 0)
-	//{
-	//	TransferTextBetweenAdaptItAndExternalEditor(reading, collab_freeTrans_text, 
-	//							outputfreeTrans, errorsfreeTrans, resultfreeTrans);
-	//}
-
-	if (resultSrc != 0)
+	if (m_bTempCollabByChapterOnly)
 	{
-		// not likely to happen so an English warning will suffice
-		wxMessageBox(_T("Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-		wxString temp;
-		temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d "),resultSrc);
-		m_pApp->LogUserAction(temp);
-		wxLogDebug(temp);
-		int ct;
-		temp.Empty();
-		for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
+		// get the single-chapter file; the Transfer...Editor() function does all the work
+		// of generating the filename, path, commandLine, getting the text, & saving in
+		// the .temp folder -- functions for this are in CollabUtilities.cpp
+		TransferTextBetweenAdaptItAndExternalEditor(reading, collab_source_text, outputSrc, 
+													errorsSrc, resultSrc);
+		if (resultSrc != 0)
 		{
-			temp += outputSrc.Item(ct);
+			// not likely to happen so an English warning will suffice
+			wxMessageBox(_T(
+"Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
+			_T(""),wxICON_WARNING);
+			wxString temp;
+			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d "),resultSrc);
 			m_pApp->LogUserAction(temp);
 			wxLogDebug(temp);
+			int ct;
+			temp.Empty();
+			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
+			{
+				temp += outputSrc.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
+			{
+				temp += errorsSrc.Item(ct);
+				m_pApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			pListBoxBookNames->SetSelection(-1); // remove any selection
+			// clear lists and static text box at bottom of dialog
+			pListBoxBookNames->Clear();
+			// in next call don't use ClearAll() because it clobbers any columns too
+			pListCtrlChapterNumberAndStatus->DeleteAllItems(); 
+			pStaticTextCtrlNote->ChangeValue(_T(""));
+			m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
+			return;
 		}
-		for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
-		{
-			temp += errorsSrc.Item(ct);
-			m_pApp->LogUserAction(temp);
-			wxLogDebug(temp);
-		}
-		pListBoxBookNames->SetSelection(-1); // remove any selection
-		// clear lists and static text box at bottom of dialog
-		pListBoxBookNames->Clear();
-		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
-		pStaticTextCtrlNote->ChangeValue(_T(""));
-		m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
-		return;
+	} // end of TRUE block for test: if (m_pApp->m_bCollabByChapterOnly)
+	else
+	{
+		// Collaboration requested a whole-book file. It's already been done, when the
+		// user selected which book he wanted - and if he selects no book, the dialog
+		// stays open and a message nags him to select a book. As soon as a book is
+		// selected, the selection handler has the whole book grabbed from PT or BE as the
+		// case may be, and so we don't need to grab it a second time in this present
+		// block. The whole-book file is in the .temp folder
+		;
 	}
 
-	// whm Note to Bruce 27Jul11:
-	// I've made the list boxes and other elements of the GUI adjust for the
-	// differences in working by chapter only or by whole book. I think it is
-	// all set up to this point in the OnOK() handler too (I've a little work
-	// to do re my TODO: notes above for direct collaboration with Bibledit).
-
-	// whm TODO: after grabbing the chapter source text from the PT project, and before copying it
-	// to the appropriate AI project's "__SOURCE_INPUTS" folder, we should check the contents of the
-	// __SOURCE_INPUTS folder to see if that source text chapter has been grabbed previously - i.e., 
-	// which will be the case if it already exists in the AI project's __SOURCE_INPUTS folder. If it 
-	// already exists, we could:
-	// (1) do quick MD5 checksums on the existing chapter text file in the Source 
-	// Data folder and on the newly grabbed chapter file just grabbed that resides in the .temp 
-	// folder, using GetFileMD5(). Comparing the two MD5 checksums we quickly know if there has 
-	// been any changes since we last opened the AI document for that chapter. If there have been 
-	// changes, we can do a silent automatic merge of the edited source text with the corresponding 
-	// AI document, or
+    // whm: after grabbing the chapter source text from the PT project, and before copying
+    // it to the appropriate AI project's "__SOURCE_INPUTS" folder, we should check the
+    // contents of the __SOURCE_INPUTS folder to see if that source text chapter has been
+    // grabbed previously - i.e., which will be the case if it already exists in the AI
+    // project's __SOURCE_INPUTS folder. If it already exists, we could:
+    // (1) do quick MD5 checksums on the existing chapter text file in the Source Data
+    // folder and on the newly grabbed chapter file just grabbed that resides in the .temp
+    // folder, using GetFileMD5(). Comparing the two MD5 checksums we quickly know if there
+    // has been any changes since we last opened the AI document for that chapter. If there
+    // have been changes, we can do a silent automatic merge of the edited source text with
+    // the corresponding AI document, or
     // (2) just always do a merge using Bruce's routines in MergeUpdatedSrc.cpp, regardless
     // of whether there has been a change in the source text or not. This may be the
     // preferred option for chapter-sized text documents.
@@ -665,14 +659,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
     // whole-book adapting, the sourceWholeBookBuffer; & later below it is transferred to a
     // persistent file in __SOURCE_INPUTS - because a new session will look there for the
     // earlier source text in order to compare with what is coming from the external editor
-    // in the new session
-	wxString sourceTempFileName = MakePathToFileInTempFolder_For_Collab(collab_source_text); // understands
-			// the difference between chapter and wholebook filenames & builds accordingly
-	
-	// we could do the next bit without the test of the m_CollabByChapterOnly flag, but
-	// we'd need to avoid using Bill's declared class members, so we'll use them & keep
-	// the test
-	if (m_pApp->m_bCollabByChapterOnly)
+    // in the new session; this call understands the difference between chapter and
+    // wholebook filenames & builds accordingly
+	wxString sourceTempFileName = MakePathToFileInTempFolder_For_Collab(collab_source_text);
+
+	if (m_bTempCollabByChapterOnly)
 	{
 		// sourceChapterBuffer, a wxString, stores temporarily the USFM source text
 		// until we further below have finished with it and store it in the
@@ -681,12 +672,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}
 	else
 	{
-		// BEW added 1Aug11, whole book was requested, the comments in the TRUE block
-		// above explain what is going on here, the only difference is that here we are
-		// dealing with a document which is a whole book
+		// likewise, the whole book USFM text is stored in sourceWholeBookBuffer until
+		// later it is put into the __SOURCE_INPUTS folder
 		sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
 	}
-	// code for setting up the Adapt It project etc requires the following data be
+	// Code for setting up the Adapt It project etc requires the following data be
 	// setup beforehand also
 	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_pApp->m_CollabBookSelected);
 	// we need to create standard filenames, so the following need to be calculated
@@ -705,18 +695,30 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	
     // Now, determine if the PT source and PT target projects exist together as an existing
     // AI project. If so we access that project and, if determine if an existing source
-    // text exists as an AI chapter document. If so, we quietly merge the source texts
-    // using Bruce's import edited source text routine (no user intervention occurs in this
-    // case).
-    // We also compare any incoming target text with any existing target/adapted text in
-    // the existing AI chapter document. If there are differences in the target documents,
-    // we cannot merge them, but instead, at the time of sending the target text back to PT
-    // or BE, show any conflicts to the user for resolution using the conflict resolution
-    // dialog.
+	// text exists as an AI chapter or book document, as the case may be.
+	//
+	// ************************************************************************************** 
+    // Note: we **currently** make no attempt to sync data in a book file with that in one
+    // or more single-chapter files, and the AI documents generated from these. This is an
+    // obvious design flaw which should be corrected some day. For the moment we think
+    // people will just work with a whole book or chapters, but not mix the two options.
+    // Mixing the two options runs the risk of having two versions of many verses and/or
+    // chapters available, one of which will always be older or inferior in meaning - and
+	// possibly majorly so. Removing this problem (by storing just the whole book and
+	// extracting chapters on demand, or alternatively, storing just chapters and
+	// amalgamating them all into a book on demand) is a headache we can give ourselves at
+	// some future time! Storing the whole book and extracting and inserting chapters as
+	// needed is probably the best way to go (someday)
+    // ***************************************************************************************
 	// 
-	// If the PT source and PT target projects do not yet exist as an existing AI project, we create
-	// the project complete with project config file, empty KB, etc., using the information gleaned
-	// from the PT source and PT target projects (i.e. language names, font choices and sizes,...) 
+	// If an existing source AI document is obtained from the source text we get from PT
+	// or BE, we quietly merge the externally derived one to the AI document; using the
+    // import edited source text routine (no user intervention occurs in this case).
+	// 
+    // If the PT source and PT target projects do not yet exist as an existing AI project,
+    // we create the project complete with project config file, empty KB, etc., using the
+    // information gleaned from the PT source and PT target projects (i.e. language names,
+    // font choices and sizes,...)
 	bool bCollaborationUsingExistingAIProject;
 
 	// BEW added 21Jun11, provide a storage location for the Adapt It project folder's
@@ -726,7 +728,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	wxString aiMatchedProjectFolder;
 	wxString aiMatchedProjectFolderPath;
 	bCollaborationUsingExistingAIProject = CollabProjectsExistAsAIProject(shortProjNameSrc, 
-						shortProjNameTgt, aiMatchedProjectFolder, aiMatchedProjectFolderPath);
+												shortProjNameTgt, aiMatchedProjectFolder, 
+												aiMatchedProjectFolderPath);
 	if (bCollaborationUsingExistingAIProject)
 	{
 		// The Paratext projects selected for source text and target texts have an existing
@@ -746,9 +749,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		//    Project's __SOURCE_INPUTS folder (creating the __SOURCE_INPUTS folder if it 
 		//    doesn't already exist).
         // 6. [BILL WROTE:] Check if the chapter text received from the PT target project
-        //    (now in the targetChapterBuffer) has changed from its form in the AI document.
-        //    If so we need to merge the two documents calling up the Conflict Resolution
-        //    Dialog where needed.
+        //    (now in the targetChapterBuffer or targetWholeBookBuffer) has changed from its
+        //    form in the AI document. If so we need to merge the two documents calling up a
+        //    Conflict Resolution Dialog where needed.
 		//    [BEW:] We can't do what Bill wants for 6. The PT text that we get may well
 		//    have been edited, and is different from what we'd get from an USFM export of
 		//    the AI doc's target text, but we can't in any useful way use a text-based 2
@@ -760,47 +763,45 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         //    Any conflict resolution dialog could only be used at the point that the user
         //    has signed off on his interlinear edits (done via the AI phrase box) for the
         //    whole chapter. It's then that the check of the new export of the target text
-        //    would get checked against whatever is the chapter's text currently in
-        //    Paratext or Bibledit - and at that point, any conflicts noted will have to be
-        //    resolved. 
-		//    BEEW 1Aug11, changed comment, as we won't support a conflict resolution
-		//    dialog. We will get the target or free trans text from the external editor
-		//    at the start of the handler for File / Save, and that's when we'll do our
-		//    GUI-less comparisons and updating.
+        //    could possibly get checked against whatever is the chapter's text currently
+        //    in Paratext or Bibledit - and at that point, any conflicts noted would have
+        //    to be resolved.
+        //    BEW 1Aug11, Design change: we won't support a conflict resolution dialog. We
+        //    will instead get the target and/or free trans text from the external editor
+        //    at the start of the handler for a File / Save request by the user, and that's
+        //    when we'll do our GUI-less comparisons and updating.
         //     
         //    The appropriate time that we should grab the PT or BE target project's
-		//    chapter should be as late as possible, so we do it at File / Save. We check
-		//    PT or BE is not running before we allow the transfer to happen - this way we
-		//    avoid DVCS conflicts if the user happens to have made some edits back in the
-		//    external editor while the AI session is in progress.
+        //    chapter should be as late as possible, so we do it at File / Save. We check
+        //    PT or BE is not running before we allow the transfer to happen, and if it is,
+        //    we nag the user to shut it down and we don't allow the Save to happen until
+        //    he does. This way we avoid DVCS conflicts if the user happens to have made
+        //    some edits back in the external editor while the AI session is in progress.
 		//    
 		// 7. BEW added this note 27Ju11. We have to ALWAYS do a resursive merge of the
 		//    source text obtained from Paratext or Bibledit whenever there is an already
-		//    saved chapter document for that information stored in Adapt It. The reason
-		//    is as follows. Suppose we didn't, and then the following scenario happened.
-		//    The user declined to send the adapted data back to PT or BE; but while he
-		//    has the option to do so or not, our code unilaterally copies the input (new)
-		//    source text which lead to the AI document he claimed to save, to the
-		//    __SOURCE_INPUTS folder. So the source text in AI is not in sync with what
-        //    the source text in the (old) document in AI is. This then becomes a problem
-        //    if he later in AI re-gets that source text (unchanged) from PT or BE. If we
-        //    tested it for differences with what AI is storing for the source text, it
-        //    would then detect no differences - because he's not made any, and if we used
-        //    the result of that test as grounds for not bothering with a recursive merge
-        //    of the source text to the document, then the (old) document would get opened
-        //    and it would NOT reflect any of the changes which the user actually did at
-        //    some earlier time to that source text. We can't let this happen. So either we
-        //    have to delay moving the new source text to the __SOURCE_INPUTS folder until
-        //    the user has actually saved the document rebuilt by merger or the edited
-        //    source text (which is difficult to do and is a cumbersome design), or, and
-        //    this is far better, we unilaterally do a source text merger every time the
-        //    source text is grabbed from PT or BE -- then we can be sure any changes, no
-        //    matter whether the user saved the doc previously or not, will make it into
-        //    the doc before it is displayed in the view window. We therefore use the MD5
-        //    checksum tests only for determining which message to show the user, but not
-        //    also for determining whether or not to merge source text to the current
-        //    document when source has just been grabbed from PT or BE.
-		
+        //    saved chapter document (or whole book document) for that information stored
+        //    in Adapt It. The reason is as follows. Suppose we didn't, and then the
+        //    following scenario happened. The user declined to send the adapted data back
+        //    to PT or BE; but while he has the option to do so or not, our code
+        //    unilaterally copies the input (new) source text which lead to the AI document
+        //    he claimed to save, to the __SOURCE_INPUTS folder. So the source text in AI
+        //    is not in sync with what the source text in the (old) document in AI is. This
+        //    then becomes a problem if he later in AI re-gets that source text (unchanged)
+        //    from PT or BE. If we tested it for differences with what AI is storing for
+        //    the source text, it would then detect no differences - because he's not made
+        //    any, and if we used the result of that test as grounds for not bothering with
+        //    a recursive merge of the source text to the document, then the (old) document
+        //    would get opened and it would NOT reflect any of the changes which the user
+        //    actually did at some earlier time to that source text. We can't let this
+        //    happen. So either we have to delay moving the new source text to the
+        //    __SOURCE_INPUTS folder until the user has actually saved the document rebuilt
+        //    by merger or the edited source text (which is difficult to do and is a
+        //    cumbersome design), or, and this is far better, we unilaterally do a source
+        //    text merger every time the source text is grabbed from PT or BE -- then we
+        //    guarantee any externally done changes will make it into the doc before it is
+        //    displayed in the view window.
+        
 		// first, get the project hooked up, if there is indeed one pre-existing for the
 		// given language pair; if not, we create a new project
 		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
@@ -2902,11 +2903,14 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)
 {
 	// whm adjusted 27Jul11.
-	// if we are dealing with chapter only, the incoming lbChapterSelected is from the 
-	// "Select a chapter" list and is of the form:
-	// "Acts 2 - Empty(no verses of a total of n have content yet)"
-	// However, if we are dealing with chapter only, the incoming lbChapterSelected will
-	// be an empty string. In this case we return the string value _T("0")
+    // If we are dealing with the "Get Chapter Only" option, the incoming lbChapterSelected
+    // is from the "Select a chapter" list and is of the form:
+    // "Acts 2 - Empty(no verses of a total of n have content yet)" However, if we are
+    // dealing with the "Get Whole Book" option, the incoming lbChapterSelected will be an
+    // empty string, because once the whole book option is requested the user is unable to
+    // make a selection in the Chapters list. In this case we return the string value
+	// _T("0") -- the caller will use the "0" value for indicating a book is wanted, when
+	// the command line is built
 	if (lbChapterSelected.IsEmpty())
 		return _T("0");
 	// from this point on we are dealing with chapter only
