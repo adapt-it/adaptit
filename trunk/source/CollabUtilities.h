@@ -98,9 +98,13 @@ class CSourcePhrase;
 	wxString		GetFinalMD5FromStructExtentString(const wxString str);
 	int				GetCharCountFromStructExtentString(const wxString str);
 	wxString		GetNumberFromChapterOrVerseStr(const wxString& verseStr);
+					// use this one only for pre-chapter-1 usfm fields
 	void			GetRemainingMd5VerseLinesInChapter(const wxArrayString& md5Arr, int nStart, wxArrayPtrVoid& verseLinesArr);
+					// use this one for \c 1 line and all subsequent usfsm lines
+	void			GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart, 
+										wxArrayPtrVoid& verseLinesArr);
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
-	int				FindMatchingVerseNumInOtherChapterArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum);
+	int				FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
 	void			InitializeVerseAnalysis(VerseAnalysis& rVerseAnal);
 	bool			IsVerseLine(const wxArrayString& usfmText, int index);

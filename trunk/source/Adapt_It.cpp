@@ -29147,7 +29147,6 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// Called from: the Doc's GetNewFile() and CCCTabbedDialog::DoEditor().
 /// Converts a UTF-8 or UTF-16 input text to the required UTF-16 for internal use in
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
-/// BEW 16Aug11, adjusted for the fact that wchar_t in Unix has size of 4 bytes
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, 
 									 wxFontEncoding eEncoding,bool bHasBOM)

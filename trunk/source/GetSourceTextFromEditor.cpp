@@ -856,11 +856,19 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                 // auxilary functions for this are in helpers.cpp
                 // temporary...
                 wxString oldSrcText = GetTextFromFileInFolder(m_pApp, 
-											m_pApp->m_sourceInputsFolderPath, docTitle);
-				// LHS of next 3 lines are private members of CGetSourceTextFromEditorDlg class
-				m_bTextOrPunctsChanged = IsTextOrPunctsChanged(oldSrcText, sourceChapterBuffer);
-				m_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, sourceChapterBuffer);
-				m_bUsfmStructureChanged = m_bUsfmStructureChanged; // avoid compiler warning
+												m_pApp->m_sourceInputsFolderPath, docTitle);
+				if (m_bTempCollabByChapterOnly)
+				{
+					// LHS of next 2 lines are private members of CGetSourceTextFromEditorDlg class
+					m_bTextOrPunctsChanged = IsTextOrPunctsChanged(oldSrcText, sourceChapterBuffer);
+					m_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, sourceChapterBuffer);
+				}
+				else
+				{
+					m_bTextOrPunctsChanged = IsTextOrPunctsChanged(oldSrcText, sourceWholeBookBuffer);
+					m_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, sourceWholeBookBuffer);
+				}
+
 				if (m_bTextOrPunctsChanged && m_pApp->m_bCopySource)
 				{
 					// for safety's sake, turn off copying of the source text, but tell the
@@ -870,23 +878,55 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					pView->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
 				}
 
-				// get the layout, view etc done
-				bool bDoMerger = TRUE;
-// comment out next line when this modification is no longer wanted for debugging purposes
-//#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
-#ifdef _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED_TO_DEBUG_HEAP_CORRUPTION_CRASH
+				// Get the layout, view etc done -- whether we merge in the external
+				// editor's source text project's text data depends on whether or not
+				// something was changed in the external editor's data since the last time
+				// it was grabbed. If no changes to it were done externally, we can forgo
+				// the merger and just open the Adapt It document again 'as is'.
+				bool bDoMerger;
+				if (m_bTextOrPunctsChanged || m_bUsfmStructureChanged)
+				{
+					bDoMerger = TRUE; // merge the from-editor source text into the AI document
+				}
+				else
+				{
+					bDoMerger = FALSE; // use the AI document 'as is'
+				}
+				// comment out next line when this modification is no longer wanted for 
+				// debugging purposes
+//#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED
+#ifdef _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED
 #ifdef __WXDEBUG__
 				bDoMerger = FALSE;
+				m_bUsfmStructureChanged = m_bUsfmStructureChanged; // avoid compiler warning
 #endif
+#else
+				if (m_bTextOrPunctsChanged || m_bUsfmStructureChanged)
+				{
+					bDoMerger = TRUE; // merge the from-editor source text into the AI document
+				}
+				else
+				{
+					bDoMerger = FALSE; // use the AI document 'as is'
+				}
 #endif
 				bool bDoLayout = TRUE;
 				bool bCopySourceWanted = m_pApp->m_bCopySource; // whatever the value now is
-				bool bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceChapterBuffer, 
-													bDoMerger, bDoLayout, bCopySourceWanted);
-				bOpenedOK = bOpenedOK; // it always returns TRUE, otherwise wxWidgets doc/view
-									   // framework gets messed up if we pass FALSE to it; save
-									   // compiler warning
-				// warn user, if needed					   
+				bool bOpenedOK;
+                // the next call always returns TRUE, otherwise wxWidgets doc/view
+                // framework gets messed up if we pass FALSE to it
+				if (m_bTempCollabByChapterOnly)
+				{
+					bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceChapterBuffer, 
+												bDoMerger, bDoLayout, bCopySourceWanted);
+				}
+				else
+				{
+					bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceWholeBookBuffer, 
+												bDoMerger, bDoLayout, bCopySourceWanted);
+				}
+
+				// warn user about the copy flag having been changed, if such a warning is necessary					   
 				if (m_pApp->m_bSaveCopySourceFlag_For_Collaboration && !m_pApp->m_bCopySource
 					&& m_bTextOrPunctsChanged)
 				{
@@ -903,16 +943,26 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				wxString pathCreationErrors;
 				wxString sourceFileTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
 									_T(""), chForDocName, _T(""));
-				bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+				bool bMovedOK;
+				if (m_bTempCollabByChapterOnly)
+				{
+					bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
 										pathCreationErrors, sourceChapterBuffer, sourceFileTitle);
+				}
+				else
+				{
+					bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+										pathCreationErrors, sourceWholeBookBuffer, sourceFileTitle);
+				}
 				// don't expect a failure in this, but if so, tell developer (English
 				// message is all that is needed)
 				if (!bMovedOK)
 				{
 					// we don't expect failure, so an English message will do
-					wxMessageBox(_T(
-"For the developer: MoveTextToFolderAndSave() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe free trans data won't have been saved to disk there."),
-					_T(""), wxICON_WARNING);
+					wxString msg;
+					msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
+					wxMessageBox(msg, _T(""), wxICON_WARNING);
+					m_pApp->LogUserAction(msg);
 				}
 			} // end of TRUE block for test: if (::wxFileExists(docPath))
 			else
@@ -924,7 +974,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				int nHowMany;
 				SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 				// in the next call, 0 = initial sequ number value
-				nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0); 
+				if (m_bTempCollabByChapterOnly)
+				{
+					nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0);
+				}
+				else
+				{
+					nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceWholeBookBuffer, 0);
+				}
 				// copy the pointers over to the app's m_pSourcePhrases list (the document)
 				if (nHowMany > 0)
 				{
@@ -939,11 +996,24 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// alone, and delete pSourcePhrases list itself
 					pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
 					delete pSourcePhrases;
+
 					// the single-chapter or whole-book document is now ready for displaying 
 					// in the view window
-				}
+					wxASSERT(!m_pApp->m_pSourcePhrases->IsEmpty());
 
-				SetupLayoutAndView(m_pApp, docTitle);
+					SetupLayoutAndView(m_pApp, docTitle);
+				}
+				else
+				{
+					// we can't go on, there is nothing in the document's m_pSourcePhrases
+					// list, so keep the dlg window open; tell user what to do - this
+					// should never happen, so an English message will suffice
+					wxString msg;
+					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
+					wxMessageBox(msg, _T(""), wxICON_WARNING);
+					m_pApp->LogUserAction(msg);
+					return;
+				}
 
                 // 5. Copy the just-grabbed chapter or book source text from the .temp
                 // folder over to the Project's __SOURCE_INPUTS folder (creating the
@@ -955,15 +1025,25 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                 // m_sourceInputsFolderName member of the app class will point to an
                 // already created __SOURCE_INPUTS folder in the project folder.
 				wxString pathCreationErrors;
-				bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+				bool bMovedOK;
+				if (m_bTempCollabByChapterOnly)
+				{
+					bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
 										pathCreationErrors, sourceChapterBuffer, docTitle);
-				// don't expect a failure in this, but if so, tell developer (English
-				// message is all that is needed)
+				}
+				else
+				{
+					bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+										pathCreationErrors, sourceWholeBookBuffer, docTitle);
+				}
+				// we don't expect a failure in this, but if so, tell developer (English
+				// message is all that is needed), and let processing continue
 				if (!bMovedOK)
 				{
-					wxMessageBox(_T(
-"For the developer: MoveNewSourceTextToSOURCE_INPUTS() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move the new source text to a file in __SOURCE_INPUTS.\nThe new source data won't have been saved to disk there."),
-					_T(""), wxICON_WARNING);
+					wxString msg;
+					msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
+					wxMessageBox(msg, _T(""), wxICON_WARNING);
+					m_pApp->LogUserAction(msg);
 				}
 
 			} // end of else block for test: if (::wxFileExists(docPath))
@@ -976,59 +1056,64 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
             // are unloaded, but the app is in limbo - paths are current for a project
             // which didn't actually get set up, and so isn't actually current. But a
             // message has been seen (albeit, one for developer only as we don't expect
-            // this error). I guess we just return from OnOK() and give a localizable 2nd
+            // this error). I guess we just return from OnOK() and give a non-localizable 2nd
             // message tell the user to take the Cancel option & retry
-			wxMessageBox(_(
-"Unexpected failure to hook up to the identified pre-existing Adapt It adaptation project.\nYou should Cancel from the current collaboration attempt, then perhaps try again."),
-			_T(""), wxICON_WARNING);
+            wxString msg;
+			msg = _T("Collaboration: a highly unexpected failure to hook up to the identified pre-existing Adapt It adaptation project has happened.\nYou should Cancel from the current collaboration attempt.\nThen carefully check that the Adapt It project's source language and target language names exactly match the language names you supplied within Paratext or Bibledit.\n Fix the Adapt It project folder's language names to be spelled the same, then try again.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING);
+			m_pApp->LogUserAction(msg);
 			return;
 		}
 	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
 	else
 	{
-		// The Paratext/Bibledit project selected for source text and target texts do not yet exist
-		// as a previously created AI project in the user's work folder, so we need to 
-		// create the AI project using information contained in the Collab_Project_Info_Struct structs
-		// that are populated dynamically in InitDialog() which calls the App's 
-		// GetListOfPTProjects() or GetListOfBEprojects.
+        // The Paratext/Bibledit project selected for source text and target texts do not
+        // yet exist as a previously created AI project in the user's work folder, so we
+        // need to create the AI project using information contained in the
+        // Collab_Project_Info_Struct structs that are populated dynamically in
+        // InitDialog() which calls the App's GetListOfPTProjects() or GetListOfBEprojects.
 		
 		m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
 		
-		// Get the Collab_Project_Info_Struct structs for the source and target PT projects
-		Collab_Project_Info_Struct* pPTInfoSrc;
-		Collab_Project_Info_Struct* pPTInfoTgt;
-		pPTInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
+		// Get the Collab_Project_Info_Struct structs for the source and target PT or BE projects
+		Collab_Project_Info_Struct* pInfoSrc;
+		Collab_Project_Info_Struct* pInfoTgt;
+		pInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
 																	// pApp->m_pArrayOfCollabProjects
-		pPTInfoTgt = m_pApp->GetCollab_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
+		pInfoTgt = m_pApp->GetCollab_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
 																	// pApp->m_pArrayOfCollabProjects
-		wxASSERT(pPTInfoSrc != NULL);
-		wxASSERT(pPTInfoTgt != NULL);
+		wxASSERT(pInfoSrc != NULL);
+		wxASSERT(pInfoTgt != NULL);
 
-		// Notes: The pPTInfoSrc and pPTInfoTgt structs above contain the following struct members:
-		//bool bProjectIsNotResource; // AI only includes in m_pArrayOfCollabProjects the PT projects where this is TRUE
-		//bool bProjectIsEditable; // AI only allows user to see and select a PT TARGET project where this is TRUE
-		//wxString versification; // AI assumes same versification of Target as used in Source
-		//wxString fullName; // This is 2nd field seen in "Get Source Texts from this project:" drop down
-							 // selection (after first ':')
-		//wxString shortName; // This is 1st field seen in "Get Source Texts from this project:" drop down
-							  // selection (before first ':'). It is always the same as the project's folder
-							  // name (and ssf file name) in the "My Paratext Projects" folder. It has to
-							  // be unique for every PT project.
-		//wxString languageName; // This is 3rd field seen in "Get Source Texts from this project:" drop down
-							     // selection (between 2nd and 3rd ':'). We use this as x and y language
-							     // names to form the "x to y adaptations" project folder name in AI if it
-							     // does not already exist
-		//wxString ethnologueCode; // If it exists, this a 3rd field seen in "Get Source Texts from this project:" drop down
-							       // selection (after 3rd ':')
-		//wxString projectDir; // this has the path/directory to the project's actual files
-		//wxString booksPresentFlags; // this is the long 123-element string of 0 and 1 chars indicating which
+		// Notes: The pInfoSrc and pInfoTgt structs above contain the following struct members:
+		// bool bProjectIsNotResource; // AI only includes in m_pArrayOfCollabProjects the PT
+		//                                 or BE projects where this is TRUE
+		// bool bProjectIsEditable; // AI only allows user to see and select a PT or BE TARGET project 
+		//                             where this is TRUE
+		// wxString versification; // AI assumes same versification of Target as used in Source
+		// wxString fullName; // This is 2nd field seen in "Get Source Texts from this project:" drop down
+							  // selection (after first ':')
+		// wxString shortName; // This is 1st field seen in "Get Source Texts from this project:" drop down
+							   // selection (before first ':'). It is always the same as the project's folder
+							   // name (and ssf file name) in the "My Paratext Projects" folder. It has to
+							   // be unique for every PT or BE project.
+		// wxString languageName; // This is 3rd field seen in "Get Source Texts from this project:" drop down
+							      // selection (between 2nd and 3rd ':'). We use this as x and y language
+							      // names to form the "x to y adaptations" project folder name in AI if it
+							      // does not already exist
+		// wxString ethnologueCode; // If it exists, this a 3rd field seen in "Get Source Texts from this project:"
+							        // drop down selection (after 3rd ':')
+		// wxString projectDir;   // this has the path/directory to the project's actual files
+		// wxString booksPresentFlags; // this is the long 123-element string of 0 and 1 chars indicating which
 									   // books are present within the PT project
-		//wxString chapterMarker; // default is _T("c")
-		//wxString verseMarker; // default is _T("v")
-		//wxString defaultFont;  // default is _T("Arial")or whatever is specified in the PT project's ssf file
-		//wxString defaultFontSize; // default is _T("10") or whatever is specified in the PT project's ssf file
-		//wxString leftToRight; // default is _T("T") unless "F" is specified in the PT project's ssf file
-		//wxString encoding; // default is _T("65001"); // 65001 is UTF8
+		// wxString chapterMarker; // default is _T("c")
+		// wxString verseMarker;   // default is _T("v")
+		// wxString defaultFont;   // default is _T("Arial")or whatever is specified in the PT
+		//                         // or BE project's ssf file
+		// wxString defaultFontSize; // default is _T("10") or whatever is specified in the PT
+		//                            or BE project's ssf file
+		// wxString leftToRight; // default is _T("T") unless "F" is specified in the PT project's ssf file
+		// wxString encoding;    // default is _T("65001"); // 65001 is UTF8
 
 		// For building an AI project we can use as initial values the information within the appropriate
 		// field members of the above struct.
@@ -1055,22 +1140,22 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		
 		// Step 1 & 2
 		bool bDisableBookMode = TRUE;
-		bool bProjOK = CreateNewAIProject(m_pApp, pPTInfoSrc->languageName, 
-									pPTInfoTgt->languageName, pPTInfoSrc->ethnologueCode, 
-									pPTInfoTgt->ethnologueCode, bDisableBookMode);
+		bool bProjOK = CreateNewAIProject(m_pApp, pInfoSrc->languageName, 
+									pInfoTgt->languageName, pInfoSrc->ethnologueCode, 
+									pInfoTgt->ethnologueCode, bDisableBookMode);
 		if (!bProjOK)
 		{
-			// this is a fatal error (but it shouldn't ever happen), we let the dialog
-			// continue to run, but tell the user that the app is probably unstable now
-			// and he should get rid of any folders created in the attempt, shut down,
-			// relaunch, and try again
+            // This is a fatal error to continuing this collaboration attempt, but it won't
+            // hurt the application. The error shouldn't ever happen. We let the dialog
+            // continue to run, but tell the user that the app is probably unstable now and
+            // he should get rid of any folders created in the attempt, shut down,
+            // relaunch, and try again. This message is localizable.
 			wxString message;
-			message = message.Format(_("Fatal error: attempting to create an Adapt It project for supporting collaboration with an external editor failed.\nThe application is not in a state suitable for you to continue working. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s\nThen relaunch, and try again."),
+			message = message.Format(_("Error: attempting to create an Adapt It project for supporting collaboration with an external editor, failed.\nThe application is not in a state suitable for you to continue working, but it will still run. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s  if it exists.\nThen relaunch, and try again."),
 				m_pApp->m_curProjectPath.c_str());
+			m_pApp->LogUserAction(message);
 			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR);
-			{
-				return;
-			}
+			return;
 		}
 		// Step 3. (code copied from above)
 		wxString documentName;
@@ -1085,12 +1170,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			chForDocName = _T("");
 		
 		wxString docTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-						bookCode, _T(""), chForDocName, _T(""));
+									bookCode, _T(""), chForDocName, _T(""));
 		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-						bookCode, _T(""), chForDocName, _T(".xml"));
+									bookCode, _T(""), chForDocName, _T(".xml"));
 		// create the absolute path to the document we are checking for the existence of
 		wxString docPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator
-			+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator + documentName;
+				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator + documentName;
 		// set the member used for creating the document name for saving to disk
 		m_pApp->m_curOutputFilename = documentName;
 		// make the backup filename too
@@ -1102,7 +1187,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		int nHowMany;
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 		// in the next call, 0 = initial sequ number value
-		nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0); 
+		if (m_bTempCollabByChapterOnly)
+		{
+			nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0); 
+		}
+		else
+		{
+			nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceWholeBookBuffer, 0); 
+		}
 		// copy the pointers over to the app's m_pSourcePhrases list (the document)
 		if (nHowMany > 0)
 		{
@@ -1117,31 +1209,55 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			// alone, and delete pSourcePhrases list itself
 			pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
 			delete pSourcePhrases;
+
 			// the single-chapter or whole-book document is now ready for displaying 
 			// in the view window
-		}
+			wxASSERT(!m_pApp->m_pSourcePhrases->IsEmpty());
 
-		SetupLayoutAndView(m_pApp, docTitle);
+			SetupLayoutAndView(m_pApp, docTitle);
+		}
+		else
+		{
+            // there was no source text data! so we can't go on, there is nothing in the
+            // document's m_pSourcePhrases list, so keep the dlg window open; tell user
+            // what to do - this should never happen, so an English message will suffice
+			wxString msg;
+			msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING);
+			m_pApp->LogUserAction(msg);
+			return;
+		}
 
         // Step 5. (code copied from above)
 		wxString pathCreationErrors;
-		bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+		bool bMovedOK;
+		if (m_bTempCollabByChapterOnly)
+		{
+			bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
 								pathCreationErrors, sourceChapterBuffer, docTitle);
-		// don't expect a failure in this, but if so, tell developer (English
-		// message is all that is needed)
+		}
+		else
+		{
+			bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
+								pathCreationErrors, sourceWholeBookBuffer, docTitle);
+		}
+		// we don't expect a failure in this, but if it happens, tell developer (English
+		// message is all that is needed) and continue processing
 		if (!bMovedOK)
 		{
-			wxMessageBox(_T(
-"For the developer: MoveNewSourceTextToSOURCE_INPUTS() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move the new source text to a file in __SOURCE_INPUTS.\nThe new source data won't have been saved to disk there."),
-			_T(""), wxICON_WARNING);
+			wxString msg;
+			msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
+			wxMessageBox(msg, _T(""), wxICON_WARNING);
+			m_pApp->LogUserAction(msg);
 		}
 
 	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
 
-	// we could do the next bit without the test of the m_CollabByChapterOnly flag, but
-	// we'd need to avoid using Bill's declared class members, so we'll use them & keep
-	// the test
-	if (m_pApp->m_bCollabByChapterOnly)
+    // store the "pre-edit" version of the document's adaptation text in a member on the
+    // app class, and if free translation is wanted for tranfer to PT or BE as well, get
+    // the pre-edit free translation exported and stored in another app member for that
+    // purpose
+	if (m_bTempCollabByChapterOnly)
 	{
 		// targetChapterBuff, a wxString, stores temporarily the USFM target text as
 		// exported from the document prior to the user doing any work, and we store it
@@ -1164,7 +1280,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	}
 	else
 	{
-
+		// we are working with a "whole book"
 		targetWholeBookBuffer = ExportTargetText_For_Collab(m_pApp->m_pSourcePhrases);
 		m_pApp->StoreTargetText_PreEdit(targetWholeBookBuffer);
 
@@ -1177,68 +1293,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		}
 	}
 	
-	// DO NOT REMOVE THE COMMENTED OUT CODE BELOW- WE WILL LATER USE BITS OF IT ELSEWHERE
-	// BEW removed these lines 1Aug11, because the string storage will disappear when the
-	// dialog closes, and we don't need the checksums now, but later at the next File/Save
-	/*
-	// Make structure&extents arrays
-	if (m_pApp->m_bCollabByChapterOnly)
-	{
-		SourceChapterUsfmStructureAndExtentArray.Clear();
-		SourceChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceChapterBuffer);
-		TargetChapterUsfmStructureAndExtentArray.Clear();
-		TargetChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetChapterBuffer);
-		if (m_pApp->m_bCollaborationExpectsFreeTrans)
-		{
-			FreeTransChapterUsfmStructureAndExtentArray.Clear();
-			if (!freeTransChapterBuffer.IsEmpty())
-			{
-				FreeTransChapterUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransChapterBuffer);
-			}
-		}
-	}
-	else
-	{
-		// BEW added 1Aug11, whole book was requested, so we use different members for storage
-		SourceTextUsfmStructureAndExtentArray.Clear();
-		SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
-		TargetTextUsfmStructureAndExtentArray.Clear();
-		TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
-		if (m_pApp->m_bCollaborationExpectsFreeTrans)
-		{
-			FreeTransTextUsfmStructureAndExtentArray.Clear();
-			if (!freeTransWholeBookBuffer.IsEmpty())
-			{
-				FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer);
-			}
-		}
-	}
-	*/
-
-	/* 
-	// deprecated, we will store the post-edit free translation not in _FREETRANS_OUTPUTS,
-	// but rather in a local variable while we use it at File / Save time, and then transfer
-	// it to the free translation pre-edit wxString on the app. It won't ever be put in
-	// the _FREETRANS_OUTPUTS folder. Only non-collaboration free translation exports will
-	// go there.
-	// KEEP THIS TEMPORARILY, IT MAY BE USEFUL TO CLONE FROM
-	if (m_pApp->m_bCollaborationExpectsFreeTrans && !freeTransChapterBuffer.IsEmpty())
-	{
-		wxString pathCreationErrors;
-		wxString freeTransFileTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
-							shortProjNameFreeTrans, bareChapterSelectedStr, _T(""));
-		bool bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_freeTransOutputsFolderPath, 
-								pathCreationErrors, freeTransChapterBuffer, freeTransFileTitle);
-		// don't expect a failure in this, but if so, tell developer (English
-		// message is all that is needed)
-		if (!bMovedOK)
-		{
-			wxMessageBox(_T(
-"For the developer: MoveTextToFolderAndSave() in GetSourceTextFromEditor.cpp: Unexpected (non-fatal) error trying to move free translation text to a file in _FREETRANS_OUTPUTS folder.\nThe free trans data won't have been saved to disk there."),
-			_T(""), wxICON_WARNING);
-		}
-	}
-	*/
+    // Note: we will store the post-edit free translation, if working with such as wanted
+    // in collaboration mode, not in _FREETRANS_OUTPUTS, but rather in a local variable
+    // while we use it at File / Save time, and then transfer it to the free translation
+    // pre-edit wxString on the app. It won't ever be put in the _FREETRANS_OUTPUTS folder.
+    // Only non-collaboration free translation exports will go there.
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
