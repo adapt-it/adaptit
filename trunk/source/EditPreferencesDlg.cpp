@@ -261,7 +261,8 @@ void CEditPreferencesDlg::CreateControls()
 		if (unitsPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(unitsPageSize.GetY());
 	}
 		
-	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")))
+	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")) 
+		&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit))
 	{
 		usfmFilterPage = new CUsfmFilterPagePrefs(pNotebook);
 		pUsfmFilterPageInPrefs = usfmFilterPage; // set the App's pointer to the usfmPage
@@ -337,7 +338,8 @@ CEditPreferencesDlg::~CEditPreferencesDlg(void)
 	{
 		delete unitsPage;
 	}
-	if (!TabIsVisibleInCurrentProfile(_("USFM and Filtering")))
+	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")) 
+		&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit))
 	{
 		delete usfmFilterPage;
 	}
@@ -397,7 +399,9 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	{
 		unitsPage->InitDialog(event);
 	}
-	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")))
+	// whm 22Aug11 modified - don't initialize the USFM and Filtering tab when collaborating with PT/BE
+	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")) 
+		&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit))
 	{
 		usfmFilterPage->InitDialog(event);
 	}
