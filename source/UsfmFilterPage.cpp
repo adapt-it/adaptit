@@ -72,19 +72,17 @@ extern CStartWorkingWizard* pStartWorkingWizard;
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 /// This global is defined in Adapt_It.cpp.
-extern CCaseEquivPageWiz* pCaseEquivPageWiz; // need this ???
+extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
-extern CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs; // set the App's pointer to the filterPage // need this ???
+//extern CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs; // set the App's pointer to the filterPage // not used
 
 /// This global is defined in Adapt_It.cpp.
-extern CDocPage* pDocPage; // need this ???
+extern CDocPage* pDocPage;
 
-// need this ??? No (BEW 5Jan11)
-//wxString msgWarningMadeChanges = _("Warning: You just made changes to the document's inventory of filter markers in the Filtering page\nwhere the %s was in effect. If you make this change the document will use\nthe Filtering page's settings for the %s. Do you want to make this change?");
 wxString msgCannotFilterAndChangeSFMset = _("Trying to change the standard format marker set at the same time as trying to change the marker filtering settings is illegal.\nFinish one type of change then return to the same page to do the other.");
 
 /// This global is defined in Adapt_It.cpp.
