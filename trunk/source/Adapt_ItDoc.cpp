@@ -1363,7 +1363,6 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
         // knows there is a doc containing information to extract and send to PT or BE,
         // with possibly some automated conflict resolution to be done when doing so.
 		
-
         // we want the phrase box's contents put into the document, so that the export of
         // the pre-user-editing-happens adaptation text will have the box contents in it -
         // so get it done here, but don't bother about the save to KB because the
@@ -1417,10 +1416,27 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
             // book or just a chapter is to be sent, its filename, whether to Bibledit or
             // Paratext, and so forth, using member variables stored in the application
             // class  (don't add a BOM)
-			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
-			resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
-			TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
+			{ 
+				CWaitDlg waitDlg(gpApp->GetMainFrame());
+				
+				if (gpApp->m_bCollaboratingWithParatext)
+				{
+					waitDlg.m_nWaitMsgNum = 15;	// _("Please wait while the translation is sent to Paratext...")
+				}
+				else if (gpApp->m_bCollaboratingWithBibledit)
+				{
+					waitDlg.m_nWaitMsgNum = 16;	// _("Please wait while the translation is sent to Bibledit...")
+				}
+				waitDlg.Centre();
+				waitDlg.Show(TRUE);
+				waitDlg.Update();
+				// the wait dialog is automatically destroyed when it goes out of scope below.
+
+				bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
+				resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
+				TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
 												outputTgt, errorsTgt, resultTgt);
+			} // wait dialog goes out of scope here
 
 			// error handling
 			if (resultTgt != 0)
@@ -1496,11 +1512,27 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
                     // chapter is to be sent, its filename, whether to Bibledit or
                     // Paratext, and so forth, using member variables stored in the
                     // application class (don't add a BOM)
-					bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
-					resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
-					TransferTextBetweenAdaptItAndExternalEditor(writing, collab_freeTrans_text,
+					{ 
+						CWaitDlg waitDlg(gpApp->GetMainFrame());
+						
+						if (gpApp->m_bCollaboratingWithParatext)
+						{
+							waitDlg.m_nWaitMsgNum = 17;	// _("Please wait while the free translation is sent to Paratext...")
+						}
+						else if (gpApp->m_bCollaboratingWithBibledit)
+						{
+							waitDlg.m_nWaitMsgNum = 18;	// _("Please wait while the free translation is sent  to Bibledit...")
+						}
+						waitDlg.Centre();
+						waitDlg.Show(TRUE);
+						waitDlg.Update();
+						// the wait dialog is automatically destroyed when it goes out of scope below.
+					
+						bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
+						resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
+						TransferTextBetweenAdaptItAndExternalEditor(writing, collab_freeTrans_text,
 											outputFreeTrans, errorsFreeTrans, resultFreeTrans);
-
+					}
 					// error handling
 					if (resultFreeTrans != 0)
 					{

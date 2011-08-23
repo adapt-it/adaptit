@@ -57,6 +57,7 @@
 #include "tellenc.h"
 #include "md5.h"
 #include "tellenc.h"
+#include <wx/progdlg.h>
 #include "CollabUtilities.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -93,10 +94,10 @@ extern bool gbDoingInitialSetup;
 #ifdef _UNICODE
 
 // comment out when this bug becomes history
-#define OUT_OF_SYNC_BUG
+//#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
 // is no longer wanted
-#define SHOW_INDICES_RANGE
+//#define SHOW_INDICES_RANGE
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -3847,19 +3848,28 @@ int  FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBefor
 // be excluded from the export
 wxString ExportTargetText_For_Collab(SPList* pDocList)
 {
-	wxASSERT(pDocList != NULL);
-	int textLen = 0;
 	wxString text;
-	textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
-	// set \note, \bt, and \free as to be programmatically excluded from the export
-	ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
-	// cause the markers set for exclusion, plus their contents, to be actually removed
-	// from the exported text
-	bool bRTFOutput = FALSE; // we are working with USFM marked up text
-	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-	// in next call, param 2 is from enum ExportType in Adapt_It.h
-	FormatMarkerBufferForOutput(text, targetTextExport);
-	text = RemoveMultipleSpaces(text);
+	{ 
+		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		waitDlg.m_nWaitMsgNum = 19;	// _("Exporting the translation...")
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);
+		waitDlg.Update();
+		// the wait dialog is automatically destroyed when it goes out of scope below.
+
+		wxASSERT(pDocList != NULL);
+		int textLen = 0;
+		textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
+		// set \note, \bt, and \free as to be programmatically excluded from the export
+		ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
+		// cause the markers set for exclusion, plus their contents, to be actually removed
+		// from the exported text
+		bool bRTFOutput = FALSE; // we are working with USFM marked up text
+		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		// in next call, param 2 is from enum ExportType in Adapt_It.h
+		FormatMarkerBufferForOutput(text, targetTextExport);
+		text = RemoveMultipleSpaces(text);
+	}
 	return text;
 }
 
@@ -3867,13 +3877,22 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 // un-free-translated sections are output as just empty USFM markers
 wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 {
-	wxASSERT(pDocList != NULL);
-	int textLen = 0;
 	wxString text;
-	textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
-	// in next call, param 2 is from enum ExportType in Adapt_It.h
-	FormatMarkerBufferForOutput(text, freeTransTextExport);
-	text = RemoveMultipleSpaces(text);
+	{ 
+		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		waitDlg.m_nWaitMsgNum = 20;	// _("Exporting the free translation...")
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);
+		waitDlg.Update();
+		// the wait dialog is automatically destroyed when it goes out of scope below.
+		
+		wxASSERT(pDocList != NULL);
+		int textLen = 0;
+		textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
+		// in next call, param 2 is from enum ExportType in Adapt_It.h
+		FormatMarkerBufferForOutput(text, freeTransTextExport);
+		text = RemoveMultipleSpaces(text);
+	}
 	return text;
 }
 
@@ -4071,11 +4090,13 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	wxArrayString textIOArray; textIOArray.Clear(); // needed for the internal ::wxExecute() call
 	wxArrayString errorsIOArray; errorsIOArray.Clear(); // ditto
 	long resultCode = -1; // ditto
+	wxString strTextTypeToSend;
 	// if there was an error, a message will have been seen already
 	switch (makeTextType)
 	{
 	case makeFreeTransText:
 		{
+			strTextTypeToSend = _("free translation"); // localizable
 			preEditText = gpApp->GetStoredFreeTransText_PreEdit();
 			// next call gets the file of data into the .temp folder, with appropriate filename
 			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_freeTrans_text,
@@ -4096,6 +4117,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	default:
 	case makeTargetText:
 		{
+			strTextTypeToSend = _("translation"); // localizable
 			preEditText = gpApp->GetStoredTargetText_PreEdit();
 			// next call gets the file of data into the .temp folder, with appropriate filename
 			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_target_text,
@@ -4217,6 +4239,26 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	fromEditorOffsetsArr.Alloc(countFrom); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(fromEditorText, fromEditorOffsetsArr, fromEditorMd5Arr);
 
+	// Here is the appropriate place to put a progress dialog (the simple case of direct
+	// transfer of an export, as above, can be handled by a CWaitDialog() in the caller)
+	int counter;
+	counter = 0;
+	int nTotal = (int)countPost;
+	wxString progMsg;
+	// in next line the extra white space to lengthen the dialog window, otherwise it is a
+	// bit to scrunched and the end of the title text is truncated
+	wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), 1, countPost); 
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	wxString titleStr;
+	titleStr = titleStr.Format(_("Building %s text to send to %s"), strTextTypeToSend.c_str(), gpApp->m_collaborationEditor);
+	pProgDlg = new wxProgressDialog(titleStr,
+					msgDisplayed,
+					nTotal,    // range
+					gpApp->GetMainFrame(),   // parent
+					wxPD_APP_MODAL |
+					wxPD_AUTO_HIDE
+					);
+
 	// Beware, when starting out on a document, the preEditText might be empty of text,
 	// but have USFMs, or some such non-normal situation, and so countPre may be zero. We
 	// can't just interrogate whether the USFM structure of postEditText and fromEditText
@@ -4236,7 +4278,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr);
+					postEditOffsetsArr, fromEditorOffsetsArr, pProgDlg);
 	}
 	else
 	{
@@ -4298,7 +4340,13 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// the USFM structure has changed in at least one location in the text
 		text = GetUpdatedText_UsfmsChanged(preEditText, postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr);
+					postEditOffsetsArr, fromEditorOffsetsArr, pProgDlg);
+	}
+
+	// kill the progress dialog
+	if (pProgDlg != NULL)
+	{
+		pProgDlg->Destroy();
 	}
 
 	// delete from the heap all the MD5Map structs we created
@@ -4332,8 +4380,9 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 // checksums for preEditText to tell us all we need about that text in relation to the
 // same marker and content in postEditText.
 wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
-			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr,
-			wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr)
+			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
+			wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
+			wxArrayPtrVoid& fromEditorOffsetsArr, wxProgressDialog* pProgDlg)
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
@@ -4370,9 +4419,24 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
 	wxASSERT(*pFromEditorEnd == '\0');
 
+	// for the progress bar...
+	int counter = 0;
+	int nGranularity = 10;
+
 	size_t index;
 	for (index = 0; index < postEditMd5Arr_Count; index++)
 	{
+		// update progress bar (every line of the array is touched)
+		counter = index;
+		wxString progMsg;
+		// in next line the extra white space to lengthen the dialog window, otherwise it is a
+		// bit to scrunched and the end of the title text is truncated
+		wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), counter, postEditMd5Arr_Count); 
+		if (counter % nGranularity == 0) 
+		{
+			pProgDlg->Update(counter, msgDisplayed);
+		}
+
 		// get the next line from each of the MD5 structure&extents arrays
 		preEditMd5Line = preEditMd5Arr.Item(index);
 		postEditMd5Line = postEditMd5Arr.Item(index);
@@ -4592,8 +4656,9 @@ wxString GetUpdatedText_UsfmsChanged(
 	
 	wxArrayPtrVoid& postEditOffsetsArr,   // array of MD5Map structs which index the span of text in postEditText
 										  // which corresponds to a single line of info from postEditMd5Arr
-	wxArrayPtrVoid& fromEditorOffsetsArr) // array of MD5Map structs which index the span of text in fromEditorText
+	wxArrayPtrVoid& fromEditorOffsetsArr, // array of MD5Map structs which index the span of text in fromEditorText
 										  // which corresponds to a single line of info from fromEditorMd5Arr
+	wxProgressDialog* pProgDlg)
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
@@ -4656,6 +4721,10 @@ wxString GetUpdatedText_UsfmsChanged(
 	int	postEditArr_AfterChunkIndex = 0;
 	int	fromEditorArr_AfterChunkIndex = 0;
 
+	// for the progress bar...
+	int counter = 0;
+	int nGranularity = 10;
+
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
 		wxLogDebug(_T("\n\n $$$$$$$$$$$   GetUpdatedText_UsfmsChanged() loop  $$$$$$$$$$$$$$$$$\n\n"));
@@ -4664,6 +4733,18 @@ wxString GetUpdatedText_UsfmsChanged(
 #endif
 	while (postEditArr_Index < (int)postEditMd5Arr_Count && fromEditorArr_Index < (int)fromEditorMd5Arr_Count)
 	{
+		// update progress bar (might be jerky, not every index is touched if there are
+		// complex chunks)
+		counter = postEditArr_Index;
+		wxString progMsg;
+		// in next line the extra white space to lengthen the dialog window, otherwise it is a
+		// bit to scrunched and the end of the title text is truncated
+		wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), counter, postEditMd5Arr_Count); 
+		if (counter % nGranularity == 0) 
+		{
+			pProgDlg->Update(counter,msgDisplayed);
+		}
+
 		// get the next line from each of the MD5 structure&extents arrays
 		preEditMd5Line = preEditMd5Arr.Item(postEditArr_Index);
 		postEditMd5Line = postEditMd5Arr.Item(postEditArr_Index);

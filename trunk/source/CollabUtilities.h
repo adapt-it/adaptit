@@ -24,6 +24,7 @@
 #endif
 #include "Adapt_It.h"
 
+class wxProgressDialog;
 
 struct VerseAnalysis {
 	bool				bIsComplex; // TRUE if verse num is a range, or something like 6b,
@@ -141,11 +142,12 @@ class CSourcePhrase;
 	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr);
+							wxArrayPtrVoid& fromEditorOffsetsArr, wxProgressDialog* pProgDlg);
 	wxString		GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditText, 
 							wxString& fromEditorText, wxArrayString& preEditMd5Arr, 
 							wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr, 
-							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
+							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr, 
+							wxProgressDialog* pProgDlg);
 	////////////////// end of those for analysis of texts //////////////////////////
 
 
