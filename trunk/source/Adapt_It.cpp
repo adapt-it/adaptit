@@ -12263,7 +12263,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-    // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
+   // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
     // check to see that the computer hardware has a certain minimum resolution, especially
     // the screen's vertical pixels should be at least 549 pixels in height. Width should
     // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
@@ -15676,6 +15676,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//    document was selected), and the Open Existing Project Dialog that gets called from
 	//    AccessOtherAdaptionProject() while doing a transform glosses into adaptations operation.
 	bool bConfigFilesRead = FALSE;
+
+	// set the following before calling basic config files, otherwise these defaults wipe
+	// out config file settings... of these 3, only the first is in the config file
+	
+   // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
+    // a PT or BE collaboration project is set up with a project nominated for receiving
+	// free translations; the second is set if the Adapt It document in a collaboration
+	// session has one or more free translations within it
+	m_bCollaborationExpectsFreeTrans = FALSE;
+	m_bCollaborationDocHasFreeTrans = FALSE;
+	m_bSaveCopySourceFlag_For_Collaboration = FALSE;
+
 	if (!m_bSkipBasicConfigFileCall)
 	{
 		// this call is skipped if the previous call to 
@@ -16814,14 +16826,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// Note: The CGetSourceTextFromEditor class will check to see if there are 
 		// sufficient PT projects for AI-PT work to be able to proceed.
 	}
-    // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
-    // a PT or BE collaboration project is set up with a project nominated for receiving
-	// free translations; the second is set if the Adapt It document in a collaboration
-	// session has one or more free translations within it
-	m_bCollaborationExpectsFreeTrans = FALSE;
-	m_bCollaborationDocHasFreeTrans = FALSE;
-	m_bSaveCopySourceFlag_For_Collaboration = FALSE;
-
+	
 	// whm testing below !!!
 
 	//wxArrayString testBEProjects;
@@ -16876,7 +16881,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 
 	}
-
 	// whm added 9Feb11 for Paratext Collaboration support
 	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
 	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
@@ -28294,7 +28298,6 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	f.Close(); // closes the wxTextFile and frees memory used for it
-
 	return bIsOK;
 }
 
