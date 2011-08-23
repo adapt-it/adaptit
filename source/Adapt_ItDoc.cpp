@@ -1385,7 +1385,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
 		// comment out the #define when a wxLogDebug listing of the updated text is not wanted
-#define _HAVE_A_LOOK
+//#define _HAVE_A_LOOK
 #ifdef _HAVE_A_LOOK
 #ifdef __WXDEBUG__
 		// have a look at what we got
