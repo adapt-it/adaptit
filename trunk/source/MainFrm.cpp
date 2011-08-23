@@ -1842,6 +1842,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 // App command to run the dialog
 void CMainFrame::OnAppAbout(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->LogUserAction(_T("Initiated OnAppAbout()"));
 	// To Change version number, date, etc., use wxDesigner to change the AboutDlgFunc() in the 
 	// Adapt_It_wdr.cpp file
     AboutDlg dlg(this);
@@ -1978,6 +1979,7 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 
 void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 {
+	gpApp->LogUserAction(_T("Initiated OnAdvanceHtmlHelp()"));
 	int eID;
 	eID = event.GetId();
 	//ShowHelp(event.GetId(), *m_pHelpController);
@@ -1990,6 +1992,7 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 		wxString strMsg;
 		strMsg = strMsg.Format(_T("Adapt It could not add book contents to its help file.\nThe name and location of the help file it looked for:\n %s\nTo ensure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
 		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+		gpApp->LogUserAction(strMsg);
 	}
 	if (bOK1)
 	{
@@ -2000,12 +2003,14 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 			wxString strMsg;
 			strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo ensure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
 			wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+			gpApp->LogUserAction(strMsg);
 		}
 	}
 }
 
 void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->LogUserAction(_T("Initiated OnOnlineHelp()"));
 	const wxString onlineHelpURL = _T("http://adaptit.martintribe.org/Using_Adapt_It.htm");
 	int flags;
 	flags = wxBROWSER_NEW_WINDOW;
@@ -2016,6 +2021,7 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 		wxString strMsg;
 		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the online help.\nIf you have Internet access, you can try launching your browser\nyourself and view the online Adapt It help site by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),onlineHelpURL.c_str());
 		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_WARNING);
+		gpApp->LogUserAction(strMsg);
 	}
 }
 
@@ -2043,6 +2049,7 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 // systems) or SendMail protocols (on Unix - Linux & Mac systems).
 void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->LogUserAction(_T("Initiated OnHelpReportAProblem()"));
 	CEmailReportDlg erDlg(this);
 	erDlg.Centre();
 	erDlg.reportType = erDlg.Report_a_problem;
@@ -2059,6 +2066,7 @@ void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 // Window systems) or SendMail protocols (on Unix - Linux & Mac systems).
 void CMainFrame::OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->LogUserAction(_T("Initiated OnHelpGiveFeedback()"));
 	CEmailReportDlg erDlg(this);
 	erDlg.reportType = erDlg.Give_feedback;
 	if (erDlg.ShowModal() == wxID_OK)
@@ -2407,6 +2415,7 @@ wxSize CMainFrame::GetCanvasClientSize()
 // whm 12Oct10 modified for user profiles support
 void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	if (m_pToolBar == NULL)
 	{
         RecreateToolBar(); // whm 12Oct10 modified RecreateToolBar() for user profile compatibility
@@ -2414,6 +2423,7 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 		if (pMenuItem == NULL)
 			return;
 		GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
+		pApp->LogUserAction(_T("View Toolbar"));
 		SendSizeEvent();
 	}
 	else
@@ -2425,6 +2435,7 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 		if (pMenuItem == NULL)
 			return;
 		GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
+		pApp->LogUserAction(_T("Hide Toolbar"));
     }
 }
 
@@ -2447,17 +2458,20 @@ void CMainFrame::OnUpdateViewToolBar(wxUpdateUIEvent& event)
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
     wxStatusBar *statbarOld = GetStatusBar();
     if ( statbarOld )
     {
         statbarOld->Hide();
         SetStatusBar(0);
 		GetMenuBar()->Check(ID_VIEW_STATUS_BAR, FALSE);
+		pApp->LogUserAction(_T("Hide Statusbar"));
     }
     else
     {
         DoCreateStatusBar();
 		GetMenuBar()->Check(ID_VIEW_STATUS_BAR, TRUE);
+		pApp->LogUserAction(_T("View Statusbar"));
     }
 	// Need to call SendSizeEvent() for the frame to redraw itself after the
 	// status bar is hidden at the bottom of the frame. Otherwise a status bar
@@ -2500,12 +2514,14 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	//wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
 	//wxASSERT(pMenuBar != NULL);
-	
+	pApp->LogUserAction(_T("Initiated OnViewAdminMenu"));
+
 	if (pApp->m_bShowAdministratorMenu)
 	{
 		// The menu is currently shown and administrator wants it hidden, no password required
 		// for hiding it.
 		pApp->m_bShowAdministratorMenu = FALSE;
+		pApp->LogUserAction(_T("Hide Administrator menu"));
 	}
 	else
 	{
@@ -2523,11 +2539,13 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 		{
 			// a valid password was typed
 			pApp->m_bShowAdministratorMenu = TRUE;
+			pApp->LogUserAction(_T("Valid password entered - show Administrator menu"));
 		}
 		else
 		{
 			// invalid password - turn the checkbox back off, beep also
 			::wxBell();
+			pApp->LogUserAction(_T("Invalid password entered"));
 			// whm Note: The "Show Administrator Menu... (Password protected)" menu
 			// item is a toggle menu item. Its toggle state does not need to be 
 			// explicitly changed here.
@@ -3008,6 +3026,7 @@ void CMainFrame::ComposeBarGuts()
 			// Hide it
 			m_pComposeBar->Hide();
 			GetMenuBar()->Check(ID_VIEW_COMPOSE_BAR, FALSE);
+			gpApp->LogUserAction(_T("Hide Composebar"));
 			gpApp->m_bComposeWndVisible = FALSE; // needed???
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode
 			SendSizeEvent(); // needed to force redraw
@@ -3017,6 +3036,7 @@ void CMainFrame::ComposeBarGuts()
 			// Show the composeBar
 			m_pComposeBar->Show(TRUE);
 			GetMenuBar()->Check(ID_VIEW_COMPOSE_BAR, TRUE);
+			gpApp->LogUserAction(_T("Show Composebar"));
 			gpApp->m_bComposeWndVisible = TRUE; // needed???
 			SendSizeEvent(); // needed to force redraw
 		}

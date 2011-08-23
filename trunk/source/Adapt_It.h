@@ -3000,7 +3000,7 @@ public:
 
 	void OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEvent& event);
-	void OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event));
+	void OnToolsAutoCapitalization(wxCommandEvent& event);
 	void OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event);
 
 	void OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event);
@@ -3010,11 +3010,11 @@ public:
 	void OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& event);
 	void OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateLockCustomLocation(wxUpdateUIEvent& event);
-	void OnLockCustomLocation(wxCommandEvent& WXUNUSED(event));
+	void OnLockCustomLocation(wxCommandEvent& event);
 	void OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event);
-	void OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event));
+	void OnUnlockCustomLocation(wxCommandEvent& event);
 	void OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event);
-	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event));
+	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& event);
 	void OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
 	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));

@@ -235,6 +235,7 @@ void CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes(wxCommandEvent& 
 
 void CAssignLocationsForInputsAndOutputs::OnPreLoadSourceTexts(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->LogUserAction(_T("Pre-Load Source Text selected"));
 	bool bDirExists = TRUE;
 	if (!::wxDirExists(m_pApp->m_sourceInputsFolderPath) && !::wxFileExists(m_pApp->m_sourceInputsFolderPath))
 	{
@@ -301,6 +302,8 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 		foldersProtectedFromNavigation += m_pApp->m_reportsOutputsFolderName + _T(':');
 
 	m_pApp->m_foldersProtectedFromNavigation = foldersProtectedFromNavigation;
+	
+	m_pApp->LogUserAction(m_pApp->m_foldersProtectedFromNavigation);
 	
 	// update the value related to m_foldersProtectedFromNavigation in the Adapt_It_WX.ini file
 	bool bWriteOK = FALSE;

@@ -1176,6 +1176,7 @@ bool CAdminEditMenuProfile::UserProfileSelectionHasChanged()
 // currently selected profile back to their factory default values.
 void CAdminEditMenuProfile::OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->LogUserAction(_T("Reset To Factory"));
 	// Note: The CurrentProfileDescriptionHasChanged() function in the test below
 	// compares the current profile's descriptionProfileN string in tempUserProfiles with the 
 	// factoryDescrArrayStrings that were retrieved from the App in InitDialog() by 
@@ -1275,6 +1276,9 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 	// get the new work profile name
 	wxString newProfileName;
 	newProfileName = GetNameOfProfileFromProfileValue(tempWorkflowProfile); // returns _("None") when tempWorkflowProfile == 0
+	wxString temp = _T("Selected User Workflow Profile: %s");
+	temp = temp.Format(temp,newProfileName.c_str());
+	m_pApp->LogUserAction(temp);
 
 	// Deal with changes
 	m_pApp->m_mapProfileChangesToStringValues.clear(); // start with an empty map
@@ -1355,6 +1359,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 				msg = msg.Format(msg,editedProfilesStr.c_str(),previousProfileName.c_str(),previousProfileName.c_str(),previousProfileName.c_str()); // in this case oldProfileName == newProfileName
 			}
 			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+			m_pApp->LogUserAction(msg);
 		}
 		else if (bProfileChanged.Item(tempWorkflowProfile - 1) != 1) // when tempWorkflowProfile is other than 0, the profile index is 1 less
 		{
@@ -1371,6 +1376,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 			msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
 			msg = msg.Format(msg,editedProfilesStr.c_str(),newProfileName.c_str(),newProfileName.c_str(),newProfileName.c_str());
 			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+			m_pApp->LogUserAction(msg);
 		}
 		else
 		{
@@ -1446,6 +1452,7 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg2;
 			msg = msg.Format(msg,editedProfilesStr.c_str());
 			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+			m_pApp->LogUserAction(msg);
 		}
 		else if (bSelChanged)
 		{
@@ -1455,6 +1462,7 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg = msg.Format(msg,GetNameOfProfileFromProfileValue(startingWorkflowProfile).c_str(),
 				GetNameOfProfileFromProfileValue(tempWorkflowProfile).c_str());
 			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+			m_pApp->LogUserAction(msg);
 		}
 		else if (bItemsChanged)
 		{
@@ -1464,6 +1472,7 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg2;
 			msg = msg.Format(msg,editedProfilesStr.c_str());
 			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+			m_pApp->LogUserAction(msg);
 		}
 		if (response == wxNO)
 		{
@@ -1596,15 +1605,15 @@ void CAdminEditMenuProfile::CopyProfileVisibilityValues(int sourceProfileIndex, 
 		wxString srcName;
 		srcName = pUserProfileItem->usedProfileNames[sourceProfileIndex];
 		
-		wxLogDebug(_T("Before Dest Visibility of %s = %s; Before Src Visibility of %s = %s"),destName.c_str(),
-			pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
-			srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+		//wxLogDebug(_T("Before Dest Visibility of %s = %s; Before Src Visibility of %s = %s"),destName.c_str(),
+		//	pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
+		//	srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
 		
 		pUserProfileItem->usedVisibilityValues[destinationProfileIndex] = pUserProfileItem->usedVisibilityValues[sourceProfileIndex];
 		
-		wxLogDebug(_T("After Dest Visibility of %s = %s; After Src Visibility of %s = %s"),destName.c_str(),
-			pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
-			srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+		//wxLogDebug(_T("After Dest Visibility of %s = %s; After Src Visibility of %s = %s"),destName.c_str(),
+		//	pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
+		//	srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
 	}
 }
 

@@ -178,6 +178,7 @@ void CJoinDialog::OnOK(wxCommandEvent& event)
 
 void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->LogUserAction(_T("Initiated OnBnClockedJoinNow()"));
 	// BEW added 23Jun07
 	gbDoingSplitOrJoin = TRUE; // use to suppress document backups generation during the joining
 
@@ -373,9 +374,15 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	d->SetDocumentWindowTitle(strUserTyped, strUserTyped);
 
 	if (bNoIDMismatch)
+	{
 		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION);// IDS_JOIN_SUCCESSFUL
+		gpApp->LogUserAction(_T("Joining to the current document was successful."));
+	}
 	else
+	{
 		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_WARNING); //IDS_BAD_JOIN_FROM_MISMATCH
+		gpApp->LogUserAction(_T("Joining documents exited prematurely because of a mismatched book ID code."));
+	}
 
 	gpApp->RefreshStatusBarInfo();
 	gbDoingSplitOrJoin = FALSE; // restore default so document backups can happen again

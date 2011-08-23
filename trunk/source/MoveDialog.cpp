@@ -137,6 +137,7 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	gpApp->LogUserAction(_T("Initiated OnBnClickedMoveNow()"));
 	// construct the long message string, in case it is needed
 	wxString msg;
 	wxString str;
@@ -158,6 +159,7 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 			case DOCUMENTMOVER_SUCCESS :
 				UpdateFileList();
 				wxMessageBox(_("Moving the document was successful."),_T(""),wxICON_INFORMATION); //IDS_SUCCESSFUL_MOVE
+				gpApp->LogUserAction(_T("Moving the document was successful."));
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTSAVECHANGES :
 				nAnswer = wxMessageBox(msg, _T(""), wxYES_NO | wxCANCEL);
@@ -174,6 +176,7 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 						Result = 0;
 						break;
 				}
+				gpApp->LogUserAction(msg);
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTOVERWRITEEXISTINGFILE :
 				nAnswer = wxMessageBox(_("A file with this name already exists in the destination folder.  Do you want to overwrite it?"), _T(""), wxYES | wxCANCEL);
@@ -186,13 +189,16 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 					m.CancelMove();
 					Result = 0;
 				}
+				gpApp->LogUserAction(_T("A file with this name already exists in the destination folder.  Do you want to overwrite it?"));
 				break;
 			case DOCUMENTMOVER_ERROR_BOOKVIOLATION :
 				wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."),_T(""), wxICON_WARNING); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
+				gpApp->LogUserAction(_T("Sorry, the file you are trying to move belongs to a different book folder than the current one."));
 				break;
 			default :
 				m.CancelMove();
 				wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."),_T(""), wxICON_WARNING); //IDS_UNEXPECTED_MOVE_ERROR
+				gpApp->LogUserAction(_T("An unexpected error occured while trying to do the move.  The move has been aborted."));
 				break;
 		}
 

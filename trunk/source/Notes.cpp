@@ -2946,12 +2946,14 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
+	m_pApp->LogUserAction(_T("Initiated OnEditMoveNoteForward()"));
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	if (!pMenuBar->IsEnabled(ID_EDIT_MOVE_NOTE_FORWARD))
 	{
 		::wxBell();
+		m_pApp->LogUserAction(_T("Move note forward menu item disabled"));
 		return;
 	}
 	
@@ -2978,6 +2980,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 		a:	wxMessageBox(_T(
 			"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
 			_T(""), wxICON_EXCLAMATION);
+			m_pApp->LogUserAction(_T("A zero pile pointer was returned, the sourcephrase with the note is indeterminate."));
 			return;
 		}
 		wxASSERT(pPile != NULL);
@@ -3230,12 +3233,14 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
+	m_pApp->LogUserAction(_T("Initiated OnEditMoveNoteBackward"));
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	if (!pMenuBar->IsEnabled(ID_EDIT_MOVE_NOTE_BACKWARD))
 	{
 		::wxBell();
+		m_pApp->LogUserAction(_T("Move note backward menu item disabled"));
 		return;
 	}
 	
@@ -3260,6 +3265,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 		a:	wxMessageBox(_T(
 			"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
 			_T(""), wxICON_EXCLAMATION);
+			m_pApp->LogUserAction(_T("A zero pile pointer was returned, the sourcephrase with the note is indeterminate."));
 			return;
 		}
 		wxASSERT(pPile != NULL);

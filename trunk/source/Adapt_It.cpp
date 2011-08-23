@@ -203,6 +203,12 @@ extern bool gbPropagationNeeded;
 /// This global is defined in TransferMarkersDlg.cpp.
 extern TextType gPropagationType;
 
+/// This global is defined in FontPage.cpp
+extern bool gbLTRLayout;
+
+/// This global is defined in FontPage.cpp
+extern bool gbRTLLayout;
+
 /// BEW added 23May05, for support of returning to the previous context's TextType value
 /// after an inline section with TextType none, or after a footnote (since the latter can
 /// be embedded inline within verse, poetry, headings, subtitles, section headings, etc).
@@ -8854,19 +8860,25 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	}
 #else
 	// Unicode version
+	
 	// Initialize the Layout menu to LTR
-	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
-	if(pLayoutMenuAlignment != NULL)
+	CAdapt_ItView* pView = GetView();
+	gbLTRLayout = TRUE; 
+	gbRTLLayout = FALSE; // default is LTR layout
+	if (gpApp->m_bSrcRTL == TRUE && gpApp->m_bTgtRTL == TRUE)
 	{
-		// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
-		// note: default display is LTR so menu item should read what clicking it should make
-		// the layout become after clicking. The menu text may be changed to appropriate value
-		// upon reading reading a project config file (the change is made in ???).
-#ifdef __WXMAC__
-		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
-#else
-		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
-#endif
+		gbLTRLayout = FALSE; // use these to set layout direction on user's behalf, when possible
+		gbRTLLayout = TRUE;
+	}
+	else if (gpApp->m_bSrcRTL == FALSE && gpApp->m_bTgtRTL == FALSE)
+	{
+		gbLTRLayout = TRUE; // use these to set layout direction on user's behalf, when possible
+		gbRTLLayout = FALSE;
+	}
+	if (pView != NULL)
+	{
+		pView->AdjustAlignmentMenu(gbRTLLayout, gbLTRLayout); // fix the menu, if necessary
+		// Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
 	}
 
 #endif 
@@ -11019,12 +11031,18 @@ wxString CAdapt_ItApp::InsertEntities(wxString str)
 
 void CAdapt_ItApp::LogUserAction(wxString msg)
 {
-	wxASSERT(m_userLogFile != NULL);
-	wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
-	wxString timeStr;
-	timeStr = theTime.Format();
-	m_userLogFile->Write(timeStr+_T(':')+msg+m_eolStr);
-	m_userLogFile->Flush();
+	if(m_userLogFile != NULL)
+	{
+		// Convert any \n chars in msg to <BR> to keep each msg to one line,
+		// but embedded <BR> would allow us to process line breaks for display
+		// as HTML.
+		msg.Replace(_T("\n"),_T("<BR>"));
+		wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
+		wxString timeStr;
+		timeStr = theTime.Format();
+		m_userLogFile->Write(timeStr+_T(':')+msg+m_eolStr);
+		m_userLogFile->Flush();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -11888,10 +11906,16 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
             // here.
 			;
 			if (dlg.m_bChangeMade)
+			{
 				bChangeMade = TRUE;
+				wxString msg = _T("User chose %s interface language in ChooseInterfaceLanguage()");
+				msg = msg.Format(msg,currLocalizationInfo.curr_fullName.c_str());
+				LogUserAction(msg);
+			}
 		}
 		else
 		{
+			LogUserAction(_T("Cancelled ChooseInterfaceLanguage()"));
 			// TODO: Check how Canceling the dialog handles the situation where the 
 			// systemLanguage of the host machine is something like "English India" 
 			// which is not a recognized language in wxWidgets language database.
@@ -11910,6 +11934,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 	}
 	else
 	{
+		LogUserAction(_T("Assign default English in ChooseInterfaceLanguage()"));
 		// TODO: Check how Canceling the dialog handles the situation where the 
 		// systemLanguage of the host machine is something like "English India" 
 		// which is not a recognized language in wxWidgets language database.
@@ -20802,6 +20827,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 			+ m_curGlossingKBPath + _(
 "\nThe glossing knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
 		wxMessageBox(message, _T(""), wxICON_INFORMATION);
+		LogUserAction(message);
 		return FALSE;
 	}
 
@@ -20832,6 +20858,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 			{
 				// notify user of error (maybe backup file is protected or in use???)
 				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),wxICON_WARNING);
+				LogUserAction(_T("Removing backup glossing kb file failed."));
 				return TRUE; // allow the app to continue
 			}
 		}
@@ -20881,6 +20908,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 				+ m_curKBPath + _(
 "\nThe knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
 			wxMessageBox(message, _T(""), wxICON_INFORMATION);
+			LogUserAction(message);
 			return FALSE;
 	}
 
@@ -20912,6 +20940,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			{
 				// notify user of error (maybe backup file is protected or in use???)
 				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_WARNING);
+				LogUserAction(_T("Removing backup kb file failed."));
 				return TRUE; // allow app to continue
 			}
 		}
@@ -20959,6 +20988,7 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 				// notify user of error (maybe backup file is protected or in use???)
 				// The following message did not exist in the MFC version
 				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_ERROR);
+				LogUserAction(_T("Removing backup kb file failed."));
 				return FALSE;
 			}
 		}
@@ -21002,6 +21032,7 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 				// The following message did not exist in the MFC version
 				wxMessageBox(_("Removing backup glossing kb file failed."),
 				_T(""), wxICON_ERROR);
+				LogUserAction(_T("Removing backup glossing kb file failed."));
 				return FALSE;
 			}
 		}
@@ -21683,6 +21714,7 @@ void CAdapt_ItApp::DoKBBackup()
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event)) 
 {
+	LogUserAction(_T("Initiated OnFileBackKb()"));
 	//if (gbIsGlossing)
 		DoGlossingKBBackup();
 	//else
@@ -22103,6 +22135,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 	// define and load one or more consistent change tables
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	LogUserAction(_T("Initiated OnToolsDefineCC()"));
 	
 	// The wxWidgets version handles consistent changes directly via our CCModule which
     // incapsulates the CC functionality of the old cc32.dll dynamic library within the
@@ -22152,6 +22185,9 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 				m_bCCTableLoaded[i] = FALSE;
 			else
 			{
+				wxString msg = _T("Loaded CCTable %d");
+				msg = msg.Format(msg,i);
+				LogUserAction(msg);
 				m_bCCTableLoaded[i] = TRUE;
 				m_pConsistentChanger[i] = new CConsistentChanger;
 			}
@@ -22184,6 +22220,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 			whichOne + 1);
 			sError += addMore;
 			wxMessageBox(sError, _T(""), wxICON_INFORMATION);
+			LogUserAction(sError);
 			// later ones won't be loaded once the error has occurred, so ensure that
 			// the non-loaded ones are not tried
 			switch (whichOne)
@@ -22278,6 +22315,7 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 	wxMenuItem * pToolsUseCC = pMenuBar->FindItem(ID_USE_CC);
 	if(pToolsUseCC != NULL)
 	{
+		LogUserAction(_T("Unload CC Tables"));
 		pToolsUseCC->Check(FALSE);
 	}
 	wxMenuItem * pToolsAcceptChanges = pMenuBar->FindItem(ID_ACCEPT_CHANGES);
@@ -22388,6 +22426,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	if (!(value == wxYES))
 		return;
 
+	LogUserAction(_T("Initiated OnFileRestoreKb()"));
 	bool bOK;
 	wxArrayString* pList = &m_acceptedFilesList;
 	int nCount;
@@ -22415,7 +22454,10 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
 		_T("Restore Knowledge Base..."), wxYES_NO);
 		if (value == wxYES)
+		{
+			LogUserAction(_T("Using bRescueFlags"));
 			bRescueFlags = TRUE;
+		}
 	}
 	KPlusCList keys;
 	if (bRescueFlags)
@@ -22513,6 +22555,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 				bOK = ::wxRemoveFile(tempKBfilePath);
 				tempKBfilePath.Empty();
 			}
+			LogUserAction(_T("...no saved document files yet for this project..."));
 			return;
 		}
 		// there is at least one document, so do the restore
@@ -22560,6 +22603,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 		// restore the former current working directory to what it was on entry
 		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+		LogUserAction(_T("Cancelled from CWhichFilesDlg()"));
 		return;
 	}
 
@@ -22592,6 +22636,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 				bOK = ::wxRemoveFile(tempKBfilePath);
 				tempKBfilePath.Empty();
 			}
+			LogUserAction(s3);
 			return;
 		}
 		else
@@ -22653,6 +22698,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			"Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 							folderPath.c_str());
 							wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+							LogUserAction(errStr);
 
 							// BEW added 19Mar10, a call of wxSetWorkingDirectory() is
 							// needed here because EnumerateDocFiles() has been called
@@ -22751,6 +22797,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."),
 	nCumulativeTotal,nDocCount);
 	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION);
+	LogUserAction(stats);
 
 	// let the view respond again to updates
 	pView->canvas->Thaw();
@@ -28897,10 +28944,12 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 
 	// create the page setup class instance using defaults
 	CAdapt_ItView* pView = GetView();
+	LogUserAction(_T("Initiated OnFilePageSetup()"));
 	if (pView == NULL)
 	{
 		wxMessageBox(_T(
 		"Unable to display page setup dialog because no View is currently valid."));
+		LogUserAction(_T("Unable to display page setup dialog because no View is currently valid."));
 		return;
 	}
 
@@ -28951,6 +29000,7 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
     if (pageSetupDialog.ShowModal() == wxID_CANCEL)
 	{
 		// user cancelled
+		LogUserAction(_T("Cancelled from OnFilePageSetup()"));
 		return;
 	}
 	else
@@ -29373,6 +29423,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		// user is ready to proceed (i.e., pressed "Yes").
+		gpApp->LogUserAction(_T("Initiated OnAdvancedTransformAdaptationsIntoGlosses()"));
 		gbExcludeCurrentProject = TRUE; // cause suppression of name of current project
 
 		// save entry state (only necessary if entry state had book mode on)
@@ -29431,6 +29482,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 	else
 	{
 		// user is not ready to proceed, so he clicked the No button
+		gpApp->LogUserAction(_T("Cancelled OnAdvancedTransformAdaptationsIntoGlosses()"));
 		return;
 	}
 }
@@ -29595,6 +29647,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
 			_T(""), wxICON_WARNING);
+			LogUserAction(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
 		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
@@ -29605,6 +29658,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
 			_T(""), wxICON_WARNING);
+			LogUserAction(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
 		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
@@ -29617,6 +29671,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
 			_T(""), wxICON_WARNING);
+			LogUserAction(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
 
@@ -29647,6 +29702,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			wxMessageBox(_T(
 			"Aborting the Transform operation, because no valid KB file was detected"),
 			_T(""),wxICON_WARNING);
+			LogUserAction(_T("Aborting the Transform operation, because no valid KB file was detected"));
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
             // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
@@ -29668,6 +29724,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			wxMessageBox(_(
 "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."),
 			_T(""), wxICON_INFORMATION);
+			LogUserAction(_T("Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."));
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
             // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
@@ -29780,6 +29837,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			if (!bStoredOK)
 				wxMessageBox(_T("The new empty adaptations KB did not successfully store to disk"),
 				_T(""), wxICON_INFORMATION);
+			LogUserAction(_T("The new empty adaptations KB did not successfully store to disk"));
 //		}
 
 			// delete the other project's copied KB from the heap (the original is still safe
@@ -29795,6 +29853,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			wxMessageBox(_T(
 			"Warning: the newly filled glossing KB did not successfully store to disk"),
 				_T(""), wxICON_INFORMATION);
+			LogUserAction(_T("Warning: the newly filled glossing KB did not successfully store to disk"));
 		}
 
         // now we must look at all the documents in the other project, making copies which
@@ -29836,6 +29895,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
 			_T(""), wxICON_WARNING);
+			LogUserAction(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."));
 			return FALSE; // do nothing
 		}
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
@@ -29845,7 +29905,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 			_T(""), wxICON_EXCLAMATION);
-            // whm added 05Jan07 for safety sake restore the former current working
+            LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
+			// whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
             // EnumerateDocFiles(strOtherAdaptationsPath) call above changes the current
             // working directory to strOtherAdaptationsPath.
@@ -29886,6 +29947,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 "processing book folders, so the book folder document files are absent in the transformed project.");
 				s3 = s1 + s2;
 				wxMessageBox(s3,_T(""),wxICON_EXCLAMATION);
+				LogUserAction(s3);
                 // whm added 05Jan07 for safety sake restore the former current working
                 // directory to what it was on entry. The
                 // wxSetWorkingDirectory(strOtherAdaptationsPath) call above changes the
@@ -29956,6 +30018,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 								// we don't expect failure, English message will do
 								wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."),
 								_T(""), wxICON_WARNING);
+								LogUserAction(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."));
 								return FALSE; // return, do nothing
 							}
 
@@ -30278,7 +30341,7 @@ void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 /// are not set up to utilize this feature.
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 {
 	// TODO: This handler won't be needed once we eliminate the Tools'
 	// "Use Automatic Capitalization" menu item (possibly incorporated into an
@@ -30298,6 +30361,11 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to OFF & recalc the layout with strip-wrap off
 		if (pToolsMenuAutoCap != NULL)
 		{
+			// Only log when user explicitly calls this handler from the menu
+			if (event.GetId() == ID_TOOLS_AUTO_CAPITALIZATION)
+			{
+				LogUserAction(_T("Use Autocaps is OFF"));
+			}
 			pToolsMenuAutoCap->Check(FALSE);
 		}
 		gbAutoCaps = FALSE;
@@ -30341,6 +30409,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 			{
 				gbNoSourceCaseEquivalents = TRUE;
 				gbSuppressAutoCapsAsk = FALSE;
+				LogUserAction(_T("User says has no upper and lower case letters"));
 				return; // return without turning the flag on
 			}
 			else
@@ -30367,6 +30436,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 						wxMessageBox(_(
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\nYou can set them up in the Edit Preferences menu selection on the \"Case\" tab."),
 						_T(""), wxICON_WARNING);
+						LogUserAction(_T("Src or Gls language u/l case do not yet exist... in OnToolsAutoCapitalization()"));
 						return;
 					}
 				}
@@ -30387,6 +30457,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 						wxMessageBox(_(
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\nYou can set them up in the Edit Preferences menu selection on the \"Case\" tab."),
 						_T(""), wxICON_WARNING);
+						LogUserAction(_T("Src or Tgt language u/l case do not yet exist... in OnToolsAutoCapitalization()"));
 						return;
 					}
 				}
@@ -30395,6 +30466,10 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to ON, and recalc the layout with strip-wrap on
 		if (pToolsMenuAutoCap != NULL)
 		{
+			if (event.GetId() == ID_TOOLS_AUTO_CAPITALIZATION)
+			{
+				gpApp->LogUserAction(_T("Use Autocaps is ON"));
+			}
 			pToolsMenuAutoCap->Check(TRUE);
 		}
 		gbAutoCaps = TRUE;
@@ -30420,6 +30495,7 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 	//force closure of the document, before seeing the dialog
 	CAdapt_ItDoc* pDoc = GetDocument();
 	CAdapt_ItView* pView = GetView();
+	LogUserAction(_T("Initiated OnFileChangeFolder()"));
 	CKB* pKB;
 	if (gbIsGlossing)
 		pKB = gpApp->m_pGlossingKB;
@@ -30445,6 +30521,7 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 		wxMessageBox(_(
 "The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
 		_T(""), wxICON_EXCLAMATION);
+		LogUserAction(_T("The Startup Wizard failed to open. Use the File menu's Open command to open a document."));
 	}
 
 }
@@ -30509,6 +30586,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
 	//wxASSERT(pAdvancedMenu != NULL);
+	LogUserAction(_T("Initiated OnAdvancedBookMode()"));
 
 	// force closure of an open document, before the mode is changed - since the
 	// document has to go to its current folder, and after the mode change that will
@@ -30533,6 +30611,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		// toggle the checkmark to OFF
 		if (pAdvancedMenu != NULL)
 		{
+			LogUserAction(_T("Book Folder Mode OFF"));
 			pAdvancedMenu->Check(FALSE);
 		}
 		m_bBookMode = FALSE;
@@ -30547,6 +30626,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		// toggle the checkmark to ON
 		if (pAdvancedMenu != NULL)
 		{
+			LogUserAction(_T("Book Folder Mode ON"));
 			pAdvancedMenu->Check(TRUE);
 		}
 
@@ -30596,6 +30676,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		wxMessageBox(_(
 "The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
 		_T(""), wxICON_EXCLAMATION);
+		LogUserAction(_T("After Book Folder Mode changed - The Startup Wizard failed to open. Use the File menu's Open command to open a document."));
 	}
 }
 
@@ -34620,73 +34701,18 @@ void CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& e
 // whm 12Jun11 added for Assign Locations For Inputs and Outputs... item on Administrator menu
 void CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED(event))
 {
+	LogUserAction(_T("Initiated OnAssignLocationsForInputsAndOutputs()"));
 	CAssignLocationsForInputsAndOutputs dlg(GetMainFrame());
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		; // all work is done within the class methods
 	}
-
-	/*
-	if (m_bShowAdministratorMenu)
-	{
-		if (m_bCollaboratingWithParatext)
-		{
-			wxMessageBox(_("When Paratext Collaboration is ON, this menu item has no effect. Source Text inputs instead come automatically from the relevant Paratext project location."),
-				_T(""), wxICON_INFORMATION);
-			return;
-		}
-		if (m_sourceInputsFolderPath.IsEmpty())
-		{
-			// don't expect this to be empty, an English message will do
-			wxBell();
-			wxMessageBox(_T("m_sourceInputsFolderPath is still empty, button will be ignored"),
-				_T("Error"), wxICON_WARNING);
-			return;
-		}
-
-		// first, we must check if the "__SOURCE_INPUTS" folder actually exists yet - it can be
-		// created only by this handler's invocation, provided the user responds with a Yes
-		// click when shown the active project it will be created in. (No provision is
-		// made in Adapt It for decommissioning the __SOURCE_INPUTS folder, to restore legacy file
-		// input dialog functionality. Someone or the administrator can do that in a file
-		// browser, by renaming, moving or deleting the __SOURCE_INPUTS folder.
-		bool bDirExists = TRUE;
-		if (!::wxDirExists(m_sourceInputsFolderPath) && !::wxFileExists(m_sourceInputsFolderPath))
-		{
-			// there is no such file or folder, so create the folder, provided the user wants
-			// it in the current project
-			wxString msg;
-			msg = msg.Format(_(
-"The current project is: %s\nDo you want the __SOURCE_INPUTS folder to be created for this project?"),
-			gpApp->m_curProjectName.c_str());
-			if( wxMessageBox(msg,_("Verify project for __SOURCE_INPUTS folder creation"), wxYES_NO) == wxYES )
-			{
-				// make the  __SOURCE_INPUTS  folder
-				bDirExists = ::wxMkdir(m_sourceInputsFolderPath,0777);
-			}
-			else
-			{
-				// user saw it was the wrong project and declined to go ahead
-				return;
-			}
-		}
-		wxASSERT(bDirExists);
-
-		if (!m_bAdminMenuRemoved)
-		{
-			wxCommandEvent dummyEvent;
-			OnMoveOrCopyFoldersOrFiles(dummyEvent);
-		}
-	}
 	else
 	{
-		// the update handler should prevent this function being enabled if the
-		// Administrator menu is not visible, but just in case, beep
-		wxBell();
+		LogUserAction(_T("Cancelled OnAssignLocationsForInputsAndOutputs()"));
 	}
-	
-	*/
+
 }
 
 void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
@@ -34705,10 +34731,16 @@ void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 {
+	LogUserAction(_T("Initiated OnSetupEditorCollaboration()"));
 	CSetupEditorCollaboration dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		// all setup should be done within the CSetupEditorCollaborationDlg class
+		;
+	}
+	else
+	{
+		LogUserAction(_T("Cancelled OnSetupEditorCollaboration()"));
 	}
 
 }
@@ -34734,6 +34766,7 @@ void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))
 {
+	LogUserAction(_T("Initiated OnEditUserMenuSettingsProfiles()"));
 	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
 	editMenuDlg.Center();
 	if (editMenuDlg.ShowModal() == wxID_OK)
@@ -34750,6 +34783,10 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 			// Also, save the changes to the AI_UserProfiles.xml file
 			SaveUserProfilesMergingDataToXMLFile(m_userProfileFileWorkFolderPath);
 		}
+	}
+	else
+	{
+		LogUserAction(_T("Cancelled OnEditUserMenuSettingsProfiles()"));
 	}
 }
 
@@ -34777,6 +34814,7 @@ void CAdapt_ItApp::OnUpdateSetPassword(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 {
+	LogUserAction(_T("Initiated OnSetPassword()"));
 	wxString caption = _("Type A Password");
 	wxString message = _(
 "The password can be a mix of letters, numbers and punctuation. Less than five characters will not be accepted.\nEmptying the text box erases the previously set password, leaving no password set.\nTyping a different password replaces the current one.");
@@ -34791,15 +34829,18 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 	{
 		// administrator wants to lock out anyone who does not know the "admin" secret password
 		m_adminPassword = _T("");
+		LogUserAction(_T("Admin removed password"));
 		return;
 	}
 	if (length <= 4)
 	{
 		::wxBell();
 		wxMessageBox(_("Too short."),_T(""),wxICON_WARNING);
+		LogUserAction(_T("Password too short"));
 	}
 	else
 	{
+		LogUserAction(_T("Password accepted"));
 		// accept the password
 		m_adminPassword = password;
 	}
@@ -34854,6 +34895,7 @@ void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& eve
 // handler for the Restore Default Work Folder Location command
 void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
 {
+	LogUserAction(_T("Initiated OnRestoreDefaultWorkFolderLocation()"));
 	//wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 	//wxLogDebug(_T("1  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 
@@ -35088,8 +35130,11 @@ a:			wxString stdDocsDir = _T("");
 			// several possibilities, depending on whether administrator is local or
 			// remote and whether a path is currently locked or not, or whether the
 			// default location on local machine is current or not...
-			wxLogDebug(_T("Cancelled block: default_path was = %s  cancelled flag = %d  MORE TO DO HERE!!"), m_workFolderPath.c_str(), (int)bWasCancelled);
+			wxString msg = _T("Cancelled block: default_path was = %s  cancelled flag = %d  MORE TO DO HERE!!");
+			msg = msg.Format(msg, m_workFolderPath.c_str(), (int)bWasCancelled);
+			wxLogDebug(msg);
 			//OnLocalWorkFolder(); // force re-establish of default?? Nah, too simple, see above
+			LogUserAction(msg);
 			return FALSE;
 
 		}
@@ -35107,6 +35152,7 @@ a:			wxString stdDocsDir = _T("");
 			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
 			wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
 			wxMessageBox(msg1,_T(""),wxICON_WARNING);
+			LogUserAction(msg1);
 			// check the former location is valid as a work folder, if not set up the default
 			// path
 			if (m_bUseCustomWorkFolderPath)
@@ -35160,8 +35206,13 @@ a:			wxString stdDocsDir = _T("");
 		int response = wxMessageBox(msg,_T("Is this custom work folder permanent or temporary?"),wxICON_QUESTION | wxYES_NO);
 		if (response == wxYES)
 		{
+			LogUserAction(_T("Lock custom work folder"));
 			wxCommandEvent dummyEvent;
 			OnLockCustomLocation(dummyEvent);
+		}
+		else
+		{
+			LogUserAction(_T("Temporary custom work folder"));
 		}
 	}
 
@@ -35275,6 +35326,7 @@ a:			wxString stdDocsDir = _T("");
 
 void CAdapt_ItApp::OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
 {
+	LogUserAction(_T("Initiated OnCustomWorkFolderLocation()"));
 	bool bSetupSucceeded = SetupCustomWorkFolderLocation();
 
 	if (bSetupSucceeded)
@@ -35371,8 +35423,16 @@ void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
 /// thereafter for as long as that location remains the work folder location currently
 /// used.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 {
+	// whm Note: Only log user action when user explicitly selectd the
+	// "Lock Custom Location" menu item, not when OnLockCustomLocation()
+	// is called by other functions.
+	if (event.GetId() == ID_LOCK_CUSTOM_LOCATION)
+	{
+		LogUserAction(_T("Initiated OnLockCustomLocation()"));
+	}
+	
 	m_bFailedToRemoveCustomWorkFolderLocationFile = FALSE; // ensure default value is in 
 								// effect before OnUnlockCustomLocation() can be called
 	// a) get the absolute path to the custom work folder
@@ -35479,8 +35539,12 @@ void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
 	}
 }
 
-void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& event)
 {
+	if (event.GetId() == ID_UNLOCK_CUSTOM_LOCATION)
+	{
+		LogUserAction(_T("Initiated OnUnlockCustomLocation()"));
+	}
 	wxLogDebug(_T("m_bLockedCustomWorkFolderPath = %d"),m_bLockedCustomWorkFolderPath);
 	wxString customPathFilename = _T("CustomWorkFolderLocation"); // must NOT be localizable
 	wxString aPath = m_workFolderPath + PathSeparator + customPathFilename;
@@ -35524,6 +35588,7 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(_T(
 				"OnUnlockCustomLocation(): Failed to remove the CustomWorkFolderLocation file at default work folder location. The custom work folder location remains persistent. Developer must fix this problem. Adapt It now continues to run with full functionality."),
 			_T(""), wxICON_ERROR);
+			LogUserAction(_T("OnUnlockCustomLocation(): Failed to remove the CustomWorkFolderLocation file at default work folder location. The custom work folder location remains persistent. Developer must fix this problem. Adapt It now continues to run with full functionality."));
 		}
 	}
 	RefreshStatusBarInfo();
@@ -37272,8 +37337,13 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 	} // end of else [using a custom work folder location]
 }
 
-void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
+void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& event)
 {
+	if (event.GetId() == ID_MOVE_OR_COPY_FOLDERS_OR_FILES)
+	{
+		LogUserAction(_T("Initiated OnMoveOrCopyFoldersOrFiles()"));
+	}
+
 	if (m_bReadOnlyAccess)
 	{
 		return;
@@ -37282,7 +37352,7 @@ void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
-		;
+		LogUserAction(_T("Cancelled OnMoveOrCopyFoldersOrFiles()"));
 	}
 }
 
@@ -37352,7 +37422,10 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	int returnValue = wxGetSingleChoiceIndex(
 		message,myCaption,2,choices,GetMainFrame(),-1,-1,TRUE,350,80);
 	if (returnValue == -1)
+	{
+		gpApp->LogUserAction(_T("Cancelled from OnFileExportKb()"));
 		return; // user pressed Cancel
+	}
 	else
 	{
 		kbExportType = (KBExportSaveAsType)returnValue; // cast int to KBExportSaveAsType enum
@@ -37376,6 +37449,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	if (kbExportType == KBExportSaveAsSFM_TXT)
 	{
+		gpApp->LogUserAction(_T("SFM Export"));
 		// The user wants KB export in standard format (\x and \ge).
 		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
 		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
@@ -37423,6 +37497,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	}
 	else if (kbExportType == KBExportSaveAsLIFT_XML)
 	{
+		gpApp->LogUserAction(_T("LIFT Export"));
 		// Check whether navigation protection is in effect for _LIFT_INPUTS_OUTPUTS, 
 		// and whether the App's m_lastKbLiftOutputPath is empty or has a valid path, 
 		// and set the defaultDir for the export accordingly.
@@ -37495,7 +37570,10 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 		// make the dialog visible
 		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			gpApp->LogUserAction(_T("Cancelled from OnFileExportKb() from wxFileDialog()"));
 			return; // user cancelled
+		}
 
 		// get the user's desired path and file name
 		exportPath = fileDlg.GetPath(); 
@@ -37541,6 +37619,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_("Unable to open knowledge base export file."),
 		_T(""), wxICON_WARNING);
+		gpApp->LogUserAction(_T("Unable to open knowledge base export file."));
 		return; // return since it is not a fatal error
 	}
 
@@ -37588,6 +37667,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
 	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	gpApp->LogUserAction(_T("Export operation successful"));
 }
 
 #ifdef __WXDEBUG__

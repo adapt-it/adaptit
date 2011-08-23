@@ -284,6 +284,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		userSelectionStr = ChooseProjectForSourceTextInputs.GetStringSelection();
 		userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
+		m_pApp->LogUserAction(_T("Selected Project for Source Text Inputs"));
 	}
 	pStaticTextCtrlSelectedSourceProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForSourceInputs = userSelectionStr;
@@ -342,6 +343,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		userSelectionStr = ChooseProjectForTargetTextInputs.GetStringSelection();
 		userSelectionInt = ChooseProjectForTargetTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
+		m_pApp->LogUserAction(_T("Selected Project for Target Text Inputs"));
 	}
 	pStaticTextCtrlSelectedTargetProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForTargetExports = userSelectionStr;
@@ -400,6 +402,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		userSelectionStr = ChooseProjectForFreeTransTextInputs.GetStringSelection();
 		userSelectionInt = ChooseProjectForFreeTransTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
+		m_pApp->LogUserAction(_T("Selected Project for Free Trans Text Inputs"));
 	}
 	pStaticTextCtrlSelectedFreeTransProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForFreeTransExports = userSelectionStr;
@@ -428,6 +431,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		msg = msg.Format(_("Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled. If you later turn collaboration OFF, you will need to turn book folder mode on again if that is desired.\n\nDo you want to continue setting up Adapt It for collaboration with %s?"),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
 		if (wxMessageBox(msg,_T(""),wxYES_NO | wxICON_INFORMATION) == wxNO)
 		{
+			m_pApp->LogUserAction(msg);
 			return;
 		}
 	}
@@ -444,6 +448,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
 		//msg = msg + _T("\n") + msg1;
 		wxMessageBox(msg);
+		m_pApp->LogUserAction(msg);
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 	
@@ -454,6 +459,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
 		//msg = msg + _T("\n") + msg1;
 		wxMessageBox(msg);
+		m_pApp->LogUserAction(msg);
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
@@ -465,6 +471,12 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 
+	m_pApp->LogUserAction(m_pApp->m_collaborationEditor);
+	if (m_pApp->m_bCollabByChapterOnly)
+		m_pApp->LogUserAction(_T("Collab Type: Chapter Only"));
+	else
+		m_pApp->LogUserAction(_T("Collab Type: Whole Book"));
+
 	// Get the state of collaboration
 	int nSel;
 	nSel = pRadioBoxCollabOnOrOff->GetSelection();
@@ -472,17 +484,29 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	{
 		// Collaboration radio button is ON
 		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+		{
 			m_pApp->m_bCollaboratingWithBibledit = TRUE;
+			m_pApp->LogUserAction(_T("Collab with Bibledit ON"));
+		}
 		else
+		{
 			m_pApp->m_bCollaboratingWithParatext = TRUE;
+			m_pApp->LogUserAction(_T("Collab with Paratext ON"));
+		}
 	}
 	else if (nSel == 1)
 	{
 		// Collaboration radio button is OFF
 		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+		{
 			m_pApp->m_bCollaboratingWithBibledit = FALSE;
+			m_pApp->LogUserAction(_T("Collab with Bibledit OFF"));
+		}
 		else
+		{
 			m_pApp->m_bCollaboratingWithParatext = FALSE;
+			m_pApp->LogUserAction(_T("Collab with Paratext OFF"));
+		}
 		
 		// PT/BE collaboration is OFF, but selection(s) were made using the "Select from List"
 		// button(s). Ask the admin if he really wanted to turn PT/BE collaboration ON or not.
@@ -496,9 +520,15 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			{
 				// Admin actually wanted Collaboration ON
 				if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+				{
 					m_pApp->m_bCollaboratingWithBibledit = TRUE;
+					m_pApp->LogUserAction(_T("Collab with Bibledit ON"));
+				}
 				else
+				{
 					m_pApp->m_bCollaboratingWithParatext = TRUE;
+					m_pApp->LogUserAction(_T("Collab with Paratext ON"));
+				}
 			}
 		}
 	}

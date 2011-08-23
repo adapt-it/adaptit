@@ -1322,6 +1322,13 @@ void CAdapt_ItView::OnInitialUpdate()
 		OnFromShowingTargetOnlyToShowingAll(dummyevent); // normal view, showing source & target lines
 	}
 
+	// whm Note 22Aug11. I think it is better to call the 
+	// MakeMenuInitializationsAndPlatformAdjustments() after setting the App's
+	// flags to the desired state, than setting them to the opposite value and
+	// calling their associated On...() handlers with a dummy wxCommandEvent,
+	// designed to reverse the flag to the opposite state again. Nevertheless,
+	// I'm leaving the original coding here in OnInitialUpdate()
+
     // BEW removed 8Aug09, there is no good reason to store a "punctuation hidden"
     // value because it we do that, the user could get confused if next time his
     // document doesn't show and punctuation and he didn't realize he shut down
@@ -1333,6 +1340,13 @@ void CAdapt_ItView::OnInitialUpdate()
 	//	pApp->m_bHidePunctuation = TRUE; // the function call will reset it to FALSE
 	//	OnButtonFromHidingToShowingPunct(dummyevent); // make punctuation visible in lines 1 & 2
 	//}
+	
+	// whm note: The OnButtonEnablePunctCopy() handler functions as one 
+	// half of the toolbar toggle button that toggles between "Copy Punctuation"
+	// and "No Copy Punctuation". It only sets m_bCopySourcePunctuation to TRUE 
+	// if m_bCopySourcePunctuation is FALSE when OnButtonEnablePunctCopy() is 
+	// called. The other half of the toggle function is done in 
+	// OnButtonNoPunctCopy().
 	if (pApp->m_bCopySourcePunctuation)
 	{
 		pApp->m_bCopySourcePunctuation = FALSE; // the function call will reset it to TRUE
@@ -3248,7 +3262,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	pApp->m_nSaveActiveSequNum = pApp->m_nActiveSequNum; // needed! So Cancel from PrintOptionsDlg
 														 // can restore document correctly
 
-
+	pApp->LogUserAction(_T("Initiated OnPrint()"));
     // In the wx version we implement a chapter and verse selection dialog to supplement the print
     // dialog, since it is not likely we will be able to use custom print dialogs for all platforms. 
     // The print options dialog items are:
@@ -3300,6 +3314,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		pApp->DoPrintCleanup();
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
 		gbIsPrinting = FALSE;
+		pApp->LogUserAction(_T("Cancelled OnPrint()"));
 		return;
 	}
 	
@@ -3312,7 +3327,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     if (!printer.Print(pApp->GetMainFrame(), &printout, true)) // true means 'prompt'
     {
 		// whm: Other error messages are issued, so we don't need yet another one here
-		;
+		pApp->LogUserAction(_T("Printer error from OnPrint()"));
     }
     else
     {
@@ -3335,7 +3350,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
     // Pass two printout objects: for preview, and possible printing.
 	CAdapt_ItApp* pApp = &wxGetApp();
-    wxString previewTitle,printTitle;
+    pApp->LogUserAction(_T("Initiated OnPrintPreview()"));
+	wxString previewTitle,printTitle;
 	previewTitle = previewTitle.Format(_T("Print Preview of %s"),
 										pApp->m_curOutputFilename.c_str());
 	printTitle = printTitle.Format(_T("Printing %s"),pApp->m_curOutputFilename.c_str());
@@ -3348,7 +3364,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
         wxMessageBox(_T(
 "There was a problem previewing.\nPerhaps your current printer is not set correctly?"),
 		_T("Previewing"), wxOK);
-        return;
+        pApp->LogUserAction(_T("There was a problem previewing.\nPerhaps your current printer is not set correctly?"));
+		return;
     }
 
 	gbIsBeingPreviewed = TRUE; // from MFC's OnPreparePrinting()
@@ -4847,6 +4864,7 @@ void CAdapt_ItView::OnUnits(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	pApp->LogUserAction(_T("Initiated OnUnits()"));
 	CUnitsDlg dlg(pApp->GetMainFrame());
 	dlg.Centre();
 	if (dlg.ShowModal() == wxID_OK)
@@ -5232,6 +5250,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
 
+	pApp->LogUserAction(_T("Initiated OnEditPreferences()"));
 	CEditPreferencesDlg editPrefsDlg(
 		pApp->GetMainFrame(),
 		-1,
@@ -5312,6 +5331,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 			pApp->m_bShowAdministratorMenu = TRUE; // for debugging convenience
 #endif
 		}
+		pApp->LogUserAction(_T("Cancelled OnEditPreferences()"));
 	}
 
 	// show the Administrator menu if the admin person requested it and password was valid
@@ -5425,13 +5445,17 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	pLayout->PlaceBox();
 }
 
-void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& event)
 {
 	// whm modified 15Jan11 to save both glossing and adapting KBs when OnFileSaveKB()
 	// is called. This is now more important with transitions possible between the new
 	// and old KB xml formats.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
+	if (event.GetId() == ID_FILE_SAVEKB)
+	{
+		pApp->LogUserAction(_T("Initiated OnFileSaveKB()"));
+	}
 	bool bOK1 = FALSE;
 	bool bOK2 = FALSE;
 
@@ -5441,7 +5465,10 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 	// since his last save; so prevent my machine's in-memory KB copy from being saved
 	// to his machine
 	if (pApp->m_bReadOnlyAccess)
+	{
+		pApp->LogUserAction(_T("Aborted OnFileSaveKB() m_bReadOnlyAccess"));
 		return;
+	}
 
 	wxString mess;
 	mess.Empty();
@@ -5471,6 +5498,7 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 		mess += _("or the Restore Knowledge Base command). DO NOT use ");
 		mess += _("the Backup Knowledge Base command now!");
 		wxMessageBox(mess, _T(""), wxICON_EXCLAMATION);
+		pApp->LogUserAction(mess);
 	}
 }
 
@@ -5518,6 +5546,15 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	
+	// whm Note: Only log user action when user explicitly closes
+	// the project from the File menu, not when other funtions call
+	// the handler.
+	if (event.GetId() == ID_FILE_CLOSEKB)
+	{
+		pApp->LogUserAction(_T("Close Project"));
+	}
+	
 	// BEW added 6Nov09 because, if recovering within the OnInit() call just after
 	// launch because a custom work folder location is not accessible (eg. it may be
 	// on a thumb drive not currently plugged in), the GetCustomWorkFolderLocation()
@@ -5565,6 +5602,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	if (bUserCancelled)
 	{
 		bUserCancelled = FALSE; // clear the flag to default situation
+		pApp->LogUserAction(_T("Cancelled from pDoc->OnFileClose()"));
 		return;
 	}
 
@@ -10666,6 +10704,7 @@ void CAdapt_ItView::OnUpdateChangeInterfaceLanguage(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnChangeInterfaceLanguage()"));
 	pApp->ChangeUILanguage();
 }
 
@@ -10750,7 +10789,7 @@ void CAdapt_ItView::OnCheckForceAsk(wxCommandEvent& WXUNUSED(event))
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
-void CAdapt_ItView::OnCopySource(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnCopySource(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -10759,7 +10798,17 @@ void CAdapt_ItView::OnCopySource(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pViewCopySource = pMenuBar->FindItem(ID_COPY_SOURCE);
-	//wxASSERT(pViewCopySource != NULL);
+
+	// whm Note: Since OnMarkerWrapsStrip() is also called from the View's OnInitialUpdate()
+	// we test here to make sure we're logging the actual menu item call and not the
+	// OnInitialUpdate call.
+	if (event.GetId() == ID_COPY_SOURCE)
+	{
+		if (pApp->m_bCopySource)
+			pApp->LogUserAction(_T("Turned Copy Source OFF"));
+		else
+			pApp->LogUserAction(_T("Turned Copy Source ON"));
+	}
 
 	// toggle the setting
 	if (pApp->m_bCopySource)
@@ -10884,6 +10933,7 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to OFF
 		if (pToolsMenuUseCC != NULL)
 		{
+			pApp->LogUserAction(_T("Use Consistent Changes OFF"));
 			pToolsMenuUseCC->Check(FALSE);
 		}
 		pApp->m_bUseConsistentChanges = FALSE;
@@ -10893,6 +10943,7 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to ON
 		if (pToolsMenuUseCC != NULL)
 		{
+			pApp->LogUserAction(_T("Use Consistent Changes ON"));
 			pToolsMenuUseCC->Check(TRUE);
 		}
 		pApp->m_bUseConsistentChanges = TRUE;
@@ -10964,6 +11015,7 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to OFF
 		if (pToolsMenuUseSilConverter != NULL)
 		{
+			pApp->LogUserAction(_T("Use Sil Converters OFF"));
 			pToolsMenuUseSilConverter->Check(FALSE);
 		}
 		pApp->m_bUseSilConverter = FALSE;
@@ -10973,6 +11025,7 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to ON
 		if (pToolsMenuUseSilConverter != NULL)
 		{
+			pApp->LogUserAction(_T("Use Sil Converters ON"));
 			pToolsMenuUseSilConverter->Check(TRUE);
 		}
 		pApp->m_bUseSilConverter = TRUE;
@@ -11070,6 +11123,7 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to OFF
 		if (pToolsAcceptChanges != NULL)
 		{
+			pApp->LogUserAction(_T("Accept Changes OFF"));
 			pToolsAcceptChanges->Check(FALSE);
 		}
 		pApp->m_bAcceptDefaults = FALSE;
@@ -11082,6 +11136,7 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to ON
 		if (pToolsAcceptChanges != NULL)
 		{
+			pApp->LogUserAction(_T("Accept Changes ON"));
 			pToolsAcceptChanges->Check(TRUE);
 		}
 		pApp->m_bAcceptDefaults = TRUE;
@@ -11098,7 +11153,7 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
-void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -11111,6 +11166,15 @@ void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& WXUNUSED(event))
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
 	wxRadioButton* pReviewingBtn = 
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
+	
+	// whm Note: Log the action only when OnRadioDrafting() is explicitly
+	// called by user clicking on the Drafting radio button, not when
+	// OnRadioDrafting() is called by another function.
+	if (event.GetId() == IDC_RADIO_DRAFTING)
+	{
+		pApp->LogUserAction(_T("Drafting selected"));
+	}
+	
 	// whm modified 12Oct10 for user profiles compatibility
 	if (pDraftingBtn != NULL)
 	{
@@ -11138,7 +11202,7 @@ void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& WXUNUSED(event))
 	pApp->RefreshStatusBarInfo();
 }
 
-void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -11151,6 +11215,15 @@ void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& WXUNUSED(event))
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
 	wxRadioButton* pReviewingBtn = 
 		(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
+	
+	// whm Note: Log the action only when OnRadioReviewing() is explicitly
+	// called by user clicking on the Reviewing radio button, not when
+	// OnRadioReviewing() is called by another function.
+	if (event.GetId() == IDC_RADIO_REVIEWING)
+	{
+		pApp->LogUserAction(_T("Reviewing selected"));
+	}
+	
 	// whm 12Oct10 modified for user profiles compatibility
 	if (pDraftingBtn != NULL)
 	{
@@ -12484,6 +12557,7 @@ void CAdapt_ItView::OnFileStartupWizard(wxCommandEvent& event)
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
+    // whm 20Aug11 note: only log errors in OnFileStartupWizard()
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
@@ -12491,6 +12565,7 @@ void CAdapt_ItView::OnFileStartupWizard(wxCommandEvent& event)
 	if (!pMenuBar->IsEnabled(ID_FILE_STARTUP_WIZARD))
 	{
 		::wxBell();
+		pApp->LogUserAction(_T("Start working wizard called but disabled"));
 		return;
 	}
 
@@ -12521,8 +12596,9 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 		if (!bSuccess)
 		{
 			wxMessageBox(_T(
-"The Startup Wizard failed. Try using Start Here... and either the New...\nor Open... items on the File... menu instead."),
+"The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."),
 			_T(""), wxICON_EXCLAMATION);
+			pApp->LogUserAction(_T("The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."));
 		}
 	}
 }
@@ -13421,7 +13497,8 @@ void CAdapt_ItView::OnUpdateToolsKbEditor(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
-    // whm 23Jan09 Refactored the CKBEditor class and this handler. Changes to this handler
+	pApp->LogUserAction(_T("Initiated OnToolsKbEditor()"));
+	// whm 23Jan09 Refactored the CKBEditor class and this handler. Changes to this handler
     // involved moving most of the intitializations of CKBEditor members to the CKBEditor
     // class itself, and eliminating several global variables that were only used in this
     // handler and in CKBEditor.
@@ -13438,6 +13515,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	if (!pMenuBar->IsEnabled(ID_TOOLS_KB_EDITOR))
 	{
 		::wxBell();
+		pApp->LogUserAction(_T("KB Editor menu item disabled"));
 		return;
 	}
 
@@ -13503,6 +13581,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
     // item, but I'll leave the following code here in case it works differently on other
     // platforms.
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnGoTo()"));
 	CAdapt_ItDoc* pDoc = GetDocument();
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
@@ -13510,6 +13589,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 	if (!pMenuBar->IsEnabled(ID_GO_TO))
 	{
 		::wxBell();
+		pApp->LogUserAction(_T("But Go To menu item disabled"));
 		return;
 	}
 
@@ -13519,6 +13599,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 	if (pList->IsEmpty())
 	{
 		::wxBell();
+		pApp->LogUserAction(_T("Doc is empty in OnGoTo()"));
 		return;
 	}
 
@@ -13664,6 +13745,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION);
 									pApp->m_pTargetBox->SetFocus();
+									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
 							}
@@ -13715,6 +13797,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""),wxICON_EXCLAMATION);
 									pApp->m_pTargetBox->SetFocus();
+									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
 							}
@@ -13768,6 +13851,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION);
 									pApp->m_pTargetBox->SetFocus();
+									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
 							}
@@ -13844,6 +13928,7 @@ f:					if (!gbIsGlossing)
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
 									_T(""), wxICON_EXCLAMATION);
 									pApp->m_pTargetBox->SetFocus();
+									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
 								}
 							}
@@ -13876,6 +13961,7 @@ a:			str = str.Format(_(
 			dlg.m_chapterVerse.c_str());
 			wxMessageBox(str,_T(""), wxICON_EXCLAMATION);
 			pApp->m_pTargetBox->SetFocus();
+			pApp->LogUserAction(str);
 			goto b;
 		}
 	}
@@ -14233,6 +14319,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 	saveSrc.Empty();
 	wxString saveTgt;
 	saveTgt.Empty();
+	pApp->LogUserAction(_T("Initiated OnFind()"));
 
 	if (pApp->m_pFindDlg != NULL)
 	{
@@ -14515,6 +14602,10 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 {
 	// refactored 17Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (event.GetId() == wxID_REPLACE)
+	{
+		pApp->LogUserAction(_T("Initiated OnReplace()"));
+	}
 	//CLayout* pLayout = GetLayout();
 	// check that a Find dialog is not currently open, if it is, delete it
 	// preserving contents of the src & tgt edit boxes
@@ -17506,6 +17597,7 @@ void CAdapt_ItView::OnUpdateAlignment(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnAlignment()"));
 
 	// don't permit a CTRL + 1 accidental keycombo press to flip the layout
 	// if we are running the regular app
@@ -17529,6 +17621,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		// we have an RTL layout and user has just chosen LTR layout
 		pApp->m_bRTL_Layout = FALSE; // toggle
 		gbRTL_Layout = FALSE; // do the global too
+		pApp->LogUserAction(_T("Selected LTR Layout"));
 
 		// change text of the menu item
 		//IDS_RTL_LAYOUT
@@ -17546,6 +17639,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		// we have an LTR layout and user has just chosen RTL layout
 		pApp->m_bRTL_Layout = TRUE; // toggle
 		gbRTL_Layout = TRUE; // do the global too
+		pApp->LogUserAction(_T("Selected RTL Layout"));
 
 		// change text of the menu item
 		//IDS_LTR_LAYOUT
@@ -18293,13 +18387,27 @@ void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 /// Punctuation Copy" toolbar button (black punctuation with yellow background and a red
 /// circle and red diagonal bar). See also OnButtonNoPunctCopy().
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& event)
 {
+	// whm note: This OnButtonEnablePunctCopy() handler functions as one 
+	// half of the toolbar toggle button that toggles between "Copy Punctuation"
+	// and "No Copy Punctuation". It only sets m_bCopySourcePunctuation to TRUE 
+	// if m_bCopySourcePunctuation is FALSE when OnButtonEnablePunctCopy() is 
+	// called. The other half of the toggle function is done in 
+	// OnButtonNoPunctCopy().
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame);
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+
+	// We only want to call the LogUserAction() when this OnButtonEnablePunctCopy()
+	// handler is initiated from the toolbar and not when it is being called from other 
+	// functions, so we look at the id associated with the event.
+	if (event.GetId()  == ID_BUTTON_ENABLE_PUNCT_COPY)
+	{
+		pApp->LogUserAction(_T("Enable Punctation Copy"));
+	}
 
 	// toggle the setting and adjust the button image accordingly
     // whm Note: The MFC version starts with both toggle state images in the toolbar images
@@ -18406,7 +18514,7 @@ void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxCommandEvent that is associated with the
-///                         ID_BUTTON_NO_PUNCT_COP bitmap image on the toolBar
+///                         ID_BUTTON_NO_PUNCT_COPY bitmap image on the toolBar
 /// \remarks
 /// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
 /// associated with the ID_BUTTON_NO_PUNCT_COPY bitmap image. If m_bCopySourcePunctuation
@@ -18420,13 +18528,27 @@ void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 /// background and a red circle and red diagonal bar) is the opposite state toggle of the
 /// "Enable Punctuation Copy" toolbar button . See also OnUpdateButtonEnablePunctCopy().
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& event)
 {
+	// whm note: This OnButtonNoPunctCopy() handler functions as one 
+	// half of the toolbar toggle button that toggles between "No Copy Punctuation"
+	// and "Copy Punctuation". It only sets m_bCopySourcePunctuation to FALSE 
+	// if m_bCopySourcePunctuation is TRUE when OnButtonNoPunctCopy() is 
+	// called. The other half of the toggle function is done in 
+	// OnButtonEnablePunctCopy().
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame); 
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
+	
+	// We only want to call the LogUserAction() when this OnButtonNoPunctCopy()
+	// handler is initiated from the toolbar and not when it is being called from other 
+	// functions, so we look at the id associated with the toolbar event.
+	if (event.GetId()  == ID_BUTTON_NO_PUNCT_COPY)
+	{
+		pApp->LogUserAction(_T("No Punctuation Copy"));
+	}
 
 	// toggle the setting and adjust the button image accordingly
 	int toolPos;
@@ -18946,7 +19068,7 @@ void CAdapt_ItView::OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event)
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
-void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -18955,7 +19077,17 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pViewMarkerWrapsStrip = pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP);
-	//wxASSERT(pViewMarkerWrapsStrip != NULL);
+
+	// whm Note: Since OnMarkerWrapsStrip() is also called from the View's OnInitialUpdate()
+	// we test here to make sure we're logging the actual menu item call and not the
+	// OnInitialUpdate call.
+	if (event.GetId() == ID_MARKER_WRAPS_STRIP)
+	{
+		if (pApp->m_bMarkerWrapsStrip)
+			pApp->LogUserAction(_T("Turn Marker Wraps Strip OFF"));
+		else
+			pApp->LogUserAction(_T("Turn Marker Wraps Strip ON"));
+	}
 
 	// toggle the setting & update the display accordingly
 	if (pApp->m_bMarkerWrapsStrip)
@@ -19405,7 +19537,8 @@ void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	
+	pApp->LogUserAction(_T("Initiated OnImportToKb()"));
+
 	// whm revised 6Aug11. See the App's OnFileExportToKb() for similar revisions.
 	// We don't know what protected folder to use for KB imports
 	// until the user specifies either SFM or LIFT. That specification previously
@@ -19432,7 +19565,10 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	int returnValue = wxGetSingleChoiceIndex(
 		message,myCaption,2,choices,pApp->GetMainFrame(),-1,-1,TRUE,350,80);
 	if (returnValue == -1)
+	{
+		pApp->LogUserAction(_T("Cancelled OnImportToKb()"));
 		return; // user pressed Cancel
+	}
 	else
 	{
 		kbImportType = (KBImportFileOfType)returnValue; // cast int to KBImportFileOfType enum
@@ -19444,6 +19580,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	if (kbImportType == KBImportFileOfSFM_TXT)
 	{
+		pApp->LogUserAction(_T("Import Type SFM"));
 		// The user wants KB import in standard format (\x and \ge).
 		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
 		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
@@ -19479,6 +19616,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	}
 	else if (kbImportType == KBImportFileOfLIFT_XML)
 	{
+		pApp->LogUserAction(_T("Import Type LIFT"));
 		// Check whether navigation protection is in effect for _LIFT_INPUTS_OUTPUTS, 
 		// and whether the App's m_lastKbLiftOutputPath is empty or has a valid path, 
 		// and set the defaultDir for the export accordingly.
@@ -19546,7 +19684,10 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 
 		// open as modal dialog
 		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			pApp->LogUserAction(_T("Cancelled OnImportToKb() at wxFileDialog()"));
 			return; // user cancelled
+		}
 
 		// get the user's desired path and file name
 		inputPath = fileDlg.GetPath();
@@ -19598,7 +19739,10 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		returnValue = wxGetSingleChoiceIndex(message,myCaption,
 			kbImportFilesNamesOnly,(wxWindow*)pApp->GetMainFrame(),-1,-1,true,250,100);
 		if (returnValue == -1)
+		{
+			pApp->LogUserAction(_T("Cancelled OnImportToKb() at wxGetSingleChoiceIndex()"));
 			return; // user pressed Cancel or OK with nothing selected (list empty)
+		}
 		inputPath = inputPath + pApp->PathSeparator + kbImportFilesNamesOnly.Item(returnValue); // this has just the file name
 	}
 
@@ -19639,6 +19783,8 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CAdapt_ItView* pView = pApp->GetView();
 
+	pApp->LogUserAction(_T("Initiated OnImportEditedSourceText()"));
+
 	// choose a spanlimit int value, (a restricted range of CSourcePhrase instances), use
 	// the AdaptitConstant.h value SPAN_LIMIT, set currently to 60. This should be large
 	// enough to guarantee some "in common" text which wasn't user-edited, within a span
@@ -19668,7 +19814,10 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	fileDlg.Centre();
 	// open as modal dialog
 	if (fileDlg.ShowModal() != wxID_OK)
+	{
+		pApp->LogUserAction(_T("Cancelled OnImportEditedSourceText()"));
 		return; // user cancelled
+	}
 
 	wxString pathName;
 	pathName = fileDlg.GetPath(); // gets directory and filename
@@ -19783,6 +19932,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 				//pApp->m_pTargetBox->ChangeValue(_T(""));
 				pView->Invalidate();
 				GetLayout()->PlaceBox();
+				pApp->LogUserAction(_T("Warning: there was no source language data in the file you imported, so the document has not been changed."));
 				return;
 			}
 		}
@@ -19815,6 +19965,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"),
 			_T(""), wxICON_STOP);
 			wxASSERT(FALSE);
+			pApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnImportEditedSourceText()"));
 			wxExit();
 		}
 
@@ -19878,6 +20029,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
 
 		// set the initial global position variable
+		pApp->LogUserAction(_T("Import edited source text completed"));
 		break;
 	}// end of case getNewFile_success
 	case getNewFile_error_at_open:
@@ -19885,6 +20037,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		wxString strMessage;
 		strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
 		wxMessageBox(strMessage,_T(""), wxICON_ERROR);
+		pApp->LogUserAction(strMessage);
 		break;
 	}
 	case getNewFile_error_opening_binary:
@@ -19899,6 +20052,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		strMessage2 += _T("\n");
 		strMessage2 += strMessage;
 		wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+		pApp->LogUserAction(strMessage2);
 		break;
 	}
 	case getNewFile_error_ansi_CRLF_not_in_sequence:
@@ -19909,12 +20063,14 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
         // generated
 		wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
 		_T(""),wxICON_ERROR);
+		pApp->LogUserAction(_T("Input data malformed: CR and LF not in sequence"));
 		break;
 	}
 	case getNewFile_error_no_data_read:
 	{
 		// we got no data, so this constitutes a read failure
 		wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+		pApp->LogUserAction(_T("File read error: no data was read in"));
 		break;
 	}
 	case getNewFile_error_unicode_in_ansi:
@@ -19933,11 +20089,10 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		strMessage2 += _T("\n");
 		strMessage2 += strMessage;
 		wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+		pApp->LogUserAction(strMessage2);
 		break;
 	}
 	}// end of switch()
-
-
 }
 
 void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
@@ -23545,7 +23700,9 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItDoc* pDoc = GetDocument();
 	EditRecord* pRec = &gEditRecord; // local pointer to the global EditRecord
 
-    // we cannot have any synchronized scrolling messages be received, throwing the active
+	pApp->LogUserAction(_T("Initiated OnEditSourceText()"));
+	
+	// we cannot have any synchronized scrolling messages be received, throwing the active
     // location to any old place during vertical edit mode, we have to keep total control
     // of the active location; so if it is currently on, save the setting, turn it off, and
     // use the saved setting to restore it back to its on state when we are done
@@ -23707,6 +23864,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			wxCommandEvent evt;
 			pApp->GetDocument()->OnFileSave(evt);
 		}
+		pApp->LogUserAction(_T("Error from ExtendEditSourceTextSelection() in OnEditSourceText()"));
 		return;
 	}
 	if (bWasExtended)
@@ -23749,6 +23907,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		{
 			// the bailout function has not already been called from a lower level, 
 			// so we can do so here;
+			pApp->LogUserAction(_T("Error from DeepCopySourcePhraseSublist() in OnEditSourceText()"));
 			goto exit;
 		}
 	}
@@ -23769,6 +23928,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 	{
 		// something went belly up, so restore original document state and 
 		// bail out of the process
+		pApp->LogUserAction(_T("Error from IsGlossInformationInThisSpan() in OnEditSourceText()"));
 		goto exit;
 	}
 	pRec->bEditSpanHasGlosses = bHasGlosses;
@@ -23778,6 +23938,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 	{
 		// something went belly up, so restore original document state and 
 		// bail out of the process
+		pApp->LogUserAction(_T("Error from IsAdaptationInformationInThisSpan() in OnEditSourceText()"));
 		goto exit;
 	}
 	pRec->bEditSpanHasAdaptations = bHasAdaptations;
@@ -23819,7 +23980,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			goto exit;
 		}
 		else
+		{
 			wxExit();
+		}
+		pApp->LogUserAction(_T("Error from GetEditSourceTextFreeTranslationSpan() in OnEditSourceText()"));
 	}
 	if (bFreeTransPresent)
 	{
@@ -23846,6 +24010,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			}
 			else
 				wxExit();
+			pApp->LogUserAction(_T("Error from DeepCopySourcePhraseSublist() in OnEditSourceText()"));
 		}
 
         // work out if the subspan for free translations starts earlier, or ends later,
@@ -23877,6 +24042,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			}
 			else
 				wxExit();
+			pApp->LogUserAction(_T("Error from CopyCSourcePhrasesToExtendSpan() in OnEditSourceText()"));
 		}
 
         // Also do any required extension of the "modifications span" list (an alternative
@@ -23925,6 +24091,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			}
 			else
 				wxExit();
+			pApp->LogUserAction(_T("Error from CopyCSourcePhrasesToExtendSpan() in OnEditSourceText()"));
 		}
 
 #ifdef __WXDEBUG__
@@ -23982,6 +24149,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		}
 		else
 			wxExit();
+		pApp->LogUserAction(_T("Error from GetEditSourceTextBackTranslationSpan() in OnEditSourceText()"));
 	}
 	pRec->bCollectedFromTargetText = bCollectedFromTargetText; // store the returned 
             // value for later use in the backTranslationsStep (if there is no
@@ -24014,6 +24182,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			}
 			else
 				wxExit();
+			pApp->LogUserAction(_T("Error from DeepCopySourcePhraseSublist() in OnEditSourceText()"));
 		}
 
         // work out if the subspan for back translations starts earlier, or ends later,
@@ -24056,6 +24225,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			}
 			else
 				wxExit();
+			pApp->LogUserAction(_T("Error from CopyCSourcePhrasesToExtendSpan() in OnEditSourceText()"));
 		}
 
         // Do any required extension of the "modifications span" list; take care, only the
@@ -24081,6 +24251,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			}
 			else
 				wxExit();
+			pApp->LogUserAction(_T("Error from CopyCSourcePhrasesToExtendSpan() in OnEditSourceText()"));
 		}
 	} // end of block for test (bBackTransPresent == TRUE)
 	else
@@ -24166,6 +24337,7 @@ bailout:	pAdaptList->Clear();
 		delete pGlossList;
 		delete pFTList;
 		delete pNoteList;
+		pApp->LogUserAction(_T("Error from ScanSpanDoingRemovals() in OnEditSourceText()"));
 		goto exit;
 	}
 
@@ -24185,6 +24357,7 @@ bailout:	pAdaptList->Clear();
 			errStr += _T(
 			"Edit process abandoned. Document restored to pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
 	}
@@ -24198,6 +24371,7 @@ bailout:	pAdaptList->Clear();
 "InsertSublistAtHeadOfList() for glosses sublist, failed. Unknown list requested. ");
 			errStr += _T("Edit process abandoned. Document restored to pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
 	}
@@ -24212,6 +24386,7 @@ bailout:	pAdaptList->Clear();
 			errStr += _T(
 			"Edit process abandoned. Document restored to pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
 	}
@@ -24226,6 +24401,7 @@ bailout:	pAdaptList->Clear();
 			errStr += _T(
 			"Edit process abandoned. Document restored to pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
 	}
@@ -24255,6 +24431,7 @@ bailout:	pAdaptList->Clear();
         // there was an error (could not obtain a valid pos value within the function, an
         // error message has already been shown, so try safely preserve the document and
         // then abort)
+		pApp->LogUserAction(_T("Error from ScanSpanDoingSourceTextReconstruction() in OnEditSourceText()"));
 		goto bailout;
 	}
 
@@ -24472,6 +24649,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
+				pApp->LogUserAction(errStr);
 				goto exit;
 			}
 			if (bWasExtended)
@@ -24567,6 +24745,7 @@ bailout:	pAdaptList->Clear();
 			errStr += _T("Will try now to restore the document to its pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			BailOutFromEditProcess(pSrcPhrases,pRec);
+			pApp->LogUserAction(errStr);
 			goto exit;
 		}
 
@@ -24956,6 +25135,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T(
 				"Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+				pApp->LogUserAction(errStr);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
 				goto exit;
 			}
@@ -24976,6 +25156,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T(
 				"Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+				pApp->LogUserAction(errStr);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
 				goto exit;
 			}
@@ -25095,6 +25276,7 @@ bailout:	pAdaptList->Clear();
 		pApp->m_targetPhrase = pRec->oldPhraseBoxText;
 		pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 		pApp->m_pTargetBox->SetSelection(-1,-1); // select it all
+		pApp->LogUserAction(_T("Cancelled from OnEditSourceText()"));
 	}
 
 	// delay cancel cleanup to here, as the restoration of the view needed 
@@ -26640,15 +26822,25 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
-void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CSourcePhrase* pSrcPhrase;
 	bool bOK;
 	CSourcePhrase* pSaveSrcPhrase;
-	//CPile* pPile;
 	int nSequNum;
+
+	// whm Note: Only log user action when explicitly interacting with
+	// the menu item, not when OnAdvancedEnablglossing() is called by
+	// other functions.
+	if (event.GetId() == ID_ADVANCED_ENABLEGLOSSING)
+	{
+		if (gbEnableGlossing)
+			pApp->LogUserAction(_T("See Glosses OFF"));
+		else
+			pApp->LogUserAction(_T("See Glosses ON"));
+	}
 
 	// save the current sequence number
 	int nSaveSequNum = pApp->m_nActiveSequNum;
@@ -26705,7 +26897,6 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING);
-	//wxASSERT(pAdvancedMenu != NULL);
 
 	// get the checkbox pointer
 	wxPanel* pControlBar;
@@ -26713,7 +26904,6 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pControlBar != NULL);
 	wxCheckBox* pCheckboxIsGlossing = 
 				(wxCheckBox*)pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-	//wxASSERT(pCheckboxIsGlossing != NULL);
 
     // toggle the setting: note; whether going to or from glossing we will not change the
     // current values of gbGlossingUsesNavFont because the user might go back and forwards
@@ -27053,6 +27243,7 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 		// toggle the checkmark to OFF & recalc the layout with glossing using target font
 		if (pAdvancedGlossingUsesNavFont != NULL)
 		{
+			pApp->LogUserAction(_T("Glossing Uses Nav Text Font OFF"));
 			pAdvancedGlossingUsesNavFont->Check(FALSE);
 		}
 		gbGlossingUsesNavFont = FALSE;
@@ -27063,6 +27254,7 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 		// navText font
 		if (pAdvancedGlossingUsesNavFont != NULL)
 		{
+			pApp->LogUserAction(_T("Glossing Uses Nav Text Font ON"));
 			pAdvancedGlossingUsesNavFont->Check(TRUE);
 		}
 		gbGlossingUsesNavFont = TRUE;
@@ -27408,6 +27600,7 @@ void CAdapt_ItView::OnUpdateFileExportToRtf(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnAdvancedDelay()"));
 	/*
 	// test SyncScrollReceive() code here (delay is unrelated, just use its button)
 	wxString strValue = _T("1JN 2:19");
@@ -27530,7 +27723,8 @@ void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-    // bring up the SilConverter select dialog to allow 
+	pApp->LogUserAction(_T("Initiated OnSelectSilConverters()"));
+	// bring up the SilConverter select dialog to allow 
     // the user to pick a converter
     CSilConverterSelectDlg dlg
     (
@@ -27569,7 +27763,8 @@ void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 				pToolsMenuUseSilConverter->Check(FALSE);
 			}
 		    pApp->m_bUseSilConverter = FALSE;
-            return;
+			pApp->LogUserAction(_T("No Sil Converter name entered"));
+			return;
         }
         else if( pApp->m_bUseSilConverter )
         {
@@ -27654,11 +27849,22 @@ wxString CAdapt_ItView::DoSilConvert(const wxString& str)
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
-void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& event)
 {
 	// toggle the mode on or off
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// whm Note: Only log when the even comes from the menu item, not
+	// when OnAdvancedUseTransliterationMode() is called from the View's
+	// OnInitialUpdate()
+	if (event.GetId() == ID_ADVANCED_USETRANSLITERATIONMODE)
+	{
+		if (pApp->m_bTransliterationMode)
+			pApp->LogUserAction(_T("Use Transliteration Mode OFF"));
+		else
+			pApp->LogUserAction(_T("Use Transliteration Mode ON"));
+	}
 
 	CMainFrame *pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -27666,7 +27872,6 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(ev
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuUseUseTransLMode = 
 						pMenuBar->FindItem(ID_ADVANCED_USETRANSLITERATIONMODE);
-	//wxASSERT(pToolsMenuUseUseTransLMode != NULL);
 
 	if (pApp->m_bTransliterationMode)
 	{

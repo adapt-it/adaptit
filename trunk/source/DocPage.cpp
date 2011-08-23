@@ -709,24 +709,24 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	pApp->m_bZoomed = pFrame->IsMaximized(); //pFrame->IsZoomed();
 	*/
 	
-	#ifdef _RTL_FLAGS // whm added23Mar07
-		// We've just defined a new project (via previous wizard pages), or we've loaded 
-		// an existing project config file (via projectPage). In either case, we may now 
-		// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to 
-		// ensure that the Layout menu item's text is set correctly.
-		if (pApp->m_bSrcRTL == TRUE && pApp->m_bTgtRTL == TRUE)
-		{
-			gbLTRLayout = FALSE; // use these to set layout direction on user's behalf, when possible
-			gbRTLLayout = TRUE;
-		}
-		else if (pApp->m_bSrcRTL == FALSE && pApp->m_bTgtRTL == FALSE)
-		{
-			gbLTRLayout = TRUE; // use these to set layout direction on user's behalf, when possible
-			gbRTLLayout = FALSE;
-		}
+#ifdef _RTL_FLAGS // whm added23Mar07
+	// We've just defined a new project (via previous wizard pages), or we've loaded 
+	// an existing project config file (via projectPage). In either case, we may now 
+	// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to 
+	// ensure that the Layout menu item's text is set correctly.
+	if (pApp->m_bSrcRTL == TRUE && pApp->m_bTgtRTL == TRUE)
+	{
+		gbLTRLayout = FALSE; // use these to set layout direction on user's behalf, when possible
+		gbRTLLayout = TRUE;
+	}
+	else if (pApp->m_bSrcRTL == FALSE && pApp->m_bTgtRTL == FALSE)
+	{
+		gbLTRLayout = TRUE; // use these to set layout direction on user's behalf, when possible
+		gbRTLLayout = FALSE;
+	}
 
-		pApp->GetView()->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // whm added23Mar07
-	#endif // for _RTL_FLAGS
+	pApp->GetView()->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // whm added23Mar07
+#endif // for _RTL_FLAGS
 
 	if (m_docName.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
 									   // produce a different text); this is how we tell

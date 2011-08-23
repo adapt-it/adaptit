@@ -676,6 +676,7 @@ bool CAdapt_ItDoc::OnNewDocument()
                 //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
                 //doc/view black box on which we rely, leading to our event handlers
                 //failing to be called, so return TRUE instead
+				pApp->LogUserAction(_T("User cancelled OnNewDocument() while bUseSourceDataFolderOnly"));
 				return TRUE;
 			}
 			else
@@ -737,6 +738,7 @@ bool CAdapt_ItDoc::OnNewDocument()
                 //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
                 //doc/view black box on which we rely, leading to our event handlers
                 //failing to be called, so return TRUE instead
+				pApp->LogUserAction(_T("User cancelled OnNewDocument() from wxFileDialog"));
 				return TRUE;
 			}
 			else // must be wxID_OK 
@@ -833,6 +835,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 							wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
 							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
 
+							pApp->LogUserAction(msg1);
 							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if 
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
@@ -921,6 +924,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 						//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
 						//doc/view black box on which we rely, leading to our event handlers
 						//failing to be called, so return TRUE instead
+						pApp->LogUserAction(_T("No output document name entered in OnNewDocument()"));
 						return TRUE;
 					}
 
@@ -952,6 +956,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
 					//doc/view black box on which we rely, leading to our event handlers
 					//failing to be called, so return TRUE instead
+					pApp->LogUserAction(_T("User canceled in OnNewDocument()"));
 					return TRUE;
 				} // end of else block for test: if (dlg.ShowModal() == wxID_OK)
 			} // end of else block for test: if (bUserNavProtectionInForce)
@@ -1059,6 +1064,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pView->Invalidate();
 				GetLayout()->PlaceBox();
+				pApp->LogUserAction(_T("No source language data in input file in OnNewDocument()"));
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
 							 // you want the doc/view framework to keep working right
 			}
@@ -1078,6 +1084,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"),
 				_T(""), wxICON_STOP);
 				wxASSERT(FALSE);
+				pApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"));
 				wxExit();
 			}
 
@@ -1156,6 +1163,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
 			wxMessageBox(strMessage,_T(""), wxICON_ERROR);
 			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
+			pApp->LogUserAction(strMessage);
 			break;
 		}
 		case getNewFile_error_opening_binary:
@@ -1185,6 +1193,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			strMessage2 += strMessage;
 			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
 			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
+			pApp->LogUserAction(strMessage2);
 			break;
 		}
 		case getNewFile_error_ansi_CRLF_not_in_sequence:
@@ -1195,12 +1204,14 @@ bool CAdapt_ItDoc::OnNewDocument()
             // generated
 			wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
 			_T(""),wxICON_ERROR);
+			pApp->LogUserAction(_T("Input data malformed: CR and LF not in sequence"));
 			break;
 		}
 		case getNewFile_error_no_data_read:
 		{
 			// we got no data, so this constitutes a read failure
 			wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+			pApp->LogUserAction(_T("File read error: no data was read in"));
 			break;
 		}
 		case getNewFile_error_unicode_in_ansi:
@@ -1220,6 +1231,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			strMessage2 += strMessage;
 			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
 			gpApp->m_lastSourceInputPath = gpApp->m_workFolderPath;
+			pApp->LogUserAction(strMessage2);
 			break;
 		}
 		}// end of switch()
@@ -1312,6 +1324,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more efffective
 		}
 	}
+	pApp->LogUserAction(_T("Return TRUE from OnNewDocument()"));
 	return TRUE;
 }
 
@@ -1658,6 +1671,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
 					}
 				}
 				wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION);
+				gpApp->LogUserAction(_T("Warning: document save failed for some reason."));
 			}
 			else // the original was not copied
 			{
@@ -1687,6 +1701,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
 					wxString msg;
 					msg = msg.Format(_("Something went wrong. The adaptation document's file on disk was lost or destroyed. If the document is still visible, please click the Save command on the File menu immediately."));
 					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+					gpApp->LogUserAction(_T("Something went wrong. The adaptation document's file on disk was lost or destroyed. If the document is still visible, please click the Save command on the File menu immediately."));
 				}
 			}
 		}
@@ -1702,6 +1717,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
 				// warn user to do a file save now while the doc is still in memory
 				wxString msg;
 				msg = msg.Format(_("Something went wrong. The adaptation document was not saved to disk. Please click the Save command on the File menu immediately, and if the error persists, try the Save As... command instead - if that does not work, you are out of luck and the open document will not be saved, so shut down and start again."));
+				gpApp->LogUserAction(msg);
 				wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
 			}
 		}
@@ -1815,6 +1831,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		_T(""), wxICON_EXCLAMATION);
 		m_bLegacyDocVersionForSaveAs = FALSE; // restore default
 		m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+		pApp->LogUserAction(_T("Failed to set the current working directory. The save operation was not attempted."));
 		return FALSE;
 	}
 
@@ -1934,6 +1951,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 							unwantedPathToSaveFolder); // we don't use 3rd param here
 	if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
 	{
+		gpApp->LogUserAction(_T("Failed f.Open() for writing in DoFileSave()"));
 		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
 					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
 	}
@@ -1998,6 +2016,7 @@ retry:	bFileIsRenamed = FALSE;
 			m_bDocRenameRequestedForSaveAs = FALSE; // ditto
 			f.Close();
 			bUserCancelled = TRUE; // inform the caller that the user hit the Cancel button
+			gpApp->LogUserAction(_T("Cancelled from Save As at wxFileDialog()"));
 			return FALSE; 
 		}
 
@@ -2012,6 +2031,7 @@ retry:	bFileIsRenamed = FALSE;
 			wxString msg;
 			msg = msg.Format(_("You must not use the Save As... dialog to change where Adapt It stores its document files. You can only rename the file, or make a different 'Save as type' choice, or both."));
 			wxMessageBox(msg,_("Folder Change Is Not Allowed"),wxICON_WARNING);
+			gpApp->LogUserAction(_T("Folder Change Is Not Allowed"));
 			goto retry;
 		}
 
@@ -2040,6 +2060,7 @@ retry:	bFileIsRenamed = FALSE;
 				msg = _("Adapt It documents cannot be renamed when collaborating with Paratext or Bibledit.");
 				wxMessageBox(msg,_("Cannot Change The Document's Filename"),wxICON_WARNING);
 				theNewFilename.Empty();
+				gpApp->LogUserAction(_T("Cannot Change The Document's Filename"));
 				goto retry;
 			}
 			
@@ -2059,6 +2080,7 @@ retry:	bFileIsRenamed = FALSE;
 _("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."),illegals.c_str());
 				wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION);
 				theNewFilename.Empty();
+				gpApp->LogUserAction(_T("Bad Characters In Filename"));
 				goto retry;
 			}
 
@@ -2069,6 +2091,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 				msg = msg.Format(_("The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another."));
 				wxMessageBox(msg,_("Conflicting Filename"),wxICON_WARNING);
 				theNewFilename.Empty();
+				gpApp->LogUserAction(_T("Conflicting Filename"));
 				goto retry;
 			}
 			else
@@ -2344,6 +2367,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			wxMessageBox(_(
 			"Warning: the attempt to backup the current document failed."),
 			_T(""), wxICON_EXCLAMATION);
+			gpApp->LogUserAction(_T("Warning: the attempt to backup the current document failed."));
 		}
 	}
 
@@ -2405,8 +2429,11 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		appVerStr = pApp->GetAppVersionOfRunningAppAsString();
 		msg = msg.Format(_("This document (%s) is now saved on disk in the older (version 3, 4, 5) xml format.\nHowever, if you now make any additional changes to this document or cause it to be saved using this version (%s) of Adapt It, the format of the disk file will be upgraded again to the newer format.\nIf you do not want this to happen, you should immediately close the document, or exit from this version of Adapt It."),gpApp->m_curOutputFilename.c_str(),appVerStr.c_str());
 		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		gpApp->LogUserAction(_T("Save As done as version 3,4,5 xml format."));
 	}
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+	// whm 20Aug11 note: since a file save operation is very frequent, we avoid inflating the user log
+	// with successful saves.
 	return TRUE;
 }
 
@@ -2469,6 +2496,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 	// in the following call, if pRenamedFilename returns an empty string, then no rename has been
 	// requested; first param, value being TRUE, means "show wait/progress dialog"
 	bool bUserCancelled = FALSE; // it's initialized to FALSE inside the DoFileSave() call to
+	gpApp->LogUserAction(_T("Initiated Save As"));
 	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled); 
 	if (bSuccess)
 	{
@@ -2565,6 +2593,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 					// due to a processing error - inform the user, but keep the app alive
 					wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""),
 					wxICON_EXCLAMATION);
+					gpApp->LogUserAction(_T("Warning: document save failed for some reason."));
 				}
 			}
 			else // the original was not copied with a "tempSave_" name prefix, to project folder
@@ -2596,6 +2625,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 					wxString msg;
 					msg = msg.Format(_("Something went wrong, so the document protection failed.\nThe adaptation document's file on disk was lost or destroyed, but the document in memory is still good.\nPlease click the Save command on the File menu immediately."));
 					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+					gpApp->LogUserAction(msg);
 				}
 			}
 		}
@@ -2619,6 +2649,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			wxString msg;
 			msg = msg.Format(_("Because the Save As was not successful, the file rename you requested could not be done."));
 			wxMessageBox(msg,_("Rename Not Done"),wxICON_WARNING);
+			gpApp->LogUserAction(msg);
 		}
 	}
 	m_bDocRenameRequestedForSaveAs = FALSE; // restore default
@@ -2876,6 +2907,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	{
 		// don't allow doc closure until the vertical edit is finished
 		::wxBell(); 
+		pApp->LogUserAction(_T("Disallow File Close - gbVerticalEditInProgress"));
 		return;
 	}
 
@@ -2916,6 +2948,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	if(!OnSaveModified())
 	{
 		bUserCancelled = TRUE;
+		pApp->LogUserAction(_T("Cancelled OnSaveModified() from OnFileClose()"));
 		return;
 	}
 
@@ -4252,6 +4285,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				s = _(
 "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
 				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
+				gpApp->LogUserAction(s);
 				wxCommandEvent dummyevent;
 				OnFileOpen(dummyevent); // have another go, via the Start Working wizard
 				return TRUE;
@@ -4263,16 +4297,21 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
 				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
+				gpApp->LogUserAction(s);
 			}
 			return TRUE; // return TRUE to allow the user another go at it
 		}
 	}
 
-	if (gpApp->m_bWantSourcePhrasesOnly) return TRUE; // Added by JF.  
+	if (gpApp->m_bWantSourcePhrasesOnly)
+	{
         // From here on in for the rest of this function, all we do is set globals,
         // filenames, config file parameters, and change the view, all things we're not to
         // do if m_bWantSourcePhrasesOnly is set. Hence, we simply exit early; because all
         // we are wanting is the list of CSourcePhrase instances.
+		gpApp->LogUserAction(_T("Return TRUE early from OnOpenDocument() m_bWantSourcePhrasesOnly"));
+		return TRUE; // Added by JF.  
+	}
         
 	// update the window title
 	SetDocumentWindowTitle(fname, extensionlessName);
@@ -4327,6 +4366,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"),
 		_T(""),wxICON_STOP);
 		wxASSERT(FALSE);
+		gpApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"));
 		wxExit();
 	}
 
@@ -4337,6 +4377,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		wxMessageBox(_(
 "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."));
 		return FALSE;
 	}
 	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
@@ -4385,6 +4426,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				wxMessageBox(_(
 "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."),
 				_T(""), wxICON_EXCLAMATION);
+				pApp->LogUserAction(_T("Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."));
 				return FALSE;
 			}
 			bool bSaveFlag = gpApp->m_bBookMode;
@@ -4514,6 +4556,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// GUI interaction
 	if (pApp->m_bAutoExport)
 	{
+		pApp->LogUserAction(_T("Doing m_bAutoExport from OnOpenDocument()"));
 		wxLogNull logNo; // avoid spurious messages from the system
 
 		// set up output path using m_autoexport_outputpath
@@ -4540,6 +4583,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			wxString msg;
 			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),pApp->m_curOutputPath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			pApp->LogUserAction(msg);
 			pApp->OnExit();
 			return FALSE;
 		}
@@ -4580,6 +4624,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		}
 	}
 
+	pApp->LogUserAction(_T("Return TRUE from OnOpenDocument()"));
 	return TRUE;
 }
 
@@ -15339,6 +15384,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxMessageBox(_T(
 		"Writing out the configuration file failed in OnFilePackDoc, command aborted\n"),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("Writing out the configuration file failed in OnFilePackDoc, command aborted"));
 		return FALSE;
 	}
 
@@ -15357,6 +15403,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxMessageBox(_T(
 	"Getting the configuration file's size failed in OnFilePackDoc, command aborted\n"),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("Getting the configuration file's size failed in OnFilePackDoc, command aborted"));
 		return FALSE;
 	}
 	f.Close(); // needed because in wx we opened the file
@@ -15401,6 +15448,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxMessageBox(_T(
 	"Getting the document file's size failed in OnFilePackDoc, command aborted\n"),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("Getting the document file's size failed in OnFilePackDoc, command aborted"));
 		return FALSE;
 	}
 	f.Close(); // needed for wx version which opened the file to determine its size
@@ -15434,6 +15482,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 "Could not open a file stream for project config, in OnFilePackDoc(), for file %s"),
 		gpApp->m_curProjectPath.c_str());
 		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(s);
 		return FALSE; 
 	}
 	int nFileLength = nConfigFileSize; // our files won't require more than 
@@ -15450,6 +15499,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxMessageBox(_T(
 		"Project file read was short, some data missed so abort the command\n"),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("Project file read was short, some data missed so abort the command"));
 		return FALSE; 
 	}
 	f.Close(); // assume no errors
@@ -15471,6 +15521,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 "Could not open a file stream for the XML document as text, in OnFilePackDoc(), for file %s"),
 		docPath.c_str());
 		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(s);
 		return FALSE; 
 	}
 	nFileLength = nDocFileSize; // our files won't require more than an int for the length
@@ -15482,6 +15533,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxMessageBox(_T(
 		"Document file read was short, some data missed so abort the command\n"),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("Document file read was short, some data missed so abort the command"));
 		return FALSE; 
 	}
 	f.Close(); // assume no errors
@@ -15592,6 +15644,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		{
 			// user cancelled file dialog so return to what user was doing previously, because
 			// this means he doesn't want the Pack Document... command to go ahead
+			gpApp->LogUserAction(_T("Cancelled from DoPackDocument() at wxFileDialog()"));
 			return FALSE; 
 		}
 
@@ -15645,6 +15698,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxString msg;
 		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_ERROR);
+		gpApp->LogUserAction(msg);
 	} 
 
 	exportPathUsed = exportPath;
@@ -15667,6 +15721,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		wxString msg;
 		msg = msg.Format(_("The packed document file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
 		wxMessageBox(msg,_("Packing of document successful"),wxICON_INFORMATION);
+		// whm 20Aug11 note: no need to log success after "initiating" log entry in caller
 	}
    return TRUE;
 }
@@ -19070,6 +19125,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
     // OnFilePackDoc(), for a unicode build, converts to UTF-8 internally, and so uses
     // CBString for the final output (config file and xml doc file are UTF-8 already).
 	// DoPackDocument() assembles the raw data into the packByteStr byte buffer (CBString)
+	gpApp->LogUserAction(_T("Initiated OnFilePackDoc()"));
 	wxString exportPathUsed;
 	exportPathUsed.Empty();
 	DoPackDocument(exportPathUsed,TRUE); // TRUE = invoke the wxFileDialog
@@ -19144,6 +19200,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		int returnValue = fileDlg.ShowModal();
 		if (returnValue == wxID_CANCEL)
 		{
+			gpApp->LogUserAction(_T("Cancelled from OnFileUnpackDoc() at wxFileDialog()"));
 			return; // user Cancelled, or closed the dialog box
 		}
 	
@@ -19173,7 +19230,10 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		int returnValue = wxGetSingleChoiceIndex(message,myCaption,
 			packedDocFilesNamesOnly,(wxWindow*)gpApp->GetMainFrame(),-1,-1,true,250,100);
 		if (returnValue == -1)
+		{
+			gpApp->LogUserAction(_T("Cancelled from wxGetSingleChoiceIndex() in OnFileUnpackDoc()"));
 			return; // user pressed Cancel or OK with nothing selected (list empty)
+		}
 		packedDocPath = packedDocPath + gpApp->PathSeparator + packedDocFilesNamesOnly.Item(returnValue); // this has just the file name
 	}
     // whm Note: Since the "file" variable is created below and passed to
@@ -19225,6 +19285,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 "Error uncompressing; cannot open the file: %s\n Make sure the file is not being used by another application and try again."),
 		packedDocPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		gpApp->LogUserAction(msg);
 		return;
 	}
 	if (!DoUnpackDocument(&file))//whm changed this to return bool for better error recovery
@@ -19240,6 +19301,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		strMessage = strMessage.Format(_("Error removing %s after unpack document command."),
 		packedDocPath.c_str());
 		wxMessageBox(strMessage,_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(strMessage);
 		return;
 	}
 	// store the last packed doc's path in the App's m_lastPackedOutputPath member for storage in
@@ -19288,6 +19350,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 		wxMessageBox(_T(
 "Compressed document file read was short, some data missed so abort the command.\n"),
 			_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("Compressed document file read was short, some data missed so abort the command."));
 		return FALSE; 
 	}
 	pFile->Close(); // assume no errors
@@ -19353,6 +19416,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 		wxMessageBox(_T(
 "Unpack failure. The uncompressed data has more than six unknown bytes preceding the digit 1 or 2, making interpretation impossible. Command aborted."),
 		_T(""), wxICON_WARNING);
+		gpApp->LogUserAction(_T("Unpack failure. The uncompressed data has more than six unknown bytes preceding the digit 1 or 2, making interpretation impossible. Command aborted."));
 		return FALSE;
 	}
 
@@ -19397,6 +19461,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
             // with the regular app's config file (either type), and so while the doc would
             // render okay if ascii, the fact that the encapsulated config files are
             // incompatible makes it not worth allowing the user to continue
+			gpApp->LogUserAction(_T("Config files incompatible in DoUnpackDocument()"));
 			return FALSE;
 		}
 	}
@@ -19496,6 +19561,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 		wxMessageBox(_T(
 "SetupDirectories returned false for Unpack Document.... The command will be ignored.\n"),
 		_T(""), wxICON_EXCLAMATION);
+		gpApp->LogUserAction(_T("SetupDirectories returned false for Unpack Document.... The command will be ignored."));
 		return FALSE;
 	}
 	gpApp->m_bUnpacking = FALSE;
@@ -19571,6 +19637,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 					"Failed removing %s before overwrite."), 
 					gpApp->m_curOutputPath.c_str());
 					wxMessageBox(thismsg,_T(""),wxICON_WARNING);
+					gpApp->LogUserAction(thismsg);
 					goto a; // restore paths & exit, allow app to continue
 				}
 			}
@@ -19647,6 +19714,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			projectPath.c_str());
 			message += _("  Aborting the command.");
 			wxMessageBox(message, _T(""), wxICON_INFORMATION);
+			gpApp->LogUserAction(message);
 			goto a;
 		}
 		bRenamedConfigFile = TRUE;
@@ -19665,6 +19733,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		msg = msg.Format(_(
 "Unable to open the file for writing out the UTF-8 project configuration file, with path:\n%s"),
 		projectPath.c_str());
+		gpApp->LogUserAction(msg);
 		wxMessageBox(msg,_T(""), wxICON_EXCLAMATION);
 
 		// if we renamed the earlier config file, we must restore its name before returning
@@ -19684,6 +19753,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 					message += _(
 	"  Exit Adapt It and manually change .BAK to .aic for the project configuration file.");
 					wxMessageBox(message,_T(""),wxICON_INFORMATION);
+					gpApp->LogUserAction(message);
 					goto a;
 				}
 			}
@@ -19704,6 +19774,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		thismsg += someMore;
 		wxMessageBox(thismsg);
 		ff.Close();
+		gpApp->LogUserAction(thismsg);
 		goto a;
 	}
 	projConfigFileStr.ReleaseBuffer(); // whm added 19Jun06
@@ -19719,6 +19790,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			thismsg = _(
 "Removing the renamed earlier project configuration file failed. Do it manually later in Windows Explorer - it has a .BAK extension.");
 			wxMessageBox(thismsg,_T(""),wxICON_WARNING);
+			gpApp->LogUserAction(thismsg);
 			goto a;
 		}
 	}
@@ -19750,6 +19822,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		"Unable to open the xml text file for writing to doc folder, with path:\n%s"),
 		gpApp->m_curOutputPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+		gpApp->LogUserAction(msg);
 		return FALSE; // don't goto a; instead leave the new paths intact because the 
                 // config file is already written out, so the user can do something in the
                 // project if he wants
@@ -19762,6 +19835,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		thismsg = _("Writing out the xml document file's content failed.");
 		wxMessageBox(thismsg,_T(""),wxICON_WARNING);
 		ff.Close();
+		gpApp->LogUserAction(thismsg);
 		return FALSE;
 	}
 	packByteStr.ReleaseBuffer(); // whm added 19Jun06
@@ -19782,6 +19856,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
         // just proceed, there is nothing smart that can be done. Visual inspection of the
         // xml document file is possible in Windows Explorer if the user wants to check out
         // what is in it. A normal Open command can also be tried too.
+		gpApp->LogUserAction(thismsg);
 	}
 	return TRUE;
 }
@@ -19834,7 +19909,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdate
 /// is open. Toggles the menu item's check mark on and off.
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& event)
 {
 	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -19842,8 +19917,18 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuReceiveSSMsgs = 
 				pMenuBar->FindItem(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES);
-	//wxASSERT(pAdvancedMenuReceiveSSMsgs != NULL);
 
+	// whm Note: Only log the action when the even comes from the menu item, 
+	// not when OnAdvancedReceiveSynchronizedScrollingMessages() is called 
+	// from the View's OnInitialUpdate() and elsewhere.
+	if (event.GetId() == ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES)
+	{
+		if (!gbIgnoreScriptureReference_Receive)
+			gpApp->LogUserAction(_T("Receive Synchronized Scrolling Messages OFF"));
+		else
+			gpApp->LogUserAction(_T("Receive Synchronized Scrolling Messages ON"));
+	}
+	
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Receive)
 	{
@@ -19892,7 +19977,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIE
 /// is open. Toggles the menu item's check mark on and off.
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& event)
 {
 	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -19900,7 +19985,16 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& W
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuSendSSMsgs = 
 				pMenuBar->FindItem(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES);
-	//wxASSERT(pAdvancedMenuSendSSMsgs != NULL);
+
+	// whm Note: Only log the user action when OnAdvancedSendSynchronizedScrollingMessages()
+	// is called by explicit menu action, not when it is called from other functions.
+	if (event.GetId() == ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES)
+	{
+		if (!gbIgnoreScriptureReference_Send)
+			gpApp->LogUserAction(_T("Send Synchronized Scrolling Messages OFF"));
+		else
+			gpApp->LogUserAction(_T("Send Synchronized Scrolling Messages ON"));
+	}
 
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Send)
@@ -19934,6 +20028,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 
     // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
@@ -19988,6 +20083,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                     // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
                     // current working directory has not changed, so no need here to reset
                     // it before return.
+					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
 					return;
 				}
 
@@ -20025,6 +20121,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                     // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
                     // current working directory has not changed, so no need here to reset
                     // it before return.
+					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
 					return;
 				}
 				pApp->GetView()->ClobberDocument();
@@ -20042,7 +20139,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 						_T(""),wxICON_EXCLAMATION);
-                        // whm note 5Dec06: EnumerateDocFiles above changes the current
+                        pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
+						// whm note 5Dec06: EnumerateDocFiles above changes the current
                         // work directory, so to be safe I'll reset it here before the
                         // consistency check returns to what it was on entry (the line
                         // below was not added in MFC version).
@@ -20061,6 +20159,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
             // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the current
             // working directory has not changed, so no need here to reset it before
             // return.
+			pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
 			return;
 		}
 
@@ -20110,7 +20209,7 @@ _("Do you want the check to be done for all document files within all the book f
 			if (response == wxYES)
 			{
 				// user wants it done over all folders
-				
+				pApp->LogUserAction(_T("Check all docs within all book folders"));
 				// DoConsistencyCheck() relies on the fact that EnumerateDocFiles() having
 				// been called in prior to DoConsistencyCheck() being called will have set
 				// the current working directory to be the book folder from which all the
@@ -20213,7 +20312,8 @@ _("Do you want the check to be done for all document files within all the book f
 				wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 				_T(""),wxICON_EXCLAMATION);
-                // whm note 5Dec06: EnumerateDocFiles above changes the current work
+                pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
+				// whm note 5Dec06: EnumerateDocFiles above changes the current work
                 // directory, so to be safe I'll reset it here before the consistency check
                 // returns to what it was on entry (the line below was not added in MFC
                 // version).
@@ -20221,6 +20321,7 @@ _("Do you want the check to be done for all document files within all the book f
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 				return;
 			}
+			pApp->LogUserAction(_T("Check this doc only"));
 			DoConsistencyCheck(pApp);
 		}
 		pApp->m_acceptedFilesList.Clear();

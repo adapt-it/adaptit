@@ -411,6 +411,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	switch (exportType)
 	{
 	case sourceTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Source Text"));
 		// we are exporting the source text, get a default filename, set directory
 		exportFilename.Replace(_T("_Collab"),_T("_Source_Text"));
 		len = exportFilename.Length();
@@ -418,6 +419,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// SFM output.
 		if (bRTFOutput)
 		{
+			gpApp->LogUserAction(_T("Export RTF Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -453,6 +455,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else // !bRTFOutput
 		{
+			gpApp->LogUserAction(_T("Export SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -490,6 +493,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Source Text"
 		break;
 	case glossesTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
 		// we are exporting the glosses text, get a default filename, set directory
 		exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
 		len = exportFilename.Length();
@@ -498,6 +502,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// SFM output.
 		if (bRTFOutput)
 		{
+			gpApp->LogUserAction(_T("Export RTF Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -533,6 +538,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else // !bRTFOutput
 		{
+			gpApp->LogUserAction(_T("Export SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -595,6 +601,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 									// "Export Glosses As Text"
 		break;
 	case freeTransTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
 		// we are exporting the free translation text, get a default filename, set directory
 		exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
 		len = exportFilename.Length();
@@ -603,6 +610,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// SFM output.
 		if (bRTFOutput)
 		{
+			gpApp->LogUserAction(_T("Export RTF Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -651,6 +659,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else // !bRTFOutput
 		{
+			gpApp->LogUserAction(_T("Export SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -691,6 +700,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		break;
 	default:
 	case targetTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Target Text"));
 		// We are exporting the target text, get a default file name, set directory
 		// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
 		// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
@@ -705,6 +715,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// SFM output.
 		if (bRTFOutput)
 		{
+			gpApp->LogUserAction(_T("Export RTF Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -740,6 +751,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else // !bRTFOutput
 		{
+			gpApp->LogUserAction(_T("Export SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -902,6 +914,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 		if (fileDlg.ShowModal() != wxID_OK)
 		{
+			gpApp->LogUserAction(_T("Cancelled DoExportSfmText()"));
 			return; // user cancelled file dialog so return to what user was doing previously
 		}
 		exportPath = fileDlg.GetPath();	
@@ -1204,6 +1217,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
 			break;
 		}
+		gpApp->LogUserAction(msg);
 		return;
 	}
 
@@ -1314,6 +1328,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		wxString msg;
 		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
 		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+		gpApp->LogUserAction(_T("Export operation successful"));
 	}
 
 	f.Close();
@@ -1481,6 +1496,7 @@ void DoExportInterlinearRTF()
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename = gpApp->m_curOutputFilename;
 
+	gpApp->LogUserAction(_T("Initiated DoExportInterlinearRTF()"));
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	
 	// establish pointer to the list of Source Phrases,
@@ -1724,6 +1740,7 @@ void DoExportInterlinearRTF()
 	else
 	{
 		//bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
+		gpApp->LogUserAction(_T("Cancelled DoExportInterlinearRTF()"));
 		return; // user cancelled
 	}
 
@@ -1758,6 +1775,7 @@ void DoExportInterlinearRTF()
 		if (fileDlg.ShowModal() != wxID_OK)
 		{
 			//bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
+			gpApp->LogUserAction(_T("Cancelled DoExportInterlinearRTF() from wxFileDialog()"));
 			return; // user cancelled
 		}
 		exportPath = fileDlg.GetPath();	// GDLC 11Aug11 Put this line back in.
@@ -1789,6 +1807,7 @@ void DoExportInterlinearRTF()
 		  wxMessageBox(_("Unable to open export file."),_T(""),wxICON_WARNING);
 	   #endif
 		  //bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
+		  gpApp->LogUserAction(_T("Unable to open export file in DoExportInterlinearRTF()."));
 		  return;	// whm - set it to return from this error rather than exit.
 	}
 
@@ -3689,7 +3708,6 @@ void DoExportInterlinearRTF()
 	int flen = BookName.Length();
 	BookName.Remove(flen-4,4); // remove the .adt or .xml extension (including the .)
 	wxString ChVsRange = _T("");
-	//wxChar rbuf[34];
 	if (!bOutputAll)
 	{
 		if (bOutputCVRange)
@@ -6476,6 +6494,7 @@ b:						// b: is exit point to write the last columns of data
 		// or Final Matter to output
 		// IDS_NO_OUTPUT_FOUND
 		wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION);
+		gpApp->LogUserAction(_T("No text was found to output in the range you specified. The output file will exist but will be empty."));
 	}
 	
 #ifndef __WXGTK__
@@ -6501,6 +6520,7 @@ b:						// b: is exit point to write the last columns of data
 		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
 	}
 #endif
+	gpApp->LogUserAction(_T("Export operation successful"));
 
 	// BEW changed next line 24Jun05 since this doc parameter can't change once the doc is created
 	//gbIsUnstructuredData = FALSE; // restore the default value
@@ -9578,7 +9598,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			//
 			precPunct.Empty();
 			follPunct.Empty();
-// ***TODO*** temporarily disabled 11Oct10			
+
 			itemLen = ParseWordRTF(ptr, precPunct,follPunct,spaceless);
 
 			// make the word into a wxString

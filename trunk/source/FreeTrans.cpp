@@ -1826,13 +1826,24 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 
 // BEW 9July10, no changes needed for support of kbVersion 2
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
-void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
+void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenuFTMode = 
 						pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
-	//wxASSERT(pAdvancedMenuFTMode != NULL);
+
+	// whm Note: Only log user action when user explicitly selects menu
+	// item not when OnAdvancedFreeTranslationMode() is called by other
+	// functions.
+	if (event.GetId() == ID_ADVANCED_FREE_TRANSLATION_MODE)
+	{
+		if (m_pApp->m_bFreeTranslationMode)
+			m_pApp->LogUserAction(_T("Free Translation Mode OFF"));
+		else
+			m_pApp->LogUserAction(_T("Free Translation Mode ON"));
+	}
+
 	gbSuppressSetup = FALSE; // setdefault value
 
     // determine if the document is unstructured or not -- we'll need this set or cleared
@@ -2121,6 +2132,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = m_pView->GetDocument();
+	m_pApp->LogUserAction(_T("Initiated OnAdvancedRemoveFilteredFreeTranslations()"));
 
     // whm added 23Jan07 check below to determine if the doc has any free translations. If
     // not an information message is displayed saying there are no free translations; then
@@ -2156,6 +2168,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		wxMessageBox(_(
 		"The document does not contain any free translations."),
 		_T(""),wxICON_INFORMATION);
+		m_pApp->LogUserAction(_T("The document does not contain any free translations."));
 		return;
 	}
 
@@ -2165,6 +2178,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	if (nResult == wxNO)
 	{
 		// user clicked the command by mistake, so exit the handler
+		m_pApp->LogUserAction(_T("Aborted before delete all free translations"));
 		return;
 	}
 
@@ -4056,6 +4070,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 							pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT);
 	//wxASSERT(pAdvancedMenuTTextDft != NULL);
 	//wxASSERT(pAdvancedMenuGTextDft != NULL);
+	m_pApp->LogUserAction(_T("Initiated OnAdvancedTargetTextIsDefault()"));
 
 	// toggle the setting
 	if (m_pApp->m_bTargetIsDefaultFreeTrans)
@@ -4063,6 +4078,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to OFF
 		if (pAdvancedMenuTTextDft != NULL)
 		{
+			m_pApp->LogUserAction(_T("Target Text Is Default OFF"));
 			pAdvancedMenuTTextDft->Check(FALSE);
 		}
 		m_pApp->m_bTargetIsDefaultFreeTrans = FALSE;
@@ -4072,6 +4088,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to ON
 		if (pAdvancedMenuTTextDft != NULL)
 		{
+			m_pApp->LogUserAction(_T("Target Text Is Default ON"));
 			pAdvancedMenuTTextDft->Check(TRUE);
 		}
 		m_pApp->m_bTargetIsDefaultFreeTrans = TRUE;
@@ -4079,6 +4096,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 		// and ensure the glossing text command is off, and its flag cleared
 		if (pAdvancedMenuGTextDft != NULL)
 		{
+			m_pApp->LogUserAction(_T("Gloss Text Is Default OFF"));
 			pAdvancedMenuGTextDft->Check(FALSE);
 		}
 		m_pApp->m_bGlossIsDefaultFreeTrans = FALSE;
@@ -4144,6 +4162,7 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 							pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT);
 	//wxASSERT(pAdvancedMenuTTextDft != NULL);
 	//wxASSERT(pAdvancedMenuGTextDft != NULL);
+	m_pApp->LogUserAction(_T("Initiated OnAdvancedGlossTextIsDefault()"));
 
 	// toggle the setting
 	if (m_pApp->m_bGlossIsDefaultFreeTrans)
@@ -4151,6 +4170,7 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to OFF
 		if (pAdvancedMenuGTextDft != NULL)
 		{
+			m_pApp->LogUserAction(_T("Gloss Text Is Default OFF"));
 			pAdvancedMenuGTextDft->Check(FALSE);
 		}
 		m_pApp->m_bGlossIsDefaultFreeTrans = FALSE;
@@ -4160,6 +4180,7 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 		// toggle the checkmark to ON
 		if (pAdvancedMenuGTextDft != NULL)
 		{
+			m_pApp->LogUserAction(_T("Gloss Text Is Default ON"));
 			pAdvancedMenuGTextDft->Check(TRUE);
 		}
 		m_pApp->m_bGlossIsDefaultFreeTrans = TRUE;
@@ -4167,6 +4188,7 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 		// ensure the target text command is toggled off (if it was on), and its flag
 		if (pAdvancedMenuTTextDft != NULL)
 		{
+			m_pApp->LogUserAction(_T("Target Text Is Default OFF"));
 			pAdvancedMenuTTextDft->Check(FALSE);
 		}
 		m_pApp->m_bTargetIsDefaultFreeTrans = FALSE;
@@ -4692,6 +4714,7 @@ void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->LogUserAction(_T("Initiated OnAdvancedCollectBacktranslations()"));
 	CCollectBacktranslations dlg(m_pFrame);
 	dlg.Centre();
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -4706,7 +4729,7 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 	else
 	{
 		// user clicked the Cancel button, so do nothing
-		;
+		m_pApp->LogUserAction(_T("Cancelled OnAdvancedCollectBacktranslations()"));
 	}
 	m_pView->Invalidate(); // get the view updated (so new icons (green wedges) get drawn)
 	m_pLayout->PlaceBox();
@@ -4721,6 +4744,7 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp->LogUserAction(_T("Initiated OnAdvancedRemoveFilteredBacktranslations()"));
     // whm added 23Jan07 check below to determine if the doc has any back translations. If
     // not an information message is displayed saying there are no back translations; then
     // returns. Note: This check could be made in the OnIdle handler which could then
@@ -4754,6 +4778,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 		wxMessageBox(_(
 		"The document does not contain any back translations."),
 		_T(""),wxICON_INFORMATION);
+		m_pApp->LogUserAction(_T("The document does not contain any back translations."));
 		return;
 	}
 
@@ -4763,6 +4788,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	_T(""), wxYES_NO|wxICON_INFORMATION) == wxNO)
 	{
 		// user clicked the command by mistake, so exit the handler
+		m_pApp->LogUserAction(_T("Aborted delete all back translations"));
 		return;
 	}
 
