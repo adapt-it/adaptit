@@ -92,6 +92,12 @@ extern bool gbDoingInitialSetup;
 
 #ifdef _UNICODE
 
+// comment out when this bug becomes history
+//#define OUT_OF_SYNC_BUG
+// comment out next line when the debug display of indices with md5 lines
+// is no longer wanted
+//#define SHOW_INDICES_RANGE
+
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
 /// this BOM.
@@ -2590,19 +2596,28 @@ bool GetNextVerseLine(const wxArrayString& usfmText, int& index)
 	return FALSE;
 }
 
-// Like GetNextVerseLine(), except that it assumes that index is at a line with \v when
-// called. Advances index past the line with \v and then searches successive lines of
-// usfmText array until index points to a later \v n line. If there are no more \v n lines,
-// then the function returns FALSE. The index is returned to the caller via the index
-// reference parameter.
-bool GetAnotherVerseLine(const wxArrayString& usfmText, int& index)
+// Like GetNextVerseLine(), except that it assumes that index is at a line with \v or \c
+// when called. Advances index past the line with \v or \c and then searches successive
+// lines of usfmText array until index points to a later \v n or a later \c m line. If
+// there are no more or either lines, then the function returns FALSE. The index is
+// returned to the caller via the index reference parameter; and if a \c line was encounted
+// before coming to a \v line, then the chapter number is returned in chapterStr. Returns
+// TRUE if a \c or \v line was encountered, FALSE otherwise.
+bool GetAnotherVerseOrChapterLine(const wxArrayString& usfmText, int& index, wxString& chapterStr)
 {
 	int totLines = (int)usfmText.GetCount();
 	index++;
 	while (index < totLines)
 	{
 		wxString testingStr = usfmText.Item(index);
-		if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
+		// next call sets chapterStr to .Empty(), or to the chapter number string if index
+		// is pointing at a line beginning with \c
+		bool bIsChapterLine = IsChapterLine(usfmText, index, chapterStr);
+		if (bIsChapterLine)
+		{
+			return TRUE;
+		}
+		else if (testingStr.Find(_T("\\v")) != wxNOT_FOUND)
 		{
 			return TRUE;
 		}
@@ -2628,6 +2643,27 @@ bool IsVerseLine(const wxArrayString& usfmText, int index)
 		return FALSE;
 	}
 }
+
+bool IsChapterLine(const wxArrayString& usfmText, int index, wxString& chapterStr)
+{
+	int totLines = (int)usfmText.GetCount();
+	chapterStr.Empty();
+	wxASSERT(index < totLines);
+	if (index < totLines)
+	{
+		if ((usfmText.Item(index)).Find(_T("\\c")) != wxNOT_FOUND)
+		{
+			chapterStr = GetNumberFromChapterOrVerseStr(usfmText.Item(index));
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	return FALSE;
+}
+
 
 /// returns                 TRUE for a successful analysis, FALSE if unsuccessful or an
 ///                         empty string was passed in
@@ -3139,23 +3175,19 @@ int FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& v
 
 // Return the top end of the two matched complex chunks, as indices into postEditMd5Arr and
 // fromEditorMd5Arr - namely, postEditEnd, and fromEditorEnd. postEditEnd, and
-// fromEditorEnd will point at either the last line string in the two md5 arrays, or at the
-// lines in those arrays which immediately precede lines with simple and matched to each
-// other versification lines, or at lines which immediately precede complex and matched to
-// each other versification lines in which the verseNum substring, although complex, is an
-// exact match for the verseNum substring for the matching verse line of the other array.
+// fromEditorEnd will point at the next matched-up line pair: either the line-counts for
+// thetwo md5 arrays if there is no later matchup, or at the lines in those arrays which
+// are matched simple verses lying immediately following the complex unmatchable material,
+// or at lines which are matched to each other's versification lines in which the verseNum
+// substring, although complex, is an exact match for the verseNum substring for the
+// matching verse line of the other array. (Note, the complex chunk might, in one of the
+// arrays at this point, have no extent - that is, the other array has some material and
+// after that material is a verse line or chapter line which matches the verse line or chapter
+// line at which delineation kicked off from in the other array.)
 void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr, 
 				const wxArrayString& fromEditorMd5Arr, int postEditStart, int& postEditEnd, 
 				int fromEditorStart, int& fromEditorEnd)
 {
-	/*
-#ifdef __WXDEBUG__
-		if (postEditStart == 149)
-		{
-			int break_here = 1;
-		}
-#endif
-		*/
 	int postEditArrCount;
 	postEditArrCount = postEditMd5Arr.GetCount();
 	int fromEditorArrCount;
@@ -3163,36 +3195,22 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	wxASSERT(postEditStart < postEditArrCount);
 	wxASSERT(fromEditorStart < fromEditorArrCount);
 
-	// generate the verseArrays needed for making comparisons and searches for matching
+	// Generate the verseArrays needed for making comparisons and searches for matching
 	// verseNum strings to define where the end of the chunk is; we need a pair going to
-	// the next chapter, and a pair going to the end of the whole arrays
-	wxArrayPtrVoid postEditVerseArr;
-	wxArrayPtrVoid fromEditorVerseArr;
+	// the end of the whole arrays
 	wxArrayPtrVoid postEditVerseArr_All;
 	wxArrayPtrVoid fromEditorVerseArr_All;
-	// populate the two arrays of verse information - stored in VerseInf structs storing 
-	// (verseStr, index, bIsComplex flag) for each verse line -- generated from the passed
-	// in postEditMd5Arr and fromEditorMd5Arr arrays
-	// Note: material prior to chapter 1 is not verse-milestoned, but could contain
-	// non-matchable fields between the two text versions being compare. If this is the
-	// case, then we process this pre-chapter-one material here in an initial loop to
-	// handle this situation as a special case, and return to the caller with the indices
-	// appropriately advanced. On the next iteration in the caller, the indices passed in
-	// for the starting indices will then point at chapter 1's md5 line in the arrays, and
-	// then only the second loop (the main one) will be used from that point on.
-	// However, if the fields in pre-chapter-one material are the same, we don't need to
-	// do anything special because the per-field processing done in the main loop will
-	// handle it there just fine
-	GetRemainingMd5VerseLinesInChapter(postEditMd5Arr, postEditStart, postEditVerseArr);
-	GetRemainingMd5VerseLinesInChapter(fromEditorMd5Arr, fromEditorStart, fromEditorVerseArr);
 
-	// this pair get all that remain
+    // Populate the two arrays of verse information - stored in VerseInf structs storing
+    // (verseStr, index, chapterStr, bIsComplex flag) for each verse or chapter line --
+	// generated from the passed in postEditMd5Arr and fromEditorMd5Arr arrays; populating
+	// goes to the end of each parent array, but when delineating the complex chunk, the
+	// next chapter marker (or end of arrays when in final chapter) constitues a bounding
+	// value where syncing must happen, and so testing for a matchup always succeeds at
+	// such a boundary
 	GetRemainingMd5VerseLines(postEditMd5Arr, postEditStart, postEditVerseArr_All);
 	GetRemainingMd5VerseLines(fromEditorMd5Arr, fromEditorStart, fromEditorVerseArr_All);
 
-	// comment out next line when no longer want debugging (also disables the debugging
-	// code in FindMatchingVerseNumInOtherArray() as well)
-#define OUT_OF_SYNC_BUG
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
 	// display up to the next 10 verse lines -- that should be enough for a safe matchup
@@ -3225,8 +3243,18 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 			{
 				kind = _T("  Simple");
 			}
-			ss = _T("vs: ");
-			ss += pVI->verseNumStr + twoSpaces + aLabel + theIndexStr + kind;
+			if (pVI->chapterStr.IsEmpty())
+			{
+				// it's a \v line
+				ss = _T("verse: ");
+				ss += pVI->verseNumStr + twoSpaces + aLabel + theIndexStr + kind;
+			}
+			else
+			{
+				// it's a \c line
+				ss = _T("chapt: ");
+				ss += pVI->chapterStr + twoSpaces + aLabel + theIndexStr + kind;
+			}
 			bit[i] = indices[i] + ss + gap;
 		}
 		else
@@ -3256,8 +3284,18 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 			{
 				kind = _T("  Simple");
 			}
-			ss = _T("vs: ");
-			ss += pVI->verseNumStr + twoSpaces + aLabel + theIndexStr + kind;
+			if (pVI->chapterStr.IsEmpty())
+			{
+				// it's a \v line
+				ss = _T("verse: ");
+				ss += pVI->verseNumStr + twoSpaces + aLabel + theIndexStr + kind;
+			}
+			else
+			{
+				// it's a \c line
+				ss = _T("chapt: ");
+				ss += pVI->chapterStr + twoSpaces + aLabel + theIndexStr + kind;
+			}
 			bit[i] = indices[i] + ss + gap;
 		}
 		else
@@ -3271,214 +3309,265 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	wxLogDebug(_T("  %s"), fromVsStr);
 #endif
 #endif
-    int postEditArr_Count_All = postEditVerseArr_All.GetCount(); // a smaller array than postEditMd5Arr
-    int fromEditorArr_Count_All = fromEditorVerseArr_All.GetCount(); // a smaller array than fromEditorMd5Arr
-
-	int postEditArr_Index = postEditEnd;     // start looking from where the last end was
-	int fromEditorArr_Index = fromEditorEnd; // ditto
-
 	VerseInf* postEditVInf = NULL;
 	VerseInf* fromEditorVInf = NULL;
-	wxString postEditArr_VerseStr;
-	wxString fromEditorArr_VerseStr;
-	int postEditFwdsIndex = wxNOT_FOUND;
-	int fromEditorFwdsIndex = wxNOT_FOUND;
+
+	// Each 'verse array' is a smaller array than postEditMd5Arr and fromEditorMd5Arr,
+	// since we use only the \c and \v fields to populate them -- what we put in them is
+	// pointers to VerseInf structs, as these are more useful than the bare md5 lines
+    int postEditVerseArr_Count_All = postEditVerseArr_All.GetCount(); 
+    int fromEditorVerseArr_Count_All = fromEditorVerseArr_All.GetCount();
+
+	wxString postEditVerseArr_VerseStr; // used in if-then tests below
+	wxString fromEditorVerseArr_VerseStr; // ditto
+
+	int postEditVerseFwdsIndex = 0;   // indexes into the array of VerseInf structs 
+								      // derived from postEditArr
+	int fromEditorVerseFwdsIndex = 0; // indexes into the array of VerseInf structs 
+									  // derived from from fromEditorArr
 	bool bSuccessful = FALSE;
 
-    // Check if we are processing lines which precede the "\c 1: ..." line. If we are, then
-    // one or both of the two VerseInf pointer arrays will have just one VerseInf struct, and the
-    // struct's member values will have the string _T("0") as the verseNumStr, and
-    // indexIntoArray value which points to the md5Array's \c 1 line, and TRUE as the
-    // bIsComplex value. Deal with the various possibilities here in this special loop
-    // before tackling the verse-milestoned material in the main loop further below.
-	if (postEditVerseArr.GetCount() == 1 || fromEditorVerseArr.GetCount() == 1)
-	{
-		// at least one, or maybe both, of these arrays have fields which precede chapter
-		// 1 and we need to deal with that material here
-		bool postEditArrHasPre_Chapter_One_Material = FALSE;
-		bool fromEditorArrHasPre_Chapter_One_Material = FALSE;
-		wxString postEditVerseNumStr = _T("");
-		wxString fromEditorVerseNumStr = _T("");
-		bool postEdit_ItsComplexFlag = FALSE;
-		bool fromEditor_ItsComplexFlag = FALSE;
-		if (!postEditVerseArr.IsEmpty())
-		{
-			postEditVerseNumStr = ((VerseInf*)postEditVerseArr.Item(0))->verseNumStr;
-			postEdit_ItsComplexFlag = ((VerseInf*)postEditVerseArr.Item(0))->bIsComplex;
-		}
-		if (!fromEditorVerseArr.IsEmpty())
-		{
-			fromEditorVerseNumStr = ((VerseInf*)fromEditorVerseArr.Item(0))->verseNumStr;
-			fromEditor_ItsComplexFlag = ((VerseInf*)fromEditorVerseArr.Item(0))->bIsComplex;
-		}
-		if (postEditVerseNumStr == _T("0") && postEdit_ItsComplexFlag == TRUE)
-		{
-			// first test is the important one, if TRUE, then 2nd will always be TRUE; but
-			// if the first is FALSE, that would mean there were no lines in the array
-			// prior to the one which is the \c 1 line
-			postEditArrHasPre_Chapter_One_Material = TRUE;
-		}
-		if (fromEditorVerseNumStr == _T("0") && fromEditor_ItsComplexFlag == TRUE)
-		{
-			// first test is the important one, if TRUE, then 2nd will always be TRUE; but
-			// if the first is FALSE, that would mean there were no lines in the array
-			// prior to the one which is the \c 1 line
-			fromEditorArrHasPre_Chapter_One_Material = TRUE;
-		}
-		// What we do here depends on the flag values. We only get into this block in the
-		// first place when there are mismatched md5 lines (i.e. not matching USFM markers
-		// at matching indices) for indices in the material prior to the line which is the
-		// chapter-one line; so like elsewhere, the from-editor material is to be retained
-		// if the user didn't do any editing in Adapt It in the pre-chapter-one material,
-		// but overwritten by the edited stuff if he did. Other complications are that one
-		// of the text versions may have pre-chapter-one material and the other not. So
-		// deal with all these possibilites: get the indices we process as far as,
-		// and then use the two booleans above etc
-		int postEdit_EndAt = postEditStart;
-		int fromEditor_EndAt = fromEditorStart;
-		if (postEditArrHasPre_Chapter_One_Material && fromEditorArrHasPre_Chapter_One_Material)
-		{
-			// both arrays have pre-chapter-one line lines, and they are not in sync
-			postEdit_EndAt = ((VerseInf*)postEditVerseArr.Item(0))->indexIntoArray;
-			fromEditor_EndAt = ((VerseInf*)fromEditorVerseArr.Item(0))->indexIntoArray;
-		}
-		else 
-		{
-			// one of the arrays has pre-chapter-one lines, the other has none (the
-			// possibility that neither has any can't happen because we'd not have had
-			// control enter this function for material prior to chapter one's line, if
-			// that was the case)
-			if (postEditArrHasPre_Chapter_One_Material)
-			{
-				// the postEditArr has the pre-chapter-one material
-				postEdit_EndAt = ((VerseInf*)postEditVerseArr.Item(0))->indexIntoArray;
-			}
-			else if (fromEditorArrHasPre_Chapter_One_Material)
-			{
-				// the fromEditorArr is the one with the pre-chapter-one material
-				fromEditor_EndAt = ((VerseInf*)fromEditorVerseArr.Item(0))->indexIntoArray;
-			}
-		}
-		// processing not-in-sync USFM and md5 sum lines which lie preceding chapter 1's
-		// line is finished, return for the caller to advance the line indices to process
-		// what follows from postEditEnd and fromEditorEnd, in their respective arrays
-		// because these indices now point at chapter 1 line for each array
-		postEditEnd = postEdit_EndAt;
-		fromEditorEnd = fromEditor_EndAt;
-		return;
-	} // end of block for test:
-	  // if (postEditVerseArr.GetCount() == 1 || fromEditorVerseArr.GetCount() == 1)
-
-	// This block is where the rubber hits the road -- we are processing in this loop
-	// within a chapter, and any pre-chapter material which is complex has already been handled
-	// above on the preceding iteration in the caller. Now we deal with milestoned stuff.
-	
     // We start at the beginning of the two verseline inventories, finding a verseStr in
     // one array, and searching from the start of the other array for a match (identical
     // bridges like 17-19a & 17-19a, identical part verses like 6b & 6b etc, not just
     // identical simple verses like 7 & 7, are all valid potential matches - we don't
     // distinguish, so long as we have a matchup we have come to where the "mismatched
     // chunk" ends)
-	while (postEditArr_Index < postEditArr_Count_All && fromEditorArr_Index < fromEditorArr_Count_All)
+    // Note: for purposes of the following VerseInf matchups, a \c marker is considered a
+    // "verse marker" -- the VerseInf struct's chapterStr member will contain the actual
+    // chapter number; this is so we can match a \c as if it was a \v marker, because \c
+    // markers in the two arrays are always going to be locations at which syncing can be
+    // forced (provided the verse numbers match)
+	while (		postEditVerseFwdsIndex   < postEditVerseArr_Count_All 
+			&&	fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All
+		  )
 	{
-		postEditArr_VerseStr   = ((VerseInf*)postEditVerseArr_All.Item(postEditArr_Index))->verseNumStr;
-		fromEditorArr_VerseStr = ((VerseInf*)fromEditorVerseArr_All.Item(fromEditorArr_Index))->verseNumStr;
-		if (postEditArr_VerseStr == fromEditorArr_VerseStr)
+		// A chapter (\c) line we don't advance beyond, because chapter boundaries are
+		// milestone locations where we must have syncing. Since control entered this
+		// function because of a marker mismatch, then as far as chapter lines are
+		// concerned, the only possibilites that we must handle as special cases are:
+		// (1) postEditVerseArr_All's VerseInf struct is pointing at one for a chapter
+		// line, but fromEditorVerseArr_All's VerseInf struct is pointing at a field
+		// preceding the \c marker field for that array; or
+		// (2) vise versa
+		// (Delineate...() wouldn't have been entered if the callers indices both pointed
+		// at the \c marker line for the same chapter; and the fourth possibility is that
+		// neither of the caller's indices point at a \c marker for the same chapter, but
+		// somewhere before that, - which for Delineate...() is the normal situation and
+		// not a special case) So handle the special cases last.
+		// Beware, the end of either of postEditVerseArr_All or fromEditorVerseArr_All
+		// will also halt iteration forwards, so take these possibilities into account too
+		
+		// first get each index's VerseInf struct in order to examine its contents
+		postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
+		fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+		// get the verseNumStr values for each - remember that if at a \c line, the value
+		// of that member would be _T("0"), and the chapterStr member would have the
+		// chapter number
+		postEditVerseArr_VerseStr   = postEditVInf->verseNumStr;
+		fromEditorVerseArr_VerseStr = fromEditorVInf->verseNumStr;
+
+		// test for the "normal" situation (the fourth possibility described in comments
+		// a dozen lines above)
+		/*
+		if ( ((postEditVInf->chapterStr.IsEmpty() && postEditVerseFwdsIndex < postEditVerseArr_Count_All)
+			 &&
+			 (fromEditorVInf->chapterStr.IsEmpty() && fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All)
+			 ) || 
+			 ((!postEditVInf->chapterStr.IsEmpty() && postEditVerseFwdsIndex < postEditVerseArr_Count_All)
+			 &&
+			 (!fromEditorVInf->chapterStr.IsEmpty() && fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All)
+			 )
+		 */
+		if ( postEditVerseFwdsIndex < postEditVerseArr_Count_All
+			 &&
+			 fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All
+		   )
 		{
-			// successful matchup
-			postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditArr_Index);
-			fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorArr_Index);
-			bSuccessful = TRUE;
-#ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
-			wxLogDebug(_T(" Delineate...()  !!!! Successful match of postEditArr_VerseStr %s  with fromEditorArr_VerseStr  %s"),
-				postEditArr_VerseStr, fromEditorArr_VerseStr);
-#endif
-#endif
-			break;
-		}
-		else
-		{
-			// look for a matchup of postEditArr_VerseStr, in the other array at a forwards
-			// location within fromEditorVerseArr
-#ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
-			wxLogDebug(_T(" Delineate...()  Have postEditArr verse %s Searching for  match in: fromEditorArr"),
-				postEditArr_VerseStr);
-#endif
-#endif
-			// if postEditArr_Index is at bIsComplex TRUE, then advance to the next simple
-			// verse before trying for a match
-			while ( ((VerseInf*)postEditVerseArr_All.Item(postEditArr_Index))->bIsComplex && 
-						postEditArr_Index < postEditArr_Count_All)
+            // the VerseInf for neither of the "verse arrays" is pointing at the start of
+            // the next chapter, nor is either index past the last item in its verse array,
+            // so delineation of a non-empty complex chunk in both parent arrays is
+			// possible, and the next chapter, or arrays end, will be the syncing location
+			// if no syncing location early than that within the chapter can be found
+
+			if (postEditVerseArr_VerseStr == fromEditorVerseArr_VerseStr)
 			{
-				postEditArr_Index++;
-#ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
-				wxLogDebug(_T(" Delineate...()  Is Complex verseNum,  so advancing postEditArr_Index to verse index %d"),
-							postEditArr_Index);
-#endif
-#endif
-			}
-			fromEditorFwdsIndex = FindMatchingVerseNumInOtherArray(fromEditorVerseArr_All, postEditArr_VerseStr);
-			if (fromEditorFwdsIndex != wxNOT_FOUND)
-			{
-				// successful matchup
-				postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditArr_Index);
-				fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorFwdsIndex);
+				// successful matchup (could be a verse - verse matchup, or a
+				// chapterNumber = chapterNumber matchup)
 				bSuccessful = TRUE;
+#ifdef OUT_OF_SYNC_BUG
+#ifdef __WXDEBUG__
+				wxLogDebug(_T(" Delineate...()  !!!! Successful match of postEditVerseArr_VerseStr %s  with fromEditorVerseArr_VerseStr  %s"),
+					postEditVerseArr_VerseStr, fromEditorVerseArr_VerseStr);
+#endif
+#endif
 				break;
 			}
 			else
 			{
-				// that failed, so try searching for fromEditorArr_VerseStr matchup
-				// somewhere forwards in postEditVerseArr
+                // look for a matchup of postEditVerseArr_VerseStr, in the other array at a
+                // forwards location within fromEditorVerseArr
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
-				wxLogDebug(_T(" Delineate...()  Have fromEditorArr verse %s Searching for  match in: postEditArr"),
-				postEditArr_VerseStr);
+				wxLogDebug(_T(" Delineate...()  Have postEditVerseArr verse %s and chapterStr = %s ; Searching for match in: fromEditorVerseArr"),
+					postEditVerseArr_VerseStr, postEditVInf->chapterStr);
 #endif
 #endif
-				// if fromEditorArr_Index is at bIsComplex TRUE, then advance to the next simple
-				// verse before trying for a match
-				while ( ((VerseInf*)fromEditorVerseArr_All.Item(fromEditorArr_Index))->bIsComplex && 
-							fromEditorArr_Index < fromEditorArr_Count_All)
-				{
-					fromEditorArr_Index++;
-#ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
-				wxLogDebug(_T(" Delineate...()  Is Complex verseNum,  so advancing fromEditorArr_Index to verse index %d"),
-								fromEditorArr_Index);
-#endif
-#endif
-				}
-				postEditFwdsIndex = FindMatchingVerseNumInOtherArray(postEditVerseArr_All, fromEditorArr_VerseStr);
-				if (postEditFwdsIndex != wxNOT_FOUND)
+				int fromEditorVerseFwdsIndex_Temp = fromEditorVerseFwdsIndex;
+				fromEditorVerseFwdsIndex_Temp = FindMatchingVerseNumInOtherArray(fromEditorVerseArr_All, 
+											postEditVerseArr_VerseStr, postEditVInf->chapterStr);
+				if (fromEditorVerseFwdsIndex_Temp != wxNOT_FOUND)
 				{
 					// successful matchup
-					postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditFwdsIndex);
-					fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorArr_Index);
+					postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
+					fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex_Temp);
 					bSuccessful = TRUE;
 					break;
 				}
 				else
 				{
-					// all possibilities for matching either of postEditArr_VerseStr or
-					// fromEditorArr_VerseStr have been exhausted, so advance the iterators and
-					// loop
-					postEditArr_Index++;
-					fromEditorArr_Index++;
-				}
-			}
-		} // end of else block for test: if (postEditArr_VerseStr == fromEditorArr_VerseStr)
-	} // end of loop: while (postEditArr_Index < postEditArr_Count && fromEditorArr_Index < fromEditorArr_Count)
-	if (bSuccessful)
-	{
-		postEditEnd = postEditVInf->indexIntoArray; // the index into the verseline within postEditMd5Arr
-		fromEditorEnd = fromEditorVInf->indexIntoArray; // the index into the verseline within fromEditorMd5Arr
+					// that failed, so try searching for fromEditorVerseArr_VerseStr matchup
+					// somewhere forwards in postEditVerseArr
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
-		wxLogDebug(_T(" Delineate...()  SUCCESS: the index into the verseline within postEditMd5Arr is %d , the index into the verseline within fromEditorMd5Arr is %d "),
+					wxLogDebug(_T(" Delineate...()  Have fromEditorVerseArr verse %s and chapterStr = %s ;  Searching for match in: postEditVerseArr"),
+						fromEditorVerseArr_VerseStr, fromEditorVInf->chapterStr);
+#endif
+#endif
+					int postEditVerseFwdsIndex_Temp = postEditVerseFwdsIndex;
+					postEditVerseFwdsIndex_Temp = FindMatchingVerseNumInOtherArray(postEditVerseArr_All, 
+											fromEditorVerseArr_VerseStr, fromEditorVInf->chapterStr);
+					if (postEditVerseFwdsIndex_Temp != wxNOT_FOUND)
+					{
+						// successful matchup
+						postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex_Temp);
+						fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+						bSuccessful = TRUE;
+						break;
+					}
+					else
+					{
+                        // All possibilities in the chapter for matching either of
+                        // postEditVerseArr_VerseStr or fromEditorVerseArr_VerseStr have
+                        // been exhausted; the above test must succeed for all non-final
+                        // chapters, but control could get here for a non-match in the
+                        // final chapter because there is no "next chapter" \c marker to
+						// ensure matchup, or if the non-match occured immediately before
+						// the next \c marker field. The only thing we can do is make the
+						// ends of each array be the matchup point & return here
+						postEditEnd = postEditArrCount;
+						fromEditorEnd = fromEditorArrCount;
+						return;
+					}
+				}
+
+			} // end of else block for test: if (postEditVerseArr_VerseStr == fromEditorVerseArr_VerseStr)
+
+		} // end of TRUE block for test: 
+		  //	if ( postEditVerseFwdsIndex < postEditVerseArr_Count_All
+		  //		&&
+		  //	     fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All)
+		  //	   )
+		else
+		{
+            // One of the VerseInf has the chapterStr member set to the chapter number, so
+            // that VerseInf's parent array's index must not advance; or alternatively, the
+            // index has gotten to the end of the verse array - which also means further
+            // advance is not possible; the 'other array' must just catch up by taking
+            // every line up to the same chapter line within it as the complex chunk being
+            // delineated.
+            // (1) If the 'catch up' is to be done in postEditArr, then that means there is
+            // material (ie. markers and their contents) in the AI document which are not
+            // in the 'from PT or from BE' text we are comparing with, and that AI material
+            // must be inserted into the external editor's text when we return to the
+            // caller.
+            // (2) On the other hand, if the 'catch up' is to be done in the fromPT or
+            // fromBE text we are comparing with, then there are markers and their contents
+            // in that material which are not in AI, and so the data transfer back to the
+            // external editor should not change that material in any way, because nothing
+            // in the AI doc pertains to that information and so we respect its integrity.
+            // 
+            // In the blocks below, we work out which of these two special situations in in
+            // effect, and determine what indices to pass back to the caller, exit the loop
+            // with bSuccessful set TRUE, and pass them back in postEditEnd and
+            // fromEditorEnd
+			
+			// handle the 'end of array' situation first, for each
+			if (fromEditorVerseFwdsIndex == fromEditorVerseArr_Count_All)
+			{
+				// situation (1) in the above comment block; all the rest of the
+				// postEditArr's lines have to have their data appended to that from the
+				// external editor up to this point
+				fromEditorVInf = NULL; // there isn't one, as the index is out of bounds 
+			}
+			else if (postEditVerseFwdsIndex == postEditVerseArr_Count_All)
+			{
+				// situation (2) in the above comment block; all the rest of the
+				// fromEditorArr's lines have to have to be included unchanged
+				postEditVInf = NULL; // there isn't one, as the index is out of bounds 
+			}
+			else
+				// neither index is at a 'verse array' end, so it must be that one or the
+				// other is pointing to a chapter line's VerseInf struct
+			if (postEditVInf->chapterStr.IsEmpty())
+			{
+                // situation (1) in the above comment block; find the VerseInf within
+                // postEditVerseArr_All which pertains to the next \c line because
+                // fromEditorVerseFwdsIndex already points at the corresponding \c within
+                // fromEditorVerseArr_All
+                postEditVerseFwdsIndex++;
+				VerseInf* pVI = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
+				while (pVI->chapterStr.IsEmpty())
+				{
+					postEditVerseFwdsIndex++;
+					pVI = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
+				}
+				postEditVInf = pVI; // this one is for the \c line which is same chapter
+			}
+			else
+			{
+				// it has to be situation (2)
+				wxASSERT(fromEditorVInf->chapterStr.IsEmpty());
+                fromEditorVerseFwdsIndex++;
+				VerseInf* pVI = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+				while (pVI->chapterStr.IsEmpty())
+				{
+					fromEditorVerseFwdsIndex++;
+					pVI = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+				}
+				fromEditorVInf = pVI; // this one is for the \c line which is same chapter
+			}
+			bSuccessful = TRUE;
+			break;
+		} // end of else block for test: if (postEditVInf->chapterStr.IsEmpty() && fromEditorVInf->chapterStr.IsEmpty())
+
+	} // end of loop: 
+	  //	while (		postEditVerseFwdsIndex   < postEditVerseArr_Count_All 
+	  //				&&	fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All
+	  //		  )	
+	if (bSuccessful)
+	{
+		if (fromEditorVInf == NULL)
+		{
+			postEditEnd = postEditArrCount;
+		}
+		else
+		{
+			postEditEnd = postEditVInf->indexIntoArray; // the index into the mached 
+														// verseline within postEditMd5Arr
+		}
+		if (postEditVInf == NULL)
+		{
+			fromEditorEnd = fromEditorArrCount;
+		}
+		else
+		{
+			fromEditorEnd = fromEditorVInf->indexIntoArray; // the index into the matched 
+															// verseline within fromEditorMd5Arr
+		}
+#ifdef OUT_OF_SYNC_BUG
+#ifdef __WXDEBUG__
+		wxLogDebug(_T(" Delineate...()  SUCCESS: matched index within postEditMd5Arr is verseline at %d , matched index within fromEditorMd5Arr is verseline at %d "),
 				postEditEnd, fromEditorEnd);
 #endif
 #endif
@@ -3489,59 +3578,102 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 		// fields, each set of which is at the end of the passed in pair of arrays, and
 		// extends to the ends of those arrays; so return the array counts to indicate
 		// this
-#ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
-		wxLogDebug(_T(" Delineate...()  NO success: use ending index from postEditMd5Arr = %d , use ending index from fromEditorMd5Arr = %d "),
-				postEditEnd, fromEditorEnd);
-#endif
-#endif
 		postEditEnd = postEditArrCount;
 		fromEditorEnd = fromEditorArrCount;
+#ifdef OUT_OF_SYNC_BUG
+#ifdef __WXDEBUG__
+		wxLogDebug(_T(" Delineate...()  NO success: use ending index from postEditMd5Arr = %d , use ending index from fromEditorMd5Arr = %d   Started from [%d,%d]"),
+				postEditEnd, fromEditorEnd, postEditStart, fromEditorStart);
+#endif
+#endif
 	}
-	DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
-	DeleteAllVerseInfStructs(fromEditorVerseArr); // ditto
 	DeleteAllVerseInfStructs(postEditVerseArr_All); // don't leak memory
 	DeleteAllVerseInfStructs(fromEditorVerseArr_All); // ditto
 }
 
 // Search for a match of verseNum in the passed in verseInfArr, searching the whole array
-// from start for the first match. Return the index if found, wxNOT_FOUND if no matchup is made
-int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum)
+// from start for the first match. Return the index if found, wxNOT_FOUND if no matchup is made.
+// The matchup can be with chapter numbers, or if not those, with verse numbers or number
+// ranges which are identical. If we come to a chapter line (it will have the VerseInf
+// member verseNum set to _T("0")) then halt the search and return wxNOT_FOUND, otherwise
+// we'd match a verse from the next chapter giving a bogus matchup
+int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum,
+									 wxString chapterStr)
 {
 	int count = verseInfArr.GetCount();
 	int index;
+	wxString zeroStr = _T("0");
 	wxString aVerseNum;
 	VerseInf* viPtr = NULL;
 	for (index = 0; index < count; index++)
 	{
 		viPtr = (VerseInf*)verseInfArr.Item(index);
 		aVerseNum = viPtr->verseNumStr;
+		// prevent overshooting into the next chapter; the first test ensures that we are
+		// in a situation where we want to match a verse string, and so if the second test
+		// indicates we've come to a chapter line, we mustn't search further
+		if (chapterStr.IsEmpty() && aVerseNum == zeroStr)
+		{
+			return wxNOT_FOUND;
+		}
 		if (aVerseNum == verseNum)
 		{
-			// must be an exact match
+            // must be an exact match -- we could be matching chapters, in which case we'd
+            // have "0" and "0" which would indicate we have two chapter marker locations,
+            // but we have to verify they are the same chapter before we declare such a
+            // matchup as a valid match -- but as yet we don't know if we are matching
+            // chapter lines, or verse lines - the chapterStr allows us to tell which
+			if (chapterStr.IsEmpty())
+			{
+				// we matched \v verse numbers or ranges
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
-			wxLogDebug(_T("      ======= index %d  Successful match of verse %s   with  %s  from VerseInf"), index, verseNum, aVerseNum);
+			wxLogDebug(_T("      ======= index %d  Successful match of verse %s   with  %s  from VerseInf"), 
+						index, verseNum, aVerseNum);
 #endif
 #endif
-			// matched, it could be two simple verses, or two identical bridges, etc
-			return index;
-		}
-		else if (viPtr->bIsComplex)
-		{
-			// don't further try a match if the one from the array is complex
+				// matched, it could be two simple verses, or two identical bridges, etc
+				return index;
+			}
+			else if (!chapterStr.IsEmpty() && chapterStr == viPtr->chapterStr)
+			{
+                // chapterStr is not empty, and chapter numbers match
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
-			wxLogDebug(_T(" COMPLEX  --- index %d  Attempting match of verse %s   Discarding  %s  from VerseInf"), index, verseNum, aVerseNum);
+			wxLogDebug(_T("      ======= index %d  Successful match of chapter %s   with  %s  from VerseInf"), 
+						index, chapterStr, viPtr->chapterStr);
 #endif
 #endif
-			continue;
-		}
+				return index;
+			}
+			else
+			{
+				// no match of chapterStr (we don't expect this)
+#ifdef OUT_OF_SYNC_BUG
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("      ------- index %d  Mismatched chapter numbers %s   and Discarding  %s  from VerseInf"), 
+						index, chapterStr, viPtr->chapterStr);
+		
+#endif
+#endif
+				return wxNOT_FOUND;
+			}
+		} // end of TRUE block for test: if (aVerseNum == verseNum)
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
 		else
 		{
-			wxLogDebug(_T("      ------- index %d  Attempting match of verse %s   Discarding  %s  from VerseInf"), index, verseNum, aVerseNum);
+			if (chapterStr.IsEmpty())
+			{
+				wxLogDebug(_T("      ------- index %d  Attempting match of verse %s   Discarding  %s  from VerseInf"), 
+							index, verseNum, aVerseNum);
+			}
+			else
+			{
+				// it should be impossible for control to ever enter here
+				wxLogDebug(_T("      ------- index %d  Attempting match of chapter %s   Discarding  %s  from VerseInf"), 
+							index, chapterStr, viPtr->chapterStr);
+			}
 		}
 #endif
 #endif
@@ -3552,106 +3684,30 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 // When processing comes, when comparing lines in two md5Array instances (one for
 // postEditText the other for fromEditorText) to a line pair which don't match in the
 // initial USFM markers, we have to delineate (from that point onwards) how many markers
-// from each array belong to this "mismatch chunk". To do this we have to look for the
-// next match of either two verse lines which have the same (simple) verse numbers, or the
-// same complex verse numbers -- the important point is they be the same, as that defines
-// where the "mismatch chunk" ends (at the md5Arr lines which immediately precede these
-// two matched verse lines). We match verse lines simply because other markers have no
+// from each array belong to this "mismatch chunk". To do this we have to look for the next
+// match of either two verse lines which have the same (simple) verse numbers, or the same
+// complex verse numbers -- the important point is they be the same, as that defines where
+// the "mismatch chunk" ends (at the md5Arr lines which immediately precede these two
+// matched verse lines). We match verse lines simply because other markers have no
 // milestone information that can tell us if they are equivalent or not. This function
 // helps us out by gathering all the verse lines from the start of the mismatch, up to the
-// end of the chapter (but not including a line belonging to the next chapter); and
-// putting the information relevant to determining where the mismatch chunk ends into a
-// struct, VerseInf, which has 3 members, one points back to the line's index in the 
-// original md5Array, another is the verseNumStr (which may be simple or complex, the
-// latter being things like 15b-17, whereas a simple one would be something like 10), and
-// the third is a boolean which is TRUE if the verseNumSt is complex, FALSE if not. The
-// caller will then use this information in its algorithm for working out where the
-// mismatch chunk ends - after using two calls of this function, one for each of the
-// original md5 arrays being compared. 
-void GetRemainingMd5VerseLinesInChapter(const wxArrayString& md5Arr, int nStart, 
-										wxArrayPtrVoid& verseLinesArr)
-{
-	int count = md5Arr.GetCount();
-	// set nBoundingIndex to the index value immediately beyond the last index of the
-	// current chapter (at the end of the array, this would be equal to the array count)
-	bool bBeforeChapterOne = FALSE;
-	int nBoundingIndex = FindNextChapterLine(md5Arr, nStart, bBeforeChapterOne);
-	if (nBoundingIndex == wxNOT_FOUND)
-	{
-		nBoundingIndex = count;
-	}
-	wxString lineStr;
-	verseLinesArr.Clear();
-	if (nStart == nBoundingIndex)
-	{
-		return;
-	}
-	VerseAnalysis va;
-	VerseInf* pVInf = NULL;
-	int index = nStart;
-
-	// What we do depends on whether the nStart index is within pre-chapter-one material,
-	// or somewhere after that. In the latter case, we want to use collect verse lines,
-	// but in the former situation we only want to collect non-verse lines up to and
-	// including the md5 line immediately prior to chapter 1
-	if (bBeforeChapterOne)
-	{
-		// Just pass back a single VInf struct in the verseLinesArr with special values as
-		// follows: 
-		// for bIsComplex, TRUE (we want to chunk all the pre-chapter-one material)
-		// for verseNumStr, the special diagnostic value of "0" so caller can know how 
-		//     to interpret the next member
-		// for indexIntoArray, the nBoundingIndex value determined above (that is, the
-		//     index to the line which is the md5 line for the \c 1 field)
-		pVInf = new VerseInf;
-		pVInf->bIsComplex = TRUE;
-		pVInf->indexIntoArray = nBoundingIndex;
-		pVInf->verseNumStr = _T("0");
-		verseLinesArr.Add(pVInf);
-		return;
-	}
-	else
-	{
-		bool bIsVerseLine = IsVerseLine(md5Arr, index);
-		if (bIsVerseLine)
-		{
-			lineStr = md5Arr.Item(index);
-			pVInf = new VerseInf;
-			pVInf->indexIntoArray = nStart;
-			pVInf->verseNumStr = GetNumberFromChapterOrVerseStr(lineStr);
-			pVInf->bIsComplex = DoVerseAnalysis(pVInf->verseNumStr, va);
-			verseLinesArr.Add(pVInf);
-		}
-		bool bGotAnother = FALSE;
-		do {
-			// next call starts looking at line after index's line, and if finds a next
-			// verse line, then it returns its index in the index param
-			bGotAnother = GetAnotherVerseLine(md5Arr, index); 
-			if (bGotAnother && index < nBoundingIndex)
-			{
-				// it's within the current chapter
-				lineStr = md5Arr.Item(index);
-				pVInf = new VerseInf;
-				pVInf->indexIntoArray = index;
-				pVInf->verseNumStr = GetNumberFromChapterOrVerseStr(lineStr);
-				pVInf->bIsComplex = DoVerseAnalysis(pVInf->verseNumStr, va);
-				verseLinesArr.Add(pVInf);
-			}
-			else
-				break;
-		} while (TRUE);
-	}
-}
-
-// Like GetRemainingMd5VerseLinesInChapter() except that this variant doesn't stop at the
-// next chapter - it goes all the way to the end of the md5Arr passed in (we only want to
-// use the ...InChapter() function for processing pre-chapter-1 USFM fields, after that we
-// use this one exclusively, since there can be mismatches at a chapter marker - for
-// instance, Takia Matthew has the mismatch  \f <-> \c 5 which, if the other variant were
-// used, the result would cause all the rest of the data to be in the one mismatch chunk!)
+// end of the document, and putting the information relevant to determining where the
+// mismatch chunk ends into a struct, VerseInf, which has 4 members, one points back to the
+// line's index in the original md5Array, another is the verseNumStr (which may be simple
+// or complex, the latter being things like 15b-17, whereas a simple one would be something
+// like 10), and the third is chapterStr, which contains the chapter number if we are
+// dealing with a \c line rather than a \v line (for our purposes here, we treat \c as a
+// (pseudo) verse line, with a verse number of 0) or an empty string if we are dealing with
+// a \v line, and the fourth is a boolean which is TRUE if the verseNumSt is complex, FALSE
+// if not, and FALSE if we are at a \c line. The caller will then use this information in
+// its algorithm for working out where the mismatch chunk ends - after using two calls of
+// this function, one for each of the original md5 arrays being compared.
+// BEw 23Aug11, changed it to go only as far as the next chapter line, inclusive, because
+// interating into successive chapters would give a bogus result anyway
 void GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart, 
 										wxArrayPtrVoid& verseLinesArr)
 {
+
 	int nBoundingIndex = md5Arr.GetCount();
 	wxString lineStr;
 	verseLinesArr.Clear();
@@ -3663,32 +3719,74 @@ void GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart,
 	VerseInf* pVInf = NULL;
 	int index = nStart;
 
-	bool bIsVerseLine = IsVerseLine(md5Arr, index);
-	if (bIsVerseLine)
+	// check first for a \c line
+	wxString chapterStr; // is cleared to empty in next call, and returned non-empty
+						 // only when index is indexing a \c line
+	bool bIsChapterLine = IsChapterLine(md5Arr, index, chapterStr);
+	if (bIsChapterLine)
 	{
-		lineStr = md5Arr.Item(index);
 		pVInf = new VerseInf;
+		pVInf->chapterStr = chapterStr;
 		pVInf->indexIntoArray = nStart;
-		pVInf->verseNumStr = GetNumberFromChapterOrVerseStr(lineStr);
-		pVInf->bIsComplex = DoVerseAnalysis(pVInf->verseNumStr, va);
+		pVInf->verseNumStr = _T("0");
+		pVInf->bIsComplex = FALSE;
 		verseLinesArr.Add(pVInf);
+		// BEW 23Aug11, comment out next line to revert to all remaining fields being collected
+		return;
 	}
-	bool bGotAnother = FALSE;
-	do {
-		// next call starts looking at line after index's line, and if finds a next
-		// verse line, then it returns its index in the index param
-		bGotAnother = GetAnotherVerseLine(md5Arr, index); 
-		if (bGotAnother)
+	else
+	{
+		// not a \c line so check if it is a \v line (chapterStr is empty if control
+		// enters this block)
+		bool bIsVerseLine = IsVerseLine(md5Arr, index);
+		if (bIsVerseLine)
 		{
 			lineStr = md5Arr.Item(index);
 			pVInf = new VerseInf;
-			pVInf->indexIntoArray = index;
+			pVInf->chapterStr = chapterStr; // set it to the empty string
+			pVInf->indexIntoArray = nStart;
 			pVInf->verseNumStr = GetNumberFromChapterOrVerseStr(lineStr);
 			pVInf->bIsComplex = DoVerseAnalysis(pVInf->verseNumStr, va);
 			verseLinesArr.Add(pVInf);
 		}
+	}
+	// That handles the line pointed at on entry, now collect verse or chapter lines from
+	// what lies ahead of that...
+	bool bGotAnother = FALSE;
+	do {
+		// next call starts looking at line after index's line, and if finds a next
+		// verse line, then it returns its index in the index param
+		bGotAnother = GetAnotherVerseOrChapterLine(md5Arr, index, chapterStr); 
+		if (bGotAnother)
+		{
+			lineStr = md5Arr.Item(index);
+			// is it a chapter line, or a verse line?
+			if (chapterStr.IsEmpty())
+			{
+				// it's a \v line
+				pVInf = new VerseInf;
+				pVInf->indexIntoArray = index;
+				pVInf->verseNumStr = GetNumberFromChapterOrVerseStr(lineStr);
+				pVInf->bIsComplex = DoVerseAnalysis(pVInf->verseNumStr, va);
+				verseLinesArr.Add(pVInf);
+			}
+			else
+			{
+				// we got to a \c line, so chapterStr contains a chapter number string
+				pVInf = new VerseInf;
+				pVInf->chapterStr = chapterStr;
+				pVInf->indexIntoArray = index;
+				pVInf->verseNumStr = _T("0");
+				pVInf->bIsComplex = FALSE;
+				verseLinesArr.Add(pVInf);
+				// BEW 23Aug11, comment out next line to revert to all remaining fields being collected
+				return;
+			}
+		}
 		else
-			break;
+		{
+			break; // we have come to the end of md5Arr
+		}
 	} while (TRUE);
 }
 
@@ -4135,15 +4233,15 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	}
 	if (bUsfmIsTheSame)
 	{
-		// something's different, so do the more complex algorithm
+		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
 					postEditOffsetsArr, fromEditorOffsetsArr);
 	}
 	else
 	{
-		// comment out next line when the debug display is no longer wanted
-#define SHOW_INDICES_RANGE
+		// something's different, so do the more complex algorithm
+		
 #ifdef SHOW_INDICES_RANGE
 #ifdef __WXDEBUG__
 	//int ct;
@@ -4172,15 +4270,14 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		wxLogDebug(_T("\n\n***SAME LENGTH ARRAYS: numItems = %d"), ctmin);
 	}else
 	{
-		wxLogDebug(_T("\n\n***DIFFERENT LENGTH ARRAYS: postEditArr numItems = %d  fromEditorNumItems = %d"), count1, count2);
+		wxLogDebug(_T("\n\n***DIFFERENT LENGTH ARRAYS: postEditArr numItems = %d  fromEditorNumItems = %d"),
+					count1, count2);
 	}
 	int ct;
 	wxString postStr;
 	wxString fromStr;
 	wxString postEdChap;
 	wxString fromEdChap;
-	//int postFound;
-	//int fromFound;
 	for (ct = 0; ct < ctmin; ct++)
 	{
 		postStr = postEditMd5Arr.Item(ct);
@@ -4193,8 +4290,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		{
 			fromEdChap = fromStr.Mid(3,5);
 		}
-		wxLogDebug(_T("Same part: type = %s  INDEX = %d    postEdChap = %s   postEditArr  %s	 <<<>>> fromEdChap = %s   fromEditorArr  %s"),
-			s, ct, postEdChap, postStr.c_str(), fromEdChap, fromStr.c_str());
+		wxLogDebug(_T("Same part: type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s <<>> fromEdChap = %s fromEditorArr  %s"),
+					s, ct, postEdChap, postStr.c_str(), fromEdChap, fromStr.c_str());
 	}
 #endif
 #endif
@@ -4559,7 +4656,6 @@ wxString GetUpdatedText_UsfmsChanged(
 	int	postEditArr_AfterChunkIndex = 0;
 	int	fromEditorArr_AfterChunkIndex = 0;
 
-#define OUT_OF_SYNC_BUG
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
 		wxLogDebug(_T("\n\n $$$$$$$$$$$   GetUpdatedText_UsfmsChanged() loop  $$$$$$$$$$$$$$$$$\n\n"));
@@ -4580,12 +4676,10 @@ wxString GetUpdatedText_UsfmsChanged(
 
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
-		wxLogDebug(_T("postEditArr_Index  %d        fromEditorArr_Index  %d     postEdit line:  %s    fromEditor line:  %s"),
+		wxLogDebug(_T("postEditArr_Index  %d    fromEditorArr_Index  %d    postEdit line:  %s   fromEditor line:  %s"),
 				postEditArr_Index, fromEditorArr_Index, postEditMd5Line, fromEditorMd5Line);
 #endif
 #endif
-
-
         // start testing: check that the markers match; if they don't, then the first thing
         // to do is to delineate the span in each array which wraps the mismatched subset
         // of md5 lines - and then work out how to process the data within the "mismatched
@@ -4609,8 +4703,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		wxString fromEditorLineMkr = GetStrictUsfmMarkerFromStructExtentString(fromEditorMd5Line);
 		if (postEditLineMkr != fromEditorLineMkr)
 		{
-#define MARKER_MISMATCH
-#ifdef MARKER_MISMATCH
+#ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
 			wxLogDebug(_T("      MARKER_MISMATCH   %s  %s   postEditArr_AfterChunkIndex: %d  fromEditorArr_AfterChunkIndex: %d    newText length: %d"),
 						postEditLineMkr, fromEditorLineMkr, postEditArr_AfterChunkIndex, 
@@ -4635,78 +4728,86 @@ wxString GetUpdatedText_UsfmsChanged(
 #endif
 #endif
 			// first task is to delineate the extent of the mismatched sets of marker lines
+			//int postEditStartIndex = postEditArr_Index; // preserve
+			//int fromEditorStartIndex = fromEditorArr_Index; // preserve
 			DelineateComplexChunksAssociation(postEditMd5Arr, fromEditorMd5Arr,
 				postEditArr_Index,    // starting index of mismatched chunk within postEditMd5Arr
 				postEditArr_AfterChunkIndex,    // the "after the end" index of mismatched chunk within postEditMd5Arr
 				fromEditorArr_Index,  // starting index of mismatched chunk within fromEditorMd5Arr
 				fromEditorArr_AfterChunkIndex); // the "after the end" index of mismatched chunk within fromEditorMd5Arr
 
-			// Get the potential value for the last md5 line in the mismatched chunk for each
-			// array - either or both might turn out to be an incorrect value, but we'll
-			// correct further below. What we want to handle here is any information that
-			// lies before chapter 1
+			// There are three possible results of the above call.
+			// (1) Both postEditArr_AfterChunkIndex and fromEditorArr_AfterChunkIndex have
+			// advanced from the input postEditArr_Index and fromEditorArr_Index values,
+			// respectively.
+            // (2) No advancement in fromEditorArr, that is, fromEditorArr_AfterChunkIndex
+			// and fromEditorArr_Index are identical. (This is a typical scenario when the
+			// source text being adapted is a pre-published scripture text, and so has
+			// lots of extra markers which would not be in the adaptation project in PT or
+			// BT - which typically start out empty or with just \c markers and \v markers
+			// and no adaptation text at all)
+			// (3) No advancement in postEditArr, that is postEditArr_AfterChunkIndex
+			// and postEditArr_Index are identical. (This would be unusual, it
+			// would typically mean that the user has, between editing sessions done in
+			// AI, added extra markers and text to the external editor's project for the
+			// adaptation document being adapted. We can't stop this happening, so we have
+			// to allow for it and handle it robustly. It's not a recommended scenario
+			// though, as the user if using AI should do his editing in AI only until
+			// adapting work is done, and then he can do what he needs to in PT or BE as
+			// far as content edits and additional markers being inserted)
+			
+            // Get the potential value for the last md5 line in the mismatched chunk for
+            // each array - one might turn out to be an incorrect value (if (2) or (3) has
+            // happened), but we'll correct for that further below.
 			int postEditArr_LastLineIndex = postEditArr_AfterChunkIndex - 1;
 			int fromEditorArr_LastLineIndex = fromEditorArr_AfterChunkIndex - 1;
+			
+			// Deal with the above 3 scenarios
+			if (	postEditArr_AfterChunkIndex > postEditArr_Index
+				 && fromEditorArr_AfterChunkIndex > fromEditorArr_Index)
+			{
+				// This is situation (1) above -- we stepped over material in both arrays,
+				// and the AI material, if edited, must replace the from-external-editor
+				// material for this chunk, but if not edited, the from-external-editor
+				// material is retained; and both postEditArr_LastLineIndex and
+				// fromEditorArr_LastLineIndex have valid values and point at the last md5
+				// line of each array's complex chunk
 
-            // When control gets here, we may have just found a mismatched section of lines
-            // in material which is prior to chapter 1's line in one or both arrays - so
-            // check and deal with the special cases where one array has no pre-chapter-one
-            // material and the other does. Detected by: postEditArr_LastLineIndex will
-            // have been set to -1 if postEditArr has no pre-chapter one material, and it
-            // will be fromEditorArr_LastLineIndex that would have a value of -1 if
-            // fromEditorArr has no pre-chapter-one material. But if neither has any such,
-            // nothing special needs to be done; likewise, if both have none processing of
-            // lines starts in each array in the milestoned data (ie. there are verse
-            // number lines) and nothing special needs to be done here. So deal with the
-            // two special situation mentioned above
-            if (postEditArr_LastLineIndex == -1 && fromEditorArr_LastLineIndex != -1)
-			{
-				// postEditArr has no pre-chapter one material, so keep external editor's text
-				MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
-				MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
-				wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
-							pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-				newText += fromEditorTextSubstring;
-			}
-			else if (postEditArr_LastLineIndex != -1 && fromEditorArr_LastLineIndex == -1)
-			{
-				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
-				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
-				wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
-								pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-				newText += postEditTextSubstring;
-			}
-			else
-			{
-                // This is probably a normal situation (that is, a mismatched section in
-                // the milestoned area of the texts), or pre-chapter-one material which
-                // exists in both texts and is not in sync. We handle these alike. However,
-                // there is the possibility that one text has a field absent in the other -
-                // in that situation, one index will not have advanced when the
-                // DelineateComplexChunksAssociation() call returns - and if we compute the
-                // *_LastLineIndex value by subtracting 1 from the *_AfterChunkIndex as we 
-                // did above, then the *_LastLineIndex would end up smaller than the
-                // *_Index (starting) value, which would be an error. So we must check here
-                // for either index not advancing and handle the updating for those as a
-                // special case
-				if (postEditArr_Index == postEditArr_AfterChunkIndex)
+				// Recall that postEditArr_Index and postEditArr_LastLineIndex are the same for
+				// both preEditOffsetsArr and postEditOffsetsArr (because markers cannot be
+				// accessed and changed when in collaboration mode), and so param2 equals
+				// param5, and param3 equals param6 in the following call
+				// *** NOTE *** if ever we allow dynamic change to filter markers or SFM
+				// set when in collaboration mode, then the above assumption about the
+				// parameters will not necessarily always be true)
+				bool bTextAndOrPunctsChanged = IsTextOrPunctsChanged(preEditMd5Arr, postEditArr_Index,
+										postEditArr_LastLineIndex, postEditMd5Arr, postEditArr_Index, 
+										postEditArr_LastLineIndex);
+				if (bTextAndOrPunctsChanged)
 				{
-					// the from-editor text has one or more fields not in the postEdit
-					// text at this point, so transfer the from-editor material unchanged
-					wxASSERT(fromEditorArr_Index <= fromEditorArr_LastLineIndex);
-					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
-					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
-					wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
-								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-					newText += fromEditorTextSubstring;
-				}
-				else if (fromEditorArr_Index == fromEditorArr_AfterChunkIndex)
-				{
-					// the postEditText has one or more extra fields at this point, so
-					// since we give priority to what is in AI, transfer these markers and
-					// their text contents to newText (in effect, 'inserting' it into the
-					// from-editor text at this location)
-					wxASSERT(postEditArr_Index <= postEditArr_LastLineIndex);
+					// The user has edited something in this "mismatch section" within the
+					// Adapt It document, and so we must honour that and pass this whole
+					// section back to the external edit's text - so get the offsets to the
+					// start and end of the whole section within postEditText, and then
+					// transfer it to the external editor's text updated text - in newText
+					
+                    // An additional considerationhere is the following. The mismatch might
+                    // not involve any \v markers in either array's mismatch chunk. For
+                    // example, the source text may have \q1 \q2 \m markers because it is
+                    // poetry, but the from-external-editor text might have something
+                    // different - perhaps a footnote or some other marker(s) - even text
+                    // formatting markers like italics etc. The protocol we've taken on
+                    // board will replace the footnote or other markers and contents with
+                    // the poetry and poetry markers. It would be nice for this not to
+                    // happen (by retaining both), but there is too much potential for the
+                    // same text information to end up being in the resulting data twice,
+                    // so we will just overwrite and let the user manually restore the lost
+					// markers if necessary. Loss of information in this way can happen,
+					// but it should be rare. (My test data, for example, has \h before \c
+					// 1 in the postEdit text, but the from Paratext data has \mt before
+					// \c 1, and so the \h will end up being preserved if the user has
+					// adapted the \h field's contents, but \mt will be preserved instead
+					// if he hasn't.)
 					MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
 					MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
 					wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
@@ -4715,88 +4816,54 @@ wxString GetUpdatedText_UsfmsChanged(
 				}
 				else
 				{
-					// both indices have advanced, so it's a normal situation
-
-					/* 
-                    // the approach in this commented out section requires reconstituting
-                    // text and reprocessing for md5 checksums a second time - I think a
-                    // better way is to use the original checkums, and compare subarrays
-                    // constructed from them - this will avoid the possibility of
-                    // introducing a spurious text difference due to round tripping part of
-                    // text through the md5 checksum process once more
-
-					// now get the first and last lineStrings for each array from the array of
-					// MD5Map structs stored, one for each line, from these we can get character
-					// offsets into postEditText and fromEditorText for this whole mismatch chunk
-					// (remember, postEditArr_Index and postEditArr_LastLineIndex are valid for
-					// both preEditOffsetsArr and postEditOffsetsArr, and so the parameters in the
-					// signatures on RHS of the first two lines below are not mistakes)
-					MD5Map* pPreEditArr_StartMap = (MD5Map*)preEditOffsetsArr.Item(postEditArr_Index); // param is not a mistake
-					MD5Map* pPreEditArr_LastMap = (MD5Map*)preEditOffsetsArr.Item(postEditArr_LastLineIndex); // param is not a mistake
-					MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
-					MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
+					// The user, since the last File / Save, has not edited either the punctuation or words within
+					// Adapt It within this mismatch section, so the external editor's current
+					// version of the text for this section is to be preserved unchanged.
+					// Extract it and add it to newText
 					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
 					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
+					wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
+								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+					newText += fromEditorTextSubstring;
+				}
+			}
+			else if (	postEditArr_AfterChunkIndex > postEditArr_Index
+					 && fromEditorArr_AfterChunkIndex == fromEditorArr_Index)
+			{
+				// This is scenario (2) above
+				
+				// the postEditText has one or more extra fields at this point, so
+				// since we give priority to what is in AI, transfer these markers and
+				// their text contents to newText (in effect, 'inserting' it into the
+				// from-editor text at this location)
+				wxASSERT(postEditArr_Index <= postEditArr_LastLineIndex);
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
+				wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				newText += postEditTextSubstring;
+			}
+			else
+			{
+				// This is scenario (3) above
+				wxASSERT(fromEditorArr_Index <= fromEditorArr_LastLineIndex);
+				MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
+				MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
+				wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
+							pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+				newText += fromEditorTextSubstring;
+			}
 
-					// work out whether or not there are meaning differences between the
-					// preEditText and the postEditText for the mismatched range; we can do this
-					// by pulling out from preEditMd5Arr and postEditMd5Arr the relevant subset of
-					// lines into separate smaller wxArrayString variables, and then use Bill's
-					// comparison functions to evaluate whether or not the meaning has been
-					// changed within this mismatched section (by the user's work done in AI since
-					// last File / Save)
-					wxString preEditTextSubstring = ExtractSubstring(pPreEditBuffer, pPreEditEnd, 
-									pPreEditArr_StartMap->startOffset, pPreEditArr_LastMap->endOffset);
-					wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
-									pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-					bool bTextAndOrPunctsChanged = IsTextOrPunctsChanged(preEditTextSubstring, postEditTextSubstring);
-					*/
-					// Recall that postEditArr_Index and postEditArr_LastLineIndex are the same for
-					// both preEditOffsetsArr and postEditOffsetsArr (because markers cannot be
-					// accessed and changed when in collaboration mode), and so param2 equals
-					// param5, and param3 equals param6 in the following call
-					bool bTextAndOrPunctsChanged = IsTextOrPunctsChanged(preEditMd5Arr, postEditArr_Index,
-											postEditArr_LastLineIndex, postEditMd5Arr, postEditArr_Index, 
-											postEditArr_LastLineIndex);
-					if (bTextAndOrPunctsChanged)
-					{
-						// The user has edited something in this "mismatch section" within the
-						// Adapt It document, and so we must honour that an pass this whole
-						// section back to the external edit's text - so get the offsets to the
-						// start and end of the whole section within postEditText, and then
-						// transfer it to the external editor's text updated text - in newText
-						MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
-						MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
-						wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
-									pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-						newText += postEditTextSubstring;
-					}
-					else
-					{
-						// The user, since the last File / Save, has not edited either the punctuation or words within
-						// Adapt It within this mismatch section, so the external editor's current
-						// version of the text for this section is to be preserved unchanged.
-						// Extract it and add it to newText
-						MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
-						MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
-						wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
-									pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-						newText += fromEditorTextSubstring;
-					}
-				} // end of else block for test: 
-				  // else if (fromEditorArr_Index == fromEditorArr_AfterChunkIndex)
-			} // end of else block for test: 
-			  // else if (postEditArr_LastLineIndex != -1 && fromEditorArr_LastLineIndex == -1)
-			
             // update the loop indices -- on the RHS use the variables which already have
             // the kick-off index value for the next iteration
 			postEditArr_Index = postEditArr_AfterChunkIndex;
 			fromEditorArr_Index = fromEditorArr_AfterChunkIndex;
+
 		}  // end of TRUE block for test: if (postEditLineMkr != fromEditorLineMkr)
 		else // the postEdit and fromEditor line's stored markers are identical
 		{
 			// simple-case protocols apply: so check for MD5 checksum of "0" in
-			// fromEditorMD5Sum, and if so, the copy the span over from postEditText
+			// fromEditorMD5Sum, and if so, then copy the span over from postEditText
 			// unilaterally (marker and text, or marker an no text, as the case may be -
 			// doesn't matter since the fromEditorText's marker had no content anyway)
 			if (fromEditorMD5Sum == zeroStr)
@@ -4841,6 +4908,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			postEditArr_Index++;
 			fromEditorArr_Index++;
 		} // end of else block for test: if (postEditLineMkr != fromEditorLineMkr)
+
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
 
 	// handle the possibility that one of the arrays might have unprocessed material in it

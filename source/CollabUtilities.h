@@ -62,8 +62,20 @@ struct MD5Map {
 	size_t startOffset;
 	size_t endOffset;
 };
+
+// This struct is used for finding the next sync position when the main loop comes to
+// mismatched markers (which not necessarily are \v markers, we need to deal with things
+// like \q mismatched with \c etc). We also want to handle \c like we do for \v, so that
+// for purposes of the matching algorithm when we come to a "complex" part of the array
+// matchups, we can halt at the \c which precedes the \v 1, and treat the \c as equivalent
+// to a verse marker with verse number 0. So for a halt at \c, we put verseNumStr =
+// _T("0") and set chapterStr to the actual number string for the chapter, and bIsComplex
+// to FALSE; but for a halt at a verse, chapterStr will be empty, and verseNumStr will
+// have something different than _T("0"), and bIsComplex could be TRUE or FALSE depending
+// on what is in verseNumStr)
 struct VerseInf {
 	wxString verseNumStr;
+	wxString chapterStr;
 	int indexIntoArray;
 	bool bIsComplex;
 };
@@ -92,22 +104,22 @@ class CSourcePhrase;
 							const wxArrayString& fromEditorMd5Arr, int postEditStart, 
 							int& postEditEnd, int fromEditorStart, int& fromEditorEnd);
 	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index);
-	bool			GetAnotherVerseLine(const wxArrayString& usfmText, int& index);
+	bool			GetAnotherVerseOrChapterLine(const wxArrayString& usfmText, int& index, wxString& chapterStr);
 	wxString		GetInitialUsfmMarkerFromStructExtentString(const wxString str);
 	wxString		GetStrictUsfmMarkerFromStructExtentString(const wxString str);
 	wxString		GetFinalMD5FromStructExtentString(const wxString str);
 	int				GetCharCountFromStructExtentString(const wxString str);
 	wxString		GetNumberFromChapterOrVerseStr(const wxString& verseStr);
-					// use this one only for pre-chapter-1 usfm fields
-	void			GetRemainingMd5VerseLinesInChapter(const wxArrayString& md5Arr, int nStart, wxArrayPtrVoid& verseLinesArr);
-					// use this one for \c 1 line and all subsequent usfsm lines
 	void			GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart, 
-										wxArrayPtrVoid& verseLinesArr);
+												wxArrayPtrVoid& verseLinesArr);
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
-	int				FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum);
+	int				FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum,
+												wxString chapterStr);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
 	void			InitializeVerseAnalysis(VerseAnalysis& rVerseAnal);
+	bool			IsChapterLine(const wxArrayString& usfmText, int index, wxString& chapterStr);
 	bool			IsVerseLine(const wxArrayString& usfmText, int index);
+
 	bool			IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex);
 	bool			IsComplexVersificationLine(const wxString& verseLineStr);
 
