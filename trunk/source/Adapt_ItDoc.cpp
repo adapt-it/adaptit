@@ -1371,14 +1371,28 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 		wxString updatedText;
 		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
 													makeTargetText, postEditText);
-		// comment out the #define when a wxLogDebug listing of the updated text is not 
-		// wanted in the Ouput window when in the debugger
+		// comment out the #define when a wxLogDebug listing of the updated text is not wanted
 #define _HAVE_A_LOOK
 #ifdef _HAVE_A_LOOK
 #ifdef __WXDEBUG__
 		// have a look at what we got
-		wxLogDebug(_T("\n *** updatedText returned to OnFileSave() in doc class ***\n"));
-		wxLogDebug(_T("%s\n"), updatedText.c_str());
+		wxLogDebug(_T("\n *** OnFileSave(): updatedText to transfer to PT or BE when collaborating ***\n"));
+		// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
+		// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
+		// characters, so wxLogDebug happily outputs 1but 12,000, maybe more, but perhaps
+		// it is limited to a 32 Kb buffer.
+		//wxLogDebug(_T("%s\n"), updatedText.c_str());
+		int count = updatedText.Len();
+		int abit = count / 3;
+		wxString acopy = updatedText;
+		wxString first = acopy.Left(abit);
+		acopy = acopy.Mid(abit);
+		wxString second = acopy.Left(abit);
+		acopy = acopy.Mid(abit);
+		wxLogDebug(_T("%s\n"), first.c_str());
+		wxLogDebug(_T("%s\n"), second.c_str());
+		wxLogDebug(_T("%s\n"), acopy.c_str());
+
 #endif
 #endif
 		if (!updatedText.IsEmpty())
@@ -1400,7 +1414,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			{
 				// not likely to happen so an English warning will suffice
 				wxMessageBox(_T(
-"Error when trying tp write target text to the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
+"Error when trying to write target text to the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
 				_T(""),wxICON_WARNING);
 				wxString temp;
 				temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultTgt = %d"),resultTgt);
@@ -1441,8 +1455,22 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 #ifdef _HAVE_A_LOOK
 #ifdef __WXDEBUG__
 				// have a look at what we got
-				wxLogDebug(_T("\n *** updatedFreeTransText returned to OnFileSave() in doc class ***\n"));
-				wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
+				wxLogDebug(_T("\n *** OnFileSave(): updatedFreeTransText to transfer to PT or BE when collaborating ***\n"));
+				//wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
+				// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
+				// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
+				// characters, so wxLogDebug happily outputs 1but 12,000, maybe more, but perhaps
+				// it is limited to a 32 Kb buffer.
+				int count = updatedFreeTransText.Len();
+				int abit = count / 3;
+				wxString acopy = updatedFreeTransText;
+				wxString first = acopy.Left(abit);
+				acopy = acopy.Mid(abit);
+				wxString second = acopy.Left(abit);
+				acopy = acopy.Mid(abit);
+				wxLogDebug(_T("%s\n"), first.c_str());
+				wxLogDebug(_T("%s\n"), second.c_str());
+				wxLogDebug(_T("%s\n"), acopy.c_str());
 #endif
 #endif
 				if (!updatedFreeTransText.IsEmpty())
