@@ -727,6 +727,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 				errorStr = _T("Success!");
 				output = output.Format(_T("Curl result: %d operation = %s\n"), res, errorStr.c_str());
 			}
+			pApp->LogUserAction(output);
 			wxLogDebug(output);
 
 			// always cleanup
@@ -740,12 +741,14 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		}
 		else
 		{
-			// TODO: English error message "curl could not be initialized"
+			// This shouldn't happen. English error message "curl could not be initialized"
+			wxMessageBox(_T("The curl utility could not be initialized"),_T(""),wxICON_INFORMATION);
+			pApp->LogUserAction(_T("The curl utility could not be initialized"));
 		}
 	}
 	else
 	{
-		// 
+		// TODO: Add code to send the email to the user's default email client
 	}
 
 	// If the email cannot be sent, automatically invoke the OnBtnSaveReportAsXmlFile() 
@@ -800,6 +803,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 
 void CEmailReportDlg::OnBtnSaveReportAsXmlFile(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnBtnSaveReportAsXmlFile()"));
 	bool bPromptForMissingData = TRUE;
 	bool bSavedOK;
 	wxString nameSuffix = _T("");
@@ -882,6 +887,7 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 	{
 		msg = msg.Format(_("Could not create the email report to disk at the following work folder path:\n   %s"),reportPathAndName.c_str());
 		wxMessageBox(msg,_("Problem creating or writing the xml file"),wxICON_WARNING);
+		pApp->LogUserAction(msg);
 	}
 	else
 	{
@@ -890,6 +896,7 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 		{
 			msg = msg.Format(_("The email report was saved at the following work folder path:\n   %s"),reportPathAndName.c_str());
 			wxMessageBox(msg,_("Your report was saved for later use or reference"),wxICON_INFORMATION);
+			pApp->LogUserAction(msg);
 		}
 		bSubjectHasUnsavedChanges = FALSE;
 		bYouEmailAddrHasUnsavedChanges = FALSE;
@@ -902,6 +909,7 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnBtnLoadASavedReport()"));
 	// Adapt It saves email reports in a special _LOGS_EMAIL_REPORTS folder in the current 
 	// work folder (which may be a custom work folder) at the path m_logsEmailReportsFolderPath. 
 	// Get an array of the report file names that match the reportType.
@@ -925,6 +933,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 				path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
 				msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
 				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				pApp->LogUserAction(msg);
 				// return; 
 				// allow the Load operation to continue 
 			}
@@ -1000,6 +1009,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 					pdMsg1 += pdMsg3;
 					int response;
 					response = wxMessageBox(pdMsg1,_("Could not find the packed document in your work folder"),wxYES_NO | wxICON_WARNING);
+					pApp->LogUserAction(pdMsg1);
 				}
 			
 			}
@@ -1039,6 +1049,7 @@ void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 				path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
 				msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
 				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				pApp->LogUserAction(msg);
 				// return;
 				// allow the dialog to close via the EndModal() call below
 			}
@@ -1052,10 +1063,12 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 	// If no document is open, tell user that he must open a document first that he
 	// wants to have packed and attached to the email report.
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnBtnAttachPackedDoc()"));
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	if (pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		wxMessageBox(_("A document must be open before Adapt It can pack it.\nClose the report dialog and open a document, then try again."),_("No document open"),wxICON_INFORMATION);
+		pApp->LogUserAction(_T("A document must be open before Adapt It can pack it.\nClose the report dialog and open a document, then try again."));
 		return;
 	}
 	
@@ -1068,6 +1081,7 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 		pButtonAttachAPackedDoc->SetToolTip(pBtnAttachTooltip);
 		pButtonAttachAPackedDoc->Enable();
 		pButtonAttachAPackedDoc->Refresh();
+		pApp->LogUserAction(_T("Detached an Attached Packed Doc()"));
 		return;
 	}
 
@@ -1080,6 +1094,7 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 	if (!pDoc->DoPackDocument(exportPathUsed,FALSE)) // assembles the raw data into the packByteStr byte buffer (CBString)
 	{
 		// Any errors will be displayed by DoPackDocument, so just return here
+		pApp->LogUserAction(_T("Error in DoPackDocument() called from CEmailReportDlg"));
 		return;
 	}
 	// the packed document is located at exportPathUsed
@@ -1107,6 +1122,7 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 void CEmailReportDlg::OnBtnViewUsageLog(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnBtnViewUsageLog()"));
 	CLogViewer logDlg((wxWindow*)pApp->GetMainFrame());
 	logDlg.ShowModal();
 }

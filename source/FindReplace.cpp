@@ -522,6 +522,7 @@ void CFindDlg::DoFindNext()
 
 	// do the Find Next operation
 	bool bFound;
+	gpApp->LogUserAction(_T("pView->DoFindNext() executed in CFindDlg"));
 	bFound = pView->DoFindNext(nKickOffSequNum,
 									m_bIncludePunct,
 									m_bSpanSrcPhrases,
@@ -544,7 +545,7 @@ void CFindDlg::DoFindNext()
 	if (bFound)
 	{
 		gbFound = TRUE; // set the global
-
+		gpApp->LogUserAction(_T("   Found!"));
 		// inform the dialog about how many were matched
 		m_nCount = nCount;
 
@@ -620,6 +621,7 @@ void CFindDlg::DoFindNext()
 	}
 	else
 	{
+		gpApp->LogUserAction(_T("   Not Found!"));
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
 		pView->FindNextHasLanded(gpApp->m_nActiveSequNum,FALSE); // show old active location
@@ -1322,6 +1324,7 @@ void CReplaceDlg::DoFindNext()
 
 	// do the Find Next operation
 	bool bFound;
+	gpApp->LogUserAction(_T("pView->DoFindNext() executed in CReplaceDlg"));
 	bFound = pView->DoFindNext(nKickOffSequNum,
 									m_bIncludePunct,
 									m_bSpanSrcPhrases,
@@ -1344,6 +1347,7 @@ void CReplaceDlg::DoFindNext()
 	if (bFound)
 	{
 		gbFound = TRUE; // set the global
+		gpApp->LogUserAction(_T("   Found!"));
 
 		// enable the Replace and Replace All buttons
 		wxASSERT(m_pButtonReplace != NULL);
@@ -1425,6 +1429,7 @@ void CReplaceDlg::DoFindNext()
 	}
 	else
 	{
+		gpApp->LogUserAction(_T("   Not Found!"));
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
 
@@ -1645,6 +1650,7 @@ void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event)
 
     // if we get here then we have a selection, and the OnIdle() handler can now start
     // doing the replacements following by finds, till no match happens or eof reached
+	gpApp->LogUserAction(_T("Replace All executed"));
 	Hide();
 	gbReplaceAllIsCurrent = TRUE;
 	

@@ -1589,6 +1589,8 @@ _("You first need to select at least one item in either list before clicking the
 
 	RemoveFilesAndFolders(pathToPane, pSelectedFoldersArray, pSelectedFilesArray);
 
+	gpApp->LogUserAction(_T("Deleted file(s)"));
+
 	// clear the allocations to the heap
 	pSelectedFilesArray->Clear(); // this one is on heap
 	pSelectedFoldersArray->Clear(); // this one is on heap
@@ -1805,6 +1807,7 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 			EnableButtons();
 			return;
 		}
+		gpApp->LogUserAction(_T("Renamed File"));
 
 		// update the pane's list
 		if (sideWithFocus == leftSideHasFocus)
@@ -1882,6 +1885,8 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 
+		gpApp->LogUserAction(_T("Renamed File"));
+		
 		// update the pane's list
 		if (sideWithFocus == leftSideHasFocus)
 		{
@@ -2356,7 +2361,7 @@ _("Before you click the Copy button, you need to select at least one item from t
 	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
 					  // if there was one, was handled (see CopyAction enum for values)
 
-   // do not allow copying of whole folders if the copy folder is "__SOURCE_INPUTS" (because
+    // do not allow copying of whole folders if the copy folder is "__SOURCE_INPUTS" (because
     // we must have only a flat list of filenames in __SOURCE_INPUTS); and for a Move request,
     // with copy folder being the "__SOURCE_INPUTS", we do not allow anything to be moved, (so
     // as to protect source data files which may belong to a 3rd part app,) we allow only
@@ -2387,6 +2392,8 @@ _("Before you click the Copy button, you need to select at least one item from t
 	pSrcSelectedFoldersArray->Clear(); // this one is on heap
 	delete pSrcSelectedFilesArray; // don't leak it
 	delete pSrcSelectedFoldersArray; // don't leak it
+
+	gpApp->LogUserAction(_T("Copied File(s)"));
 
 	// if the user asked for a cancel from the file conflict dialog, it cancels the parent
 	// dlg too
@@ -2627,6 +2634,8 @@ _("Before you click the Move button, you need to select at least one item from t
 		return;
 	}
 
+	gpApp->LogUserAction(_T("Moved file(s)"));
+
     // Note: a bug in SetItemState() which DeselectSelectedItems() call uses causes the
     // m_nCount member of wxArrayString for pPaneSelectedFiles() array to be overwritten to
     // have value 1, so after emptying here do a further empty below
@@ -2711,6 +2720,8 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 					{
 					}
 					SetupLeftList(m_strLeftFolderPath);
+					
+					gpApp->LogUserAction(_T("Peeked at File"));
 	
 					// now defocus both lists
 					SetNeitherSideHasFocus();
@@ -2753,6 +2764,8 @@ void AdminMoveOrCopy::OnBnClickedPeek(wxCommandEvent& WXUNUSED(event))
 					{
 					}
 					SetupRightList(m_strRightFolderPath);
+					
+					gpApp->LogUserAction(_T("Peeked at File"));
 	
 					// now defocus both lists
 					SetNeitherSideHasFocus();

@@ -77,7 +77,7 @@ public:
 
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
-	void		OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
+	void		OnAdvancedFreeTranslationMode(wxCommandEvent& event);
 	void		OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event));

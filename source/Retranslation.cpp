@@ -3636,12 +3636,15 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = m_pApp->GetDocument()->GetCurrentDirectory();
 	
+	m_pApp->LogUserAction(_T("Initiated OnRetranslationReport()"));
+
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
 					 _T(""),wxICON_INFORMATION);
+		m_pApp->LogUserAction(_T("This particular operation is not available when you are glossing."));
 		return;
 	}
 	wxASSERT(m_pApp != NULL);
@@ -3668,6 +3671,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
 		{
 			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+			m_pApp->LogUserAction(msg);
 		}
 		else
 		{
@@ -3679,6 +3683,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				// a "Yes" answer is a choice for reporting only for the current document,
 				// a "No" answer exits to allow the user to close the document and then
 				// the report can be chosen again and it will do all documents
+				msg = _T("return - Wants Retrans report based on many/all docs");
+				m_pApp->LogUserAction(msg);
 				return;
 			}
 		}
@@ -3774,6 +3780,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			// sake to what it was on entry, since there was a wxSetWorkingDirectory call made
 			// above
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			m_pApp->LogUserAction(_T("Cancelled Retrans report at wxFileDialog"));
 			return; // user cancelled
 		}
 		// get the user's desired path
@@ -3811,6 +3818,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
         // sake to what it was on entry, since there was a wxSetWorkingDirectory call made
         // above
 		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+		m_pApp->LogUserAction(_T("Unable to open report file."));
 		return; // just return since it is not a fatal error
 	}
 	
@@ -3850,12 +3858,13 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// a document is open, so only do the report for this current document
 		wxASSERT(pFileList->IsEmpty()); // must be empty, 
 		// DoRetranslationReport() uses this as a flag
-		
+		m_pApp->LogUserAction(_T("Executing DoRetranslationReport() on open doc"));
 		DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f);
 	}
 	else
 	{
-        // no document is open, so enumerate all the doc files, and do a report based on
+ 		m_pApp->LogUserAction(_T("Executing DoRetranslationReport() on many docs"));
+       // no document is open, so enumerate all the doc files, and do a report based on
         // those the user chooses (remember that in our version of this SDI app, when no
         // document is open, in fact we have an open unnamed empty document, so pDoc is
         // still valid)
@@ -3887,6 +3896,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                 // made above changes the current working dir to the Adaptations folder
                 // (MFC version did not add the line below)
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				m_pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
 				return;
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
@@ -3921,6 +3931,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                 // call made above changes the current working dir to the Adaptations
                 // folder (MFC version did not add the line below)
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				m_pApp->LogUserAction(_T("finder.Open() failed in OnRetransReport()"));
 				return;
 			}
 			else
@@ -3984,6 +3995,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 														  "Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 													   folderPath.c_str());
 								wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+								m_pApp->LogUserAction(errStr);
 								continue;
 							}
 							nCount = pFileList->GetCount();

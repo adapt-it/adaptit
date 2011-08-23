@@ -5858,8 +5858,9 @@ bool IsLittleEndian(wxString& theText)
 	// wchar_t is 2 bytes in Windows, 4 in Unix; we support non-Unicode app only for
 	// Windows, which is low-endian 
 	bool bIsLittleEndian = TRUE;
+	unsigned int len;
+	len = theText.Len();
 #ifdef _UNICODE
-	unsigned int len = theText.Len();
 	unsigned int size_in_bytes = len * sizeof(wxChar); // len*2 or len*4
 	const wxChar* pUtf16Buf = theText.GetData();
 	char* ptr = (char*)pUtf16Buf;
@@ -6250,7 +6251,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
     // buffer and use tellenc only once before handling the results with _UNICODE
     // conditional compiles.
 
-	bool bIsLittleEndian = TRUE; // this is valid for ANSI build, on non-Win platforms 
+	bool bIsLittleEndian;
+	bIsLittleEndian = TRUE; // this is valid for ANSI build, on non-Win platforms 
 								 // we only support Unicode
 #ifndef _UNICODE // ANSI version, no unicode support
 

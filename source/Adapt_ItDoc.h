@@ -360,8 +360,8 @@ public:
 	void OnUpdateFilePackDoc(wxUpdateUIEvent& event);
 	void OnUpdateFileUnpackDoc(wxUpdateUIEvent& event);
 	void OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdateUIEvent& event);
-	void OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event));
-	void OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& WXUNUSED(event));
+	void OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& event);
+	void OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& event);
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);

@@ -170,6 +170,8 @@ void CSplitDialog::OnBnClickedButtonSplitNow(wxCommandEvent& WXUNUSED(event))
 	// BEW added 23Jun07
 	gbDoingSplitOrJoin = TRUE; // use to suppress document backups generation during the splitting
 
+	gpApp->LogUserAction(_T("Executing Split Now in CSplitDialog"));
+
 	// If the user requested that we split at the next chapter, then move the phrasebox location to the
 	// beginning of the next chapter so that we can, for the rest of the function, use the same code for
 	// both when they've selected "split at next chapter" and "split at current phrasebox location".
@@ -426,6 +428,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	pSplittingWait->Show(FALSE);
 	//IDS_SPLIT_SUCCEEDED
 	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION);
+	gpApp->LogUserAction(_T("Splitting the document succeeded - split at phrasebox."));
 }
 
 // Returns a list of Chapter objects.  Does not modify SourcePhrases.  This means that each SourcePhrase
@@ -658,6 +661,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	OnOK(event);
 	// IDS_SPLIT_SUCCEEDED
 	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION); //TellUser();
+	gpApp->LogUserAction(_T("Splitting the document succeeded - split into chapters interactive."));
 
 	// having the end result be an empty window could be confusing, so have the Start Working...
 	// wizard come up at the Document page, so that the user can do something meaningful -- such

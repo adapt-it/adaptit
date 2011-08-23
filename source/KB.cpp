@@ -1005,6 +1005,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		{
 			wxMessageBox(_("Unable to open import file for reading."),
 		  _T(""), wxICON_WARNING);
+			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
 			return;
 		}
 		// For LIFT import we are using wxFile and we call xml processing functions
@@ -1051,6 +1052,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			// assume there was no configuration file in existence yet, 
 			// so nothing needs to be fixed
 			wxMessageBox(_("Unable to open import file for reading."));
+			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
 			return;
 		}
 
@@ -1479,6 +1481,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
 		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
 		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
+		m_pApp->LogUserAction(msg);
 	} // end importing from an SFM text file
 }
 
@@ -4559,6 +4562,7 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 		{
 			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
 							_T(""), wxICON_INFORMATION);
+			m_pApp->LogUserAction(_T("Warning: something went wrong doing a save of the KB"));
 		}
 		
 		// remove the progress indicator window
@@ -4594,6 +4598,7 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 "Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),
 		logName.c_str());
 		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
+		m_pApp->LogUserAction(msg);
 	}
 	errors.Clear(); // clear the array
 }

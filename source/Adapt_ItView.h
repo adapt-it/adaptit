@@ -359,7 +359,7 @@ protected:
 
 protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));
-	void OnFileSaveKB(wxCommandEvent& WXUNUSED(event));
+	void OnFileSaveKB(wxCommandEvent& event);
 	void OnFileCloseProject(wxCommandEvent& event);
 	void OnFileStartupWizard(wxCommandEvent& event);
 	void OnUpdateFileCloseKB(wxUpdateUIEvent& event);
@@ -383,7 +383,7 @@ protected:
 	void OnCheckSingleStep(wxCommandEvent& WXUNUSED(event));
 	void OnCheckKBSave(wxCommandEvent& WXUNUSED(event));
 	void OnCheckForceAsk(wxCommandEvent& WXUNUSED(event));
-	void OnCopySource(wxCommandEvent& WXUNUSED(event));
+	void OnCopySource(wxCommandEvent& event);
 	void OnUpdateCopySource(wxUpdateUIEvent& event);
 	void OnClearContentsButton(wxCommandEvent& WXUNUSED(event));
 	void OnSelectAllButton(wxCommandEvent& WXUNUSED(event));
@@ -425,9 +425,9 @@ protected:
 	void OnUpdateButtonHidePunct(wxUpdateUIEvent& event);
 	void OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event);
-	void OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event));
+	void OnButtonNoPunctCopy(wxCommandEvent& event);
 	void OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event);
-	void OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event));
+	void OnMarkerWrapsStrip(wxCommandEvent& event);
 	void OnUpdateShowTgt(wxUpdateUIEvent& event);
 	void OnUpdateShowAll(wxUpdateUIEvent& event);
 	void OnUpdateEditUndo(wxUpdateUIEvent& event);
@@ -444,8 +444,8 @@ protected:
 	void OnUpdateSelectSilConverters(wxUpdateUIEvent& event);
 	void OnAcceptChanges(wxCommandEvent& WXUNUSED(event));
 	void OnSelectSilConverters(wxCommandEvent& event);
-	void OnRadioDrafting(wxCommandEvent& WXUNUSED(event));
-	void OnRadioReviewing(wxCommandEvent& WXUNUSED(event));
+	void OnRadioDrafting(wxCommandEvent& event);
+	void OnRadioReviewing(wxCommandEvent& event);
 	void OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event);
 	void OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event);
@@ -482,14 +482,14 @@ public:
 	void OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED(event));
 	void OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event));
 	void OnUseSilConverter(wxCommandEvent& WXUNUSED(event));
-	void OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event));
+	void OnAdvancedEnableglossing(wxCommandEvent& event);
 	void OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event);
 	void OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event);
 	void OnAdvancedDelay(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedDelay(wxUpdateUIEvent& event);
 	void OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event);
-	void OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event));
+	void OnButtonEnablePunctCopy(wxCommandEvent& event);
 	void OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);
 	void OnButtonMerge(wxCommandEvent& WXUNUSED(event));
