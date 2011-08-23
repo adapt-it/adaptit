@@ -93,10 +93,10 @@ extern bool gbDoingInitialSetup;
 #ifdef _UNICODE
 
 // comment out when this bug becomes history
-//#define OUT_OF_SYNC_BUG
+#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
 // is no longer wanted
-//#define SHOW_INDICES_RANGE
+#define SHOW_INDICES_RANGE
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -3198,8 +3198,8 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	// Generate the verseArrays needed for making comparisons and searches for matching
 	// verseNum strings to define where the end of the chunk is; we need a pair going to
 	// the end of the whole arrays
-	wxArrayPtrVoid postEditVerseArr_All;
-	wxArrayPtrVoid fromEditorVerseArr_All;
+	wxArrayPtrVoid postEditVerseArr;
+	wxArrayPtrVoid fromEditorVerseArr;
 
     // Populate the two arrays of verse information - stored in VerseInf structs storing
     // (verseStr, index, chapterStr, bIsComplex flag) for each verse or chapter line --
@@ -3208,15 +3208,15 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	// next chapter marker (or end of arrays when in final chapter) constitues a bounding
 	// value where syncing must happen, and so testing for a matchup always succeeds at
 	// such a boundary
-	GetRemainingMd5VerseLines(postEditMd5Arr, postEditStart, postEditVerseArr_All);
-	GetRemainingMd5VerseLines(fromEditorMd5Arr, fromEditorStart, fromEditorVerseArr_All);
+	GetRemainingMd5VerseLines(postEditMd5Arr, postEditStart, postEditVerseArr);
+	GetRemainingMd5VerseLines(fromEditorMd5Arr, fromEditorStart, fromEditorVerseArr);
 
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
 	// display up to the next 10 verse lines -- that should be enough for a safe matchup
 	int i;
-	int countOfVersesPostEd = postEditVerseArr_All.GetCount();
-	int countOfVersesFromEd = fromEditorVerseArr_All.GetCount();
+	int countOfVersesPostEd = postEditVerseArr.GetCount();
+	int countOfVersesFromEd = fromEditorVerseArr.GetCount();
 	wxString postVsStr;
 	wxString fromVsStr;
 	wxString gap = _T("   ; ");
@@ -3232,7 +3232,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	{
 		if (i < countOfVersesPostEd)
 		{
-			pVI = (VerseInf*)postEditVerseArr_All.Item(i);
+			pVI = (VerseInf*)postEditVerseArr.Item(i);
 			theIndexStr.Empty();
 			theIndexStr << pVI->indexIntoArray;
 			if (pVI->bIsComplex)
@@ -3273,7 +3273,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	{
 		if (i < countOfVersesFromEd)
 		{
-			pVI = (VerseInf*)fromEditorVerseArr_All.Item(i);
+			pVI = (VerseInf*)fromEditorVerseArr.Item(i);
 			theIndexStr.Empty();
 			theIndexStr << pVI->indexIntoArray;
 			if (pVI->bIsComplex)
@@ -3315,8 +3315,8 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	// Each 'verse array' is a smaller array than postEditMd5Arr and fromEditorMd5Arr,
 	// since we use only the \c and \v fields to populate them -- what we put in them is
 	// pointers to VerseInf structs, as these are more useful than the bare md5 lines
-    int postEditVerseArr_Count_All = postEditVerseArr_All.GetCount(); 
-    int fromEditorVerseArr_Count_All = fromEditorVerseArr_All.GetCount();
+    int postEditVerseArr_Count = postEditVerseArr.GetCount(); 
+    int fromEditorVerseArr_Count = fromEditorVerseArr.GetCount();
 
 	wxString postEditVerseArr_VerseStr; // used in if-then tests below
 	wxString fromEditorVerseArr_VerseStr; // ditto
@@ -3338,16 +3338,16 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
     // chapter number; this is so we can match a \c as if it was a \v marker, because \c
     // markers in the two arrays are always going to be locations at which syncing can be
     // forced (provided the verse numbers match)
-	while (		postEditVerseFwdsIndex   < postEditVerseArr_Count_All 
-			&&	fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All
+	while (		postEditVerseFwdsIndex   < postEditVerseArr_Count 
+			&&	fromEditorVerseFwdsIndex < fromEditorVerseArr_Count
 		  )
 	{
 		// A chapter (\c) line we don't advance beyond, because chapter boundaries are
 		// milestone locations where we must have syncing. Since control entered this
 		// function because of a marker mismatch, then as far as chapter lines are
 		// concerned, the only possibilites that we must handle as special cases are:
-		// (1) postEditVerseArr_All's VerseInf struct is pointing at one for a chapter
-		// line, but fromEditorVerseArr_All's VerseInf struct is pointing at a field
+		// (1) postEditVerseArr's VerseInf struct is pointing at one for a chapter
+		// line, but fromEditorVerseArr's VerseInf struct is pointing at a field
 		// preceding the \c marker field for that array; or
 		// (2) vise versa
 		// (Delineate...() wouldn't have been entered if the callers indices both pointed
@@ -3355,12 +3355,12 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 		// neither of the caller's indices point at a \c marker for the same chapter, but
 		// somewhere before that, - which for Delineate...() is the normal situation and
 		// not a special case) So handle the special cases last.
-		// Beware, the end of either of postEditVerseArr_All or fromEditorVerseArr_All
+		// Beware, the end of either of postEditVerseArr or fromEditorVerseArr
 		// will also halt iteration forwards, so take these possibilities into account too
 		
 		// first get each index's VerseInf struct in order to examine its contents
-		postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
-		fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+		postEditVInf = (VerseInf*)postEditVerseArr.Item(postEditVerseFwdsIndex);
+		fromEditorVInf = (VerseInf*)fromEditorVerseArr.Item(fromEditorVerseFwdsIndex);
 		// get the verseNumStr values for each - remember that if at a \c line, the value
 		// of that member would be _T("0"), and the chapterStr member would have the
 		// chapter number
@@ -3370,18 +3370,18 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 		// test for the "normal" situation (the fourth possibility described in comments
 		// a dozen lines above)
 		/*
-		if ( ((postEditVInf->chapterStr.IsEmpty() && postEditVerseFwdsIndex < postEditVerseArr_Count_All)
+		if ( ((postEditVInf->chapterStr.IsEmpty() && postEditVerseFwdsIndex < postEditVerseArr_Count)
 			 &&
-			 (fromEditorVInf->chapterStr.IsEmpty() && fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All)
+			 (fromEditorVInf->chapterStr.IsEmpty() && fromEditorVerseFwdsIndex < fromEditorVerseArr_Count)
 			 ) || 
-			 ((!postEditVInf->chapterStr.IsEmpty() && postEditVerseFwdsIndex < postEditVerseArr_Count_All)
+			 ((!postEditVInf->chapterStr.IsEmpty() && postEditVerseFwdsIndex < postEditVerseArr_Count)
 			 &&
-			 (!fromEditorVInf->chapterStr.IsEmpty() && fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All)
+			 (!fromEditorVInf->chapterStr.IsEmpty() && fromEditorVerseFwdsIndex < fromEditorVerseArr_Count)
 			 )
 		 */
-		if ( postEditVerseFwdsIndex < postEditVerseArr_Count_All
+		if ( postEditVerseFwdsIndex < postEditVerseArr_Count
 			 &&
-			 fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All
+			 fromEditorVerseFwdsIndex < fromEditorVerseArr_Count
 		   )
 		{
             // the VerseInf for neither of the "verse arrays" is pointing at the start of
@@ -3414,13 +3414,13 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 #endif
 #endif
 				int fromEditorVerseFwdsIndex_Temp = fromEditorVerseFwdsIndex;
-				fromEditorVerseFwdsIndex_Temp = FindMatchingVerseNumInOtherArray(fromEditorVerseArr_All, 
+				fromEditorVerseFwdsIndex_Temp = FindMatchingVerseNumInOtherArray(fromEditorVerseArr, 
 											postEditVerseArr_VerseStr, postEditVInf->chapterStr);
 				if (fromEditorVerseFwdsIndex_Temp != wxNOT_FOUND)
 				{
 					// successful matchup
-					postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
-					fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex_Temp);
+					postEditVInf = (VerseInf*)postEditVerseArr.Item(postEditVerseFwdsIndex);
+					fromEditorVInf = (VerseInf*)fromEditorVerseArr.Item(fromEditorVerseFwdsIndex_Temp);
 					bSuccessful = TRUE;
 					break;
 				}
@@ -3435,13 +3435,13 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 #endif
 #endif
 					int postEditVerseFwdsIndex_Temp = postEditVerseFwdsIndex;
-					postEditVerseFwdsIndex_Temp = FindMatchingVerseNumInOtherArray(postEditVerseArr_All, 
+					postEditVerseFwdsIndex_Temp = FindMatchingVerseNumInOtherArray(postEditVerseArr, 
 											fromEditorVerseArr_VerseStr, fromEditorVInf->chapterStr);
 					if (postEditVerseFwdsIndex_Temp != wxNOT_FOUND)
 					{
 						// successful matchup
-						postEditVInf = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex_Temp);
-						fromEditorVInf = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+						postEditVInf = (VerseInf*)postEditVerseArr.Item(postEditVerseFwdsIndex_Temp);
+						fromEditorVInf = (VerseInf*)fromEditorVerseArr.Item(fromEditorVerseFwdsIndex);
 						bSuccessful = TRUE;
 						break;
 					}
@@ -3464,9 +3464,9 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 			} // end of else block for test: if (postEditVerseArr_VerseStr == fromEditorVerseArr_VerseStr)
 
 		} // end of TRUE block for test: 
-		  //	if ( postEditVerseFwdsIndex < postEditVerseArr_Count_All
+		  //	if ( postEditVerseFwdsIndex < postEditVerseArr_Count
 		  //		&&
-		  //	     fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All)
+		  //	     fromEditorVerseFwdsIndex < fromEditorVerseArr_Count)
 		  //	   )
 		else
 		{
@@ -3493,14 +3493,14 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
             // fromEditorEnd
 			
 			// handle the 'end of array' situation first, for each
-			if (fromEditorVerseFwdsIndex == fromEditorVerseArr_Count_All)
+			if (fromEditorVerseFwdsIndex == fromEditorVerseArr_Count)
 			{
 				// situation (1) in the above comment block; all the rest of the
 				// postEditArr's lines have to have their data appended to that from the
 				// external editor up to this point
 				fromEditorVInf = NULL; // there isn't one, as the index is out of bounds 
 			}
-			else if (postEditVerseFwdsIndex == postEditVerseArr_Count_All)
+			else if (postEditVerseFwdsIndex == postEditVerseArr_Count)
 			{
 				// situation (2) in the above comment block; all the rest of the
 				// fromEditorArr's lines have to have to be included unchanged
@@ -3512,15 +3512,15 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 			if (postEditVInf->chapterStr.IsEmpty())
 			{
                 // situation (1) in the above comment block; find the VerseInf within
-                // postEditVerseArr_All which pertains to the next \c line because
+                // postEditVerseArr which pertains to the next \c line because
                 // fromEditorVerseFwdsIndex already points at the corresponding \c within
-                // fromEditorVerseArr_All
+                // fromEditorVerseArr
                 postEditVerseFwdsIndex++;
-				VerseInf* pVI = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
+				VerseInf* pVI = (VerseInf*)postEditVerseArr.Item(postEditVerseFwdsIndex);
 				while (pVI->chapterStr.IsEmpty())
 				{
 					postEditVerseFwdsIndex++;
-					pVI = (VerseInf*)postEditVerseArr_All.Item(postEditVerseFwdsIndex);
+					pVI = (VerseInf*)postEditVerseArr.Item(postEditVerseFwdsIndex);
 				}
 				postEditVInf = pVI; // this one is for the \c line which is same chapter
 			}
@@ -3529,11 +3529,11 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 				// it has to be situation (2)
 				wxASSERT(fromEditorVInf->chapterStr.IsEmpty());
                 fromEditorVerseFwdsIndex++;
-				VerseInf* pVI = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+				VerseInf* pVI = (VerseInf*)fromEditorVerseArr.Item(fromEditorVerseFwdsIndex);
 				while (pVI->chapterStr.IsEmpty())
 				{
 					fromEditorVerseFwdsIndex++;
-					pVI = (VerseInf*)fromEditorVerseArr_All.Item(fromEditorVerseFwdsIndex);
+					pVI = (VerseInf*)fromEditorVerseArr.Item(fromEditorVerseFwdsIndex);
 				}
 				fromEditorVInf = pVI; // this one is for the \c line which is same chapter
 			}
@@ -3542,8 +3542,8 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 		} // end of else block for test: if (postEditVInf->chapterStr.IsEmpty() && fromEditorVInf->chapterStr.IsEmpty())
 
 	} // end of loop: 
-	  //	while (		postEditVerseFwdsIndex   < postEditVerseArr_Count_All 
-	  //				&&	fromEditorVerseFwdsIndex < fromEditorVerseArr_Count_All
+	  //	while (		postEditVerseFwdsIndex   < postEditVerseArr_Count 
+	  //				&&	fromEditorVerseFwdsIndex < fromEditorVerseArr_Count
 	  //		  )	
 	if (bSuccessful)
 	{
@@ -3587,8 +3587,8 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 #endif
 #endif
 	}
-	DeleteAllVerseInfStructs(postEditVerseArr_All); // don't leak memory
-	DeleteAllVerseInfStructs(fromEditorVerseArr_All); // ditto
+	DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
+	DeleteAllVerseInfStructs(fromEditorVerseArr); // ditto
 }
 
 // Search for a match of verseNum in the passed in verseInfArr, searching the whole array

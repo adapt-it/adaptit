@@ -12558,7 +12558,13 @@ void CAdapt_ItView::OnFileStartupWizard(wxCommandEvent& event)
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
     // whm 20Aug11 note: only log errors in OnFileStartupWizard()
+	
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	// for debugging
+	{
+		bool bExpectsFreeTrans;
+		bExpectsFreeTrans = pApp->m_bCollaborationExpectsFreeTrans;
+	}
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
