@@ -21800,9 +21800,10 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-
-	if ((!gbIsGlossing && m_bKBReady && (m_pSourcePhrases->GetCount() == 0)) ||
-		(gbIsGlossing && m_bGlossingKBReady && (m_pSourcePhrases->GetCount() == 0)))
+	// BEW 24Aug11 changed to allow Restore Knowledge Base to be chosen whether or not a
+	// document is currently open (if open, it will be forced close automatically before
+	// the restore is attempted) - all we check for is that the relevant KB is ready
+	if ((!gbIsGlossing && m_bKBReady) || (gbIsGlossing && m_bGlossingKBReady))
 	{
 		event.Enable(TRUE);
 	}
@@ -21810,6 +21811,16 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 	{
 		event.Enable(FALSE);
 	}
+	// legacy criteria
+	//if ((!gbIsGlossing && m_bKBReady && (m_pSourcePhrases->GetCount() == 0)) ||
+	//	(gbIsGlossing && m_bGlossingKBReady && (m_pSourcePhrases->GetCount() == 0)))
+	//{
+	//	event.Enable(TRUE);
+	//}
+	//else
+	//{
+	//	event.Enable(FALSE);
+	//}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -22430,16 +22441,50 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	if (!(value == wxYES))
 		return;
 
+	CAdapt_ItDoc* pDoc = GetDocument();
+	wxASSERT(pDoc);
 	LogUserAction(_T("Initiated OnFileRestoreKb()"));
+
+	// BEW 24Aug11, change protocol so as to allow the user to initiate a restore even
+	// when a document is open. We check here, and if open, we force it to close and then
+	// proceed as before. The .Enable() for the menu commands will enable the command so
+	// long as the relevant CKB is ready 
+	wxString savedCurOutputPath = m_curOutputPath;	// includes filename			
+	wxString savedCurOutputFilename = m_curOutputFilename;
+	int		 savedCurSequNum = m_nActiveSequNum;	// for resetting the box location
+	bool	 savedBookmodeFlag = m_bBookMode;	// for ensuring correct mode
+	bool	 savedDisableBookmodeFlag = m_bDisableBookMode;		// ditto
+	int		 savedBookIndex = m_nBookIndex;
+	BookNamePair*	pSavedCurBookNamePair = m_pCurrBookNamePair;
+
+	bool bDocForcedToClose = FALSE;
+	if (!m_pSourcePhrases->GetCount() == 0)
+	{
+		// doc is open, so close it (we won't try to save settings so as to force it open
+		// automatically when done, but just let the user choose which to open)
+		bDocForcedToClose = TRUE;
+		bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+		if (!fsOK)
+		{
+			// something's real wrong!
+			wxMessageBox(_(
+"Could not save the current document. Restore Knowledge Base command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
+			_T(""), wxICON_EXCLAMATION);
+			LogUserAction(_T("Could not close and save the current document. Restore Knowledge Base command aborted."));
+			return;
+		}
+
+        // Ensure the current document's contents are removed, otherwise we will get a
+        // doubling of the doc data when OnOpenDocument() is called because the latter will
+        // append to whatever is in m_pSourcePhrases
+		GetView()->ClobberDocument();
+	}
 	bool bOK;
 	wxArrayString* pList = &m_acceptedFilesList;
 	int nCount;
 
 	// the 'accepted' list holds the document filenames to be used
 	pList->Clear(); // ensure it starts empty
-
-	CAdapt_ItDoc* pDoc = GetDocument();
-	wxASSERT(pDoc);
 
 	// get whichever KB is to be worked on
 	CKB* pKB;
@@ -22560,6 +22605,12 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 				tempKBfilePath.Empty();
 			}
 			LogUserAction(_T("...no saved document files yet for this project..."));
+			if (bDocForcedToClose)
+			{
+				bOK = pDoc->ReOpenDocument(	this, strSaveCurrentDirectoryFullPath,
+					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
+			}
 			return;
 		}
 		// there is at least one document, so do the restore
@@ -22608,6 +22659,12 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// restore the former current working directory to what it was on entry
 		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 		LogUserAction(_T("Cancelled from CWhichFilesDlg()"));
+		if (bDocForcedToClose)
+		{
+			bOK = pDoc->ReOpenDocument(	this, strSaveCurrentDirectoryFullPath,
+				savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
+		}
 		return;
 	}
 
@@ -22641,6 +22698,12 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 				tempKBfilePath.Empty();
 			}
 			LogUserAction(s3);
+			if (bDocForcedToClose)
+			{
+				bOK = pDoc->ReOpenDocument(	this, strSaveCurrentDirectoryFullPath,
+					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
+			}
 			return;
 		}
 		else
@@ -22834,6 +22897,20 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// BEW added 05Jan07 to restore the former current working directory
 	// to what it was on entry
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+
+	if (bDocForcedToClose)
+	{
+		bOK = pDoc->ReOpenDocument(	this,
+			    strSaveCurrentDirectoryFullPath,   // for setting current working directory
+				savedCurOutputPath,				   // includes filename
+				savedCurOutputFilename,			   // to help get window Title remade
+				savedCurSequNum,			       // for resetting the box location
+				savedBookmodeFlag,				   // for ensuring correct mode
+				savedDisableBookmodeFlag,		   // ditto
+				pSavedCurBookNamePair,             // for restoring the pointed at struct
+				savedBookIndex,				       // for restoring the book folder's index in array
+				FALSE); // bMarkAsDirty = FALSE
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

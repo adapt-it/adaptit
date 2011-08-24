@@ -1882,96 +1882,6 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
     // immediately following the call. The function is defined in helpers.cpp because we
     // need it elsewhere besides here
 	UpdateDocWithPhraseBoxContents(TRUE, bNoStore);
-	/*
-	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
-	// should be a sufficient test. 
-    // BEW 6July10, code added for handling situation when the phrase box location has just
-    // been made a <Not In KB> one (which marks all CRefString instances for that key as
-    // m_bDeleted set TRUE and also stores a <Not In KB> for that key in the adaptation KB)
-    // and then the user saves or closes and saves the document. Without this extra code,
-    // the block immediatly below would re-store the active location's adaptation string
-    // under the same key, thereby undeleting one of the deleted CRefString entries in the
-    // KB for that key -- so we must prevent this happening by testing for m_bNotInKB set
-    // TRUE in the CSourcePhrase instance there and if so, inhibiting the save
-    bool bInhibitSave = FALSE;
-
-    // BEW changed 26Oct10 to remove the wxASSERAT because if the phrasebox went past the
-    // doc end, and the user wants a save or saveAs, then this assert will trip; so we have
-    // to check and get start of doc as default active location in such a situation
-	//wxASSERT(pApp->m_pActivePile != NULL); // whm added 18Aug10
-	if (pApp->m_pActivePile == NULL)
-	{
-		// phrase box is not visible, put it at sequnum = 0 location
-		pApp->m_nActiveSequNum = 0;
-		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-		pApp->GetView()->Jump(pApp,pSrcPhrase);
-	}
-	CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-	if (pApp->m_pTargetBox != NULL)
-	{
-		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
-		{
-			if (!gbIsGlossing)
-			{
-				pView->MakeTargetStringIncludingPunctuation(pActiveSrcPhrase,pApp->m_targetPhrase);
-				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text);
-			}
-			gbInhibitMakeTargetStringCall = TRUE;
-			if (gbIsGlossing)
-			{
-				bOK = pApp->m_pGlossingKB->StoreText(pActiveSrcPhrase,pApp->m_targetPhrase);
-			}
-			else
-			{
-				// do the store, but don't store if it is a <Not In KB> location
-				if (pActiveSrcPhrase->m_bNotInKB)
-				{
-					bInhibitSave = TRUE;
-					bOK = TRUE; // need this, otherwise the message below will get shown
-					// set the m_adaption member of the active CSourcePhrase instance,
-					// because not doing the StoreText() call means it would not otherwise
-					// get set; the above MakeTargetStringIncludingPunctuation() has
-					// already set the m_targetStr member to include any punctuation
-					// stored or typed
-					pActiveSrcPhrase->m_adaption = pApp->m_targetPhrase; // punctuation was removed above
-				}
-				else
-				{
-					bOK = pApp->m_pKB->StoreText(pActiveSrcPhrase,pApp->m_targetPhrase);
-				}
-			}
-			gbInhibitMakeTargetStringCall = FALSE;
-			if (!bOK)
-			{
-				// something is wrong if the store did not work, but we can tolerate the error 
-				// & continue
-				wxMessageBox(_(
-"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-				_T(""),wxICON_EXCLAMATION);
-				bNoStore = TRUE;
-			}
-			else
-			{
-				if (gbIsGlossing)
-				{
-					pActiveSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-				}
-				else
-				{
-					if (!bInhibitSave)
-					{
-						pActiveSrcPhrase->m_bHasKBEntry = TRUE;
-					}
-					else
-					{
-						bNoStore = TRUE;
-					}
-				}
-			}
-		}
-	}
-	*/
 
 	// get the path correct, including correct filename extension (.xml) and the backup
     // doc filenames too; the m_curOutputPath returns is the full path, that is, it ends
@@ -7709,12 +7619,18 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 /// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(), and 
 /// DoExportInterlinearRTF().
 /// Parses through the number until whitespace is encountered (generally a newline)
-///////////////////////////////////////////////////////////////////////////////
+/// BEW added test for a null, because this function is used in DoMarkerHousekeeping() and
+/// so looks at m_markers strings, where it is sometimes possible for a verse number, for
+/// example, to end the m_markers string (we try to have a space there), and I got a crash
+/// when parsing "\v 4" from a Dynamic Tok Pisin file of James, in chapter 1 -- length had
+/// somehow run on to a value of 779 before a crash happened!
+//////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseNumber(wxChar *pChar)
 {
 	wxChar* ptr = pChar;
 	int length = 0;
-	while (!IsWhiteSpace(ptr))
+	// BEW 24Aug11, added 2nd test to next line
+	while (!IsWhiteSpace(ptr) && *ptr != _T('\0'))
 	{
 		ptr++;
 		length++;
@@ -20048,6 +19964,99 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& e
 		gbIgnoreScriptureReference_Send = FALSE;
 	}
 }
+
+// Call this after some operation which, in order to be able to do it, forces the current
+// doc to be saved and closed, and we want to reconstitute it afterwards - such as a
+// Restore of the KB, or Retranslation report -- in Collaboration mode it is important to
+// be able to do this, because the prior forced closure bypasses OnFileSave() and so no
+// data is sent to the external editor, so we want a function which gets us back to where
+// we were and leaves collaboration-related app members untouched.
+// Returns TRUE if all was well (which it should always be, since we had it open just a
+// little while before), FALSE if some internal call failed
+// BEW created 24Aug11
+// Used in OnFileRestoreKb(), and probably will be in OnRetranslationReport() as well
+bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
+    wxString savedWorkFolderPath,			// for setting current working directory
+	wxString curOutputPath,					// includes filename
+	wxString curOutputFilename,				// to help get window Title remade
+	int		 curSequNum,						// for resetting the box location
+	bool	 savedBookmodeFlag,				// for ensuring correct mode
+	bool	 savedDisableBookmodeFlag,		// ditto
+	BookNamePair*	pSavedCurBookNamePair,  // for repointing at the correct struct
+	int		 savedBookIndex,				// for recovering the correct folder's index
+	bool	 bMarkAsDirty)					// might want it instantly saveable
+{
+	wxASSERT(pApp->m_pSourcePhrases->GetCount() == 0);
+	bool bOK = TRUE;
+	pApp->m_acceptedFilesList.Clear();
+	pApp->LogUserAction(_T("Initiated ReOpenDocument()"));
+	{ // commence scope for wait dialog
+	CWaitDlg waitDlg(pApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 2;	// "Please wait while Adapt It opens the document..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+
+	// restore book mode parameters as at the time when doc was forced to close
+	pApp->m_bBookMode = savedBookmodeFlag;
+	pApp->m_bDisableBookMode = savedDisableBookmodeFlag;
+	pApp->m_curOutputFilename = curOutputFilename;
+	pApp->m_pCurrBookNamePair = pSavedCurBookNamePair;
+	pApp->m_nBookIndex = savedBookIndex;
+	// restore paths and working directory
+	wxString dirPath;
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+	{
+		pApp->m_bibleBooksFolderPath = savedWorkFolderPath;
+		dirPath = pApp->m_bibleBooksFolderPath;
+	}
+	else
+	{
+		pApp->m_curAdaptionsPath = savedWorkFolderPath;
+		dirPath = pApp->m_curAdaptionsPath;
+	}
+	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	wxASSERT(bOK);
+
+	pApp->m_nActiveSequNum = curSequNum;
+	bOK = OnOpenDocument(curOutputPath);
+	SetFilename(curOutputPath,TRUE); // get the window Title set
+	if (curSequNum == -1)
+	{
+		// if the phrase box wasn't visible, relocate it to the doc's start
+		curSequNum = 0;
+	}
+	pApp->m_nActiveSequNum = curSequNum;
+
+	// we need a totally new layout, we can't assume piles or strips are valid
+	CLayout* pLayout = pApp->GetLayout();
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	pLayout->RecalcLayout(pPhrases, create_strips_and_piles);
+#endif
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+
+	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	if (gbIsGlossing)
+		pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+	else
+		// this is what got saved, so put it back there
+		pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+
+	pApp->GetView()->Invalidate(); // get the layout drawn
+	// get the phrase box shown
+	pLayout->m_docEditOperationType = default_op; // sets (-1,-1) as box selection (all its text)
+	pLayout->PlaceBox();
+
+	// set the doc dirty or clean
+	Modify(bMarkAsDirty);
+	} // WaitDlg goes out of scope (and disappears)
+	return bOK;
+}
+
 
 // whm Modified 9Feb2004, to enable consistency checking of currently open document or,
 // alternatively, select multiple documents from the project to check for consistency. If a
