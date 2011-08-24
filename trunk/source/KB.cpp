@@ -4480,6 +4480,7 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 		errors.Add(docStr);
 
 		nTotal = m_pApp->m_pSourcePhrases->GetCount();
+		int granularity = nTotal / 10;
 		wxASSERT(nTotal > 0);
 		nCumulativeTotal += nTotal;
 
@@ -4519,11 +4520,17 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 				errorStr.Empty(); // for next iteration
 			}
 
-			// update the progress bar every 20th iteration
-			if (counter % 1000 == 0) //if (20 * (counter / 20) == counter)
+			// update the progress bar, with a granularity that should give about 9 or 10 jumps
+			if (counter % granularity == 0) 
 			{
 				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
 				progDlg.Update(counter,msgDisplayed);
+				// these all get called the 10 times expected, but in view only one gets
+				// seen and the bar appears to hang at about 1/10th way along. Try a
+				// Pulse() too to get some more movement -- nah, it makes the bar show nothing!
+				//progDlg.Pulse();  Check out the one for File / Save -- it advances
+				//nicely -- it is basically the same as here, I don't get it why the
+				//differences in the behaviours? I've no time to worry about it now (24Aug11)
 			}
 		}
 		// whm added 27Apr09 to save any changes made by RedoStorage above

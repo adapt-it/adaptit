@@ -155,6 +155,17 @@ protected:
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
+	bool			ReOpenDocument(	CAdapt_ItApp* pApp,	
+									wxString savedWorkFolderPath,			// for setting current working directory
+									wxString curOutputPath,					// includes filename
+									wxString curOutputFilename,				// to help get window Title remade
+									int		 curSequNum,						// for resetting the box location
+									bool	 savedBookmodeFlag,				// for ensuring correct mode
+									bool	 savedDisableBookmodeFlag,		// ditto
+									BookNamePair*	pSavedCurBookNamePair,  // for restoring the pointed at struct
+									int		 savedBookIndex,				// for restoring the book folder's index in array
+									bool	 bMarkAsDirty);					// might want it instantly saveable
+
 protected:
 #ifndef __WXMSW__
 #ifndef _UNICODE

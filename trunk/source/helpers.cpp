@@ -3472,13 +3472,18 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		// data passing to be done without the use of globals
 		dlg.SetNonEditableString(Sstr);
 		dlg.SetUserEditableString(Tstr);
-		dlg.SetPlaceableDataStrings(&markersToPlaceArray);
+		// BEW 24Aug11 don't show the dialog if there is nothing in the array, Tstr would
+		// be already correct
+		if (!markersToPlaceArray.IsEmpty())
+		{
+			dlg.SetPlaceableDataStrings(&markersToPlaceArray);
 
-		// show the dialog
-		dlg.ShowModal();
+			// show the dialog
+			dlg.ShowModal();
 
-		// get the post-placement resulting string
-		Tstr = dlg.GetPostPlacementString();
+			// get the post-placement resulting string
+			Tstr = dlg.GetPostPlacementString();
+		}
 
 		// remove initial and final whitespace
 		Tstr.Trim(FALSE);
@@ -4441,13 +4446,17 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// data passing to be done without the use of globals
 		dlg.SetNonEditableString(Sstr);
 		dlg.SetUserEditableString(Tstr);
-		dlg.SetPlaceableDataStrings(&markersToPlaceArray);
+		// BEW 24Aug11, don't display the dialog if the array is empty
+		if (!markersToPlaceArray.IsEmpty())
+		{
+			dlg.SetPlaceableDataStrings(&markersToPlaceArray);
 
-		// show the dialog
-		dlg.ShowModal();
+			// show the dialog
+			dlg.ShowModal();
 
-		// get the post-placement resulting string
-		Tstr = dlg.GetPostPlacementString();
+			// get the post-placement resulting string
+			Tstr = dlg.GetPostPlacementString();
+		}
 	}
 
     // now add the prefix string material if it is not empty
