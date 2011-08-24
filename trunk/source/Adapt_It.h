@@ -92,8 +92,8 @@ class NavProtectNewDoc; // for user navigation protection feature
 
 // Use 0 to use Bibledit's command-line interface to fetch text and write text from/to its project data files.
 // Use 1 to fetch text and write text directly from/to Bibledit's project data files (not using command-line
-// interface.
-#define _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT 1
+// interface).
+#define _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT 0
 
 // uncomment to turn on wxLogDebug tracking of gnBeginInsertionsSequNum & gnEndInsertionsSequNum
 //#define Highlighting_Bug

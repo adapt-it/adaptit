@@ -182,7 +182,7 @@ wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
 	return path;
 }
 
-// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-gtk.
+// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-rdwrt.
 // whm modified 27Jul11 to use _T("0") for whole book retrieval on the command-line
 // BEW 1Aug11, removed code from GetSourceTextFromEditor.h&.cpp to put it here
 // For param 1 pass in 'reading' for a read command line, or writing for a write command
@@ -214,7 +214,7 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 	}
 	else
 	{
-		cmdLineAppPath = GetBibleditInstallPath();
+		cmdLineAppPath = GetPathToBeRdwrt();
 	}
 
 	wxString shortProjName;
@@ -242,35 +242,13 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 	if ((textKind == collab_freeTrans_text && gpApp->m_bCollaborationExpectsFreeTrans) ||
 		textKind != collab_freeTrans_text)
 	{
+		// whm 23Aug11 added quotes around shortProjName since Bibledit only uses the language name
+		// for its project name and language names, unlike PT shortnames, can be more than one word
+		// i.e., "Tok Pisin".
 		cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" ") + readwriteChoiceStr + _T(" ") + 
-					shortProjName + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + 
-					_T("\"") + pathToFile + _T("\"");
+					_T("\"") + shortProjName + _T("\"") + _T(" ") + bookCode + _T(" ") + 
+					chStrForCommandLine + _T(" ") + _T("\"") + pathToFile + _T("\"");
 	}
-	/* the following is Bill's old code from GetSourceTextFromEditor's OnOK() function, later we can delete it
-	wxString commandLineSrc, commandLineTgt, commandLineFreeTrans;
-	commandLineFreeTrans.Empty();
-	if (m_pApp->m_bCollaboratingWithParatext)
-	{
-		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-	}
-	else if (m_pApp->m_bCollaboratingWithBibledit)
-	{
-		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameSrc + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameTgt + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-	}
-	if (m_pApp->m_bCollaborationExpectsFreeTrans)
-	{
-		if (m_pApp->m_bCollaboratingWithParatext)
-		{
-			commandLineFreeTrans = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			commandLineFreeTrans = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + shortProjNameFreeTrans + _T(" ") + bookCode + _T(" ") + chStrForCommandLine + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
-		}
-	}
-	*/
 	return cmdLine;
 }
 
@@ -299,9 +277,10 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 {
 	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
 	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
-	// from/to its project data files.
+	// from/to its project data files. Defined as 0 is the normal setting.
 	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
-	// files (not using command-line interface.
+	// files (not using command-line interface). Defined to 1 was for testing purposes
+	// only before Teus provided the command-line utility bibledit-rdwrt.
 	wxString bareChapterSelectedStr;
 	if (gpApp->m_bCollabByChapterOnly)
 	{
@@ -352,6 +331,9 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 		}
 		else if (gpApp->m_bCollaboratingWithBibledit)
 		{
+			// Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
+			// Note: This code block will not be used in production. It was only for testing
+			// purposes.
 			bool bWriteOK;
 			bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPath, fullBookName, chNumForBEDirect, 
 																	theFileName, errorsIOArray);
@@ -376,6 +358,9 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 		}
 		else if (gpApp->m_bCollaboratingWithBibledit)
 		{
+			// Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
+			// Note: This code block will not be used in production. It was only for testing
+			// purposes.
 			bool bWriteOK;
 			bWriteOK = CopyTextFromTempFolderToBibleditData(beProjPath, fullBookName, chNumForBEDirect,
 																	theFileName,errorsIOArray);
@@ -1854,7 +1839,7 @@ wxString GetPathToRdwrtp7()
 		else
 		{
 			if (FileHasNewerModTime(pt_Path,ai_Path))
-				::wxCopyFile(PT_appPath,ai_Path);
+				::wxCopyFile(pt_Path,ai_Path);
 		}
 		fileName = _T("ICSharpCode.SharpZipLib.dll");
 		ai_Path = AI_appPath + gpApp->PathSeparator + fileName;
@@ -1906,6 +1891,40 @@ wxString GetPathToRdwrtp7()
 		}
 	}
 	return rdwrtp7PathAndFileName;
+}
+
+wxString GetPathToBeRdwrt()
+{
+	// determine the path and name to bibledit-rdwrt executable utility
+	wxString beRdwrtPathAndFileName;
+	beRdwrtPathAndFileName.Empty();
+	// Note: Teus says that builds (either user generated or in distro packages) of Bibledit
+	// will include the bibledit-rdwrt executable along side the bibledit-gtk executable, both
+	// of which would normally be installed at /usr/bin on Linux machines. Since AI version 6
+	// is likely to get released before that happens, and in case some Bibledit users haven't
+	// upgraded their BE version to a distribution that has bibledit-rdwrt installed along-side
+	// bibledit-gtk, we check for its existence here and use it if it is located in the normal
+	// /usr/bin location. If not present, we use our own copy in a non-standard Linux location
+	// that is not on any likely path, namely in the same location where an AI installation
+	// for Linux would put its AI_USFM.xml, books.xml and AI_UserProfiles.xml files. Typically,
+	// that location is at /usr/share/adaptit which is created by the debian installation
+	// process.
+
+	if (::wxFileExists(gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt")))
+	{
+		// bibledit-rdwrt exists in the Bibledit installation so use it.
+		beRdwrtPathAndFileName = gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt");
+	}
+	else
+	{
+		// bibledit-rdwrt does not exist in the Bibledit installation (i.e., the Bibledit version
+		// isn't recent enough), so use our copy in AI's /usr/share/adaptit xml install folder.
+		beRdwrtPathAndFileName = gpApp->m_xmlInstallPath + gpApp->PathSeparator + _T("bibledit-rdwrt");
+		wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
+		// Note: The beRdwrtPathAndFileName console app does not have any dependencies, but uses the
+		// same Linux dynamic libraries that the main bibledit-gtk program uses.
+	}
+	return beRdwrtPathAndFileName;
 }
 
 wxString GetBibleditInstallPath()
@@ -4250,7 +4269,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), 1, countPost); 
 	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	wxString titleStr;
-	titleStr = titleStr.Format(_("Building %s text to send to %s"), strTextTypeToSend.c_str(), gpApp->m_collaborationEditor);
+	titleStr = titleStr.Format(_("Building %s text to send to %s"), strTextTypeToSend.c_str(), gpApp->m_collaborationEditor.c_str());
 	pProgDlg = new wxProgressDialog(titleStr,
 					msgDisplayed,
 					nTotal,    // range
