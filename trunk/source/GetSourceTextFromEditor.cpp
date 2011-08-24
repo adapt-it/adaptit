@@ -51,12 +51,14 @@
 #include "Layout.h"
 #include "helpers.h"
 #include "CollabUtilities.h"
+#include "WaitDlg.h"
 #include "GetSourceTextFromEditor.h"
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 extern int gnOldSequNum;
+extern CAdapt_ItApp* gpApp;
 
 // event handler table
 BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
@@ -500,6 +502,21 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = bareChapterSelectedStr;
 
+	// a wait dialog is needed
+	{ // this brace commences its scope, the dialog window disappears when the matching one is reached
+	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	if (m_bTempCollabByChapterOnly)
+	{
+		waitDlg.m_nWaitMsgNum = 21;	// "Please wait, getting the chapter and laying out the document..."
+	}
+	else
+	{
+		waitDlg.m_nWaitMsgNum = 22;	// "Please wait, getting the book and laying out the document, this may take a while..."
+	}
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+
 	// Set up (or access any existing) project for the selected book or chapter
 	// How this is handled will depend on whether the book/chapter selected
 	// amounts to an existing AI project or not. The m_bCollabByChapterOnly flag now
@@ -535,7 +552,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// he subsequently takes the "Get Chapter Only" radio button option, because we want
 	// the whole book's list of chapters and how much work has been done in any to be
 	// shown to the user in the dialog -- as an aid to help him make an intelligent
-	// choice.)
+	// choice.)	
 	long resultSrc = -1;
 	wxArrayString outputSrc, errorsSrc;
 	if (m_bTempCollabByChapterOnly)
@@ -1298,7 +1315,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
     // while we use it at File / Save time, and then transfer it to the free translation
     // pre-edit wxString on the app. It won't ever be put in the _FREETRANS_OUTPUTS folder.
     // Only non-collaboration free translation exports will go there.
-	
+	} // CWaitDlg goes out of scope here
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 

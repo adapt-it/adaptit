@@ -141,6 +141,12 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 20: 
 			WaitMsg = _("Exporting the free translation...");
 			break;
+		case 21: 
+			WaitMsg = _("Please wait, getting the chapter and laying out the document...");
+			break;
+		case 22: 
+			WaitMsg = _("Please wait, getting the book and laying out the document, this may take a while...");
+			break;
 		default:
 			WaitMsg = _("Please wait. This may take a while...");
 	}

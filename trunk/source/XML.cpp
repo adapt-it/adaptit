@@ -7,6 +7,9 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for XML routines used in Adapt It for Dana and the WX version.
+/// BEW 24Aaug11 changed return FALSE; to return TRUE; for when an unknown attribute or
+/// tag is encountered when parsing a document. (Bill or I did the same change earlier for the
+/// KB-parsing functions.)
 /////////////////////////////////////////////////////////////////////////////
 
 // for debugging LIFT AtLIFTxxxx() callback functions
@@ -3026,7 +3029,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute in the Settings tag
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 				return TRUE;
 			}
@@ -3147,7 +3155,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3262,7 +3275,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3278,7 +3296,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3289,7 +3312,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_mmcap) // it's an "MM" tag
@@ -3301,7 +3329,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3312,13 +3345,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// it's an unknown tag
-				return FALSE;
+				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 			break;
 		}
@@ -3350,7 +3393,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute in the Settings tag
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 				return TRUE;
 			}
@@ -3471,7 +3519,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3586,7 +3639,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3602,7 +3660,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3613,7 +3676,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_mmcap) // it's an "MM" tag
@@ -3625,7 +3693,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3636,13 +3709,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// it's an unknown tag
-				return FALSE;
+				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 			break;
 		}
