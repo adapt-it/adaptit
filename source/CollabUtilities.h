@@ -191,7 +191,8 @@ class CSourcePhrase;
 	///     Functions for filename creation, path creation, file moving, and data transfer
 	///     to the external editor, when doing collaboration
 	/////////////////////////////////////////////////////////////////////////////////////
-	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit()
+	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
+	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
 	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
 	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);

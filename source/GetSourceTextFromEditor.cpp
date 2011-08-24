@@ -164,7 +164,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 	else
 	{
-		m_bibledit_gtkPathAndFileName = GetBibleditInstallPath(); // will return
+		m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
 								// an empty string if BibleEdit is not installed;
 								// see CollabUtilities.cpp
 	}
@@ -1536,7 +1536,6 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	sourceProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
 	targetProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
-	// use our App's
 	
 	wxString sourceTempFileName;
 	sourceTempFileName = tempFolder + m_pApp->PathSeparator;
@@ -1546,7 +1545,17 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
 	
 	
-	// Build the command lines for reading the PT projects using rdwrtp7.exe.
+	// Build the command lines for reading the PT projects using rdwrtp7.exe
+	// and BE projects using bibledit-rdwrt.
+	
+	// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the 
+	// commandline, because within GetSourceTextFromEditor() we are using temp variables 
+	// for passing to the GetShortNameFromProjectName() function above, whereas 
+	// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs, 
+	// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App 
+	// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the 
+	// dialog is about to be closed.
+	
 	wxString commandLineSrc,commandLineTgt;
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
@@ -1555,8 +1564,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
-		commandLineSrc = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_bibledit_gtkPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+		commandLineSrc = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + sourceProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+		commandLineTgt = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + targetProjShortName + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
 	}
 	wxLogDebug(commandLineSrc);
 
@@ -1572,9 +1581,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxArrayString outputTgt, errorsTgt;
 	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
 	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
-	// from/to its project data files.
+	// from/to its project data files. Defined as 0 is the normal setting.
 	// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
-	// files (not using command-line interface.
+	// files (not using command-line interface). Defined to 1 was for testing purposes
+	// only before Teus provided the command-line utility bibledit-rdwrt.
 	if (m_pApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
 	{
 		// Use the wxExecute() override that takes the two wxStringArray parameters. This
@@ -1588,6 +1598,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
+		// Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
+		// Note: This code block will not be used in production. It was only for testing
+		// purposes.
 		wxString beProjPath = m_pApp->GetBibleditProjectsDirPath();
 		wxString beProjPathSrc, beProjPathTgt;
 		beProjPathSrc = beProjPath + m_pApp->PathSeparator + sourceProjShortName;
