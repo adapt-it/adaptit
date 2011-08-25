@@ -12263,7 +12263,9 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-   // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
+	// BEW added 25Aug11
+	m_bRetransReportInProgress = FALSE;
+    // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
     // check to see that the computer hardware has a certain minimum resolution, especially
     // the screen's vertical pixels should be at least 549 pixels in height. Width should
     // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
@@ -18819,7 +18821,10 @@ bool CAdapt_ItApp::SetupDirectories()
                 // function.
 				// BEW 12Nov09 added m_bAutoExport test to suppress the message when
 				// doing an autoexport from the command line
-				if (!m_bUnpacking && !m_bAutoExport)
+				// BEW 25Aug11, added a further flag - it keeps coming up in collab mode
+				// if a multi-doc retranslation report is in progress - at each doc
+				// access, so suppress these too
+				if (!m_bUnpacking && !m_bAutoExport && !m_bRetransReportInProgress)
 				{
 					wxString str;
 					// IDS_DUP_PROJECT_NAME
@@ -22596,7 +22601,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			_T("Restore Knowledge Base..."), wxICON_EXCLAMATION);
 
 			// let the view respond again to updates
-			pView->canvas->Thaw();
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			if (::wxFileExists(tempKBfilePath))
 			{
@@ -22610,6 +22614,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 			}
+			pView->canvas->Thaw();
 			return;
 		}
 		// there is at least one document, so do the restore
@@ -22644,9 +22649,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		bOK = ::wxRemoveFile(tempKBfilePath);
 		tempKBfilePath.Empty();
 
-		// let the view respond again to updates
-		pView->canvas->Thaw();
-
 		// clean up the list
 		m_acceptedFilesList.Clear();
 
@@ -22664,6 +22666,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 				savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 		}
+		// let the view respond again to updates
+		pView->canvas->Thaw();
 		return;
 	}
 
@@ -22687,8 +22691,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 "processing book folders, so the book folder document files do not contribute to the rebuild.");
 			s3 = s3.Format(_T("%s%s"),s1.c_str(),s2.c_str());
 			wxMessageBox(s3,_T(""), wxICON_EXCLAMATION);
-			// let the view respond again to updates
-			pView->canvas->Thaw();
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			m_acceptedFilesList.Clear();
 			if (::wxFileExists(tempKBfilePath))
@@ -22703,6 +22705,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 			}
+			// let the view respond again to updates
+			pView->canvas->Thaw();
 			return;
 		}
 		else
@@ -22865,9 +22869,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION);
 	LogUserAction(stats);
 
-	// let the view respond again to updates
-	pView->canvas->Thaw();
-
 	// clean up the list
 	m_acceptedFilesList.Clear();
 
@@ -22910,6 +22911,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 				savedBookIndex,				       // for restoring the book folder's index in array
 				FALSE); // bMarkAsDirty = FALSE
 	}
+	// let the view respond again to updates
+	pView->canvas->Thaw();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
