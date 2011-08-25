@@ -21787,7 +21787,7 @@ y:						;
 			_T(""), wxICON_EXCLAMATION);
 		}
 		pApp->GetView()->ClobberDocument();
-
+		
 		// delete the buffer containing the filed-in source text
 		if (pApp->m_pBuffer != NULL)
 		{

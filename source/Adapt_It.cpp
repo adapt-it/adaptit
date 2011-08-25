@@ -22480,7 +22480,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
         // Ensure the current document's contents are removed, otherwise we will get a
         // doubling of the doc data when OnOpenDocument() is called because the latter will
-        // append to whatever is in m_pSourcePhrases
+		// append to whatever is in m_pSourcePhrases
 		GetView()->ClobberDocument();
 	}
 	bool bOK;

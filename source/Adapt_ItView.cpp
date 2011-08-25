@@ -12659,6 +12659,8 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
 }
 
+// BEW changed 25Aug11, removed the code for unloading the KBs, it is bad design to have
+// it in here
 void CAdapt_ItView::ClobberDocument()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -12674,20 +12676,6 @@ void CAdapt_ItView::ClobberDocument()
 		pApp->m_bCopySource = FALSE;
 		pApp->GetView()->ToggleCopySource(); // toggles m_bCopySource's value & resets menu item
 		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
-	}
-
-	// Remove KBs from the heap, when colloborating with an external editor
-	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
-	{
-		// closure of the collaboration document should clobber the KBs as well, just in
-		// case the user switches to a different language in PT for the next "get" - so we
-		// set up for each document making no assumptions about staying within a certain
-		// AI project each time - each setup is independent of what was setup last time
-		// (we always create and delete these as a pair, so one test would suffice)
-		if(pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
-		{
-			UnloadKBs(pApp); // also sets m_pKB and m_pGlossingKB each to NULL
-		}
 	}
 
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
