@@ -22460,8 +22460,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	bool bDocForcedToClose = FALSE;
 	if (!m_pSourcePhrases->GetCount() == 0)
 	{
-		// doc is open, so close it (we won't try to save settings so as to force it open
-		// automatically when done, but just let the user choose which to open)
+		// doc is open, so close it -- we want all docs accessible to the scanning loop
 		bDocForcedToClose = TRUE;
 		bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
 		if (!fsOK)

@@ -3665,31 +3665,71 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
    
 	// only put up the message box if a document is open (and the update handler also
     // disables the command if glossing is on)
+    // // BEW 24Aug11, changed to allow the multi-doc choice with document still open
+    bool bThisDocOnly = FALSE; // assume multi-doc as default choice, & this is the
+							   // only option available if no doc is currently open
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
 	{
-		wxString msg = _("The retranslation report will be based on this open document only.");
+		// a doc is open, so when that is the case, there is an option for getting a
+		// report of just the open one, or the default multi-doc choice; ask user which
+		// NOTE,  the BEW changes mean that the doc closure calls DoFileSave_Protected(),
+		// which is at a lower level than OnFileSave() which contains the code for sending
+		// data to PT or BE; so since a multi-doc choice will have the doc recreated
+		// automatically after the report is generated (by a ReOpenDocument() call which
+		// knows nothing about collaboration), the doc-specific collaboration information
+		// pertinent to transferring data to PT or BE (such as md5 checksums, arrays of
+		// these, and the preEdit, postEdit and from-external-editor text files) are not
+		// lost or damaged nor made invalid. So we'll freeze the screen and let either a
+		// single-doc report, or multi-doc report just happen, whether collaborating or not
+		bool bCollaborating = FALSE;
 		if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
 		{
-			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
-			m_pApp->LogUserAction(msg);
+			bCollaborating = TRUE;
 		}
-		else
-		{
-			msg += _T("\n");
-			msg += _("To get a report based on many or all documents,\nclose the document and select this command again.\nDo you want a report only for this document?");
+
+		//wxString msg = _("Collaborating: the retranslation report will be based on this open document only.");
+		//if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
+		//{
+		//	wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		//	m_pApp->LogUserAction(msg);
+		//}
+		//else
+		//{
+		//	msg += _T("\n");
+			wxString msg = _(
+"To get a report based on many or all documents, click No.\nTo get a report based only on this open document, click Yes.");
+			// a "Yes" answer is a choice for reporting only for the current document,
+			// a "No" answer will close the current document, scans all docs, builds
+			// the report and then reopens the document with the box at its old location
 			answer = wxMessageBox(msg,_T(""),wxYES_NO);
-			if (!(answer == wxYES))
+			if (answer == wxYES)
 			{
-				// a "Yes" answer is a choice for reporting only for the current document,
-				// a "No" answer exits to allow the user to close the document and then
-				// the report can be chosen again and it will do all documents
-				msg = _T("return - Wants Retrans report based on many/all docs");
+				bThisDocOnly = TRUE;
+				if (bCollaborating)
+				{
+					msg = _T("User wants Retrans Report based on current doc only. Collaboration is ON");
+				}
+				else
+				{
+					msg = _T("User wants Retrans Report based on current doc only. Collaboration is OFF");
+				}
 				m_pApp->LogUserAction(msg);
-				return;
 			}
-		}
+			else
+			{
+				if (bCollaborating)
+				{
+					msg = _T("User wants Retrans Report based on all docs. Collaboration is ON");
+				}
+				else
+				{
+					msg = _T("User wants Retrans Report based on all docs. Collaboration is OFF");
+				}
+				m_pApp->LogUserAction(msg);
+			}
+		//}
 	}
-	
+
 	bool bOK;
     
 	// whm modified 5Aug11.
@@ -3780,7 +3820,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			// sake to what it was on entry, since there was a wxSetWorkingDirectory call made
 			// above
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			m_pApp->LogUserAction(_T("Cancelled Retrans report at wxFileDialog"));
+			m_pApp->LogUserAction(_T("Cancelled Retrans Report at wxFileDialog"));
 			return; // user cancelled
 		}
 		// get the user's desired path
@@ -3794,6 +3834,50 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		uniqueFilenameAndPath = GetUniqueIncrementedFileName(reportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
 		// Use the unique path for reportPath
 		reportPath = uniqueFilenameAndPath;
+	}
+
+    // BEW 24Aug11, change protocol so as to allow the user to initiate a multi-doc report
+    // even when a document is open. We check here, and if open, we force it to close and
+    // then proceed as before.
+	wxString savedCurOutputPath = m_pApp->m_curOutputPath;	// includes filename			
+	wxString savedCurOutputFilename = m_pApp->m_curOutputFilename;
+	int		 savedCurSequNum = m_pApp->m_nActiveSequNum;
+	bool	 savedBookmodeFlag = m_pApp->m_bBookMode;
+	bool	 savedDisableBookmodeFlag = m_pApp->m_bDisableBookMode;
+	int		 savedBookIndex = m_pApp->m_nBookIndex;
+	BookNamePair*	pSavedCurBookNamePair = m_pApp->m_pCurrBookNamePair;
+
+	m_pApp->GetMainFrame()->canvas->Freeze();
+
+	bool bDocForcedToClose = FALSE;
+	if ((!m_pApp->m_pSourcePhrases->GetCount() == 0) && !bThisDocOnly)
+	{
+        // doc is open, so close it (for a multi-doc scan), but don't close it if
+        // bThisDocOnly is TRUE because the scanning loop in that case expects the doc to
+        // be open
+		bDocForcedToClose = TRUE;
+		bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+		if (!fsOK)
+		{
+			// something's real wrong!
+			m_pApp->GetMainFrame()->canvas->Thaw();
+			wxMessageBox(_(
+"Could not save the current document. Retranslation Report command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
+			_T(""), wxICON_EXCLAMATION);
+			m_pApp->LogUserAction(_T("Could not close and save the current document. Retranslation Report command aborted."));
+			if (bDocForcedToClose)
+			{
+				bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,
+					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
+			}
+			return;
+		}
+
+        // Ensure the current document's contents are removed, otherwise we will get a
+        // doubling of the doc data when OnOpenDocument() is called because the latter will
+        // append to whatever is in m_pSourcePhrases
+		pView->ClobberDocument();
 	}
 	
 	// update m_lastRetransReportPath
@@ -3810,6 +3894,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	wxFile f;
 	if( !f.Open( reportPath, wxFile::write)) 
 	{
+		m_pApp->GetMainFrame()->canvas->Thaw();
 #ifdef __WXDEBUG__
 		wxLogError(_("Unable to open report file.\n")); 
 		wxMessageBox(_("Unable to open report file."),_T(""), wxICON_WARNING);
@@ -3819,6 +3904,12 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
         // above
 		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 		m_pApp->LogUserAction(_T("Unable to open report file."));
+		if (bDocForcedToClose)
+		{
+			bOK = pDoc->ReOpenDocument(m_pApp, strSaveCurrentDirectoryFullPath,
+				savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
+		}
 		return; // just return since it is not a fatal error
 	}
 	
@@ -3853,9 +3944,10 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	
 	// output report data
 	wxArrayString* pFileList = &m_pApp->m_acceptedFilesList;
-	if (m_pLayout->GetStripArray()->GetCount() > 0)
+	//if (m_pLayout->GetStripArray()->GetCount() > 0) <<-- it now depends on bThisDocOnly
+	if (bThisDocOnly)
 	{
-		// a document is open, so only do the report for this current document
+		// user wants the report for this current document only
 		wxASSERT(pFileList->IsEmpty()); // must be empty, 
 		// DoRetranslationReport() uses this as a flag
 		m_pApp->LogUserAction(_T("Executing DoRetranslationReport() on open doc"));
@@ -3863,6 +3955,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
+		// user wants a mult-doc report
+		
  		m_pApp->LogUserAction(_T("Executing DoRetranslationReport() on many docs"));
        // no document is open, so enumerate all the doc files, and do a report based on
         // those the user chooses (remember that in our version of this SDI app, when no
@@ -3887,9 +3981,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			if (m_pApp->m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 			{
 				// nothing to work on, so abort the operation
-				// IDS_NO_DOCUMENTS_YET
+				m_pApp->GetMainFrame()->canvas->Thaw();
 				wxMessageBox(_(
-							   "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
+"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 							 _T(""),wxICON_EXCLAMATION);
                 // whm added 05Jan07 to restore the former current working directory for
                 // safety sake to what it was on entry, since the EnumerateDocFiles call
@@ -3897,6 +3991,12 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                 // (MFC version did not add the line below)
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 				m_pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
+				if (bDocForcedToClose)
+				{
+					bOK = pDoc->ReOpenDocument(m_pApp, strSaveCurrentDirectoryFullPath,
+						savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+						savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
+				}
 				return;
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
@@ -3919,6 +4019,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			if (!bOK)
 			{
 				// highly unlikely, so English will do
+				m_pApp->GetMainFrame()->canvas->Thaw();
 				wxString s1, s2, s3;
 				s1 = _T(
 						"Failed to set the current directory to the Adaptations folder in OnRetransReport function, ");
@@ -3932,6 +4033,12 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                 // folder (MFC version did not add the line below)
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 				m_pApp->LogUserAction(_T("finder.Open() failed in OnRetransReport()"));
+				if (bDocForcedToClose)
+				{
+					bOK = pDoc->ReOpenDocument(m_pApp, strSaveCurrentDirectoryFullPath,
+						savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+						savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
+				}
 				return;
 			}
 			else
@@ -3990,12 +4097,14 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                                 // don't process any directory which gives an error, but
                                 // continue looping -- this is a highly unlikely error, so
                                 // an English message will do
+								m_pApp->GetMainFrame()->canvas->Thaw();
 								wxString errStr;
 								errStr = errStr.Format(_T(
 														  "Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 													   folderPath.c_str());
 								wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 								m_pApp->LogUserAction(errStr);
+								m_pApp->GetMainFrame()->canvas->Freeze();
 								continue;
 							}
 							nCount = pFileList->GetCount();
@@ -4010,8 +4119,16 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							DoRetranslationReport(pDoc,docName,pFileList,
 												  m_pApp->m_pSourcePhrases,&f);
 							// restore parent folder as current
-							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath); 
+							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath);
+							// the wxASSERT() is a problem when using Freeze() and Thaw()
+							// so if it gets thawed here, but control gets past the assert
+							// as would be the case in Release build, then re-freeze
+							if (!bOK)
+							{
+								m_pApp->GetMainFrame()->canvas->Thaw();
+							}
 							wxASSERT(bOK);
+							m_pApp->GetMainFrame()->canvas->Freeze();
 						}
 						else
 						{
@@ -4085,9 +4202,17 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	wxFileName fn(reportPath);
 	wxString fileNameAndExtOnly = fn.GetFullName();
 
+	m_pApp->GetMainFrame()->canvas->Thaw();
+
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),reportPath.c_str());
 	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	if (bDocForcedToClose)
+	{
+		bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,
+			savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
