@@ -3836,6 +3836,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		reportPath = uniqueFilenameAndPath;
 	}
 
+	m_pApp->m_bRetransReportInProgress = TRUE;
+
     // BEW 24Aug11, change protocol so as to allow the user to initiate a multi-doc report
     // even when a document is open. We check here, and if open, we force it to close and
     // then proceed as before.
@@ -3860,7 +3862,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		if (!fsOK)
 		{
 			// something's real wrong!
-			m_pApp->GetMainFrame()->canvas->Thaw();
 			wxMessageBox(_(
 "Could not save the current document. Retranslation Report command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
 			_T(""), wxICON_EXCLAMATION);
@@ -3871,6 +3872,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 			}
+			m_pApp->m_bRetransReportInProgress = FALSE;
+			m_pApp->GetMainFrame()->canvas->Thaw();
 			return;
 		}
 
@@ -3894,7 +3897,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	wxFile f;
 	if( !f.Open( reportPath, wxFile::write)) 
 	{
-		m_pApp->GetMainFrame()->canvas->Thaw();
 #ifdef __WXDEBUG__
 		wxLogError(_("Unable to open report file.\n")); 
 		wxMessageBox(_("Unable to open report file."),_T(""), wxICON_WARNING);
@@ -3910,6 +3912,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 		}
+		m_pApp->m_bRetransReportInProgress = FALSE;
+		m_pApp->GetMainFrame()->canvas->Thaw();
 		return; // just return since it is not a fatal error
 	}
 	
@@ -3981,7 +3985,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			if (m_pApp->m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
 			{
 				// nothing to work on, so abort the operation
-				m_pApp->GetMainFrame()->canvas->Thaw();
 				wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
 							 _T(""),wxICON_EXCLAMATION);
@@ -3997,6 +4000,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 						savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 						savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 				}
+				m_pApp->m_bRetransReportInProgress = FALSE;
+				m_pApp->GetMainFrame()->canvas->Thaw();
 				return;
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
@@ -4019,7 +4024,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			if (!bOK)
 			{
 				// highly unlikely, so English will do
-				m_pApp->GetMainFrame()->canvas->Thaw();
 				wxString s1, s2, s3;
 				s1 = _T(
 						"Failed to set the current directory to the Adaptations folder in OnRetransReport function, ");
@@ -4039,6 +4043,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 						savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 						savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 				}
+				m_pApp->m_bRetransReportInProgress = FALSE;
+				m_pApp->GetMainFrame()->canvas->Thaw();
 				return;
 			}
 			else
@@ -4100,7 +4106,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 								m_pApp->GetMainFrame()->canvas->Thaw();
 								wxString errStr;
 								errStr = errStr.Format(_T(
-														  "Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
+			"Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 													   folderPath.c_str());
 								wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 								m_pApp->LogUserAction(errStr);
@@ -4202,8 +4208,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	wxFileName fn(reportPath);
 	wxString fileNameAndExtOnly = fn.GetFullName();
 
-	m_pApp->GetMainFrame()->canvas->Thaw();
-
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),reportPath.c_str());
 	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
@@ -4213,6 +4217,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 	}
+	m_pApp->m_bRetransReportInProgress = FALSE;
+	m_pApp->GetMainFrame()->canvas->Thaw();
 }
 
 /////////////////////////////////////////////////////////////////////////////////

@@ -2705,6 +2705,10 @@ public:
 	// whm added 19Jan05 AI_USFM.xml file processing and USFM and Filtering
 	bool		m_bUsingDefaultUsfmStyles;
 
+	// BEW added 25Aug11, to suppress warning message about project existing coming from
+	// SetupDirectories() when a Retranslation Report is being processed in collab mode
+	bool		m_bRetransReportInProgress;
+
     // flag for skipping USFM fixed space "~" (tilde) when parsing source text (if TRUE,
     // then skip, if FALSE then don't check for its presence) used in the ParseWord()
     // function in the document class
