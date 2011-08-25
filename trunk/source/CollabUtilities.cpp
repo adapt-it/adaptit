@@ -659,9 +659,22 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 // Called in OnOK() of GetSourceTextFromEditor.h and .cpp 
 bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxString* pProjectFolderPath)
 {
-	// ensure there is no document currently open (it also calls UnloadKBs() & sets their
+	// ensure there is no document currently open (we also must call UnloadKBs() & set their
 	// pointers to NULL)
 	pApp->GetView()->ClobberDocument();
+	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
+	{
+        // Closure of the document, whether a collaboration one or not, should clobber the
+        // KBs as well, just in case the user switches to a different language in PT for
+        // the next "get" - so we set up for each document making no assumptions about
+        // staying within a certain AI project each time - each setup is independent of
+        // what was setup last time (we always create and delete these as a pair, so one
+        // test would suffice)
+		if(pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
+		{
+			UnloadKBs(pApp); // also sets m_pKB and m_pGlossingKB each to NULL
+		}
+	}
 	
 	// ensure the adapting KB isn't active. If it is, assert in the debug build, in the
 	// release build return FALSE without doing any changes to the current project
@@ -1655,9 +1668,22 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 						wxString& srcEthnologueCode, wxString& tgtEthnologueCode,
 						bool bDisableBookMode)
 {
-	// ensure there is no document currently open (it also calls UnloadKBs() & sets their
+	// ensure there is no document currently open (we also call UnloadKBs() & set their
 	// pointers to NULL) -- note, if the doc is dirty, too bad, recent changes will be lost
 	pApp->GetView()->ClobberDocument();
+	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
+	{
+        // Closure of the document, whether a collaboration one or not, should clobber the
+        // KBs as well, just in case the user switches to a different language in PT for
+        // the next "get" - so we set up for each document making no assumptions about
+        // staying within a certain AI project each time - each setup is independent of
+        // what was setup last time (we always create and delete these as a pair, so one
+        // test would suffice)
+		if(pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
+		{
+			UnloadKBs(pApp); // also sets m_pKB and m_pGlossingKB each to NULL
+		}
+	}
 
     // ensure app does not try to restore last saved doc and active location (these two
     // lines pertain to wizard use, so not relevant here, but just in case I've forgotten

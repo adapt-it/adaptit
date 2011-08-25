@@ -545,7 +545,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			// remove the document
 			if (!pPhrases->IsEmpty())
 			{
-				m_pView->ClobberDocument();
+				m_pApp->GetView()->ClobberDocument();
 				
 				// delete the buffer containing the filed-in source text
 				if (m_pApp->m_pBuffer != NULL)
@@ -3880,7 +3880,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
         // Ensure the current document's contents are removed, otherwise we will get a
         // doubling of the doc data when OnOpenDocument() is called because the latter will
         // append to whatever is in m_pSourcePhrases
-		pView->ClobberDocument();
+		m_pApp->GetView()->ClobberDocument();
 	}
 	
 	// update m_lastRetransReportPath
