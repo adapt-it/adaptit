@@ -112,30 +112,6 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called SrcList.
-WX_DEFINE_LIST(SrcList); // a list to store Source phrases composing row
-
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called TgtList.
-WX_DEFINE_LIST(TgtList); // a list to store Target phrases composing row
-
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called GlsList.
-WX_DEFINE_LIST(GlsList); // a list to store Gloss phrases composing row
-
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called NavList.
-WX_DEFINE_LIST(NavList); // a list to store Navigation text phrases composing row
-
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called FreeTransList.
-WX_DEFINE_LIST(FreeTransList); // a list to store Free trans text phrases composing row
-
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called BackTransList.
-WX_DEFINE_LIST(BackTransList); // a list to store Back trans text phrases composing row
-
 // Moved here for Version 3.
 // We could use a CMap used as a dictionary associating the style "keys" with their "values."
 // Since I can't get CMap to work with a CString key and CString value, I'll use the
@@ -2860,6 +2836,30 @@ void DoExportInterlinearRTF()
 	wxString Sdef_notes_base;		// Style definition tags for \sN Notes base para style
 	wxString Sdef_vernacular_base;	// Style defitition tags for \sN Vernacular base para style
 
+	// 26Aug11 whm moved the creation of the wxProgressDialog up before some of the more time
+	// consuming setup for Interlinear output. Also allocated the dialog on the heap, and
+	// added Destroy() calls before all return points.
+	int nTotal,counter;
+	nTotal = pList->GetCount();
+	counter = 0;
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxString msgDisplayed = progMsg.Format(progMsg,exportFilename.c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	pProgDlg = new wxProgressDialog(_("Export to Interlinear RTF"),
+                    msgDisplayed,
+                    nTotal,    // range
+                    gpApp->GetMainFrame(),   // parent
+                    //wxPD_CAN_ABORT |
+                    //wxPD_CAN_SKIP |
+                    wxPD_APP_MODAL |
+                    wxPD_AUTO_HIDE //| -- try this as well
+                    //wxPD_ELAPSED_TIME |
+                    //wxPD_ESTIMATED_TIME |
+                    //wxPD_REMAINING_TIME
+                    //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+    );
+	wxASSERT(pProgDlg != NULL);
+
 	// Build final style tag strings - enclosed in {}
 	// Style information is used in three ways in our RTF output:
 	// 1. Style Definitions in the RTF Header
@@ -3886,7 +3886,10 @@ void DoExportInterlinearRTF()
 	// Note: If there is a write error in WriteOutputString() it must go to writeErrExit point
 	// to delete font objects and prevent memory leaks
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+	{	
+		pProgDlg->Destroy();
 		return;
+	}
 
 	int WidthSrc;				// holds width of Src string as returned by GetTextExtent + ngaphNum * 2
 	int WidthTgt;				// holds width of Tgt string as returned by GetTextExtent + ngaphNum * 2
@@ -3945,13 +3948,18 @@ void DoExportInterlinearRTF()
 	// The data in the following 6 lists is composed of pointers to wxStrings created on the heap
 	// Therefore we don't call Clear() to empty the lists, but rather we call DeleteContents(TRUE)
 	// which instructs the list to call delete on the client contents.
-	SrcList srcList; // a list to store Source phrases composing row
-	TgtList tgtList; // a list to store Target phrases composing row
-	GlsList glsList; // a list to store Gloss phrases composing row
-	NavList navList; // a list to store Navigation text phrases composing row
+	wxArrayString srcList;
+	srcList.Alloc(gpApp->m_pSourcePhrases->GetCount()); // a list to store Source phrases composing row
+	wxArrayString tgtList;
+	tgtList.Alloc(gpApp->m_pSourcePhrases->GetCount()); // a list to store Target phrases composing row
+	wxArrayString glsList;
+	glsList.Alloc(gpApp->m_pSourcePhrases->GetCount()); // a list to store Gloss phrases composing row
+	wxArrayString navList;
+	navList.Alloc(gpApp->m_pSourcePhrases->GetCount()); // a list to store Navigation text phrases composing row
 	// next two added for version 3
-	FreeTransList freeTransList; // a list to store Free trans text phrases composing row
-	BackTransList backTransList; // a list to store Back trans text phrases composing row
+	// no need to call .Alloc for these two:
+	wxArrayString freeTransList; // a list to store Free trans text phrases composing row
+	wxArrayString backTransList; // a list to store Back trans text phrases composing row
 
 	wxString FreeTransFitsInRowStr;			// a string to store Free translation being poured into a
 											// row
@@ -4038,25 +4046,6 @@ void DoExportInterlinearRTF()
 	wxString CellxNum;
 	CellxNum.Empty();
 
-	int nTotal,counter;
-	nTotal = pList->GetCount();
-	counter = 0;
-	wxString progMsg = _("%s  - %d of %d Total words and phrases");
-	wxString msgDisplayed = progMsg.Format(progMsg,exportFilename.c_str(),1,nTotal);
-	wxProgressDialog progDlg(_("Export to Interlinear RTF"),
-                    msgDisplayed,
-                    nTotal,    // range
-                    gpApp->GetMainFrame(),   // parent
-                    //wxPD_CAN_ABORT |
-                    //wxPD_CAN_SKIP |
-                    wxPD_APP_MODAL |
-                    wxPD_AUTO_HIDE //| -- try this as well
-                    //wxPD_ELAPSED_TIME |
-                    //wxPD_ESTIMATED_TIME |
-                    //wxPD_REMAINING_TIME
-                    //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-                    );
-
 	// START of MAIN LOOP SCANNING THROUGH ALL SOURCE PHRASES
 	// start at beginning of pList of SourcePhrases
 	pos = pList->GetFirst(); //pos = pList->GetHeadPosition();
@@ -4067,7 +4056,7 @@ void DoExportInterlinearRTF()
 		if (counter % 200 == 0)
 		{
 			msgDisplayed = progMsg.Format(progMsg,exportFilename.c_str(),counter,nTotal);
-			progDlg.Update(counter,msgDisplayed);
+			pProgDlg->Update(counter,msgDisplayed);
 		}
 
 		savePos = pos;
@@ -5349,7 +5338,7 @@ a:
 						// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 						// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 						// contents (wxStrings).
-						freeTransList.Append(new wxString(nullStr)); // keep lists in sync
+						freeTransList.Add(nullStr); // keep lists in sync
 					}
 					else
 					{
@@ -5364,7 +5353,7 @@ a:
 							// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 							// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 							// contents (wxStrings).
-							freeTransList.Append(new wxString(nullStr)); // keep lists in sync
+							freeTransList.Add(nullStr); // keep lists in sync
 						}
 					}
 					// now fill cellDimsFree with the RTF "\cellxN \n" tag lines
@@ -5395,7 +5384,7 @@ a:
 						// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 						// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 						// contents (wxStrings).
-						backTransList.Append(new wxString(nullStr)); // keep lists in sync
+						backTransList.Add(nullStr); // keep lists in sync
 					}
 					else
 					{
@@ -5410,7 +5399,7 @@ a:
 							// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 							// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 							// contents (wxStrings).
-							backTransList.Append(new wxString(nullStr)); // keep lists in sync
+							backTransList.Add(nullStr); // keep lists in sync
 						}
 					}
 					// now fill cellDimsBack with the RTF "\cellxN \n" tag lines
@@ -5442,13 +5431,19 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = CellDimsNav;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// don't increment nCurrentRow here because it would still be row zero if
 				// the Nav Lang row is included
@@ -5464,23 +5459,26 @@ a:
 				+SintblNav							// Nav Style
 				+ gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 
 				// Output the actual Nav row text delimited by \cell tags
 				// TODO: check if Unicode version needs to separate actual text of
 				// \free and \bt... from the system encoded stuff, with the actual
 				// text written as vernacular encoding
-				NavList::Node* navpos = navList.GetFirst();
-				wxASSERT(navpos != NULL);
 				for (int count=0; count < (int)navList.GetCount(); count++)
 				{
-					// Output each nav string with its own encoding. The NavList contains
+					// Output each nav string with its own encoding. The navList contains
 					// the cell contents for this given cell in the row.
 					// Use m_systemEncoding for the nav text row.
-					wxString testStr = *navpos->GetData();
-					navpos = navpos->GetNext();
+					wxString testStr = navList.Item(count);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,testStr))	// Nav text string
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 					// whm 8Nov07 note: Unlike the case with source, target and gloss text lists,
 					// We cannot here use the tgt encoding, but must retain the m_systemEncoding,
 					// because ProcessAnaWriteDestinationText() formats the nav text. If we were
@@ -5489,7 +5487,10 @@ a:
 					// text.
 					// Note: \cell delimiter follows cell contents for each cell in row
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))					// \cell delimiter
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 				}
 
 				hstr = Trow
@@ -5497,7 +5498,10 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 			}// end of if (bInclNavLangRow && !NavProcessed)
 
 			// Process Row 1 Data for 2nd row selected for output. If bInclSrcLangRow is TRUE
@@ -5516,13 +5520,19 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = CellDimsSrc;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// if the Nav Lang row above is included then this would be row index 1,
 				// otherwise this Src Lang row would still be row index 0
@@ -5540,18 +5550,24 @@ a:
 				+SintblSrc							// Src Style
 				+gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 
 				// Output the actual Src row text delimited by \cell tags
-				SrcList::Node* srcpos = srcList.GetFirst();
-				wxASSERT(srcpos != NULL);
 				for (int count=0; count < (int)srcList.GetCount(); count++)
 				{
-					if (!WriteOutputString(f,gpApp->m_srcEncoding,*srcpos->GetData()))	// Src text string
+					if (!WriteOutputString(f,gpApp->m_srcEncoding,srcList.Item(count))) // Src text string
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
+					{	
+						pProgDlg->Destroy();
 						return;
-					srcpos = srcpos->GetNext();
+					}
 				}
 
 				hstr = Trow
@@ -5559,7 +5575,10 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 			}// end of if (bInclSrcLangRow && !SrcProcessed)
 
 			// Process Rows 2 & 3 Data for 3rd and 4th rows selected for output. If gbIsGlossing this
@@ -5583,7 +5602,10 @@ a:
 					// the tags above are output once for a given row
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 					
 					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
 					// in this row, with increasing values for N
@@ -5596,7 +5618,10 @@ a:
 						hstr = CellDimsTgt;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow)
 						nCurrentRow++;
@@ -5612,35 +5637,44 @@ a:
 					+SintblGls							// Gls Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					// Output the actual Gls row text delimited by \cell tags
 					if (gbGlossingUsesNavFont)
 					{
-						GlsList::Node* glspos = glsList.GetFirst();
-						wxASSERT(glspos != NULL);
 						for (int count=0; count < (int)glsList.GetCount(); count++)
 						{
 							// whm 8Nov07 note: We'll use the tgt encoding for gloss text which
 							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
-							if (!WriteOutputString(f,gpApp->m_tgtEncoding,*glspos->GetData()))	// Gls text string
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls text string
+							{	
+								pProgDlg->Destroy();
 								return;
+							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+							{	
+								pProgDlg->Destroy();
 								return;
-							glspos = glspos->GetNext();
+							}
 						}
 					}
 					else
 					{
-						GlsList::Node* glspos = glsList.GetFirst();
-						wxASSERT(glspos != NULL);
 						for (int count=0; count < (int)glsList.GetCount(); count++)
 						{
-							if (!WriteOutputString(f,gpApp->m_tgtEncoding,*glspos->GetData()))		// Gls uses Tgt encoding
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls uses Tgt encoding
+							{	
+								pProgDlg->Destroy();
 								return;
+							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
+							{	
+								pProgDlg->Destroy();
 								return;
-							glspos = glspos->GetNext();
+							}
 						}
 					}
 
@@ -5649,7 +5683,10 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 				}// end of if (bInclGlsLangRow && !GlsProcessed)
 
 				if (bInclTgtLangRow && !bTgtProcessed)
@@ -5666,13 +5703,19 @@ a:
 					// the tags above are output once for a given row
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 					
 					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
 					// increasing values for N
 					hstr = CellDimsTgt;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 					
 					if (bInclNavLangRow || bInclSrcLangRow)
 						nCurrentRow++;
@@ -5688,18 +5731,24 @@ a:
 					+SintblTgt							// Tgt Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					// Output the actual Tgt row text delimited by \cell tags
-					TgtList::Node* tgtpos = tgtList.GetFirst();
-					wxASSERT(tgtpos != NULL);
 					for (int count=0; count < (int)tgtList.GetCount(); count++)
 					{
-						if (!WriteOutputString(f,gpApp->m_tgtEncoding,*tgtpos->GetData()))	// Tgt text string
+						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count))) // Tgt text string
+						{	
+							pProgDlg->Destroy();
 							return;
+						}
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+						{	
+							pProgDlg->Destroy();
 							return;
-						tgtpos = tgtpos->GetNext();
+						}
 					}
 
 					hstr = Trow
@@ -5707,7 +5756,10 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 				}// end of if (bInclTgtLangRow && !TgtProcessed)
 
 			}
@@ -5725,7 +5777,10 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
 				// in this row, with increasing values for N
@@ -5738,7 +5793,10 @@ a:
 					hstr = CellDimsTgt;
 				}
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// When not Glossing place Target Row then Gloss Row last
 				if (bInclTgtLangRow && !bTgtProcessed)
@@ -5757,18 +5815,24 @@ a:
 					+SintblTgt							// Tgt Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					// Output the actual Tgt row text delimited by \cell tags
-					TgtList::Node* tgtpos = tgtList.GetFirst(); 
-					wxASSERT(tgtpos != NULL);
 					for (int count=0; count < (int)tgtList.GetCount(); count++)
 					{
-						if (!WriteOutputString(f,gpApp->m_tgtEncoding,*tgtpos->GetData()))	// Tgt text string
+						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count))) // Tgt text string
+						{	
+							pProgDlg->Destroy();
 							return;
+						}
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+						{	
+							pProgDlg->Destroy();
 							return;
-						tgtpos = tgtpos->GetNext();
+						}
 					}
 
 					hstr = Trow
@@ -5776,7 +5840,10 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 				}// end of if (bInclTgtLangRow && !TgtProcessed)
 
 				if (bInclGlsLangRow && !bGlsProcessed)
@@ -5793,7 +5860,10 @@ a:
 					// the tags above are output once for a given row
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
 					// in this row, with increasing values for N
@@ -5806,7 +5876,10 @@ a:
 						hstr = CellDimsTgt;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow)
 						nCurrentRow++;
@@ -5822,37 +5895,46 @@ a:
 					+SintblGls							// Gls Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 
 					// Output the actual Gls row text delimited by \cell tags
 					if (gbGlossingUsesNavFont)
 					{
-						GlsList::Node* glspos = glsList.GetFirst();
-						wxASSERT(glspos != NULL);
 						for (int count=0; count < (int)glsList.GetCount(); count++)
 						{
 							//if (!WriteOutputString(f,gpApp->m_systemEncoding,*glspos->GetData()))	// Gls text string
 							//	return;
 							// whm 8Nov07 note: We'll use the tgt encoding for gloss text which
 							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
-							if (!WriteOutputString(f,gpApp->m_tgtEncoding,*glspos->GetData()))	// Gls text string
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls text string
+							{	
+								pProgDlg->Destroy();
 								return;
+							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+							{	
+								pProgDlg->Destroy();
 								return;
-							glspos = glspos->GetNext();
+							}
 						}
 					}
 					else
 					{
-						GlsList::Node* glspos = glsList.GetFirst();
-						wxASSERT(glspos != NULL);
 						for (int count=0; count < (int)glsList.GetCount(); count++)
 						{
-							if (!WriteOutputString(f,gpApp->m_tgtEncoding,*glspos->GetData()))		// Gls uses Tgt encoding
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls uses Tgt encoding
+							{	
+								pProgDlg->Destroy();
 								return;
+							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
+							{	
+								pProgDlg->Destroy();
 								return;
-							glspos = glspos->GetNext();
+							}
 						}
 					}
 
@@ -5861,7 +5943,10 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pProgDlg->Destroy();
 						return;
+					}
 				}// end of if (bInclGlsLangRow && !GlsProcessed)
 			}// end of else when not glossing
 
@@ -5883,13 +5968,19 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// cellDimsFree below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = cellDimsFree;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 
 				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
 					nCurrentRow++;
@@ -5906,7 +5997,10 @@ a:
 				+gpApp->m_eolStr // Note: end hstr line after Free Trans Style tag below
 				+SintblFree;						// Free Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 
 				// Output the actual Free Translation row text delimited by \cell tag(s).
 				// Note: The cellxNListFree has a list of cell borders with a minimum of one
@@ -5916,8 +6010,6 @@ a:
 				// there is only a null string for a given cell in both lists.
 				int freepos = 0;
 				int cellxNListCount = cellxNListFree.GetCount();
-				FreeTransList::Node* fpos = freeTransList.GetFirst();
-				wxASSERT(fpos != NULL);
 				int freeTransListCount;
 				freeTransListCount = freeTransList.GetCount();
 				wxASSERT(cellxNListCount == freeTransListCount);
@@ -5925,13 +6017,15 @@ a:
 				{
 					wxString numAtFree = cellxNListFree.Item(count);
 					freepos++;
-					wxString strAtFree = *fpos->GetData();
-					fpos = fpos->GetNext();
+					wxString strAtFree = freeTransList.Item(count);
 
 					if (numAtFree != _T("0") && numAtFree != _T(""))
 					{
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
+						{	
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 					if (!strAtFree.IsEmpty())
 					{
@@ -6001,7 +6095,10 @@ a:
 						// whm 8Nov07 note: We'll use the tgt encoding for Free Trans text which
 						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,FreeTransFitsInRowStr))
+						{	
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 				}
@@ -6011,7 +6108,10 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 			}
 
 			// added for version 3
@@ -6032,13 +6132,19 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				// cellDimsBack below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = cellDimsBack;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 				
 				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
 					nCurrentRow++;
@@ -6055,7 +6161,10 @@ a:
 				+gpApp->m_eolStr // Note: end hstr line after Back Trans Style tag below
 				+SintblBack;							// Back Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 
 				// Output the actual Back Translation row text delimited by \cell tag(s).
 				// Note: The cellxNListBT has a list of cell borders with a minimum of one
@@ -6065,8 +6174,6 @@ a:
 				// there is only a null string for a given cell in both lists.
 				int btpos = 0;
 				int cellxNListCount = cellxNListBT.GetCount();
-				BackTransList::Node* bpos = backTransList.GetFirst();
-				wxASSERT(bpos != NULL);
 				int backTransListCount;
 				backTransListCount = backTransList.GetCount();
 				wxASSERT(cellxNListCount == backTransListCount);
@@ -6074,13 +6181,15 @@ a:
 				{
 					wxString numAtBT = cellxNListBT.Item(count);
 					btpos++;
-					wxString strAtBT = *bpos->GetData();
-					bpos = bpos->GetNext();
+					wxString strAtBT = backTransList.Item(count);
 
 					if (numAtBT != _T("0") && numAtBT != _T(""))
 					{
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
+						{	
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 					if (!strAtBT.IsEmpty())
 					{
@@ -6149,7 +6258,10 @@ a:
 						// whm 8Nov07 note: We'll use the tgt encoding for Back Trans text which
 						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,BackTransFitsInRowStr))
+						{	
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 				}
@@ -6159,7 +6271,10 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pProgDlg->Destroy();
 					return;
+				}
 			}
 
 
@@ -6167,7 +6282,10 @@ a:
 			// between the tables to prevent them from fusing together
 			hstr = _T("\\pard ") + gpApp->m_eolStr + Sindoc__normal +gpApp->m_eolStr+ _T("{\\par }"+gpApp->m_eolStr); // paragraph between tables
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+			{	
+				pProgDlg->Destroy();
 				return;
+			}
 
 			// Note: At the point we have already read the source phrase string data for the first
 			// cell of the following table.
@@ -6182,19 +6300,11 @@ a:
 			cellxNListFree.Clear();
 			cellxNListBT.Clear();
 
-			// we must call DeleteContents(TRUE) on the lists in order to free the wxString data
-			// put on the heap
-			srcList.DeleteContents(TRUE);			// empty list of source strings
 			srcList.Clear();
-			tgtList.DeleteContents(TRUE);			// empty list of target strings
 			tgtList.Clear();
-			glsList.DeleteContents(TRUE);			// empty list of gloss strings
 			glsList.Clear();
-			navList.DeleteContents(TRUE);			// empty list of nav text strings
 			navList.Clear();
-			freeTransList.DeleteContents(TRUE);		// empty list of free trans string(s)
 			freeTransList.Clear();
-			backTransList.DeleteContents(TRUE);		// empty list of back trans string(s)
 			backTransList.Clear();
 			//BackTransFitsInRowStr.Empty(); // don't clear this
 			//FreeTransFitsInRowStr.Empty(); // don't clear this
@@ -6263,10 +6373,10 @@ a:
 			// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 			// the Append calls below; wxList::DeleteContents(true) then deletes the list's client
 			// contents (wxStrings).
-			srcList.Append(new wxString(SrcStr));		// collect list of source strings
-			tgtList.Append(new wxString(TgtStr));		// collect list of target strings
-			glsList.Append(new wxString(GlsStr));		// collect list of gloss strings
-			navList.Append(new wxString(NavStr));		// collect list of nav text strings
+			srcList.Add(SrcStr); // collect list of source strings
+			tgtList.Add(TgtStr); // collect list of target strings
+			glsList.Add(GlsStr); // collect list of gloss strings
+			navList.Add(NavStr); // collect list of nav text strings
 
 			// if there is FreeTransSpillOverStr text add it to the FreeStr for the next table
 			if (!FreeTransSpillOverStr.IsEmpty())
@@ -6286,7 +6396,7 @@ a:
 			// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 			// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 			// contents (wxStrings).
-			freeTransList.Append(new wxString(FreeTStr));// collect list of free trans strings (will be list of null
+			freeTransList.Add(FreeTStr); // collect list of free trans strings (will be list of null
 											// strings except for when current src phrase has a \free
 											// string in m_markers)
 
@@ -6308,7 +6418,7 @@ a:
 			// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 			// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 			// contents (wxStrings).
-			backTransList.Append(new wxString(BackTStr));// collect list of back trans strings (will be list of null
+			backTransList.Add(BackTStr); // collect list of back trans strings (will be list of null
 											// strings except for when current src phrase has a \bt...
 											// string in m_markers)
 
@@ -6370,10 +6480,10 @@ a:
 			// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 			// the Append calls below; wxList::DeleteContents(true) then deletes the list's client
 			// contents (wxStrings).
-			srcList.Append(new wxString(SrcStr));		// collect list of source strings
-			tgtList.Append(new wxString(TgtStr));		// collect list of target strings
-			glsList.Append(new wxString(GlsStr));		// collect list of gloss strings
-			navList.Append(new wxString(NavStr));		// collect list of nav text strings
+			srcList.Add(SrcStr); // collect list of source strings
+			tgtList.Add(TgtStr); // collect list of target strings
+			glsList.Add(GlsStr); // collect list of gloss strings
+			navList.Add(NavStr); // collect list of nav text strings
 
 			// if there is FreeTransSpillOverStr text add it to the FreeStr for the next table
 			if (!FreeTransSpillOverStr.IsEmpty())
@@ -6393,7 +6503,7 @@ a:
 			// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 			// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 			// contents (wxStrings).
-			freeTransList.Append(new wxString(FreeTStr));// collect list of free trans strings (will be list of null
+			freeTransList.Add(FreeTStr); // collect list of free trans strings (will be list of null
 											// strings except for when current src phrase has a \free
 											// string in m_markers)
 
@@ -6415,7 +6525,7 @@ a:
 			// wx note: wxList works with pointers to wxStrings on the heap so must use new in
 			// the Append call below; wxList::DeleteContents(true) then deletes the list's client
 			// contents (wxStrings).
-			backTransList.Append(new wxString(BackTStr));// collect list of back trans strings (will be list of null
+			backTransList.Add(BackTStr); // collect list of back trans strings (will be list of null
 											// strings except for when current src phrase has a \bt...
 											// string in m_markers)
 
@@ -6440,25 +6550,19 @@ b:						// b: is exit point to write the last columns of data
 	// append last '}' to the RTF file
 	hstr = _T('}');
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+	{	
+		pProgDlg->Destroy();
 		return;
+	}
 	
 	// remove the progress indicator window
-	progDlg.Destroy();
+	pProgDlg->Destroy();
 
-	// we must call DeleteContents(TRUE) on the lists in order to free the wxString data
-	// put on the heap. It should be done here at the end of DoExportInterlinearRTF to ensure
-	// that all memory used by the lists is freed.
-	srcList.DeleteContents(TRUE);			// empty list of source strings
 	srcList.Clear();
-	tgtList.DeleteContents(TRUE);			// empty list of target strings
 	tgtList.Clear();
-	glsList.DeleteContents(TRUE);			// empty list of gloss strings
 	glsList.Clear();
-	navList.DeleteContents(TRUE);			// empty list of nav text strings
 	navList.Clear();
-	freeTransList.DeleteContents(TRUE);		// empty list of free trans string(s)
 	freeTransList.Clear();
-	backTransList.DeleteContents(TRUE);		// empty list of back trans string(s)
 	backTransList.Clear();
 
 	// Delete font objects used for text metrics to avoid memory leaks.
@@ -7491,7 +7595,8 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	counter = 0;
 	wxString progMsg = _("%s  - %d of %d Total Steps");
 	wxString msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),0,nTotal);
-	wxProgressDialog progDlg(_("Exporting To Rich Text Format"),
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	pProgDlg = new wxProgressDialog(_("Exporting To Rich Text Format"),
                     msgDisplayed,
                     nTotal,    // range
                     gpApp->GetMainFrame(),   // parent
@@ -7503,7 +7608,8 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
                     //wxPD_ESTIMATED_TIME |
                     //wxPD_REMAINING_TIME
                     //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-                    );
+    );
+	wxASSERT(pProgDlg != NULL);
 
 	// Scan through Buffer
 	while (ptr < pEnd)
@@ -7513,7 +7619,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 									// so pick a large number for updating the progress dialog
 		{
 			msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),ptr - beginPtr,nTotal);
-			progDlg.Update(ptr - beginPtr,msgDisplayed);
+			pProgDlg->Update(ptr - beginPtr,msgDisplayed);
 		}
 
 		bHitMarker = FALSE;
@@ -7532,7 +7638,10 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 			// whitespace cannot contain any curly braces
 			//CountTotalCurlyBraces(WhiteSpace,nOpeningBraces,nClosingBraces);
 			if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
+			{
+				pProgDlg->Destroy();
 				return;
+			}
 
 			ptr += itemLen;					// advance the pointer past the white space
 		}
@@ -7557,7 +7666,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			VernacText = wxString(ptr,itemLen);
 			//CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,VernacText))
+			{
+				pProgDlg->Destroy();
 				return;
+			}
 			ptr += itemLen;
 		}
 		else if (IsMarkerRTF(ptr,pBufStart))
@@ -7585,7 +7697,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 
 					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					{
+						pProgDlg->Destroy();
 						return;
+					}
 					
 					Item sfm;
 					pCharStack->Pop(sfm); // pop an "unknown" character style marker
@@ -7616,7 +7731,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString mkrTags = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 					}
 
@@ -7636,7 +7754,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 
 				CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 				bProcessingEndlessCharMarker = FALSE;	// code below will turn this flag on if the current
 											// marker is also a table character style marker
 			}
@@ -7736,7 +7857,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						wxString paraTagStr = (wxString)rtfIter->second;
 						CountTotalCurlyBraces(paraTagStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,paraTagStr))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						LastParaStyle = Sindoc_Paragraph_key;	// we just changed it from Section Head to Paragraph
 						LastNonBoxParaStyle = Sindoc_Paragraph_key;
 						bLastOutputWasParTag = TRUE;
@@ -7756,7 +7880,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						wxString lastStyTag = (wxString)rtfIter->second;
 						CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 					bLastParagraphWasBoxed = FALSE;
 				}
@@ -7773,7 +7900,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						MiscRTF = _T(" ");
 						//CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no braces possible here
 						if (!WriteOutputString(f,EncodingSrcOrTgt,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 				}
 
@@ -7789,12 +7919,18 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						MiscRTF = _T("{");
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// RTF tags use gpApp->m_systemEncoding
 						wxString mkrTags = (wxString)rtfIter->second;
 						CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces); // no braces possible here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 				}
 
@@ -7807,12 +7943,18 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				wxString numStr = wxString(ptr,itemLen);
 				CountTotalCurlyBraces(numStr,nOpeningBraces,nClosingBraces); // no braces likely here
 				if (!WriteOutputString(f,EncodingSrcOrTgt,numStr))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 				// add RTF non-breaking space and closing brace to close Verse Num char style group
 				MiscRTF = _T("\\~}");
 				CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 				ptr += itemLen;	// point past verse number
 
 				itemLen = pDoc->ParseWhiteSpace(ptr);	// parse past white space after the marker
@@ -7857,7 +7999,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						+ _T("{\\*\\bkmkend ") + rtfBookMark + _T('}');
 					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 2 opening & 2 closing curly braces here
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					{
+						pProgDlg->Destroy();
 						return;
+					}
 				}
 
 				ptr += itemLen;	// point past chapter number
@@ -7896,13 +8041,19 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						checkStr = (wxString)rtfIter->second;
 						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 					// output tempLabel instead of VernacText
 					CountTotalCurlyBraces(tempLabel,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,EncodingSrcOrTgt,tempLabel))
+					{
+						pProgDlg->Destroy();
 						return;
+					}
 
 					ptr += itemLen; // point past the \cl and assoc text
 					itemLen = pDoc->ParseWhiteSpace(ptr);	// parse white space following the \cl and assoc text
@@ -7932,7 +8083,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								checkStr = (wxString)rtfIter->second;
 								CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+								{
+									pProgDlg->Destroy();
 									return;
+								}
 							}
 						}
 
@@ -7944,7 +8098,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						temp = chapterLabel + _T(' ') + VernacText;
 						CountTotalCurlyBraces(temp,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,EncodingSrcOrTgt,temp))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// no additional parsing needed here
 					}
 					else
@@ -7962,12 +8119,18 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							checkStr = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 
 						CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// no additional parsing needed here
 					}
 				}
@@ -8064,7 +8227,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString lastStyTag = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						bLastParagraphWasBoxed = FALSE;
 					}
@@ -8085,20 +8251,29 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							// RTF tags use gpApp->m_systemEncoding
 							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace here
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						// we found an associated value for "unknown" key in map
 						checkStr = (wxString)rtfIter->second;
 						// RTF tags use gpApp->m_systemEncoding
 						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 					// to help the user detect typos, output the unknown marker prefixed to its assoc text
 					unkMarker = _T("\\\\") + unkMarker + _T(' '); // RTF requires backslash be escaped with a '\'
 					CountTotalCurlyBraces(unkMarker,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,unkMarker))
+					{
+						pProgDlg->Destroy();
 						return;
+					}
 
 					bLastOutputWasParTag = TRUE;
 					// Don't update LastStyle nor LastParaStyle here - we want to maintain the
@@ -8188,6 +8363,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
 						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
 					{
+						pProgDlg->Destroy();
 						return;
 					}
 					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -8203,7 +8379,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// only if no punctuation immediately follows it.
 						wxString spFollowingDestText = _T(' ');
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 					if (bHasFreeTransToAddToFootnoteBody)
@@ -8259,6 +8438,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						bIsAtEnd, endnoteDest, rtfTagsMap, pDoc, parseError, callerType,
 						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
 					{
+						pProgDlg->Destroy();
 						return;
 					}
 					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -8274,7 +8454,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// only if no punctuation immediately follows it.
 						wxString spFollowingDestText = _T(' ');
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 					if (bHasFreeTransToAddToFootnoteBody)
@@ -8325,6 +8508,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						bIsAtEnd, crossrefDest, rtfTagsMap, pDoc, parseError, callerType,
 						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
 					{
+						pProgDlg->Destroy();
 						return;
 					}
 					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -8340,7 +8524,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// only if no punctuation immediately follows it.
 						wxString spFollowingDestText = _T(' ');
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 					if (bHasFreeTransToAddToFootnoteBody)
@@ -8373,7 +8560,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString lastStyTag = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						bLastParagraphWasBoxed = FALSE;
 					}
@@ -8386,7 +8576,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// RTF tags use gpApp->m_systemEncoding
 						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 					LastStyle = Marker;
 					// Don't update LastParaStyle here - we want to maintain its properties for the
@@ -8866,7 +9059,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString lastStyTag = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						bLastParagraphWasBoxed = FALSE;
 					}
@@ -8882,7 +9078,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							// RTF tags use gpApp->m_systemEncoding
 							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 							
 							pCharStack->Push(Marker.char_str()); // push a TABLE (\th... or \tc...) character style marker
 						}
@@ -8890,7 +9089,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						wxString mkrTags = (wxString)rtfIter->second;
 						CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 					// If bProcessingEndlessCharMarker is FALSE we are starting to process a marker that
@@ -8923,6 +9125,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
 							single_border,pDoc))
 						{
+							pProgDlg->Destroy();
 							return;
 						}
 						// We have output the current \bt material at a succeeding \bt point, so
@@ -8988,7 +9191,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						MiscRTF = _T('{');
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// next output the \cs style tags for _annotation_ref
 						rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
 						if (rtfIter != rtfTagsMap.end())
@@ -8998,13 +9204,19 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString annotRefTags = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						// next output the required RTF tags to prefix an annotation
 						MiscRTF = _T("{\\*\\atnid Adapt It Note:}{\\*\\atnauthor       }\\chatn {\\*\\annotation \\pard\\plain ");
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 open, 2 close braces added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// output the _annotation_text paragraph style tags
 						rtfIter = rtfTagsMap.find(_T("_annotation_text"));
 						if (rtfIter != rtfTagsMap.end())
@@ -9014,13 +9226,19 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString annotTextTags = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(annotTextTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotTextTags))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						// output the _annotation_ref style tags again
 						MiscRTF = _T('{');
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open brace here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// next output the \cs style tags for _annotation_ref
 						rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
 						if (rtfIter != rtfTagsMap.end())
@@ -9030,22 +9248,34 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString annotRefTags = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 						MiscRTF = _T("\\chatn }{");
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open one closed added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// now output the actual note string
 						CountTotalCurlyBraces(noteStr,nOpeningBraces,nClosingBraces);
 						// whm 8Nov07 changed below to use m_tgtEncoding to force
 						// the use of the \uN\'f3 RTF Unicode chars format.
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,noteStr)) // use m_tgtEncoding here
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						MiscRTF = _T("}}}"); // closing braces for note (annotation)
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 closing curly braces here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// update LastStyle only when doing boxed paragraph
 						LastStyle = Marker;
 					}
@@ -9085,6 +9315,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
 							callerStr, FALSE, nullStr)) // FALSE because there is no free trans to suffix to a note
 						{
+							pProgDlg->Destroy();
 							return;
 						}
 						if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -9115,6 +9346,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
 							double_border,pDoc))
 						{
+							pProgDlg->Destroy();
 							return;
 						}
 						// We have output the current \free material at a succeeding \free point, so
@@ -9176,7 +9408,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						MiscRTF = _T('}');
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 						// if the previous marker was a small break paragraph, we need to propagate
 						// the LastNonBoxParaStyle
 						// TODO: Check if the following propagation should only be done following
@@ -9195,7 +9430,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								lastNBParaStyle.Remove(nbPos, 5);
 								CountTotalCurlyBraces(lastNBParaStyle,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastNBParaStyle))
+								{
+									pProgDlg->Destroy();
 									return;
+								}
 							}
 						}
 
@@ -9229,7 +9467,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								wxString mkrTags = (wxString)rtfIter->second;
 								CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+								{
+									pProgDlg->Destroy();
 									return;
+								}
 							}
 						}
 						
@@ -9386,6 +9627,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 									parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
 									single_border,pDoc))
 								{
+									pProgDlg->Destroy();
 									return;
 								}
 								// Note: when OutputAnyBTorFreeMaterial is called it calls btAssocStr.Empty()
@@ -9437,6 +9679,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 									parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
 									double_border,pDoc))
 								{
+									pProgDlg->Destroy();
 									return;
 								}
 								// Note: When OutputAnyBTorFreeMaterial is called it calls freeAssocStr.Empty()
@@ -9467,7 +9710,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// RTF tags use gpApp->m_systemEncoding
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 
 					if (Marker == LastNonBoxParaStyle
@@ -9484,7 +9730,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// RTF tags use gpApp->m_systemEncoding
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pProgDlg->Destroy();
 							return;
+						}
 					}
 					else
 					{
@@ -9503,7 +9752,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								// RTF tags use gpApp->m_systemEncoding
 								CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+								{
+									pProgDlg->Destroy();
 									return;
+								}
 								
 								pCharStack->Push(Marker.char_str()); // push a character style marker
 							}
@@ -9511,7 +9763,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							wxString mkrTags = (wxString)rtfIter->second;
 							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+							{
+								pProgDlg->Destroy();
 								return;
+							}
 						}
 					}
 
@@ -9552,7 +9807,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						WhiteSpace.Remove(WhiteSpace.Find(_T("  ")),1);
 					}
 					if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
+					{
+						pProgDlg->Destroy();
 						return;
+					}
 				}
 				else
 				{
@@ -9586,7 +9844,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					wxString lastStyTags = (wxString)rtfIter->second;
 					CountTotalCurlyBraces(lastStyTags,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTags))
+					{
+						pProgDlg->Destroy();
 						return;
+					}
 				}
 				bLastParagraphWasBoxed = FALSE;
 			}
@@ -9652,7 +9913,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				ptr += itemLen;
 				wxASSERT(VernacText != _T(""));
 				if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 				goto b; // check for another marker
 			}
 
@@ -9675,7 +9939,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				// there are no angle quote marks so output in vernacular encoding
 				CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
 				if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 				ptr += itemLen;
 			}
 			else
@@ -9686,7 +9953,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				// in footnote, endnote, and crossref output elsewhere in DoExportSrcOrTgtRTF.
 				CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces); // no curly braces added here
 				if (!WriteOutputStringConvertingAngleBrackets(f,EncodingSrcOrTgt,VernacText,ptr))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 				ptr += itemLen;
 			}// end of else there's at least one quote mark
 		}// end of else not a marker, but word or special text
@@ -9695,7 +9965,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 d: // exit point for if ptr == pEnd
 
 	// remove the progress indicator window
-	progDlg.Destroy();
+	pProgDlg->Destroy();
 
 	// if a set of USFM table markers (\tr, \th1, \th2...\tc1, \tc2... etc) comes at the end of
 	// the document there will not be a following marker to signal the processing of the last
@@ -9705,7 +9975,10 @@ d: // exit point for if ptr == pEnd
 		MiscRTF = _T('}');
 		CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly braces added here
 		if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+		{
+			pProgDlg->Destroy();
 			return;
+		}
 		
 		Item sfm;
 		pCharStack->Pop(sfm); // pop a character style marker
@@ -9744,7 +10017,10 @@ d: // exit point for if ptr == pEnd
 				wxString mkrTags = (wxString)rtfIter->second;
 				CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+				{
+					pProgDlg->Destroy();
 					return;
+				}
 			}
 		}
 	}
@@ -9861,6 +10137,7 @@ d: // exit point for if ptr == pEnd
 			parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
 			single_border,pDoc))
 		{
+			pProgDlg->Destroy();
 			return;
 		}
 	}
@@ -9875,6 +10152,7 @@ d: // exit point for if ptr == pEnd
 			parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
 			double_border,pDoc))
 		{
+			pProgDlg->Destroy();
 			return;
 		}
 	}
@@ -9884,7 +10162,10 @@ d: // exit point for if ptr == pEnd
 	MiscRTF = _T("\\par }");
 	CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace added here
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+	{
+		pProgDlg->Destroy();
 		return;
+	}
 
 	// At this point we should have output the same number of opening curly braces and
 	// closing curly braces.
@@ -9907,9 +10188,14 @@ d: // exit point for if ptr == pEnd
 		{
 			MiscRTF += _T('}');
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+			{
+				pProgDlg->Destroy();
 				return;
+			}
 		}
 	}
+	// remove the progress dialog
+	pProgDlg->Destroy();
 
 	// close the file
 	f.Close();
