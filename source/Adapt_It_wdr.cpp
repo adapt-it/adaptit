@@ -3820,7 +3820,7 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
     item3->SetToolTip( _("Select this button if you only want to check the consistency of the open document") );
     item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 500, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxRadioButton *item4 = new wxRadioButton( parent, IDC_RADIO_CHECK_SELECTED_DOCS, _("Check this &and other documents in this project"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->SetToolTip( _("Select this button if you want to check the consistency of this and other documents in the project") );
@@ -3828,30 +3828,27 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE, _("This selection will first save the currently open document. You will then be able to choose the documents you want checked."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 10 );
-
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG_TWO, _("Note: To check all documents in the Adaptations folder, or all documents in all the book folders, Cancel this dialog, close the open document, and then choose the Consistency Check... command again. (Also, for checking all book folders, make sure book folder mode is turned on.)"), wxDefaultPosition, wxSize(-1,30), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item5->Add( item7, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG, _("Note: If you choose the second of the above two options, please note the following behaviours. If Book Mode is turned off, all documents in the Adaptations folder will be checked, and any in book folders will be ignored. If Book Mode is turned on, all documents in every book folder will be checked, and any documents in the Adaptations folder will be ignored. (If you have documents in both places, run this command twice, once with Book Mode turned off, and once with it turned on. It doesn't matter what order you choose.)"), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item5->Add( item6, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    item8->Add( 70, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetDefault();
+    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetDefault();
-    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -8110,12 +8107,12 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item24 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
+    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item23->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item25 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
