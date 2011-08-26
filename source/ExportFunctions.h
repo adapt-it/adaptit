@@ -17,35 +17,6 @@
     #pragma interface "ExportFunctions.h"
 #endif
 
-// The following lists are for DoExportInterlinearRTF
-//WX_DECLARE_LIST(wxString, CellxNList); // see list definition macro in .cpp file
-//WX_DECLARE_LIST(wxString, CellxNListFree); // see list definition macro in .cpp file
-//WX_DECLARE_LIST(wxString, CellxNListBT); // see list definition macro in .cpp file
-
-/// wxList declaration and partial implementation of the SrcList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, SrcList); // see list definition macro in .cpp file
-
-/// wxList declaration and partial implementation of the TgtList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, TgtList); // see list definition macro in .cpp file
-
-/// wxList declaration and partial implementation of the GlsList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, GlsList); // see list definition macro in .cpp file
-
-/// wxList declaration and partial implementation of the NavList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, NavList); // see list definition macro in .cpp file
-
-/// wxList declaration and partial implementation of the FreeTransList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, FreeTransList); // see list definition macro in .cpp file
-
-/// wxList declaration and partial implementation of the BackTransList class being
-/// a list of pointers to wxString objects
-WX_DECLARE_LIST(wxString, BackTransList); // see list definition macro in .cpp file
-
 // wxHashMap uses this macro for its declaration
 WX_DECLARE_HASH_MAP( wxString,		// the map key is the bare sfm marker
                     wxString,		// the map value is the string of RTF Tags
