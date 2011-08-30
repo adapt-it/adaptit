@@ -37,6 +37,8 @@ public:
 	void OnBnClickedRadioCheckSelectedDocs(wxCommandEvent& WXUNUSED(event));
 	bool m_bCheckOpenDocOnly;
 
+	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 

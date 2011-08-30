@@ -142,12 +142,11 @@ class CSourcePhrase;
 	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr, wxProgressDialog* pProgDlg);
+							wxArrayPtrVoid& fromEditorOffsetsArr);
 	wxString		GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditText, 
 							wxString& fromEditorText, wxArrayString& preEditMd5Arr, 
 							wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr, 
-							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr, 
-							wxProgressDialog* pProgDlg);
+							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
 	////////////////// end of those for analysis of texts //////////////////////////
 
 

@@ -92,7 +92,7 @@ CSplitDialog::CSplitDialog(wxWindow* parent) // dialog constructor
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	SplitDialogFunc(this, TRUE, TRUE);
+	pSplitDialogSizer = SplitDialogFunc(this, TRUE, TRUE);
 	// The declaration is: UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 }
 
@@ -242,7 +242,10 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 		{
 			// BEW changed 29Apr10
 			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
-			d->DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+			// whm 24Aug11 Note. I don't think a wait dialog is really needed for
+			// the split operation since it is likely to go quickly
+			wxProgressDialog* pProgDlg = NULL;
+			d->DoFileSave_Protected(FALSE,pProgDlg); // TRUE - show wait/progress dialog
 		}
 	}
 
@@ -452,7 +455,10 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 		{
 			// BEW changed 29Apr10
 			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
-			d->DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+			// whm 24Aug11 Note. I don't think a wait dialog is really needed for
+			// the split operation since it is likely to go quickly
+			wxProgressDialog* pProgDlg = NULL;
+			d->DoFileSave_Protected(FALSE,pProgDlg); // TRUE - show wait/progress dialog
 		}
 	}
 
@@ -731,6 +737,10 @@ void CSplitDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxASSERT(pFileName1Label != NULL);
 	pFileName2Label = (wxStaticText*)FindWindowById(IDC_STATIC_REMAIN_NAME) ;
 	wxASSERT(pFileName2Label != NULL);
+
+	// whm 29Aug11 added
+	// make the "Documents in the folder Adaptations" list look read-only
+	pFileList->SetBackgroundColour(gpApp->sysColorBtnFace);
 	
 	pSplittingWait->Show(FALSE);
 
@@ -771,6 +781,9 @@ void CSplitDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 
 	gpApp->RefreshStatusBarInfo();
+	
+	// adjust for substituted items
+	pSplitDialogSizer->Layout();
 }
 
 void CSplitDialog::ListFiles()

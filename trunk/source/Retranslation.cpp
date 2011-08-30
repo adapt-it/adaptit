@@ -237,28 +237,44 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	CSourcePhrase* pSrcPhrase = NULL;
 	int count = 0;
 	
+	// whm 26Aug11 Open a wxProgressDialog instance here for KB Restore operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	// 
+	// This progress dialog continues for the duration of OnRetransReport(). We need
+	// a separate progress dialog inside DoOneDocReport() because each instance of
+	// it will be processing a different document with different ranges of values.
+	wxString msgDisplayed;
+	const int nTotal = pList->GetCount() + 1;
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxFileName fn(m_pApp->m_curOutputFilename);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = m_pApp->OpenNewProgressDialog(_("Generating Retranslation Report..."),msgDisplayed,nTotal,500);
+	
 	wxLogNull logNo; // avoid spurious messages from the system
 
+	// whm 24Aug11 moved this wxProgressDialog out to the top level
+	// OnRetranslationReport() with its pProgDlg pointer passed on
+	// down to this routine, so that the progress dialog can be 
+	// updated for each book that gets processed without the flicker
+	// of more than one progress dialog appearing during the process
 	// initialize the progress indicator window
-	int nTotal;
-	nTotal = pList->GetCount();
-	wxASSERT(nTotal > 0);
 	
-	wxString progMsg = _("%s  - %d of %d Total words and phrases");
-	wxString msgDisplayed = progMsg.Format(progMsg,name.c_str(),1,nTotal);
-	wxProgressDialog progDlg(_("Retranslation Report"),
-							 msgDisplayed,
-							 nTotal,    // range
-							 m_pApp->GetMainFrame(),   // parent
-							 //wxPD_CAN_ABORT |
-							 //wxPD_CAN_SKIP |
-							 wxPD_APP_MODAL |
-							 wxPD_AUTO_HIDE //| -- try this as well
-							 //wxPD_ELAPSED_TIME |
-							 //wxPD_ESTIMATED_TIME |
-							 //wxPD_REMAINING_TIME
-							 //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-							 );
+	progMsg = _("%s  - %d of %d Total words and phrases");
+	msgDisplayed = progMsg.Format(progMsg,name.c_str(),1,nTotal);
+	pProgDlg->Update(count,msgDisplayed);
+	::wxSafeYield();
+	
+	// whm 24Aug11 Note: The progress dialog is created on the heap back in
+	// the OnRetranslationReport(), and its pointer is pass along through
+	// DoRetranslationReport() and from there to here in DoOneDocReport().
+	// The progress dialog is destroyed back in the top-level caller
+	// OnRetranslationReport.
 	
 	// compose the output data & write it out, phrase by phrase
 	SPList::Node* pos = pList->GetFirst();
@@ -363,14 +379,12 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 			bStartRetrans = TRUE; // get ready for start of next one encountered
 		}
 		
-		// whm note: Yield operations tend to hang in wxGTK, so I'm going to just use the
-		// wxBusyInfo message and not worry about the message being repainted if covered
-		// and uncovered by another window.
 		// update the progress bar
 		if (counter % 1000 == 0) 
 		{
 			msgDisplayed = progMsg.Format(progMsg,name.c_str(),counter,nTotal);
-			progDlg.Update(counter,msgDisplayed);
+			pProgDlg->Update(counter,msgDisplayed);
+			::wxSafeYield();
 		}
 		
 		if (bStartOver)
@@ -378,7 +392,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	}
 	
 	// remove the progress indicator window
-	progDlg.Destroy();
+	pProgDlg->Destroy();
 	
 	if (count == 0)
 	{
@@ -468,12 +482,17 @@ void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& 
 
 void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc, 
 										   wxString& name, wxArrayString* pFileList, 
-										   SPList* pList, wxFile* pFile)
+										   SPList* pList, wxFile* pFile,
+										   wxProgressDialog* pProgDlg)
 {
+	// whm 24Aug11 Note: This function received a pointer to the original
+	// wxProgressDialog created in the caller OnRetranslationReport(). It
+	// passes the pointer along to the DoOneDocReport() calls below.
 	if (pFileList->IsEmpty())
 	{
 		
 		// use the open document's pList of srcPhrase pointers
+		// whm Note: DoOneDocReport() has its own progress dialog
 		DoOneDocReport(name,pList,pFile); 
 	}
 	else
@@ -540,6 +559,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			
 			// use the now open document's pList of srcPhrase pointers, build
 			// the part of the report which pertains to this document
+			// whm Note: DoOneDocReport() has its own progress dialog
 			DoOneDocReport(indexingName,pPhrases,pFile); 
 			
 			// remove the document
@@ -559,6 +579,9 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 		// allow the view to respond again to updates
 		m_pApp->GetMainFrame()->canvas->Thaw();
 	}
+	// remove the top level progress dialog
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
 }
 
 
@@ -3657,7 +3680,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	m_pApp->m_acceptedFilesList.Clear();
 	int answer;
 
-    // whm TODO: Retranslation reports should be available for a whole project even when
+    // whm Note: Retranslation reports should be available for a whole project even when
     // a document is currently open. The user should have a choice of whether to do the 
     // report for the currently open document only or for the whole project. This OnRetransReport()
     // handler could temporarily close the currently open doc if necessary, and reopen it
@@ -3769,6 +3792,12 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 	int len;
 	wxString reportFilename;
+	
+	// whm 29Aug11 modified to make the form of the _retrans_report name
+	// conform to the other automatically generated file names under
+	// navigation protection mode - in particular when they are used 
+	// in collaboration (i.e., have a _Collab prefix). The _Collab
+	// prefix is changed to _Retrans_Report.
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
 	{
 		// a document is currently open
@@ -3778,8 +3807,25 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// make a suitable default output filename for the export function
 		len = reportFilename.Length();
 		reportFilename.Remove(len-4,4); // remove the .adt or .xml extension
+		// We are exporting a retranslation report. Get a default file name, set directory.
+		// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing retrans report
+		// operations, the reportFilename as obtained from m_curOutputFilename 
+		// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
+		// produced exports within the _REPORTS_OUTPUTS folder from those generated 
+		// automatically by our collaboration code, we adjust the reportFilename having a 
+		// "_Collab..." prefix so that it will have "_Retrans_Report" prefix instead.
+		if (reportFilename.Find(_T("_Collab")) == 0)
+		{
+			// the reportFilename has a _Collab prefix
+			reportFilename.Replace(_T("_Collab"),_T("_Retrans_Report"));
+			reportFilename += _T(".txt");
+		}
+		else
+		{
+			// the reportFilename has no _Collab prefix, so append " report.txt" to it
+			reportFilename += _(" report.txt"); // make it a *.txt file type // localization?
+		}
 		docName = reportFilename; // use for the document name in the report
-		reportFilename += _(" report.txt"); // make it a *.txt file type // localization?
 	}
 	 else
 	{
@@ -3851,6 +3897,30 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 	m_pApp->GetMainFrame()->canvas->Freeze();
 
+	// whm 26Aug11 Open a wxProgressDialog instance here for KB Restore operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	// 
+	// This progress dialog continues for the duration of OnRetransReport(). We need
+	// a separate progress dialog inside DoOneDocReport() because each instance of
+	// it will be processing a different document with different ranges of values.
+	wxString msgDisplayed;
+	const int nTotal = m_pApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxFileName fn(m_pApp->m_curOutputFilename);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = m_pApp->OpenNewProgressDialog(_("Generating Retranslation Report..."),msgDisplayed,nTotal,500);
+		
+	// whm 24Aug11 Note: A pointer to the wxProgressDialog created here on the heap
+	// gets passed to DoFileSave_Protected() and the DoRetranslationReport() functions
+	// below. The progress dialog is only destroyed at the end of this 
+	// OnRetranslationReport() function.
+	
 	bool bDocForcedToClose = FALSE;
 	if ((!m_pApp->m_pSourcePhrases->GetCount() == 0) && !bThisDocOnly)
 	{
@@ -3858,7 +3928,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
         // bThisDocOnly is TRUE because the scanning loop in that case expects the doc to
         // be open
 		bDocForcedToClose = TRUE;
-		bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+		bool fsOK = pDoc->DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show the wait/progress dialog
 		if (!fsOK)
 		{
 			// something's real wrong!
@@ -3955,7 +4025,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pFileList->IsEmpty()); // must be empty, 
 		// DoRetranslationReport() uses this as a flag
 		m_pApp->LogUserAction(_T("Executing DoRetranslationReport() on open doc"));
-		DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f);
+		DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f,pProgDlg);
 	}
 	else
 	{
@@ -4006,7 +4076,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
 			// document filenames in it
-			DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f);
+			DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f,pProgDlg);
 		}
 		
 		// now do the book folders, if there are any
@@ -4123,7 +4193,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							// There are files to be processed. TRUE parameter suppresses 
 							// the statistics dialog.
 							DoRetranslationReport(pDoc,docName,pFileList,
-												  m_pApp->m_pSourcePhrases,&f);
+												  m_pApp->m_pSourcePhrases,&f,pProgDlg);
 							// restore parent folder as current
 							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath);
 							// the wxASSERT() is a problem when using Freeze() and Thaw()
@@ -4154,6 +4224,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		m_pApp->m_acceptedFilesList.Clear();
 	}
 	
+	// remove the progress dialog
+	pProgDlg->Destroy();
 	// close the file
 	f.Close();
 	
@@ -4205,8 +4277,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// file name nor navigate to a random path, we should inform the user 
 	// of the successful completion of the report, and indicate the file 
 	// name that was used and its outputs folder name and location.
-	wxFileName fn(reportPath);
-	wxString fileNameAndExtOnly = fn.GetFullName();
+	wxFileName fnRpt(reportPath);
+	wxString fileNameAndExtOnly = fnRpt.GetFullName();
 
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),reportPath.c_str());

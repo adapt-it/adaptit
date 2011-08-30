@@ -175,7 +175,8 @@ bool ParseClosingTag(char*& pPos,char* pEnd);
 
 bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata); // scan PCDATA
 
-bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
+bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax,
+		bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
 		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
@@ -278,30 +279,30 @@ bool AtLIFTEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
 
 // the read and parse functions;
-bool ReadBooks_XML(wxString& path);
+bool ReadBooks_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 
 // read and parse function for AI_USFM.xml
-bool ReadSFM_XML(wxString& path);
+bool ReadSFM_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 // read and parse function for AI_UserProfiles.xml
-bool ReadPROFILES_XML(wxString& path);
+bool ReadPROFILES_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 // read and parse function for AI_ReportProblem.xml/AI_ReportFeedback.xml
-bool ReadEMAIL_REPORT_XML(wxString& path);
+bool ReadEMAIL_REPORT_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 // read and parse function for Adapt It xml documents
-bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc);
+bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 // read and parse function for Adapt It xml KB and GlossingKB files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
-bool ReadKB_XML(wxString& path, CKB* pKB);
+bool ReadKB_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 // read and parse function for LIFT xml files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
-bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB));
+bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB), wxProgressDialog* pProgDlg, wxUint32 nProgMax);
 
 // Conversion functions for converting between different xml formats for
 // VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5

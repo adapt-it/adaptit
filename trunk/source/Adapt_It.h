@@ -870,6 +870,14 @@ enum BoxedParagraphType
 	double_border
 };
 
+enum ProgressDialogType
+{
+	XML_Input_Chunks,
+	App_SourcePhrases_Count,
+	Adapting_KB_Item_Count,
+	Glossing_KB_Item_Count
+};
+
 /// An enum for specifying what to do with edit box contents when the
 /// StoreFreeTranslation() function is called. Can be either remove_editbox_contents or
 /// retain_editbox_contents.
@@ -1655,6 +1663,11 @@ class CAdapt_ItApp : public wxApp
     CMainFrame* GetMainFrame();
 
 	wxTimer m_timer;
+
+	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
+							// sub-class the wxProgressDialog which currently has no
+							// way to get its maximum value held as a private member.
+							// It is set to MAXINT in OnInit()
 
 	bool m_bAdminMoveOrCopyIsInitializing;
 
@@ -3211,7 +3224,11 @@ public:
 
 	// end of collaboration declarations
 	
-
+	// for wxProgressDialog support
+	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
+	wxProgressDialog* OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed, 
+		const int nTotal, 
+		const int width);
 
 	// for localization support
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
@@ -3302,9 +3319,10 @@ public:
 	void		AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id);
 
 	bool	LayoutAndPaginate(int& nPagePrintingWidthLU, int& nPagePrintingLengthLU);
-	bool	LoadKB();
-	bool	LoadGlossingKB();
+	bool	LoadKB(bool bShowProgress);
+	bool	LoadGlossingKB(bool bShowProgress);
 	void	LoadGuesser(CKB* Kb);
+	bool	CreateAndLoadKBs(); // whm 28Aug11 added
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);
 	int		MapWXFontEncodingToMFCCharset(const wxFontEncoding fontEnc);
 	int		MapWXtoMFCPaperSizeCode(wxPaperSize id);

@@ -17,6 +17,8 @@
 #ifndef WaitDlg_h
 #define WaitDlg_h
 
+#include <wx/animate.h>
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "WaitDlg.h"
@@ -39,12 +41,14 @@ public:
 	//enum { IDD = IDD_WAIT };
 	wxStaticText* pStatic;
 	wxSizer* pWaitDlgSizer;
+	//wxPanel* pAnimatedPanel;
+	wxAnimationCtrl* m_pAnimationCtrl;
 
 // Overrides
 
 // Implementation
 protected:
-
+	CAdapt_ItApp*	m_pApp;
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	DECLARE_EVENT_TABLE()
 public:

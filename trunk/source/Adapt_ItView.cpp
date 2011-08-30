@@ -1596,6 +1596,22 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	{
 		return TRUE; // exit because in OnInit() no project etc is as yet defined
 	}
+	// whm 28Aug11 Note: I find any scenario within the version 6.x.x of Adapt It
+	// that the remainder of this function ever executes. The only time I've found
+	// that it is called is when the call in the App's OnInit() is made as follows:
+	//   wxCommandEvent event = wxID_NEW;
+	//   OnFileNew(event);
+	// which I believe was a hack to get the doc-view black box to work as
+	// it did in MFC to ensure that a document class and a view class pointer
+	// got created early on in the application startup process, and getting the
+	// canvas set into the main frame. At any rate, I am implementing the 
+	// CreateAndLoadKBs() function to take the place of the KB creation and
+	// loading code that was added to OnCreate() (by Bruce I think) at some time 
+	// subsequently. I doubt if execution control ever gets beyond the 
+	// if (pApp-m_bControlIsWithinOnInit) test above, but if it ever does, and
+	// we still need to create and load KBs from here, it will be ready.
+
+
 	// Note: Because of doc/view framework differences between MFC and WX,
 	// a user File | New selection in WX calls CreateDocument, which
 	// after calling OnSaveModified, calls OnCloseDocument which in
@@ -1616,6 +1632,35 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// called SetupKBPaths() which, for the wx version, sets up the correct normal and
 	// alternate path names, file names, and backup paths and filenames.
 	pApp->SetupKBPathsEtc();
+
+	// whm revised 28Aug11 to use the CreateAndLoadKBs() function below instead 
+	// of the previous code (see commented out code below) that created and loaded 
+	// the KBs.
+	// The CreateAndLoadKBs() is called from here as well as from the the App's 
+	// SetupDirectories(), the CollabUtilities' HookUpToExistingAIProject() and 
+	// the ProjectPage::OnWizardPageChanging().
+	// 
+	// open the two knowledge bases and load their contents;
+	if (!pApp->CreateAndLoadKBs())
+	{
+		// deal with failures here
+		return TRUE; // whm Note: Or should this be FALSE? Probably doesn't matter
+					// since this code doesn't seem to ever be executed other than
+					// when m_bControlIsWithinOnInit is TRUE (see above)
+	}
+	
+	// BEW added 13Nov09: give the local user ownership for writing, or deny it if
+	// somehow someone else has gotten ownership of the project folder already
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		// Attempt to set it only if not already set...
+		//if (!pApp->m_bReadOnlyAccess)
+		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
+	}
+	
+	/* // whm Note: I'm leaving this code here in case Bruce wants to compare it with
+	   // what's in the CreateAndLoadKBs() function call above. I don't think the
+	   // issue he raised in his 24Aug10 note would apply any more.
 
 	if (::wxFileExists(pApp->m_curKBPath)) //if (cFile.GetStatus(m_curKBPath,status))
 	{
@@ -1663,7 +1708,9 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
 		pApp->m_pKB = new CKB(FALSE);
 		wxASSERT(pApp->m_pKB != NULL);
-		bool bOK = pApp->LoadKB();
+		
+		// whm Note: LoadKB() has its own wxProgressDialog
+		bool bOK = pApp->LoadKB(TRUE); // show the progress dialog
 		if (bOK)
 		{
 			pApp->m_bKBReady = TRUE;
@@ -1682,7 +1729,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
 			pApp->m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(pApp->m_pGlossingKB != NULL);
-			bOK = pApp->LoadGlossingKB();
+			bOK = pApp->LoadGlossingKB(TRUE); // show the glossing KB's progress dialog
 			if (bOK)
 			{
 				pApp->m_bGlossingKBReady = TRUE;
@@ -1690,7 +1737,6 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			}
 			else
 			{
-				// IDS_LOAD_GLOSSINGKB_FAILURE
 				wxMessageBox(_(
 "Error: loading the glossing knowledge base failed. The application will now close."),_T(""),
 				wxICON_ERROR);
@@ -1700,7 +1746,6 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		}
 		else
 		{
-			// IDS_LOAD_KB_FAILURE
 			wxMessageBox(_(
 		"Error: loading a knowledge base failed. The application will now close."),
 			_T(""), wxICON_ERROR);
@@ -1765,6 +1810,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 		}
 	}
+	*/
     return TRUE;
 }
 
@@ -14494,8 +14540,8 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 		pDlg->SetSize( // set size in device/screen pixels
 			-1, //left,
 			topAdjusted,
-			300, // width, dummy value overridden by wxSIZE_USE_EXISTING below
-			200, // height, ditto
+			wxDefaultCoord, //300, // width, dummy value overridden by wxSIZE_USE_EXISTING below
+			wxDefaultCoord, //200, // height, ditto
 			wxSIZE_USE_EXISTING);
 	}
 	else
@@ -14511,8 +14557,8 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 		pDlg->SetSize(
 			-1, //left,
 			rectScreen.GetTop()+100,
-			300, // width, dummy value overridden by wxSIZE_USE_EXISTING below
-			200, // height, ditto
+			wxDefaultCoord, //300, // width, dummy value overridden by wxSIZE_USE_EXISTING below
+			wxDefaultCoord, //200, // height, ditto
 			wxSIZE_USE_EXISTING);
 	}
 	pDlg->Update();
