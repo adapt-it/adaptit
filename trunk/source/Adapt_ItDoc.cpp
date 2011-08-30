@@ -20709,8 +20709,10 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		CTargetUnit* pTU = NULL;
 		CRefString* pRefStr = NULL;
 		bool bDeleted = FALSE;
+		bool bAddedToAFList = FALSE;
 		wxString adaption; // scratch string for holding m_adaption's value
-		wxString key; // scratch string for holding m_key's value
+		wxString key; // scratch string for holding m_key's value (unadjusted for caps)
+		wxString autoCapsKey; // whatever key becomes after any auto-caps adjustment is done
 		wxString strNotInKB = _T("<Not In KB>");
 		bool bInconsistency = FALSE;
 		AutoFixRecord* pAutoFixRec = NULL;
@@ -20720,6 +20722,12 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		wxASSERT(pos1 != NULL);
 		int counter = 0;
 		// loop over all CSourcePhrase instances in the m_pSourcePhrases list
+		// NOTE: in this loop, I'll have as many inconsistencies as possible fixed without
+		// having to put up a dialog; for these I'll still set the local inconsistencyType
+		// enum variable even though it is thrown away without use. I do this in case I
+		// later change my mind and want to code differently - as thinking of what enum
+        // variable fits a given situation takes time and energy, and I don't want to have
+        // to do that thinking more than once
 		while (pos1 != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
@@ -20727,6 +20735,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			adaption = pSrcPhrase->m_adaption; // could be an empty string
 			pos1 = pos1->GetNext();
 			counter++;
+
 			// ignore placeholders and retranslations
 			if (pSrcPhrase->m_bNullSourcePhrase || pSrcPhrase->m_bRetranslation)
 			{
@@ -20742,6 +20751,8 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
             // KB presence
 			bInconsistency = FALSE;
 			pAutoFixRec = NULL;
+			bAddedToAFList = FALSE; // set TRUE if a created AutoFixRecord is 
+									// Append()-ed to the passed in afList
 
 			// check the KBCopy has the required association of key with translation
 			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
@@ -20826,23 +20837,81 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				{
 					// there is not an undeleted <Not In KB> entry in the KB (but a
 					// deleted one may be there), AND, the source text key doesn't have an
-					// adaptation in the KB -- so there are quite a number of
+					// adaptation in the KB -- so there are quite a number of kinds of
 					// inconsistencies possible here...
 
 					// first possibility -- there was no CTargetUnit returned from the
-					// lookup done in IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
+					// auto-caps lookup done in IsAlreadyInKB(nWords, key, adaption, 
+					// pTU, pRefStr, bDeleted);
 					if (pTU == NULL)
 					{
+						if (adaption.IsEmpty())
+						{
+                            // pSrcPhrase says the KB has an entry for this, m_adaption is
+                            // empty, but there is no pTU -- this is an inconsistency.
+                            // Three fixes are possible:
+							// (1) a <no adaptation> entry added to the KB
+							// (2) a <Not In KB> entry added to the KB (empty adaptation 
+							// is retained in the doc & certain flags change value, 
+							// eg. m_bNotInKB)
+							// (3) leave this location unadapted (the fix is then that 
+							// m_bHasKBEntry flag needs to be reset to FALSE and nothing
+							// is added to the KB)
+							// 
+                            //For the dialog for this, give a simple explanation of the
+                            //options, radio buttons for the 3 choices, a checkbox for the
+                            //"Auto-fix later instances the same way" option, a Cancel
+                            //button which cancels the whole consistency check, and an OK
+                            //button
+							bInconsistency = TRUE;
+							inconsistencyType = member_empty_flag_on_noPTU;
+                            // NOTE: an AutoFixRecord instance is deleted before the next
+                            // iteration if not preserved in the afList, and so it only
+                            // become an "auto-fix" possibility provided such preservation
+                            // happens later below before the loop end is reached
+							pAutoFixRec = new AutoFixRecord;
+							pAutoFixRec->nWords = nWords;
+							pAutoFixRec->key = key;
+							pAutoFixRec->oldAdaptation = adaption;
+							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->fixAction = no_fix_needed; // a default value
+								// until such time as the dialog is shown and the user's
+								// fixit choice becomes known & replaces this value
+
+							// the <no adaptation> option would call this code... <<-- remove these 4 lines later
+							//gbInhibitMakeTargetStringCall = TRUE;
+							//pKB->StoreText(pSrcPhrase, adaption);
+							//gbInhibitMakeTargetStringCall = FALSE;
+
+						} // end of TRUE block for test: if (adaption.IsEmpty())
+						else
+						{
+							// pSrcPhrase->m_adaption is not empty, the possible fixes for
+							// this are:
+							// (1) store the adaption string in the KB, and make the
+							// m_targetStr member (ie. no inhibition of making m_targetStr)
+							// (2) a <Not In KB> entry added to the KB (the adaptation is
+							// retained in the doc, & certain flags change value, eg. 
+							// m_bNotInKB)
+							bInconsistency = TRUE;
+							pAutoFixRec->incType = member_exists_flag_on_noPTU;
+							pAutoFixRec = new AutoFixRecord;
+							pAutoFixRec->nWords = nWords;
+							pAutoFixRec->key = key;
+							pAutoFixRec->oldAdaptation = adaption;
+							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->fixAction = no_fix_needed; // a default value
+								// until such time as the dialog is shown and the user's
+								// fixit choice becomes known & replaces this value
+						} // end of else block for test: if (adaption.IsEmpty())
+
+						
+						
+						
+// *** TODO ****
 
 
-
-
-
-
-
-
-
-					}
+					} // end of TRUE block for test: if (pTU == NULL)
 
 
 
@@ -20946,12 +21015,8 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				{
 					// there was no target unit for this key in the map, so this is an
 					// inconsistency 
-                    // BEW 26Aug11, the above comment is incorrect, there is no good reason
-                    // that every m_key value must have a KB entry. This logic error would
-					// have had the inconsistency dialog open heaps of unwanted times!
-					// (False positives) What counts in this block is whether or not the
-					// m_adaption or m_gloss member is empty or not; if it's non-empty, THAT means
-					// there is a genuine inconsistency -- fix the code here accordingly
+					// *** I started "fixing" this but my error was in thinking the first block wasn't
+					// an inconsistency...., it is, since the flag m_bHasKBEntry is true
 					bFoundTgtUnit = FALSE;
 					bFoundRefString = FALSE;
 					if (!gbIsGlossing && pSrcPhrase->m_adaption.IsEmpty() && pSrcPhrase->m_bHasKBEntry)
@@ -21036,10 +21101,6 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			}
 
 			// open the dialog if we have an inconsistency 
-			// if (!bFoundTgtUnit || !bFoundRefString) BEW 26Aug11, a lookup failure isn't
-			// a sufficient test - we need to have had the phrase box be at the location
-			// and leave something behind which isn't now in the KB, so it's safer to test
-			// for that above, and set a flag when a genuine inconsistency is bound
 			if (bInconsistency)
 			{
 				// make the CSourcePhrase instance is able to have a KB entry added ('not
@@ -21287,7 +21348,10 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									// in it, or can be null; can also be lower case and user
 									// expects the app to switch it to upper case if source is upper
 							pRec->finalAdaptation = finalStr;
+
+							bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 							afList.Append(pRec);
+
 						} // end of block for setting up a new AutoFixRecord
 
 						// update the original kb (not pKBCopy)
@@ -21407,6 +21471,14 @@ y:						;
 			}
 */
 
+			if (pAutoFixRec != NULL && 	!bAddedToAFList)
+			{
+                // always delete the local AutoFixRec instance, if we made one, but only
+                // provided we don't want it preserved for doing auto-fixing by previously
+                // having it added to the passed in afList earlier in the loop
+				delete pAutoFixRec;
+			}
+			pAutoFixRec = NULL;
 		}// end of while (pos1 != NULL)
 
 		// save document and KB
