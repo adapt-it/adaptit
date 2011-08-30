@@ -69,6 +69,7 @@ enum WhichLang {
 enum InconsistencyType {
 	no_inconsistency,
 	member_empty_flag_on_noPTU,
+	member_exists_flag_on_noPTU,
 	member_exists_flag_off_noPTU,
 	member_empty_flag_on_PTUexists_deleted_Refstr,
 	member_exists_flag_on_PTUexists_deleted_Refstr, // the "split meaning" possibility

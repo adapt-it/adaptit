@@ -7418,10 +7418,10 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	gbEnableGlossing = FALSE;
 	gbIsGlossing = FALSE;
 
-	// inhibit the call to MakeTargetStringIncludingPunctuation() within the StoreText() function
-	// otherwise it will add punctuation to the m_targetStr field on the document's
-	// pSrcPhrase which is currently active, and that member already has the required
-	// punctuation because we have copied the old string prior to the rebuild
+    // inhibit the call to MakeTargetStringIncludingPunctuation() within the StoreText()
+    // function otherwise it will add punctuation to the m_targetStr field on the
+    // document's pSrcPhrase which is currently active, and that member already has the
+    // required punctuation because we have copied the old string prior to the rebuild
 	gbInhibitMakeTargetStringCall = TRUE;
 	bool bOK = pApp->m_pKB->StoreText(pSrcPhrase,adaptationStr);
 
