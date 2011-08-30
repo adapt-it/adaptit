@@ -886,6 +886,13 @@ bool WriteDoc_XML(CBString& path)
 *
 * Parameters:
 * -> path -- absolute path to the file on an expansion card.
+* <-> pProgDlg -- pointer to the caller's wxProgressDialog (may be NULL)
+* ->  nProgMax -- the maximum range value for wxProgressDialog (may be 0)
+* (*pAtTag) -- callback function for At...Tag()
+* (*pAtEmptyElementClose) -- callback function for At...EmptyElementClose()
+* (*pAtAttr) -- callback function for At...Attr()
+* (*pAtEndTag) -- callback function for At...EndTag()
+* (*pAtPCDATA) -- callback function for At...PCDATA()
 *
 * This is the top level function. It just creates an empty tag stack,
 * ensures the XML prologue is present, and jumps it, then hands over
@@ -896,7 +903,8 @@ bool WriteDoc_XML(CBString& path)
 *
 *********************************************************************/
 
-bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
+bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // whm Note: pProgDlg can be NULL
+		bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
 		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
@@ -930,6 +938,11 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 
 	wxString testStr;
 	testStr = ::wxGetCwd();
+	
+	// whm 25Aug11 added for wxProgressDialog support
+	int nTotal;
+	wxString msgDisplayed;
+	wxString progMsg;
 
 	bool bOpenOK;
 	{ // a restricted scope block for wxLogNull
@@ -948,6 +961,24 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 
 		nInputLeft = fileSize;
 		nChunks = fileSize / TwentyKB;
+		// whm 25Aug11 added progress dialog update based on the nChunks
+		// being processed in reading the xml file
+	
+		// whm note: do not add 1 to nTotal here but use the fileSize / TwentyKB
+		// result here even if there is left over. The progress dialog set up
+		// in the callers uses nChunks + 1 in the wxProgressDialog constructor
+		// to avoid exceeding the maximum range for the dialog.
+		nTotal = nChunks;
+		wxString progMsg = _("Reading File %s - part %d of %d");
+		wxFileName fn(path);
+		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),nCurrChunk,nTotal);
+		// whm 25Aug11 added nProgMax
+		if (pProgDlg != NULL && nCurrChunk < nProgMax)
+		{
+			pProgDlg->Update(nCurrChunk,msgDisplayed);
+			::wxSafeYield();
+		}
+		
 		if (fileSize % TwentyKB > 0) ++nChunks;
 	
 		// get the first 20kb of data, or however many there 
@@ -970,6 +1001,12 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 			nInputLeft -= (Int32)TwentyKB;
 		}
 		nCurrChunk++;
+		// whm 25Aug11 added nProgMax
+		if (pProgDlg != NULL && nCurrChunk < nProgMax)
+		{
+			pProgDlg->Update(nCurrChunk,msgDisplayed);
+			::wxSafeYield();
+		}
 	}
 	else
 	{
@@ -1088,6 +1125,13 @@ bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 	{
 		// entire xml file is in the work buffer
 		pEnd = (char*)(pBuff + fileSize);
+		::wxSafeYield();
+		// whm 25Aug11 added nProgMax
+		if (pProgDlg != NULL && nCurrChunk < nProgMax)
+		{
+			pProgDlg->Update(nCurrChunk,msgDisplayed);
+			::wxSafeYield();
+		}
 	}
 	else
 	{
@@ -1187,7 +1231,16 @@ r:		comp = strncmp(pPos,comment,4);
 		// next full or partial chunk to the remnant, resetting pointers
 		// appropriately. A 'chunk' is 20KB, so we never will get overflow.
 		if (nCurrChunk >= nChunks || bReadAll)
+		{
+			::wxSafeYield();
+			// whm 25Aug11 added nProgMax
+			if (pProgDlg != NULL && nCurrChunk < nProgMax)
+			{
+				pProgDlg->Update(nCurrChunk,msgDisplayed);
+				::wxSafeYield();
+			}
 			continue; // no more data to transfer
+		}
 		Int32 fullspan = pEnd - pBuff;
 		if (fullspan < (Int32)TwentyKB)
 			continue;	// total data is less than 20kb character blocksize, so no 
@@ -1221,6 +1274,13 @@ r:		comp = strncmp(pPos,comment,4);
 				nInputCount += (Int32)TwentyKB;
 			}
 			nCurrChunk++;
+			::wxSafeYield();
+			// whm 25Aug11 added nProgMax
+			if (pProgDlg != NULL && nCurrChunk < nProgMax)
+			{
+				pProgDlg->Update(nCurrChunk,msgDisplayed);
+				::wxSafeYield();
+			}
 		}
 	} while (!stack.IsEmpty() && (pPos < pEnd));
 	if (!stack.IsEmpty())
@@ -6448,7 +6508,9 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-* -> path  -- (wxString) absolute path to the books.xml file on the storage medium
+*   path -> -- (wxString) absolute path to the books.xml file on the storage medium
+*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse the books.xml file containing book names (typically
 * OT and NT book names plust "Other Texts", but the file could contain non-Biblical
@@ -6456,9 +6518,9 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 *
 *******************************************************************/
 
-bool ReadBooks_XML(wxString& path)
+bool ReadBooks_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,AtBooksTag,AtBooksEmptyElemClose,AtBooksAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtBooksTag,AtBooksEmptyElemClose,AtBooksAttr,
 							AtBooksEndTag,AtBooksPCDATA);
 	return bXMLok;
 }	
@@ -6470,16 +6532,18 @@ bool ReadBooks_XML(wxString& path)
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-* -> path  -- (wxString) absolute path to the AI_USFM.xml file on the storage medium
+*   path -> -- (wxString) absolute path to the AI_USFM.xml file on the storage medium
+*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse the AI_USFM.xml file containing USFM and PNG SFM
 * definitions and attributes
 *
 *******************************************************************/
 
-bool ReadSFM_XML(wxString& path)
+bool ReadSFM_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
 							AtSFMEndTag,AtSFMPCDATA);
 	return bXMLok;
 }
@@ -6491,16 +6555,18 @@ bool ReadSFM_XML(wxString& path)
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-* -> path  -- (wxString) absolute path to the AI_UserProfiles.xml file on the storage medium
+*   path -> -- (wxString) absolute path to the AI_UserProfiles.xml file on the storage medium
+*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse the AI_UserProfiles.xml file containing User Profile
 * definitions and attributes
 *
 *******************************************************************/
 
-bool ReadPROFILES_XML(wxString& path)
+bool ReadPROFILES_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
 							AtPROFILEEndTag,AtPROFILEPCDATA);
 	return bXMLok;
 }
@@ -6512,16 +6578,18 @@ bool ReadPROFILES_XML(wxString& path)
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-* -> path  -- (wxString) absolute path to the AI_ReportFeedback.xml file or AI_ReportProblem.xml file on the storage medium
+*   path ->  -- (wxString) absolute path to the AI_ReportFeedback.xml file or AI_ReportProblem.xml file on the storage medium
+*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse the AI_ReportFeedback.xml/AI_ReportProblem.xml file containing 
 * the email message data
 *
 *******************************************************************/
 
-bool ReadEMAIL_REPORT_XML(wxString& path)
+bool ReadEMAIL_REPORT_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
 							AtEMAILRptEndTag,AtEMAILRptPCDATA);
 	return bXMLok;
 }
@@ -6534,43 +6602,30 @@ bool ReadEMAIL_REPORT_XML(wxString& path)
 *
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml document file on the storage medium
+*   pDoc  -> pointer to the current document
+*   pProgDlg -> pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse an Adapt It (or Adapt It Unicode) xml document file
 *
 *******************************************************************/
 
-bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc)
+bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
 	// BEW modified 07Nov05 to set gpDoc here, not in AtDocTag()
 	// set the static document pointer used only for parsing the XML document
 	gpDoc = pDoc;
 
-	// whm added 27May07 put up a progress dialog. Since we do not know the length of the
-	// document at this point the dialog will simply display the message
-	// "Reading XML Data For: <filename> Please Wait..." until the whole doc has been read.
-	wxFileName fn(path);
-	wxString progMsg = _("Reading XML Data For: %s Please Wait...");
-	wxString msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str());
-	wxProgressDialog progDlg(_("Opening The Document"),
-                    msgDisplayed,
-                    100,    // range
-                    gpApp->GetMainFrame(),   // parent
-                    //wxPD_CAN_ABORT |
-                    //wxPD_CAN_SKIP |
-                    wxPD_APP_MODAL |
-                    wxPD_AUTO_HIDE //| -- try this as well
-                    //wxPD_ELAPSED_TIME |
-                    //wxPD_ESTIMATED_TIME |
-                    //wxPD_REMAINING_TIME |
-                    //wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-                    );
+	// whm 24Aug11 modified to move the wxProgressDialog from this
+	// ReadDoc_XML() routine back to its callers. Now this functtion
+	// receives a pointer pProgDlg to that progress dialog so it can
+	// call Update where needed to give some feedback on the progress.
 
-
-	bool bXMLok = ParseXML(path,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
 							AtDocEndTag,AtDocPCDATA);
 
-	// remove the progress indicator window
-	progDlg.Destroy();
+	// whm Note: the progress indicator window gets destroyed when it
+	// goes out of scope in the caller
 	
 	return bXMLok;
 }	
@@ -6584,16 +6639,18 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc)
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml KB or GlossingKB file on the storage medium
 *	pKB   -> pointer to the CKB instance being filled out
+*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse an Adapt It (or Adapt It Unicode) xml knowledge base file
 *
 *******************************************************************/
 
-bool ReadKB_XML(wxString& path, CKB* pKB)
+bool ReadKB_XML(wxString& path, CKB* pKB,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
 	wxASSERT(pKB);
 	gpKB = pKB; // set the global gpKB used by the callback functions
-	bool bXMLok = ParseXML(path,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
 							AtKBEndTag,AtKBPCDATA);
 	return bXMLok;
 }	
@@ -6607,12 +6664,14 @@ bool ReadKB_XML(wxString& path, CKB* pKB)
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml KB or GlossingKB file on the storage medium
 *	pKB   -> pointer to the CKB instance being filled out
+*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
+*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse a LIFT xml file
 *
 *******************************************************************/
 
-bool ReadLIFT_XML(wxString& path, CKB* pKB)
+bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
 	nLexItemsProcessed = 0;
 	nAdaptationsProcessed = 0;
@@ -6625,7 +6684,7 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB)
 	gKeyStr.Empty();
 	gpTU = NULL;
 	gpRefStr = NULL;
-	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
+	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);
 	if (bXMLok)
 	{

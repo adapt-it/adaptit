@@ -21,6 +21,7 @@
 #pragma interface "Retranslation.h"
 #endif
 
+class wxProgressDialog;
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CRetranslation class contains retranslation-related functionality 
@@ -75,7 +76,8 @@ protected:
 	void		DeleteSavedSrcPhraseSublist(SPList* pSaveList); // this list's members can have members in sublists 
 	void		DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile);
 	void		DoRetranslationReport(CAdapt_ItDoc* pDoc, wxString& name,
-									  wxArrayString* pFileList,SPList* pList, wxFile* pFile);
+									  wxArrayString* pFileList,SPList* pList, wxFile* pFile,
+									  wxProgressDialog* pProgDlg);
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
 															  CPile*& pFirstPile,SPList* pList);
 	void		InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum);

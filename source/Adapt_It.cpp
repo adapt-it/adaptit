@@ -11519,6 +11519,114 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	return bIsRunning;
 }
 
+int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName)
+{
+	int nTotal = 0;
+	switch (progDlgType)
+	{
+		case XML_Input_Chunks:
+		{
+			#define TwentyKB 20480	
+			wxULongLong  fileSizeLL;
+			fileSizeLL = wxFileName::GetSize(pathAndXMLFileName);
+			if (fileSizeLL == wxInvalidSize)
+			{
+				nTotal = 0;
+			}
+			else
+			{
+				wxString temp;
+				temp = fileSizeLL.ToString();
+				int tempInt = wxAtoi(temp);
+				int nChunks = tempInt / TwentyKB;
+				// add 1 chunk to insure that we have enough after int division above
+				nTotal = nChunks + 1;
+			}
+			break;
+		}
+		case Adapting_KB_Item_Count:
+		{
+			int numWords_sim;
+			MapKeyStringToTgtUnit::iterator iter_sim;
+			CTargetUnit* pTU_sim = 0;
+			for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
+			{
+				if (m_pKB->m_pMap[numWords_sim-1]->size() == 0) 
+					continue;
+				else
+				{
+					iter_sim = m_pKB->m_pMap[numWords_sim-1]->begin();
+					do 
+					{
+						nTotal++; // add number of <entry>s, i.e., <lexical-unit>s
+						pTU_sim = (CTargetUnit*)iter_sim->second; 
+						wxASSERT(pTU_sim != NULL);
+						nTotal += pTU_sim->m_pTranslations->GetCount(); // add number of <sense>s
+						iter_sim++;
+					} while (iter_sim != m_pKB->m_pMap[numWords_sim-1]->end());
+				}
+			}
+			break;
+		}
+		case Glossing_KB_Item_Count:
+		{
+			int numWords_sim;
+			MapKeyStringToTgtUnit::iterator iter_sim;
+			CTargetUnit* pTU_sim = 0;
+			for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
+			{
+				if (m_pGlossingKB->m_pMap[numWords_sim-1]->size() == 0) 
+					continue;
+				else
+				{
+					iter_sim = m_pGlossingKB->m_pMap[numWords_sim-1]->begin();
+					do 
+					{
+						nTotal++; // add number of <entry>s, i.e., <lexical-unit>s
+						pTU_sim = (CTargetUnit*)iter_sim->second; 
+						wxASSERT(pTU_sim != NULL);
+						nTotal += pTU_sim->m_pTranslations->GetCount(); // add number of <sense>s
+						iter_sim++;
+					} while (iter_sim != m_pGlossingKB->m_pMap[numWords_sim-1]->end());
+				}
+			}
+			break;
+		}
+		default:
+		case App_SourcePhrases_Count:
+		{
+			nTotal = (int)m_pSourcePhrases->GetCount();
+			break;
+		}
+	}
+	return nTotal;
+}
+
+wxProgressDialog* CAdapt_ItApp::OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed, 
+		const int nTotal, 
+		const int width)
+{
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	pProgDlg = new wxProgressDialog(progTitle,
+					msgDisplayed,
+					nTotal,    // range
+					gpApp->GetMainFrame(),   // parent
+					//wxPD_CAN_ABORT |
+					//wxPD_CAN_SKIP |
+					wxPD_APP_MODAL |
+					wxPD_AUTO_HIDE //| -- try this as well
+					//wxPD_ELAPSED_TIME |
+					//wxPD_ESTIMATED_TIME |
+					//wxPD_REMAINING_TIME
+					//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+	);
+	wxASSERT(pProgDlg != NULL);
+	pProgDlg->SetSize(width,pProgDlg->GetSize().GetHeight());
+	pProgDlg->CenterOnParent();
+	return pProgDlg;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the CurrLocalizationInfo struct with its members populated from 
 ///             m_pConfig info
@@ -12350,6 +12458,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// after the KB save to disk and the message comes up asking if he wants a full
 			// consistency check done, and he responds by clicking Yes button
 	m_bAdminMoveOrCopyIsInitializing = FALSE; // default
+	maxProgDialogValue = MAXINT;
 	m_bControlIsWithinOnInit = TRUE;
 	m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
 						   // export, which takes three obligatory string parameters following
@@ -12881,6 +12990,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bProtectLiftInputsAndOutputsFolder = FALSE;
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
 	m_bProtectCCTableInputsAndOutputsFolder = FALSE;
+	m_bProtectReportsOutputsFolder = FALSE;
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
@@ -16024,7 +16134,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_nDivSize[ct] = 0;
 		}
 
-		bool bReadOK = ReadBooks_XML(booksfilePath);
+		bool bReadOK = ReadBooks_XML(booksfilePath,NULL,0);
 		if (!bReadOK)
 		{
             // a bad parse, or failure to read the file in off the disk correctly, means we
@@ -16271,7 +16381,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	{
 		// parse the file, and set up the three CMapStringToOb maps containing 
 		// mappings between usfm tags and the usfm analysis structs on the heap;
-		bool bReadOK = ReadSFM_XML(AIstyleFileWorkFolderPath);
+		bool bReadOK = ReadSFM_XML(AIstyleFileWorkFolderPath,NULL,0);
 		if (!bReadOK)
 		{
             // a bad parse, or failure to read the file in off the disk correctly, means we
@@ -16512,7 +16622,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						// do it temporarily here in order to populate the existing m_pUserProfiles struct
 						// in order to use it in the merging process.
 						wxASSERT(m_pUserProfiles == NULL);
-						bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath);
+						// whm 25Aug11 Note: The AI_UserProfiles.xml file is not large enough to require
+						// a wxProgressDialog, so we send NULL through ReadPROFILES_XML().
+						bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath,NULL,0);
 						if (!bReadOK)
 						{
 							// a bad parse, or failure to read the file in off the disk correctly, means we
@@ -16683,7 +16795,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	{
 		wxLogDebug(_T("The m_userProfileFileWorkFolderPath = %s"),m_userProfileFileWorkFolderPath.c_str());
 		// parse the xml file, and set up the data structures
-		bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath);
+		// whm 25Aug11 Note: The AI_UserProfiles.xml file is not large enough to require
+		// a wxProgressDialog, so we send NULL through ReadPROFILES_XML().
+		bool bReadOK = ReadPROFILES_XML(m_userProfileFileWorkFolderPath,NULL,0);
 		if (!bReadOK)
 		{
             // a bad parse, or failure to read the file in off the disk correctly, means we
@@ -18689,10 +18803,12 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 /// \return    TRUE if the directory structure and KBs were created successfully 
 ///             and/or exist, FALSE if an error occurred. 
 /// \remarks
-/// Called from: the App's OnRestoreDefaultWorkFolderLocation(), Doc's OnOpenDocument()
+/// Called from: the App's OnRestoreDefaultWorkFolderLocation(), Doc's OnOpenDocument(),
+/// DoUnpackDocument(), CreateNewAIProject() in CollabUtilities, and from
+/// CLangaugesPage::OnWizardPageChanging().
 /// when processing MRU file and m_pKB == NULL, DoUnpackDocument(), and from 
 /// CLanguagesPage::OnWizardPageChanging() when the wizard page is moving forward. 
-/// SetupDirectories() insures that the appropriate directory/folder structure is created
+/// SetupDirectories() ensures that the appropriate directory/folder structure is created
 /// when a new project is started, and that the appropriate directory/folder structure
 /// exists or can be created prior to opening or unpacking a document. It sets up various
 /// derivative paths, based on m_workFolderPath. 
@@ -18990,109 +19106,39 @@ bool CAdapt_ItApp::SetupDirectories()
 	//Now we need to get a KB initialized and stored in the languages-specific folder. 
 	// Ditto for the glossing KB (version 2)
 	// BEW changed 15Aug05
+	// whm 26Aug11 modified wxProgressDialog to be able to pass pProgDlg pointers
+	// to LoadKB() and LoadGlossingKB(). Modified also to treat setting up of KB
+	// and Glossing KB separately with separate wxProgressDialog calls. We can't
+	// use the same wxProgressDialog instance for both the KB and the Glossing KB,
+	// because they will have different maximum range values.
 	SetupKBPathsEtc();
-	if (::wxFileExists(m_curKBPath))
+
+	// whm revised 28Aug11: The CreateAndLoadKBs() function below now encapsulates
+	// the creation of in-memory KB objects and the loading of external xml file
+	// data into those objects. It also allows program control to continue on
+	// failures after notifying the user of the failures.
+	// The CreateAndLoadKBs() is called from here as well as from 
+	// the View's OnCreate(), the CollabUtilities' HookUpToExistingAIProject() 
+	// and the ProjectPage::OnWizardPageChanging().
+	// 
+	// open the two knowledge bases and load their contents;
+	if (!CreateAndLoadKBs())
 	{
-		// there is an existing .KB file, so we need to create a CKB instance in
-		// memory, open the .KB file on disk, and fill the memory instance's members
-		wxASSERT(m_pKB == NULL);
-		m_pKB = new CKB(FALSE);
-		wxASSERT(m_pKB != NULL);
-		bool bOK = LoadKB();
-		if (bOK)
-		{
-			m_bKBReady = TRUE;
-			LoadGuesser(m_pKB); // whm added 29Oct10
-
-			// now do it for the glossing KB
-			wxASSERT(m_pGlossingKB == NULL);
-			m_pGlossingKB = new CKB(TRUE);
-			wxASSERT(m_pGlossingKB != NULL);
-			bOK = LoadGlossingKB();
-			if (bOK)
-			{
-				m_bGlossingKBReady = TRUE;
-				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
-			}
-			else
-			{
-				// IDS_LOAD_GLOSSINGKB_FAILURE
-				wxMessageBox(_(
-"Error: loading the glossing knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR);
-				wxASSERT(FALSE);
-				LogUserAction(_T("Error: loading the glossing knowledge base failed"));
-				abort();
-				return FALSE;
-			}
-		}
-		else
-		{
-			// IDS_LOAD_KB_FAILURE
-			wxMessageBox(_(
-"Error: loading a knowledge base failed. The application will now close."),
-			_T(""), wxICON_ERROR);
-			wxASSERT(FALSE);
-			LogUserAction(_T("Error: loading a knowledge base failed"));
-			abort();
-			return FALSE;
-		}
-	} // end of legacy location's code
-	else
-	{
-        // the KB file does not exist, so make sure there is an initialized CKB
-        // instance on the application ready to receive data, and save it to disk. for
-        // version 2, do the same for the glossing KB
-		wxASSERT(m_pKB == NULL);
-		m_pKB = new CKB(FALSE);
-		wxASSERT(m_pKB != NULL);
-
-		// store the language names in it
-		m_pKB->m_sourceLanguageName = m_sourceName;
-		m_pKB->m_targetLanguageName = m_targetName;
-
-		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
-		if (bOK)
-		{
-			m_bKBReady = TRUE;
-			// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
-
-			// now do the same for the glossing KB
-			wxASSERT(m_pGlossingKB == NULL);
-			m_pGlossingKB = new CKB(TRUE);
-			wxASSERT(m_pGlossingKB != NULL);
-
-			bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
-			if (bOK)
-			{
-				m_bGlossingKBReady = TRUE;
-				// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
-			}
-			else
-			{
-				// IDS_STORE_GLOSSINGKB_FAILURE
-				wxMessageBox(_(
-"Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
-				_T(""), wxICON_ERROR); // something went wrong
-				wxASSERT(FALSE);
-				LogUserAction(_T("Error: storing the glossing knowledge base to disk for the first time failed"));
-				abort();
-				return FALSE;
-			}
-		}
-		else
-		{
-			// IDS_STORE_KB_FAILURE
-			wxMessageBox(_(
-"Error: saving the knowledge base failed. The application will now close."),
-			_T(""), wxICON_ERROR); // something went wrong
-			wxASSERT(FALSE);
-			LogUserAction(_T("Error: saving the knowledge base failed"));
-			abort();
-			return FALSE;
-		}
+		// deal with failures here
+		// There is not much we can do other than what was suggested in the
+		// error messages within CreatAndLoadKBs() itself.
+		// 
+		// whm TODO: Go through each use of SetupDirectories() and adjust
+		// the code subsequent to its use to best deal with such failures.
+		// 
+		// whm Note: The SetupDirectories() is called from: the App's 
+		// OnRestoreDefaultWorkFolderLocation(), the Doc's OnOpenDocument(),
+		// DoUnpackDocument(), CreateNewAIProject() in CollabUtilities, and from
+		// CLangaugesPage::OnWizardPageChanging() when the wizard page is moving 
+		// forward.
 	}
-		return m_bKBReady;
+
+	return m_bKBReady;
 }
 
 
@@ -20152,18 +20198,47 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView))
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if the store operation failed, TRUE if it succeeded
+/// \param      bShowProgress -> flag to show or hide the wxProgressDialog
 /// \remarks
 /// Called from: the App's SetupDirectories(), SubstituteKBBackup(), the View's OnCreate(),
 /// and CProjectPage::OnWizardPageChanging() when moving forward. Reads the data from an
 /// existing xml glossing KB file if present. If the xml glossing KB file was not found
 /// (or could not be read), it creates a new (empty) KB for glossing.
+/// whm 26Aug11 revised to show or hide a wxProgressDialog
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::LoadGlossingKB()
+bool CAdapt_ItApp::LoadGlossingKB(bool bShowProgress)
 {
 #ifdef SHOW_KB_I_O_BENCHMARKS
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
+	
+	// whm 26Aug11 Open a wxProgressDialog instance here for "Loading the Knowledge
+	// Base".
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process, starting with LoadGlossingKB() below.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	wxString progMsg;
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	// add 1 chunk to insure that we have enough after int division above
+	const int nTotal = GetMaxRangeForProgressDialog(XML_Input_Chunks,m_curGlossingKBPath) + 1;
+	// Only show the progress dialog on request
+	if (bShowProgress)
+	{
+		// Only create the progress dialog if we have data to progress
+		if (nTotal > 0)
+		{
+			progMsg = _("Reading File %s - part %d of %d");
+			wxFileName fn(m_curGlossingKBPath);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+			pProgDlg = gpApp->OpenNewProgressDialog(_("Loading the Glossing Knowledge Base"),msgDisplayed,nTotal,500);
+		}
+	}
+
 	bool bSaveIsGlossingFlag = gbIsGlossing;
 
     // set the gbIsGlossing flag to TRUE, as the XML needs to use it (it may have a
@@ -20186,13 +20261,19 @@ bool CAdapt_ItApp::LoadGlossingKB()
 	{
 		// the expected *.xml glossing knowledge base file is in the project folder
 		// attempt the load
-		bReadOK = ReadKB_XML(path, m_pGlossingKB);
+		if (bShowProgress)
+		{
+			bReadOK = ReadKB_XML(path, m_pGlossingKB, pProgDlg, nTotal);
+		}
+		else
+		{
+			bReadOK = ReadKB_XML(path, m_pGlossingKB, NULL, 0); // pProgDlg can be NULL and nTotal 0
+		}
 	}
 
 	// if there was a bad load...
 	if (!bReadOK)
 	{
-		// IDS_NO_GLOSSINGKB_WARNING
 		wxMessageBox(_(
 "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."),
 		_T(""), wxICON_INFORMATION);
@@ -20209,11 +20290,15 @@ bool CAdapt_ItApp::LoadGlossingKB()
 
 		if (!bOK)
 		{
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			return FALSE; // let the caller put up message and abort
 		}
 
 		// restore the gbIsGlossing flag value to what it was in the caller
 		gbIsGlossing = bSaveIsGlossingFlag;
+		if (pProgDlg != NULL)
+			pProgDlg->Destroy();
 		return TRUE; // nothing much in it, so just return saying all is well
 	}
 
@@ -20226,11 +20311,16 @@ bool CAdapt_ItApp::LoadGlossingKB()
 		wxLogDebug(_T("LoadGlossingKB executed in %s ms"), 
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
+
+	// remove the progress dialog
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
 	return TRUE;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if the store operation failed, TRUE if it succeeded
+/// \param      bShowProgress -> flag to show or hide the wxProgressDialog
 /// \remarks
 /// Called from: the App's SetupDirectories(), SubstituteKBBackup(), the View's OnCreate(),
 /// and CProjectPage::OnWizardPageChanging() when moving forward. Reads the data from an
@@ -20240,13 +20330,41 @@ bool CAdapt_ItApp::LoadGlossingKB()
 /// the person entering the project ownership for writing permission (if FALSE is returned)
 /// or READ-ONLY access (if TRUE is returned). (Also added to OnNewDocument & 
 /// OnOpenDocument() and OnCreate() for the view class.)
+/// whm 26Aug11 revised to show or hide a wxProgressDialog
 /////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::LoadKB()
+bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 {
 #ifdef SHOW_KB_I_O_BENCHMARKS
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
+
+	// whm 26Aug11 Open a wxProgressDialog instance here for "Loading the Knowledge
+	// Base".
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process, starting with LoadKB() below.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	wxString progMsg;
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	// add 1 chunk to insure that we have enough after int division above
+	const int nTotal = GetMaxRangeForProgressDialog(XML_Input_Chunks,m_curKBPath) + 1;
+	// Only show the progress dialog on request
+	if (bShowProgress)
+	{
+		// Only create the progress dialog if we have data to progress
+		if (nTotal > 0)
+		{
+			progMsg = _("Reading File %s - part %d of %d");
+			wxFileName fn(m_curKBPath);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+			pProgDlg = gpApp->OpenNewProgressDialog(_("Loading the Knowledge Base"),msgDisplayed,nTotal,500);
+		}
+	}
+
 	bool bSaveIsGlossingFlag = gbIsGlossing;
 
     // set the gbIsGlossing flag to FALSE, as the XML needs to use it (it may have a
@@ -20269,13 +20387,19 @@ bool CAdapt_ItApp::LoadKB()
 	{
         // the expected *.xml knowledge base file is in the project folder 
         // attempt the load
-		bReadOK = ReadKB_XML(path, m_pKB);
+		if (bShowProgress)
+		{
+			bReadOK = ReadKB_XML(path, m_pKB, pProgDlg, nTotal);
+		}
+		else
+		{
+			bReadOK = ReadKB_XML(path, m_pKB, NULL, 0); // pProgDlg can be NULL and nTotal 0
+		}
 	}
 
 	// if there was a bad load...
 	if (!bReadOK)
 	{
-		// IDS_NO_ADAPTINGKB_WARNING
 		wxMessageBox(_(
 "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "),
 		_T(""), wxICON_INFORMATION);
@@ -20317,8 +20441,12 @@ bool CAdapt_ItApp::LoadKB()
 
 		if (!bOK)
 		{
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			return FALSE; // let the caller put up message and abort
 		}
+		if (pProgDlg != NULL)
+			pProgDlg->Destroy();
 		return TRUE; // nothing much in it, so just return saying all is well
 	}
 
@@ -20342,6 +20470,192 @@ bool CAdapt_ItApp::LoadKB()
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 	
+	// remove the progress dialog
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
+	return TRUE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     FALSE if something went wrong with the loading of KB data from disk, TRUE
+///                     otherwise
+/// \remarks
+/// Called from: the App's SetupDirectories(), the View's OnCreate(), the CollabUtilities'
+/// HookUpToExistingAIProject(), and the CProjectPage::OnWizardPageChanging() when moving 
+/// forward. First, this function removes/erases any existing in-memory CKB object to 
+/// avoid leaking memory. Then it creates new in-memory KB objects, and then reads the 
+/// appropriate KBs to load the xml data from disk into the newly created KB objects.
+/// Has the side-effect of setting the App's m_bKBReady and m_bGlossingKBReady values to 
+/// TRUE on success, and FALSE if unable to create/load the KB data. A return value of
+/// FALSE (rather than aborting the program as previous code did) allows the caller to
+/// more adequately deal with any failures.
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
+{
+	// whm 25Aug11 Note: I initially modelled this function from reworking the code in 
+	// SetupDirectories() and HookUpToExistingAIProject() that functioned to create the 
+	// KBs and load them with xml data from disk, and making unique adjustments for 
+	// any failures there in the caller's code by handling them in a FALSE block test
+	// when calling this function.
+	// 
+	// First, delete/erase any existing in-memory KB object to avoid leaking memory.
+	// This probably would also prevent the problems with an assert he described
+	// on 23Aug10 in the View's OnCreate() function.
+	// whm: TODO: move the EraseKB() function from the Doc to the App class (or even
+	// better to its own CKB class). Doing so would avoid having to get a pointer to
+	// the document when one is unsure if such a pointer exists.
+	CAdapt_ItDoc* pDoc = GetDocument();
+	wxASSERT(pDoc != NULL);
+	if (pDoc != NULL && m_pKB != NULL)
+	{
+		// delete the adapting one we successfully loaded
+		GetDocument()->EraseKB(m_pKB); // calls delete
+		m_pKB = (CKB*)NULL;
+	}
+	if (pDoc != NULL && m_pGlossingKB != NULL)
+	{
+		GetDocument()->EraseKB(m_pGlossingKB); // calls delete
+		m_pGlossingKB = (CKB*)NULL;
+	}
+	//
+	// setup for the adaptations KB
+	if (::wxFileExists(m_curKBPath))
+	{
+		// there is an existing .KB file, so we need to create a CKB instance in
+		// memory, open the .KB file on disk, and fill the memory instance's members
+		wxASSERT(m_pKB == NULL);
+		m_pKB = new CKB(FALSE);
+		wxASSERT(m_pKB != NULL);
+		bool bOK = LoadKB(TRUE); // TRUE - show progress dialog
+		if (bOK)
+		{
+			m_bKBReady = TRUE;
+			LoadGuesser(m_pKB); // whm added 29Oct10
+		}
+		else
+		{
+			// whm modified 28Aug11: Don't abort but notify the user, set
+			// m_bKBReady to FALSE and return FALSE. 
+			// In the user message we should inform the user
+			// of possible actions he can take - such as using the Restore 
+			// Knowledge Base... command, or restoring the kb files from 
+			// backups.
+			wxMessageBox(_(
+"Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."),
+			_T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			LogUserAction(_T("Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."));
+			m_bKBReady = FALSE;
+			return FALSE;
+		}
+	}
+	else
+	{
+        // The KB file does not exist, so make sure there is an initialized CKB
+        // instance on the application ready to receive data, and save it to disk.
+        // Note: This operation goes fast because it is storing an empty KB.
+		wxASSERT(m_pKB == NULL);
+		m_pKB = new CKB(FALSE);
+		wxASSERT(m_pKB != NULL);
+
+		// store the language names in it
+		m_pKB->m_sourceLanguageName = m_sourceName;
+		m_pKB->m_targetLanguageName = m_targetName;
+
+		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+		if (bOK)
+		{
+			m_bKBReady = TRUE;
+			// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pKB)
+		}
+		else
+		{
+			// whm modified 28Aug11: Don't abort but notify the user, set
+			// m_bKBReady to FALSE and return FALSE. 
+			// In the user message we should inform the user
+			// of possible actions he can take - such as ensuring 
+			// that some other app does not have the files in use,
+			// using the Restore Knowledge Base... command, or restoring
+			// the kb files from backups.
+			wxMessageBox(_(
+"Creating the knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."),
+			_T(""), wxICON_ERROR); // something went wrong
+			wxASSERT(FALSE);
+			LogUserAction(_T("Creating the knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."));
+			//abort(); // whm removed 28Aug11
+			m_bKBReady = FALSE;
+			return FALSE;
+		}
+	}
+
+	// if we get here m_bKBReady will be TRUE since if setting up
+	// the main KB fails, the function issues an error message and returns
+	// FALSE.
+	// setup for the glossing KB
+	if (::wxFileExists(m_curGlossingKBPath))
+	{
+		// now do it for the glossing KB
+		wxASSERT(m_pGlossingKB == NULL);
+		m_pGlossingKB = new CKB(TRUE);
+		wxASSERT(m_pGlossingKB != NULL);
+		bool bOK = LoadGlossingKB(TRUE); // TRUE - show progress dialog
+		if (bOK)
+		{
+			m_bGlossingKBReady = TRUE;
+			LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+		}
+		else
+		{
+			// whm modified 28Aug11: Don't abort but notify the user, set
+			// m_bGlossingKBReady to FALSE and return FALSE. 
+			// In the user message we should inform the user
+			// of possible actions he can take - such as using the Restore 
+			// Knowledge Base... command, or restoring the kb files from 
+			// backups.
+			wxMessageBox(_(
+"Error: loading the glossing knowledge base failed. The application will now close."),
+			_T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			LogUserAction(_T("Error: loading the glossing knowledge base failed"));
+			m_bGlossingKBReady = FALSE;
+			return FALSE;
+		}
+	}
+	else
+	{
+        // The glossing KB file does not exist, so make sure there is an 
+        // initialized CKB  instance on the application ready to receive data, 
+        // and save it to disk.
+        // Note: This operation goes fast because it is storing an empty 
+        // glossing KB.
+		wxASSERT(m_pGlossingKB == NULL);
+		m_pGlossingKB = new CKB(TRUE);
+		wxASSERT(m_pGlossingKB != NULL);
+
+		bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+		if (bOK)
+		{
+			m_bGlossingKBReady = TRUE;
+			// whm Note: a new KB has no entries so no need to call LoadGuesser(m_pGlossingKB)
+		}
+		else
+		{
+			// whm modified 28Aug11: Don't abort but notify the user, set
+			// m_bKBReady to FALSE and return FALSE. 
+			// In the user message we should inform the user
+			// of possible actions he can take - such as ensuring 
+			// that some other app does not have the files in use,
+			// using the Restore Knowledge Base... command, or restoring
+			// the kb files from backups.
+			wxMessageBox(_(
+"Creating the glossing knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."),
+			_T(""), wxICON_ERROR); // something went wrong
+			wxASSERT(FALSE);
+			LogUserAction(_T("Creating the glossing knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."));
+			m_bGlossingKBReady = FALSE;
+			return FALSE;
+		}
+	}
 	return TRUE;
 }
 
@@ -20840,21 +21154,26 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 		return FALSE;
 	}
 
-	//{ // this block defines the existence of the wait dialog for saving the glossing KB
-	//CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	//waitDlg.m_nWaitMsgNum = 7;	// 7 "Please wait while Adapt It saves the Glossing KB..."
-	//waitDlg.Centre();
-	//waitDlg.Show(TRUE);
-	//waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
+	// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	const int nTotal = GetMaxRangeForProgressDialog(Glossing_KB_Item_Count) + 1;
+	wxString progMsg = _("Saving KB %s - %d of %d Total entries and senses");
+	wxFileName fn(m_curGlossingKBPath);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = OpenNewProgressDialog(_("Saving the Glossing KB"),msgDisplayed,nTotal,500);
 
-	m_pGlossingKB->DoKBSaveAsXML(f);
+	m_pGlossingKB->DoKBSaveAsXML(f, pProgDlg, nTotal); // pProgDlg can be NULL and nTotal 0
 
 	// close the file
 	f.Close();
 	f.Flush();
-	//} // end of CWaitDlg block
 
     // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
     // the glossing knowledge base to the old name again
@@ -20868,6 +21187,8 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 				// notify user of error (maybe backup file is protected or in use???)
 				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),wxICON_WARNING);
 				LogUserAction(_T("Removing backup glossing kb file failed."));
+				if (pProgDlg != NULL)
+					pProgDlg->Destroy();
 				return TRUE; // allow the app to continue
 			}
 		}
@@ -20882,6 +21203,8 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 		wxLogDebug(_T("StoreGlossingKB executed in %s ms"), 
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
 	return TRUE;
 }
 
@@ -20920,22 +21243,27 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			LogUserAction(message);
 			return FALSE;
 	}
+	
+	// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	const int nTotal = gpApp->GetMaxRangeForProgressDialog(Adapting_KB_Item_Count) + 1;
+	wxString progMsg = _("Saving KB %s - %d of %d Total entries and senses");
+	wxFileName fn(m_curKBPath);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = gpApp->OpenNewProgressDialog(_("Saving the KB"),msgDisplayed,nTotal,500);
 
-	//{ // this block defines the existence of the wait dialog for saving the KB
-	//CWaitDlg waitDlg(gpApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	//waitDlg.m_nWaitMsgNum = 6;	// 6 "Please wait while Adapt It saves the KB..."
-	//waitDlg.Centre();
-	//waitDlg.Show(TRUE);
-	//waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-
-	m_pKB->DoKBSaveAsXML(f);
+	m_pKB->DoKBSaveAsXML(f, pProgDlg, nTotal); // pProgDlg can be NULL and nTotal 0
 
 	// close the file
 	f.Close();
 	f.Flush();
-	//} // end of CWaitDlg block
 	
     // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
     // the knowledge base to the old name again
@@ -20950,6 +21278,8 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 				// notify user of error (maybe backup file is protected or in use???)
 				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_WARNING);
 				LogUserAction(_T("Removing backup kb file failed."));
+				if (pProgDlg != NULL)
+					pProgDlg->Destroy();
 				return TRUE; // allow app to continue
 			}
 		}
@@ -20964,6 +21294,8 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 		wxLogDebug(_T("StoreKB executed in %s ms"), 
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif	
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
 	return TRUE;
 }
 
@@ -22016,7 +22348,9 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			wxASSERT(m_pGlossingKB == NULL);
 			m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(m_pGlossingKB != NULL);
-			bool bOK = LoadGlossingKB();
+			// whm 25Aug11 Note: Since SubstituteKBBackup() is only called if a serious problem
+			// is detected in the KB, I'm not going to have it display a progress dialog.
+			bool bOK = LoadGlossingKB(FALSE);
 			if (bOK)
 			{
 				m_bGlossingKBReady = TRUE;
@@ -22051,7 +22385,9 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			wxASSERT(m_pKB == NULL);
 			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
-			bool bOK = LoadKB();
+			// whm 25Aug11 Note: Since SubstituteKBBackup() is only called if a serious problem
+			// is detected in the KB, I'm not going to have it display a progress dialog.
+			bool bOK = LoadKB(FALSE);
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
@@ -22360,7 +22696,8 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 {
 	bool bOkay;
 	//bOkay = GetDocument()->DoFileSave(FALSE);
-	bOkay = GetDocument()->DoFileSave_Protected(FALSE); // FALSE - don't show wait/progress dialog
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	bOkay = GetDocument()->DoFileSave_Protected(FALSE,pProgDlg); // FALSE - don't show wait/progress dialog
 
 	// update the time it was last saved
 	wxDateTime time = wxDateTime::Now();
@@ -22465,9 +22802,24 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	bool bDocForcedToClose = FALSE;
 	if (!m_pSourcePhrases->GetCount() == 0)
 	{
+		// whm 26Aug11 Open a wxProgressDialog instance here for KB Restore operations.
+		// The dialog's pProgDlg pointer is passed along through various functions that
+		// get called in the process.
+		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+		// be changed after the dialog is created. So any routine that gets passed the
+		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// exceed the same maximum value (nTotal).
+		wxString msgDisplayed;
+		const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
+		wxString progMsg = _("Saving File %s  - %d of %d Total words and phrases");
+		wxFileName fn(gpApp->m_curOutputFilename);
+		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+		wxProgressDialog* pProgDlg;
+		pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
+		
 		// doc is open, so close it -- we want all docs accessible to the scanning loop
 		bDocForcedToClose = TRUE;
-		bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+		bool fsOK = pDoc->DoFileSave_Protected(TRUE,pProgDlg); // TRUE - show the wait/progress dialog
 		if (!fsOK)
 		{
 			// something's real wrong!
@@ -22475,13 +22827,19 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 "Could not save the current document. Restore Knowledge Base command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
 			_T(""), wxICON_EXCLAMATION);
 			LogUserAction(_T("Could not close and save the current document. Restore Knowledge Base command aborted."));
+			pProgDlg->Destroy();
 			return;
 		}
 
         // Ensure the current document's contents are removed, otherwise we will get a
         // doubling of the doc data when OnOpenDocument() is called because the latter will
-		// append to whatever is in m_pSourcePhrases
+		// append to whatever is in m_pSourcePhrases.
+		// whm Note: ClobberDocument() is a potentially time consuming operation for long
+		// documents.
 		GetView()->ClobberDocument();
+		// remove this instance of the wxProgressDialog
+		pProgDlg->Destroy();
+		pProgDlg = (wxProgressDialog*)NULL;
 	}
 	bool bOK;
 	wxArrayString* pList = &m_acceptedFilesList;
@@ -22518,6 +22876,38 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		pKB->GetForceAskList(&keys);
 	}
 
+	// whm 27Aug11 added. Create a new wxProgress dialog to track the remaining steps
+	// to complete this OnFileRestoreKb(): Those steps inlude potentially the following 7:
+	// 1. Creating a temporary KB backup for restoring the KB later if something goes wrong.
+	// 2. ClearKB().
+	// 3. EnumerateDocFiles() in Adaptations location
+	// 4. DoKBRestore() for docs in Adaptations location
+	//  [if gbHasBookFolders]
+	// 5. EnumerateDocFiles() and DoKBRestore() for each book folder
+	//  [if not gbHasBookFolders]
+	// 6. DoGlossingKBBackup() or DoKBBackup() depending on gbIsGlossing
+	//    Note: ReOpenDocument() if doc was open at step 1 has its own prog dlg
+	// 7. End of processes.
+	
+	// whm 26Aug11 Open a wxProgressDialog instance here for Restoring KB operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	const int nTotal = 7; // we will do up to 7 Steps
+	wxString progMsg = _("Restoring the KB - Step %d of %d");
+	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = gpApp->OpenNewProgressDialog(_("Restoring Knowledge Base..."),msgDisplayed,nTotal,500);
+	
+	// Update for step 1 Creating a temporary KB backup for restoring the KB later
+	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
+	pProgDlg->Update(1,msgDisplayed);
+	::wxSafeYield();
+
 	// BEW 22July10, CWhichFilesDlg is called from EnumerateDocFiles(), and if the user
 	// cancels from that dialog, we don't want the KB or GlossingKB lost (it might still
 	// be good), so save the relevant KB file first, and restore it below if the user has
@@ -22534,8 +22924,14 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		bOK = ::wxCopyFile(m_curKBPath, tempKBfilePath);
 	}
 
+	// Update for step 2 ClearKB()
+	msgDisplayed = progMsg.Format(progMsg,2,nTotal);
+	pProgDlg->Update(2,msgDisplayed);
+	::wxSafeYield();
 	// clear out the KB, actually erase it & create a new empty one & store it ready 
 	// for filling
+	// whm Note: ClearKB() is a potentially time consuming operation for long
+	// documents.
 	ClearKB(pKB,pDoc); // checks clears whichever KB is passed in as first param, &
 					   // recreates an empty one
 
@@ -22566,11 +22962,15 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// lock view window updates till done
 	pView->canvas->Freeze();
 
-	int nTotal = 0;
 	int nCumulativeTotal = 0;
 	int nDocCount = 0;
 
-    // handle the Adaptations folder's files first - for these, we allow the
+	// Update for step 3 EnumerateDocFiles() in Adaptations location
+	msgDisplayed = progMsg.Format(progMsg,3,nTotal);
+	pProgDlg->Update(3,msgDisplayed);
+	::wxSafeYield();
+    
+	// handle the Adaptations folder's files first - for these, we allow the
     // IDD_WHICH_FILES dialog to show and the user can remove some files from the
     // processing using it if he wishes, but for looping across all the book folders, we'll
     // suppress the dialog so that all doc files in the book folders get processed
@@ -22615,10 +23015,17 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 			}
 			pView->canvas->Thaw();
+			pProgDlg->Destroy();
 			return;
 		}
+
+		// Update for step 4 DoKBRestore()
+		msgDisplayed = progMsg.Format(progMsg,4,nTotal);
+		pProgDlg->Update(4,msgDisplayed);
+		::wxSafeYield();
+    
 		// there is at least one document, so do the restore
-		pKB->DoKBRestore(nCount, nTotal, nCumulativeTotal);
+		pKB->DoKBRestore(nCount, nCumulativeTotal);
 	}
 	else
 	{
@@ -22628,7 +23035,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		if (gbIsGlossing)
 		{
 			bOK = ::wxCopyFile(tempKBfilePath, m_curGlossingKBPath);
-			bOK = LoadGlossingKB();
+			bOK = LoadGlossingKB(FALSE); // user cancelled OnFileRestore() - do the restoration of the old KB quietly
 			if (bOK)
 			{
 				m_bGlossingKBReady = TRUE;
@@ -22638,7 +23045,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			bOK = ::wxCopyFile(tempKBfilePath, m_curKBPath);
-			bOK = LoadKB();
+			bOK = LoadKB(FALSE); // user cancelled OnFileRestore() - do the restoration of the old KB quietly
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
@@ -22668,6 +23075,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		}
 		// let the view respond again to updates
 		pView->canvas->Thaw();
+		pProgDlg->Destroy();
 		return;
 	}
 
@@ -22707,10 +23115,16 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			}
 			// let the view respond again to updates
 			pView->canvas->Thaw();
+			pProgDlg->Destroy();
 			return;
 		}
 		else
 		{
+			// Update for step 5 EnumerateDocFiles() for each book folder
+			msgDisplayed = progMsg.Format(progMsg,5,nTotal);
+			pProgDlg->Update(5,msgDisplayed);
+			::wxSafeYield();
+    
 			wxString str;
 			bool bWorking = finder.GetFirst(&str,_T("*.*"),wxDIR_FILES | wxDIR_DIRS);
 			while (bWorking)
@@ -22799,7 +23213,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 						// There are files to be processed. TRUE parameter suppresses the statistics
 						// dialog 
-						pKB->DoKBRestore(nCount, nTotal, nCumulativeTotal);
+						pKB->DoKBRestore(nCount, nCumulativeTotal);
                         
 						//bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
 						// BEW altered 19Mar2010, because the reopening of finder by the
@@ -22846,6 +23260,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 											  // deleting the list contents
 	}
 
+	// Update for step 6 DoGlossingKBBackup() or DoKBBackup() depending on gbIsGlossing
+	msgDisplayed = progMsg.Format(progMsg,6,nTotal);
+	pProgDlg->Update(6,msgDisplayed);
+	::wxSafeYield();
+	
 	// do the KB backup, if the relevant flag is set
 	if(m_bAutoBackupKB)
 	{
@@ -22859,6 +23278,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		bOK = ::wxRemoveFile(tempKBfilePath);
 		tempKBfilePath.Empty();
 	}
+
+	// Update for step 7 End of processes
+	msgDisplayed = progMsg.Format(progMsg,7,nTotal);
+	pProgDlg->Update(7,msgDisplayed);
+	::wxSafeYield();
 
 	// inform user of success and some statistics
 	wxString stats;
@@ -22913,6 +23337,10 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	}
 	// let the view respond again to updates
 	pView->canvas->Thaw();
+	
+	// remove the progress dialog
+	pProgDlg->Destroy();
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -29794,11 +30222,33 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			return FALSE;
 		}
 
-        // "Load" the other project's adaptations KB. Code for this will be plagiarized
+		// whm 26Aug11 Open a wxProgressDialog instance here for loading KB operations.
+		// The dialog's pProgDlg pointer is passed along through various functions that
+		// get called in the process.
+		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+		// be changed after the dialog is created. So any routine that gets passed the
+		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// exceed the same maximum value (nTotal).
+		wxString msgDisplayed;
+		wxString progMsg;
+		wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+		// add 1 chunk to insure that we have enough after int division above
+		const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
+		// Only show the progress dialog when there is at lease one chunk of data
+		// Only create the progress dialog if we have data to progress
+		if (nTotal > 0)
+		{
+			progMsg = _("Reading file %s - part %d of %d");
+			wxFileName fn(strOtherKBPathXML);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+			pProgDlg = gpApp->OpenNewProgressDialog(_("Loading the Other Project's Knowledge Base"),msgDisplayed,nTotal,500);
+		}
+
+		// "Load" the other project's adaptations KB. Code for this will be plagiarized
         // from the app class's LoadKB() function, but using a local CKB pointer to access
         // the KB
 		CKB* pOtherKB = new CKB(FALSE); // FALSE means "not a glossing KB"
-		bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
+		bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB, pProgDlg, nTotal); // pProgDlg can be NULL
 		if (!bReadOK)
 		{
 			// a bad read or parsing - if so, there will have been an XML error report
@@ -29813,6 +30263,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to m_curAdaptionsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			return FALSE; // abandon the command, the adaptations KB couldn't be opened
 		}
 
@@ -29922,8 +30374,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			LogUserAction(_T("The new empty adaptations KB did not successfully store to disk"));
 //		}
 
-			// delete the other project's copied KB from the heap (the original is still safe
-			// on disk)
+		// delete the other project's copied KB from the heap (the original is still safe
+		// on disk)
 		pDoc->EraseKB(pOtherKB); 
 
 		// store the filled glossing KB on disk; leave it open since the user may want to
@@ -29978,6 +30430,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
 			_T(""), wxICON_WARNING);
 			LogUserAction(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."));
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			return FALSE; // do nothing
 		}
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
@@ -29994,6 +30448,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			return FALSE;
 		}
 
@@ -30036,6 +30492,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
                 // current working directory to strOtherAdaptationsPath.
 				bool bOK;
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				if (pProgDlg != NULL)
+					pProgDlg->Destroy();
 				return FALSE;
 			}
 			else
@@ -30101,6 +30559,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 								wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."),
 								_T(""), wxICON_WARNING);
 								LogUserAction(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."));
+								if (pProgDlg != NULL)
+									pProgDlg->Destroy();
 								return FALSE; // return, do nothing
 							}
 
@@ -30142,13 +30602,14 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
 		bSuccessful = ::wxRemoveFile(adaptionsKBExportPath);
 		wxASSERT(bSuccessful);
-	}
+		if (pProgDlg != NULL)
+			pProgDlg->Destroy();
+	} // end of if(dlg.ShowModal() == wxID_OK)
 
 	// BEW added 05Jan07 to restore the former current working directory
 	// to what it was on entry
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-
 	return bSuccess;
 }
 
@@ -30196,7 +30657,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 	wxArrayString List = m_acceptedFilesList;
 	int nCount = List.GetCount();
 	wxASSERT(nCount > 0);
-	int nTotal = 0;
 	int nCumulativeTotal = 0;
 
 	// get a pointer to the view (since it's SDI interface, our implementation
@@ -30279,26 +30739,21 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 				gpApp->m_bBookMode = FALSE;
 			}
 			
-			nTotal = m_pSourcePhrases->GetCount();
-			wxASSERT(nTotal > 0);
-			nCumulativeTotal += nTotal;
-			wxString progMsg = _("%s  - %d of %d Total words and phrases");
-			wxString msgDisplayed = progMsg.Format(
-									progMsg,ourProjectsDocFileName.c_str(),1,nTotal);
-			wxProgressDialog progDlg(_("Transformations To Glosses"),
-                            msgDisplayed,
-                            nTotal,    // range
-                            GetMainFrame(),   // parent
-                            //wxPD_CAN_ABORT |
-                            //wxPD_CAN_SKIP |
-                            wxPD_APP_MODAL |
-                            wxPD_AUTO_HIDE //| -- try this as well
-                            //wxPD_ELAPSED_TIME |
-                            //wxPD_ESTIMATED_TIME |
-                            //wxPD_REMAINING_TIME
-                            //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-                            );
-
+			// whm 26Aug11 Open a wxProgressDialog instance here for transform to glosses operations.
+			// The dialog's pProgDlg pointer is passed along through various functions that
+			// get called in the process.
+			// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+			// be changed after the dialog is created. So any routine that gets passed the
+			// pProgDlg pointer, must make sure that value in its Update() function does not 
+			// exceed the same maximum value (nTotal).
+			wxString msgDisplayed;
+			const int nTotal = GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
+			wxString progMsg = _("Transforming File %s  - %d of %d Total words and phrases");
+			wxFileName fn(ourProjectsDocFileName);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+			wxProgressDialog* pProgDlg;
+			pProgDlg = OpenNewProgressDialog(_("Transformations To Glosses"),msgDisplayed,nTotal,500);
+			
 			SPList* pPhrases = m_pSourcePhrases;
 			SPList::Node* pos1;
 			pos1 = pPhrases->GetFirst();
@@ -30327,22 +30782,23 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 					pPhrases->DeleteNode(savePos);
 					pDoc->UpdateSequNumbers(0); // update from the start to be safe
 				}
-				// update the progress bar every 20th iteration
+				// update the progress bar every 1000th iteration
 				if (counter % 1000 == 0)
 				{
-					msgDisplayed = progMsg.Format(progMsg,ourProjectsDocFileName.c_str(),
+					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),
 									counter,nTotal);
-					progDlg.Update(counter,msgDisplayed);
+					pProgDlg->Update(counter,msgDisplayed);
+					::wxSafeYield();
 				}
 			}
 			
-			// remove the progress indicator window
-			progDlg.Destroy();
-
 			bool bSavedOK;
 			bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
 
 			pView->ClobberDocument();
+			
+			// remove the progress indicator window
+			pProgDlg->Destroy();
 		}
 		else
 		{
@@ -35055,7 +35511,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 			//wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 			//wxLogDebug(_T("5  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 
-			SetupDirectories();
+			SetupDirectories(); // also sets KB paths and loads KBs & Guesser
 
 			//wxLogDebug(_T("6  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 			//wxLogDebug(_T("6  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());

@@ -365,7 +365,7 @@ wxString RemoveCollectedBacktranslations(wxString& str)
 	return out;
 }
 
-// BEW modified 10Aug09, to support exporting of glosses  or free translations as well
+// BEW modified 10Aug09, to support exporting of glosses or free translations as well
 // whm 6Aug11 revised for support for protecting inputs/outputs folder navigation
 void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 {
@@ -384,6 +384,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 	wxString defaultDir;
 	exportFilename = gpApp->m_curOutputFilename;
+	
+	// tidy up file names and set the CExportSaveAsDlg dialog title
 	switch (exportType)
 	{
 	case sourceTextExport:
@@ -391,47 +393,77 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// we are exporting the source text, get a default filename, set directory
 		exportFilename.Replace(_T("_Collab"),_T("_Source_Text"));
 		len = exportFilename.Length();
-		// The special folders involved depend on whether we're doing RTF output or
-		// SFM output.
-		if (bRTFOutput)
+		s = _("Export Source Text");
+		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Source Text"
+		break;
+	case glossesTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
+		// we are exporting the glosses text, get a default filename, set directory
+		exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
+		len = exportFilename.Length();
+		s = _("Export Glosses As Text");
+		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
+									// "Export Glosses As Text"
+		break;
+	case freeTransTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
+		// we are exporting the free translation text, get a default filename, set directory
+		exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
+		len = exportFilename.Length();
+		s = _("Export Free Translation Text");
+		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
+									// "Export Glosses As Text"
+		break;
+	default:
+	case targetTextExport:
+		gpApp->LogUserAction(_T("Initiated Export Target Text"));
+		// We are exporting the target text, get a default file name, set directory
+		// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
+		// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
+		// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
+		// produced exports within the _TARGET_OUTPUTS folder from those generated automatically
+		// by our collaboration code, we adjust the exportFilename having a "_Collab..." prefix
+		// so that it will have "_Target_Text" prefix instead.
+		exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
+		len = exportFilename.Length();
+		s = _("Export Translation (Target) Text");
+		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Translation (Target) Text"
+		break;
+	}
+
+	sadlg.m_ExportToRTF = FALSE;	// set default to SFM output
+	if (sadlg.ShowModal() != wxID_OK)
+	{
+		return; // user cancelled
+	}
+
+	// Note: Export filter is implemented below via calls to ApplyOutputFilterToText()
+
+	// Adjust the export file's extension, the wxFileDialg's filter, and
+	// navigation protection settings according to the user's selection 
+	// of SFM or RTF.
+	wxString filter;
+	wxString DefaultExt;
+	if (!sadlg.m_ExportToRTF)
+	{
+		// Export to SFM
+		// make a suitable default output filename for the export function
+		exportFilename.Remove(len-3,3); // remove the extension
+		exportFilename += _T("txt"); // make it a *.txt file type
+		// get a file Save As dialog for Source Text Output
+		DefaultExt = _T("txt");
+		filter = _("All Files (*.*)|*.*|Exported Adapt It Documents (*.txt)|*.txt||"); 
+					// I changed the above to allow *.txt and *.*, with the
+                    // *.* one first (shows all) so it comes up as default This has the
+                    // nice property that if the user types an extension in the
+                    // filename, .txt won't be appended to it. 
+        bRTFOutput = FALSE;
+		// Set up for Navigation Protection and determine the defaultDir for the
+		// exports
+		switch (exportType)
 		{
-			gpApp->LogUserAction(_T("Export RTF Text"));
-			// The specific special folders involved depend on whether navigation 
-			// protection is ON or OFF, and whether the m_last...Path members point
-			// to a valid path.
-			if (gpApp->m_bProtectSourceRTFOutputsFolder)
-			{
-				// Navigation protection in effect - limit source text exports to
-				// be saved in the _SOURCE_RTF_OUTPUTS folder which is always a child 
-				// folder of the folder that m_curProjectPath points to.
-				bBypassFileDialog_ProtectedNavigation = TRUE;
-				defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
-			}
-			else if (gpApp->m_lastSourceRTFOutputPath.IsEmpty()
-				|| (!gpApp->m_lastSourceRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastSourceRTFOutputPath)))
-			{
-				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-				// to appear. But the m_lastSourceRTFOutputPath is either empty or, if not empty, 
-				// it points to an invalid path, so we initialize the defaultDir to point to 
-				// the special protected folder, even though Navigation protection is not ON. 
-				// In this case, the user could point the export path elsewhere using the 
-				// wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
-			}
-			else
-			{
-				// Navigation protection is OFF and we have a valid path in m_lastSourceRTFOutputPath,
-				// so we initialize the defaultDir to point to the m_lastSourceRTFOutputPath for the 
-				// location of the export. The user could still point the export path elsewhere 
-				// in the wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_lastSourceRTFOutputPath;
-			}
-		}
-		else // !bRTFOutput
-		{
-			gpApp->LogUserAction(_T("Export SFM Text"));
+		case sourceTextExport:
+			gpApp->LogUserAction(_T("Export Source SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -464,57 +496,9 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 				bBypassFileDialog_ProtectedNavigation = FALSE;
 				defaultDir = gpApp->m_lastSourceOutputPath;
 			}
-		}
-		s = _("Export Source Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Source Text"
-		break;
-	case glossesTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
-		// we are exporting the glosses text, get a default filename, set directory
-		exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
-		len = exportFilename.Length();
-
-		// The special folders involved depend on whether we're doing RTF output or
-		// SFM output.
-		if (bRTFOutput)
-		{
-			gpApp->LogUserAction(_T("Export RTF Text"));
-			// The specific special folders involved depend on whether navigation 
-			// protection is ON or OFF, and whether the m_last...Path members point
-			// to a valid path.
-			if (gpApp->m_bProtectGlossRTFOutputsFolder)
-			{
-				// Navigation protection in effect - limit source text exports to
-				// be saved in the _GLOSS_RTF_OUTPUTS folder which is always a child 
-				// folder of the folder that m_curProjectPath points to.
-				bBypassFileDialog_ProtectedNavigation = TRUE;
-				defaultDir = gpApp->m_glossRTFOutputsFolderPath;
-			}
-			else if (gpApp->m_lastGlossesRTFOutputPath.IsEmpty()
-				|| (!gpApp->m_lastGlossesRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastGlossesRTFOutputPath)))
-			{
-				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-				// to appear. But the m_lastGlossesRTFOutputPath is either empty or, if not empty, 
-				// it points to an invalid path, so we initialize the defaultDir to point to 
-				// the special protected folder, even though Navigation protection is not ON. 
-				// In this case, the user could point the export path elsewhere using the 
-				// wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_glossRTFOutputsFolderPath;
-			}
-			else
-			{
-				// Navigation protection is OFF and we have a valid path in m_lastGlossesRTFOutputPath,
-				// so we initialize the defaultDir to point to the m_lastGlossesRTFOutputPath for the 
-				// location of the export. The user could still point the export path elsewhere 
-				// in the wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_lastGlossesRTFOutputPath;
-			}
-		}
-		else // !bRTFOutput
-		{
-			gpApp->LogUserAction(_T("Export SFM Text"));
+			break;
+		case glossesTextExport:
+			gpApp->LogUserAction(_T("Export Glosses SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -547,95 +531,9 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 				bBypassFileDialog_ProtectedNavigation = FALSE;
 				defaultDir = gpApp->m_lastGlossesOutputPath;
 			}
-		}
-		/*
-		// whm added 7Jul11 support for protecting inputs/outputs folder navigation
-		if (gpApp->m_bProtectGlossOutputsFolder)
-		{
-			// Navigation protection in effect - limit gloss text exports to
-			// be saved in the _GLOSS_OUTPUTS folder which is always a child folder
-			// of the folder that m_curProjectPath points to.
-			bBypassFileDialog_ProtectedNavigation = TRUE;
-			//bOK = ::wxSetWorkingDirectory(gpApp->m_glossOutputsFolderPath);
-		}
-		else
-		{
-			if (gpApp->m_lastGlossesOutputPath.IsEmpty())
-			{
-				bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
-			}
-			else
-			{
-				bOK = ::wxSetWorkingDirectory(gpApp->m_lastGlossesOutputPath);
-				if(!bOK)
-					::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
-			}
-		}
-		*/
-		s = _("Export Glosses As Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
-									// "Export Glosses As Text"
-		break;
-	case freeTransTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
-		// we are exporting the free translation text, get a default filename, set directory
-		exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
-		len = exportFilename.Length();
-		
-		// The special folders involved depend on whether we're doing RTF output or
-		// SFM output.
-		if (bRTFOutput)
-		{
-			gpApp->LogUserAction(_T("Export RTF Text"));
-			// The specific special folders involved depend on whether navigation 
-			// protection is ON or OFF, and whether the m_last...Path members point
-			// to a valid path.
-			if (gpApp->m_bProtectFreeTransRTFOutputsFolder)
-			{
-				// Navigation protection in effect - limit free translation exports to
-				// be saved in the _FREETRANS_RTF_OUTPUTS folder which is always a child 
-				// folder of the folder that m_curProjectPath points to.
-				bBypassFileDialog_ProtectedNavigation = TRUE;
-				defaultDir = gpApp->m_freeTransRTFOutputsFolderName;
-			}
-			else if (gpApp->m_lastFreeTransRTFOutputPath.IsEmpty()
-				|| (!gpApp->m_lastFreeTransRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastFreeTransRTFOutputPath)))
-			{
-				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-				// to appear. But the m_lastFreeTransRTFOutputPath is either empty or, if not empty, 
-				// it points to an invalid path, so we initialize the defaultDir to point to 
-				// the special protected folder, even though Navigation protection is not ON. 
-				// In this case, the user could point the export path elsewhere using the 
-				// wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_freeTransRTFOutputsFolderPath;
-			}
-			else
-			{	
-				// Navigation protection is OFF and we have a valid path in m_lastFreeTransRTFOutputPath,
-				// so we initialize the defaultDir to point to the m_lastFreeTransRTFOutputPath for the 
-				// location of the export. The user could still point the export path elsewhere 
-				// in the wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_lastFreeTransRTFOutputPath;
-				
-				/*
-				if (gpApp->m_lastFreeTransOutputPath.IsEmpty())
-				{
-					bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
-				}
-				else
-				{
-					bOK = ::wxSetWorkingDirectory(gpApp->m_lastFreeTransOutputPath);
-					if(!bOK)
-						::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
-				}
-				*/
-			}
-		}
-		else // !bRTFOutput
-		{
-			gpApp->LogUserAction(_T("Export SFM Text"));
+			break;
+		case freeTransTextExport:
+			gpApp->LogUserAction(_T("Export Freee Trans SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -668,66 +566,10 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 				bBypassFileDialog_ProtectedNavigation = FALSE;
 				defaultDir = gpApp->m_lastFreeTransOutputPath;
 			}
-		}
-		
-		s = _("Export Free Translation Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
-									// "Export Glosses As Text"
-		break;
-	default:
-	case targetTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Target Text"));
-		// We are exporting the target text, get a default file name, set directory
-		// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
-		// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
-		// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
-		// produced exports within the _TARGET_OUTPUTS folder from those generated automatically
-		// by our collaboration code, we adjust the exportFilename having a "_Collab..." prefix
-		// so that it will have "_Target_Text" prefix instead.
-		exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
-		len = exportFilename.Length();
-
-		// The special folders involved depend on whether we're doing RTF output or
-		// SFM output.
-		if (bRTFOutput)
-		{
-			gpApp->LogUserAction(_T("Export RTF Text"));
-			// The specific special folders involved depend on whether navigation 
-			// protection is ON or OFF, and whether the m_last...Path members point
-			// to a valid path.
-			if (gpApp->m_bProtectTargetRTFOutputsFolder)
-			{
-				// Navigation protection in effect - limit source text exports to
-				// be saved in the _TARGET_RTF_OUTPUTS folder which is always a child 
-				// folder of the folder that m_curProjectPath points to.
-				bBypassFileDialog_ProtectedNavigation = TRUE;
-				defaultDir = gpApp->m_targetRTFOutputsFolderPath;
-			}
-			else if (gpApp->m_lastTargetRTFOutputPath.IsEmpty()
-				|| (!gpApp->m_lastTargetRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastTargetRTFOutputPath)))
-			{
-				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-				// to appear. But the m_lastTargetRTFOutputPath is either empty or, if not empty, 
-				// it points to an invalid path, so we initialize the defaultDir to point to 
-				// the special protected folder, even though Navigation protection is not ON. 
-				// In this case, the user could point the export path elsewhere using the 
-				// wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_targetRTFOutputsFolderPath;
-			}
-			else
-			{
-				// Navigation protection is OFF and we have a valid path in m_lastTargetRTFOutputPath,
-				// so we initialize the defaultDir to point to the m_lastTargetRTFOutputPath for the 
-				// location of the export. The user could still point the export path elsewhere 
-				// in the wxFileDialog that will appear.
-				bBypassFileDialog_ProtectedNavigation = FALSE;
-				defaultDir = gpApp->m_lastTargetRTFOutputPath;
-			}
-		}
-		else // !bRTFOutput
-		{
-			gpApp->LogUserAction(_T("Export SFM Text"));
+			break;
+		default:
+		case targetTextExport:
+			gpApp->LogUserAction(_T("Export Target SFM Text"));
 			// The specific special folders involved depend on whether navigation 
 			// protection is ON or OFF, and whether the m_last...Path members point
 			// to a valid path.
@@ -760,38 +602,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 				bBypassFileDialog_ProtectedNavigation = FALSE;
 				defaultDir = gpApp->m_lastTargetOutputPath;
 			}
+			break;
 		}
-		// IDS_EXPORT_TGT
-		s = _("Export Translation (Target) Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Translation (Target) Text"
-		break;
-	}
-
-	sadlg.m_ExportToRTF = FALSE;	// set default to SFM output
-	if (sadlg.ShowModal() != wxID_OK)
-	{
-		return; // user cancelled
-	}
-
-	// Note: Export filter is implemented below via calls to ApplyOutputFilterToText()
-
-	// get a file dialog
-	wxString filter;
-	wxString DefaultExt;
-	if (!sadlg.m_ExportToRTF)
-	{
-		// Export to SFM
-		// make a suitable default output filename for the export function
-		exportFilename.Remove(len-3,3); // remove the extension
-		exportFilename += _T("txt"); // make it a *.txt file type
-		// get a file Save As dialog for Source Text Output
-		DefaultExt = _T("txt");
-		filter = _("All Files (*.*)|*.*|Exported Adapt It Documents (*.txt)|*.txt||"); 
-					// I changed the above to allow *.txt and *.*, with the
-                    // *.* one first (shows all) so it comes up as default This has the
-                    // nice property that if the user types an extension in the
-                    // filename, .txt won't be appended to it. 
-        bRTFOutput = FALSE;
 	}
 	else
 	{
@@ -802,75 +614,153 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		DefaultExt = _T("rtf");
 		filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
 		bRTFOutput = TRUE;
-	}
-
-	/* done above
-    // set the default folder to be shown in the dialog. For RTF output we show the
-    // m_lastRtfOutputPath path, since we want all rtf output to go, potentially, to the same
-    // place; and for other export types, each potentially has its own export path, such as
-    // m_lastTargetOutputPath for target text
-	//wxString defaultDir;
-	if (bRTFOutput)
-	{
-		if (gpApp->m_lastRtfOutputPath.IsEmpty())
-		{
-			defaultDir = gpApp->m_curProjectPath;
-		}
-		else
-		{
-			defaultDir = gpApp->m_lastRtfOutputPath;
-		}
-	}
-	else // we want SFM output
-	{
-		// whm 7Jul11 note: the defaultDir setting below will be ignored when the exportType
-		// is set for protected navigation
+		// Set up for Navigation Protection and determine the defaultDir for the
+		// exports
 		switch (exportType)
 		{
 		case sourceTextExport:
-			if (gpApp->m_lastSourceOutputPath.IsEmpty())
+			gpApp->LogUserAction(_T("Export Source RTF Text"));
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
+			if (gpApp->m_bProtectSourceRTFOutputsFolder)
 			{
-				defaultDir = gpApp->m_curProjectPath;
+				// Navigation protection in effect - limit source text exports to
+				// be saved in the _SOURCE_RTF_OUTPUTS folder which is always a child 
+				// folder of the folder that m_curProjectPath points to.
+				bBypassFileDialog_ProtectedNavigation = TRUE;
+				defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
+			}
+			else if (gpApp->m_lastSourceRTFOutputPath.IsEmpty()
+				|| (!gpApp->m_lastSourceRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastSourceRTFOutputPath)))
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+				// to appear. But the m_lastSourceRTFOutputPath is either empty or, if not empty, 
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastSourceOutputPath;
+				// Navigation protection is OFF and we have a valid path in m_lastSourceRTFOutputPath,
+				// so we initialize the defaultDir to point to the m_lastSourceRTFOutputPath for the 
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_lastSourceRTFOutputPath;
 			}
 			break;
 		case glossesTextExport:
-			if (gpApp->m_lastGlossesOutputPath.IsEmpty())
+			gpApp->LogUserAction(_T("Export Glosses RTF Text"));
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
+			if (gpApp->m_bProtectGlossRTFOutputsFolder)
 			{
-				defaultDir = gpApp->m_curProjectPath;
+				// Navigation protection in effect - limit source text exports to
+				// be saved in the _GLOSS_RTF_OUTPUTS folder which is always a child 
+				// folder of the folder that m_curProjectPath points to.
+				bBypassFileDialog_ProtectedNavigation = TRUE;
+				defaultDir = gpApp->m_glossRTFOutputsFolderPath;
+			}
+			else if (gpApp->m_lastGlossesRTFOutputPath.IsEmpty()
+				|| (!gpApp->m_lastGlossesRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastGlossesRTFOutputPath)))
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+				// to appear. But the m_lastGlossesRTFOutputPath is either empty or, if not empty, 
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_glossRTFOutputsFolderPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastGlossesOutputPath;
+				// Navigation protection is OFF and we have a valid path in m_lastGlossesRTFOutputPath,
+				// so we initialize the defaultDir to point to the m_lastGlossesRTFOutputPath for the 
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_lastGlossesRTFOutputPath;
 			}
 			break;
 		case freeTransTextExport:
-			if (gpApp->m_lastFreeTransOutputPath.IsEmpty())
+			gpApp->LogUserAction(_T("Export Free Trans RTF Text"));
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
+			if (gpApp->m_bProtectFreeTransRTFOutputsFolder)
 			{
-				defaultDir = gpApp->m_curProjectPath;
+				// Navigation protection in effect - limit free translation exports to
+				// be saved in the _FREETRANS_RTF_OUTPUTS folder which is always a child 
+				// folder of the folder that m_curProjectPath points to.
+				bBypassFileDialog_ProtectedNavigation = TRUE;
+				defaultDir = gpApp->m_freeTransRTFOutputsFolderName;
+			}
+			else if (gpApp->m_lastFreeTransRTFOutputPath.IsEmpty()
+				|| (!gpApp->m_lastFreeTransRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastFreeTransRTFOutputPath)))
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+				// to appear. But the m_lastFreeTransRTFOutputPath is either empty or, if not empty, 
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_freeTransRTFOutputsFolderPath;
 			}
 			else
-			{
-				defaultDir = gpApp->m_lastFreeTransOutputPath;
+			{	
+				// Navigation protection is OFF and we have a valid path in m_lastFreeTransRTFOutputPath,
+				// so we initialize the defaultDir to point to the m_lastFreeTransRTFOutputPath for the 
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_lastFreeTransRTFOutputPath;
 			}
 			break;
 		default:
 		case targetTextExport:
-			if (gpApp->m_lastTargetOutputPath.IsEmpty())
+			gpApp->LogUserAction(_T("Export Target RTF Text"));
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
+			if (gpApp->m_bProtectTargetRTFOutputsFolder)
 			{
-				defaultDir = gpApp->m_curProjectPath;
+				// Navigation protection in effect - limit source text exports to
+				// be saved in the _TARGET_RTF_OUTPUTS folder which is always a child 
+				// folder of the folder that m_curProjectPath points to.
+				bBypassFileDialog_ProtectedNavigation = TRUE;
+				defaultDir = gpApp->m_targetRTFOutputsFolderPath;
+			}
+			else if (gpApp->m_lastTargetRTFOutputPath.IsEmpty()
+				|| (!gpApp->m_lastTargetRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastTargetRTFOutputPath)))
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+				// to appear. But the m_lastTargetRTFOutputPath is either empty or, if not empty, 
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_targetRTFOutputsFolderPath;
 			}
 			else
 			{
-				defaultDir = gpApp->m_lastTargetOutputPath;
+				// Navigation protection is OFF and we have a valid path in m_lastTargetRTFOutputPath,
+				// so we initialize the defaultDir to point to the m_lastTargetRTFOutputPath for the 
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
+				defaultDir = gpApp->m_lastTargetRTFOutputPath;
 			}
 			break;
 		}
 	}
-	*/
 
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
 	// navigation.
@@ -1723,10 +1613,22 @@ void DoExportInterlinearRTF()
 	// make a suitable default output filename for the export function
 	int len = exportFilename.Length();
 	exportFilename.Remove(len-4,4); // remove the .adt or .xml extension (including the .)
-	exportFilename += _T(" Interlinear.");	// add distinct name to this export - to distinguish from
-											// the possibility of later having .rtf output of the
-											// translation text alone
-	exportFilename += _T("rtf"); // make it a *.rtf file type
+	// We are exporting interlinear rtf, get a default file name, set directory
+	// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
+	// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
+	// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
+	// produced exports within the _INTERLINEAR_RTF_OUTPUTS folder from those generated 
+	// automatically by our collaboration code, we adjust the exportFilename having a 
+	// "_Collab..." prefix so that it will have "_Interlinear" prefix instead.
+	if (exportFilename.Find(_T("_Collab")) == 0)
+	{
+		exportFilename.Replace(_T("_Collab"),_T("_Interlinear"));
+	}
+	else
+	{
+		exportFilename += _T(" Interlinear");
+	}
+	exportFilename += _T(".rtf"); // make it a *.rtf file type
 
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
 	// navigation.
@@ -2836,30 +2738,21 @@ void DoExportInterlinearRTF()
 	wxString Sdef_notes_base;		// Style definition tags for \sN Notes base para style
 	wxString Sdef_vernacular_base;	// Style defitition tags for \sN Vernacular base para style
 
-	// 26Aug11 whm moved the creation of the wxProgressDialog up before some of the more time
-	// consuming setup for Interlinear output. Also allocated the dialog on the heap, and
-	// added Destroy() calls before all return points.
-	int nTotal,counter;
-	nTotal = pList->GetCount();
-	counter = 0;
+	// whm 26Aug11 Open a wxProgressDialog instance here for export interlinear rtf operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
-	wxString msgDisplayed = progMsg.Format(progMsg,exportFilename.c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
-	pProgDlg = new wxProgressDialog(_("Export to Interlinear RTF"),
-                    msgDisplayed,
-                    nTotal,    // range
-                    gpApp->GetMainFrame(),   // parent
-                    //wxPD_CAN_ABORT |
-                    //wxPD_CAN_SKIP |
-                    wxPD_APP_MODAL |
-                    wxPD_AUTO_HIDE //| -- try this as well
-                    //wxPD_ELAPSED_TIME |
-                    //wxPD_ESTIMATED_TIME |
-                    //wxPD_REMAINING_TIME
-                    //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-    );
-	wxASSERT(pProgDlg != NULL);
-
+	wxFileName fn(exportFilename);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = gpApp->OpenNewProgressDialog(_("Export to Interlinear RTF"),msgDisplayed,nTotal,500);
+	int counter = 0;	
 	// Build final style tag strings - enclosed in {}
 	// Style information is used in three ways in our RTF output:
 	// 1. Style Definitions in the RTF Header
@@ -4055,8 +3948,9 @@ void DoExportInterlinearRTF()
 		counter++;
 		if (counter % 200 == 0)
 		{
-			msgDisplayed = progMsg.Format(progMsg,exportFilename.c_str(),counter,nTotal);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 			pProgDlg->Update(counter,msgDisplayed);
+			::wxSafeYield();
 		}
 
 		savePos = pos;
@@ -7587,30 +7481,25 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 				return;
 	}
 
-	// Put up a progress dialog
-	int nTotal,counter;
+	// whm 26Aug11 Open a wxProgressDialog instance here for export to rtf operations.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	// whm Note: We calculate nTotal differently here and can't use our 
+	// GetMaxRangeForProgressDialog() function because we are progressing
+	// through the buffer from beginPtr through pEnd.
 	wxChar* beginPtr;
 	beginPtr = ptr;
-	nTotal = pEnd - ptr;
-	counter = 0;
-	wxString progMsg = _("%s  - %d of %d Total Steps");
-	wxString msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),0,nTotal);
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
-	pProgDlg = new wxProgressDialog(_("Exporting To Rich Text Format"),
-                    msgDisplayed,
-                    nTotal,    // range
-                    gpApp->GetMainFrame(),   // parent
-                    //wxPD_CAN_ABORT |
-                    //wxPD_CAN_SKIP |
-                    wxPD_APP_MODAL |
-                    wxPD_AUTO_HIDE //| -- try this as well
-                    //wxPD_ELAPSED_TIME |
-                    //wxPD_ESTIMATED_TIME |
-                    //wxPD_REMAINING_TIME
-                    //| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-    );
-	wxASSERT(pProgDlg != NULL);
-
+	const int nTotal = (pEnd - beginPtr) + 1;
+	
+	wxString msgDisplayed;
+	wxString progMsg = _("Exporting File %s  - %d of %d Total words and phrases");
+	wxFileName fn(exportName);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = gpApp->OpenNewProgressDialog(_("Exporting To Rich Text Format"),msgDisplayed,nTotal,500);
+	int counter = 0;
 	// Scan through Buffer
 	while (ptr < pEnd)
 	{
@@ -7618,8 +7507,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		if (counter % 500 == 0)	// the counter moves character by character through the buffer
 									// so pick a large number for updating the progress dialog
 		{
-			msgDisplayed = progMsg.Format(progMsg,exportName.c_str(),ptr - beginPtr,nTotal);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ptr - beginPtr,nTotal);
 			pProgDlg->Update(ptr - beginPtr,msgDisplayed);
+			::wxSafeYield();
 		}
 
 		bHitMarker = FALSE;

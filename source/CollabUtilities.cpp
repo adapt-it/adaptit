@@ -732,88 +732,58 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// fail if the phrase box is not in existence
 	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
 
+	// whm revised 28Aug11: The CreateAndLoadKBs() function below now encapsulates
+	// the creation of in-memory KB objects and the loading of external xml file
+	// data into those objects. It also allows program control to continue on
+	// failures after notifying the user of the failures.
+	// The CreateAndLoadKBs() is called from here as well as from the the App's 
+	// SetupDirectories(), the View's OnCreate() and the ProjectPage::OnWizardPageChanging().
+	// 
 	// open the two knowledge bases and load their contents;
-	pApp->m_pKB = new CKB(FALSE);
-	wxASSERT(pApp->m_pKB != NULL);
-	{ // this block defines the existence of the wait dialog for loading the regular KB
-	CWaitDlg waitDlg(pApp->GetMainFrame());
-	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 8;	// 8 "Please wait while Adapt It loads the KB..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
-	// the wait dialog is automatically destroyed when it goes out of scope below.
-	bool bOK = pApp->LoadKB();
-	if (bOK)
+	if (!pApp->CreateAndLoadKBs())
 	{
-		pApp->m_bKBReady = TRUE;
-		pApp->LoadGuesser(pApp->m_pKB); // whm added 20Oct10
-
-		// now do it for the glossing KB
-		pApp->m_pGlossingKB = new CKB(TRUE);
-		wxASSERT(pApp->m_pGlossingKB != NULL);
-		bOK = pApp->LoadGlossingKB();
-		if (bOK)
+	    // deal with failures here
+		// If there was a failure to load either of the KBs, we need to call
+		// EraseKB() on any that got created. An English message will
+		// suffice with an wxASSERT_MSG in debug build, in release build also 
+		// return FALSE
+		if (!pApp->m_bKBReady || !pApp->m_bGlossingKBReady)
 		{
-			pApp->m_bGlossingKBReady = TRUE;
-			pApp->LoadGuesser(pApp->m_pGlossingKB); // whm added 20Oct10
-		}
-		else
-		{
-			// failure to load the glossing KB is unlikely, an English message will
-			// suffice  & an assert in debug build, in release build also return FALSE
+			// the load of the normal adaptation KB didn't work and the substitute empty KB 
+			// was not created successfully, so delete the adaptation CKB & advise the user 
+			// to Recreate the KB using the menu item for that purpose. Loading of the glossing
+			// KB will not have been attempted if we get here.
+			// This is unlikely to have happened, so a simple English message will suffice &
+			// and assert in the debug build, for release build return FALSE
 			if (pApp->m_pKB != NULL)
 			{
 				// delete the adapting one we successfully loaded
 				pApp->GetDocument()->EraseKB(pApp->m_pKB); // calls delete
-				pApp->m_pKB = NULL; //
+				pApp->m_pKB = (CKB*)NULL;
 			}
-			pApp->m_bKBReady = FALSE;
-			wxMessageBox(_T("HookUpToExistingAIProject(): loading the glossing knowledge base failed"), _T("Error"), wxICON_ERROR);
-			wxASSERT(FALSE);
-			return FALSE;
-		}
-
-		// inform the user if KB backup is currently turned off
-		if (pApp->m_bAutoBackupKB)
-		{
-			// It should not be called when a project is first opened when no 
-			// changes have been made; and since on, no message is required
-			;
-		}
-		else
-		{
-			// show the message only if not a snooper
-			if ( (pApp->m_bUseCustomWorkFolderPath && pApp->m_bLockedCustomWorkFolderPath) 
-				|| !pApp->m_bUseCustomWorkFolderPath)
+			if (pApp->m_pGlossingKB != NULL)
 			{
-				wxMessageBox(
-_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
-				_T(""), wxICON_INFORMATION);
+				pApp->GetDocument()->EraseKB(pApp->m_pGlossingKB); // calls delete
+				pApp->m_pGlossingKB = (CKB*)NULL;
 			}
 		}
-	}
-	else
-	{
-		// the load of the normal adaptation KB didn't work and the substitute empty KB 
-		// was not created successfully, so delete the adaptation CKB & advise the user 
-		// to Recreate the KB using the menu item for that purpose. Loading of the glossing
-		// KB will not have been attempted if we get here.
-		// This is unlikely to have happened, so a simple English message will suffice &
-		// and assert in the debug build, for release build return FALSE
-		if (pApp->m_pKB != NULL)
+		if (!pApp->m_bKBReady)
 		{
-			pApp->GetDocument()->EraseKB(pApp->m_pKB); // calls delete
-			pApp->m_pKB = NULL;
+			// whm Note: The user will have received an error message from CreateAndLoadKBs(),
+			// so here we can just notify the developer
+			wxASSERT_MSG(!pApp->m_bKBReady,_T("HookUpToExistingAIProject(): loading the adapting knowledge base failed"));
+			pApp->LogUserAction(_T("HookUpToExistingAIProject(): loading the adapting knowledge base failed"));
 		}
-		pApp->m_bKBReady = FALSE;
-		pApp->m_pKB = (CKB*)NULL;
-		wxMessageBox(_T("HookUpToExistingAIProject(): loading the adapting knowledge base failed"), _T("Error"), wxICON_ERROR);
-		wxASSERT(FALSE);
+		if (!pApp->m_bGlossingKBReady)
+		{
+			// whm Note: The user will have received an error message from CreateAndLoadKBs(),
+			// so here we can just notify the developer
+			wxASSERT_MSG(!pApp->m_bGlossingKBReady,_T("HookUpToExistingAIProject(): loading the glossing knowledge base failed"));
+			pApp->LogUserAction(_T("HookUpToExistingAIProject(): loading the glossing knowledge base failed"));
+		}
 		return FALSE;
 	}
-	} // end of CWaitDlg scope, closing the progress dialog
-
+	
     // whm added 12Jun11. Ensure the inputs and outputs directories are created.
     // SetupDirectories() normally takes care of this for a new project, but we also want
     // existing projects created before version 6 to have these directories too.
@@ -1383,7 +1353,37 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		wxFileName fn(thePath);
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
-		bool bReadOK = ReadDoc_XML(thePath, pDoc); // defined in XML.cpp
+		
+		// whm 24Aug11 Note: ReadDoc_XML() no longer puts up a progress/wait dialog of its own.
+		// We need to create a separate progress dialog here to monitor the ReadDoc_XML()
+		// progress. We can't use a pointer from our calling function GetSourceTextFromEditor::OnOK()
+		// because the progress dialog there is using a step range from 1 to 9, whereas
+		// the ReadDoc_XML() call below requires a progress dialog with a "chunk" type
+		// range for reading the xml file.
+		
+		// whm 26Aug11 Open a wxProgressDialog instance here for loading KB operations.
+		// The dialog's pProgDlg pointer is passed along through various functions that
+		// get called in the process.
+		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+		// be changed after the dialog is created. So any routine that gets passed the
+		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// exceed the same maximum value (nTotal).
+		wxString msgDisplayed;
+		wxString progMsg;
+		wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+		// add 1 chunk to insure that we have enough after int division above
+		const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
+		// Only show the progress dialog when there is at lease one chunk of data
+		// Only create the progress dialog if we have data to progress
+		if (nTotal > 0)
+		{
+			progMsg = _("Opening %s and merging with current document");
+			wxFileName fn(fullFileName);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str());
+			pProgDlg = gpApp->OpenNewProgressDialog(_("Opening Document and Merging With Current Document"),msgDisplayed,nTotal,500);
+		}
+
+		bool bReadOK = ReadDoc_XML(thePath, pDoc, pProgDlg, nTotal); // defined in XML.cpp
 		if (!bReadOK)
 		{
 			wxString s;
@@ -1391,8 +1391,14 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 				s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
 				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			return TRUE; // return TRUE to allow the user another go at it
 		}
+		// remove the ReadDoc_XML() specific progress dialog
+		if (pProgDlg != NULL)
+			pProgDlg->Destroy();
+
 		// app's m_pSourcePhrases list has been populated with CSourcePhrase instances
 	}
 	// exit here if we only wanted m_pSourcePhrases populated and no recursive merger done
@@ -1401,8 +1407,26 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		return TRUE;
 	}
 
+	// Put up a staged wxProgressDialog here for 5 stages/steps
+	// whm 26Aug11 Open a wxProgressDialog instance here for Restoring KB operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	const int nTotal = 10; // we will do up to 10 Steps
+	wxString progMsg = _("Merging Documents - Step %d of %d");
+	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = gpApp->OpenNewProgressDialog(_("Merging Documents..."),msgDisplayed,nTotal,500);
+	
 	if (bDoMerger)
 	{
+
+
+
 		// first task is to tokenize the (possibly edited) source text just obtained from
 		// PT or BE
 
@@ -1420,12 +1444,30 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 							// instead, but wxWidgets did not use operator=() properly
 							// and it created a buffer full of unknown char symbols
 							// and no final null! Weird. But += works fine.
+		
+		// Update for step 1 ChangeParatextPrivatesToCustomMarkers()
+		msgDisplayed = progMsg.Format(progMsg,1,nTotal);
+		pProgDlg->Update(1,msgDisplayed);
+		::wxSafeYield();
+		
 		// The code below is copied from CAdapt_ItView::OnImportEditedSourceText(),
 		// comments have been removed to save space, the original code is fully commented
 		// so anything not clear can be looked up there
 		ChangeParatextPrivatesToCustomMarkers(*pBuffer);
+		
+		// Update for step 2 OverwriteUSFMFixedSpaces()
+		msgDisplayed = progMsg.Format(progMsg,2,nTotal);
+		pProgDlg->Update(2,msgDisplayed);
+		::wxSafeYield();
+		
 		if (pApp->m_bChangeFixedSpaceToRegularSpace)
 			pDoc->OverwriteUSFMFixedSpaces(pBuffer);
+		
+		// Update for step 3 OverwriteUSFMDiscretionaryLineBreaks()
+		msgDisplayed = progMsg.Format(progMsg,3,nTotal);
+		pProgDlg->Update(3,msgDisplayed);
+		::wxSafeYield();
+		
 		pDoc->OverwriteUSFMDiscretionaryLineBreaks(pBuffer);
 #ifndef __WXMSW__
 #ifndef _UNICODE
@@ -1433,17 +1475,34 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		OverwriteSmartQuotesWithRegularQuotes(pBuffer);
 #endif
 #endif
+		// Update for step 4 TokenizeTextString()
+		msgDisplayed = progMsg.Format(progMsg,4,nTotal);
+		pProgDlg->Update(4,msgDisplayed);
+		::wxSafeYield();
+		
 		// parse the new source text data into a list of CSourcePhrase instances
 		int nHowMany;
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
 		nHowMany = pView->TokenizeTextString(pSourcePhrases, *pBuffer, 0); // 0 = initial sequ number value
 		SPList* pMergedList = new SPList; // store the results of the merging here
+		
+		// Update for step 5 MergeUpdatedSourceText(), etc.
+		msgDisplayed = progMsg.Format(progMsg,5,nTotal);
+		pProgDlg->Update(5,msgDisplayed);
+		::wxSafeYield();
+		
 		if (nHowMany > 0)
 		{
 			MergeUpdatedSourceText(*pApp->m_pSourcePhrases, *pSourcePhrases, pMergedList, nSpanLimit);
             // take the pMergedList list, delete the app's m_pSourcePhrases list's
             // contents, & move to m_pSourcePhrases the pointers in pMergedList...
- 			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
+ 			
+			// Update for step 6 loop of DeleteSingleSrcPhrase()
+			msgDisplayed = progMsg.Format(progMsg,6,nTotal);
+			pProgDlg->Update(6,msgDisplayed);
+			::wxSafeYield();
+			
+			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
 			while (posCur != NULL)
 			{
 				CSourcePhrase* pSrcPhrase = posCur->GetData();
@@ -1456,6 +1515,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			pApp->m_pSourcePhrases->Clear();
 			wxASSERT(pApp->m_pSourcePhrases->IsEmpty());
 
+			// Update for step 7 loop of DeepCopy(), etc.
+			msgDisplayed = progMsg.Format(progMsg,7,nTotal);
+			pProgDlg->Update(7,msgDisplayed);
+			::wxSafeYield();
+			
 			// make deep copies of the pMergedList instances and add them to the emptied
 			// m_pSourcePhrases list, and delete the instance in pMergedList each time
 			SPList::Node* posnew = pMergedList->GetFirst();
@@ -1474,6 +1538,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 								  // DeleteContents(TRUE) was not called beforehand
 			delete pMergedList; // don't leak memory
 
+			// Update for step 8 loop of DeleteSingleSrcPhrase(), etc.
+			msgDisplayed = progMsg.Format(progMsg,8,nTotal);
+			pProgDlg->Update(8,msgDisplayed);
+			::wxSafeYield();
+			
 			// now delete the list formed from the imported new version of the source text
 			SPList::Node* pos = pSourcePhrases->GetFirst();
 			while (pos != NULL)
@@ -1484,6 +1553,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			}
 			pSourcePhrases->Clear();
 			delete pSourcePhrases; // don't leak memory
+			
 		} // end of TRUE block for test: if (nHowMany > 0)
 	} // end of TRUE block for test: if (bDoMerger)
 
@@ -1491,8 +1561,16 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	// text 
 	if (!bDoLayout)
 	{
+		if (pProgDlg != NULL)
+			pProgDlg->Destroy();
 		return TRUE;
 	}
+	
+	// Update for step 9 loop of bDoLayout(), etc.
+	msgDisplayed = progMsg.Format(progMsg,9,nTotal);
+	pProgDlg->Update(9,msgDisplayed);
+	::wxSafeYield();
+	
 	// get the layout built, view window set up, phrase box placed etc, if wanted
 	if (bDoLayout)
 	{
@@ -1561,6 +1639,8 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OpenDocWithMerger()"),
 			_T(""), wxICON_STOP);
 			wxASSERT(FALSE);
+			if (pProgDlg != NULL)
+				pProgDlg->Destroy();
 			wxExit();
 		}
 
@@ -1608,6 +1688,15 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		pView->Invalidate();
 		gnOldSequNum = -1; // no previous location exists yet
 	}
+	
+	// Update for step 10 finished.
+	msgDisplayed = progMsg.Format(progMsg,10,nTotal);
+	pProgDlg->Update(10,msgDisplayed);
+	::wxSafeYield();
+	
+	// remove the progress dialog
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
 	return TRUE;
 }
 
@@ -3894,27 +3983,23 @@ int  FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBefor
 wxString ExportTargetText_For_Collab(SPList* pDocList)
 {
 	wxString text;
-	{ 
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
-		waitDlg.m_nWaitMsgNum = 19;	// _("Exporting the translation...")
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-
-		wxASSERT(pDocList != NULL);
-		int textLen = 0;
-		textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
-		// set \note, \bt, and \free as to be programmatically excluded from the export
-		ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
-		// cause the markers set for exclusion, plus their contents, to be actually removed
-		// from the exported text
-		bool bRTFOutput = FALSE; // we are working with USFM marked up text
-		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-		// in next call, param 2 is from enum ExportType in Adapt_It.h
-		FormatMarkerBufferForOutput(text, targetTextExport);
-		text = RemoveMultipleSpaces(text);
-	}
+	
+	// whm 28Aug11 Note: No wait dialog is needed here because the caller
+	// already has a progress dialog going for the step that calls 
+	// ExportTargetText_For_Collab()
+		
+	wxASSERT(pDocList != NULL);
+	int textLen = 0;
+	textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
+	// set \note, \bt, and \free as to be programmatically excluded from the export
+	ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
+	// cause the markers set for exclusion, plus their contents, to be actually removed
+	// from the exported text
+	bool bRTFOutput = FALSE; // we are working with USFM marked up text
+	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+	// in next call, param 2 is from enum ExportType in Adapt_It.h
+	FormatMarkerBufferForOutput(text, targetTextExport);
+	text = RemoveMultipleSpaces(text);
 	return text;
 }
 
@@ -3923,21 +4008,16 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 {
 	wxString text;
-	{ 
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
-		waitDlg.m_nWaitMsgNum = 20;	// _("Exporting the free translation...")
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-		
-		wxASSERT(pDocList != NULL);
-		int textLen = 0;
-		textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
-		// in next call, param 2 is from enum ExportType in Adapt_It.h
-		FormatMarkerBufferForOutput(text, freeTransTextExport);
-		text = RemoveMultipleSpaces(text);
-	}
+	// whm 28Aug11 Note: No wait dialog is needed here because the caller
+	// already has a progress dialog going for the step that calls 
+	// ExportFreeTransText_For_Collab()
+	
+	wxASSERT(pDocList != NULL);
+	int textLen = 0;
+	textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
+	// in next call, param 2 is from enum ExportType in Adapt_It.h
+	FormatMarkerBufferForOutput(text, freeTransTextExport);
+	text = RemoveMultipleSpaces(text);
 	return text;
 }
 
@@ -3957,7 +4037,7 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 ///                         2); our algorithms work almost the same for either kind of text.
 /// \param postEditText <-  the text to replace the pre-edit target text or free translation
 /// \remarks
-/// 
+/// Called from the Doc's OnFileSave().
 /// Comments below are a bit out of date -- there is only a 3-text situation, shouldn't be
 /// two unless the from-external-editor text is an empty string
 /// 
@@ -4077,6 +4157,7 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// are done at the one File / Save -- first the adaptation is sent, and then if free
 /// translation is expected to be be sent, it is sent after the adaptation is sent,
 /// automatically.
+/// whm 24Aug11 added the wxProgressDialog* pProgDlg parameter
 ///////////////////////////////////////////////////////////////////////////////////////
 wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, 
 										   wxString& postEditText)
@@ -4284,25 +4365,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	fromEditorOffsetsArr.Alloc(countFrom); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(fromEditorText, fromEditorOffsetsArr, fromEditorMd5Arr);
 
-	// Here is the appropriate place to put a progress dialog (the simple case of direct
-	// transfer of an export, as above, can be handled by a CWaitDialog() in the caller)
-	int counter;
-	counter = 0;
-	int nTotal = (int)countPost;
-	wxString progMsg;
-	// in next line the extra white space to lengthen the dialog window, otherwise it is a
-	// bit to scrunched and the end of the title text is truncated
-	wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), 1, countPost); 
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
-	wxString titleStr;
-	titleStr = titleStr.Format(_("Building %s text to send to %s"), strTextTypeToSend.c_str(), gpApp->m_collaborationEditor.c_str());
-	pProgDlg = new wxProgressDialog(titleStr,
-					msgDisplayed,
-					nTotal,    // range
-					gpApp->GetMainFrame(),   // parent
-					wxPD_APP_MODAL |
-					wxPD_AUTO_HIDE
-					);
+	// whm 24Aug11 removed the progress dialog from this function. The caller (which
+	// is OnFileSave) sets up a wait dialog instead
 
 	// Beware, when starting out on a document, the preEditText might be empty of text,
 	// but have USFMs, or some such non-normal situation, and so countPre may be zero. We
@@ -4323,7 +4387,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr, pProgDlg);
+					postEditOffsetsArr, fromEditorOffsetsArr);
 	}
 	else
 	{
@@ -4385,14 +4449,18 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// the USFM structure has changed in at least one location in the text
 		text = GetUpdatedText_UsfmsChanged(preEditText, postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr, pProgDlg);
+					postEditOffsetsArr, fromEditorOffsetsArr);
 	}
 
+	// whm 24Aug11 Note: we don't need to call Destroy() on the pProgdlg.
+	// It was created on the stack back in OnFileSave(), and it will be
+	// automatically destroyed when it goes out of scope after control
+	// returns there.
 	// kill the progress dialog
-	if (pProgDlg != NULL)
-	{
-		pProgDlg->Destroy();
-	}
+	//if (pProgDlg != NULL)
+	//{
+	//	pProgDlg->Destroy();
+	//}
 
 	// delete from the heap all the MD5Map structs we created
 	DeleteMD5MapStructs(preEditOffsetsArr);
@@ -4427,7 +4495,7 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
 			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 			wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
-			wxArrayPtrVoid& fromEditorOffsetsArr, wxProgressDialog* pProgDlg)
+			wxArrayPtrVoid& fromEditorOffsetsArr)
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
@@ -4464,24 +4532,9 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
 	wxASSERT(*pFromEditorEnd == '\0');
 
-	// for the progress bar...
-	int counter = 0;
-	int nGranularity = 10;
-
 	size_t index;
 	for (index = 0; index < postEditMd5Arr_Count; index++)
 	{
-		// update progress bar (every line of the array is touched)
-		counter = index;
-		wxString progMsg;
-		// in next line the extra white space to lengthen the dialog window, otherwise it is a
-		// bit to scrunched and the end of the title text is truncated
-		wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), counter, postEditMd5Arr_Count); 
-		if (counter % nGranularity == 0) 
-		{
-			pProgDlg->Update(counter, msgDisplayed);
-		}
-
 		// get the next line from each of the MD5 structure&extents arrays
 		preEditMd5Line = preEditMd5Arr.Item(index);
 		postEditMd5Line = postEditMd5Arr.Item(index);
@@ -4701,9 +4754,8 @@ wxString GetUpdatedText_UsfmsChanged(
 	
 	wxArrayPtrVoid& postEditOffsetsArr,   // array of MD5Map structs which index the span of text in postEditText
 										  // which corresponds to a single line of info from postEditMd5Arr
-	wxArrayPtrVoid& fromEditorOffsetsArr, // array of MD5Map structs which index the span of text in fromEditorText
+	wxArrayPtrVoid& fromEditorOffsetsArr) // array of MD5Map structs which index the span of text in fromEditorText
 										  // which corresponds to a single line of info from fromEditorMd5Arr
-	wxProgressDialog* pProgDlg)
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
@@ -4766,9 +4818,9 @@ wxString GetUpdatedText_UsfmsChanged(
 	int	postEditArr_AfterChunkIndex = 0;
 	int	fromEditorArr_AfterChunkIndex = 0;
 
-	// for the progress bar...
-	int counter = 0;
-	int nGranularity = 10;
+	//// for the progress bar...
+	//int counter = 0;
+	//int nGranularity = 10;
 
 #ifdef OUT_OF_SYNC_BUG
 #ifdef __WXDEBUG__
@@ -4778,18 +4830,6 @@ wxString GetUpdatedText_UsfmsChanged(
 #endif
 	while (postEditArr_Index < (int)postEditMd5Arr_Count && fromEditorArr_Index < (int)fromEditorMd5Arr_Count)
 	{
-		// update progress bar (might be jerky, not every index is touched if there are
-		// complex chunks)
-		counter = postEditArr_Index;
-		wxString progMsg;
-		// in next line the extra white space to lengthen the dialog window, otherwise it is a
-		// bit to scrunched and the end of the title text is truncated
-		wxString msgDisplayed = progMsg.Format(_("Markers handled: %d  of  %d                              "), counter, postEditMd5Arr_Count); 
-		if (counter % nGranularity == 0) 
-		{
-			pProgDlg->Update(counter,msgDisplayed);
-		}
-
 		// get the next line from each of the MD5 structure&extents arrays
 		preEditMd5Line = preEditMd5Arr.Item(postEditArr_Index);
 		postEditMd5Line = postEditMd5Arr.Item(postEditArr_Index);

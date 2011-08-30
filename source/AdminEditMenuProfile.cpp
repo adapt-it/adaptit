@@ -169,7 +169,9 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// saved any changes to AI_UserProfiles.xml).
 	wxString readDataFrom;
 	readDataFrom = _T("AI_UserProfiles.xml File");
-	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath);
+	// whm 25Aug11 Note: The AI_UserProfiles.xml file is not large enough to require
+	// a wxProgressDialog, so we send NULL through ReadPROFILES_XML().
+	bool bReadOK = ReadPROFILES_XML(m_pApp->m_userProfileFileWorkFolderPath,NULL,0);
 	if (!bReadOK)
 	{
 		// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read

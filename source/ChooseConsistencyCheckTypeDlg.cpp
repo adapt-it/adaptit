@@ -67,6 +67,10 @@ CChooseConsistencyCheckTypeDlg::CChooseConsistencyCheckTypeDlg(wxWindow* parent)
 	// The declaration is: ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
+	wxColor backgrndColor = this->GetBackgroundColour();
+	pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG);
+	pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(gpApp->sysColorBtnFace);
 }
 
 CChooseConsistencyCheckTypeDlg::~CChooseConsistencyCheckTypeDlg() // destructor

@@ -42,6 +42,7 @@
 //#include <wx/valtext.h> // for wxTextValidator
 #include <wx/tokenzr.h>
 #include <wx/listctrl.h>
+#include <wx/progdlg.h>
 
 #include "Adapt_It.h"
 #include "MainFrm.h"
@@ -470,6 +471,82 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// flag is TRUE, and does the required PlacePhraseBox() call, and clears the flag
 	m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = TRUE;
 
+	// whm 25Aug11 modified to use a wxProgressDialog rather than the CWaitDlg. I've 
+	// started the progress dialog here because the call to UnLoadKBs() below can take 
+	// a few seconds for very large KBs. Since there are various potentially time-consuming 
+	// steps in the process, each step calling some sort of function, we will simply track 
+	// progress as we go through the following steps:
+	// 1. UnLoadKBs()
+	// 2. TransferTextBetweenAdaptItAndExternalEditor() [for m_bTempCollabByChapterOnly]
+	// 3. GetTextFromAbsolutePathAndRemoveBOM()
+	//  [if an existing AI project exists]
+	//   4. HookUpToExistingAIProject() 
+	//      [if an existing AI doc exists in project:]
+	//      5. GetTextFromFileInFolder()
+	//      6. OpenDocWithMerger()
+	//      7. MoveTextToFolderAndSave()
+	//      [if no existing AI doc exists in project:]
+	//      5. TokenizeTextString()
+	//      6. SetupLayoutAndView()
+	//      7. MoveTextToFolderAndSave()
+	//  [no existing AI project exists]
+	//   4. CreateNewAIProject()
+	//   5. TokenizeTextString()
+	//   6. SetupLayoutAndView()
+	//   7. MoveTextToFolderAndSave()
+	// 8. ExportTargetText_For_Collab() 
+	//    and possibly ExportFreeTransText_For_Collab StoreFreeTransText_PreEdit
+	// 9. End of process
+	// == for nTotal steps of 9.
+	// 
+	// Therefore the wxProgressDialog has a maximum value of 9, and the progress indicator
+	// gauge increments when each step has been completed.
+	// Note: the progress dialog shows the progress of the various steps. With a fast hard
+	// drive or cached data and/or a small KB the first 4 steps can happen so quickly that 
+	// while the text message in the dialog shows the change of steps, the graphic bars 
+	// don't have time to catch up until after step 5. In the middle of the process, the 
+	// (same) dialog shows some intermediate activity being "progressed"
+	// then resumes showing the progress of the steps until all steps are complete.
+	// The wxProgressDialog is designed to not update itself if a particular Update()
+	// call occurs within 3 ms of the last one. While this can help avoid showing the
+	// dialog or its update for situations that happen to be able to complete quicker than
+	// "normal", it also means that sometimes the dialog simply doesn't appear to indicate
+	// much visual progress before finishing. I've also sprinkled some ::wxSafeYield()
+	// calls to help the dialog display better.
+	
+	// whm 26Aug11 Open a wxProgressDialog instance here for Restoring KB operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
+	wxString msgDisplayed;
+	const int nTotal = 9; // we will do up to 9 Steps
+	int nStep = 0;
+	wxString progMsg;
+	if (m_bTempCollabByChapterOnly)
+	{
+		progMsg = _("Getting the chapter and laying out the document... step %d of %d");
+	}
+	else
+	{
+		progMsg = _("Getting the book and laying out the document... step %d of %d");
+	}
+	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	pProgDlg = gpApp->OpenNewProgressDialog(_("Getting Document for Collaboration"),msgDisplayed,nTotal,500);
+	
+	// Update for step 1 Creating a temporary KB backup for restoring the KB later
+	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+	pProgDlg->Update(nStep,msgDisplayed);
+	::wxSafeYield();
+
+	nStep = 1;
+	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+	pProgDlg->Update(nStep,msgDisplayed);
+	::wxSafeYield();
+
 	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
 
@@ -501,21 +578,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = bareChapterSelectedStr;
-
-	// a wait dialog is needed
-	{ // this brace commences its scope, the dialog window disappears when the matching one is reached
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
-	if (m_bTempCollabByChapterOnly)
-	{
-		waitDlg.m_nWaitMsgNum = 21;	// "Please wait, getting the chapter and laying out the document..."
-	}
-	else
-	{
-		waitDlg.m_nWaitMsgNum = 22;	// "Please wait, getting the book and laying out the document, this may take a while..."
-	}
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
 
 	// Set up (or access any existing) project for the selected book or chapter
 	// How this is handled will depend on whether the book/chapter selected
@@ -557,6 +619,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	wxArrayString outputSrc, errorsSrc;
 	if (m_bTempCollabByChapterOnly)
 	{
+		nStep = 2;
+		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+		pProgDlg->Update(nStep,msgDisplayed);
+		::wxSafeYield();
+		
 		// get the single-chapter file; the Transfer...Editor() function does all the work
 		// of generating the filename, path, commandLine, getting the text, & saving in
 		// the .temp folder -- functions for this are in CollabUtilities.cpp
@@ -593,6 +660,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			pListCtrlChapterNumberAndStatus->DeleteAllItems(); 
 			pStaticTextCtrlNote->ChangeValue(_T(""));
 			m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
+			pProgDlg->Destroy();
 			return;
 		}
 	} // end of TRUE block for test: if (m_pApp->m_bCollabByChapterOnly)
@@ -680,6 +748,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
     // wholebook filenames & builds accordingly
 	wxString sourceTempFileName = MakePathToFileInTempFolder_For_Collab(collab_source_text);
 
+	nStep = 3;
+	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+	pProgDlg->Update(nStep,msgDisplayed);
+	::wxSafeYield();
+		
 	if (m_bTempCollabByChapterOnly)
 	{
 		// sourceChapterBuffer, a wxString, stores temporarily the USFM source text
@@ -819,6 +892,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         //    guarantee any externally done changes will make it into the doc before it is
         //    displayed in the view window.
         
+		nStep = 4;
+		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+		pProgDlg->Update(nStep,msgDisplayed);
+		::wxSafeYield();
+		
 		// first, get the project hooked up, if there is indeed one pre-existing for the
 		// given language pair; if not, we create a new project
 		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
@@ -868,6 +946,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// into the document we have already from an earlier collaboration on this
 				// chapter
 				
+				nStep = 5;
+				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+				pProgDlg->Update(nStep,msgDisplayed);
+				::wxSafeYield();
+		
                 // set the private booleans which tell us whether or not the Usfm structure
                 // has changed, and whether or not the text and/or puncts have changed. The
                 // auxilary functions for this are in helpers.cpp
@@ -927,11 +1010,23 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					bDoMerger = FALSE; // use the AI document 'as is'
 				}
 #endif
+				nStep = 6;
+				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+				pProgDlg->Update(nStep,msgDisplayed);
+				::wxSafeYield();
+				
+				m_pApp->maxProgDialogValue = 9; // temporary hack while calling OpenDocWithMerger() below
+		
 				bool bDoLayout = TRUE;
 				bool bCopySourceWanted = m_pApp->m_bCopySource; // whatever the value now is
 				bool bOpenedOK;
                 // the next call always returns TRUE, otherwise wxWidgets doc/view
                 // framework gets messed up if we pass FALSE to it
+                // whm 26Aug11 Note: We cannot pass the pProgDlg pointer to the OpenDocWithMerger()
+                // calls below, because within OpenDocWithMerger() it calls ReadDoc_XML() which 
+                // requires a wxProgressDialog with a different kind of range values - a count of
+                // source phrases, whereas here in OnOK() we are using 9 steps as the range for the
+                // progress dialog.
 				if (m_bTempCollabByChapterOnly)
 				{
 					bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceChapterBuffer, 
@@ -943,6 +1038,9 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 												bDoMerger, bDoLayout, bCopySourceWanted);
 				}
 
+				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
+				m_pApp->maxProgDialogValue = MAXINT; // temporary hack while calling OpenDocWithMerger() above
+				
 				// warn user about the copy flag having been changed, if such a warning is necessary					   
 				if (m_pApp->m_bSaveCopySourceFlag_For_Collaboration && !m_pApp->m_bCopySource
 					&& m_bTextOrPunctsChanged)
@@ -960,6 +1058,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				wxString pathCreationErrors;
 				wxString sourceFileTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, 
 									_T(""), chForDocName, _T(""));
+				
+				nStep = 7;
+				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+				pProgDlg->Update(nStep,msgDisplayed);
+				::wxSafeYield();
+		
 				bool bMovedOK;
 				if (m_bTempCollabByChapterOnly)
 				{
@@ -984,6 +1088,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			} // end of TRUE block for test: if (::wxFileExists(docPath))
 			else
 			{
+				nStep = 5;
+				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+				pProgDlg->Update(nStep,msgDisplayed);
+				::wxSafeYield();
+		
 				// it doesn't exist, so we have to tokenize the source text coming from PT
 				// or BE, create the document, save it and lay it out in the view window...
 				wxASSERT(m_pApp->m_pSourcePhrases->IsEmpty());
@@ -1018,6 +1127,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// in the view window
 					wxASSERT(!m_pApp->m_pSourcePhrases->IsEmpty());
 
+					nStep = 6;
+					msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+					pProgDlg->Update(nStep,msgDisplayed);
+					::wxSafeYield();
+		
 					SetupLayoutAndView(m_pApp, docTitle);
 				}
 				else
@@ -1029,10 +1143,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
 					wxMessageBox(msg, _T(""), wxICON_WARNING);
 					m_pApp->LogUserAction(msg);
+					pProgDlg->Destroy();
 					return;
 				}
 
-                // 5. Copy the just-grabbed chapter or book source text from the .temp
+ 				nStep = 7;
+				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+				pProgDlg->Update(nStep,msgDisplayed);
+				::wxSafeYield();
+		
+               // 5. Copy the just-grabbed chapter or book source text from the .temp
                 // folder over to the Project's __SOURCE_INPUTS folder (creating the
                 // __SOURCE_INPUTS folder if it doesn't already exist). Note, the source
                 // text in sourceChapterBuffer has had its initial BOM removed. We never
@@ -1079,6 +1199,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			msg = _T("Collaboration: a highly unexpected failure to hook up to the identified pre-existing Adapt It adaptation project has happened.\nYou should Cancel from the current collaboration attempt.\nThen carefully check that the Adapt It project's source language and target language names exactly match the language names you supplied within Paratext or Bibledit.\n Fix the Adapt It project folder's language names to be spelled the same, then try again.");
 			wxMessageBox(msg, _T(""), wxICON_WARNING);
 			m_pApp->LogUserAction(msg);
+			pProgDlg->Destroy();
 			return;
 		}
 	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
@@ -1155,6 +1276,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         //    folder over to the Project's __SOURCE_INPUTS folder (creating the
         //    __SOURCE_INPUTS folder if it doesn't already exist).
 		
+		nStep = 4;
+		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+		pProgDlg->Update(nStep,msgDisplayed);
+		::wxSafeYield();
+		
 		// Step 1 & 2
 		bool bDisableBookMode = TRUE;
 		bool bProjOK = CreateNewAIProject(m_pApp, pInfoSrc->languageName, 
@@ -1172,6 +1298,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				m_pApp->m_curProjectPath.c_str());
 			m_pApp->LogUserAction(message);
 			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR);
+			pProgDlg->Destroy();
 			return;
 		}
 		// Step 3. (code copied from above)
@@ -1203,6 +1330,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// parse the input file
 		int nHowMany;
 		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
+				
+		nStep = 5;
+		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+		pProgDlg->Update(nStep,msgDisplayed);
+		::wxSafeYield();
+		
 		// in the next call, 0 = initial sequ number value
 		if (m_bTempCollabByChapterOnly)
 		{
@@ -1231,6 +1364,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			// in the view window
 			wxASSERT(!m_pApp->m_pSourcePhrases->IsEmpty());
 
+			nStep = 6;
+			msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+			pProgDlg->Update(nStep,msgDisplayed);
+			::wxSafeYield();
+		
 			SetupLayoutAndView(m_pApp, docTitle);
 		}
 		else
@@ -1242,10 +1380,16 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
 			wxMessageBox(msg, _T(""), wxICON_WARNING);
 			m_pApp->LogUserAction(msg);
+			pProgDlg->Destroy();
 			return;
 		}
 
-        // Step 5. (code copied from above)
+ 		nStep = 7;
+		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+		pProgDlg->Update(nStep,msgDisplayed);
+		::wxSafeYield();
+		
+       // Step 5. (code copied from above)
 		wxString pathCreationErrors;
 		bool bMovedOK;
 		if (m_bTempCollabByChapterOnly)
@@ -1270,6 +1414,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
 
+	nStep = 8;
+	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+	pProgDlg->Update(nStep,msgDisplayed);
+	::wxSafeYield();
+		
     // store the "pre-edit" version of the document's adaptation text in a member on the
     // app class, and if free translation is wanted for tranfer to PT or BE as well, get
     // the pre-edit free translation exported and stored in another app member for that
@@ -1310,12 +1459,20 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		}
 	}
 	
+	nStep = 9;
+	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
+	pProgDlg->Update(nStep,msgDisplayed);
+	::wxSafeYield();
+
+	// remove the progress dialog
+	pProgDlg->Destroy();
+		
     // Note: we will store the post-edit free translation, if working with such as wanted
     // in collaboration mode, not in _FREETRANS_OUTPUTS, but rather in a local variable
     // while we use it at File / Save time, and then transfer it to the free translation
     // pre-edit wxString on the app. It won't ever be put in the _FREETRANS_OUTPUTS folder.
     // Only non-collaboration free translation exports will go there.
-	} // CWaitDlg goes out of scope here
+
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 

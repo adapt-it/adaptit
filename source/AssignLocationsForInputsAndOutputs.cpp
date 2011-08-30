@@ -303,7 +303,7 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 
 	m_pApp->m_foldersProtectedFromNavigation = foldersProtectedFromNavigation;
 	
-	m_pApp->LogUserAction(m_pApp->m_foldersProtectedFromNavigation);
+	m_pApp->LogUserAction(_T("Folders protected from Navigation: ") + m_pApp->m_foldersProtectedFromNavigation);
 	
 	// update the value related to m_foldersProtectedFromNavigation in the Adapt_It_WX.ini file
 	bool bWriteOK = FALSE;

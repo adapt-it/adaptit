@@ -47,6 +47,8 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h>
 #include <wx/filesys.h> // for wxFileName
+#include <wx/progdlg.h> // for wxFileName
+
 #include "ProjectPage.h"
 #include "LanguagesPage.h"
 #include "FontPage.h"
@@ -545,101 +547,66 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				}
 			}
 
-			// open the knowledge base and load its contents
-			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB(FALSE);
-			wxASSERT(pApp->m_pKB != NULL);
-			{ // this block defines the existence of the wait dialog for loading the regular KB
-			CWaitDlg waitDlg(gpApp->GetMainFrame());
-			// indicate we want the reading file wait message
-			waitDlg.m_nWaitMsgNum = 8;	// 8 "Please wait while Adapt It loads the KB..."
-			waitDlg.Centre();
-			waitDlg.Show(TRUE);
-			waitDlg.Update();
-			// the wait dialog is automatically destroyed when it goes out of scope below.
-			bool bOK = pApp->LoadKB();
-			if (bOK)
+			// whm modified 28Aug11 to use a new CreateAndLoadKBs() function since
+			// we are dealing with an existing project.
+			// The CreateAndLoadKBs() is called from here as well as from the the App's 
+			// SetupDirectories(), the View's OnCreate(), and the CollabUtilities' 
+			// HookUpToExistingAIProject().
+			// 
+			// If CreateAndLoadKBs() fails to create the necessary KBs, the code 
+			// in CreateAndLoadKBs() issues error messages and the FALSE return block
+			// of CreateAndLoadKBs() below closes the Start Working Wizard.
+			// 
+			if (!pApp->CreateAndLoadKBs())
 			{
-				pApp->m_bKBReady = TRUE;
-				pApp->LoadGuesser(pApp->m_pKB); // whm added 20Oct10
-
-				// now do it for the glossing KB
-				wxASSERT(pApp->m_pGlossingKB == NULL);
-				pApp->m_pGlossingKB = new CKB(TRUE);
-				wxASSERT(pApp->m_pGlossingKB != NULL);
-				
-				//{ // this block defines the existence of the wait dialog for loading the glossing KB
-				//CWaitDlg waitDlg(gpApp->GetMainFrame());
-				// indicate we want the reading file wait message
-				//waitDlg.m_nWaitMsgNum = 9;	// 9 "Please wait while Adapt It loads the Glossing KB..."
-				//waitDlg.Centre();
-				//waitDlg.Show(TRUE);
-				//waitDlg.Update();
-				// the wait dialog is automatically destroyed when it goes out of scope below.
-				bOK = pApp->LoadGlossingKB();
-				//} // end of CWaitDlg scope
-
-				if (bOK)
-				{
-					pApp->m_bGlossingKBReady = TRUE;
-					pApp->LoadGuesser(pApp->m_pGlossingKB); // whm added 20Oct10
-				}
-				else
-				{
-					// IDS_GLOSSINGKB_OPEN_FAILED
-					wxMessageBox(_("Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."), _T(""), wxICON_ERROR);
-					wxASSERT(FALSE);
-					wxExit();
-				}
-
-				// do the KB backing up, if the user wants it done; inform the user if it is
-				// currently turned off
-				if (pApp->m_bAutoBackupKB)
-				{
-					// whm 15Jan11 commented out this DoKBBackup() call. I don't think it should be called
-					// when a project is first opened when no changes have been made.
-					;
-					// pApp->DoKBBackup(); // use the bSuppressOKMessage = TRUE option
-				}
-				else
-				{
-					// IDS_KB_BACKUP_OFF
-					if (!pApp->m_bUseCustomWorkFolderPath)
-					{
-						wxMessageBox(
-_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
-						_T(""), wxICON_INFORMATION);
-					}
-				}
-			}
-			else
-			{
-				// the load of the normal adaptation KB didn't work and the substitute empty KB 
-				// was not created successfully, so delete the adaptation CKB & advise the user 
-				// to Recreate the KB using the menu item for that purpose. Loading of the glossing
-				// KB will not have been attempted if we get here.
-				if (pApp->m_pKB != NULL)
-					delete pApp->m_pKB;
-				pApp->m_bKBReady = FALSE;
-				pApp->m_pKB = (CKB*)NULL;
-				// IDS_KB_NEW_EMPTY_FAILED
-				wxMessageBox(
-_("Sorry, substituting a new empty knowledge base failed. Instead you should now try the Restore Knowledge Base command in the File menu. You need a valid knowledge base before doing any more work.")
-				,_T(""), wxICON_INFORMATION);
-
+				// deal with failures here
+				// whm Note: The user would probably have to close down the app
+				// to do anything at this point, since no project is open (since
+				// there are no KBs created or loaded upon failure of 
+				// CreateAndLoadKBs(). 
+				// close the start working wizard
 				pStartWorkingWizard->Show(FALSE);
 				pStartWorkingWizard->EndModal(1);
 				pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 			}
-			
 
+			// whm 28Aug11 Note: The following code if-else block waw within the
+			// KB loading code that existed before using the CreateAndLoadKBs() 
+			// function here in OnWizardPageChanging(). I am putting it here since
+			// it would execute on a successful load of the KB in the old code.
+			// 
+			// TODO: Determine if the "reminder" should always be issued whenever 
+			// the App's m_bAutoBackupKB is FALSE in all locations where 
+			// CreateAndLoadKBs() is called. If so, it could go within CreateAndLoadKBs()
+			// as long as it is appropriate to issue such a reminder in all places where 
+			// CreateAndLoadKBs() is called.
+			// The CreateAndLoadKBs() is called from here as well as from the the App's 
+			// SetupDirectories(), the View's OnCreate(), and the CollabUtilities' 
+			// HookUpToExistingAIProject().
+			// do the KB backing up, if the user wants it done; inform the user if it is
+			// currently turned off
+			if (pApp->m_bAutoBackupKB)
+			{
+				// whm 15Jan11 commented out this DoKBBackup() call. I don't think it should be called
+				// when a project is first opened when no changes have been made.
+				;
+				// pApp->DoKBBackup(); // use the bSuppressOKMessage = TRUE option
+			}
+			else
+			{
+				// IDS_KB_BACKUP_OFF
+				if (!pApp->m_bUseCustomWorkFolderPath)
+				{
+					wxMessageBox(
+_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
+					_T(""), wxICON_INFORMATION);
+				}
+			}
+			
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
 			pDocPage->InitDialog(idevent);
-
-			} // end of CWaitDlg scope
-			// close the progress dialog
 
 		}
         // whm added 12Jun11. Ensure the inputs and outputs directories are created.

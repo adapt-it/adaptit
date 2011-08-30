@@ -982,7 +982,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 		userSelectionInt = ChooseEmailReportToLoad.GetSelection();
 		bool bReadOK;
 		wxString pathAndName = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + userSelectionStr;
-		bReadOK = ReadEMAIL_REPORT_XML(pathAndName);
+		bReadOK = ReadEMAIL_REPORT_XML(pathAndName,NULL,0);
 		if (bReadOK)
 		{
 			wxASSERT(pApp->m_pEmailReportData != NULL);

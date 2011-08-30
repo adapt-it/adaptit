@@ -38,6 +38,7 @@
 #include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
+#include <wx/filename.h>
 
 //#define _ENTRY_DUP_BUG
 
@@ -1050,11 +1051,37 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		wxLogNull logno; // prevent unwanted system messages
 		// (until wxLogNull goes out of scope, ALL log messages are suppressed - be warned)
 
+		// whm 26Aug11 Open a wxProgressDialog instance here for importing LIFT operations.
+		// The dialog's pProgDlg pointer is passed along through various functions that
+		// get called in the process.
+		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+		// be changed after the dialog is created. So any routine that gets passed the
+		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// exceed the same maximum value (nTotal).
+		wxString msgDisplayed;
+		wxString progMsg;
+		wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+		// add 1 chunk to insure that we have enough after int division above
+		const int nTotal = m_pApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
+		// Only show the progress dialog when there is at lease one chunk of data
+		// Only create the progress dialog if we have data to progress
+		if (nTotal > 0)
+		{
+			progMsg = _("Reading file %s - part %d of %d");
+			wxFileName fn(pathName);
+			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+			pProgDlg = m_pApp->OpenNewProgressDialog(_("Importing LIFT Records to the Knowledge Base"),msgDisplayed,nTotal,500);
+		}
+
 		if( !f.Open( pathName, wxFile::read))
 		{
 			wxMessageBox(_("Unable to open import file for reading."),
 		  _T(""), wxICON_WARNING);
 			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
+			if (pProgDlg != NULL)
+			{
+				pProgDlg->Destroy();
+			}
 			return;
 		}
 		// For LIFT import we are using wxFile and we call xml processing functions
@@ -1067,13 +1094,19 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		bool bReadOK;
 		if (m_bGlossingKB)
 		{
-			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pGlossingKB);
+			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pGlossingKB,pProgDlg,nTotal);
 		}
 		else
 		{
-			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB);
+			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB,pProgDlg,nTotal);
 		}
 		f.Close();
+		// remove the progress dialog
+		if (pProgDlg != NULL)
+		{
+			pProgDlg->Destroy();
+			::wxSafeYield();
+		}
 	}
 	else
 	{
@@ -1104,6 +1137,21 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
 			return;
 		}
+		
+		// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
+		// The dialog's pProgDlg pointer is passed along through various functions that
+		// get called in the process.
+		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+		// be changed after the dialog is created. So any routine that gets passed the
+		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// exceed the same maximum value (nTotal).
+		wxString msgDisplayed;
+		const int nTotal = file.GetLineCount() + 1; // total count of lines is the maximum value + 1
+		wxString progMsg = _("%s  - %d of %d Total Input Lines");
+		wxFileName fn(pathName);
+		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),0,nTotal);
+		wxProgressDialog* pProgDlg;
+		pProgDlg = m_pApp->OpenNewProgressDialog(_("Importing SFM Records to the Knowledge Base"),msgDisplayed,nTotal,500);
 
 		// For SFM import we are using wxTextFile which has already loaded its entire contents
 		// into memory with the Open call in OnImportToKb() above. wxTextFile knows how to
@@ -1131,6 +1179,14 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		for (ct = 0; ct < lineCount; ct++)
 		{
 			line = file.GetLine(ct);
+			
+			// update the progress bar every 20th line read
+			if (ct % 20 == 0)
+			{
+				msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ct,nTotal);
+				pProgDlg->Update(ct,msgDisplayed);
+				::wxSafeYield();
+			}
 
 			// for debugging
 //#ifdef _ENTRY_DUP_BUG
@@ -1525,6 +1581,10 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			} // end of else block for test that line has a \lx marker
 		} // end of loop over all lines
 		file.Close();
+		if (pProgDlg != NULL)
+		{
+			pProgDlg->Destroy();
+		}
 
 		// provide the user with a statistics summary
 		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
@@ -1765,42 +1825,13 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		DoWrite(*pFile,composeXmlStr);
 	}
 
-	// whm added 14May10 Put up a progress indicator since large KBs can take a noticeable while to export
-	// as xml.
-	// To get a better progress indicator first get a count of the KB items/entries to be exported
-	int nTotal = 0;
-	int numWords_sim;
-	MapKeyStringToTgtUnit::iterator iter_sim;
-	CTargetUnit* pTU_sim = 0;
-	for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
-	{
-		// BEW 13Nov10, commented out to support Bob Eaton request for all glossing KB
-		// maps to be usable
-		//if (m_bGlossingKB && numWords_sim > 1)
-		//	continue; // when glossing we want to consider only the first map, the others
-		//			  // are all empty
-		if (m_pMap[numWords_sim-1]->size() == 0) 
-			continue;
-		else
-		{
-			iter_sim = m_pMap[numWords_sim-1]->begin();
-			do 
-			{
-				nTotal++; // add number of <entry>s, i.e., <lexical-unit>s
-				pTU_sim = (CTargetUnit*)iter_sim->second; 
-				wxASSERT(pTU_sim != NULL);
-
-				nTotal += pTU_sim->m_pTranslations->GetCount(); // add number of <sense>s
-
-
-				iter_sim++;
-
-			} while (iter_sim != m_pMap[numWords_sim-1]->end());
-		}
-	}
-	
-	wxString progMsg = _("%d of %d Total entries and senses");
-	wxString msgDisplayed = progMsg.Format(progMsg,1,nTotal);
+	// whm 26Aug11 Open a wxProgressDialog instance here for exporting kb operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// exceed the same maximum value (nTotal).
 	wxString titleStr;
 	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 	{
@@ -1810,19 +1841,24 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	{
 		titleStr = _("Exporting the KB in SFM format");
 	}
-	wxProgressDialog progDlg(titleStr,
-							msgDisplayed,
-							nTotal,    // range
-							(wxWindow*)m_pApp->GetMainFrame(),   // parent
-							//wxPD_CAN_ABORT |
-							//wxPD_CAN_SKIP |
-							wxPD_APP_MODAL |
-							wxPD_AUTO_HIDE //| -- try this as well
-							//wxPD_ELAPSED_TIME |
-							//wxPD_ESTIMATED_TIME |
-							//wxPD_REMAINING_TIME
-							//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-							);
+	wxString msgDisplayed;
+	int nTotal;
+	wxString fileNamePath;
+	if (m_bGlossingKB)
+	{
+		nTotal = m_pApp->GetMaxRangeForProgressDialog(Glossing_KB_Item_Count) + 1;
+		fileNamePath = m_pApp->m_curGlossingKBPath;
+	}
+	else
+	{
+		nTotal = m_pApp->GetMaxRangeForProgressDialog(Adapting_KB_Item_Count) + 1;
+		fileNamePath = m_pApp->m_curKBPath;
+	}
+	wxString progMsg = _("Exporting KB %s  - %d of %d Total entries and senses");
+	wxFileName fn(fileNamePath);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg;
+	pProgDlg = m_pApp->OpenNewProgressDialog(titleStr,msgDisplayed,nTotal,500);
 
 	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
 	if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
@@ -2128,8 +2164,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					// update the progress bar every 20th iteration
 					if (counter % 200 == 0)
 					{
-						msgDisplayed = progMsg.Format(progMsg,counter,nTotal);
-						progDlg.Update(counter,msgDisplayed);
+						msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
+						pProgDlg->Update(counter,msgDisplayed);
+						::wxSafeYield();
 					}
 				} // end of inner loop for looping over CRefString instances
 
@@ -2204,8 +2241,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				// update the progress bar every 200th iteration
 				if (counter % 200 == 0)
 				{
-					msgDisplayed = progMsg.Format(progMsg,counter,nTotal);
-					progDlg.Update(counter,msgDisplayed);
+					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
+					pProgDlg->Update(counter,msgDisplayed);
+					::wxSafeYield();
 				}
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map 
@@ -2223,7 +2261,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	}
 
 	// remove the progress indicator window
-	progDlg.Destroy();
+	pProgDlg->Destroy();
 }
 
 // looks up the knowledge base to find if there is an entry in the map with index
@@ -3977,6 +4015,8 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      f               -> the wxFile instance used to save the KB file
+/// \param      pProgDlg        <-> pointer to the caller's wxProgressDialog
+/// \param      nTotal          -> the max range value for the progress dialog
 /// \remarks
 /// Called from: the App's StoreGlossingKB() and StoreKB().
 /// Structures the KB data in XML form. Builds the XML file in a wxMemoryBuffer with sorted
@@ -3997,14 +4037,15 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 /// as "0" (FALSE). CTargetUnit has no changes, so the <TU> tag's attributes are unchanged
 /// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
-void CKB::DoKBSaveAsXML(wxFile& f)
+void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 {
  	// Setup some local pointers
 	CBString aStr;
 	CTargetUnit* pTU;	
 	int mapIndex;
+	int counter = 0;
 
-   // whm modified 17Jan09 to build the entire XML file in a buffer in a wxMemoryBuffer.
+    // whm modified 17Jan09 to build the entire XML file in a buffer in a wxMemoryBuffer.
     // The wxMemoryBuffer is a dynamic buffer which increases its size as needed, which
     // means we can set it up with a reasonable default size and not have to know its exact
     // size ahead of time.
@@ -4023,16 +4064,7 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	
 	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
 	int maxWords;
-	// BEW changed 13Nov10, to support Bob Eaton's request
-	///if (m_bGlossingKB)
-	//{
-	///	maxWords = 1; // GlossingKB uses only one map
-	//}
-	//else
-	//{
-		maxWords = (int)MAX_WORDS;
-	//}
-
+	maxWords = (int)MAX_WORDS;
 	
 	// Now, start building the fixed strings.
     // construct the opening tag and add the list of targetUnits with their associated key
@@ -4044,12 +4076,6 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	m_pApp->GetEncodingStringForXmlFiles(encodingStr);
 	buff.AppendData(encodingStr,encodingStr.GetLength()); // AppendData internally uses 
 											// memcpy and GetAppendBuf and UngetAppendBuf
-	
-    /*  //whm 31Aug09 removed at Bob Eaton's request
-	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
-	aiKBBeginStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
-	buff.AppendData(aiKBBeginStr,aiKBBeginStr.GetLength());
-	*/
 	
     // add the comment with the warning about not opening the XML file in MS WORD 'coz is
     // corrupts it - presumably because there is no XSLT file defined for it as well. When
@@ -4166,6 +4192,16 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 	kbElementBeginStr = aStr;
 	buff.AppendData(kbElementBeginStr,kbElementBeginStr.GetLength());
 
+	wxString msgDisplayed;
+	wxString progMsg = _("Saving KB - %d of %d Total entries and senses");
+	wxString kbPath;
+	if (this->IsThisAGlossingKB())
+		kbPath = m_pApp->m_curGlossingKBPath;
+	else
+		kbPath = m_pApp->m_curKBPath;
+	wxFileName fn(kbPath);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+
 	for (mapIndex = 0; mapIndex < maxWords; mapIndex++)
 	{
 		if (!m_pMap[mapIndex]->empty())
@@ -4198,7 +4234,7 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 			TUkeyArrayString.Sort(); // sort the array in ascending 
 									 // alphabetical order
 			wxASSERT(TUkeyArrayString.GetCount() == m_pMap[mapIndex]->size());
-            // Get the key elements from TUkeyArrayString in sequence and fetch the
+			// Get the key elements from TUkeyArrayString in sequence and fetch the
             // associated pTU from the map and do the usual MakeKBElementXML() and
             // DoWrite() calls.
 			int ct;
@@ -4208,8 +4244,23 @@ void CKB::DoKBSaveAsXML(wxFile& f)
 				if (iter != m_pMap[mapIndex]->end())
 				{
 					srcStr = iter->first;
+					counter++;
 					pTU = iter->second;
 					wxASSERT(pTU != NULL);
+					int i;
+					for (i = 0; i < (int)pTU->m_pTranslations->GetCount(); i++)
+					{
+						if (counter % 200 == 0)
+						{
+							if (pProgDlg != NULL)
+							{
+								msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
+								pProgDlg->Update(counter,msgDisplayed);
+								::wxSafeYield();
+							}
+						}
+						counter++;
+					}
 					aStr = MakeKBElementXML(srcStr,pTU,2); // 2 = two left-margin tabs
 					buff.AppendData(aStr,aStr.GetLength());
 				}
@@ -4453,8 +4504,6 @@ void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
 /// \return     nothing
 /// \param      pKB               -> pointer to the affected KB
 /// \param      nCount            <- the count of files in the folder being processed
-/// \param      nTotal            <- the total source phrase instances in the doc 
-///                                  being processed
 /// \param      nCumulativeTotal  <- the accumulation of the nTotal values over all 
 ///                                  documents processed so far
 /// \remarks
@@ -4473,13 +4522,22 @@ void CKB::RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr)
 /// the event stack -- see near the end of app's OnInit() function for where this is done
 /// with CPlaceholder, etc)
 ////////////////////////////////////////////////////////////////////////////////////////
-void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
+void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 {
 	wxArrayString* pList = &m_pApp->m_acceptedFilesList;
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	CAdapt_ItView* pView = m_pApp->GetView();
 	wxASSERT(pDoc);
 	wxASSERT(pView);
+
+	// whm 25Aug11 Note: The caller of DoKBRestore() [OnFileRestoreKb()] had its own
+	// wxProgressDialog based on the range of source phrases for saving the current
+	// document in preparation for the kb restore operation. It also continues to
+	// show during most of the remainder of the OnFileRestoreKb() operation. While
+	// it is showing, it also calls this DoKBRestore() function. This function, in
+	// turn calls other functions that thselves put up progress dialogs that overlay
+	// the original one from OnFileRestoreKb(). These include the OnOpenDocument()
+	// function, and the KB saving routines.
 
 	// variables below added by whm 27Apr09 for reporting errors in docs used for KB
 	// restore 
@@ -4528,27 +4586,20 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
 		errors.Add(docStr);
 
-		nTotal = m_pApp->m_pSourcePhrases->GetCount();
-		int granularity = nTotal / 10;
-		wxASSERT(nTotal > 0);
-		nCumulativeTotal += nTotal;
-
-		// put up a progress indicator
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
-		wxProgressDialog progDlg(_("Restoring the Knowledge Base"),
-								msgDisplayed,
-								nTotal,    // range
-								(wxWindow*)m_pApp->GetMainFrame(),   // parent
-								//wxPD_CAN_ABORT |
-								//wxPD_CAN_SKIP |
-								wxPD_APP_MODAL |
-								wxPD_AUTO_HIDE //| -- try this as well
-								//wxPD_ELAPSED_TIME |
-								//wxPD_ESTIMATED_TIME |
-								//wxPD_REMAINING_TIME
-								//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-								);
+		// whm 26Aug11 modified. If the just-opened doc has no source phrases, there
+		// is not point in processing the m_pSourcePhrases, so just continue to the
+		// next document.
+		//wxASSERT(nTotal > 0);
+		if (m_pApp->m_pSourcePhrases->GetCount() == 0)
+			continue; 
+		
+		// whm 25Aug11 Note: I removed the progress dialog Update call from this function
+		// because each document has a difference number of m_pSourcePhrases, and a
+		// sincle instance of a wxProgressDialog cannot handle more than one range of
+		// values, hence we cannot use the pointer of a single instance of wxProgressDialog
+		// to track the progress of documents of varied numbers of m_pSourcePhrases.
+		nCumulativeTotal += m_pApp->m_pSourcePhrases->GetCount();
+		
 		SPList* pPhrases = m_pApp->m_pSourcePhrases;
 		SPList::Node* pos1 = pPhrases->GetFirst();
 		int counter = 0;
@@ -4567,19 +4618,6 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 				bThisDocChanged = TRUE;
 				errors.Add(errorStr);
 				errorStr.Empty(); // for next iteration
-			}
-
-			// update the progress bar, with a granularity that should give about 9 or 10 jumps
-			if (counter % granularity == 0) 
-			{
-				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
-				progDlg.Update(counter,msgDisplayed);
-				// these all get called the 10 times expected, but in view only one gets
-				// seen and the bar appears to hang at about 1/10th way along. Try a
-				// Pulse() too to get some more movement -- nah, it makes the bar show nothing!
-				//progDlg.Pulse();  Check out the one for File / Save -- it advances
-				//nicely -- it is basically the same as here, I don't get it why the
-				//differences in the behaviours? I've no time to worry about it now (24Aug11)
 			}
 		}
 		// whm added 27Apr09 to save any changes made by RedoStorage above
@@ -4620,9 +4658,6 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 							_T(""), wxICON_INFORMATION);
 			m_pApp->LogUserAction(_T("Warning: something went wrong doing a save of the KB"));
 		}
-		
-		// remove the progress indicator window
-		progDlg.Destroy();
 	}
 	
 	if (bAnyDocChanged)
@@ -4656,6 +4691,7 @@ void CKB::DoKBRestore(int& nCount, int& nTotal, int& nCumulativeTotal)
 		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
 		m_pApp->LogUserAction(msg);
 	}
+	// whm Note: the pProgDlg->Destroy() is done back in the caller function OnFileRestoreKb() on the App
 	errors.Clear(); // clear the array
 }
 
