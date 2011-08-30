@@ -20829,6 +20829,24 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// adaptation in the KB -- so there are quite a number of
 					// inconsistencies possible here...
 
+					// first possibility -- there was no CTargetUnit returned from the
+					// lookup done in IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
+					if (pTU == NULL)
+					{
+
+
+
+
+
+
+
+
+
+					}
+
+
+
+
 // *** TODO ****
 
 
