@@ -980,7 +980,7 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
-<MENU itemID="ID_ADVANCED_ENABLEGLOSSING"
+<MENU itemID="ID_ADVANCED_SEE_GLOSSES"
 	itemType="subMenu"
 	itemText="See Glosses"
 	itemDescr="Advanced menu"

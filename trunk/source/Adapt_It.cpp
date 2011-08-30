@@ -1585,7 +1585,7 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
-	_T("MENU:itemID=\"ID_ADVANCED_ENABLEGLOSSING\":itemType=\"subMenu\":itemText=\"See Glosses\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
+	_T("MENU:itemID=\"ID_ADVANCED_SEE_GLOSSES\":itemType=\"subMenu\":itemText=\"See Glosses\":itemDescr=\"Advanced menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
@@ -2386,7 +2386,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("/MAIN_MENU:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_ADVANCED_MENU\":mainMenuLabel=\"&Advanced\":"),
-	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_ENABLEGLOSSING\":subMenuLabel=\"See Glosses\":subMenuHelp=\"Make glossing line visible on screen\":subMenuKind=\"wxITEM_CHECK\":"),
+	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_SEE_GLOSSES\":subMenuLabel=\"See Glosses\":subMenuHelp=\"Make glossing line visible on screen\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_ADVANCED_GLOSSING_USES_NAV_FONT\":subMenuLabel=\"Glossing Uses Navigation Text's Font\":subMenuHelp=\"Use the navigation text font for glossing text\":subMenuKind=\"wxITEM_CHECK\":"),
 	_T("/SUB_MENU:"),
@@ -5306,7 +5306,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	//OnUpdateRetransReport is in the View
 
 	// Advanced Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	//OnAdvancedEnableglossing is in the View
+	//OnAdvancedSeeGlosses is in the View
 	//OnUpdateAdvancedEnableglossing  is in the View
 	//OnAdvancedGlossingUsesNavFont  is in the View
 	//OnUpdateAdvancedGlossingUsesNavFont  is in the View
@@ -8158,7 +8158,7 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 	// executes (i.e., NULL), check here to see if it should be visible or hidden according to the 
 	// current value of gbIsGlossing.
 	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)pMainFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-	// pCheckboxIsGlossing will be null if it is not visible in the current profile
+	// pCheckboxIsGlossing coulc be null if it is not visible in the current profile
 	if (pCheckboxIsGlossing != NULL)
 	{
 		if (gbIsGlossing)
@@ -8168,6 +8168,20 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		else
 		{
 			pCheckboxIsGlossing->Show(FALSE);
+		}
+	}
+
+	wxButton* pNoAdaptationOrNoGloss = (wxButton*)pMainFrame->m_pControlBar->FindWindowById(IDC_BUTTON_NO_ADAPT);
+	// pNoAdaptationOrNoGloss could be null if it is not visible in the current profile
+	if (pNoAdaptationOrNoGloss != NULL)
+	{
+		if (gbIsGlossing)
+		{
+			pNoAdaptationOrNoGloss->SetLabel(_("<no gloss>"));
+		}
+		else
+		{
+			pNoAdaptationOrNoGloss->SetLabel(_("<no adaptation>"));
 		}
 	}
 
@@ -8908,8 +8922,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		pMenuBar->Check(ID_USE_SILCONVERTER, m_bUseSilConverter);
 	if (pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION) != NULL) // whm added 28Jul11
 		pMenuBar->Check(ID_TOOLS_AUTO_CAPITALIZATION, gbAutoCaps);
-	if (pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING) != NULL)
-		pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, gbEnableGlossing); //pMenuBar->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
+	if (pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES) != NULL)
+		pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, gbEnableGlossing); //pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
 	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
 		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, gbGlossingUsesNavFont); //pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 	if (pMenuBar->FindItem(ID_ADVANCED_BOOKMODE) != NULL) // whm added 28Jul11
@@ -15976,7 +15990,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_MARKER_WRAPS_STRIP, TRUE);
     m_pMainFrame->GetMenuBar()->Check(ID_USE_CC, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ACCEPT_CHANGES, FALSE);
-    m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_ENABLEGLOSSING, FALSE);
+    m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 	*/
 
@@ -16026,6 +16040,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 // ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
 
 	// Hide the Glossing check box
+	// whm 30Aug11 Note: At startup glossing is OFF and the <no adaptation> button label 
+	// is the default, so just keep <no adaptatioin> on the button here
 	wxPanel* pBar;
 	pBar = m_pMainFrame->m_pControlBar;
 	wxASSERT(pBar != NULL);

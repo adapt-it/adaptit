@@ -91,6 +91,7 @@ public:
 	wxStaticText* pSplittingWait;
 	wxStaticText* pFileName1Label;
 	wxStaticText* pFileName2Label;
+	wxSizer* pSplitDialogSizer;
 
 	void OnBnClickedButtonNextChapter(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedButtonSplitNow(wxCommandEvent& WXUNUSED(event));
