@@ -912,18 +912,14 @@ bool CKB::FindMatchInKB(int numWords, wxString keyStr, CTargetUnit *&pTargetUnit
 // BEW 13Nov10, changed by Bob Eaton's request, for glossing KB to use all maps
 bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 {
-	CTargetUnit* pTgtUnit = 0;
+	CTargetUnit* pTgtUnit = NULL;
 
 	// is there a targetunit for this key in the KB?
-	bool bFound;
-	//if (m_bGlossingKB)
-		// only check first map
-	//	bFound = FindMatchInKB(1,key,pTgtUnit); 
-	//else // is adapting
-		bFound = FindMatchInKB(nWords,key,pTgtUnit);
+	bool bFound = FindMatchInKB(nWords,key,pTgtUnit);
 	if (!bFound)
+	{
 		return FALSE;
-
+	}
 	// check if there is a matching adaptation
 	// BEW 21Jun10, FindMatchInKB() only returns a pointer to a CTargetUnit instance, and
 	// that instance may contain CRefString instances marked as deleted. So matching any
@@ -946,6 +942,59 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	}
 	return FALSE; // did not find a match
 }
+
+// BEWw added 29Aug11: overloaded version below, for use when Consistency Check
+// is being done (return pTU, pRefStr, m_bDeleted flag value by ref)
+// Return in the last 3 variables NULL, NULL, and FALSE is no CTargetUnit matched, or no
+// matching non-deleted pRefStr matched (returning these saves a second lookup when the
+// function returns FALSE)
+bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation, 
+						CTargetUnit*& pTgtUnit, CRefString*& pRefStr, bool& bDeleted)
+{
+	pTgtUnit = NULL;
+	bDeleted = FALSE;
+
+	// is there a targetunit for this key in the KB?
+	bool bFound = FindMatchInKB(nWords,key,pTgtUnit);
+	if (!bFound)
+	{
+		pRefStr = NULL;
+		bDeleted = FALSE;
+		return FALSE;
+	}
+	// check if there is a matching adaptation (or gloss if we are calling on a glossing KB)
+	// BEW 21Jun10, FindMatchInKB() only returns a pointer to a CTargetUnit instance, and
+	// that instance may contain CRefString instances marked as deleted. So matching any
+	// of these in the loop below has to be deemed a non-match, so that only matches with
+	// the m_bDeleted flag with value FALSE qualify as a match
+	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst(); 
+	while (pos != 0)
+	{
+		CRefString* pRefStr = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		wxASSERT(pRefStr);
+		if (adaptation == pRefStr->m_translation)
+		{
+			if (!pRefStr->m_bDeleted)
+			{
+				// not deleted, so this adaptation (or gloss) qualifies as a match,
+				// return the pTgtUnit and pRefStr values, and bDeleted as default FALSE
+				return TRUE;
+			}
+			else
+			{
+				// it's deleted, but return pTgtUnit & pRefStr values, and bDeleted as TRUE
+				bDeleted = TRUE;
+				return FALSE;
+			}
+		}
+	}
+	// return pTgtUnit value, but we didn't make any CRefString, so NULL for pRefStr
+	pRefStr = NULL;
+	bDeleted = FALSE; // default value
+	return FALSE; // did not find a match
+}
+
 
 // BEW 9Jun10, modified to suport kbVersion 2, and also to simplify the parsing code for
 // SFM kb import (to remove use of pSrcPhrase) - using code similar to that used for the

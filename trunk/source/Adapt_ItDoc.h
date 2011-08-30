@@ -37,10 +37,12 @@ class CFreeTrans;
 class CNotes;
 
 struct AutoFixRecord;
+struct AutoFixRecordG;
 
 /// wxList declaration and partial implementation of the AFList class being
 /// a list of pointers to AutoFixRecord objects
 WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
+WX_DECLARE_LIST(AutoFixRecordG, AFGList); // see list definition macro in .cpp file
 
 
 
@@ -61,6 +63,77 @@ enum WhichLang {
 	sourceLang,
 	targetLang
 };
+
+// NOTE: in these next two enums, "flag" refers to m_bHasKBEntry when in adapting mode, or
+// m_bHasGlossingKBEntry when in glossing mode.
+enum InconsistencyType {
+	no_inconsistency,
+	member_empty_flag_on_noPTU,
+	member_exists_flag_off_noPTU,
+	member_empty_flag_on_PTUexists_deleted_Refstr,
+	member_exists_flag_on_PTUexists_deleted_Refstr, // the "split meaning" possibility
+	member_exists_flag_off_PTUexists_has_RefStr, // auto-correct by setting flag TRUE (no Gui)
+	member_exists_flag_off_PTUexists_deleted_RefStr,
+	not_in_kb_but_flag_on // auto-correct by setting flag FALSE, and make m_bNotInKB TRUE
+						  // and ensure pTU have valid <Not In KB> entry
+};
+enum FixItAction {
+	no_fix_needed,
+
+	// next four are responses for member_empty_flag_on_noPTU, and 3rd response also is a
+	// possiblity for the member_exists_flag_off_noPTU case; the 1st response is also a
+	// possiblity for member_empty_flag_on_PTUexists_deleted_Refstr
+	turn_flag_off, // make m_bHasKBEntry or m_bHasGlossingKBEntry FALSE
+	make_it_an_empty_entry, // make CTargetUnit & add emptyStr
+	make_it_Not_In_KB, // adjust flags, make CTargetUnit & add <Not In KB>
+	typed_meaning, // make CTargetUnit & add text for m_adaption or m_gloss
+
+	// next are responses (only two are possible) for member_exists_flag_off_noPTU (note, 
+	// includes also the 3rd response for the member_empty_flag_on_noPTU - but only when 
+	// m_bNotInKB was FALSE)
+	turn_flag_on, // make m_bHasKBEntry or m_bHasGlossingKBEnty TRUE, make CTargetUnit, add entry
+
+    // next are the responses for member_empty_flag_on_PTUexists_deleted_Refstr (three
+    // only), one is turn_flag_off, another is make_it_an_empty_entry, and another is
+	restore_meaning_to_doc,
+
+	// next are the responses for member_exists_flag_on_PTUexists_deleted_Refstr **NOTE**
+	// this is the situation when the user deliberately removes from the KB a meaning, and
+	// then does a consistency check, in order find all places where the removed meaning
+	// occurred in order to be able to give contextually different meanings. Responses are:
+	// make_it_Not_In_KB, make_it_an_empty_entry, typed_meaning, or)
+	undelete_Refstr, // an "accept the old meaning in this location" response in the GUI
+
+	// next are the responses for member_exists_flag_off_PTUexists_deleted_RefStr; there
+	// are three, make_it_Not_In_KB (keep member), make_it_an_empty_entry, turn_flag_on 
+	// (which also has to undelete_Refstr) -- no new fix-it actions needed
+};
+
+// struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;
+// for glossing we can use the same structure with the understanding that the oldAdaptation
+// and finalAdaptation will in reality contain the old gloss and the final gloss, respectively
+// BEW 29Aug11, added two enums and split into two stucts, the second being a "G" variant
+// for when dealing with glossing KB (in glossing mode) -- also two processing functions
+struct	AutoFixRecord
+{
+	wxString	key;
+	wxString	oldAdaptation;
+	wxString	finalAdaptation;
+	int			nWords;
+	enum InconsistencyType incType;
+	enum FixItAction fixAction;
+};
+struct	AutoFixRecordG
+{
+	wxString	key;
+	wxString	oldGloss;
+	wxString	finalGloss;
+	int			nWords;
+	enum InconsistencyType incType;
+	enum FixItAction fixAction;
+};
+
+
 
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
@@ -385,13 +458,19 @@ public:
 	bool	IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
-	void	DoConsistencyCheck(CAdapt_ItApp* pApp);	// the legacy function 
-	void	DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy);	// BEW added 9July10
-											// for support of looping over all book folders
+	void	DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFList& afList,
+					int& nCumulativeTotal);
+	// the "G" variant below, is for use when glossing mode is on, pKB and pKBCopy will be
+	// glossing KBs, and internally, the data accessed will be m_gloss, not m_adaption
+	void	DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFGList& afList,
+					int& nCumulativeTotal);
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
 	wxChar	GetFirstChar(wxString& strText);
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
+	void	RemoveAutoFixList(AFList& afList); // for adaptating data
+	void	RemoveAutoFixGList(AFGList& afgList); // for glossing data
+
   public:
 										  // (" or ') is encountered preceding the word when
 										  // parsing using TokenizeText()
