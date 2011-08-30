@@ -1039,7 +1039,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				}
 
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
-				m_pApp->maxProgDialogValue = MAXINT; // temporary hack while calling OpenDocWithMerger() above
+				m_pApp->maxProgDialogValue = 2147483647; //MAXINT; // temporary hack while calling OpenDocWithMerger() above
 				
 				// warn user about the copy flag having been changed, if such a warning is necessary					   
 				if (m_pApp->m_bSaveCopySourceFlag_For_Collaboration && !m_pApp->m_bCopySource
