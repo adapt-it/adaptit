@@ -12472,7 +12472,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// after the KB save to disk and the message comes up asking if he wants a full
 			// consistency check done, and he responds by clicking Yes button
 	m_bAdminMoveOrCopyIsInitializing = FALSE; // default
-	maxProgDialogValue = MAXINT;
+	maxProgDialogValue = 2147483647; //MAXINT;
 	m_bControlIsWithinOnInit = TRUE;
 	m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
 						   // export, which takes three obligatory string parameters following
