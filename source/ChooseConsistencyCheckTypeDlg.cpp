@@ -100,12 +100,13 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
 	wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_CHECK_OPEN_DOC_ONLY);
 	wxASSERT(pRadio != NULL);
 
+	/*
 	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE);
 	wxASSERT(pTextCtrlAsStaticChooseConsChkType != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
 	//pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(backgrndColor);
 	pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(gpApp->sysColorBtnFace);
-
+	*/
 	m_bCheckOpenDocOnly = TRUE;
 	pRadio->SetValue(TRUE);
 }
