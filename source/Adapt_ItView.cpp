@@ -934,8 +934,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 
 	// Advanced Menu
 	// Event for Enable/Disable Glossing menu item
-	EVT_MENU(ID_ADVANCED_ENABLEGLOSSING, CAdapt_ItView::OnAdvancedEnableglossing)
-	EVT_UPDATE_UI(ID_ADVANCED_ENABLEGLOSSING, CAdapt_ItView::OnUpdateAdvancedEnableglossing)
+	EVT_MENU(ID_ADVANCED_SEE_GLOSSES, CAdapt_ItView::OnAdvancedSeeGlosses)
+	EVT_UPDATE_UI(ID_ADVANCED_SEE_GLOSSES, CAdapt_ItView::OnUpdateAdvancedEnableglossing)
 	// Event for Glossing Uses Nav Font menu item
 	EVT_MENU(ID_ADVANCED_GLOSSING_USES_NAV_FONT, CAdapt_ItView::OnAdvancedGlossingUsesNavFont)
 	EVT_UPDATE_UI(ID_ADVANCED_GLOSSING_USES_NAV_FONT, CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont)
@@ -5616,7 +5616,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	{
 		// glossing is on, so we must ensure the menu toggle is turned off and the
 		// glossing checkbox removed, so this can all be done with the following call
-		OnAdvancedEnableglossing(event);
+		OnAdvancedSeeGlosses(event);
 	}
 
 	if (pApp->m_bFreeTranslationMode)
@@ -26787,6 +26787,9 @@ void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 /// TODO: Check if it makes sense for the caller of ToggleSeeGlossesMode() to actually call
 /// this function when the current user workflow profile removes the Advanced menu's 
 /// "See Glosses" item, or the mode bar's "[] Glossing" checkbox
+/// whm 30Aug11 Note: No need to switch between <no adaptation> and <no gloss> in 
+/// ToggelSeeGlossesMode() because it doesn't actually switch the app into "Is Glossing"
+/// mode
 void CAdapt_ItView::ToggleSeeGlossesMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -26813,7 +26816,7 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
         // it would be a nuisance to have to manually restore this flag to its former
         // setting each time the user enables glossing again in the one session. (Leaving
         // the flag ON is benign when adapting.)
-		wxMenuItem * pAdvancedSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING);
+		wxMenuItem * pAdvancedSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES);
 		if (gbEnableGlossing)
 		{
 			// toggle the checkmark to OFF
@@ -26862,7 +26865,8 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 }
 
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
-void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& event)
+/// whm modified 30Aug111 to remove the label and jump
+void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -26874,7 +26878,7 @@ void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& event)
 	// whm Note: Only log user action when explicitly interacting with
 	// the menu item, not when OnAdvancedEnablglossing() is called by
 	// other functions.
-	if (event.GetId() == ID_ADVANCED_ENABLEGLOSSING)
+	if (event.GetId() == ID_ADVANCED_SEE_GLOSSES)
 	{
 		if (gbEnableGlossing)
 			pApp->LogUserAction(_T("See Glosses OFF"));
@@ -26895,48 +26899,49 @@ void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& event)
     // the layout is recalculated
 	pApp->m_bSaveToKB = TRUE;
 
-	if (pApp->m_pActivePile == NULL)
-		goto a; // the phrase box does not exist (we must be at the document's end)
-	pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-	if (gbIsGlossing) // flag has not been toggled yet
+	if (pApp->m_pActivePile != NULL)
 	{
-        // we are changing from glossing to adapting, so we must store to the glossing
-        // KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
-        // m_adaption contents and remove its refString from the adapting KB
-		if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
+		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		if (gbIsGlossing) // flag has not been toggled yet
 		{
-			// we can assume no errors for StoreTest call
-			bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-		}
-
-		// if the active location is within a retranslation, we can't leave the box there
-		// when we are in adapting mode, so if that is the case then find a safe location
-		if (pSrcPhrase->m_bRetranslation)
-		{
-			pSaveSrcPhrase = pSrcPhrase;
-			pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a location
-														   // after retranslation section
-			if (pSrcPhrase == NULL)
+			// we are changing from glossing to adapting, so we must store to the glossing
+			// KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
+			// m_adaption contents and remove its refString from the adapting KB
+			if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
 			{
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
+				// we can assume no errors for StoreTest call
+				bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 			}
-			// we assume (we won't test) one of the above Get... calls will succeed
-			nSequNum = pSrcPhrase->m_nSequNumber;
-			pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
-			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-		}
 
-		// now the adaptation stuff
-		pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
-		pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, useTargetPhraseForLookup);
+			// if the active location is within a retranslation, we can't leave the box there
+			// when we are in adapting mode, so if that is the case then find a safe location
+			if (pSrcPhrase->m_bRetranslation)
+			{
+				pSaveSrcPhrase = pSrcPhrase;
+				pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a location
+															   // after retranslation section
+				if (pSrcPhrase == NULL)
+				{
+					pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
+				}
+				// we assume (we won't test) one of the above Get... calls will succeed
+				nSequNum = pSrcPhrase->m_nSequNumber;
+				pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
+				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+			}
+
+			// now the adaptation stuff
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, useTargetPhraseForLookup);
+		}
 	}
 
 	// get the Enable Glossing menu pointer
-a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_ENABLEGLOSSING);
+	wxMenuItem * pAdvancedMenuSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES);
 
 	// get the checkbox pointer
 	wxPanel* pControlBar;
@@ -26945,7 +26950,11 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxCheckBox* pCheckboxIsGlossing = 
 				(wxCheckBox*)pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
 
-    // toggle the setting: note; whether going to or from glossing we will not change the
+ 	// whm 30Aug11 Note: We do not switch between "<no adaptation>" and "<no gloss>" here
+ 	// because the OnAdvancedSeeGlosses() does not actually switch the app into glossing
+ 	// mode. That is done in OnCheckIsGlossing() and ToggleGlossingMode().
+    
+	// toggle the setting: note; whether going to or from glossing we will not change the
     // current values of gbGlossingUsesNavFont because the user might go back and forwards
     // from having glossing allowed or actually on (in the one session,) and it would be a
     // nuisance to have to manually restore this flag to its former setting each time the
@@ -26954,9 +26963,9 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	if (gbEnableGlossing)
 	{
 		// toggle the checkmark to OFF
-		if (pAdvancedMenu != NULL)
+		if (pAdvancedMenuSeeGlosses != NULL)
 		{
-			pAdvancedMenu->Check(FALSE);
+			pAdvancedMenuSeeGlosses->Check(FALSE);
 		}
 		gbEnableGlossing = FALSE;
 		gbIsGlossing = FALSE; // must be off whenever the other flag is off
@@ -26972,9 +26981,9 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	else
 	{
 		// toggle the checkmark to ON
-		if (pAdvancedMenu != NULL)
+		if (pAdvancedMenuSeeGlosses != NULL)
 		{
-			pAdvancedMenu->Check(TRUE);
+			pAdvancedMenuSeeGlosses->Check(TRUE);
 		}
 		gbEnableGlossing = TRUE;
 
@@ -27019,6 +27028,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// whm 30Aug11 modified to switch between "<no adaptation>" and "<no gloss>"
 void CAdapt_ItView::ToggleGlossingMode() 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -27052,11 +27062,17 @@ void CAdapt_ItView::ToggleGlossingMode()
 		wxASSERT(pFrame->m_pControlBar != NULL);
 		wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)
 						pFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
+ 		wxButton* pNoAdaptationOrNoGloss = (wxButton*)pFrame->m_pControlBar->FindWindowById(IDC_BUTTON_NO_ADAPT);
+
 		if (gbIsGlossing)
 		{
 			if (pCheckboxIsGlossing != NULL)
 			{
 				pCheckboxIsGlossing->SetValue(FALSE);
+			}
+			if (pNoAdaptationOrNoGloss != NULL)
+			{
+				pNoAdaptationOrNoGloss->SetLabel(_("<no adaptation>"));
 			}
 			gbIsGlossing = FALSE;
 		}
@@ -27065,6 +27081,10 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (pCheckboxIsGlossing != NULL)
 			{
 				pCheckboxIsGlossing->SetValue(TRUE);
+			}
+			if (pNoAdaptationOrNoGloss != NULL)
+			{
+				pNoAdaptationOrNoGloss->SetLabel(_("<no gloss>"));
 			}
 			gbIsGlossing = TRUE;
 		}
@@ -27095,121 +27115,121 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
     // RedrawEverything is called
 	pApp->m_bSaveToKB = TRUE;
 
-	if (pApp->m_pActivePile == NULL)
+	// whm modified 30Aug11 to remove the a label jump
+	if (pApp->m_pActivePile != NULL)
 	{
-        // the phrase box is not in existence - because we must be at the end of the
-        // document do nothing to be done with the phrasebox here, so just switch the
-        // environment
-		gbIsGlossing = gbIsGlossing == TRUE ? FALSE : TRUE;
-		goto a;
-	}
-	pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 
-	if (gbIsGlossing) // flag has not been toggled yet
-	{
-        // we are changing from glossing to adapting, so we must store to the glossing KB
-        // and then ready the pApp->m_targetPhrase member with the sourcephrase's
-        // m_adaption contents and remove its refString from the adapting KB; and if the
-        // box is within a retranslation then we need to find a safe location for it as
-        // close as possible
-		if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
+		if (gbIsGlossing) // flag has not been toggled yet
 		{
-			// BEW 13Nov10, gbRemovePunctuationFromGlosses is nowhere set TRUE, so remove
-			//if (gbRemovePunctuationFromGlosses)
-			//	RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
-			bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-		}
-
-		// now the adaptation stuff
-		gbIsGlossing = FALSE; // so RemoveRefString will get the adaptation KB
-								// but it also gives us the toggle we need too
-
-		// if the active location is within a retranslation, we can't leave the box there
-		// when we are in adapting mode, so if that is the case then find a safe location
-		if (pSrcPhrase->m_bRetranslation)
-		{
-			pSaveSrcPhrase = pSrcPhrase;
-			pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a 
-														   // location after retrans
-			if (pSrcPhrase == NULL)
+			// we are changing from glossing to adapting, so we must store to the glossing KB
+			// and then ready the pApp->m_targetPhrase member with the sourcephrase's
+			// m_adaption contents and remove its refString from the adapting KB; and if the
+			// box is within a retranslation then we need to find a safe location for it as
+			// close as possible
+			if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
 			{
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
+				// BEW 13Nov10, gbRemovePunctuationFromGlosses is nowhere set TRUE, so remove
+				//if (gbRemovePunctuationFromGlosses)
+				//	RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
+				bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 			}
-			// we assume (we won't test) one of the above Get... calls will succeed
-			nSequNum = pSrcPhrase->m_nSequNumber;
-			pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
-			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-		}
 
-		pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
-		if (pSrcPhrase->m_bNotInKB)
-		{
-			pApp->m_bSaveToKB = FALSE;
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-			pApp->m_bForceAsk = FALSE;
-		}
-		else // it's a normal type of entry, so can be in the KB
-		{
-			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
-									pApp->m_targetPhrase, useTargetPhraseForLookup);
-		}
+			// now the adaptation stuff
+			gbIsGlossing = FALSE; // so RemoveRefString will get the adaptation KB
+									// but it also gives us the toggle we need too
 
-		// get any removed adaptations in gEditRecord into the GUI list; but if the
-		// mode current on is free translations mode, don't do so
-		bool bAllsWell;
-		if (!pApp->m_bFreeTranslationMode)
-			bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-	}
-	else
-	{
-        // we are changing from adapting to glossing, so we must store to the adaptation
-        // KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
-        // m_gloss contents and remove its refString from the glossing KB; but if it is
-        // a "not in kb" entry, then don't store, but just set up pApp->m_targetPhrase
-		if (pSrcPhrase->m_bNotInKB)
-		{
-			str = pApp->m_targetPhrase;
-			RemovePunctuation(GetDocument(),&str,from_target_text);
-			pSrcPhrase->m_adaption = str;
-			MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
-			pApp->m_bSaveToKB = FALSE;
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-			pApp->m_bForceAsk = FALSE;
+			// if the active location is within a retranslation, we can't leave the box there
+			// when we are in adapting mode, so if that is the case then find a safe location
+			if (pSrcPhrase->m_bRetranslation)
+			{
+				pSaveSrcPhrase = pSrcPhrase;
+				pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a 
+															   // location after retrans
+				if (pSrcPhrase == NULL)
+				{
+					pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
+				}
+				// we assume (we won't test) one of the above Get... calls will succeed
+				nSequNum = pSrcPhrase->m_nSequNumber;
+				pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
+				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+			}
+
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
+			if (pSrcPhrase->m_bNotInKB)
+			{
+				pApp->m_bSaveToKB = FALSE;
+				pSrcPhrase->m_bHasKBEntry = FALSE;
+				pApp->m_bForceAsk = FALSE;
+			}
+			else // it's a normal type of entry, so can be in the KB
+			{
+				pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+										pApp->m_targetPhrase, useTargetPhraseForLookup);
+			}
+
+			// get any removed adaptations in gEditRecord into the GUI list; but if the
+			// mode current on is free translations mode, don't do so
+			bool bAllsWell;
+			if (!pApp->m_bFreeTranslationMode)
+				bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
 		}
 		else
 		{
-			if (!( pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
+			// we are changing from adapting to glossing, so we must store to the adaptation
+			// KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
+			// m_gloss contents and remove its refString from the glossing KB; but if it is
+			// a "not in kb" entry, then don't store, but just set up pApp->m_targetPhrase
+			if (pSrcPhrase->m_bNotInKB)
 			{
 				str = pApp->m_targetPhrase;
 				RemovePunctuation(GetDocument(),&str,from_target_text);
 				pSrcPhrase->m_adaption = str;
 				MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
-				bOK = pApp->m_pKB->StoreText(pSrcPhrase,str);
+				pApp->m_bSaveToKB = FALSE;
+				pSrcPhrase->m_bHasKBEntry = FALSE;
+				pApp->m_bForceAsk = FALSE;
 			}
-		}
-		// now the glossing stuff
-		pApp->m_targetPhrase = pSrcPhrase->m_gloss; // get the gloss text
-		gbIsGlossing = TRUE; // so GetRefString( ) will get the glossing KB
-							 // but it also gives us the needed toggle too
-		pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, 
-													useTargetPhraseForLookup);
+			else
+			{
+				if (!( pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
+				{
+					str = pApp->m_targetPhrase;
+					RemovePunctuation(GetDocument(),&str,from_target_text);
+					pSrcPhrase->m_adaption = str;
+					MakeTargetStringIncludingPunctuation(pSrcPhrase,pApp->m_targetPhrase);
+					bOK = pApp->m_pKB->StoreText(pSrcPhrase,str);
+				}
+			}
+			// now the glossing stuff
+			pApp->m_targetPhrase = pSrcPhrase->m_gloss; // get the gloss text
+			gbIsGlossing = TRUE; // so GetRefString( ) will get the glossing KB
+								 // but it also gives us the needed toggle too
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, 
+														useTargetPhraseForLookup);
 
-		// get any removed glosses in gEditRecord into the GUI list; but if the
-		// mode current on is free translations mode, don't do so
-		bool bAllsWell;
-		if (!pApp->m_bFreeTranslationMode)
-			bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
+			// get any removed glosses in gEditRecord into the GUI list; but if the
+			// mode current on is free translations mode, don't do so
+			bool bAllsWell;
+			if (!pApp->m_bFreeTranslationMode)
+				bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
+		}
 	}
 
 	// set the tick or clear the tick on the menu command
-a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	// whm 30Aug11 modified to switch the controlbar button betweeen <no adaptation> and <no gloss>
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
 	wxPanel* pControlBar;
 	pControlBar = pFrame->m_pControlBar;
 	wxASSERT(pControlBar != NULL);
 	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)
 						pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-	wxASSERT(pCheckboxIsGlossing != NULL);
+	//wxASSERT(pCheckboxIsGlossing != NULL);
+
+	wxButton* pNoAdaptationOrNoGloss = (wxButton*)pControlBar->FindWindowById(IDC_BUTTON_NO_ADAPT);
+	//wxASSERT(pNoAdaptationOrNoGloss != NULL);
 
 	if (gbIsGlossing)
 	{
@@ -27217,12 +27237,20 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		{
 			pCheckboxIsGlossing->SetValue(TRUE);
 		}
+		if (pNoAdaptationOrNoGloss != NULL)
+		{
+			pNoAdaptationOrNoGloss->SetLabel(_("<no gloss>"));
+		}
 	}
 	else
 	{
 		if (pCheckboxIsGlossing != NULL)
 		{
 			pCheckboxIsGlossing->SetValue(FALSE);
+		}
+		if (pNoAdaptationOrNoGloss != NULL)
+		{
+			pNoAdaptationOrNoGloss->SetLabel(_("<no adaptation>"));
 		}
 	}
 

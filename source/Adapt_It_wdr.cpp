@@ -2622,12 +2622,12 @@ wxSizer *SplitDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs5 = (wxString*) NULL;
-    wxListBox *item5 = new wxListBox( parent, IDC_LIST_FOLDER_DOCS, wxDefaultPosition, wxDefaultSize, 0, strs5, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item5 = new wxListBox( parent, IDC_LIST_FOLDER_DOCS, wxDefaultPosition, wxSize(250,-1), 0, strs5, wxLB_SINGLE|wxLB_SORT );
     item5->SetToolTip( _("Check this list to avoid filename conflicts with existing files") );
-    item3->Add( item5, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Use this list to check for potential filename clashes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -2650,7 +2650,7 @@ wxSizer *SplitDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item12 = new wxStaticText( parent, IDC_STATIC_SPLITTING_WAIT, _("Splitting...  Please wait."), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item7->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxButton *item13 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->SetDefault();
@@ -2673,48 +2673,60 @@ wxSizer *SplitDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item14->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item19 = new wxStaticBox( parent, -1, _("Split At:") );
+    wxStaticBoxSizer *item18 = new wxStaticBoxSizer( item19, wxVERTICAL );
 
-    wxStaticBox *item20 = new wxStaticBox( parent, -1, _("Split At:") );
-    wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxVERTICAL );
+    wxRadioButton *item20 = new wxRadioButton( parent, IDC_RADIO_PHRASEBOX_LOCATION, _("The phrase box location"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Click this button to split the document at the current phrase box location") );
+    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item21 = new wxRadioButton( parent, IDC_RADIO_PHRASEBOX_LOCATION, _("The phrase box location"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Click this button to split the document at the current phrase box location") );
-    item19->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item21 = new wxRadioButton( parent, IDC_RADIO_CHAPTER_SFMARKER, _("A standard format chapter marker (\\c)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Click this button to split the document at a chapter break") );
+    item18->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_CHAPTER_SFMARKER, _("A standard format chapter marker (\\c)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Click this button to split the document at a chapter break") );
-    item19->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_DIVIDE_INTO_CHAPTERS, _("Split into single chapter documents"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Click this button to split the document into separate files for each chapter") );
+    item18->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item23 = new wxRadioButton( parent, IDC_RADIO_DIVIDE_INTO_CHAPTERS, _("Split into single chapter documents"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Click this button to split the document into separate files for each chapter") );
-    item19->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item18->Add( item19, 0, wxGROW|wxALL, 0 );
-
-    item14->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item25 = new wxStaticText( parent, IDC_STATIC_SPLIT_NAME, _("(Obligatory) Type a suitable name for the split off document part:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, IDC_EDIT1, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item26->SetToolTip( _("Type the name for the part(s) that will be split off") );
-    item24->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item26 = new wxStaticText( parent, IDC_STATIC_SPLIT_NAME, _("(Obligatory) Type a suitable name for the split off document part:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item24->Add( 20, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item27 = new wxStaticText( parent, IDC_STATIC_REMAIN_NAME, _("(Optional) Type a new name for the document part which remains open:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item27 = new wxTextCtrl( parent, IDC_EDIT1, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
+    item27->SetToolTip( _("Type the name for the part(s) that will be split off") );
+    item24->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item28 = new wxTextCtrl( parent, IDC_EDIT2, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item28->SetToolTip( _("If you want the current document to be renamed, type the new name here (optional)") );
-    item24->Add( item28, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item14->Add( item24, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item23->Add( 20, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item14, 1, wxGROW|wxALL, 0 );
+    wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item30 = new wxStaticText( parent, IDC_STATIC_REMAIN_NAME, _("(Optional) Type a new name for the document part which remains open:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item28->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT2, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
+    item31->SetToolTip( _("If you want the current document to be renamed, type the new name here (optional)") );
+    item28->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item23->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item14->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    item1->Add( item14, 0, wxGROW|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4486,15 +4498,19 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_JOIN4, _("(Optional) Type a filename for the joined document. (If none is typed, the open document's name is used):"), wxDefaultPosition, wxSize(280,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL |wxTE_RIGHT );
-    item24->Add( item25, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_JOIN4, _("(Optional) Type a filename for the joined document. (If none is typed, the open document's name is used):"), wxDefaultPosition, wxSize(280,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL |wxTE_RIGHT );
+    item25->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item27 = new wxTextCtrl( parent, IDC_EDIT_NEW_FILENAME, wxT(""), wxDefaultPosition, wxSize(320,40), 0 );
-    item26->Add( item27, 1, wxALIGN_CENTER|wxALL, 5 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item24->Add( item26, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item28 = new wxTextCtrl( parent, IDC_EDIT_NEW_FILENAME, wxT(""), wxDefaultPosition, wxSize(320,40), 0 );
+    item27->Add( item28, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( item27, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     item1->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -8479,7 +8495,7 @@ wxMenuBar *AIMenuBarFunc()
     item0->Append( item5, _("E&xport-Import") );
     
     wxMenu* item6 = new wxMenu;
-    item6->Append( ID_ADVANCED_ENABLEGLOSSING, _("See Glosses"), _("Make glossing line visible on screen"), wxITEM_CHECK );
+    item6->Append( ID_ADVANCED_SEE_GLOSSES, _("See Glosses"), _("Make glossing line visible on screen"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_GLOSSING_USES_NAV_FONT, _("Glossing Uses Navigation Text's Font"), _("Use the navigation text font for glossing text"), wxITEM_CHECK );
     item6->AppendSeparator();
     item6->Append( ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, _("Transform Adaptations Into Glosses..."), _("Transform adaptations from another project into the current project's glosses") );

@@ -482,7 +482,7 @@ public:
 	void OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED(event));
 	void OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event));
 	void OnUseSilConverter(wxCommandEvent& WXUNUSED(event));
-	void OnAdvancedEnableglossing(wxCommandEvent& event);
+	void OnAdvancedSeeGlosses(wxCommandEvent& event);
 	void OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event);
 	void OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event);

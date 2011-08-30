@@ -188,7 +188,7 @@
     ID_EDIT_SOURCE_TEXT     "Edit the selected source text"
     ID_FILE_EXPORT_SOURCE   "Export the source language text as a *.txt file type"
     ID_ADVANCED_REMOVE_PUNCT_WHEN_STORING_GLOSSES "Do not store punctuation in the glossing knowledge base"
-    ID_ADVANCED_ENABLEGLOSSING "Make the glossing line visible on the screen"
+    ID_ADVANCED_SEE_GLOSSES "Make the glossing line visible on the screen"
     ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES "Transform adaptations from another project into the current project's glosses"
     ID_ADVANCED_GLOSSING_USES_NAV_FONT "Use the navigation text's font for glossing text"
     ID_FILE_EXPORT_TO_RTF   "Export the Source and Target languages in interlinear form as an *.rtf file type."
