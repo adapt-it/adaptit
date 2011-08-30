@@ -132,7 +132,10 @@ public:
 	enum KB_Entry	GetRefString(CTargetUnit* pTU, wxString valueStr, CRefString*& pRefStr);
 
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
-	bool			IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
+	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation);
+	// overloaded version below, for use when Consistency Check is being done
+	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation, 
+						CTargetUnit*& pTU, CRefString*& pRefStr, bool& bDeleted);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);

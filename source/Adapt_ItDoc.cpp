@@ -100,24 +100,13 @@
 void init_utf8_char_table();
 const char* tellenc(const char* const buffer, const size_t len);
 
-// struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;
-// for glossing we can use the same structure with the understanding that the oldAdaptation
-// and finalAdaptation will in reality contain the old gloss and the final gloss,
-// respectively; and nWords for glossing will always be 1.
-struct	AutoFixRecord
-{
-	wxString	key;
-	wxString	oldAdaptation;
-	wxString finalAdaptation;
-	int		nWords;
-};
-
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called AFList.
 WX_DEFINE_LIST(AFList);
+WX_DEFINE_LIST(AFGList);
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
@@ -20065,18 +20054,64 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
 // BEW 12Apr10, no changes for support of doc version 5
 // BEW 7July10, no changes for support of kbVersion 2 (but there may be changes needed in
 // the DoConsistencyCheck() function which is called from several places here)
+// BEW modified 26Aug11, simplify the logic of the initial choice, make closing current
+// doc unnecessary (we close and auto-reopen when done), but cover 3 of the 4 legacy choices
+// (ie. a: current doc only, b: all docs in Adaptations folders, c: all docs in all Bible
+// books folders. Not covered? All docs in current book folder. This will be a subset of
+// the resport from c: instead) Also removed legacy DoConsistencyCheck(), and added an int
+// nCumulativeTotal 4th param to the signature of its overloaded version, which now is the
+// only version; and restored a stats dialog for when all is done
 void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
+	bUserCancelled = FALSE; // this is a global boolean
 
     // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
-    // now added here & below. For Book Mode, not all Bible book folders will be scanned,
-    // instead, the check is done on the current doc, or on all the docs in the single
-    // current book folder. To check other book folders, the user must first change to one,
-    // and then the same two options will be available there.
+    // now added here & below. 
+	// BEW comment 25Aug11. The legacy function prior to this data worked as follows: it
+	// gave different options depending on the contrast "a doc is currently open"
+	// (Situation 1) versus "no document is currently open" (Situation 2).
+	// In all cases, app member wxArrayString m_acceptedFilesList communicated to the
+	// child function: DoConsistencyCheck() the names of the file or files to be checked,
+	// after having the working directory set appropriately. So we had the following
+	// protocols:
+	// Situation 1: The user was asked if he wanted a consistency check of (a) current
+	// document only, or (b) all documents in the current folder (which could be
+	// Adaptations folder, or if book mode is ON, one of the Bible book folders). He was
+	// asked using a dialog, with 2 radio buttons. So the "doc is currently open" scenario
+	// was not able to handle all doc files in all book folders; but it *could* handle all
+	// doc files in the Adaptations folder (but only when book folder mode was not on).
+	// Situation 2: The assumption was, if no doc was open, that as many doc files as
+	// possible would be consistency checked. However, the book mode On / Off distinction
+	// introduced a modality as follows:
+	// (c) If book mode was ON, then the user was asked, via a Yes/No wxMessageBox() call,
+	// whether or not to check all Bible book folders. If Yes was the answer, all folders
+	// get entered and all files in each are checked; if the answer was No, then the check
+	// was confined to all files in the current Bible book folder.
+	// (d) If book mode was OFF, the user was asked nothing, and all doc files in the
+	// Adaptation folder only were checked, and any book folders, if present, were ignored.
+    // 
+    // Now, at 25Aug11, the above protocols can be changed, as follows.
+	// (1) There will be no difference between what is available when "a doc is currently
+	// open" versus "no doc is currently open"; and collaboration mode will support all
+	// options. (Like OnFileRestoreKb(), we can use a boolean to keep track of when we've
+	// had to save and close a current document in order to be able to proceed with the
+	// check, and use the boolean to tell us when we have to restore the document to its
+	// earlier state after all is done.
+	// (2) The only choice the user has to make is whether to do the check on "the
+	// currently open document" versus "all documents". (see 3 below)
+	// (3) Our code will check if Bible book mode is ON or OFF, and proceed as follows:
+	// (i) Book mode ON: checks either the currently open document in whatever book folder
+	// is currently active; or (for an 'all documents choice at 2') checks all documents
+	// in all book folders (and ignores any documents stored in the parent Adaptations
+	// folder). Or
+	// (ii) Book mode OFF; checks either the currently open document in the Adaptations
+	// folder, or (for an 'all documents choice at 2'), checks all documents in the
+	// Adaptations folder (and ignores any documents stored in Bible book folders).
+     
 	wxString dirPath;
 	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
 		dirPath = pApp->m_bibleBooksFolderPath;
@@ -20087,30 +20122,66 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = dirPath;
 
-	// Determine if a document is currently open with data to check
-	if (!pApp->m_pSourcePhrases->GetCount() == 0)
+	// get the KB entry for the current active location updated so as to avoid a spurious
+	// inconsistency
+	bool bNoStore = FALSE;
+	bool bAttemptStoreToKB = TRUE;
+	bool bSuppressWarningOnStoreKBFailure = TRUE;
+	bOK = TRUE;
+
+    // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+    // returns TRUE to the caller if the attempted store fails for some reason, for all
+    // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
+    // is TRUE as we don't expect a failure and will ignore it if it does anyway;
+	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
+
+	// we create the copy of the KB or glossingKB, as the case may be, only
+	// once so that we don't have to do it every time we process the contents
+	// of the next Bible book folder
+	CKB* pKB;
+	if (gbIsGlossing)
+		pKB = pApp->m_pGlossingKB;
+	else
+		pKB = pApp->m_pKB;
+	wxASSERT(pKB != NULL);
+	CKB* pKBCopy = NULL;
+
+	int nCumulativeTotal = 0; // count source phrases processed
+	int nFileCount = 0;
+
+	// create a list to hold pointers to auto-fix records, if user checks the auto fix checkbox
+	// in the dlg; one for adaptation mode, one for glossing mode
+	AFList afList;
+	AFGList afgList;
+
+	wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename			
+	wxString savedCurOutputFilename = pApp->m_curOutputFilename;
+	int		 savedCurSequNum = pApp->m_nActiveSequNum;	// for resetting the box location
+	bool	 savedBookmodeFlag = pApp->m_bBookMode;	// for ensuring correct mode
+	bool	 savedDisableBookmodeFlag = pApp->m_bDisableBookMode;		// ditto
+	int		 savedBookIndex = pApp->m_nBookIndex;
+	BookNamePair*	pSavedCurBookNamePair = pApp->m_pCurrBookNamePair;
+	bool bDocIsClosed = FALSE;
+	bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0;
+	bool bDocForcedToClose = FALSE;
+
+	// next two from legacy code..., retained because I'm lazy
+	wxString pathName = savedCurOutputPath;
+	wxString docName = savedCurOutputFilename;
+
+	// Put up the Choose Consistency Check Type dialog
+	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
+	if (ccDlg.ShowModal() == wxID_OK) 
 	{
-		// A document is open with data to check, therefore see if
-		// user wants to only check the open document or to select
-		// from a list of all documents in the current project to be
-		// checked.
-		// Save current path and doc name for use in re-opening below
-		wxString pathName = pApp->m_curOutputPath;
-		wxString docName = pApp->m_curOutputFilename;
-
-		// Save the phrase box's current position in the file
-		int currentPosition = pApp->m_nActiveSequNum;
-
-		// Put up the Choose Consistency Check Type dialog
-		CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
-		if (ccDlg.ShowModal() == wxID_OK) 
+		// handle user's choice of consistency check type
+		if (ccDlg.m_bCheckOpenDocOnly)
 		{
-			// handle user's choice of consistency check type
-			if (ccDlg.m_bCheckOpenDocOnly)
+			// check open doc only (whether in Adaptations or a book folder)
+		
+ 			// save and remove open doc, if open
+			if (!bDocIsClosed)
 			{
-				// user want's to check only the currently open doc...
-
-                // Save the Doc (and DoFileSave() also automatically saves, without backup,
+               // Save the Doc (and DoFileSave() also automatically saves, without backup,
                 // both the glossing and adapting KBs)
 				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
 				// protection against data loss in the event of a failure
@@ -20133,123 +20204,102 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // is called because the latter will append to whatever is in
                 // m_pSourcePhrases, so the latter list must be cleared to avoid the data
                 // doubling bug
+                bDocForcedToClose = TRUE;
 				pApp->GetView()->ClobberDocument();
 
 				// Ensure that our current document is the only doc in the accepted files list
 				pApp->m_acceptedFilesList.Clear();
 				pApp->m_acceptedFilesList.Add(docName);
 
+				// need a copy of pKB to check for inconsistencies in
+				pKBCopy = new CKB();
+				pKBCopy->Copy(*pKB);
+
 				// do the consistency check on the doc
-				DoConsistencyCheck(pApp);
+				nFileCount++;
+				if (gbIsGlossing)
+				{
+					DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, nCumulativeTotal); // for glossing mode
+				}
+				else
+				{
+					DoConsistencyCheck(pApp, pKB, pKBCopy, afList, nCumulativeTotal); // for adapting mode
+				}
 				pApp->m_acceptedFilesList.Clear();
-			}
+				// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+				// glossing mode
+				if (gbIsGlossing)
+				{
+					RemoveAutoFixGList(afgList);
+				}
+				else
+				{
+					RemoveAutoFixList(afList);
+				}
+			} // end of TRUE block for test: if (!bDocIsClosed)
 			else
 			{
-				// User wants to check a selection of docs in current project.
-				// This is like the multi-document type consistency check, except
-				// that, in this case, there is a currenly open document.
-
-                // BEW changed 01Aug06 Save the current doc and then clear out its contents
-                // -- see block above for explanation of why this is necessary
-                // BEW changed 29Apr10 to give better data protection 
-				bool fsOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
-				if (!fsOK)
-				{
-					// something's real wrong!
-					wxMessageBox(_(
-					"Could not save the current document. Consistency Check Command aborted."),
-					_T(""), wxICON_EXCLAMATION);
-                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-                    // current working directory has not changed, so no need here to reset
-                    // it before return.
-					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-					return;
-				}
-				pApp->GetView()->ClobberDocument();
-
-                // Enumerate the doc files and do the consistency check 
-                // whm note: EnumerateDocFiles() has the side effect of changing the current
-                // work directory to the passed in dirPath.
-				bOK = pApp->EnumerateDocFiles(this, dirPath);
-				if (bOK)
-				{
-					if (pApp->m_acceptedFilesList.GetCount() == 0)
-					{
-						// nothing to work on, so abort the operation
-						// IDS_NO_DOCUMENTS_YET
-						wxMessageBox(_(
-"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-						_T(""),wxICON_EXCLAMATION);
-                        pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
-						// whm note 5Dec06: EnumerateDocFiles above changes the current
-                        // work directory, so to be safe I'll reset it here before the
-                        // consistency check returns to what it was on entry (the line
-                        // below was not added in MFC version).
-						bool bOK;
-						bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-						return;
-					}
-					DoConsistencyCheck(pApp);
-				}
-				pApp->m_acceptedFilesList.Clear();
-			}
-		}
+				// no document is open - return without doing anything
+				wxMessageBox(_(
+				"No document is open. First have a document open, then the choice to check it will work."),
+				_T(""), wxICON_EXCLAMATION);
+                // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+                // current working directory has not changed, so no need here to reset
+                // it before return.
+				pApp->LogUserAction(_T("User asked for current doc consistency check without a document being open."));
+				return;
+			} // end of else block for test: if (!bDocIsClosed)
+		} // end of TRUE block for test: if (ccDlg.m_bCheckOpenDocOnly)
 		else
 		{
-			// user cancelled
-            // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the current
-            // working directory has not changed, so no need here to reset it before
-            // return.
-			pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
-			return;
-		}
-
-		// BEW added 05Jan07 to restore the former current working directory
-		// to what it was on entry
-		bool bOK;
-		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-
-		// Re-Open the CurrentDocName to continue editing at the point where
-		// the phrase box was at closure
-		bool bOpenOK;
-		bOpenOK = OnOpenDocument(pathName);
-		SetFilename(pathName,TRUE);
-		// Return the phrase box to the active sequence number; but if the box is not
-		// in existence because the user got to the end of the document and invoked the
-		// test from there, then reset to the initial position
-		if (currentPosition == -1)
-			currentPosition = 0;
-		CPile* pPile = pApp->GetView()->GetPile(currentPosition);
-		pApp->GetView()->Jump(pApp,pPile->GetSrcPhrase());
-
-	}// end of if document is open with data to check
-	else
-	{
-		// No document open. User selected Consistency Check intending to check
-		// a selection of documents in the current project
-        // whm note: EnumerateDocFiles() has the side effect of changing the current work
-        // directory to the passed in dirPath.
-        // 
-		// BEW 9July10, if Book Mode is on, there was no way to have a consistency check
-		// done over the whole set of documents in the 67 book mode folders, so I'm adding
-		// the capability here. To get it to happen, book mode must be on, and no document
-		// open, and then a yes/no message will come up asking the user if he wants the
-		// check to be done over the contents of all the book folders. If he responds yes,
-		// then we'll iterate though the list of bible book folders and do a consistency
-		// check on all the files in each; if he responds no, then the current book folder
-		// only is checked as was the case earlier.
-		bool bOK;
-		if (pApp->m_bBookMode && !pApp->m_bDisableBookMode && (pApp->m_pSourcePhrases->GetCount() == 0))
-		{
-			// ask the user if he wants the check done over all book folders
-			wxASSERT(pApp->AreBookFoldersCreated(pApp->m_curAdaptionsPath));
-			wxString message;
-			message = message.Format(
-_("Do you want the check to be done for all document files within all the book folders?"));
-			int response = ::wxMessageBox(message, _("Consistency Check of all folders?"), wxYES_NO | wxICON_QUESTION);
-			if (response == wxYES)
+			// check all docs -- which we check depends on book mode
+			if (pApp->m_bBookMode && !pApp->m_bDisableBookMode )
 			{
-				// user wants it done over all folders
+				// book mode is on, do the check over all books in all book folders
+
+				// first save and remove open doc, if open
+				if (!bDocIsClosed)
+				{
+				   // Save the Doc (and DoFileSave() also automatically saves, without backup,
+					// both the glossing and adapting KBs)
+					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
+					// protection against data loss in the event of a failure
+					bool fsOK = DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
+					if (!fsOK)
+					{
+						// something's real wrong!
+						wxMessageBox(_(
+						"Could not save the current document. Consistency Check Command aborted."),
+						_T(""), wxICON_EXCLAMATION);
+						// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+						// current working directory has not changed, so no need here to reset
+						// it before return.
+						pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
+						// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+						// glossing mode
+						if (gbIsGlossing)
+						{
+							RemoveAutoFixGList(afgList);
+						}
+						else
+						{
+							RemoveAutoFixList(afList);
+						}
+						return;
+					}
+
+					// BEW added 01Aug06, ensure the current document's contents are removed,
+					// otherwise we will get a doubling of the doc data when OnOpenDocument()
+					// is called because the latter will append to whatever is in
+					// m_pSourcePhrases, so the latter list must be cleared to avoid the data
+					// doubling bug
+					bDocForcedToClose = TRUE;
+					pApp->GetView()->ClobberDocument();
+
+					// Ensure that our current document is the only doc in the accepted files list
+					pApp->m_acceptedFilesList.Clear();
+				} // end of TRUE block for test: if (!bDocIsClosed)
+
 				pApp->LogUserAction(_T("Check all docs within all book folders"));
 				// DoConsistencyCheck() relies on the fact that EnumerateDocFiles() having
 				// been called in prior to DoConsistencyCheck() being called will have set
@@ -20285,16 +20335,8 @@ _("Do you want the check to be done for all document files within all the book f
 				int nMaxBookFolders = (int)pApp->m_pBibleBooks->GetCount();
 				int bookIndex;
 
-				// we create the copy of the KB or glossingKB, as the case may be, only
-				// once so that we don't have to do it every time we process the contents
-				// of the next Bible book folder
-				CKB* pKB;
-				if (gbIsGlossing)
-					pKB = pApp->m_pGlossingKB;
-				else
-					pKB = pApp->m_pKB;
-				wxASSERT(pKB != NULL);
-				CKB* pKBCopy = new CKB();
+				// need a copy of pKB to check for inconsistencies in
+				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
 
 				// loop over the Bible book folders
@@ -20322,11 +20364,16 @@ _("Do you want the check to be done for all document files within all the book f
 												// user to have to choose which file(s) in a
 												// dialog which may be shown as many as 67
 												// times, in the bookFolders loop!
-					DoConsistencyCheck(pApp, pKB, pKBCopy); // the overloaded 3-param version
-				}
-				// erase the copied CKB which is no longer needed
-				wxASSERT(pKBCopy != NULL);
-				EraseKB(pKBCopy); // don't want memory leaks!
+					nFileCount++;
+					if (gbIsGlossing)
+					{
+						DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, nCumulativeTotal); // for glossing mode
+					}
+					else
+					{
+						DoConsistencyCheck(pApp, pKB, pKBCopy, afList, nCumulativeTotal); // for adapting mode
+					}
+				} // end of for loop
 
 				// restore path and bible book folders variables to be what they were
 				// before we looped across all the book folders
@@ -20338,38 +20385,132 @@ _("Do you want the check to be done for all document files within all the book f
 				pApp->m_pCurrBookNamePair = save_pCurrBookNamePair;
 				pApp->m_bibleBooksFolderPath = save_bibleBooksFolderPath;
 
+				// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+				// glossing mode
+				if (gbIsGlossing)
+				{
+					RemoveAutoFixGList(afgList);
+				}
+				else
+				{
+					RemoveAutoFixList(afList);
+				}
 				// restore working directory
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-				return;
-			} // end of TRUE block for test: if (response == wxYes)
-		}
-		// legacy code - do this only if book mode check over all folders is not wanted
-		bOK = pApp->EnumerateDocFiles(this, dirPath);
-		if (bOK)
-		{
-			if (pApp->m_acceptedFilesList.GetCount() == 0)
+
+			} // end of TRUE block for test: if (pApp->m_bBookMode && !pApp->m_bDisableBookMode )
+			else
 			{
-				// nothing to work on, so abort the operation
-				wxMessageBox(_(
-"Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-				_T(""),wxICON_EXCLAMATION);
-                pApp->LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
-				// whm note 5Dec06: EnumerateDocFiles above changes the current work
-                // directory, so to be safe I'll reset it here before the consistency check
-                // returns to what it was on entry (the line below was not added in MFC
-                // version).
-				bool bOK;
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-				return;
-			}
-			pApp->LogUserAction(_T("Check this doc only"));
-			DoConsistencyCheck(pApp);
-		}
-		pApp->m_acceptedFilesList.Clear();
-		
-		// BEW added 05Jan07 to restore the former current working directory
-		// to what it was on entry
-		bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				// it's not book mode, do the check over all books in the Adaptations folder
+				// (dirPath has been set to pApp->m_curAdaptionsPath if book mode is not
+				// on, that is, to Adaptations folder)
+				
+				// need a copy of pKB to check for inconsistencies in
+				pKBCopy = new CKB();
+				pKBCopy->Copy(*pKB);
+
+                // Enumerate the doc files and do the consistency check 
+                // whm note: EnumerateDocFiles() has the side effect of changing the current
+                // work directory to the passed in dirPath.
+				bOK = pApp->EnumerateDocFiles(this, dirPath);
+				if (bOK)
+				{
+					if (pApp->m_acceptedFilesList.GetCount() == 0)
+					{
+						// nothing to work on, so abort the operation
+						wxMessageBox(_(
+"There are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
+						_T(""),wxICON_EXCLAMATION);
+                        pApp->LogUserAction(_T(
+"There are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
+						// before exiting, restore the former open document, 
+						// if one was open formerly
+						if (bDocForcedToClose)
+						{
+							// reopen the doc with all as it was before; bMarkAsDirty = TRUE
+							bOK = ReOpenDocument(	pApp, strSaveCurrentDirectoryFullPath,
+								savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+								savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
+						}
+						// erase the copied CKB which is no longer needed
+						if (pKBCopy != NULL)
+						{
+							EraseKB(pKBCopy); // don't want memory leaks!
+						}
+						// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+						// glossing mode
+						if (gbIsGlossing)
+						{
+							RemoveAutoFixGList(afgList);
+						}
+						else
+						{
+							RemoveAutoFixList(afList);
+						}
+						return;
+					}
+					nFileCount++;
+					if (gbIsGlossing)
+					{
+						DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, nCumulativeTotal); // for glossing mode
+					}
+					else
+					{
+						DoConsistencyCheck(pApp, pKB, pKBCopy, afList, nCumulativeTotal); // for adapting mode
+					}
+				}
+				pApp->m_acceptedFilesList.Clear();
+				// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+				// glossing mode
+				if (gbIsGlossing)
+				{
+					RemoveAutoFixGList(afgList);
+				}
+				else
+				{
+					RemoveAutoFixList(afList);
+				}
+			} // end of else block for test: if (pApp->m_bBookMode && !pApp->m_bDisableBookMode )
+
+		} // end of else block for test: if (ccDlg.m_bCheckOpenDocOnly)
+	}
+	else
+	{
+		// user cancelled
+		bUserCancelled = TRUE; // this is a global boolean
+
+        // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the current
+        // working directory has not changed, so no need here to reset it before
+        // return.
+		pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
+		return;
+	}
+	// erase the copied CKB which is no longer needed
+	if (pKBCopy != NULL)
+	{
+		EraseKB(pKBCopy); // don't want memory leaks!
+		pKBCopy = NULL;
+	}
+
+	// before exiting, restore the former open document, if one was open formerly
+	if (bDocForcedToClose)
+	{
+		// reopen the doc with all as it was before; bMarkAsDirty = TRUE
+		bOK = ReOpenDocument(	pApp, strSaveCurrentDirectoryFullPath,
+			savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); 
+	}
+
+	// show stats
+	if (!bUserCancelled)
+	{
+		// put up final statistics, provided user did not cancel from one
+		// of the dialogs
+		wxString stats;
+		stats = stats.Format(_(
+"The consistency check was successful. There were %d source words and phrases  in %d  files."),
+		nCumulativeTotal, nFileCount);
+		wxMessageBox(stats,_T(""),wxICON_INFORMATION);
 	}
 }
 
@@ -20433,716 +20574,9 @@ void CAdapt_ItDoc::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
 	}
 }
 
-// This function assumes that the current directory will have already been set correctly
-// before being called. This is the legacy version, it handles a single file from a single
-// folder, or a list of files from a single folder. (A prior call of EnumerateDocFiles()
-// with the boolean parameter default FALSE has to have been made prior to calling this
-// function. The boolean is for suppressing an internal dialog, & being FALSE permits the
-// user to select a subset of doc files to be processed -- using the dialog which
-// EnumerateDocFiles() puts up. The latter call also sets the working directory, a fact
-// which DoConsistencyCheck() relies on, as it calls OnOpenDocument() with only a filename
-// as parameter, instead of an absolute path to that file.
-// Modified, July 2003, for support of Auto Capitalization
-// BEW 12Apr10, no changes needed for support of doc version 5
-// BEW 17May10, moved to here from CAdapt_ItView
-// BEW 8July10, updated for support of kbVersion 2, and fixed some bugs (eg. progress dialog)
-// BEW 13Nov10, no changes needed to support Bob Eaton's request for glosssing KB to use all
-// maps, but it calls StoreText() and the latter needed changes
-void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp)
+void CAdapt_ItDoc::RemoveAutoFixList(AFList& afList)
 {
-	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
-									  // initially when OnOpenDocument() is called
-	CLayout* pLayout = GetLayout();
-	wxASSERT(pApp != NULL);
-	CKB* pKB;
-	wxArrayString* pList = &pApp->m_acceptedFilesList;
-	if (gbIsGlossing)
-		pKB = pApp->m_pGlossingKB;
-	else
-		pKB = pApp->m_pKB;
-	wxASSERT(pKB != NULL);
-	int nCount = pList->GetCount();
-	if (nCount <= 0)
-	{
-		// something is real wrong, but this should never happen 
-		// so an English message will suffice
-		wxString error;
-		error = error.Format(_T(
-		"Error, the file count was found to be %d, so the command was aborted."),nCount);
-		wxMessageBox(error,_T(""), wxICON_WARNING);
-		gbConsistencyCheckCurrent = FALSE;
-		return;
-	}
-	wxASSERT(nCount > 0);
-	int nTotal = 0;
-	int nCumulativeTotal = 0;
-
-	// create a list to hold pointers to auto-fix records, if user checks the auto fix checkbox
-	// in the dlg
-	AFList afList;
-
-	// create a copy of the KB, we check the copy for inconsistencies, but do updating within
-	// the current KB pointed to by the app's m_pKB pointer, or m_pGlossingKB when glossing
-	CKB* pKBCopy = new CKB(); // can't use a copy constructor, couldn't get it to work years ago
-							  // BEW 12May10 note: default constructor here does not set the
-							  // private m_bGlossingKB member, the next line does that based
-							  // on the setting for that member in pKB
-	pKBCopy->Copy(*pKB);  // this is a work-around for lack of copy constructor - see KB.h
-
-	// iterate over the document files
-	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
-								 // of the extern global of the same name
-	int i;
-	for (i=0; i < nCount; i++)
-	{
-		wxString newName = pList->Item(i);
-		wxASSERT(!newName.IsEmpty());
-
-        // for debugging- check pile count before & after (failure to close doc before
-        // calling this function resulted in the following OnOpenDocument() call appending
-        // a copy of the document's contents to itself -- the fix is to ensure
-        // OnFileClose() is done in the caller before DoConsistencyCheck() is called
-		// int piles = pApp->m_pSourcePhrases->GetCount();
-
-		bool bOK;
-		bOK = OnOpenDocument(newName); // passing in just a filename, so we are relying
-									   // on the working directory having previously
-									   // being set in the caller at the call of
-									   // EnumerateDocFiles()
-		SetFilename(newName,TRUE);
-		nTotal = pApp->m_pSourcePhrases->GetCount();
-		if (nTotal == 0)
-		{
-			wxString str;
-			str = str.Format(_T("Bad file:  %s"),newName.c_str());
-			wxMessageBox(str,_T(""),wxICON_WARNING);
-		}
-		nCumulativeTotal += nTotal;
-
-		// put up a progress indicator
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,newName.c_str(),1,nTotal);
-		wxProgressDialog progDlg(_("Consistency Checking"),
-                        msgDisplayed,
-                        nTotal,    // range
-                        pApp->GetMainFrame(),   // parent
-                        //wxPD_CAN_ABORT |
-                        //wxPD_CAN_SKIP |
-                        wxPD_APP_MODAL |
-                        wxPD_AUTO_HIDE  //-- try this as well
-                        //| wxPD_ELAPSED_TIME |
-                        //wxPD_ESTIMATED_TIME |
-                        //wxPD_REMAINING_TIME
-                       // | wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-                       // but wxPD_SMOOTH is not supported (see wxGauge) on all platforms, so
-                       // perhaps this is why Bill didn't get good behaviour on gtk or mac
-                        );
-		SPList* pPhrases = pApp->m_pSourcePhrases;
-		SPList::Node* pos1; 
-		pos1 = pPhrases->GetFirst();
-		wxASSERT(pos1 != NULL);
-		int counter = 0;
-		while (pos1 != NULL)
-		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
-			pos1 = pos1->GetNext();
-			counter++;
-
-			// check the KBCopy has the required association of key with translation
-			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-			int nWords;
-			//if (gbIsGlossing)
-			//	nWords = 1;
-			//else
-				nWords = pSrcPhrase->m_nSrcWords;
-			CTargetUnit* pTU = NULL;
-			bool bOK = TRUE;
-			bool bFoundTgtUnit = TRUE;
-			bool bFoundRefString = TRUE;
-
-			// any inconsistency with a <Not In KB> entry can be fixed automatically,
-			// and this block must be ignored when glossing is ON
-			if (!gbIsGlossing && !pSrcPhrase->m_bRetranslation && 
-				pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
-			{
-				// the inconsistency we are fixing here is that the CSourcePhrase instance
-				// has its m_bNotInKB flag set TRUE, but the KB lacks a "<Not In KB>"
-				// entry (and if that is the case, then for kbVersion 2, possibly other
-				// CRefString instances are for that KB entry are not 'deleted' (ie.
-				// m_bDeleted flag is not yet set TRUE for them) -- so check and fix if
-				// necessary 
-				wxString str = _T("<Not In KB>");
-				// do the lookup
-				bOK = pKB->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
-				if (!bOK)
-				{
-					// fix it silently...
-					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
-					pKB->StoreText(pSrcPhrase,str);
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_bNotInKB = TRUE;
-				}
-				else
-				{
-                    // BEW 7July10, in kbVersion 2 another way where the entry could be
-                    // inconsistent is that it does contain "<Not In KB>" but somehow other
-                    // CRefStrings on the pTU instance are not deleted - so we must fix
-                    // that. Instead of checking for any non-deleted ones, just delete them
-                    // all and re-store "<Not In KB>" -- this will be done then on entries
-                    // where this fix is not required, but since <Not In KB> is used seldom
-                    // or never, this won't matter
-					if (pTU != NULL)
-					{
-						pTU->DeleteAllToPrepareForNotInKB();
-					}
-					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
-					pKB->StoreText(pSrcPhrase,str);
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_bNotInKB = TRUE;
-				}
-			}
-
-			bool bTheTest = FALSE;
-			// define the test's value
-			if (gbIsGlossing)
-			{
-				if (pSrcPhrase->m_bHasGlossingKBEntry)
-				{
-					bTheTest = TRUE;
-				}
-			}
-			else // adapting
-			{
-				if (!pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bNotInKB &&
-					pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_adaption != _T("<Not In KB>"))
-				{
-					bTheTest = TRUE;
-				}
-			}
-			if (bTheTest)
-			{
-				// do the lookup
-				bOK = pKBCopy->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
-				if (!bOK)
-				{
-					// there was no target unit for this key in the map, so this is an
-					// inconsistency
-					bFoundTgtUnit = FALSE;
-					bFoundRefString = FALSE;
-				}
-				else
-				{
-					// the target unit is in the map, so check if there is a corresponding
-					// refString for the m_adaption, or m_gloss, member of the source phrase
-					wxASSERT(pTU);
-					bool bMatched = FALSE;
-					TranslationsList* pList = pTU->m_pTranslations; 
-					wxASSERT(pList != NULL);
-                    // For kbVersion 2 don't make this assertion. If the phrase box is at a
-                    // place where there is a m_refCount of 1 which has just been deleted
-                    // because of 'landing' the box there, and it had just the one
-                    // CRefString, then the count of non-deleted ones can legitimately be
-                    // temporarily zero. Leave this here as a reminder to the developer.
-					//wxASSERT(pTU->CountNonDeletedRefStringInstances() > 0);
-					wxString srcPhraseStr;
-					if (gbIsGlossing)
-					{
-						srcPhraseStr = pSrcPhrase->m_gloss;
-					}
-					else
-					{
-						srcPhraseStr = pSrcPhrase->m_adaption;
-					}
-					if (!((gbAutoCaps && gbSourceIsUpperCase && gbMatchedKB_UCentry) || !gbAutoCaps))
-					{
-                        // do a change to lc only if it is needed - that is, attempt it
-                        // when it is not the case that gbMatchedKB_UCentry is TRUE
-                        // (because then we want an unmodified string to be used),
-                        // otherwise attempt it when auto-caps is ON
-						srcPhraseStr = pKBCopy->AutoCapsMakeStorageString(srcPhraseStr,FALSE);
-					}
-					TranslationsList::Node* pos = pList->GetFirst();
-					wxASSERT(pos != NULL);
-					while (pos != NULL)
-					{
-						CRefString* pRefString = (CRefString*)pos->GetData();
-						pos = pos->GetNext();
-						wxASSERT(pRefString != NULL);
-						// BEW 7July10, added second test, as kbVersion 2 treats a CRefString
-						// instance as present only if it is not marked as deleted
-						if ((pRefString->m_translation == srcPhraseStr) && !pRefString->GetDeletedFlag())
-						{
-							// a matching gloss was found
-							bMatched = TRUE;
-							break;
-						}
-					}
-					if (!bMatched)
-					{
-						// no match was made, so this is an inconsistency
-						bFoundRefString = FALSE;
-					}
-				}
-			}
-
-			// open the dialog if we have an inconsistency
-			if (!bFoundTgtUnit || !bFoundRefString)
-			{
-				// make the CSourcePhrase instance is able to have a KB entry added
-				if (gbIsGlossing)
-					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-				else
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-
-				// hide the progress window
-				progDlg.Hide(); 
-                // work out if this is an auto-fix item, if so, don't show the dialog, but
-                // use the stored AutoFixRecord to fix the inconsistency without user
-                // intervention (note: any items for which the "Ignore it, I will fix it 
-                // later" button was pressed cannot occur as auto-fix records) The next 100
-                // lines could be improved - it was "added to" in a rather ad hoc fashion,
-                // so its a bit spagetti-like... something to do sometime when there is
-                // plenty of time!
-				AutoFixRecord* pAFRecord = NULL;
-				if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
-				{
-					// we matched an auto-fix element, so do the fix automatically...
-					// update the original kb (not pKBCopy)
-					wxString tempStr = pAFRecord->finalAdaptation; // could have punctuation in it
-
-					// if the adaptation is null, then assume user wants it that way and so store
-					// an empty string
-					if (tempStr.IsEmpty())
-					{
-						pKB->StoreText(pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
-					}
-					else
-					{
-						if (!gbIsGlossing)
-						{
-							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
-                                // we don't want punctuation in adaptation KB if
-                                // autocapitalization is ON, we could have an upper case
-                                // source, but the user may have typed lower case for
-                                // fixing the gloss or adaptation, but this is okay - the
-                                // store will work right, so don't need anything here
-                                // except the call to store it
-							pKB->StoreText(pSrcPhrase,tempStr);
-						}
-						// do the gbIsGlossing case when no punct is to be removed, in next block
-					}
-					if (!tempStr.IsEmpty())
-					{
-                        // here we must be careful; pAFRecord->finalAdaptation may have a
-                        // lower case string when the source text has upper case, and the
-                        // user is expecting the application to do the fix for him; this
-                        // would be easy if we could be sure that the first letter of the
-                        // string was at index == 0, but the possible presence of preceding
-                        // punctuation makes the assumption dangerous - so we must find
-                        // where the actual text starts and do any changes there if needed.
-                        // tempStr has punctuation stripped out, pAFRecord->finalAdaptation
-                        // doesn't, so start by determining if there actually is a problem
-                        // to be fixed.
-						if (gbAutoCaps)
-						{
-							bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
-							if (bNoError && gbSourceIsUpperCase)
-							{
-								bNoError = SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
-								if (bNoError && !gbNonSourceIsUpperCase &&
-									(gcharNonSrcUC != _T('\0')))
-								{
-                                    // source is upper case but nonsource is lower and is a
-                                    // character with an upper case equivalent - we have a
-                                    // problem; we need to fix the AutoFixRecord's
-                                    // finalAdaptation string, and the sourcephrase too. At
-                                    // this point we can fix the m_adaption member as
-                                    // follows:
-									pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC);
-								}
-							}
-						}
-                        // In the next if/else block, the non-glossing-mode call of
-                        // MakeTargetStringIncludingPunctuation() accomplishes the setting
-                        // of the pSrcPhrase's m_targetStr member, handling any needed
-                        // lower case to upper case conversion (even when typed initial
-                        // punctuation is present), and the punctuation override protocol
-                        // if the passed in string in the 2nd parameter has initial and/or
-                        // final punctuation.
-						if (!gbIsGlossing)
-						{
-                            // for auto capitalization support,
-                            // MakeTargetStringIncludingPunctuation( ) is now able to do
-                            // any needed change to upper case initial letter even when
-                            // there is initial punctuation on pAFRecord->finalAdaptation
-							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
-															pAFRecord->finalAdaptation);
-						}
-						else
-						{
-							// store, for the glossing ON case, the gloss text, 
-							// with any punctuation
-							pKB->StoreText(pSrcPhrase, pAFRecord->finalAdaptation);
-							if (gbAutoCaps)
-							{
-                                 // upper case may be wanted, we have to do it on the first
-                                // character past any initial punctuation; glossing mode
-                                // doesn't do punctuation stripping and copying, but the
-                                // user may have punctuation included in the inconsistency
-                                // fixing string, so we have to check etc.
-								wxString str = pAFRecord->finalAdaptation;
-								// make a copy and remove punctuation from it
-								wxString str_nopunct = str;
-								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
-								// use the punctuation-less string to get the initial charact and
-								// its upper case equivalent if it exists
-								bool bNoError = SetCaseParameters(str_nopunct,FALSE);
-															 // FALSE means "using target punct list"
-								// span punctuation-having str using target lang's punctuation...
-								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
-															// use our own SpanIncluding in helpers
-								int punctLen = strInitialPunct.Length();
-
-								// work out if there is a case change needed, and set the
-								// relevant case globals
-								bNoError = SetCaseParameters(tempStr,FALSE);  
-															// FALSE means "it's target text"
-								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
-									&& (gcharNonSrcUC != _T('\0')))
-								{
-									if (strInitialPunct.IsEmpty())
-									{
-                                        // there is no initial punctuation, so the change
-                                        // to upper case can be done at the string's start
-										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
-									}
-									else
-									{
-										// set it at the first character past the initial
-										// punctuation
-										str.SetChar(punctLen,gcharNonSrcUC);
-										pSrcPhrase->m_gloss = str;
-									}
-								}
-							}
-							else
-							{
-								// no auto capitalization, so just use finalAdaptation 
-								// string 'as is'
-								pSrcPhrase->m_gloss = pAFRecord->finalAdaptation;
-							}
-						}
-					}
-					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
-							// of the box should show the current adaptation, or gloss, string
-					// show the progress window again but don't update it here
-					progDlg.Show(TRUE); 
-				}
-				else
-				{
-					// no match, so this is has to be handled with user intervention via
-					// the dialog
-					CConsistencyCheckDlg dlg(pApp->GetMainFrame());
-					dlg.m_bFoundTgtUnit = bFoundTgtUnit;
-					dlg.m_bDoAutoFix = FALSE;
-					dlg.m_pApp = pApp;
-					dlg.m_pKBCopy = pKBCopy;
-					dlg.m_pTgtUnit = pTU; // could be null
-					dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
-					dlg.m_pSrcPhrase = pSrcPhrase;
-
-                    // update the view to show the location where this source pile is, and
-                    // put the phrase box there ready to accept user input indirectly from
-                    // the dialog
-					int nActiveSequNum = pSrcPhrase->m_nSequNumber;
-					wxASSERT(nActiveSequNum >= 0);
-					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
-					// and is needed because CLayout::RecalcLayout() relies on the
-					// m_nActiveSequNum value being correct
-#ifdef _NEW_LAYOUT
-					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
-#else
-					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
-#endif
-					pApp->m_pActivePile = GetPile(nActiveSequNum);
-					
-					pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
-					CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
-															 // the phraseBox is to be
-					if (gbIsGlossing)
-						pApp->m_targetPhrase = pSrcPhrase->m_gloss;
-					else
-						// make it look normal, don't use m_targetStr here
-						pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-
-					GetLayout()->m_docEditOperationType = consistency_check_op;
-														// sets 0,-1 'select all'
-					pApp->GetView()->Invalidate(); // get the layout drawn
-					GetLayout()->PlaceBox();
-
-					// get the chapter and verse
-					wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
-					dlg.m_chVerse = chVerse;
-
-                    // provide hooks for the phrase box location so that the dialog can
-                    // work out where to display itself so it does not obscure the active
-                    // location
-					dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-					dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
-
-					if (gbIsGlossing)
-					{
-						// really its three lines, but the code works provided the 
-						// height is right
-						if (gbGlossingUsesNavFont)
-							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
-					}
-
-					// put up the dialog
-					if (dlg.ShowModal() == wxID_OK)
-					{
-						//bool bNoError;
-						wxString finalStr;
-						// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
-						// subsequent use
-						AutoFixRecord* pRec;
-						if (dlg.m_bDoAutoFix)
-						{
-							if (gbIgnoreIt)
-								// disallow record creation for a press of the "Ignore it,
-								// I will fix it later" button
-								goto x;
-							pRec = new AutoFixRecord;
-							pRec->key = pSrcPhrase->m_key; // case should be as wanted
-							if (gbIsGlossing)
-							{
-								pRec->oldAdaptation = pSrcPhrase->m_gloss; // case as wanted
-								pRec->nWords = 1;
-							}
-							else
-							{
-								pRec->oldAdaptation = pSrcPhrase->m_adaption; // case as wanted
-								pRec->nWords = pSrcPhrase->m_nSrcWords;
-							}
-
-                            // BEW changed 16May; we don't want to convert the
-                            // m_finalAdaptation member to upper case in ANY circumstances,
-                            // so we will comment out the relevant lines here and
-                            // unilaterally use the user's final string
-							finalStr = dlg.m_finalAdaptation; // can have punctuation
-									// in it, or can be null; can also be lower case and user
-									// expects the app to switch it to upper case if source is upper
-							pRec->finalAdaptation = finalStr;
-							afList.Append(pRec);
-						} // end of block for setting up a new AutoFixRecord
-
-						// update the original kb (not pKBCopy)
-x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
-                        // if the adaptation is null, then assume user wants it that way
-                        // and so store an empty string; but if user wants the
-                        // inconsistency ignored, then skip
-						wxString tempStr = dlg.m_finalAdaptation;
-						pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
-						if (gbIgnoreIt)
-						{
-							// if the user hit the "Ignore it, I will fix it later" button,
-							// then just put the existing adaptation or gloss back into the KB,
-							// after clearing the flag
-							if (gbIsGlossing)
-							{
-								tempStr = pSrcPhrase->m_gloss;
-								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-							}
-							else // adapting
-							{
-								tempStr = pSrcPhrase->m_adaption; // no punctuation on this one
-								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
-								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,pSrcPhrase->m_targetStr); 
-																// m_targetStr may have punct
-							}
-							gbIgnoreIt = FALSE;
-							goto y;
-						}
-						else
-						{
-							// don't ignore, so handle the dialog's contents
-							if (tempStr.IsEmpty())
-							{
-								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
-														// TRUE = allow empty string storage
-							}
-							else
-							{
-								if (!gbIsGlossing)
-								{
-									pKB->StoreText(pSrcPhrase,tempStr);
-								}
-								// do the gbIsGlossing case in next block
-							}
-                            // the next stuff is taken from code earlier than the DoModal()
-                            // call, so comments will not be repeated here - see above if
-                            // the details are wanted
-							if (gbAutoCaps)
-							{
-								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
-								if (bNoError && gbSourceIsUpperCase)
-								{
-									bNoError = SetCaseParameters(tempStr,FALSE); 
-															// FALSE means "it's target text"
-									if (bNoError && !gbNonSourceIsUpperCase && 
-										(gcharNonSrcUC != _T('\0')))
-									{
-										pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC); 
-															// get m_adaption member done
-									}
-								}
-							}
-							if (!gbIsGlossing)
-							{
-								pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,finalStr); // handles 
-													// auto caps, punctuation, etc
-							}
-							else // we are in glossing mode
-							{
-								pKB->StoreText(pSrcPhrase,finalStr); // glossing store
-														// can have punctuation in it
-								if (gbAutoCaps)
-								{
-									// if Auto Caps is on, gloss text can be auto 
-									// capitalized too... check it out
-									wxString str_nopunct = finalStr;
-									pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
-									bool bNoError = SetCaseParameters(str_nopunct,FALSE);
-															// FALSE means "using target punct list"
-									wxString strInitialPunct = SpanIncluding(
-														finalStr,pApp->m_punctuation[1]);
-									int punctLen = strInitialPunct.Length();
-									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE 
-															// means "using target punct list"
-									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
-										&& (gcharNonSrcUC != _T('\0')))
-									{
-										if (strInitialPunct.IsEmpty())
-										{
-											pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
-										}
-										else
-										{
-											finalStr.SetChar(punctLen,gcharNonSrcUC);
-											pSrcPhrase->m_gloss = finalStr;
-										}
-									}
-								}
-								else
-								{
-									pSrcPhrase->m_gloss = finalStr;
-								}
-							} // end of block for glossing mode
-						} // end of else block for test: if (gbIgnoreIt)
-
-						// show the progress window again
-y:						;
-						progDlg.Show(TRUE); // ensure it is visible
-					} // end of TRUE block for test of ShowModal() == wxID_OK
-					else
-					{
-						// user cancelled
-						bUserCancelled = TRUE;
-						progDlg.Show(TRUE);
-						// to get the progress dialog hidden, simulate having reached the
-						// end of the range -- need the appropriate Update() call
-						int bUpdated = FALSE;
-						msgDisplayed = progMsg.Format(progMsg,newName.c_str(),nTotal,nTotal);
-						bUpdated = progDlg.Update(nTotal,msgDisplayed);
-						break;
-					}
-				} // end of else block for test of presence of an 
-				  // AutoFixRecord for this inconsistency
-			}
-			// update the progress bar every nth iteration (don't use a constant for n,
-			// instead use the count of CSourcePhrase instances to set a value that will
-			// result in at least a few advances of the progress bar - e.g. 5)
-			int n = nTotal / 5;
-			if (n > 1000) n = 1000; // safety first, very large files can show smaller 
-									// increments more often
-			bool bUpdated = FALSE;
-			if (counter % n == 0 && counter < nTotal) 
-			{
-				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),counter,nTotal);
-				bUpdated = progDlg.Update(counter,msgDisplayed);
-			}
-			else if (counter == nTotal)
-			{
-                // need this block in order to get the progress dialog to
-                // auto-hide when the limit is reached, because if the Update() call is not
-                // given when the counter reaches the limit, the progress control hangs the
-                // application and prevents processing from proceeding any further than the
-                // last call of progDlg.Update() within the loop, once the loop has
-				// terminated (note, I also specified non-smooth, so Bill or Graeme should
-				// test it on Linux and Mac, as that may account for the failures he got)
-				msgDisplayed = progMsg.Format(progMsg,newName.c_str(),nTotal,nTotal);
-				bUpdated = progDlg.Update(nTotal,msgDisplayed);
-			}
-		}// end of while (pos1 != NULL)
-
-		// save document and KB
-		pApp->m_pTargetBox->Hide(); // this prevents DoFileSave() trying to
-                // store to kb with a source phrase with m_bHasKBEntry flag
-                // TRUE, which would cause an assert to trip
-		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
-											     // since it won't get recreated
-		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
-		// give better data protection
-		//bool bSavedOK = pDoc->DoFileSave(TRUE);
-		
-        // BEW 9July10, added test and changed param to FALSE if doing bible book folders
-        // loop, as we don't want time wasted for a progress dialog for what are probably a
-        // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
-        // each doc file that we check in the currently accessed folder
-		bool bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
-		if (!bSavedOK)
-		{
-			wxMessageBox(_("Warning: failure on document save operation."),
-			_T(""), wxICON_EXCLAMATION);
-		}
-		pApp->GetView()->ClobberDocument();
-
-		// delete the buffer containing the filed-in source text
-		if (pApp->m_pBuffer != NULL)
-		{
-			delete pApp->m_pBuffer;
-			pApp->m_pBuffer = NULL;
-		}
-		// remove the progress indicator window
-		progDlg.Destroy();
-		if (bUserCancelled)
-			break; // don't do any more saves of the KB if user cancelled
-	} // end iteration of document files for (int i=0; i < nCount; i++)
-
-	// erase the copied CKB which is no longer needed
-	wxASSERT(pKBCopy != NULL);
-	EraseKB(pKBCopy); // don't want memory leaks!
-
-	// inform user of success and some statistics; but refrain from doing so if the user
-	// has requested that all the contents of the bible book folders be checked (otherwise
-	// dismissing the stats dialog dozens of times would be total frustration!)
-	if (!bUserCancelled)
-	{
-		// put up final statistics, provided user did not cancel from one
-		// of the dialogs
-		wxString stats;
-		// IDS_CONSCHECK_OK
-		stats = stats.Format(_(
-"The consistency check was successful. There were %d source words and phrases  in %d  files."),
-		nCumulativeTotal,nCount);
-		wxMessageBox(stats,_T(""),wxICON_INFORMATION);
-	}
-
-	// make sure the global flag is cleared
-	gbConsistencyCheckCurrent = FALSE;
-
-	// delete the contents of the pointer list, the list is local 
-	// so will go out of scope
+	// delete the contents of the pointer list, for adaptations mode
 	if (!afList.IsEmpty())
 	{
 		AFList::Node* pos = afList.GetFirst();
@@ -21155,35 +20589,47 @@ y:						;
 		}
 	}
 	afList.Clear();
-	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 }
 
+void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
+{
+	// delete the contents of the pointer list, for adaptations mode
+	if (!afgList.IsEmpty())
+	{
+		AFGList::Node* pos = afgList.GetFirst();
+		wxASSERT(pos != 0);
+		while (pos != 0)
+		{
+			AutoFixRecordG* pRec = (AutoFixRecordG*)pos->GetData();
+			pos = pos->GetNext();
+			delete pRec;
+		}
+	}
+	afgList.Clear();
+}
+
+
 // This function assumes that the current directory will have already been set correctly
-// before being called. This is the an overloaded version, it handles all of the Bible
-// book folders, looping over each and checking every document in each from a single folder.
-// It does nothing if a book folder has no files in it, and just goes to the next book
-// folder. The second parameter, and third parameters, pKB and pKBCopy are pointers to the
-// same KB (either both the adapting KB, or both the glossing KB) for the current project's
-// active KB (depending, of course, on whether glossing mode is on or off), and pKBCopy is
-// used for finding inconsistencies, while KB updates are saved to pKB - these in the
-// signature because when processing the set of Bible book folders, it makes no sense to
-// open, copy, modify and close the KB and copied KB for every book folder processed - so
-// we do the open and copy before the loop commences (in the caller), the updating within
-// the loop, and the closure and saving when the loop terminates.
-// 
+// before being called. This function potentially handles all doc files in a folder - which
+// may be a Bible book folder, or the Adaptations folder. Which files are handled is
+// decided in the caller, which lists them in the wxArrayString m_acceptedFilesList. (When
+// processing just the current document, that will be all that will be in the list.) We
+// loop over each document. The second parameter, and third parameters, pKB and pKBCopy are
+// pointers to the same KB (either both the adapting KB, or both the glossing KB) for the
+// current project's active KB (depending, of course, on whether glossing mode is on or
+// off), and pKBCopy is used for finding inconsistencies, while KB updates are saved to
+// pKB.
 // (A prior call of EnumerateDocFiles() with the boolean parameter default TRUE has to have
 // been made prior to calling this function. The boolean is for suppressing an internal
 // dialog, & being TRUE this dialog is prevented from being shown - we don't want it shown
-// and the user have to choose files, as that might have to be done once for every book
-// folder that has a document(s) in it, resulting in hundreds of openings of the dialog.
+// and the user have to choose files.
 // The latter call also sets the working directory, a fact which DoConsistencyCheck()
 // relies on, as it calls OnOpenDocument() with only a filename as parameter, instead of an
 // absolute path to that file.
-// 
-// This overload does a few things differently: (a) no progress indicator is shown
-// (processing shortish files makes it 'flash' if it is visible only a short time per
-// folder processed); (b) no statistics dialog is shown, because the user would have to
-// manually dismiss it after every folder that has at least one file in it.
+// This function: (a) does not show a progress indicator (processing shortish files makes
+// it 'flash' if it is visible only a short time); and
+// (b) collects a CSourcePhrase count and total for the statistics dialog shown by the
+// caller when the total job is done
 // 
 // Modified, July 2003, for support of Auto Capitalization
 // BEW 12Apr10, no changes needed for support of doc version 5
@@ -21194,8 +20640,15 @@ y:						;
 // BEW 11Oct10, changed to support ~ conjoining (without this fix, such joined words end
 // up in map 2, instead of being in map 1) 
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy)
+// BEW 26Aug11, changes to prevent false positives, made this the only function of this
+// name, and added nCumulativeTotal 4th param
+// BEW 29Aug11, there are now two versions of this function which differ only by name:
+// DoConsistencyCheck() handles adapting mode, DoConsistencyCheckG() handles glossing mode
+void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
+									  AFList& afList, int& nCumulativeTotal)
 {
+	wxASSERT(pKB->IsThisAGlossingKB() == FALSE); // must be an adaptation kb for this fn version
+
 	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
 									  // initially when OnOpenDocument() is called
 	CLayout* pLayout = GetLayout();
@@ -21213,11 +20666,6 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 	}
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
-	int nCumulativeTotal = 0;
-
-	// create a list to hold pointers to auto-fix records, if user checks the auto fix checkbox
-	// in the dlg
-	AFList afList;
 
 	// iterate over the document files
 	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
@@ -21249,31 +20697,166 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		}
 		nCumulativeTotal += nTotal;
 
-		// prepare for the loop
+		// prepare for the loop with various initializations
+		//bool bOK = TRUE;
+		//bool bFoundTgtUnit = TRUE;
+		//bool bFoundRefString = TRUE;
+		enum InconsistencyType inconsistencyType = no_inconsistency;
+		enum FixItAction fixitAction = no_fix_needed;
+		CSourcePhrase* pSrcPhrase = NULL;
+		int nWords;
+		bool bIsInKB = FALSE;
+		CTargetUnit* pTU = NULL;
+		CRefString* pRefStr = NULL;
+		bool bDeleted = FALSE;
+		wxString adaption; // scratch string for holding m_adaption's value
+		wxString key; // scratch string for holding m_key's value
+		wxString strNotInKB = _T("<Not In KB>");
+		bool bInconsistency = FALSE;
+		AutoFixRecord* pAutoFixRec = NULL;
 		SPList* pPhrases = pApp->m_pSourcePhrases;
 		SPList::Node* pos1; 
 		pos1 = pPhrases->GetFirst();
 		wxASSERT(pos1 != NULL);
 		int counter = 0;
-		// loop over all doc files in the current Bible book folder
+		// loop over all CSourcePhrase instances in the m_pSourcePhrases list
 		while (pos1 != NULL)
 		{
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			key = pSrcPhrase->m_key;
+			adaption = pSrcPhrase->m_adaption; // could be an empty string
 			pos1 = pos1->GetNext();
 			counter++;
+			// ignore placeholders and retranslations
+			if (pSrcPhrase->m_bNullSourcePhrase || pSrcPhrase->m_bRetranslation)
+			{
+				if (pSrcPhrase->m_bNullSourcePhrase)
+				{
+					pSrcPhrase->m_bNotInKB = FALSE; // ensure its off
+				}
+				continue;
+			}
+
+			// BEW 26Aug11 added flag, because testing whether a pTU or pRefString is
+            // not found is not an adequate test - not every potential key needs to have a
+            // KB presence
+			bInconsistency = FALSE;
+			pAutoFixRec = NULL;
 
 			// check the KBCopy has the required association of key with translation
 			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-			int nWords;
-			//if (gbIsGlossing)
-			//	nWords = 1;
-			//else
-				nWords = pSrcPhrase->m_nSrcWords;
-			CTargetUnit* pTU = NULL;
-			bool bOK = TRUE;
-			bool bFoundTgtUnit = TRUE;
-			bool bFoundRefString = TRUE;
+			nWords = pSrcPhrase->m_nSrcWords;
+			pTU = NULL;
+			pRefStr = NULL;
+			bDeleted = FALSE;
+			// Does key have a ptr to CTargetUnit in the copied adaptation KB?
+			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
+			if (bIsInKB)
+			{
+				// there is a non-deleted entry in the copied KB for the passed in key; if
+				// pSrcPhrase has m_bHasKBEntry set TRUE, this is consistent, so iterate
+				if (pSrcPhrase->m_bHasKBEntry)
+				{
+					continue;
+				}
+				else
+				{
+					// pSrcPhrase->m_bHasKBEntry is FALSE, so we might have an inconsistency...
+	
+                    // we might be in an unadapted part of the document, where there is no
+                    // adaptation as yet and m_bHasKBEntry would be FALSE, and fortuitously
+                    // we matched an earlier source text key that has been given a
+                    // <no adaptation> adaptation which resulted in an empty string for the
+                    // pTU's CRefString::translation member -- this situation isn't an
+                    // inconsistency, so check for this and iterate if so
+					if (adaption.IsEmpty())
+					{
+						// it was an empty string match of a "hole" in the document, so no 
+						// inconsistency here
+						continue;
+					}
+					else
+					{
+						// pSrcPhrase->m_adaption is not an emptry string; this is an
+						// inconsistency which we can auto-correct here & now by setting
+						// the flag to agree with the KB entry, no GUI needed for this
+						inconsistencyType = member_exists_flag_off_PTUexists_has_RefStr;
+						pSrcPhrase->m_bHasKBEntry = TRUE; // fixed it
+						continue;
+					} // end of else block for test: if (adaption.IsEmpty())
 
+				} // end of else block for test: if (pSrcPhrase->m_bHasKBEntry)
+
+			} // end of TRUE block for test: if (bIsInKB)
+			else
+			{
+				// check if it is a <Not In KB> location with an entry for it in the KB
+				bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, strNotInKB, pTU, pRefStr, bDeleted);
+				if (bIsInKB)
+				{
+					// there is a <Not In KB> entry (it's undeleted if bIsInKB is TRUE)
+					if (pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
+					{
+						// no inconsistency, so iterate
+						continue;
+					}
+					else
+					{
+						// this is an inconsistency, but we can fix this here (we'll
+						// assume that all other CRefString members in the pTU are
+						// deleted, the legacy code deleted all and re-stored the <Not In
+						// KB> entry, which was a bit of over-kill, though it would catch
+						// a non-deleted one stored with the <NOT In KB> one and fix the
+						// problem - we just will assume that that problem won't arise)
+						inconsistencyType = not_in_kb_but_flag_on;
+						wxASSERT(pTU != NULL);
+						wxASSERT(pRefStr != NULL);
+						wxASSERT(bDeleted == FALSE);
+						pSrcPhrase->m_bNotInKB = TRUE;
+						pSrcPhrase->m_bHasKBEntry = FALSE;
+						// such entries are never in retranslations, so ensure the
+						// relevant flags have the correct values
+						pSrcPhrase->m_bRetranslation = FALSE;
+						pSrcPhrase->m_bBeginRetranslation = FALSE;
+						pSrcPhrase->m_bEndRetranslation = FALSE;
+						continue;
+					}
+				} // end of TRUE block for test: if (bIsInKB), when testing for <Not In KB> in KB
+				else
+				{
+					// there is not an undeleted <Not In KB> entry in the KB (but a
+					// deleted one may be there), AND, the source text key doesn't have an
+					// adaptation in the KB -- so there are quite a number of
+					// inconsistencies possible here...
+
+// *** TODO ****
+
+
+
+
+
+
+
+
+
+
+
+				} // end of else block for test: if (bIsInKB), when testing for <Not In KB> in KB
+
+			} // end of else block for test: if (bIsInKB)
+
+
+
+
+
+
+
+
+
+
+
+// *** LEGACY CODE ***
+/*
 			// any inconsistency with a <Not In KB> entry can be fixed automatically,
 			// and this block must be ignored when glossing is ON
 			if (!gbIsGlossing && !pSrcPhrase->m_bRetranslation && 
@@ -21290,7 +20873,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				bOK = pKB->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
 				if (!bOK)
 				{
-					// fix it silently...
+					// fix it silently...  BEW 26Aug11, this block is correct
 					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
 					pKB->StoreText(pSrcPhrase,str);
 					pSrcPhrase->m_bHasKBEntry = FALSE;
@@ -21305,6 +20888,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                     // all and re-store "<Not In KB>" -- this will be done then on entries
                     // where this fix is not required, but since <Not In KB> is used seldom
                     // or never, this won't matter
+                    // BEW 26Aug11, this block is correct
 					if (pTU != NULL)
 					{
 						pTU->DeleteAllToPrepareForNotInKB();
@@ -21314,6 +20898,9 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 					pSrcPhrase->m_bNotInKB = TRUE;
 				}
+				// BEW added 26Aug11; either way, we are done with this pSrcPhrase, so
+				// iterate the loop
+				continue;
 			}
 
 			bool bTheTest = FALSE;
@@ -21340,9 +20927,39 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				if (!bOK)
 				{
 					// there was no target unit for this key in the map, so this is an
-					// inconsistency
+					// inconsistency 
+                    // BEW 26Aug11, the above comment is incorrect, there is no good reason
+                    // that every m_key value must have a KB entry. This logic error would
+					// have had the inconsistency dialog open heaps of unwanted times!
+					// (False positives) What counts in this block is whether or not the
+					// m_adaption or m_gloss member is empty or not; if it's non-empty, THAT means
+					// there is a genuine inconsistency -- fix the code here accordingly
 					bFoundTgtUnit = FALSE;
 					bFoundRefString = FALSE;
+					if (!gbIsGlossing && pSrcPhrase->m_adaption.IsEmpty() && pSrcPhrase->m_bHasKBEntry)
+					{
+						// pSrcPhrase says the KB has an entry for this, m_adaption is
+						// empty, but there is no pTU -- this is an inconsistency (needs a
+						// <no adaptation> entry automatically added)
+						bInconsistency = TRUE;
+						pAutoFixRec = new AutoFixRecord;
+						pAutoFixRec->incType = member_empty_flag_on_noPTU;
+						pAutoFixRec->nWords = pSrcPhrase->m_nSrcWords;
+						pAutoFixRec->key = pSrcPhrase->m_key;
+						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption;
+					}
+					else if (!gbIsGlossing && !pSrcPhrase->m_adaption.IsEmpty() && !pSrcPhrase->m_bHasKBEntry)
+					{
+						bInconsistency = TRUE;
+					}
+					else if (gbIsGlossing && !pSrcPhrase->m_gloss.IsEmpty() && !pSrcPhrase->m_bHasGlossingKBEntry)
+					{
+
+					}
+					else
+					{
+						bInconsistency = FALSE;
+					}
 				}
 				else
 				{
@@ -21396,13 +21013,19 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// no match was made, so this is an inconsistency
 						bFoundRefString = FALSE;
 					}
-				}
+				} // end of else block for test: if (!bOK) (i.e. this block handled when a 
+				  // pTU was found in the map)
 			}
 
-			// open the dialog if we have an inconsistency
-			if (!bFoundTgtUnit || !bFoundRefString)
+			// open the dialog if we have an inconsistency 
+			// if (!bFoundTgtUnit || !bFoundRefString) BEW 26Aug11, a lookup failure isn't
+			// a sufficient test - we need to have had the phrase box be at the location
+			// and leave something behind which isn't now in the KB, so it's safer to test
+			// for that above, and set a flag when a genuine inconsistency is bound
+			if (bInconsistency)
 			{
-				// make the CSourcePhrase instance is able to have a KB entry added
+				// make the CSourcePhrase instance is able to have a KB entry added ('not
+				// in kb' situation has been bled out above, so need not be considered here)
 				if (gbIsGlossing)
 					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 				else
@@ -21764,6 +21387,8 @@ y:						;
 				} // end of else block for test of presence of an 
 				  // AutoFixRecord for this inconsistency
 			}
+*/
+
 		}// end of while (pos1 != NULL)
 
 		// save document and KB
@@ -21801,22 +21426,141 @@ y:						;
 	// make sure the global flag is cleared
 	gbConsistencyCheckCurrent = FALSE;
 
-	// delete the contents of the pointer list, the list is local 
-	// so will go out of scope
-	if (!afList.IsEmpty())
-	{
-		AFList::Node* pos = afList.GetFirst();
-		wxASSERT(pos != 0);
-		while (pos != 0)
-		{
-			AutoFixRecord* pRec = (AutoFixRecord*)pos->GetData();
-			pos = pos->GetNext();
-			delete pRec;
-		}
-	}
-	afList.Clear();
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 }
+
+// the "glossing mode is on" variant
+void CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
+									   AFGList& afgList, int& nCumulativeTotal)
+{
+	// use AutoFixRecordG, and AFGList, and m_gloss herein
+
+	wxASSERT(pKB->IsThisAGlossingKB() == TRUE); // must be a glossing kb for this fn version
+
+	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
+									  // initially when OnOpenDocument() is called
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	wxArrayString* pList = &pApp->m_acceptedFilesList;
+	int nCount = pList->GetCount();
+	if (nCount <= 0)
+	{
+        // BEW 8Julyl0, book mode is on and we are iterating through Bible book folders,
+        // many of which may have no files in them yet. So we must allow for GetCount() to
+        // return 0 and if so we return silently, and the loop will go on to the next
+        // folder
+		gbConsistencyCheckCurrent = FALSE;
+		return;
+	}
+	wxASSERT(nCount > 0);
+	int nTotal = 0;
+
+	// iterate over the document files
+	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
+								 // of the extern global of the same name
+	int i;
+	for (i=0; i < nCount; i++)
+	{
+		wxString newName = pList->Item(i);
+		wxASSERT(!newName.IsEmpty());
+
+        // for debugging- check pile count before & after (failure to close doc before
+        // calling this function resulted in the following OnOpenDocument() call appending
+        // a copy of the document's contents to itself -- the fix is to ensure
+        // OnFileClose() is done in the caller before DoConsistencyCheck() is called
+		// int piles = pApp->m_pSourcePhrases->GetCount();
+
+		bool bOK;
+		bOK = OnOpenDocument(newName); // passing in just a filename, so we are relying
+									   // on the working directory having previously
+									   // being set in the caller at the call of
+									   // EnumerateDocFiles()
+		SetFilename(newName,TRUE);
+		nTotal = pApp->m_pSourcePhrases->GetCount();
+		if (nTotal == 0)
+		{
+			wxString str;
+			str = str.Format(_T("Bad file:  %s"),newName.c_str());
+			wxMessageBox(str,_T(""),wxICON_WARNING);
+		}
+		nCumulativeTotal += nTotal;
+
+		// prepare for the loop
+		bool bInconsistency = FALSE;
+		AutoFixRecordG* pAutoFixGRec = NULL;
+
+		SPList* pPhrases = pApp->m_pSourcePhrases;
+		SPList::Node* pos1; 
+		pos1 = pPhrases->GetFirst();
+		wxASSERT(pos1 != NULL);
+		int counter = 0;
+		// loop over all doc files in the current Bible book folder
+		while (pos1 != NULL)
+		{
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+			pos1 = pos1->GetNext();
+			counter++;
+			// BEW 26Aug11 added flag, becaues testing whether a pTU or pRefString is
+            // not found is not an adequate test - not every potential key needs to have a
+            // KB presence
+			bInconsistency = FALSE;
+			pAutoFixGRec = NULL;
+
+			// check the KBCopy has the required association of key with translation
+			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
+			int nWords;
+			nWords = pSrcPhrase->m_nSrcWords;
+			CTargetUnit* pTU = NULL;
+			bool bOK = TRUE;
+			bool bFoundTgtUnit = TRUE;
+			bool bFoundRefString = TRUE;
+
+
+// TODO add the rest*****************
+// 
+// 
+// 
+
+		}// end of while (pos1 != NULL)
+
+		// save document and KB
+		pApp->m_pTargetBox->Hide(); // this prevents DoFileSave() trying to
+                // store to kb with a source phrase with m_bHasKBEntry flag
+                // TRUE, which would cause an assert to trip
+		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
+											     // since it won't get recreated
+		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
+		// give better data protection
+		//bool bSavedOK = pDoc->DoFileSave(TRUE);
+		
+        // BEW 9July10, added test and changed param to FALSE if doing bible book folders
+        // loop, as we don't want time wasted for a progress dialog for what are probably a
+        // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
+        // each doc file that we check in the currently accessed folder
+		bool bSavedOK = DoFileSave_Protected(FALSE); // FALSE - dodn't show wait/progress dialog
+		if (!bSavedOK)
+		{
+			wxMessageBox(_("Warning: failure on document save operation."),
+			_T(""), wxICON_EXCLAMATION);
+		}
+		pApp->GetView()->ClobberDocument();
+		
+		// delete the buffer containing the filed-in source text
+		if (pApp->m_pBuffer != NULL)
+		{
+			delete pApp->m_pBuffer;
+			pApp->m_pBuffer = NULL;
+		}
+		if (bUserCancelled)
+			break; // don't do any more saves of the KB if user cancelled
+	} // end iteration of document files for (int i=0; i < nCount; i++)
+
+	// make sure the global flag is cleared
+	gbConsistencyCheckCurrent = FALSE;
+
+	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
+}
+
 
 // the rpRec value will be undefined if FALSE is returned, if TRUE is returned, rpRec will
 // be the matched auto-fix item in the list. For version 2.0 and later which supports
