@@ -22927,7 +22927,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 	pProgDlg->Update(1,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 
 	// BEW 22July10, CWhichFilesDlg is called from EnumerateDocFiles(), and if the user
 	// cancels from that dialog, we don't want the KB or GlossingKB lost (it might still
@@ -22948,7 +22948,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// Update for step 2 ClearKB()
 	msgDisplayed = progMsg.Format(progMsg,2,nTotal);
 	pProgDlg->Update(2,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 	// clear out the KB, actually erase it & create a new empty one & store it ready 
 	// for filling
 	// whm Note: ClearKB() is a potentially time consuming operation for long
@@ -22989,7 +22989,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// Update for step 3 EnumerateDocFiles() in Adaptations location
 	msgDisplayed = progMsg.Format(progMsg,3,nTotal);
 	pProgDlg->Update(3,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
     
 	// handle the Adaptations folder's files first - for these, we allow the
     // IDD_WHICH_FILES dialog to show and the user can remove some files from the
@@ -23043,7 +23043,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// Update for step 4 DoKBRestore()
 		msgDisplayed = progMsg.Format(progMsg,4,nTotal);
 		pProgDlg->Update(4,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
     
 		// there is at least one document, so do the restore
 		pKB->DoKBRestore(nCount, nCumulativeTotal);
@@ -23144,7 +23144,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			// Update for step 5 EnumerateDocFiles() for each book folder
 			msgDisplayed = progMsg.Format(progMsg,5,nTotal);
 			pProgDlg->Update(5,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
     
 			wxString str;
 			bool bWorking = finder.GetFirst(&str,_T("*.*"),wxDIR_FILES | wxDIR_DIRS);
@@ -23284,7 +23284,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// Update for step 6 DoGlossingKBBackup() or DoKBBackup() depending on gbIsGlossing
 	msgDisplayed = progMsg.Format(progMsg,6,nTotal);
 	pProgDlg->Update(6,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 	
 	// do the KB backup, if the relevant flag is set
 	if(m_bAutoBackupKB)
@@ -23303,7 +23303,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// Update for step 7 End of processes
 	msgDisplayed = progMsg.Format(progMsg,7,nTotal);
 	pProgDlg->Update(7,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 
 	// inform user of success and some statistics
 	wxString stats;
@@ -30809,7 +30809,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),
 									counter,nTotal);
 					pProgDlg->Update(counter,msgDisplayed);
-					::wxSafeYield();
+					//::wxSafeYield();
 				}
 			}
 			

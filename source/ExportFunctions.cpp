@@ -3950,7 +3950,7 @@ void DoExportInterlinearRTF()
 		{
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 			pProgDlg->Update(counter,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 
 		savePos = pos;
@@ -7509,7 +7509,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		{
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ptr - beginPtr,nTotal);
 			pProgDlg->Update(ptr - beginPtr,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 
 		bHitMarker = FALSE;

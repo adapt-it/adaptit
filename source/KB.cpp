@@ -1105,7 +1105,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		if (pProgDlg != NULL)
 		{
 			pProgDlg->Destroy();
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 	}
 	else
@@ -1185,7 +1185,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			{
 				msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ct,nTotal);
 				pProgDlg->Update(ct,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 			}
 
 			// for debugging
@@ -2166,7 +2166,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					{
 						msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 						pProgDlg->Update(counter,msgDisplayed);
-						::wxSafeYield();
+						//::wxSafeYield();
 					}
 				} // end of inner loop for looping over CRefString instances
 
@@ -2243,7 +2243,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				{
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 					pProgDlg->Update(counter,msgDisplayed);
-					::wxSafeYield();
+					//::wxSafeYield();
 				}
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map 
@@ -4256,7 +4256,7 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 							{
 								msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 								pProgDlg->Update(counter,msgDisplayed);
-								::wxSafeYield();
+								//::wxSafeYield();
 							}
 						}
 						counter++;
