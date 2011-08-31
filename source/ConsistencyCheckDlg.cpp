@@ -146,7 +146,14 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION that is, "<no adaptation>" 
+	if (gbIsGlossing)
+	{
+		s = _("<no gloss>"); 
+	}
+	else
+	{
+		s = _("<no adaptation>");
+	}
 	gbIgnoreIt = FALSE; // default
 
 	m_bRadioButtonAction = FALSE;
@@ -214,7 +221,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 				wxString str = pRefString->m_translation;
 				if (str.IsEmpty())
 				{
-					str = s; // user needs to be able to see a "<no adaptation>" entry
+					str = s; // user needs to be able to see a "<no adaptation>" or "<no gloss>" entry
 				}
 				m_pListBox->Append(str);
 				counter++;

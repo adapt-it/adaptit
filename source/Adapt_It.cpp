@@ -12385,6 +12385,17 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// BEW added 31Aug11 -- strings needed in the consistency check dialogs
+	m_modeWordAdapt = _("adaptation");
+	m_modeWordGloss = _("gloss");
+	m_modeWordAdaptPlusArticle = _("an adaptation");
+	m_modeWordGlossPlusArticle = _("a gloss");
+	m_strNotInKB = _T("<Not In KB>"); // this one is never localizable, 
+				// and this KB entry type is not available in glossing mode either
+	m_strNoAdapt = _("<no adaptation>");
+	m_strNoGloss = _("<no gloss>");
+	m_strTitle = _("Inconsistency Found");
+
 	// BEW added 25Aug11
 	m_bRetransReportInProgress = FALSE;
     // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should

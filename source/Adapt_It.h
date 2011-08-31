@@ -3507,7 +3507,23 @@ public:
 	// appropriate; it is destroyed in OnExit()
 	NavProtectNewDoc* m_pNavProtectDlg;	
 
-    // BEWS added 17Sept10: set TRUE when an oxes export is in progress - and since it
+    // ConsChk_Empty_NoTU_Dlg class uses these as input parameters for the dialog handler.
+    // The 'adaptation' variants of the following are passed in via the creator when
+    // gbIsGlossing is FALSE, when it is TRUE the 'gloss' variants are passed in. The 'not
+    // in kb' one is passed in to both, but either disabled or its radio button hidden when
+	// glossing mode is ON
+	wxString m_modeWordAdapt;
+	wxString m_modeWordGloss;
+	wxString m_modeWordAdaptPlusArticle;
+	wxString m_modeWordGlossPlusArticle;
+	wxString m_strNotInKB; // this one is never localizable, 
+				// and this KB entry type is not available in glossing mode either
+	wxString m_strNoAdapt;
+	wxString m_strNoGloss;
+	wxString m_strTitle;
+
+
+    // BEW added 17Sept10: set TRUE when an oxes export is in progress - and since it
     // starts with a special case of a standard USFM target text export with \bt info not
     // included, the TRUE value should be on when that export commences. Turn it off when
     // the exported oxes file is saved to disk.
