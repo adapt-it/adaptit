@@ -63,7 +63,7 @@
 //extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 // This global is defined in Adapt_ItView.cpp.
-//extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+//extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 extern bool gbPrintingSelection;

@@ -137,7 +137,7 @@ public:
 	bool			m_bNotInKB;		// 61: set TRUE if user specifies no KB map entry for this adaption, and 
 									// obligatorily TRUE for retranslations, null source phrases, and 
 									// too-long phrases
-	// new attribute for VERSION_NUMBER 3, m_gloss  (used with gbEnableGlossing and gbIsGlossing
+	// new attribute for VERSION_NUMBER 3, m_gloss  (used with gbGlossingVisible and gbIsGlossing
 	// flags) to allow the user to give word for word glosses and have them saved in a glossing KB
 	bool			m_bHasGlossingKBEntry; // 62: parallels the function of m_bHasKBEntry
 	bool			m_bSpecialText; // 63: TRUE if the text is special, such as \id contents, or 

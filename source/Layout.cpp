@@ -136,7 +136,7 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 extern bool gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 
@@ -1106,7 +1106,7 @@ void CLayout::SetPileAndStripHeight()
         // we've accounted for source and target lines; now handle possibility of a 3rd
         // line (note, if 3 lines, target is always one, so we've handled that above
         // already)
-		if (gbEnableGlossing)
+		if (gbGlossingVisible)
 		{
 			if (gbGlossingUsesNavFont)
 			{

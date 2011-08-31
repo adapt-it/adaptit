@@ -258,14 +258,14 @@ bool	gbCallerIsRemoveButton = FALSE;
 /// When TRUE it indicates that the application is in the "See Glosses" mode. In the 
 /// "See Glosses" mode any existing glosses are visible in a separate glossing line in 
 /// the main window, but words and phrases entered into the phrasebox are not entered 
-/// into the glossing KB unless gbEnableGlossing is also TRUE.
+/// into the glossing KB unless gbGlossingVisible is also TRUE.
 bool	gbIsGlossing = FALSE; // when TRUE, the phrase box and its line have glossing text
 
 /// When TRUE the application is in true glossing mode. The phrasebox appears in the 
 /// main window's glossing line and contains glosses rather than normal adaptations. 
 /// The glosses entered or displayed in the phrasebox are stored in and retrieved from 
 /// the glossing KB.
-bool	gbEnableGlossing = FALSE; // TRUE makes Adapt It revert to Shoebox functionality only
+bool	gbGlossingVisible = FALSE; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// When TRUE the font used in glossing is the Navigation language font. Glossing uses 
 /// the Target font & settings by default, but if TRUE then it uses the Navigation language
@@ -5612,7 +5612,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	if (pDoc == NULL)
 		return; // do nothin because no doc instance exists yet, so prevent crash
 
-	if (gbEnableGlossing)
+	if (gbGlossingVisible)
 	{
 		// glossing is on, so we must ensure the menu toggle is turned off and the
 		// glossing checkbox removed, so this can all be done with the following call
@@ -5705,7 +5705,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
     // restore the glossing support flags to their default values, so an open of another
     // project will have the default 2-rows per strip interface in effect
 	gbIsGlossing = FALSE;
-	gbEnableGlossing = FALSE;
+	gbGlossingVisible = FALSE;
 	gbGlossingUsesNavFont = FALSE;
 
     // book folder mode may have been on; we can't be sure the next project opened will
@@ -7457,11 +7457,11 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// save current glossing state, so we can restore afterwards
-	bool bSaveEnableFlag = gbEnableGlossing;
+	bool bSaveEnableFlag = gbGlossingVisible;
 	bool bSaveGlossingFlag = gbIsGlossing;
 
 	// store to the adapting KB
-	gbEnableGlossing = FALSE;
+	gbGlossingVisible = FALSE;
 	gbIsGlossing = FALSE;
 
     // inhibit the call to MakeTargetStringIncludingPunctuation() within the StoreText()
@@ -7472,12 +7472,12 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	bool bOK = pApp->m_pKB->StoreText(pSrcPhrase,adaptationStr);
 
 	// now the glossing KB
-	gbEnableGlossing = TRUE;
+	gbGlossingVisible = TRUE;
 	gbIsGlossing = TRUE;
 	bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,glossStr);
 
 	// restore current mode
-	gbEnableGlossing = bSaveEnableFlag;
+	gbGlossingVisible = bSaveEnableFlag;
 	gbIsGlossing = bSaveGlossingFlag;
 	gbInhibitMakeTargetStringCall = FALSE; // restore the default setting
 }
@@ -23757,7 +23757,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 
 	pRec->bGlossingModeOnEntry = gbIsGlossing; // save, for when original mode 
 											   // is to be set up again
-	pRec->bSeeGlossesEnabledOnEntry = gbEnableGlossing; // ditto
+	pRec->bSeeGlossesEnabledOnEntry = gbGlossingVisible; // ditto
 
 	gbEditingSourceAndDocNotYetChanged = TRUE;
 	bool bUserCancelled = FALSE;
@@ -25588,7 +25588,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 ///
 ///	\param bSeeGlossesEnabled	->	TRUE of glosses are visible currently in the 
 ///                                 main window (caller passes in the global bool
-///                                 gbEnableGlossing flag), FALSE if not
+///                                 gbGlossingVisible flag), FALSE if not
 ///	\param bIsGlossing			->	TRUE if glossing mode is currently ON, FALSE if 
 ///	                                adapting mode is currently ON (caller passes in the 
 ///	                                global bool gbIsGlossing flag)
@@ -25628,7 +25628,7 @@ void CAdapt_ItView::RestoreMode(bool WXUNUSED(bSeeGlossesEnabled),
 		}
 		else
 		{
-            // adapting mode was ON at entry, but gbEnableGlossing could have been ON (ie.
+            // adapting mode was ON at entry, but gbGlossingVisible could have been ON (ie.
             // glosses visible) or OFF (ie. glosses hidden) on entry, so find out which was
             // the case
 			if (pRec->bSeeGlossesEnabledOnEntry)
@@ -25649,7 +25649,7 @@ void CAdapt_ItView::RestoreMode(bool WXUNUSED(bSeeGlossesEnabled),
 	{
         // adapting mode is currently ON, but gbEnableGlosses could be ON (ie. glosses
         // visible) or OFF (ie. glosses hidden
-		if (gbEnableGlossing)
+		if (gbGlossingVisible)
 		{
 			// the "See Glosses" menu item is ticked, glosses are visible in adapting mode
 			if (pRec->bGlossingModeOnEntry)
@@ -25660,7 +25660,7 @@ void CAdapt_ItView::RestoreMode(bool WXUNUSED(bSeeGlossesEnabled),
 			}
 			else
 			{
-                // adapting mode was ON at entry, but gbEnableGlossing could have been ON
+                // adapting mode was ON at entry, but gbGlossingVisible could have been ON
                 // (ie. glosses visible) or OFF (ie. glosses hidden) on entry, so find out
                 // which was the case
 				if (pRec->bSeeGlossesEnabledOnEntry)
@@ -25691,7 +25691,7 @@ void CAdapt_ItView::RestoreMode(bool WXUNUSED(bSeeGlossesEnabled),
 			}
 			else
 			{
-                // adapting mode was ON at entry, but gbEnableGlossing could have been ON
+                // adapting mode was ON at entry, but gbGlossingVisible could have been ON
                 // (ie. glosses visible) or OFF (ie. glosses hidden) on entry, so find out
                 // which was the case
 				if (pRec->bSeeGlossesEnabledOnEntry)
@@ -26817,14 +26817,14 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
         // setting each time the user enables glossing again in the one session. (Leaving
         // the flag ON is benign when adapting.)
 		wxMenuItem * pAdvancedSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES);
-		if (gbEnableGlossing)
+		if (gbGlossingVisible)
 		{
 			// toggle the checkmark to OFF
 			if (pAdvancedSeeGlosses != NULL)
 			{
 				pAdvancedSeeGlosses->Check(FALSE);
 			}
-			gbEnableGlossing = FALSE;
+			gbGlossingVisible = FALSE;
 			gbIsGlossing = FALSE; // must be off whenever the other flag is off
 
 			// hide the mode bar checkbox when glossing is not allowed to be visible
@@ -26842,7 +26842,7 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 			{
 				pAdvancedSeeGlosses->Check(TRUE);
 			}
-			gbEnableGlossing = TRUE;
+			gbGlossingVisible = TRUE;
 
             // show the mode bar checkbox when glossing is allowed to be visible
             // - user can then choose either to do glossing, or to do adapting
@@ -26880,7 +26880,7 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 	// other functions.
 	if (event.GetId() == ID_ADVANCED_SEE_GLOSSES)
 	{
-		if (gbEnableGlossing)
+		if (gbGlossingVisible)
 			pApp->LogUserAction(_T("See Glosses OFF"));
 		else
 			pApp->LogUserAction(_T("See Glosses ON"));
@@ -26960,14 +26960,14 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
     // nuisance to have to manually restore this flag to its former setting each time the
     // user enables glossing again in the one session. (Leaving the flag ON is benign when
     // adapting.)
-	if (gbEnableGlossing)
+	if (gbGlossingVisible)
 	{
 		// toggle the checkmark to OFF
 		if (pAdvancedMenuSeeGlosses != NULL)
 		{
 			pAdvancedMenuSeeGlosses->Check(FALSE);
 		}
-		gbEnableGlossing = FALSE;
+		gbGlossingVisible = FALSE;
 		gbIsGlossing = FALSE; // must be off whenever the other flag is off
 
 		// hide the mode bar checkbox when glossing is not allowed to be visible
@@ -26985,7 +26985,7 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 		{
 			pAdvancedMenuSeeGlosses->Check(TRUE);
 		}
-		gbEnableGlossing = TRUE;
+		gbGlossingVisible = TRUE;
 
 		// show the mode bar checkbox when glossing is allowed to be visible - user can
 		// then choose either to do glossing, or to do adapting
@@ -27379,12 +27379,12 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed. The "Glossing Uses Navigation Text's Font" item on
-/// the Advanced menu is enabled if the gbEnableGlossing global is TRUE, otherwise the menu
+/// the Advanced menu is enabled if the gbGlossingVisible global is TRUE, otherwise the menu
 /// item is disabled.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event)
 {
-	if (gbEnableGlossing)
+	if (gbGlossingVisible)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);

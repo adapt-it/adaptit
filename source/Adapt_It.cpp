@@ -488,7 +488,7 @@ extern bool gbPrintFooter;
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 // When FALSE back slash characters found anywhere in a text are interpreted as
 // introducing standard format markers (the default). When TRUE back slash characters may
@@ -7881,8 +7881,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 							// "See Glossing" setting is not persistent - it reverts back to being "OFF" each 
 							// time the app starts up. Hence, we can ensure Glossing is disabled here along with
 							// the removal of the "See Glosses" Advanced menu item in this profile.
-							gbEnableGlossing = FALSE;
-							gbIsGlossing = FALSE; // this must be FALSE if gbEnableGlossing is FALSE
+							gbGlossingVisible = FALSE;
+							gbIsGlossing = FALSE; // this must be FALSE if gbGlossingVisible is FALSE
 						}
 						removedItem = pMainMenuItem_CurrentMenuBar->Remove(mItem);
 						delete removedItem;
@@ -8923,7 +8923,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	if (pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION) != NULL) // whm added 28Jul11
 		pMenuBar->Check(ID_TOOLS_AUTO_CAPITALIZATION, gbAutoCaps);
 	if (pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES) != NULL)
-		pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, gbEnableGlossing); //pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
+		pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, gbGlossingVisible); //pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
 	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
 		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, gbGlossingUsesNavFont); //pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 	if (pMenuBar->FindItem(ID_ADVANCED_BOOKMODE) != NULL) // whm added 28Jul11
@@ -13227,7 +13227,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pFindDlg = (CFindDlg*)NULL;
 	m_pReplaceDlg = (CReplaceDlg*)NULL;
 		
-	gbEnableGlossing = FALSE;
+	gbGlossingVisible = FALSE;
 	gbIsGlossing = FALSE;
 	gbGlossingUsesNavFont = FALSE;
 	//gbRemovePunctuationFromGlosses = FALSE; << BEW removed 13Nov10, it's nowhere set TRUE

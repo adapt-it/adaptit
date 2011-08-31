@@ -59,7 +59,7 @@
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
@@ -552,7 +552,7 @@ void CFindDlg::DoFindNext()
 		// place the dialog window so as not to obscure things
 		// work out where to place the dialog window
 		m_nTwoLineDepth = 2 * gpApp->m_nTgtHeight;
-		if (gbEnableGlossing)
+		if (gbGlossingVisible)
 		{
 			if (gbGlossingUsesNavFont)
 				m_nTwoLineDepth += gpApp->m_nNavTextHeight;
@@ -1362,7 +1362,7 @@ void CReplaceDlg::DoFindNext()
 		// place the dialog window so as not to obscure things
 		// work out where to place the dialog window
 		m_nTwoLineDepth = 2 * gpApp->m_nTgtHeight;
-		if (gbEnableGlossing)
+		if (gbGlossingVisible)
 		{
 			if (gbGlossingUsesNavFont)
 				m_nTwoLineDepth += gpApp->m_nNavTextHeight;

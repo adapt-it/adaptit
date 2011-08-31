@@ -85,7 +85,7 @@ extern wxString	gSpacelessTgtPunctuation; // contents of app's m_punctuation[1] 
 /// When TRUE it indicates that the application is in the "See Glosses" mode. In the 
 /// "See Glosses" mode any existing glosses are visible in a separate glossing line in 
 /// the main window, but words and phrases entered into the phrasebox are not entered 
-/// into the glossing KB unless gbEnableGlossing is also TRUE.
+/// into the glossing KB unless gbGlossingVisible is also TRUE.
 /// Defined in Adapt_ItView.cpp
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 

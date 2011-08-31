@@ -90,7 +90,7 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 extern bool gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 
@@ -747,9 +747,9 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 	}
 	else // m_nCellIndex could be 2, or 3
 	{
-        // if glossing is seen (ie. gbEnableGlossing is TRUE) then it could be target text
+        // if glossing is seen (ie. gbGlossingVisible is TRUE) then it could be target text
         // or gloss text in the cell, else must be target text
-		if (!gbEnableGlossing)
+		if (!gbGlossingVisible)
 		{
 			// glossing not enabled (nor seen), so can only be target text in the cell
 			if (m_pLayout->m_pApp->m_bTgtRTL)
