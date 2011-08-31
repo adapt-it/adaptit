@@ -95,6 +95,7 @@
 #include "ConsistencyCheckDlg.h"
 #include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
 #include "NavProtectNewDoc.h"
+#include "ConsChk_Empty_NoTU_Dlg.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
@@ -20260,6 +20261,50 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE; // this is a global boolean
+
+	// test dialog
+	wxString titleStr = _("Inconsistency Found");
+	wxString aSrcStr = _T("Rubber balloons");
+	wxString testLongStr = _T("adaptation or other miscellaneous test string");
+	if (gbIsGlossing)
+	{
+		ConsChk_Empty_noTU_Dlg dlg(
+			(wxWindow*)gpApp->GetMainFrame(),
+			&titleStr,
+			&aSrcStr,
+			&gpApp->m_modeWordGloss,
+			&gpApp->m_modeWordGlossPlusArticle,
+			&gpApp->m_strNotInKB,
+			&gpApp->m_strNoGloss);
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			;
+		}
+		else
+		{
+			return;
+		}
+	}
+	else
+	{
+		ConsChk_Empty_noTU_Dlg dlg(
+			(wxWindow*)gpApp->GetMainFrame(),
+			&titleStr,
+			&aSrcStr,
+			&testLongStr,
+			//&gpApp->m_modeWordAdapt,
+			&gpApp->m_modeWordAdaptPlusArticle,
+			&gpApp->m_strNotInKB,
+			&gpApp->m_strNoAdapt);
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			;
+		}
+		else
+		{
+			return;
+		}
+	}
 
     // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
     // now added here & below. 
