@@ -62,7 +62,7 @@ ConsChk_Empty_noTU_Dlg::ConsChk_Empty_noTU_Dlg(
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	ConsistencyCheck_EmptyNoTU_DlgFunc(this, TRUE, TRUE);
+	pConsChk_Empty_noTU_DlgSizer = ConsistencyCheck_EmptyNoTU_DlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	bool bOK;

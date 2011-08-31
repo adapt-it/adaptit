@@ -56,6 +56,7 @@ public:
 	wxString		m_notInKBStr; // for <Not In KB>, that is, strNotInKB
 	wxString		m_noneOfThisStr; // for strNoAdapt or strNoGloss
 	bool			m_bDoAutoFix; // for the Auto-fix checkbox value
+	wxSizer*		pConsChk_Empty_noTU_DlgSizer; // whm 31Aug11 added
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

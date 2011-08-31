@@ -129,6 +129,11 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	m_pRadioTypeNewOne = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
 	wxASSERT(m_pRadioTypeNewOne != NULL);
 
+	m_pCheckAutoFix = (wxCheckBox*)FindWindowById(IDC_CHECK_DO_SAME); // whm added 31Aug11
+	wxASSERT(m_pCheckAutoFix != NULL);
+	m_pCheckAutoFix->SetValidator(wxGenericValidator(&m_bDoAutoFix)); // use validator
+
+
 	// use wxValidator for simple dialog data transfer
 	m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
 	m_pEditCtrlNew->SetValidator(wxGenericValidator(&m_newStr));

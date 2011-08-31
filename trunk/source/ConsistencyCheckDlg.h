@@ -62,6 +62,7 @@ public:
 	wxRadioButton* m_pRadioSelectFromList;
 	wxRadioButton* m_pRadioAcceptCurrent;
 	wxRadioButton* m_pRadioTypeNewOne;
+	wxCheckBox* m_pCheckAutoFix; // whm added 31Aug11
 	wxString	m_keyStr;
 	wxString	m_adaptationStr; // adaptation, or the gloss when glossing is ON
 	wxString	m_newStr;
