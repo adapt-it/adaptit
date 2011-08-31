@@ -20356,6 +20356,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	bool bDocIsClosed = FALSE;
 	bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0;
 	bool bDocForcedToClose = FALSE;
+	bool bConsCheckDone = TRUE;
 
 	// next two from legacy code..., retained because I'm lazy
 	wxString pathName = savedCurOutputPath;
@@ -20411,11 +20412,18 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				nFileCount++;
 				if (gbIsGlossing)
 				{
-					DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, nCumulativeTotal); // for glossing mode
+					bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
+														nCumulativeTotal); // for glossing mode
 				}
 				else
 				{
-					DoConsistencyCheck(pApp, pKB, pKBCopy, afList, nCumulativeTotal); // for adapting mode
+					bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
+														nCumulativeTotal); // for adapting mode
+				}
+				if (!bConsCheckDone)
+				{
+					bUserCancelled = TRUE; // from within one of the dialogs shown
+										   // during DoConsistencyCheck()
 				}
 				pApp->m_acceptedFilesList.Clear();
 				// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
@@ -20534,9 +20542,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// loop over the Bible book folders
 				for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
 				{
-                    // NOTE: a limitation of this calling of DoConsistencyCheck() in a loop
-                    // is that the user's potential choice to 'auto-fix later instances the
-                    // same way' will only apply on a per-folder basis
 					pBookNamePair = ((BookNamePair*)(*pApp->m_pBibleBooks)[bookIndex]);
 					folderPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + pBookNamePair->dirName;
 					// setting the index, book name pair, and bibleBooksFolderPath on the
@@ -20559,11 +20564,19 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					nFileCount++;
 					if (gbIsGlossing)
 					{
-						DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, nCumulativeTotal); // for glossing mode
+						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
+												nCumulativeTotal); // for glossing mode
 					}
 					else
 					{
-						DoConsistencyCheck(pApp, pKB, pKBCopy, afList, nCumulativeTotal); // for adapting mode
+						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
+												nCumulativeTotal); // for adapting mode
+					}
+					if (!bConsCheckDone)
+					{
+						bUserCancelled = TRUE; // from within one of the dialogs shown
+											   // during DoConsistencyCheck()
+						break;
 					}
 				} // end of for loop
 
@@ -20644,11 +20657,18 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					nFileCount++;
 					if (gbIsGlossing)
 					{
-						DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, nCumulativeTotal); // for glossing mode
+						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
+												nCumulativeTotal); // for glossing mode
 					}
 					else
 					{
-						DoConsistencyCheck(pApp, pKB, pKBCopy, afList, nCumulativeTotal); // for adapting mode
+						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
+												nCumulativeTotal); // for adapting mode
+					}
+					if (!bConsCheckDone)
+					{
+						bUserCancelled = TRUE; // from within one of the dialogs shown
+											   // during DoConsistencyCheck()
 					}
 				}
 				pApp->m_acceptedFilesList.Clear();
@@ -20800,7 +20820,9 @@ void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
 	afgList.Clear();
 }
 
-
+// Returns TRUE if process runs to completion, FALSE if the user clicks the Cancel button
+// in any dialog which is shown - the FALSE is then passed back to the caller,
+// OnEditConsistencyCheck() to cause the whole process to be cancelled.
 // This function assumes that the current directory will have already been set correctly
 // before being called. This function potentially handles all doc files in a folder - which
 // may be a Bible book folder, or the Adaptations folder. Which files are handled is
@@ -20836,7 +20858,7 @@ void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
 // name, and added nCumulativeTotal 4th param
 // BEW 29Aug11, there are now two versions of this function which differ only by name:
 // DoConsistencyCheck() handles adapting mode, DoConsistencyCheckG() handles glossing mode
-void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
+bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
 									  AFList& afList, int& nCumulativeTotal)
 {
 	wxASSERT(pKB->IsThisAGlossingKB() == FALSE); // must be an adaptation kb for this fn version
@@ -20854,7 +20876,7 @@ void CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
         // return 0 and if so we return silently, and the loop will go on to the next
         // folder
 		gbConsistencyCheckCurrent = FALSE;
-		return;
+		return TRUE;
 	}
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
@@ -21679,9 +21701,6 @@ y:						;
                 // TRUE, which would cause an assert to trip
 		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
 											     // since it won't get recreated
-		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
-		// give better data protection
-		//bool bSavedOK = pDoc->DoFileSave(TRUE);
 		
         // BEW 9July10, added test and changed param to FALSE if doing bible book folders
         // loop, as we don't want time wasted for a progress dialog for what are probably a
@@ -21709,10 +21728,14 @@ y:						;
 	gbConsistencyCheckCurrent = FALSE;
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
+	return TRUE;
 }
 
 // the "glossing mode is on" variant
-void CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
+// Returns TRUE if process runs to completion, FALSE if the user clicks the Cancel button
+// in any dialog which is shown - the FALSE is then passed back to the caller,
+// OnEditConsistencyCheck() to cause the whole process to be cancelled
+bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
 									   AFGList& afgList, int& nCumulativeTotal)
 {
 	// use AutoFixRecordG, and AFGList, and m_gloss herein
@@ -21732,7 +21755,7 @@ void CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
         // return 0 and if so we return silently, and the loop will go on to the next
         // folder
 		gbConsistencyCheckCurrent = FALSE;
-		return;
+		return TRUE;
 	}
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
@@ -21841,6 +21864,7 @@ void CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 	gbConsistencyCheckCurrent = FALSE;
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
+	return TRUE;
 }
 
 
