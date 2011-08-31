@@ -4193,7 +4193,7 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 	buff.AppendData(kbElementBeginStr,kbElementBeginStr.GetLength());
 
 	wxString msgDisplayed;
-	wxString progMsg = _("Saving KB - %d of %d Total entries and senses");
+	wxString progMsg = _("Saving KB %s - %d of %d Total entries and senses");
 	wxString kbPath;
 	if (this->IsThisAGlossingKB())
 		kbPath = m_pApp->m_curGlossingKBPath;
