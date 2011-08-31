@@ -55,7 +55,7 @@ extern CAdapt_ItApp* gpApp;
 extern bool gbIsUnstructuredData;
 
 // This global is defined in Adapt_ItView.cpp.
-extern bool gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool bPlaceFreeTransInRTFText;	// default is TRUE
 
@@ -1420,7 +1420,7 @@ void DoExportInterlinearRTF()
 													// as default and Src lang row is included in output tables.
 	bool bInclTgtLangRow = TRUE;					// When true the the Target language check box is checked
 													// as default and Tgt lang row is included in output tables.
-	bool bInclGlsLangRow = gbEnableGlossing;		// When gbEnableGlossing is true the the Gloss language
+	bool bInclGlsLangRow = gbGlossingVisible;		// When gbGlossingVisible is true the the Gloss language
 													// check box is checked and Gls lang row is included in
 													// output tables.
 	bool bInclNavLangRow = TRUE;					// When true the the Navigation lang check box is checked
@@ -1566,8 +1566,8 @@ void DoExportInterlinearRTF()
 	int nActualVsLast = nVsLast; // " " "
 
 	// inform OnInitDialog to check/uncheck and enable/disable include Gloss text
-	// depending of gbEnableGlossing
-	exdlg.m_bIncludeGlossText = gbEnableGlossing;
+	// depending of gbGlossingVisible
+	exdlg.m_bIncludeGlossText = gbGlossingVisible;
 
 	// start with the Orientation that the PageSetup dialog would have as contained in 
 	// the App's m_bIsPortraitOrientation.

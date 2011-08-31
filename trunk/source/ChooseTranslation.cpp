@@ -107,7 +107,7 @@ extern bool	gbCallerIsRemoveButton;
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 // This global is defined in Adapt_ItView.cpp.
-//extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+//extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -262,7 +262,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	s = s.Format(_("<no adaptation>"));
 	if (itemStr == s)
 	{
-		// CTargetUnit stores empty string, not <no adaptation
+		// CTargetUnit stores empty string, not <no adaptation>
 		itemStr.Empty();
 	}
 	int nListIndex = (int)wxNOT_FOUND;

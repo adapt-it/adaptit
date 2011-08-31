@@ -127,7 +127,7 @@ extern bool		gbWasGlossingMode;
 extern bool		gbWasFreeTranslationMode;
 
 /// This global is defined in Adapt_ItView.cpp
-extern bool		gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool		gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp
 extern bool		gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON;
@@ -3538,13 +3538,13 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						if (pRec->bEditSpanHasGlosses)
 						{
 							// make them visible if not already so
-							if (!gbEnableGlossing)
+							if (!gbGlossingVisible)
 								pView->ToggleSeeGlossesMode();
 						}
 						else
 						{
 							// make sure glosses are not visible
-							if (gbEnableGlossing)
+							if (gbGlossingVisible)
 							{
 								// make them invisible, as there are none in the edit span
 								pView->ToggleSeeGlossesMode();
@@ -3807,7 +3807,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
                     // the free translations step
 
 					// since we were in glossingStep we know that the glossing checkbox is ON
-					// and the gbEnableGlossing global is TRUE; so all we need to do is turn
+					// and the gbGlossingVisible global is TRUE; so all we need to do is turn
 					// the checkbox off
 					pView->ToggleGlossingMode();
 
@@ -4202,7 +4202,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                     // about to do the things needed to transition to the glosses step
 
 					// we now must get glossing mode turned on
-					if (gbEnableGlossing)
+					if (gbGlossingVisible)
 					{
 						// glosses are visible already, so we only need turn glossing mode on
 						pView->ToggleGlossingMode();
@@ -4427,9 +4427,9 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					else
 					{
                         // adapting mode is on, but glosses may or may not be visible, so
-                        // check gbEnableGlossing first and get glosses visible if not
+                        // check gbGlossingVisible first and get glosses visible if not
                         // already TRUE, then turn on glossing mode
-						if (!gbEnableGlossing)
+						if (!gbGlossingVisible)
 						{
 							pView->ToggleSeeGlossesMode();
 						}
@@ -4559,7 +4559,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					else
 					{
 						// adapting mode is in effect, so change the mode to glossing mode
-						if (!gbEnableGlossing)
+						if (!gbGlossingVisible)
 						{
 							// glosses are not yet visible, so make them so
 							pView->ToggleSeeGlossesMode();
@@ -4674,7 +4674,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
                     // we have to switch to glossing step; moreover, glosses may or may not
                     // have been visible, but we have to be sure they will be visible in
                     // glossesStep
-					if (!gbEnableGlossing)
+					if (!gbGlossingVisible)
 					{
 						// make glosses visible and have the glossing checkbox be shown
 						// on the command bar
@@ -4861,7 +4861,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 					{
 						// adaptation mode is in effect already, make glosses visible if they are not
 						// already so
-						if (!gbEnableGlossing)
+						if (!gbGlossingVisible)
 							pView->ToggleSeeGlossesMode();
 					}
 
@@ -5126,7 +5126,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                     // and so we also have to get glosses visible if not already so (which
                     // permits the user to still free translate the gloss line if he
                     // chooses)
-					if (!gbEnableGlossing)
+					if (!gbGlossingVisible)
 					{
 						pView->ToggleSeeGlossesMode();
 					}
@@ -5492,7 +5492,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		pView->DoConditionalStore(); // parameter defaults TRUE, FALSE, are in effect
 
 		// restore the original mode, 
-		pView->RestoreMode(gbEnableGlossing, gbIsGlossing, &gEditRecord);
+		pView->RestoreMode(gbGlossingVisible, gbIsGlossing, &gEditRecord);
 		gEditStep = noEditStep; // no need to pretend any longer that vertical edit is in a step
 		
 		// put the phrase box at a suitable and safe location in the document
@@ -5647,7 +5647,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					if (!gbIsGlossing)
 					{
 						// turn on glossing mode if it is not currently on
-						if (!gbEnableGlossing)
+						if (!gbGlossingVisible)
 						{
 							pView->ToggleSeeGlossesMode();
 						}
@@ -5868,7 +5868,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						pView->ToggleGlossingMode(); // turn glossing mode off, as well as See Glosses
 						pView->ToggleSeeGlossesMode();
 					}
-					else  if (gbEnableGlossing)
+					else  if (gbGlossingVisible)
 					{
 						// See Glosses is enabled, so turn if off, glossing mode is already off
 						pView->ToggleSeeGlossesMode();
@@ -5912,7 +5912,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					// entry point was at an earlier step
 					if (!gbIsGlossing)
 					{
-						if (!gbEnableGlossing)
+						if (!gbGlossingVisible)
 						{
 							pView->ToggleSeeGlossesMode(); // turn on See Glosses
 						}

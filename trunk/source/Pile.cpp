@@ -120,7 +120,7 @@ WX_DEFINE_LIST(PileList);
 // these next globals are put here when I moved CreatePile() 
 // from the view to the CPile class
 extern bool gbShowTargetOnly;
-extern bool gbEnableGlossing;
+extern bool gbGlossingVisible;
 //extern CAdapt_ItApp* gpApp;
 extern const wxChar* filterMkr;
 
@@ -1092,7 +1092,7 @@ void CPile::Draw(wxDC* pDC)
 	}
 	*/
 	m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
-	if (gbEnableGlossing)
+	if (gbGlossingVisible)
 	{
 		// when TRUE, that means the menu item "See Glosses" has been ticked; but we may
 		// or may not still be in adapting mode, but a further test is not required
