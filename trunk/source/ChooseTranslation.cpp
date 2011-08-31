@@ -915,7 +915,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum SelectionWanted doSel)
 {
 	m_pMyListBox->Clear();
-	wxString s = _T("<no adaptation>");
+	wxString s = _("<no adaptation>");
 
 	// set the list box contents to the translation or gloss strings stored
 	// in the global variable pCurTargetUnit, which has just been matched

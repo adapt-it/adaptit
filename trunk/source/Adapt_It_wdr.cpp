@@ -5310,7 +5310,7 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_PAGES, _("Pa&ges"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_PAGES, _("&Pages"), wxDefaultPosition, wxDefaultSize, 0 );
     item19->SetToolTip( _("Select this button to indicate the pages to be printed") );
     item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -8400,6 +8400,80 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     item1->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    item1->Add( 4, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Source text:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_1, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_EMPTY_STR, _("The %s is empty, a knowledge base entry is expected, but is absent"), wxDefaultPosition, wxSize(460,-1), wxALIGN_CENTRE );
+    item5->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item4->Add( item5, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _(" Choose an action: ") );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
+
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_NO_ADAPTATION, _("Enter an empty %s in the knowledge base   (makes a %s entry)"), wxDefaultPosition, wxSize(450,-1), wxRB_GROUP );
+    item8->SetValue( TRUE );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_LEAVE_HOLE, _("Leave an empty \"hole\" in the document and make no knowledge base entry"), wxDefaultPosition, wxSize(450,-1), 0 );
+    item6->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_NOT_IN_KB, _("This source text should never have %s entry   (makes a %s entry)"), wxDefaultPosition, wxSize(450,-1), 0 );
+    item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item6, 0, wxALIGN_CENTER, 0 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation, not just the current dialog"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item13->Add( 60, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item15 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetDefault();
+    item13->Add( item15, 0, wxALIGN_CENTER|wxTOP, 0 );
+
+    item13->Add( 40, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item16, 0, wxALIGN_CENTER|wxTOP, 0 );
+
+    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {
