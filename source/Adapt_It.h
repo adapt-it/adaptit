@@ -2077,6 +2077,10 @@ public:
 	int		m_paperSizeCode;	// keep as MFC paper size code enum (internally 
 								// we convert to wxPaperSize)
 
+	// whm 30Aug11 added for printing support of free translations and glosses text
+	bool m_bIncludeFreeTransInPrintouts;
+	bool m_bIncludeGlossesInPrintouts;
+
     // although a more exact conversion is 2.54, because of rounding in the dialogs, the
     // values below work better than their more precise values
 	float	config_only_thousandthsInchToMillimetres;

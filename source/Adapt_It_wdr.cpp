@@ -5271,159 +5271,174 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Additional text to include in Printouts:") );
+    wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+    wxCheckBox *item9 = new wxCheckBox( parent, ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT, _("Include &Free Translation text "), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetValue( TRUE );
+    item9->SetToolTip( _("Remove tick from check box to omit free translations from printouts") );
+    item7->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item10 = new wxStaticBox( parent, -1, _("Print range") );
-    wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxVERTICAL );
+    wxCheckBox *item10 = new wxCheckBox( parent, ID_CHECKBOX_INCLUDE_GLOSSES_TEXT, _("Include G&losses text "), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetValue( TRUE );
+    item10->SetToolTip( _("Remove tick from check box to omit glosses text from printouts") );
+    item7->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIO_ALL, _("&All"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item12->SetValue( TRUE );
-    item12->SetToolTip( _("Select this button if you want to print the whole document") );
-    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
-    item11->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticBox *item14 = new wxStaticBox( parent, -1, _("Print range") );
+    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxVERTICAL );
 
-    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIO_SELECTION, _("&Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("Select this button if you only want to print part of the document (specify what part below)") );
-    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    item9->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item16 = new wxRadioButton( parent, ID_RADIO_ALL, _("&All"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item16->SetValue( TRUE );
+    item16->SetToolTip( _("Select this button if you want to print the whole document") );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    item15->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxRadioButton *item15 = new wxRadioButton( parent, IDC_RADIO_PAGES, _("Pa&ges"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Select this button to indicate the pages to be printed") );
-    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item17 = new wxRadioButton( parent, ID_RADIO_SELECTION, _("&Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetToolTip( _("Select this button if you only want to print part of the document (specify what part below)") );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("from:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    item13->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item17 = new wxTextCtrl( parent, IDC_EDIT_PAGES_FROM, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetToolTip( _("Type the starting page number here") );
-    item14->Add( item17, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("to:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item14->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_PAGES, _("Pa&ges"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("Select this button to indicate the pages to be printed") );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, IDC_EDIT_PAGES_TO, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetToolTip( _("Type the ending page number here") );
-    item14->Add( item19, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("from:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item21 = new wxTextCtrl( parent, IDC_EDIT_PAGES_FROM, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Type the starting page number here") );
+    item18->Add( item21, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("to:"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+    item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, IDC_EDIT_PAGES_TO, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Type the ending page number here") );
+    item18->Add( item23, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_CHAPTER_VERSE_RANGE, _("Chapter/Verse Range"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Select this button to print only a range of chapters/verses") );
-    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item13->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxFlexGridSizer *item23 = new wxFlexGridSizer( 5, 0, 0 );
-    item23->AddGrowableCol( 1 );
-    item23->AddGrowableCol( 4 );
-    item23->AddGrowableRow( 0 );
-    item23->AddGrowableRow( 1 );
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("from: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item23->Add( item24, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, IDC_EDIT1, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Type the begining chapter to start printing here") );
-    item23->Add( item25, 1, wxGROW|wxALL, 5 );
+    wxRadioButton *item26 = new wxRadioButton( parent, IDC_RADIO_CHAPTER_VERSE_RANGE, _("Chapter/Verse Range"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Select this button to print only a range of chapters/verses") );
+    item25->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item23->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxFlexGridSizer *item27 = new wxFlexGridSizer( 5, 0, 0 );
+    item27->AddGrowableCol( 1 );
+    item27->AddGrowableCol( 4 );
+    item27->AddGrowableRow( 0 );
+    item27->AddGrowableRow( 1 );
 
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("verse"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item23->Add( item26, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("from: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+    item27->Add( item28, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item27 = new wxTextCtrl( parent, IDC_EDIT2, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->SetToolTip( _("Type the beginning verse to start printing here") );
-    item23->Add( item27, 1, wxGROW|wxALL, 5 );
+    wxTextCtrl *item29 = new wxTextCtrl( parent, IDC_EDIT1, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Type the begining chapter to start printing here") );
+    item27->Add( item29, 1, wxGROW|wxALL, 5 );
 
-    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("to: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item23->Add( item28, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxTextCtrl *item29 = new wxTextCtrl( parent, IDC_EDIT3, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Type the ending chapter to print here") );
-    item23->Add( item29, 1, wxGROW|wxALL, 5 );
-
-    item23->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item27->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item30 = new wxStaticText( parent, ID_TEXT, _("verse"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item23->Add( item30, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item27->Add( item30, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT4, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item31->SetToolTip( _("Type the ending verse to print here") );
-    item23->Add( item31, 1, wxGROW|wxALL, 5 );
+    wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT2, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Type the beginning verse to start printing here") );
+    item27->Add( item31, 1, wxGROW|wxALL, 5 );
 
-    item21->Add( item23, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("to: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+    item27->Add( item32, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    wxTextCtrl *item33 = new wxTextCtrl( parent, IDC_EDIT3, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Type the ending chapter to print here") );
+    item27->Add( item33, 1, wxGROW|wxALL, 5 );
 
-    item9->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item27->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("verse"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+    item27->Add( item34, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item7->Add( item8, 3, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    wxTextCtrl *item35 = new wxTextCtrl( parent, IDC_EDIT4, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Type the ending verse to print here") );
+    item27->Add( item35, 1, wxGROW|wxALL, 5 );
 
-    item7->Add( 10, 20, 0, wxALIGN_CENTER, 5 );
+    item25->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
+    item24->Add( item25, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxStaticBox *item34 = new wxStaticBox( parent, -1, _("Margin elements") );
-    wxStaticBoxSizer *item33 = new wxStaticBoxSizer( item34, wxVERTICAL );
+    item13->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item36 = new wxStaticBox( parent, -1, _("Section headings") );
-    wxStaticBoxSizer *item35 = new wxStaticBoxSizer( item36, wxVERTICAL );
+    item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxCheckBox *item37 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_PREC_HEADING, _("Suppress a preceding section heading"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->SetToolTip( _("Check this box if you do not want a section heading at the beginning of the selection to print along with the selection") );
-    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item12, 3, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxCheckBox *item38 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_FOLL_HEADING, _("Include a following section heading"), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->SetToolTip( _("Check this box if you want a section heading that follows the printed selection to be printed also") );
-    item35->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( 10, 20, 0, wxALIGN_CENTER, 5 );
 
-    item33->Add( item35, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item36 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item40 = new wxStaticBox( parent, -1, _("Footer") );
+    wxStaticBox *item38 = new wxStaticBox( parent, -1, _("Margin elements") );
+    wxStaticBoxSizer *item37 = new wxStaticBoxSizer( item38, wxVERTICAL );
+
+    wxStaticBox *item40 = new wxStaticBox( parent, -1, _("Section headings") );
     wxStaticBoxSizer *item39 = new wxStaticBoxSizer( item40, wxVERTICAL );
 
-    wxCheckBox *item41 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_FOOTER, _("Suppress printing of the footer"), wxDefaultPosition, wxDefaultSize, 0 );
-    item41->SetToolTip( _("Check this box if you do not want Adapt It to include a footer on the page(s) of the printed selection") );
-    item39->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item41 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_PREC_HEADING, _("Suppress a preceding section heading"), wxDefaultPosition, wxDefaultSize, 0 );
+    item41->SetToolTip( _("Check this box if you do not want a section heading at the beginning of the selection to print along with the selection") );
+    item39->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item33->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item42 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_FOLL_HEADING, _("Include a following section heading"), wxDefaultPosition, wxDefaultSize, 0 );
+    item42->SetToolTip( _("Check this box if you want a section heading that follows the printed selection to be printed also") );
+    item39->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    item37->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item42 = new wxBoxSizer( wxVERTICAL );
+    wxStaticBox *item44 = new wxStaticBox( parent, -1, _("Footer") );
+    wxStaticBoxSizer *item43 = new wxStaticBoxSizer( item44, wxVERTICAL );
 
-    wxBoxSizer *item43 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item44 = new wxButton( parent, wxID_OK, _("Print >>"), wxDefaultPosition, wxDefaultSize, 0 );
-    item44->SetDefault();
-    item44->SetToolTip( _("Press this button to proceed to the standard print dialog (where you can set margins and do the actual printing)") );
-    item43->Add( item44, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item43->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item45 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item45->SetToolTip( _("Press this button to Cancel the printing and close this dialog") );
+    wxCheckBox *item45 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_FOOTER, _("Suppress printing of the footer"), wxDefaultPosition, wxDefaultSize, 0 );
+    item45->SetToolTip( _("Check this box if you do not want Adapt It to include a footer on the page(s) of the printed selection") );
     item43->Add( item45, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item42->Add( item43, 0, wxALIGN_CENTER|wxALL, 0 );
+    item37->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item32->Add( item42, 0, wxALIGN_CENTER|wxALL, 0 );
+    item36->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item7->Add( item32, 2, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    wxBoxSizer *item46 = new wxBoxSizer( wxVERTICAL );
 
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item47 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item48 = new wxButton( parent, wxID_OK, _("Print >>"), wxDefaultPosition, wxDefaultSize, 0 );
+    item48->SetDefault();
+    item48->SetToolTip( _("Press this button to proceed to the standard print dialog (where you can set margins and do the actual printing)") );
+    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item47->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item49 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item49->SetToolTip( _("Press this button to Cancel the printing and close this dialog") );
+    item47->Add( item49, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item46->Add( item47, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item36->Add( item46, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item11->Add( item36, 2, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

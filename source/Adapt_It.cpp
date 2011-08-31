@@ -12865,6 +12865,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_marginRight = 1000;	// 25mm / 0.0250mm/in (result truncated to whole int) in thousandths of an inch = 1000; // one inch
 	m_marginRightMM = (int)(m_marginRight * config_only_thousandthsInchToMillimetres); // 25mm right margin in mm
 
+	// whm 30Aug11 added:
+	m_bIncludeFreeTransInPrintouts = TRUE; // the default is to include free translations when any exist
+	m_bIncludeGlossesInPrintouts = TRUE; // the default is to include glosses whan any exist
+
+
 	m_bEarlierProjectChosen = FALSE;
 	m_bEarlierDocChosen = FALSE;
 	nLastActiveSequNum = 0; // config file will set this

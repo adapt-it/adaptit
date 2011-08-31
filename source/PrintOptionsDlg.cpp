@@ -134,6 +134,14 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	m_bSuppressFooter = FALSE;
 	gbPrintFooter = TRUE;
 	
+	// whm 30Aug11 added the next two for the "Additional text to include 
+	// in Printouts" section of the "Special Print Options" dialog.
+	pCheckInclFreeTransText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
+	wxASSERT(pCheckInclFreeTransText != NULL);
+
+	pCheckInclGlossesText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
+	wxASSERT(pCheckInclGlossesText != NULL);
+
 	pEditChFrom = (wxTextCtrl*)FindWindowById(IDC_EDIT1);
 	wxASSERT(pEditChFrom != NULL);
 	
@@ -200,7 +208,13 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//InitDialog() is not virtual, no call needed to a base class
 	//wxLogDebug(_T("InitDialog() START"));	
 
-    // Get the logical page dimensions for paginating the document and printing.
+	// whm 30Aug11 added for the "Additional text to include in Printouts" section of
+	// the "Special Print Options" dialog.
+	// check these initially as default
+	pCheckInclFreeTransText->SetValue(TRUE);
+	pCheckInclGlossesText->SetValue(TRUE);
+    
+	// Get the logical page dimensions for paginating the document and printing.
     int nPagePrintingWidthLU;
 	int nPagePrintingLengthLU;
 	bool bOK = gpApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
