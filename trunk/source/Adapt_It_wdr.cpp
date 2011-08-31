@@ -8423,37 +8423,37 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_1, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item1->Add( item3, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_EMPTY_STR, _("The %s is empty, a knowledge base entry is expected, but is absent"), wxDefaultPosition, wxSize(460,-1), wxALIGN_CENTRE );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_EMPTY_STR, _("The %s is empty, a knowledge base entry is expected, but is absent"), wxDefaultPosition, wxSize(520,-1), wxALIGN_CENTRE );
     item5->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item4->Add( item5, 0, wxALIGN_CENTER, 5 );
+    item4->Add( item5, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticBox *item7 = new wxStaticBox( parent, -1, _(" Choose an action: ") );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
 
     wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_NO_ADAPTATION, _("Enter an empty %s in the knowledge base   (makes a %s entry)"), wxDefaultPosition, wxSize(450,-1), wxRB_GROUP );
     item8->SetValue( TRUE );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_LEAVE_HOLE, _("Leave an empty \"hole\" in the document and make no knowledge base entry"), wxDefaultPosition, wxSize(450,-1), 0 );
-    item6->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_NOT_IN_KB, _("This source text should never have %s entry   (makes a %s entry)"), wxDefaultPosition, wxSize(450,-1), 0 );
-    item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item6, 0, wxALIGN_CENTER, 0 );
+    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation, not just the current dialog"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item12, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -8471,9 +8471,9 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item16, 0, wxALIGN_CENTER|wxTOP, 0 );
 
-    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
+    item11->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
