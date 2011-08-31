@@ -1448,7 +1448,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// Update for step 1 ChangeParatextPrivatesToCustomMarkers()
 		msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 		pProgDlg->Update(1,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		// The code below is copied from CAdapt_ItView::OnImportEditedSourceText(),
 		// comments have been removed to save space, the original code is fully commented
@@ -1458,7 +1458,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// Update for step 2 OverwriteUSFMFixedSpaces()
 		msgDisplayed = progMsg.Format(progMsg,2,nTotal);
 		pProgDlg->Update(2,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		if (pApp->m_bChangeFixedSpaceToRegularSpace)
 			pDoc->OverwriteUSFMFixedSpaces(pBuffer);
@@ -1466,7 +1466,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// Update for step 3 OverwriteUSFMDiscretionaryLineBreaks()
 		msgDisplayed = progMsg.Format(progMsg,3,nTotal);
 		pProgDlg->Update(3,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		pDoc->OverwriteUSFMDiscretionaryLineBreaks(pBuffer);
 #ifndef __WXMSW__
@@ -1478,7 +1478,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// Update for step 4 TokenizeTextString()
 		msgDisplayed = progMsg.Format(progMsg,4,nTotal);
 		pProgDlg->Update(4,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		// parse the new source text data into a list of CSourcePhrase instances
 		int nHowMany;
@@ -1489,7 +1489,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// Update for step 5 MergeUpdatedSourceText(), etc.
 		msgDisplayed = progMsg.Format(progMsg,5,nTotal);
 		pProgDlg->Update(5,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		if (nHowMany > 0)
 		{
@@ -1500,7 +1500,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			// Update for step 6 loop of DeleteSingleSrcPhrase()
 			msgDisplayed = progMsg.Format(progMsg,6,nTotal);
 			pProgDlg->Update(6,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 			
 			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
 			while (posCur != NULL)
@@ -1518,7 +1518,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			// Update for step 7 loop of DeepCopy(), etc.
 			msgDisplayed = progMsg.Format(progMsg,7,nTotal);
 			pProgDlg->Update(7,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 			
 			// make deep copies of the pMergedList instances and add them to the emptied
 			// m_pSourcePhrases list, and delete the instance in pMergedList each time
@@ -1541,7 +1541,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			// Update for step 8 loop of DeleteSingleSrcPhrase(), etc.
 			msgDisplayed = progMsg.Format(progMsg,8,nTotal);
 			pProgDlg->Update(8,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 			
 			// now delete the list formed from the imported new version of the source text
 			SPList::Node* pos = pSourcePhrases->GetFirst();
@@ -1569,7 +1569,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	// Update for step 9 loop of bDoLayout(), etc.
 	msgDisplayed = progMsg.Format(progMsg,9,nTotal);
 	pProgDlg->Update(9,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 	
 	// get the layout built, view window set up, phrase box placed etc, if wanted
 	if (bDoLayout)
@@ -1692,7 +1692,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	// Update for step 10 finished.
 	msgDisplayed = progMsg.Format(progMsg,10,nTotal);
 	pProgDlg->Update(10,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 	
 	// remove the progress dialog
 	if (pProgDlg != NULL)

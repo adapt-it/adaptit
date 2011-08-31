@@ -540,12 +540,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pProgDlg->Update(nStep,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 
 	nStep = 1;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pProgDlg->Update(nStep,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 
 	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
@@ -622,7 +622,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		nStep = 2;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 		pProgDlg->Update(nStep,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		// get the single-chapter file; the Transfer...Editor() function does all the work
 		// of generating the filename, path, commandLine, getting the text, & saving in
@@ -751,7 +751,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	nStep = 3;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pProgDlg->Update(nStep,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 		
 	if (m_bTempCollabByChapterOnly)
 	{
@@ -895,7 +895,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		nStep = 4;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 		pProgDlg->Update(nStep,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		// first, get the project hooked up, if there is indeed one pre-existing for the
 		// given language pair; if not, we create a new project
@@ -949,7 +949,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				nStep = 5;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pProgDlg->Update(nStep,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 		
                 // set the private booleans which tell us whether or not the Usfm structure
                 // has changed, and whether or not the text and/or puncts have changed. The
@@ -1013,7 +1013,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				nStep = 6;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pProgDlg->Update(nStep,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 				
 				m_pApp->maxProgDialogValue = 9; // temporary hack while calling OpenDocWithMerger() below
 		
@@ -1062,7 +1062,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				nStep = 7;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pProgDlg->Update(nStep,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 		
 				bool bMovedOK;
 				if (m_bTempCollabByChapterOnly)
@@ -1091,7 +1091,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				nStep = 5;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pProgDlg->Update(nStep,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 		
 				// it doesn't exist, so we have to tokenize the source text coming from PT
 				// or BE, create the document, save it and lay it out in the view window...
@@ -1130,7 +1130,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					nStep = 6;
 					msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 					pProgDlg->Update(nStep,msgDisplayed);
-					::wxSafeYield();
+					//::wxSafeYield();
 		
 					SetupLayoutAndView(m_pApp, docTitle);
 				}
@@ -1150,7 +1150,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
  				nStep = 7;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 				pProgDlg->Update(nStep,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 		
                // 5. Copy the just-grabbed chapter or book source text from the .temp
                 // folder over to the Project's __SOURCE_INPUTS folder (creating the
@@ -1279,7 +1279,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		nStep = 4;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 		pProgDlg->Update(nStep,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		// Step 1 & 2
 		bool bDisableBookMode = TRUE;
@@ -1334,7 +1334,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		nStep = 5;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 		pProgDlg->Update(nStep,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
 		// in the next call, 0 = initial sequ number value
 		if (m_bTempCollabByChapterOnly)
@@ -1367,7 +1367,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			nStep = 6;
 			msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 			pProgDlg->Update(nStep,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		
 			SetupLayoutAndView(m_pApp, docTitle);
 		}
@@ -1387,7 +1387,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
  		nStep = 7;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 		pProgDlg->Update(nStep,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 		
        // Step 5. (code copied from above)
 		wxString pathCreationErrors;
@@ -1417,7 +1417,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	nStep = 8;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pProgDlg->Update(nStep,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 		
     // store the "pre-edit" version of the document's adaptation text in a member on the
     // app class, and if free translation is wanted for tranfer to PT or BE as well, get
@@ -1462,7 +1462,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	nStep = 9;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pProgDlg->Update(nStep,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 
 	// remove the progress dialog
 	pProgDlg->Destroy();

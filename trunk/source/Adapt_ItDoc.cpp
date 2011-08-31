@@ -1428,7 +1428,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			{
 				msgDisplayed = _("Please wait while the translation is sent to Bibledit...");
 			}
-			::wxSafeYield();
+			//::wxSafeYield();
 			pProgDlg->Pulse(msgDisplayed);
 
 			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
@@ -1519,7 +1519,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 					{
 						msgDisplayed = _("Please wait while the free translation is sent to Bibledit...");
 					}
-					::wxSafeYield();
+					//::wxSafeYield();
 					pProgDlg->Pulse(msgDisplayed);
 				
 					bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
@@ -2145,7 +2145,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	if (pProgDlg != NULL)
 	{
 		pProgDlg->Update(1,msgDisplayed);
-		::wxSafeYield();
+		//::wxSafeYield();
 	}
 	// whm 24Aug11 moved the progress dialog to the top level OnFileSave() function. This
 	// function (DoFileSave) receives a wxProgressDialog* pProgDlg pointer passed along
@@ -2182,7 +2182,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 					if (pProgDlg != NULL)
 					{
 						pProgDlg->Update(counter,msgDisplayed);
-						::wxSafeYield();
+						//::wxSafeYield();
 					}
 				}
 			}
@@ -2234,7 +2234,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 					if (pProgDlg != NULL)
 					{
 						pProgDlg->Update(counter,msgDisplayed);
-						::wxSafeYield();
+						//::wxSafeYield();
 					}
 				}
 			}
@@ -6534,7 +6534,7 @@ h:						bool bIsInitial = TRUE;
 				{
 					msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
 					pProgDlg->Update(nOldCount,msgDisplayed);
-					::wxSafeYield();
+					//::wxSafeYield();
 				}
 			}
 
@@ -6589,7 +6589,7 @@ h:						bool bIsInitial = TRUE;
 			progMsg = _("Pass 2 - %d of %d Total words and phrases");
 			msgDisplayed = progMsg.Format(progMsg,1,nOldTotal);
 			pProgDlg->Update(nOldCount,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 
         // the following variables are for tracking how the active sequence number has to
@@ -6682,7 +6682,7 @@ h:						bool bIsInitial = TRUE;
 					{
 						msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
 							pProgDlg->Update(nOldCount,msgDisplayed);
-						::wxSafeYield();
+						//::wxSafeYield();
 					}
 				}
 
@@ -6716,7 +6716,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 					{
 						msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
 							pProgDlg->Update(nOldCount,msgDisplayed);
-						::wxSafeYield();
+						//::wxSafeYield();
 					}
 				}
 
@@ -7330,7 +7330,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				{
 					msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
 						pProgDlg->Update(nOldCount,msgDisplayed);
-					::wxSafeYield();
+					//::wxSafeYield();
 				}
 			}
 		} // end of loop for scanning contents of successive pSrcPhrase instances

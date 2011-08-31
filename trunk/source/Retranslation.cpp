@@ -268,7 +268,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	progMsg = _("%s  - %d of %d Total words and phrases");
 	msgDisplayed = progMsg.Format(progMsg,name.c_str(),1,nTotal);
 	pProgDlg->Update(count,msgDisplayed);
-	::wxSafeYield();
+	//::wxSafeYield();
 	
 	// whm 24Aug11 Note: The progress dialog is created on the heap back in
 	// the OnRetranslationReport(), and its pointer is pass along through
@@ -384,7 +384,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 		{
 			msgDisplayed = progMsg.Format(progMsg,name.c_str(),counter,nTotal);
 			pProgDlg->Update(counter,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 		
 		if (bStartOver)

@@ -976,7 +976,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 		if (pProgDlg != NULL && nCurrChunk < nProgMax)
 		{
 			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 		
 		if (fileSize % TwentyKB > 0) ++nChunks;
@@ -1005,7 +1005,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 		if (pProgDlg != NULL && nCurrChunk < nProgMax)
 		{
 			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 	}
 	else
@@ -1125,12 +1125,12 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 	{
 		// entire xml file is in the work buffer
 		pEnd = (char*)(pBuff + fileSize);
-		::wxSafeYield();
+		//::wxSafeYield();
 		// whm 25Aug11 added nProgMax
 		if (pProgDlg != NULL && nCurrChunk < nProgMax)
 		{
 			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			::wxSafeYield();
+			//::wxSafeYield();
 		}
 	}
 	else
@@ -1232,12 +1232,12 @@ r:		comp = strncmp(pPos,comment,4);
 		// appropriately. A 'chunk' is 20KB, so we never will get overflow.
 		if (nCurrChunk >= nChunks || bReadAll)
 		{
-			::wxSafeYield();
+			//::wxSafeYield();
 			// whm 25Aug11 added nProgMax
 			if (pProgDlg != NULL && nCurrChunk < nProgMax)
 			{
 				pProgDlg->Update(nCurrChunk,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 			}
 			continue; // no more data to transfer
 		}
@@ -1274,12 +1274,12 @@ r:		comp = strncmp(pPos,comment,4);
 				nInputCount += (Int32)TwentyKB;
 			}
 			nCurrChunk++;
-			::wxSafeYield();
+			//::wxSafeYield();
 			// whm 25Aug11 added nProgMax
 			if (pProgDlg != NULL && nCurrChunk < nProgMax)
 			{
 				pProgDlg->Update(nCurrChunk,msgDisplayed);
-				::wxSafeYield();
+				//::wxSafeYield();
 			}
 		}
 	} while (!stack.IsEmpty() && (pPos < pEnd));
