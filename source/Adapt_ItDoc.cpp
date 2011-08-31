@@ -95,7 +95,7 @@
 #include "ConsistencyCheckDlg.h"
 #include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
 #include "NavProtectNewDoc.h"
-#include "ConsChk_Empty_NoTU_Dlg.h"
+#include "ConsChk_Empty_noTU_Dlg.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
