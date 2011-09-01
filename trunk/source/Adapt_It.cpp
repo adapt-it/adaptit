@@ -8713,6 +8713,15 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		{
 			label = label.Format(label,m_collaborationEditor.c_str());
 		}
+		// whm added 1Sep11
+		// now substitute "Paratext" or "Bibledit" for the %s in the menu help text
+		wxMenuItem* pCollabMenuItem = pAdministratorMenu->FindItem(ID_SETUP_EDITOR_COLLABORATION);
+		if (pCollabMenuItem != NULL)
+		{
+			label = pCollabMenuItem->GetHelp(); //_("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts")
+			label = label.Format(label,m_collaborationEditor.c_str(),m_collaborationEditor.c_str());
+			pCollabMenuItem->SetHelp(label);
+		}
 		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 	}
 
