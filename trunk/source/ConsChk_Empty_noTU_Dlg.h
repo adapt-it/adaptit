@@ -56,7 +56,10 @@ public:
 	wxString		m_notInKBStr; // for <Not In KB>, that is, strNotInKB
 	wxString		m_noneOfThisStr; // for strNoAdapt or strNoGloss
 	bool			m_bDoAutoFix; // for the Auto-fix checkbox value
-	wxSizer*		pConsChk_Empty_noTU_DlgSizer; // whm 31Aug11 added
+	wxSizer*		pConsChk_Empty_noTU_DlgSizer; // whm 31Aug11 added -- needed so that
+						// the label strings of controls that get text inserted in %s
+						// descriptors can have their sizers resized before the dialog
+						// is shown, by doing a ->Layout() call at end of InitDialog()
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
