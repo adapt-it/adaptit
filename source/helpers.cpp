@@ -7753,6 +7753,30 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 //#endif
 }
 
+// BEW created 1Sept11, use the following for getting the pixel difference for a control's
+// label text which starts off with one or more %s specifies, and those are filled out to
+// form newLabel; pass in the control in the pWindow param, and internally the function
+// will get the label's font, set up a wxWindowDC, measure the two strings, and pass back
+// the difference in their widths.
+// NOTE: oldLabel and newLabel must be single-line strings, it won't work if they are not
+int CalcLabelWidthDifference(wxString& oldLabel, wxString& newLabel, wxWindow* pWindow)
+{
+#ifdef __WXDEBUG__
+	int offset1 = -1;
+	int offset2 = -1;
+	offset1 = oldLabel.Find(_T('\n'));
+	offset2 = newLabel.Find(_T('\r'));
+	wxASSERT(offset1 == wxNOT_FOUND && offset2 == wxNOT_FOUND);
+#endif
+	wxFont labelFont = pWindow->GetFont();
+	wxWindowDC dc(pWindow); // associate dialog window with the device context
+	dc.SetFont(labelFont);
+	wxSize strOriginalExtent = dc.GetTextExtent(oldLabel);
+	wxSize strFinalExtent = dc.GetTextExtent(newLabel);
+	int difference = strFinalExtent.GetX() - strOriginalExtent.GetX();
+	return difference;
+}
+
 // BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for
 // 5.2.4, but it could be put into the Save As... code for 6.x.y too - if so, we can retain
 // it for version 6 and higher)

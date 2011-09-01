@@ -37,6 +37,7 @@
 //#include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h" // need this for AIModalDialog definition
 #include "Adapt_It_wdr.h"
+#include "helpers.h"
 #include "ConsChk_Empty_noTU_Dlg.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -98,8 +99,10 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	// put in the correct string, "adaptation" or "gloss" for this message label
 	wxString msg = m_pMessageLabel->GetLabel(); // "The %s is empty, a knowledge base entry
 												// is expected, but is absent"
-	m_messageLabelStr = m_messageLabelStr.Format(msg, m_modeWord.c_str());
+	m_messageLabelStr = m_messageLabelStr.Format(msg, m_modeWord.c_str()); // %s filled in
 	m_pMessageLabel->SetLabel(m_messageLabelStr);
+	// get the pixel difference in the label's changed text
+	int difference = CalcLabelWidthDifference(msg, m_messageLabelStr, m_pMessageLabel);
 
 	m_pNoAdaptRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_NO_ADAPTATION);
 	wxASSERT(m_pNoAdaptRadioBtn != NULL);
@@ -140,6 +143,18 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pTextCtrlSrcText, NULL, 
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
+
+	// get the dialog to resize to the new label string lengths
+	int width = 0;
+	int height = 0;
+	this->GetSize(&width, &height);
+	// use the difference value calculated above to widen the dialog window and then call
+	// Layout() to get the attached sizer hierarchy recalculated and laid out
+	int sizeFlags = 0;
+	sizeFlags |= wxSIZE_USE_EXISTING;
+	this->SetSize(wxDefaultCoord,wxDefaultCoord,width + difference,wxDefaultCoord);
+	this->Layout(); // automatically calls Layout() on top level sizer
+
 	// It's a simple dialog, I'm not bothering with validators and TransferDataTo/FromWindow calls
 	//TransferDataToWindow();
 }

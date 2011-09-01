@@ -8427,9 +8427,9 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
-    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_EMPTY_STR, _("The %s is empty, a knowledge base entry is expected, but is absent"), wxDefaultPosition, wxSize(520,-1), wxALIGN_CENTRE );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_EMPTY_STR, _("The %s is empty, a knowledge base entry is expected, but is absent"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item5->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item4->Add( item5, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -8438,14 +8438,14 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     wxStaticBox *item7 = new wxStaticBox( parent, -1, _(" Choose an action: ") );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
 
-    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_NO_ADAPTATION, _("Enter an empty %s in the knowledge base   (makes a %s entry)"), wxDefaultPosition, wxSize(450,-1), wxRB_GROUP );
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_NO_ADAPTATION, _("Enter an empty %s in the knowledge base   (makes a %s entry)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item8->SetValue( TRUE );
     item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_LEAVE_HOLE, _("Leave an empty \"hole\" in the document and make no knowledge base entry"), wxDefaultPosition, wxSize(450,-1), 0 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_LEAVE_HOLE, _("Leave an empty \"hole\" in the document and make no knowledge base entry"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_NOT_IN_KB, _("This source text should never have %s entry   (makes a %s entry)"), wxDefaultPosition, wxSize(450,-1), 0 );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_NOT_IN_KB, _("This source text should never have %s entry   (makes a %s entry)"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );

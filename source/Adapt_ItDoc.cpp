@@ -20264,8 +20264,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
 	// test dialog
 	wxString titleStr = _("Inconsistency Found");
-	wxString aSrcStr = _T("Rubber balloons");
-	wxString testLongStr = _T("adaptation or other miscellaneous test string");
+	wxString aSrcStr = _T("Ye olde bandaid solution");
+	//wxString testLongStr = _T("adaptation or other string");
 	if (gbIsGlossing)
 	{
 		ConsChk_Empty_noTU_Dlg dlg(
@@ -20291,8 +20291,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			(wxWindow*)gpApp->GetMainFrame(),
 			&titleStr,
 			&aSrcStr,
-			&testLongStr,
-			//&gpApp->m_modeWordAdapt,
+			//&testLongStr,
+			&gpApp->m_modeWordAdapt,
 			&gpApp->m_modeWordAdaptPlusArticle,
 			&gpApp->m_strNotInKB,
 			&gpApp->m_strNoAdapt);

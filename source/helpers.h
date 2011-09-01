@@ -204,6 +204,13 @@ wxString RemoveMultipleSpaces(wxString& rString);
  
 // 2010 additions by BEW
 
+// use the following for getting the pixel difference for a control's label text which
+// starts off with one or more %s specifies, and those are filled out to form newLabel;
+// pass in the control in the pWindow param, and internally the function will get the
+// label's font, set up a wxWindowDC, measure the two strings, and pass back the
+// difference in their widths
+int CalcLabelWidthDifference(wxString& oldLabel, wxString& newLabel, wxWindow* pWindow);
+
 wxString GetConvertedPunct(const wxString& rStr); // moved from view class to here 11Oct10
 
 // next three for use in the AdminMoveOrCopy class, the handler for Administrator
