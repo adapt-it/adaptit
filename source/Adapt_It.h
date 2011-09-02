@@ -3339,7 +3339,8 @@ public:
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
 	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
-
+	void	SetFontAndDirectionalityForStatText(wxFont* pFont, int pointsize,
+								wxStaticText* pStatTxt, wxFont*& pDlgFont, bool bIsRTL);
     // rde: version 3.4.1 and up, determining the correct 'encoding=' string to put in an
     // XML file takes some extra thought...
 	void	GetEncodingStringForXmlFiles(CBString& aStr);
