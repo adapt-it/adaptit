@@ -535,6 +535,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\conschk_exists_notu_dlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ConsistencyCheckDlg.cpp"
 				>
 			</File>
@@ -969,6 +973,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ConsChk_Empty_noTU_Dlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\conschk_exists_notu_dlg.h"
 				>
 			</File>
 			<File

@@ -96,6 +96,7 @@
 #include "ChooseConsistencyCheckTypeDlg.h" //whm added 9Feb04
 #include "NavProtectNewDoc.h"
 #include "ConsChk_Empty_noTU_Dlg.h"
+#include "conschk_exists_notu_dlg.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
@@ -20262,10 +20263,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE; // this is a global boolean
 
-	// test dialog
+	//*
+	// test dialogs
 	wxString titleStr = _("Inconsistency Found");
 	wxString aSrcStr = _T("Ye olde bandaid solution");
-	//wxString testLongStr = _T("adaptation or other string");
+	wxString aTgtStr = _T("Oh dear! Not another one!");
+	bool bShowItCentered = TRUE;
 	if (gbIsGlossing)
 	{
 		ConsChk_Empty_noTU_Dlg dlg(
@@ -20275,7 +20278,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			&gpApp->m_modeWordGloss,
 			&gpApp->m_modeWordGlossPlusArticle,
 			&gpApp->m_strNotInKB,
-			&gpApp->m_strNoGloss);
+			&gpApp->m_strNoGloss,
+			bShowItCentered);
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			;
@@ -20291,11 +20295,11 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			(wxWindow*)gpApp->GetMainFrame(),
 			&titleStr,
 			&aSrcStr,
-			//&testLongStr,
 			&gpApp->m_modeWordAdapt,
 			&gpApp->m_modeWordAdaptPlusArticle,
 			&gpApp->m_strNotInKB,
-			&gpApp->m_strNoAdapt);
+			&gpApp->m_strNoAdapt,
+			bShowItCentered);
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			;
@@ -20305,6 +20309,27 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
+	// the consck_exists_notu_dlg dialog
+	if (!gbIsGlossing)
+	{
+		conschk_exists_notu_dlg dlg(
+		(wxWindow*)gpApp->GetMainFrame(),
+		&titleStr,
+		&aSrcStr,
+		&aTgtStr,
+		&gpApp->m_strNotInKB,
+		TRUE);
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			;
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	//*/
 
     // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
     // now added here & below. 
@@ -21104,10 +21129,18 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// pTU, pRefStr, bDeleted);
 					if (pTU == NULL)
 					{
+						bInconsistency = TRUE;
+						pAutoFixRec = new AutoFixRecord;
+						pAutoFixRec->nWords = nWords;
+						pAutoFixRec->key = key;
+						pAutoFixRec->oldAdaptation = adaption;
+						pAutoFixRec->fixAction = no_fix_needed; // a default value
+							// until such time as the dialog is shown and the user's
+							// fixit choice becomes known & replaces this value
 						if (adaption.IsEmpty())
 						{
                             // pSrcPhrase says the KB has an entry for this, m_adaption is
-                            // empty, but there is no pTU -- this is an inconsistency.
+                            // empty, but there is no pTU
                             // Three fixes are possible:
 							// (1) a <no adaptation> entry added to the KB
 							// (2) a <Not In KB> entry added to the KB (empty adaptation 
@@ -21122,20 +21155,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                             //"Auto-fix later instances the same way" option, a Cancel
                             //button which cancels the whole consistency check, and an OK
                             //button
-							bInconsistency = TRUE;
 							inconsistencyType = member_empty_flag_on_noPTU;
-                            // NOTE: an AutoFixRecord instance is deleted before the next
+ 							pAutoFixRec->incType = inconsistencyType;
+                           // NOTE: an AutoFixRecord instance is deleted before the next
                             // iteration if not preserved in the afList, and so it only
                             // become an "auto-fix" possibility provided such preservation
                             // happens later below before the loop end is reached
-							pAutoFixRec = new AutoFixRecord;
-							pAutoFixRec->nWords = nWords;
-							pAutoFixRec->key = key;
-							pAutoFixRec->oldAdaptation = adaption;
-							pAutoFixRec->incType = inconsistencyType;
-							pAutoFixRec->fixAction = no_fix_needed; // a default value
-								// until such time as the dialog is shown and the user's
-								// fixit choice becomes known & replaces this value
 
 							// the <no adaptation> option would call this code... <<-- remove these 4 lines later
 							//gbInhibitMakeTargetStringCall = TRUE;
@@ -21152,16 +21177,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// (2) a <Not In KB> entry added to the KB (the adaptation is
 							// retained in the doc, & certain flags change value, eg. 
 							// m_bNotInKB)
-							bInconsistency = TRUE;
-							pAutoFixRec->incType = member_exists_flag_on_noPTU;
-							pAutoFixRec = new AutoFixRecord;
-							pAutoFixRec->nWords = nWords;
-							pAutoFixRec->key = key;
-							pAutoFixRec->oldAdaptation = adaption;
+							// The dialog for this is similar to the one for above, but
+							// with 2 options and showing the target text
+							// (In glossing mode, option (2) is not available, so there is
+							// only the one possibility - and for that a GUI is not
+							// required - the glossing function is separate from this one)
+							inconsistencyType = member_exists_flag_on_noPTU;
 							pAutoFixRec->incType = inconsistencyType;
-							pAutoFixRec->fixAction = no_fix_needed; // a default value
-								// until such time as the dialog is shown and the user's
-								// fixit choice becomes known & replaces this value
 						} // end of else block for test: if (adaption.IsEmpty())
 
 						

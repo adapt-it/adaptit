@@ -8485,6 +8485,89 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     return item0;
 }
 
+wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    item1->Add( 29, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Source text:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_2, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
+    item1->Add( item3, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+
+    item4->Add( 4, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Adaptation text:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_TARGET_PHRASE_2, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
+    item4->Add( item6, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_EXISTS_STR, _("An adaptation exists. A knowledge base entry is expected, but is absent"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item8->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item7->Add( item8, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticBox *item10 = new wxStaticBox( parent, -1, _(" Choose an action: ") );
+    wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxVERTICAL );
+
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIO_STORE_NORMALLY, _("Store the adaptation in the knowledge base in the normal way"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item11->SetValue( TRUE );
+    item9->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIO_NOT_IN_KB_LEAVEINDOC, _("This source text should never have an adaptation entry  (makes a %s entry, retains adaptation)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation, not just the current dialog"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item16 = new wxCheckBox( parent, ID_CHECK_DO_SAME2, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( 60, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetDefault();
+    item15->Add( item17, 0, wxALIGN_CENTER|wxTOP, 0 );
+
+    item15->Add( 40, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item18, 0, wxALIGN_CENTER|wxTOP, 0 );
+
+    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()

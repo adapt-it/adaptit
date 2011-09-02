@@ -1,70 +1,70 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			ConsChk_Empty_noTU_Dlg.h
+/// \file			conschk_exists_notu_dlg.h
 /// \author			Bruce Waters
-/// \date_created	31 August2011
+/// \date_created	1 Sepember 2011
 /// \date_revised	
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the ConsChk_Empty_noTU_Dlg class. 
-/// The ConsChk_Empty_noTU_Dlg class provides an "inconsistency found" dialog which the
+/// \description	This is the header file for the conschk_exists_notu_dlg class. 
+/// The conschk_exists_notu_dlg class provides an "inconsistency found" dialog which the
 /// user employs for for fixing a KB-Document inconsistency. Deals with the document pile
 /// having pSrcPhrase with m_bHasKBEntry (or m_bHasGlossingKBEntry if the current mode is
 /// glossing mode) TRUE, but KB lookup failed to find a CTargetUnit for the source text at
-/// this location in the document
-/// \derivation		The ConsChk_Empty_noTU_Dlg class is derived from AIModalDialog.
+/// this location in the document, and there is an existing adaptation. 
+/// (We won't need this for glossing mode, because the <Not In KB> is not available there,
+/// and so the fix is fully determinate and can be done without showing any dialog)
+/// \derivation		The conschk_exists_notu_dlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
-#ifndef ConsChk_Empty_noTU_Dlg_h
-#define ConsChk_Empty_noTU_Dlg_h
+#ifndef conschk_exists_notu_dlg_h
+#define conschk_exists_notu_dlg_h
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "ConsChk_Empty_noTU_Dlg.h"
+    #pragma interface "conschk_exists_notu_dlg.h"
 #endif
 
-/// The ConsChk_Empty_noTU_Dlg class provides an "inconsistency found" dialog which the
+/// The conschk_exists_notu_dlg class provides an "inconsistency found" dialog which the
 /// user employs for for fixing a KB-Document inconsistency. Deals with the document pile
 /// having pSrcPhrase with m_bHasKBEntry (or m_bHasGlossingKBEntry if the current mode is
 /// glossing mode) TRUE, but KB lookup failed to find a CTargetUnit for the source text at
-/// this location in the document
-class ConsChk_Empty_noTU_Dlg : public AIModalDialog
+/// this location in the document, and there is an existing adaptation. 
+/// (We won't need this for glossing mode, because the <Not In KB> is not available there,
+/// and so the fix is fully determinate and can be done without showing any dialog)
+class conschk_exists_notu_dlg : public AIModalDialog
 {
 public:
-	ConsChk_Empty_noTU_Dlg(
+	conschk_exists_notu_dlg(
 		wxWindow* parent,
 		wxString* title,
 		wxString* srcPhrase, // for pSrcPhrase->m_key value
-		wxString* modeWord, // for modeWordAdapt or modeWordGloss
-		wxString* modeWordPlusArticle, // for modeWordAdaptPlusArticle or modeWordGlossPlusArticle
+		wxString* adaptation, // for pSrcPhrase->m_adaption value
 		wxString* notInKBStr, // for <Not In KB>, that is, strNotInKB
-		wxString* noneOfThisStr,
 		bool      bShowCentered); // constructor
-	virtual ~ConsChk_Empty_noTU_Dlg(); // destructor
+	virtual ~conschk_exists_notu_dlg(); // destructor
 
 	// member variables
 	wxTextCtrl*    m_pTextCtrlSrcText;
-	wxStaticText*  m_pMessageLabel;
-	wxString	   m_messageLabelStr;
-	wxRadioButton* m_pNoAdaptRadioBtn;
-	wxRadioButton* m_pLeaveHoleRadioBtn;
+	wxTextCtrl*	   m_pTextCtrlTgtText;
+	wxStaticText*  m_pStaticCtrl;
+	wxString	   m_radioNotInKBLabelStr;
+	wxRadioButton* m_pStoreNormallyRadioBtn;
 	wxRadioButton* m_pNotInKBRadioBtn;
 	wxCheckBox*	   m_pAutoFixChkBox;
 	// the following store the creation passed-in param values
 	wxString		m_sourcePhrase; // store *srcPhrase
-	wxString		m_modeWord; // for modeWordAdapt or modeWordGloss
-	wxString		m_modeWordPlusArticle; // for modeWordAdaptPlusArticle or modeWordGlossPlusArticle
+	wxString		m_targetPhrase; // store *adaptation
+	wxString		m_modeWordPlusArticle; // for modeWordAdaptPlusArticle
 	wxString		m_notInKBStr; // for <Not In KB>, that is, strNotInKB
-	wxString		m_noneOfThisStr; // for strNoAdapt or strNoGloss
 	bool			m_bDoAutoFix; // for the Auto-fix checkbox value
-	wxSizer*		pConsChk_Empty_noTU_DlgSizer; // whm 31Aug11 added, but BEW says it's not needed
+	wxSizer*		pConsChk_exists_notu_dlgSizer; // not really needed
 	enum FixItAction action;
 	bool			m_bShowItCentered;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
-	//void OnCancel(wxCommandEvent& event);
 
 private:
 	// class attributes
@@ -73,4 +73,4 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-#endif /* ConsChk_Empty_noTU_Dlg_h */
+#endif /* conschk_exists_notu_dlg_h */

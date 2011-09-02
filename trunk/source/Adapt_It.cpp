@@ -33884,6 +33884,52 @@ wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pFont      -> a pointer to the font from which its base properties are 
+///                           copied in setting pDlgFont
+/// \param      pointsize  -> the pointsize (+ve number) for the text to be displayed in
+///                           the control
+/// \param      pStatTxt   <- a pointer to the wxStaticText control whose font is to be set
+/// \param      pDlgFont   <- the dialog font being adjusted for use in the control
+/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the 
+///                           control is Left-to-Right (LTR)
+/// \remarks
+/// Called from: The InitDialog() methods of most of the application's dialogs that use
+/// a wxStatText that needs to be a different size, use src or tgt font characteristics,
+/// and or a non-standard point size.
+/// Used in dialogs for Consistency Check feature
+/// BEW created 2Sep11, tweaked the code from SetFontAndDirectionalityForDialogControl()
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetFontAndDirectionalityForStatText(wxFont* pFont, int pointsize,
+								wxStaticText* pStatTxt, wxFont*& pDlgFont, bool bIsRTL)
+{
+	wxASSERT(pFont != NULL);
+	wxASSERT(pDlgFont != NULL);
+	CopyFontBaseProperties(pFont,pDlgFont);
+	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// make the dialog font show the wanted font size.
+	pDlgFont->SetPointSize(pointsize);
+	if (pStatTxt != NULL)
+		pStatTxt->SetFont(*pDlgFont);
+
+	bIsRTL = bIsRTL; // suppresses "unreferenced formal parameter" warning in ANSI version
+	// add RTL support for Unicode version
+#ifdef _RTL_FLAGS
+	if (pStatTxt != NULL)
+	{
+		if (bIsRTL)
+		{
+			pStatTxt->SetLayoutDirection(wxLayout_RightToLeft);
+		}
+		else
+		{
+			pStatTxt->SetLayoutDirection(wxLayout_LeftToRight);
+		}
+	}
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pFont      -> a pointer to the font from which its base properties are 
 ///                           copied in setting the pDlgFont
 /// \param      pEdit1     <- a pointer to the first text control whose font that can 
 ///                           be set

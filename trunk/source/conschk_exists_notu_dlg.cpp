@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			ConsChk_Empty_noTU_Dlg.cpp
+/// \file			conschk_exists_notu_dlg.cpp
 /// \author			Bruce Waters
-/// \date_created	31 August2011
+/// \date_created	1 September 2011
 /// \date_revised	
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
@@ -17,7 +17,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "ConsChk_Empty_noTU_Dlg.h"
+    #pragma implementation "conschk_exists_notu_dlgg.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
@@ -39,115 +39,98 @@
 #include "Adapt_ItDoc.h"
 #include "Adapt_It_wdr.h"
 #include "helpers.h"
-#include "ConsChk_Empty_noTU_Dlg.h"
 #include "MainFrm.h"
+#include "conschk_exists_notu_dlg.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 extern bool gbIsGlossing;
 
 // event handler table
-BEGIN_EVENT_TABLE(ConsChk_Empty_noTU_Dlg, AIModalDialog)
-	EVT_INIT_DIALOG(ConsChk_Empty_noTU_Dlg::InitDialog)
-	EVT_BUTTON(wxID_OK, ConsChk_Empty_noTU_Dlg::OnOK)
-	//EVT_BUTTON(wxID_CANCEL, ConsChk_Empty_noTU_Dlg::OnCancel)
+BEGIN_EVENT_TABLE(conschk_exists_notu_dlg, AIModalDialog)
+	EVT_INIT_DIALOG(conschk_exists_notu_dlg::InitDialog)
+	EVT_BUTTON(wxID_OK, conschk_exists_notu_dlg::OnOK)
+	//EVT_BUTTON(wxID_CANCEL, conschk_exists_notu_dlg::OnCancel)
 END_EVENT_TABLE()
 
-ConsChk_Empty_noTU_Dlg::ConsChk_Empty_noTU_Dlg(
+conschk_exists_notu_dlg::conschk_exists_notu_dlg(
 		wxWindow* parent,
 		wxString* title,
 		wxString* srcPhrase,
-		wxString* modeWord,
-		wxString* modeWordPlusArticle,
+		wxString* adaptation,
 		wxString* notInKBStr,
-		wxString* noneOfThisStr,
-		bool      bShowCentered) : AIModalDialog(parent, -1, *title, wxDefaultPosition, 
+		bool      bShowCentered) : AIModalDialog(parent, -1, *title, wxDefaultPosition,
 					wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-    // This dialog function below is generated in wxDesigner, and defines the controls and
-    // sizers for the dialog. The first parameter is the parent which should normally be
-    // "this". The second and third parameters should both be TRUE to utilize the sizers
-    // and create the right size dialog.
-	pConsChk_Empty_noTU_DlgSizer = ConsistencyCheck_EmptyNoTU_DlgFunc(this, TRUE, TRUE);
+	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
+	// for the dialog. The first parameter is the parent which should normally be "this".
+	// The second and third parameters should both be TRUE to utilize the sizers and create the right
+	// size dialog.
+	pConsChk_exists_notu_dlgSizer = ConsistencyCheck_ExistsNoTU_DlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_bShowItCentered = bShowCentered;
 	m_sourcePhrase = *srcPhrase;
-	m_modeWord = *modeWord;
-	m_modeWordPlusArticle = *modeWordPlusArticle;
+	m_targetPhrase = *adaptation;
 	m_notInKBStr = *notInKBStr;
-	m_noneOfThisStr = *noneOfThisStr;
+	m_bShowItCentered = bShowCentered;
 }
 
-ConsChk_Empty_noTU_Dlg::~ConsChk_Empty_noTU_Dlg() // destructor
+conschk_exists_notu_dlg::~conschk_exists_notu_dlg() // destructor
 {
 }
 
-void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+void conschk_exists_notu_dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	m_bDoAutoFix = FALSE;
-	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME);
+	m_bDoAutoFix = FALSE; // default
+	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME2);
 	wxASSERT(m_pAutoFixChkBox != NULL);
 	m_pAutoFixChkBox->SetValue(FALSE); // start with it turned off
 	action = no_fix_needed; // temporary default, OnOK() will set it
 
-	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_1);
+	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_2);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
 	// put the passed in source phrase value into the wxTextCtrl, then make it read only
 	m_pTextCtrlSrcText->ChangeValue(m_sourcePhrase);
 	m_pTextCtrlSrcText->SetEditable(FALSE); // now it's read-only
 
-	m_pMessageLabel = (wxStaticText*)FindWindowById(ID_TEXT_EMPTY_STR);
-	wxASSERT(m_pMessageLabel != NULL);
-	// put in the correct string, "adaptation" or "gloss" for this message label
-	wxString msg = m_pMessageLabel->GetLabel(); // "The %s is empty, a knowledge base entry
-												// is expected, but is absent"
-	m_messageLabelStr = m_messageLabelStr.Format(msg, m_modeWord.c_str()); // %s filled in
-	m_pMessageLabel->SetLabel(m_messageLabelStr);
-	// get the pixel difference in the label's changed text
-	int difference = CalcLabelWidthDifference(msg, m_messageLabelStr, m_pMessageLabel);
+	m_pTextCtrlTgtText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TARGET_PHRASE_2);
+	wxASSERT(m_pTextCtrlTgtText != NULL);
+	// put the passed in source phrase value into the wxTextCtrl, then make it read only
+	m_pTextCtrlTgtText->ChangeValue(m_targetPhrase);
+	m_pTextCtrlTgtText->SetEditable(FALSE); // now it's read-only
 
-	m_pNoAdaptRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_NO_ADAPTATION);
-	wxASSERT(m_pNoAdaptRadioBtn != NULL);
-	// put in the correct strings, for this radio button label; first is
-	// "adaptation" and second is "<no adaptation>" if called when in adaptation mode,
-	// else "gloss" and "<no gloss>" if called when in glossing mode
-	wxString msg1 = m_pNoAdaptRadioBtn->GetLabel();
-	wxString radioStr1;
-	radioStr1 = radioStr1.Format(msg1, m_modeWord.c_str(), m_noneOfThisStr.c_str());
-	m_pNoAdaptRadioBtn->SetLabel(radioStr1);
+	m_pStaticCtrl = (wxStaticText*)FindWindowById(ID_TEXT_EXISTS_STR);
+	wxASSERT(m_pStaticCtrl != NULL);
 
-	m_pLeaveHoleRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_LEAVE_HOLE);
-	wxASSERT(m_pLeaveHoleRadioBtn != NULL);
+	m_pStoreNormallyRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_STORE_NORMALLY);
+	wxASSERT(m_pStoreNormallyRadioBtn != NULL);
 
-	m_pNotInKBRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_NOT_IN_KB);
+	m_pNotInKBRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_NOT_IN_KB_LEAVEINDOC);
 	wxASSERT(m_pNotInKBRadioBtn != NULL);
-	// hide this 3rd radio button if we are in glossing mode
-	if (m_messageLabelStr.Find(_("gloss")) != wxNOT_FOUND)
-	{
-		m_pNotInKBRadioBtn->Hide();
-	}
-	else
-	{
-		// put in the correct strings, for this radio button label; first is
-		// "an adaptation" and second is "<Not In KB>" if called when in adaptation mode,
-		// else "a gloss" and "<Not In KB>" if called when in glossing mode
-		wxString msg2 = m_pNotInKBRadioBtn->GetLabel();
-		wxString radioStr2;
-		radioStr2 = radioStr2.Format(msg2, m_modeWordPlusArticle.c_str(), m_notInKBStr.c_str());
-		m_pNotInKBRadioBtn->SetLabel(radioStr2);
-	}
+	m_radioNotInKBLabelStr.Empty();
+	// put in the correct string, for this radio button label;  "<Not In KB>" 
+	wxString msg2 = m_pNotInKBRadioBtn->GetLabel();
+	m_radioNotInKBLabelStr = m_radioNotInKBLabelStr.Format(msg2, m_notInKBStr.c_str());
+	m_pNotInKBRadioBtn->SetLabel(m_radioNotInKBLabelStr);
+	// get the pixel difference in the label's changed text
+	int difference = CalcLabelWidthDifference(msg2, m_radioNotInKBLabelStr, m_pNotInKBRadioBtn);
 
 	// make the fonts show user-defined font point size in the dialog
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pTextCtrlSrcText, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTextCtrlTgtText, NULL,
+								NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pTextCtrlSrcText, NULL, 
 								NULL, NULL, gpApp->m_pDlgSrcFont);
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTextCtrlTgtText, NULL, 
+								NULL, NULL, gpApp->m_pDlgTgtFont);
 	#endif
 
 	// get the dialog to resize to the new label string lengths
@@ -182,19 +165,15 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	//TransferDataToWindow();
 }
 
-void ConsChk_Empty_noTU_Dlg::OnOK(wxCommandEvent& event)
+void conschk_exists_notu_dlg::OnOK(wxCommandEvent& event)
 {
 	// get the auto-fix flag
 	m_bDoAutoFix = m_pAutoFixChkBox->GetValue();
 
 	// set the fixit action
-	if (m_pNoAdaptRadioBtn->GetValue())
+	if (m_pStoreNormallyRadioBtn->GetValue())
 	{
-		action = store_empty_meaning;
-	}
-	else if (m_pLeaveHoleRadioBtn->GetValue())
-	{
-		action = turn_flag_off;
+		action = store_nonempty_meaning;
 	}
 	else
 	{

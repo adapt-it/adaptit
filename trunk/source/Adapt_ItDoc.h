@@ -86,9 +86,11 @@ enum FixItAction {
 	// possiblity for the member_exists_flag_off_noPTU case; the 1st response is also a
 	// possiblity for member_empty_flag_on_PTUexists_deleted_Refstr
 	turn_flag_off, // make m_bHasKBEntry or m_bHasGlossingKBEntry FALSE
-	make_it_an_empty_entry, // make CTargetUnit & add emptyStr
-	make_it_Not_In_KB, // adjust flags, make CTargetUnit & add <Not In KB>
-	typed_meaning, // make CTargetUnit & add text for m_adaption or m_gloss
+	make_it_Not_In_KB, // adjust flags, make CTargetUnit & add <Not In KB> (only available 
+					   // in adaptation mode)
+	store_nonempty_meaning, // make CTargetUnit & add text for m_adaption or m_gloss
+	store_empty_meaning, // the <no adaptation> response, or <no gloss> response
+
 
 	// next are responses (only two are possible) for member_exists_flag_off_noPTU (note, 
 	// includes also the 3rd response for the member_empty_flag_on_noPTU - but only when 
