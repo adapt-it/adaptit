@@ -8713,6 +8713,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		{
 			label = label.Format(label,m_collaborationEditor.c_str());
 		}
+		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 		// whm added 1Sep11
 		// now substitute "Paratext" or "Bibledit" for the %s in the menu help text
 		wxMenuItem* pCollabMenuItem = pAdministratorMenu->FindItem(ID_SETUP_EDITOR_COLLABORATION);
@@ -8722,7 +8723,6 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			label = label.Format(label,m_collaborationEditor.c_str(),m_collaborationEditor.c_str());
 			pCollabMenuItem->SetHelp(label);
 		}
-		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 	}
 
 	// MAKE MENU ACCELERATOR KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
