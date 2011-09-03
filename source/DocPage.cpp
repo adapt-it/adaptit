@@ -324,8 +324,13 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		// (if book mode is disabled because of a bad read of the books.xml file, don't change the
 		// m_bDisableBookMode flag back to FALSE, only a subsequent good read of the xml file
 		// should do that)
-		// TODO: Check to see if this turning off of book mode for all Prev button
-		// selections is hurtful or not.
+		// 
+		// whm 2Sep11 modification. Unilaterally turning OFF book folder mode should NOT be
+		// done here in OnWizardPageChanging()! Doing so here would result in a FALSE value 
+		// for m_bBookMode, and -1 for m_nBookIndex being stored in the current project config
+		// file, when the pProjectPage->InitDialog() call is made below in preparation for
+		// moving backwards to the ProjectPage.
+		/*
 		// event.GetDirection() returns TRUE if moving forward, FALSE if moving backwards
 		if (event.GetDirection() == FALSE)
 		{
@@ -338,6 +343,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 				gpApp->m_nLastBookIndex = gpApp->m_nDefaultBookIndex;
 			}
 		}
+		*/
 
 		if (gbWizardNewProject == TRUE)
 		{
@@ -800,7 +806,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // assert).
 		//pStartWorkingWizard->EndModal(1);
 		
-        // default the m_nActiveSequNum value to 0 when getting the doc created
+        // default the m_nActiveSequNum value to -1 when getting the doc created
 		pApp->m_nActiveSequNum = -1; 
 		bool bResult = pDoc->OnNewDocument();
 		// whm 17Apr11 changed test below to include check for m_nActiveSequNum being
