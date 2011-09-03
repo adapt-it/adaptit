@@ -1,8 +1,0 @@
-\.svn\
-.chm
-.htb
-.zip
-.bat
-_errorlog.txt
-Exclude.txt
-mac_excl.lst
