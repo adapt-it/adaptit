@@ -225,12 +225,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_59FD387824C8412E943EA76E7661A010"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_5BB5686243804244B6E3729AB63B9B2E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1320,26 +1314,6 @@
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\KJV 1Jn 2.12-17.txt"
             "TargetName" = "8:KJV 1Jn 2.12-17.txt"
-            "Tag" = "8:"
-            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_59FD387824C8412E943EA76E7661A010"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\License.txt"
-            "TargetName" = "8:License.txt"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"

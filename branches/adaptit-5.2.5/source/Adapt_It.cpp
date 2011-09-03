@@ -5421,21 +5421,43 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// fails. We have our own message.
 		wxLogNull logNo;	// eliminates any spurious messages from the system while 
 							// reading read-only folders/files
-		bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(LIB_NAME);
+		wxString secPath,secPath32,secPath64;
+		secPath32 = _T("C:\\Program Files\\Common Files\\SIL") + PathSeparator + LIB_NAME;
+		secPath64 = _T("C:\\Program Files (x86)\\Common Files\\SIL") + PathSeparator + LIB_NAME;
+		if (::wxFileExists(secPath64))
+		{
+			secPath = secPath64;
+		}
+		else if (::wxFileExists(secPath32))
+		{
+			secPath = secPath32;
+		}
+		else
+		{
+			 // SIL Encoding Converters could have been installed in a non-default location, in
+			 // which case Bob E says the wxDynamicLibrary::Load() call below should be able to
+			 // find it because the Encoding Conv installation sets the path to be able to locate
+			 // the dll. If the Load() call still fails, we won't bother the user in that case 
+			 // with the error message.
+			secPath = LIB_NAME;
+		}
+
+		bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(secPath);
 		if (!ecDriverDynamicLibrary.IsLoaded())
 		{
 			// the ECDriver.dll file was not found
 			bECDriverDLLLoaded = FALSE;
-			wxString msg;
-			// This error shouldn't happen with normal install, so it can remain in English
-			msg = msg.Format(_T(
-	"Could not find the %s dynamic library file. SIL Converters will not be available, however the rest of the application will work fine.\n(The next installation you do should fix this problem, because this dll file is included in every installer.)"),
-			LIB_NAME);
-			wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
-		}
-		else
-		{
-			bECDriverDLLLoaded = TRUE;
+			if (!(secPath == LIB_NAME)) // see the comment in the last else block above
+			{
+				// Only show the error message when the ECDriver.dll was found, but the Load()
+				// call above failed
+				wxString msg;
+				// This error shouldn't happen with normal install, so it can remain in English
+				msg = msg.Format(_T(
+		"Could not load the %s dynamic library file. SIL Encoding Converters will not be available, however the rest of Adapt It will work fine.\n(The SIL Encoding Converters that is currently installed is apparently not compatible with Adapt It.)"),
+				LIB_NAME);
+				wxMessageBox(msg,_T("Incompatible version of SIL Encoding Converters"),wxICON_INFORMATION);
+			}
 		}
 	}
 #else
@@ -5974,6 +5996,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
 		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
 		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		// BEW 28Feb11, moved frm switch to above, it was before the  BEW 12Nov09 line previously
 		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
@@ -5982,8 +6007,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("exports"), _T("exporteddocumentspath"), _T("Lock exported documents path to this path"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
 		// for default adaptation export of adaptation text from a given doc file from
 		// a given project folder is what the next 4 params are
@@ -6003,6 +6026,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
 	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
 	// OnFileNew() to initiate the doc/view creation process at program startup.
+	// Note: wxWidgets defines argc and argv as uninitialized public variables in App.h
+	// header, so we don't need to define them here
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
 	int itsokay = m_pParser->Parse(); // continue if it fails
@@ -6039,8 +6064,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	*/
 
-	int paramCount = m_pParser->GetParamCount();
-	if (itsokay == 0 && paramCount > 0)
+	int paramCount = m_pParser->GetParamCount(); // this is needed only for commands with params
+
+	if (itsokay == 0)
 	{
 		if (m_pParser->Found(_T("xo")))
 		{
@@ -6106,65 +6132,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			}
 		}
 	}
-
-	// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
-	// for default adaptation export of adaptation text from a given doc file from
-	// a given project folder
-	/*
-	static const wxCmdLineEntryDesc cmdLineDesc2[] = 
-	{
-		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"), _T("export"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\nproject name (must be in doublequotes)"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\ndocument name (in doublequotes if spaces present)"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\noutput folder path (in doublequotes if spaces present)"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_NONE }
-	};
-	m_pParser2 = new wxCmdLineParser(cmdLineDesc2, argc, argv);
-
-	// for testing, set up the following command line - comment out later for Release version
-	//m_pParser2->SetCmdLine(_T("export \42 XX to YY adaptations\42 \42 Ruth.xml\42 \42C:\\Card1\42"));
-
-	int allswell = m_pParser2->Parse(); // allow continued processing if parse failed
-
-	// Note: returning here creates memory leaks, but it is not too serious since the
-	// program is terminating anyway.
-
-	int paramCount2 = m_pParser2->GetParamCount();
-	if (allswell == 0 && paramCount2 == 4)
-	{
-		// got a valid parse for the export command + params
-		m_autoexport_command = m_pParser2->GetParam(0);
-		if (m_autoexport_command == _T("export"))
-		{
-			m_autoexport_projectname = m_pParser2->GetParam(1);
-			m_autoexport_projectname.Trim(FALSE); // remove whitespace from left
-			m_autoexport_projectname.Trim(); // remove whitespace from right
-			m_autoexport_docname = m_pParser2->GetParam(2);
-			m_autoexport_docname.Trim(FALSE); // remove whitespace from left
-			m_autoexport_docname.Trim(); // remove whitespace from right
-			m_autoexport_outputpath = m_pParser2->GetParam(3);
-			m_autoexport_outputpath.Trim(FALSE); // remove whitespace from left
-			m_autoexport_outputpath.Trim(); // remove whitespace from right
-			m_bAutoExport = TRUE;
-		}
-		else
-		{
-			wxMessageBox(_("Command line, export command misspelled; parse failed"));
-			m_bAutoExport = FALSE;
-		}
-	}
-	else if (allswell > 0)
-	{
-		wxMessageBox(_("Command line, export command, parse error"));
-		m_bAutoExport = FALSE;
-	}
-	*/
 
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
@@ -6618,7 +6585,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     wxMenuItem* pFileExitItem;
 	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
 	wxASSERT(pFileExitItem != NULL);
-	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+	pFileExitItem->SetItemLabel(_("Quit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
 	
 	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(editMenu);
 	wxASSERT(pEditMenu != NULL);
@@ -24321,9 +24288,19 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
 	wxString strSaveCurrentCustomWorkFolder = m_customWorkFolderPath;
 	bool	 bSaveUsageFlag = m_bUseCustomWorkFolderPath;
 
+	wxString saveCurWorkingDir;
+
+	saveCurWorkingDir = ::wxGetCwd(); // whm added 10Jun11
+
+	/*
+	// whm changed 10Jun11. I've relocated the CloseProject() below down further in the
+	// function to allow for the user being able to cancel out of the LocateCustomWorkFolder()
+	// function and not have his project and document closed
+
 	// the current project, if one is open, and or and open doc, can't stay open when the
 	// work folder location is changed, so close doc and project
 	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
+	*/
 
 	//wxLogDebug(_T("1  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 
@@ -24421,7 +24398,14 @@ a:			wxString stdDocsDir = _T("");
             // assume a cancel means cancel from the whole attempt, so restore whatever was
             // the earlier work folder location - whether legacy location or a custom
             // location
-
+            
+			// whm added 10Jun11 to better handlel a Cancel from LocateCustomWorkFolder()
+			// above.
+			// restore custom work folder to saved state
+			m_bUseCustomWorkFolderPath = bSaveUsageFlag;
+			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
+			// restore the saved working dir
+			::wxSetWorkingDirectory(saveCurWorkingDir);
 
 			// ** TODO **   call OnLocalWorkFolder() ?? actually it could be one of
 			// several possibilities, depending on whether administrator is local or
@@ -24484,8 +24468,30 @@ a:			wxString stdDocsDir = _T("");
 		// earlier one which was in effect at entry, or a different one.
 		m_bUseCustomWorkFolderPath = TRUE;
 		m_customWorkFolderPath = workFolderPath;
-	}
+		
+		// whm added 12Aug11. 
+		// The administrator has just successfully slected a folder to be used as a
+		// custom work folder. I think we should ask the administrator at this point
+		// if his intent is that this custom work folder be locked in or not. Otherwise
+		// if he forgets to tick the Administrator item "Lock Custom Location" 
+		// afterwards, he (or the MTT) may be dismayed to find out that the custom 
+		// work folder is not being used after it was set up. This is the way the
+		// Load Consistent Changes... and "Use Consistent Changes" menu items work.
+		wxString msg;
+		msg = _("You have selected the following folder to be used as a custom work folder:\n\n%s\n\nDo you want this custom work folder to be \"locked\" so that it becomes the user's permanent work folder?");
+		msg = msg.Format(msg,m_customWorkFolderPath.c_str());
+		int response = wxMessageBox(msg,_T("Is this custom work folder permanent or temporary?"),wxICON_QUESTION | wxYES_NO);
+		if (response == wxYES)
+		{
+			wxCommandEvent dummyEvent;
+			OnLockCustomLocation(dummyEvent);
+		}	}
 
+	// whm 10Jun11 moved CloseProject() here from above.
+	// the current project, if one is open, and or and open doc, can't stay open when the
+	// work folder location is changed, so close doc and project
+	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
+	
 	//wxLogDebug(_T("7  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 
 	// if the user has made the legacy default location the "custom" one, then revert to

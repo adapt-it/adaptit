@@ -281,11 +281,17 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	wxArrayString possibleAdaptions;
 	possibleAdaptions.Clear();
 	m_pListBox->Clear();
+
+	pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
+	// whm modified 28Jul11 to sort possibleAdaptations before adding the
+	// <New Project> as the first item. This change is needed to get a sorted
+	// list on the Linux port. Windows and Mac seem to grab the list of folders
+	// in sorted order.
+	possibleAdaptions.Sort();
 	wxString str;
 	// IDS_NEW_PROJECT
 	str = str.Format(_("<New Project>"));
-	possibleAdaptions.Add(str);
-	pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
+	possibleAdaptions.Insert(str,0);
 
 	// fill the list box with the folder name strings
 	wxString showItem;

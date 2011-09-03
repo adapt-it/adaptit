@@ -1,4 +1,4 @@
-Limitations and known issues in the version 5.2.4 release 
+Limitations and known issues in the version 5.2.5 release 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -8,26 +8,9 @@ the margin settings in millimeters, even if the Units dialog
 is set for "inches." This will eventually be corrected in a 
 future release of the Windows port.
 
-2. Under Windows Vista, if a project that uses a Right-to-Left 
-script for its target text is closed, and the user immediately 
-opens a different project which uses Left-to_Right script for
-its target text, the text that appears in the phrasebox may
-display right justified in the box. This is only a problem that
-appears under Windows Vista. If you experience this, the work-
-around is simply to exit from Adapt It and start it up and load
-the project with the Left-to-Right target language script again
-and the phrasebox text will then be left justified in the edit
-box.
-
 All Versions:
 
-1. RTF exports (including Interlinear) may not format correctly 
-when loaded into Open Office 3. They should format correctly 
-with MS Word, and if saved from MS Word can subsequently opened
-in Open Office 3. Eventually the RTF exports will be reworked to 
-be fully compatible with Open Office 3.
-
-2. Sync Scrolling should work on the Windows port, but has not 
+1. Sync Scrolling should work on the Windows port, but has not 
 been implemented on the non-Windows ports because the 
 mechanism that controls synchronized scrolling in application 
 such as TW and Paratext was designed with only the Windows 
@@ -38,17 +21,7 @@ Adapt It running on those ports to sync scroll with other
 applications capable of sync scrolling that run natively on 
 those other ports.
 
-3. Adapt It WX only uses the xml file format for its documents 
-and KB files. It will not recognize nor can it convert any 
-files that still use the legacy .adt (binary) format. If you 
-have any old .adt files produced by earlier legacy versions of 
-Adapt It that you want to access, you will need to open those 
-files using a recent legacy version (3.x) of Adapt It and save 
-them with the "Save Documents and KB as XML" menu item 
-selected on the File menu. After they have been saved as XML, 
-Adapt It WX will be able to open and process them normally.
-
-4. Adapt It WX does not have a splitter window with ability to 
+2. Adapt It WX does not have a splitter window with ability to 
 split the main window horizontally into two separately scrolled 
 windows into the view. This would take a fair bit of work to 
 implement on the cross platform version, but could probably be 

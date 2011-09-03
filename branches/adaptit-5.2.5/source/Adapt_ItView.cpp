@@ -1545,7 +1545,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	canvas = pApp->GetMainFrame()->canvas;
 	canvas->pView = this;	// make the view pointer owned by MainFrame's canvas
 							// point to the current view
-    pCanvasFrame->SetTitle(_T("CAdapt_ItView"));
+    pCanvasFrame->SetTitle(_T("Adapt It"));
 	SetFrame(pCanvasFrame);
 
 #ifdef __X__
@@ -25583,11 +25583,14 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_RTL_LAYOUT
+		if (pLayoutMenuAlignment != NULL)
+		{
 #ifdef __WXMAC__
-		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
 #else
-		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
 #endif
+		}
 	}
 	else
 	{
@@ -25597,15 +25600,32 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_LTR_LAYOUT
+		if (pLayoutMenuAlignment != NULL)
+		{
 #ifdef __WXMAC__
-		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
 #else
-		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
+			pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
 #endif
+		}
 	}
+#ifdef __WXMAC__
+	// GDLC 2011-04-08 The Mac version of AI needs only the two commands not commented out!
+	// Question: Will Windows and Linux work correctly with only the two commands PlaceBox() and ClearBackground()?
+//	Invalidate();				// Doesn't do anything useful on Mac
+//	canvas->ClearBackground();	// On Mac this does the redraw rather than merely clearing the background!
+//	GetLayout()->Redraw();		// Not needed on Mac
+	GetLayout()->PlaceBox();	// Sets the parameters for the updated placement of the phrase box without changing the screen
+	canvas->ClearBackground();	// Updates the contents of the window to show the changed layout direction
+#else
 	Invalidate();
+	canvas->ClearBackground(); // BEW added 23Feb11, because without it, if the layout
+		// direction is changed when scrolled away from the top, the screen is garbled
+		// until a refresh is forced, and the Invalidate() plus Redraw() calls were not
+		// sufficient
 	GetLayout()->Redraw(); // yep, works nicely
 	GetLayout()->PlaceBox();
+#endif
 }
 
 // use this function when user changes, or potentially changes, the RTL checkboxes in

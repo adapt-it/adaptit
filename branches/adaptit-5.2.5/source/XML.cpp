@@ -2853,7 +2853,16 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 						{
 							// we have a data error -- it should have been made NULL at the </S> endtag 
 							// for an earlier embedded one
-							return FALSE;
+							//return FALSE;
+							// BEW 24Aug11; if an error here is to be treated as grounds
+							// for aborting the parse and hence the application, then
+							// return FALSE; otherwise return TRUE to cause the parser to
+							// keep going
+							wxBell(); // a little reminder that something went wrong
+							// we've probably leaked a small block of memory, but we'll
+							// tolerate it for the gain of not having the parse break
+							gpEmbeddedSrcPhrase = new CSourcePhrase;
+							return TRUE;
 						}
 						else
 						{
@@ -2875,8 +2884,13 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				}
 				else
 				{
-					return FALSE; // unknown element, so signal the error to the caller
-				}
+					//return FALSE; // unknown element, so signal the error to the caller
+
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					return TRUE; 				}
 				break;
 			} // end block for docVersion case 4: or 5:
 		} // end block for switch (gnDocVersion)
@@ -2987,7 +3001,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute in the Settings tag
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 				return TRUE;
 			}
@@ -3118,7 +3137,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3243,7 +3267,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3259,7 +3288,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3270,7 +3304,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_mmcap) // it's an "MM" tag
@@ -3282,7 +3321,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3293,13 +3337,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// it's an unknown tag
-				return FALSE;
+				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 			break;
 		}
@@ -3331,7 +3385,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute in the Settings tag
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 				return TRUE;
 			}
@@ -3462,7 +3521,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3587,7 +3651,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else
 						{
 							// unknown attribute
-							return FALSE;
+							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+							// parse and hence the application, then return FALSE; otherwise return
+							// TRUE to cause the parser to keep going (unknown data then just does not
+							// find its way into the application's internal structures)
+							//return FALSE;
+							return TRUE;
 						}
 					}
 				}
@@ -3603,7 +3672,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3614,7 +3688,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else if (tag == xml_mmcap) // it's an "MM" tag
@@ -3626,7 +3705,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gpEmbeddedSrcPhrase != NULL)
 					{
 						// impossible - unmerged ones can never have content in this list
-						return FALSE;
+						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+						// parse and hence the application, then return FALSE; otherwise return
+						// TRUE to cause the parser to keep going (unknown data then just does not
+						// find its way into the application's internal structures)
+						//return FALSE;
+						return TRUE;
 					}
 					else
 					{
@@ -3637,13 +3721,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else
 				{
 					// unknown attribute
-					return FALSE;
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
 				}
 			}
 			else
 			{
 				// it's an unknown tag
-				return FALSE;
+				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
 			}
 			break;
 		}
