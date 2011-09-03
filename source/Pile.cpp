@@ -18,6 +18,13 @@
 /// by the user. The fifth CCell displays the Gloss when used.
 /// \derivation		The CPile class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
+// Pending Implementation Items (in order of importance): (search for "TODO")
+// 1. Conditional compile HWND below for other platforms in the Draw method.
+//
+// Unanswered questions: (search for "???")
+// 1. 
+// 
+/////////////////////////////////////////////////////////////////////////////
 
 // whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: 
 // (BEW moved here from deprecated CText)
@@ -87,7 +94,6 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
 #include "Adapt_It.h"
-#include "helpers.h"
 //#include "SourceBundle.h"
 //#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
@@ -104,13 +110,6 @@
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-// uncomment out the following line for display of last pile's m_chapVerse string, and
-// length of string -- the length can be bogus (eg 20 when it should be 3, resulting the
-// display of bogus buffer overrun characters for the navtext above the last pile when it
-// is a verse with empty content but USFM markup - as can be got from Paratext) A kluge in
-// DrawNavTextInfoAndIcons() fixes the problem.
-//#define _SHOW_CHAP_VERSE
-
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called PileList.
 WX_DEFINE_LIST(PileList);
@@ -120,17 +119,16 @@ WX_DEFINE_LIST(PileList);
 // these next globals are put here when I moved CreatePile() 
 // from the view to the CPile class
 extern bool gbShowTargetOnly;
-extern bool gbGlossingVisible;
+extern bool gbEnableGlossing;
 //extern CAdapt_ItApp* gpApp;
 extern const wxChar* filterMkr;
 
 // globals relevant to the phrase box  (usually defined in Adapt_ItView.cpp)
 extern short gnExpandBox; // set to 8
 
-extern CAdapt_ItApp* gpApp;
-//GDLC Removed 2010-02-10
-// This global is defined in PhraseBox.cpp.
-//extern bool gbExpanding;
+
+/// This global is defined in PhraseBox.cpp.
+extern bool gbExpanding;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -216,26 +214,9 @@ int CPile::GetPileIndex()
 	return m_nPile;
 }
 
-// (The function is now slightly misnamed because no longer is all that is considered
-// "filtered" actually stored with an SF marker. Notes, free translations and collected
-// back translations are now just stored as simple strings - we only put a marker with
-// these info types when/if we export them or show them in the view filtered material
-// dialog. However, we'll keep the old name unchanged; but if we do someday change it, we
-// should call it HasFilteredInfo())
-// BEW 22Feb10 changes done for support of doc version 5 
 bool CPile::HasFilterMarker()
 {
-	if (
-		!m_pSrcPhrase->GetFilteredInfo().IsEmpty() ||
-		!m_pSrcPhrase->GetFreeTrans().IsEmpty() ||
-		!m_pSrcPhrase->GetNote().IsEmpty() ||
-		!m_pSrcPhrase->GetCollectedBackTrans().IsEmpty() ||
-		m_pSrcPhrase->m_bStartFreeTrans ||
-		m_pSrcPhrase->m_bHasNote
-		)
-		return TRUE;
-	else
-		return FALSE;
+	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
 }
 
 void CPile::SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection)
@@ -248,10 +229,6 @@ bool CPile::GetIsCurrentFreeTransSection()
 	return m_bIsCurrentFreeTransSection;
 }
 
-int CPile::GetWidth()
-{
-	return m_nWidth;
-}
 
 int CPile::Width()
 {
@@ -360,10 +337,9 @@ void CPile::SetMinWidth()
 	m_nMinWidth = CalcPileWidth();
 }
 
-//GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
-void CPile::SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
+void CPile::SetPhraseBoxGapWidth()
 {
-	m_nWidth = CalcPhraseBoxGapWidth(widthMode);
+	m_nWidth = CalcPhraseBoxGapWidth();
 }
 
 int	CPile::GetMinWidth()
@@ -414,17 +390,10 @@ int CPile::CalcPileWidth()
 			pileWidth = extent.x;
 		}
 	}
-	// BEW added next two lines, 14Jul11, supposedly they aren't necessary, but if
-	// m_srcPhrase and m_targetStr and m_gloss are each empty, pileWidth somehow ends up
-	// with a value of 0, and so this fixes that
-	if (pileWidth < 40)
-		pileWidth = 40;
 	return pileWidth;
 }
 
-//GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
-// (0 is contracting, 1 is steadyAsSheGoes, 2 is expanding)
-int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
+int CPile::CalcPhraseBoxGapWidth()
 {
     // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase
     // (the phrase box contents) for the pile extent (plus some slop), because at the
@@ -470,7 +439,6 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
             // a new phrase box width already and stored that width in
             // CLayout::m_curBoxWidth, so we must now check, if the box is expanding, to
             // see if that stored width is greater than the one so far calculated, and if
-			//****GDLC CHECK NEEDED on how widthMode gets to this function
             // so, use the greater value - and if expanding, FixBox() sets gbExpanding to
             // TRUE. If not expanding (the box could be contracting) we just use the
             // unadjusted value. FixBox() also clears the gbExpanding flag before exitting,
@@ -483,9 +451,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			// AdjustForUserEdits(), then the latter would have to be called instead.
 			// CalcPhraseBoxGapWidth() therefore does not clear the gbExpanding flag, it
 			// just uses it for the following test
-//GDLC Changed test 2010-02-10
-			if (widthMode == expanding)
-//			if (gbExpanding)
+			if (gbExpanding)
 			{
 				if (m_pLayout->m_curBoxWidth > boxGapWidth)
 					boxGapWidth = m_pLayout->m_curBoxWidth;
@@ -514,7 +480,6 @@ void CPile::SetPhraseBoxGapWidth(int nNewWidth)
 	m_nWidth = nNewWidth; // a useful overload, for when the phrase box is contracting
 }
 
-// BEW 22Feb10 some changes done for support of doc version 5
 void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 {
 	bool bRTLLayout;
@@ -621,12 +586,13 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 		//////////////////// Draw Green Wedge etc ////////////////////////////////
 		
-        // next stuff is for the green wedge - it should be shown at the left or the right
-        // of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively),
-        // rather than using the nav text's directionality
-		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter 
+		// next stuff is for the green wedge - it should be shown at the left or the right
+		// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather
+		// than using the nav text's directionality
+		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
+			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
 			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
-			|| bHasFilterMarker)
+			|| m_pSrcPhrase->m_markers.Find(filterMkr) != -1)
 		{
 			wxPoint pt;
 			TopLeft(pt); //pt = m_ptTopLeft;
@@ -663,12 +629,13 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
             // do with it is to append this information to str containing n:m if the latter
             // is pertinent here, or fill str with m_inform if there is no chapter or verse
             // info here. The construction of a wedge for signallying presence of filtered
-            // info is also handled here, but independently of m_inform
+            // info in m_markers is also handled here, but independently of m_inform
 			wxString str = _T("");
 
 			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
-               // if bHasFilteredMarker is TRUE member then we require a wedge
+                // if \~FILTERED is anywhere in the m_markers member of the sourcephrase
+                // stored which has its pointer stored in m_pPile, then we require a wedge
                 // to be drawn here.
                 // BEW modified 18Nov05; to have variable colours, also the colours
                 // differences are hard to pick up with a simple wedge, so the top of the
@@ -680,9 +647,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
                 // BEW added 18Nov05, to colour the wedge differently if \free is
                 // contentless (as khaki), or if \bt is contentless (as pastel blue), or if
                 // both are contentless (as red)
-				// these functions are now defined in helpers.cpp
-				bool bFreeHasNoContent = IsFreeTranslationContentEmpty(m_pSrcPhrase);
-				bool bBackHasNoContent = IsBackTranslationContentEmpty(m_pSrcPhrase);
+				bool bFreeHasNoContent = 
+					m_pLayout->m_pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
+				bool bBackHasNoContent = 
+					m_pLayout->m_pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
 
 				#ifdef _RTL_FLAGS
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
@@ -725,38 +693,34 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
                 // colour to indicate when free translation or back translation fields are
                 // contentless
 
-				if (!bBackHasNoContent)
+				if (!bFreeHasNoContent && !bBackHasNoContent)
 				{
-					// BEW 27Mar10, a new use for pastel blue, filtered info which
-					// includes collected back translation information
-					pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
-				}
-				else if (bFreeHasNoContent && bBackHasNoContent && m_pSrcPhrase->m_bHasNote)
-				{
-					// no free trans nor back trans, but a note -- red grabs attention best
-					pDC->SetPen(*wxRED_PEN);
-				}
-				else if (bFreeHasNoContent && m_pSrcPhrase->m_bStartFreeTrans)
-				{
-					// khaki for an empty free translation
-					if (bFreeHasNoContent)
-					{
-						// colour it khaki
-						pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
-					}
-				}
-				else if (bFreeHasNoContent && bBackHasNoContent && !m_pSrcPhrase->m_bHasNote)
-				{
-					// a new colour, cyan wedge if the only filtered information is in the
-					// m_filteredInfo member
-					pDC->SetPen(*wxCYAN_PEN);
+					// make whole inner part of wedge green
+					pDC->SetPen(*wxGREEN_PEN);	
 				}
 				else
 				{
-					// if not one of the special situations, colour it green
-					pDC->SetPen(*wxGREEN_PEN);
+					if (bFreeHasNoContent && bBackHasNoContent)
+					{
+						// use a third colour - red grabs attention best
+						pDC->SetPen(*wxRED_PEN);
+					}
+					else
+					{
+						// both are not together contentless, so only one of them is
+						// so do the one which it is in the appropriate colour
+						if (bFreeHasNoContent)
+						{
+							// colour it khaki
+							pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
+						}
+						if (bBackHasNoContent)
+						{
+							// colour it pastel blue
+							pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
+						}
+					}
 				}
-
 				// draw the two extra lines for the short column's colour
 				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6);
 				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 5, ptWedge.x + 4, ptWedge.y - 5);
@@ -775,59 +739,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			if (m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter)
 			{
 				str = m_pSrcPhrase->m_chapterVerse;
-
-                // spurious bug: pogus wxString buffer overrun chars (anything for 20 to 60
-                // or so) shown after nav text m:n of final pile's CSourcePhrase's
-                // m_chapVerse text, that is, for the last CSourcePhrase instance in the
-                // doc which happens to be composed of contentless USFM markup from
-                // Paratext - I've never had this wxString overrun before, and it appears
-                // to be a wx error, not one of ours; the error doesn't happen if the file
-                // is saved and then reloaded - all is drawn properly in that case)
-                
-				// the following kludge works, so make it permanent code
-				PileList* pPileList = m_pLayout->GetPileList();
-				PileList::Node* pos = pPileList->GetLast();
-				CPile* pLastPile = pos->GetData();
-				if (this == pLastPile)
-				{
-                    // chop off the bogus chars but only when the pile is the last one --
-                    // my test data has "2:7" for last CSourcePhrase instance's m_chapVerse
-                    // member, so shorten unilaterally to 3 chars; if it works, later do
-                    // general code
-					//if (str.Len() > 3)
-					//{
-					//	str = str.Left(3);
-					//}
-					wxString firstBit;
-					int offset = str.Find(_T(":"));
-					if (offset != wxNOT_FOUND)
-					{
-						firstBit = str.Left(offset + 1);
-						str = str.Mid(offset + 1);
-						int index = 0;
-						// test for digits, letters like a, b, or c, hyphen, comma or
-						// period - these are most likely the chars which will be in
-						// bridged verse or part verse if the verse isn't a simple one or
-						// more digits string; anything else, exit the loop
-						while(IsAnsiLetterOrDigit(str[index]) || str[index] == _T('-') || 
-							str[index] == _T(',') || str[index] == _T('.'))
-						{
-							firstBit += str[index];
-							index++;
-						}
-						str = firstBit;
-					}
-				}
-
-#ifdef _SHOW_CHAP_VERSE
-#ifdef __WXDEBUG__
-				// the wxString Len() value counts the bogus extra characters if they are
-				// "there", so the wxLogDebug will display the error if the kludge above
-				// is commented out
-				wxLogDebug(_T("Draw Navtext: str set by m_chapterVerse = %s , sn = %d  , str Length: %d"), 
-					str.c_str(), m_pSrcPhrase->m_nSequNumber, str.Len());
-#endif
-#endif
 			}
 
             // now append anything which is in the m_inform member; there may not have been
@@ -972,8 +883,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 // return TRUE if the CSourcePhrase pointed at by this CPile is one which has a marker
 // which causes text wrap in a USFM-marked up document (eg. \p, \m, etc)
-// BEW 22Feb10, no changes for support of doc version 5 (but the called function,
-// IsWrapMarker() does have changes for doc version 5)
 bool CPile::IsWrapPile()
 {
 	CSourcePhrase* pSrcPhrase = this->m_pSrcPhrase;
@@ -993,7 +902,6 @@ bool CPile::IsWrapPile()
 	return FALSE;
 }
 
-// BEW 22Feb10, no changes for support of doc version 5
 void CPile::PrintPhraseBox(wxDC* pDC)
 {
 	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
@@ -1057,12 +965,10 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 			pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
 			pDC->DrawLine(topLeft.x, topLeft.y+height, topLeft.x, topLeft.y);
 			pDC->SetPen(wxNullPen);
-
 		}
 	}
 }
 
-// BEW 22Feb10, no changes for support of doc version 5
 void CPile::Draw(wxDC* pDC)
 {
 	// draw the cells this CPile instance owns, MAX_CELLS = 3
@@ -1070,29 +976,8 @@ void CPile::Draw(wxDC* pDC)
 	{
 		m_pCell[0]->Draw(pDC);
 	}
-	/* Don't think I need do it this way, tweaking CCell::GetColor() is better
-    //BEW added 13May11 to implement a feature requested by Patrick Rosendall on 27Aug2009,
-    //to use a different colour for a target text word/phase which differs in spelling from
-    //the source text word/phrase
-	CSourcePhrase* pSrcPhrase = GetSrcPhrase();
-	wxColour diffColour = gpApp->m_navTextColor; // temporarily avoids a GUI addition of a button
-	//wxColour diffColour = wxColour(160,30,120); // a solid pickish red, darkish but not too much
-	wxColour oldColour;
-	if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
-	{
-		// change the colour for this pile's target text
-		oldColour = pDC->GetTextForeground();
-		pDC->SetTextForeground(diffColour);
-		m_pCell[1]->DrawCell(pDC, diffColour); // always draw the line which has the phrase box
-		pDC->SetTextForeground(oldColour);
-	}
-	else
-	{
-		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
-	}
-	*/
 	m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
-	if (gbGlossingVisible)
+	if (gbEnableGlossing)
 	{
 		// when TRUE, that means the menu item "See Glosses" has been ticked; but we may
 		// or may not still be in adapting mode, but a further test is not required

@@ -57,8 +57,7 @@ const UInt32 hasInternalMarkersMask		= 131072; // position 18
 const UInt32 hasInternalPunctMask		= 262144; // position 19
 const UInt32 footnoteMask				= 524288; // position 20
 const UInt32 footnoteEndMask			= 1048576; // position 21
-// BEW 8Oct10, repurposed m_bParagraph, so need different name for mask
-//const UInt32 paragraphMask			= 2097152; // position 22
+const UInt32 paragraphMask			= 2097152; // position 22
 const UInt32 unusedMask					= 2097152; // position 22
 
 /*
@@ -175,8 +174,7 @@ bool ParseClosingTag(char*& pPos,char* pEnd);
 
 bool ParsePCDATA(char*& pPos,char* pEnd,CBString& pcdata); // scan PCDATA
 
-bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax,
-		bool (*pAtTag)(CBString& tag,CStack*& pStack),
+bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
 		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
@@ -241,6 +239,7 @@ bool AtSFMAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXU
 bool AtSFMEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtSFMPCDATA(CBString& WXUNUSED(tag),CBString& pcdata,CStack*& WXUNUSED(pStack));
 
+/*
 // Functions used as callbacks for AI_UserProfiles.xml
 bool AtPROFILETag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtPROFILEEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
@@ -254,6 +253,7 @@ bool AtEMAILRptEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack))
 bool AtEMAILRptAttr(CBString& WXUNUSED(tag),CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack));
 bool AtEMAILRptEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtEMAILRptPCDATA(CBString& tag,CBString& pcdata,CStack*& WXUNUSED(pStack));
+*/
 
 // Functions used as callbacks for XML-marked-up Adapt It documents
 bool AtDocTag(CBString& tag,CStack*& WXUNUSED(pStack));
@@ -269,6 +269,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUN
 bool AtKBEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
 
+/*
 // Functions used as callbacks for XML-marked-up LIFT files
 // whm added 19May10
 bool AtLIFTTag(CBString& tag,CStack*& WXUNUSED(pStack));
@@ -277,32 +278,32 @@ bool AtLIFTAttr(CBString& WXUNUSED(tag),CBString& WXUNUSED(attrName),
 				CBString& WXUNUSED(attrValue),CStack*& WXUNUSED(pStack));
 bool AtLIFTEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
-
+*/
 // the read and parse functions;
-bool ReadBooks_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadBooks_XML(wxString& path);
 
 
 // read and parse function for AI_USFM.xml
-bool ReadSFM_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadSFM_XML(wxString& path);
 
 // read and parse function for AI_UserProfiles.xml
-bool ReadPROFILES_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadPROFILES_XML(wxString& path);
 
 // read and parse function for AI_ReportProblem.xml/AI_ReportFeedback.xml
-bool ReadEMAIL_REPORT_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadEMAIL_REPORT_XML(wxString& path);
 
 // read and parse function for Adapt It xml documents
-bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc);
 
 // read and parse function for Adapt It xml KB and GlossingKB files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
-bool ReadKB_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadKB_XML(wxString& path, CKB* pKB);
 
 // read and parse function for LIFT xml files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
-bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB), wxProgressDialog* pProgDlg, wxUint32 nProgMax);
+bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB));
 
 // Conversion functions for converting between different xml formats for
 // VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5

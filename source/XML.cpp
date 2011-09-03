@@ -7,10 +7,9 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for XML routines used in Adapt It for Dana and the WX version.
-/// BEW 24Aaug11 changed return FALSE; to return TRUE; for when an unknown attribute or
-/// tag is encountered when parsing a document. (Bill or I did the same change earlier for the
-/// KB-parsing functions.)
 /////////////////////////////////////////////////////////////////////////////
+
+// dummy comment to force a recompile
 
 // for debugging LIFT AtLIFTxxxx() callback functions
 //#define _debugLIFT_
@@ -61,7 +60,7 @@
 #include "KB.h"
 #include "TargetUnit.h"
 #include "RefString.h"
-#include "RefStringMetadata.h"
+//#include "RefStringMetadata.h"
 #include "MainFrm.h"
 #include "WaitDlg.h"
 #include "Adapt_ItView.h"
@@ -120,7 +119,7 @@ int gnRefCount; // reference count for the current CRefString instance
 //bool bKeyDefined = FALSE;
 //extern bool gbIsGlossing;
 
-static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
+//static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
 						// for a given key, the relevant map contains a CTargetUnit
 						// instance, and this will be a pointer to it
 static char emptyStr[32];
@@ -129,6 +128,8 @@ void* r = memset((void*)emptyStr,0,32); // after the above line
 
 /// This global is defined in MainFrm.cpp.
 extern SPList* gpDocList; // for synch scrolling support (see MainFrm.cpp)
+
+extern bool gbSyncMsgReceived_DocScanInProgress;
 
 /// This global is defined in Adapt_It.cpp.
 extern USFMAnalysis* gpUsfmAnalysis;
@@ -151,10 +152,10 @@ Item gStoreItem; // temporary storage for popped items
 #define safelimit 15360
 #define TwentyKB 20480
 
-static UserProfiles* gpUserProfiles = NULL;
-static UserProfileItem* gpUserProfileItem = NULL;
-
-static EmailReportData* gpEmailReportData = NULL;
+//static UserProfiles* gpUserProfiles = NULL;
+//static UserProfileItem* gpUserProfileItem = NULL;
+//
+//static EmailReportData* gpEmailReportData = NULL;
 
 // define our needed tags, entities and attribute names
 // Note: Many of the const char declarations have been
@@ -187,14 +188,6 @@ const char code[] = "code";
 static int divIndex = -1;
 static int divCount = 0;
 static int totalCount = 0;
-
-// whm added 15Jul11 counts for report at end of kb import
-static int nLexItemsProcessed = 0;
-static int nAdaptationsProcessed = 0;
-static int nAdaptationsAdded = 0;
-static int nAdaptationsUnchanged = 0;
-static int nUndeletions = 0;
-
 
 // this group of tags are for the AI_USFM.xml file
 const char usfmsupport[] = "USFMsupport";
@@ -272,6 +265,30 @@ const char leadingStr[] = "leading";
 const char followingStr[] = "following";
 const char centerStr[] = "center";
 const char justifiedStr[] = "justified"; // added for version 3
+// whm 10Jan11 added for 5.2.4
+// The following struct is for temporarily holding xml parsed values that are
+// unique to docV5. After their data is incorporated into the appropriate docV4's
+// source phrase members, the data is discarded.
+//struct docV5_extras 
+//{
+//	wxString		m_endMarkers;
+//	wxString		m_freeTrans;
+//	wxString		m_note;
+//	wxString		m_collectedBackTrans;
+//	wxString		m_filteredInfo;
+//	// BEW added 11Oct10, the next five are needed in order to properly handle inline
+//	// (character formatting) markers, and the interactions of punctuation and marker
+//	// types - in particular to support punctuation which follows inline markers (rather
+//	// than assuming that punctuation binds more closely to the word than do endmarkers
+//	// and beginmarkers)
+//	wxString		m_inlineBindingMarkers;
+//	wxString		m_inlineBindingEndMarkers;
+//	wxString		m_inlineNonbindingMarkers;
+//	wxString		m_inlineNonbindingEndMarkers;
+//	wxString		m_follOuterPunct; // store any punctuation after endmarker (inline
+//									  // non-binding, or \f* or \x*) here; but puncts
+//									  // after inline binding mkr go in m_follPunct
+//}v5_extras;
 
 #ifdef Output_Default_Style_Strings
 
@@ -284,7 +301,7 @@ const char justifiedStr[] = "justified"; // added for version 3
 // These defaults would be used when the AI_USFM.xml file is not available.
 // These little conditionally compiled routines greatly simplify the creation
 // of these hard coded strings, and can be re-produced any time a change in
-// default attributes is deemed necessary, helping to ensure that the program's
+// default attributes is deemed necessary, helping to insure that the program's
 // hard coded defaults are the same as the AI_USFM.xml file distributed with
 // the program.
 static wxString usfmUnixDataStr = _T("");
@@ -452,10 +469,6 @@ void InsertEntities(CBString& s)
 	ch = "\"";
 	offset = -1;
 	DoEntityInsert(s,offset,ch,xml_quote);
-	// whm added below 24May11
-	ch = "\t";
-	offset = -1;
-	DoEntityInsert(s,offset,ch,xml_tab);
 }
 
 void DoEntityReplace(CBString& s,Int16& offset,const char* ent,char ch)
@@ -557,10 +570,6 @@ void ReplaceEntities(CBString& s)
 	ch = '\"';
 	offset = -1;
 	DoEntityReplace(s,offset,xml_quote,ch);
-	// whm added below 24May11
-	ch = '\t';
-	offset = -1;
-	DoEntityReplace(s,offset,xml_tab,ch);
 }
 
 void SkipWhiteSpace(char*& pPos,char* pEnd)
@@ -886,13 +895,6 @@ bool WriteDoc_XML(CBString& path)
 *
 * Parameters:
 * -> path -- absolute path to the file on an expansion card.
-* <-> pProgDlg -- pointer to the caller's wxProgressDialog (may be NULL)
-* ->  nProgMax -- the maximum range value for wxProgressDialog (may be 0)
-* (*pAtTag) -- callback function for At...Tag()
-* (*pAtEmptyElementClose) -- callback function for At...EmptyElementClose()
-* (*pAtAttr) -- callback function for At...Attr()
-* (*pAtEndTag) -- callback function for At...EndTag()
-* (*pAtPCDATA) -- callback function for At...PCDATA()
 *
 * This is the top level function. It just creates an empty tag stack,
 * ensures the XML prologue is present, and jumps it, then hands over
@@ -903,8 +905,7 @@ bool WriteDoc_XML(CBString& path)
 *
 *********************************************************************/
 
-bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // whm Note: pProgDlg can be NULL
-		bool (*pAtTag)(CBString& tag,CStack*& pStack),
+bool ParseXML(wxString& path, bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
 		bool (*pAtEndTag)(CBString& tag,CStack*& pStack),
@@ -938,11 +939,6 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 
 	wxString testStr;
 	testStr = ::wxGetCwd();
-	
-	// whm 25Aug11 added for wxProgressDialog support
-	int nTotal;
-	wxString msgDisplayed;
-	wxString progMsg;
 
 	bool bOpenOK;
 	{ // a restricted scope block for wxLogNull
@@ -961,24 +957,6 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 
 		nInputLeft = fileSize;
 		nChunks = fileSize / TwentyKB;
-		// whm 25Aug11 added progress dialog update based on the nChunks
-		// being processed in reading the xml file
-	
-		// whm note: do not add 1 to nTotal here but use the fileSize / TwentyKB
-		// result here even if there is left over. The progress dialog set up
-		// in the callers uses nChunks + 1 in the wxProgressDialog constructor
-		// to avoid exceeding the maximum range for the dialog.
-		nTotal = nChunks;
-		wxString progMsg = _("Reading File %s - part %d of %d");
-		wxFileName fn(path);
-		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),nCurrChunk,nTotal);
-		// whm 25Aug11 added nProgMax
-		if (pProgDlg != NULL && nCurrChunk < nProgMax)
-		{
-			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			//::wxSafeYield();
-		}
-		
 		if (fileSize % TwentyKB > 0) ++nChunks;
 	
 		// get the first 20kb of data, or however many there 
@@ -1001,12 +979,6 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 			nInputLeft -= (Int32)TwentyKB;
 		}
 		nCurrChunk++;
-		// whm 25Aug11 added nProgMax
-		if (pProgDlg != NULL && nCurrChunk < nProgMax)
-		{
-			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			//::wxSafeYield();
-		}
 	}
 	else
 	{
@@ -1125,13 +1097,6 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 	{
 		// entire xml file is in the work buffer
 		pEnd = (char*)(pBuff + fileSize);
-		//::wxSafeYield();
-		// whm 25Aug11 added nProgMax
-		if (pProgDlg != NULL && nCurrChunk < nProgMax)
-		{
-			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			//::wxSafeYield();
-		}
 	}
 	else
 	{
@@ -1231,16 +1196,7 @@ r:		comp = strncmp(pPos,comment,4);
 		// next full or partial chunk to the remnant, resetting pointers
 		// appropriately. A 'chunk' is 20KB, so we never will get overflow.
 		if (nCurrChunk >= nChunks || bReadAll)
-		{
-			//::wxSafeYield();
-			// whm 25Aug11 added nProgMax
-			if (pProgDlg != NULL && nCurrChunk < nProgMax)
-			{
-				pProgDlg->Update(nCurrChunk,msgDisplayed);
-				//::wxSafeYield();
-			}
 			continue; // no more data to transfer
-		}
 		Int32 fullspan = pEnd - pBuff;
 		if (fullspan < (Int32)TwentyKB)
 			continue;	// total data is less than 20kb character blocksize, so no 
@@ -1274,13 +1230,6 @@ r:		comp = strncmp(pPos,comment,4);
 				nInputCount += (Int32)TwentyKB;
 			}
 			nCurrChunk++;
-			//::wxSafeYield();
-			// whm 25Aug11 added nProgMax
-			if (pProgDlg != NULL && nCurrChunk < nProgMax)
-			{
-				pProgDlg->Update(nCurrChunk,msgDisplayed);
-				//::wxSafeYield();
-			}
 		}
 	} while (!stack.IsEmpty() && (pPos < pEnd));
 	if (!stack.IsEmpty())
@@ -2013,6 +1962,7 @@ bool AtBooksEndTag(CBString& tag,CStack*& WXUNUSED(pStack))
 	return TRUE;
 }
 
+/*
 // whm 30Aug10 added AtPROFILE... callbacks for parsing AI_UserProfiles.xml
 bool AtPROFILETag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
@@ -2106,18 +2056,9 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			// definedProfile3 and definedProfile4. The .Find in the test above will return 0 
 			// for all definedProfileN attributes where N is 1,2,3,4...
 #ifdef _UNICODE
-			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the definedProfile
-			wxString tempWS;
-			tempWS = pValueW;
-			tempWS = ::wxGetTranslation(tempWS);
-			gpUserProfiles->definedProfileNames.Add(tempWS); // whm changed 24May11 to use localization
-			//gpUserProfiles->definedProfileNames.Add(pValueW);
+			gpUserProfiles->definedProfileNames.Add(pValueW);
 #else
-			wxString tempWS;
-			tempWS = pValue;
-			tempWS = ::wxGetTranslation(tempWS.c_str());
-			gpUserProfiles->definedProfileNames.Add(tempWS); // whm changed 24May11 to use localization
-			//gpUserProfiles->definedProfileNames.Add(pValue);
+			gpUserProfiles->definedProfileNames.Add(pValue);
 #endif
 		}
 		else if (attrName.Find(descriptionProfile) == 0)
@@ -2128,12 +2069,9 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 			// return 0 for all descriptionProfileN attributes where N is 1,2,3,4...
 			// Note: ReplaceEntities() is called on the attrValue above.
 #ifdef _UNICODE
-			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the descriptionProfile
-			gpUserProfiles->descriptionProfileTexts.Add(::wxGetTranslation(pValueW)); // whm changed 24May11 to use localization
-			//gpUserProfiles->descriptionProfileTexts.Add(pValueW);
+			gpUserProfiles->descriptionProfileTexts.Add(pValueW);
 #else
-			gpUserProfiles->descriptionProfileTexts.Add(::wxGetTranslation(pValue)); // whm changed 24May11 to use localization
-			//gpUserProfiles->descriptionProfileTexts.Add(pValue);
+			gpUserProfiles->descriptionProfileTexts.Add(pValue);
 #endif
 		}
 	}
@@ -2162,58 +2100,17 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 		else if (attrName == itemText)
 		{
 #ifdef _UNICODE
-			// whm note 24May11 For ::wxGetTranslation() to work any tab string ("\\t") needs to be
-			// converted into an actual 't' (0x09) character
-			wxString tempS = pValueW;
-			int posn = tempS.Find(_T("\\t"));
-			wxChar tab = _T('\t');
-			if (posn != wxNOT_FOUND)
-			{
-				tempS.Remove(posn,2);
-				tempS.insert(posn,tab);
-			}
-			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemText
-			wxString tempSwithTabStr = ::wxGetTranslation(tempS); // whm changed 24May11 to use localization
-			// now put the "\\t" back which is what we use in UnserProfiles structs
-			posn = tempSwithTabStr.Find(_T('\t'));
-			if (posn != wxNOT_FOUND)
-			{
-				tempSwithTabStr.Remove(posn,1);
-				tempSwithTabStr.insert(posn,_T("\\t"));
-			}
-			gpUserProfileItem->itemText = tempSwithTabStr;
-			//gpUserProfileItem->itemText = pValueW;
+			gpUserProfileItem->itemText = pValueW;
 #else
-			wxString tempS = pValue;
-			int posn = tempS.Find(_T("\\t"));
-			wxChar tab = _T('\t');
-			if (posn != wxNOT_FOUND)
-			{
-				tempS.Remove(posn,2);
-				tempS.insert(posn,tab);
-			}
-			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemText
-			wxString tempSwithTabStr = ::wxGetTranslation(tempS); // whm changed 24May11 to use localization
-			// now put the "\\t" back which is what we use in UnserProfiles structs
-			posn = tempSwithTabStr.Find(_T('\t'));
-			if (posn != wxNOT_FOUND)
-			{
-				tempSwithTabStr.Remove(posn,1);
-				tempSwithTabStr.insert(posn,_T("\\t"));
-			}
-			gpUserProfileItem->itemText = tempSwithTabStr;
-			//gpUserProfileItem->itemText = pValue;
+			gpUserProfileItem->itemText = pValue;
 #endif
 		}
 		else if (attrName == itemDescr)
 		{
 #ifdef _UNICODE
-			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemDescr
-			gpUserProfileItem->itemDescr = ::wxGetTranslation(pValueW); // whm changed 24May11 to use localization
-			//gpUserProfileItem->itemDescr = pValueW;
+			gpUserProfileItem->itemDescr = pValueW;
 #else
-			gpUserProfileItem->itemDescr = ::wxGetTranslation(pValue); // whm changed 24May11 to use localization
-			//gpUserProfileItem->itemDescr = pValue;
+			gpUserProfileItem->itemDescr = pValue;
 #endif
 		}
 		else if (attrName == itemAdminCanChange)
@@ -2231,12 +2128,9 @@ bool AtPROFILEAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*
 		{
 			// add the profile name to the usedProfileNames array
 #ifdef _UNICODE
-			// whm 24May11 Note: we need to call ::wxGetTranslation to get the localized string for the itemUserProfile
-			gpUserProfileItem->usedProfileNames.Add(::wxGetTranslation(pValueW)); // whm changed 24May11 to use localization
-			//gpUserProfileItem->usedProfileNames.Add(pValueW);
+			gpUserProfileItem->usedProfileNames.Add(pValueW);
 #else
-			gpUserProfileItem->usedProfileNames.Add(::wxGetTranslation(pValue)); // whm changed 24May11 to use localization
-			//gpUserProfileItem->usedProfileNames.Add(pValue);
+			gpUserProfileItem->usedProfileNames.Add(pValue);
 #endif
 		}
 		else if (attrName == itemVisibility)
@@ -2296,10 +2190,12 @@ bool AtPROFILEEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 
 	return TRUE;
 }
+*/
 
 /***************************************************************************
 * Callbacks - for parsing the AI_ReportProblem.xml/AI_ReportFeedback.xml data. whm added 9Nov10
 ****************************************************************************/
+/*
 bool AtEMAILRptTag(CBString& tag,CStack*& WXUNUSED(pStack))
 {
 	if (tag == adaptitproblemreport || tag == adaptitfeedbackreport)
@@ -2420,6 +2316,7 @@ bool AtEMAILRptPCDATA(CBString& tag,CBString& pcdata,CStack*& WXUNUSED(pStack))
 
 	return TRUE;
 }
+*/
 
 /***************************************************************************
 * Callbacks - for parsing the AI_USFM.xml data. whm added 19Jan05
@@ -2844,7 +2741,7 @@ bool AtSFMEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// always do a loopup first, and only add a marker if it doesn't already
 		// exist in the given map.
 		// whm Note 11Jul05: Below we do NOT use the LookupSFM routine because Lookup here
-		// is done to ensure we don't get duplicate entries in the USFMAnalysis maps. 
+		// is done to insure we don't get duplicate entries in the USFMAnalysis maps. 
 		// Compare code below to code in the App's SetupDefaultStylesMap
 		MapSfmToUSFMAnalysisStruct::iterator iter;
 		if (gpUsfmAnalysis->usfm)
@@ -2956,7 +2853,16 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 						{
 							// we have a data error -- it should have been made NULL at the </S> endtag 
 							// for an earlier embedded one
-							return FALSE;
+							//return FALSE;
+							// BEW 24Aug11; if an error here is to be treated as grounds
+							// for aborting the parse and hence the application, then
+							// return FALSE; otherwise return TRUE to cause the parser to
+							// keep going
+							wxBell(); // a little reminder that something went wrong
+							// we've probably leaked a small block of memory, but we'll
+							// tolerate it for the gain of not having the parse break
+							gpEmbeddedSrcPhrase = new CSourcePhrase;
+							return TRUE;
 						}
 						else
 						{
@@ -2978,8 +2884,13 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				}
 				else
 				{
-					return FALSE; // unknown element, so signal the error to the caller
-				}
+					//return FALSE; // unknown element, so signal the error to the caller
+
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					return TRUE; 				}
 				break;
 			} // end block for docVersion case 4: or 5:
 		} // end block for switch (gnDocVersion)
@@ -3001,6 +2912,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		// (the docVersion attribute is not versionable, so have it outside of the switch)
 		// set the gnDocVersion global with the document's versionable serialization number
 		gnDocVersion = atoi(attrValue);
+		gpDoc->SetLoadedDocVersion(gnDocVersion); // whm 12Jan11 added for auto-conversion from DocV5 to DocV4 in 5.2.4
 		return TRUE;
 	}
 	switch (gnDocVersion)
@@ -3137,23 +3049,28 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					}
 					else if (attrName == xml_em)
 					{
-						gpEmbeddedSrcPhrase->SetEndMarkers((char*)attrValue);
+						//gpEmbeddedSrcPhrase->SetEndMarkers((char*)attrValue);
+						gpEmbeddedSrcPhrase->m_endMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iBM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
+						//gpEmbeddedSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
+						gpEmbeddedSrcPhrase->m_inlineBindingMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iBEM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
+						//gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
+						gpEmbeddedSrcPhrase->m_inlineBindingEndMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iNM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
+						//gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
+						gpEmbeddedSrcPhrase->m_inlineNonbindingMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iNEM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
+						//gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
+						gpEmbeddedSrcPhrase->m_inlineNonbindingEndMarkers = (char*)attrValue;
 					}
 					else
 					{
@@ -3190,7 +3107,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_fop)
 						{
-							gpEmbeddedSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
+							//gpEmbeddedSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
+							gpEmbeddedSrcPhrase->m_follOuterPunct = (char*)attrValue;
 						}
 						else if (attrName == xml_m)
 						{
@@ -3198,19 +3116,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_ft)
 						{
-							gpEmbeddedSrcPhrase->SetFreeTrans((char*)attrValue);
+							//gpEmbeddedSrcPhrase->SetFreeTrans((char*)attrValue);
+							gpEmbeddedSrcPhrase->m_freeTrans = (char*)attrValue;
 						}
 						else if (attrName == xml_no)
 						{
-							gpEmbeddedSrcPhrase->SetNote((char*)attrValue);
+							//gpEmbeddedSrcPhrase->SetNote((char*)attrValue);
+							gpEmbeddedSrcPhrase->m_note = (char*)attrValue;
 						}
 						else if (attrName == xml_bt)
 						{
-							gpEmbeddedSrcPhrase->SetCollectedBackTrans((char*)attrValue);
+							//gpEmbeddedSrcPhrase->SetCollectedBackTrans((char*)attrValue);
+							gpEmbeddedSrcPhrase->m_collectedBackTrans = (char*)attrValue;
 						}
 						else if (attrName == xml_fi)
 						{
-							gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
+							//gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
+							gpEmbeddedSrcPhrase->m_filteredInfo = (char*)attrValue;
 						}
 						else
 						{
@@ -3257,23 +3179,28 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					}
 					else if (attrName == xml_em)
 					{
-						gpSrcPhrase->SetEndMarkers((char*)attrValue);
+						//gpSrcPhrase->SetEndMarkers((char*)attrValue);
+						gpSrcPhrase->m_endMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iBM)
 					{
-						gpSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
+						//gpSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
+						gpSrcPhrase->m_inlineBindingMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iBEM)
 					{
-						gpSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
+						//gpSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
+						gpSrcPhrase->m_inlineBindingEndMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iNM)
 					{
-						gpSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
+						//gpSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
+						gpSrcPhrase->m_inlineNonbindingMarkers = (char*)attrValue;
 					}
 					else if (attrName == xml_iNEM)
 					{
-						gpSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
+						//gpSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
+						gpSrcPhrase->m_inlineNonbindingEndMarkers = (char*)attrValue;
 					}
 					else
 					{
@@ -3310,7 +3237,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_fop)
 						{
-							gpSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
+							//gpSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
+							gpSrcPhrase->m_follOuterPunct = (char*)attrValue;
 						}
 						else if (attrName == xml_m)
 						{
@@ -3318,19 +3246,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_ft)
 						{
-							gpSrcPhrase->SetFreeTrans((char*)attrValue);
+							//gpSrcPhrase->SetFreeTrans((char*)attrValue);
+							gpSrcPhrase->m_freeTrans = (char*)attrValue;
 						}
 						else if (attrName == xml_no)
 						{
-							gpSrcPhrase->SetNote((char*)attrValue);
+							//gpSrcPhrase->SetNote((char*)attrValue);
+							gpSrcPhrase->m_note = (char*)attrValue;
 						}
 						else if (attrName == xml_bt)
 						{
-							gpSrcPhrase->SetCollectedBackTrans((char*)attrValue);
+							//gpSrcPhrase->SetCollectedBackTrans((char*)attrValue);
+							gpSrcPhrase->m_collectedBackTrans = (char*)attrValue;
 						}
 						else if (attrName == xml_fi)
 						{
-							gpSrcPhrase->SetFilteredInfo((char*)attrValue);
+							//gpSrcPhrase->SetFilteredInfo((char*)attrValue);
+							gpSrcPhrase->m_filteredInfo = (char*)attrValue;
 						}
 						else
 						{
@@ -3501,23 +3433,28 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					}
 					else if (attrName == xml_em)
 					{
-						gpEmbeddedSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+						//gpEmbeddedSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+						gpEmbeddedSrcPhrase->m_endMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iBM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
+						//gpEmbeddedSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
+						gpEmbeddedSrcPhrase->m_inlineBindingMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iBEM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
+						//gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
+						gpEmbeddedSrcPhrase->m_inlineBindingEndMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iNM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
+						//gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
+						gpEmbeddedSrcPhrase->m_inlineNonbindingMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iNEM)
 					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
+						//gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
+						gpEmbeddedSrcPhrase->m_inlineNonbindingEndMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else
 					{
@@ -3554,7 +3491,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_fop)
 						{
-							gpEmbeddedSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue));
+							//gpEmbeddedSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue));
+							gpEmbeddedSrcPhrase->m_follOuterPunct = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_m)
 						{
@@ -3562,19 +3500,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_ft)
 						{
-							gpEmbeddedSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+							//gpEmbeddedSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+							gpEmbeddedSrcPhrase->m_freeTrans = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_no)
 						{
-							gpEmbeddedSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+							//gpEmbeddedSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+							gpEmbeddedSrcPhrase->m_note = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_bt)
 						{
-							gpEmbeddedSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+							//gpEmbeddedSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+							gpEmbeddedSrcPhrase->m_collectedBackTrans = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_fi)
 						{
-							gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+							//gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+							gpEmbeddedSrcPhrase->m_filteredInfo = gpApp->Convert8to16(attrValue);
 						}
 						else
 						{
@@ -3621,23 +3563,28 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					}
 					else if (attrName == xml_em)
 					{
-						gpSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+						//gpSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+						gpSrcPhrase->m_endMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iBM)
 					{
-						gpSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
+						//gpSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
+						gpSrcPhrase->m_inlineBindingMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iBEM)
 					{
-						gpSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
+						//gpSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
+						gpSrcPhrase->m_inlineBindingEndMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iNM)
 					{
-						gpSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
+						//gpSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
+						gpSrcPhrase->m_inlineNonbindingMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else if (attrName == xml_iNEM)
 					{
-						gpSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
+						//gpSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
+						gpSrcPhrase->m_inlineNonbindingEndMarkers = gpApp->Convert8to16(attrValue);
 					}
 					else
 					{
@@ -3674,7 +3621,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_fop)
 						{
-							gpSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue)); // BEW 11Oct10
+							//gpSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue)); // BEW 11Oct10
+							gpSrcPhrase->m_follOuterPunct = gpApp->Convert8to16(attrValue); // BEW 11Oct10
 						}
 						else if (attrName == xml_m)
 						{
@@ -3682,19 +3630,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						}
 						else if (attrName == xml_ft)
 						{
-							gpSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+							//gpSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+							gpSrcPhrase->m_freeTrans = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_no)
 						{
-							gpSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+							//gpSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+							gpSrcPhrase->m_note = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_bt)
 						{
-							gpSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+							//gpSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+							gpSrcPhrase->m_collectedBackTrans = gpApp->Convert8to16(attrValue);
 						}
 						else if (attrName == xml_fi)
 						{
-							gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+							//gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+							gpSrcPhrase->m_filteredInfo = gpApp->Convert8to16(attrValue);
 						}
 						else
 						{
@@ -3824,10 +3776,10 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
                     // sourcephrase which is pointed at by gpSrcPhrase, so add it to the
                     // list & then clear the pointer
 					wxASSERT(gpSrcPhrase);
-					if (gnDocVersion == 4)
-					{
-						FromDocVersion4ToDocVersion5(gpSrcPhrase->m_pSavedWords, gpEmbeddedSrcPhrase, TRUE);
-					}
+					//if (gnDocVersion == 4)
+					//{
+					//	FromDocVersion4ToDocVersion5(gpSrcPhrase->m_pSavedWords, gpEmbeddedSrcPhrase, TRUE);
+					//}
 					gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
 					gpEmbeddedSrcPhrase = NULL;
 				}
@@ -3836,15 +3788,31 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
                     // gpEmbeddedSrcPhrase is NULL, so we've been constructing an unmerged
                     // one, so now we can add it to the doc member m_pSourcePhrases and
                     // clear the pointer
-					if (gnDocVersion == 4)
+					if (gbSyncMsgReceived_DocScanInProgress)
 					{
-						FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
+						//if (gnDocVersion == 4)
+						//{
+						//	FromDocVersion4ToDocVersion5(gpDocList, gpSrcPhrase, FALSE);
+						//}
+						if (gpSrcPhrase != NULL)
+						{
+							// it can be made NULL if it was an orphan that got deleted,
+							// so we must check and only append ones that persist
+							gpDocList->Append(gpSrcPhrase);
+						}
 					}
-					if (gpSrcPhrase != NULL)
+					else
 					{
-						// it can be made NULL if it was an orphan that got deleted,
-						// so we must check and only append ones that persist
-						gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
+						//if (gnDocVersion == 4)
+						//{
+						//	FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
+						//}
+						if (gpSrcPhrase != NULL)
+						{
+							// it can be made NULL if it was an orphan that got deleted,
+							// so we must check and only append ones that persist
+							gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
+						}
 					}
 					gpSrcPhrase = NULL;
 				}
@@ -3853,16 +3821,16 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			else if (tag == xml_adaptitdoc)
 			{
 				// we are done
-				if (gnDocVersion == 4)
-				{
-					// try fix bad bad parsings done in doc version 4
-					gpDoc->UpdateSequNumbers(0,NULL); // in case there were orphans deleted
-							// within the TransferEndMarkers() function within the
-							// FromDocVersion4ToDocVersion5() function
-					MurderTheDocV4Orphans(gpApp->m_pSourcePhrases);
-					gpDoc->UpdateSequNumbers(0,NULL); // incase there were orphans deleted
-													  // when Murdering... the little blighters
-				}
+				//if (gnDocVersion == 4)
+				//{
+				//	// try fix bad bad parsings done in doc version 4
+				//	gpDoc->UpdateSequNumbers(0,NULL); // in case there were orphans deleted
+				//			// within the TransferEndMarkers() function within the
+				//			// FromDocVersion4ToDocVersion5() function
+				//	MurderTheDocV4Orphans(gpApp->m_pSourcePhrases);
+				//	gpDoc->UpdateSequNumbers(0,NULL); // incase there were orphans deleted
+				//									  // when Murdering... the little blighters
+				//}
 				return TRUE;
 			}
 			break;
@@ -3881,11 +3849,6 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bo
 {
 	if (pSrcPhrase->m_markers.IsEmpty())
 		return; // no conversions needed for this one
-
-	// clear the old m_bParagraph boolean, we don't use it in docV5, and in the latter it
-	// is m_bUnused
-	if (pSrcPhrase->m_bUnused)
-		pSrcPhrase->m_bUnused = FALSE;
 
 	// If the pList list is empty on entry, then the GetLast() call will return NULL
 	// rather than a valid pos value
@@ -4030,24 +3993,28 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bo
 			{
 				// transfer the unwrapped content (with \free and \free* markers removed)
 				// to the m_freeTrans member
-				pSrcPhrase->SetFreeTrans(strFreeTrans);
+				//pSrcPhrase->SetFreeTrans(strFreeTrans);
+				pSrcPhrase->m_freeTrans = strFreeTrans;
 			}
 			if (!strNote.IsEmpty())
 			{
 				// transfer the unwrapped content (with \note and \note* markers removed)
 				// to the m_note member
-				pSrcPhrase->SetNote(strNote);
+				//pSrcPhrase->SetNote(strNote);
+				pSrcPhrase->m_note = strNote;
 				pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
 			}
 			if (!strCollectedBackTrans.IsEmpty())
 			{
 				// transfer the unwrapped content (with \bt, or any \bt-initial marker, removed)
 				// to the m_collectedBackTrans member
-				pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+				//pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+				pSrcPhrase->m_collectedBackTrans = strCollectedBackTrans;
 			}
 			// transfer filteredInfo returned string to m_filteredInfo member (& it may
 			// be an empty string)
-			pSrcPhrase->SetFilteredInfo(filteredInfo);
+			//pSrcPhrase->SetFilteredInfo(filteredInfo);
+			pSrcPhrase->m_filteredInfo = filteredInfo;
 
 			// update m_markers to have whatever remains of strModifiers (it could be
 			// nothing), after extracting and storing inline binding or nonbinding
@@ -4083,7 +4050,8 @@ wxString ExtractAndStoreInlineMarkersDocV4To5(wxString markers, CSourcePhrase* p
 			if (offset != wxNOT_FOUND)
 			{
 				// store it, and the following space
-				pSrcPhrase->SetInlineNonbindingMarkers(mkrPlusSpace);
+				//pSrcPhrase->SetInlineNonbindingMarkers(mkrPlusSpace);
+				pSrcPhrase->m_inlineNonbindingMarkers = mkrPlusSpace;
 
 				// advance ptr over the marker, then parse the white space and jump that too
 				ptr += mkrLen;
@@ -4096,7 +4064,8 @@ wxString ExtractAndStoreInlineMarkersDocV4To5(wxString markers, CSourcePhrase* p
 				// it's one of the 21 currently defined inline binding markers, like \k
 				// etc, so store it in its member (append, not set, there could be a
 				// sequence of two in markers)
-				pSrcPhrase->AppendToInlineBindingMarkers(mkrPlusSpace);
+				//pSrcPhrase->AppendToInlineBindingMarkers(mkrPlusSpace);
+				pSrcPhrase->m_inlineBindingMarkers += mkrPlusSpace;
 
 				// advance ptr over the marker, then parse the white space and jump that too
 				ptr += mkrLen;
@@ -4169,7 +4138,8 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 	// best we can do is: append any puncts from m_follOuterPunct at the end of contents
 	// in m_follPunct; and if inline binding endmarker is present, following punctuation
 	// in docV4 will appear before it in a docV4 SFM export - which is bound to be wrong.
-	wxString follOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
+	//wxString follOuterPunct = pSrcPhrase->GetFollowingOuterPunct();
+	wxString follOuterPunct = pSrcPhrase->m_follOuterPunct;
 	if (!follOuterPunct.IsEmpty())
 	{
 		pSrcPhrase->m_follPunct += follOuterPunct;
@@ -4197,7 +4167,7 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 
 	// insert any endmarkers passed in, at its beginning (don't need space at end) - do
 	// this in reverse order to what we expect for encountering their matching begin
-	// markers when originally parsing
+	// markers when original parsing
 	TransferEndmarkersToStartOfMarkersStrForDocV4(pSrcPhrase, *pEndMarkersStr,
 							*pInlineNonbindingEndMkrs, *pInlineBindingEndMkrs);
 
@@ -4209,10 +4179,9 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 	// omitting it!)
 	if (HasParagraphMkr(pSrcPhrase->m_markers))
 	{
-        // in docVersion5 we call the flag m_bUnused, so that's what we set when the above
-        // test finds \p in m_markers; legacy Adapt It versions will then later read it in
-        // as m_bParagraph
-		pSrcPhrase->m_bUnused = TRUE;
+        // in docVersion5 we call the flag m_bUnused, but here if the above test finds \p
+        // in m_markers; this version must see it as m_bParagraph
+		pSrcPhrase->m_bParagraph = TRUE;
 		// do the same (if the instance is a merger) to the listed original instances
 		if (pSrcPhrase->m_nSrcWords > 1)
 		{
@@ -4223,7 +4192,7 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 				pos = pos->GetNext();
 				if (HasParagraphMkr(pOriginalSrcPhrase->m_markers))
 				{
-					pOriginalSrcPhrase->m_bUnused = TRUE;
+					pOriginalSrcPhrase->m_bParagraph = TRUE;
 				}
 			}
 		}
@@ -4252,17 +4221,21 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 		while (pos != NULL)
 		{
 			CSourcePhrase* pOriginalSPh = pos->GetData();
-			if (!pOriginalSPh->GetFollowingOuterPunct().IsEmpty())
+			//if (!pOriginalSPh->GetFollowingOuterPunct().IsEmpty())
+			if (!pOriginalSPh->m_follOuterPunct.IsEmpty())
 			{
-				pOriginalSPh->m_follPunct += pOriginalSPh->GetFollowingOuterPunct();
+				//pOriginalSPh->m_follPunct += pOriginalSPh->GetFollowingOuterPunct();
+				pOriginalSPh->m_follPunct += pOriginalSPh->m_follOuterPunct;
 			}
 			newMarkersMember = RewrapFilteredInfoForDocV4(pOriginalSPh, storedEndMarkers_Originals);
             // add any endmarkers to the array, and for non-first iteration, check if
             // endmarkers were stored here on the last iteration, and if so, insert them at
             // start of current pOriginalSPh's m_markers string
 			counter++;
-			inlineNonbindingEndMkrs_Originals = pOriginalSPh->GetInlineNonbindingEndMarkers();
-			inlineBindingEndMkrs_Originals = pOriginalSPh->GetInlineBindingEndMarkers();
+			//inlineNonbindingEndMkrs_Originals = pOriginalSPh->GetInlineNonbindingEndMarkers();
+			inlineNonbindingEndMkrs_Originals = pOriginalSPh->m_inlineNonbindingEndMarkers;
+			//inlineBindingEndMkrs_Originals = pOriginalSPh->GetInlineBindingEndMarkers();
+			inlineBindingEndMkrs_Originals = pOriginalSPh->m_inlineBindingEndMarkers;
 			endmarkersArray.Add(storedEndMarkers_Originals); // store whatever it is, even empty string
 			inlineNBEMkrs_Array.Add(inlineNonbindingEndMkrs_Originals); // store, ditto
 			inlineBEMkrs_Array.Add(inlineBindingEndMkrs_Originals); // store, ditto
@@ -4317,8 +4290,10 @@ void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarke
 
 	// the final thing to do is to return any endmarkers required by the caller
 	// (or the empty string if there are none)
-	*pInlineNonbindingEndMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
-	*pInlineBindingEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+	//*pInlineNonbindingEndMkrs = pSrcPhrase->GetInlineNonbindingEndMarkers();
+	*pInlineNonbindingEndMkrs = pSrcPhrase->m_inlineNonbindingEndMarkers;
+	//*pInlineBindingEndMkrs = pSrcPhrase->GetInlineBindingEndMarkers();
+	*pInlineBindingEndMkrs = pSrcPhrase->m_inlineBindingEndMarkers;
 	*pEndMarkersStr = storedEndMarkers;
 }
 
@@ -4420,16 +4395,18 @@ wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmark
 	}
 
 	// next append an inline non-binding beginmarker with its trailing space
-	if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+	//if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+	if (!pSrcPhrase->m_inlineNonbindingMarkers.IsEmpty())
 	{
-		str += pSrcPhrase->GetInlineNonbindingMarkers();
+		str += pSrcPhrase->m_inlineNonbindingMarkers;
 	}
 
 	// finally append an inline binding beginmarker (could be two), if present; don't need
 	// a space because these are stored with a trailing one
-	if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+	//if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+	if (!pSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 	{
-		str += pSrcPhrase->GetInlineBindingMarkers();
+		str += pSrcPhrase->m_inlineBindingMarkers;
 	}
 
 	str.Trim(FALSE); // finally, remove any string-initial whitespace
@@ -4517,12 +4494,13 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 					// block is almost certainly never going to be entered -- but two
 					// consecutive footnotes in a legacy PngOnly SFM set could cause it to
 					// happen)
-					wxString currentEndMkrs = pLastSrcPhrase->GetEndMarkers();
+					//wxString currentEndMkrs = pLastSrcPhrase->GetEndMarkers();
+					wxString currentEndMkrs = pLastSrcPhrase->m_endMarkers;
 					if (currentEndMkrs.IsEmpty())
 						currentEndMkrs = marker;
 					else
 						currentEndMkrs += _T(" ") + marker;
-					pLastSrcPhrase->SetEndMarkers(currentEndMkrs);
+					pLastSrcPhrase->m_endMarkers = currentEndMkrs;
 					bTransferred = TRUE;
 				}
 				else
@@ -4571,9 +4549,10 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 									pLastSrcPhrase->m_srcPhrase += puncts;
 									pLastSrcPhrase->m_targetStr += puncts;
 									// update the storage
-									if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									//if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									if (pLastSrcPhrase->m_follOuterPunct.IsEmpty())
 									{
-										pLastSrcPhrase->SetFollowingOuterPunct(puncts);
+										pLastSrcPhrase->m_follOuterPunct = puncts;
 									}
 									else
 									{
@@ -4587,7 +4566,8 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 					else if (gpApp->m_inlineNonbindingEndMarkers.Find(marker) != wxNOT_FOUND)
 					{
 						// it's one of \fig* \wj* \qt* \tl* or \sls*; these don't come nested
-						pLastSrcPhrase->SetInlineNonbindingEndMarkers(marker); 
+						//pLastSrcPhrase->SetInlineNonbindingEndMarkers(marker); 
+						pLastSrcPhrase->m_inlineNonbindingEndMarkers = marker; 
 						bTransferred = TRUE;
 
 						// we may have transferred from an orphaned CSourcePhrase (the
@@ -4637,7 +4617,8 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 						// formatting endmarkers, they go into m_inlineBindingEndMarkers,
 						// and they can be nested - so use an Append... function, not a
 						// Set... one
-						pLastSrcPhrase->AppendToInlineBindingEndMarkers(marker); 
+						//pLastSrcPhrase->AppendToInlineBindingEndMarkers(marker); 
+						pLastSrcPhrase->m_inlineBindingEndMarkers += marker; 
 						bTransferred = TRUE;
 
 						// we may have transferred from an orphaned CSourcePhrase (the
@@ -4717,15 +4698,18 @@ bool TransferEndMarkers(CSourcePhrase* pSrcPhrase, wxString& markers,
 									pLastSrcPhrase->m_srcPhrase += follOuterPuncts;
 									pLastSrcPhrase->m_targetStr += follOuterPuncts;
 									// update the storage
-									if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									//if (pLastSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+									if (pLastSrcPhrase->m_follOuterPunct.IsEmpty())
 									{
-										pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+										pLastSrcPhrase->m_follOuterPunct = follOuterPuncts;
 									}
 									else
 									{
-										wxString oldpuncts = pLastSrcPhrase->GetFollowingOuterPunct();
+										//wxString oldpuncts = pLastSrcPhrase->GetFollowingOuterPunct();
+										wxString oldpuncts = pLastSrcPhrase->m_follOuterPunct;
 										follOuterPuncts = oldpuncts + follOuterPuncts;
-										pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+										//pLastSrcPhrase->SetFollowingOuterPunct(follOuterPuncts);
+										pLastSrcPhrase->m_follOuterPunct = follOuterPuncts;
 									}
 								}
 								bDeleteWhenDone = TRUE;
@@ -4988,10 +4972,8 @@ void MakeBOOLs(CSourcePhrase*& pSP, CBString& digits)
 		pSP->m_bFootnote = TRUE;
 	if (n & footnoteEndMask)
 		pSP->m_bFootnoteEnd = TRUE;
-	// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
-	if (n & unusedMask)
-		//pSP->m_bParagraph = TRUE;
-		pSP->m_bUnused = TRUE;
+	if (n & paragraphMask)
+		pSP->m_bParagraph = TRUE;
 }
 
 /**************************************************************************************
@@ -5056,11 +5038,8 @@ CBString MakeFlags(CSourcePhrase* pSP)
 		n |= footnoteMask; // digit 20
 	if (pSP->m_bFootnoteEnd)
 		n |= footnoteEndMask; // digit 21
-	// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
-	//if (pSP->m_bParagraph)
-	//	n |= paragraphMask; // digit 22
-	if (pSP->m_bUnused)
-		n |= unusedMask; // digit 22
+	if (pSP->m_bParagraph)
+		n |= paragraphMask; // digit 22
 
 	// convert it to an ascii string
     // the atoi() conversion function is not standard and the conversion to binary (with
@@ -5083,7 +5062,7 @@ CBString MakeFlags(CSourcePhrase* pSP)
 *  LIFT input as XML - call back functions
 *
 *********************************************************************************/
-
+/*
 bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == xml_entry)
@@ -5102,7 +5081,6 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else if (tag == xml_sense)
 	{
-		nAdaptationsProcessed++;
         // Note: we accept only a <text> tag which is in a definition or gloss, either of
         // which is embedded in a sense. But there can be many other <text> elements in a
         // <sense>, but at deeper levels of nesting than <gloss> or <definition>. The
@@ -5137,20 +5115,20 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	return TRUE; // no error
 }
 
-// BEW 17Jul11, bug fix for duplicate entries when an entry has m_deleted flag TRUE
 bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 {
 	if (tag == xml_sense)
 	{
 		if (pStack->MyParentsAre(1,xml_entry,emptyStr,emptyStr))
 		{
-			int numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+			int numWords = 1;
 			if (gpKB->IsThisAGlossingKB())
 			{
-				gpMap = gpApp->m_pGlossingKB->m_pMap[numWords - 1];
+				gpMap = gpApp->m_pGlossingKB->m_pMap[0];
 			}
 			else
 			{
+				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
 				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
 			}
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
@@ -5171,7 +5149,6 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				// other datetime, so leave it that way)
 				gpRefStr->m_translation = textStr;
 				gpRefStr->m_refCount = 1;
-				gpRefStr->SetDeletedFlag(FALSE);
 				gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
 				gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
 
@@ -5211,11 +5188,9 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				// there is a CRefString instance for the given textStr
 				textStr.Trim();
 				textStr.Trim(FALSE);
-				CRefString* pRefStr_In_TU = NULL;
-				KB_Entry rsEntry = gpKB->GetRefString(gpTU_From_Map, textStr, pRefStr_In_TU);
-				if (pRefStr_In_TU == NULL && rsEntry == absent)
+				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
+				if (pRefStr_In_TU == NULL)
 				{
-					nAdaptationsAdded++;
 					// this particular adaptation or gloss is not yet in the map's CTargetUnit
 					// instance, so put it in there and have the map manage the CRefString
 					// instance's pointer, but the gpTU instance we created earlier in the
@@ -5225,7 +5200,6 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 					gpRefStr->m_refCount = 1;
 					gpRefStr->m_translation = textStr;
 					gpRefStr->m_pTgtUnit = gpTU_From_Map;
-					gpRefStr->SetDeletedFlag(FALSE);
 					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
 					gpRefStr->GetRefStringMetadata()->SetWhoCreated(SetWho());
 					// the CRefStringMetadata has been initialized with this use:computer's
@@ -5257,27 +5231,9 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 #endif
 					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
 					// when the current <entry> contents have finished being processed
-				} // end of TRUE block for test: if (pRefStr_In_TU == NULL && rsEntry = absent)
-				else if (pRefStr_In_TU != NULL && rsEntry == present_but_deleted)
-				{
-					// this one is a "deleted" entry already in the map, so the import now 
-					// needs to undelete it; and gpTU and gpRefStr should be deleted (as
-					// is explained in next block's comments)
-					nUndeletions++;
-
-					pRefStr_In_TU->m_refCount = 1; // initialize to 1
-					pRefStr_In_TU->SetDeletedFlag(FALSE);
-					// reset its metadata
-					pRefStr_In_TU->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
-					pRefStr_In_TU->GetRefStringMetadata()->SetWhoCreated(SetWho());
-					pRefStr_In_TU->GetRefStringMetadata()->SetModifiedDateTime(_T(""));
-					pRefStr_In_TU->GetRefStringMetadata()->SetDeletedDateTime(_T(""));
 				}
 				else
 				{
-					wxASSERT(rsEntry == really_present);
-
-					nAdaptationsUnchanged++;
 					// this particular adaptation or gloss is in the map's CTargetUnit pointer
 					// already, so we can ignore it. We must delete both the gpRefStr (and
 					// its owned CRefStringMetadata instance), and also delete the gpTU we
@@ -5296,9 +5252,6 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 			// end-tag for this current empty string as gloss or adaptation
 			if (gpRefStr != NULL)
 			{
-				// this is done for both present_but_deleted, and really_present return
-				// values for the rsEntry enum; because in either case, the CTargetUnit
-				// contributed a non-NULL CRefString pointer, pRefStr_In_TU
 				gpRefStr->DeleteRefString(); // also deletes its CRefStringMetadata instance
 				gpRefStr = (CRefString*)NULL;
 			}
@@ -5375,7 +5328,6 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 	{
 		if (pStack->MyParentsAre(3, xml_form, xml_lexical_unit, xml_entry) )
 		{
-			nLexItemsProcessed++;
 			// this is tag stores a lexeme, which to Adapt It will become a KB adaptation or
 			// gloss, depending on whether we are importing an adaptingKB or a glossingKB
 			ReplaceEntities(pcdata);
@@ -5385,16 +5337,16 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			gKeyStr = pcdata.GetBuffer();
 #endif
 			// set up the map pointer - this depends on how many words there are in the source
-			// text -- at Bob Eaton's request, both glossing and adapting KBs potentially utilize
-			// all ten maps
-			int numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+			// text in gKeyStr if the KB is an adapting one, but for a glossingKB it is always
+			// the first map
+			int numWords = 1;
 			if (gpKB->IsThisAGlossingKB())
 			{
-				gpMap = gpApp->m_pGlossingKB->m_pMap[numWords - 1];
+				gpMap = gpApp->m_pGlossingKB->m_pMap[0];
 			}
 			else
 			{
-				
+				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
 				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
 			}
 #ifdef _debugLIFT_
@@ -5424,7 +5376,11 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			// Find out if there is CTargetUnit in this map already, for this key; the
 			// following call returns NULL if there is no CTargetUnit for the key yet in the
 			// map, otherwise it returns the map's CTargetUnit instance
-			int numWords = TrimAndCountWordsInString(gKeyStr);
+			int numWords = 1; // always true for a glossingKB
+			if (!gpKB->IsThisAGlossingKB())
+			{
+				numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+			}
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
@@ -5509,11 +5465,9 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 				// there is a CRefString instance for the given textStr
 				textStr.Trim();
 				textStr.Trim(FALSE);
-				CRefString* pRefStr_In_TU = NULL;
-				KB_Entry rsEntry = gpKB->GetRefString(gpTU_From_Map, textStr, pRefStr_In_TU);
-				if (pRefStr_In_TU == NULL && rsEntry == absent)
+				CRefString* pRefStr_In_TU = gpKB->GetRefString(gpTU_From_Map,textStr);
+				if (pRefStr_In_TU == NULL)
 				{
-					nAdaptationsAdded++;
 					// this particular adaptation or gloss is not yet in the map's CTargetUnit
 					// instance, so put it in there and have the map manage the CRefString
 					// instance's pointer, but the gpTU instance we created earlier in the
@@ -5556,21 +5510,6 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					// leave gpTU unchanged, so that the LIFT end-tag callback will delete it
 					// when the current <entry> contents have finished being processed
 				}
-				else if (pRefStr_In_TU != NULL && rsEntry == present_but_deleted)
-				{
-					// this one is a "deleted" entry already in the map, so the import now 
-					// needs to undelete it; and gpTU and gpRefStr should be deleted (as
-					// is explained in next block's comments)
-					nUndeletions++;
-
-					pRefStr_In_TU->m_refCount = 1; // initialize to 1
-					pRefStr_In_TU->SetDeletedFlag(FALSE);
-					// reset its metadata
-					pRefStr_In_TU->GetRefStringMetadata()->SetCreationDateTime(GetDateTimeNow());
-					pRefStr_In_TU->GetRefStringMetadata()->SetWhoCreated(SetWho());
-					pRefStr_In_TU->GetRefStringMetadata()->SetModifiedDateTime(_T(""));
-					pRefStr_In_TU->GetRefStringMetadata()->SetDeletedDateTime(_T(""));
-				}
 				else
 				{
 					// this particular adaptation or gloss is in the map's CTargetUnit pointer
@@ -5578,8 +5517,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					// its owned CRefStringMetadata instance), and also delete the gpTU we
 					// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
 					// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
-					nAdaptationsUnchanged++;
-;
+					;
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
 					wxLogDebug(_T("Block 3"));
@@ -5592,6 +5530,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 	}
 	return TRUE;
 }
+*/
 
 /********************************************************************************
 *
@@ -5665,6 +5604,7 @@ bool AtKBTag(CBString& tag, CStack*& WXUNUSED(pStack))
 
 				// add it, plus its pointed at CRefStringMetadata instance, to the 
 				// m_pTranslations member of the owning CTargetUnit instance
+				gpRefStr->m_pTgtUnit = gpTU; // the current one
 				gpTU->m_pTranslations->Append(gpRefStr);
 			}
 			else if (tag == xml_aikb)
@@ -5760,7 +5700,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 		}
 		else
 		{
-			// it must be a kbv21 KB, so in the switch use whatever version number is
+			// it must be a kbv2 KB, so in the switch use whatever version number is
 			// stored, it will be 2 (or more if we someday have a version3 KB or higher)
 			gnKbVersionBeingParsed = atoi(attrValue);
 
@@ -6071,33 +6011,43 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				}
 				else if (attrName == xml_deletedflag)
 				{
-					bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
-					gpRefStr->SetDeletedFlag(flag); 
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
+					//bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
+					//gpRefStr->SetDeletedFlag(flag); 
 				}
 				else if (attrName == xml_creationDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(value); 
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetCreationDateTime(value); 
 				}
 				else if (attrName == xml_whocreated)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// could potentially require entity replacement, so do it to be safe
-					ReplaceEntities(attrValue);
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetWhoCreated(value);
+					//ReplaceEntities(attrValue);
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetWhoCreated(value);
 				}
 				else if (attrName == xml_modifiedDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(value); 
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(value); 
 				}
 				else if (attrName == xml_deletedDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
-					gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(value); 
+					//wxString value = attrValue;
+					//gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(value); 
 				}
 				else
 				{
@@ -6266,29 +6216,39 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				}
 				else if (attrName == xml_deletedflag)
 				{
-					bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
-					gpRefStr->SetDeletedFlag(flag); 
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
+					//bool flag = attrValue == "0" ? (bool)0 : (bool)1;	
+					//gpRefStr->SetDeletedFlag(flag); 
 				}
 				else if (attrName == xml_creationDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(gpApp->Convert8to16(attrValue)); 
+					//gpRefStr->GetRefStringMetadata()->SetCreationDateTime(gpApp->Convert8to16(attrValue)); 
 				}
 				else if (attrName == xml_whocreated)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// could potentially require entity replacement, so do it to be safe
-					ReplaceEntities(attrValue);
-					gpRefStr->GetRefStringMetadata()->SetWhoCreated(gpApp->Convert8to16(attrValue));
+					//ReplaceEntities(attrValue);
+					//gpRefStr->GetRefStringMetadata()->SetWhoCreated(gpApp->Convert8to16(attrValue));
 				}
 				else if (attrName == xml_modifiedDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(gpApp->Convert8to16(attrValue)); 
+					//gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(gpApp->Convert8to16(attrValue)); 
 				}
 				else if (attrName == xml_deletedDT)
 				{
+					;
+					// whm 10Jan11 removed. Ignore for 5.2.4
 					// no entity replacement needed for datetime values
-					gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(gpApp->Convert8to16(attrValue)); 
+					//gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(gpApp->Convert8to16(attrValue)); 
 				}
 				else
 				{
@@ -6448,13 +6408,56 @@ bool AtKBEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	switch (gnKbVersionBeingParsed) 
 	{
 		case KB_VERSION1:
+		{
+			// whm restored this block with gpKB->m_pTargetUnits->Append(gpTU); below uncommented for KB_VERSION1
+			if (tag == xml_tu)
+			{
+				// add the completed CTargetUnit to the CKB's m_pTargetUnits SPList
+				gpKB->m_pTargetUnits->Append(gpTU);
+
+				// set up the association between this CTargetUnit's pointer and the source text key
+				// in the current map
+				(*gpMap)[gKeyStr] = gpTU;
+
+				// clear the pointer (not necessary, but a good idea for making sure the code is sound)
+				gpTU = NULL; // the m_pTargetUnits list will manage the pointer from now on
+			}
+			else if (tag == xml_map)
+			{
+				// nothing to be done
+				;
+			}
+			else if (tag == xml_kb)
+			{
+				// nothing to be done
+				;
+			}
+			else if (tag == xml_aikb)
+			{
+				// nothing to do
+				;
+			}
+			else
+			{
+				// unknown tag
+				// BEW 3Jun10; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
+			}
+			break;
+		}
 		case KB_VERSION2:
 		{
 			if (tag == xml_tu)
 			{
 				// add the completed CTargetUnit to the CKB's m_pTargetUnits SPList
 				// BEW 28May10 removed, as TUList is redundant
-				//gpKB->m_pTargetUnits->Append(gpTU);
+				// whm added back for 5.2.4 since even when parsing in a kbV2 file, we end up saving
+				// it as legacy kbV1 and need the TUList
+				gpKB->m_pTargetUnits->Append(gpTU);
 
 				// set up the association between this CTargetUnit's pointer and the source text key
 				// in the current map
@@ -6508,9 +6511,7 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-*   path -> -- (wxString) absolute path to the books.xml file on the storage medium
-*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
+* -> path  -- (wxString) absolute path to the books.xml file on the storage medium
 *
 * Calls ParseXML to parse the books.xml file containing book names (typically
 * OT and NT book names plust "Other Texts", but the file could contain non-Biblical
@@ -6518,9 +6519,9 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 *
 *******************************************************************/
 
-bool ReadBooks_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadBooks_XML(wxString& path)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtBooksTag,AtBooksEmptyElemClose,AtBooksAttr,
+	bool bXMLok = ParseXML(path,AtBooksTag,AtBooksEmptyElemClose,AtBooksAttr,
 							AtBooksEndTag,AtBooksPCDATA);
 	return bXMLok;
 }	
@@ -6532,18 +6533,16 @@ bool ReadBooks_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-*   path -> -- (wxString) absolute path to the AI_USFM.xml file on the storage medium
-*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
+* -> path  -- (wxString) absolute path to the AI_USFM.xml file on the storage medium
 *
 * Calls ParseXML to parse the AI_USFM.xml file containing USFM and PNG SFM
 * definitions and attributes
 *
 *******************************************************************/
 
-bool ReadSFM_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadSFM_XML(wxString& path)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
+	bool bXMLok = ParseXML(path,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
 							AtSFMEndTag,AtSFMPCDATA);
 	return bXMLok;
 }
@@ -6555,22 +6554,20 @@ bool ReadSFM_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-*   path -> -- (wxString) absolute path to the AI_UserProfiles.xml file on the storage medium
-*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
+* -> path  -- (wxString) absolute path to the AI_UserProfiles.xml file on the storage medium
 *
 * Calls ParseXML to parse the AI_UserProfiles.xml file containing User Profile
 * definitions and attributes
 *
 *******************************************************************/
-
-bool ReadPROFILES_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+/*
+bool ReadPROFILES_XML(wxString& path)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
+	bool bXMLok = ParseXML(path,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
 							AtPROFILEEndTag,AtPROFILEPCDATA);
 	return bXMLok;
 }
-
+*/
 /*****************************************************************
 *
 * ReadEMAIL_REPORT_XML
@@ -6578,22 +6575,20 @@ bool ReadPROFILES_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgM
 * Returns: TRUE if no error, else FALSE
 *
 * Parameters:
-*   path ->  -- (wxString) absolute path to the AI_ReportFeedback.xml file or AI_ReportProblem.xml file on the storage medium
-*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
+* -> path  -- (wxString) absolute path to the AI_ReportFeedback.xml file or AI_ReportProblem.xml file on the storage medium
 *
 * Calls ParseXML to parse the AI_ReportFeedback.xml/AI_ReportProblem.xml file containing 
 * the email message data
 *
 *******************************************************************/
-
-bool ReadEMAIL_REPORT_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+/*
+bool ReadEMAIL_REPORT_XML(wxString& path)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
+	bool bXMLok = ParseXML(path,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
 							AtEMAILRptEndTag,AtEMAILRptPCDATA);
 	return bXMLok;
 }
-
+*/
 /*****************************************************************
 *
 * ReadDoc_XML
@@ -6602,30 +6597,43 @@ bool ReadEMAIL_REPORT_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nP
 *
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml document file on the storage medium
-*   pDoc  -> pointer to the current document
-*   pProgDlg -> pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse an Adapt It (or Adapt It Unicode) xml document file
 *
 *******************************************************************/
 
-bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc)
 {
 	// BEW modified 07Nov05 to set gpDoc here, not in AtDocTag()
 	// set the static document pointer used only for parsing the XML document
 	gpDoc = pDoc;
 
-	// whm 24Aug11 modified to move the wxProgressDialog from this
-	// ReadDoc_XML() routine back to its callers. Now this functtion
-	// receives a pointer pProgDlg to that progress dialog so it can
-	// call Update where needed to give some feedback on the progress.
+	// whm added 27May07 put up a progress dialog. Since we do not know the length of the
+	// document at this point the dialog will simply display the message
+	// "Reading XML Data For: <filename> Please Wait..." until the whole doc has been read.
+	wxFileName fn(path);
+	wxString progMsg = _("Reading XML Data For: %s Please Wait...");
+	wxString msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str());
+	wxProgressDialog progDlg(_("Opening The Document"),
+                    msgDisplayed,
+                    100,    // range
+                    gpApp->GetMainFrame(),   // parent
+                    //wxPD_CAN_ABORT |
+                    //wxPD_CAN_SKIP |
+                    wxPD_APP_MODAL |
+                    wxPD_AUTO_HIDE //| -- try this as well
+                    //wxPD_ELAPSED_TIME |
+                    //wxPD_ESTIMATED_TIME |
+                    //wxPD_REMAINING_TIME |
+                    //wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+                    );
 
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
+
+	bool bXMLok = ParseXML(path,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
 							AtDocEndTag,AtDocPCDATA);
 
-	// whm Note: the progress indicator window gets destroyed when it
-	// goes out of scope in the caller
+	// remove the progress indicator window
+	progDlg.Destroy();
 	
 	return bXMLok;
 }	
@@ -6639,18 +6647,16 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg,
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml KB or GlossingKB file on the storage medium
 *	pKB   -> pointer to the CKB instance being filled out
-*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse an Adapt It (or Adapt It Unicode) xml knowledge base file
 *
 *******************************************************************/
 
-bool ReadKB_XML(wxString& path, CKB* pKB,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadKB_XML(wxString& path, CKB* pKB)
 {
 	wxASSERT(pKB);
 	gpKB = pKB; // set the global gpKB used by the callback functions
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
+	bool bXMLok = ParseXML(path,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
 							AtKBEndTag,AtKBPCDATA);
 	return bXMLok;
 }	
@@ -6664,37 +6670,24 @@ bool ReadKB_XML(wxString& path, CKB* pKB,wxProgressDialog* pProgDlg, wxUint32 nP
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml KB or GlossingKB file on the storage medium
 *	pKB   -> pointer to the CKB instance being filled out
-*   pProgDlg <-> -- pointer to the caller's wxProgressDialog
-*   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse a LIFT xml file
 *
 *******************************************************************/
-
-bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+/*
+bool ReadLIFT_XML(wxString& path, CKB* pKB)
 {
-	nLexItemsProcessed = 0;
-	nAdaptationsProcessed = 0;
-	nAdaptationsAdded = 0;
-	nAdaptationsUnchanged = 0;
-	
 	wxASSERT(pKB);
 	gpKB = pKB; // set the global gpKB used by the callback functions
 	// clear some important globals used in the parse
 	gKeyStr.Empty();
 	gpTU = NULL;
 	gpRefStr = NULL;
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
+	bool bXMLok = ParseXML(path,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);
-	if (bXMLok)
-	{
-		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Undeletions %d");
-		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nUndeletions);
-		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
-	}
 	return bXMLok;
 }	
-
+*/
 // currently this is called in XML.cpp only, but it could be useful elsewhere
 // The returned string keeps the filter marker wrappers and their markers and data
 // contents, but the strFreeTrans, strNote, and strCollectedBackTrans parameters return
@@ -6899,7 +6892,8 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 					{
 						// next condition is that m_inlineBindingMarkers on the pFollSrcPhrase
 						// starts with the inline binding beginmarker
-						mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
+						//mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
+						mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->m_inlineBindingMarkers);
 						wxString mkrPlusSpace = mkr2 + aSpace;
 						if (pDoc->IsMarker(&mkr2[0]) && 
 							gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
@@ -6942,12 +6936,14 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 					else
 					{
 						// there is no marker in pSrcPhrase's m_markers member
-						mkr = pDoc->GetWholeMarker(pSrcPhrase->GetInlineNonbindingMarkers());
+						//mkr = pDoc->GetWholeMarker(pSrcPhrase->GetInlineNonbindingMarkers());
+						mkr = pDoc->GetWholeMarker(pSrcPhrase->m_inlineNonbindingMarkers);
 						if (!mkr.IsEmpty())
 						{
 							// next condition is that m_markers on the pFollSrcPhrase starts with
 							// the inline binding beginmarker
-							mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
+							//mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
+							mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->m_inlineBindingMarkers);
 							wxString mkrPlusSpace = mkr2 + aSpace;
 							if (pDoc->IsMarker(&mkr2[0]) && 
 								gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
@@ -6984,7 +6980,8 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 							// beginmarker will generate a preceding orphan, so test for this
 							// and fix it that has happened (the inline binding beginmarker
 							// will have been already shifted to m_inlineBindingMarkers() member)
-							if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+							//if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+							if (!pFollSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 							{
 								// the conditions are met if pSrcPhrase->m_precPunct has content
 								wxString precPuncts = pSrcPhrase->m_precPunct;
@@ -7224,15 +7221,21 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 
 			// we store any inline binding marker and endmarker only on the embedded
 			// instance, so check for them and move them if present
-			if (!pPrevSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			//if (!pPrevSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			if (!pPrevSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 			{
-				pSPWord1Embedded->SetInlineBindingMarkers(pPrevSrcPhrase->GetInlineBindingMarkers());
-				pPrevSrcPhrase->SetInlineBindingMarkers(emptyStr);
+				//pSPWord1Embedded->SetInlineBindingMarkers(pPrevSrcPhrase->GetInlineBindingMarkers());
+				pSPWord1Embedded->m_inlineBindingMarkers = pPrevSrcPhrase->m_inlineBindingMarkers;
+				//pPrevSrcPhrase->SetInlineBindingMarkers(emptyStr);
+				pPrevSrcPhrase->m_inlineBindingMarkers = emptyStr;
 			}
-			if (!pPrevSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			//if (!pPrevSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			if (!pPrevSrcPhrase->m_inlineBindingEndMarkers.IsEmpty())
 			{
-				pSPWord1Embedded->SetInlineBindingEndMarkers(pPrevSrcPhrase->GetInlineBindingEndMarkers());
-				pPrevSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+				//pSPWord1Embedded->SetInlineBindingEndMarkers(pPrevSrcPhrase->GetInlineBindingEndMarkers());
+				pSPWord1Embedded->m_inlineBindingEndMarkers = pPrevSrcPhrase->m_inlineBindingEndMarkers;
+				//pPrevSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+				pPrevSrcPhrase->m_inlineBindingEndMarkers = emptyStr;
 			}
 
 			// pSrcPhrase may also have m_follPunct with content, so this has to go to
@@ -7250,15 +7253,21 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			// preceding punctuation will be on pFollSrcPhrase's m_srcPhrase member, so we
 			// have to check and update that too; but first move over any markers to the
 			// 2nd embedded srcPhrase
-			if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			//if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			if (!pFollSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 			{
-				pSPWord2Embedded->SetInlineBindingMarkers(pFollSrcPhrase->GetInlineBindingMarkers());
-				pFollSrcPhrase->SetInlineBindingMarkers(emptyStr);
+				//pSPWord2Embedded->SetInlineBindingMarkers(pFollSrcPhrase->GetInlineBindingMarkers());
+				pSPWord2Embedded->m_inlineBindingMarkers = pFollSrcPhrase->m_inlineBindingMarkers;
+				//pFollSrcPhrase->SetInlineBindingMarkers(emptyStr);
+				pFollSrcPhrase->m_inlineBindingMarkers = emptyStr;
 			}
-			if (!pFollSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			//if (!pFollSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			if (!pFollSrcPhrase->m_inlineBindingEndMarkers.IsEmpty())
 			{
-				pSPWord2Embedded->SetInlineBindingEndMarkers(pFollSrcPhrase->GetInlineBindingEndMarkers());
-				pFollSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+				//pSPWord2Embedded->SetInlineBindingEndMarkers(pFollSrcPhrase->GetInlineBindingEndMarkers());
+				pSPWord2Embedded->m_inlineBindingEndMarkers = pFollSrcPhrase->m_inlineBindingEndMarkers;
+				//pFollSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+				pFollSrcPhrase->m_inlineBindingEndMarkers = emptyStr;
 			}
 			
 			// now the punctuation stuff, as mentioned above
@@ -7336,15 +7345,20 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
             // endmarker, check, and if so move it to pPrevSrcPhrase and to word2's
             // embedded instance; likewise if pPrevSrcPhrase has an inline non-binding
             // beginmarker, add it to word1's embedded instance
-			if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			//if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			if (!pFollSrcPhrase->m_inlineNonbindingEndMarkers.IsEmpty())
 			{
-				pPrevSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
-				pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+				//pPrevSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+				pPrevSrcPhrase->m_inlineNonbindingEndMarkers = pFollSrcPhrase->m_inlineNonbindingEndMarkers;
+				//pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+				pSPWord2Embedded->m_inlineNonbindingEndMarkers = pFollSrcPhrase->m_inlineNonbindingEndMarkers;
 
 			}
-			if (!pPrevSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			//if (!pPrevSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			if (!pPrevSrcPhrase->m_inlineNonbindingMarkers.IsEmpty())
 			{
-				pSPWord1Embedded->SetInlineNonbindingMarkers(pPrevSrcPhrase->GetInlineNonbindingMarkers());
+				//pSPWord1Embedded->SetInlineNonbindingMarkers(pPrevSrcPhrase->GetInlineNonbindingMarkers());
+				pSPWord1Embedded->m_inlineNonbindingMarkers = pPrevSrcPhrase->m_inlineNonbindingMarkers;
 			}
 
 			// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
@@ -7420,15 +7434,21 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 
 				// move any inline binding marker and endmarker on the second word to the
 				// embedded sourcephrase
-				if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				//if (!pFollSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				if (!pFollSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 				{
-					pSPWord2Embedded->SetInlineBindingMarkers(pFollSrcPhrase->GetInlineBindingMarkers());
-					pFollSrcPhrase->SetInlineBindingMarkers(emptyStr);
+					//pSPWord2Embedded->SetInlineBindingMarkers(pFollSrcPhrase->GetInlineBindingMarkers());
+					pSPWord2Embedded->m_inlineBindingMarkers = pFollSrcPhrase->m_inlineBindingMarkers;
+					//pFollSrcPhrase->SetInlineBindingMarkers(emptyStr);
+					pFollSrcPhrase->m_inlineBindingMarkers = emptyStr;
 				}
-				if (!pFollSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				//if (!pFollSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				if (!pFollSrcPhrase->m_inlineBindingEndMarkers.IsEmpty())
 				{
-					pSPWord2Embedded->SetInlineBindingEndMarkers(pFollSrcPhrase->GetInlineBindingEndMarkers());
-					pFollSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+					//pSPWord2Embedded->SetInlineBindingEndMarkers(pFollSrcPhrase->GetInlineBindingEndMarkers());
+					pSPWord2Embedded->m_inlineBindingEndMarkers = pFollSrcPhrase->m_inlineBindingEndMarkers;
+					//pFollSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+					pFollSrcPhrase->m_inlineBindingEndMarkers = emptyStr;
 				}
 				
 				// construct the m_srcPhrase and m_key strings
@@ -7495,15 +7515,20 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 				// endmarker, check, and if so move it to pSrcPhrase and to word2's
 				// embedded instance; likewise if pSrcPhrase has an inline non-binding
 				// beginmarker, add it to word1's embedded instance
-				if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				//if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				if (!pFollSrcPhrase->m_inlineNonbindingEndMarkers.IsEmpty())
 				{
-					pSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
-					pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					//pSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					pSrcPhrase->m_inlineNonbindingEndMarkers = pFollSrcPhrase->m_inlineNonbindingEndMarkers;
+					//pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					pSPWord2Embedded->m_inlineNonbindingEndMarkers = pFollSrcPhrase->m_inlineNonbindingEndMarkers;
 
 				}
-				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				//if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				if (!pSrcPhrase->m_inlineNonbindingMarkers.IsEmpty())
 				{
-					pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+					//pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+					pSPWord1Embedded->m_inlineNonbindingMarkers = pSrcPhrase->m_inlineNonbindingMarkers;
 				}
 
 				// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
@@ -7542,15 +7567,21 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 				
 				// move any inline binding marker and endmarker on the first word to the
 				// first embedded sourcephrase
-				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				//if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+				if (!pSrcPhrase->m_inlineBindingMarkers.IsEmpty())
 				{
-					pSPWord1Embedded->SetInlineBindingMarkers(pSrcPhrase->GetInlineBindingMarkers());
-					pSrcPhrase->SetInlineBindingMarkers(emptyStr);
+					//pSPWord1Embedded->SetInlineBindingMarkers(pSrcPhrase->GetInlineBindingMarkers());
+					pSPWord1Embedded->m_inlineBindingMarkers = pSrcPhrase->m_inlineBindingMarkers;
+					//pSrcPhrase->SetInlineBindingMarkers(emptyStr);
+					pSrcPhrase->m_inlineBindingMarkers = emptyStr;
 				}
-				if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				//if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+				if (!pSrcPhrase->m_inlineBindingEndMarkers.IsEmpty())
 				{
-					pSPWord1Embedded->SetInlineBindingEndMarkers(pSrcPhrase->GetInlineBindingEndMarkers());
-					pSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+					//pSPWord1Embedded->SetInlineBindingEndMarkers(pSrcPhrase->GetInlineBindingEndMarkers());
+					pSPWord1Embedded->m_inlineBindingEndMarkers = pSrcPhrase->m_inlineBindingEndMarkers;
+					//pSrcPhrase->SetInlineBindingEndMarkers(emptyStr);
+					pSrcPhrase->m_inlineBindingEndMarkers = emptyStr;
 				}
 				// set the m_key and m_srcPhrase members for pSPWord1Embedded, likewise
 				// m_adaption and m_targetStr
@@ -7616,15 +7647,20 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 				// endmarker, check, and if so move it to pSrcPhrase and to word2's
 				// embedded instance; likewise if pSrcPhrase has an inline non-binding
 				// beginmarker, add it to word1's embedded instance
-				if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				//if (!pFollSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+				if (!pFollSrcPhrase->m_inlineNonbindingEndMarkers.IsEmpty())
 				{
-					pSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
-					pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					//pSrcPhrase->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					pSrcPhrase->m_inlineNonbindingEndMarkers = pFollSrcPhrase->m_inlineNonbindingEndMarkers;
+					//pSPWord2Embedded->SetInlineNonbindingEndMarkers(pFollSrcPhrase->GetInlineNonbindingEndMarkers());
+					pSPWord2Embedded->m_inlineNonbindingEndMarkers = pFollSrcPhrase->m_inlineNonbindingEndMarkers;
 
 				}
-				if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				//if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+				if (!pSrcPhrase->m_inlineNonbindingMarkers.IsEmpty())
 				{
-					pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+					//pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+					pSPWord1Embedded->m_inlineNonbindingMarkers = pSrcPhrase->m_inlineNonbindingMarkers;
 				}
 
 				// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
@@ -7684,7 +7720,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			wxString adaptation1;	adaptation1.Empty();
 			wxString adaptation2;	adaptation2.Empty();
 			offset4 = pSrcPhrase->m_adaption.Find(FixedSpace);
-			if ((int)offset4 == wxNOT_FOUND)
+			if (offset4 == wxNOT_FOUND)
 			{
 				// we have only the first word present
 				adaptation1 = pSrcPhrase->m_adaption;
@@ -7715,16 +7751,22 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
             // endmarker, check, and if so move it to word2's embedded instance; likewise
             // if pSrcPhrase has an inline non-binding beginmarker, add it to word1's
             // embedded instance
-			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			//if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			if (!pSrcPhrase->m_inlineNonbindingEndMarkers.IsEmpty())
 			{
-				pSPWord2Embedded->SetInlineNonbindingEndMarkers(pSrcPhrase->GetInlineNonbindingEndMarkers());
-				pSrcPhrase->SetInlineNonbindingEndMarkers(emptyStr);
+				//pSPWord2Embedded->SetInlineNonbindingEndMarkers(pSrcPhrase->GetInlineNonbindingEndMarkers());
+				pSPWord2Embedded->m_inlineNonbindingEndMarkers = pSrcPhrase->m_inlineNonbindingEndMarkers;
+				//pSrcPhrase->SetInlineNonbindingEndMarkers(emptyStr);
+				pSrcPhrase->m_inlineNonbindingEndMarkers = emptyStr;
 
 			}
-			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			//if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			if (!pSrcPhrase->m_inlineNonbindingMarkers.IsEmpty())
 			{
-				pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
-				pSrcPhrase->SetInlineNonbindingMarkers(emptyStr);
+				//pSPWord1Embedded->SetInlineNonbindingMarkers(pSrcPhrase->GetInlineNonbindingMarkers());
+				pSPWord1Embedded->m_inlineNonbindingMarkers = pSrcPhrase->m_inlineNonbindingMarkers;
+				//pSrcPhrase->SetInlineNonbindingMarkers(emptyStr);
+				pSrcPhrase->m_inlineNonbindingMarkers = emptyStr;
 			}
 
 			// Make the m_adaption and m_targetStr members for pSrcPhrase - returned in
@@ -7826,16 +7868,17 @@ void MakeFixedSpaceTranslation(CSourcePhrase* pWord1SPh, CSourcePhrase* pWord2SP
 	adaption = first + _T("~") + second;
 
 	wxString convertedPunct = pWord1SPh->m_precPunct;
-	convertedPunct = GetConvertedPunct(convertedPunct);
+	CAdapt_ItView* pView = gpApp->GetView();	
+	convertedPunct = pView->GetConvertedPunct(convertedPunct);
 	targetStr = convertedPunct + first;
 	convertedPunct = pWord1SPh->m_follPunct;	
-	convertedPunct = GetConvertedPunct(convertedPunct);
+	convertedPunct = pView->GetConvertedPunct(convertedPunct);
 	targetStr += convertedPunct + _T("~");	
 	convertedPunct = pWord2SPh->m_precPunct;	
-	convertedPunct = GetConvertedPunct(convertedPunct);
+	convertedPunct = pView->GetConvertedPunct(convertedPunct);
 	targetStr += convertedPunct + second;
 	convertedPunct = pWord2SPh->m_follPunct;	
-	convertedPunct = GetConvertedPunct(convertedPunct);
+	convertedPunct = pView->GetConvertedPunct(convertedPunct);
 	targetStr += convertedPunct;	
 }
 

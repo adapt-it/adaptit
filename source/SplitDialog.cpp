@@ -22,6 +22,13 @@
 /// class.
 /// \derivation		SplitDialog is derived from AIModalDialog and the supporting Chapter class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
+// Pending Implementation Items in SplitDialog.cpp (in order of importance): (search for "TODO")
+// 1. 
+//
+// Unanswered questions: (search for "???")
+// 1. 
+// 
+/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -92,7 +99,7 @@ CSplitDialog::CSplitDialog(wxWindow* parent) // dialog constructor
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pSplitDialogSizer = SplitDialogFunc(this, TRUE, TRUE);
+	SplitDialogFunc(this, TRUE, TRUE);
 	// The declaration is: UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 }
 
@@ -170,8 +177,6 @@ void CSplitDialog::OnBnClickedButtonSplitNow(wxCommandEvent& WXUNUSED(event))
 	// BEW added 23Jun07
 	gbDoingSplitOrJoin = TRUE; // use to suppress document backups generation during the splitting
 
-	gpApp->LogUserAction(_T("Executing Split Now in CSplitDialog"));
-
 	// If the user requested that we split at the next chapter, then move the phrasebox location to the
 	// beginning of the next chapter so that we can, for the rest of the function, use the same code for
 	// both when they've selected "split at next chapter" and "split at current phrasebox location".
@@ -239,20 +244,13 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	{
 		// save
 		if (!OriginalFilePath.IsEmpty())
-		{
-			// BEW changed 29Apr10
-			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
-			// whm 24Aug11 Note. I don't think a wait dialog is really needed for
-			// the split operation since it is likely to go quickly
-			wxProgressDialog* pProgDlg = NULL;
-			d->DoFileSave_Protected(FALSE,pProgDlg); // TRUE - show wait/progress dialog
-		}
+			d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
 	}
 
 	// Verify first filename.
 	FirstFileName = pFileName1->GetValue();
-	FirstFileName.Trim(FALSE); // trim left end
-	FirstFileName.Trim(TRUE); // trim right end
+	FirstFileName = FirstFileName.Trim(FALSE); // trim left end
+	FirstFileName = FirstFileName.Trim(TRUE); // trim right end
 	if (FirstFileName.IsEmpty()) 
 	{
 		// IDS_SUPPLY_NAME_FOR_SPLIT
@@ -383,7 +381,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// start of the second document - if there is one there, assume the user is splitting
 	// a composite document made up of bible books, and so retain what is there instead of
 	// copying the split off part's book id.
-	wxString bookID2 = gpApp->GetBookID(); // the check uses IsValidBookID() 
+	wxString bookID2 = gpApp->GetBookID(); // the check uses IsCalidBookID() 
 										   // which converts to lower case first
 	if (!bookID.IsEmpty() && bookID2.IsEmpty())
 	{
@@ -431,7 +429,83 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	pSplittingWait->Show(FALSE);
 	//IDS_SPLIT_SUCCEEDED
 	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION);
-	gpApp->LogUserAction(_T("Splitting the document succeeded - split at phrasebox."));
+}
+
+/*************************************************************************************************
+*
+*	MoveFinalEndmarkersToEndOfLastChapter					(protected)
+*
+*	Returns:	nothing
+*	Parameters:
+*		pDocSrcPhrases	->	the m_pSourcePhrases list of CSourcePhrase instances which defines the doc
+*		pos				->	ref to the POSITION in the pDocSrcPhrases list which is the node for the
+*							CSourcePhrase* instance whose BOOL m_bChapter is TRUE thus indicating that
+*							\c is stored in its m_markers member (and hence a new chapter is starting)
+*		pChaptersList	->	the list of Chapter objects so far created, the last in that list is the
+*							one for the chapter currently about to be split off
+*		currSfmSet		->	either UsfmOnly, or PngOnly, or perhaps rarely, UsfmAndPng - whatever is
+*							the current value stored in the global gCurrentSfmSet
+*	Comments:
+*	The final Chapter object in the pChaptersList will have only a single CSourcePhrase pointer at the
+*	time MoveFinalEndmarkersToEndOfLastChapter is called, it will be the one for the first word of the
+*	new chapter; note, it might be the first word of a subheading which precedes the first verse of the
+*	new chapter, so we cannot assume its m_chapterVerse member has content. It is the word which has
+*	the CSourcePhrase's m_bChapter boolean set TRUE which defines where the chapter starts, that is,
+*	where the \c marker was in the original source text data which defined the original document; and
+*	hence that is the CSourcePhrase instance which will receive any closing endmarkers from something
+*	such as a final footnote at the end of the last verse of the last chapter.
+*	MoveFinalEndmarkersToEndOfLastChapter detects the presence of endmarkers at the start of the
+*	so-far-one-and-only CSourcePhrase* instance's m_markers member, and moves them to a new
+*	CSourcePhrase instance (with no text in m_key or m_srcPhrase) added to the tail of the SPList in
+*	the previous Chapter object, so that the correct document structure is maintained.
+*	The caller is responsible for calling MoveFinalEndmarkersToEndOfLastChapter only when pChaptersList
+*	has at least two Chapter pointers stored there.
+*	History:
+*	Created 15Aug07 by BEW, in response to an email bug report from Bill Martin on same date
+*
+*****************************************************************************************************/
+
+void CSplitDialog::MoveFinalEndmarkersToEndOfLastChapter(SPList* WXUNUSED(pDocSrcPhrases), SPList::Node*& pos,
+							ChList* pChaptersList, enum SfmSet currSfmSet)
+{
+	// BEW refactor 13Mar09; nothing to be done, as this is called to append a CSourcePhrase to a
+	// split off chapter document which is not loaded in to the view, so it has no partner piles
+	SPList::Node* pos2 = pos;
+
+	// obtain the m_markers member content
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos2->GetData();
+	pos2 = pos2->GetPrevious();
+	if (pos2 ==NULL)
+		return; // no prior document content would be unexpected, but a good idea to play safe
+	wxString markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+		return; // also unexpected
+
+	// check for initial endmarkers, return if none; if there is one or more, remove them from
+	// markers and store them in a new local CString ready for transferral to the end of the
+	// previous document
+	bool bAbortOperation = FALSE;
+	wxString endmarkers = RemoveInitialEndmarkers(pSrcPhrase, currSfmSet, bAbortOperation);
+	if (bAbortOperation)
+		return; // return, doing nothing, if for any reason something goes wrong; or no endermarkers
+				// were found at the start of the m_markers member on the first CSourcePhrase of
+				// the current section (the section remaining)
+
+	// create a new CSourcePhrase to carry the endmarkers content, put the latter in its m_markers member
+	if (!endmarkers.IsEmpty())
+	{
+		CSourcePhrase* newSrcPhraseP = new CSourcePhrase;
+		newSrcPhraseP->m_markers = endmarkers;
+
+		// the final task is to append this new CSourcePhrase to the end of the list in the prev Chapter object
+		ChList::Node* pos3 = pChaptersList->GetLast();
+		// whm note: wxList's GetLast() returns the last iterator/node in the list, so just get the data
+		Chapter* pChapter = (Chapter*)pos3->GetData();
+		wxASSERT (pos3 != NULL);
+		pos3 = pos3->GetPrevious(); // gets the penultimate Chapter pointer in the list
+		pChapter = (Chapter*)pos3->GetData(); 
+		pChapter->SourcePhrases->Append(newSrcPhraseP); // append it, and we are done
+	}
 }
 
 // Returns a list of Chapter objects.  Does not modify SourcePhrases.  This means that each SourcePhrase
@@ -452,14 +526,7 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	{
 		// save
 		if (!OriginalFilePath.IsEmpty())
-		{
-			// BEW changed 29Apr10
-			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
-			// whm 24Aug11 Note. I don't think a wait dialog is really needed for
-			// the split operation since it is likely to go quickly
-			wxProgressDialog* pProgDlg = NULL;
-			d->DoFileSave_Protected(FALSE,pProgDlg); // TRUE - show wait/progress dialog
-		}
+			d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
 	}
 
 	// get the Book ID code (such as MAT or REV or 1TH etc) - when not in book mode, we get it
@@ -510,18 +577,26 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 		p = p->GetNext();
 		if (sp->GetStartsNewChapter()) 
 		{
-            // a new chapter starts, either at the first verse or the start of a section
-            // heading which precedes the start of the first verse; so get fresh Chapter
-            // storage ready
+			// a new chapter starts, either at the first verse or the start of a section heading
+			// which precedes the start of the first verse; so get fresh Chapter storage ready
 			bCountedChapter = FALSE;
 			if (c->Number != 0) 
 			{
 				c = new Chapter();
 				c->Number = 0; // will get set later
 				c->SourcePhrases = new SPList();
-				rv->Append(c); // append the pointer to the chapter object 
-							   // to the end of the list of chapters
+				rv->Append(c); // append the pointer to the chapter object to the end of the list of chapters
+
+				if (rv->GetCount() >= 2)
+				{
+                    // move any final endmarkers to an appended CSourcePhrase at the end of
+                    // the previous chapter's content; if done, the CSourcePhrase to append
+                    // is created in internally in the call of
+                    // MoveFinalEndmarkersToEndOfLastChapter()
+					MoveFinalEndmarkersToEndOfLastChapter(SourcePhrases, save_pos, rv, gpApp->gCurrentSfmSet);
+				}
 			}
+
             // the second and subsequent lists of sourcephrases won't yet have an \id line
             // with the book ID code included, so we need to insert a new sourcephrase to
             // store that info in each such sublist, provided we indeed have found a valid
@@ -667,7 +742,6 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	OnOK(event);
 	// IDS_SPLIT_SUCCEEDED
 	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION); //TellUser();
-	gpApp->LogUserAction(_T("Splitting the document succeeded - split into chapters interactive."));
 
 	// having the end result be an empty window could be confusing, so have the Start Working...
 	// wizard come up at the Document page, so that the user can do something meaningful -- such
@@ -737,10 +811,6 @@ void CSplitDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxASSERT(pFileName1Label != NULL);
 	pFileName2Label = (wxStaticText*)FindWindowById(IDC_STATIC_REMAIN_NAME) ;
 	wxASSERT(pFileName2Label != NULL);
-
-	// whm 29Aug11 added
-	// make the "Documents in the folder Adaptations" list look read-only
-	pFileList->SetBackgroundColour(gpApp->sysColorBtnFace);
 	
 	pSplittingWait->Show(FALSE);
 
@@ -781,9 +851,6 @@ void CSplitDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 
 	gpApp->RefreshStatusBarInfo();
-	
-	// adjust for substituted items
-	pSplitDialogSizer->Layout();
 }
 
 void CSplitDialog::ListFiles()
@@ -813,7 +880,7 @@ void CSplitDialog::ListFiles()
 	wxArrayString files;
 	// enumerate the document files in the Adaptations folder or the current book folder; and
 	// note that internally GetPossibleAdaptionDocuments excludes any files with names of the
-	// form *.BAK (these are backup XML document files, and for each there will be present
+	// form *.BAK.xml (these are backup XML document files, and for each there will be present
 	// an *.xml file which has identical content -- it is the latter we enumerate) and also note
 	// the result could be an empty m_acceptedFilesList, but have the caller of EnumerateDocFiles
 	// check it for no entries in the list

@@ -59,9 +59,6 @@ public:
 	wxCheckBox* pCheckSuppressPrecSectHeading;
 	wxCheckBox* pCheckIncludeFollSectHeading;
 	wxCheckBox* pCheckSuppressPrintingFooter;
-	wxCheckBox* pCheckInclFreeTransText;
-	wxCheckBox* pCheckInclGlossesText;
-
 
 
 protected:

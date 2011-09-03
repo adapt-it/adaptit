@@ -71,7 +71,6 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Cell.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
-#include "FreeTrans.h"
 
 /// This global is defined in Adapt_It.cpp. (default is FALSE)
 extern bool gbDoingInitialSetup;
@@ -136,7 +135,7 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 extern bool gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 
@@ -158,13 +157,11 @@ extern wxRect grectViewClient;
 /// This global is defined in Adapt_ItView.h.
 extern int gnBoxCursorOffset;
 
-//GDLC removed 2010-02-09
-// This global is defined in PhraseBox.cpp
-//extern bool gbExpanding;
+/// This global is defined in PhraseBox.cpp
+extern bool gbExpanding;
 
-//GDLC removed 2010-02-09
-// This global is defined in PhraseBox.cpp
-//extern bool	gbContracting;
+/// This global is defined in PhraseBox.cpp
+extern bool	gbContracting;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an
 // equivalent to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection
@@ -435,7 +432,7 @@ void CLayout::Draw(wxDC* pDC)
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
-	// BEW added 1Jul09, to support suppressing multiple calls of MakeTargetStringIncludingPunctuation()
+	// BEW added 1Jul09, to support suppressing multiple calls of MakeLineFourString()
 	// (and therefore the potential for multiple shows of the placement dialog for
 	// medial punctuation) at a single active location
 	m_pApp->m_nPlacePunctDlgCallNumber = 0; // clear to default value of zero
@@ -544,7 +541,6 @@ bool CLayout::GetFullWindowDrawFlag()
 }
 #endif
 
-// BEW 22Jun10, no changes needed for support of kbVersion 2
 void CLayout::PlaceBox()
 {
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
@@ -585,7 +581,7 @@ void CLayout::PlaceBox()
 		//interval within the execution of FixBox() when a box expansion happens (and
 		//immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
 		//then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
-		//will use the phraseBoxWidthAdjustMode parameter passed to it to test for largest of
+		//will use that stored value when gbExpanding == TRUE to test for largest of
 		//m_curBoxWidth and a value based on text extent plus slop, and use the larger -
 		//setting result in m_nWidth, so the ResizeBox() calls here in PlacePhraseBoxInLayout()
 		//should always expect m_nWidth for the active pile will have been correctly set, and
@@ -873,28 +869,6 @@ void CLayout::PlaceBox()
 			else
 				m_pApp->m_pTargetBox->m_textColor = GetTgtColor();
 		}
-	
-		// whm added 20Nov10 setting of target box background color for when the Guesser
-		// has provided a guess. Default m_GuessHighlightColor color is orange.
-		if (m_pApp->m_bIsGuess)
-		{
-			m_pApp->m_pTargetBox->SetBackgroundColour(m_pApp->m_GuessHighlightColor);
-			// Note: PlaceBox() is called twice in the process of executing PhraseBox's
-			// OnePass() function (one via a MoveToNextPile call and once later in OnePass. 
-			// If we reset the m_pApp->m_bIsGuess flag to FALSE here in PlaceBox()
-			// the second call of PlaceBox() from OnePass will reset the background color 
-			// to white in the else block below because the else block below would then 
-			// be exectuted on the second call. Instead of resetting m_bIsGuess here, 
-			// I've reset it at the end of the OnePass() function.
-			//m_pApp->m_bIsGuess = FALSE;
-		}
-		else
-		{
-			// normal background color in target box is white
-			m_pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
-		}
-
-		
 		// handle the dirty flag
 		if (bSetModify)
 		{
@@ -989,13 +963,7 @@ wxColour CLayout::GetSpecialTextColor()
 wxColour CLayout::GetRetranslationTextColor()
 {
 	return m_pApp->m_reTranslnTextColor; // CLayout does not yet store a copy
-									     // of m_reTranslnTextColor
-}
-
-wxColour CLayout::GetTgtDiffsTextColor()
-{
-	return m_pApp->m_tgtDiffsTextColor; // CLayout does not yet store a copy
-									    // of m_tgtDiffsTextColor
+									   // of m_reTranslnTextColor
 }
 
 // accessors for src, tgt, navText line heights
@@ -1106,7 +1074,7 @@ void CLayout::SetPileAndStripHeight()
         // we've accounted for source and target lines; now handle possibility of a 3rd
         // line (note, if 3 lines, target is always one, so we've handled that above
         // already)
-		if (gbGlossingVisible)
+		if (gbEnableGlossing)
 		{
 			if (gbGlossingUsesNavFont)
 			{
@@ -1311,8 +1279,13 @@ void CLayout::DestroyStrip(int index)
 	// CStrip now does not store pointers, so the only memory it owns are the blocks for
 	// the two wxArrayInt arrays - so Clear() these and then delete the strip
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+#ifdef _ALT_LAYOUT_
+	pStrip->m_arrPileIndices.Clear();
+	pStrip->m_arrPileOffsets.Clear();
+#else
 	pStrip->m_arrPiles.Clear();
 	pStrip->m_arrPileOffsets.Clear();
+#endif
  	delete pStrip;
 	// don't try to delete CCell array, because the cell objects are managed 
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
@@ -1544,13 +1517,12 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // called whenever the layout has been corrupted by a user action, such as a font change
 // (which clobbers prior text extent values stored in the piles) or a punctuation setting
 // change, etc. RecalcLayout() in the refactored design is a potentially "costly"
-// calculation - if the document is large, the piles and strips for the whole document have
+// calculation - if the document is large, the piles and strips for the whole document has
 // to be recalculated from the data in the current document - (need to consider a progress
 // bar in the status bar in window bottom) The default value of the passed in flag
 // bRecreatePileListAlso is FALSE The ptr value for the passed in pList is usually the
 // application's m_pSourcePhrases list, but it can be a sublist copied from that
-//GDLC Added third parameter 2010-02-09
-bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
+bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 {
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
     // function - the latter built only a bundle's-worth of strips, but the new design must build
@@ -1689,13 +1661,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 							// the end of the document)
 	CPile* pActivePile = NULL;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
-	// BEW added 2nd test, for sn == -1, because reliance on gbDoingInitialSetup is risky
-	// -- for example, in collab mode the flag stayed TRUE, and so bAtDocEnd didn't get
-	// set when the last bit of adapting in the file was done and the phrase box moved
-	// past the doc end - giving a crash because the app thought the doc end was not yet
-	// reached (at doc end, before RecalcLayout() is called, sn is set to -1, so we can
-	// rely on this here)
-	if (!gbDoingInitialSetup || m_pApp->m_nActiveSequNum == -1)
+	if (!gbDoingInitialSetup)
 	{
 		// the above test is to exclude setting bAtDocEnd to TRUE if the pActivePile is
 		// NULL which can be the case on launch or opening a doc or creating a new one, at
@@ -1732,10 +1698,12 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// size returned by this call to a size based on the physical page's printable width
     // before building or tweaking the strips, we want to ensure that the gap left for the
     // phrase box to be drawn in the layout is as wide as the phrase box is going to be
-    // when it is made visible by CLayout::Draw(). When RecalcLayout() is called with its
-	// third parameter phraseBoxWidthAdjustMode equal to expanding, if we destroyed and
-	// recreated the piles in the block above,
-    // CreatePile() will, at the active location, made use of the expanding value and set
+    // when it is made visible by CLayout::Draw(). When RecalcLayout() is called,
+    // gbExpanding global bool may be TRUE, or FALSE (it's set by FixBox() and cleared in
+    // FixBox() at the end after layout adjustments are done - including a potential call
+    // to RecalcLayout(), it's also cleared to default as a safety first measure at start
+    // of each OnChar() call. If we destroyed and recreated the piles in the block above,
+    // CreatePile() will, at the active location, made use of the gbExpanding value and set
     // the "hole" for the phrase box to be the appropriate width. But if piles were not
     // destroyed and recreated then the box may be about to be drawn expanded, and so we
     // must make sure that the strip rebuilding about to be done below has the right box
@@ -1745,7 +1713,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
     // CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
     // then the strip layout code below can use that value via a call to
     // GetPhraseBoxGapWidth() to make the active pile's width have the right value.
-	//TODO: Is the above paragraph completly correct??
     if (!bAtDocEnd)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
@@ -1759,7 +1726,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
-			if (boxMode == contracting)
+			if (gbContracting)
 			{
 				// phrase box is meant to contract for this recalculation, so suppress the
 				// size calculation internally for the active location because it would be
@@ -1779,11 +1746,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		// we have no active active location currently, and the box is hidden, the active
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
-		//GDLC Removed setting of gbExpanding 2010-02-09
-		//gbExpanding = FALSE; // has to be restored to default value
+		gbExpanding = FALSE; // has to be restored to default value
 	}
-	//GDLC Removed setting of gbContracting 2010-02-09
-	//gbContracting = FALSE; // restore default value
+	gbContracting = FALSE; // restore default value
 /*
 #ifdef __WXDEBUG__
 	{
@@ -1836,8 +1801,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 			// with the input parameter create_strips_keep_piles, and will have already
 			// done the layout recalculation by destroying and recreating all the strips,
 			// and so we've nothing to do here except return immediately
-			//GDLC Removed setting of gbContracting 2010-02-09
-			//gbContracting = FALSE;
+			gbContracting = FALSE;
 			return TRUE;
 		}
 	}
@@ -1857,9 +1821,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 #endif
 */
 
-	//GDLC Removed setting of gbExpanding & gb Contracting 2010-02-09
-	//gbExpanding = FALSE; // has to be restored to default value
-	//gbContracting = FALSE; // restore default value (also done above)
+	gbExpanding = FALSE; // has to be restored to default value
+	gbContracting = FALSE; // restore default value (also done above)
 
 	if (!gbIsPrinting)
 	{
@@ -1942,7 +1905,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		if (!gbSuppressSetup)
 		{
-			m_pApp->GetFreeTrans()->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
+			m_pView->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
 		}
 		wxTextCtrl* pEdit = (wxTextCtrl*)
 							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -2142,6 +2105,30 @@ wxArrayInt* CLayout::GetInvalidStripArray()
 
 void CLayout::CreateStrips(int nStripWidth, int gap)
 {
+#ifdef _ALT_LAYOUT_
+    // layout is built, we should call Shrink()
+	int index = 0;
+	wxASSERT(!m_pileList.IsEmpty());
+	CStrip* pStrip = NULL;
+
+	 //loop to create the strips, add them to CLayout::m_stripArray
+	 int maxIndex = m_pApp->GetMaxIndex(); // determined from m_pSourcePhrases list,
+					// but since there is one CPile for each CSourcePhrase, the max
+					// value is appropriate for m_pileList too
+	int nStripIndex = 0;
+	while (index <= maxIndex)
+	{
+		pStrip = new CStrip(this);
+		pStrip->m_nStrip = nStripIndex; // set it's index
+		m_stripArray.Add(pStrip); // add the new strip to the strip array
+		// set up the strip's pile (and cells) contents; return the index value which is
+		// to be used for the next iteration's call of CreateStrip()
+		index = pStrip->CreateStrip(index, nStripWidth, gap);	// fill out with piles 
+		nStripIndex++;
+	}
+	m_stripArray.Shrink();
+#else
+
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
 	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
@@ -2188,6 +2175,7 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 	}
     // layout is built, we should call Shrink() to reclaim memory space unused
 	m_stripArray.Shrink();
+#endif
 }
 
 // starting from the passed in index value, update the index of succeeding strip instances
@@ -3243,7 +3231,7 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
 			}
 			wxLogDebug(_T("Adjust... 3. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7]),indices[8],indices[9],indices[10],indices[11],indices[12]);
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7]),indices[8],indices[9],indices[10],indices[11],indices[12];
 		}
 	#endif
 #endif
@@ -3651,32 +3639,6 @@ void CLayout::CleanUpTheLayoutFromStripAt(int nIndexOfStripToStartAt, int nHowMa
 	#endif
 #endif
 }
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return         nothing
-///
-/// \remarks
-///	Resets the m_bIsCurrentFreeTransSection member of CPile instances
-///	through the whole doc to FALSE. Use this prior, followed by
-///	MarkFreeTranslationPilesForColoring(), when the current section changes
-///	to a new location, so that colouring gets done correctly at the right places
-/// BEW 22Feb10 no changes needed for support of doc version 5
-/// BEW 17May10, moved to CLayout from CAdapt_ItView class
-/////////////////////////////////////////////////////////////////////////////////
-void CLayout::MakeAllPilesNonCurrent()
-{
-	PileList* pList = GetPileList();
-	PileList::Node* pos = pList->GetFirst();
-	CPile* pPile = NULL;
-	while (pos != NULL)
-	{
-		pPile = pos->GetData();
-		pPile->SetIsCurrentFreeTransSection(FALSE);
-		pos = pos->GetNext();
-	}
-	// makes them ALL false
-}
-
 
 /* 
 // created for identifying where some piles didn't get their m_nPile values updated -- turned out

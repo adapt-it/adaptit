@@ -1,7 +1,12 @@
 =====================================================================
 Adapt It WX
 =====================================================================
-Version 6.0.0
+Version 5.2.5
+
+Version 5.2.5 is the last stable release in the 5.x.x series. It will
+function as a transition version between the data format used in the
+5.x.x series and the new data format used in version 6.x.x series.
+
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 

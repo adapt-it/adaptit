@@ -13,8 +13,13 @@
 /// button to access that sub-dialog.
 /// \derivation		The CExportInterlinearDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-
-// BEW 10Apr10, no changes for support of doc version 5
+// Pending Implementation Items in ExportInterlinearDlg.cpp (in order of importance): (search for "TODO")
+// 1. 
+//
+// Unanswered questions: (search for "???")
+// 1. 
+// 
+/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -39,7 +44,6 @@
 
 #include "Adapt_It.h"
 #include "ExportInterlinearDlg.h"
-#include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h" 
 #include "ExportOptionsDlg.h"
 
@@ -216,7 +220,7 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		pButtonOutputCVRange->Enable(FALSE);
 	}
 
-	// Ensure that the arrays used as extern variables are empty before export
+	// Insure that the arrays used as extern variables are empty before export
 	// operations.
 	m_exportBareMarkers.Clear();
 	m_exportMarkerAndDescriptions.Clear();
@@ -234,7 +238,7 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	bPlaceBackTransCheckboxEnabled = TRUE; // changed to TRUE; in v 3.0.1 after table row code added
 	bPlaceAINotesCheckboxEnabled = TRUE;
 
-	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc();
+	gpApp->GetView()->GetMarkerInventoryFromCurrentDoc();
 
 	TransferDataToWindow(); // needed here to get ch::vs data into edit controls
 
@@ -307,7 +311,7 @@ void CExportInterlinearDlg::OnBnClickedButtonRtfExportFilterOptions(wxCommandEve
 		// ExportSaveAsDlg, that way a user can cancel the secondary dialog
 		// and go back to check his settings afterwards.
 		// User cancelled, and so no export options were changed.
-		// So, ensure that all the flags in m_exportFilterFlags are set 
+		// So, insure that all the flags in m_exportFilterFlags are set 
 		// back to their default values in m_exportFilterFlagsBeforeEdit,
 		// which will signal to the caller that no changes were made.
 		//m_exportFilterFlags.Copy(m_exportFilterFlagsBeforeEdit);

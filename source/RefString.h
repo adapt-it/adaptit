@@ -24,7 +24,8 @@
 
 // forward references
 class CTargetUnit;
-class CRefStringMetadata;
+class wxDataOutputStream;
+class wxDataInputStream;
 
 /// The CRefString class stores the target text adaptation typed
 /// by the user for a given source word or phrase. It also keeps
@@ -33,40 +34,28 @@ class CRefStringMetadata;
 /// \derivation		The CRefString class is derived from wxObject.
 class CRefString : public wxObject
 {
-	friend class CKB;
-	friend class CRefStringMetadata;
-	friend class CTargetUnit;
-
 public:
 	CRefString(void); // constructor
 	CRefString(CTargetUnit* pTargetUnit);
-	CRefString(const CRefString& rs,CTargetUnit* pTargetUnit = NULL);
+	CRefString(const CRefString& rs,CTargetUnit* pTargetUnit = NULL); // copy constructor
 
 	// attributes
 public:
 	wxString		m_translation;
 	int				m_refCount; // keep track of how many times it is referenced
 								// the AddRef / Release mechanism looks too complex for my needs
-	CTargetUnit*	m_pTgtUnit; // is this needed?? Yes, it's needed for support of standoff markup file
+	CTargetUnit*	m_pTgtUnit; // is this needed?? Bruce's doc says it's not used
 
 	// helpers
-	bool			operator==(const CRefString& rs); // equality operator overload
+	bool	operator==(const CRefString& rs); // equality operator overload
 
-	virtual			~CRefString(void); // destructor // whm make all destructors virtual
+	virtual ~CRefString(void); // destructor // whm make all destructors virtual
+	// other methods
 
-	// other methods -- accessors, for doc class and the global functions in xml.cpp
-	CRefStringMetadata* GetRefStringMetadata(); // needed so CAdapt_ItDoc::EraseKB() can delete
-												// the instance on the heap
-	bool			GetDeletedFlag();
-	void			SetDeletedFlag(bool bValue);
-	void			DeleteRefString(); // deletes both the CRefString instance and its
-									   // pointed at CRefStringMetadata instance
 protected:
 
 private:
 	// class attributes
-	bool					m_bDeleted; // & the standoff data will have the dateTime for the deletion
-	CRefStringMetadata*		m_pRefStringMetadata;
 
 	DECLARE_DYNAMIC_CLASS(CRefString) 
 	// Used inside a class declaration to declare that the objects of 

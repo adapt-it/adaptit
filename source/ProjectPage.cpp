@@ -47,19 +47,17 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h>
 #include <wx/filesys.h> // for wxFileName
-#include <wx/progdlg.h> // for wxFileName
-
 #include "ProjectPage.h"
 #include "LanguagesPage.h"
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
-#include "UsfmFilterPage.h"
+#include "USFMPage.h"
+#include "FilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 #include "Adapt_It.h"
 #include "helpers.h"
-#include "CollabUtilities.h"
 #include "KB.h" 
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
@@ -76,6 +74,12 @@ extern CProjectPage* pProjectPage;
 
 /// This global is defined in Adapt_It.cpp.
 extern CLanguagesPage* pLanguagesPage;
+
+//extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
+
+//extern CCaseEquivPageWiz* pCaseEquivPageWiz;
+//extern CUSFMPageWiz* pUsfmPageWiz;
+//extern CFilterPageWiz* pFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
@@ -279,36 +283,23 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	m_pListBox->Clear();
 
 	pApp->GetPossibleAdaptionProjects(&possibleAdaptions);
-	
 	// whm modified 28Jul11 to sort possibleAdaptations before adding the
 	// <New Project> as the first item. This change is needed to get a sorted
 	// list on the Linux port. Windows and Mac seem to grab the list of folders
 	// in sorted order.
 	possibleAdaptions.Sort();
-
-	// Add <New Project> to the listbox unless the current user profile says to hide 
-	// the <New Project> item from the interface
-	if (gpApp->m_bShowNewProjectItem)
-	{
-		wxString str;
-		// IDS_NEW_PROJECT
-		str = str.Format(_("<New Project>"));
-		possibleAdaptions.Insert(str,0);
-	}
+	wxString str;
+	// IDS_NEW_PROJECT
+	str = str.Format(_("<New Project>"));
+	possibleAdaptions.Insert(str,0);
 
 	// fill the list box with the folder name strings
 	wxString showItem;
 	size_t ct = possibleAdaptions.GetCount();
-	// whm 11Aug11 modified test below to examine the first item in
-	// possibleAdaptions to see if it is _("<New Project>") rather 
-	// than testing if the count ct is 1 to determine whether the
-	// gbWizardNewProject flag should be set to TRUE or not. This is
-	// necessary because when the user profile removes the <New Project> 
-	// item from the list, the count is not a sufficient test.
-	if (ct == 1 && possibleAdaptions.Item(0) == _("<New Project>"))
+	if (ct == 1)
 	{
-		// with just one in listbox and the only possible choice is 
-		// <New Project>, set the global gbWizardNewProject to TRUE
+		// with just one in listbox the only possible choice is <New Project>
+		// so set the global gbWizardNewProject to TRUE
 		gbWizardNewProject = TRUE;
 	}
 	for (size_t index = 0; index < ct; index++)
@@ -348,7 +339,7 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 		}
 		m_curLBSelection = selItem;
 	}
-	// ensure the listbox is in focus
+	// insure the listbox is in focus
 	m_pListBox->SetFocus();
 	// make the list boxes scrollable
 	// whm note: wxDesigner has the listbox style set for wxLB_HSCROLL which creates a horizontal scrollbar
@@ -440,11 +431,6 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	// the glossing KB
 	// whm - this removal of any existing the KBs structures in memory should be done at this
 	// point whether the projectPage is moving forward or backwards.
-	if (pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
-	{
-		UnloadKBs(pApp);
-	}
-	/*
 	if (pApp->m_pKB != NULL)
 	{
 		delete pApp->m_pKB;
@@ -457,7 +443,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 		pApp->m_bGlossingKBReady = FALSE;
 		pApp->m_pGlossingKB = (CKB*)NULL;
 	}
-	*/
+
 	if (bMovingForward) // we can only move forward from the projectPage
 	{
 		// user selected "Next >"
@@ -512,8 +498,6 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator 
 										 + pApp->m_curProjectName;
 			}
-			pApp->m_sourceInputsFolderPath = pApp->m_curProjectPath + pApp->PathSeparator + 
-											pApp->m_sourceInputsFolderName; 
 
             // make sure the path to the Adaptations folder is correct (if omitted, it
             // would use the basic config file's "DocumentsFolderPath" line - which could
@@ -547,83 +531,102 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				}
 			}
 
-			// whm modified 28Aug11 to use a new CreateAndLoadKBs() function since
-			// we are dealing with an existing project.
-			// The CreateAndLoadKBs() is called from here as well as from the the App's 
-			// SetupDirectories(), the View's OnCreate(), and the CollabUtilities' 
-			// HookUpToExistingAIProject().
-			// 
-			// If CreateAndLoadKBs() fails to create the necessary KBs, the code 
-			// in CreateAndLoadKBs() issues error messages and the FALSE return block
-			// of CreateAndLoadKBs() below closes the Start Working Wizard.
-			// 
-			if (!pApp->CreateAndLoadKBs())
+			// open the knowledge base and load its contents
+			wxASSERT(pApp->m_pKB == NULL);
+			pApp->m_pKB = new CKB(FALSE);
+			wxASSERT(pApp->m_pKB != NULL);
+			{ // this block defines the existence of the wait dialog for loading the regular KB
+			CWaitDlg waitDlg(gpApp->GetMainFrame());
+			// indicate we want the reading file wait message
+			waitDlg.m_nWaitMsgNum = 8;	// 8 "Please wait while Adapt It loads the KB..."
+			waitDlg.Centre();
+			waitDlg.Show(TRUE);
+			waitDlg.Update();
+			// the wait dialog is automatically destroyed when it goes out of scope below.
+			bool bOK = pApp->LoadKB();
+			if (bOK)
 			{
-				// deal with failures here
-				// whm Note: The user would probably have to close down the app
-				// to do anything at this point, since no project is open (since
-				// there are no KBs created or loaded upon failure of 
-				// CreateAndLoadKBs(). 
-				// close the start working wizard
+				pApp->m_bKBReady = TRUE;
+
+				// now do it for the glossing KB
+				wxASSERT(pApp->m_pGlossingKB == NULL);
+				pApp->m_pGlossingKB = new CKB(TRUE);
+				wxASSERT(pApp->m_pGlossingKB != NULL);
+				
+				//{ // this block defines the existence of the wait dialog for loading the glossing KB
+				//CWaitDlg waitDlg(gpApp->GetMainFrame());
+				// indicate we want the reading file wait message
+				//waitDlg.m_nWaitMsgNum = 9;	// 9 "Please wait while Adapt It loads the Glossing KB..."
+				//waitDlg.Centre();
+				//waitDlg.Show(TRUE);
+				//waitDlg.Update();
+				// the wait dialog is automatically destroyed when it goes out of scope below.
+				bOK = pApp->LoadGlossingKB();
+				//} // end of CWaitDlg scope
+
+				if (bOK)
+				{
+					pApp->m_bGlossingKBReady = TRUE;
+				}
+				else
+				{
+					// IDS_GLOSSINGKB_OPEN_FAILED
+					wxMessageBox(_("Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."), _T(""), wxICON_ERROR);
+					wxASSERT(FALSE);
+					wxExit();
+				}
+
+				// do the KB backing up, if the user wants it done; inform the user if it is
+				// currently turned off
+				if (pApp->m_bAutoBackupKB)
+				{
+					// whm 15Jan11 commented out this DoKBBackup() call. I don't think it should be called
+					// when a project is first opened when no changes have been made.
+					;
+					// pApp->DoKBBackup(); // use the bSuppressOKMessage = TRUE option
+				}
+				else
+				{
+					// IDS_KB_BACKUP_OFF
+					if (!pApp->m_bUseCustomWorkFolderPath)
+					{
+						wxMessageBox(
+_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
+						_T(""), wxICON_INFORMATION);
+					}
+				}
+			}
+			else
+			{
+				// the load of the normal adaptation KB didn't work and the substitute empty KB 
+				// was not created successfully, so delete the adaptation CKB & advise the user 
+				// to Recreate the KB using the menu item for that purpose. Loading of the glossing
+				// KB will not have been attempted if we get here.
+				if (pApp->m_pKB != NULL)
+					delete pApp->m_pKB;
+				pApp->m_bKBReady = FALSE;
+				pApp->m_pKB = (CKB*)NULL;
+				// IDS_KB_NEW_EMPTY_FAILED
+				wxMessageBox(
+_("Sorry, substituting a new empty knowledge base failed. Instead you should now try the Restore Knowledge Base command in the File menu. You need a valid knowledge base before doing any more work.")
+				,_T(""), wxICON_INFORMATION);
+
 				pStartWorkingWizard->Show(FALSE);
 				pStartWorkingWizard->EndModal(1);
 				pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 			}
-
-			// whm 28Aug11 Note: The following code if-else block waw within the
-			// KB loading code that existed before using the CreateAndLoadKBs() 
-			// function here in OnWizardPageChanging(). I am putting it here since
-			// it would execute on a successful load of the KB in the old code.
-			// 
-			// TODO: Determine if the "reminder" should always be issued whenever 
-			// the App's m_bAutoBackupKB is FALSE in all locations where 
-			// CreateAndLoadKBs() is called. If so, it could go within CreateAndLoadKBs()
-			// as long as it is appropriate to issue such a reminder in all places where 
-			// CreateAndLoadKBs() is called.
-			// The CreateAndLoadKBs() is called from here as well as from the the App's 
-			// SetupDirectories(), the View's OnCreate(), and the CollabUtilities' 
-			// HookUpToExistingAIProject().
-			// do the KB backing up, if the user wants it done; inform the user if it is
-			// currently turned off
-			if (pApp->m_bAutoBackupKB)
-			{
-				// whm 15Jan11 commented out this DoKBBackup() call. I don't think it should be called
-				// when a project is first opened when no changes have been made.
-				;
-				// pApp->DoKBBackup(); // use the bSuppressOKMessage = TRUE option
-			}
-			else
-			{
-				// IDS_KB_BACKUP_OFF
-				if (!pApp->m_bUseCustomWorkFolderPath)
-				{
-					wxMessageBox(
-_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
-					_T(""), wxICON_INFORMATION);
-				}
-			}
 			
+
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
 			pDocPage->InitDialog(idevent);
 
+			} // end of CWaitDlg scope
+			// close the progress dialog
+
 		}
-        // whm added 12Jun11. Ensure the inputs and outputs directories are created.
-        // SetupDirectories() normally takes care of this for a new project, but we also
-        // want existing projects created before version 6 to have these directories too.
-		wxString pathCreationErrors = _T("");
-		// BEW 1Aug11, added test for m_curProjectPath not empty. The calls fails
-		// otherwise in the following scenario:
-		// Launch in Paratext or BE collaboration mode, Cancel out of the collaboration
-		// dialog, go to Administrator menu and turn off Paratext (or BE) collaboration -
-		// the wizard then shows the Projects list, select <New Project> and then the app
-		// will crash when control here calls CreateInputsAndOutputsDirectories() because
-		// at this point m_curProjectPath is empty
-		if (!pApp->m_curProjectPath.IsEmpty())
-		{
-			pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
-			// ignore dealing with any unlikely pathCreationErrors at this point
-		}
+
+
 	}
 }

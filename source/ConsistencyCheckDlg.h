@@ -14,7 +14,6 @@
 /// (to be fixed later). For any fixes the user can also check a box to "Auto-fix later
 /// instances the same way." 
 /// \derivation		The CConsistencyCheckDlg class is derived from AIModalDialog.
-/// BEW 9July10, updated for support of kbVersion 2
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef ConsistencyCheckDlg_h
@@ -62,7 +61,6 @@ public:
 	wxRadioButton* m_pRadioSelectFromList;
 	wxRadioButton* m_pRadioAcceptCurrent;
 	wxRadioButton* m_pRadioTypeNewOne;
-	wxCheckBox* m_pCheckAutoFix; // whm added 31Aug11
 	wxString	m_keyStr;
 	wxString	m_adaptationStr; // adaptation, or the gloss when glossing is ON
 	wxString	m_newStr;

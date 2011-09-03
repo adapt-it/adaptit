@@ -32,15 +32,7 @@ public:
 	virtual ~CPlaceInternalMarkers(void); // destructor
 	// other methods
 
-	// getters and setters
-	void	SetNonEditableString(wxString str); // sets m_srcPhrase
-	void	SetUserEditableString(wxString str); // sets m_tgtPhrase
-	void	SetPlaceableDataStrings(wxArrayString* pMarkerDataArray); // populates pListBox
-	wxString	GetPostPlacementString(); // for returning m_tgtPhrase data, after
-										  // placements are finished, to the caller
-private:
-	// the next 3 are for accepting data from outside using the setters
-	wxArrayString m_markersToPlaceArray;
+	//enum { IDD = IDD_PLACE_INTERNAL_MARKERS };
 	wxString	m_srcPhrase;
 	wxString	m_tgtPhrase;
 	wxString	m_markers;

@@ -136,9 +136,9 @@ fi
 # the hlp_temp directory, leaving out the .svn dirs and other stuff specified
 # in the excludeFiles file.
 cd "$hlpDir"
-gnutar -czf "$tarFile" * -X "$excludeFiles"
+tar -czf "$tarFile" * -X "$excludeFiles"
 cd "$tempDir"
-gnutar -xzvf "$tarFile"
+tar -xzvf "$tarFile"
 rm "$tarFile"
 
 # Now zip the present contents of hlpDir excluding the hidden .svn dirs

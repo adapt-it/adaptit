@@ -10,7 +10,13 @@
 /// The CJoinDialog class provides a dialog interface for the user to be able
 /// to combine Adapt It documents into larger documents.
 /// \derivation		The CJoinDialog class is derived from AIModalDialog.
-/// BEW 12Apr10, all changes for supporting doc version 5 are done for this file
+/////////////////////////////////////////////////////////////////////////////
+// Pending Implementation Items in JoinDialog.cpp (in order of importance): (search for "TODO")
+// 1. 
+//
+// Unanswered questions: (search for "???")
+// 1. 
+// 
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -178,7 +184,6 @@ void CJoinDialog::OnOK(wxCommandEvent& event)
 
 void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 {
-	gpApp->LogUserAction(_T("Initiated OnBnClockedJoinNow()"));
 	// BEW added 23Jun07
 	gbDoingSplitOrJoin = TRUE; // use to suppress document backups generation during the joining
 
@@ -374,15 +379,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	d->SetDocumentWindowTitle(strUserTyped, strUserTyped);
 
 	if (bNoIDMismatch)
-	{
 		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION);// IDS_JOIN_SUCCESSFUL
-		gpApp->LogUserAction(_T("Joining to the current document was successful."));
-	}
 	else
-	{
 		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_WARNING); //IDS_BAD_JOIN_FROM_MISMATCH
-		gpApp->LogUserAction(_T("Joining documents exited prematurely because of a mismatched book ID code."));
-	}
 
 	gpApp->RefreshStatusBarInfo();
 	gbDoingSplitOrJoin = FALSE; // restore default so document backups can happen again
@@ -438,7 +437,7 @@ void CJoinDialog::InitialiseLists()
 	wxArrayString files;
 	// enumerate the document files in the Adaptations folder or the current book folder; and
 	// note that internally GetPossibleAdaptionDocuments excludes any files with names of the
-	// form *.BAK (these are backup XML document files, and for each there will be present
+	// form *.BAK.xml (these are backup XML document files, and for each there will be present
 	// an *.xml file which has identical content -- it is the latter we enumerate) and also note
 	// the result could be an empty m_acceptedFilesList, but have the caller of EnumerateDocFiles
 	// check it for no entries in the list

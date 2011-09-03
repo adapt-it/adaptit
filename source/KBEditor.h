@@ -37,10 +37,6 @@ class MapKeyStringToTgtUnit;
 
 class CKBEditor : public AIModalDialog
 {
-	// friend functions (definitions are in helpers.cpp)
-	friend void PopulateTranslationsListBox(CKB* pKB, CTargetUnit* pTgtUnit, 
-											CKBEditor* pKBEditor);
-
 public:
 	CKBEditor(wxWindow* parent); // constructor
 	virtual ~CKBEditor(void); // destructor
@@ -54,7 +50,6 @@ public:
 	wxTextCtrl*		m_pEditSearches;
 	wxComboBox*		m_pComboOldSearches; // BEW added 22Jan10
 	wxStaticText*	m_pStaticCount;
-	wxStaticText*	m_pStaticWhichKB; // BEW added 13Nov10
 	wxListBox*		m_pListBoxExistingTranslations;
 	wxListBox*		m_pListBoxKeys;
 	wxNotebook*		m_pKBEditorNotebook;
@@ -116,7 +111,7 @@ protected:
 	void OnButtonAdd(wxCommandEvent& event);
 	void OnButtonRemove(wxCommandEvent& WXUNUSED(event));
 	void OnButtonMoveUp(wxCommandEvent& WXUNUSED(event));
-	void OnButtonMoveDown(wxCommandEvent& event);
+	void OnButtonMoveDown(wxCommandEvent& WXUNUSED(event));
 	void OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event));
 
 	void OnButtonGo(wxCommandEvent& WXUNUSED(event));
@@ -129,8 +124,6 @@ private:
 	void DoRestoreSearchStrings();
 	bool bKBEntryTemporarilyAddedForLookup;
 	void MessageForConsistencyCheck();
-	//void PopulateTranslationsListBox(CTargetUnit* pTgtUnit); // not needed
-	//void EraseTranslationsListBox(); // not needed
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

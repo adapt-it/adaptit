@@ -15,8 +15,13 @@
 /// the heap and are displayed with Show(), not ShowModal().
 /// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
-
-// BEW 26Mar10, these classes are updated for support of doc version 5
+// Pending Implementation Items in FindReplace.cpp (in order of importance): (search for "TODO")
+// 1. 
+//
+// Unanswered questions: (search for "???")
+// 1. 
+// 
+/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -40,7 +45,6 @@
 #include <wx/valgen.h> // for wxGenericValidator
 
 #include "Adapt_It.h"
-#include "KB.h"
 #include "FindReplace.h"
 #include "Adapt_ItView.h"
 #include "Cell.h"
@@ -59,7 +63,7 @@
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
@@ -119,7 +123,6 @@ CFindDlg::~CFindDlg()
 {
 }
 
-// BEW 26Mar10, no changes needed for support of doc version 5
 CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	: wxDialog(parent, -1, _("Find"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -208,7 +211,6 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	m_pComboSFM->SetValidator(wxGenericValidator(&m_marker)); // use validator
 }
 
-// BEW 26Mar10, no changes needed for support of doc version 5
 void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	gbFound = FALSE;
@@ -407,9 +409,6 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 }
 // initdialog here above
 
-// BEW 26Mar10, no changes needed for support of doc version 5
-// BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
-// for glossing KB
 void CFindDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -440,39 +439,37 @@ void CFindDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeTargetStringIncludingPunctuation(gpApp->m_pActivePile->GetSrcPhrase(),
+					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
 											gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
                 // the store will fail if the user edited the entry out of the KB, as the
                 // latter cannot know which srcPhrases will be affected, so these will
                 // still have their m_bHasKBEntry set true. We have to test for this, ie. a
-                // null pRefString or rsEntry value of present_but_deleted, but the above
-                // flag TRUE, is a sufficient test, and if so, set the flag to FALSE
-				CRefString* pRefStr = NULL;
-				KB_Entry rsEntry;
+                // null pRefString but the above flag TRUE is a sufficient test, and if so,
+                // set the flag to FALSE
+				CRefString* pRefStr;
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					rsEntry = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
-					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
+					if (pRefStr == NULL && 
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
-					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					}
-					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = pView->StoreText(gpApp->m_pGlossingKB,
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 				else
 				{
-					rsEntry = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
-					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
-						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
-					{
+					pRefStr = pView->GetRefString(gpApp->m_pKB,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
+										gpApp->m_targetPhrase);
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					}
-					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = pView->StoreText(gpApp->m_pKB,
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -522,7 +519,6 @@ void CFindDlg::DoFindNext()
 
 	// do the Find Next operation
 	bool bFound;
-	gpApp->LogUserAction(_T("pView->DoFindNext() executed in CFindDlg"));
 	bFound = pView->DoFindNext(nKickOffSequNum,
 									m_bIncludePunct,
 									m_bSpanSrcPhrases,
@@ -545,14 +541,14 @@ void CFindDlg::DoFindNext()
 	if (bFound)
 	{
 		gbFound = TRUE; // set the global
-		gpApp->LogUserAction(_T("   Found!"));
+
 		// inform the dialog about how many were matched
 		m_nCount = nCount;
 
 		// place the dialog window so as not to obscure things
 		// work out where to place the dialog window
 		m_nTwoLineDepth = 2 * gpApp->m_nTgtHeight;
-		if (gbGlossingVisible)
+		if (gbEnableGlossing)
 		{
 			if (gbGlossingUsesNavFont)
 				m_nTwoLineDepth += gpApp->m_nNavTextHeight;
@@ -621,7 +617,6 @@ void CFindDlg::DoFindNext()
 	}
 	else
 	{
-		gpApp->LogUserAction(_T("   Not Found!"));
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
 		pView->FindNextHasLanded(gpApp->m_nActiveSequNum,FALSE); // show old active location
@@ -1213,7 +1208,6 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	pReplaceDlgSizer->Layout(); // force the sizers to resize the dialog
 }
 
-// BEW 26Mar10, no changes needed for support of doc version 5
 void CReplaceDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -1241,40 +1235,37 @@ void CReplaceDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeTargetStringIncludingPunctuation(gpApp->m_pActivePile->GetSrcPhrase(),
+					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
 												gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
                 // the store will fail if the user edited the entry out of the KB, as the
                 // latter cannot know which srcPhrases will be affected, so these will
-                // still have their m_bHasKBEntry set true, or in the case of glossing KB,
-                // their m_bHasGlossingKBEntry set true. We have to test for this, ie. a
-                // null pRefString or rsEntry returned as present_but_deleted, but the
-                // above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-				CRefString* pRefStr = NULL;
-				KB_Entry rsEntry;
+                // still have their m_bHasKBEntry set true. We have to test for this, ie. a
+                // null pRefString but the above flag TRUE is a sufficient test, and if so,
+                // set the flag to FALSE
+				CRefString* pRefStr;
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					rsEntry = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
-					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
+					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
+					if (pRefStr == NULL && 
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
-					{
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					}
-					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = pView->StoreText(gpApp->m_pGlossingKB,
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 				else
 				{
-					rsEntry = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase, pRefStr);
-					if ((pRefStr == NULL || rsEntry == present_but_deleted) && 
-						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
-					{
+					pRefStr = pView->GetRefString(gpApp->m_pKB,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
+										gpApp->m_targetPhrase);
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					}
-					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = pView->StoreText(gpApp->m_pKB,
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -1324,7 +1315,6 @@ void CReplaceDlg::DoFindNext()
 
 	// do the Find Next operation
 	bool bFound;
-	gpApp->LogUserAction(_T("pView->DoFindNext() executed in CReplaceDlg"));
 	bFound = pView->DoFindNext(nKickOffSequNum,
 									m_bIncludePunct,
 									m_bSpanSrcPhrases,
@@ -1347,7 +1337,6 @@ void CReplaceDlg::DoFindNext()
 	if (bFound)
 	{
 		gbFound = TRUE; // set the global
-		gpApp->LogUserAction(_T("   Found!"));
 
 		// enable the Replace and Replace All buttons
 		wxASSERT(m_pButtonReplace != NULL);
@@ -1362,7 +1351,7 @@ void CReplaceDlg::DoFindNext()
 		// place the dialog window so as not to obscure things
 		// work out where to place the dialog window
 		m_nTwoLineDepth = 2 * gpApp->m_nTgtHeight;
-		if (gbGlossingVisible)
+		if (gbEnableGlossing)
 		{
 			if (gbGlossingUsesNavFont)
 				m_nTwoLineDepth += gpApp->m_nNavTextHeight;
@@ -1429,7 +1418,6 @@ void CReplaceDlg::DoFindNext()
 	}
 	else
 	{
-		gpApp->LogUserAction(_T("   Not Found!"));
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
 
@@ -1650,7 +1638,6 @@ void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event)
 
     // if we get here then we have a selection, and the OnIdle() handler can now start
     // doing the replacements following by finds, till no match happens or eof reached
-	gpApp->LogUserAction(_T("Replace All executed"));
 	Hide();
 	gbReplaceAllIsCurrent = TRUE;
 	
@@ -1668,7 +1655,6 @@ bool CReplaceDlg::OnePassReplace()
 		return FALSE;
 }
 
-// BEW 26Mar10, no changes needed for support of doc version 5
 void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event)) 
 {
 	CAdapt_ItView* pView = gpApp->GetView();

@@ -20,6 +20,8 @@
 // 
 /////////////////////////////////////////////////////////////////////////////
 
+// dummy comment to force a recompile
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "DocPage.h"
@@ -53,7 +55,8 @@
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
-#include "UsfmFilterPage.h"
+#include "USFMPage.h"
+#include "FilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
@@ -87,7 +90,7 @@ bool gbMismatchedBookCode = FALSE; // TRUE if the user is creating a document wh
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 // This global is defined in Adapt_ItView.cpp.
-//extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
+//extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 //extern bool gbGlossingUsesNavFont;
 
@@ -102,8 +105,14 @@ extern CStartWorkingWizard* pStartWorkingWizard;
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
 
+//extern CLanguagesPage* pLanguagesPage;
+//extern CFontPageWiz* pFontPageWiz;
+//extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
+//extern CCaseEquivPageWiz* pCaseEquivPageWiz;
+//extern CUSFMPageWiz* pUsfmPageWiz;
+
 /// This global is defined in Adapt_It.cpp.
-extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
+extern CFilterPageWiz* pFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
@@ -166,7 +175,9 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 							 // use an empty path to suppress writing a project file from SaveModified()
 							 // if the user then exits, which would otherwise clobber settings in the last
 							 // written out project config file unnecessarily and unwantedly)
+
 	m_bForceUTF8 = FALSE;
+	m_bSaveUsingXML = gpApp->m_bSaveAsXML;
 
 	m_pListBox = (wxListBox*)FindWindowById(IDC_LIST_NEWDOC_AND_EXISTINGDOC);
 	
@@ -232,7 +243,7 @@ wxWizardPage* CDocPage::GetPrev() const
 	// wizard (the filterPage).
 	if (gbWizardNewProject)
 	{
-		return pUsfmFilterPageWiz;
+		return pFilterPageWiz;
 	}
 	else
 	{
@@ -324,8 +335,13 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		// (if book mode is disabled because of a bad read of the books.xml file, don't change the
 		// m_bDisableBookMode flag back to FALSE, only a subsequent good read of the xml file
 		// should do that)
-		// TODO: Check to see if this turning off of book mode for all Prev button
-		// selections is hurtful or not.
+		// 
+		// whm 2Sep11 modification. Unilaterally turning OFF book folder mode should NOT be
+		// done here in OnWizardPageChanging()! Doing so here would result in a FALSE value 
+		// for m_bBookMode, and -1 for m_nBookIndex being stored in the current project config
+		// file, when the pProjectPage->InitDialog() call is made below in preparation for
+		// moving backwards to the ProjectPage.
+		/*
 		// event.GetDirection() returns TRUE if moving forward, FALSE if moving backwards
 		if (event.GetDirection() == FALSE)
 		{
@@ -338,6 +354,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 				gpApp->m_nLastBookIndex = gpApp->m_nDefaultBookIndex;
 			}
 		}
+		*/
 
 		if (gbWizardNewProject == TRUE)
 		{
@@ -351,7 +368,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 			// back to the projectPage
 			wxASSERT(this == pDocPage);
 		}
-		// ensure the project page is up to date
+		// insure the project page is up to date
 		wxInitDialogEvent idevent;
 		pProjectPage->InitDialog(idevent);
 
@@ -409,6 +426,9 @@ void CDocPage::OnSetActive()
 	{
 			pBtn->Hide();
 	}
+
+	// make the checkbox echo what the config file value was
+	m_bSaveUsingXML = gpApp->m_bSaveAsXML;
 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -709,24 +729,24 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	pApp->m_bZoomed = pFrame->IsMaximized(); //pFrame->IsZoomed();
 	*/
 	
-#ifdef _RTL_FLAGS // whm added23Mar07
-	// We've just defined a new project (via previous wizard pages), or we've loaded 
-	// an existing project config file (via projectPage). In either case, we may now 
-	// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to 
-	// ensure that the Layout menu item's text is set correctly.
-	if (pApp->m_bSrcRTL == TRUE && pApp->m_bTgtRTL == TRUE)
-	{
-		gbLTRLayout = FALSE; // use these to set layout direction on user's behalf, when possible
-		gbRTLLayout = TRUE;
-	}
-	else if (pApp->m_bSrcRTL == FALSE && pApp->m_bTgtRTL == FALSE)
-	{
-		gbLTRLayout = TRUE; // use these to set layout direction on user's behalf, when possible
-		gbRTLLayout = FALSE;
-	}
+	#ifdef _RTL_FLAGS // whm added23Mar07
+		// We've just defined a new project (via previous wizard pages), or we've loaded 
+		// an existing project config file (via projectPage). In either case, we may now 
+		// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to 
+		// insure that the Layout menu item's text is set correctly.
+		if (pApp->m_bSrcRTL == TRUE && pApp->m_bTgtRTL == TRUE)
+		{
+			gbLTRLayout = FALSE; // use these to set layout direction on user's behalf, when possible
+			gbRTLLayout = TRUE;
+		}
+		else if (pApp->m_bSrcRTL == FALSE && pApp->m_bTgtRTL == FALSE)
+		{
+			gbLTRLayout = TRUE; // use these to set layout direction on user's behalf, when possible
+			gbRTLLayout = FALSE;
+		}
 
-	pApp->GetView()->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // whm added23Mar07
-#endif // for _RTL_FLAGS
+		pApp->GetView()->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // whm added23Mar07
+	#endif // for _RTL_FLAGS
 
 	if (m_docName.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
 									   // produce a different text); this is how we tell
@@ -737,21 +757,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // toolbar and controlbar looks better while waiting for the file dialog to appear
 		pApp->GetMainFrame()->Update();
 
-		// whm modified 26Jul11 to use the pApp's m_sourceInputsFolderName if no previous
-		// m_lastSourceInputPath was stored. See similar code in the Doc's OnNewDocument().
 		// ensure that the current work folder is the project one for default
-		wxString dirPath;
-		if (pApp->m_lastSourceInputPath.IsEmpty())
-		{
-			if (!pApp->m_curProjectPath.IsEmpty())
-				dirPath = pApp->m_curProjectPath + pApp->PathSeparator + pApp->m_sourceInputsFolderName; // __SOURCE_INPUTS
-			else
-				dirPath = pApp->m_workFolderPath; // typically, C:\Users\<userName>\Documents\Adapt It <Unicode> Work
+		wxString dirPath = pApp->m_workFolderPath;
 
-		}
-		else
+		// if we have a value for the last doc folder's path, use that instead
+		if (!pApp->m_lastSourceFileFolder.IsEmpty())
 		{
-			dirPath = pApp->m_lastSourceInputPath; // from the path that was last used
+			dirPath = pApp->m_lastSourceFileFolder;
 		}
 
 		bool bOK = ::wxSetWorkingDirectory(dirPath);
@@ -800,7 +812,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // assert).
 		//pStartWorkingWizard->EndModal(1);
 		
-        // default the m_nActiveSequNum value to 0 when getting the doc created
+        // default the m_nActiveSequNum value to -1 when getting the doc created
 		pApp->m_nActiveSequNum = -1; 
 		bool bResult = pDoc->OnNewDocument();
 		// whm 17Apr11 changed test below to include check for m_nActiveSequNum being
@@ -1007,8 +1019,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			// initialize m_nActiveSequNum to the nLastActiveSequNum value
 			pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
 			// set the active pile
-			CPile* pPile;
-			pPile = pView->GetPile(pApp->nLastActiveSequNum);
+			CPile* pPile = pView->GetPile(pApp->nLastActiveSequNum);
 			wxASSERT(pPile != NULL);
 
             // this could turn out to be a retranslation pile (if user removed a
@@ -1020,15 +1031,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
-            // BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
-            // above call, and so the ones below should be redundant (and if
-            // ChooseTranslation was called in the earlier Jump() it would then get called
-            // again, which is confusing - so we need to not have this second call)
-            // Legacy comment: m_nActiveSequNum might have been changed by the preceding
-            // call, so reset the active pile
-			//pPile = pView->GetPile(pApp->m_nActiveSequNum);
-			//CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-			//pView->Jump(pApp,pSrcPhrase); // jump there
+			// m_nActiveSequNum might have been changed by the preceding call, so reset 
+			// the active pile
+			pPile = pView->GetPile(pApp->m_nActiveSequNum);
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+			pView->Jump(pApp,pSrcPhrase); // jump there
 		}
 		gbDoingInitialSetup = FALSE;
 
@@ -1036,22 +1043,16 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
 		wxASSERT(pMenuBar != NULL);
 		wxMenuItem * pAdvBookMode = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
-		//wxASSERT(pAdvBookMode != NULL);
+		wxASSERT(pAdvBookMode != NULL);
 		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		{
 			// mark it checked
-			if (pAdvBookMode != NULL)
-			{
-				pAdvBookMode->Check(TRUE);
-			}
+			pAdvBookMode->Check(TRUE);
 		}
 		else
 		{
 			// mark it unchecked
-			if (pAdvBookMode != NULL)
-			{
-				pAdvBookMode->Check(FALSE);
-			}
+			pAdvBookMode->Check(FALSE);
 		}
 
 		// BEW added 02Nov05

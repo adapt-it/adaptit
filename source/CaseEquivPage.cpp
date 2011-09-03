@@ -57,7 +57,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h>
 #include "CaseEquivPage.h"
-#include "UsfmFilterPage.h"
+#include "USFMPage.h"
 #include "PunctCorrespPage.h"
 #include "Adapt_It.h"
 #include "Pile.h"
@@ -70,7 +70,7 @@
 //extern bool gbWizardNewProject; // for initiating a 4-page wizard
 
 /// This global is defined in Adapt_It.cpp.
-extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
+extern CUSFMPageWiz* pUsfmPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
@@ -122,7 +122,7 @@ extern CAdapt_ItApp* gpApp;
 //extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 // This global is defined in Adapt_ItView.cpp.
-//extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
+//extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
@@ -214,7 +214,7 @@ void CCaseEquivPageCommon::DoInit()
 		// Initialize the box as unchecked
 		wxCheckBox* pChkBox1 = (wxCheckBox*)FindWindowById(ID_CHECK_SOURCE_USES_CAPS);
 		pChkBox1->SetValue(FALSE);
-		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so ensure
+		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so insure
 		// that gbAutoCaps is FALSE here (in case user monkeyed with config file
 		// and changed gbAutoCaps to TRUE while gbSrcHasUcAndLc was false).
 		gbAutoCaps = FALSE;
@@ -421,7 +421,7 @@ void CCaseEquivPageCommon::DoBnCheckedSrcHasCaps() // added by whm 11Aug04
 		wxCheckBox* pChkBox1 = (wxCheckBox*)FindWindowById(ID_CHECK_SOURCE_USES_CAPS);
 		pChkBox1->SetValue(FALSE);
 		gbSrcHasUcAndLc = FALSE;
-		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so ensure
+		// When gbSrcHasUcAndLc is FALSE, gbAutoCaps cannot be true, so insure
 		// that gbAutoCaps is FALSE here (in case user monkeyed with config file
 		// and changed gbAutoCaps to TRUE while gbSrcHasUcAndLc was false).
 		gbAutoCaps = FALSE;
@@ -694,7 +694,7 @@ wxWizardPage* CCaseEquivPageWiz::GetPrev() const
 wxWizardPage* CCaseEquivPageWiz::GetNext() const
 {
 	// add code here to determine the next page to show in the wizard
-    return pUsfmFilterPageWiz;
+    return pUsfmPageWiz;
 }
 
 void CCaseEquivPageWiz::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
@@ -886,9 +886,9 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	
 
 		// Movement through wizard pages is sequential - the next page is the usfmPageWiz.
-		// The pUsfmFilterPageWiz's InitDialog need to be called here just before going to it
+		// The pUsfmPageWiz's InitDialog need to be called here just before going to it
 		wxInitDialogEvent idevent;
-		pUsfmFilterPageWiz->InitDialog(idevent);
+		pUsfmPageWiz->InitDialog(idevent);
 	}
 	else
 	{

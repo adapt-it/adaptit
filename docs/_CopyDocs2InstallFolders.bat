@@ -30,8 +30,6 @@ echo    Localization_Readme.txt
 echo The following DLL file is copied to all except Documentation Only
 echo and Localization Only:
 echo    ECDriver.dll
-echo    curl-ca-bundle.crt
-echo    iso639-3codes.txt
 echo.
 echo To all except Minimal, Documentation Only and Localizations Only:
 echo    CC\*.*
@@ -68,8 +66,6 @@ xcopy "Localization_Readme.txt" "..\setup Regular\" /Y
 xcopy "..\license\*.txt" "..\setup Regular\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular\" /Y
 xcopy "ECDriver.dll" "..\setup Regular\" /Y
-xcopy "curl-ca-bundle.crt" "..\setup Regular\" /Y
-xcopy "iso639-3codes.txt" "..\setup Regular\" /Y
 
 @echo on
 rem 2. The following copies Documentation files to the "setup Regular - Minimal" folder
@@ -77,8 +73,6 @@ rem 2. The following copies Documentation files to the "setup Regular - Minimal"
 xcopy "..\license\*.txt" "..\setup Regular - Minimal\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular - Minimal\" /Y
 xcopy "ECDriver.dll" "..\setup Regular - Minimal\" /Y
-xcopy "curl-ca-bundle.crt" "..\setup Regular - Minimal\" /Y
-xcopy "iso639-3codes.txt" "..\setup Regular - Minimal\" /Y
 
 @echo on
 rem 3. The following copies Documentation files to the "setup Regular - No Html Help" folder
@@ -99,8 +93,6 @@ xcopy "Localization_Readme.txt" "..\setup Regular - No Html Help\" /Y
 xcopy "..\license\*.txt" "..\setup Regular - No Html Help\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular - No Html Help\" /Y
 xcopy "ECDriver.dll" "..\setup Regular - No Html Help\" /Y
-xcopy "curl-ca-bundle.crt" "..\setup Regular - No Html Help\" /Y
-xcopy "iso639-3codes.txt" "..\setup Regular - No Html Help\" /Y
 
 @echo on
 rem 4. The following copies Documentation files to the "setup Regular Documentation Only" folder
@@ -143,8 +135,6 @@ xcopy "Localization_Readme.txt" "..\setup Unicode\" /Y
 xcopy "..\license\*.txt" "..\setup Unicode\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode\" /Y
 xcopy "ECDriver.dll" "..\setup Unicode\" /Y
-xcopy "curl-ca-bundle.crt" "..\setup Unicode\" /Y
-xcopy "iso639-3codes.txt" "..\setup Unicode\" /Y
 
 @echo on
 rem 7. The following copies Documentation files to the "setup Unicode - Minimal" folder
@@ -152,8 +142,6 @@ rem 7. The following copies Documentation files to the "setup Unicode - Minimal"
 xcopy "..\license\*.txt" "..\setup Unicode - Minimal\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode - Minimal\" /Y
 xcopy "ECDriver.dll" "..\setup Unicode - Minimal\" /Y
-xcopy "curl-ca-bundle.crt" "..\setup Unicode - Minimal\" /Y
-xcopy "iso639-3codes.txt" "..\setup Unicode - Minimal\" /Y
 
 @echo on
 rem 8. The following copies Documentation files to the "setup Unicode - No Html Help" folder
@@ -174,8 +162,6 @@ xcopy "Localization_Readme.txt" "..\setup Unicode - No Html Help\" /Y
 xcopy "..\license\*.txt" "..\setup Unicode - No Html Help\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode - No Html Help\" /Y
 xcopy "ECDriver.dll" "..\setup Unicode - No Html Help\" /Y
-xcopy "curl-ca-bundle.crt" "..\setup Unicode - No Html Help\" /Y
-xcopy "iso639-3codes.txt" "..\setup Unicode - No Html Help\" /Y
 
 @echo on
 rem 9. The following copies Documentation files to the "setup Unicode Documentation Only" folder

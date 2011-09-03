@@ -63,7 +63,7 @@
 //extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 // This global is defined in Adapt_ItView.cpp.
-//extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
+//extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 extern bool gbPrintingSelection;
@@ -134,14 +134,6 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	m_bSuppressFooter = FALSE;
 	gbPrintFooter = TRUE;
 	
-	// whm 30Aug11 added the next two for the "Additional text to include 
-	// in Printouts" section of the "Special Print Options" dialog.
-	pCheckInclFreeTransText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
-	wxASSERT(pCheckInclFreeTransText != NULL);
-
-	pCheckInclGlossesText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
-	wxASSERT(pCheckInclGlossesText != NULL);
-
 	pEditChFrom = (wxTextCtrl*)FindWindowById(IDC_EDIT1);
 	wxASSERT(pEditChFrom != NULL);
 	
@@ -208,13 +200,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//InitDialog() is not virtual, no call needed to a base class
 	//wxLogDebug(_T("InitDialog() START"));	
 
-	// whm 30Aug11 added for the "Additional text to include in Printouts" section of
-	// the "Special Print Options" dialog.
-	// check these initially as default
-	pCheckInclFreeTransText->SetValue(TRUE);
-	pCheckInclGlossesText->SetValue(TRUE);
-    
-	// Get the logical page dimensions for paginating the document and printing.
+    // Get the logical page dimensions for paginating the document and printing.
     int nPagePrintingWidthLU;
 	int nPagePrintingLengthLU;
 	bool bOK = gpApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
@@ -485,7 +471,7 @@ void CPrintOptionsDlg::OnCancel(wxCommandEvent& event)
 /// \remarks
 /// Called when focus shifts to a different element or control in the dialog. This handler only detects
 /// when focus comes to the edit box controls (i.e., the user clicks in an edit box). It functions to
-/// ensure that the radio button associated with the edit box is selected (assumes that if the user is
+/// insure that the radio button associated with the edit box is selected (assumes that if the user is
 /// entering data into an edit box, the user wants to also select the associated radio button).
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnSetfocus(wxFocusEvent& event) 
@@ -767,7 +753,7 @@ void CPrintOptionsDlg::OnCheckIncludeFollowingHeading(wxCommandEvent& WXUNUSED(e
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Pages range, so ensure that the Pages radio button is selected if not already
+	// user has chamged a Pages range, so insure that the Pages radio button is selected if not already
 	if (pRadioPages->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -801,7 +787,7 @@ void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesTo(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Pages range, so ensure that the Pages radio button is selected if not already
+	// user has chamged a Pages range, so insure that the Pages radio button is selected if not already
 	if (pRadioPages->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -835,7 +821,7 @@ void CPrintOptionsDlg::OnEditPagesTo(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditChapterFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -869,7 +855,7 @@ void CPrintOptionsDlg::OnEditChapterFrom(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditVerseFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -903,7 +889,7 @@ void CPrintOptionsDlg::OnEditVerseFrom(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditChapterTo(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
@@ -937,7 +923,7 @@ void CPrintOptionsDlg::OnEditChapterTo(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditVerseTo(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Chapter/Verse range, so ensure that the Chapter/Verse Range radio button is selected if not already
+	// user has chamged a Chapter/Verse range, so insure that the Chapter/Verse Range radio button is selected if not already
 	if (pRadioChVs->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);

@@ -44,7 +44,10 @@
  * @author  Wu Yongwei
  */
 
-// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
+// GDLC Temporary work around for PPC STL library bug
+#if defined(__WXMAC__) && defined(__POWERPC__ )
+// tellenc() not used in PPC builds pending bug fix in PPC STL
+#else
 #include <algorithm>        // sort
 #include <functional>       // binary_function
 #include <map>              // map
@@ -260,8 +263,7 @@ static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
 }
 */
 
-//static const char* check_ucs_bom(const unsigned char* const buffer)
-const char* check_ucs_bom(const unsigned char* const buffer)
+static const char* check_ucs_bom(const unsigned char* const buffer)
 {
     const struct {
         const char* name;
@@ -508,6 +510,7 @@ const char* tellenc(const char* const buffer, const size_t len)
         return enc;
     }
 }
+#endif
 
 /*
 static void usage()

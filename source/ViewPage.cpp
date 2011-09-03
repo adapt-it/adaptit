@@ -46,7 +46,6 @@
 #include <wx/colordlg.h>
 #include "ViewPage.h"
 #include "Adapt_It.h"
-#include "MainFrm.h"
 #include "Pile.h"
 #include "Layout.h"
 
@@ -99,7 +98,6 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	//m_pCheckSupressLast = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_LAST);
 	m_pCheckWelcomeVisible = (wxCheckBox*)FindWindowById(IDC_CHECK_WELCOME_VISIBLE);
 	m_pCheckHighlightAutoInsertedTrans = (wxCheckBox*)FindWindowById(IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS);
-	m_pPanelAutoInsertColor = (wxPanel*)FindWindowById(ID_PANEL_AUTO_INSERT_COLOR);
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 }
 
@@ -138,8 +136,6 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 		// BEW 22Aug09 fixed failure to change colour
 		colorData = colorDlg.GetColourData();
 		tempAutoInsertionsHighlightColor  = colorData.GetColour();
-		m_pPanelAutoInsertColor->SetBackgroundColour(tempAutoInsertionsHighlightColor);
-		m_pPanelAutoInsertColor->Refresh();
 	}	
 }
 
@@ -199,16 +195,6 @@ void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 				m_pCheckShowAdminMenu->SetValue(FALSE);
 			}
 		}
-		// whm 20Jul11 added: Even though the "Show Administrator Menu... (Password 
-		// protected)" menu item is a toggle menu item, and would normally toggle its 
-		// own state each time it is invoked, we need to ensure its toggle state is in 
-		// sync with the internal toggling of the App's m_bShowAdministratorMenu flag 
-		// - which can be set either here or in the Edit | Preferences... | View tab. 
-		// Therefore we explicitly set the menu's toggle state both here and in the 
-		// other View tab location.
-		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
-		pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,pApp->m_bShowAdministratorMenu);
-
 	}
 }
 
@@ -369,8 +355,6 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pCheckWelcomeVisible->SetValue(tempMakeWelcomeVisible);
 	m_pCheckHighlightAutoInsertedTrans->SetValue(tempHighlightAutoInsertions);
 	m_pCheckShowAdminMenu->SetValue(tempShowAdminMenu);
-
-	m_pPanelAutoInsertColor->SetBackgroundColour(tempAutoInsertionsHighlightColor);
 
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.

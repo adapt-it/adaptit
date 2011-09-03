@@ -21,12 +21,9 @@
     #pragma interface "TargetUnit.h"
 #endif
 
-enum ModifiedAction {
-	LeaveUnchanged,
-	SetNewValue
-};
-
 // forward references
+class wxDataOutputStream;
+class wxDataInputStream;
 
 class CTargetUnit;	// This forward reference is needed for the WX_DECLARE_LIST 
 // macro below. Without it the compiler will generate at least 6 cryptic error messages!
@@ -64,26 +61,18 @@ public:
 	CTargetUnit(const CTargetUnit& tu); // MFC note: copy constructor -- it doesn't work, 
 	// see .cpp file for reason // whm moved it here after declaration of m_pTranslations
 
-	//void				DeleteTargetUnit(CTargetUnit* pTU);
-	void				DeleteAllToPrepareForNotInKB();
-	void				DeleteTargetUnitContents();
-	void				EraseDeletions(enum ModifiedAction modChoice = LeaveUnchanged); // physically
-							// deletes any CRefString instances with m_bDeleted set TRUE; either
-							// sets or leaves unchanged (default) each non-deleted instance's 
-							// m_modifiedDateTime member, according to passed in enum value
+	//wxOutputStream& SaveObject(wxOutputStream& stream);
+	//wxInputStream& LoadObject(wxInputStream& stream);
 
-	virtual				~CTargetUnit(void); // destructor // whm make all destructors virtual
+	virtual ~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 
-//private:
-//	wxString	m_sourceKey;  I've decided this copy of the key is not needed
+//public:
+// MFC"s Serialize replaced by LoadObject() and SaveObject() above
+//	virtual void	Serialize(CArchive& ar);
 
-	// getters and setters
-public:
-//	wxString	GetSourceKey(); // returns m_sourceKey
-//	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
-	int			FindRefString(wxString& translationStr);
-	int			CountNonDeletedRefStringInstances();
+
+protected:
 
 private:
 	// class attributes

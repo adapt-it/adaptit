@@ -129,7 +129,7 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	wxASSERT(pStaticTitle != NULL);
 	pStaticTitle->SetLabel(m_StaticTitle);
 
-	// Ensure that the arrays used as extern variables are empty before export
+	// Insure that the arrays used as extern variables are empty before export
 	// operations.
 	m_exportBareMarkers.Clear();
 	m_exportMarkerAndDescriptions.Clear();
@@ -151,14 +151,14 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	bPlaceBackTransCheckboxEnabled = FALSE;
 	bPlaceAINotesCheckboxEnabled = FALSE;
 
-	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc(); // populates export arrays with current doc's markers
+	gpApp->GetView()->GetMarkerInventoryFromCurrentDoc(); // populates export arrays with current doc's markers
 
 	// BEW added 25Nov05, to ensure m_exportFilterFlags gets set to a same sized array as
 	// m_exportFilterFlagsBeforeEdit, and with all stored values FALSE (ie. don't filter)
 	// so that if the user elects not to invoke the filter options dialog via the button for
 	// that purpose, we won't have m_exportFilterFlags left with zero size, leading to a crash
 	//m_exportFilterFlags.Copy(m_exportFilterFlagsBeforeEdit);
-	// whm Note: No, GetMarkerInventoryFromCurrentDoc() above ensures that m_exportFilterFlags
+	// whm Note: No, GetMarkerInventoryFromCurrentDoc() above insures that m_exportFilterFlags
 	// and m_exportFilterFlagsBeforeEdit are the same size and all values for both arrays are
 	// set to FALSE. Therefore, the code added below on 25Nov05 is not needed
 	//int ct;
@@ -213,7 +213,7 @@ void CExportSaveAsDlg::OnBnClickedButtonExportFilterOptions(wxCommandEvent& WXUN
 		// ExportInterlinearDlg, that way a user can cancel the secondary dialog
 		// and go back to check his settings afterwards.
 		// User cancelled, and so no export options were changed.
-		// So, ensure that all the flags in m_exportFilterFlags are set 
+		// So, insure that all the flags in m_exportFilterFlags are set 
 		// back to their default values in m_exportFilterFlagsBeforeEdit,
 		// which will signal to the caller that no changes were made.
 		//m_exportFilterFlags.Copy(m_exportFilterFlagsBeforeEdit);

@@ -25,7 +25,8 @@ class CLanguagesPage;
 class CPunctCorrespPageWiz;
 class CCaseEquivPage; 
 class CDocPage;
-class CUsfmFilterPageWiz;
+class CUSFMPage;
+class CFilterPageWiz;
 
 
 /// The CStartWorkingWizard class implements Adapt It's Start Working Wizard.

@@ -45,7 +45,8 @@
 
 #include "FontPage.h"
 #include "LanguagesPage.h"
-#include "UsfmFilterPage.h"
+#include "USFMPage.h"
+#include "FilterPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
 #include "ProjectPage.h"
@@ -70,10 +71,19 @@ extern CPunctCorrespPageWiz* pPunctCorrespPageWiz;
 extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
-extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
+extern CUSFMPageWiz* pUsfmPageWiz;
+
+/// This global is defined in Adapt_It.cpp.
+extern CFilterPageWiz* pFilterPageWiz;
 
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
+
+// This global is defined in Adapt_It.cpp.
+//extern CUSFMPageWiz* pUSFMPageInWizard;
+
+// This global is defined in Adapt_It.cpp.
+//extern CFilterPageWiz* pFilterPageInWizard;
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -108,8 +118,10 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	wxASSERT(pPunctCorrespPageWiz != NULL);
 	pCaseEquivPageWiz = new CCaseEquivPageWiz(this);
 	wxASSERT(pCaseEquivPageWiz != NULL);
-	pUsfmFilterPageWiz = new CUsfmFilterPageWiz(this);
-	wxASSERT(pUsfmFilterPageWiz != NULL);
+	pUsfmPageWiz = new CUSFMPageWiz(this);
+	wxASSERT(pUsfmPageWiz != NULL);
+	pFilterPageWiz = new CFilterPageWiz(this);
+	wxASSERT(pFilterPageWiz != NULL);
 	// pDocPage establishes its GetPrev() page internally using either the gobal
 	// pProjectPage pointer or the pFilterPage pointer depending on whether the user had 
 	// previously selected an existing project or <New Project>.
@@ -122,7 +134,8 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	pWizardPageSizer->Add(pFontPageWiz);
 	pWizardPageSizer->Add(pPunctCorrespPageWiz);
 	pWizardPageSizer->Add(pCaseEquivPageWiz);
-	pWizardPageSizer->Add(pUsfmFilterPageWiz);
+	pWizardPageSizer->Add(pUsfmPageWiz);
+	pWizardPageSizer->Add(pFilterPageWiz);
 	pWizardPageSizer->Add(pDocPage);
 	
 	// Note: Each of the wizard page's 
@@ -212,14 +225,14 @@ wxWizardPage* CStartWorkingWizard::GetFirstPage()
 	if (gpApp->m_bKBReady && gpApp->m_pKB != NULL)
 	{
 		// KBs are loaded, so start with the docPage
-		// ensure docPage is initialized
+		// insure docPage is initialized
 		pDocPage->InitDialog(ievent);
 		return pDocPage;
 	}
 	else
 	{
 		// KBs are not loaded so start with the projectPage
-		// ensure the projectPage is initialized
+		// insure the projectPage is initialized
 		pProjectPage->InitDialog(ievent);
 		return pProjectPage;
 	}

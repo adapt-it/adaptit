@@ -10,9 +10,9 @@
 /// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
 /// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
 /// dialog are defined in EditPreferencesDlgFunc(), which was created and is 
-/// maintained by wxDesigner. The notebook contains up to 8 tabs labeled "Fonts", 
-/// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", and
-/// "USFM and Filtering" depending on the current user workflow profile selected.
+/// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
+/// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
+/// "USFM", and "Filtering".
 /// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -32,14 +32,15 @@ class CKBPage;
 class CViewPage;
 class CAutoSavingPage;
 class CUnitsPage;
-class CUsfmFilterPagePrefs;
+class CUSFMPagePrefs;
+class CFilterPagePrefs;
 
 /// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
 /// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
 /// dialog are defined in EditPreferencesDlgFunc(), which was created and is 
-/// maintained by wxDesigner. The notebook contains up to 8 tabs labeled "Fonts", 
+/// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
-/// "USFM and Filtering" depending on the current user workflow profile selected.
+/// "USFM", and "Filtering".
 /// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
 class CEditPreferencesDlg : public wxPropertySheetDialog
 {
@@ -70,7 +71,8 @@ public:
 	CViewPage* viewPage;
 	CAutoSavingPage* autoSavePage;
 	CUnitsPage* unitsPage;
-	CUsfmFilterPagePrefs* usfmFilterPage;
+	CUSFMPagePrefs* usfmPage;
+	CFilterPagePrefs* filterPage;
 
 	wxBookCtrlBase* pNotebook;
 
@@ -123,6 +125,9 @@ public:
 	void OnBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event);
 	void OnBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent& event);
 	void OnBnClickedRadioUseBothSetsProj(wxCommandEvent& event);
+	void OnBnClickedRadioUseUbsSetOnlyFactory(wxCommandEvent& event);
+	void OnBnClickedRadioUseSilpngSetOnlyFactory(wxCommandEvent& event);
+	void OnBnClickedRadioUseBothSetsFactory(wxCommandEvent& event);
 	void OnBnClickedCheckChangeFixedSpacesToRegularSpaces(wxCommandEvent& event);
 
 	// Wrapper handlers for filterPage
@@ -130,8 +135,8 @@ public:
 	void OnCheckListBoxToggleDoc(wxCommandEvent& event);
 	void OnLbnSelchangeListSfmsProj(wxCommandEvent& event);
 	void OnCheckListBoxToggleProj(wxCommandEvent& event);
-
-	bool TabIsVisibleInCurrentProfile(wxString tabLabel);
+	void OnLbnSelchangeListSfmsFactory(wxCommandEvent& event);
+	void OnCheckListBoxToggleFactory(wxCommandEvent& event);
 
 	DECLARE_EVENT_TABLE()
 };

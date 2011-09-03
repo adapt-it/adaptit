@@ -90,7 +90,7 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 extern bool gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 
@@ -263,9 +263,6 @@ int CCell::GetCellIndex()
 					// 0 to 3 inclusive)
 }
 
-// BEW added 13May11 support of m_tgtDiffsTextColor, to implement a feature requested by
-// Patrick Rosendall on 27Aug2009, to use a different colour for a target text word/phase
-// which differs in spelling from the source text word/phrase
 wxColour CCell::GetColor()
 {
 	CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
@@ -290,28 +287,10 @@ wxColour CCell::GetColor()
 		if (gbIsGlossing)
 			return m_pLayout->m_navTextColor;
 		else
-		{
-			if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
-			{
-				return m_pLayout->GetTgtDiffsTextColor();
-			}
-			else
-			{
-				return m_pLayout->m_tgtColor;
-			}
-		}
+			return m_pLayout->m_tgtColor;
 	case 2:
 		if (gbIsGlossing)
-		{
-			if (pSrcPhrase->m_key != pSrcPhrase->m_adaption)
-			{
-				return m_pLayout->GetTgtDiffsTextColor();
-			}
-			else
-			{
-				return m_pLayout->m_tgtColor;
-			}
-		}
+			return m_pLayout->m_tgtColor;
 		else
 			return m_pLayout->m_navTextColor;
 	}
@@ -747,9 +726,9 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 	}
 	else // m_nCellIndex could be 2, or 3
 	{
-        // if glossing is seen (ie. gbGlossingVisible is TRUE) then it could be target text
+        // if glossing is seen (ie. gbEnableGlossing is TRUE) then it could be target text
         // or gloss text in the cell, else must be target text
-		if (!gbGlossingVisible)
+		if (!gbEnableGlossing)
 		{
 			// glossing not enabled (nor seen), so can only be target text in the cell
 			if (m_pLayout->m_pApp->m_bTgtRTL)
