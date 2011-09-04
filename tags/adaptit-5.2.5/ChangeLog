@@ -1,4 +1,74 @@
 ----------------------------------------------
+Version 5.2.5 update 3September 2011:
+----------------------------------------------
+Feature changes and new features in 5.2.5
+----------------------------------------------
+* Version 5.2.5 is a bug fix update plus it will 
+function as the official transition version that 
+should be installed before upgrading from any 
+previous version to Adapt It version 6.0.0. The 
+release of Adapt It 6.0.0 is nearly ready and is 
+now planned for later in September 2011. The main 
+feature of this version 5.2.5 is its ability to 
+read and convert the new xml data format that is 
+coming in Adapt It version 6.0.0 and will be used
+in future versions. Although version 5.2.4 (which 
+was released in January 2011) was positioned to 
+do this, version 5.2.5 is now a better transition 
+version because of the additional bug fixes that 
+have been discovered and back ported from the 
+version 6.0.0 work into this 5.2.5 version being 
+released now. If you have never used Adapt It 
+before and you can wait, you could simply 
+download and install version 6.0.0 when it is 
+ready.
+
+----------------------------------------------
+Bug fixes in 5.2.5
+----------------------------------------------
+* Fixed a bug that would cause book folder mode
+to switch OFF if the user clicked on the "< Back"
+button in the Start Working Wizard.
+* Fixed the command-line option -frm which had
+been broken for some time. The -frm option allows
+Adapt It to be started and forced to stay in
+"reviewing" mode. Some want this options for use
+during the creation of back back translation texts.
+* Interlinear Exports to RTF have now been revised
+to be more compatible with OpenOffice and 
+LibreOffice.
+* Fixed a crash that could occur if the 
+Preferences... dialog is called after Cancel of 
+the File Dialog when selecting a new document for
+input into Adapt It.
+* If an administrator sets up a custom work folder
+Adapt It now asks the administrator whether the
+custom work folder is to be locked in for permanent
+use. Previously the administrator would have to
+explicitly select the "Lock Custom Location" item
+on the Administrator menu to make the change
+permanent. 
+* If the user Cancels from the dialog used to
+set up a custom work folder, any loaded project
+and document now stays open. Previously the 
+application would close the project and document 
+even if the user cancelled from the dialog.
+* Fixed the annoyance of sometimes having to click
+twice on the Cancel button of the Choose 
+Translation dialog.
+* The list of projects in the Project Page of the
+Start Working wizard is now sorted which provides
+a better appearance of the project list in the 
+Linux version.
+* Fixes a screen refresh problem on the Mac which
+occurred in conjunction with switching the layout
+between RTL and LTR.
+* Changed the "Exit" menu label to "Quit" for 
+the Mac version. 
+* Changed the way Adapt It finds any installed 
+version of the SIL Encoding Converters' 
+ECDriver.dll file.
+----------------------------------------------
 Version 5.2.4 update 20January2011:
 ----------------------------------------------
 Feature changes and new features in 5.2.4
