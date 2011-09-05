@@ -11,6 +11,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
 	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
+	../../source/conschk_exists_notu_dlg.h ../../source/ConsChk_Empty_noTU_Dlg.h \
 	../../source/CorGuess.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
@@ -59,7 +60,8 @@ EXTRA_DIST = config.rpath
 # Resource files and help data
 xmldir = $(pkgdatadir)
 xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
-	../../xml/books.xml ../../docs/iso639-3codes.txt
+	../../xml/books.xml ../../docs/iso639-3codes.txt \
+        ../../docs/curl-ca-bundle.crt
 
 # HTML help data
 htmlhelpdir = $(pkgdatadir)/help
@@ -74,7 +76,8 @@ adaptit.htb: ../../hlp
 	 (cd $<; zip -qr - . -x \*.svn\* ) > $@
 
 # the application source, library search path, and link libraries
-adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
+adaptit_SOURCES = \
+	../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
@@ -83,6 +86,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
+	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
