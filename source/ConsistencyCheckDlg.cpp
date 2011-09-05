@@ -101,6 +101,7 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	m_chVerse = _T("");
 
 	aDifference = 0;
+	difference = 0;
 	m_bShowItCentered = TRUE;
 	
 	// Get pointers to the dialog's controls (some of these are the old stuff, renamed)
@@ -156,6 +157,8 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	pNoAdaptMsgTxt = (wxStaticText*)FindWindowById(ID_TEXT_NO_ADAPT_MSG);
 	wxASSERT(pNoAdaptMsgTxt != NULL);
 
+	pDiffEntryStatTxt = (wxStaticText*)FindWindowById(ID_TEXT_DIFF_ENTRY);
+	wxASSERT(pDiffEntryStatTxt != NULL);
 
 	// box sizer at top right
 	pTopRightBoxSizer = (wxStaticBoxSizer*)m_topRightBoxLabel;
@@ -579,6 +582,46 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	if (m_bShowItCentered)
 	{
 		this->Centre(wxHORIZONTAL);
+	}
+
+	saveAdaptationOrGloss = m_adaptationStr; // in case we need to restore 
+											 // the box contents at top right 
+	bool bEnableLower = FALSE;
+	EnableLowerStuff(bEnableLower);
+
+}
+
+void CConsistencyCheckDlg::EnableLowerStuff(bool bShow)
+{
+	if (bShow)
+	{
+		// make them visible
+		m_pListBox->Enable(TRUE);
+		m_pEditCtrlNew->Enable(TRUE);
+		//pAvailableStatTxt->Show(TRUE);
+		//pClickListedStatTxt->Show(TRUE);
+		//pClickAndEditStatTxt->Show(TRUE);
+		//pIgnoreListStatTxt->Show(TRUE);
+		//pDiffEntryStatTxt->Show(TRUE);
+
+		// restore original text to the top right wxTextCtrl
+		if (m_pEditCtrlAdaptation != NULL)
+		{
+			m_pEditCtrlAdaptation->SetEditable(TRUE);
+			m_pEditCtrlAdaptation->ChangeValue(saveAdaptationOrGloss);
+			m_pEditCtrlAdaptation->SetEditable(FALSE);
+		}
+	}
+	else
+	{
+		// hide them
+		m_pListBox->Enable(FALSE);
+		m_pEditCtrlNew->Enable(FALSE);
+		//pAvailableStatTxt->Show(FALSE);
+		//pClickListedStatTxt->Show(FALSE);
+		//pClickAndEditStatTxt->Show(FALSE);
+		//pIgnoreListStatTxt->Show(FALSE);
+		//pDiffEntryStatTxt->Show(FALSE);
 	}
 }
 

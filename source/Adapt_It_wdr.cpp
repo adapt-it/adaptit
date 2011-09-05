@@ -3660,6 +3660,7 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 }
 
 wxSizer *m_topRightBoxLabel;
+wxSizer *m_pNumberedPointsStaticBoxSizer;
 wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3764,7 +3765,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Different entry:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT_DIFF_ENTRY, _("Different entry:"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item29 = new wxTextCtrl( parent, IDC_EDIT_TYPE_NEW, wxT(""), wxDefaultPosition, wxSize(-1,32), 0 );
@@ -3777,6 +3778,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxStaticBox *item32 = new wxStaticBox( parent, -1, _(" Do one of the following to get the different entry you want: ") );
     wxStaticBoxSizer *item31 = new wxStaticBoxSizer( item32, wxVERTICAL );
+    m_pNumberedPointsStaticBoxSizer = item31;
 
     wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
 

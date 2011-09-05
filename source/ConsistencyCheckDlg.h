@@ -86,9 +86,12 @@ public:
 	wxStaticText* pClickAndEditStatTxt;
 	wxStaticText* pIgnoreListStatTxt;
 	wxStaticText* pNoAdaptMsgTxt;
+	wxStaticText* pDiffEntryStatTxt;
+
 	bool m_bShowItCentered;
 	wxStaticBox* pTopRightBox;
 	wxStaticBoxSizer* pTopRightBoxSizer;
+	wxString saveAdaptationOrGloss;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -98,6 +101,7 @@ protected:
 	void OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditTypeNew(wxCommandEvent& event);
 private:
+	void EnableLowerStuff(bool bShow);
 	// class attributes
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
