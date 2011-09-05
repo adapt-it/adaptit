@@ -73,16 +73,17 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	CCTableNameDlg.$(OBJEXT) CaseEquivPage.$(OBJEXT) \
 	Cell.$(OBJEXT) ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) CollabUtilities.$(OBJEXT) \
-	ChooseTranslation.$(OBJEXT) CollectBacktranslations.$(OBJEXT) \
-	ComposeBarEditBox.$(OBJEXT) ConflictResolutionDlg.$(OBJEXT) \
-	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
-	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
-	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
-	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
-	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
-	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
-	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
-	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	conschk_exists_notu_dlg.$(OBJEXT) \
+	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
+	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
+	ConflictResolutionDlg.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
+	ConsistentChanger.$(OBJEXT) CorGuess.$(OBJEXT) \
+	DocPage.$(OBJEXT) EarlierTranslationDlg.$(OBJEXT) \
+	EditPreferencesDlg.$(OBJEXT) EditSourceTextDlg.$(OBJEXT) \
+	EmailReportDlg.$(OBJEXT) ExportFunctions.$(OBJEXT) \
+	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
+	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
+	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
@@ -356,6 +357,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
 	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
+	../../source/conschk_exists_notu_dlg.h ../../source/ConsChk_Empty_noTU_Dlg.h \
 	../../source/CorGuess.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
@@ -397,7 +399,8 @@ EXTRA_DIST = config.rpath
 # Resource files and help data
 xmldir = $(pkgdatadir)
 xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
-	../../xml/books.xml ../../docs/iso639-3codes.txt
+	../../xml/books.xml ../../docs/iso639-3codes.txt \
+        ../../docs/curl-ca-bundle.crt
 
 
 # HTML help data
@@ -405,7 +408,8 @@ htmlhelpdir = $(pkgdatadir)/help
 htmlhelp_DATA = adaptit.htb
 
 # the application source, library search path, and link libraries
-adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
+adaptit_SOURCES = \
+	../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
@@ -414,6 +418,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
+	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
@@ -566,6 +571,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComposeBarEditBox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConflictResolutionDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsChk_Empty_noTU_Dlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistencyCheckDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistentChanger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CorGuess.Po@am__quote@
@@ -644,6 +650,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XML.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XMLErrorDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/base64.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conschk_exists_notu_dlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tellenc.Po@am__quote@
@@ -962,6 +969,34 @@ CollabUtilities.obj: ../../source/CollabUtilities.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/CollabUtilities.cpp' object='CollabUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CollabUtilities.obj `if test -f '../../source/CollabUtilities.cpp'; then $(CYGPATH_W) '../../source/CollabUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CollabUtilities.cpp'; fi`
+
+conschk_exists_notu_dlg.o: ../../source/conschk_exists_notu_dlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT conschk_exists_notu_dlg.o -MD -MP -MF $(DEPDIR)/conschk_exists_notu_dlg.Tpo -c -o conschk_exists_notu_dlg.o `test -f '../../source/conschk_exists_notu_dlg.cpp' || echo '$(srcdir)/'`../../source/conschk_exists_notu_dlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/conschk_exists_notu_dlg.Tpo $(DEPDIR)/conschk_exists_notu_dlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/conschk_exists_notu_dlg.cpp' object='conschk_exists_notu_dlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o conschk_exists_notu_dlg.o `test -f '../../source/conschk_exists_notu_dlg.cpp' || echo '$(srcdir)/'`../../source/conschk_exists_notu_dlg.cpp
+
+conschk_exists_notu_dlg.obj: ../../source/conschk_exists_notu_dlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT conschk_exists_notu_dlg.obj -MD -MP -MF $(DEPDIR)/conschk_exists_notu_dlg.Tpo -c -o conschk_exists_notu_dlg.obj `if test -f '../../source/conschk_exists_notu_dlg.cpp'; then $(CYGPATH_W) '../../source/conschk_exists_notu_dlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/conschk_exists_notu_dlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/conschk_exists_notu_dlg.Tpo $(DEPDIR)/conschk_exists_notu_dlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/conschk_exists_notu_dlg.cpp' object='conschk_exists_notu_dlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o conschk_exists_notu_dlg.obj `if test -f '../../source/conschk_exists_notu_dlg.cpp'; then $(CYGPATH_W) '../../source/conschk_exists_notu_dlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/conschk_exists_notu_dlg.cpp'; fi`
+
+ConsChk_Empty_noTU_Dlg.o: ../../source/ConsChk_Empty_noTU_Dlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsChk_Empty_noTU_Dlg.o -MD -MP -MF $(DEPDIR)/ConsChk_Empty_noTU_Dlg.Tpo -c -o ConsChk_Empty_noTU_Dlg.o `test -f '../../source/ConsChk_Empty_noTU_Dlg.cpp' || echo '$(srcdir)/'`../../source/ConsChk_Empty_noTU_Dlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsChk_Empty_noTU_Dlg.Tpo $(DEPDIR)/ConsChk_Empty_noTU_Dlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConsChk_Empty_noTU_Dlg.cpp' object='ConsChk_Empty_noTU_Dlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsChk_Empty_noTU_Dlg.o `test -f '../../source/ConsChk_Empty_noTU_Dlg.cpp' || echo '$(srcdir)/'`../../source/ConsChk_Empty_noTU_Dlg.cpp
+
+ConsChk_Empty_noTU_Dlg.obj: ../../source/ConsChk_Empty_noTU_Dlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsChk_Empty_noTU_Dlg.obj -MD -MP -MF $(DEPDIR)/ConsChk_Empty_noTU_Dlg.Tpo -c -o ConsChk_Empty_noTU_Dlg.obj `if test -f '../../source/ConsChk_Empty_noTU_Dlg.cpp'; then $(CYGPATH_W) '../../source/ConsChk_Empty_noTU_Dlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConsChk_Empty_noTU_Dlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConsChk_Empty_noTU_Dlg.Tpo $(DEPDIR)/ConsChk_Empty_noTU_Dlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConsChk_Empty_noTU_Dlg.cpp' object='ConsChk_Empty_noTU_Dlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsChk_Empty_noTU_Dlg.obj `if test -f '../../source/ConsChk_Empty_noTU_Dlg.cpp'; then $(CYGPATH_W) '../../source/ConsChk_Empty_noTU_Dlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConsChk_Empty_noTU_Dlg.cpp'; fi`
 
 ChooseTranslation.o: ../../source/ChooseTranslation.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseTranslation.o -MD -MP -MF $(DEPDIR)/ChooseTranslation.Tpo -c -o ChooseTranslation.o `test -f '../../source/ChooseTranslation.cpp' || echo '$(srcdir)/'`../../source/ChooseTranslation.cpp
