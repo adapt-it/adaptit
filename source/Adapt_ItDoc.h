@@ -69,14 +69,16 @@ enum WhichLang {
 // m_bHasGlossingKBEntry when in glossing mode.
 enum InconsistencyType {
 	no_inconsistency,
-	member_empty_flag_on_noPTU,
-	member_exists_flag_on_noPTU,
-	member_exists_flag_off_noPTU,
+	undefined_inconsistency, // for when I auto-fix without a GUI, and I can't be
+							 // bothered trying to give it any more intelligent name
+	member_empty_flag_on_noPTU, // done
+	member_exists_flag_on_noPTU, // done
+	member_exists_flag_off_noPTU, // done
 	member_empty_flag_on_PTUexists_deleted_Refstr,
 	member_exists_flag_on_PTUexists_deleted_Refstr, // the "split meaning" possibility
 	member_exists_flag_off_PTUexists_has_RefStr, // auto-correct by setting flag TRUE (no Gui)
 	member_exists_flag_off_PTUexists_deleted_RefStr,
-	not_in_kb_but_flag_on // auto-correct by setting flag FALSE, and make m_bNotInKB TRUE
+	is_Not_In_KB_but_flag_on // auto-correct by setting flag FALSE, and make m_bNotInKB TRUE
 						  // and ensure pTU have valid <Not In KB> entry
 };
 enum FixItAction {

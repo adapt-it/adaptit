@@ -59,9 +59,8 @@ public:
 	wxTextCtrl*	m_pEditCtrlNew;
 	wxTextCtrl*	m_pEditCtrlAdaptation;
 	wxTextCtrl*	m_pEditCtrlKey;
-	wxRadioButton* m_pRadioSelectFromList;
-	wxRadioButton* m_pRadioAcceptCurrent;
-	wxRadioButton* m_pRadioTypeNewOne;
+	wxRadioButton* m_pRadioAcceptHere;
+	wxRadioButton* m_pRadioChangeInstead;
 	wxCheckBox* m_pCheckAutoFix; // whm added 31Aug11
 	wxString	m_keyStr;
 	wxString	m_adaptationStr; // adaptation, or the gloss when glossing is ON
@@ -78,16 +77,26 @@ public:
 	wxPoint			m_ptBoxTopLeft;
 	int				m_nTwoLineDepth;
 
+	// new members for the new dialog format
+	int difference; // final (max) of the various aDifference values
+	int aDifference;
+	wxStaticText* pMainMsg;
+	wxStaticText* pAvailableStatTxt;
+	wxStaticText* pClickListedStatTxt;
+	wxStaticText* pClickAndEditStatTxt;
+	wxStaticText* pIgnoreListStatTxt;
+	wxStaticText* pNoAdaptMsgTxt;
+	bool m_bShowItCentered;
+	wxStaticBox* pTopRightBox;
+	wxStaticBoxSizer* pTopRightBoxSizer;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
-	void OnRadioListSelect(wxCommandEvent& WXUNUSED(event));
-	void OnRadioAcceptCurrent(wxCommandEvent& WXUNUSED(event));
-	void OnRadioTypeNew(wxCommandEvent& WXUNUSED(event));
+	void OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event));
+	void OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditTypeNew(wxCommandEvent& event);
-	void OnButtonNoAdaptation(wxCommandEvent& WXUNUSED(event));
-	void OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event));
 private:
 	// class attributes
 

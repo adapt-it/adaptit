@@ -73,13 +73,10 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 BEGIN_EVENT_TABLE(CConsistencyCheckDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CConsistencyCheckDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, CConsistencyCheckDlg::OnOK)
-	EVT_RADIOBUTTON(IDC_RADIO_LIST_SELECT, CConsistencyCheckDlg::OnRadioListSelect)
-	EVT_RADIOBUTTON(IDC_RADIO_ACCEPT_CURRENT, CConsistencyCheckDlg::OnRadioAcceptCurrent)
-	EVT_RADIOBUTTON(IDC_RADIO_TYPE_NEW, CConsistencyCheckDlg::OnRadioTypeNew)
+	EVT_RADIOBUTTON(IDC_RADIO_ACCEPT_HERE, CConsistencyCheckDlg::OnRadioAcceptHere)
+	EVT_RADIOBUTTON(IDC_RADIO_CHANGE_INSTEAD, CConsistencyCheckDlg::OnRadioChangeInstead)
 	EVT_LISTBOX(IDC_LIST_TRANSLATIONS, CConsistencyCheckDlg::OnSelchangeListTranslations)
 	EVT_TEXT(IDC_EDIT_TYPE_NEW, CConsistencyCheckDlg::OnUpdateEditTypeNew)
-	EVT_BUTTON(IDC_NOTHING, CConsistencyCheckDlg::OnButtonNoAdaptation)
-	EVT_BUTTON(IDC_BUTTON_IGNORE_IT, CConsistencyCheckDlg::OnButtonIgnoreIt)
 END_EVENT_TABLE()
 
 
@@ -102,8 +99,11 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	m_newStr = _T("");
 	m_bDoAutoFix = FALSE;
 	m_chVerse = _T("");
+
+	aDifference = 0;
+	m_bShowItCentered = TRUE;
 	
-	// Get pointers to the dialog's controls
+	// Get pointers to the dialog's controls (some of these are the old stuff, renamed)
 	m_pEditCtrlChVerse = (wxTextCtrl*)FindWindowById(IDC_EDIT_CH_VERSE); 
 	wxASSERT(m_pEditCtrlChVerse != NULL);
 	m_pEditCtrlChVerse->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
@@ -116,22 +116,57 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	
 	m_pEditCtrlAdaptation = (wxTextCtrl*)FindWindowById(IDC_EDIT_ADAPTATION); 
 	wxASSERT(m_pEditCtrlAdaptation != NULL);
-	m_pEditCtrlAdaptation->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
+	// BEW 5Sep11, I want these two wxTextCtrls to be write background for maximum
+	// readability, but they do need to be read-only (we'll do that in InitDialog())
+	//m_pEditCtrlAdaptation->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
 	
 	m_pEditCtrlKey = (wxTextCtrl*)FindWindowById(IDC_EDIT_KEY);
 	wxASSERT(m_pEditCtrlKey != NULL);
-	m_pEditCtrlKey->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
+	// BEW 5Sep11, I want these two wxTextCtrls to be write background for maximum
+	// readability, but they do need to be read-only (we'll do that in InitDialog())
+	//m_pEditCtrlKey->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
 
-	m_pRadioSelectFromList = (wxRadioButton*)FindWindowById(IDC_RADIO_LIST_SELECT);
-	wxASSERT(m_pRadioSelectFromList != NULL);
-	m_pRadioAcceptCurrent = (wxRadioButton*)FindWindowById(IDC_RADIO_ACCEPT_CURRENT);
-	wxASSERT(m_pRadioAcceptCurrent != NULL);
-	m_pRadioTypeNewOne = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
-	wxASSERT(m_pRadioTypeNewOne != NULL);
+	m_pRadioAcceptHere = (wxRadioButton*)FindWindowById(IDC_RADIO_ACCEPT_HERE);
+	wxASSERT(m_pRadioAcceptHere != NULL);
+
+	m_pRadioChangeInstead = (wxRadioButton*)FindWindowById(IDC_RADIO_CHANGE_INSTEAD);
+	wxASSERT(m_pRadioChangeInstead != NULL);
 
 	m_pCheckAutoFix = (wxCheckBox*)FindWindowById(IDC_CHECK_DO_SAME); // whm added 31Aug11
 	wxASSERT(m_pCheckAutoFix != NULL);
 	m_pCheckAutoFix->SetValidator(wxGenericValidator(&m_bDoAutoFix)); // use validator
+
+	// new stuff
+
+	pMainMsg = (wxStaticText*)FindWindowById(ID_TEXT_MAIN_MSG);
+	wxASSERT(pMainMsg != NULL);
+
+	pAvailableStatTxt = (wxStaticText*)FindWindowById(ID_TEXT_AVAIL_ADAPT_OR_GLOSS);
+	wxASSERT(pAvailableStatTxt != NULL);
+
+	pClickListedStatTxt = (wxStaticText*)FindWindowById(ID_TEXT_CLICK_LISTED);
+	wxASSERT(pClickListedStatTxt != NULL);
+
+	pClickAndEditStatTxt = (wxStaticText*)FindWindowById(ID_TEXT_CLICK_EDIT_LISTED);
+	wxASSERT(pClickAndEditStatTxt != NULL);
+
+	pIgnoreListStatTxt = (wxStaticText*)FindWindowById(ID_TEXT_TYPE_NEW);
+	wxASSERT(pIgnoreListStatTxt != NULL);
+
+	pNoAdaptMsgTxt = (wxStaticText*)FindWindowById(ID_TEXT_NO_ADAPT_MSG);
+	wxASSERT(pNoAdaptMsgTxt != NULL);
+
+
+	// box sizer at top right
+	pTopRightBoxSizer = (wxStaticBoxSizer*)m_topRightBoxLabel;
+	wxASSERT(pTopRightBoxSizer != NULL);
+	pTopRightBox = pTopRightBoxSizer->GetStaticBox();
+	wxASSERT(pTopRightBox != NULL);
+
+
+
+
+
 
 
 	// use wxValidator for simple dialog data transfer
@@ -151,6 +186,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	wxString s;
+	/* the new dialog doesn't need the following
+	// 
 	if (gbIsGlossing)
 	{
 		s = _("<no gloss>"); 
@@ -159,6 +196,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		s = _("<no adaptation>");
 	}
+	*/
 	gbIgnoreIt = FALSE; // default
 
 	m_bRadioButtonAction = FALSE;
@@ -204,6 +242,202 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	else
 		m_adaptationStr = m_pSrcPhrase->m_adaption;
 
+
+	wxString mainStaticTextStr;
+	// put in the correct string, for this main message label - either "adaptation" or "gloss"
+	wxString msg = pMainMsg->GetLabel();
+	if (gbIsGlossing)
+	{
+		mainStaticTextStr = mainStaticTextStr.Format(msg, gpApp->m_modeWordGloss.c_str());
+	}
+	else
+	{
+		mainStaticTextStr = mainStaticTextStr.Format(msg, gpApp->m_modeWordAdapt.c_str());
+	}
+	pMainMsg->SetLabel(mainStaticTextStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg, mainStaticTextStr, pMainMsg);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// set the text of the vertical static box sizer at top right to "Adaptation text:" 
+	// or "Gloss text:"
+	wxString boxLabel = pTopRightBox->GetLabelText();
+	wxString updatedBoxLabel;
+	if (gbIsGlossing)
+	{
+		updatedBoxLabel = updatedBoxLabel.Format(boxLabel, gpApp->m_strGlossText.c_str());
+	}
+	else
+	{
+		updatedBoxLabel = mainStaticTextStr.Format(boxLabel, gpApp->m_strAdaptationText.c_str());
+	}
+	pTopRightBox->SetLabel(updatedBoxLabel);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(boxLabel, updatedBoxLabel, pTopRightBox);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// set text of top radio button
+	wxString radioAcceptHereStr;
+	// put in the correct string, for this radio button label;  "adaptation" or "gloss" 
+	wxString msg2 = m_pRadioAcceptHere->GetLabel();
+	if (gbIsGlossing)
+	{
+		radioAcceptHereStr = radioAcceptHereStr.Format(msg2, gpApp->m_modeWordGloss.c_str());
+	}
+	else
+	{
+		radioAcceptHereStr = radioAcceptHereStr.Format(msg2, gpApp->m_modeWordAdapt.c_str());
+	}
+	m_pRadioAcceptHere->SetLabel(radioAcceptHereStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg2, radioAcceptHereStr, m_pRadioAcceptHere);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// set text of second radio button
+	wxString radioChangeToStr;
+	// put in the correct string, for this radio button label;  "adaptation" or "gloss" 
+	wxString msg3 = m_pRadioChangeInstead->GetLabel();
+	if (gbIsGlossing)
+	{
+		radioChangeToStr = radioChangeToStr.Format(msg3, gpApp->m_modeWordGloss.c_str());
+	}
+	else
+	{
+		radioChangeToStr = radioChangeToStr.Format(msg3, gpApp->m_modeWordAdapt.c_str());
+	}
+	m_pRadioChangeInstead->SetLabel(radioChangeToStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg3, radioChangeToStr, m_pRadioChangeInstead);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// Next, the "Available adaptations/glosses in the knowledge base" stat text item at
+	// top of the list
+	wxString availStatTextStr;
+	// put in the correct string, for this main message label - either "adaptation" or "gloss"
+	wxString msg4 = pAvailableStatTxt->GetLabel();
+	if (gbIsGlossing)
+	{
+		availStatTextStr = availStatTextStr.Format(msg4, gpApp->m_modeWordGlossPlural.c_str());
+	}
+	else
+	{
+		availStatTextStr = availStatTextStr.Format(msg4, gpApp->m_modeWordAdaptPlural.c_str());
+	}
+	pAvailableStatTxt->SetLabel(availStatTextStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg4, availStatTextStr, pAvailableStatTxt);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// Next, the <no adaptation> or <no gloss> paranthesized comment stat text item
+	// between the two radio buttons
+	wxString noTextStr;
+	// put in the correct string, for this main message label - either "adaptation" or "gloss"
+	wxString msg8 = pNoAdaptMsgTxt->GetLabel();
+	if (gbIsGlossing)
+	{
+		noTextStr = noTextStr.Format(msg8, gpApp->m_strNoGloss.c_str());
+	}
+	else
+	{
+		noTextStr = noTextStr.Format(msg8, gpApp->m_strNoAdapt.c_str());
+	}
+	pNoAdaptMsgTxt->SetLabel(noTextStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg8, noTextStr, pNoAdaptMsgTxt);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+
+	// next, the 1. wxStaticText message at bottom right (needs "adaptation" or "gloss")
+	wxString clickListedTextStr;
+	// put in the correct string, for this main message label - either "adaptation" or "gloss"
+	wxString msg5 = pClickListedStatTxt->GetLabel();
+	if (gbIsGlossing)
+	{
+		clickListedTextStr = clickListedTextStr.Format(msg5, gpApp->m_modeWordGloss.c_str());
+	}
+	else
+	{
+		clickListedTextStr = clickListedTextStr.Format(msg5, gpApp->m_modeWordAdapt.c_str());
+	}
+	pClickListedStatTxt->SetLabel(clickListedTextStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg5, clickListedTextStr, pClickListedStatTxt);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// next, the 2. wxStaticText message at bottom right (needs "adaptation" or "gloss")
+	wxString clickEditTextStr;
+	// put in the correct string, for this main message label - either "adaptations" or "glosses"
+	wxString msg6 = pClickAndEditStatTxt->GetLabel();
+	if (gbIsGlossing)
+	{
+		clickEditTextStr = clickEditTextStr.Format(msg6, gpApp->m_modeWordGlossPlural.c_str());
+	}
+	else
+	{
+		clickEditTextStr = clickEditTextStr.Format(msg6, gpApp->m_modeWordAdaptPlural.c_str());
+	}
+	pClickAndEditStatTxt->SetLabel(clickEditTextStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg6, clickEditTextStr, pClickAndEditStatTxt);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	// next, the 3. wxStaticText message at bottom right (needs "adaptation" or "gloss")
+	wxString ignoreTextStr;
+	// put in the correct string, for this main message label - either "adaptation" or "gloss"
+	wxString msg7 = pIgnoreListStatTxt->GetLabel();
+	if (gbIsGlossing)
+	{
+		ignoreTextStr = ignoreTextStr.Format(msg7, gpApp->m_modeWordGloss.c_str());
+	}
+	else
+	{
+		ignoreTextStr = ignoreTextStr.Format(msg7, gpApp->m_modeWordAdapt.c_str());
+	}
+	pIgnoreListStatTxt->SetLabel(ignoreTextStr);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(msg7, ignoreTextStr, pIgnoreListStatTxt);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// fill the listBox, if there is a targetUnit available
 	// BEW 7July10, for kbVersion 2, we only add to the listBox those CRefString
 	// instances' m_translation contents when the CRefString instance is a non-deleted
@@ -244,16 +478,14 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		}
 		else
 		{
-			// the listBox will be empty, so disable the top of the 3 radio buttons
-			wxASSERT(m_pRadioSelectFromList != NULL);
-			m_pRadioSelectFromList->Enable(FALSE);
+			// the listBox will be empty - but nothing to do here
+			;
 		}
 	}
 	else
 	{
-		// the listBox will be empty, so disable the top of the 3 radio buttons
-		wxASSERT(m_pRadioSelectFromList != NULL);
-		m_pRadioSelectFromList->Enable(FALSE);
+		// the listBox will be empty - but nothing to do here
+		;
 	}
 
 	// work out where to place the dialog window
@@ -311,11 +543,43 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		// no list box content, so first radio button will be disabled, so make the
 		// default button in this case be the second one - ie. to accept the existing transl'n
-		wxASSERT(m_pRadioAcceptCurrent != NULL);
+		wxASSERT(m_pRadioAcceptHere != NULL);
 		m_finalAdaptation = m_adaptationStr;
-		m_pRadioAcceptCurrent->SetValue(TRUE);
+		m_pRadioAcceptHere->SetValue(TRUE);
 	}
 
+	// make the top two wxTextCtrls unable to be edited directly (ie. read-only)
+	m_pEditCtrlKey->SetEditable(FALSE);
+	m_pEditCtrlAdaptation->SetEditable(FALSE);
+
+	// get the dialog to resize to the new label string lengths
+	int width = 0;
+	int myheight = 0;
+	this->GetSize(&width, &myheight);
+	// use the difference value calculated above to widen the dialog window and then call
+	// Layout() to get the attached sizer hierarchy recalculated and laid out
+	int sizeFlags = 0;
+	sizeFlags |= wxSIZE_USE_EXISTING;
+	int clientWidth = 0;
+	int clientHeight = 0;
+	CMainFrame *pFrame = gpApp->GetMainFrame();
+	pFrame->GetClientSize(&clientWidth,&clientHeight);
+    // ensure the adjusted width of the dialog won't exceed the client area's width for the
+    // frame window
+    if (difference < clientWidth - width)
+	{
+		this->SetSize(wxDefaultCoord, wxDefaultCoord, width + difference, wxDefaultCoord);
+	}else
+	{
+		this->SetSize(wxDefaultCoord, wxDefaultCoord, clientWidth - 2, wxDefaultCoord);
+	}
+	this->Layout(); // automatically calls Layout() on top level sizer
+
+	// center it (horizontally)
+	if (m_bShowItCentered)
+	{
+		this->Centre(wxHORIZONTAL);
+	}
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
@@ -333,8 +597,8 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 
 	// see if the type new radio button is checked, & if so use the
 	// string in the edit box to its right
-	wxASSERT(m_pRadioTypeNewOne != NULL);
-	int nChecked = m_pRadioTypeNewOne->GetValue();
+	wxASSERT(m_pRadioChangeInstead != NULL);
+	int nChecked = m_pRadioChangeInstead->GetValue();
 	if (nChecked)
 	{
 		m_finalAdaptation = m_newStr;
@@ -344,6 +608,7 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 
 
 // other class methods
+/*
 void CConsistencyCheckDlg::OnRadioListSelect(wxCommandEvent& WXUNUSED(event)) 
 {
 	wxString s = _("<no adaptation>");
@@ -365,41 +630,40 @@ _("List box error: probably nothing is selected yet. If so, then select the tran
 	m_finalAdaptation = str;
 	
 	// also make the relevant radio button be turned on
-	wxASSERT(m_pRadioSelectFromList != NULL);
-	m_pRadioSelectFromList->SetValue(TRUE);
-	wxASSERT(m_pRadioAcceptCurrent != NULL);
-	m_pRadioAcceptCurrent->SetValue(FALSE);
-	wxASSERT(m_pRadioTypeNewOne != NULL);
-	m_pRadioTypeNewOne->SetValue(FALSE);
+	wxASSERT(m_pRadioAcceptHere != NULL);
+	m_pRadioAcceptHere->SetValue(FALSE);
+	wxASSERT(m_pRadioChangeInstead != NULL);
+	m_pRadioChangeInstead->SetValue(FALSE);
 }
+*/
 
-void CConsistencyCheckDlg::OnRadioAcceptCurrent(wxCommandEvent& WXUNUSED(event)) 
+void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event)) 
 {
 	m_finalAdaptation = m_adaptationStr;
 	
 	// also make the relevant radio button be turned on
-	wxASSERT(m_pRadioSelectFromList != NULL);
-	m_pRadioSelectFromList->SetValue(FALSE);
-	wxASSERT(m_pRadioAcceptCurrent != NULL);
-	m_pRadioAcceptCurrent->SetValue(TRUE);
-	wxASSERT(m_pRadioTypeNewOne != NULL);
-	m_pRadioTypeNewOne->SetValue(FALSE);
+	wxASSERT(m_pRadioAcceptHere != NULL);
+	m_pRadioAcceptHere->SetValue(TRUE);
+	wxASSERT(m_pRadioChangeInstead != NULL);
+	m_pRadioChangeInstead->SetValue(FALSE);
+
+	// hide all the lower controls (list, etc)
+	
+// *** TODO ***
 }
 
-void CConsistencyCheckDlg::OnRadioTypeNew(wxCommandEvent& WXUNUSED(event)) 
+void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event)) 
 {
 	m_newStr = _T("");
 	m_bRadioButtonAction = TRUE;
 	
 	// also make the relevant radio button be turned on
-	wxASSERT(m_pRadioSelectFromList != NULL);
-	m_pRadioSelectFromList->SetValue(FALSE);
-	wxASSERT(m_pRadioAcceptCurrent != NULL);
-	m_pRadioAcceptCurrent->SetValue(FALSE);
-	wxASSERT(m_pRadioTypeNewOne != NULL);
-	m_pRadioTypeNewOne->SetValue(TRUE);
+	wxASSERT(m_pRadioAcceptHere != NULL);
+	m_pRadioAcceptHere->SetValue(FALSE);
+	wxASSERT(m_pRadioChangeInstead != NULL);
+	m_pRadioChangeInstead->SetValue(TRUE);
 	
-	TransferDataToWindow();
+	//TransferDataToWindow();
 
     // BEW added 13Jun09, clicking the radio button should put the input focus in the wxTextCtrl to its
     // immediate right
@@ -425,12 +689,10 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	m_finalAdaptation = str;
 
 	// also make the relevant radio button be turned on
-	wxASSERT(m_pRadioSelectFromList != NULL);
-	m_pRadioSelectFromList->SetValue(TRUE);
-	wxASSERT(m_pRadioAcceptCurrent != NULL);
-	m_pRadioAcceptCurrent->SetValue(FALSE);
-	wxASSERT(m_pRadioTypeNewOne != NULL);
-	m_pRadioTypeNewOne->SetValue(FALSE);
+	wxASSERT(m_pRadioAcceptHere != NULL);
+	m_pRadioAcceptHere->SetValue(FALSE);
+	wxASSERT(m_pRadioChangeInstead != NULL);
+	m_pRadioChangeInstead->SetValue(FALSE);
 
 	TransferDataToWindow();
 }
@@ -449,15 +711,14 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 	{
 		// The edit control has something in it so ensure the "Type a new one:" radio button is
 		// selected and other radio buttons are not selected.
-		wxASSERT(m_pRadioSelectFromList != NULL);
-		if (m_pRadioSelectFromList->GetValue() != FALSE)
-			m_pRadioSelectFromList->SetValue(FALSE);
-		wxASSERT(m_pRadioAcceptCurrent != NULL);
-		if (m_pRadioAcceptCurrent->GetValue() != FALSE)
-			m_pRadioAcceptCurrent->SetValue(FALSE);
-		wxASSERT(m_pRadioTypeNewOne != NULL);
-		if (m_pRadioTypeNewOne->GetValue() != TRUE)
-			m_pRadioTypeNewOne->SetValue(TRUE);
+		// 
+		// fix....
+		wxASSERT(m_pRadioAcceptHere != NULL);
+		if (m_pRadioAcceptHere->GetValue() != FALSE)
+			m_pRadioAcceptHere->SetValue(FALSE);
+		wxASSERT(m_pRadioChangeInstead != NULL);
+		if (m_pRadioChangeInstead->GetValue() != TRUE)
+			m_pRadioChangeInstead->SetValue(TRUE);
 		m_bRadioButtonAction = FALSE;
 	}
 	else
@@ -468,29 +729,27 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 		{
 			//wxCommandEvent levent;
 			//OnSelchangeListTranslations(levent); // selects top radio button, un-selects bottom two
-			wxASSERT(m_pRadioSelectFromList != NULL);
-			if (m_pRadioSelectFromList->GetValue() != TRUE)
-				m_pRadioSelectFromList->SetValue(TRUE);
-			wxASSERT(m_pRadioAcceptCurrent != NULL);
-			if (m_pRadioAcceptCurrent->GetValue() != FALSE)
-				m_pRadioAcceptCurrent->SetValue(FALSE);
-			wxASSERT(m_pRadioTypeNewOne != NULL);
-			if (m_pRadioTypeNewOne->GetValue() != FALSE)
-				m_pRadioTypeNewOne->SetValue(FALSE);
+			//
+			// --- fix
+			wxASSERT(m_pRadioAcceptHere != NULL);
+			if (m_pRadioAcceptHere->GetValue() != FALSE)
+				m_pRadioAcceptHere->SetValue(FALSE);
+			wxASSERT(m_pRadioChangeInstead != NULL);
+			if (m_pRadioChangeInstead->GetValue() != FALSE)
+				m_pRadioChangeInstead->SetValue(FALSE);
 		}
 		else
 		{
             // No list box content, so ensure that the default button in this case is the second one -
             // i.e., to accept the existing translation.
-			wxASSERT(m_pRadioSelectFromList != NULL);
-			if (m_pRadioSelectFromList->GetValue() != FALSE)
-				m_pRadioSelectFromList->SetValue(FALSE);
-			wxASSERT(m_pRadioAcceptCurrent != NULL);
-			if (m_pRadioAcceptCurrent->GetValue() != TRUE)
-				m_pRadioAcceptCurrent->SetValue(TRUE);
-			wxASSERT(m_pRadioTypeNewOne != NULL);
-			if (m_pRadioTypeNewOne->GetValue() != FALSE)
-				m_pRadioTypeNewOne->SetValue(FALSE);
+            // 
+            //  --- fix
+			wxASSERT(m_pRadioAcceptHere != NULL);
+			if (m_pRadioAcceptHere->GetValue() != TRUE)
+				m_pRadioAcceptHere->SetValue(TRUE);
+			wxASSERT(m_pRadioChangeInstead != NULL);
+			if (m_pRadioChangeInstead->GetValue() != FALSE)
+				m_pRadioChangeInstead->SetValue(FALSE);
 		}
 	}
 
@@ -500,21 +759,3 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 	// otherwise strange behavior may occur.
 	event.Skip();
 }
-
-void CConsistencyCheckDlg::OnButtonNoAdaptation(wxCommandEvent& WXUNUSED(event)) 
-{
-	TransferDataFromWindow(); // make sure m_bDoAutoFix is updated correctly
-	// whm updated 12Jan09 - the parameter sent to EndModal() below needs to be wxID_OK in order for
-	// ShowModal() in the calling routine to return that value
-	EndModal(wxID_OK); //EndModal(0); 
-}
-
-void CConsistencyCheckDlg::OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event)) 
-{
-	TransferDataFromWindow(); // make sure m_bDoAutoFix is updated correctly
-	gbIgnoreIt = TRUE;
-	// whm updated 12Jan09 - the parameter sent to EndModal() below needs to be wxID_OK in order for
-	// ShowModal() in the calling routine to return that value
-	EndModal(wxID_OK); //EndModal(0); 
-}
-
