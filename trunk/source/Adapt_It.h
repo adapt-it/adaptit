@@ -3513,15 +3513,19 @@ public:
     // gbIsGlossing is FALSE, when it is TRUE the 'gloss' variants are passed in. The 'not
     // in kb' one is passed in to both, but either disabled or its radio button hidden when
 	// glossing mode is ON
-	wxString m_modeWordAdapt;
-	wxString m_modeWordGloss;
+	wxString m_modeWordAdapt; // adaptation
+	wxString m_modeWordGloss; //  gloss
+	wxString m_modeWordAdaptPlural; // adaptations
+	wxString m_modeWordGlossPlural; //  glosses
 	wxString m_modeWordAdaptPlusArticle;
 	wxString m_modeWordGlossPlusArticle;
 	wxString m_strNotInKB; // this one is never localizable, 
 				// and this KB entry type is not available in glossing mode either
-	wxString m_strNoAdapt;
-	wxString m_strNoGloss;
-	wxString m_strTitle;
+	wxString m_strNoAdapt; // <no adaptation>
+	wxString m_strNoGloss; // <no gloss>
+	wxString m_strTitle; // Inconsistency Found
+	wxString m_strAdaptationText; // Adaptation text:
+	wxString m_strGlossText; // Gloss text:
 
 
     // BEW added 17Sept10: set TRUE when an oxes export is in progress - and since it

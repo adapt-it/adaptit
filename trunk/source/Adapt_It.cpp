@@ -12404,6 +12404,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_strNoAdapt = _("<no adaptation>");
 	m_strNoGloss = _("<no gloss>");
 	m_strTitle = _("Inconsistency Found");
+	m_strAdaptationText = _("Adaptation text:");
+	m_strGlossText = _("Gloss text:");
+	m_modeWordAdaptPlural = _("adaptations");
+	m_modeWordGlossPlural = _("glosses");
 
 	// BEW added 25Aug11
 	m_bRetransReportInProgress = FALSE;
