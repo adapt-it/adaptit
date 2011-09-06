@@ -347,7 +347,7 @@ public:
 	bool			IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd));
 	bool			IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd); // whm added 10Feb05
 	bool			IsLegacyDocVersionForFileSaveAs();
-	static SPList *LoadSourcePhraseListFromFile(wxString FilePath);
+	static SPList   *LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis*	LookupSFM(wxChar *pChar);
 	USFMAnalysis*	LookupSFM(wxString bareMkr);
 	// BEW created 13Jan11, pass in the CSourcePhrase instance's m_targetStr value (it may
@@ -472,7 +472,9 @@ public:
 	// glossing KBs, and internally, the data accessed will be m_gloss, not m_adaption
 	bool	DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFGList& afList,
 					int& nCumulativeTotal);
-	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
+	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec);
+			// this next one is a variant used for matching AutoFixRecordG for glosses
+	bool	MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecordG*& rpRec);
 	wxChar	GetFirstChar(wxString& strText);
 	bool	IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
