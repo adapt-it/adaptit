@@ -166,12 +166,6 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	pTopRightBox = pTopRightBoxSizer->GetStaticBox();
 	wxASSERT(pTopRightBox != NULL);
 
-
-
-
-
-
-
 	// use wxValidator for simple dialog data transfer
 	m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
 	m_pEditCtrlNew->SetValidator(wxGenericValidator(&m_newStr));
@@ -189,8 +183,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	wxString s;
-	/* the new dialog doesn't need the following
-	// 
+	//* the new dialog doesn't need the following? 
 	if (gbIsGlossing)
 	{
 		s = _("<no gloss>"); 
@@ -199,7 +192,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		s = _("<no adaptation>");
 	}
-	*/
+	//*/
 	gbIgnoreIt = FALSE; // default
 
 	m_bRadioButtonAction = FALSE;
@@ -244,7 +237,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		m_adaptationStr = m_pSrcPhrase->m_gloss;
 	else
 		m_adaptationStr = m_pSrcPhrase->m_adaption;
-
+	// the top two boxes are made read-only at the end of this function
 
 	wxString mainStaticTextStr;
 	// put in the correct string, for this main message label - either "adaptation" or "gloss"
@@ -428,19 +421,6 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		difference = aDifference;
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 	// fill the listBox, if there is a targetUnit available
 	// BEW 7July10, for kbVersion 2, we only add to the listBox those CRefString
 	// instances' m_translation contents when the CRefString instance is a non-deleted
@@ -536,7 +516,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	TransferDataToWindow();
 
 	// call this to set up the initial default condition, provided there will be something
-	// in the list to select in the first place (which amounts to the targetUnit existing)
+	// in the list to select in the first place (which amounts to the targetUnit existing
+	// and having at least one undeleted CRefString)
 	if (m_bFoundTgtUnit)
 	{
 		wxCommandEvent levent;
@@ -544,8 +525,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	}
 	else
 	{
-		// no list box content, so first radio button will be disabled, so make the
-		// default button in this case be the second one - ie. to accept the existing transl'n
+		// no list box content, so second radio button will be disabled, so make the
+		// default button in this case be the first one - ie. to accept the existing transl'n
 		wxASSERT(m_pRadioAcceptHere != NULL);
 		m_finalAdaptation = m_adaptationStr;
 		m_pRadioAcceptHere->SetValue(TRUE);
@@ -586,23 +567,16 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 
 	saveAdaptationOrGloss = m_adaptationStr; // in case we need to restore 
 											 // the box contents at top right 
-	bool bEnableLower = FALSE;
-	EnableLowerStuff(bEnableLower);
-
+	EnableLowerStuff(FALSE);
 }
 
 void CConsistencyCheckDlg::EnableLowerStuff(bool bShow)
 {
 	if (bShow)
 	{
-		// make them visible
+		// make them enabled
 		m_pListBox->Enable(TRUE);
 		m_pEditCtrlNew->Enable(TRUE);
-		//pAvailableStatTxt->Show(TRUE);
-		//pClickListedStatTxt->Show(TRUE);
-		//pClickAndEditStatTxt->Show(TRUE);
-		//pIgnoreListStatTxt->Show(TRUE);
-		//pDiffEntryStatTxt->Show(TRUE);
 
 		// restore original text to the top right wxTextCtrl
 		if (m_pEditCtrlAdaptation != NULL)
@@ -614,14 +588,9 @@ void CConsistencyCheckDlg::EnableLowerStuff(bool bShow)
 	}
 	else
 	{
-		// hide them
+		// disable them
 		m_pListBox->Enable(FALSE);
 		m_pEditCtrlNew->Enable(FALSE);
-		//pAvailableStatTxt->Show(FALSE);
-		//pClickListedStatTxt->Show(FALSE);
-		//pClickAndEditStatTxt->Show(FALSE);
-		//pIgnoreListStatTxt->Show(FALSE);
-		//pDiffEntryStatTxt->Show(FALSE);
 	}
 }
 
@@ -690,9 +659,9 @@ void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(m_pRadioChangeInstead != NULL);
 	m_pRadioChangeInstead->SetValue(FALSE);
 
-	// hide all the lower controls (list, etc)
-	
-// *** TODO ***
+	// disable the lower controls (list, & text box) and restore top right text box's
+	// original content
+	EnableLowerStuff(FALSE);
 }
 
 void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event)) 
@@ -705,11 +674,13 @@ void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event))
 	m_pRadioAcceptHere->SetValue(FALSE);
 	wxASSERT(m_pRadioChangeInstead != NULL);
 	m_pRadioChangeInstead->SetValue(TRUE);
-	
-	//TransferDataToWindow();
 
-    // BEW added 13Jun09, clicking the radio button should put the input focus in the wxTextCtrl to its
-    // immediate right
+	EnableLowerStuff(TRUE);
+	
+	TransferDataToWindow();
+
+    // BEW added 13Jun09, clicking the radio button should put the input focus in the
+    // wxTextCtrl for the "different entry"
 	m_pEditCtrlNew->SetFocus();
 }
 
@@ -721,7 +692,15 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 		return;
 
-	wxString s = _("<no adaptation>");
+	wxString s;
+	if (gbIsGlossing)
+	{
+		s = _("<no gloss>");
+	}
+	else
+	{
+		s = _("<no adaptation>");
+	}
 	int nSel;
 	nSel = m_pListBox->GetSelection();
 	wxString str = _T("");
@@ -729,13 +708,16 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 		str = m_pListBox->GetStringSelection();
 	if (str == s)
 		str = _T(""); // restore null string
-	m_finalAdaptation = str;
+	m_newStr = str;
+	m_adaptationStr = str;
+
+	//m_finalAdaptation = str;
 
 	// also make the relevant radio button be turned on
 	wxASSERT(m_pRadioAcceptHere != NULL);
 	m_pRadioAcceptHere->SetValue(FALSE);
 	wxASSERT(m_pRadioChangeInstead != NULL);
-	m_pRadioChangeInstead->SetValue(FALSE);
+	m_pRadioChangeInstead->SetValue(TRUE);
 
 	TransferDataToWindow();
 }
@@ -745,8 +727,8 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 {
     // whm 13Jun09 added this OnUpdateEditTypeNew() handler, which is tripped whenever the
     // user types something in the IDC_EDIT_TYPE_NEW wxTextCtrl. It mainly insures that the
-    // "Type a new one:" radio button is selected as soon as the user starts to type in the
-    // edit box.
+    // "No. Instead... different entry ..." radio button is selected as soon as the user
+    // starts to type in the edit box.
     // 
     // Make the relevant radio button be turned on, but only if something has been typed
     // into the edit box. If the user deleted everything from the edit box,
@@ -783,16 +765,14 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 		}
 		else
 		{
-            // No list box content, so ensure that the default button in this case is the second one -
+            // No list box content, nevertheless ensure that the lower radiobutton is on
             // i.e., to accept the existing translation.
-            // 
-            //  --- fix
 			wxASSERT(m_pRadioAcceptHere != NULL);
-			if (m_pRadioAcceptHere->GetValue() != TRUE)
-				m_pRadioAcceptHere->SetValue(TRUE);
+			if (m_pRadioAcceptHere->GetValue() != FALSE)
+				m_pRadioAcceptHere->SetValue(FALSE);
 			wxASSERT(m_pRadioChangeInstead != NULL);
-			if (m_pRadioChangeInstead->GetValue() != FALSE)
-				m_pRadioChangeInstead->SetValue(FALSE);
+			if (m_pRadioChangeInstead->GetValue() != TRUE)
+				m_pRadioChangeInstead->SetValue(TRUE);
 		}
 	}
 
