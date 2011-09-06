@@ -21105,10 +21105,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
 			if (bIsInKB)
 			{
-				// there is a non-deleted entry in the copied KB for the passed in key; if
-				// pSrcPhrase has m_bHasKBEntry set TRUE, this is consistent, so iterate
 				if (pSrcPhrase->m_bHasKBEntry)
 				{
+                    // there is a non-deleted entry in the copied KB for the passed in key;
+                    // if pSrcPhrase has m_bHasKBEntry set TRUE, and it is not deleted in
+                    // the KB, this is consistent, so iterate
+					wxASSERT(!bDeleted);
 					// ensure m_bNotInKB is FALSE, both flags must never be true together
 					pSrcPhrase->m_bNotInKB = FALSE;
 					continue;
@@ -21246,11 +21248,77 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 				// we've handled all possibilities for <Not In KB> inconsistencies,
 				// the rest below is for adaptations -- whether empty or not
+				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_adaption.IsEmpty() &&
+					pSrcPhrase->m_bHasKBEntry && bDeleted)
+				{
+					// This is an inconsistency. The CTargetUnit and CRefString exist, but
+					// the latter's m_bDeleted flag is TRUE - which shouldn't be the case
+					// if the doc's m_bHasKBEntry flag is TRUE. There are 3 possibilies,
+					// a) it should be a <no adaptation> entry (so undelete it), or
+					// b) honour the deletion, and so set m_bHasKBEntry to FALSE, leaving
+					// a "hole" in the document here, or
+					// c) this src text shouldn't ever have a KB entry (so make it a <Not
+					// In KB> entry. The dialog for  
+					bInconsistency = TRUE;
+					inconsistencyType = member_empty_flag_on_PTUexists_deleted_Refstr;
+					pAutoFixRec = new AutoFixRecord;
+					pAutoFixRec->nWords = nWords;
+					pAutoFixRec->key = key;
+					pAutoFixRec->oldAdaptation = adaption;
+					pAutoFixRec->incType = inconsistencyType;
+					pAutoFixRec->fixAction = no_fix_needed; // a default value
+						// until such time as the dialog is shown and the user's
+						// fixit choice becomes known & replaces this value
+
+					// *** DIALOG*** for this one is ConsChk_Empty_noTU_Dlg
+				}
 
 				// Lots of checks to do here -- this stuff uses the adaption lookup
 				// (the 1st IsAlreadyInKB() call above)
 
-				if (pTU != NULL && pRefStr != NULL && bDeleted)
+				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_adaption.IsEmpty() &&
+					pSrcPhrase->m_bHasKBEntry && bDeleted)
+				{
+					// This is an inconsistency. The CTargetUnit and CRefString exist, but
+					// the latter's m_bDeleted flag is TRUE - which shouldn't be the case
+					// if the doc's m_bHasKBEntry flag is TRUE, and the adaptation is an
+					// empty string. There are 3 possibilies,
+					// a) it should be a <no adaptation> entry (so undelete it), or
+					// b) honour the deletion, and so set m_bHasKBEntry to FALSE, leaving
+					// a "hole" in the document here, or
+					// c) this src text shouldn't ever have a KB entry (it should be a
+					// <Not In KB> entry, or
+					// d) the user wants to "split" an empty adaptation to be different in
+					// some locations in the dialog (ie. non-empty)
+					
+					// NOTE -- supporting d) is incompatible with supporting b) and c) if
+					// we stick with just 3 dialogs; if we supported b) and c) we'd use
+					// the ConsChk_Empty_noTU_Dlg.h & .cpp, which gives no support to
+					// splitting the meaning; if we support splitting the meaning, then we
+					// would use the revamped legacy ConsistencyCheckDlg.h & .cpp. To
+					// support all 4 options here would require complicating the latter
+					// dialog, or defining a fourth (similar) dialog combining what is in
+					// the latter with what is in the former - and this we won't do. The
+					// ability to split the meaning is more likely to be useful in real
+					// situations than b) and c); so we support the revamped legacy dialog
+					// here - which allows the user to at least have a <no adaptation>
+					// entry put in the KB if he elects to leave the top right box empty.
+					bInconsistency = TRUE;
+					inconsistencyType = member_empty_flag_on_PTUexists_deleted_Refstr;
+					pAutoFixRec = new AutoFixRecord;
+					pAutoFixRec->nWords = nWords;
+					pAutoFixRec->key = key;
+					pAutoFixRec->oldAdaptation = adaption;
+					pAutoFixRec->incType = inconsistencyType;
+					pAutoFixRec->fixAction = no_fix_needed; // a default value
+						// until such time as the dialog is shown and the user's
+						// fixit choice becomes known & replaces this value
+
+					// dialog for this we choose to be the revamped legacy ConsistencyCheckDlg.h
+					// &.cpp (this excludes two low probability possibilities - see the Note just
+					// above)
+				}
+				else if (pSrcPhrase->m_bHasKBEntry && pTU != NULL && pRefStr != NULL && bDeleted)
 				{
 					// this is the 'split adaptation' case - the only options are to
 					// undelete, or to give a different (contextually defined by the user
@@ -21267,36 +21335,33 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					pAutoFixRec->fixAction = no_fix_needed; // a default value
 						// until such time as the dialog is shown and the user's
 						// fixit choice becomes known & replaces this value
+						
+					// dialog for this is the revamped legacy ConsistencyCheckDlg.h &.cpp
 				}
-				//else if ()
-				//{
-
-
-
-
-
-				//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// *** TODO ****
-
+				else if (!pSrcPhrase->m_bHasKBEntry, pTU != NULL && pRefStr != NULL && bDeleted)
+				{
+					// the flag is not set, and the pRefStr''s m_translation contents has
+					// been marked as bDeleted = TRUE; the only things possible here are
+					// that really it shouldn't be deleted (in which case, it should be
+					// re-stored in the KB), or it's a <Not In KB> entry. So this isn't
+					// something we can auto-fix. The ConsistencyCheck_ExistsNoTU_DlgFunc()
+					// gives the correct options (although mis-named for this particular
+					// inconsistency) 
+					bInconsistency = TRUE;
+					inconsistencyType = member_exists_flag_off_PTUexists_deleted_RefStr;
+					pAutoFixRec = new AutoFixRecord;
+					pAutoFixRec->nWords = nWords;
+					pAutoFixRec->key = key;
+					pAutoFixRec->oldAdaptation = adaption;
+					pAutoFixRec->incType = inconsistencyType;
+					pAutoFixRec->fixAction = no_fix_needed; // a default value
+						// until such time as the dialog is shown and the user's
+						// fixit choice becomes known & replaces this value
+				}
 				// final possibilities -- there was no CTargetUnit returned from the
 				// auto-caps lookup done in IsAlreadyInKB(nWords, key, adaption, 
 				// pTU, pRefStr, bDeleted);
-				if (pTU == NULL)
+				else if (pTU == NULL)
 				{
 					bInconsistency = TRUE;
 					pAutoFixRec = new AutoFixRecord;
@@ -21352,6 +21417,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pAutoFixRec->incType = inconsistencyType;
 
 						// *** DIALOG*** for this one is conschk_exists_notu_dlg
+						// which has wxDesigner func, ConsistencyCheck_ExistsNoTU_DlgFunc()
 						
 					} // end of else if block for test: if (pSrcPhrase->m_bHasKBEntry)
 					else
@@ -21369,24 +21435,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						}
 						continue;
 					}
-				} // end of TRUE block for test: if (pTU == NULL)
-
-
-
-
-// *** TODO ****
-
-
-
-
-
-
-
-
-
-
-
-				
+				} // end of TRUE block for test: else if (pTU == NULL)
 
 			} // end of else block for test: if (bIsInKB)
 

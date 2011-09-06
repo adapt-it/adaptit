@@ -71,15 +71,16 @@ enum InconsistencyType {
 	no_inconsistency,
 	undefined_inconsistency, // for when I auto-fix without a GUI, and I can't be
 							 // bothered trying to give it any more intelligent name
-	member_empty_flag_on_noPTU, // done
-	member_exists_flag_on_noPTU, // done
-	member_exists_flag_off_noPTU, // done
-	member_empty_flag_on_PTUexists_deleted_Refstr,
-	member_exists_flag_on_PTUexists_deleted_Refstr, // the "split meaning" possibility
-	member_exists_flag_off_PTUexists_has_RefStr, // auto-correct by setting flag TRUE (no Gui)
-	member_exists_flag_off_PTUexists_deleted_RefStr,
-	is_Not_In_KB_but_flag_on // auto-correct by setting flag FALSE, and make m_bNotInKB TRUE
-						  // and ensure pTU have valid <Not In KB> entry
+	member_empty_flag_on_noPTU, // done, use ConsistencyCheck_EmptyNoTU_DlgFunc()
+	member_exists_flag_on_noPTU, // done, use ConsistencyCheck_ExistsNoTU_DlgFunc()
+	member_exists_flag_off_noPTU, // done, use ConsistencyCheck_ExistsNoTU_DlgFunc()
+	member_empty_flag_on_PTUexists_deleted_Refstr, // done, use ConsistencyCheck_EmptyNoTU_DlgFunc()
+	member_exists_flag_on_PTUexists_deleted_Refstr, // done, use revamped legacy dlg... 
+													// this is the "split meaning" possibility
+	member_exists_flag_off_PTUexists_has_RefStr, // done // auto-correct by setting flag TRUE
+	member_exists_flag_off_PTUexists_deleted_RefStr, // done,  use revamped legacy dlg here too
+	is_Not_In_KB_but_flag_on // done // auto-correct by setting flag FALSE, and make 
+					// m_bNotInKB TRUE and ensure pTU have valid <Not In KB> entry
 };
 enum FixItAction {
 	no_fix_needed,
