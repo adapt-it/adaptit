@@ -56,7 +56,6 @@ public:
 	// on the local stack.
 	wxTextCtrl* m_pEditCtrlChVerse;
 	wxListBox*	m_pListBox;
-	wxTextCtrl*	m_pEditCtrlNew;
 	wxTextCtrl*	m_pEditCtrlAdaptation;
 	wxTextCtrl*	m_pEditCtrlKey;
 	wxRadioButton* m_pRadioAcceptHere;
@@ -64,7 +63,6 @@ public:
 	wxCheckBox* m_pCheckAutoFix; // whm added 31Aug11
 	wxString	m_keyStr;
 	wxString	m_adaptationStr; // adaptation, or the gloss when glossing is ON
-	wxString	m_newStr;
 	bool		m_bDoAutoFix;
 	wxString	m_chVerse;
 	bool			m_bFoundTgtUnit;
@@ -100,7 +98,8 @@ protected:
 	void OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditTypeNew(wxCommandEvent& event);
 private:
-	void EnableLowerStuff(bool bShow);
+	void EnableAdaptOrGlossBox(bool bEnable);
+	void EnableSourceBox(bool bEnable);
 	// class attributes
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
