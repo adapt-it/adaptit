@@ -156,11 +156,17 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	pNoAdaptMsgTxt = (wxStaticText*)FindWindowById(ID_TEXT_NO_ADAPT_MSG);
 	wxASSERT(pNoAdaptMsgTxt != NULL);
 
-	// box sizer at top right
+	// static box sizer at top right
 	pTopRightBoxSizer = (wxStaticBoxSizer*)m_topRightBoxLabel;
 	wxASSERT(pTopRightBoxSizer != NULL);
 	pTopRightBox = pTopRightBoxSizer->GetStaticBox();
 	wxASSERT(pTopRightBox != NULL);
+
+	// static box sizer for the 1.2.3. "Do one of the following..." directives
+	pDoOneOf_Sizer = (wxStaticBoxSizer*)m_pNumberedPointsStaticBoxSizer;;
+	wxASSERT(pDoOneOf_Sizer != NULL);
+	pStatBox_DoOneOf = pDoOneOf_Sizer->GetStaticBox();
+	wxASSERT(pStatBox_DoOneOf != NULL);
 
 	// use wxValidator for simple dialog data transfer
 	m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
@@ -178,7 +184,6 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	wxString s;
-	//* the new dialog doesn't need the following? 
 	if (gbIsGlossing)
 	{
 		s = _("<no gloss>"); 
@@ -187,7 +192,6 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		s = _("<no adaptation>");
 	}
-	//*/
 	gbIgnoreIt = FALSE; // default
 
 	m_bRadioButtonAction = FALSE;
@@ -268,6 +272,24 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	pTopRightBox->SetLabel(updatedBoxLabel);
 	// get the pixel difference in the label's changed text
 	aDifference = CalcLabelWidthDifference(boxLabel, updatedBoxLabel, pTopRightBox);
+	if (aDifference > difference)
+	{
+		difference = aDifference;
+	}
+
+	wxString doOneOfStr = pStatBox_DoOneOf->GetLabelText();
+	updatedBoxLabel.Empty();
+	if (gbIsGlossing)
+	{
+		updatedBoxLabel = updatedBoxLabel.Format(doOneOfStr, gpApp->m_modeWordGloss.c_str());
+	}
+	else
+	{
+		updatedBoxLabel = mainStaticTextStr.Format(doOneOfStr, gpApp->m_modeWordAdapt.c_str());
+	}
+	pStatBox_DoOneOf->SetLabel(updatedBoxLabel);
+	// get the pixel difference in the label's changed text
+	aDifference = CalcLabelWidthDifference(doOneOfStr, updatedBoxLabel, pStatBox_DoOneOf);
 	if (aDifference > difference)
 	{
 		difference = aDifference;
@@ -362,11 +384,13 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	wxString msg5 = pClickListedStatTxt->GetLabel();
 	if (gbIsGlossing)
 	{
-		clickListedTextStr = clickListedTextStr.Format(msg5, gpApp->m_modeWordGloss.c_str());
+		clickListedTextStr = clickListedTextStr.Format(msg5, gpApp->m_modeWordGloss.c_str(),
+														gpApp->m_strGlossText.c_str());
 	}
 	else
 	{
-		clickListedTextStr = clickListedTextStr.Format(msg5, gpApp->m_modeWordAdapt.c_str());
+		clickListedTextStr = clickListedTextStr.Format(msg5, gpApp->m_modeWordAdapt.c_str(),
+														gpApp->m_strAdaptationText.c_str());
 	}
 	pClickListedStatTxt->SetLabel(clickListedTextStr);
 	// get the pixel difference in the label's changed text
@@ -526,10 +550,6 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		m_finalAdaptation = m_adaptationStr;
 		m_pRadioAcceptHere->SetValue(TRUE);
 	}
-
-	// make the top two wxTextCtrls unable to be edited directly (ie. read-only)
-	m_pEditCtrlKey->SetEditable(FALSE);
-	m_pEditCtrlAdaptation->SetEditable(FALSE);
 
 	// get the dialog to resize to the new label string lengths
 	int width = 0;
