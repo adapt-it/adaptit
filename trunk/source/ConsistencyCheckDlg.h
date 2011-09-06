@@ -66,7 +66,6 @@ public:
 	bool		m_bDoAutoFix;
 	wxString	m_chVerse;
 	bool			m_bFoundTgtUnit;
-	bool			m_bRadioButtonAction;
 	CTargetUnit*	m_pTgtUnit;
 	CAdapt_ItApp*	m_pApp;
 	CKB*			m_pKBCopy;
