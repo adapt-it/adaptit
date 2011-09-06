@@ -89,6 +89,8 @@ public:
 	wxStaticBox* pTopRightBox;
 	wxStaticBoxSizer* pTopRightBoxSizer;
 	wxString saveAdaptationOrGloss;
+	wxStaticBoxSizer* pDoOneOf_Sizer;
+	wxStaticBox* pStatBox_DoOneOf;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
