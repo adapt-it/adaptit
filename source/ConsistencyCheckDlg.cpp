@@ -16,6 +16,7 @@
 /// \derivation		The CConsistencyCheckDlg class is derived from AIModalDialog.
 /// BEW 12Apr10, no changes needed for support of doc version 5 in this file
 /// BEW 9July10, updated for support of kbVersion 2
+/// BEW 6Sep11, heavily refactored (& simplified) for the revamped Consistency Check feature
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -193,8 +194,6 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		s = _("<no adaptation>");
 	}
 	gbIgnoreIt = FALSE; // default
-
-	m_bRadioButtonAction = FALSE;
 
 	// first, use the current source and target language fonts for the list box
 	// and edit boxes (in case there are special characters)
@@ -377,7 +376,6 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		difference = aDifference;
 	}
 
-
 	// next, the 1. wxStaticText message at bottom right (needs "adaptation" or "gloss")
 	wxString clickListedTextStr;
 	// put in the correct string, for this main message label - either "adaptation" or "gloss"
@@ -472,11 +470,11 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 				m_pListBox->SetClientData(nNewSel,pRefString);
 			}
 		}
-		// select the first string in the listbox by default, provided there is something
-		// there
+        // have no string selected in the listbox when first seen, provided there is
+        // something there which is selectable
 		if (counter > 0)
 		{
-			m_pListBox->SetSelection(0,TRUE);
+			m_pListBox->SetSelection(wxNOT_FOUND);
 		}
 		else
 		{
@@ -496,21 +494,17 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 
 	wxClientDC dc(gpApp->GetMainFrame()->canvas);
 	gpApp->GetMainFrame()->canvas->DoPrepareDC(dc);// adjust origin
-	gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
-	//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
-	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-	//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-	//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-	//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-	//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
-
+	gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also 
+										  // calls PrepareDC on the owning frame
 	int newXPos,newYPos;
 	// CalcScrolledPosition translates logical coordinates to device ones. 
-	gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,m_ptBoxTopLeft.y,&newXPos,&newYPos);
+	gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
+											m_ptBoxTopLeft.y,&newXPos,&newYPos);
 	m_ptBoxTopLeft.x = newXPos;
 	m_ptBoxTopLeft.y = newYPos;
 	// we leave the width and height the same
-	gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,&m_ptBoxTopLeft.y); // now it's screen coords
+	gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,
+									&m_ptBoxTopLeft.y); // now it's screen coords
 	int height = m_nTwoLineDepth;
 	wxRect rectDlg;
 	GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window
@@ -521,9 +515,9 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	int left = (rectScreen.GetWidth() - dlgWidth)/2;
 	if (m_ptBoxTopLeft.y + height < rectScreen.GetBottom() - dlgHeight)
 	{
-		// put dlg near the bottom of screen (BEW modified 28Feb06 to have -80 rather than -30)
-		// because the latter value resulted in the bottom buttons of the dialog being hidden
-		// by the status bar at the screen bottom
+        // put dlg near the bottom of screen (BEW modified 28Feb06 to have -80 rather than
+        // -30) because the latter value resulted in the bottom buttons of the dialog being
+        // hidden by the status bar at the screen bottom
 		SetSize(left,rectScreen.GetBottom()-dlgHeight-80,540,132,wxSIZE_USE_EXISTING);
 	}
 	else
@@ -532,24 +526,10 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		SetSize(left,rectScreen.GetTop()+40,540,132,wxSIZE_USE_EXISTING);
 	}
 	
-	TransferDataToWindow();
+	// always start with top radio button turned on
+	m_pRadioAcceptHere->SetValue(TRUE);
 
-	// call this to set up the initial default condition, provided there will be something
-	// in the list to select in the first place (which amounts to the targetUnit existing
-	// and having at least one undeleted CRefString)
-	if (m_bFoundTgtUnit)
-	{
-		wxCommandEvent levent;
-		OnSelchangeListTranslations(levent);
-	}
-	else
-	{
-		// no list box content, so second radio button will be disabled, so make the
-		// default button in this case be the first one - ie. to accept the existing transl'n
-		wxASSERT(m_pRadioAcceptHere != NULL);
-		m_finalAdaptation = m_adaptationStr;
-		m_pRadioAcceptHere->SetValue(TRUE);
-	}
+	TransferDataToWindow();
 
 	// get the dialog to resize to the new label string lengths
 	int width = 0;
@@ -568,7 +548,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
     if (difference < clientWidth - width)
 	{
 		this->SetSize(wxDefaultCoord, wxDefaultCoord, width + difference, wxDefaultCoord);
-	}else
+	}
+	else
 	{
 		this->SetSize(wxDefaultCoord, wxDefaultCoord, clientWidth - 2, wxDefaultCoord);
 	}
@@ -579,6 +560,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		this->Centre(wxHORIZONTAL);
 	}
+
+	m_pEditCtrlChVerse->SetEditable(FALSE); // remains read-only for life of dialog
 
 	saveAdaptationOrGloss = m_adaptationStr; // in case we need to restore 
 											 // the box contents at top right 
@@ -634,37 +617,6 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 	event.Skip();
 }
 
-
-// other class methods
-/*
-void CConsistencyCheckDlg::OnRadioListSelect(wxCommandEvent& WXUNUSED(event)) 
-{
-	wxString s = _("<no adaptation>");
-	
-	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
-	{
-		wxMessageBox(
-_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
-		_T(""), wxICON_EXCLAMATION);
-	}
-	
-	int nSel;
-	nSel = m_pListBox->GetSelection();
-	wxString str = _T("");
-	if (nSel != wxNOT_FOUND)
-		str = m_pListBox->GetStringSelection();
-	if (str == s)
-		str = _T(""); // restore null string
-	m_finalAdaptation = str;
-	
-	// also make the relevant radio button be turned on
-	wxASSERT(m_pRadioAcceptHere != NULL);
-	m_pRadioAcceptHere->SetValue(FALSE);
-	wxASSERT(m_pRadioChangeInstead != NULL);
-	m_pRadioChangeInstead->SetValue(FALSE);
-}
-*/
-
 void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event)) 
 {
 	m_adaptationStr = saveAdaptationOrGloss; // restore original adaptation or gloss
@@ -675,6 +627,9 @@ void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(m_pRadioChangeInstead != NULL);
 	m_pRadioChangeInstead->SetValue(FALSE);
 
+	// remove selection in the list
+	m_pListBox->SetSelection(wxNOT_FOUND);
+
 	TransferDataToWindow();
 
 	// disable the list and top right text box so it can't be changed from the original
@@ -684,9 +639,7 @@ void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event))
 
 void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event)) 
 {
-	m_bRadioButtonAction = TRUE;
-	
-	// also make the relevant radio button be turned on
+	// make the relevant radio button be turned on
 	wxASSERT(m_pRadioAcceptHere != NULL);
 	m_pRadioAcceptHere->SetValue(FALSE);
 	wxASSERT(m_pRadioChangeInstead != NULL);
@@ -706,9 +659,9 @@ void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event))
 
 void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event)) 
 {
-	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
-	// so we must check to see if the listbox contains no items and if so return immediately
-	//if (m_pListBox->GetCount() == 0)
+    // wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a
+    // call to Clear() so we must check to see if the listbox contains no items and if so
+    // return immediately
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 		return;
 
@@ -739,60 +692,3 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	TransferDataToWindow();
 }
 
-/* BEW removed it's wxTextCtrl, use the top right one instead
-void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
-{
-    // whm 13Jun09 added this OnUpdateEditTypeNew() handler, which is tripped whenever the
-    // user types something in the IDC_EDIT_TYPE_NEW wxTextCtrl. It mainly insures that the
-    // "No. Instead... different entry ..." radio button is selected as soon as the user
-    // starts to type in the edit box.
-    // 
-    // Make the relevant radio button be turned on, but only if something has been typed
-    // into the edit box. If the user deleted everything from the edit box,
-	if (m_bRadioButtonAction || m_pEditCtrlNew->GetValue().Length() > 0)
-	{
-		// The edit control has something in it so ensure the "Type a new one:" radio button is
-		// selected and other radio buttons are not selected.
-		wxASSERT(m_pRadioAcceptHere != NULL);
-		if (m_pRadioAcceptHere->GetValue() != FALSE)
-			m_pRadioAcceptHere->SetValue(FALSE);
-		wxASSERT(m_pRadioChangeInstead != NULL);
-		if (m_pRadioChangeInstead->GetValue() != TRUE)
-			m_pRadioChangeInstead->SetValue(TRUE);
-		m_bRadioButtonAction = FALSE;
-	}
-	else
-	{
-		// The edit control is now empty, so select one of the other radio buttons appropriate to the
-		// initial default condition of the data/lists
-		if (m_bFoundTgtUnit)
-		{
-			//wxCommandEvent levent;
-			//OnSelchangeListTranslations(levent); // selects top radio button, un-selects bottom two
-			wxASSERT(m_pRadioAcceptHere != NULL);
-			if (m_pRadioAcceptHere->GetValue() != FALSE)
-				m_pRadioAcceptHere->SetValue(FALSE);
-			wxASSERT(m_pRadioChangeInstead != NULL);
-			if (m_pRadioChangeInstead->GetValue() != FALSE)
-				m_pRadioChangeInstead->SetValue(FALSE);
-		}
-		else
-		{
-            // No list box content, nevertheless ensure that the lower radiobutton is on
-            // i.e., to accept the existing translation.
-			wxASSERT(m_pRadioAcceptHere != NULL);
-			if (m_pRadioAcceptHere->GetValue() != FALSE)
-				m_pRadioAcceptHere->SetValue(FALSE);
-			wxASSERT(m_pRadioChangeInstead != NULL);
-			if (m_pRadioChangeInstead->GetValue() != TRUE)
-				m_pRadioChangeInstead->SetValue(TRUE);
-		}
-	}
-
-	TransferDataFromWindow();
-
-	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
-	// otherwise strange behavior may occur.
-	event.Skip();
-}
-*/
