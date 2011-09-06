@@ -3524,8 +3524,8 @@ public:
 	wxString m_strNoAdapt; // <no adaptation>
 	wxString m_strNoGloss; // <no gloss>
 	wxString m_strTitle; // Inconsistency Found
-	wxString m_strAdaptationText; // Adaptation text:
-	wxString m_strGlossText; // Gloss text:
+	wxString m_strAdaptationText; // Adaptation text
+	wxString m_strGlossText; // Gloss text
 
 
     // BEW added 17Sept10: set TRUE when an oxes export is in progress - and since it

@@ -96,7 +96,6 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	
 	m_keyStr = _T("");
 	m_adaptationStr = _T("");
-	m_newStr = _T("");
 	m_bDoAutoFix = FALSE;
 	m_chVerse = _T("");
 
@@ -165,7 +164,6 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 
 	// use wxValidator for simple dialog data transfer
 	m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
-	m_pEditCtrlNew->SetValidator(wxGenericValidator(&m_newStr));
 	m_pEditCtrlAdaptation->SetValidator(wxGenericValidator(&m_adaptationStr));
 	m_pEditCtrlKey->SetValidator(wxGenericValidator(&m_keyStr));
 
@@ -208,20 +206,20 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
 		#ifdef _RTL_FLAGS
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditCtrlAdaptation, m_pEditCtrlNew,
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditCtrlAdaptation, NULL,
 									m_pListBox, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
 		#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditCtrlAdaptation, m_pEditCtrlNew, 
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditCtrlAdaptation, NULL, 
 									m_pListBox, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
 	else
 	{
 		#ifdef _RTL_FLAGS
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pEditCtrlAdaptation, m_pEditCtrlNew,
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pEditCtrlAdaptation, NULL,
 									m_pListBox, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
 		#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pEditCtrlAdaptation, m_pEditCtrlNew, 
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pEditCtrlAdaptation, NULL, 
 									m_pListBox, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
@@ -564,30 +562,38 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 
 	saveAdaptationOrGloss = m_adaptationStr; // in case we need to restore 
 											 // the box contents at top right 
-	EnableLowerStuff(FALSE);
+	EnableAdaptOrGlossBox(FALSE); // this one can be turned on or off, depending
+								  // on the radio buttons
+	EnableSourceBox(FALSE); // keep it disabled
 }
 
-void CConsistencyCheckDlg::EnableLowerStuff(bool bShow)
+void CConsistencyCheckDlg::EnableAdaptOrGlossBox(bool bEnable)
 {
-	if (bShow)
+	if (bEnable)
 	{
 		// make them enabled
 		m_pListBox->Enable(TRUE);
-		m_pEditCtrlNew->Enable(TRUE);
-
-		// restore original text to the top right wxTextCtrl
-		if (m_pEditCtrlAdaptation != NULL)
-		{
-			m_pEditCtrlAdaptation->SetEditable(TRUE);
-			m_pEditCtrlAdaptation->ChangeValue(saveAdaptationOrGloss);
-			m_pEditCtrlAdaptation->SetEditable(FALSE);
-		}
+		m_pEditCtrlAdaptation->Enable(TRUE);
 	}
 	else
 	{
 		// disable them
 		m_pListBox->Enable(FALSE);
-		m_pEditCtrlNew->Enable(FALSE);
+		m_pEditCtrlAdaptation->Enable(FALSE);
+	}
+}
+
+void CConsistencyCheckDlg::EnableSourceBox(bool bEnable)
+{
+	if (bEnable)
+	{
+		// make enabled
+		m_pEditCtrlKey->Enable(TRUE);
+	}
+	else
+	{
+		// disable
+		m_pEditCtrlKey->Enable(FALSE);
 	}
 }
 
@@ -604,15 +610,8 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 						// the dialog is dismissed with OnOK() 
 	gbIgnoreIt = FALSE;
 
-	// see if the type new radio button is checked, & if so use the
-	// string in the edit box to its right
-	wxASSERT(m_pRadioChangeInstead != NULL);
-	int nChecked = m_pRadioChangeInstead->GetValue();
-	if (nChecked)
-	{
-		m_finalAdaptation = m_newStr;
-	}
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	m_finalAdaptation = m_adaptationStr;
+	event.Skip();
 }
 
 
@@ -648,7 +647,7 @@ _("List box error: probably nothing is selected yet. If so, then select the tran
 
 void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event)) 
 {
-	m_finalAdaptation = m_adaptationStr;
+	m_adaptationStr = saveAdaptationOrGloss; // restore original adaptation or gloss
 	
 	// also make the relevant radio button be turned on
 	wxASSERT(m_pRadioAcceptHere != NULL);
@@ -656,14 +655,15 @@ void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(m_pRadioChangeInstead != NULL);
 	m_pRadioChangeInstead->SetValue(FALSE);
 
-	// disable the lower controls (list, & text box) and restore top right text box's
-	// original content
-	EnableLowerStuff(FALSE);
+	TransferDataToWindow();
+
+	// disable the list and top right text box so it can't be changed from the original
+	// value
+	EnableAdaptOrGlossBox(FALSE);
 }
 
 void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event)) 
 {
-	m_newStr = _T("");
 	m_bRadioButtonAction = TRUE;
 	
 	// also make the relevant radio button be turned on
@@ -672,13 +672,16 @@ void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(m_pRadioChangeInstead != NULL);
 	m_pRadioChangeInstead->SetValue(TRUE);
 
-	EnableLowerStuff(TRUE);
+	EnableAdaptOrGlossBox(TRUE); // turns on both list and top right wxTextCtrl
 	
 	TransferDataToWindow();
 
     // BEW added 13Jun09, clicking the radio button should put the input focus in the
-    // wxTextCtrl for the "different entry"
-	m_pEditCtrlNew->SetFocus();
+    // wxTextCtrl for the "Adaptation text" or "Gloss text"
+    wxString s = m_pEditCtrlAdaptation->GetValue();
+	long length = (long)s.Len();
+	m_pEditCtrlAdaptation->SetSelection(length,length);
+	m_pEditCtrlAdaptation->SetFocus();
 }
 
 void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event)) 
@@ -705,12 +708,9 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 		str = m_pListBox->GetStringSelection();
 	if (str == s)
 		str = _T(""); // restore null string
-	m_newStr = str;
 	m_adaptationStr = str;
 
-	//m_finalAdaptation = str;
-
-	// also make the relevant radio button be turned on
+	// also ensure the relevant radio button is turned on
 	wxASSERT(m_pRadioAcceptHere != NULL);
 	m_pRadioAcceptHere->SetValue(FALSE);
 	wxASSERT(m_pRadioChangeInstead != NULL);
@@ -733,8 +733,6 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 	{
 		// The edit control has something in it so ensure the "Type a new one:" radio button is
 		// selected and other radio buttons are not selected.
-		// 
-		// fix....
 		wxASSERT(m_pRadioAcceptHere != NULL);
 		if (m_pRadioAcceptHere->GetValue() != FALSE)
 			m_pRadioAcceptHere->SetValue(FALSE);
@@ -751,8 +749,6 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 		{
 			//wxCommandEvent levent;
 			//OnSelchangeListTranslations(levent); // selects top radio button, un-selects bottom two
-			//
-			// --- fix
 			wxASSERT(m_pRadioAcceptHere != NULL);
 			if (m_pRadioAcceptHere->GetValue() != FALSE)
 				m_pRadioAcceptHere->SetValue(FALSE);
