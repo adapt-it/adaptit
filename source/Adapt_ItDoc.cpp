@@ -20334,14 +20334,28 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		CSourcePhrase* pSrcPhrase;
 		CPile* pPile = GetPile(209);
 		pSrcPhrase = pPile->GetSrcPhrase();
+		int nWords = pSrcPhrase->m_nSrcWords;
+		MapKeyStringToTgtUnit* pMap = NULL;
+		CKB* pKB = NULL;
+		CTargetUnit* pTU = NULL;
+		bool bGotCTU = FALSE;
+		if (gbIsGlossing)
+		{
+			pKB = gpApp->m_pGlossingKB;
+		}
+		else
+		{
+			pKB = gpApp->m_pKB;
+		}
+		pMap = pKB->m_pMap[nWords - 1];
+		bGotCTU = pKB->AutoCapsLookup(pMap, pTU, pSrcPhrase->m_key);
 
-		dlg.m_bFoundTgtUnit = FALSE; // gives an empty list
+		dlg.m_bFoundTgtUnit = bGotCTU;
 		dlg.m_bDoAutoFix = FALSE;
 		dlg.m_pApp = gpApp;
 		//dlg.m_pKBCopy = pKBCopy;
-		dlg.m_pKBCopy = NULL;
-		//dlg.m_pTgtUnit = pTU; // could be null
-		dlg.m_pTgtUnit = NULL;
+		dlg.m_pKBCopy = pKB; // not the copied KB, so don't save anything!
+		dlg.m_pTgtUnit = pTU; // could be null
 		dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
 		dlg.m_pSrcPhrase = pSrcPhrase;
 		dlg.m_chVerse = _T("1:2");

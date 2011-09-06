@@ -3765,70 +3765,59 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT_DIFF_ENTRY, _("Different entry:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticBox *item29 = new wxStaticBox( parent, -1, _(" Do one of the following to get the %s you want: ") );
+    wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxVERTICAL );
+    m_pNumberedPointsStaticBoxSizer = item28;
 
-    wxTextCtrl *item29 = new wxTextCtrl( parent, IDC_EDIT_TYPE_NEW, wxT(""), wxDefaultPosition, wxSize(-1,32), 0 );
-    item29->SetToolTip( _("Type a new translation or gloss here") );
-    item27->Add( item29, 1, wxGROW|wxALL, 0 );
+    wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );
 
-    item26->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT_CLICK_LISTED, _("1.   Click a listed %s to get it into the %s box"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Click a listed entry to get it into the box (you can edit it there too)") );
+    item30->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT_CLICK_EDIT_LISTED, _("2.   Click and then edit one of the listed %s entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Click to enter the item into the text box and then edit it to make it the final form that you want") );
+    item30->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticBox *item32 = new wxStaticBox( parent, -1, _(" Do one of the following to get the different entry you want: ") );
-    wxStaticBoxSizer *item31 = new wxStaticBoxSizer( item32, wxVERTICAL );
-    m_pNumberedPointsStaticBoxSizer = item31;
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT_TYPE_NEW, _("3.   Ignore the list. Instead, just type the different %s that you want"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Type into the text box whatever form you want the one shown at the top right") );
+    item30->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
+    item28->Add( item30, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT_CLICK_LISTED, _("1.   Click a listed %s to get it into the different entry box"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->SetToolTip( _("Click a listed entry to get it into the box to be the final form wanted") );
-    item33->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item27->Add( item28, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT_CLICK_EDIT_LISTED, _("2.   Click and then edit one of the listed %s entries"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Click to enter the item into the text box and then edit it to make it the final form that you want") );
-    item33->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item26->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT_TYPE_NEW, _("3.   Ignore the list. Instead, just type the different %s that you want"), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetToolTip( _("Type into the text box whatever form you want the one shown at the top right") );
-    item33->Add( item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item34 = new wxBoxSizer( wxVERTICAL );
 
-    item31->Add( item33, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    wxBoxSizer *item35 = new wxBoxSizer( wxVERTICAL );
 
-    item30->Add( item31, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxCheckBox *item36 = new wxCheckBox( parent, IDC_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Check this box if you want to fix other later occurring inconsistencies the same way") );
+    item35->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item26->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item37 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item37 = new wxBoxSizer( wxVERTICAL );
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetDefault();
+    item38->SetToolTip( _("Click OK to continue with the consistency check") );
+    item37->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item38 = new wxBoxSizer( wxVERTICAL );
+    item37->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxCheckBox *item39 = new wxCheckBox( parent, IDC_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
-    item39->SetToolTip( _("Check this box if you want to fix other later occurring inconsistencies the same way") );
-    item38->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item39 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
+    item37->Add( item39, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item40 = new wxBoxSizer( wxHORIZONTAL );
+    item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item41 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item41->SetDefault();
-    item41->SetToolTip( _("Click OK to continue with the consistency check") );
-    item40->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+    item34->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item40->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item26->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxButton *item42 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item42->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
-    item40->Add( item42, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item38->Add( item40, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item37->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item26->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item43, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item40, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     item20->Add( item26, 1, wxGROW|wxALL, 0 );
 
