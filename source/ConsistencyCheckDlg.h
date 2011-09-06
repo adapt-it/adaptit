@@ -86,7 +86,6 @@ public:
 	wxStaticText* pClickAndEditStatTxt;
 	wxStaticText* pIgnoreListStatTxt;
 	wxStaticText* pNoAdaptMsgTxt;
-	wxStaticText* pDiffEntryStatTxt;
 
 	bool m_bShowItCentered;
 	wxStaticBox* pTopRightBox;

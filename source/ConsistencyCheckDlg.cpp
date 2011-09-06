@@ -76,7 +76,7 @@ BEGIN_EVENT_TABLE(CConsistencyCheckDlg, AIModalDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_ACCEPT_HERE, CConsistencyCheckDlg::OnRadioAcceptHere)
 	EVT_RADIOBUTTON(IDC_RADIO_CHANGE_INSTEAD, CConsistencyCheckDlg::OnRadioChangeInstead)
 	EVT_LISTBOX(IDC_LIST_TRANSLATIONS, CConsistencyCheckDlg::OnSelchangeListTranslations)
-	EVT_TEXT(IDC_EDIT_TYPE_NEW, CConsistencyCheckDlg::OnUpdateEditTypeNew)
+	//EVT_TEXT(IDC_EDIT_TYPE_NEW, CConsistencyCheckDlg::OnUpdateEditTypeNew)
 END_EVENT_TABLE()
 
 
@@ -112,8 +112,8 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	m_pListBox = (wxListBox*)FindWindowById(IDC_LIST_TRANSLATIONS);
 	wxASSERT(m_pListBox != NULL);
 	
-	m_pEditCtrlNew = (wxTextCtrl*)FindWindowById(IDC_EDIT_TYPE_NEW);
-	wxASSERT(m_pEditCtrlNew != NULL);
+	//m_pEditCtrlNew = (wxTextCtrl*)FindWindowById(IDC_EDIT_TYPE_NEW);
+	//wxASSERT(m_pEditCtrlNew != NULL);
 	
 	m_pEditCtrlAdaptation = (wxTextCtrl*)FindWindowById(IDC_EDIT_ADAPTATION); 
 	wxASSERT(m_pEditCtrlAdaptation != NULL);
@@ -156,9 +156,6 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 
 	pNoAdaptMsgTxt = (wxStaticText*)FindWindowById(ID_TEXT_NO_ADAPT_MSG);
 	wxASSERT(pNoAdaptMsgTxt != NULL);
-
-	pDiffEntryStatTxt = (wxStaticText*)FindWindowById(ID_TEXT_DIFF_ENTRY);
-	wxASSERT(pDiffEntryStatTxt != NULL);
 
 	// box sizer at top right
 	pTopRightBoxSizer = (wxStaticBoxSizer*)m_topRightBoxLabel;
@@ -722,7 +719,7 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	TransferDataToWindow();
 }
 
-
+/* BEW removed it's wxTextCtrl, use the top right one instead
 void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 {
     // whm 13Jun09 added this OnUpdateEditTypeNew() handler, which is tripped whenever the
@@ -782,3 +779,4 @@ void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 	// otherwise strange behavior may occur.
 	event.Skip();
 }
+*/
