@@ -44,6 +44,7 @@
 #include "ConsistencyCheckDlg.h"
 #include "TargetUnit.h"
 #include "Adapt_ItView.h"
+#include "Adapt_ItDoc.h" // for acess to the FixItAction enum
 #include "Adapt_ItCanvas.h"
 #include "MainFrm.h"
 #include "KB.h"
@@ -99,6 +100,7 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	m_adaptationStr = _T("");
 	m_bDoAutoFix = FALSE;
 	m_chVerse = _T("");
+	actionTaken = no_fix_needed; // default, we don't yet know what the user will do
 
 	aDifference = 0;
 	difference = 0;
@@ -613,6 +615,25 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 						// the dialog is dismissed with OnOK() 
 	gbIgnoreIt = FALSE;
 
+	if (m_pRadioAcceptHere->GetValue())
+	{
+		// the original meaning is to be re-stored
+		actionTaken = restore_meaning_to_doc;
+	}
+	else
+	{
+		// a new meaning is to be stored, and it might be an empty string, (so use the TRUE
+		// param in the StoreText() call later on, to support storing an empty string if
+		// it actually is empty)
+		if (m_adaptationStr.IsEmpty())
+		{
+			actionTaken = store_empty_meaning;
+		}
+		else
+		{
+			actionTaken = store_nonempty_meaning;
+		}
+	}
 	m_finalAdaptation = m_adaptationStr;
 	event.Skip();
 }
