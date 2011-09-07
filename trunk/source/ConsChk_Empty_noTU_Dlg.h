@@ -60,6 +60,8 @@ public:
 	wxSizer*		pConsChk_Empty_noTU_DlgSizer; // whm 31Aug11 added, but BEW says it's not needed
 	enum FixItAction action;
 	bool			m_bShowItCentered;
+	wxPoint			m_ptBoxTopLeft;
+	int				m_nTwoLineDepth;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
