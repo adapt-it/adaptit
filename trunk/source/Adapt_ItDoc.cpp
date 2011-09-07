@@ -21467,76 +21467,124 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				AutoFixRecord* pAFRecord = pAutoFixRec;
 				if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 				{
-
-// *** TODO *** update this whole block cloning from the after-dialogs code to here
-
-
 					// we matched an auto-fix element, so do the fix automatically...
 					// update the original kb (not pKBCopy)
-					wxString tempStr = pAFRecord->finalAdaptation; // could have punctuation in it
-
-					// if the adaptation is null, then assume user wants it that way and so store
-					// an empty string
-					if (tempStr.IsEmpty())
+					switch (pAFRecord->incType)
 					{
-						pKB->StoreText(pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
-					}
-					else
-					{
-
-						pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
-                        // we don't want punctuation in adaptation KB if
-                        // autocapitalization is ON, we could have an upper case
-                        // source, but the user may have typed lower case for
-                        // fixing the gloss or adaptation, but this is okay - the
-                        // store will work right, so don't need anything here
-                        // except the call to store it
-						pKB->StoreText(pSrcPhrase,tempStr);
-					}
-					if (!tempStr.IsEmpty())
-					{
-                        // here we must be careful; pAFRecord->finalAdaptation may have a
-                        // lower case string when the source text has upper case, and the
-                        // user is expecting the application to do the fix for him; this
-                        // would be easy if we could be sure that the first letter of the
-                        // string was at index == 0, but the possible presence of preceding
-                        // punctuation makes the assumption dangerous - so we must find
-                        // where the actual text starts and do any changes there if needed.
-                        // tempStr has punctuation stripped out, pAFRecord->finalAdaptation
-                        // doesn't, so start by determining if there actually is a problem
-                        // to be fixed.
-						if (gbAutoCaps)
+					case member_empty_flag_on_noPTU:
+					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
-							bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
-							if (bNoError && gbSourceIsUpperCase)
+							// do the fixit action
+							switch (pAutoFixRec->fixAction)
 							{
-								bNoError = SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
-								if (bNoError && !gbNonSourceIsUpperCase &&
-									(gcharNonSrcUC != _T('\0')))
+							case turn_flag_off:
 								{
-                                    // source is upper case but nonsource is lower and is a
-                                    // character with an upper case equivalent - we have a
-                                    // problem; we need to fix the AutoFixRecord's
-                                    // finalAdaptation string, and the sourcephrase too. At
-                                    // this point we can fix the m_adaption member as
-                                    // follows:
-									pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC);
+									pSrcPhrase->m_bHasKBEntry = FALSE; // we've created a "hole"
+								}
+								break;
+							case store_empty_meaning:
+								{
+									// make a <no adaptation> entry in KB
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									// don't call view's MakeTargetStringIncludingPunctuation() -
+									// it would make any punctuation visible on the empty
+									// target line's cell, which is not much help visually
+								}
+								break;
+							case make_it_Not_In_KB:
+								{
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
+									pSrcPhrase->m_bNotInKB = TRUE;
+									//pSrcPhrase->m_bHasKBEntry = FALSE;
+								}
+								break;
+							} // end of switch (pAutoFixRec->fixAction)
+						}
+						break;
+					case member_exists_flag_on_noPTU:
+					case member_exists_flag_off_noPTU:
+						{
+							// do the fixit action
+							switch (pAutoFixRec->fixAction)
+							{
+							case store_nonempty_meaning:
+								{
+									// make a normal entry of it in KB
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									// make m_targetStr again? Nah, assume it's right
+									// already (un-comment-out if this was a bad decision)
+									//pApp->GetView()->MakeTargetStringIncludingPunctuation(
+									//					pSrcPhrase,pAutoFixRec->finalAdaptation);
+								}
+								break;
+							case make_it_Not_In_KB:
+								{
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
+									pSrcPhrase->m_bNotInKB = TRUE;
+									//pSrcPhrase->m_bHasKBEntry = FALSE;
+								}
+								break;
+							} // end of switch (pAutoFixRec->fixAction)
+						}
+						break;
+					case member_exists_flag_on_PTUexists_deleted_Refstr:
+					case member_exists_flag_off_PTUexists_deleted_RefStr:
+						{
+							// if the adaptation is null, then assume user wants it that way
+							// and so store an empty string, else store whatever it is -- and
+							// since the actions all involve just a StoreText() call, we don't
+							// need a switch based on actionTaken in order to do what we need
+							// to do
+							wxString tempStr = pAutoFixRec->finalAdaptation;
+							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
+
+							// update the original kb (not pKBCopy)
+							pSrcPhrase->m_bHasKBEntry = FALSE; // <<-- makes the StoreText() call safe to do
+							if (tempStr.IsEmpty())
+							{
+								// TRUE = allow empty string storage
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+				
+							}
+							else
+							{
+								pKB->StoreText(pSrcPhrase,tempStr);
+							}
+							if (gbAutoCaps)
+							{
+								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
+								if (bNoError && gbSourceIsUpperCase)
+								{
+									bNoError = SetCaseParameters(tempStr,FALSE); 
+															// FALSE means "it's target text"
+									if (bNoError && !gbNonSourceIsUpperCase && 
+										(gcharNonSrcUC != _T('\0')))
+									{
+										pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC); 
+															// get m_adaption member done
+									}
 								}
 							}
+							// this call handles auto caps, punctuation, etc
+							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, pAutoFixRec->finalAdaptation);
+						} // end of TRUE block for test of ShowModal() == wxID_OK
+						break;
+					case is_Not_In_KB_but_flag_on:
+					case member_exists_flag_off_PTUexists_has_RefStr:
+					case undefined_inconsistency:
+					case no_inconsistency:
+					default:
+						{
+							// nothing to do, these are autofixed without needing any GUI
+							;
 						}
-                        // the call of MakeTargetStringIncludingPunctuation() accomplishes
-                        // the setting of the pSrcPhrase's m_targetStr member, handling any
-                        // needed lower case to upper case conversion (even when typed
-                        // initial punctuation is present), and the punctuation override
-                        // protocol if the passed in string in the 2nd parameter has
-                        // initial and/or final punctuation.
-                        // For auto capitalization support,
-                        // MakeTargetStringIncludingPunctuation( ) is now able to do any
-                        // needed change to upper case initial letter even when there is
-                        // initial punctuation on pAFRecord->finalAdaptation
-						pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
-															pAFRecord->finalAdaptation);
-					}
+						break;
+					} // end of switch (pAFRecord->incType)  
+					
 					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
 						// of the box should show the current adaptation string
 	
@@ -21736,7 +21784,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// since the actions all involve just a StoreText() call, we don't
 							// need a switch based on actionTaken in order to do what we need
 							// to do
-							wxString tempStr = dlg.m_finalAdaptation;
+							wxString tempStr = pAutoFixRec->finalAdaptation;
 							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
 
 							// update the original kb (not pKBCopy)
@@ -22493,7 +22541,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							// since the actions all involve just a StoreText() call, we don't
 							// need a switch based on actionTaken in order to do what we need
 							// to do
-							wxString tempStr = dlg.m_finalAdaptation;
+							wxString tempStr = pAutoFixGRec->finalGloss;
 
 							// update the original kb (not pKBCopy)
 							pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // <<-- makes the StoreText() call safe to do
