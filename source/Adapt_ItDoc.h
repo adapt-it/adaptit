@@ -36,9 +36,9 @@ class CLayout;
 class CFreeTrans;
 class CNotes;
 class wxProgressDialog;
-
 struct AutoFixRecord;
 struct AutoFixRecordG;
+enum doc_edit_op;
 
 /// wxList declaration and partial implementation of the AFList class being
 /// a list of pointers to AutoFixRecord objects

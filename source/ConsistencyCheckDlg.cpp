@@ -44,7 +44,7 @@
 #include "ConsistencyCheckDlg.h"
 #include "TargetUnit.h"
 #include "Adapt_ItView.h"
-#include "Adapt_ItDoc.h" // for acess to the FixItAction enum
+#include "Adapt_ItDoc.h" // for access to the FixItAction enum
 #include "Adapt_ItCanvas.h"
 #include "MainFrm.h"
 #include "KB.h"
