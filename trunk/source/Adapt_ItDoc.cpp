@@ -21252,15 +21252,16 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				// we've handled all possibilities for <Not In KB> inconsistencies,
 				// the rest below is for adaptations -- whether empty or not
 				/* see the one after this, we prefer the "split adaptation" support, rather than this one
-
-				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_adaption.IsEmpty() &&
+				// keep this in case we later change our mind...
+				if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_adaption.IsEmpty() &&
 					pSrcPhrase->m_bHasKBEntry && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
 
-					// This is an inconsistency. The CTargetUnit and CRefString exist, but
-					// the latter's m_bDeleted flag is TRUE - which shouldn't be the case
-					// if the doc's m_bHasKBEntry flag is TRUE. There are 3 possibilies,
+                    // This is an inconsistency. The CTargetUnit and CRefString exist, and
+                    // pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
+                    // which shouldn't be the case if the doc's m_bHasKBEntry flag is TRUE.
+                    // There are 3 possibilies,
 					// a) it should be a <no adaptation> entry (so undelete it), or
 					// b) honour the deletion, and so set m_bHasKBEntry to FALSE, leaving
 					// a "hole" in the document here, or
@@ -21283,15 +21284,16 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				// Lots of checks to do here -- this stuff uses the adaption lookup
 				// (the 1st IsAlreadyInKB() call above)
 
-				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_adaption.IsEmpty() &&
+				if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_adaption.IsEmpty() &&
 					pSrcPhrase->m_bHasKBEntry && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
 
-					// This is an inconsistency. The CTargetUnit and CRefString exist, but
-					// the latter's m_bDeleted flag is TRUE - which shouldn't be the case
-					// if the doc's m_bHasKBEntry flag is TRUE, and the adaptation is an
-					// empty string. There are 4 possibilies,
+                    // This is an inconsistency. The CTargetUnit and CRefString exist, and
+                    // pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
+                    // which shouldn't be the case if the doc's m_bHasKBEntry flag is
+                    // TRUE, and the adaptation is an empty string. 
+                    // There are 4 possibilies,
 					// a) it should be a <no adaptation> entry (so undelete it), or
 					// b) honour the deletion, and so set m_bHasKBEntry to FALSE, leaving
 					// a "hole" in the document here, or
@@ -21327,7 +21329,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// &.cpp (this excludes two low probability possibilities - see the Note just
 					// above)
 				}
-				else if (pSrcPhrase->m_bHasKBEntry && pTU != NULL && pRefStr != NULL && bDeleted)
+				else if (pSrcPhrase->m_bHasKBEntry && pTU != NULL && pRefStr == NULL && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
 
@@ -21349,7 +21351,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						
 					// dialog for this is the revamped legacy ConsistencyCheckDlg.h &.cpp
 				}
-				else if (!pSrcPhrase->m_bHasKBEntry, pTU != NULL && pRefStr != NULL && bDeleted)
+				else if (!pSrcPhrase->m_bHasKBEntry, pTU != NULL && pRefStr == NULL && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
 
@@ -21411,7 +21413,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                         // become an "auto-fix" possibility provided such preservation
                         // happens later below before the loop end is reached
 
-						// *** DIALOG*** for this one is ConsChk_Empty_noTU_Dlg
+						// the dialog for this one is ConsChk_Empty_noTU_Dlg
 
 					} // end of TRUE block for test: if (adaption.IsEmpty())
 					else if (pSrcPhrase->m_bHasKBEntry)
@@ -21431,7 +21433,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						inconsistencyType = member_exists_flag_on_noPTU;
 						pAutoFixRec->incType = inconsistencyType;
 
-						// *** DIALOG*** for this one is conschk_exists_notu_dlg
+						// the dialog for this one is conschk_exists_notu_dlg
 						// which has wxDesigner func, ConsistencyCheck_ExistsNoTU_DlgFunc()
 						
 					} // end of else if block for test: if (pSrcPhrase->m_bHasKBEntry)
@@ -21454,36 +21456,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 			} // end of else block for test: if (bIsInKB)
 
+// ******* Inconsistency fixes (by AutoFixRecord or by dialog) begins here********
 
-
-
-
-
-
-
-
-
-
-// *** LEGACY CODE ***
-//*
 			// open the dialog if we have an inconsistency 
 			if (bInconsistency)
 			{
-
-
-
-
-
-/* do at point of store, not here
-
-				// make the CSourcePhrase instance is able to have a KB entry added ('not
-				// in kb' situation has been bled out above, so need not be considered here)
-				if (gbIsGlossing)
-					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-				else
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-*/
-
                 // work out if this is an auto-fix item, if so, don't show the dialog, but
                 // use the stored AutoFixRecord to fix the inconsistency without user
                 // intervention
@@ -21491,7 +21468,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 				{
 
-// *** TODO ***
+// *** TODO *** update this whole block cloning from the after-dialogs code to here
 
 
 					// we matched an auto-fix element, so do the fix automatically...
@@ -21575,8 +21552,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                     CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases, 
 																consistency_check_op);
 
-// *** TODO ****  switch here for the various dialogs...
-
 					switch (pAFRecord->incType)
 					{
 					case member_empty_flag_on_noPTU:
@@ -21604,7 +21579,45 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 						if (dlg.ShowModal() == wxID_OK)
 						{
-	// TODO	 & use  pSrcPhrase->m_bHasKBEntry = FALSE;						;
+							// get and store the FixItAction
+							pAutoFixRec->fixAction = dlg.actionTaken;
+							//pAutoFixRec->finalAdaptation is already set
+
+							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+							// subsequent use
+							if (dlg.m_bDoAutoFix)
+							{
+								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
+								afList.Append(pAutoFixRec);
+							} 
+							
+							// do the fixit action
+							switch (pAutoFixRec->fixAction)
+							{
+							case turn_flag_off:
+								{
+									pSrcPhrase->m_bHasKBEntry = FALSE; // we've created a "hole"
+								}
+								break;
+							case store_empty_meaning:
+								{
+									// make a <no adaptation> entry in KB
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									// don't call view's MakeTargetStringIncludingPunctuation() -
+									// it would make any punctuation visible on the empty
+									// target line's cell, which is not much help visually
+								}
+								break;
+							case make_it_Not_In_KB:
+								{
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
+									pSrcPhrase->m_bNotInKB = TRUE;
+									//pSrcPhrase->m_bHasKBEntry = FALSE;
+								}
+								break;
+							} // end of switch (pAutoFixRec->fixAction)
 						}
 						else
 						{
@@ -21636,7 +21649,41 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 						if (dlg.ShowModal() == wxID_OK)
 						{
-	// TODO	 & use  pSrcPhrase->m_bHasKBEntry = FALSE;						;
+							// get and store the FixItAction
+							pAutoFixRec->fixAction = dlg.actionTaken;
+							//pAutoFixRec->finalAdaptation is already set
+
+							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+							// subsequent use
+							if (dlg.m_bDoAutoFix)
+							{
+								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
+								afList.Append(pAutoFixRec);
+							} 
+							
+							// do the fixit action
+							switch (pAutoFixRec->fixAction)
+							{
+							case store_nonempty_meaning:
+								{
+									// make a normal entry of it in KB
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									// make m_targetStr again? Nah, assume it's right
+									// already (un-comment-out if this was a bad decision)
+									//pApp->GetView()->MakeTargetStringIncludingPunctuation(
+									//					pSrcPhrase,pAutoFixRec->finalAdaptation);
+								}
+								break;
+							case make_it_Not_In_KB:
+								{
+									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
+									pSrcPhrase->m_bNotInKB = TRUE;
+									//pSrcPhrase->m_bHasKBEntry = FALSE;
+								}
+								break;
+							} // end of switch (pAutoFixRec->fixAction)
 						}
 						else
 						{
@@ -21990,7 +22037,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 				// the rest below is for glosses -- whether empty or not
 				/* see below, this is the alternative we've rejected, in favour of "splitting a gloss" support
 
-				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_gloss.IsEmpty() &&
+				if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_gloss.IsEmpty() &&
 					pSrcPhrase->m_bHasGlossingKBEntry && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
@@ -22017,7 +22064,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// irrelevant for glossing)
 				}
 				*/
-				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_gloss.IsEmpty() &&
+				if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_gloss.IsEmpty() &&
 					pSrcPhrase->m_bHasGlossingKBEntry && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
@@ -22060,7 +22107,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// &.cpp (this excludes two low probability possibilities - see the Note just
 					// above)
 				}
-				else if (pSrcPhrase->m_bHasGlossingKBEntry && pTU != NULL && pRefStr != NULL && bDeleted)
+				else if (pSrcPhrase->m_bHasGlossingKBEntry && pTU != NULL && pRefStr == NULL && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
 
@@ -22082,7 +22129,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						
 					// dialog for this is the revamped legacy ConsistencyCheckDlg.h &.cpp
 				}
-				else if (!pSrcPhrase->m_bHasGlossingKBEntry, pTU != NULL && pRefStr != NULL && bDeleted)
+				else if (!pSrcPhrase->m_bHasGlossingKBEntry, pTU != NULL && pRefStr == NULL && bDeleted)
 				{
 					bFoundTgtUnit = TRUE;
 

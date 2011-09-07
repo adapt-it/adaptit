@@ -59,7 +59,7 @@ public:
 	wxString		m_notInKBStr; // for <Not In KB>, that is, strNotInKB
 	bool			m_bDoAutoFix; // for the Auto-fix checkbox value
 	wxSizer*		pConsChk_exists_notu_dlgSizer; // not really needed
-	enum FixItAction action;
+	enum FixItAction actionTaken;
 	bool			m_bShowItCentered;
 	wxPoint			m_ptBoxTopLeft;
 	int				m_nTwoLineDepth;

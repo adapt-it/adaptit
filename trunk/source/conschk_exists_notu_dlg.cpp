@@ -91,7 +91,7 @@ void conschk_exists_notu_dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME2);
 	wxASSERT(m_pAutoFixChkBox != NULL);
 	m_pAutoFixChkBox->SetValue(FALSE); // start with it turned off
-	action = no_fix_needed; // temporary default, OnOK() will set it
+	actionTaken = no_fix_needed; // temporary default, OnOK() will set it
 
 	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_2);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
@@ -242,11 +242,11 @@ void conschk_exists_notu_dlg::OnOK(wxCommandEvent& event)
 	// set the fixit action
 	if (m_pStoreNormallyRadioBtn->GetValue())
 	{
-		action = store_nonempty_meaning;
+		actionTaken = store_nonempty_meaning;
 	}
 	else
 	{
-		action = make_it_Not_In_KB;
+		actionTaken = make_it_Not_In_KB;
 	}
 	event.Skip();
 }

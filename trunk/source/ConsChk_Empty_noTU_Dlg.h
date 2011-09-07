@@ -58,7 +58,7 @@ public:
 	wxString		m_noneOfThisStr; // for strNoAdapt or strNoGloss
 	bool			m_bDoAutoFix; // for the Auto-fix checkbox value
 	wxSizer*		pConsChk_Empty_noTU_DlgSizer; // whm 31Aug11 added, but BEW says it's not needed
-	enum FixItAction action;
+	enum FixItAction actionTaken;
 	bool			m_bShowItCentered;
 	wxPoint			m_ptBoxTopLeft;
 	int				m_nTwoLineDepth;

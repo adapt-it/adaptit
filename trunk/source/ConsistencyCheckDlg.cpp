@@ -617,6 +617,8 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 						// the dialog is dismissed with OnOK() 
 	gbIgnoreIt = FALSE;
 
+	// update m_adaptationStr from whatever is in the text box now
+	TransferDataFromWindow();
 	if (m_pRadioAcceptHere->GetValue())
 	{
 		// the original meaning is to be re-stored

@@ -93,7 +93,7 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME);
 	wxASSERT(m_pAutoFixChkBox != NULL);
 	m_pAutoFixChkBox->SetValue(FALSE); // start with it turned off
-	action = no_fix_needed; // temporary default, OnOK() will set it
+	actionTaken = no_fix_needed; // temporary default, OnOK() will set it
 
 	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_1);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
@@ -230,15 +230,15 @@ void ConsChk_Empty_noTU_Dlg::OnOK(wxCommandEvent& event)
 	// set the fixit action
 	if (m_pNoAdaptRadioBtn->GetValue())
 	{
-		action = store_empty_meaning;
+		actionTaken = store_empty_meaning;
 	}
 	else if (m_pLeaveHoleRadioBtn->GetValue())
 	{
-		action = turn_flag_off;
+		actionTaken = turn_flag_off;
 	}
 	else
 	{
-		action = make_it_Not_In_KB;
+		actionTaken = make_it_Not_In_KB;
 	}
 	event.Skip();
 }

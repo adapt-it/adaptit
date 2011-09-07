@@ -85,14 +85,14 @@ enum InconsistencyType {
 enum FixItAction {
 	no_fix_needed,
 
-	// next four are responses for member_empty_flag_on_noPTU, and 3rd response also is a
+	// next three are responses for member_empty_flag_on_noPTU, and 4th response is a
 	// possiblity for the member_exists_flag_off_noPTU case; the 1st response is also a
 	// possiblity for member_empty_flag_on_PTUexists_deleted_Refstr
 	turn_flag_off, // make m_bHasKBEntry or m_bHasGlossingKBEntry FALSE
 	make_it_Not_In_KB, // adjust flags, make CTargetUnit & add <Not In KB> (only available 
 					   // in adaptation mode)
-	store_nonempty_meaning, // store text for m_adaption or m_gloss
 	store_empty_meaning, // the <no adaptation> response, or <no gloss> response
+	store_nonempty_meaning, // store text for m_adaption or m_gloss
 
 
 	// next are responses (only two are possible) for member_exists_flag_off_noPTU (note, 
