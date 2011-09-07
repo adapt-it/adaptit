@@ -37,6 +37,7 @@
 //#include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h" // need this for AIModalDialog definition
 #include "Adapt_ItDoc.h"
+#include "Adapt_ItCanvas.h"
 #include "Adapt_It_wdr.h"
 #include "helpers.h"
 #include "ConsChk_Empty_noTU_Dlg.h"
@@ -152,8 +153,8 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 
 	// get the dialog to resize to the new label string lengths
 	int width = 0;
-	int height = 0;
-	this->GetSize(&width, &height);
+	int myheight = 0;
+	this->GetSize(&width, &myheight);
 	// use the difference value calculated above to widen the dialog window and then call
 	// Layout() to get the attached sizer hierarchy recalculated and laid out
 	int sizeFlags = 0;
@@ -176,6 +177,45 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	if (m_bShowItCentered)
 	{
 		this->Centre(wxHORIZONTAL);
+	}
+	// work out where to place the dialog window
+	wxRect rectScreen;
+	rectScreen = wxGetClientDisplayRect();
+
+	wxClientDC dc(gpApp->GetMainFrame()->canvas);
+	gpApp->GetMainFrame()->canvas->DoPrepareDC(dc);// adjust origin
+	gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also 
+										  // calls PrepareDC on the owning frame
+	int newXPos,newYPos;
+	// CalcScrolledPosition translates logical coordinates to device ones. 
+	gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
+											m_ptBoxTopLeft.y,&newXPos,&newYPos);
+	m_ptBoxTopLeft.x = newXPos;
+	m_ptBoxTopLeft.y = newYPos;
+	// we leave the width and height the same
+	gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,
+									&m_ptBoxTopLeft.y); // now it's screen coords
+	int height = m_nTwoLineDepth;
+	wxRect rectDlg;
+	GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window
+	rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
+	int dlgHeight = rectDlg.GetHeight();
+	int dlgWidth = rectDlg.GetWidth();
+	wxASSERT(dlgHeight > 0);
+	int left = (rectScreen.GetWidth() - dlgWidth)/2;
+	if (m_ptBoxTopLeft.y + height < rectScreen.GetBottom() - dlgHeight)
+	{
+        // put dlg near the bottom of screen (BEW modified 28Feb06 to have -80 rather than
+        // -30) because the latter value resulted in the bottom buttons of the dialog being
+        // hidden by the status bar at the screen bottom
+		//SetSize(left,rectScreen.GetBottom()-dlgHeight-80,540,132,wxSIZE_USE_EXISTING);
+		SetSize(left,rectScreen.GetBottom()-dlgHeight-80,wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
+	}
+	else
+	{
+		// put dlg at the top of the screen
+		//SetSize(left,rectScreen.GetTop()+40,540,132,wxSIZE_USE_EXISTING);
+		SetSize(left,rectScreen.GetTop()+40, wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
 	}
 
 	// It's a simple dialog, I'm not bothering with validators and TransferDataTo/FromWindow calls

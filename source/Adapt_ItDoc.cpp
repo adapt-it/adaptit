@@ -20263,7 +20263,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE; // this is a global boolean
 
-	//*
+	/*
 	// test dialogs
 	wxString titleStr = _("Inconsistency Found");
 	wxString aSrcStr = _T("Ye olde bandaid solution");
@@ -20369,10 +20369,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
-
-
-
-	//*/
+	*/
 
     // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
     // now added here & below. 
@@ -21585,15 +21582,67 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					case member_empty_flag_on_noPTU:
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
+						wxString titleStr = _("Inconsistency Found");
+						wxString aSrcStr = pSrcPhrase->m_key;
+						wxString aTgtStr = pSrcPhrase->m_adaption;
+						bool bShowItCentered = TRUE;
+						ConsChk_Empty_noTU_Dlg dlg(
+							(wxWindow*)gpApp->GetMainFrame(),
+							&titleStr,
+							&aSrcStr,
+							&gpApp->m_modeWordAdapt,
+							&gpApp->m_modeWordAdaptPlusArticle,
+							&gpApp->m_strNotInKB,
+							&gpApp->m_strNoAdapt,
+							bShowItCentered);
 
+						// provide hooks for the phrase box location so that the dialog can
+						// work out where to display itself so it does not obscure the active
+						// location
+						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
+						if (dlg.ShowModal() == wxID_OK)
+						{
+	// TODO	 & use  pSrcPhrase->m_bHasKBEntry = FALSE;						;
+						}
+						else
+						{
+							bUserCancelled = TRUE;
+							break;
+						}	
 						}
 						break;
 					case member_exists_flag_on_noPTU:
 					case member_exists_flag_off_noPTU:
 						{
+						wxString titleStr = _("Inconsistency Found");
+						wxString aSrcStr = pSrcPhrase->m_key;
+						wxString aTgtStr = pSrcPhrase->m_adaption;
+						bool bShowItCentered = TRUE;
+						conschk_exists_notu_dlg dlg(
+						(wxWindow*)gpApp->GetMainFrame(),
+						&titleStr,
+						&aSrcStr,
+						&aTgtStr,
+						&gpApp->m_strNotInKB,
+						bShowItCentered);
 
+						// provide hooks for the phrase box location so that the dialog can
+						// work out where to display itself so it does not obscure the active
+						// location
+						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
+						if (dlg.ShowModal() == wxID_OK)
+						{
+	// TODO	 & use  pSrcPhrase->m_bHasKBEntry = FALSE;						;
+						}
+						else
+						{
+							bUserCancelled = TRUE;
+							break;
+						}
 						}
 						break;
 					case member_exists_flag_on_PTUexists_deleted_Refstr:
@@ -22090,6 +22139,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						// not required
 						inconsistencyType = member_exists_flag_on_noPTU;
 						//pAutoFixRec->incType = inconsistencyType;
+						pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // <<-- required so we can store without an assert tripping
 						bool bStored;
 						bStored = pKB->StoreText(pSrcPhrase, gloss);
 						continue;
@@ -22303,15 +22353,48 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					case member_empty_flag_on_noPTU:
 					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
+						wxString titleStr = _("Inconsistency Found");
+						wxString aSrcStr = pSrcPhrase->m_key;
+						wxString aTgtStr = pSrcPhrase->m_gloss;
+						bool bShowItCentered = TRUE;
+						ConsChk_Empty_noTU_Dlg dlg(
+							(wxWindow*)gpApp->GetMainFrame(),
+							&titleStr,
+							&aSrcStr,
+							&gpApp->m_modeWordGloss,
+							&gpApp->m_modeWordGlossPlusArticle,
+							&gpApp->m_strNotInKB,
+							&gpApp->m_strNoGloss,
+							bShowItCentered);
 
+						// provide hooks for the phrase box location so that the dialog can
+						// work out where to display itself so it does not obscure the active
+						// location
+						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
+						if (dlg.ShowModal() == wxID_OK)
+						{
+	// TODO	 & use  pSrcPhrase->m_bHasGlossingKBEntry = FALSE;						;
+						}
+						else
+						{
+							bUserCancelled = TRUE;
+							break;
+						}
 						}
 						break;
 					case member_exists_flag_on_noPTU:
 					case member_exists_flag_off_noPTU:
 						{
+							//wxString titleStr = _("Inconsistency Found");
+							//wxString aSrcStr = pSrcPhrase->m_key;
+							//wxString aTgtStr = pSrcPhrase->m_gloss;
+							//bool bShowItCentered = TRUE;
 
-
+							// no GUI for this, the only option is to store it, and we
+							// don't need a GUI widget for that (it's done already)
+							;
 						}
 						break;
 					case member_exists_flag_on_PTUexists_deleted_Refstr:

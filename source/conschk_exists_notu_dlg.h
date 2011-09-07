@@ -61,6 +61,8 @@ public:
 	wxSizer*		pConsChk_exists_notu_dlgSizer; // not really needed
 	enum FixItAction action;
 	bool			m_bShowItCentered;
+	wxPoint			m_ptBoxTopLeft;
+	int				m_nTwoLineDepth;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
