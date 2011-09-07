@@ -20780,7 +20780,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						bUserCancelled = TRUE; // from within one of the dialogs shown
 											   // during DoConsistencyCheck()
 					}
-				}
+				} // end of TRUE block for test: if (bOK)
+
 				pApp->m_acceptedFilesList.Clear();
 				// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
 				// glossing mode
@@ -21456,7 +21457,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 			} // end of else block for test: if (bIsInKB)
 
-// ******* Inconsistency fixes (by AutoFixRecord or by dialog) begins here********
+// ******* Inconsistency fixes (by AutoFixRecord or by dialog) begins here ********
 
 			// open the dialog if we have an inconsistency 
 			if (bInconsistency)
@@ -22084,7 +22085,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 				// the rest below is for glosses -- whether empty or not
 				/* see below, this is the alternative we've rejected, in favour of "splitting a gloss" support
-
+				// keep this in case we later change our mind...
 				if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_gloss.IsEmpty() &&
 					pSrcPhrase->m_bHasGlossingKBEntry && bDeleted)
 				{
@@ -22222,7 +22223,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						// until such time as the dialog is shown and the user's
 						// fixit choice becomes known & replaces this value
 						
-						// *** DIALOG*** for this one is ConsChk_Empty_noTU_Dlg with the
+						// the dialog for this one is ConsChk_Empty_noTU_Dlg with the
 						// <Not In KB> option hidden
 
 					} // end of TRUE block for test: if (gloss.IsEmpty())
@@ -22258,174 +22259,99 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 			} // end of else block for test: if (bIsInKB)
 
+// ******* Inconsistency fixes (by AutoFixRecordG or by dialog) begins here ********
 
-
-
-
-
-
-
-
-
-
-// *** LEGACY CODE ***
-//*
 			// open the dialog if we have an inconsistency 
 			if (bInconsistency)
 			{
-
-
-
-/* do at point of store, not here
-
-				// make the CSourcePhrase instance is able to have a KB entry added ('not
-				// in kb' situation has been bled out above, so need not be considered here)
-				if (gbIsGlossing)
-					pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-				else
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-*/
-
                 // work out if this is an auto-fix item, if so, don't show the dialog, but
                 // use the stored AutoFixRecord to fix the inconsistency without user
                 // intervention
 				AutoFixRecordG* pAFGRecord = pAutoFixGRec;
 				if (MatchAutoFixGItem(&afgList, pSrcPhrase, pAFGRecord))
 				{
-
-// *** TODO ***
-
-
-					// we matched an auto-fix element, so do the fix automatically...
-					// update the original kb (not pKBCopy)
-					wxString tempStr = pAFGRecord->finalGloss; // could have punctuation in it
-
-					// if the adaptation is null, then assume user wants it that way and so store
-					// an empty string
-					if (tempStr.IsEmpty())
+					switch (pAFGRecord->incType)
 					{
-						// TRUE = allow saving empty adaptation
-						pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
-					}
-					else
-					{
-						if (!gbIsGlossing)
+					case member_empty_flag_on_noPTU:
+					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
-							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
-                                // we don't want punctuation in adaptation KB if
-                                // autocapitalization is ON, we could have an upper case
-                                // source, but the user may have typed lower case for
-                                // fixing the gloss or adaptation, but this is okay - the
-                                // store will work right, so don't need anything here
-                                // except the call to store it
-							pKB->StoreText(pSrcPhrase,tempStr);
-						}
-						// do the gbIsGlossing case when no punct is to be removed, in next block
-					}
-					if (!tempStr.IsEmpty())
-					{
-                        // here we must be careful; pAFRecord->finalAdaptation may have a
-                        // lower case string when the source text has upper case, and the
-                        // user is expecting the application to do the fix for him; this
-                        // would be easy if we could be sure that the first letter of the
-                        // string was at index == 0, but the possible presence of preceding
-                        // punctuation makes the assumption dangerous - so we must find
-                        // where the actual text starts and do any changes there if needed.
-                        // tempStr has punctuation stripped out, pAFRecord->finalAdaptation
-                        // doesn't, so start by determining if there actually is a problem
-                        // to be fixed.
-						if (gbAutoCaps)
-						{
-							bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
-							if (bNoError && gbSourceIsUpperCase)
+							// do the fixit action
+							switch (pAutoFixGRec->fixAction)
 							{
-								bNoError = SetCaseParameters(tempStr,FALSE); // FALSE means "it's target text"
-								if (bNoError && !gbNonSourceIsUpperCase &&
-									(gcharNonSrcUC != _T('\0')))
+							case turn_flag_off:
 								{
-                                    // source is upper case but nonsource is lower and is a
-                                    // character with an upper case equivalent - we have a
-                                    // problem; we need to fix the AutoFixRecord's
-                                    // finalAdaptation string, and the sourcephrase too. At
-                                    // this point we can fix the m_adaption member as
-                                    // follows:
-									pSrcPhrase->m_adaption.SetChar(0,gcharNonSrcUC);
+									pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // we've created a glossing "hole"
 								}
-							}
+								break;
+							case store_empty_meaning:
+								{
+									// make a <no gloss> entry in KB
+									pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pAutoFixGRec->finalGloss,TRUE);
+								}
+								break;
+							} // end of switch (pAutoFixRec->fixAction)
 						}
-                        // In the next if/else block, the non-glossing-mode call of
-                        // MakeTargetStringIncludingPunctuation() accomplishes the setting
-                        // of the pSrcPhrase's m_targetStr member, handling any needed
-                        // lower case to upper case conversion (even when typed initial
-                        // punctuation is present), and the punctuation override protocol
-                        // if the passed in string in the 2nd parameter has initial and/or
-                        // final punctuation.
-						if (!gbIsGlossing)
+						break;
+					case member_exists_flag_on_noPTU:
+					case member_exists_flag_off_noPTU:
 						{
-                            // for auto capitalization support,
-                            // MakeTargetStringIncludingPunctuation( ) is now able to do
-                            // any needed change to upper case initial letter even when
-                            // there is initial punctuation on pAFRecord->finalAdaptation
-							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
-															pAFGRecord->finalGloss);
+							; // nothing to do, the one option (a store) was done already
 						}
-						else
+						break;
+					case member_exists_flag_on_PTUexists_deleted_Refstr:
+					case member_exists_flag_off_PTUexists_deleted_RefStr:
 						{
-							// store, for the glossing ON case, the gloss text, 
-							// with any punctuation
-							pKB->StoreText(pSrcPhrase, pAFGRecord->finalGloss);
-							if (gbAutoCaps)
-							{
-                                 // upper case may be wanted, we have to do it on the first
-                                // character past any initial punctuation; glossing mode
-                                // doesn't do punctuation stripping and copying, but the
-                                // user may have punctuation included in the inconsistency
-                                // fixing string, so we have to check etc.
-								wxString str = pAFGRecord->finalGloss;
-								// make a copy and remove punctuation from it
-								wxString str_nopunct = str;
-								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
-								// use the punctuation-less string to get the initial charact and
-								// its upper case equivalent if it exists
-								bool bNoError = SetCaseParameters(str_nopunct,FALSE);
-															 // FALSE means "using target punct list"
-								// span punctuation-having str using target lang's punctuation...
-								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
-															// use our own SpanIncluding in helpers
-								int punctLen = strInitialPunct.Length();
+							// if the gloss is null, then assume user wants it that way
+							// and so store an empty string, else store whatever it is -- and
+							// since the actions all involve just a StoreText() call, we don't
+							// need a switch based on actionTaken in order to do what we need
+							// to do
+							wxString tempStr = pAutoFixGRec->finalGloss;
 
-								// work out if there is a case change needed, and set the
-								// relevant case globals
-								bNoError = SetCaseParameters(tempStr,FALSE);  
-													// FALSE means "it's target text"
-								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
-									&& (gcharNonSrcUC != _T('\0')))
-								{
-									if (strInitialPunct.IsEmpty())
-									{
-                                        // there is no initial punctuation, so the change
-                                        // to upper case can be done at the string's start
-										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
-									}
-									else
-									{
-										// set it at the first character past the initial
-										// punctuation
-										str.SetChar(punctLen,gcharNonSrcUC);
-										pSrcPhrase->m_gloss = str;
-									}
-								}
+							// update the original kb (not pKBCopy)
+							pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // makes the store call safe to do
+							if (tempStr.IsEmpty())
+							{
+								// TRUE = allow empty string storage
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+				
 							}
 							else
 							{
-								// no auto capitalization, so just use finalGloss 
-								// string 'as is'
-								pSrcPhrase->m_gloss = pAFGRecord->finalGloss;
+								pKB->StoreText(pSrcPhrase,tempStr);
 							}
+							if (gbAutoCaps)
+							{
+								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
+								if (bNoError && gbSourceIsUpperCase)
+								{
+									bNoError = SetCaseParameters(tempStr,FALSE); 
+															// FALSE means "it's target text"
+									if (bNoError && !gbNonSourceIsUpperCase && 
+										(gcharNonSrcUC != _T('\0')))
+									{
+										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC); 
+															// get m_adaption member done
+									}
+								}
+							}
+						} // end of TRUE block for test of ShowModal() == wxID_OK
+						break;
+					case is_Not_In_KB_but_flag_on:
+					case member_exists_flag_off_PTUexists_has_RefStr:
+					case undefined_inconsistency:
+					case no_inconsistency:
+					default:
+						{
+							// nothing to do, these are autofixed without needing any GUI
+							;
 						}
-					}
+						break;
+					} // end of switch (pAFGRecord->incType)  
+					
 					pApp->m_targetPhrase = pAFGRecord->finalGloss; // any brief glimpse
-							// of the box should show the current gloss, string
+						// of the box should show the current gloss string
 	
 				} // end of TRUE block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 				else
@@ -22438,11 +22364,6 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
                     // the dialog, return ptr to the phrase box's cell in the view
                     CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases, 
 																consistency_check_op);
-
-// *** TODO ****  switch here for the various dialogs...
-
-
-
 					switch (pAFGRecord->incType)
 					{
 					case member_empty_flag_on_noPTU:
@@ -22470,7 +22391,34 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 						if (dlg.ShowModal() == wxID_OK)
 						{
-	// TODO	 & use  pSrcPhrase->m_bHasGlossingKBEntry = FALSE;						;
+							// get and store the FixItAction
+							pAutoFixGRec->fixAction = dlg.actionTaken;
+							//pAutoFixGRec->finalGloss is already set
+
+							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+							// subsequent use
+							if (dlg.m_bDoAutoFix)
+							{
+								bAddedToAFGList = TRUE; // <<- BEW added 30Aug11, the new code needs it
+								afgList.Append(pAutoFixGRec);
+							} 
+							
+							// do the fixit action
+							switch (pAutoFixGRec->fixAction)
+							{
+							case turn_flag_off:
+								{
+									pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // we've created a glossing "hole"
+								}
+								break;
+							case store_empty_meaning:
+								{
+									// make a <no gloss> entry in KB
+									pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // enable an error-less store
+									pKB->StoreText(pSrcPhrase,pAutoFixGRec->finalGloss,TRUE);
+								}
+								break;
+							} // end of switch (pAutoFixRec->fixAction)
 						}
 						else
 						{
