@@ -91,14 +91,14 @@ enum FixItAction {
 	turn_flag_off, // make m_bHasKBEntry or m_bHasGlossingKBEntry FALSE
 	make_it_Not_In_KB, // adjust flags, make CTargetUnit & add <Not In KB> (only available 
 					   // in adaptation mode)
-	store_nonempty_meaning, // make CTargetUnit & add text for m_adaption or m_gloss
+	store_nonempty_meaning, // store text for m_adaption or m_gloss
 	store_empty_meaning, // the <no adaptation> response, or <no gloss> response
 
 
 	// next are responses (only two are possible) for member_exists_flag_off_noPTU (note, 
 	// includes also the 3rd response for the member_empty_flag_on_noPTU - but only when 
 	// m_bNotInKB was FALSE)
-	turn_flag_on, // make m_bHasKBEntry or m_bHasGlossingKBEnty TRUE, make CTargetUnit, add entry
+	turn_flag_on, // make m_bHasKBEntry or m_bHasGlossingKBEnty TRUE, & do StoreText()
 
     // next are the responses for member_empty_flag_on_PTUexists_deleted_Refstr (three
     // only), one is turn_flag_off, another is make_it_an_empty_entry, and another is
@@ -108,12 +108,12 @@ enum FixItAction {
 	// this is the situation when the user deliberately removes from the KB a meaning, and
 	// then does a consistency check, in order find all places where the removed meaning
 	// occurred in order to be able to give contextually different meanings. Responses are:
-	// make_it_Not_In_KB, make_it_an_empty_entry, typed_meaning, or)
+	// store_empty_meaning, store_nonempty_meaning, or)
 	undelete_Refstr, // an "accept the old meaning in this location" response in the GUI
 
 	// next are the responses for member_exists_flag_off_PTUexists_deleted_RefStr; there
-	// are three, make_it_Not_In_KB (keep member), make_it_an_empty_entry, turn_flag_on 
-	// (which also has to undelete_Refstr) -- no new fix-it actions needed
+	// are three, (we choose to handle it by the 'split' dialog) store_empty_meaning, 
+	// store_nonempty_meaning, or restore_meaning_to_doc -- so no new fix-it actions needed
 };
 
 // struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;
@@ -472,6 +472,8 @@ public:
 	// glossing KBs, and internally, the data accessed will be m_gloss, not m_adaption
 	bool	DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFGList& afList,
 					int& nCumulativeTotal);
+	CCell* 	LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
+					SPList* pPhrases, enum doc_edit_op op);
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec);
 			// this next one is a variant used for matching AutoFixRecordG for glosses
 	bool	MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecordG*& rpRec);

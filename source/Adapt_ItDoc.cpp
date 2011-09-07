@@ -21509,18 +21509,15 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					}
 					else
 					{
-						if (!gbIsGlossing)
-						{
-							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
-                                // we don't want punctuation in adaptation KB if
-                                // autocapitalization is ON, we could have an upper case
-                                // source, but the user may have typed lower case for
-                                // fixing the gloss or adaptation, but this is okay - the
-                                // store will work right, so don't need anything here
-                                // except the call to store it
-							pKB->StoreText(pSrcPhrase,tempStr);
-						}
-						// do the gbIsGlossing case when no punct is to be removed, in next block
+
+						pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text); 
+                        // we don't want punctuation in adaptation KB if
+                        // autocapitalization is ON, we could have an upper case
+                        // source, but the user may have typed lower case for
+                        // fixing the gloss or adaptation, but this is okay - the
+                        // store will work right, so don't need anything here
+                        // except the call to store it
+						pKB->StoreText(pSrcPhrase,tempStr);
 					}
 					if (!tempStr.IsEmpty())
 					{
@@ -21553,79 +21550,21 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								}
 							}
 						}
-                        // In the next if/else block, the non-glossing-mode call of
-                        // MakeTargetStringIncludingPunctuation() accomplishes the setting
-                        // of the pSrcPhrase's m_targetStr member, handling any needed
-                        // lower case to upper case conversion (even when typed initial
-                        // punctuation is present), and the punctuation override protocol
-                        // if the passed in string in the 2nd parameter has initial and/or
-                        // final punctuation.
-						if (!gbIsGlossing)
-						{
-                            // for auto capitalization support,
-                            // MakeTargetStringIncludingPunctuation( ) is now able to do
-                            // any needed change to upper case initial letter even when
-                            // there is initial punctuation on pAFRecord->finalAdaptation
-							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
+                        // the call of MakeTargetStringIncludingPunctuation() accomplishes
+                        // the setting of the pSrcPhrase's m_targetStr member, handling any
+                        // needed lower case to upper case conversion (even when typed
+                        // initial punctuation is present), and the punctuation override
+                        // protocol if the passed in string in the 2nd parameter has
+                        // initial and/or final punctuation.
+                        // For auto capitalization support,
+                        // MakeTargetStringIncludingPunctuation( ) is now able to do any
+                        // needed change to upper case initial letter even when there is
+                        // initial punctuation on pAFRecord->finalAdaptation
+						pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, 
 															pAFRecord->finalAdaptation);
-						}
-						else
-						{
-							// store, for the glossing ON case, the gloss text, 
-							// with any punctuation
-							pKB->StoreText(pSrcPhrase, pAFRecord->finalAdaptation);
-							if (gbAutoCaps)
-							{
-                                 // upper case may be wanted, we have to do it on the first
-                                // character past any initial punctuation; glossing mode
-                                // doesn't do punctuation stripping and copying, but the
-                                // user may have punctuation included in the inconsistency
-                                // fixing string, so we have to check etc.
-								wxString str = pAFRecord->finalAdaptation;
-								// make a copy and remove punctuation from it
-								wxString str_nopunct = str;
-								pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
-								// use the punctuation-less string to get the initial charact and
-								// its upper case equivalent if it exists
-								bool bNoError = SetCaseParameters(str_nopunct,FALSE);
-															 // FALSE means "using target punct list"
-								// span punctuation-having str using target lang's punctuation...
-								wxString strInitialPunct = SpanIncluding(str,pApp->m_punctuation[1]);
-															// use our own SpanIncluding in helpers
-								int punctLen = strInitialPunct.Length();
-
-								// work out if there is a case change needed, and set the
-								// relevant case globals
-								bNoError = SetCaseParameters(tempStr,FALSE);  
-															// FALSE means "it's target text"
-								if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
-									&& (gcharNonSrcUC != _T('\0')))
-								{
-									if (strInitialPunct.IsEmpty())
-									{
-                                        // there is no initial punctuation, so the change
-                                        // to upper case can be done at the string's start
-										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
-									}
-									else
-									{
-										// set it at the first character past the initial
-										// punctuation
-										str.SetChar(punctLen,gcharNonSrcUC);
-										pSrcPhrase->m_gloss = str;
-									}
-								}
-							}
-							else
-							{
-								// no auto capitalization, so just use finalAdaptation 
-								// string 'as is'
-								pSrcPhrase->m_gloss = pAFRecord->finalAdaptation;
-							}
-						}
 					}
 					pApp->m_targetPhrase = pAFRecord->finalAdaptation; // any brief glimpse
-							// of the box should show the current adaptation, or gloss, string
+						// of the box should show the current adaptation string
 	
 				} // end of TRUE block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 				else
@@ -21633,172 +21572,84 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// no match, so this is has to be handled with user intervention via
 					// the dialogs
 					
-
-
-
-
-// *** TODO ****
-
-
-
-
-					CConsistencyCheckDlg dlg(pApp->GetMainFrame());
-
-					dlg.m_bFoundTgtUnit = bFoundTgtUnit;
-					dlg.m_bDoAutoFix = FALSE;
-					dlg.m_pApp = pApp;
-					dlg.m_pKBCopy = pKBCopy;
-					dlg.m_pTgtUnit = pTU; // could be null
-					dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
-					dlg.m_pSrcPhrase = pSrcPhrase;
-
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
-                    // the dialog
-					int nActiveSequNum = pSrcPhrase->m_nSequNumber;
-					wxASSERT(nActiveSequNum >= 0);
-					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
-					// and is needed because CLayout::RecalcLayout() relies on the
-					// m_nActiveSequNum value being correct
-#ifdef _NEW_LAYOUT
-					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
-#else
-					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
-#endif
-					pApp->m_pActivePile = GetPile(nActiveSequNum);
-					
-					pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
-					CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
-															 // the phraseBox is to be
-					// make it look normal, don't use m_targetStr here
-					pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+                    // the dialog, return ptr to the phrase box's cell in the view
+                    CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases, 
+																consistency_check_op);
 
-					GetLayout()->m_docEditOperationType = consistency_check_op;
-														// sets 0,-1 'select all'
-					pApp->GetView()->Invalidate(); // get the layout drawn
-					GetLayout()->PlaceBox();
+// *** TODO ****  switch here for the various dialogs...
 
-					// get the chapter and verse
-					wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
-					dlg.m_chVerse = chVerse;
-
-                    // provide hooks for the phrase box location so that the dialog can
-                    // work out where to display itself so it does not obscure the active
-                    // location
-					dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-					dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
-
-// *** TODO *** remove these 7 lines once DoConsistencyCheckG() is coded
-					if (gbIsGlossing)
+					switch (pAFRecord->incType)
 					{
-						// really its three lines, but the code works provided the 
-						// height is right
-						if (gbGlossingUsesNavFont)
-							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
-					}
-
-					// put up the dialog
-					if (dlg.ShowModal() == wxID_OK)
-					{
-						// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
-						// subsequent use
-						wxString finalStr;
-						AutoFixRecord* pRec;
-						if (dlg.m_bDoAutoFix)
+					case member_empty_flag_on_noPTU:
+					case member_empty_flag_on_PTUexists_deleted_Refstr:
 						{
-//							if (gbIgnoreIt)
-								// disallow record creation for a press of the "Ignore it,
-								// I will fix it later" button
-//								goto x;
-							//pRec = new AutoFixRecord;
-							pRec = pAutoFixRec;
-
-// *** TODO **** need switch etc.
 
 
-							pRec->key = pSrcPhrase->m_key; // case should be as wanted
-
-							pRec->oldAdaptation = pSrcPhrase->m_adaption; // case as wanted
-							pRec->nWords = pSrcPhrase->m_nSrcWords;
-
-
-                            // BEW changed 16May; we don't want to convert the
-                            // m_finalAdaptation member to upper case in ANY circumstances,
-                            // so we will comment out the relevant lines here and
-                            // unilaterally use the user's final string
-							finalStr = dlg.m_finalAdaptation; // can have punctuation
-									// in it, or can be null; can also be lower case and user
-									// expects the app to switch it to upper case if source is upper
-							pRec->finalAdaptation = finalStr;
-
-							bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
-							afList.Append(pRec);
-
-						} // end of block for storing the AutoFixRecord for reuse in subsequent iterations
-
-						// update the original kb (not pKBCopy)
-						//finalStr = dlg.m_finalAdaptation; // could have punctuation
-								// in it and it could be gloss text or adaptation text
-
-                        // if the adaptation is null, then assume user wants it that way
-                        // and so store an empty string, else store whatever it is
-						wxString tempStr = dlg.m_finalAdaptation;
-
-						if (gbIsGlossing)
+						}
+						break;
+					case member_exists_flag_on_noPTU:
+					case member_exists_flag_off_noPTU:
 						{
+
+
+						}
+						break;
+					case member_exists_flag_on_PTUexists_deleted_Refstr:
+					case member_exists_flag_off_PTUexists_deleted_RefStr:
+						{
+						// The revamped legacy dialog - now simplified
+						CConsistencyCheckDlg dlg(pApp->GetMainFrame());
+						dlg.m_bFoundTgtUnit = bFoundTgtUnit;
+						dlg.m_bDoAutoFix = FALSE;
+						dlg.m_pApp = pApp;
+						dlg.m_pKBCopy = pKBCopy;
+						dlg.m_pTgtUnit = pTU; // could be null
+						dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+						dlg.m_pSrcPhrase = pSrcPhrase;
+						// get the chapter and verse
+						wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
+						dlg.m_chVerse = chVerse;
+
+						// provide hooks for the phrase box location so that the dialog can
+						// work out where to display itself so it does not obscure the active
+						// location
+						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+
+						// put up the dialog
+						if (dlg.ShowModal() == wxID_OK)
+						{
+							// get and store the FixItAction (all 3 possibilities are storage
+							// actions: store_nonempty_meaning, store_empty_meaning, or
+							// restore_meaning_to_doc); also get the user's final string
+							pAutoFixRec->fixAction = dlg.actionTaken;
+							pAutoFixRec->finalAdaptation = dlg.m_finalAdaptation;
+
+							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+							// subsequent use
+							if (dlg.m_bDoAutoFix)
+							{
+								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
+								afList.Append(pAutoFixRec);
+							} 
+							
+							// if the adaptation is null, then assume user wants it that way
+							// and so store an empty string, else store whatever it is -- and
+							// since the actions all involve just a StoreText() call, we don't
+							// need a switch based on actionTaken in order to do what we need
+							// to do
+							wxString tempStr = dlg.m_finalAdaptation;
+							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
+
+							// update the original kb (not pKBCopy)
+							pSrcPhrase->m_bHasKBEntry = FALSE; // <<-- makes the StoreText() call safe to do
 							if (tempStr.IsEmpty())
 							{
 								// TRUE = allow empty string storage
-								pKB->StoreText(pSrcPhrase, tempStr, TRUE); 
-									// StoreText() sets m_gloss for glossing KB					
-							}
-							else
-							{
-								// glossing store can have punctuation in it
-								pKB->StoreText(pSrcPhrase, tempStr); 
-									// StoreText() sets m_gloss for glossing KB					
-
-								// now handle what the doc has
-								if (gbAutoCaps)
-								{
-									// if Auto Caps is on, gloss text can be auto 
-									// capitalized too, but it would be only if there was
-									// no initial punctuation (since no punctuation
-									// stripping happens in glossing mode), so we only
-									// might capitalize so long as there is no initial
-									// punctuation
-									wxString str_nopunct = tempStr;
-									pApp->GetView()->RemovePunctuation(this,&str_nopunct,from_target_text);
-									bool bNoError = SetCaseParameters(str_nopunct,FALSE);
-												// FALSE means "using target punct list"
-									wxString strInitialPunct = SpanIncluding(
-														tempStr,pApp->m_punctuation[1]);
-									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE 
-													// means "using target punct list"
-									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
-										&& (gcharNonSrcUC != _T('\0')))
-									{
-										if (strInitialPunct.IsEmpty())
-										{
-											// we need to capitalize
-											pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
-										}
-									}
-								} // end of TRUE block for test: if (gbAutoCaps)
-
-							} // end of else block for test: if (tempStr.IsEmpty())
-
-						} // end of TRUE block for test: if (gbIsGlossing)
-						else
-						{
-							// adapting mode...
-							
-							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
-
-							if (tempStr.IsEmpty())
-							{
 								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
-											// TRUE = allow empty string storage
+				
 							}
 							else
 							{
@@ -21820,17 +21671,33 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								}
 							}
 							// this call handles auto caps, punctuation, etc
-							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase,finalStr);
-
-						} // end of else block for test: if (gbIsGlossing)
-
-					} // end of TRUE block for test of ShowModal() == wxID_OK
-					else
-					{
-						// user cancelled
-						bUserCancelled = TRUE;
+							pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, pAutoFixRec->finalAdaptation);
+						} // end of TRUE block for test of ShowModal() == wxID_OK
+						else
+						{
+							// user cancelled
+							bUserCancelled = TRUE;
+							break;
+						}
+						}
 						break;
+					case is_Not_In_KB_but_flag_on:
+					case member_exists_flag_off_PTUexists_has_RefStr:
+					case undefined_inconsistency:
+					case no_inconsistency:
+					default:
+						{
+							// nothing to do, these are autofixed without needing any GUI
+							;
+						}
+						break;
+					} // end of switch (pAFRecord->incType)  
+					if (bUserCancelled)
+					{
+						break; // again, this time from the consistency check loop for 
+							   // this doc, so that code below can cancel the overall check
 					}
+
 				}  // end of else block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 
 			} // end of TRUE block for test: if (bInconsistency)
@@ -22264,8 +22131,6 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 
 
-
-
 /* do at point of store, not here
 
 				// make the CSourcePhrase instance is able to have a KB entry added ('not
@@ -22423,113 +22288,85 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// no match, so this is has to be handled with user intervention via
 					// the dialogs
 					
-
-
-
-
-// *** TODO ****
-
-
-
-
-					CConsistencyCheckDlg dlg(pApp->GetMainFrame());
-
-					dlg.m_bFoundTgtUnit = bFoundTgtUnit;
-					dlg.m_bDoAutoFix = FALSE;
-					dlg.m_pApp = pApp;
-					dlg.m_pKBCopy = pKBCopy;
-					dlg.m_pTgtUnit = pTU; // could be null
-					dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
-					dlg.m_pSrcPhrase = pSrcPhrase;
-
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
-                    // the dialog
-					int nActiveSequNum = pSrcPhrase->m_nSequNumber;
-					wxASSERT(nActiveSequNum >= 0);
-					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
-					// and is needed because CLayout::RecalcLayout() relies on the
-					// m_nActiveSequNum value being correct
-#ifdef _NEW_LAYOUT
-					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
-#else
-					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
-#endif
-					pApp->m_pActivePile = GetPile(nActiveSequNum);
-					
-					pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
-					CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
-															 // the phraseBox is to be
-					// make it look normal, don't use m_targetStr here
-					pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+                    // the dialog, return ptr to the phrase box's cell in the view
+                    CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases, 
+																consistency_check_op);
 
-					GetLayout()->m_docEditOperationType = consistency_check_op;
-														// sets 0,-1 'select all'
-					pApp->GetView()->Invalidate(); // get the layout drawn
-					GetLayout()->PlaceBox();
+// *** TODO ****  switch here for the various dialogs...
 
-					// get the chapter and verse
-					wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
-					dlg.m_chVerse = chVerse;
 
-                    // provide hooks for the phrase box location so that the dialog can
-                    // work out where to display itself so it does not obscure the active
-                    // location
-					dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-					dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
-					if (gbIsGlossing)
+					switch (pAFGRecord->incType)
 					{
-						// really its three lines, but the code works provided the 
-						// height is right
+					case member_empty_flag_on_noPTU:
+					case member_empty_flag_on_PTUexists_deleted_Refstr:
+						{
+
+
+						}
+						break;
+					case member_exists_flag_on_noPTU:
+					case member_exists_flag_off_noPTU:
+						{
+
+
+						}
+						break;
+					case member_exists_flag_on_PTUexists_deleted_Refstr:
+					case member_exists_flag_off_PTUexists_deleted_RefStr:
+						{
+						// The revamped legacy dialog - now simplified
+						CConsistencyCheckDlg dlg(pApp->GetMainFrame());
+						dlg.m_bFoundTgtUnit = bFoundTgtUnit;
+						dlg.m_bDoAutoFix = FALSE;
+						dlg.m_pApp = pApp;
+						dlg.m_pKBCopy = pKBCopy;
+						dlg.m_pTgtUnit = pTU; // could be null
+						dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+						dlg.m_pSrcPhrase = pSrcPhrase;
+						// get the chapter and verse
+						wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
+						dlg.m_chVerse = chVerse;
+
+						// provide hooks for the phrase box location so that the dialog can
+						// work out where to display itself so it does not obscure the active
+						// location
+						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+
+						// only glossing needs this test; really its three lines, but the code
+						// works provided the height is right
 						if (gbGlossingUsesNavFont)
 							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
-					}
 
-					// put up the dialog
-					if (dlg.ShowModal() == wxID_OK)
-					{
-						// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
-						// subsequent use
-						wxString finalStr;
-						AutoFixRecordG* pRec;
-						if (dlg.m_bDoAutoFix)
+						// put up the dialog
+						if (dlg.ShowModal() == wxID_OK)
 						{
-							pRec = pAutoFixGRec;
+							// get and store the FixItAction (all 3 possibilities are storage
+							// actions: store_nonempty_meaning, store_empty_meaning, or
+							// restore_meaning_to_doc); also get the user's final string 
+							pAutoFixGRec->fixAction = dlg.actionTaken;
+							pAutoFixGRec->finalGloss = dlg.m_finalAdaptation;
 
-// *** TODO **** need switch etc.
+							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
+							// subsequent use
+							if (dlg.m_bDoAutoFix)
+							{
+								bAddedToAFGList = TRUE; // <<- BEW added 30Aug11, the new code needs it
+								afgList.Append(pAutoFixGRec);
+							} 
 
+							// if the adaptation is null, then assume user wants it that way
+							// and so store an empty string, else store whatever it is -- and
+							// since the actions all involve just a StoreText() call, we don't
+							// need a switch based on actionTaken in order to do what we need
+							// to do
+							wxString tempStr = dlg.m_finalAdaptation;
 
-							pRec->key = pSrcPhrase->m_key; // case should be as wanted
-
-							pRec->oldGloss = pSrcPhrase->m_gloss; // case as wanted
-							pRec->nWords = pSrcPhrase->m_nSrcWords;
-
-
-                            // BEW changed 16May; we don't want to convert the
-                            // m_finalAdaptation member to upper case in ANY circumstances,
-                            // so we will comment out the relevant lines here and
-                            // unilaterally use the user's final string
-							finalStr = dlg.m_finalAdaptation; // can have punctuation
-									// in it, or can be null; can also be lower case and user
-									// expects the app to switch it to upper case if source is upper
-							pRec->finalGloss = finalStr;
-
-							bAddedToAFGList = TRUE; // <<- BEW added 30Aug11, the new code needs it
-							afgList.Append(pRec);
-
-						} // end of block for storing the AutoFixRecord for reuse in subsequent iterations
-
-						// update the original kb (not pKBCopy)
-						//finalStr = dlg.m_finalAdaptation; // could have punctuation
-								// in it and it could be gloss text or adaptation text
-
-                        // if the adaptation is null, then assume user wants it that way
-                        // and so store an empty string, else store whatever it is
-						wxString tempStr = dlg.m_finalAdaptation;
-
-						if (gbIsGlossing)
-						{
+							// update the original kb (not pKBCopy)
+							pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // <<-- makes the StoreText() call safe to do
 							if (tempStr.IsEmpty())
 							{
 								// TRUE = allow empty string storage
@@ -22572,21 +22409,32 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 							} // end of else block for test: if (tempStr.IsEmpty())
 
-						} // end of TRUE block for test: if (gbIsGlossing)
+						} // end of TRUE block for test of ShowModal() == wxID_OK
 						else
 						{
-							// adapting mode...
-							;
-
-						} // end of else block for test: if (gbIsGlossing)
-
-					} // end of TRUE block for test of ShowModal() == wxID_OK
-					else
-					{
-						// user cancelled
-						bUserCancelled = TRUE;
+							// user cancelled
+							bUserCancelled = TRUE;
+							break;
+						}
+						}
 						break;
+					case is_Not_In_KB_but_flag_on:
+					case member_exists_flag_off_PTUexists_has_RefStr:
+					case undefined_inconsistency:
+					case no_inconsistency:
+					default:
+						{
+							// nothing to do, these are autofixed without needing any GUI
+							;
+						}
+						break;
+					} // end of switch (pAFRecord->incType)  
+					if (bUserCancelled)
+					{
+						break; // again, this time from the consistency check loop for 
+							   // this doc, so that code below can cancel the overall check
 					}
+
 				}  // end of else block for test: if (MatchAutoFixItem(&afgList, pSrcPhrase, pAFRecordG))
 
 			} // end of TRUE block for test: if (bInconsistency)
@@ -22638,6 +22486,37 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 	return TRUE;
+}
+
+// BEW created 7Sep11, to get the layout redrawn at the new box position when it has moved
+// to an inconsistency found in either DoConsistencyCheck() or DoConsistencyCheckG() - the
+// latter one is used in Glossing mode; return ref to CCell pointer for the top left of
+// where the phrase box will be in the view, via pCell param.
+CCell* CAdapt_ItDoc::LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
+					SPList* pPhrases, enum doc_edit_op op)
+{
+	int nActiveSequNum = pSrcPhrase->m_nSequNumber;
+	wxASSERT(nActiveSequNum >= 0);
+	pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
+	// and is needed because CLayout::RecalcLayout() relies on the
+	// m_nActiveSequNum value being correct
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pPhrases, create_strips_keep_piles);
+#endif
+	pApp->m_pActivePile = GetPile(nActiveSequNum);
+	
+	pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
+	CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
+											 // the phraseBox is to be
+	// make it look normal, don't use m_targetStr here
+	pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+
+	GetLayout()->m_docEditOperationType = op; // sets 0,-1 'select all'
+	pApp->GetView()->Invalidate(); // get the layout drawn
+	GetLayout()->PlaceBox();
+	return pCell;
 }
 
 

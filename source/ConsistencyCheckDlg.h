@@ -91,6 +91,8 @@ public:
 	wxStaticBoxSizer* pDoOneOf_Sizer;
 	wxStaticBox* pStatBox_DoOneOf;
 
+	enum FixItAction actionTaken;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
