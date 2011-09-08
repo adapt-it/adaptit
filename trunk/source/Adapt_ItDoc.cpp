@@ -20012,6 +20012,11 @@ wxString CAdapt_ItDoc::GetCurrentDirectory()
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdateUIEvent& event)
 {
+	// whm added 5Sep11 disable receiving of sync scroll messages during PT/BE collaboration
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -20085,6 +20090,8 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event)
 {
+	// whm Note: 5Sep11 the sending of sync scroll messages during PT/BE collaboration should
+	// be OK
 	// the feature can be enabled only if we are in a project
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 #ifndef __WXMSW__

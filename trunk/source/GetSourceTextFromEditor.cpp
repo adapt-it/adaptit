@@ -55,6 +55,8 @@
 #include "WaitDlg.h"
 #include "GetSourceTextFromEditor.h"
 
+extern const wxString createNewProjectInstead;
+
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
@@ -74,6 +76,9 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
 	EVT_RADIOBOX(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, CGetSourceTextFromEditorDlg::OnRadioBoxSelected)
+	EVT_COMBOBOX(ID_COMBO_AI_PROJECTS, CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject)
+	EVT_TEXT(ID_TEXTCTRL_SRC_LANG_NAME, CGetSourceTextFromEditorDlg::OnEnChangeSrcLangName)
+	EVT_TEXT(ID_TEXTCTRL_TGT_LANG_NAME, CGetSourceTextFromEditorDlg::OnEnChangeTgtLangName)
 END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
@@ -84,7 +89,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	GetSourceTextFromEditorDlgFunc(this, TRUE, TRUE);
+	pGetSourceTextFromEditorSizer = GetSourceTextFromEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
@@ -102,6 +107,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 	pComboFreeTransProjectName = (wxComboBox*)FindWindowById(ID_COMBO_FREE_TRANS_PROJECT_NAME);
 	wxASSERT(pComboFreeTransProjectName != NULL);
+
+	pComboAiProjects = (wxComboBox*)FindWindowById(ID_COMBO_AI_PROJECTS);
+	wxASSERT(pComboAiProjects != NULL);
 
 	pRadioBoxChapterOrBook = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
 	wxASSERT(pRadioBoxChapterOrBook != NULL);
@@ -127,7 +135,38 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 
 	pBtnNoFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_NO_FREE_TRANS);
 	wxASSERT(pBtnNoFreeTrans != NULL);
+	
+	pStaticGetSrcFromThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT);
+	wxASSERT(pStaticGetSrcFromThisProj != NULL);
 
+	pStaticTransTgtToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TARGET_TO_THIS_PROJECT);
+	wxASSERT(pStaticTransTgtToThisProj != NULL);
+
+	pStaticTransFtToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TO_THIS_FT_PROJECT);
+	wxASSERT(pStaticTransFtToThisProj != NULL);
+
+	pTextCtrlAsStaticNewAIProjName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_AI_PROJ_NAME);
+	wxASSERT(pTextCtrlAsStaticNewAIProjName != NULL);
+	pTextCtrlAsStaticNewAIProjName->SetBackgroundColour(sysColorBtnFace);
+
+	pTextCtrlSourceLanguageName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SRC_LANG_NAME);
+	wxASSERT(pTextCtrlSourceLanguageName != NULL);
+
+	pTextCtrlTargetLanguageName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_NAME);
+	wxASSERT(pTextCtrlTargetLanguageName != NULL);
+
+	pStaticTextEnterLangNames = (wxStaticText*)FindWindowById(ID_TEXT_ENTER_LANG_NAME);
+	wxASSERT(pStaticTextEnterLangNames != NULL);
+
+	pStaticTextNewAIProjName = (wxStaticText*)FindWindowById(ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME);
+	wxASSERT(pStaticTextNewAIProjName != NULL);
+
+	pStaticTextSrcLangName = (wxStaticText*)FindWindowById(ID_TEXT_SRC_NAME_LABEL);
+	wxASSERT(pStaticTextSrcLangName != NULL);
+
+	pStaticTextTgtLangName = (wxStaticText*)FindWindowById(ID_TEXT_TGT_NAME_LABEL);
+	wxASSERT(pStaticTextTgtLangName != NULL);
+	
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	// other attribute initializations
@@ -153,13 +192,28 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	title = title.Format(title,this->m_collabEditorName.c_str());
 	this->SetTitle(title);
 
+	wxString text  = pStaticGetSrcFromThisProj->GetLabel();
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pStaticGetSrcFromThisProj->SetLabel(text);
+
+	text = pStaticTransTgtToThisProj->GetLabel();
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pStaticTransTgtToThisProj->SetLabel(text);
+
+	text = pStaticTransFtToThisProj->GetLabel();
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pStaticTransFtToThisProj->SetLabel(text);
+
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
+	m_TempCollabAIProjectName = m_pApp->m_CollabAIProjectName;
 	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
+	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName; // whm added 4Sep11
+	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName; // whm added 4Sep11
 
 	if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
@@ -273,6 +327,49 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 	
+	pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+	pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+	
+	// Load potential AI projects into the pComboAiProjects combo box, and in the process
+	// check for the existence of the aiProjectFolder project. Select it if it is in the
+	// list.
+	wxArrayString aiProjectNamesArray;
+	bool bAiProjectFound = FALSE;
+	int indexOfFoundProject = wxNOT_FOUND;
+	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
+	aiProjectNamesArray.Sort();
+	
+	// const wxString createNewProjectInstead = _("<Create a new project instead>");
+	// insert the "<Create a new project instead>" item at the beginning
+	// of the sorted list of AI projects
+	aiProjectNamesArray.Insert(createNewProjectInstead,0);
+	
+	wxString aiProjectFolder = _T("");
+	// Get an AI project name. 
+	// Note: This assumes that the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
+	// and m_TempCollabTargetProjLangName, are set from the basic config file because
+	// at this point in InitDialog, only the basic config file will have been read in.
+	aiProjectFolder = GetAIProjectFolderForCollab(m_TempCollabAIProjectName, 
+				m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName, 
+				m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports);
+
+	// Locate and select the aiProjectFolder
+	pComboAiProjects->Clear();
+	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
+	{
+		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
+		if (aiProjectNamesArray.Item(ct) == aiProjectFolder)
+		{
+			// workFolder exists as an AI project folder
+			indexOfFoundProject = ct;
+			bAiProjectFound = TRUE;
+		}
+	}
+	if (indexOfFoundProject != wxNOT_FOUND)
+	{
+		pComboAiProjects->Select(indexOfFoundProject);
+	}
+
 	if (!bTwoOrMoreProjectsInList)
 	{
 		// This error is not likely to happen so use English message
@@ -292,6 +389,16 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		abort();
 		return;
 	}
+
+	// hide the Source Language Name fields, Target Language Name fields and New AI proj fields
+	// and related labels
+	pStaticTextEnterLangNames->Hide();
+	pStaticTextSrcLangName->Hide();
+	pTextCtrlSourceLanguageName->Hide();
+	pStaticTextTgtLangName->Hide();
+	pTextCtrlTargetLanguageName->Hide();
+	pStaticTextNewAIProjName->Hide();
+	pTextCtrlAsStaticNewAIProjName->Hide();
 
 	wxString strProjectNotSel;
 	strProjectNotSel.Empty();
@@ -462,6 +569,47 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		return; // don't accept any changes until a chapter is selected
 	}
 
+	// whm added 7Sep11. The user may have changed the AI project to collaborate with
+	// or changed the source language or target langauge names, so ensure that
+	// we have the current values. But, do this only if the admin/user selected
+	// <Create a new project instead> in the combo box.
+	if (pComboAiProjects->GetStringSelection() == createNewProjectInstead)
+	{
+		m_TempCollabSourceProjLangName = pTextCtrlSourceLanguageName->GetValue();
+		m_TempCollabTargetProjLangName = pTextCtrlTargetLanguageName->GetValue();
+		m_TempCollabAIProjectName = m_TempCollabSourceProjLangName + _T(" to ") + m_TempCollabTargetProjLangName + _T(" adaptations");
+	}
+
+	if (m_TempCollabSourceProjLangName.IsEmpty())
+	{
+		wxString msg, msg1, msgTitle;
+		msg1 = _("Please enter a Source Language Name.");
+		msg = msg1;
+		msg += _T(' ');
+		msg += _("Adapt It will use this name to identify any existing project folder (or to create a new project folder) of the form: \"<source name> to <target name> adaptations\".");
+		msgTitle = _("No Source Language Name entered");
+		wxMessageBox(msg);
+		// set focus on the edit box with missing data
+		pTextCtrlSourceLanguageName->SetFocus();
+		m_pApp->LogUserAction(msgTitle);
+		return; // don't accept any changes - abort the OnOK() handler
+	}
+
+	if (m_TempCollabTargetProjLangName.IsEmpty())
+	{
+		wxString msg, msg1, msgTitle;
+		msg1 = _("Please enter a Target Language Name.");
+		msg = msg1;
+		msg += _T(' ');
+		msg += _("Adapt It will use this name to identify any existing project folder (or to create a new project folder) of the form: \"<source name> to <target name> adaptations\".");
+		msgTitle = _("No Target Language Name entered");
+		wxMessageBox(msg);
+		// set focus on the edit box with missing data
+		pTextCtrlTargetLanguageName->SetFocus();
+		m_pApp->LogUserAction(msgTitle);
+		return; // don't accept any changes - abort the OnOK() handler
+	}
+	
 	CAdapt_ItView* pView = m_pApp->GetView();
 
 	// BEW added 15Aug11, because of the potential for an embedded PlacePhraseBox() call
@@ -574,10 +722,28 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
+	m_pApp->m_CollabAIProjectName = m_TempCollabAIProjectName;
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
 	m_pApp->m_CollabChapterSelected = bareChapterSelectedStr;
+	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
+	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
+
+	// ================================================================================
+	// whm 8Sep11 NOTE: At about this point in SetupEditorCollaboration.cpp, under the
+	// administrator's action, the code in OnOK() there saves the collaboration values
+	// that are assigned to the App above, also to the Adapt_It_WX.ini file for safe
+	// keeping in case the user does a SHIFT-DOWN startup to get some default values
+	// restored. I think it best here in GetSourceTextFromEditor::OnOK() however, to
+	// not store any changes to the above made by the user selecting a different AI
+	// project to hook up with or even using the <Create a new project instead> selection
+	// in the drop-down combo box list of AI projects. Then, if the user has fouled things
+	// up because of making one of those selections to point AI to a different/new
+	// AI project by mistake, the user can still do a SHIFT-DOWN startup and get
+	// back the settings that the administrator made when he set things up initially
+	// in SetupEditorCollaboration.
+	// ================================================================================
 
 	// Set up (or access any existing) project for the selected book or chapter
 	// How this is handled will depend on whether the book/chapter selected
@@ -817,8 +983,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// wxString if the call returns FALSE)
 	wxString aiMatchedProjectFolder;
 	wxString aiMatchedProjectFolderPath;
-	bCollaborationUsingExistingAIProject = CollabProjectsExistAsAIProject(shortProjNameSrc, 
-												shortProjNameTgt, aiMatchedProjectFolder, 
+	bCollaborationUsingExistingAIProject = CollabProjectsExistAsAIProject(m_pApp->m_CollabSourceLangName, 
+												m_pApp->m_CollabTargetLangName, aiMatchedProjectFolder, 
 												aiMatchedProjectFolderPath);
 	if (bCollaborationUsingExistingAIProject)
 	{
@@ -1283,8 +1449,12 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		
 		// Step 1 & 2
 		bool bDisableBookMode = TRUE;
-		bool bProjOK = CreateNewAIProject(m_pApp, pInfoSrc->languageName, 
-									pInfoTgt->languageName, pInfoSrc->ethnologueCode, 
+		// whm modified 7Sep11 to use the App's language name values
+		//bool bProjOK = CreateNewAIProject(m_pApp, pInfoSrc->languageName, 
+		//							pInfoTgt->languageName, pInfoSrc->ethnologueCode, 
+		//							pInfoTgt->ethnologueCode, bDisableBookMode);
+		bool bProjOK = CreateNewAIProject(m_pApp, m_pApp->m_CollabSourceLangName, 
+									m_pApp->m_CollabTargetLangName, pInfoSrc->ethnologueCode, 
 									pInfoTgt->ethnologueCode, bDisableBookMode);
 		if (!bProjOK)
 		{
@@ -2397,13 +2567,22 @@ EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueC
 // has been obtained, otherwise they return empty strings. shortProjNameSrc and
 // shortProjNameTgt are input parameters - the short names for the Paratext or Bibledit
 // projects which are involved in this collaboration.
-bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortProjNameSrc, 
-									wxString shortProjNameTgt, wxString& aiProjectFolderName,
+// 
+// whm 7Sep11 revised to use the App's m_CollabSourceLangName and m_CollabTargetLangName
+// strings that are determined from the appropriate edit box fields of the 
+// SetupEditorCollaboration and/or GetSourceTextFromEditor dialogs.
+bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString languageNameSrc, 
+									wxString languageNameTgt, wxString& aiProjectFolderName,
 									wxString& aiProjectFolderPath)
 {
 	aiProjectFolderName.Empty();
 	aiProjectFolderPath.Empty();
 
+	/*
+	// whm modified 7Sep11. It is more reliable to determine the source and
+	// target language names from the new App members that are now determined
+	// by administrator/user interaction within the two collaboration dialogs
+	// 
 	Collab_Project_Info_Struct* pCollabInfoSrc;
 	Collab_Project_Info_Struct* pCollabInfoTgt;
 	pCollabInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
@@ -2417,6 +2596,9 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortP
 	wxString tgtLangStr = pCollabInfoTgt->languageName;
 	wxASSERT(!tgtLangStr.IsEmpty());
 	wxString projectFolderName = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
+	*/
+
+	wxString projectFolderName = languageNameSrc + _T(" to ") + languageNameTgt + _T(" adaptations");
 	
 	wxString workPath;
 	// get the absolute path to "Adapt It Unicode Work" or "Adapt It Work" as the case may be
@@ -2451,6 +2633,8 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortP
 		}
 	}
 
+	// whm removed 7Sep11 but save in comments
+	/*
 	// BEW added 22Jun11, checking for a match based on 2- or 3-letter ethnologue codes
 	// should also be attempted, if the language names don't match -- this will catch
 	// projects where the language name(s) may have a typo, or a local spelling different
@@ -2492,7 +2676,13 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString shortP
 			delete pMatchedCodePair;
 		}
 	}
-	return TRUE;
+	*/
+
+	// whm 7Sep11 changed to FALSE, since if we get here after commenting out
+	// the material above we have NOT found any AI existing project to hook up
+	// with
+	//return TRUE;
+	return FALSE;
 }
 
 bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
@@ -3145,6 +3335,87 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 		m_TempCollabChapterSelected.Empty();
 	}
 }
+
+void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event))
+{
+	int nSel = pComboAiProjects->GetSelection();
+	wxString selStr = pComboAiProjects->GetStringSelection();
+	if (nSel == wxNOT_FOUND)
+	{
+		::wxBell();
+		return;
+	}
+	if (selStr == createNewProjectInstead)
+	{
+		// unhide the controls in 3a
+		pTextCtrlAsStaticNewAIProjName->Show();
+		pStaticTextEnterLangNames->Show();
+		pTextCtrlSourceLanguageName->Show();
+		pTextCtrlTargetLanguageName->Show();
+		pTextCtrlAsStaticNewAIProjName->Show();
+		pStaticTextNewAIProjName->Show();
+		pStaticTextSrcLangName->Show();
+		pStaticTextTgtLangName->Show();
+		pTextCtrlSourceLanguageName->Enable();
+		pTextCtrlTargetLanguageName->Enable();
+		pGetSourceTextFromEditorSizer->Layout();
+		// move focus to the source language name edit box
+		pTextCtrlSourceLanguageName->SetFocus();
+	}
+	else
+	{
+		// The administrator selected an existing AI project from the
+		// combobox. Parse the language names from the AI project name.
+		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr, 
+			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
+		// Populate the Source Language Name and the Target Language Name edit 
+		// boxes with the language names parsed from the combobox's selected
+		// string.
+		
+		// To make the change persist, we need to also change the temp values
+		// for the newly selected AI project that gets stored in the
+		// basic config file within OnOK().
+		m_TempCollabAIProjectName = selStr; 
+		
+		pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+		pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+		// Also, disable the Source Language Name and the Target Language Name edit 
+		// boxes now that they have the computed language names in them, because 
+		// they can't be changed as long as an existing AI project
+		// is selected in the combobox. Note: we enable them whenever the
+		// createNewProjectInstead string is selected.
+		pTextCtrlSourceLanguageName->Disable();
+		pTextCtrlTargetLanguageName->Disable();
+		// finally, remove any project name that might have been in the "New
+		// Adapt It project name edit box
+		pTextCtrlAsStaticNewAIProjName->ChangeValue(wxEmptyString);
+	}
+}
+
+void CGetSourceTextFromEditorDlg::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event))
+{
+	// user is editing the source language name edit box
+	// update the AI project name in the "New Adapt It project name"
+	// edit box
+	wxString tempStrSrcProjName,tempStrTgtProjName;
+	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
+	tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
+	wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
+	pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
+}
+
+void CGetSourceTextFromEditorDlg::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event))
+{
+	// user is editing the target language name edit box
+	// update the AI project name in the "New Adapt It project name"
+	// edit box
+	wxString tempStrSrcProjName,tempStrTgtProjName;
+	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
+	tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
+	wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
+	pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
+}
+
 
 wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)
 {

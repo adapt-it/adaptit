@@ -1190,7 +1190,8 @@ int Parse_Number(wxChar *pChar, wxChar *pEnd) // whm 10Aug11 added wxChar *pEnd 
 	// ptr < pEnd test is not included the Is_NonEol_WhiteSpace() call would 
 	// return a FALSE result and the while loop would iterate one too many times 
 	// returning a bad length
-	while (ptr < pEnd && !Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r'))
+	// whm added 4Sep11 test to halt parsing if a backslash is encountered
+	while (ptr < pEnd && !Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r') && *ptr != _T('\\'))
 	{
 		ptr++;
 		length++;

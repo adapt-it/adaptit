@@ -38,6 +38,9 @@ public:
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
+	wxString m_TempCollabAIProjectName;
+	wxString m_TempCollabSourceProjLangName;
+	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxSizer* pSetupEditorCollabSizer;
 
@@ -47,18 +50,33 @@ protected:
 	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event));
+	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
+	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
+	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
 
 private:
 
 	wxArrayString* pListOfPTProjects; // local pointer to list on App
 	CAdapt_ItApp* m_pApp;
-	wxTextCtrl* pStaticTextCtrlTopNote;
-	wxTextCtrl* pStaticTextCtrlImportantBottomNote;
-	wxTextCtrl* pStaticTextCtrlSelectedSourceProj;
-	wxTextCtrl* pStaticTextCtrlSelectedTargetProj;
-	wxTextCtrl* pStaticTextCtrlSelectedFreeTransProj;
+	wxTextCtrl* pTextCtrlAsStaticTopNote;
+	wxTextCtrl* pTextCtrlAsStaticSelectedSourceProj;
+	wxTextCtrl* pTextCtrlAsStaticSelectedTargetProj;
+	wxTextCtrl* pTextCtrlAsStaticSelectedFreeTransProj;
+	wxTextCtrl* pTextCtrlAsStaticNewAIProjName;
+	wxTextCtrl* pTextCtrlSourceLanguageName;
+	wxTextCtrl* pTextCtrlTargetLanguageName;
 	wxStaticText* pStaticTextListOfProjects;
+	wxStaticText* pStaticTextEnterLangNames;
+	wxStaticText* pStaticTextNewAIProjName;
+	wxStaticText* pStaticTextSrcLangName;
+	wxStaticText* pStaticTextTgtLangName;
+	wxStaticText* pStaticTextSelectWhichProj;
+	wxStaticText* pStaticTextSelectAThirdProj;
+	wxStaticText* pStaticTextSrcTextxFromThisProj;
+	wxStaticText* pStaticTextTgtTextxToThisProj;
+	wxStaticText* pStaticTextFtTextxToThisProj;
 	wxListBox* pListOfProjects;
+	wxComboBox* pComboAiProjects;
 	wxRadioBox* pRadioBoxCollabOnOrOff;
 	wxButton* pBtnSelectFmListSourceProj;
 	wxButton* pBtnSelectFmListTargetProj;
