@@ -29,6 +29,7 @@ public:
 	wxComboBox* pComboSourceProjectName;
 	wxComboBox* pComboDestinationProjectName;
 	wxComboBox* pComboFreeTransProjectName;
+	wxComboBox* pComboAiProjects;
 	wxRadioBox* pRadioBoxChapterOrBook;
 	wxListBox* pListBoxBookNames;
 	wxListView* pListCtrlChapterNumberAndStatus; // wxListBox* pListCtrlChapterNumberAndStatus;
@@ -36,9 +37,20 @@ public:
 	wxListItem* pTheSecondColumn; // has to be on heap
 	wxTextCtrl* pStaticTextCtrlNote;
 	wxStaticText* pStaticSelectAChapter;
+	wxStaticText* pStaticGetSrcFromThisProj;
+	wxStaticText* pStaticTransTgtToThisProj;
+	wxStaticText* pStaticTransFtToThisProj;
+	wxTextCtrl* pTextCtrlAsStaticNewAIProjName;
+	wxTextCtrl* pTextCtrlSourceLanguageName;
+	wxTextCtrl* pTextCtrlTargetLanguageName;
+	wxStaticText* pStaticTextEnterLangNames;
+	wxStaticText* pStaticTextNewAIProjName;
+	wxStaticText* pStaticTextSrcLangName;
+	wxStaticText* pStaticTextTgtLangName;
 	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnCancel;
 	wxButton* pBtnOK;
+	wxSizer* pGetSourceTextFromEditorSizer;
 
 	// The following m_Temp... variables are used while the dialog is active until
 	// the user clicks on OK. In the OnOK() handler the Apps persistent values are
@@ -47,6 +59,9 @@ public:
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
+	wxString m_TempCollabAIProjectName;
+	wxString m_TempCollabSourceProjLangName;
+	wxString m_TempCollabTargetProjLangName;
 	wxString m_TempCollabBookSelected;
 	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	wxString m_TempCollabChapterSelected;
@@ -86,10 +101,14 @@ protected:
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
+	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
+	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
+	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
 
 	bool CollabProjectIsEditable(wxString projShortName);
-	bool CollabProjectsExistAsAIProject(wxString shortProjNameSrc, wxString shortProjNameTgt, 
-				wxString& aiProjectFolderName, wxString& aiProjectFolderPath);
+	bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
+								wxString LanguageNameTgt, wxString& aiProjectFolderName,
+								wxString& aiProjectFolderPath);
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 

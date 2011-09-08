@@ -6033,6 +6033,13 @@ wxString szCollabProjectForFreeTransExports = _T("CollabProjectForFreeTransExpor
 
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
+// "CollabAIProjectName". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_CollabAIProjectName member variable.
+wxString szCollabAIProjectName = _T("CollabAIProjectName");
+
+// whm added 30Jun11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
 // "CollabExpectsFreeTrans". This value is written in the "Settings" part of the basic
 // configuration file. Adapt It stores this value as a wxString in the App's
 // m_bCollaborationExpectsFreeTrans member variable.
@@ -6058,6 +6065,20 @@ wxString szCollabByChapterOnly = _T("CollabByChapterOnly");
 // configuration file. Adapt It stores this value as a wxString in the App's
 // m_CollabChapterSelected member variable.
 wxString szCollabChapterSelected = _T("CollabChapterSelected");
+
+// whm added 4Sep11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
+// "CollabSourceLangName". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_CollabSourceLangName member variable.
+wxString szCollabSourceLangName = _T("CollabSourceLangName");
+
+// whm added 4Sep11 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string encoded number as the application's
+// "CollabTargetLangName". This value is written in the "Settings" part of the basic
+// configuration file. Adapt It stores this value as a wxString in the App's
+// m_CollabTargetLangName member variable.
+wxString szCollabTargetLangName = _T("CollabTargetLangName");
 
 // window position and size
 
@@ -12985,9 +13006,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_CollabProjectForSourceInputs = _T("");
 	m_CollabProjectForTargetExports = _T("");
 	m_CollabProjectForFreeTransExports = _T("");
+	m_CollabAIProjectName = _T("");
 	m_CollabBookSelected = _T("");
 	m_bCollabByChapterOnly = TRUE; // collaboration defaults to "Get Chapter Only" selected
 	m_CollabChapterSelected = _T("");
+	m_CollabSourceLangName = _T("");
+	m_CollabTargetLangName = _T("");
 	m_ParatextInstallDirPath.Empty();
 	m_ParatextProjectsDirPath.Empty();
 	m_BibleditProjectsDirPath.Empty();
@@ -16966,9 +16990,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("pt_collab_src_proj"), m_CollabProjectForSourceInputs); // was m_PTProjectForSourceInputs, etc.
 			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_proj"), m_CollabProjectForTargetExports);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_free_trans_proj"), m_CollabProjectForFreeTransExports);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_ai_proj_name"), m_CollabAIProjectName);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_book_selected"), m_CollabBookSelected);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_by_chapter_only"), m_bCollabByChapterOnly);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_CollabChapterSelected);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_src_lang_name"), m_CollabSourceLangName);
+			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_lang_name"), m_CollabTargetLangName);
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
@@ -17029,9 +17056,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("be_collab_src_proj"), m_CollabProjectForSourceInputs);
 			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_proj"), m_CollabProjectForTargetExports);
 			bWriteOK = m_pConfig->Write(_T("be_collab_free_trans_proj"), m_CollabProjectForFreeTransExports);
+			bWriteOK = m_pConfig->Write(_T("be_collab_ai_proj_name"), m_CollabAIProjectName);
 			bWriteOK = m_pConfig->Write(_T("be_collab_book_selected"), m_CollabBookSelected);
 			bWriteOK = m_pConfig->Write(_T("be_collab_by_chapter_only"), m_bCollabByChapterOnly);
 			bWriteOK = m_pConfig->Write(_T("be_collab_chapter_selected"), m_CollabChapterSelected);
+			bWriteOK = m_pConfig->Write(_T("be_collab_src_lang_name"), m_CollabSourceLangName);
+			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_lang_name"), m_CollabTargetLangName);
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
@@ -24314,6 +24344,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 
+	// whm Note 8Sep11. ALL of the collaboration-related 
+	// settings need to be in the basic configuration file
+	// because the GetSourceTextFromEditor dialog needs them
+	// at the time that only the basic config file has been
+	// read in.
 	// whm added 15Apr11 for Paratext collaboration
 	if (m_bCollaboratingWithParatext)
 		number = _T("1");
@@ -24342,6 +24377,19 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
 	data.Empty();
 	data << szCollabProjectForFreeTransExports << tab << m_CollabProjectForFreeTransExports;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szCollabAIProjectName << tab << m_CollabAIProjectName;
+	pf->AddLine(data);
+
+	// whm 4Sep11 added the next two
+	data.Empty();
+	data << szCollabSourceLangName << tab << m_CollabSourceLangName;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szCollabTargetLangName << tab << m_CollabTargetLangName;
 	pf->AddLine(data);
 
 	if (m_bCollaborationExpectsFreeTrans) // whm added 9Aug11
@@ -25705,6 +25753,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 0; // if out of reasonable range default to a profile of "None".
 			m_nWorkflowProfile = num;
 		}
+		// whm Note 8Sep11. ALL of the collaboration-related 
+		// settings need to be in the basic configuration file
+		// because the GetSourceTextFromEditor dialog needs them
+		// at the time that only the basic config file has been
+		// read in.
 		else if (name == szCollaboratingWithParatext) // whm added 15Apr11
 		{
 			num = wxAtoi(strValue);
@@ -25737,6 +25790,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			m_CollabProjectForFreeTransExports = strValue;
 		}
+		else if (name == szCollabAIProjectName) // whm added 7Sep11
+		{
+			m_CollabAIProjectName = strValue;
+		}
 		else if (name == szCollabExpectsFreeTrans) // whm added 9Aug11
 		{
 			num = wxAtoi(strValue);
@@ -25764,6 +25821,15 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szCollabChapterSelected)
 		{
 			m_CollabChapterSelected = strValue;
+		}
+		// whm 4Sep11 added the next two
+		else if (name == szCollabSourceLangName)
+		{
+			m_CollabSourceLangName = strValue;
+		}
+		else if (name == szCollabTargetLangName)
+		{
+			m_CollabTargetLangName = strValue;
 		}
 		else if (name == szHidePunctuation)
 		{
@@ -26393,6 +26459,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bool bReadOK5 = FALSE;
 	bool bReadOK6 = FALSE;
 	bool bReadOK7 = FALSE;
+	bool bReadOK8 = FALSE;
+	bool bReadOK9 = FALSE;
+	bool bReadOK10 = FALSE;
 	bool bTempCollabFlag = FALSE;
 	wxString tempCollabProjForSrcInputs = _T("");
 	wxString tempCollabProjForTgtExports = _T("");
@@ -26400,6 +26469,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	wxString tempCollabBookSelected = _T("");
 	bool bTempCollabByChapterOnly = TRUE;
 	wxString tempCollabChapterSelected = _T("");
+	wxString tempCollabSourceLangName = _T("");
+	wxString tempCollabTargetLangName = _T("");
+	wxString tempCollabAIProjectName = _T("");
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
@@ -26409,6 +26481,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
 	bReadOK6 = m_pConfig->Read(_T("pt_collab_by_chapter_only"), &bTempCollabByChapterOnly);
 	bReadOK7 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
+	bReadOK8 = m_pConfig->Read(_T("pt_collab_src_lang_name"), &tempCollabSourceLangName);
+	bReadOK9 = m_pConfig->Read(_T("pt_collab_tgt_lang_name"), &tempCollabTargetLangName);
+	bReadOK10 = m_pConfig->Read(_T("pt_collab_ai_proj_name"), &tempCollabAIProjectName);
 	} // end wxLogNull block
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
 	{
@@ -26437,6 +26512,18 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		{
 			m_CollabChapterSelected = tempCollabChapterSelected;
 		}
+		if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
+		{
+			m_CollabSourceLangName = tempCollabSourceLangName;
+		}
+		if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
+		{
+			m_CollabTargetLangName = tempCollabTargetLangName;
+		}
+		if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
+		{
+			m_CollabAIProjectName = tempCollabAIProjectName;
+		}
 	}
 
 	// Read the BE related flags that were last stored in the Adapt_It_WX.ini file and restore
@@ -26448,6 +26535,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	tempCollabBookSelected = _T("");
 	bTempCollabByChapterOnly = TRUE;
 	tempCollabChapterSelected = _T("");
+	tempCollabSourceLangName = _T("");
+	tempCollabTargetLangName = _T("");
+	tempCollabAIProjectName = _T("");
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
@@ -26457,6 +26547,9 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
 	bReadOK6 = m_pConfig->Read(_T("be_collab_by_chapter_only"), &bTempCollabByChapterOnly);
 	bReadOK7 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
+	bReadOK8 = m_pConfig->Read(_T("be_collab_src_lang_name"), &tempCollabSourceLangName);
+	bReadOK9 = m_pConfig->Read(_T("be_collab_tgt_lang_name"), &tempCollabTargetLangName);
+	bReadOK10 = m_pConfig->Read(_T("be_collab_ai_proj_name"), &tempCollabAIProjectName);
 	} // end wxLogNull block
 	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
 	{
@@ -26484,6 +26577,18 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
 		{
 			m_CollabChapterSelected = tempCollabChapterSelected;
+		}
+		if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
+		{
+			m_CollabSourceLangName = tempCollabSourceLangName;
+		}
+		if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
+		{
+			m_CollabTargetLangName = tempCollabTargetLangName;
+		}
+		if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
+		{
+			m_CollabAIProjectName = tempCollabAIProjectName;
 		}
 	}
 	

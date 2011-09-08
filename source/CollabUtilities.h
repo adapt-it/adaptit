@@ -26,6 +26,10 @@
 
 class wxProgressDialog;
 
+// This createNewProjectInstead is used in GetAIProjectFolderForCollab(),
+// GetSourceTextFromEditor.cpp, and SetupEditorCollaboration.cpp.
+const wxString createNewProjectInstead = _("<Create a new project instead>");
+
 struct VerseAnalysis {
 	bool				bIsComplex; // TRUE if verse num is a range, or something like 6b,
 								// or is a gap in the chapter/verses; set to FALSE if 
@@ -159,6 +163,8 @@ class CSourcePhrase;
 							wxString& tgtEthnologueCode, bool bDisableBookMode);
 	wxString		ExportTargetText_For_Collab(SPList* pDocList);
 	wxString		ExportFreeTransText_For_Collab(SPList* pDocList);
+	wxString		GetAIProjectFolderForCollab(wxString& aiProjName, wxString& aiSrcLangName, 
+						wxString& aiTgtLangName, wxString editorSrcProjStr, wxString editorTgtProjStr);
 	// The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
 	// tweaked so as to remove support for the latter's context of a wizard dialog
 	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, 
@@ -197,6 +203,7 @@ class CSourcePhrase;
 	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 	wxString		GetShortNameFromProjectName(wxString projName);
+	wxString		GetLanguageNameFromProjectName(wxString projName);
 	// The next three are the meaty ones, which together get the updated text back to the
 	// external editor, via the .temp folder (child of the work folder) as an
 	// intermediatory location for storage of the file holding the data being transferred

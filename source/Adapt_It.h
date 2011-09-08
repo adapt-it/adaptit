@@ -3158,9 +3158,12 @@ public:
 	wxString m_CollabProjectForSourceInputs;
 	wxString m_CollabProjectForTargetExports;
 	wxString m_CollabProjectForFreeTransExports;
+	wxString m_CollabAIProjectName; // whm added 7Sep11
 	wxString m_CollabBookSelected;
 	bool m_bCollabByChapterOnly;
 	wxString m_CollabChapterSelected;
+	wxString m_CollabSourceLangName; // whm added 4Sep11
+	wxString m_CollabTargetLangName; // whm added 4Sep11
 
 	wxString m_ParatextInstallDirPath;
 	wxString m_BibleditInstallDirPath;

@@ -259,14 +259,65 @@ wxString GetShortNameFromProjectName(wxString projName)
 	collabProjShortName.Empty();
 	int posColon;
 	posColon = projName.Find(_T(':'));
-	// Under Bibledit, the projName may not have any ':' chars. In such cases
-	// just return the incoming projName unchanged
+	// Under Bibledit, the projName will not have any ':' chars. 
+	// In such cases just return the incoming projName 
+	// unchanged which will function as the "short" name for
+	// Bibledit projects.
 	if (!projName.IsEmpty() && posColon == wxNOT_FOUND)
 		return projName;
 	collabProjShortName = projName.Mid(0,posColon);
 	collabProjShortName.Trim(FALSE);
 	collabProjShortName.Trim(TRUE);
 	return collabProjShortName;
+}
+
+wxString GetLanguageNameFromProjectName(wxString projName)
+{
+	// For Paratext collaboration, the Language name is the 
+	// third field in the composite projName string, however, 
+	// for Bibledit the Language name is unlikely to be set
+	// by the Bibledit user, and likely to remain as the 
+	// default of "English". For Bibledit, then we will 
+	// always return an empty string for the language name.
+	wxString collabProjLangName;
+	collabProjLangName.Empty();
+	int posColon;
+	posColon = projName.Find(_T(':'));
+	// Under Bibledit, the projName will not have any ':' chars. 
+	// In such cases just return an empty string.
+	if (!projName.IsEmpty() && posColon == wxNOT_FOUND)
+		return wxEmptyString; //projName;
+	// For Paratext, remove the first field up to and including the colon
+	posColon = projName.Find(_T(':'));
+	if (posColon != wxNOT_FOUND)
+	{
+		projName = projName.Mid(posColon + 1);
+		// Remove the second field (long project name) up to and including 
+		// the colon.
+		posColon = projName.Find(_T(':'));
+		projName = projName.Mid(posColon + 1);
+		// The third field is the Language field. It will only have a
+		// colon after it if there is also an ethnologue code. If there
+		// is a colon after it, we remove the colon and the ethnologue 
+		// code, leaving just the Language.
+		posColon = projName.Find(_T(':'));
+		if (posColon != wxNOT_FOUND)
+		{
+			// There is an ethnologue code field, remove the colon 
+			// and ethnologue field too.
+			collabProjLangName = projName.Mid(0, posColon);
+			
+		}
+		else
+		{
+			// There was no ethnologue field, so just use the
+			// remaining projName string as the language name.
+			collabProjLangName = projName;
+		}
+	}
+	collabProjLangName.Trim(FALSE);
+	collabProjLangName.Trim(TRUE);
+	return collabProjLangName;
 }
 
 // whm modified 27Jul11 to handle whole book filename creation (which does not
@@ -637,6 +688,79 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 	}
 	return TRUE;
 }
+
+// Gets a suitable AI project folder name for collaboration. If no name can be
+// determined from the m_Temp... values that are input into this function, it
+// returns _("<Create a new project instead>").
+// Called from the InitDialog() functions of both GetSourceTextFromEditor and 
+// SetupEditorCollaboration.
+wxString GetAIProjectFolderForCollab(wxString& aiProjName, wxString& aiSrcLangName, 
+						wxString& aiTgtLangName, wxString editorSrcProjStr, wxString editorTgtProjStr)
+{
+	// Get an AI project name. See GetSourceTextFromEditor.cpp which has identical code.
+	// Note: Comments refer to the m_TempCollab... values in the callers that use this
+	// function. This function assumes that the m_TempCollabAIProjectName, 
+	// m_TempCollabSourceProjLangName, and m_TempCollabTargetProjLangName, are set from 
+	// the basic config file because at this point in InitDialog, only the basic config 
+	// file will have been read in.
+	wxString aiProjectFolder = _T("");
+	if (!aiProjName.IsEmpty())
+	{
+		// The AI project name on the app is not empty so just use it.
+		// This should be the case after the first run in collaboration
+		// mode.
+		aiProjectFolder = aiProjName;
+	}
+	else if (!aiSrcLangName.IsEmpty() && !aiTgtLangName.IsEmpty())
+	{
+		// The AI project name on the App is empty, but the language names 
+		// on the App have values in them. This would be an unusual situation
+		// but we can account for the user having edited the config file.
+		// In this case compose the AI project name from the language names 
+		// on the App. 
+		aiProjectFolder = aiSrcLangName + _T(" to ") + aiTgtLangName + _T(" adaptations");
+		// Update the m_TempCollabAIProjectName too.
+		aiProjName = aiProjectFolder;
+	}
+	else
+	{
+		// The AI project name on the App is empty and the language names on the 
+		// App are empty, so try getting language names from the composite project 
+		// strings. This will work for Paratext (if its project settings have 
+		// correct Language names, but not for Bibledit if the administrator has
+		// not set things up previously. If we get here for Bibledit, the user
+		// will be presented with the dialog with the createNewProjectInstead
+		// selected in the AI project combobox, and the cursor focused in the
+		// Source Language Name field. The user could examine any existing AI
+		// projects with the combobox's drop down list, or enter new language
+		// names for creating a new AI project to hook up with.
+		wxString srcLangName = GetLanguageNameFromProjectName(editorSrcProjStr);
+		wxString tgtLangName = GetLanguageNameFromProjectName(editorTgtProjStr);
+		if (!srcLangName.IsEmpty() && !tgtLangName.IsEmpty())
+		{
+			// We were able to compute language names from the composite project 
+			// names string. This would be the usual case for collab with PT
+			// when there are language names in the composite project strings.
+			aiProjectFolder = srcLangName + _T(" to ") + tgtLangName + _T(" adaptations");
+			aiProjName = aiProjectFolder;
+			aiSrcLangName = srcLangName;
+			aiTgtLangName = tgtLangName;
+		}
+		else
+		{
+			// This is the likely case for Bibledit, since composite project
+			// string from Bibledit only has the project name in it.
+			// Here we do nothing. The user will need to select an existing
+			// AI project via the combobox, or select <Create a new project instead>
+			// item from the combobox.
+			// Here leave empty the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
+			// and m_TempCollabTargetProjLangName values.
+			aiProjectFolder = createNewProjectInstead;
+		}
+	}
+	return aiProjectFolder;
+}
+
 
 // The next function is created from OnWizardPageChanging() in Projectpage.cpp, and
 // tweaked so as to remove support for the latter's context of a wizard dialog; it should
