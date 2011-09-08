@@ -392,6 +392,7 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
 									bool bSuppressWarningOnStoreKBFailure = FALSE);
 
+
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
 // m_pSrcPhrase and m_pOwningPile, and so not being properly in sync with the doc list;

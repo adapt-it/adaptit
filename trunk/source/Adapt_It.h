@@ -3526,7 +3526,8 @@ public:
 	wxString m_strTitle; // Inconsistency Found
 	wxString m_strAdaptationText; // Adaptation text
 	wxString m_strGlossText; // Gloss text
-
+	wxString m_consCheck_msg1; // An adaptation exists. A knowledge base entry is expected, but is absent
+	wxString m_consCheck_msg2; // The knowledge base entry is %s, the document does not agree
 
     // BEW added 17Sept10: set TRUE when an oxes export is in progress - and since it
     // starts with a special case of a standard USFM target text export with \bt info not

@@ -38,6 +38,7 @@ public:
 	conschk_exists_notu_dlg(
 		wxWindow* parent,
 		wxString* title,
+		int msgNumber,
 		wxString* srcPhrase, // for pSrcPhrase->m_key value
 		wxString* adaptation, // for pSrcPhrase->m_adaption value
 		wxString* notInKBStr, // for <Not In KB>, that is, strNotInKB
@@ -45,6 +46,7 @@ public:
 	virtual ~conschk_exists_notu_dlg(); // destructor
 
 	// member variables
+	int			   m_msgNumber;
 	wxTextCtrl*    m_pTextCtrlSrcText;
 	wxTextCtrl*	   m_pTextCtrlTgtText;
 	wxStaticText*  m_pStaticCtrl;
@@ -63,6 +65,7 @@ public:
 	bool			m_bShowItCentered;
 	wxPoint			m_ptBoxTopLeft;
 	int				m_nTwoLineDepth;
+	wxStaticText*	m_pStatTxtMsg;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
