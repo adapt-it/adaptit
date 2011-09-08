@@ -12408,6 +12408,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_strGlossText = _("Gloss text");
 	m_modeWordAdaptPlural = _("adaptations");
 	m_modeWordGlossPlural = _("glosses");
+	m_consCheck_msg1 = _("An adaptation exists. A knowledge base entry is expected, but is absent");
+	m_consCheck_msg2 = _("The knowledge base entry is %s, the document does not agree");
 
 	// BEW added 25Aug11
 	m_bRetransReportInProgress = FALSE;

@@ -8529,7 +8529,7 @@ wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, b
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_EXISTS_STR, _("An adaptation exists. A knowledge base entry is expected, but is absent"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_EXISTS_STR, _("%s"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item8->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item7->Add( item8, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 

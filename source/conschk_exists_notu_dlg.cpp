@@ -57,6 +57,7 @@ END_EVENT_TABLE()
 conschk_exists_notu_dlg::conschk_exists_notu_dlg(
 		wxWindow* parent,
 		wxString* title,
+		int		  msgNumber,
 		wxString* srcPhrase,
 		wxString* adaptation,
 		wxString* notInKBStr,
@@ -78,6 +79,7 @@ conschk_exists_notu_dlg::conschk_exists_notu_dlg(
 	m_targetPhrase = *adaptation;
 	m_notInKBStr = *notInKBStr;
 	m_bShowItCentered = bShowCentered;
+	m_msgNumber = msgNumber;
 }
 
 conschk_exists_notu_dlg::~conschk_exists_notu_dlg() // destructor
@@ -88,10 +90,30 @@ void conschk_exists_notu_dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	m_bDoAutoFix = FALSE; // default
+
+	m_pStatTxtMsg = (wxStaticText*)FindWindowById(ID_TEXT_EXISTS_STR);
+	wxASSERT(m_pStatTxtMsg != NULL);
+	wxString itsLabel = m_pStatTxtMsg->GetLabel();
+	wxString s;
+	if (m_msgNumber == 1)
+	{
+		s = gpApp->m_consCheck_msg1;
+		
+	}
+	else
+	{
+		s = gpApp->m_consCheck_msg2;
+		s = s.Format(s, gpApp->m_strNotInKB.c_str());
+	}
+	wxString finalLabel;
+	finalLabel = finalLabel.Format(itsLabel,s.c_str());
+	m_pStatTxtMsg->SetLabel(finalLabel); // get the appropriate message shown
+
 	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME2);
 	wxASSERT(m_pAutoFixChkBox != NULL);
 	m_pAutoFixChkBox->SetValue(FALSE); // start with it turned off
-	actionTaken = no_fix_needed; // temporary default, OnOK() will set it
+
+	actionTaken = no_GUI_needed; // temporary default, OnOK() will set it
 
 	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_2);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
@@ -242,7 +264,21 @@ void conschk_exists_notu_dlg::OnOK(wxCommandEvent& event)
 	// set the fixit action
 	if (m_pStoreNormallyRadioBtn->GetValue())
 	{
-		actionTaken = store_nonempty_meaning;
+		if (m_msgNumber == 1)
+		{
+			actionTaken = store_nonempty_meaning;
+		}
+		else
+		{
+			if (m_targetPhrase.IsEmpty())
+			{
+				actionTaken = store_empty_meaning;
+			}
+			else
+			{
+				actionTaken = store_nonempty_meaning;
+			}
+		}
 	}
 	else
 	{

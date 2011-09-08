@@ -68,23 +68,22 @@ enum WhichLang {
 // NOTE: in these next two enums, "flag" refers to m_bHasKBEntry when in adapting mode, or
 // m_bHasGlossingKBEntry when in glossing mode.
 enum InconsistencyType {
-	no_inconsistency,
-	undefined_inconsistency, // for when I auto-fix without a GUI, and I can't be
-							 // bothered trying to give it any more intelligent name
 	member_empty_flag_on_noPTU, // done, use ConsistencyCheck_EmptyNoTU_DlgFunc()
 	member_exists_flag_on_noPTU, // done, use ConsistencyCheck_ExistsNoTU_DlgFunc()
 	member_exists_flag_off_noPTU, // done, use ConsistencyCheck_ExistsNoTU_DlgFunc()
 	member_empty_flag_on_PTUexists_deleted_Refstr, // done, use ConsistencyCheck_EmptyNoTU_DlgFunc()
 	member_exists_flag_on_PTUexists_deleted_Refstr, // done, use revamped legacy dlg... 
 													// this is the "split meaning" possibility
-	member_exists_flag_off_PTUexists_has_RefStr, // done // auto-correct by setting flag TRUE
 	member_exists_flag_off_PTUexists_deleted_RefStr, // done,  use revamped legacy dlg here too
-	is_Not_In_KB_but_flag_on // done // auto-correct by setting flag FALSE, and make 
+	flag_on_NotInKB_off_hasActiveNotInKB_in_KB // done // use dlg for either normal entry or <Not In KB> 
 					// m_bNotInKB TRUE and ensure pTU have valid <Not In KB> entry
 };
-enum FixItAction {
-	no_fix_needed,
 
+// some of these enum values are not actually needed, because they all are handled in ways
+// that can be deduced without the enums; we'll keep them, in case we later want to
+// support them
+enum FixItAction {
+	no_GUI_needed,
 	// next three are responses for member_empty_flag_on_noPTU, and 4th response is a
 	// possiblity for the member_exists_flag_off_noPTU case; the 1st response is also a
 	// possiblity for member_empty_flag_on_PTUexists_deleted_Refstr
@@ -93,8 +92,6 @@ enum FixItAction {
 					   // in adaptation mode)
 	store_empty_meaning, // the <no adaptation> response, or <no gloss> response
 	store_nonempty_meaning, // store text for m_adaption or m_gloss
-
-
 	// next are responses (only two are possible) for member_exists_flag_off_noPTU (note, 
 	// includes also the 3rd response for the member_empty_flag_on_noPTU - but only when 
 	// m_bNotInKB was FALSE)
@@ -102,18 +99,7 @@ enum FixItAction {
 
     // next are the responses for member_empty_flag_on_PTUexists_deleted_Refstr (three
     // only), one is turn_flag_off, another is make_it_an_empty_entry, and another is
-	restore_meaning_to_doc,
-
-	// next are the responses for member_exists_flag_on_PTUexists_deleted_Refstr **NOTE**
-	// this is the situation when the user deliberately removes from the KB a meaning, and
-	// then does a consistency check, in order find all places where the removed meaning
-	// occurred in order to be able to give contextually different meanings. Responses are:
-	// store_empty_meaning, store_nonempty_meaning, or)
-	undelete_Refstr, // an "accept the old meaning in this location" response in the GUI
-
-	// next are the responses for member_exists_flag_off_PTUexists_deleted_RefStr; there
-	// are three, (we choose to handle it by the 'split' dialog) store_empty_meaning, 
-	// store_nonempty_meaning, or restore_meaning_to_doc -- so no new fix-it actions needed
+	restore_meaning_to_doc
 };
 
 // struct for storing auto-fix inconsistencies when doing "Consistency Check..." menu item;

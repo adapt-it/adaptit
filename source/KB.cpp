@@ -971,7 +971,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst(); 
 	while (pos != 0)
 	{
-		CRefString* pRefStr = (CRefString*)pos->GetData();
+		pRefStr = (CRefString*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pRefStr);
 		if (adaptation == pRefStr->m_translation)
@@ -1609,6 +1609,25 @@ bool CKB::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 	else
 		return FALSE;
 }
+
+// The following is a helper for Consistency Check. If an adaptation was deleted from the
+// KB because the location was made <Not In KB>, then m_bHasKBEntry is FALSE, m_bNotInKB
+// is TRUE, and if the doc retains the word or phrase in its m_adaption member, there can
+// be a false positive happen in the consistency check -- the lookup of the KB finds the
+// word or phrase's CTargetUnit, and detects that pRefStr returns as NULL because bDeleted
+// returns TRUE - which would trigger the revamped legacy ConsistencyCheckDlg to be shown
+// if not for the following function which allows us to check for an active (ie.
+// non-deleted) "<Not In KB"> entry in this pTU instance
+// Returns TRUE if a non-deleted <Not IN KB> entry is found in this pTU, else FALSE
+// BEW created 8 Sept 2011
+bool CKB::IsNot_In_KB_inThisTargetUnit(CTargetUnit* pTU)
+{
+	wxASSERT(pTU != NULL);
+	// the following call only searches the non-deleted CRefString instances in pTU
+	int nFound =  pTU->FindRefString(m_pApp->m_strNotInKB);
+	return nFound != wxNOT_FOUND;
+}
+
 
 // returns TRUE if, for the pSrcPhrase->m_key key value, the KB (adaptation KB only, the
 // caller will not call this function if the mode is glossing mode) contains a CTargetUnit

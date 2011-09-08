@@ -100,7 +100,7 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	m_adaptationStr = _T("");
 	m_bDoAutoFix = FALSE;
 	m_chVerse = _T("");
-	actionTaken = no_fix_needed; // default, we don't yet know what the user will do
+	actionTaken = no_GUI_needed; // default, we don't yet know what the user will do
 
 	aDifference = 0;
 	difference = 0;

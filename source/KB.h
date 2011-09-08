@@ -138,6 +138,7 @@ public:
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation, 
 						CTargetUnit*& pTU, CRefString*& pRefStr, bool& bDeleted);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
+	bool			IsNot_In_KB_inThisTargetUnit(CTargetUnit* pTU);
 	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
 	CBString		MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void			RedoStorage(CSourcePhrase* pSrcPhrase, wxString& errorStr); // BEW 15Nov10 moved from view

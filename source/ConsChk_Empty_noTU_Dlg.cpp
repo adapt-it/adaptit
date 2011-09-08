@@ -93,7 +93,7 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME);
 	wxASSERT(m_pAutoFixChkBox != NULL);
 	m_pAutoFixChkBox->SetValue(FALSE); // start with it turned off
-	actionTaken = no_fix_needed; // temporary default, OnOK() will set it
+	actionTaken = no_GUI_needed; // temporary default, OnOK() will set it
 
 	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_1);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
