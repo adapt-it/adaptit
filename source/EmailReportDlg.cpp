@@ -692,11 +692,9 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// TODO: determine if we need to conditional compile the next line for the Windows only port
 			// of if it can also be used this way for Linux and the Mac
 			wxString ca_bundle_path;
-#ifndef __WXGTK__
 #ifdef __WXMSW__
 			ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
-#endif
-#ifdef __WXMAC__
+#else
 			ca_bundle_path = pApp->GetDefaultPathForXMLControlFiles();
 			ca_bundle_path += pApp->PathSeparator;
 			ca_bundle_path += _T("curl-ca-bundle.crt");
@@ -704,7 +702,6 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			wxLogDebug(_T("The CA bundle certificate path is: %s"),ca_bundle_path.c_str());
 			tempStr = ca_bundle_path.ToUTF8();
 			curl_easy_setopt(curl, CURLOPT_CAINFO, tempStr.GetBuffer()); // tell curl where the curl-ca-bundle.crt file is
-#endif
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L); // 1 enables peer verification (SSL) - looks for curl-ca-bundle.crt at path above
 			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L); // 1 enables host verification (SSL) - verifies the server at adapt-it.org
 			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_send_callback);
