@@ -38,7 +38,7 @@ class CNotes;
 class wxProgressDialog;
 struct AutoFixRecord;
 struct AutoFixRecordG;
-enum doc_edit_op;
+
 
 /// wxList declaration and partial implementation of the AFList class being
 /// a list of pointers to AutoFixRecord objects
@@ -465,15 +465,15 @@ public:
 	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
 	bool	IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr);
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
-					size_t itemLen, CSourcePhrase* pSrcPhrase);
+									size_t itemLen, CSourcePhrase* pSrcPhrase);
 	bool	DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFList& afList,
-					int& nCumulativeTotal);
+									int& nCumulativeTotal);
 	// the "G" variant below, is for use when glossing mode is on, pKB and pKBCopy will be
 	// glossing KBs, and internally, the data accessed will be m_gloss, not m_adaption
 	bool	DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFGList& afList,
-					int& nCumulativeTotal);
+									int& nCumulativeTotal);
 	CCell* 	LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
-					SPList* pPhrases, enum doc_edit_op op);
+									SPList* pPhrases);
 	bool	MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec);
 			// this next one is a variant used for matching AutoFixRecordG for glosses
 	bool	MatchAutoFixGItem(AFGList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecordG*& rpRec);
@@ -482,13 +482,8 @@ public:
 	wxChar	GetOtherCaseChar(wxString& charSet, int nOffset);
 	void	RemoveAutoFixList(AFList& afList); // for adaptating data
 	void	RemoveAutoFixGList(AFGList& afgList); // for glossing data
-
-  public:
-										  // (" or ') is encountered preceding the word when
-										  // parsing using TokenizeText()
-
-  private:
 	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
+
 	DECLARE_EVENT_TABLE()
 };
 
