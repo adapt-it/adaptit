@@ -36,10 +36,10 @@
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 //#include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h" // need this for AIModalDialog definition
-#include "Adapt_ItDoc.h"
-#include "Adapt_ItCanvas.h"
 #include "Adapt_It_wdr.h"
 #include "helpers.h"
+#include "Adapt_ItDoc.h"
+#include "Adapt_ItCanvas.h"
 #include "MainFrm.h"
 #include "conschk_exists_notu_dlg.h"
 

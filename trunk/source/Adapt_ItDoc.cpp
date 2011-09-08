@@ -77,6 +77,7 @@
 #include "Strip.h"
 #include "Pile.h" // must precede the include for the document
 #include "Cell.h"
+#include "Layout.h"
 #include "Adapt_ItDoc.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
@@ -87,7 +88,6 @@
 #include "SplitDialog.h"
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
-#include "Layout.h"
 #include "FreeTrans.h"
 #include "Notes.h"
 #include "ExportFunctions.h"
@@ -21598,8 +21598,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
                     // the dialog, return ptr to the phrase box's cell in the view
-                    CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases, 
-																consistency_check_op);
+                    CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases);
 
 					switch (pAFRecord->incType)
 					{
@@ -22362,8 +22361,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
                     // the dialog, return ptr to the phrase box's cell in the view
-                    CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases, 
-																consistency_check_op);
+                    CCell* pCell = LayoutDocForConsistencyCheck(pApp, pSrcPhrase, pPhrases);
+
 					switch (pAFGRecord->incType)
 					{
 					case member_empty_flag_on_noPTU:
@@ -22619,8 +22618,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 // latter one is used in Glossing mode; return ref to CCell pointer for the top left of
 // where the phrase box will be in the view, via pCell param.
 CCell* CAdapt_ItDoc::LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
-					SPList* pPhrases, enum doc_edit_op op)
+					SPList* pPhrases)
 {
+	doc_edit_op op = consistency_check_op;
 	int nActiveSequNum = pSrcPhrase->m_nSequNumber;
 	wxASSERT(nActiveSequNum >= 0);
 	pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay

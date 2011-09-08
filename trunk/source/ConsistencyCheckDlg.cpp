@@ -41,7 +41,6 @@
 #include <wx/valgen.h> // for wxGenericValidator
 
 #include "Adapt_It.h"
-#include "ConsistencyCheckDlg.h"
 #include "TargetUnit.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h" // for access to the FixItAction enum
@@ -51,6 +50,7 @@
 #include "SourcePhrase.h"
 #include "RefString.h"
 #include "helpers.h"
+#include "ConsistencyCheckDlg.h"
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
