@@ -1840,6 +1840,21 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 	}
 }
 
+bool CollabProjectIsEditable(wxString projShortName)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// check whether the projListItem has the <Editable>T</Editable> attribute which
+	// we can just query our pPTInfo->bProjectIsEditable attribute for the project 
+	// to see if it is TRUE or FALSE.
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	if (pCollabInfo != NULL && pCollabInfo->bProjectIsEditable)
+		return TRUE;
+	else
+		return FALSE;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// \return                       TRUE if all went well, FALSE if project could
 ///                               not be created

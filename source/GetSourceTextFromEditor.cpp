@@ -259,12 +259,14 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	int ct;
 	for (ct = 0; ct < (int)projList.GetCount(); ct++)
 	{
-		wxString projShortName;
-		projShortName = projList.Item(ct);
-		projShortName = GetShortNameFromProjectName(projShortName);
+		// The Source project doesn't necessarily have to be editable, since
+		// we are only reading from it.
 		pComboSourceProjectName->Append(projList.Item(ct));
-		// We must restrict the list of potential destination projects to those
-		// which have the <Editable>T</Editable> attribute
+		// For the Target project and Free Translation project, we must 
+		// restrict the list of potential destination projects to those
+		// which have the <Editable>T</Editable> attribute.
+		wxString projShortName;
+		projShortName = GetShortNameFromProjectName(projList.Item(ct));
 		if (CollabProjectIsEditable(projShortName))
 		{
 			pComboDestinationProjectName->Append(projList.Item(ct));
@@ -2435,21 +2437,6 @@ void CGetSourceTextFromEditorDlg::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
 	m_TempCollabProjectForFreeTransExports.Empty();
 	m_bTempCollaborationExpectsFreeTrans = FALSE;
 }
-
-bool CGetSourceTextFromEditorDlg::CollabProjectIsEditable(wxString projShortName)
-{
-	// check whether the projListItem has the <Editable>T</Editable> attribute which
-	// we can just query our pPTInfo->bProjectIsEditable attribute for the project 
-	// to see if it is TRUE or FALSE.
-	Collab_Project_Info_Struct* pCollabInfo;
-	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
-															// pApp->m_pArrayOfCollabProjects
-	if (pCollabInfo != NULL && pCollabInfo->bProjectIsEditable)
-		return TRUE;
-	else
-		return FALSE;
-}
-
 
 EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueCodes(
 							wxString& editorSrcLangCode, wxString& editorTgtLangCode)

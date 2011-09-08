@@ -431,10 +431,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: For target project, we must ensure that the Paratext project is writeable
-	// TODO: remove from list any that are not writeable
-	
 	// use a temporary array list for the list of projects
 	wxArrayString tempListOfProjects;
+	wxString projShortName;
 	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
@@ -442,8 +441,14 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
 		for (ct = 0; ct < tot; ct++)
 		{
-			// load the rest of the projects into the temp array list
-			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+			// Load the rest of the projects into the temp array list.
+			// We must restrict the list of potential destination projects to those
+			// which have the <Editable>T</Editable> attribute
+			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfPTProjects.Item(ct));
+			if (CollabProjectIsEditable(projShortName))
+			{
+				tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+			}
 		}
 	}
 	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
@@ -452,7 +457,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		for (ct = 0; ct < tot; ct++)
 		{
 			// load the rest of the projects into the temp array list
-			tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+			// We must restrict the list of potential destination projects to those
+			// which have the <Editable>T</Editable> attribute
+			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfBEProjects.Item(ct));
+			if (CollabProjectIsEditable(projShortName))
+			{
+				tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+			}
 		}
 	}
 	wxString msg;
@@ -517,10 +528,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: For free trans project, we must ensure that the Paratext project is writeable
-	// TODO: remove from list any that are not writeable
-	
-	// use a temporary array list
+	// use a temporary array list for the list of projects
 	wxArrayString tempListOfProjects;
+	wxString projShortName;
 	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
@@ -528,8 +538,14 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
 		for (ct = 0; ct < tot; ct++)
 		{
-			// load the rest of the projects into the temp array list
-			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+			// Load the rest of the projects into the temp array list.
+			// We must restrict the list of potential destination projects to those
+			// which have the <Editable>T</Editable> attribute
+			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfPTProjects.Item(ct));
+			if (CollabProjectIsEditable(projShortName))
+			{
+				tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
+			}
 		}
 	}
 	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
@@ -537,8 +553,14 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
 		for (ct = 0; ct < tot; ct++)
 		{
-			// load the rest of the projects into the temp array list
-			tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+			// Load the rest of the projects into the temp array list.
+			// We must restrict the list of potential destination projects to those
+			// which have the <Editable>T</Editable> attribute
+			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfBEProjects.Item(ct));
+			if (CollabProjectIsEditable(projShortName))
+			{
+				tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
+			}
 		}
 	}
 	wxString msg;
