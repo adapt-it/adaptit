@@ -158,6 +158,7 @@ class CSourcePhrase;
 	///   Functions for connecting  the externally obtained data into a new or existing
 	///   Adapt It project, and getting data out of the Adapt It document
 	/////////////////////////////////////////////////////////////////////////////////////
+	bool			CollabProjectIsEditable(wxString projShortName);
 	bool			CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, 
 							wxString& tgtLangName, wxString& srcEthnologueCode, 
 							wxString& tgtEthnologueCode, bool bDisableBookMode);

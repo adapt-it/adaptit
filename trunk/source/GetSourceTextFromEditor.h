@@ -105,7 +105,6 @@ protected:
 	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
 	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
 
-	bool CollabProjectIsEditable(wxString projShortName);
 	bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
 								wxString LanguageNameTgt, wxString& aiProjectFolderName,
 								wxString& aiProjectFolderPath);

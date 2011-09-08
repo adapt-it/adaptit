@@ -1441,12 +1441,15 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			// error handling
 			if (resultTgt != 0)
 			{
-				// not likely to happen so an English warning will suffice
-				wxMessageBox(_T(
-"Error when trying to write target text to the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
-				_T(""),wxICON_WARNING);
+				// Not likely to happen, but it is possible if there are no books created for the PT/BE
+				// project, or the files are locked/access denied.
+				wxString msg;
+				msg = _(
+"Error when trying to write target text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
+				msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+				wxMessageBox(msg,_T(""),wxICON_WARNING);
 				wxString temp;
-				temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultTgt = %d"),resultTgt);
+				temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d"),resultTgt);
 				gpApp->LogUserAction(temp);
 				wxLogDebug(temp);
 				int ct;
@@ -1531,12 +1534,15 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 					// error handling
 					if (resultFreeTrans != 0)
 					{
-						// not likely to happen so an English warning will suffice
-						wxMessageBox(_T(
-"Error when trying to write free translation to the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
-						_T(""),wxICON_WARNING);
+						// Not likely to happen, but it is possible if there are no books created for the PT/BE
+						// project, or the files are locked/access denied.
+						wxString msg;
+						msg = _(
+		"Error when trying to write free translation text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
+						msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+						wxMessageBox(msg,_T(""),wxICON_WARNING);
 						wxString temp;
-						temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultFreeTrans = %d"),resultFreeTrans);
+						temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d"),resultFreeTrans);
 						gpApp->LogUserAction(temp);
 						wxLogDebug(temp);
 						int ct;
