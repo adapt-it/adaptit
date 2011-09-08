@@ -29719,14 +29719,15 @@ void CAdapt_ItApp::Convert8to16(CBString& bstr,wxString& convStr)
 /// \param      bstr       ->   a CBString containing the single-byte character string 
 ///                             to be converted
 /// \remarks
-/// Called from: the App's DoInputConversion(), the Doc's DoUnpackDocument(), the View's
-/// DoConsistentChanges(), FileContainsBookIndicator() in helpers.cpp, ParseXML() in
-/// XML.cpp as well as AtBooksAttr() and AtSFMAttr(), and CXMLErrorDlg::InitDialog().
+/// Called from: the Doc's DoUnpackDocument(), the View's DoConsistentChanges(),
+/// FileContainsBookIndicator() in helpers.cpp, ParseXML() in XML.cpp as well as
+/// AtBooksAttr() and AtSFMAttr(), and CXMLErrorDlg::InitDialog().
 /// Converts a single-byte character string, which is ASCII or UTF-8 (as returned from
 /// parsing XML data) to a Unicode (UTF-16) string which it returns.
 /// See the overloaded void function which returns the converted string in a reference
 /// parameter. See also the complementary Convert16to8() function which converts the other
 /// direction.
+/// GDLC 8Sep11 No longer called from DoInputConversion()
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 {
@@ -29754,53 +29755,29 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// Called from: the Doc's GetNewFile() and CCCTabbedDialog::DoEditor().
 /// Converts a UTF-8 or UTF-16 input text to the required UTF-16 for internal use in
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
+/// GDLC 8Sep11 Modified to use wxConvAuto
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, 
 									 wxFontEncoding eEncoding,bool bHasBOM)
 {
-	// pbyteBuff is null terminated
-	wxChar* lpUnconvertedText;
-	switch(eEncoding)
+	wxConvAuto conv;
+	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff);
+	if ( dstLen == wxCONV_FAILED )
 	{
-	case wxFONTENCODING_UTF8: //eUTF8
-		{
-		// we expect this, so make it be first
-		if (bHasBOM)
-		{
-			pbyteBuff += nBOMLen; // skip over BOM
-		}
-		CBString tempBuff(pbyteBuff);
-		pBuf = gpApp->Convert8to16(tempBuff);
-		break;
-		}
-	case wxFONTENCODING_UTF16: //eUTF16:
-		{
-		if (bHasBOM)
-		{
-			pbyteBuff += nU16BOMLen; // skip over BOM
-		}
-		lpUnconvertedText = (wxChar*)pbyteBuff;
-		pBuf = lpUnconvertedText;
-		break;
-		}
-	//case eAnsi:
-	default: // Unknown encoding - assume it is probably ASCII and 
-			 // convert it as best as possible
-		{
-		if (bHasBOM)
-		{
-			// we don't expect this, so just fail for a debug build, 
-			// & for release build do nothing
-			::wxBell(); 
-			wxASSERT(FALSE);
-		}
-		// The wxCSConv class converts between any character sets and Unicode.
-		wxCSConv conv(eEncoding); // construct a converter for eEncoding
-		pBuf = wxString(pbyteBuff, conv); // convert the pbyteBuff buffer
-		break;
-		}
-	};
-	
+		::wxBell(); 
+		wxASSERT(FALSE);
+		return;
+	}
+	wchar_t *dst = new wchar_t[dstLen];
+	if ( conv.ToWChar(dst, dstLen, pbyteBuff) == wxCONV_FAILED )
+	{
+		::wxBell(); 
+		wxASSERT(FALSE);
+		return;
+	}
+	wxString dstStr(dst);
+	delete dst;
+	pBuf = dstStr;
 }
 #endif
 
