@@ -3491,17 +3491,18 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 	}
 	if (selStr == createNewProjectInstead)
 	{
-		// unhide the controls in 3a
+		// Unhide the controls in 3a
 		pTextCtrlAsStaticNewAIProjName->Show();
 		pStaticTextEnterLangNames->Show();
-		pTextCtrlSourceLanguageName->ChangeValue(wxEmptyString); //m_TempCollabSourceProjLangName);
 		pTextCtrlSourceLanguageName->Show();
-		pTextCtrlTargetLanguageName->ChangeValue(wxEmptyString); //m_TempCollabTargetProjLangName);
 		pTextCtrlTargetLanguageName->Show();
 		pTextCtrlAsStaticNewAIProjName->Show();
 		pStaticTextNewAIProjName->Show();
 		pStaticTextSrcLangName->Show();
 		pStaticTextTgtLangName->Show();
+		// enable and blank out the language edit boxes
+		pTextCtrlSourceLanguageName->ChangeValue(wxEmptyString);
+		pTextCtrlTargetLanguageName->ChangeValue(wxEmptyString);
 		pTextCtrlSourceLanguageName->Enable();
 		pTextCtrlTargetLanguageName->Enable();
 		pGetSourceTextFromEditorSizer->Layout();
@@ -3511,20 +3512,25 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 	else
 	{
 		// The administrator selected an existing AI project from the
-		// combobox. Parse the language names from the AI project name.
+		// combobox. 
+		// Hide the language names controls
+		pTextCtrlAsStaticNewAIProjName->Hide();
+		pStaticTextEnterLangNames->Hide();
+		pTextCtrlSourceLanguageName->Hide();
+		pTextCtrlTargetLanguageName->Hide();
+		pTextCtrlAsStaticNewAIProjName->Hide();
+		pStaticTextNewAIProjName->Hide();
+		pStaticTextSrcLangName->Hide();
+		pStaticTextTgtLangName->Hide();
+		// Parse the language names from the AI project name.
 		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr, 
 			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
-		// Populate the Source Language Name and the Target Language Name edit 
-		// boxes with the language names parsed from the combobox's selected
-		// string.
 		
 		// To make the change persist, we need to also change the temp values
 		// for the newly selected AI project that gets stored in the
 		// basic config file within OnOK().
 		m_TempCollabAIProjectName = selStr; 
-		
-		pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-		pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+
 		// Also, disable the Source Language Name and the Target Language Name edit 
 		// boxes now that they have the computed language names in them, because 
 		// they can't be changed as long as an existing AI project
