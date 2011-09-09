@@ -703,6 +703,51 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(userSelectionStr);
 	m_TempCollabProjectForFreeTransExports = userSelectionStr;
 	m_bTempCollaborationExpectsFreeTrans = TRUE;
+	
+	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
+	// tasked with selecting the appropriate PT/BE projects for source, target, and
+	// (optionally) free translation collaboration. He does not make any selection of
+	// books in this dialog, so we can't check to see if a book exists in the PT/BE
+	// free translation project (as we do in the GetSourceTestFromEditor dialog). 
+	// We can, however, check to see if that project does not have any books created, 
+	// in which case, we disallow the choice of that PT/BE project for storing free 
+	// translations.
+	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
+	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports))
+	{
+		// The book does not have at least one book in the Free Trans project
+		wxString msg1,msg2;
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The Paratext project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str(),projShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The Bibledit project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str(),projShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+		}
+		msg1 = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+		// clear out the free translation control
+		pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
+		m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for free trans exports
+		m_bTempCollaborationExpectsFreeTrans = FALSE;
+	}
+	
+	/*
+	// whm modified 9Sep11 to provide error handling when the FT project
+	// selected does not have the book in existence that is selected in
+	// the source project's combo box, or doesn't has the book but it
+	// is empty (not containing at least empty chapters and verses).
+	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
+	if (!m_TempCollabBookSelected.IsEmpty())
+	{
+		if (!BookExistsInCollabProject(m_TempCollabProjectForFreeTransExports, m_TempCollabBookSelected))
+		{
+		}
+	}
+	*/
 }
 
 void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event))
