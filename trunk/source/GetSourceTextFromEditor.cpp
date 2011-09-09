@@ -1830,6 +1830,39 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEven
 	// For free trans selection we don't need to refresh book names
 	// nor call OnLBBookSelected() here as is needed when the combobox
 	// selections for source and/or target project changes.
+	
+	// whm modified 9Sep11 to provide error handling when the FT project
+	// selected does not have the book in existence that is selected in
+	// the source project's combo box, or doesn't has the book but it
+	// is empty (not containing at least empty chapters and verses).
+	wxString projShortName = _T("");
+	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
+	if (!m_TempCollabBookSelected.IsEmpty())
+	{
+		if (!BookExistsInCollabProject(m_TempCollabProjectForFreeTransExports, m_TempCollabBookSelected))
+		{
+			// The book does not exists in the Free Trans project
+			wxString msg1,msg2;
+			if (m_pApp->m_bCollaboratingWithParatext)
+			{
+				msg1 = msg1.Format(_("The book %s in the Paratext project for storing free translation drafts (%s) has no chapter and verse numbers."),m_TempCollabBookSelected.c_str(),projShortName.c_str());
+				msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+			}
+			else if (m_pApp->m_bCollaboratingWithBibledit)
+			{
+				msg1 = msg1.Format(_("The book %s in the Bibledit project for storing free translation drafts (%s) has no chapter and verse numbers."),m_TempCollabBookSelected.c_str(),projShortName.c_str());
+				msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+			}
+			msg1 = msg1 + _T(' ') + msg2;
+			wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+			// clear the combo box selection
+			pComboFreeTransProjectName->SetSelection(wxNOT_FOUND); // clears the selection entirely
+			// disable the No Free Translation button
+			pBtnNoFreeTrans->Disable();
+			m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for free trans exports
+			m_bTempCollaborationExpectsFreeTrans = FALSE;
+		}
+	}
 }
 
 // BEW 1Aug11 **** NOTE ****
@@ -1840,7 +1873,12 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEven
 // and so the code here uses various temporary variables; whereas 
 // TransferTextBetweenAdaptItAndExternalEditor() accesses persistent (for the session)
 // variables stored on the app, which get populated only after the user has clicked the
-// dialog's OK button, hence invoking the OnOK() handler. 
+// dialog's OK button, hence invoking the OnOK() handler.
+// 
+// whm Note: OnLBBookSelected() is called from the OnComboBoxSelectSourceProject(), from
+// OnComboBoxSelectTargetProject(), and from the dialog's InitDialog() when it receives
+// config file values that enable it to select the last PT/BE book selected in a previous
+// session.
 void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(event))
 {
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
@@ -2132,6 +2170,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
+		pStaticSelectAChapter->Refresh();
 		return;
 	}
 
@@ -2287,6 +2327,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
+		pStaticSelectAChapter->Refresh();
 		return;
 	}
 	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
@@ -2310,6 +2352,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		//pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
+		pStaticSelectAChapter->Refresh();
 		return;
 	}
 
@@ -2339,6 +2383,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		//pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
+		pStaticSelectAChapter->Refresh();
 		return;
 	}
 	else

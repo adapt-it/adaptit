@@ -198,6 +198,8 @@ class CSourcePhrase;
 	///     Functions for filename creation, path creation, file moving, and data transfer
 	///     to the external editor, when doing collaboration
 	/////////////////////////////////////////////////////////////////////////////////////
+	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
+	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName);
 	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()

@@ -2041,6 +2041,91 @@ wxString ChangeFilenameExtension(wxString filenameOrPath, wxString extn)
 	}
 }
 
+// Determines if a particular Scripture book exists in the collaborating editor's
+// project. Uses the project composite name and the book's full name for the
+// search.
+// This function examines the current Collab_Project_Info_Struct objects on 
+// the heap (in m_pArrayOfCollabProjects) and gets the object for the current 
+// project. It then examines the struct's booksPresentFlags member for the 
+// existence of the book in that project. 
+bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName)
+{
+	wxString collabProjShortName;
+	collabProjShortName = GetShortNameFromProjectName(projCompositeName);
+	int ct, tot;
+	tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
+	wxString booksPresentFlags = _T("");
+	Collab_Project_Info_Struct* pArrayItem;
+	pArrayItem = (Collab_Project_Info_Struct*)NULL;
+	bool bFoundProjStruct = FALSE;
+	bool bFoundBookName = FALSE;
+	for (ct = 0; ct < tot; ct++)
+	{
+		pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
+		wxASSERT(pArrayItem != NULL);
+		if (pArrayItem != NULL && pArrayItem->shortName == collabProjShortName)
+		{
+			booksPresentFlags = pArrayItem->booksPresentFlags;
+			bFoundProjStruct = TRUE;
+			break;
+		}
+	}
+	if (bFoundProjStruct && !booksPresentFlags.IsEmpty())
+	{
+		wxArrayString booksArray;
+		booksArray = gpApp->GetBooksArrayFromBookFlagsString(booksPresentFlags);
+		tot = (int)booksArray.GetCount();
+		for (ct = 0; ct < tot; ct++)
+		{
+			if (bookFullName == booksArray.Item(ct))
+			{
+				bFoundBookName = TRUE;
+				break;
+			}
+		}
+	}
+	return bFoundBookName;
+}
+
+// Determines if a PT/BE project has at least one book created by PT/BE in its
+// data store for the project. 
+// Uses the project's composite name.
+// This function examines the current Collab_Project_Info_Struct objects on 
+// the heap (in m_pArrayOfCollabProjects) and gets the object for the current 
+// project. It then examines the struct's booksPresentFlags member for the 
+// existence of the book in that project. 
+bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
+{
+	wxString collabProjShortName;
+	collabProjShortName = GetShortNameFromProjectName(projCompositeName);
+	int ct, tot;
+	tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
+	wxString booksPresentFlags = _T("");
+	Collab_Project_Info_Struct* pArrayItem;
+	pArrayItem = (Collab_Project_Info_Struct*)NULL;
+	bool bFoundProjStruct = FALSE;
+	for (ct = 0; ct < tot; ct++)
+	{
+		pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
+		wxASSERT(pArrayItem != NULL);
+		if (pArrayItem != NULL && pArrayItem->shortName == collabProjShortName)
+		{
+			booksPresentFlags = pArrayItem->booksPresentFlags;
+			bFoundProjStruct = TRUE;
+			break;
+		}
+	}
+	if (booksPresentFlags.Find(_T('1')) != wxNOT_FOUND)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
 wxString GetPathToRdwrtp7()
 {
 	// determine the path and name to rdwrtp7.exe
