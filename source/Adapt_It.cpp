@@ -29863,7 +29863,7 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// GDLC 8Sep11 Modified to use wxConvAuto
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, 
-									 wxFontEncoding eEncoding,bool bHasBOM)
+									 wxFontEncoding WXUNUSED(eEncoding),bool WXUNUSED(bHasBOM))
 {
 	wxConvAuto conv;
 	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff);

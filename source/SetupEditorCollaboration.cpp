@@ -416,21 +416,73 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		// user cancelled, don't change anything, just return
 		return;
 	}
-	// if we get here the administrator made a selection, show the
-	// composite project string in the read-only edit box, get the
-	// computed language name from the composite userSelectionStr
+
+	// If we get here the administrator made a selection.
+	// Show the composite project string in the read-only edit box, 
+	// get the computed language name from the composite userSelectionStr
 	// and save it in m_TempCollabSourceProjLangName so that it will 
 	// get assigned to the App's value in OnOK() for the project 
 	// config file, and then show the computed Language name in the 
-	// Source Language Name edit box.
+	// Source Language Name edit box. We also need to update the
+	// selection in the combo box.
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
+	m_TempCollabProjectForSourceInputs = userSelectionStr;
 	m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
 	pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+	
+	// Load potential AI projects into the pComboAiProjects combo box, and in the process
+	// check for the existence of the aiProjectFolder project. Select it if it is in the
+	// list.
+	wxArrayString aiProjectNamesArray;
+	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
+	aiProjectNamesArray.Sort();
+	// const wxString createNewProjectInstead = _("<Create a new project instead>");
+	// insert the "<Create a new project instead>" item at the beginning
+	// of the sorted list of AI projects
+	aiProjectNamesArray.Insert(createNewProjectInstead,0);
+	// update the combo box
+	wxString aiProjectName = _T("");
+	// Get an AI project folder name. 
+	// Note: This assumes that the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
+	// and m_TempCollabTargetProjLangName, are set from the basic config file because
+	// at this point in InitDialog, only the basic config file will have been read in.
+	// Note: The project language names may also have been set via user selection as is
+	// the case for this handler.
+	// When we make the first parameter wxEmptyString the GetAIProjectFolderForCollab() will
+	// use the m_TempCollabSourceProjLangName and m_TempCollabTargetProjLangName values
+	// to return an AI project folder name of the form <source name> to <target name> adaptations".
+	// The current user selection invalidates the value of m_TempCollabAIProjectName, so we
+	// call GetAIProjectFolderForCollab() to get a new value and values for the source and
+	// target names too.
+	m_TempCollabAIProjectName = _T(""); // user selection invalidates this, 
+	aiProjectName = GetAIProjectFolderForCollab(m_TempCollabAIProjectName, 
+				m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName, 
+				m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports);
+	
+	// Locate and select the aiProjectFolder
+	pComboAiProjects->Clear();
+	int indexOfFoundProject = wxNOT_FOUND;
+	bool bAiProjectFound = FALSE;
+	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
+	{
+		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
+		if (aiProjectNamesArray.Item(ct) == aiProjectName)
+		{
+			// workFolder exists as an AI project folder name
+			indexOfFoundProject = ct;
+			bAiProjectFound = TRUE;
+		}
+	}
+	if (indexOfFoundProject != wxNOT_FOUND)
+	{
+		pComboAiProjects->Select(indexOfFoundProject);
+	}
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: For target project, we must ensure that the Paratext project is writeable
+	
 	// use a temporary array list for the list of projects
 	wxArrayString tempListOfProjects;
 	wxString projShortName;
@@ -513,16 +565,67 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		// user cancelled, don't change anything, just return
 		return;
 	}
-	// if we get here the administrator made a selection, show the
-	// composite project string in the read-only edit box, get the
-	// computed language name from the composite userSelectionStr
-	// and save it in m_TempCollabTargetProjLangName so that it will 
+	
+	// If we get here the administrator made a selection.
+	// Show the composite project string in the read-only edit box, 
+	// get the computed language name from the composite userSelectionStr
+	// and save it in m_TempCollabSourceProjLangName so that it will 
 	// get assigned to the App's value in OnOK() for the project 
 	// config file, and then show the computed Language name in the 
-	// Target Language Name edit box.
+	// Target Language Name edit box. We also need to update the
+	// selection in the combo box.
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
+	m_TempCollabProjectForTargetExports = userSelectionStr;
 	m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
 	pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+	
+	// Load potential AI projects into the pComboAiProjects combo box, and in the process
+	// check for the existence of the aiProjectFolder project. Select it if it is in the
+	// list.
+	wxArrayString aiProjectNamesArray;
+	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
+	aiProjectNamesArray.Sort();
+	// const wxString createNewProjectInstead = _("<Create a new project instead>");
+	// insert the "<Create a new project instead>" item at the beginning
+	// of the sorted list of AI projects
+	aiProjectNamesArray.Insert(createNewProjectInstead,0);
+	// update the combo box
+	wxString aiProjectName = _T("");
+	// Get an AI project folder name. 
+	// Note: This assumes that the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
+	// and m_TempCollabTargetProjLangName, are set from the basic config file because
+	// at this point in InitDialog, only the basic config file will have been read in.
+	// Note: The project language names may also have been set via user selection as is
+	// the case for this handler.
+	// When we make the first parameter wxEmptyString the GetAIProjectFolderForCollab() will
+	// use the m_TempCollabSourceProjLangName and m_TempCollabTargetProjLangName values
+	// to return an AI project folder name of the form <source name> to <target name> adaptations".
+	// The current user selection invalidates the value of m_TempCollabAIProjectName, so we
+	// call GetAIProjectFolderForCollab() to get a new value and values for the source and
+	// target names too.
+	m_TempCollabAIProjectName = _T(""); // user selection invalidates this, 
+	aiProjectName = GetAIProjectFolderForCollab(m_TempCollabAIProjectName, 
+				m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName, 
+				m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports);
+	
+	// Locate and select the aiProjectFolder
+	pComboAiProjects->Clear();
+	int indexOfFoundProject = wxNOT_FOUND;
+	bool bAiProjectFound = FALSE;
+	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
+	{
+		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
+		if (aiProjectNamesArray.Item(ct) == aiProjectName)
+		{
+			// workFolder exists as an AI project folder name
+			indexOfFoundProject = ct;
+			bAiProjectFound = TRUE;
+		}
+	}
+	if (indexOfFoundProject != wxNOT_FOUND)
+	{
+		pComboAiProjects->Select(indexOfFoundProject);
+	}
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
@@ -616,7 +719,9 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 		// unhide the controls in 3a
 		pTextCtrlAsStaticNewAIProjName->Show();
 		pStaticTextEnterLangNames->Show();
+		pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
 		pTextCtrlSourceLanguageName->Show();
+		pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
 		pTextCtrlTargetLanguageName->Show();
 		pTextCtrlAsStaticNewAIProjName->Show();
 		pStaticTextNewAIProjName->Show();

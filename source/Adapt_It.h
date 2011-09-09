@@ -3389,7 +3389,7 @@ public:
 	CBString	Convert16to8(const wxString& str); // BEW added 10Aug05, for XML output 
 				// in Unicode version
 	void	DoInputConversion(wxString& pBuf,const char* pbyteBuff,
-				wxFontEncoding eEncoding,bool bHasBOM = FALSE); // for unicode conversions
+				wxFontEncoding WXUNUSED(eEncoding),bool WXUNUSED(bHasBOM = FALSE)); // for unicode conversions
 #endif
 	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, ConfigFileType configType);
 	void	GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, wxString& srcName, 
