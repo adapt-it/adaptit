@@ -3448,9 +3448,9 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 		// unhide the controls in 3a
 		pTextCtrlAsStaticNewAIProjName->Show();
 		pStaticTextEnterLangNames->Show();
-		pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+		pTextCtrlSourceLanguageName->ChangeValue(wxEmptyString); //m_TempCollabSourceProjLangName);
 		pTextCtrlSourceLanguageName->Show();
-		pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+		pTextCtrlTargetLanguageName->ChangeValue(wxEmptyString); //m_TempCollabTargetProjLangName);
 		pTextCtrlTargetLanguageName->Show();
 		pTextCtrlAsStaticNewAIProjName->Show();
 		pStaticTextNewAIProjName->Show();
