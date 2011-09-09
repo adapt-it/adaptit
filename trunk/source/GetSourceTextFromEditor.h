@@ -95,7 +95,7 @@ protected:
 	void OnCancel(wxCommandEvent& event);
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
-	void OnComboBoxSelectDestinationProject(wxCommandEvent& WXUNUSED(event));
+	void OnComboBoxSelectTargetProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event));
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
