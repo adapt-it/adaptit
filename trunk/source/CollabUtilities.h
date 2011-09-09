@@ -23,6 +23,7 @@
 #include "string.h"
 #endif
 #include "Adapt_It.h"
+#include "helpers.h"
 
 class wxProgressDialog;
 
