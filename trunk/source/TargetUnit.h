@@ -83,7 +83,9 @@ public:
 //	wxString	GetSourceKey(); // returns m_sourceKey
 //	void		SetSourceKey(wxString srcKey); // sets m_sourceKey
 	int			FindRefString(wxString& translationStr);
+	int			FindDeletedRefString(wxString& translationStr); // only tests deleted ones for a match
 	int			CountNonDeletedRefStringInstances();
+	bool		UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str);
 
 private:
 	// class attributes

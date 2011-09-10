@@ -180,6 +180,45 @@ int CTargetUnit::FindRefString(wxString& translationStr)
 	return (int)wxNOT_FOUND;
 }
 
+// returns an index to a deleted CRefString instance whose m_translation member matches
+// the passed in translationStr; otherwise returns wxNOT_FOUND if there was no such
+// deleted one present (that is, a non-deleted one will cause wxNOT_FOUND to be returned)
+// 
+// BEW created 9Sep11, for support of kbVersion2, since a CTargetUnit may store one or more
+// deleted CRefString instances, and our consistency checking algorithm needs to know when
+// a deleted <Not In KB> one is in the targetUnit's list. So we loop over them all looking
+// only at deleted ones, and checking for a match with the passed in translationStr. The
+// function will work for any deleted one, not just for returning the list index for a
+// <Not In KB> one.
+int CTargetUnit::FindDeletedRefString(wxString& translationStr)
+{
+	CRefString* pRefString = NULL;
+	int anIndex = -1;
+	wxString str;
+	wxString emptyStr; emptyStr.Empty();
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		anIndex++;
+		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pRefString != NULL);
+		pos = pos->GetNext();
+		if (pRefString->GetDeletedFlag() == TRUE)
+		{
+			str = pRefString->m_translation;
+			if ( (translationStr.IsEmpty() && str.IsEmpty()) || (translationStr == str))
+			{
+				// we have a match
+				return anIndex;
+			}
+		} // end of block for test: m_bDeleted == FALSE
+	}
+	// if control gets to here, we have no match
+	return (int)wxNOT_FOUND;
+}
+
+
 // Checks the CRefString instances, and any with m_bDeleted cleared to FALSE, it sets it
 // TRUE and sets the m_deletedDateTime value to the current datetime. If one of the
 // undeleted instances stores "<Not In KB>" already, it too is made deleted, because this
@@ -210,6 +249,127 @@ void CTargetUnit::DeleteAllToPrepareForNotInKB()
 			}
 		} // end of loop
 	}
+}
+
+// Checks the CRefString instances, and any one which has a m_translation member with the
+// same value as the passed in str value, but with m_bDeleted set TRUE, it undeletes that
+// CRefString and passes back TRUE. 
+// If there is no deleted CRefString matching the passed in value, it passes back FALSE.
+// If there is a non-deleted CRefString matching the passed in value, it does no undelete
+// but just passes back TRUE (then the caller will know that a StoreText() call is not
+// required since there is an appropriate CRefString present already).
+// 
+// A second effect, which is ALWAYS done, is to check for a non-deleted "<Not In KB>"
+// CRefString and if present, it is made 'deleted' and its deletion datetime set to the
+// current time. If a deleted one is already present, it is left unchanged.
+//
+// These protocols mean the following can be relied on:
+// (1) Any non-deleted CRefString with "<Not In KB>" in its m_translation member will be
+// given 'deleted' status.
+// (2) No side effect or unwelcome surprise would happen if a deleted one of those was
+// already present, or none at all, whether deleted or not.
+// (3) A FALSE value returned will still have made 'deleted' a previously non-deleted
+// "<Not In KB>" entry, if present.
+// (4) A FALSE value returned will require a separate StoreText() call in the caller if the
+// intent is to store a string other than "<Not In KB>" on the parent CTargetUnit instance.
+// (5) A TRUE value returned means that there the passed in str value is present, - either
+// because it was formerly deleted and has just become undeleted, or it was formerly
+// undeleted anyway.
+//
+// Warning 1: don't call this function with "<Not In KB>" as the passed in string
+// 
+// Warning 2: this is a low level function, for safety you should use the CKB function 
+// bool CKB::UndeleteNormalEntryAndDeleteNotInKB(CSourcePhrase* pSrcPhrase)
+// because it guaranteed to make sure that the CTargetUnit acted upon is the one which
+// would be grabbed by a subsequent StoreText() call. While you can use this function
+// if you wish, it's your responsibility to ensure that (a) the correct map is chosen, and
+// (b) the CTargetUnit instance this call is made on is the one which would be accessed by
+// StoreText() using the pSrcPhrase->m_key value of it's passed in pSrcPhrase param.
+// 
+// Note: this function is intended for adaptation mode, but can be safely called on a
+// glossing KB's CTargetUnit - the "<Not In KB>" stuff would just waste a bit of time,
+// since glossing mode does not support storage of <Not In KB> entries in the glossing KB
+bool CTargetUnit::UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str)
+{
+	wxString notInKBStr = _T("<Not In KB>"); // gpApp->m_strNotInKB would get the same string
+			// but I don't want to introduce a further dependency, nor another extern call
+	TranslationsList* pList = m_pTranslations;
+	if (!pList->IsEmpty())
+	{
+		TranslationsList::Node* posNotInKB = NULL; // set only if a "<Not In KB>" CRefString 
+										// is present (whether having deleted status or not)
+		TranslationsList::Node* posMatched = NULL; // set whether m_bDeleted is TRUE or FALSE
+		CRefString* pRefStr_NotInKB = NULL;
+		CRefString* pRefStr_Matched = NULL;
+		CRefString* pRefString;
+		TranslationsList::Node* pos = pList->GetFirst();
+		while (pos != NULL)
+		{
+			// test all CRefString instances, or until posNotInKB and 
+			// posMatched are both non-NULL 
+			if (posNotInKB != NULL && posMatched != NULL)
+			{
+				// we've got the two positions we need
+				break;
+			}
+			else
+			{
+				pRefString = (CRefString*)pos->GetData();
+				if (pRefString != NULL)
+				{
+					if (pRefString->m_translation == notInKBStr)
+					{
+						posNotInKB = pos;
+						pRefStr_NotInKB = pRefString; // may be deleted or not
+					}
+					else if (pRefString->m_translation == str)
+					{
+						posMatched = pos;
+						pRefStr_Matched = pRefString;
+					}
+				}
+				// advance the iterator
+				pos = pos->GetNext();
+			} // end of else block for test: if (posNotInKB != NULL && posMatched != NULL)
+
+		} // end of loop: while (pos != NULL)
+
+		if (posNotInKB != NULL)
+		{
+			// make this CRefString with <Not In KB> in its m_translation member
+			// have 'deleted' status if it doesn't already have that status 
+			wxASSERT(pRefStr_NotInKB != NULL);
+			if (!pRefStr_NotInKB->m_bDeleted)
+			{
+				// we must now make it have 'deleted' status
+				pRefStr_NotInKB->m_bDeleted = TRUE;
+				pRefStr_NotInKB->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+			}
+		}
+		if (posMatched != NULL)
+		{
+			// handle the matched gloss or adaptation's CRefString contents
+			wxASSERT(pRefStr_Matched != NULL);
+			if (pRefStr_Matched->m_bDeleted)
+			{
+				// undelete it & return TRUE
+				pRefStr_Matched->m_pRefStringMetadata->m_deletedDateTime.Empty();
+				pRefStr_Matched->m_bDeleted = FALSE;
+			}
+			else
+			{
+				// it's already undeleted, so just return TRUE
+				;
+			}
+		}
+		else
+		{
+			// we couldn't match the passed in str (but note: any <Not In KB> that was
+			// undeleted has now been made undeleted in the block above)
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 // pass in a modification choice as the modChoice param; allows values are LeaveUnchanged
