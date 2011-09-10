@@ -1628,6 +1628,84 @@ bool CKB::IsNot_In_KB_inThisTargetUnit(CTargetUnit* pTU)
 	return nFound != wxNOT_FOUND;
 }
 
+// The following is a helper for Consistency Check. Supporting the basic protocol that a
+// choice to make a source text word or phrase be "Not In KB" results in any non-<Not In
+// KB> entries in the associated CTargetUnit instance become all deleted, means that we
+// need a function which allows us to take a returned CTargetUnit pointer and determine if
+// there is a deleted CRefString in it with the m_translation value <Not In KB>. That's
+// what this function does. It returns TRUE if that is the case, it returns FALSE if a
+// non-deleted <Not In KB> is in the target unit, or any other CRefString with any other
+// m_translation value as well.
+// BEW created 9 Sept 2011
+bool CKB::IsDeleted_Not_In_KB_inThisTargetUnit(CTargetUnit* pTU)
+{
+	wxASSERT(pTU != NULL);
+	// the following call only searches the deleted CRefString instances in pTU for a match
+	int nFound =  pTU->FindDeletedRefString(m_pApp->m_strNotInKB);
+	return nFound != wxNOT_FOUND;
+}
+
+// Checks the CRefString instances in whatever CTargetUnit instance is looked up by using
+// the pSrcPhrase->m_key, the pSrcPhrase->m_nSrcWords to select the map, and whatever
+// adaptation or gloss is passed in in the str param.
+// 
+// Returns TRUE if there was an undeletion made (or a non-deleted matching CRefString -
+// which must not be a <Not In KB> one) was found; FALSE otherwise. If a CTargetUnit is
+// found for the key, then any <Not In KB> CRefString within it is guaranteed to have
+// been rendered "deleted". A value of FALSE returned should be interpretted as meaning 
+// that there was no CTargetUnit matched, or if one was matched, no deleted matching
+// CRefString was found. In either case, a StoreText() should then be done - and then you
+// can be sure that <Not In KB> will have been appropriately made deleted if it was
+// present. If not present, all is well anyway.
+// 
+// The pTU parameter is the pointer to the CTargetUnit to be acted on. If known in advance,
+// pass it in as the second param; if not known in advance, then pass in NULL - in which
+// case a lookup will be done in order to get the correct instance
+// 
+// Warning 1: don't call this function with "<Not In KB>" as the value in str
+// 
+// Warning 2: it's up to you to ensure that a gloss is passed in for the str parameter when
+// a glossing KB is being accessed, or an adaptation is pass when the KB is an adaptation
+// one
+//
+// Usage: make the call, and if FALSE is returned, call StoreText(pSrcPhrase,str), or if
+// str is an empty string, StoreText(pSrcPhrase,str,TRUE) to get your store done; and you
+// can be certain that any "<Not In KB>" has been appropriately dealt with.
+// 
+// Needed for doc's DoConsistencyCheck() to help fix "<Not In KB>" inconsistencies when
+// found, when the user requests that a former <Not In KB> choice be changed to a "do a
+// normal store" on a CTargetUnit which has <Not In KB> either as the only non-deleted
+// CRefString, or a deleted <Not In KB> as one of the CRefStrings, or even no CRefString
+// with <Not In KB> in its m_translation member.
+// Note: this function is intended for adaptation mode, but can be safely called on a
+// glossing KB's CTargetUnit - the "<Not In KB>" support would just waste a bit of time
+bool CKB::UndeleteNormalEntryAndDeleteNotInKB(CSourcePhrase* pSrcPhrase, CTargetUnit* pTU, 
+											  wxString& str)
+{
+	wxASSERT(pSrcPhrase != NULL && !pSrcPhrase->m_key.IsEmpty() && 
+			str != m_pApp->m_strNotInKB);
+	wxString theKey = pSrcPhrase->m_key;
+	wxString thePhrase;
+	if (m_bGlossingKB)
+	{
+		thePhrase = pSrcPhrase->m_gloss; // can be empty
+	}
+	else
+	{
+		thePhrase = pSrcPhrase->m_adaption; // can be empty
+	}
+	if (pTU == NULL)
+	{
+		// look it up (returns NULL if a matching one can't be found in the map)
+		pTU = GetTargetUnit(pSrcPhrase->m_nSrcWords, thePhrase);
+	}
+	if (pTU == NULL)
+		return FALSE;
+	else
+	{
+		return pTU->UndeleteNormalCRefStrAndDeleteNotInKB(thePhrase);
+	}
+}
 
 // returns TRUE if, for the pSrcPhrase->m_key key value, the KB (adaptation KB only, the
 // caller will not call this function if the mode is glossing mode) contains a CTargetUnit
