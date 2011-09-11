@@ -8086,7 +8086,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     wxRadioBox *item33 = new wxRadioBox( parent, ID_RADIOBOX_COLLABORATION_ON_OFF, _("4. Turn Collaboration ON or OFF here:"), wxDefaultPosition, wxDefaultSize, 2, strs33, 1, wxRA_SPECIFY_ROWS );
     item32->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
+    item29->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item28->Add( item29, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
