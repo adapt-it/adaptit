@@ -369,6 +369,7 @@ bool HasParagraphMkr(wxString& str);
 // RecalcLayout() would recreate the strips and repopulate the partner piles in such
 // situations 
 void AddUniqueInt(wxArrayInt* pArrayInt, int nInt);
+void AddUniqueString(wxArrayString* pArrayStr, wxString& str); // BEW created 11Sep11
 
 // input: pList = ptr to the SPList to be converted to a dynamic array
 // output: pArray = ptr to the SPArray which is passed in empty and populated within;

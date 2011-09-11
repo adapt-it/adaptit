@@ -286,13 +286,15 @@ void CTargetUnit::DeleteAllToPrepareForNotInKB()
 // (b) the CTargetUnit instance this call is made on is the one which would be accessed by
 // StoreText() using the pSrcPhrase->m_key value of it's passed in pSrcPhrase param.
 // 
-// Note: this function is intended for adaptation mode, but can be safely called on a
+// Note 1: this function assumes that any auto-caps adjustments to be done on str have
+// been done in the caller before str is passed in
+// Note 2: this function is intended for adaptation mode, but can be safely called on a
 // glossing KB's CTargetUnit - the "<Not In KB>" stuff would just waste a bit of time,
 // since glossing mode does not support storage of <Not In KB> entries in the glossing KB
 bool CTargetUnit::UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str)
 {
-	wxString notInKBStr = _T("<Not In KB>"); // gpApp->m_strNotInKB would get the same string
-			// but I don't want to introduce a further dependency, nor another extern call
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString notInKBStr = pApp->m_strNotInKB;
 	TranslationsList* pList = m_pTranslations;
 	if (!pList->IsEmpty())
 	{
@@ -371,6 +373,67 @@ bool CTargetUnit::UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str)
 	}
 	return TRUE;
 }
+
+bool CTargetUnit::IsItNotInKB()
+{
+	wxString notInKBStr = _T("<Not In KB>");
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (pRefStr->m_translation == notInKBStr && !pRefStr->m_bDeleted)
+		{
+			return TRUE;
+		}
+	}
+	// if control gets to here, there is no non-deleted CRefString instance
+	// storing the string <Not In KB>
+	return FALSE;
+}
+bool CTargetUnit::IsDeletedNotInKB()
+{
+	wxString notInKBStr = _T("<Not In KB>");
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (pRefStr->m_translation == notInKBStr && pRefStr->m_bDeleted)
+		{
+			return TRUE;
+		}
+	}
+	// if control gets to here, there is no non-deleted CRefString instance
+	// storing the string <Not In KB>
+	return FALSE;
+}
+
+// ensures every CRefString except the one which is <Not In KB>
+// has 'deleted' status
+void CTargetUnit::ValidateNotInKB()
+{
+	wxString notInKBStr = _T("<Not In KB>");
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (pRefStr->m_translation != notInKBStr && !pRefStr->m_bDeleted)
+		{
+			// this one needs to be made to have deleted status
+			pRefStr->m_bDeleted = TRUE;
+			pRefStr->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+		}
+	}
+}
+
 
 // pass in a modification choice as the modChoice param; allows values are LeaveUnchanged
 // (which is the default if no param is supplied), or SetNewValue -- the latter choice

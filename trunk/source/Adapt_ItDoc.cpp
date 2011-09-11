@@ -1492,7 +1492,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 				//wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
 				// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
 				// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
-				// characters, so wxLogDebug happily outputs 1but 12,000, maybe more, but perhaps
+				// characters, so wxLogDebug happily outputs about 12,000, maybe more, but perhaps
 				// it is limited to a 32 Kb buffer.
 				int count = updatedFreeTransText.Len();
 				int abit = count / 3;
@@ -20275,6 +20275,11 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE; // this is a global boolean
+	wxArrayString arrSetNotInKB; // list of src words and phrases for being 
+				// made <Not In KB> in KB
+	wxArrayString arrRemoveNotInKB; // list of src words and phrases for 
+				// restoring normal saving after being <Not In KB> in KB
+
 
 	/*
 	// test dialogs
@@ -20577,7 +20582,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				else
 				{
 					bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
-														nCumulativeTotal); // for adapting mode
+							nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
 				}
 				if (!bConsCheckDone)
 				{
@@ -20729,7 +20734,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					else
 					{
 						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
-												nCumulativeTotal); // for adapting mode
+								nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
 					}
 					if (!bConsCheckDone)
 					{
@@ -20822,7 +20827,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					else
 					{
 						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
-												nCumulativeTotal); // for adapting mode
+								nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
 					}
 					if (!bConsCheckDone)
 					{
@@ -21019,7 +21024,8 @@ void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
 // BEW 29Aug11, there are now two versions of this function which differ only by name:
 // DoConsistencyCheck() handles adapting mode, DoConsistencyCheckG() handles glossing mode
 bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
-									  AFList& afList, int& nCumulativeTotal)
+						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB, 
+						wxArrayString& arrRemoveNotInKB)
 {
 	wxASSERT(pKB->IsThisAGlossingKB() == FALSE); // must be an adaptation kb for this fn version
 
@@ -21029,7 +21035,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 	wxASSERT(pApp != NULL);
 	wxArrayString* pList = &pApp->m_acceptedFilesList;
 	int nCount = pList->GetCount();
-	wxString strNotInKB = _T("<Not In KB>");
+	wxString strNotInKB = pApp->m_strNotInKB;
 	wxString emptyStr = _T("");
 	if (nCount <= 0)
 	{
@@ -21082,12 +21088,15 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		bool bDeleted = FALSE;
 		CTargetUnit* pTU = NULL;
 		CRefString* pRefStr = NULL;
+
+		/* no longer needed
 		// for second test, using <Not In KB> (so that we don't wipe out first
 		// test's values before we are done with them)
 		bool bIsInKB_For_NotInKB = FALSE;
 		bool bDeleted_For_NotInKB = FALSE;
 		CTargetUnit* pTU_For_NotInKB = NULL;
 		CRefString* pRefStr_For_NotInKB = NULL;
+		*/
 		bool bFoundTgtUnit = FALSE;
 
 		bool bAddedToAFList = FALSE;
@@ -21151,6 +21160,96 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// way to the adaptation contents, returning TRUE only when that matches. To
 			// test only for a pTU matching the key value, instead use AutoCapsLookup() )
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
+
+			// While <Not In KB> entries are expected to be rare or absent, if present
+			// they are dominant - that is, if a given source text word or phrase is
+			// declared to never have a KB presence, then everywhere in every document
+			// that source text word needs to be made <Not In KB>. Setting it so is done
+			// at one location in one document typically, so it is up to the Consistency
+			// Check to get all other places it occurs compliant; and if a former <Not In
+			// KB> entry is declared to be no longer such for a given source text word or
+			// phrase, it is also our job here to enforce this decision everywhere - which
+			// typically means giving "deleted" status to the CRefString storing the 
+			// <Not In KB> string, and undeleting the CRefString (if present) of the adaptation
+			// corresponding to the source text word. To do these jobs, we have to collect
+			// entries where there are, for locations in the docs), non-deleted and
+			// deleted <Not In KB> entries in the KB, and store these source text words in
+			// separate arrays which must persist for the whole Consistency Check.
+			// Since we will know whether a pTU exists for this pSrcPhrase, we will use
+			// the test functions in the CTargetUnit class rather than the equivalent in
+			// the CKB class, for speed.
+			if (pTU != NULL)
+			{
+				if (pTU->IsItNotInKB() && pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
+				{
+					// we can't collect what might be inconsistencies, so the two boolean
+					// flags have to be included in the test so that we know were are
+					// collecting from a location in the doc where there is no inconsistency
+					AddUniqueString(&arrSetNotInKB, key);
+					pTU->ValidateNotInKB(); // ensure all non-<Not In KB> are deleted
+					// since it's a 'no inconsistency' location, iterate
+					continue;
+				}
+				// do similarly for arrRemoveNotInKB if a deleted <Not In KB> is in pTU (we
+				// also require m_bHasKBEntry to be set TRUE, which exludes pSrcPhrase
+				// instances where the phrase box has never yet been, and so there
+				// couldn't be a <Not In KB> entry there in the past anyway)
+				if (pTU->IsDeletedNotInKB() && !pSrcPhrase->m_bNotInKB && pSrcPhrase->m_bHasKBEntry)
+				{
+					// we can't collect what might be inconsistencies, so the two boolean
+					// flags have to be included in the test so that we know were are
+					// collecting from a location in the doc where there is no inconsistency
+					AddUniqueString(&arrRemoveNotInKB, key);
+					// since it's a 'no inconsistency' location, iterate
+					continue;
+				}	
+			}
+			// In the following block, we must test if the source word or phrase belongs
+			// to either array, arrSetNotInKB or arrRemoveNotInKB (and remember, the
+			// contents of these arrays were gathered only from valid entries, and / or
+			// user choices about what is valid, so these must dominate the consistency
+			// issue at the current location), and do whatever is appropriate 
+			// Start with those which require setting <Not In KB>
+			if (arrSetNotInKB.Index(key,FALSE) != wxNOT_FOUND) // FALSE is for a caseless search
+			{
+				// the current pSrcPhrase has to be made into a <Not In KB> one - we
+				// retain any adaptation; if it already is one, no harm is done; if there
+				// is no adaptation yet and m_bHasKBEntry is FALSE, still do it - even
+				// though it's a "hole"
+				if (pTU != NULL)
+				{
+					pTU->DeleteAllToPrepareForNotInKB();
+				}
+				pKB->StoreText(pSrcPhrase, strNotInKB); // no need to support <no adaptation> for this store
+				continue;
+			}
+			if (arrRemoveNotInKB.Index(key,FALSE) != wxNOT_FOUND) // FALSE is for a caseless search
+			{
+				// a valid 'deleted' one was found, so we ensure this location has a valid
+				// normal entry; we need param TRUE if we do the StoreText() call because
+				// this m_adaption value could be empty. Here it is NOT appropriate to do
+				// a store if m_adaption is empty and m_bHasKBEntry is FALSE, as "holes"
+				// should not have storage in the KB done before the phrase box has been there.
+				if (!pSrcPhrase->m_adaption.IsEmpty() || pSrcPhrase->m_bHasKBEntry)
+				{
+					// can give it a try, provided there is a pTU instance in the KB for here
+					if (pTU != NULL)
+					{
+						bool bUndeleted = pKB->UndeleteNormalEntryAndDeleteNotInKB(pSrcPhrase,
+														pTU, pSrcPhrase->m_adaption);
+						if (!bUndeleted)
+						{
+							// this may actually rectify an inconsistency which, if this
+							// were not done, would be picked up in the code further below
+							pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+							pSrcPhrase->m_bNotInKB = FALSE;
+							continue;
+						}
+					}
+				}
+			}
+			// do any inconsistencies which remain
 			if (bIsInKB)
 			{
 				if (pTU != NULL)
@@ -21242,10 +21341,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				// may be inconsistent with the KB information - a good number of these
 				// can be auto-fixed, but where options exist the user will need to be asked...
 
+				/* code above supporting use of arrSetNotInKB and arrRemoveNotInKB makes this stuff unneeded
+
 				// First, bleed out the checks for any <Not In KB>-related inconsistences...
 				// so check if it is a <Not In KB> location with an entry for it in the
 				// KB; for this check we must use the local variables with the suffix
-				// "_For_NotInKB" which come from the 2nd lookup above
+				// "_For_NotInKB" which come from the 2nd lookup below
 				bIsInKB_For_NotInKB = FALSE;
 				bDeleted_For_NotInKB = FALSE;
 				pTU_For_NotInKB = NULL;
@@ -21257,12 +21358,15 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				{
 					// there is a <Not In KB> entry (it's undeleted if bIsInKB_For_NotInKB
 					// is TRUE)
-					if (pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
-					{
+					// This one can be commented out, the test near top will have dealt
+					// with any valid ones, and stored their key in the arrSetNotInKB array
+					//if (pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
+					//{
 						// no inconsistency, so iterate
-						continue;
-					}
-					else if (!pSrcPhrase->m_bNotInKB && pSrcPhrase->m_bHasKBEntry 
+					//	continue;
+					//}
+					//else 
+					if (!pSrcPhrase->m_bNotInKB && pSrcPhrase->m_bHasKBEntry 
 								&& !bDeleted_For_NotInKB)
 					{
 						// <Not In KB> is in the CRefString, but the document has the flag
@@ -21317,6 +21421,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					}
 				} // end of TRUE block for test: if (bIsInKB_For_NotInKB), 
 				  // when testing for <Not In KB> in KB
+				*/
 
 				if (!bInconsistency)
 				{

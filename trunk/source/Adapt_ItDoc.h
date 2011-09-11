@@ -453,9 +453,10 @@ public:
 	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 									size_t itemLen, CSourcePhrase* pSrcPhrase);
 	bool	DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFList& afList,
-									int& nCumulativeTotal);
+				int& nCumulativeTotal, wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
 	// the "G" variant below, is for use when glossing mode is on, pKB and pKBCopy will be
-	// glossing KBs, and internally, the data accessed will be m_gloss, not m_adaption
+	// glossing KBs, and internally, the data accessed will be m_gloss, not m_adaption, and
+	// in glossing mode <Not In KB> entries are not supported
 	bool	DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, AFGList& afList,
 									int& nCumulativeTotal);
 	CCell* 	LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,

@@ -85,7 +85,11 @@ public:
 	int			FindRefString(wxString& translationStr);
 	int			FindDeletedRefString(wxString& translationStr); // only tests deleted ones for a match
 	int			CountNonDeletedRefStringInstances();
-	bool		UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str);
+	bool		UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str); // str is either gloss or adaption
+	bool		IsItNotInKB();
+	bool		IsDeletedNotInKB();
+	void		ValidateNotInKB(); // ensures every CRefString except the one which is <Not In KB>
+								   // has 'deleted' status
 
 private:
 	// class attributes
