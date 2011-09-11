@@ -132,7 +132,7 @@ protected:
 private:
 	bool m_bTextOrPunctsChanged;
 	bool m_bUsfmStructureChanged;
-	bool m_bShowingProjChangeOptions;
+	bool m_bProjOptionsShowing;
 	CAdapt_ItApp* m_pApp;
 	// class attributes
 	// wxString m_stringVariable;

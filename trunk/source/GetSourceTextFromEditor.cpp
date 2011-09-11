@@ -208,7 +208,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
-	m_bShowingProjChangeOptions	= FALSE;
+	m_bProjOptionsShowing = FALSE;
 
 	// Note: the wxListItem which is the column has to be on the heap, because if made a local
 	// variable then it will go out of scope and be lost from the wxListCtrl before the
@@ -529,7 +529,6 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			pStatusBar->SetStatusText(message,0); // use first field 0
 		}
 	}
-	//m_MainSizerSizeAfterInitDialog = pGetSourceTextFromEditorSizer->GetSize();
  }
 
  // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
@@ -2632,10 +2631,10 @@ void CGetSourceTextFromEditorDlg::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
 void CGetSourceTextFromEditorDlg::OnBtnShowOrHideChangeProjects(wxCommandEvent& WXUNUSED(event))
 {
 	// toggle the bottom part of the dialog to be hidden/visible
-	if (m_bShowingProjChangeOptions)
+	if (m_bProjOptionsShowing)
 	{
 		// currently showing, hide them
-		m_bShowingProjChangeOptions = FALSE;
+		m_bProjOptionsShowing = FALSE;
 		pBtnChangeProjects->SetLabel(_("Show Projects Change Options >>"));
 		// Hide the controls in 3a and resize the dialog to fit
 		pGetSourceTextFromEditorSizer->Hide(pProjectSelectionControlsSizer,TRUE);
@@ -2646,7 +2645,7 @@ void CGetSourceTextFromEditorDlg::OnBtnShowOrHideChangeProjects(wxCommandEvent& 
 	else
 	{
 		// currently hidden, show them
-		m_bShowingProjChangeOptions = TRUE;
+		m_bProjOptionsShowing = TRUE;
 		// Unhide the controls in 3a and resize the dialog to fit
 		pBtnChangeProjects->SetLabel(_("<< Hide Projects Change Options"));
 		pGetSourceTextFromEditorSizer->Show(pProjectSelectionControlsSizer,TRUE,TRUE);
@@ -3597,7 +3596,7 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 void CGetSourceTextFromEditorDlg::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event))
 {
 	// user is editing the source language name edit box
-	// update the AI project name in the "New Adapt It project name"
+	// update the AI project name in the "New Adapt It project name will be:"
 	// edit box
 	wxString tempStrSrcProjName,tempStrTgtProjName;
 	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
@@ -3609,7 +3608,7 @@ void CGetSourceTextFromEditorDlg::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED
 void CGetSourceTextFromEditorDlg::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event))
 {
 	// user is editing the target language name edit box
-	// update the AI project name in the "New Adapt It project name"
+	// update the AI project name in the "New Adapt It project name will be:"
 	// edit box
 	wxString tempStrSrcProjName,tempStrTgtProjName;
 	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
