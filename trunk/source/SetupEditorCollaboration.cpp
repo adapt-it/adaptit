@@ -52,7 +52,7 @@
 #include "CollabUtilities.h"
 
 extern const wxString createNewProjectInstead;
-
+extern wxSizer *pNewNamesSizer2; // created in wxDesigner's SetupEditorCollaborationFunc()
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_INIT_DIALOG(CSetupEditorCollaboration::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -113,7 +113,7 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pTextCtrlAsStaticSelectedFreeTransProj != NULL);
 	pTextCtrlAsStaticSelectedFreeTransProj->SetBackgroundColour(sysColorBtnFace);
 
-	pStaticTextEnterLangNames = (wxStaticText*)FindWindowById(ID_TEXT_EXISTS_OR_WILL_BE_CREATED);
+	pStaticTextEnterLangNames = (wxStaticText*)FindWindowById(ID_TEXT_ENTER_LANG_NAME);
 	wxASSERT(pStaticTextEnterLangNames != NULL);
 
 	pStaticTextNewAIProjName = (wxStaticText*)FindWindowById(ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME);
@@ -134,8 +134,8 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pStaticTextSelectWhichProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_WHICH_PROJECTS);
 	wxASSERT(pStaticTextSelectWhichProj != NULL);
 	
-	pStaticTextSelectAThirdProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_THIRD_PROJECT);
-	wxASSERT(pStaticTextSelectAThirdProj != NULL);
+	pStaticTextSelectSuitableAIProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_SUITABLE_AI_PROJECT);
+	wxASSERT(pStaticTextSelectSuitableAIProj != NULL);
 
 	pStaticTextSrcTextxFromThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT);
 	wxASSERT(pStaticTextSrcTextxFromThisProj != NULL);
@@ -163,6 +163,9 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 
 	pBtnSelectFmListFreeTransProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ);
 	wxASSERT(pBtnSelectFmListFreeTransProj != NULL);
+	
+	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
+	wxASSERT(pBtnOK != NULL);
 
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
@@ -212,9 +215,9 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pStaticTextSelectWhichProj->SetLabel(text);
 	
-	text = pStaticTextSelectAThirdProj->GetLabel();
+	text = pStaticTextSelectSuitableAIProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pStaticTextSelectAThirdProj->SetLabel(text);
+	pStaticTextSelectSuitableAIProj->SetLabel(text);
 	
 	text = pStaticTextSrcTextxFromThisProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
@@ -761,37 +764,32 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	}
 	if (selStr == createNewProjectInstead)
 	{
-		// Unhide the controls in 3a
-		pTextCtrlAsStaticNewAIProjName->Show();
-		pStaticTextEnterLangNames->Show();
-		pTextCtrlSourceLanguageName->Show();
-		pTextCtrlTargetLanguageName->Show();
-		pTextCtrlAsStaticNewAIProjName->Show();
-		pStaticTextNewAIProjName->Show();
-		pStaticTextSrcLangName->Show();
-		pStaticTextTgtLangName->Show();
+		// Unhide the langauge name controls and resize the dialog to fit
+		pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
+		pSetupEditorCollabSizer->Layout();
+		m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+		this->SetSize(m_computedDlgSize);
+		
 		// enable and blank out the language edit boxes
 		pTextCtrlSourceLanguageName->ChangeValue(wxEmptyString);
 		pTextCtrlTargetLanguageName->ChangeValue(wxEmptyString);
 		pTextCtrlSourceLanguageName->Enable();
 		pTextCtrlTargetLanguageName->Enable();
 		pSetupEditorCollabSizer->Layout();
+		
 		// move focus to the source language name edit box
 		pTextCtrlSourceLanguageName->SetFocus();
 	}
 	else
 	{
 		// The administrator selected an existing AI project from the
-		// combobox.
-		// Hide the language names controls
-		pTextCtrlAsStaticNewAIProjName->Hide();
-		pStaticTextEnterLangNames->Hide();
-		pTextCtrlSourceLanguageName->Hide();
-		pTextCtrlTargetLanguageName->Hide();
-		pTextCtrlAsStaticNewAIProjName->Hide();
-		pStaticTextNewAIProjName->Hide();
-		pStaticTextSrcLangName->Hide();
-		pStaticTextTgtLangName->Hide();
+		// combobox. 
+		// Hide the langauge name controls and resize the dialog to fit
+		pSetupEditorCollabSizer->Hide(pNewNamesSizer2,TRUE);
+		pSetupEditorCollabSizer->Layout();
+		m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+		this->SetSize(m_computedDlgSize);
+		
 		// Parse the language names from the AI project name.
 		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr, 
 			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
@@ -801,16 +799,8 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 		// basic config file within OnOK().
 		m_TempCollabAIProjectName = selStr; 
 
-		// Also, disable the Source Language Name and the Target Language Name edit 
-		// boxes now that they have the computed language names in them, because 
-		// they can't be changed as long as an existing AI project
-		// is selected in the combobox. Note: we enable them whenever the
-		// createNewProjectInstead string is selected.
-		pTextCtrlSourceLanguageName->Disable();
-		pTextCtrlTargetLanguageName->Disable();
-		// finally, remove any project name that might have been in the "New
-		// Adapt It project name edit box
-		pTextCtrlAsStaticNewAIProjName->ChangeValue(wxEmptyString);
+		// set focus on the OK button
+		pBtnOK->SetFocus();
 	}
 }
 

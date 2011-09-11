@@ -43,6 +43,7 @@ public:
 	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxSizer* pSetupEditorCollabSizer;
+	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -71,7 +72,7 @@ private:
 	wxStaticText* pStaticTextSrcLangName;
 	wxStaticText* pStaticTextTgtLangName;
 	wxStaticText* pStaticTextSelectWhichProj;
-	wxStaticText* pStaticTextSelectAThirdProj;
+	wxStaticText* pStaticTextSelectSuitableAIProj;
 	wxStaticText* pStaticTextSrcTextxFromThisProj;
 	wxStaticText* pStaticTextTgtTextxToThisProj;
 	wxStaticText* pStaticTextFtTextxToThisProj;
@@ -81,6 +82,7 @@ private:
 	wxButton* pBtnSelectFmListSourceProj;
 	wxButton* pBtnSelectFmListTargetProj;
 	wxButton* pBtnSelectFmListFreeTransProj;
+	wxButton* pBtnOK;
 
 	// class attributes
 	// wxString m_stringVariable;
