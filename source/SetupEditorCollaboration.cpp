@@ -146,6 +146,9 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pStaticTextFtTextxToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TO_THIS_FT_PROJECT);
 	wxASSERT(pStaticTextFtTextxToThisProj != NULL);
 
+	pStaticTextSelectThirdProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_THIRD_PROJECT);
+	wxASSERT(pStaticTextSelectThirdProj != NULL);
+
 	pListOfProjects = (wxListBox*)FindWindowById(IDC_LIST_OF_COLLAB_PROJECTS);
 	wxASSERT(pListOfProjects != NULL);
 
@@ -230,6 +233,10 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = pStaticTextFtTextxToThisProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pStaticTextFtTextxToThisProj->SetLabel(text);
+
+	text = pStaticTextSelectThirdProj->GetLabel();
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pStaticTextSelectThirdProj->SetLabel(text);
 
 	// start with 3a items hidden
 	pTextCtrlAsStaticNewAIProjName->Hide();
