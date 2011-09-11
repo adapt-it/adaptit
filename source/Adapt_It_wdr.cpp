@@ -8111,6 +8111,8 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     item31->Add( item32, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
+    item31->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
     wxBoxSizer *item37 = new wxBoxSizer( wxHORIZONTAL );
     pNewNamesSizer2 = item37;
 
@@ -8124,7 +8126,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, wxT(""), wxDefaultPosition, wxSize(20,20), 0 );
     item39->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME, _("New Adapt It project name will be:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME, _("New AI project name to be:"), wxDefaultPosition, wxDefaultSize, 0 );
     item39->Add( item42, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM|wxALL, 0 );
 
     item38->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8392,7 +8394,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, wxT(""), wxDefaultPosition, wxSize(20,20), 0 );
     item44->Add( item46, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item47 = new wxStaticText( parent, ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME, _("New Adapt It project name will be:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item47 = new wxStaticText( parent, ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME, _("New AI project name to be:"), wxDefaultPosition, wxDefaultSize, 0 );
     item44->Add( item47, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM|wxALL, 0 );
 
     item43->Add( item44, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );

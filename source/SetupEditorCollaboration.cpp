@@ -260,6 +260,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = pRadioBoxCollabOnOrOff->GetString(1);
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pRadioBoxCollabOnOrOff->SetString(1,text);
+	pRadioBoxCollabOnOrOff->Refresh();
 	pSetupEditorCollabSizer->Layout();
 
 	int nProjectCount = 0;
@@ -425,6 +426,11 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 				m_TempCollabSourceProjLangName = textEntered;
 				pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
 				pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+				wxString tempStrSrcProjName,tempStrTgtProjName;
+				tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
+				tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
+				wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
+				pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
 				m_pApp->LogUserAction(_T("Manual Entry of Source Langauge Name"));
 				if (m_TempCollabTargetProjLangName.IsEmpty())
 				{
@@ -609,6 +615,11 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 				m_TempCollabTargetProjLangName = textEntered;
 				pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
 				pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+				wxString tempStrSrcProjName,tempStrTgtProjName;
+				tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
+				tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
+				wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
+				pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
 				m_pApp->LogUserAction(_T("Manual Entry of Target Langauge Name"));
 				if (m_TempCollabSourceProjLangName.IsEmpty())
 				{
