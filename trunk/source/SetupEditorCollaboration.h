@@ -76,6 +76,7 @@ private:
 	wxStaticText* pStaticTextSrcTextxFromThisProj;
 	wxStaticText* pStaticTextTgtTextxToThisProj;
 	wxStaticText* pStaticTextFtTextxToThisProj;
+	wxStaticText* pStaticTextSelectThirdProj;
 	wxListBox* pListOfProjects;
 	wxComboBox* pComboAiProjects;
 	wxRadioBox* pRadioBoxCollabOnOrOff;
