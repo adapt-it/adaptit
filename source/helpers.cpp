@@ -5366,6 +5366,30 @@ void AddUniqueInt(wxArrayInt* pArrayInt, int nInt)
 	}
 }
 
+// BEW created 11Sep11, to avoid adding duplicates of string already within 
+void AddUniqueString(wxArrayString* pArrayStr, wxString& str)
+{
+	int count = pArrayStr->GetCount();
+	if (count == 0)
+	{
+		pArrayStr->Add(str);
+	}
+	else
+	{
+		int index = pArrayStr->Index(str);
+		if (index == wxNOT_FOUND)
+		{
+			// it's not in there yet, so add it
+			pArrayStr->Add(str);
+		}
+		else
+		{
+			// it's in the array already, so ignore it
+			return;
+		}
+	}
+}
+
 // Any strings in pPossiblesArray not already in pBaseStrArray, append them to
 // pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
 // BEW 11Oct10, added param bExcludeDuplicates, with default FALSE (which means everything

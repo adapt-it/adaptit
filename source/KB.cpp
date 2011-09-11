@@ -1686,6 +1686,7 @@ bool CKB::UndeleteNormalEntryAndDeleteNotInKB(CSourcePhrase* pSrcPhrase, CTarget
 			str != m_pApp->m_strNotInKB);
 	wxString theKey = pSrcPhrase->m_key;
 	wxString thePhrase;
+	// which CKB type are we?
 	if (m_bGlossingKB)
 	{
 		thePhrase = pSrcPhrase->m_gloss; // can be empty
@@ -1697,12 +1698,21 @@ bool CKB::UndeleteNormalEntryAndDeleteNotInKB(CSourcePhrase* pSrcPhrase, CTarget
 	if (pTU == NULL)
 	{
 		// look it up (returns NULL if a matching one can't be found in the map)
+		// (internally, GetTargetUnit() does any needed auto-caps adjustments
 		pTU = GetTargetUnit(pSrcPhrase->m_nSrcWords, thePhrase);
 	}
 	if (pTU == NULL)
 		return FALSE;
 	else
 	{
+		// the call below requires auto-caps adjustments be done here first
+	wxString s = str;
+	bool bSetOK = m_pApp->GetDocument()->SetCaseParameters(thePhrase, FALSE); // FALSE is bIsSrc
+	if (bSetOK)
+	{
+		// if gbAutoCaps is FALSE, it will just return thePhrase unchanged
+		thePhrase = AutoCapsMakeStorageString(thePhrase, FALSE);
+	}
 		return pTU->UndeleteNormalCRefStrAndDeleteNotInKB(thePhrase);
 	}
 }
@@ -1730,7 +1740,7 @@ bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 	}
 
 	wxString key = pSrcPhrase->m_key;
-	CTargetUnit* pTU;
+	CTargetUnit* pTU = NULL;
 	if (m_pMap[nMapIndex]->empty())
 	{
 		return FALSE;
@@ -1745,25 +1755,7 @@ bool CKB::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 		}
 		else
 		{
-			// pTU exists, so check its first refString to see if it stores <Not In KB>
-			// BEW 21Jun10, changed, because pTU for kbVersion 2 may store one or more
-			// deleted CRefString instances besides that which stores a <Not In KB>
-			// string, and so we can't rely on <Not In KB> being first in the list
-			TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
-			CRefString* pRefStr = NULL;
-			while (tpos != NULL)
-			{
-				pRefStr = (CRefString*)tpos->GetData();
-				wxASSERT(pRefStr != NULL);
-				tpos = tpos->GetNext();
-				if (pRefStr->m_translation == _T("<Not In KB>") && !pRefStr->m_bDeleted)
-				{
-					return TRUE;
-				}
-			}
-			// if control gets to here, there is no non-deleted CRefString instance
-			// storing the string <Not In KB>
-			return FALSE;
+			return pTU->IsItNotInKB() == TRUE;
 		}
 	}
 }
