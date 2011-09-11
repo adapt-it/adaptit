@@ -402,17 +402,52 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
 		m_projectSelectionMade = TRUE;
 		m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
+		m_pApp->LogUserAction(_T("Selected Project for Source Text Inputs"));
 		if (m_TempCollabSourceProjLangName.IsEmpty())
 		{
 			// There was no Language field in the project name composite string
 			// that was selected, indicating that we are probably working with 
-			// Bibledit, so remind the administrator to type a source language
-			// name in the edit box that corresponds to any existing AI project
-			// or that will be used to create an AI project for collaboration.
-			wxString msg = _("Please use the drop-down box below to select or create an Adapt It project for collaboration purposes.");
-			wxMessageBox(msg,_("Unknown Source Language Name"),wxICON_INFORMATION);
+			// Bibledit, so get the administrator to type a source language
+			// name.
+			wxString msg = _("Please enter a source language name for the %s project. Adapt It will use it for its own adaptation project during collaboration with %s.");
+			msg = msg.Format(msg,m_TempCollabProjectForSourceInputs.c_str(),m_pApp->m_collaborationEditor.c_str());
+			wxString textEntered;
+			textEntered = wxGetTextFromUser(msg,_("Unknown Source Language Name"));
+			if (!textEntered.IsEmpty())
+			{
+				m_TempCollabSourceProjLangName = textEntered;
+				pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+				pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+				m_pApp->LogUserAction(_T("Manual Entry of Source Langauge Name"));
+				if (m_TempCollabTargetProjLangName.IsEmpty())
+				{
+					wxCommandEvent evt;
+					OnBtnSelectFromListTargetProj(evt);
+				}
+			}
+			// If both source and target language name fields now have values set
+			// focus on the OK button, otherwise show the project selection options.
+			if (!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty())
+			{
+				pBtnOK->SetFocus();
+			}
+			else
+			{
+				// One or both language names are still empty, so show the language name controls
+				// and set focus on the first empty one.
+				pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
+				// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
+				pSetupEditorCollabSizer->Layout();
+				m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+				this->SetSize(m_computedDlgSize);
+				
+				// set focus on the first empty language edit box
+				if (m_TempCollabTargetProjLangName.IsEmpty())
+					pTextCtrlTargetLanguageName->SetFocus();
+				else
+					pTextCtrlSourceLanguageName->SetFocus();
+			}
 		}
-		m_pApp->LogUserAction(_T("Selected Project for Source Text Inputs"));
 	}
 	else
 	{
@@ -523,7 +558,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	}
 	wxString msg;
 	msg = _("Choose a default project the user will see initially for translation text exports");
-	wxSingleChoiceDialog ChooseProjectForTargetTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
+	wxSingleChoiceDialog ChooseProjectForTargetTextExports(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
 	int nPreselectedProjIndex = -1;
 	// check to see if one was previously selected in the temp array list
@@ -538,30 +573,65 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	}
 	if (nPreselectedProjIndex != -1)
 	{
-		ChooseProjectForTargetTextInputs.SetSelection(nPreselectedProjIndex);
+		ChooseProjectForTargetTextExports.SetSelection(nPreselectedProjIndex);
 	}
 	int userSelectionInt;
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
-	if (ChooseProjectForTargetTextInputs.ShowModal() == wxID_OK)
+	if (ChooseProjectForTargetTextExports.ShowModal() == wxID_OK)
 	{
-		userSelectionStr = ChooseProjectForTargetTextInputs.GetStringSelection();
-		userSelectionInt = ChooseProjectForTargetTextInputs.GetSelection();
+		userSelectionStr = ChooseProjectForTargetTextExports.GetStringSelection();
+		userSelectionInt = ChooseProjectForTargetTextExports.GetSelection();
 		m_projectSelectionMade = TRUE;
 		// The basic config file did not have a value stored for the target
 		// project's language name, so get a default one from the project
 		m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
+		m_pApp->LogUserAction(_T("Selected Project for Target Text Inputs"));
 		if (m_TempCollabTargetProjLangName.IsEmpty())
 		{
 			// There was no Language field in the project name composite string
 			// that was selected, indicating that we are probably working with 
-			// Bibledit, so remind the administrator to type a target language
-			// name in the edit box that corresponds to any existing AI project
-			// or that will be used to create an AI project for collaboration.
-			wxString msg = _("Please use the drop-down box below to select or create an Adapt It project for collaboration purposes.");
-			wxMessageBox(msg,_("Unknown Target Language Name"),wxICON_INFORMATION);
+			// Bibledit, so get the administrator to type a target language
+			// name.
+			wxString msg = _("Please enter a target language name for the %s project. Adapt It will use it for its own adaptation project during collaboration with %s.");
+			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),m_pApp->m_collaborationEditor.c_str());
+			wxString textEntered;
+			textEntered = wxGetTextFromUser(msg,_("Unknown Target Language Name"));
+			if (!textEntered.IsEmpty())
+			{
+				m_TempCollabTargetProjLangName = textEntered;
+				pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+				pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+				m_pApp->LogUserAction(_T("Manual Entry of Target Langauge Name"));
+				if (m_TempCollabSourceProjLangName.IsEmpty())
+				{
+					wxCommandEvent evt;
+					OnBtnSelectFromListSourceProj(evt);
+				}
+			}
+			// If both source and target language name fields now have values set
+			// focus on the OK button, otherwise show the project selection options.
+			if (!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty())
+			{
+				pBtnOK->SetFocus();
+			}
+			else
+			{
+				// One or both language names are still empty, so show the language name controls
+				// and set focus on the first empty one.
+				pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
+				// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
+				pSetupEditorCollabSizer->Layout();
+				m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+				this->SetSize(m_computedDlgSize);
+				
+				// set focus on the first empty language edit box
+				if (m_TempCollabSourceProjLangName.IsEmpty())
+					pTextCtrlSourceLanguageName->SetFocus();
+				else
+					pTextCtrlTargetLanguageName->SetFocus();
+			}
 		}
-		m_pApp->LogUserAction(_T("Selected Project for Target Text Inputs"));
 	}
 	else
 	{
@@ -785,6 +855,7 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 		// The administrator selected an existing AI project from the
 		// combobox. 
 		// Hide the langauge name controls and resize the dialog to fit
+		
 		pSetupEditorCollabSizer->Hide(pNewNamesSizer2,TRUE);
 		pSetupEditorCollabSizer->Layout();
 		m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
@@ -807,7 +878,7 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 void CSetupEditorCollaboration::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event))
 {
 	// user is editing the source language name edit box
-	// update the AI project name in the "New Adapt It project name"
+	// update the AI project name in the "New Adapt It project name will be:"
 	// edit box
 	wxString tempStrSrcProjName,tempStrTgtProjName;
 	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
@@ -819,7 +890,7 @@ void CSetupEditorCollaboration::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(e
 void CSetupEditorCollaboration::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event))
 {
 	// user is editing the target language name edit box
-	// update the AI project name in the "New Adapt It project name"
+	// update the AI project name in the "New Adapt It project name will be:"
 	// edit box
 	wxString tempStrSrcProjName,tempStrTgtProjName;
 	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
