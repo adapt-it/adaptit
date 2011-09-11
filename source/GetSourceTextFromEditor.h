@@ -47,10 +47,16 @@ public:
 	wxStaticText* pStaticTextNewAIProjName;
 	wxStaticText* pStaticTextSrcLangName;
 	wxStaticText* pStaticTextTgtLangName;
+	wxStaticText* pStaticTextDoNotChangeNote;
+	wxStaticText* pStaticTextUseDropDown;
+	wxStaticText* pStaticTextSelectSuitableAIProj;
+	wxStaticLine* pStaticLine2;
 	wxButton* pBtnNoFreeTrans;
+	wxButton* pBtnChangeProjects;
 	wxButton* pBtnCancel;
 	wxButton* pBtnOK;
 	wxSizer* pGetSourceTextFromEditorSizer;
+	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
 	// The following m_Temp... variables are used while the dialog is active until
 	// the user clicks on OK. In the OnOK() handler the Apps persistent values are
@@ -94,6 +100,7 @@ protected:
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
+	void OnBtnShowOrHideChangeProjects(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectTargetProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event));
@@ -125,6 +132,7 @@ protected:
 private:
 	bool m_bTextOrPunctsChanged;
 	bool m_bUsfmStructureChanged;
+	bool m_bShowingProjChangeOptions;
 	CAdapt_ItApp* m_pApp;
 	// class attributes
 	// wxString m_stringVariable;

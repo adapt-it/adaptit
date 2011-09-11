@@ -56,6 +56,8 @@
 #include "GetSourceTextFromEditor.h"
 
 extern const wxString createNewProjectInstead;
+extern wxSizer *pNewNamesSizer; // created in wxDesigner's GetSourceTextFromEditorDlgFunc()
+extern wxSizer *pProjectSelectionControlsSizer; // created in wxDesigner's GetSourceTextFromEditorDlgFunc()
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern bool gbIsGlossing;
@@ -72,6 +74,7 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_BUTTON(wxID_OK, CGetSourceTextFromEditorDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CGetSourceTextFromEditorDlg::OnCancel)
 	EVT_BUTTON(ID_BUTTON_NO_FREE_TRANS, CGetSourceTextFromEditorDlg::OnNoFreeTrans)
+	EVT_BUTTON(ID_BUTTON_CHANGE_PROJECTS, CGetSourceTextFromEditorDlg::OnBtnShowOrHideChangeProjects)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
@@ -89,7 +92,13 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pGetSourceTextFromEditorSizer = GetSourceTextFromEditorDlgFunc(this, TRUE, TRUE);
+	// 
+	// whm 10Sep11 Note: Normally the second parameter in the call of the wxDesigner functioin
+	// below is true - which calls Fit() to make the dialog window itself size to fit the size of
+	// all controls in the dialog. But in the case of this dialog, we don't call Fit() so we can
+	// programmatically set the size of the dialog to be shorter when the project selection
+	// controls are hidden. That is done in InitDialog().
+	pGetSourceTextFromEditorSizer = GetSourceTextFromEditorDlgFunc(this, false, TRUE); //(this, TRUE, TRUE); // Note: second parameter is false
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
@@ -136,6 +145,9 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pBtnNoFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_NO_FREE_TRANS);
 	wxASSERT(pBtnNoFreeTrans != NULL);
 	
+	pBtnChangeProjects = (wxButton*)FindWindowById(ID_BUTTON_CHANGE_PROJECTS);
+	wxASSERT(pBtnChangeProjects != NULL);
+	
 	pStaticGetSrcFromThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT);
 	wxASSERT(pStaticGetSrcFromThisProj != NULL);
 
@@ -164,8 +176,22 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pStaticTextSrcLangName = (wxStaticText*)FindWindowById(ID_TEXT_SRC_NAME_LABEL);
 	wxASSERT(pStaticTextSrcLangName != NULL);
 
+	pStaticTextSelectSuitableAIProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_SUITABLE_AI_PROJECT);
+	wxASSERT(pStaticTextSelectSuitableAIProj != NULL);
+
 	pStaticTextTgtLangName = (wxStaticText*)FindWindowById(ID_TEXT_TGT_NAME_LABEL);
 	wxASSERT(pStaticTextTgtLangName != NULL);
+
+	pStaticTextDoNotChangeNote = (wxStaticText*)FindWindowById(ID_TEXT_DO_NOT_CHANGE_NOTE);
+	wxASSERT(pStaticTextDoNotChangeNote != NULL);
+
+	pStaticTextUseDropDown = (wxStaticText*)FindWindowById(ID_TEXT_USE_DROP_DOWN);
+	wxASSERT(pStaticTextUseDropDown != NULL);
+
+
+	pStaticLine2 = (wxStaticLine*)FindWindowById(ID_LINE_2);
+	wxASSERT(pStaticLine2 != NULL);
+
 	
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
@@ -181,7 +207,9 @@ CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	
+
+	m_bShowingProjChangeOptions	= FALSE;
+
 	// Note: the wxListItem which is the column has to be on the heap, because if made a local
 	// variable then it will go out of scope and be lost from the wxListCtrl before the
 	// latter has a chance to display anything, and then nothing will display in the control
@@ -392,15 +420,20 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		return;
 	}
 
-	// hide the Source Language Name fields, Target Language Name fields and New AI proj fields
-	// and related labels
-	pStaticTextEnterLangNames->Hide();
-	pStaticTextSrcLangName->Hide();
-	pTextCtrlSourceLanguageName->Hide();
-	pStaticTextTgtLangName->Hide();
-	pTextCtrlTargetLanguageName->Hide();
-	pStaticTextNewAIProjName->Hide();
-	pTextCtrlAsStaticNewAIProjName->Hide();
+	wxASSERT(pProjectSelectionControlsSizer != NULL);
+	// The pProjectSelectionControlsSizer is set as an "Access" pointer within wxDesigner. It
+	// gives us a handle to the sizer that contains all the project selection controls in the
+	// bottom part of the dialog. If we call ->Show(false) on this sizer it tells the sizer to
+	// not consider its contained controls in size calculations. When the 
+	// GetSourceTextFromEditorDlgFunc() function is called in the constructor, it is called with
+	// its second parameter "false" so that it doesn't force the dialog to size itself around
+	// the controls. This allows us to resize the dialog to hide the bottom part of the interface
+	
+	// Hide the controls in 3a and resize the dialog to fit
+	pGetSourceTextFromEditorSizer->Hide(pProjectSelectionControlsSizer,TRUE);
+	pGetSourceTextFromEditorSizer->Layout();
+	m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+	this->SetSize(m_computedDlgSize);
 
 	wxString strProjectNotSel;
 	strProjectNotSel.Empty();
@@ -496,6 +529,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			pStatusBar->SetStatusText(message,0); // use first field 0
 		}
 	}
+	//m_MainSizerSizeAfterInitDialog = pGetSourceTextFromEditorSizer->GetSize();
  }
 
  // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
@@ -2595,6 +2629,36 @@ void CGetSourceTextFromEditorDlg::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
 	m_bTempCollaborationExpectsFreeTrans = FALSE;
 }
 
+void CGetSourceTextFromEditorDlg::OnBtnShowOrHideChangeProjects(wxCommandEvent& WXUNUSED(event))
+{
+	// toggle the bottom part of the dialog to be hidden/visible
+	if (m_bShowingProjChangeOptions)
+	{
+		// currently showing, hide them
+		m_bShowingProjChangeOptions = FALSE;
+		pBtnChangeProjects->SetLabel(_("Show Projects Change Options >>"));
+		// Hide the controls in 3a and resize the dialog to fit
+		pGetSourceTextFromEditorSizer->Hide(pProjectSelectionControlsSizer,TRUE);
+		pGetSourceTextFromEditorSizer->Layout();
+		m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+		this->SetSize(m_computedDlgSize);
+	}
+	else
+	{
+		// currently hidden, show them
+		m_bShowingProjChangeOptions = TRUE;
+		// Unhide the controls in 3a and resize the dialog to fit
+		pBtnChangeProjects->SetLabel(_("<< Hide Projects Change Options"));
+		pGetSourceTextFromEditorSizer->Show(pProjectSelectionControlsSizer,TRUE,TRUE);
+		// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
+		wxCommandEvent evt;
+		OnComboBoxSelectAiProject(evt);
+		pGetSourceTextFromEditorSizer->Layout();
+		m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+		this->SetSize(m_computedDlgSize);
+	}
+}
+
 EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueCodes(
 							wxString& editorSrcLangCode, wxString& editorTgtLangCode)
 {
@@ -3491,21 +3555,18 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 	}
 	if (selStr == createNewProjectInstead)
 	{
-		// Unhide the controls in 3a
-		pTextCtrlAsStaticNewAIProjName->Show();
-		pStaticTextEnterLangNames->Show();
-		pTextCtrlSourceLanguageName->Show();
-		pTextCtrlTargetLanguageName->Show();
-		pTextCtrlAsStaticNewAIProjName->Show();
-		pStaticTextNewAIProjName->Show();
-		pStaticTextSrcLangName->Show();
-		pStaticTextTgtLangName->Show();
+		// Unhide the langauge name controls and resize the dialog to fit
+		pGetSourceTextFromEditorSizer->Show(pNewNamesSizer,TRUE,TRUE);
+		pGetSourceTextFromEditorSizer->Layout();
+		m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+		this->SetSize(m_computedDlgSize);
+		
 		// enable and blank out the language edit boxes
 		pTextCtrlSourceLanguageName->ChangeValue(wxEmptyString);
 		pTextCtrlTargetLanguageName->ChangeValue(wxEmptyString);
 		pTextCtrlSourceLanguageName->Enable();
 		pTextCtrlTargetLanguageName->Enable();
-		pGetSourceTextFromEditorSizer->Layout();
+		
 		// move focus to the source language name edit box
 		pTextCtrlSourceLanguageName->SetFocus();
 	}
@@ -3513,15 +3574,12 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 	{
 		// The administrator selected an existing AI project from the
 		// combobox. 
-		// Hide the language names controls
-		pTextCtrlAsStaticNewAIProjName->Hide();
-		pStaticTextEnterLangNames->Hide();
-		pTextCtrlSourceLanguageName->Hide();
-		pTextCtrlTargetLanguageName->Hide();
-		pTextCtrlAsStaticNewAIProjName->Hide();
-		pStaticTextNewAIProjName->Hide();
-		pStaticTextSrcLangName->Hide();
-		pStaticTextTgtLangName->Hide();
+		// Hide the langauge name controls and resize the dialog to fit
+		pGetSourceTextFromEditorSizer->Hide(pNewNamesSizer,TRUE);
+		pGetSourceTextFromEditorSizer->Layout();
+		m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+		this->SetSize(m_computedDlgSize);
+		
 		// Parse the language names from the AI project name.
 		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr, 
 			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
@@ -3531,16 +3589,8 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectAiProject(wxCommandEvent& WXUN
 		// basic config file within OnOK().
 		m_TempCollabAIProjectName = selStr; 
 
-		// Also, disable the Source Language Name and the Target Language Name edit 
-		// boxes now that they have the computed language names in them, because 
-		// they can't be changed as long as an existing AI project
-		// is selected in the combobox. Note: we enable them whenever the
-		// createNewProjectInstead string is selected.
-		pTextCtrlSourceLanguageName->Disable();
-		pTextCtrlTargetLanguageName->Disable();
-		// finally, remove any project name that might have been in the "New
-		// Adapt It project name edit box
-		pTextCtrlAsStaticNewAIProjName->ChangeValue(wxEmptyString);
+		// set focus on the OK button
+		pBtnOK->SetFocus();
 	}
 }
 
