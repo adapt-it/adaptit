@@ -111,8 +111,8 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pComboSourceProjectName = (wxComboBox*)FindWindowById(ID_COMBO_SOURCE_PROJECT_NAME);
 	wxASSERT(pComboSourceProjectName != NULL);
 
-	pComboDestinationProjectName = (wxComboBox*)FindWindowById(ID_COMBO_DESTINATION_PROJECT_NAME);
-	wxASSERT(pComboDestinationProjectName != NULL);
+	pComboTargetProjectName = (wxComboBox*)FindWindowById(ID_COMBO_DESTINATION_PROJECT_NAME);
+	wxASSERT(pComboTargetProjectName != NULL);
 
 	pComboFreeTransProjectName = (wxComboBox*)FindWindowById(ID_COMBO_FREE_TRANS_PROJECT_NAME);
 	wxASSERT(pComboFreeTransProjectName != NULL);
@@ -297,7 +297,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		projShortName = GetShortNameFromProjectName(projList.Item(ct));
 		if (CollabProjectIsEditable(projShortName))
 		{
-			pComboDestinationProjectName->Append(projList.Item(ct));
+			pComboTargetProjectName->Append(projList.Item(ct));
 			pComboFreeTransProjectName->Append(projList.Item(ct));
 		}
 	}
@@ -328,7 +328,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	bool bTargetProjFound = FALSE;
 	if (!m_TempCollabProjectForTargetExports.IsEmpty())
 	{
-		nIndex = pComboDestinationProjectName->FindString(m_TempCollabProjectForTargetExports);
+		nIndex = pComboTargetProjectName->FindString(m_TempCollabProjectForTargetExports);
 		if (nIndex == wxNOT_FOUND)
 		{
 			// did not find the PT project for target exports that was stored in the config file
@@ -337,7 +337,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		else
 		{
 			bTargetProjFound = TRUE;
-			pComboDestinationProjectName->SetSelection(nIndex);
+			pComboTargetProjectName->SetSelection(nIndex);
 		}
 	}
 
@@ -456,13 +456,15 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	if (!bSourceProjFound || !bTargetProjFound)
 	{
 		wxString str;
-		str = str.Format(_("Select %s Project(s) by clicking on the drop-down lists at the top of the next dialog.\nYou need to do the following before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
+		str = str.Format(_("Select %s Project(s) by clicking on the drop-down lists in the next dialog.\nYou need to do the following before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
 		//wxMessageBox(str, _T("Select Paratext projects that Adapt It will use"), wxICON_ERROR);
 		// BEW 15Jun11, changed wxICON_ERROR to be a warning icon. I feel the wxICON_ERROR should
 		// only be used for an error serious enough to halt the app because it has become
 		// too unstable for it to continue running safely.
 		wxMessageBox(str, _("Select projects that Adapt It will use"), wxICON_WARNING);
-		
+		// here we need to open the Projects Options pane
+		wxCommandEvent evt;
+		OnBtnShowOrHideChangeProjects(evt);
 	}
 	else
 	{
@@ -558,6 +560,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		if (!m_bProjOptionsShowing)
+		{
+			wxCommandEvent evt;
+			OnBtnShowOrHideChangeProjects(evt);
+			// Also unhide the langauge name controls and resize the dialog to fit
+			pGetSourceTextFromEditorSizer->Show(pNewNamesSizer,TRUE,TRUE);
+			pGetSourceTextFromEditorSizer->Layout();
+			m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+			this->SetSize(m_computedDlgSize);
+		}
+		// set focus on the Target project drop down list
+		pComboTargetProjectName->SetFocus();
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
@@ -572,6 +586,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		if (!m_bProjOptionsShowing)
+		{
+			wxCommandEvent evt;
+			OnBtnShowOrHideChangeProjects(evt);
+			// Also unhide the langauge name controls and resize the dialog to fit
+			pGetSourceTextFromEditorSizer->Show(pNewNamesSizer,TRUE,TRUE);
+			pGetSourceTextFromEditorSizer->Layout();
+			m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+			this->SetSize(m_computedDlgSize);
+		}
+		// set focus on the Free Trans project drop down list
+		pComboFreeTransProjectName->SetFocus();
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
@@ -586,6 +612,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
+		if (!m_bProjOptionsShowing)
+		{
+			wxCommandEvent evt;
+			OnBtnShowOrHideChangeProjects(evt);
+			// Also unhide the langauge name controls and resize the dialog to fit
+			pGetSourceTextFromEditorSizer->Show(pNewNamesSizer,TRUE,TRUE);
+			pGetSourceTextFromEditorSizer->Layout();
+			m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+			this->SetSize(m_computedDlgSize);
+		}
+		// set focus on the Free Trans project drop down list
+		pComboFreeTransProjectName->SetFocus();
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
@@ -627,6 +665,18 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// set focus on the edit box with missing data
 		pTextCtrlSourceLanguageName->SetFocus();
 		m_pApp->LogUserAction(msgTitle);
+		if (!m_bProjOptionsShowing)
+		{
+			// Unhide the change projects panel
+			wxCommandEvent evt;
+			OnBtnShowOrHideChangeProjects(evt);
+			// Also unhide the langauge name controls and resize the dialog to fit
+			pGetSourceTextFromEditorSizer->Show(pNewNamesSizer,TRUE,TRUE);
+			pGetSourceTextFromEditorSizer->Layout();
+			m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+			this->SetSize(m_computedDlgSize);
+		}
+		pTextCtrlSourceLanguageName->SetFocus();
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 
@@ -642,6 +692,17 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// set focus on the edit box with missing data
 		pTextCtrlTargetLanguageName->SetFocus();
 		m_pApp->LogUserAction(msgTitle);
+		if (!m_bProjOptionsShowing)
+		{
+			wxCommandEvent evt;
+			OnBtnShowOrHideChangeProjects(evt);
+			// Also unhide the langauge name controls and resize the dialog to fit
+			pGetSourceTextFromEditorSizer->Show(pNewNamesSizer,TRUE,TRUE);
+			pGetSourceTextFromEditorSizer->Layout();
+			m_computedDlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+			this->SetSize(m_computedDlgSize);
+		}
+		pTextCtrlTargetLanguageName->SetFocus();
 		return; // don't accept any changes - abort the OnOK() handler
 	}
 	
@@ -1773,8 +1834,8 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectTargetProject(wxCommandEvent& 
 {
 	int nSel;
 	wxString selStr;
-	nSel = pComboDestinationProjectName->GetSelection();
-	m_TempCollabProjectForTargetExports = pComboDestinationProjectName->GetString(nSel);
+	nSel = pComboTargetProjectName->GetSelection();
+	m_TempCollabProjectForTargetExports = pComboTargetProjectName->GetString(nSel);
 	m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(m_TempCollabProjectForTargetExports);
 	
 	// Load potential AI projects into the pComboAiProjects combo box, and in the process
@@ -1921,7 +1982,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// and return until different projects are selected.
 	wxString srcProj,destProj;
 	srcProj = pComboSourceProjectName->GetStringSelection();
-	destProj = pComboDestinationProjectName->GetStringSelection();
+	destProj = pComboTargetProjectName->GetStringSelection();
 	if (srcProj == destProj)
 	{
 
@@ -1930,7 +1991,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		msg = msg.Format(msg,m_collabEditorName.c_str());
 		wxMessageBox(msg,_T("Error: The same project is selected for inputs and exports"),wxICON_WARNING);
 		// most likely the target drop down list would need to be changed so set focus to it before returning
-		pComboDestinationProjectName->SetFocus();
+		pComboTargetProjectName->SetFocus();
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too

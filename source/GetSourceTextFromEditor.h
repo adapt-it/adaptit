@@ -27,7 +27,7 @@ public:
 	virtual ~CGetSourceTextFromEditorDlg(void); // destructor
 	// other methods
 	wxComboBox* pComboSourceProjectName;
-	wxComboBox* pComboDestinationProjectName;
+	wxComboBox* pComboTargetProjectName;
 	wxComboBox* pComboFreeTransProjectName;
 	wxComboBox* pComboAiProjects;
 	wxRadioBox* pRadioBoxChapterOrBook;
