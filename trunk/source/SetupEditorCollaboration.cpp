@@ -987,6 +987,16 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			return;
 		}
 	}
+		
+	// whm added 7Sep11. The admin may have changed the AI project to collaborate with
+	// or changed the source language or target langauge names, so ensure that
+	// we have the current values. But, do this only if the admin/user selected
+	// <Create a new project instead> in the combo box.
+	if (pComboAiProjects->GetStringSelection() == createNewProjectInstead)
+	{
+		m_TempCollabSourceProjLangName = pTextCtrlSourceLanguageName->GetValue();
+		m_TempCollabTargetProjLangName = pTextCtrlTargetLanguageName->GetValue();
+	}
 
 	// Has the administrator turned ON collaboration? If so, ensure that the following setup
 	// has been done, otherwise we do not allow collaboration to be swtiched ON:
@@ -1098,16 +1108,6 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			m_pApp->LogUserAction(msg);
 			return; // don't accept any changes - abort the OnOK() handler
 		}
-	}
-		
-	// whm added 7Sep11. The admin may have changed the AI project to collaborate with
-	// or changed the source language or target langauge names, so ensure that
-	// we have the current values. But, do this only if the admin/user selected
-	// <Create a new project instead> in the combo box.
-	if (pComboAiProjects->GetStringSelection() == createNewProjectInstead)
-	{
-		m_TempCollabSourceProjLangName = pTextCtrlSourceLanguageName->GetValue();
-		m_TempCollabTargetProjLangName = pTextCtrlTargetLanguageName->GetValue();
 	}
 
 	if (!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty())

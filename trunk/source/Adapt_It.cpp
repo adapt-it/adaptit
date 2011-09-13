@@ -76,6 +76,8 @@
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 #include <wx/cshelp.h> // for wxHelpControllerHelpProvider
 
+#include <wx/html/htmlwin.h> // for display of the "Help for Administrators.htm" file from the Administrator menu
+
 #include <wx/display.h> // for wxDisplay
 
 #include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
@@ -5339,6 +5341,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
 	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
+	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
+	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
 
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
@@ -12445,7 +12449,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with 
 			// PT or BE; set when setting up a doc in collab mode, used to suppress the
 			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
-    int nDisplayHeightInPixels;
+    
+	m_adminHelpFileName = _("Help for Administrators.htm");
+	
+	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
 	::wxDisplaySize(&nDisplayWidthInPixels,&nDisplayHeightInPixels);
 	if (nDisplayWidthInPixels < 640 || nDisplayHeightInPixels < 549)
@@ -35503,6 +35510,19 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 	}
 }
 
+void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
+{
+	// Note: the "Help for Administrators.htm" file should go into the m_helpInstallPath
+	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
+	wxString adminHelpFilePath = GetDefaultPathForHelpFiles() + PathSeparator + m_adminHelpFileName;
+	// TODO: implement a wxHtmlWindow to display the Help for Administrators.htm help file
+	// 
+}
+
+void CAdapt_ItApp::OnUpdateHelpForAdministrators(wxUpdateUIEvent& event)
+{
+	event.Enable(TRUE); // we want it always available
+}
 
 void CAdapt_ItApp::OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event)
 {

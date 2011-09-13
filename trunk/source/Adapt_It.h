@@ -2631,6 +2631,10 @@ public:
 	/// On wxGTK: adaptit.htb
 	/// On wxMac: AdaptIt.htb
 	wxString m_htbHelpFileName;
+
+	/// m_adminHelpFileName stores the actual name of the admin help file for the given platform.
+	/// This name is _("Help for Administrators.htm") on all platforms.
+	wxString m_adminHelpFileName;
 	
     /// m_licenseInstallPath stores the path where the license files are installed on the
     /// given platform.
@@ -3042,6 +3046,8 @@ public:
 	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
+	void OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateHelpForAdministrators(wxUpdateUIEvent& event);
 
 protected:
 
