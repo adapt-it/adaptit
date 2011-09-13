@@ -23,7 +23,6 @@
 		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
 		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
 		7DA17E920F4BC8E000BDDF30 /* LICENSING.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */; };
-		7DB6FC9C135BE3B4006CC95A /* ConflictResolutionDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FC9A135BE3B4006CC95A /* ConflictResolutionDlg.cpp */; };
 		7DB6FC9F135BE3DD006CC95A /* GetSourceTextFromEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */; };
 		7DB6FCA2135BE402006CC95A /* SetupEditorCollaboration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */; };
 		7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D20F462A570047FCAF /* AI_USFM.xml */; };
@@ -173,8 +172,6 @@
 		7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_GPLv2.txt; sourceTree = "<group>"; };
 		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
 		7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = LICENSING.txt; sourceTree = "<group>"; };
-		7DB6FC9A135BE3B4006CC95A /* ConflictResolutionDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConflictResolutionDlg.cpp; path = ../../source/ConflictResolutionDlg.cpp; sourceTree = SOURCE_ROOT; };
-		7DB6FC9B135BE3B4006CC95A /* ConflictResolutionDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConflictResolutionDlg.h; path = ../../source/ConflictResolutionDlg.h; sourceTree = SOURCE_ROOT; };
 		7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GetSourceTextFromEditor.cpp; path = ../../source/GetSourceTextFromEditor.cpp; sourceTree = SOURCE_ROOT; };
 		7DB6FC9E135BE3DD006CC95A /* GetSourceTextFromEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GetSourceTextFromEditor.h; path = ../../source/GetSourceTextFromEditor.h; sourceTree = SOURCE_ROOT; };
 		7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SetupEditorCollaboration.cpp; path = ../../source/SetupEditorCollaboration.cpp; sourceTree = SOURCE_ROOT; };
@@ -447,8 +444,6 @@
 				7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */,
 				7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */,
 				7DB6FC9E135BE3DD006CC95A /* GetSourceTextFromEditor.h */,
-				7DB6FC9A135BE3B4006CC95A /* ConflictResolutionDlg.cpp */,
-				7DB6FC9B135BE3B4006CC95A /* ConflictResolutionDlg.h */,
 				7DCCD19E128CF1CF00A42526 /* EmailReportDlg.cpp */,
 				7DCCD19F128CF1CF00A42526 /* EmailReportDlg.h */,
 				7DCCD186127FA19000A42526 /* CorGuess.cpp */,
@@ -917,7 +912,6 @@
 				7DCCD18B127FA19000A42526 /* GuesserSettingsDlg.cpp in Sources */,
 				7DCCD1A0128CF1CF00A42526 /* EmailReportDlg.cpp in Sources */,
 				C8DE45671323679C0030EC9B /* base64.cpp in Sources */,
-				7DB6FC9C135BE3B4006CC95A /* ConflictResolutionDlg.cpp in Sources */,
 				7DB6FC9F135BE3DD006CC95A /* GetSourceTextFromEditor.cpp in Sources */,
 				7DB6FCA2135BE402006CC95A /* SetupEditorCollaboration.cpp in Sources */,
 				C8442B86135FADD300981EB2 /* MergeUpdatedSrc.cpp in Sources */,
