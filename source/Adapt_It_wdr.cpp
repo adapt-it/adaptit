@@ -81,11 +81,11 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item7->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("5.2.4"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.0.0"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item5->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("January 20, 2011"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("September 30, 2011"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item9->SetToolTip( wxT("This date should be the same as the executable file") );
     item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -8470,72 +8470,6 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     return item0;
 }
 
-wxSizer *ConflictResolutionDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("The following source text has conflicting translations:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_TEXT_VERSE, wxT(""), wxDefaultPosition, wxSize(-1,80), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_INSTRUCTIONS, _("You can optionally edit the text in the \"Earlier version\" or the \"Recent version\" box below, to improve the meaning. You can also select and copy text from one box to the other. Choose one box only in which to do the improvements. When your edits are finished, click the button underneath that box to have that box's meaning become the final version."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxFlexGridSizer *item6 = new wxFlexGridSizer( 2, 0, 0 );
-    item6->AddGrowableCol( 0 );
-    item6->AddGrowableCol( 1 );
-    item6->AddGrowableRow( 2 );
-
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Earlier version:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Recent version:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_EARLIER_FROM, _("Adapted From:"), wxDefaultPosition, wxSize(80,30), wxTE_MULTILINE|wxTE_READONLY );
-    item6->Add( item9, 0, wxGROW|wxALL, 5 );
-
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_RECENT_FROM, _("Adapted From:"), wxDefaultPosition, wxSize(80,30), wxTE_MULTILINE|wxTE_READONLY );
-    item6->Add( item10, 0, wxGROW|wxALL, 5 );
-
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_EARLIER_VERSION, wxT(""), wxDefaultPosition, wxSize(300,120), wxTE_MULTILINE );
-    item11->SetToolTip( _("You can edit this version") );
-    item6->Add( item11, 0, wxGROW|wxALL, 5 );
-
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_RECENT_VERSION, wxT(""), wxDefaultPosition, wxSize(300,120), wxTE_MULTILINE );
-    item12->SetToolTip( _("You can edit this version") );
-    item6->Add( item12, 0, wxGROW|wxALL, 5 );
-
-    wxButton *item13 = new wxButton( parent, ID_BUTTON_USE_EARLIER, _("Use this version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item14 = new wxButton( parent, ID_BUTTON_USE_RECENT, _("Use this version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item1->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( item1, 1, wxGROW|wxALL, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
 wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9017,6 +8951,8 @@ wxMenuBar *AIMenuBarFunc()
     item0->Append( item8, _("&Help") );
     
     wxMenu* item9 = new wxMenu;
+    item9->Append( ID_MENU_HELP_FOR_ADMINISTRATORS, _("&Help for Administrators (HTML)"), _("Step-by-step procedures to help administrators set up Adapt It to use the features on this menu.") );
+    item9->AppendSeparator();
     item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup %s Collaboration..."), _("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts") );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
