@@ -527,10 +527,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\ConflictResolutionDlg.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\ConsChk_Empty_noTU_Dlg.cpp"
 				>
 			</File>
@@ -965,10 +961,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ComposeBarEditBox.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\ConflictResolutionDlg.h"
 				>
 			</File>
 			<File
