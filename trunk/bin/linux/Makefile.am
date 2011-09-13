@@ -6,7 +6,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/AssignLocationsForInputsAndOutputs.h \
 	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
-	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
+	../../source/CaseEquivPage.h ../../source/Cell.h \
 	../../source/ChooseConsistencyCheckTypeDlg.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
@@ -88,7 +88,7 @@ adaptit_SOURCES = \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
-	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \

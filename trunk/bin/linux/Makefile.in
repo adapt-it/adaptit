@@ -76,14 +76,14 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	conschk_exists_notu_dlg.$(OBJEXT) \
 	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
-	ConflictResolutionDlg.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
-	ConsistentChanger.$(OBJEXT) CorGuess.$(OBJEXT) \
-	DocPage.$(OBJEXT) EarlierTranslationDlg.$(OBJEXT) \
-	EditPreferencesDlg.$(OBJEXT) EditSourceTextDlg.$(OBJEXT) \
-	EmailReportDlg.$(OBJEXT) ExportFunctions.$(OBJEXT) \
-	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
-	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
-	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
+	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
+	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
+	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
+	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
+	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
+	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
+	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
@@ -352,7 +352,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/AssignLocationsForInputsAndOutputs.h \
 	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
-	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ConflictResolutionDlg.h \
+	../../source/CaseEquivPage.h ../../source/Cell.h \
 	../../source/ChooseConsistencyCheckTypeDlg.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
@@ -420,7 +420,7 @@ adaptit_SOURCES = \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
-	../../source/ComposeBarEditBox.cpp ../../source/ConflictResolutionDlg.cpp ../../source/ConsistencyCheckDlg.cpp \
+	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
@@ -570,7 +570,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComposeBarEditBox.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConflictResolutionDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsChk_Empty_noTU_Dlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistencyCheckDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistentChanger.Po@am__quote@
@@ -1039,20 +1038,6 @@ ComposeBarEditBox.obj: ../../source/ComposeBarEditBox.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ComposeBarEditBox.cpp' object='ComposeBarEditBox.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ComposeBarEditBox.obj `if test -f '../../source/ComposeBarEditBox.cpp'; then $(CYGPATH_W) '../../source/ComposeBarEditBox.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ComposeBarEditBox.cpp'; fi`
-
-ConflictResolutionDlg.o: ../../source/ConflictResolutionDlg.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConflictResolutionDlg.o -MD -MP -MF $(DEPDIR)/ConflictResolutionDlg.Tpo -c -o ConflictResolutionDlg.o `test -f '../../source/ConflictResolutionDlg.cpp' || echo '$(srcdir)/'`../../source/ConflictResolutionDlg.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConflictResolutionDlg.Tpo $(DEPDIR)/ConflictResolutionDlg.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConflictResolutionDlg.cpp' object='ConflictResolutionDlg.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConflictResolutionDlg.o `test -f '../../source/ConflictResolutionDlg.cpp' || echo '$(srcdir)/'`../../source/ConflictResolutionDlg.cpp
-
-ConflictResolutionDlg.obj: ../../source/ConflictResolutionDlg.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConflictResolutionDlg.obj -MD -MP -MF $(DEPDIR)/ConflictResolutionDlg.Tpo -c -o ConflictResolutionDlg.obj `if test -f '../../source/ConflictResolutionDlg.cpp'; then $(CYGPATH_W) '../../source/ConflictResolutionDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConflictResolutionDlg.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ConflictResolutionDlg.Tpo $(DEPDIR)/ConflictResolutionDlg.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConflictResolutionDlg.cpp' object='ConflictResolutionDlg.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConflictResolutionDlg.obj `if test -f '../../source/ConflictResolutionDlg.cpp'; then $(CYGPATH_W) '../../source/ConflictResolutionDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConflictResolutionDlg.cpp'; fi`
 
 ConsistencyCheckDlg.o: ../../source/ConsistencyCheckDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ConsistencyCheckDlg.o -MD -MP -MF $(DEPDIR)/ConsistencyCheckDlg.Tpo -c -o ConsistencyCheckDlg.o `test -f '../../source/ConsistencyCheckDlg.cpp' || echo '$(srcdir)/'`../../source/ConsistencyCheckDlg.cpp

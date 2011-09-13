@@ -15,7 +15,7 @@ Description: Adapt It
  Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported as a USFM text file or a Rich Text format file. 
 
 Package: adaptit-docs
-Architecture: any
+Architecture: all
 Depends: adaptit
 Description: Adapt It Documentation and Localization
  Documentation and localization for Adapt It.
