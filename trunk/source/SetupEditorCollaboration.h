@@ -54,7 +54,7 @@ protected:
 	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
 	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
 	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
-
+	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 private:
 
 	wxArrayString* pListOfPTProjects; // local pointer to list on App
@@ -83,6 +83,7 @@ private:
 	wxButton* pBtnSelectFmListSourceProj;
 	wxButton* pBtnSelectFmListTargetProj;
 	wxButton* pBtnSelectFmListFreeTransProj;
+	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnOK;
 
 	// class attributes

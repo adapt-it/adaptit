@@ -1,6 +1,9 @@
 <?php
 
-$recipient = "developers@adapt-it.org";
+// uncomment only first line below to set $recipient to developers@adapt-it.org
+//$recipient = "developers@adapt-it.org";
+$recipient = "bill_martin@adapt-it.org";
+//$recipient = "whmartin@sbcglobal.net,adaptit@costincomputingservices.com.au";
 //$recipient = "whmartin@sbcglobal.net";
 //$recipient = "bill_martin@sil.org";
 
@@ -35,9 +38,9 @@ if (empty($_POST)) {
         // If boundary="simple boundary", then each part should begin with "--simple boundary\r\n"
         // with the last "Content-... declarations line ending with double CRLFs \r\n\r\n. The final
         // boundary is of the form "--simple boundary--\r\n"
-        
+        $message .= "This is a multi-part message in MIME format.\r\n";
         $message .= "--Adapt It--{$random_hash}\r\n";
-        $message .= "Content-Type: text/plain; charset=\"iso-8859-1\"\r\n";
+        $message .= "Content-Type: text/plain; charset=\"iso-8859-1\"; format=flowed\r\n";
         $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
     }
     
@@ -69,9 +72,9 @@ if (empty($_POST)) {
     {
         // the userlog is to be attached so build it
         $message .= "--Adapt It--{$random_hash}\r\n";
-        $message .= "Content-Type: application/zip; name=\"userlog.zip\"\r\n"; 
+        $message .= "Content-Type: application/octet-stream; name=\"userlog.zip\"\r\n"; 
         $message .= "Content-Transfer-Encoding: base64\r\n";
-        $message .= "Content-Disposition: attachment\r\n\r\n";
+        $message .= "Content-Disposition: attachment; filename=\"userlog.zip\"\r\n\r\n";
         // Note: userlog below was already encoded for base64 by Adapt It before posting
         $attachment_log = chunk_split($_POST['userlog']);
         $message .= $attachment_log;
@@ -81,9 +84,9 @@ if (empty($_POST)) {
     {
         // the packed document is to be attached so build it
         $message .= "--Adapt It--{$random_hash}\r\n";
-        $message .= "Content-Type: application/zip; name=\"packeddoc.aip\"\r\n"; 
+        $message .= "Content-Type: application/octet-stream; name=\"packeddoc.aip\"\r\n"; 
         $message .= "Content-Transfer-Encoding: base64\r\n";
-        $message .= "Content-Disposition: attachment\r\n\r\n";
+        $message .= "Content-Disposition: attachment; filename=\"packeddoc.aip\"\r\n\r\n";
         // Note: packdoc below was already encoded for base64 by Adapt It before posting
         $attachment_doc = chunk_split($_POST['packdoc']);
         $message .= $attachment_doc;
