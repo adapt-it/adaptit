@@ -2386,8 +2386,11 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 // BEW 13Nov10, no changes to support Bob Eaton's request for glosssing KB to use all maps
 // BEW 17Jul11, changed to support the return of enum KB_Entry, with values absent,
 // present_but_deleted, or really_present, from GetRefString()
+// BEW 14Sep11, cleaned up misleading comments & faulty code, and StoreText() similarly
+// fixed up internally at same time
 void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 {
+	wxString strNotInKB = m_pApp->m_strNotInKB; // "<Not In KB>"
 	if (bChoice)
 	{
         // user wants it to not be in the KB, so set it up accordingly... first thing to do
@@ -2400,15 +2403,13 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 			pTgtUnit->DeleteAllToPrepareForNotInKB();
 		}
 
-		// we make it's KB translation be a unique "<Not In KB>" - 
-		// Adapt It will use this as a flag
-		pSrcPhrase->m_bNotInKB = FALSE; // temporarily set FALSE to allow 
-										// the string to go into KB
-		wxString str = _T("<Not In KB>");
+		// we make it's KB translation be a unique "<Not In KB>" - Adapt It will use this
+		// as a flag
 		bool bOK;
-		bOK = StoreText(pSrcPhrase,str);
+		bOK = StoreText(pSrcPhrase,strNotInKB);
 
 		// make the flags the correct values & save them on the source phrase
+		// BEW 14Sep11, next 2 lines are redundant, StoreText() now gets it right
 		pSrcPhrase->m_bNotInKB = TRUE;
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 
@@ -2419,16 +2420,14 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 	}
 	else
 	{
-		// make translations storable from now on
-		pSrcPhrase->m_bNotInKB = FALSE; // also permits finding of KB entry
-		pSrcPhrase->m_bHasKBEntry = FALSE; // make sure
-
-		wxString str = _T("<Not In KB>");
-		//CRefString* pRefString = GetRefString(pSrcPhrase->m_nSrcWords, 
-		//                                     pSrcPhrase->m_key, str);
+		pSrcPhrase->m_bNotInKB = FALSE;
+		pSrcPhrase->m_bHasKBEntry = FALSE; // make sure, because then when the phrase box
+										   // moves, the adaptation will be stored and
+										   // this flag set TRUE
 		CRefString* pRefString = NULL;
+		// get the currently non-deleted "<Not In KB>" string's CRefString
 		KB_Entry rsEntry = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, 
-										str, pRefString);
+										strNotInKB, pRefString);
 		if (pRefString == NULL && rsEntry == absent)
 		{
             // it's not present, so our work is done 
@@ -2571,10 +2570,13 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
 // map 1 rather than map 2.
 // BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
+// BEW 14Sep11, updated to reflect the improved code in StoreText()
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
+	wxString strNot = m_pApp->m_strNotInKB;
+	bool bStoringNotInKB = (strNot == tgtPhrase);
 	if (gbAutoCaps)
 	{
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
@@ -2602,8 +2604,22 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		gbMatchedKB_UCentry = FALSE;
 		return TRUE;
 	}
-
-    // It's not empty, so go ahead and re-store it as-is (but if auto capitalization has
+	// for safety, make this check first
+ 	if (m_bGlossingKB)
+	{
+		if (pSrcPhrase->m_bHasGlossingKBEntry)
+		{
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		}
+	}
+	else
+	{
+		if (pSrcPhrase->m_bHasKBEntry)
+		{
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+		}
+	}
+   // It's not empty, so go ahead and re-store it as-is (but if auto capitalization has
     // just been turned on, it will be stored as a lower case entry if it is an upper case
     // one in the doc) first, remove any phrase final space characters
 	if (!tgtPhrase.IsEmpty())
@@ -2629,19 +2645,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			}
 		}
 		pSrcPhrase->m_gloss = s;
-		// BEW 13Nov10, the flag below is never set TRUE so remove this bit of code
-		//if (gbRemovePunctuationFromGlosses)
-		//	m_pApp->GetView()->RemovePunctuation(m_pApp->GetDocument(),&pSrcPhrase->m_gloss,from_target_text);
 	}
 	else
 	{
-		if (tgtPhrase != _T("<Not In KB>"))
+		if (tgtPhrase != strNot)
 		{
-			// BEW 29Jul11 added auto-caps code here so that m_adaption gets
-			// set in the same way that MakeTargetStringIncludingPunctuation() will do the
-			// capitalization for m_targetStr, formerly m_adaption was just set to
-			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
-			// because the view only shows m_targetStr)
+            // BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
+            // same way that MakeTargetStringIncludingPunctuation() will do the
+            // capitalization for m_targetStr, formerly m_adaption was just set to
+            // tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+            // because the view only shows m_targetStr)
 			wxString s = tgtPhrase;
 			if (gbAutoCaps)
 			{
@@ -2753,21 +2766,22 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 		else
-			pSrcPhrase->m_bHasKBEntry = TRUE;
-
+		{
+			if (bStoringNotInKB)
+			{
+				pSrcPhrase->m_bHasKBEntry = FALSE; 							   
+				pSrcPhrase->m_bNotInKB = TRUE; 							   
+			}
+			else
+			{
+				pSrcPhrase->m_bHasKBEntry = TRUE;
+			}
+		}
 		(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit instance in the map
-		// update the maxWords limit
-		// BEW changed 13Nov10 to support Bob Eaton's request for 10map glossing KB
-		//if (m_bGlossingKB)
-		//{
-		//	m_nMaxWords = 1; // always 1 when glossing (ensures glossing 
-		//		// ignores maps with indices from 1 to 9; all is in 1st map only)
-		//}
-		//else
-		//{
-			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
-				m_nMaxWords = pSrcPhrase->m_nSrcWords;
-		//}
+		if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+		{
+			m_nMaxWords = pSrcPhrase->m_nSrcWords;
+		}
 	}
 	else // do next block when the map is not empty
 	{
@@ -2807,20 +2821,25 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			if (m_bGlossingKB)
 				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 			else
-				pSrcPhrase->m_bHasKBEntry = TRUE;
+			{
+				if (bStoringNotInKB)
+				{
+					pSrcPhrase->m_bNotInKB = TRUE;
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+				}
+				else
+				{
+					pSrcPhrase->m_bHasKBEntry = TRUE;
+				}
+			}
 
 			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit instance in the map 
 			// update the maxWords limit
-			// BEW changed 13Nov10 to support Bob Eaton's request for 10map glossing KB
-			//if (m_bGlossingKB)
-			//{
-			//	m_nMaxWords = 1; // for glossing it is always 1
-			//}
-			//else
-			//{
-				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
-					m_nMaxWords = pSrcPhrase->m_nSrcWords;
-			//}
+			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+			{
+				m_nMaxWords = pSrcPhrase->m_nSrcWords;
+			}
+			return TRUE;
 		}
 		else // we found one
 		{
@@ -2838,11 +2857,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
             // looked up only on the second attempt, for which gbMatchedKB_UCentry will
             // have been set TRUE, and which means the gloss or adaptation will not have
             // been made lower case - so we must allow for this possibility
-            // BEW changedd 29Jul11
-			//if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
-			//	pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
-			//else
-			//	pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
 			if (gbAutoCaps)
 			{
 				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
@@ -2883,7 +2897,18 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					if (m_bGlossingKB)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 					else
-						pSrcPhrase->m_bHasKBEntry = TRUE;
+					{
+						if (bStoringNotInKB)
+						{
+							// storing <Not In KB>
+							pSrcPhrase->m_bHasKBEntry = FALSE;
+							pSrcPhrase->m_bNotInKB = TRUE;
+						}
+						else
+						{
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+						}
+					}
 
 					// delete the just created pRefString as we won't use it
 					pRefString->DeleteRefString(); // also deletes its CMetadata
@@ -2899,8 +2924,13 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			} // end of while loop
             // if we get here with bMatched == FALSE, then there was no match, so we must
             // add the new pRefString to the CTargetUnit instance
-			if (!bMatched)
+			if (bMatched)
 			{
+				return TRUE;
+			}
+			else
+			{
+				// no match made in the above loop
 				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
 				CRefString* pRefStr = (CRefString*)tpos->GetData();
 				if (!m_bGlossingKB && pRefStr->m_translation == _T("<Not In KB>"))
@@ -2918,7 +2948,8 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					gbMatchedKB_UCentry = FALSE;
 					return TRUE; // all is well
 				}
-				else // either we are glossing, or we are adapting and it's a normal adaptation
+				else // either we are glossing, or we are adapting 
+					 // and it's a normal adaptation or <Not In KB>
 				{
 					// is the m_targetPhrase empty?
 					if (tgtPhrase.IsEmpty())
@@ -2951,14 +2982,21 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					if (m_bGlossingKB)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
 					else
-						pSrcPhrase->m_bHasKBEntry = TRUE;
+					{
+						if (bStoringNotInKB)
+						{
+							pSrcPhrase->m_bNotInKB = TRUE;
+							pSrcPhrase->m_bHasKBEntry = FALSE;
+						}
+						else
+						{
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+						}
+					}
 				}
 			}
 		}
 	}
-	if (!m_bGlossingKB)
-		pSrcPhrase->m_bNotInKB = FALSE; // ensure correct flag value, 
-										// in case it was not in KB
 	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies 
 							   // to one store operation only
 	gbMatchedKB_UCentry = FALSE;
@@ -2994,10 +3032,15 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
 // map 1 rather than map 2.
 // BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
+// BEW 14Sep11, fixed up embarrasingly bad slack code and failure to take into account
+// that the string passed in may be <Not In KB> (the legacy version got the doc flags
+// wrong!)
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
+	wxString strNot = m_pApp->m_strNotInKB;
+	bool bStoringNotInKB = (strNot == tgtPhrase);
 
     // do not permit storage if the source phrase has an empty key (eg. user may have ...
     // ellipsis in the source text, which generates an empty key and three periods in the
@@ -3015,22 +3058,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
     // If the source word (or phrase) has not been previously encountered, then
     // m_bHasKBEntry (or the equiv flag if glossing is ON) will be false, which has to be
-    // true for the StoreText call not to fail. But if we have come to an entry in the KB
-    // which we are about to add a new adaptation (or gloss) to it, then the flag will be
-    // TRUE (and rightly so.) The StoreText call would then fail - so we will test for this
-    // possibility and clear the appropriate flag if necessary.
-    // BEW 05July2006: No! The above comment confuses the KB entry with the CSourcePhrase
-    // instance at the active location. The flags we are talking about declare that that
-    // PARTICULAR instance in the DOCUMENT does, or does not, yet have a KB entry. When the
-    // phrase box lands there, it gets its KB entry removed (or ref count decremented)
-    // before a store is done, and so the flags are made false when the former happens.
-    // RemoveRefString() was supposed to do that, but my logic error was there as well
-    // (I've fixed it now). So before the store it done, the RemoveRefString call will now
-    // clear the relevant flag; so we don't need to test and clear it in the following
-    // block. (block below removed, but the comments are retained in case useful)
-    // 
-	// BEW 1Jun10: Okay, despite the above two comments, I still want some safety first
-	// protection here. Why? Because the code which calls RefmoveRefString() and/or
+    // true for the StoreText call not to fail. BEW 05July2006: No! The m_bHasKBEntry (if
+    // adapting) or m_bHasGlossingKBEntry (f glossing) flags we are talking about declare,
+    // if FALSE, that that PARTICULAR instance in the DOCUMENT does, or does not, yet have
+    // a KB entry. When the phrase box lands there, on the other hand, the relevant flag
+    // may be TRUE. It then gets its KB entry removed (or ref count decremented) before a
+    // store is done, and so the relevant flag is made false when the former happens.
+    // However, for safety first, we'll test the flag below and turn it all if it is on, so
+    // that the store may go ahead
+	// BEW 1Jun10: Okay, despite the above comments, I still want some safety first
+	// protection here. Why? Because the code which calls RemoveRefString() and/or
 	// GetAndRemoveRefString() will skip these calls if a CRetranslation class member
 	// boolean is left TRUE - namely, m_bSuppressRemovalOfRefString, after being used for
 	// suppression. So 'just in case'....
@@ -3055,26 +3092,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // glossing mode
 	if (!m_bGlossingKB && gbSuppressStoreForAltBackspaceKeypress)
 	{
-		wxString strNot = _T("<Not In KB>");
 		// rest of this block's code is a simplification of code from later in StoreText()
 		int nMapIndex;
 		// BEW 13Nov10 support Bob Eaton's request that glossing KB uses all maps
-//		if (m_bGlossingKB)
-//		{
-			//nMapIndex = 0; // always an index of zero when glossing 
-//			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-//		}
-//		else
-//		{
-			if (IsFixedSpaceSymbolWithin(pSrcPhrase))
-			{
-				nMapIndex = 0;
-			}
-			else
-			{
-				nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-			}
-//		}
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			nMapIndex = 0;
+		}
+		else
+		{
+			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+		}
 
         // if we have too many source words, then we cannot save to the KB, so beep
 		//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
@@ -3182,6 +3210,10 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
                 // if we get here with bMatched == FALSE, then there was no match, so this
                 // must somehow be a normal entry, so we don't add anything and just return
+                if (!bMatched)
+				{
+					pRefString->DeleteRefString(); // don't leak memory
+				}
 				return TRUE;
 			}
 		}
@@ -3218,13 +3250,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	}
 	else // currently adapting
 	{
-		if (tgtPhrase != _T("<Not In KB>"))
+		if (tgtPhrase != strNot)
 		{
-			// BEW 29Jul11 added auto-caps code here so that m_adaption gets
-			// set in the same way that MakeTargetStringIncludingPunctuation() will do the
-			// capitalization for m_targetStr, formerly m_adaption was just set to
-			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
-			// because the view only shows m_targetStr)
+            // BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
+            // same way that MakeTargetStringIncludingPunctuation() will do the
+            // capitalization for m_targetStr, formerly m_adaption was just set to
+            // tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+            // because the view only shows m_targetStr)
 			wxString s = tgtPhrase;
 			if (gbAutoCaps)
 			{
@@ -3266,44 +3298,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		return TRUE; // the caller must treat this as a valid 'save' operation
 	}
 
-    // if the user doesn't want a store done (he checked the dialog bar's control for this
-    // choice) then return, without saving, after setting the source phrase's m_bNotInKB
-    // flag to TRUE (ignore this block when glossing)
-    // BEW 18Jun10 change....
-	// Note, DoNotInKB() is called from OnCheckKBSave() and in the former StoreText() is
-	// called, and the m_bSaveToKB value is not changed to its final value until after
-	// DoNotInKB() returns - so if the checkbox was ticked and the user has just unticked
-	// it, m_bSaveToKB will still be TRUE at this point, and the following block won't be
-	// entered ... check if we really need this block, as the normal blocks below actually
-	// do the store of <Not In KB> string, and then higher level callers such as
-	// DoNotInKB() and its OnCheckKBSave() caller re-set the CSourcePhrase flags to be
-	// what is appropriate for a <Not In KB> location; so when the user clicks to make the
-	// checkbox be unticked (ie. no store to KB) then the block below is not called. On
-	// the other hand, when he clicks the unticked checkbox to have saving to the KB
-	// restored for that current source text key, what does DoNotInKB() do? It does not
-	// call StoreText(), and neither does it's OnCheckKBSave() caller. This means that the
-	// block below is NEVER entered, and so I have commented it out
-	/* I verified this block is never entered, whether the checkbox is on or off
-	if (!m_bGlossingKB && !m_pApp->m_bSaveToKB)
-	{
-		pSrcPhrase->m_bNotInKB = TRUE;
-		m_pApp->m_bForceAsk = FALSE; // have to turn this off too, since 
-								   // this is regarded as a valid 'store' op
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-		pSrcPhrase->m_bBeginRetranslation = FALSE;
-		pSrcPhrase->m_bEndRetranslation = FALSE;
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE; // we want the caller to think all is well
-	}
-	*/
     // if there is a CTargetUnit associated with the current key, then get it; if not,
     // create one and add it to the appropriate map; we start by computing which map we
     // need to store to
     // BEW 13Nov10, changed to support Bob Eaton's request for a ten map glossing KB
 	int nMapIndex;
-	//if (m_bGlossingKB)
-	//	nMapIndex = 0; // always an index of zero when glossing
-	//else
 	if (IsFixedSpaceSymbolWithin(pSrcPhrase))
 	{
 		nMapIndex = 0;
@@ -3322,7 +3321,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // m_bRetranslation to be TRUE, and also for m_bHasGlossingKBEntry to be TRUE.
     
     // BEW 13Nov10, changed to support Bob Eaton's request for a ten map glossing KB
-	//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS)
 	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
 	{
 		pSrcPhrase->m_bNotInKB = FALSE;
@@ -3339,11 +3337,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 	// continue the storage operation
 	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done
-											  // to it (need this for lookups)
+											   // to it (need this for lookups)
 	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be 
 															// made lower case
-	CTargetUnit* pTU;
-	CRefString* pRefString;
+	CTargetUnit* pTU = NULL;
+	CRefString* pRefString =  NULL;
 	if (m_pMap[nMapIndex]->empty())
 	{
 		// we just won't store anything if the target phrase has no content, when
@@ -3395,16 +3393,26 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // tell the src phrase it has
 													 // an entry in the glossing KB
 			(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map
-
-			// update the maxWords limit,  BEW changed 13Nov10
-			//m_nMaxWords = 1;
 			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+			{
 				m_nMaxWords = pSrcPhrase->m_nSrcWords;
+			}
 		}
 		else
 		{
-			pSrcPhrase->m_bHasKBEntry = TRUE; // tell the src phrase it has 
-											  // an entry in the KB
+			if (bStoringNotInKB)
+			{
+				// we are storing <Not In KB>; tell the src phrase it has this
+				// entry in the KB
+				pSrcPhrase->m_bHasKBEntry = FALSE; 							   
+				pSrcPhrase->m_bNotInKB = TRUE; 							   
+			}
+			else
+			{
+				// we are storing an adaptation; tell the src phrase it has an adaptation
+				// entry in the KB
+				pSrcPhrase->m_bHasKBEntry = TRUE; 							   
+			}
 
 			// it can't be a retranslation, so ensure the next two flags are cleared
 			pSrcPhrase->m_bBeginRetranslation = FALSE;
@@ -3414,17 +3422,20 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 											 // map with appropriate index
 			// update the maxWords limit
 			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+			{
 				m_nMaxWords = pSrcPhrase->m_nSrcWords;
+			}
 		}
+		return TRUE;
 	}
 	else // the block below is for when the map is not empty
 	{
 		// there might be a pre-existing association between this key and a CTargetUnit,
 		// so check it out
-		// BEW 29Jul11, AutoCapsLookup() has been changed on this date too, it now does
-		// not (when auto-caps is ON) do an uppercase lookup if the lowercase lookup
-		// fails. This gives better behaviour - the reason is explained in the source
-		// comments for the function.
+        // BEW 29Jul11, AutoCapsLookup() has been changed on this date too, it now doesn't
+        // (when auto-caps is ON) do an uppercase lookup if the lowercase lookup fails.
+        // This gives better behaviour - the reason is explained in the heading comments for
+        // that function.
 		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey);
 
 		// check we have a valid pTU
@@ -3434,9 +3445,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// empty m_translations list
 			wxMessageBox(_T(
 "Warning: the current storage operation has been skipped, and a bad storage element has been deleted."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_WARNING);
 
-			delete pTU; // delete it from the heap
+			if (pTU != NULL)
+			{
+				delete pTU; // delete it from the heap, if set
+			}
 			pTU = (CTargetUnit*)NULL;
 
 			MapKeyStringToTgtUnit* pMap = m_pMap[nMapIndex];
@@ -3472,10 +3486,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 					m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
 					gbMatchedKB_UCentry = FALSE;
+					// don't make any change to pSrcPhrase's flag values
 					return TRUE; // make caller think all is well
 				}
 			}
 
+			// continue with store: we can be storing gloss (empty or not), or an
+			// adaptation (empty or not), or (in adapting mode only) a <Not In KB> string
 			pTU = new CTargetUnit;
 			wxASSERT(pTU != NULL);
 			pRefString = new CRefString(pTU); // creates its CRefStringMetadata instance too
@@ -3498,7 +3515,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			if (m_pApp->m_bForceAsk)
 			{
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
-					// opportunity to add a new refString next time its matched
+					// opportunity to add a new refString next time it's matched
 			}
 			if (m_bGlossingKB)
 			{
@@ -3509,18 +3526,31 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// update the maxWords limit, BEW changed 13Nov10
 				//m_nMaxWords = 1;
 				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+				{
 					m_nMaxWords = pSrcPhrase->m_nSrcWords;
+				}
 			}
 			else
 			{
-				pSrcPhrase->m_bHasKBEntry = TRUE;
-
+				// distinguish between normal adaptation versus <Not In KB>
+				if (bStoringNotInKB)
+				{
+					pSrcPhrase->m_bNotInKB = TRUE;
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+				}
+				else
+				{
+					pSrcPhrase->m_bHasKBEntry = TRUE;
+				}
 				(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in
 						// the map with appropr. index (key may have been made lc)
 				// update the maxWords limit
 				if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+				{
 					m_nMaxWords = pSrcPhrase->m_nSrcWords;
+				}
 			}
+			return TRUE;
 		}
 		else // we found one
 		{
@@ -3542,7 +3572,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // have been set TRUE, and which means the gloss or adaptation will not have
             // been made lower case - so we must allow for this possibility
             //
-			// BEW 29Jul11, commented out next 3 lines so that we always use lower case
+			// BEW 29Jul11, removed 3 lines here, so that we now always use lower case
 			// for what is put into m_translation when auto-caps is turned on. The legacy
 			// code would check auto-caps on, and for an upper case src like "Kristus" it
 			// would use the unchanged phrase box value -- which, even if typed as
@@ -3559,15 +3589,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// with the unchanged value of tgtPhrase when it is not on. Trying to be
 			// smarter than that because the user may have only recently turned auto-caps
 			// on leads to these unnecessary errors. 
-			//if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
-			//	pRefString->m_translation = tgtPhrase; // use the unchanged string, 
-			//										   // could be upper case
-			//else
 			if (gbAutoCaps)
 				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
 			else
 				pRefString->m_translation = tgtPhrase;
 
+			// we are storing either a gloss, or adaptation, or pseudo-adaption "<Not In KB>"
 			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
 			while (pos != NULL)
 			{
@@ -3605,7 +3632,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 					else
 					{
-						pSrcPhrase->m_bHasKBEntry = TRUE;
+						// distinguish normal adaptation from <Not In KB> passed in
+						if (bStoringNotInKB)
+						{
+							// storing <Not In KB>
+							pSrcPhrase->m_bHasKBEntry = FALSE;
+							pSrcPhrase->m_bNotInKB = TRUE;
+						}
+						else
+						{
+							// normal adaptation
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+						}
 						pSrcPhrase->m_bBeginRetranslation = FALSE;
 						pSrcPhrase->m_bEndRetranslation = FALSE;
 					}
@@ -3620,13 +3658,22 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // if we get here with bMatched == FALSE, then there was no match, so we must
             // add the new pRefString to the targetUnit, but if it is already an <Not In
             // KB> entry, then the latter must override (to prevent <Not In KB> and <no
-            // adaptation> or a nonempty adaptation or gloss being two ref strings for the
-            // one key -- when adapting; for glossing this cannot happen)
-			if (!bMatched)
+            // adaptation> or a nonempty adaptation being two ref strings for the one key
+            // -- that's only when adapting; for glossing this cannot happen because
+            // glossing mode does not support <Not In KB> entries for the glossing KB)
+			if (bMatched)
 			{
+				return TRUE;
+			}
+			else
+			{
+				// no match was made in the above loop
 				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
 				CRefString* pRefStr = (CRefString*)tpos->GetData();
-				if (!m_bGlossingKB && pRefStr->m_translation == _T("<Not In KB>"))
+				// check that there isn't somehow an undeleted <Not In KB> CRefString as
+				// the only one - if there is, and <Not In KB> was passed in, then we've
+				// no store to make and can just set the flags and return TRUE
+				if (!m_bGlossingKB && pRefStr->m_translation == strNot)
 				{
                     // keep it that way (the way to cancel this setting is with the toolbar
                     // checkbox) But leave m_adaption and m_targetStr (or m_gloss) having
@@ -3637,14 +3684,18 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					pSrcPhrase->m_bEndRetranslation = FALSE;
 					pRefString->DeleteRefString(); // don't leak memory
 					pRefString = (CRefString*)NULL;
+					if (m_pApp->m_bForceAsk)
+					{
+						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
+								// ensure it gets set if that is what the user wants
+					}
 					m_pApp->m_bForceAsk = FALSE;
 					gbMatchedKB_UCentry = FALSE;
 					return TRUE; // all is well
 				}
-				else // either we are glossing, or we are adapting 
-					  // and it's a normal adaptation
+				else // either we are glossing; or we are adapting 
+					  // and it's a normal adaptation or <Not In KB>
 				{
-					// is the pApp->m_targetPhrase empty?
 					if (tgtPhrase.IsEmpty())
 					{
                         // we just won't store anything if the target phrase has no
@@ -3659,10 +3710,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								pSrcPhrase->m_bBeginRetranslation = FALSE;
 								pSrcPhrase->m_bEndRetranslation = FALSE;
 							}
+							if (m_pApp->m_bForceAsk)
+							{
+								pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
+										// ensure it gets set if that is what the user wants
+							}
 							m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
 							pRefString->DeleteRefString(); // don't leak the memory
 							pRefString = (CRefString*)NULL;
 							gbMatchedKB_UCentry = FALSE;
+							// don't change any of the flags on pSrcPhrase
 							return TRUE; // make caller think all is well
 						}
 					}
@@ -3685,17 +3742,29 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					}
 					else
 					{
-						pSrcPhrase->m_bHasKBEntry = TRUE;
+						// distinguish a normal adaptation store from a <Not In KB> one
+						if (bStoringNotInKB)
+						{
+							pSrcPhrase->m_bNotInKB = TRUE;
+							pSrcPhrase->m_bHasKBEntry = FALSE;
+						}
+						else
+						{
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+						}
 						pSrcPhrase->m_bBeginRetranslation = FALSE;
 						pSrcPhrase->m_bEndRetranslation = FALSE;
 					}
-				}
-			}
-		}
-	}
-	if (!m_bGlossingKB)
-		pSrcPhrase->m_bNotInKB = FALSE; // ensure correct flag value, 
-										// in case it was not in the KB
+					if (m_pApp->m_bForceAsk)
+					{
+						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
+								// ensure it gets set if that is what the user wants
+					}
+				} // end of else block for test: if (!m_bGlossingKB && pRefStr->m_translation == strNot)
+			} // end of else block for test: if (bMatched)
+		} // end of else block for test: if(!bFound) i.e. we actually matched a stored pTU
+	} // end of else block for test: if (m_pMap[nMapIndex]->empty()) i.e. th tested map wasn't empty
+
 	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies
 							   // to the current store operation only
 	gbMatchedKB_UCentry = FALSE;
