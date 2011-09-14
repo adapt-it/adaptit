@@ -21026,6 +21026,18 @@ void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
 // name, and added nCumulativeTotal 4th param
 // BEW 29Aug11, there are now two versions of this function which differ only by name:
 // DoConsistencyCheck() handles adapting mode, DoConsistencyCheckG() handles glossing mode
+// BEW refactored 14Sep11, a difficult thing to grasp is the need to distinguish between
+// pTU and pRefStr pointers belonging to the two different KBs passed in; we do diagnosis
+// of errors in pKBCopy, but primarily make KB adjustments (which are passive while the
+// checking is in progress) in just pKB; however, forcing change to <Not In KB> or
+// removing a <Not In KB> designation violates this convention somewhat, because these two
+// kinds of operation have to be, once made, enforced there after - and so the diagnosis
+// is done in pKB, but enforcing the change(s) is done in pKBCopy as well, and passively
+// also in pKB. If pKBCopy isn't changed for these kinds of change, we can't enforce that
+// new document locations be synced to what should be set by comparing the earlier state
+// IN THE SAME KB (ie. in pKBCopy). Therefore, we maintain
+// pTU, and pRefStr, as pertaining only to the pKBCopy knowledge base instance
+// but pTU_OnOrig, and pRefStr_OnOrig, for pKB's knowledge base instance
 bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
 						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB, 
 						wxArrayString& arrRemoveNotInKB)
@@ -21100,12 +21112,27 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		enum InconsistencyType inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
 		CSourcePhrase* pSrcPhrase = NULL;
 		int nWords;
-		// for first test, using pSrcPhrase->adaption
+		// for the IsAlreadyInKB() test, we pass in pSrcPhrase->adaption
+		
+		// We also have to do some of the tests in parallel on both KBs, so that we get
+		// CTargetUnit and CRefString pointers in parallel from both KBs' entries when we
+		// need to make parallel changes to both KBs. Slows the check, but unavoidable
 		bool bIsInKB = FALSE;
+		bool bIsInKB_OnOrig = FALSE;
+
+		// next two, pertain to pKBCopy and pKB, respectively
 		bool bDeleted = FALSE;
+		bool bDeleted_OnOrig = FALSE;
+
+		// these two, for CTargetUnit and CRefString pts within pKBCopy
 		CTargetUnit* pTU = NULL;
 		CRefString* pRefStr = NULL;
+		// these two, for CTargetUnit and CRefString pts within pKB
+		CTargetUnit* pTU_OnOrig = NULL;
+		CRefString* pRefStr_OnOrig = NULL;
+		// we may need two flags here too 
 		bool bFoundTgtUnit = FALSE;
+		bool bFoundTgtUnit_OnOrig = FALSE;
 
 		bool bAddedToAFList = FALSE;
 		wxString adaption; // scratch string for holding m_adaption's value
@@ -21158,8 +21185,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 			nWords = pSrcPhrase->m_nSrcWords;
 			pTU = NULL;
+			pTU_OnOrig = NULL;
 			pRefStr = NULL;
+			pRefStr_OnOrig = NULL;
 			bDeleted = FALSE;
+			bDeleted_OnOrig = FALSE;
+
 #ifdef __WXDEBUG__
 			if (pSrcPhrase->m_nSequNumber == 78)
 			{
@@ -21174,6 +21205,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// way to the adaptation contents, returning TRUE only when that matches. To
 			// test only for a pTU matching the key value, instead use AutoCapsLookup() )
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
+			bIsInKB_OnOrig = pKB->IsAlreadyInKB(nWords, key, adaption, pTU_OnOrig, pRefStr_OnOrig, bDeleted_OnOrig);
 
 			// While <Not In KB> entries are expected to be rare or absent, if present
 			// they are dominant - that is, if a given source text word or phrase is
@@ -21191,7 +21223,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// separate arrays which must persist for the whole Consistency Check.
 			// Since we will know whether a pTU exists for this pSrcPhrase, we will use
 			// the test functions in the CTargetUnit class rather than the equivalent in
-			// the CKB class, for speed.
+			// the CKB class, for speed. Be careful to distinguish between what belongs to
+			// pKB and what belongs to pKBCopy!!
 			if (pTU != NULL)
 			{
 				if (pTU->IsItNotInKB() && pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
@@ -21203,8 +21236,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					int beforeCount = arrSetNotInKB.GetCount();
 #endif
 					AddUniqueString(&arrSetNotInKB, key);
-					pTU->ValidateNotInKB(); // ensure all non-<Not In KB> are deleted
-					// since it's a 'no inconsistency' location, iterate
+					pTU->ValidateNotInKB(); // ensure all non-<Not In KB> are deleted, since
+											// it's a 'no inconsistency' location, then iterate
+					pTU_OnOrig->ValidateNotInKB(); // must do in pKB's CTargetUnit ptr too
 #ifdef CONSCHK
 					int afterCount = arrSetNotInKB.GetCount();
 					if (afterCount > beforeCount)
@@ -21240,7 +21274,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// to either array, arrSetNotInKB or arrRemoveNotInKB (and remember, the
 			// contents of these arrays were gathered only from valid entries, and / or
 			// user choices about what is valid, so these must dominate the consistency
-			// issue at the current location), and do whatever is appropriate 
+			// issue at the current location), and do whatever is appropriate; the
+			// diagnostic test must be done in pKBCopy, but parallel changes made in pKB
+			// too (because otherwise pKB wouldn't get the updates it needs from this process)
+			
 			// Start with those which require setting <Not In KB>
 			if (arrSetNotInKB.Index(key,FALSE) != wxNOT_FOUND) // FALSE is for a caseless search
 			{
@@ -21256,9 +21293,14 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				{
 					pTU->DeleteAllToPrepareForNotInKB();
 				}
+				if (pTU_OnOrig != NULL)
+				{
+					pTU_OnOrig->DeleteAllToPrepareForNotInKB();
+				}
+				pKBCopy->StoreText(pSrcPhrase, strNotInKB); // no need to support <no adaptation> for this store
 				pKB->StoreText(pSrcPhrase, strNotInKB); // no need to support <no adaptation> for this store
-				pSrcPhrase->m_bHasKBEntry = FALSE;
-				pSrcPhrase->m_bNotInKB = TRUE;
+				//pSrcPhrase->m_bHasKBEntry = FALSE;
+				//pSrcPhrase->m_bNotInKB = TRUE;
 #ifdef CONSCHK
 				int afterCount = arrSetNotInKB.GetCount();
 				if (afterCount >= beforeCount)
@@ -21276,38 +21318,53 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				// should not have storage in the KB done before the phrase box has been there.
 				if (!pSrcPhrase->m_adaption.IsEmpty() || pSrcPhrase->m_bHasKBEntry)
 				{
-					// can give it a try, provided there is a pTU instance in the KB for here
+					// can give it a try, provided there is a pTU instance in the KB copy for here
 					if (pTU != NULL)
 					{
+						// assume that when pTU is not NULL, so too will be pTU_OnOrig
+						wxASSERT(pTU_OnOrig != NULL);
 #ifdef CONSCHK
 						int beforeCount = arrRemoveNotInKB.GetCount();
 						wxLogDebug(_T("*4. adaption before undeleting:  %s"),pSrcPhrase->m_adaption);
 #endif
-						bool bUndeleted = pKB->UndeleteNormalEntryAndDeleteNotInKB(pSrcPhrase,
+						bool bSuccess = pKBCopy->UndeleteNormalEntryAndDeleteNotInKB(pSrcPhrase,
 														pTU, pSrcPhrase->m_adaption);
-						if (!bUndeleted)
+						bool bSuccess_OnOrig = pKB->UndeleteNormalEntryAndDeleteNotInKB(pSrcPhrase,
+														pTU_OnOrig, pSrcPhrase->m_adaption);
+						if (!bSuccess)
 						{
+							// there wasn't a deleted CRefString which was successfully
+							// undeleted, so a StoreText() call is required here...
 							// this may actually rectify an inconsistency which, if this
 							// were not done, would be picked up in the code further below
-							pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
+							pKBCopy->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
+							if (!bSuccess_OnOrig)
+							{
+								pKB->StoreText(pSrcPhrase, pSrcPhrase->m_adaption, TRUE);
+							}
 #ifdef CONSCHK
 							int afterCount = arrRemoveNotInKB.GetCount();
 							if (afterCount >= beforeCount)
-								wxLogDebug(_T("*4. Found in arrRemoveNotInKB entry:  removed <Not In KB> at sn = %d , m_key:  %s   (stored for m_adaption:  %s)  count = %d"),
+								wxLogDebug(_T("*4. Found in arrRemoveNotInKB entry:  removed <Not In KB> at sn = %d , m_key:  %s   (stored the m_adaption:  %s)  count = %d"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
 #endif
-							pSrcPhrase->m_bHasKBEntry = TRUE;
-							pSrcPhrase->m_bNotInKB = FALSE;
+							//pSrcPhrase->m_bHasKBEntry = TRUE;
+							//pSrcPhrase->m_bNotInKB = FALSE;
 							continue;
 						}
 						else
 						{
+							// no StoreText() call is needed, because an undelete was done
+							// (and we assume the pKB one similarly succeeded)
+							wxASSERT(bSuccess_OnOrig);
 #ifdef CONSCHK
 							int afterCount = arrRemoveNotInKB.GetCount();
 							if (afterCount >= beforeCount)
-								wxLogDebug(_T("*5. Found in arrRemoveNotInKB entry:  removed <Not In KB> at sn = %d , m_key:  %s   (undeleted for m_adaption:  %s)  count = %d"),
+								wxLogDebug(_T("*5. Found in arrRemoveNotInKB entry:  removed <Not In KB> at sn = %d , m_key:  %s   (undeleted the m_adaption:  %s)  count = %d"),
 									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
 #endif
+							// no StoreText() call, so explicitly ensure the flags are
+							// correct here
 							pSrcPhrase->m_bHasKBEntry = TRUE;
 							pSrcPhrase->m_bNotInKB = FALSE;
 							continue;
@@ -21322,30 +21379,39 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				{
 					bFoundTgtUnit = TRUE;
 				}
+				if (pTU_OnOrig != NULL)
+				{
+					bFoundTgtUnit_OnOrig = TRUE;
+				}
 				if (pSrcPhrase->m_bHasKBEntry)
 				{
                     // there is a non-deleted adaption entry in the copied KB for the
                     // passed in key; if pSrcPhrase has m_bHasKBEntry set TRUE, and it is
                     // not deleted in the KB, this is consistent, so iterate
 					wxASSERT(!bDeleted);
+					wxASSERT(!bDeleted_OnOrig);
 					// ensure m_bNotInKB is FALSE, both flags must never be true together
 					pSrcPhrase->m_bNotInKB = FALSE;
 					if (pTU->IsDeletedNotInKB())
 					{
-						// if there is a deleted <Not In KB> entry for this key, add it to
-						// the array so that subsquent same key values will enforce consistency
+                        // if there is a deleted <Not In KB> entry for this key in pKBCopy,
+                        // add it to the array so that subsquent same key values will
+                        // enforce consistency
 						AddUniqueString(&arrRemoveNotInKB, key);
+						// (no need to do it also for pKB, because we maintain only lists
+						// done from diagnosis within pKBCopy's knowledge base)
 					}
 					continue;
 				}
 				else
 				{
-					// m_adaption is in the KB for this key; but pSrcPhrase->m_bHasKBEntry is 
-					// FALSE, so we might have an inconsistency...
+                    // m_adaption is in the pKBCopy for this key; but
+                    // pSrcPhrase->m_bHasKBEntry is FALSE, so we might have an
+                    // inconsistency...
 	
                     // we might be in an unadapted part of the document, where there is no
                     // adaptation as yet and so m_bHasKBEntry would be FALSE, and fortuitously
-                    // we matched in the KB a source text key that earlier was given a
+                    // we matched in pKBCopy a source text key that earlier was given a
                     // <no adaptation> adaptation which resulted in an empty string for the
                     // pTU's CRefString::translation member -- this situation isn't an
                     // inconsistency, so check for this and iterate if so
@@ -21370,10 +21436,15 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// (we know pTU exists, so no need to protect with a test here)
 							if (pTU->IsItNotInKB())
 							{
-								// this can be healed without calling a dialog, the <Not
-								// In KB> has priority
+								wxASSERT(pTU_OnOrig->IsItNotInKB()); // pKB's data must match pKBCopy's
+
+								// this can be healed without calling a dialog, the 
+								// <NotIn KB> has priority
 								AddUniqueString(&arrSetNotInKB, key);
+
 								pTU->ValidateNotInKB(); // ensure all non-<Not In KB> are deleted
+								pTU_OnOrig->ValidateNotInKB(); // do the same in the original KB too
+
 								pSrcPhrase->m_bHasKBEntry = FALSE;
 								pSrcPhrase->m_bNotInKB = TRUE;
 #ifdef CONSCHK
@@ -21390,14 +21461,21 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                         // pSrcPhrase->m_adaption is not an emptry string; this is an
                         // inconsistency which we can auto-correct here & now by setting
 						// the flag to agree with the KB entry, no GUI needed for this -
-						// provided there is no <Not In KB> lurking in the KB entry
+						// provided there is no <Not In KB> lurking in the pKBCopy's entry
 						if (pTU->IsItNotInKB())
 						{
-							// this can be healed without calling a dialog, the <Not
-							// In KB> has priority
+							// it is, so pTU_OnOrig likewise should be the same
+							bool bOrigToo = pTU_OnOrig->IsItNotInKB();
+
+							// this can be healed without calling a dialog, the 
+							// <Not In KB> has priority
 							AddUniqueString(&arrSetNotInKB, key);
+
 							pTU->ValidateNotInKB(); // ensure all non-<Not In KB> are deleted
-							//pSrcPhrase->m_bHasKBEntry = FALSE;
+							if (bOrigToo)
+							{
+								pTU_OnOrig->ValidateNotInKB(); // do pKB's too
+							}
 							pSrcPhrase->m_bNotInKB = TRUE;
 #ifdef CONSCHK
 							wxLogDebug(_T("2. No GUI, inconsistency:  preferred <Not In KB> at sn = %d , m_key:  %s   m_adaption:  %s"),
@@ -21407,6 +21485,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						}
 						else
 						{
+							// nothing to be done in either pKB or pKBCopy
 							pSrcPhrase->m_bHasKBEntry = TRUE; // fixed it
 #ifdef CONSCHK
 							wxLogDebug(_T("3. No GUI  m_bHasKBEntry set TRUE  at sn = %d , m_key:  %s   m_adaption:  %s"),
@@ -21444,10 +21523,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				if (!bInconsistency)
 				{
 					// bIsInKB is FALSE, test for a "hole" (& iterate if so, as it would
-					// not be an inconsistency) -- doing for (4) above
+					// not be an inconsistency) -- doing as for (4) above
 					if (pSrcPhrase->m_adaption.IsEmpty() && pTU == NULL && !pSrcPhrase->m_bHasKBEntry)
 					{
-						// this is a hole
+						wxASSERT(pTU_OnOrig == NULL);
+
+						// this is a hole, no inconsistency here
 						continue;
 					}
 
@@ -21462,6 +21543,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pSrcPhrase->m_bHasKBEntry && bDeleted)
 					{
 						bFoundTgtUnit = TRUE;
+						wxASSERT(pTU_OnOrig != NULL && pRefStr_OnOrig == NULL && bDeleted_OnOrig);
+						bFoundTgtUnit_OnOrig = TRUE;
 
 						// This is an inconsistency. The CTargetUnit and CRefString exist, and
 						// pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
@@ -21486,13 +21569,14 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// the dialog for this one is ConsChk_Empty_noTU_Dlg
 					}
 					*/
-					// Lots of checks to do here -- this stuff uses the adaption lookup
-					// (the 1st IsAlreadyInKB() call above)
+					// Lots of checks to do here -- we continue to use the m_adaption lookup above
 
 					if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_adaption.IsEmpty() &&
 						pSrcPhrase->m_bHasKBEntry && bDeleted)
 					{
 						bFoundTgtUnit = TRUE;
+						wxASSERT(pTU_OnOrig != NULL && pRefStr_OnOrig == NULL && bDeleted_OnOrig);
+						bFoundTgtUnit_OnOrig = TRUE;
 
 						// This is an inconsistency. The CTargetUnit and CRefString exist, and
 						// pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
@@ -21540,6 +21624,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					else if (pSrcPhrase->m_bHasKBEntry && pTU != NULL && pRefStr == NULL && bDeleted)
 					{
 						bFoundTgtUnit = TRUE;
+						wxASSERT(pTU_OnOrig != NULL && pRefStr_OnOrig == NULL && bDeleted_OnOrig);
+						bFoundTgtUnit_OnOrig = TRUE;
 
 						// this is the 'split adaptation' case - the only options are to
 						// undelete, or to give a different (contextually defined by the user
@@ -21562,54 +21648,17 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 #endif
 						// dialog for this is the revamped legacy ConsistencyCheckDlg.h &.cpp
 					}
-/* the above  block picks up both m_adaption empty or not tempty, so this next block is unneeded
-					else if (!pSrcPhrase->m_bHasKBEntry && pTU != NULL && pRefStr == NULL && bDeleted)
-					{
-						// BEWARE, this may be the location for a currently active <Not In KB>
-						// entry in the KB, with m_adaption not empty - which is legal, so
-						// test for this and only if this is not the case is this an
-						// inconsistency (and for glossing mode, the test is not needed
-						// in the DoConsistencyCheckG() function because <Not In KB> is not 
-						// supported in glossing mode)
-						// The <Not In KB> tests above should bleed out the possibility of the
-						// following test yielding TRUE, but just in case I've not got it all
-						// right, it can stay
-						if (pKB->IsNot_In_KB_inThisTargetUnit(pTU))
-						{
-							// this is legal, so iterate
-							continue;
-						}
-						else
-						{
-							// it's a genuine inconsistency
-							bFoundTgtUnit = TRUE;
 
-							// the flag is not set, and the pRefStr''s m_translation contents has
-							// been marked as bDeleted = TRUE; the only things possible here are
-							// that really it shouldn't be deleted (in which case, it should be
-							// re-stored in the KB), or it's a <Not In KB> entry. So this isn't
-							// something we can auto-fix. The ConsistencyCheck_ExistsNoTU_DlgFunc()
-							// gives the correct options (although mis-named for this particular
-							// inconsistency) 
-							bInconsistency = TRUE;
-							inconsistencyType = member_exists_flag_off_normal_or_NotInKB; 
-							pAutoFixRec = new AutoFixRecord;
-							pAutoFixRec->nWords = nWords;
-							pAutoFixRec->key = key;
-							pAutoFixRec->oldAdaptation = adaption;
-							pAutoFixRec->incType = inconsistencyType;
-							pAutoFixRec->fixAction = no_GUI_needed; // a default value
-								// until such time as the dialog is shown and the user's
-								// fixit choice becomes known & replaces this value
-						}
-					}
-*/
 					// final possibilities -- there was no CTargetUnit returned from the
-					// auto-caps lookup done in IsAlreadyInKB(nWords, key, adaption, 
+					// auto-caps lookup done in pKBCopy->IsAlreadyInKB(nWords, key, adaption, 
 					// pTU, pRefStr, bDeleted);
 					else if (pTU == NULL)
 					{
 						bFoundTgtUnit = FALSE;
+						if (pTU_OnOrig == NULL)
+						{
+							bFoundTgtUnit_OnOrig = FALSE;
+						}
 
 						bInconsistency = TRUE;
 						pAutoFixRec = new AutoFixRecord;
@@ -21724,9 +21773,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case store_empty_meaning:
 								{
-									// make a <no adaptation> entry in KB
+                                    // make a <no adaptation> entry in pKB (but not in
+                                    // pKBCopy, because we need to be able to find
+                                    // subsequent errors that may exist -- same below, when
+                                    // we don't do the same fix in pKBCopy, it's for this
+                                    // reason also)
 									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
 									// don't call view's MakeTargetStringIncludingPunctuation() -
 									// it would make any punctuation visible on the empty
 									// target line's cell, which is not much help visually
@@ -21734,14 +21787,21 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case make_it_Not_In_KB:
 								{
-									CTargetUnit* pTgtU = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									// this option always must update both pKB and pKBCopy kbs
+									CTargetUnit* pTgtU = pKBCopy->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									CTargetUnit* pTgtU_OnOrig = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
 									if (pTgtU != NULL)
 									{
 										pTgtU->DeleteAllToPrepareForNotInKB();
 									}
+									if (pTgtU_OnOrig != NULL)
+									{
+										pTgtU_OnOrig->DeleteAllToPrepareForNotInKB();
+									}
 									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
-									pSrcPhrase->m_bNotInKB = TRUE;
+									pKBCopy->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+									pKB->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+
 									// ensure this src word or phrase is <Not In KB>
 									// elsewhere too
 									AddUniqueString(&arrSetNotInKB, key);
@@ -21768,25 +21828,29 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 							case store_nonempty_meaning:
 								{
-									// make a normal entry of it in KB
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
-									// make m_targetStr again? Nah, assume it's right
-									// already (un-comment-out if this was a bad decision)
-									//pApp->GetView()->MakeTargetStringIncludingPunctuation(
-									//					pSrcPhrase,pAutoFixRec->finalAdaptation);
+									// make a normal entry of it in pKB (but not pKBCopy)
+									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
+									// make m_targetStr again? Yeah
+									pApp->GetView()->MakeTargetStringIncludingPunctuation(
+														pSrcPhrase, pAutoFixRec->finalAdaptation);
 								}
 								break;
 							case make_it_Not_In_KB:
 								{
-									CTargetUnit* pTgtU = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									// this one always requires we update both pKB and pKBCopy
+									CTargetUnit* pTgtU = pKBCopy->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									CTargetUnit* pTgtU_OnOrig = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
 									if (pTgtU != NULL)
 									{
 										pTgtU->DeleteAllToPrepareForNotInKB();
 									}
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
-									pSrcPhrase->m_bNotInKB = TRUE;
+									if (pTgtU_OnOrig != NULL)
+									{
+										pTgtU_OnOrig->DeleteAllToPrepareForNotInKB();
+									}
+									pKBCopy->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+									pKB->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+									
 									// ensure this src word or phrase is <Not In KB>
 									// elsewhere too
 									AddUniqueString(&arrSetNotInKB, key);
@@ -21815,10 +21879,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// need a switch based on actionTaken in order to do what we need
 							// to do
 							wxString tempStr = pAutoFixRec->finalAdaptation;
-							pApp->GetView()->RemovePunctuation(this,&tempStr,from_target_text);
+							pApp->GetView()->RemovePunctuation(this, &tempStr, from_target_text);
 
 							// update the original kb (not pKBCopy)
-							pSrcPhrase->m_bHasKBEntry = FALSE; // <<-- makes the StoreText() call safe to do
 							if (tempStr.IsEmpty())
 							{
 								// TRUE = allow empty string storage
@@ -21860,11 +21923,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 																useTargetPhraseForLookup);
 									pSrcPhrase->m_bNotInKB = FALSE;
 
-									// make a normal entry of it in KB
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation);
+									// make a normal entry of it in pKB (leave pKBCopy unchanged)
+									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
 									pApp->GetView()->MakeTargetStringIncludingPunctuation(
-														pSrcPhrase,pAutoFixRec->finalAdaptation);
+														pSrcPhrase, pAutoFixRec->finalAdaptation);
 								}
 								break;
 							case store_empty_meaning:
@@ -21873,20 +21935,28 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 																useTargetPhraseForLookup);
 									pSrcPhrase->m_bNotInKB = FALSE;
 
-									// make a normal entry of it in KB 
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
+									// make a normal entry of it in pKB (leave pKBCopy unchanged)
+									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
 								}
 								break;
 							case make_it_Not_In_KB:
 								{
-									// no store needed, KB's pTU already has the
+									// no store needed, pKBCopy's pTU already has the
 									// non-deleted <Not In KB> - so all we need do is get
-									// the document flags to agree
+									// the document flags to agree; we can assume same for
+									// pKB's pTU_OnOrig
+									wxASSERT(pTU_OnOrig != NULL && pTU_OnOrig->IsItNotInKB());
+									
 									pSrcPhrase->m_bHasKBEntry = FALSE;
 									pSrcPhrase->m_bNotInKB = TRUE;
+
 									pTU->ValidateNotInKB(); // ensure no undeleted CRefStrings other than
 															// the <Not In KB> one remain undeleted
+									pTU_OnOrig->ValidateNotInKB(); // do in pKB too
+
+									// ensure this src word or phrase is <Not In KB>
+									// elsewhere in this and any other docs too
+									AddUniqueString(&arrSetNotInKB, key);
 								}
 								break;
 							case no_GUI_needed:
@@ -21977,7 +22047,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case store_empty_meaning:
 								{
-									// make a <no adaptation> entry in KB
+									// make a <no adaptation> entry in KB (but not in
+                                    // pKBCopy, because we need to be able to find
+                                    // subsequent errors that may exist -- same below, when
+                                    // we don't do the same fix in pKBCopy, it's for this
+                                    // reason also)
 									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
 									// don't call view's MakeTargetStringIncludingPunctuation() -
@@ -21991,14 +22065,21 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case make_it_Not_In_KB:
 								{
-									CTargetUnit* pTgtU = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									// this option always must update both pKB and pKBCopy kbs
+									CTargetUnit* pTgtU = pKBCopy->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									CTargetUnit* pTgtU_OnOrig = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
 									if (pTgtU != NULL)
 									{
 										pTgtU->DeleteAllToPrepareForNotInKB();
 									}
+									if (pTgtU_OnOrig != NULL)
+									{
+										pTgtU_OnOrig->DeleteAllToPrepareForNotInKB();
+									}
 									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
-									pSrcPhrase->m_bNotInKB = TRUE;
+									pKBCopy->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+									pKB->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+
 									// ensure this src word or phrase is <Not In KB>
 									// elsewhere too
 									AddUniqueString(&arrSetNotInKB, key);
@@ -22068,11 +22149,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 							case store_nonempty_meaning:
 								{
-									// make a normal entry of it in KB
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
+									// make a normal entry of it in KB (but not pKBCopy)
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
 									pApp->GetView()->MakeTargetStringIncludingPunctuation(
-														pSrcPhrase,pAutoFixRec->finalAdaptation);
+														pSrcPhrase, pAutoFixRec->finalAdaptation);
 #ifdef CONSCHK
 						wxLogDebug(_T("12 FIX. (2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
@@ -22081,14 +22161,20 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case make_it_Not_In_KB:
 								{
-									CTargetUnit* pTgtU = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									// this one always requires we update both pKB and pKBCopy
+									CTargetUnit* pTgtU = pKBCopy->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
+									CTargetUnit* pTgtU_OnOrig = pKB->GetTargetUnit(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key);
 									if (pTgtU != NULL)
 									{
 										pTgtU->DeleteAllToPrepareForNotInKB();
 									}
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pApp->m_strNotInKB);
-									pSrcPhrase->m_bNotInKB = TRUE;
+									if (pTgtU_OnOrig != NULL)
+									{
+										pTgtU_OnOrig->DeleteAllToPrepareForNotInKB();
+									}
+									pKBCopy->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+									pKB->StoreText(pSrcPhrase, pApp->m_strNotInKB);
+									
 									// ensure this src word or phrase is <Not In KB>
 									// elsewhere too
 									AddUniqueString(&arrSetNotInKB, key);
@@ -22254,11 +22340,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 														useTargetPhraseForLookup);
 									pSrcPhrase->m_bNotInKB = FALSE;
 
-									// make the adaptation normal entry in KB
-									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
-									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation);
+									// make the adaptation normal entry in KB (leave pKBCopy unchanged)
+									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
 									pApp->GetView()->MakeTargetStringIncludingPunctuation(
-														pSrcPhrase,pAutoFixRec->finalAdaptation);
+														pSrcPhrase, pAutoFixRec->finalAdaptation);
 #ifdef CONSCHK
 						wxLogDebug(_T("15 FIX. (msgNumber=2, 2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
 							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
@@ -22272,7 +22357,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 															useTargetPhraseForLookup);
 									pSrcPhrase->m_bNotInKB = FALSE;
 
-									// make the emptpy adaptation a normal entry  in KB 
+									// make the empty adaptation a normal entry  in KB 
 									pSrcPhrase->m_bHasKBEntry = FALSE; // enable an error-less store
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
 #ifdef CONSCHK
@@ -22285,11 +22370,20 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								{
 									// no store needed, KB's pTU already has the
 									// non-deleted <Not In KB> - so all we need do is get
-									// the document flags to agree
+									// the document flags to agree; we can assume same for
+									// pKB's pTU_OnOrig
+									wxASSERT(pTU_OnOrig != NULL && pTU_OnOrig->IsItNotInKB());
+									
 									pSrcPhrase->m_bHasKBEntry = FALSE;
 									pSrcPhrase->m_bNotInKB = TRUE;
+
 									pTU->ValidateNotInKB(); // ensure no undeleted CRefStrings other than
 															// the <Not In KB> one remain undeleted
+									pTU_OnOrig->ValidateNotInKB(); // do in pKB too
+
+									// ensure this src word or phrase is <Not In KB>
+									// elsewhere in this and any other docs too
+									AddUniqueString(&arrSetNotInKB, key);
 #ifdef CONSCHK
 						wxLogDebug(_T("17 FIX. (msgNumber=2, 2 choices) make_it_Not_In_KB BY FLAG CHANGES ONLY  at sn = %d , m_key:  %s   m_adaption:  %s"),
 							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
