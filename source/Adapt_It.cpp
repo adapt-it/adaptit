@@ -35534,11 +35534,20 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 	wxString adminHelpFilePath = GetDefaultPathForHelpFiles() + PathSeparator + m_adminHelpFileName;
 	// Create a wxHtmlWindow to display the Help for Administrators.htm help file
     //wxFrame* pHtmlWinFrame = new wxFrame(this->GetMainFrame(),-1,_T(""));
+
+#ifdef _USE_HTML_FILE_VIEWER
+	// for testing the CHtmlFileViewer class dialog
 	bool bSuccess = FALSE;
-	//{
-	//	wxLogNull nogNo;
-	//	bSuccess = wxLaunchDefaultBrowser(adminHelpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
-	//}
+#else
+	// for normal execution of the app
+	bool bSuccess = TRUE;
+#endif
+	
+	if (bSuccess)
+	{
+		wxLogNull nogNo;
+		bSuccess = wxLaunchDefaultBrowser(adminHelpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
+	}
 	if (!bSuccess)
 	{
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
