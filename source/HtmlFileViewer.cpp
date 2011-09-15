@@ -126,11 +126,11 @@ CHtmlFileViewer::~CHtmlFileViewer() // destructor
 }
 
 /*
+// NOTE: InitDialog is not called here because CHtmlFileViewer is derived from wxFrame, not from wxDialog	
 void CHtmlFileViewer::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	
-	// NOTE: InitDialog is not called here because CHtmlFileViewer is derived from wxFrame, not from wxDialog	
 
 }
 */
@@ -155,20 +155,6 @@ void CHtmlFileViewer::OnOpenHtmlFile(wxCommandEvent& WXUNUSED(event))
 	if (!file.IsEmpty())
 		pHtmlWindow->LoadFile(wxFileName(file));
 }
-
-//CHtmlFileViewer::OnDoSomething(wxCommandEvent& event)
-//{
-//	// handle the event
-	
-//}
-
-//CHtmlFileViewer::OnUpdateDoSomething(wxUpdateUIEvent& event)
-//{
-//	if (SomeCondition == TRUE)
-//		event.Enable(TRUE);
-//	else
-//		event.Enable(FALSE);	
-//}
 
 void CHtmlFileViewer::OnCancel(wxCommandEvent& WXUNUSED(event))
 {

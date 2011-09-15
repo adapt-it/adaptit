@@ -206,6 +206,8 @@ class ReadOnlyProtection;
 
 // forward reference for Guesser support
 class Guesser;
+// forward for Admin Help
+class CHtmlFileViewer;
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x
 // could find them but the g++ 4.x linker can't find them even though XML.h is included
@@ -1916,6 +1918,8 @@ public:
 								// m_pFindReplaceDlg (non-modal)
 	CViewFilteredMaterialDlg* m_pViewFilteredMaterialDlg; // non-modal
 	CEarlierTranslationDlg* m_pEarlierTransDlg;
+
+	CHtmlFileViewer* m_pHtmlFileViewer; // whm 14Sep11 added
 
 	extendSelDir m_curDirection; // current seln direction, either 'right' or 'left'
 	wxPoint m_mouse;			 // last mouse position (log coords) during drag selection

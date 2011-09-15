@@ -175,6 +175,7 @@
 #include "SetupEditorCollaboration.h"
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
+#include "HtmlFileViewer.h"
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -12450,7 +12451,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// PT or BE; set when setting up a doc in collab mode, used to suppress the
 			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
     
-	m_adminHelpFileName = _("Help for Administrators.htm");
+	m_adminHelpFileName = _("Help_for_Administrators.htm");
 	
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
@@ -13288,6 +13289,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pFindDlg = (CFindDlg*)NULL;
 	m_pReplaceDlg = (CReplaceDlg*)NULL;
+
+	m_pHtmlFileViewer = (CHtmlFileViewer*)NULL; // whm 14Sep11 added
 		
 	gbGlossingVisible = FALSE;
 	gbIsGlossing = FALSE;
@@ -35512,11 +35515,42 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 
 void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 {
-	// Note: the "Help for Administrators.htm" file should go into the m_helpInstallPath
+	// Note: The option to load the help file into the user's default browser
+	// a better option for this reason: When we use AI's own CHtmlWindow class,
+	// although it is shown as a modeless dialog, it cannot be accessed 
+	// (to scroll, click on links, etc.) while other Adapt It dialogs (such
+	// as the Setup Paratext Collaboration dialog) are being shown modal.
+	// Therefore, the CHtmlWindow dialog is limited in what can be shown if 
+	// the administrator wants to follow its setup instructions during 
+	// the setup of the user's Adapt It settings. Loading the html help file
+	// into the user's default browser has the advantage in that it can be
+	// accessed at the same time the administrator is doing his setup using
+	// modal dialogs within Adapt It. He might need to switch back and forth
+	// between AI and the browser, of course, depending on how much screen
+	// disktop is available to work with.
+	// 
+	// The "Help for Administrators.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	wxString adminHelpFilePath = GetDefaultPathForHelpFiles() + PathSeparator + m_adminHelpFileName;
-	// TODO: implement a wxHtmlWindow to display the Help for Administrators.htm help file
-	// 
+	// Create a wxHtmlWindow to display the Help for Administrators.htm help file
+    //wxFrame* pHtmlWinFrame = new wxFrame(this->GetMainFrame(),-1,_T(""));
+	bool bSuccess = FALSE;
+	//{
+	//	wxLogNull nogNo;
+	//	bSuccess = wxLaunchDefaultBrowser(adminHelpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
+	//}
+	if (!bSuccess)
+	{
+		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
+		msg = msg.Format(msg, adminHelpFilePath.c_str());
+		int response = wxMessageBox(msg,_("Browser launch error"),wxYES_NO);
+		if (response == wxYES)
+		{
+			m_pHtmlFileViewer = new CHtmlFileViewer(this->GetMainFrame());
+			m_pHtmlFileViewer->Show(TRUE);
+		}
+	}
+	
 }
 
 void CAdapt_ItApp::OnUpdateHelpForAdministrators(wxUpdateUIEvent& event)
