@@ -95,6 +95,11 @@ class NavProtectNewDoc; // for user navigation protection feature
 // interface).
 #define _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT 0
 
+// Use 1 to force the use of the CHtmlFileViewer for testing purposes instead of viewing the 
+// Help for Administrators.htm file within the default browser. Set to 0 for normal execution
+// and distribution of the Application.
+#define _USE_HTML_FILE_VIEWER
+
 // uncomment to turn on wxLogDebug tracking of gnBeginInsertionsSequNum & gnEndInsertionsSequNum
 //#define Highlighting_Bug
 
