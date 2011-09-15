@@ -8693,32 +8693,43 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_NOT_IN_KB, _("This source text should never have %s entry   (makes a %s entry)"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE_AORG, _("Type %s:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_TYPED_AORG, wxT(""), wxDefaultPosition, wxSize(80,24), 0 );
+    item13->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item6->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM, 0 );
+
     item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation, not just the current dialog"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation, not just the current dialog"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item17 = new wxCheckBox( parent, ID_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item13->Add( 60, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item16->Add( 60, 12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetDefault();
-    item13->Add( item15, 0, wxALIGN_CENTER|wxTOP, 0 );
+    wxButton *item18 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetDefault();
+    item16->Add( item18, 0, wxALIGN_CENTER|wxTOP, 0 );
 
-    item13->Add( 40, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item16->Add( 40, 12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item16, 0, wxALIGN_CENTER|wxTOP, 0 );
+    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item19, 0, wxALIGN_CENTER|wxTOP, 0 );
 
-    item11->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item14->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
