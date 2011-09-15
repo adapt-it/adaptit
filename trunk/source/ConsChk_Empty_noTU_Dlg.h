@@ -35,6 +35,7 @@ public:
 		wxWindow* parent,
 		wxString* title,
 		wxString* srcPhrase, // for pSrcPhrase->m_key value
+		wxString* tgtPhrase, // for the empty target phrase
 		wxString* modeWord, // for modeWordAdapt or modeWordGloss
 		wxString* modeWordPlusArticle, // for modeWordAdaptPlusArticle or modeWordGlossPlusArticle
 		wxString* notInKBStr, // for <Not In KB>, that is, strNotInKB
@@ -44,12 +45,17 @@ public:
 
 	// member variables
 	wxTextCtrl*    m_pTextCtrlSrcText;
+	wxTextCtrl*	   m_pTextCtrlAorG;
 	wxStaticText*  m_pMessageLabel;
 	wxString	   m_messageLabelStr;
 	wxRadioButton* m_pNoAdaptRadioBtn;
 	wxRadioButton* m_pLeaveHoleRadioBtn;
 	wxRadioButton* m_pNotInKBRadioBtn;
+	wxRadioButton* m_pAorGRadioBtn;
 	wxCheckBox*	   m_pAutoFixChkBox;
+	wxString	   m_aorgStr;
+	wxString	   m_aorgTextCtrlStr;
+	wxString	   m_emptyStr;
 	// the following store the creation passed-in param values
 	wxString		m_sourcePhrase; // store *srcPhrase
 	wxString		m_modeWord; // for modeWordAdapt or modeWordGloss
@@ -62,13 +68,21 @@ public:
 	bool			m_bShowItCentered;
 	wxPoint			m_ptBoxTopLeft;
 	int				m_nTwoLineDepth;
+	bool			m_bGlossing;
+	wxString		m_saveAorG;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	void OnRadioEnterEmpty(wxCommandEvent& WXUNUSED(event));
+	void OnRadioLeaveHole(wxCommandEvent& WXUNUSED(event));
+	void OnRadioNotInKB(wxCommandEvent& WXUNUSED(event));
+	void OnRadioTypeAorG(wxCommandEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	//void OnCancel(wxCommandEvent& event);
-
+	
 private:
+	void			EnableAdaptOrGlossBox(bool bEnable);
+
 	// class attributes
 	
 	// other class attributes

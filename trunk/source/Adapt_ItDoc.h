@@ -45,6 +45,8 @@ struct AutoFixRecordG;
 WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
 WX_DECLARE_LIST(AutoFixRecordG, AFGList); // see list definition macro in .cpp file
 
+// for debugging
+#define CONSCHK
 
 
 enum SaveType {
@@ -416,6 +418,10 @@ public:
 	virtual ~CAdapt_ItDoc();
 
 protected:
+
+#ifdef CONSCHK
+	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
+#endif
 
 	// Generated message map functions (from MFC version) ... most of these should not be
 	// public!!! (BEW 17May10)

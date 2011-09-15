@@ -78,6 +78,7 @@ extern bool gbTryingMRUOpen;
 extern bool gbConsistencyCheckCurrent;
 extern bool gbInhibitMakeTargetStringCall;
 
+extern bool	gbAutoCaps;
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -5376,7 +5377,19 @@ void AddUniqueString(wxArrayString* pArrayStr, wxString& str)
 	}
 	else
 	{
-		int index = pArrayStr->Index(str);
+		int index;
+		if (gbAutoCaps)
+		{
+			// case insensitive compare
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a 
+						// are the same character (wxWidgets comparison used)			
+		}
+		else
+		{
+			//case sensitive (ie. case differentiates)
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a 
+						// are different characters (wxWidgets comparison used)
+		}
 		if (index == wxNOT_FOUND)
 		{
 			// it's not in there yet, so add it

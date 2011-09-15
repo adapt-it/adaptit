@@ -52,12 +52,17 @@ BEGIN_EVENT_TABLE(ConsChk_Empty_noTU_Dlg, AIModalDialog)
 	EVT_INIT_DIALOG(ConsChk_Empty_noTU_Dlg::InitDialog)
 	EVT_BUTTON(wxID_OK, ConsChk_Empty_noTU_Dlg::OnOK)
 	//EVT_BUTTON(wxID_CANCEL, ConsChk_Empty_noTU_Dlg::OnCancel)
+	EVT_RADIOBUTTON(ID_RADIO_NO_ADAPTATION, ConsChk_Empty_noTU_Dlg::OnRadioEnterEmpty)
+	EVT_RADIOBUTTON(ID_RADIO_LEAVE_HOLE, ConsChk_Empty_noTU_Dlg::OnRadioLeaveHole)
+	EVT_RADIOBUTTON(ID_RADIO_NOT_IN_KB, ConsChk_Empty_noTU_Dlg::OnRadioNotInKB)
+	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE_AORG, ConsChk_Empty_noTU_Dlg::OnRadioTypeAorG)	
 END_EVENT_TABLE()
 
 ConsChk_Empty_noTU_Dlg::ConsChk_Empty_noTU_Dlg(
 		wxWindow* parent,
 		wxString* title,
 		wxString* srcPhrase,
+		wxString* tgtPhrase,
 		wxString* modeWord,
 		wxString* modeWordPlusArticle,
 		wxString* notInKBStr,
@@ -80,6 +85,8 @@ ConsChk_Empty_noTU_Dlg::ConsChk_Empty_noTU_Dlg(
 	m_modeWordPlusArticle = *modeWordPlusArticle;
 	m_notInKBStr = *notInKBStr;
 	m_noneOfThisStr = *noneOfThisStr;
+	m_aorgTextCtrlStr = *tgtPhrase;
+	m_saveAorG = *tgtPhrase;
 }
 
 ConsChk_Empty_noTU_Dlg::~ConsChk_Empty_noTU_Dlg() // destructor
@@ -89,6 +96,10 @@ ConsChk_Empty_noTU_Dlg::~ConsChk_Empty_noTU_Dlg() // destructor
 void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	//m_aorgTextCtrlStr.Empty(); // we'll pass it in from caller instead, from the
+								 //tgtPhrase param
+	m_emptyStr.Empty();
+
 	m_bDoAutoFix = FALSE;
 	m_pAutoFixChkBox = (wxCheckBox*)FindWindowById(ID_CHECK_DO_SAME);
 	wxASSERT(m_pAutoFixChkBox != NULL);
@@ -101,6 +112,25 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_pTextCtrlSrcText->ChangeValue(m_sourcePhrase);
 	m_pTextCtrlSrcText->SetEditable(FALSE); // now it's read-only
 
+	m_pAorGRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_TYPE_AORG);
+	wxASSERT(m_pAorGRadioBtn != NULL);
+	// put in the correct string, for this radio button label; either "an adaptation"
+	// or "a gloss" if called when in glossing mode
+	wxString msg3 = m_pAorGRadioBtn->GetLabel();
+	wxString radio4Str;
+	radio4Str = radio4Str.Format(msg3, m_modeWordPlusArticle.c_str());
+	m_pAorGRadioBtn->SetLabel(radio4Str);
+	int difference2 = CalcLabelWidthDifference(msg3, radio4Str, m_pAorGRadioBtn);
+
+	// for the adaptation or gloss text control, set it initially empty - it is always
+	// editable, but the radio buttons only are enabled when it is empty
+	wxString emptyStr = _T("");
+	m_pTextCtrlAorG = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TYPED_AORG);
+	wxASSERT(m_pTextCtrlAorG != NULL);
+	// put an empty string into the wxTextCtrl, & make it writable
+	m_pTextCtrlAorG->ChangeValue(emptyStr);
+	m_pTextCtrlAorG->SetEditable(TRUE);
+	
 	m_pMessageLabel = (wxStaticText*)FindWindowById(ID_TEXT_EMPTY_STR);
 	wxASSERT(m_pMessageLabel != NULL);
 	// put in the correct string, "adaptation" or "gloss" for this message label
@@ -108,8 +138,10 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 												// is expected, but is absent"
 	m_messageLabelStr = m_messageLabelStr.Format(msg, m_modeWord.c_str()); // %s filled in
 	m_pMessageLabel->SetLabel(m_messageLabelStr);
-	// get the pixel difference in the label's changed text
-	int difference = CalcLabelWidthDifference(msg, m_messageLabelStr, m_pMessageLabel);
+	int difference1 = CalcLabelWidthDifference(msg, m_messageLabelStr, m_pMessageLabel);
+
+	// calc the pixel difference needed to accomodate both labels' changed text
+	int difference = wxMax(difference1, difference2);
 
 	m_pNoAdaptRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_NO_ADAPTATION);
 	wxASSERT(m_pNoAdaptRadioBtn != NULL);
@@ -126,10 +158,13 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 
 	m_pNotInKBRadioBtn = (wxRadioButton*)FindWindowById(ID_RADIO_NOT_IN_KB);
 	wxASSERT(m_pNotInKBRadioBtn != NULL);
+	m_pNotInKBRadioBtn->SetValue(FALSE);
 	// hide this 3rd radio button if we are in glossing mode
 	if (m_messageLabelStr.Find(_("gloss")) != wxNOT_FOUND)
 	{
 		m_pNotInKBRadioBtn->Hide();
+
+		m_bGlossing = TRUE;
 	}
 	else
 	{
@@ -140,6 +175,8 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		wxString radioStr2;
 		radioStr2 = radioStr2.Format(msg2, m_modeWordPlusArticle.c_str(), m_notInKBStr.c_str());
 		m_pNotInKBRadioBtn->SetLabel(radioStr2);
+
+		m_bGlossing = FALSE;
 	}
 
 	// make the fonts show user-defined font point size in the dialog
@@ -151,6 +188,13 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
+	#ifdef _RTL_FLAGS
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTextCtrlAorG, NULL,
+								NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
+	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTextCtrlAorG, NULL, 
+								NULL, NULL, gpApp->m_pDlgTgtFont);
+	#endif
 	// get the dialog to resize to the new label string lengths
 	int width = 0;
 	int myheight = 0;
@@ -218,27 +262,147 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		SetSize(left,rectScreen.GetTop()+40, wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
 	}
 
+	// start with the adaptation or gloss text control disabled
+	EnableAdaptOrGlossBox(FALSE);
+
 	// It's a simple dialog, I'm not bothering with validators and TransferDataTo/FromWindow calls
 	//TransferDataToWindow();
 }
+
+void ConsChk_Empty_noTU_Dlg::EnableAdaptOrGlossBox(bool bEnable)
+{
+	if (bEnable)
+	{
+		// make it enabled, and it's radio button, give it input focus
+		m_pTextCtrlAorG->SetEditable(TRUE);
+		m_pTextCtrlAorG->Enable(TRUE);
+		m_pTextCtrlAorG->SetFocus();
+		m_aorgTextCtrlStr = m_saveAorG;
+		m_pTextCtrlAorG->ChangeValue(m_aorgTextCtrlStr); // put earlier string back in it
+
+		m_pAorGRadioBtn->SetValue(TRUE);
+		m_pNoAdaptRadioBtn->SetValue(FALSE);
+		m_pLeaveHoleRadioBtn->SetValue(FALSE);
+		if (!m_bGlossing)
+		{
+			m_pNotInKBRadioBtn->SetValue(FALSE);
+		}
+	}
+	else
+	{
+		// disable it, and all four radio buttons
+		if (m_pTextCtrlAorG->IsEnabled())
+		{
+			// This function with FALSE passed in may be called several times if the user
+			// clicks other radio buttons, so we want to disable it only the once,
+			// otherwise we'd lose the saved adaptation or gloss string from it
+			m_aorgTextCtrlStr = m_pTextCtrlAorG->GetValue();
+			m_saveAorG = m_aorgTextCtrlStr;
+			// put empty string into it before disabling it (but save earlier one first)
+			m_pTextCtrlAorG->ChangeValue(m_emptyStr); 
+
+			m_pTextCtrlAorG->SetEditable(FALSE);
+			m_pTextCtrlAorG->Enable(FALSE);
+		}											 
+		m_pAorGRadioBtn->SetValue(FALSE);
+		m_pNoAdaptRadioBtn->SetValue(FALSE);
+		m_pLeaveHoleRadioBtn->SetValue(FALSE);
+		if (!m_bGlossing)
+		{
+			m_pNotInKBRadioBtn->SetValue(FALSE);
+		}
+	}
+}
+
+void ConsChk_Empty_noTU_Dlg::OnRadioTypeAorG(wxCommandEvent& WXUNUSED(event)) 
+{
+	// enable the box for typing gloss or adaptation and put earlier string in it and make
+	// the radio buttons match this state, give the box the input focus
+	EnableAdaptOrGlossBox(TRUE);
+
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pAorGRadioBtn != NULL);
+	m_pAorGRadioBtn->SetValue(TRUE);
+}
+
+
+void ConsChk_Empty_noTU_Dlg::OnRadioEnterEmpty(wxCommandEvent& WXUNUSED(event)) 
+{
+	// disable the box for typing gloss or adaptation and put empty string in it and make
+	// the radio buttons match this state
+	EnableAdaptOrGlossBox(FALSE);
+
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pNoAdaptRadioBtn != NULL);
+	m_pNoAdaptRadioBtn->SetValue(TRUE);
+}
+
+void ConsChk_Empty_noTU_Dlg::OnRadioLeaveHole(wxCommandEvent& WXUNUSED(event)) 
+{
+	// disable the box for typing gloss or adaptation and put empty string in it and make
+	// the radio buttons match this state
+	EnableAdaptOrGlossBox(FALSE);
+
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pLeaveHoleRadioBtn != NULL);
+	m_pLeaveHoleRadioBtn->SetValue(TRUE);
+}
+
+void ConsChk_Empty_noTU_Dlg::OnRadioNotInKB(wxCommandEvent& WXUNUSED(event)) 
+{
+	// disable the box for typing gloss or adaptation and put empty string in it and make
+	// the radio buttons match this state
+	EnableAdaptOrGlossBox(FALSE);
+
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pNotInKBRadioBtn != NULL);
+	m_pNotInKBRadioBtn->SetValue(TRUE);
+}
+
 
 void ConsChk_Empty_noTU_Dlg::OnOK(wxCommandEvent& event)
 {
 	// get the auto-fix flag
 	m_bDoAutoFix = m_pAutoFixChkBox->GetValue();
 
-	// set the fixit action
-	if (m_pNoAdaptRadioBtn->GetValue())
+	// get the value of the 4th radio button, the one preceding it's textctrl
+	bool bUseText = m_pAorGRadioBtn->GetValue();
+
+	// caller should grab this string if bUseText is TRUE; otherwise it should use an
+	// empty string with whatever action is indicated by which of the other radio buttons
+	// is turned on
+	m_aorgTextCtrlStr = m_pTextCtrlAorG->GetValue(); // set in case caller wants it
+
+	if (!bUseText)
 	{
-		actionTaken = store_empty_meaning;
-	}
-	else if (m_pLeaveHoleRadioBtn->GetValue())
-	{
-		actionTaken = turn_flag_off;
+		m_aorgTextCtrlStr = m_emptyStr; // ensure the caller can't get anything but 
+										// an empty string if radio button 4 is off
+		// set the fixit action
+		if (m_pNoAdaptRadioBtn->GetValue())
+		{
+			actionTaken = store_empty_meaning;
+		}
+		else if (m_pLeaveHoleRadioBtn->GetValue())
+		{
+			actionTaken = turn_flag_off;
+		}
+		else
+		{
+			actionTaken = make_it_Not_In_KB;
+		}
 	}
 	else
 	{
-		actionTaken = make_it_Not_In_KB;
+		// the user wants the typed adaptation, or gloss in glossing mode, to be used; but
+		// if the string is empty, beep and take control back to the dialog
+		if (m_aorgTextCtrlStr.IsEmpty())
+		{
+			// if use wants an empty string, then only the radio buttons 1 to 3 are to be
+			// used, or 1-2 if in glossing mode
+			wxBell();
+			return;
+		}
+		actionTaken = store_nonempty_meaning;
 	}
 	event.Skip();
 }
