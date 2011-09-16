@@ -21016,9 +21016,9 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 		index2++;
 	}
 	wxLogDebug(_T(" Set:	1. %s		2. %s		3. %s		4. %s		5. %s		6. %s		7. %s		8. %s		9. %s"),
-		set[0], set[1], set[2], set[3], set[4], set[5], set[6], set[7], set[8]);
+		set[0].c_str(), set[1].c_str(), set[2].c_str(), set[3].c_str(), set[4].c_str(), set[5].c_str(), set[6].c_str(), set[7].c_str(), set[8].c_str());
 	wxLogDebug(_T(" Remove: 1. %s		2. %s		3. %s		4. %s		5. %s		6. %s		7. %s		8. %s		9. %s"),
-		remove[0], remove[1], remove[2], remove[3], remove[4], remove[5], remove[6], remove[7], remove[8]);
+		remove[0].c_str(), remove[1].c_str(), remove[2].c_str(), remove[3].c_str(), remove[4].c_str(), remove[5].c_str(), remove[6].c_str(), remove[7].c_str(), remove[8].c_str());
 }
 #endif
 
@@ -21278,7 +21278,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					int afterCount = arrSetNotInKB.GetCount();
 					if (afterCount > beforeCount)
 						wxLogDebug(_T("*1. Added arrSetNotInKB entry:  at sn = %d , m_key:  %s   (m_adaption:  %s)  count = %d"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), afterCount);
 					ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 					continue;
@@ -21301,7 +21301,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					int afterCount = arrRemoveNotInKB.GetCount();
 					if (afterCount > beforeCount)
 						wxLogDebug(_T("*2. Added arrRemoveNotInKB entry:  at sn = %d , m_key:  %s   (m_adaption:  %s)  count = %d"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), afterCount);
 					ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 					continue;
@@ -21335,7 +21335,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                 // if it's a "hole"
 #ifdef CONSCHK
 				int beforeCount = arrSetNotInKB.GetCount();
-				wxLogDebug(_T("*3. adaption before forcing:  %s"),pSrcPhrase->m_adaption);
+				wxLogDebug(_T("*3. adaption before forcing:  %s"),pSrcPhrase->m_adaption.c_str());
 #endif
 				if (pTU != NULL)
 				{
@@ -21353,7 +21353,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				int afterCount = arrSetNotInKB.GetCount();
 				if (afterCount >= beforeCount)
 					wxLogDebug(_T("*3. Found in arrSetNotInKB entry:  forcing <Not In KB> at sn = %d , m_key:  %s   (m_adaption:  %s)  count = %d)"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), afterCount);
 				ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 				continue;
@@ -21386,7 +21386,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						wxASSERT(pTU_OnOrig != NULL);
 #ifdef CONSCHK
 						int beforeCount = arrRemoveNotInKB.GetCount();
-						wxLogDebug(_T("*4. adaption before undeleting:  %s"),pSrcPhrase->m_adaption);
+						wxLogDebug(_T("*4. adaption before undeleting:  %s"),pSrcPhrase->m_adaption.c_str());
 #endif
 						bool bSuccess = pKBCopy->UndeleteNormalEntryAndDeleteNotInKB(pSrcPhrase,
 														pTU, pSrcPhrase->m_adaption);
@@ -21407,7 +21407,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							int afterCount = arrRemoveNotInKB.GetCount();
 							if (afterCount >= beforeCount)
 								wxLogDebug(_T("*4. Found in arrRemoveNotInKB entry:  removed <Not In KB> at sn = %d , m_key:  %s   (stored the m_adaption:  %s)  count = %d"),
-									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
+									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), afterCount);
 							ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 							//pSrcPhrase->m_bHasKBEntry = TRUE;
@@ -21423,7 +21423,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							int afterCount = arrRemoveNotInKB.GetCount();
 							if (afterCount >= beforeCount)
 								wxLogDebug(_T("*5. Found in arrRemoveNotInKB entry:  removed <Not In KB> at sn = %d , m_key:  %s   (undeleted the m_adaption:  %s)  count = %d"),
-									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
+									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), afterCount);
 							ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 							// no StoreText() call, so explicitly ensure the flags are
@@ -21518,7 +21518,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								pSrcPhrase->m_bNotInKB = TRUE;
 #ifdef CONSCHK
 								wxLogDebug(_T("1. No GUI, inconsistency:  preferred <Not In KB> at sn = %d , m_key:  %s   m_adaption:  %s"),
-									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 								continue;
@@ -21553,7 +21553,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							pSrcPhrase->m_bNotInKB = TRUE;
 #ifdef CONSCHK
 							wxLogDebug(_T("2. No GUI, inconsistency:  preferred <Not In KB> at sn = %d , m_key:  %s   m_adaption:  %s"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 							ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 							continue;
@@ -21564,7 +21564,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							pSrcPhrase->m_bHasKBEntry = TRUE; // fixed it
 #ifdef CONSCHK
 							wxLogDebug(_T("3. No GUI  m_bHasKBEntry set TRUE  at sn = %d , m_key:  %s   m_adaption:  %s"),
-									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+									pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 							continue;
 						}
@@ -21689,7 +21689,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// fixit choice becomes known & replaces this value
 #ifdef CONSCHK
 						wxLogDebug(_T("4. for DLG  member_empty_flag_on_PTUexists_deleted_Refstr (revamped legacy)  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 						// dialog for this we choose to be the revamped legacy ConsistencyCheckDlg.h
 						// &.cpp (this excludes two low probability possibilities - see the Note just
@@ -21716,7 +21716,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// fixit choice becomes known & replaces this value
 #ifdef CONSCHK
 						wxLogDebug(_T("5. for DLG  member_exists_flag_on_PTUexists_deleted_Refstr (revamped legacy)  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 						// dialog for this is the revamped legacy ConsistencyCheckDlg.h &.cpp
 					}
@@ -21758,7 +21758,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							pAutoFixRec->incType = inconsistencyType;
 #ifdef CONSCHK
 							wxLogDebug(_T("6. for DLG  member_empty_flag_on_noPTU (3 choices)  at sn = %d , m_key:  %s   m_adaption:  %s"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 						   // NOTE: an AutoFixRecord instance is deleted before the next
 							// iteration if not preserved in the afList, and so it only
@@ -21784,7 +21784,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// required - the glossing function is separate from this one)
 #ifdef CONSCHK
 							wxLogDebug(_T("7. for DLG  member_exists_flag_on_noPTU (2 choices)  at sn = %d , m_key:  %s   m_adaption:  %s"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 							inconsistencyType = member_exists_flag_on_noPTU;
 							pAutoFixRec->incType = inconsistencyType;
@@ -21802,7 +21802,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// m_adaption in the document
 #ifdef CONSCHK
 							wxLogDebug(_T("8. for DLG  member_exists_flag_off_noPTU (2 choices)  at sn = %d , m_key:  %s   m_adaption:  %s"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 							inconsistencyType = member_exists_flag_off_noPTU;
 							pAutoFixRec->incType = inconsistencyType;
@@ -22210,7 +22210,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pSrcPhrase->m_bHasKBEntry = FALSE; // we've created a "hole"
 #ifdef CONSCHK
 						wxLogDebug(_T("9 FIX. (4 choices) turn_flag_off  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 								}
 								break;
@@ -22237,7 +22237,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									}
 #ifdef CONSCHK
 						wxLogDebug(_T("10 FIX. (4 choices) store_empty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 								}
 								break;
@@ -22263,7 +22263,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									AddUniqueString(&arrSetNotInKB, key);
 #ifdef CONSCHK
 									wxLogDebug(_T("11 FIX. (4 choices) make_it_Not_In_KB  at sn = %d , m_key:  %s   m_adaption:  %s"),
-										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 									ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 								}
@@ -22286,7 +22286,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									}
 #ifdef CONSCHK
 									wxLogDebug(_T("11 extra! FIX. (4 choices) store nonempty adaptation  at sn = %d , m_key:  %s   m_adaption:  %s"),
-										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 								}
 								break;
@@ -22353,7 +22353,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
 #ifdef CONSCHK
 						wxLogDebug(_T("12 FIX. (2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 								}
 								break;
@@ -22378,7 +22378,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									AddUniqueString(&arrSetNotInKB, key);
 #ifdef CONSCHK
 									wxLogDebug(_T("13 FIX. (2 choices) make_it_Not_In_KB  at sn = %d , m_key:  %s   m_adaption:  %s"),
-										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 									ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 								}
@@ -22460,7 +22460,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								// it's a normal adaptation (i.e. not <Not In KB>)
 #ifdef CONSCHK
 								wxLogDebug(_T("14 FIX. (revamped legacy)  at sn = %d , m_key:  %s   STORING:  %s"),
-								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pAutoFixRec->finalAdaptation);
+								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pAutoFixRec->finalAdaptation.c_str());
 #endif
 								// update the original kb (not pKBCopy)
 								if (tempStr.IsEmpty())
@@ -22517,7 +22517,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								// the user chose the <Not In KB> string shown in the list
 #ifdef CONSCHK
 								int beforeCount = arrSetNotInKB.GetCount();
-								wxLogDebug(_T("*18. adaption (user GUI listed choice):  %s"),tempStr);
+								wxLogDebug(_T("*18. adaption (user GUI listed choice):  %s"),tempStr.c_str());
 #endif
 								AddUniqueString(&arrSetNotInKB, tempStr);
 								if (pTU != NULL)
@@ -22534,7 +22534,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								int afterCount = arrSetNotInKB.GetCount();
 								if (afterCount >= beforeCount)
 									wxLogDebug(_T("*18. User GUI choice for arrSetNotInKB entry:  listed <Not In KB> at sn = %d , m_key:  %s   (m_adaption:  %s)  count = %d)"),
-												pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, afterCount);
+												pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), afterCount);
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 							} // end of else block for test: if (tempStr != pApp->m_strNotInKB)
@@ -22603,7 +22603,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									}
 #ifdef CONSCHK
 						wxLogDebug(_T("15 FIX. (msgNumber=2, 2 choices) store_nonempty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 								}
 								break;
@@ -22626,7 +22626,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									}
 #ifdef CONSCHK
 						wxLogDebug(_T("16 FIX. (msgNumber=2, 2 choices) store_empty_meaning  at sn = %d , m_key:  %s   m_adaption:  %s"),
-							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+							pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 #endif
 								}
 								break;
@@ -22656,7 +22656,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									AddUniqueString(&arrSetNotInKB, key);
 #ifdef CONSCHK
 									wxLogDebug(_T("17 FIX. (msgNumber=2, 2 choices) make_it_Not_In_KB BY FLAG CHANGES ONLY  at sn = %d , m_key:  %s   m_adaption:  %s"),
-										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+										pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
 									ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 								}
@@ -22707,19 +22707,19 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				if (pTU_for_a == NULL)
 				{
 					wxLogDebug(_T("LoopEnd  sn = %d , m_key:  %s   m_adaption:  %s CRefString for \"a\": %s"),
-					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, absent);
+					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), absent.c_str());
 				}
 				else
 				{
 					if (pKB->IsAlreadyInKB(1,aKey,aKey))
 					{
 						wxLogDebug(_T("LoopEnd  sn = %d , m_key:  %s   m_adaption:  %s CRefString for \"a\": %s"),
-						pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, nd);
+						pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), nd.c_str());
 					}
 					else
 					{
 						wxLogDebug(_T("LoopEnd  sn = %d , m_key:  %s   m_adaption:  %s CRefString for \"a\": %s"),
-						pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key, pSrcPhrase->m_adaption, d);
+						pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), d.c_str());
 					}
 				}
 #endif
