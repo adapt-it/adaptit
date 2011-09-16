@@ -45,9 +45,8 @@ struct AutoFixRecordG;
 WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
 WX_DECLARE_LIST(AutoFixRecordG, AFGList); // see list definition macro in .cpp file
 
-// for debugging
-#define CONSCHK
-
+// for debugging, uncomment out to turn on the debugging displays (they are very helpful)
+//#define CONSCHK
 
 enum SaveType {
 	normal_save,
