@@ -20993,7 +20993,7 @@ void CAdapt_ItDoc::RemoveAutoFixGList(AFGList& afgList)
 	}
 	afgList.Clear();
 }
-
+// the #define for CONSCHK is near the start of Adapt_ItDoc.h, commented out
 #ifdef CONSCHK
 void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB)
 {
