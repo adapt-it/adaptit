@@ -830,6 +830,8 @@ int		gnToChapter = 1;
 int		gnToVerse = 1;
 int		gnRangeStartSequNum;
 int		gnRangeEndSequNum;
+bool	gbCheckInclFreeTransText = FALSE; // klb 9/9/2011-indicates whether to include Free Translation Text when printing-set in PrintOptionsDlg
+bool	gbCheckInclGlossesText = FALSE; // klb 9/9/2011-indicates whether to include Glosses Text when printing-set in PrintOptionsDlg
 
 /// If TRUE print the footer, otherwise skip printing of footer
 bool	gbPrintFooter = TRUE;

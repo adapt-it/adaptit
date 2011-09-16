@@ -78,6 +78,9 @@ extern bool gbPrintFooter;
 
 extern bool gbSuppressPrecedingHeadingInRange;
 extern bool gbIncludeFollowingHeadingInRange;
+extern bool	gbCheckInclFreeTransText; // klb 9/9/2011
+extern bool	gbCheckInclGlossesText;   // klb 9/9/2011
+
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -139,7 +142,7 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	pCheckInclFreeTransText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
 	wxASSERT(pCheckInclFreeTransText != NULL);
 
-	pCheckInclGlossesText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
+	pCheckInclGlossesText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_GLOSSES_TEXT);
 	wxASSERT(pCheckInclGlossesText != NULL);
 
 	pEditChFrom = (wxTextCtrl*)FindWindowById(IDC_EDIT1);
@@ -448,6 +451,10 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	gbPrintFooter = !m_bSuppressFooter; // reverse the boolean value here
 	gbSuppressPrecedingHeadingInRange = pCheckSuppressPrecSectHeading->GetValue();
 	gbIncludeFollowingHeadingInRange = pCheckIncludeFollSectHeading->GetValue();
+
+	// Load new selections for including freetext and gloss info - klb 9/9/2011
+	gbCheckInclFreeTransText = pCheckInclFreeTransText->GetValue();
+	gbCheckInclGlossesText = pCheckInclGlossesText->GetValue();
 
 	// check about what to do with any section headings, if they precede or follow the range
 	if(!gbPrintingRange)
