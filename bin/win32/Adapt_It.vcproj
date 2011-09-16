@@ -112,7 +112,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Debug\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Debug\AI_USFM.xml&quot;&#x0D;&#x0A;copy &quot;..\..\docs\curl-ca-bundle.crt&quot; &quot;Debug\curl-ca-bundle.crt&quot;&#x0D;&#x0A;copy &quot;..\..\docs\Help_for_Administrators.htm&quot; &quot;Debug\Help_for_Administrators.htm&quot;&#x0D;&#x0A;mkdir &quot;..\..\docs\Images\Admin_help\&quot;&#x0D;&#x0A;xcopy &quot;..\..\docs\Images\Admin_help\*.*&quot; &quot;Debug\Images\Admin_help\*.*&quot; /Y /Q /EXCLUDE:..\..\Exclude.txt&#x0D;&#x0A;"
+				CommandLine="copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Debug\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Debug\AI_USFM.xml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -208,7 +208,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="mkdir &quot;..\..\setup Regular\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular\Adapt_It.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Regular - Minimal\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - Minimal\Adapt_It.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Regular - No Html Help\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - No Html Help\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Release\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Release\AI_USFM.xml&quot;&#x0D;&#x0A;copy &quot;..\..\docs\curl-ca-bundle.crt&quot; &quot;Release\curl-ca-bundle.crt&quot;&#x0D;&#x0A;copy &quot;..\..\docs\Help_for_Administrators.htm&quot; &quot;Release\Help_for_Administrators.htm&quot;&#x0D;&#x0A;mkdir &quot;..\..\docs\Images\Admin_help\&quot;&#x0D;&#x0A;xcopy &quot;..\..\docs\Images\Admin_help\*.*&quot; &quot;Release\Images\Admin_help\*.*&quot; /Y /Q /EXCLUDE:..\..\Exclude.txt&#x0D;&#x0A;"
+				CommandLine="mkdir &quot;..\..\setup Regular\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular\Adapt_It.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Regular - Minimal\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - Minimal\Adapt_It.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Regular - No Html Help\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - No Html Help\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Release\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Release\AI_USFM.xml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -293,7 +293,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Unicode Debug\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Unicode Debug\AI_USFM.xml&quot;&#x0D;&#x0A;copy &quot;..\..\docs\curl-ca-bundle.crt&quot; &quot;Unicode Debug\curl-ca-bundle.crt&quot;&#x0D;&#x0A;copy &quot;..\..\docs\Help_for_Administrators.htm&quot; &quot;Unicode Debug\Help_for_Administrators.htm&quot;&#x0D;&#x0A;mkdir &quot;..\..\docs\Images\Admin_help\&quot;&#x0D;&#x0A;xcopy &quot;..\..\docs\Images\Admin_help\*.*&quot; &quot;Unicode Debug\Images\Admin_help\*.*&quot; /Y /Q /EXCLUDE:..\..\Exclude.txt&#x0D;&#x0A;"
+				CommandLine="copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Unicode Debug\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Unicode Debug\AI_USFM.xml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -379,7 +379,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="mkdir &quot;..\..\setup Unicode\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Unicode - Minimal\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Unicode - No Html Help\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Unicode Release\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Unicode Release\AI_USFM.xml&quot;&#x0D;&#x0A;copy &quot;..\..\docs\curl-ca-bundle.crt&quot; &quot;Unicode Release\curl-ca-bundle.crt&quot;&#x0D;&#x0A;copy &quot;..\..\docs\Help_for_Administrators.htm&quot; &quot;Unicode Release\Help_for_Administrators.htm&quot;&#x0D;&#x0A;mkdir &quot;..\..\docs\Images\Admin_help\&quot;&#x0D;&#x0A;xcopy &quot;..\..\docs\Images\Admin_help\*.*&quot; &quot;Unicode Release\Images\Admin_help\*.*&quot; /Y /Q /EXCLUDE:..\..\Exclude.txt&#x0D;&#x0A;"
+				CommandLine="mkdir &quot;..\..\setup Unicode\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Unicode - Minimal\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Unicode - No Html Help\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_UserProfiles.xml&quot; &quot;Unicode Release\AI_UserProfiles.xml&quot;&#x0D;&#x0A;copy &quot;..\..\xml\AI_USFM.xml&quot; &quot;Unicode Release\AI_USFM.xml&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>

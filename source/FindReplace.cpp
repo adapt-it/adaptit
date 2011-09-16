@@ -561,7 +561,7 @@ void CFindDlg::DoFindNext()
 		}
 		m_ptBoxTopLeft = gpApp->m_pActivePile->GetCell(1)->GetTopLeft();
 		wxRect rectScreen;
-		rectScreen = wxGetClientDisplayRect();
+		rectScreen = wxGetClientDisplayRect(); // a wx global call
 
 		wxClientDC dc(gpApp->GetMainFrame()->canvas);
 		pView->canvas->DoPrepareDC(dc); // adjust origin
@@ -597,24 +597,15 @@ void CFindDlg::DoFindNext()
 		}
 		gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,
 									&m_ptBoxTopLeft.y); // now it's screen coords
-		int height = m_nTwoLineDepth;
+		// BEW 16Sep11, replaced code below with these calls from helpers.cpp
 		wxRect rectDlg;
-		GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window
-		rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode
-		int dlgHeight = rectDlg.GetHeight();
-		int dlgWidth = rectDlg.GetWidth();
-		wxASSERT(dlgHeight > 0);
-		int left = (rectScreen.GetWidth() - dlgWidth)/2;
-		if (m_ptBoxTopLeft.y + height < rectScreen.GetBottom() - 50 - dlgHeight)
-		{
-			// put dlg near the bottom of screen
-			SetSize(left,rectScreen.GetBottom()-dlgHeight-50,500,150,wxSIZE_USE_EXISTING);
-		}
-		else
-		{
-			// put dlg near the top of the screen
-			SetSize(left,rectScreen.GetTop()+40,500,150,wxSIZE_USE_EXISTING);
-		}
+		GetSize(&rectDlg.width, &rectDlg.height); // dialog frame's window
+		int myTopCoord;
+		int myLeftCoord;
+		RepositionDialogToUncoverPhraseBox(gpApp, 0, 0, rectDlg.width, rectDlg.height,
+						m_ptBoxTopLeft.x, m_ptBoxTopLeft.y, myTopCoord, myLeftCoord);
+		SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
+		// end of new code on 16Sep11
 		Update();
 		// In wx version we seem to need to scroll to the found location
 		gpApp->GetMainFrame()->canvas->ScrollIntoView(nAtSequNum); // whm added 7Jun07
@@ -1405,24 +1396,17 @@ void CReplaceDlg::DoFindNext()
 			m_ptBoxTopLeft.y = newYPos;
 		}
 		gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,&m_ptBoxTopLeft.y);
-		int height = m_nTwoLineDepth;
 		wxRect rectDlg;
-		GetClientSize(&rectDlg.width, &rectDlg.height);
-		rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode
-		int dlgHeight = rectDlg.GetHeight();
-		int dlgWidth = rectDlg.GetWidth();
-		wxASSERT(dlgHeight > 0);
-		int left = (rectScreen.GetWidth() - dlgWidth)/2;
-		if (m_ptBoxTopLeft.y + height < rectScreen.GetBottom() - 50 - dlgHeight)
-		{
-			// put dlg near the bottom of screen
-			SetSize(left,rectScreen.GetBottom()-dlgHeight-50,500,150,wxSIZE_USE_EXISTING);
-		}
-		else
-		{
-			// put dlg near the top of the screen
-			SetSize(left,rectScreen.GetTop()+40,500,150,wxSIZE_USE_EXISTING);
-		}
+		GetSize(&rectDlg.width, &rectDlg.height);
+		// BEW 16Sep11, new dialog positioning code - it puts the dialog to left or right
+		// and mostly up rather than down; to keep the landed location in view without the
+		// user needing to scroll
+		int myTopCoord;
+		int myLeftCoord;
+		RepositionDialogToUncoverPhraseBox(gpApp, 0, 0, rectDlg.width, rectDlg.height,
+						m_ptBoxTopLeft.x, m_ptBoxTopLeft.y, myTopCoord, myLeftCoord);
+		SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
+		// end of new code on 16Sep11
 		Update();
 		// In wx version we seem to need to scroll to the found location
 		gpApp->GetMainFrame()->canvas->ScrollIntoView(nAtSequNum); // whm added 7Jun07

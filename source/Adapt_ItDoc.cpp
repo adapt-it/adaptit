@@ -20728,7 +20728,10 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 												// user to have to choose which file(s) in a
 												// dialog which may be shown as many as 67
 												// times, in the bookFolders loop!
-					nFileCount++;
+					if (!pApp->m_acceptedFilesList.IsEmpty())
+					{
+						nFileCount += pApp->m_acceptedFilesList.GetCount();
+					}
 					if (gbIsGlossing)
 					{
 						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
@@ -20821,7 +20824,10 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						}
 						return;
 					}
-					nFileCount++;
+					if (!pApp->m_acceptedFilesList.IsEmpty())
+					{
+						nFileCount += pApp->m_acceptedFilesList.GetCount();
+					}
 					if (gbIsGlossing)
 					{
 						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
@@ -20871,16 +20877,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		EraseKB(pKBCopy); // don't want memory leaks!
 		pKBCopy = NULL;
 	}
-
-	// save the updated KB
-	//if (gbIsGlossing)
-	//{
-	//	pApp->SaveGlossingKB(FALSE); // FALSE means "don't do an auto-backup now"
-	//}
-	//else
-	//{
-	//	pApp->SaveKB(FALSE); // FALSE means "don't do an auto-backup now"
-	//}
 
 	// before exiting, restore the former open document, if one was open formerly
 	if (bDocForcedToClose)

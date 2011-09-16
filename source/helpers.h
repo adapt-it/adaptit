@@ -393,6 +393,13 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
 									bool bSuppressWarningOnStoreKBFailure = FALSE);
 
+// Use this to work out where to move a modal dialog to; call it in it's InitDialog()
+// function at the end of the function, do a dialog frame window GetSize() call first to
+// get the (x,y,w,h) rectangle values, pass back the calculated (top,left) in screen
+// coords, and supply a dialog window SetSize() to do the reposition -- see
+// ConsistencyCheckDlg for an example of use
+void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
+									int XPos, int YPos, int& myTopCoord, int& myLeftCoord);
 
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
