@@ -3711,7 +3711,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item3->Add( item9, 1, wxGROW|wxALL, 0 );
 
-    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Choose an action: ") );
     wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxHORIZONTAL );
@@ -3721,18 +3721,18 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     wxRadioButton *item17 = new wxRadioButton( parent, IDC_RADIO_ACCEPT_HERE, _("&Accept the %s shown above as valid for this location in the document (this will undelete the entry)"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item17->SetValue( TRUE );
     item17->SetToolTip( _("Accept the text shown above as valid for the document at this location (undeletes it)") );
-    item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxStaticText *item18 = new wxStaticText( parent, ID_TEXT_NO_ADAPT_MSG, _("(Accepting the above option when %s is displayed in the box means that the knowledge base will store a valid, but empty, entry)"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_CHANGE_INSTEAD, _("&No. Instead I want to change the %s shown above to a different entry at this location in the document"), wxDefaultPosition, wxDefaultSize, 0 );
     item19->SetToolTip( _("Select this button to accept the word/phrase above as a translation or gloss for the phrase at upper left") );
-    item16->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item14->Add( item16, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item1->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 0 );
+    item1->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxFlexGridSizer *item20 = new wxFlexGridSizer( 1, 0, 0, 3 );
     item20->AddGrowableCol( 0 );
@@ -3747,15 +3747,15 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item23->SetToolTip( _("The number of translations or glosses in the KB") );
     item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item22->Add( 14, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 14, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_AVAIL_ADAPT_OR_GLOSS, _("Available %s in the knowledge base:"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item21->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item21->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs25 = (wxString*) NULL;
-    wxListBox *item25 = new wxListBox( parent, IDC_LIST_TRANSLATIONS, wxDefaultPosition, wxSize(-1,140), 0, strs25, wxLB_SINGLE );
+    wxListBox *item25 = new wxListBox( parent, IDC_LIST_TRANSLATIONS, wxDefaultPosition, wxSize(-1,100), 0, strs25, wxLB_SINGLE );
     item25->SetToolTip( _("This is a list of translations or glosses currently in the knowledge base") );
     item21->Add( item25, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -3785,7 +3785,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item28->Add( item30, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    item27->Add( item28, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item27->Add( item28, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item26->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -3802,15 +3802,15 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     wxButton *item38 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item38->SetDefault();
     item38->SetToolTip( _("Click OK to continue with the consistency check") );
-    item37->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
+    item37->Add( item38, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item37->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item39 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item39->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
-    item37->Add( item39, 0, wxALIGN_CENTER|wxALL, 5 );
+    item37->Add( item39, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 0 );
+    item35->Add( item37, 0, wxALIGN_CENTER, 0 );
 
     item34->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -3821,7 +3821,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item20->Add( item26, 1, wxGROW|wxALL, 0 );
 
-    item1->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
