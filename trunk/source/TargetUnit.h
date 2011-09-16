@@ -88,6 +88,7 @@ public:
 	bool		UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str); // str is either gloss or adaption
 	bool		IsItNotInKB();
 	bool		IsDeletedNotInKB();
+	void		DeleteOnlyNotInKB();
 	void		ValidateNotInKB(); // ensures every CRefString except the one which is <Not In KB>
 								   // has 'deleted' status
 

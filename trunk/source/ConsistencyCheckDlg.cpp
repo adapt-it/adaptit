@@ -542,15 +542,71 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	// we leave the width and height the same
 	gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,
 									&m_ptBoxTopLeft.y); // now it's screen coords
-	int height = m_nTwoLineDepth;
+	int stripheight = m_nTwoLineDepth;
 	wxRect rectDlg;
-	GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window
+	//GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window client area
+	GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
 	rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
 	int dlgHeight = rectDlg.GetHeight();
 	int dlgWidth = rectDlg.GetWidth();
 	wxASSERT(dlgHeight > 0);
+
+	// BEW 16Sep11, new position calcs needed, the dialog often sits on top of the phrase
+	// box - better to try place it above the phrase box, and right shifted, to maximize
+	// the viewing area for the layout; or if a low position is required, at bottom right
+	int phraseBoxHeight;
+	int phraseBoxWidth;
+	gpApp->m_pTargetBox->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
+	int pixelsAvailableAtTop = m_ptBoxTopLeft.y - stripheight; // remember box is in line 2 of strip
+	int pixelsAvailableAtBottom = rectScreen.GetBottom() - stripheight - pixelsAvailableAtTop - 20; // 20 for status bar
+	int pixelsAvailableAtLeft = m_ptBoxTopLeft.x - 10; // -10 to clear away from the phrase box a little bit
+	int pixelsAvailableAtRight = rectScreen.GetWidth() - phraseBoxWidth - m_ptBoxTopLeft.x;
+	bool bAtTopIsBetter = pixelsAvailableAtTop > pixelsAvailableAtBottom;
+	bool bAtRightIsBetter = pixelsAvailableAtRight > pixelsAvailableAtLeft;
+	int myTopCoord;
+	int myLeftCoord;
+	if (bAtTopIsBetter)
+	{
+		if (dlgHeight + 2*stripheight < pixelsAvailableAtTop)
+			myTopCoord = pixelsAvailableAtTop - (dlgHeight + 2*stripheight);
+		else
+		{
+			if (dlgHeight > rectScreen.GetBottom())
+			{
+				//cut off top of dialog in preference to the bottom, where it's buttons are
+				myTopCoord = rectScreen.GetBottom() - dlgHeight + 6;
+				if (myTopCoord > 0)
+					myTopCoord = 0;
+			}
+			else
+				myTopCoord = 0;
+		}
+	}
+	else
+	{
+		if (m_ptBoxTopLeft.y +stripheight + dlgHeight < rectScreen.GetBottom()) 
+			myTopCoord = m_ptBoxTopLeft.y +stripheight;
+		else
+		{
+			myTopCoord = rectScreen.GetBottom() - dlgHeight - 20;
+			if (myTopCoord < 0)
+				myTopCoord = myTopCoord + 20; // if we have to cut off any, cut off the dialog's top
+		}
+	}
+	if (bAtRightIsBetter)
+	{
+		myLeftCoord = rectScreen.GetWidth() - dlgWidth;
+	}
+	else
+	{
+		myLeftCoord = 0;
+	}
+	// now set the position
+	SetSize(myLeftCoord, myTopCoord,wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
+
+	/* legacy calcs
 	int left = (rectScreen.GetWidth() - dlgWidth)/2;
-	if (m_ptBoxTopLeft.y + height < rectScreen.GetBottom() - dlgHeight)
+	if (m_ptBoxTopLeft.y + stripheight < rectScreen.GetBottom() - dlgHeight)
 	{
         // put dlg near the bottom of screen (BEW modified 28Feb06 to have -80 rather than
         // -30) because the latter value resulted in the bottom buttons of the dialog being
@@ -564,7 +620,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 		//SetSize(left,rectScreen.GetTop()+40,540,132,wxSIZE_USE_EXISTING);
 		SetSize(left,rectScreen.GetTop()+40, wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
 	}
-	
+	*/
 	m_pEditCtrlChVerse->SetEditable(FALSE); // remains read-only for life of dialog
 
 	saveAdaptationOrGloss = m_adaptationStr; // in case we need to restore 

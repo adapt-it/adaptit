@@ -374,6 +374,26 @@ bool CTargetUnit::UndeleteNormalCRefStrAndDeleteNotInKB(wxString& str)
 	return TRUE;
 }
 
+void CTargetUnit::DeleteOnlyNotInKB()
+{
+	wxString notInKBStr = _T("<Not In KB>");
+	TranslationsList::Node* tpos = m_pTranslations->GetFirst();
+	CRefString* pRefStr = NULL;
+	while (tpos != NULL)
+	{
+		pRefStr = (CRefString*)tpos->GetData();
+		wxASSERT(pRefStr != NULL);
+		tpos = tpos->GetNext();
+		if (pRefStr->m_translation == notInKBStr && !pRefStr->m_bDeleted)
+		{
+			// render it having deleted status
+			pRefStr->m_bDeleted = TRUE;
+			pRefStr->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+			return;
+		}
+	}
+}
+
 bool CTargetUnit::IsItNotInKB()
 {
 	wxString notInKBStr = _T("<Not In KB>");
