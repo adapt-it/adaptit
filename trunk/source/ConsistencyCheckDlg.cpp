@@ -526,9 +526,25 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	}
 
 	// work out where to place the dialog window
-	wxRect rectScreen;
-	rectScreen = wxGetClientDisplayRect();
-
+	int myTopCoord, myLeftCoord, newXPos, newYPos;
+	wxRect rectDlg;
+	GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
+	wxClientDC dc(gpApp->GetMainFrame()->canvas);
+	gpApp->GetMainFrame()->canvas->DoPrepareDC(dc);// adjust origin
+	// wxWidgets' drawing.cpp sample calls PrepareDC on the owning frame
+	gpApp->GetMainFrame()->PrepareDC(dc); 
+	// CalcScrolledPosition translates logical coordinates to device ones, m_ptBoxTopLeft
+	// has been initialized to the topleft of the cell (from m_pActivePile) where the
+	// phrase box currently is
+	gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x, m_ptBoxTopLeft.y,&newXPos,&newYPos);
+	gpApp->GetMainFrame()->canvas->ClientToScreen(&newXPos, &newYPos); // now it's screen coords
+	RepositionDialogToUncoverPhraseBox(gpApp, 0, 0, rectDlg.width, rectDlg.height,
+										newXPos, newYPos, myTopCoord, myLeftCoord);
+	SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
+	
+/*	remove later on
+	wxRect rectDlg;
+	GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
 	wxClientDC dc(gpApp->GetMainFrame()->canvas);
 	gpApp->GetMainFrame()->canvas->DoPrepareDC(dc);// adjust origin
 	gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also 
@@ -542,10 +558,10 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	// we leave the width and height the same
 	gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,
 									&m_ptBoxTopLeft.y); // now it's screen coords
+
+	wxRect rectScreen;
+	rectScreen = wxGetClientDisplayRect();
 	int stripheight = m_nTwoLineDepth;
-	wxRect rectDlg;
-	//GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window client area
-	GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
 	rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
 	int dlgHeight = rectDlg.GetHeight();
 	int dlgWidth = rectDlg.GetWidth();
@@ -603,24 +619,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	}
 	// now set the position
 	SetSize(myLeftCoord, myTopCoord,wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
+*/
 
-	/* legacy calcs
-	int left = (rectScreen.GetWidth() - dlgWidth)/2;
-	if (m_ptBoxTopLeft.y + stripheight < rectScreen.GetBottom() - dlgHeight)
-	{
-        // put dlg near the bottom of screen (BEW modified 28Feb06 to have -80 rather than
-        // -30) because the latter value resulted in the bottom buttons of the dialog being
-        // hidden by the status bar at the screen bottom
-		//SetSize(left,rectScreen.GetBottom()-dlgHeight-80,540,132,wxSIZE_USE_EXISTING);
-		SetSize(left,rectScreen.GetBottom()-dlgHeight-80,wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
-	}
-	else
-	{
-		// put dlg at the top of the screen
-		//SetSize(left,rectScreen.GetTop()+40,540,132,wxSIZE_USE_EXISTING);
-		SetSize(left,rectScreen.GetTop()+40, wxDefaultCoord,wxDefaultCoord,wxSIZE_USE_EXISTING);
-	}
-	*/
 	m_pEditCtrlChVerse->SetEditable(FALSE); // remains read-only for life of dialog
 
 	saveAdaptationOrGloss = m_adaptationStr; // in case we need to restore 

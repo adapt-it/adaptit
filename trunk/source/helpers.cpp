@@ -36,6 +36,7 @@
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
+#include "Adapt_ItCanvas.h"
 #include "SourcePhrase.h"
 #include "MainFrm.h"
 #include "BString.h"
@@ -7837,6 +7838,74 @@ bool HasParagraphMkr(wxString& str)
 				  //  it was always only set by \p being in m_markers, we'll not bother to
 				  //  do anything more sophisticated than the code above
 }
+
+// BEW created 16Sep11, for putting in InitDialog() so as to move it towards a corner of
+// screen away from where phrase box currently is when the dialog is put up
+void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
+				int XPos, int YPos, int& myTopCoord, int& myLeftCoord)
+{
+	// work out where to place the dialog window	
+	CLayout* pLayout = pApp->GetLayout();
+	int m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+
+	wxRect rectScreen;
+	rectScreen = wxGetClientDisplayRect(); // a global wx function
+	int stripheight = m_nTwoLineDepth;
+	wxRect rectDlg(x,y,w,h);
+	rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
+	int dlgHeight = rectDlg.GetHeight();
+	int dlgWidth = rectDlg.GetWidth();
+	wxASSERT(dlgHeight > 0);
+	// BEW 16Sep11, new position calcs needed, the dialog often sits on top of the phrase
+	// box - better to try place it above the phrase box, and right shifted, to maximize
+	// the viewing area for the layout; or if a low position is required, at bottom right
+	int phraseBoxHeight;
+	int phraseBoxWidth;
+	pApp->m_pTargetBox->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
+	int pixelsAvailableAtTop = YPos - stripheight; // remember box is in line 2 of strip
+	int pixelsAvailableAtBottom = rectScreen.GetBottom() - stripheight - pixelsAvailableAtTop - 20; // 20 for status bar
+	int pixelsAvailableAtLeft = XPos - 10; // -10 to clear away from the phrase box a little bit
+	int pixelsAvailableAtRight = rectScreen.GetWidth() - phraseBoxWidth - XPos;
+	bool bAtTopIsBetter = pixelsAvailableAtTop > pixelsAvailableAtBottom;
+	bool bAtRightIsBetter = pixelsAvailableAtRight > pixelsAvailableAtLeft;
+	if (bAtTopIsBetter)
+	{
+		if (dlgHeight + 2*stripheight < pixelsAvailableAtTop)
+			myTopCoord = pixelsAvailableAtTop - (dlgHeight + 2*stripheight);
+		else
+		{
+			if (dlgHeight > rectScreen.GetBottom())
+			{
+				//cut off top of dialog in preference to the bottom, where it's buttons are
+				myTopCoord = rectScreen.GetBottom() - dlgHeight + 6;
+				if (myTopCoord > 0)
+					myTopCoord = 0;
+			}
+			else
+				myTopCoord = 0;
+		}
+	}
+	else
+	{
+		if (YPos + stripheight + dlgHeight < rectScreen.GetBottom()) 
+			myTopCoord = YPos + stripheight;
+		else
+		{
+			myTopCoord = rectScreen.GetBottom() - dlgHeight - 20;
+			if (myTopCoord < 0)
+				myTopCoord = myTopCoord + 20; // if we have to cut off any, cut off the dialog's top
+		}
+	}
+	if (bAtRightIsBetter)
+	{
+		myLeftCoord = rectScreen.GetWidth() - dlgWidth;
+	}
+	else
+	{
+		myLeftCoord = 0;
+	}
+}
+
 /*
 // a diagnostic function used for chasing a bug due to partner piles not being fully
 // populated when CSourcePhrase replacements were done (as in vertical editing)
