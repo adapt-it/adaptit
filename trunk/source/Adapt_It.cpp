@@ -35553,13 +35553,18 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, adminHelpFilePath.c_str());
 		int response = wxMessageBox(msg,_("Browser launch error"),wxYES_NO);
+		LogUserAction(msg);
 		if (response == wxYES)
 		{
 			m_pHtmlFileViewer = new CHtmlFileViewer(this->GetMainFrame());
 			m_pHtmlFileViewer->Show(TRUE);
+			LogUserAction(_T("Launched Help_for_Administrators.htm in browser"));
 		}
 	}
-	
+	else
+	{
+		LogUserAction(_T("Launched Help_for_Administrators.htm in browser"));
+	}
 }
 
 void CAdapt_ItApp::OnUpdateHelpForAdministrators(wxUpdateUIEvent& event)
