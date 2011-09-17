@@ -1374,6 +1374,19 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
 	{
 		textBuffer = textBuffer.Mid(1);
 	}
+#else
+	// ANSI build:
+	// whm 17Sep11 added this #else block to remove any UTF-8 BOM for the ANSI version.
+	// During collaboration the rdwrtp7.exe utility of Paratext transferrs text from
+	// Paratext with a UTF-8 BOM. The data from Paratext may be appropriate for use
+	// by the ANSI build of Adapt It. Therefore, quietly remove any UTF-8 BOM from the
+	// text string. In ANSI build the UTF-8 BOM is three chars.
+	wxString strBOM = "\xEF\xBB\xBF";
+	int offset = textBuffer.Find(strBOM);
+	if (offset == 0)
+	{
+		textBuffer = textBuffer.Mid(3);
+	}
 #endif
     // the file may exist, but be empty except for the BOM - as when using rdwrtp7.exe to
     // get, say, a chapter of free translation from a PT project designated for such data,
