@@ -20,7 +20,8 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/FilenameConflictDlg.h \
 	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h \
 	../../source/GetSourceTextFromEditor.h ../../source/GoToDlg.h \
-	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
+	../../source/GuesserSettingsDlg.h ../../source/HtmlFileViewer.h \
+	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
 	../../source/KBEditSearch.h ../../source/KBPage.h \
 	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
 	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h ../../source/md5.h \
@@ -96,7 +97,8 @@ adaptit_SOURCES = \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
-	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
+	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
+	../../source/JoinDialog.cpp ../../source/KB.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
