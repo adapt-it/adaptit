@@ -85,8 +85,9 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
 	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
-	GuesserSettingsDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
-	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
+	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
+	JoinDialog.$(OBJEXT) KB.$(OBJEXT) KBEditor.$(OBJEXT) \
+	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
 	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
 	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
 	MainFrm.$(OBJEXT) md5.$(OBJEXT) MergeUpdatedSrc.$(OBJEXT) \
@@ -366,7 +367,8 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/FilenameConflictDlg.h \
 	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h \
 	../../source/GetSourceTextFromEditor.h ../../source/GoToDlg.h \
-	../../source/GuesserSettingsDlg.h ../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
+	../../source/GuesserSettingsDlg.h ../../source/HtmlFileViewer.h \
+	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
 	../../source/KBEditSearch.h ../../source/KBPage.h \
 	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
 	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h ../../source/md5.h \
@@ -428,7 +430,8 @@ adaptit_SOURCES = \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
-	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
+	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
+	../../source/JoinDialog.cpp ../../source/KB.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
@@ -590,6 +593,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GetSourceTextFromEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GoToDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GuesserSettingsDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HtmlFileViewer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JoinDialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KB.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditSearch.Po@am__quote@
@@ -1304,6 +1308,20 @@ GuesserSettingsDlg.obj: ../../source/GuesserSettingsDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/GuesserSettingsDlg.cpp' object='GuesserSettingsDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GuesserSettingsDlg.obj `if test -f '../../source/GuesserSettingsDlg.cpp'; then $(CYGPATH_W) '../../source/GuesserSettingsDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/GuesserSettingsDlg.cpp'; fi`
+
+HtmlFileViewer.o: ../../source/HtmlFileViewer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT HtmlFileViewer.o -MD -MP -MF $(DEPDIR)/HtmlFileViewer.Tpo -c -o HtmlFileViewer.o `test -f '../../source/HtmlFileViewer.cpp' || echo '$(srcdir)/'`../../source/HtmlFileViewer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/HtmlFileViewer.Tpo $(DEPDIR)/HtmlFileViewer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/HtmlFileViewer.cpp' object='HtmlFileViewer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o HtmlFileViewer.o `test -f '../../source/HtmlFileViewer.cpp' || echo '$(srcdir)/'`../../source/HtmlFileViewer.cpp
+
+HtmlFileViewer.obj: ../../source/HtmlFileViewer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT HtmlFileViewer.obj -MD -MP -MF $(DEPDIR)/HtmlFileViewer.Tpo -c -o HtmlFileViewer.obj `if test -f '../../source/HtmlFileViewer.cpp'; then $(CYGPATH_W) '../../source/HtmlFileViewer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/HtmlFileViewer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/HtmlFileViewer.Tpo $(DEPDIR)/HtmlFileViewer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/HtmlFileViewer.cpp' object='HtmlFileViewer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o HtmlFileViewer.obj `if test -f '../../source/HtmlFileViewer.cpp'; then $(CYGPATH_W) '../../source/HtmlFileViewer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/HtmlFileViewer.cpp'; fi`
 
 JoinDialog.o: ../../source/JoinDialog.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JoinDialog.o -MD -MP -MF $(DEPDIR)/JoinDialog.Tpo -c -o JoinDialog.o `test -f '../../source/JoinDialog.cpp' || echo '$(srcdir)/'`../../source/JoinDialog.cpp
