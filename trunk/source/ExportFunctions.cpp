@@ -16789,6 +16789,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 // spaces at end of lines before eol, whereas the MFC version left them on text lines, but
 // removed them at the ends of markers that have no associated text. There is no
 // detrimental effects either way.
+// whm 17Sep11 modified to ensure that the buffer for output ends with an eol
 void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 {
 	// remove any whitespace from the beginning of the string, and end
@@ -16805,6 +16806,34 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	if (expType != sourceTextExport)
 	{
 		text.Trim();
+	}
+
+	// whm 17Sep11 added: Test if text ends with an eol. If not, add the appropriate eol 
+	// at the end of the text. This is needed especially for texts that are transferred 
+	// back to PT/BE during chapter sized text collaboration, otherwise we could be inserting 
+	// text back into PT/BE which lacks an eol between the last verse of a chapter and the 
+	// next \c n, that is, without an ending eol, Paratext would end up with something like 
+	// this:
+	// 
+	// \c 2
+	// \v 1 This is the first verse of chapter 1
+	// ...
+	// \v 20 This is the last verse of chapter 2.\c 3
+	// \v 1 This is the first verse of chapter 3.
+	// ...
+	// 
+	// where the \c 3 ends up concatenated to the end of the last verse of the previous 
+	// chapter, instead of starting on a new line.
+	if ((gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit) && gpApp->m_bCollabByChapterOnly)
+	{
+		int textLen;
+		textLen = text.Length();
+		if (text.GetChar(textLen - 1) != _T('\n') || text.GetChar(textLen - 1) != _T('\r'))
+		{
+			// the text does not end with either \n or \r eol, so add the appropriate
+			// eol at the end of the text.
+			text += gpApp->m_eolStr;
+		}
 	}
 
 	// FormatMarkerBufferForOutput assumes the complete text to be output as a text file is

@@ -4394,7 +4394,6 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// are done at the one File / Save -- first the adaptation is sent, and then if free
 /// translation is expected to be be sent, it is sent after the adaptation is sent,
 /// automatically.
-/// whm 24Aug11 added the wxProgressDialog* pProgDlg parameter
 ///////////////////////////////////////////////////////////////////////////////////////
 wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType, 
 										   wxString& postEditText)
