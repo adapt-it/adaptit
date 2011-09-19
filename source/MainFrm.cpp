@@ -1743,12 +1743,14 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strUILanguage.Trim(TRUE);
 	strUILanguage = _T(' ') + strUILanguage;
 	wxStaticText* pStaticUILanguage = (wxStaticText*)FindWindowById(ID_STATIC_UI_LANGUAGE);
+	wxASSERT(pStaticUILanguage != NULL);
 	pStaticUILanguage->SetLabel(strUILanguage);
 	wxString tempStr;
 	wxString locale = pApp->m_pLocale->GetLocale();
 	if (!locale.IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_LANGUAGE);
+		wxASSERT(pStatic != NULL);
 		tempStr = pApp->m_pLocale->GetLocale();
 		tempStr = _T(' ') + tempStr;
 		pStatic->SetLabel(tempStr);
@@ -1757,6 +1759,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	if (!pApp->m_pLocale->GetCanonicalName().IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_CANONICAL_LOCALE_NAME);
+		wxASSERT(pStatic != NULL);
 		tempStr = pApp->m_pLocale->GetCanonicalName();
 		tempStr = _T(' ') + tempStr;
 		pStatic->SetLabel(tempStr);
@@ -1764,6 +1767,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	if (!pApp->m_pLocale->GetSysName().IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_LOCALE_NAME);
+		wxASSERT(pStatic != NULL);
 		tempStr = pApp->m_pLocale->GetSysName();
 		// GetSysName() returns the following:
 		// On wxMSW: English_United States.1252
