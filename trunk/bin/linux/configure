@@ -14250,8 +14250,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-CPPFLAGS="$CPPFLAGS -Wall -g -fexceptions"
-CXXFLAGS="$CPPFLAGS -Wall -g -fexceptions"
+CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
+CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
 
 WXCONFIG=wx-config
 
