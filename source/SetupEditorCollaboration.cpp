@@ -426,6 +426,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 				// that was selected, indicating that we are probably working with 
 				// Bibledit, so get the administrator to type a source language
 				// name.
+				// One or both language names are still empty, so show the language name controls
+				// and set focus on the first empty one.
+				pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
+				// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
+				pSetupEditorCollabSizer->Layout();
+				m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+				this->SetSize(m_computedDlgSize);
 				wxString msg = _("Please enter a source language name for the %s project.\nAdapt It will use it for its own adaptation project during collaboration.");
 				msg = msg.Format(msg,m_TempCollabProjectForSourceInputs.c_str());
 				wxString textEntered;
@@ -441,11 +448,6 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 					wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
 					pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
 					m_pApp->LogUserAction(_T("Manual Entry of Source Langauge Name"));
-					if (m_TempCollabTargetProjLangName.IsEmpty())
-					{
-						wxCommandEvent evt;
-						OnBtnSelectFromListTargetProj(evt);
-					}
 				}
 				// If both source and target language name fields now have values set
 				// focus on the OK button, otherwise show the project selection options.
@@ -455,14 +457,6 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 				}
 				else
 				{
-					// One or both language names are still empty, so show the language name controls
-					// and set focus on the first empty one.
-					pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-					// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
-					pSetupEditorCollabSizer->Layout();
-					m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-					this->SetSize(m_computedDlgSize);
-					
 					// set focus on the first empty language edit box
 					if (m_TempCollabTargetProjLangName.IsEmpty())
 						pTextCtrlTargetLanguageName->SetFocus();
@@ -623,6 +617,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 				// that was selected, indicating that we are probably working with 
 				// Bibledit, so get the administrator to type a target language
 				// name.
+				// One or both language names are still empty, so show the language name controls
+				// and set focus on the first empty one.
+				pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
+				// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
+				pSetupEditorCollabSizer->Layout();
+				m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+				this->SetSize(m_computedDlgSize);
 				wxString msg = _("Please enter a target language name for the %s project.\nAdapt It will use it for its own adaptation project during collaboration.");
 				msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str());
 				wxString textEntered;
@@ -638,11 +639,6 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 					wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
 					pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
 					m_pApp->LogUserAction(_T("Manual Entry of Target Langauge Name"));
-					if (m_TempCollabSourceProjLangName.IsEmpty())
-					{
-						wxCommandEvent evt;
-						OnBtnSelectFromListSourceProj(evt);
-					}
 				}
 				// If both source and target language name fields now have values set
 				// focus on the OK button, otherwise show the project selection options.
@@ -652,14 +648,6 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 				}
 				else
 				{
-					// One or both language names are still empty, so show the language name controls
-					// and set focus on the first empty one.
-					pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-					// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
-					pSetupEditorCollabSizer->Layout();
-					m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-					this->SetSize(m_computedDlgSize);
-					
 					// set focus on the first empty language edit box
 					if (m_TempCollabSourceProjLangName.IsEmpty())
 						pTextCtrlSourceLanguageName->SetFocus();
