@@ -464,13 +464,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 						pTextCtrlSourceLanguageName->SetFocus();
 				}
 			}
-			else
-			{
-				// The source language name was parsed from the composite project name
-				pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
-				m_TempCollabProjectForSourceInputs = userSelectionStr;
-				pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-			}
+			// Set temp value for source project name and update names in controls
+			m_TempCollabProjectForSourceInputs = userSelectionStr;
+			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
+			pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
 		}
 		else
 		{
@@ -662,13 +659,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 						pTextCtrlTargetLanguageName->SetFocus();
 				}
 			}
-			else
-			{
-				// The target language name was parsed from the composite project name
-				pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
-				m_TempCollabProjectForTargetExports = userSelectionStr;
-				pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
-			}
+			// Set temp value for target project name and update names in controls
+			m_TempCollabProjectForTargetExports = userSelectionStr;
+			pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
+			pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
 		}
 		else
 		{
