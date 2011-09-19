@@ -7947,7 +7947,7 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     item3->Add( 10, 15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_STATIC_LIST_OF_PROJECTS, _("1. Verify %s projects exist for collaboration with Adapt It from this list: (name : full name: language : code)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_STATIC_LIST_OF_PROJECTS, _("1. Verify %s projects exist for collaboration with Adapt It from this list:"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );

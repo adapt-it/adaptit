@@ -215,6 +215,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text += _T(' ');
+	if (m_pApp->m_collaborationEditor == _("Paratext"))
+		text += _("(name : full name: language : code)");
+	else 
+		text += _("(name)");
 	pStaticTextListOfProjects->SetLabel(text);
 
 	// Substitute strings in the static text of point 2
