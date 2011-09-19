@@ -7729,7 +7729,8 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 			gbInhibitMakeTargetStringCall = TRUE;
 			if (gbIsGlossing)
 			{
-				if (bAttemptStoreToKB)
+				// whm 19Sep11 added test for gpApp->m_pGlossingKB being NULL
+				if (bAttemptStoreToKB && gpApp->m_pGlossingKB != NULL)
 				{
 					bOK = gpApp->m_pGlossingKB->StoreText(pActiveSrcPhrase, gpApp->m_targetPhrase);
 				}
@@ -7750,7 +7751,8 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 				}
 				else
 				{
-					if (bAttemptStoreToKB)
+					// whm 19Sep11 added test for gpApp->m_pKB being NULL
+					if (bAttemptStoreToKB && gpApp->m_pKB != NULL)
 					{
 						bOK = gpApp->m_pKB->StoreText(pActiveSrcPhrase, gpApp->m_targetPhrase);
 					}

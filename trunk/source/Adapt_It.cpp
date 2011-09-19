@@ -35470,12 +35470,15 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 {
-	if (m_curProjectPath.IsEmpty())
-	{
-		event.Enable(FALSE);
-	}
-	else
-	{
+	// whm 19Sep11 modified. The "User Workflow Profiles..." menu item should
+	// be available even when no project has been selected and m_curProjectPath
+	// is empty
+	//if (m_curProjectPath.IsEmpty())
+	//{
+	//	event.Enable(FALSE);
+	//}
+	//else
+	//{
 		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
 		{
 			event.Enable(TRUE);
@@ -35484,7 +35487,7 @@ void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 		{
 			event.Enable(FALSE);
 		}
-	}
+	//}
 }
 
 void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))

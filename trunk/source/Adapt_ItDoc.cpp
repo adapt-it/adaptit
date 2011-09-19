@@ -2912,6 +2912,14 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		pApp->m_bSaveCopySourceFlag_For_Collaboration = FALSE; // when closing doc, always clear
 	}
 
+	// whm 19Sep11 modified. The UnloadKBs() call below during collaboration should
+	// not be done before the OnSaveModified() call a little farther below. Otherwise
+	// the KB pointers become NULL and a crash can result in StoreText() farther down
+	// the calling chain, when UpdateDocWithPhraseBoxContents( is called with bAttemptStoreToKB
+	// == TRUE) and KB::StoreText() is called on NULL KBs. I've moved the block containing
+	// the UnLoadKBs() call below down past the OnSaveModified() call. I've also added tests 
+	// in CKB::StoreText() for NULL KBs.
+	/*
 	// Remove KBs from the heap, when colloborating with an external editor
 	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
 	{
@@ -2925,6 +2933,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 			UnloadKBs(pApp); // also sets m_pKB and m_pGlossingKB each to NULL
 		}
 	}
+	*/
 
 	// ensure no selection remains, in case the layout is destroyed later and the app
 	// tries to do a RemoveSelection() call on a non-existent layout
@@ -2944,6 +2953,21 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		return;
 	}
 
+	// whm 19Sep11 moved this block here from above the OnSaveModified() call. See
+	// comment where the code is commented out above for reason for the move.
+	// Remove KBs from the heap, when colloborating with an external editor
+	if (pApp->m_bCollaboratingWithBibledit || pApp->m_bCollaboratingWithParatext)
+	{
+		// closure of the collaboration document should clobber the KBs as well, just in
+		// case the user switches to a different language in PT for the next "get" - so we
+		// set up for each document making no assumptions about staying within a certain
+		// AI project each time - each setup is independent of what was setup last time
+		// (we always create and delete these as a pair, so one test would suffice)
+		if(pApp->m_pKB != NULL || pApp->m_pGlossingKB != NULL)
+		{
+			UnloadKBs(pApp); // also sets m_pKB and m_pGlossingKB each to NULL
+		}
+	}
 	// BEW added 19Nov09, for read-only support; when a document is closed, attempt
 	// to remove any read-only protection that is current for this project folder, because
 	// the owning process may have come to have abandoned its ownership prior to the local
@@ -20022,6 +20046,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdate
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
+		return;
 	}
 	if (gbVerticalEditInProgress)
 	{
