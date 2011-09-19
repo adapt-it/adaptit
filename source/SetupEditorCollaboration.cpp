@@ -464,6 +464,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 						pTextCtrlSourceLanguageName->SetFocus();
 				}
 			}
+			else
+			{
+				// The source language name was parsed from the composite project name
+				pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
+				m_TempCollabProjectForSourceInputs = userSelectionStr;
+				pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+			}
 		}
 		else
 		{
@@ -485,10 +492,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// config file, and then show the computed Language name in the 
 	// Source Language Name edit box. We also need to update the
 	// selection in the combo box.
-	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
-	m_TempCollabProjectForSourceInputs = userSelectionStr;
-	m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
-	pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
+	//pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
+	//m_TempCollabProjectForSourceInputs = userSelectionStr;
+	//m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
+	//pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
 	
 	// Load potential AI projects into the pComboAiProjects combo box, and in the process
 	// check for the existence of the aiProjectFolder project. Select it if it is in the
@@ -655,6 +662,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 						pTextCtrlTargetLanguageName->SetFocus();
 				}
 			}
+			else
+			{
+				// The target language name was parsed from the composite project name
+				pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
+				m_TempCollabProjectForTargetExports = userSelectionStr;
+				pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+			}
 		}
 		else
 		{
@@ -676,10 +690,10 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// config file, and then show the computed Language name in the 
 	// Target Language Name edit box. We also need to update the
 	// selection in the combo box.
-	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
-	m_TempCollabProjectForTargetExports = userSelectionStr;
-	m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
-	pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
+	//pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
+	//m_TempCollabProjectForTargetExports = userSelectionStr;
+	//m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
+	//pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
 	
 	// Load potential AI projects into the pComboAiProjects combo box, and in the process
 	// check for the existence of the aiProjectFolder project. Select it if it is in the
