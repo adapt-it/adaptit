@@ -16,6 +16,7 @@
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7D527D45124308E30077F9FE /* AI_UserProfiles.xml */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
+		7D7335181423F70B00316F83 /* HtmlFileViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
 		7D8A045113ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D8A044F13ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp */; };
 		7D98196C139C7002009F4E93 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D98196A139C7002009F4E93 /* md5.cpp */; };
@@ -162,6 +163,8 @@
 		7D527D45124308E30077F9FE /* AI_UserProfiles.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_UserProfiles.xml; path = ../../xml/AI_UserProfiles.xml; sourceTree = SOURCE_ROOT; };
 		7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Layout.cpp; path = ../../source/Layout.cpp; sourceTree = SOURCE_ROOT; };
 		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
+		7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HtmlFileViewer.cpp; path = ../../source/HtmlFileViewer.cpp; sourceTree = SOURCE_ROOT; };
+		7D7335171423F70B00316F83 /* HtmlFileViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HtmlFileViewer.h; path = ../../source/HtmlFileViewer.h; sourceTree = SOURCE_ROOT; };
 		7D820F871110B941005EDDC9 /* KBEditSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBEditSearch.cpp; path = ../../source/KBEditSearch.cpp; sourceTree = SOURCE_ROOT; };
 		7D820F881110B941005EDDC9 /* KBEditSearch.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KBEditSearch.h; path = ../../source/KBEditSearch.h; sourceTree = SOURCE_ROOT; };
 		7D8A044F13ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AssignLocationsForInputsAndOutputs.cpp; path = ../../source/AssignLocationsForInputsAndOutputs.cpp; sourceTree = SOURCE_ROOT; };
@@ -709,6 +712,8 @@
 			isa = PBXGroup;
 			children = (
 				7DC0399C0F4672720047FCAF /* ai_build_phase_script.sh */,
+				7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */,
+				7D7335171423F70B00316F83 /* HtmlFileViewer.h */,
 			);
 			path = scripts;
 			sourceTree = "<group>";
@@ -920,6 +925,7 @@
 				C837D1BD13E265570008C2BF /* CollabUtilities.cpp in Sources */,
 				C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */,
 				C80016911410923A009BA61F /* conschk_exists_notu_dlg.cpp in Sources */,
+				7D7335181423F70B00316F83 /* HtmlFileViewer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -956,7 +962,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Development";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"$(inherited)",
+				);
 				OTHER_LDFLAGS = (
 					"-liconv",
 					"-lz",
@@ -1005,6 +1014,10 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Deployment";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"$(OTHER_CFLAGS)",
+				);
 				OTHER_LDFLAGS = (
 					"-liconv",
 					"-lz",
