@@ -311,6 +311,10 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// set the combo box to the current workflow profile value
 		// tempWorkflowProfile here > 0, so set selectedComboProfileIndex to tempWorkflowProfile - 1
 		pComboBox->SetSelection(selectedComboProfileIndex); // this does not cause a wxEVT_COMMAND_COMBOBOX_SELECTED event
+		// whm 19Sep11 added below
+		wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
+		// Note: no need to replace entities here
+		pEditProfileDescr->ChangeValue(str);
 	}
 		
 
@@ -564,6 +568,19 @@ void CAdminEditMenuProfile::OnRadioUseProfile(wxCommandEvent& WXUNUSED(event))
 	// Make the corresponding notebook tab appear too, since pComboBox->SetSelection does not cause it to change
 	notebookTabIndex = selectedComboProfileIndex;
 	pNotebook->SetSelection(notebookTabIndex); // OK to use SetSelection() here since we are not within the tab changed handler
+	tempWorkflowProfile = selectedComboProfileIndex + 1; // the saved profile is one greater than the combobox selection
+	if (tempWorkflowProfile > 0)
+	{
+		// add the descriptionProfileText to the edit box
+		// Call InsertEntities() to make any entities in the text look natural in the edit box
+		// Entities need to be inserted before placing the descriptive text in the edit
+		// control. They will be replaced again before saving any edits back to xml. The
+		// XML.cpp file has an InsertEntities() function but it uses CBString. Rather than
+		// converting to CBString we just insert the entities here manually.
+		wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
+		// Note: no need to replace entities here
+		pEditProfileDescr->ChangeValue(str);
+	}
 }
 
 void CAdminEditMenuProfile::OnEditBoxDescrChanged(wxCommandEvent& WXUNUSED(event))
