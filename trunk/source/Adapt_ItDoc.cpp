@@ -23373,6 +23373,20 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 									pKB->StoreText(pSrcPhrase, pAutoFixGRec->finalGloss);
 								}
 								break;
+							// whm 19Sep11 added the case items below to avoid g++ warnings about unused 
+							// enums.
+							// This is based on a similar switch statement above at line 23204 where bruce
+							// appears to have done the same thing.
+							case no_GUI_needed:
+							case turn_flag_on:
+							case restore_meaning_to_doc:
+							case make_it_Not_In_KB:
+							default:
+								{
+									// nothing to do for these here
+									;
+								}
+								break;
 							} // end of switch (pAutoFixRec->fixAction)
 						}
 						else
