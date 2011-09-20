@@ -36826,9 +36826,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 			nFaceNameIndex++;
 		}
 	}
-	wxASSERT(nFontEncodingIndex == 3);
-	wxASSERT(nCharSetIndex == 3);
-	wxASSERT(nFaceNameIndex == 3);
+	// nFontEncodingIndex may be 0 for an MFC ver. 3.6.4 or earlier produced config file
+	// nCharSetIndex should be 3 for all version config files
+	// nFaceNameIndex should be 3 for all version config files
 
 	// #####################processing any needed font changes below ############################
 
@@ -37123,6 +37123,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 	nFontEncodingIndex = 0;
 	nCharSetIndex = 0;
 	nFaceNameIndex = 0;
+	bool bEncodingProcessed[3] = {FALSE,FALSE,FALSE};
 	// scan the in-memory file line-by-line and process those needing font updates
 	for ( fileLine = pf->GetFirstLine(); !pf->Eof(); fileLine = pf->GetNextLine() )
 	{
@@ -37131,6 +37132,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 			// we're at a line with "FontEncoding" in it
 			// build the required config file encoding for this line
 			fileLine = szFontEncoding + tab + Encoding[nFontEncodingIndex]; // make the fixed fileLine string
+			bEncodingProcessed[nFontEncodingIndex] = TRUE;
 			nFontEncodingIndex++;
 			size_t lineNum = pf->GetCurrentLine(); // get the line number
 			pf->RemoveLine(lineNum); // remove the old line from the in-memory file
@@ -37138,6 +37140,22 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 		}
 		else if (fileLine.Find(szCharSet) != wxNOT_FOUND)
 		{
+			if (bEncodingProcessed[nCharSetIndex] == FALSE)
+			{
+				// there was no FontEncoding item occurring preceding this CharSet item
+				// (indicating we're processing a conf file produced by MFC version 3.6.4
+				// or earlier). We'll insert at this point (before the CharSet line) the 
+				// default encoding that was determined above
+				nFontEncodingIndex = nCharSetIndex;
+				bEncodingProcessed[nFontEncodingIndex] = TRUE;
+				wxString nEncStr = _T("");
+				nEncStr << (int)nEnc;
+				fileLine = szFontEncoding + tab + nEncStr; // make the fixed fileLine string
+				size_t lineNum = pf->GetCurrentLine(); // get the line number
+				pf->InsertLine(fileLine, lineNum);
+				pf->GoToLine(lineNum + 1); // set the current line pointer past the FontEncoding line just inserted
+				nFontEncodingIndex++; // will be ignored except on last of the three fonts processed to keep assert below from tripping
+			}
 			// we're at a line with "CharSet" in it
 			// build the required config file charset for this line
 			fileLine = szCharSet + tab + Charset[nCharSetIndex]; // the fix
@@ -37157,7 +37175,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 			pf->InsertLine(fileLine, lineNum);
 		}
 	}
-	wxASSERT(nFontEncodingIndex == 3);
+	wxASSERT(nFontEncodingIndex == 3); // if this trips the logic above is wrong
 	wxASSERT(nCharSetIndex == 3);
 	wxASSERT(nFaceNameIndex == 3);
 }
