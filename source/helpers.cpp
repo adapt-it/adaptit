@@ -6298,6 +6298,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
     // wxChar resolves to just char* anyway. We could then read the file into the byte
     // buffer and use tellenc only once before handling the results with _UNICODE
     // conditional compiles.
+	// GDLC TODO: Investigate dealing with line endings AFTER the input text has been
+	// converted into a string of wxChars - it looks like it would be a lot simpler.
 
 	bool bIsLittleEndian;
 	bIsLittleEndian = TRUE; // this is valid for ANSI build, on non-Win platforms 
@@ -6506,15 +6508,15 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	nNumRead = (wxUint32)file.Read(pbyteBuff,nLength);
 	nLength = nNumRead + sizeof(wxChar);
 
-	// BEW added 16Aug11, determine the endian value for the machine we are running on
+	// BEW added 16Aug11, determine the endian value for the string we have just read in
 	wxString theBuf = wxString((wxChar*)pbyteBuff);
 	bIsLittleEndian = IsLittleEndian(theBuf);
 
 	if (bShorten)
 	{
 		// endian value complicates things, so since the code below is for little-endian
-		// platforms, leave it except for any needed utf16 tweaks to be added, and have a
-		// separate block of similar code for big-endian platforms
+		// strings, leave it except for any needed utf16 tweaks to be added, and have a
+		// separate block of similar code for big-endian strings
 		if (bIsLittleEndian)
 		{
 			// find out if CR is within the data (can't use strchr() because it may be null
@@ -6802,7 +6804,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		} // end of TRUE block for test: if (bIsLittleEndian)
 		else
 		{
-			// it's a big-endian machine....
+			// it's a big-endian string....
 			
 			// find out if CR is within the data (can't use strchr() because it may be null
 			// byte extended ascii now in the form UTF-16, so the null bytes will terminate
@@ -7231,7 +7233,9 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	// do the converting and transfer the converted data to pstrBuffer (which then
 	// persists while doc lives) -- if m_srcEndoding is wxFONTENCODING_UTF16, then
 	// conversion is skipped and the text (minus the BOM if present) is returned 'as is'
-	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff, gpApp->m_srcEncoding);
+// GDLC 16Sep11 Last parameter bHasBOM no longer needed
+//	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
 
 	// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
 	// the count)
@@ -7986,7 +7990,7 @@ void ShowInvalidStripRange()
 /// \remarks
 /// Note: The wxWidgets function ::wxGetFreeMemory returns a nonsense value on Mac. This function
 /// interrogates the internal structures of the Mach kernel on MacOS X to get a value for free memory.
-/// Added GDLC 6May11 to avoid including the MachOS headers inside the class CAdapt_ItApp.
+/// Added here by GDLC 6May11 to avoid including the MachOS headers inside the class CAdapt_ItApp.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #undef __BEGIN_DECLS

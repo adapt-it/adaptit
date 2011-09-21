@@ -54,8 +54,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
-static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
-static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE};
+//static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
+//static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE};
 
 // event handler table for the CCCTabbedDialog class
 BEGIN_EVENT_TABLE(CCCTabbedDialog, AIModalDialog)
@@ -943,7 +943,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	free((void*)pBuf);
 #else
 	wxUint32 nNumRead;
-	bool bHasBOM = FALSE;
+//	bool bHasBOM = FALSE;
 	wxUint32 nBuffLen = (wxUint32)nLogLen + sizeof(wxChar);
 	char* pbyteBuff = (char*)malloc(nBuffLen); 
 	memset(pbyteBuff,0,nBuffLen);
@@ -953,37 +953,39 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	// now we have to find out what kind of encoding the data is in, and set the encoding 
 	// and we convert to UTF-16 in the DoInputConversion() function
 	// check for UTF-16 first; we allow it, but don't expect it (and we assume it would have a BOM)
-	if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
-	{
-		// it's UTF-16
-		gpApp->m_srcEncoding = wxFONTENCODING_UTF16; //eUTF16;
-		bHasBOM = TRUE;
-	}
-	else
-	{
-		// see if it is UTF-8, whether with or without a BOM; if so,
-		if (!memcmp(pbyteBuff,szBOM,nBOMLen))
-		{
-			// the UTF-8 BOM is present
-			gpApp->m_srcEncoding = wxFONTENCODING_UTF8; //eUTF8;
-			bHasBOM = TRUE;
-		}
-		else
-		{
-			// whm: I think it is safest to just try using the default system encoding
-			// BEW 26July10, the default is not the system encoding as assumed.
-			// wxFONTENCODING_DEFAULT has a value of 0, and if passed to wxCSConv()
-			// conversion function (which happens within DoInputConversion() below), then
-			// wxWidgets asserts. So either use wxFONTENCODING_SYSTEM explicitly, or
-			// wxFONTENCODING_UTF8 -- and in the Unicode build, the latter is always best
-			//gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
-			gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-		}
-	}
+//	if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
+//	{
+//		// it's UTF-16
+//		gpApp->m_srcEncoding = wxFONTENCODING_UTF16; //eUTF16;
+//		bHasBOM = TRUE;
+//	}
+//	else
+//	{
+//		// see if it is UTF-8, whether with or without a BOM; if so,
+//		if (!memcmp(pbyteBuff,szBOM,nBOMLen))
+//		{
+//			// the UTF-8 BOM is present
+//			gpApp->m_srcEncoding = wxFONTENCODING_UTF8; //eUTF8;
+//			bHasBOM = TRUE;
+//		}
+//		else
+//		{
+//			// whm: I think it is safest to just try using the default system encoding
+//			// BEW 26July10, the default is not the system encoding as assumed.
+//			// wxFONTENCODING_DEFAULT has a value of 0, and if passed to wxCSConv()
+//			// conversion function (which happens within DoInputConversion() below), then
+//			// wxWidgets asserts. So either use wxFONTENCODING_SYSTEM explicitly, or
+//			// wxFONTENCODING_UTF8 -- and in the Unicode build, the latter is always best
+//			//gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+//			gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
+//		}
+//	}
 
 	// do the converting and transfer the converted data to editor's wxString member for the table,
 	// (which then persists while table editor lives)
-	gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff, gpApp->m_srcEncoding);
+// GDLC 16Sep11 Last parameter no longer needed
+//	gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
 
 	// free the original read in (const) char data's chunk
 	free((void*)pbyteBuff);
