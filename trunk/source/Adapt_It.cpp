@@ -29799,7 +29799,7 @@ int CAdapt_ItApp::GetPageOrientation()
 ///                             string to be converted
 /// \param      convStr    <-   a wxString representing the UTF-16 converted string
 /// \remarks
-/// Called from: the App's DoInputConversion(), the Doc's DoUnpackDocument(), the View's
+/// Called from: the Doc's DoUnpackDocument(), the View's
 /// DoConsistentChanges(), FileContainsBookIndicator() in helpers.cpp, ParseXML() in
 /// XML.cpp as well as AtBooksAttr() and AtSFMAttr(), and CXMLErrorDlg::InitDialog().
 /// Converts a single-byte character string, which is ASCII or UTF-8 (as returned from
@@ -29864,18 +29864,19 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// \return     nothing
 /// \param      pBuf       <- the buffer which receives the converted text
 /// \param      pbyteBuff  -> the byte buffer containing the text to be converted
-/// \param      eEncoding  -> the encoding to be used for conversion
-/// \param      bHasBOM    -> TRUE if a BOM is present, FALSE otherwise
 /// \remarks
 /// Called from: the Doc's GetNewFile() and CCCTabbedDialog::DoEditor().
 /// Converts a UTF-8 or UTF-16 input text to the required UTF-16 for internal use in
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
 /// GDLC 8Sep11 Modified to use wxConvAuto
+/// GDLC 9Sep11 Removed params eEncoding and bHasBOM
+/// GDLC 16Sep11 Put eEncoding back in for wxConvAuto default encoding
+/// Note: This function now needs the wxConvAuto from wxWidgets 2.9.1 
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, 
-									 wxFontEncoding WXUNUSED(eEncoding),bool WXUNUSED(bHasBOM))
+void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
+									 wxFontEncoding eEncoding)
 {
-	wxConvAuto conv;
+	wxConvAuto conv(eEncoding);
 	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff);
 	if ( dstLen == wxCONV_FAILED )
 	{
