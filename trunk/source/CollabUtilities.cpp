@@ -1337,7 +1337,9 @@ wxArrayString BreakStringBufIntoChapters(const wxString& bookString)
 // BEW 26Jul11, added call of IsOpened() which, if failed to open, allows us to return an
 // empty string as the indicator to the caller that the open failed, or the file didn't
 // exist at the supplied path
-wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
+// whm 21Sep11 modified to check for and include \id bookCodeForID if the text doesn't
+// already include an \id XXX.
+wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID)
 {
 	wxString emptyStr = _T("");
 	wxFile f_txt(absPath,wxFile::read);
@@ -1357,7 +1359,7 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
 	wxString textBuffer = wxString(pTextByteBuf,wxConvUTF8,fileLenTxt);
 	free((void*)pTextByteBuf);
 	// Now we have to check for textBuffer having an initial UTF-16 BOM, and if so, remove
-	// it. No such test nor removal is needed for an ANSI/ASCII build.
+	// it.
 
 	// remove any initial UFT16 BOM (it's 0xFF 0xFE), but on a big-endian machine would be
 	// opposite order, so try both
@@ -1388,7 +1390,17 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath)
 		textBuffer = textBuffer.Mid(3);
 	}
 #endif
-    // the file may exist, but be empty except for the BOM - as when using rdwrtp7.exe to
+	// whm 21Sep11 modified to check for the existence of an \id XXX line at the beginning
+	// of the textBuffer. Add one if it is not already there. This will be done mainly for
+	// chapter sized text files retrieved from the external editor, which won't have \id
+	// lines.
+	if (!bookCodeForID.IsEmpty() && textBuffer.Find(_T("\\id")) == wxNOT_FOUND)
+	{
+		wxString idLine = _T("\\id ") + bookCodeForID + gpApp->m_eolStr;
+		textBuffer = idLine + textBuffer;
+	}
+    
+	// the file may exist, but be empty except for the BOM - as when using rdwrtp7.exe to
     // get, say, a chapter of free translation from a PT project designated for such data,
     // but which as yet has no books defined for that project -- the call gets a file with
     // nothing in it except the BOM, so having removed the BOM, textBuffer will either be
@@ -4448,6 +4460,10 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		}
 	}
 
+	wxString bookCode;
+	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
+	wxASSERT(!bookCode.IsEmpty());
+
 	// get the pre-edit saved text, and the from-PT or from-BE version of the same text
 	wxArrayString textIOArray; textIOArray.Clear(); // needed for the internal ::wxExecute() call
 	wxArrayString errorsIOArray; errorsIOArray.Clear(); // ditto
@@ -4473,7 +4489,10 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			}
 			// remove the BOM and get the data into wxString textFromEditor
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text);
-			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath);
+			// whm 21Sep11 Note: When grabbing the free translation text, we don't need
+			// to ensure the existence of any \id XXX line, therefore the second parameter
+			// in the GetTextFromAbsolutePathAndRemoveBOM() call below is wxEmptyString
+			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath,wxEmptyString);
 		}
 		break;
 	default:
@@ -4494,7 +4513,10 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			}
 			// remove the BOM and get the data into wxString textFromEditor
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_target_text);
-			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath);
+			// whm 21Sep11 Note: When grabbing the target text, we don't need
+			// to ensure the existence of any \id XXX line, therefore the second parameter
+			// in the GetTextFromAbsolutePathAndRemoveBOM() call below is wxEmptyString
+			fromEditorText = GetTextFromAbsolutePathAndRemoveBOM(absPath,wxEmptyString);
 		}
 		break;
 	};

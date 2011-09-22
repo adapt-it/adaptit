@@ -203,7 +203,7 @@ class CSourcePhrase;
 	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
-	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath);
+	wxString		GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCodeForID);
 	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 	wxString		GetShortNameFromProjectName(wxString projName);

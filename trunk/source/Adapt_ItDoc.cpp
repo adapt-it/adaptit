@@ -693,51 +693,70 @@ bool CAdapt_ItDoc::OnNewDocument()
 		} // end of TRUE block for test: if (bUseSourceDataFolderOnly)
 		else
 		{
-            // This block uses the legacy wxFileDialog call, which allows the user to
-            // navigate the folder hierarchy to find loadable source text files anywhere
-            // within any volume accessible to the system, there is no user navigation
-            // protection in force if control enters this block
-			wxFileDialog fileDlg(
-				(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-				_("Input Text File For Adaptation"),
-				defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceInputPath)
-				_T(""),		// default filename
-				filter,
-			wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-						// GDLC wxOPEN deprecated in 2.8
-			fileDlg.Centre();
-			// open as modal dialog
-			int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
-			if (returnValue == wxID_CANCEL)
+			bool bGotLoadableFile = FALSE;
+			int returnValue = -1;
+			while (!bGotLoadableFile && returnValue != wxID_CANCEL)
 			{
-                // user cancelled, so cancel the New... command, or <New Document> choice,
-                // as the case may be -- either user choice will have caused
-                // OnNewDocument() to be called
-				wxMessageBox(_(
-"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
-				_T(""), wxICON_INFORMATION);
-
-				// check if there was a document current, and if so, reinitialize everything
-				if (pView != 0)
+				// This block uses the legacy wxFileDialog call, which allows the user to
+				// navigate the folder hierarchy to find loadable source text files anywhere
+				// within any volume accessible to the system, there is no user navigation
+				// protection in force if control enters this block
+				wxFileDialog fileDlg(
+					(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+					_("Input Text File For Adaptation"),
+					defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceInputPath)
+					_T(""),		// default filename
+					filter,
+				wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+							// GDLC wxOPEN deprecated in 2.8
+				fileDlg.Centre();
+				// open as modal dialog
+				int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
+				if (returnValue == wxID_CANCEL)
 				{
-					pApp->m_pTargetBox->SetValue(_T(""));
-					delete pApp->m_pBuffer;
-					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-					pView->Invalidate();
-					GetLayout()->PlaceBox();
+					// user cancelled, so cancel the New... command, or <New Document> choice,
+					// as the case may be -- either user choice will have caused
+					// OnNewDocument() to be called
+					wxMessageBox(_(
+	"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+					_T(""), wxICON_INFORMATION);
+
+					// check if there was a document current, and if so, reinitialize everything
+					if (pView != 0)
+					{
+						pApp->m_pTargetBox->SetValue(_T(""));
+						delete pApp->m_pBuffer;
+						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+						pView->Invalidate();
+						GetLayout()->PlaceBox();
+					}
+					//return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
+					//doc/view black box on which we rely, leading to our event handlers
+					//failing to be called, so return TRUE instead
+					pApp->LogUserAction(_T("User cancelled OnNewDocument() from wxFileDialog"));
+					return TRUE;
 				}
-                //return FALSE; BEW removed 24Aug10 as it clobbers part of the wxWidgets
-                //doc/view black box on which we rely, leading to our event handlers
-                //failing to be called, so return TRUE instead
-				pApp->LogUserAction(_T("User cancelled OnNewDocument() from wxFileDialog"));
-				return TRUE;
-			}
-			else // must be wxID_OK 
-			{
-				pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
-				fileTitle = fileDlg.GetFilename(); // just the file name (including any extension)
-			} // end of else wxID_OK
-			  // & fileDlg goes out of scope here
+				else // must be wxID_OK 
+				{
+					pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
+					fileTitle = fileDlg.GetFilename(); // just the file name (including any extension)
+					if (!IsLoadableFile(pathName))
+					{
+						wxFileName fn(pathName);
+						wxString msg,title;
+						title = _("Adapt It requires plain text files for input"); // 
+						msg = _("The following file:\n\n%s\n\nhas a %s extension which indicates that it is not loadable as an input file for Adapt It.\n\nPlease try again or click Cancel at the file selection dialog.");
+						msg = msg.Format(msg,pathName.c_str(),fn.GetExt().c_str());
+						wxMessageBox(msg,title,wxICON_WARNING);
+						bGotLoadableFile = FALSE;
+					}
+					else
+					{
+						bGotLoadableFile = TRUE;
+					}
+				} // end of else wxID_OK
+				  // & fileDlg goes out of scope here
+			} // end of while
 		} // end of else block for test: if (bUseSourceDataFolderOnly)
 
         // If control gets to here, (and it cannot do so if the user hit the Cancel
@@ -1433,6 +1452,15 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			//::wxSafeYield();
 			pProgDlg->Pulse(msgDisplayed);
 
+			// whm 21Sep11 modified. For chapter sized transfers back to the external editor
+			// we need to remove the \id XXX line from the updatedText string.
+			if (gpApp->m_bCollabByChapterOnly && updatedText.Find(_T("\\id")) != wxNOT_FOUND)
+			{
+				// the \id XXX line should be of the form:
+				wxString idLine = _T("\\id XXX") + gpApp->m_eolStr;
+				int idLineLen = idLine.Length();
+				updatedText = updatedText.Mid(idLineLen); // retains the rest of the string after the idLineLen
+			}
 			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
 			resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
 			TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
