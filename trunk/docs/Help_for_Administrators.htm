@@ -631,23 +631,47 @@ the locations where translation drafts are exported - to the Paratext or
 Bibledit projects that are assigned during collaboration.&nbsp; Therefore, if 
 you have previously set up Adapt It to collaborate with Paratext or Bibledit, 
 the "Protext from Navigation" check boxes to the right of __SOURCE_INPUTS and 
-_TARGET_OUTPUTS will indicate that they are "Using Paratext project"; they will be automatically ticked and 
+_TARGET_OUTPUTS will indicate (as shown in the dialog immediately 
+above)&nbsp;that they are "Using Paratext project"; they will be automatically ticked and 
 cannot be changed.&nbsp;</p>
+<p>Again, please understand that if Adapt It is 
+collaborating with Paratext or Bibledit, SOURCE texts can only be obtained from 
+the Paratext or Bibledit projects - and Adapt It's TARGET texts (adapted 
+translation drafts) will always be transferred automatically back to Paratext 
+or Bibledit projects.</p>
+<p>However, if your user will <strong>not</strong> be 
+collaborating with Paratext or Bibledit, you should consider at least selecting 
+the "Protect from Navigation" for the __SOURCE_INPUTS folder. When this folder 
+is "protected" the user will only see and be able to select from a list of input 
+texts for adaptation that are located in the __SOURCE_INPUTS folder. This can be 
+a very helpful way to guide the user in what texts to use for adaptation. 
+<strong>Since the user cannot obtain source text from anywhere else it is 
+important that you, the advisor, pre-load the __SOURCE_INPUTS folder with the 
+input texts that the user will need for his or her adaptation work</strong>. A 
+convenient way to pre-load the __SOURCE_INPUTS folder, it to use the "<a 
+href="#Moving_or_copying_files_or_folders">Move or Copy Files Or Folders</a>" 
+dialog from the Administrator menu. This dialog is designed like a "smart" file 
+browser and knows what kind of files can be used 
+for adaptation work.</p>
 <p>When a folder location has "Protect from Navigation" 
 activated, Adapt It will not ask the user for a file name nor allow the user to 
 navigate to a different folder, but will automatically assign a file name to the 
 input or output file, and read it from or store it to 
 the indicated location.</p>
 <p>Whe Adapt It assigns names to files, it composes the 
-name based on the type of contents and adds a date-time "stamp" at the end of 
-the name, and affixes the appropriate extension. This results in some long file 
-names, but that is of no concern to the user, because when "Protect from 
-Navigation" is activated the user doesn't have to interact with files or file 
-names. For example, the automatically composed name for an RTF export of the target text might look 
+name based on the type of the file's contents and adds a date-time "stamp" at 
+the end of the name, and affixes the appropriate extension. This results in some 
+long file names, but that is of no concern to the user, because when "Protect 
+from Navigation" is activated the user doesn't have to interact with files or 
+file names anyway. For example, the automatically composed name for an RTF 
+export of the target text might look 
 something like this:</p><strong>_Target_Text_45_ACT_CH02_exported_2011_07_11T14_25_53Z.rtf</strong>
 <p>and it would be located in the 
-<strong>_TARGET_RTF_OUTPUTS</strong>    folder of the 
-Adapt It project.</p>
+<strong>_TARGET_RTF_OUTPUTS</strong> folder of the Adapt It project. Because of 
+the presence of the date-time stamp within the file name, there is never going 
+to be a danger of files overwriting one another because all exported files will 
+have unique, easily discernable&nbsp;names, and files with similar content will sort together 
+in chronological order.</p>
 <p>We suggest that you use the Assign Locations For Inputs 
 and Outputs dialog to help keep your user's data organized into predictable 
 locations and its files consistently named - so that they are easily identified as to 
@@ -823,7 +847,27 @@ details.</p>
 <p align="right"><a href="#Top_of_doc">Back to Top</a></p>
 <h2><a name="Setup_custom_work_folder"></a>  Set up 
 a custom work folder (Optional)</h2>
-<p>&nbsp;</p>
+<p>For most users you should just allow Adapt It to create 
+and maintain its default "Adapt It Unicode Work" folder (or "Adapt It Work" for 
+the non-Unicode version) in the default location. For Windows systems, Adapt It 
+will by default create this folder in the user's "Documents" (or "My Documents") 
+folder. For Linux systems this work folder will be created in the 
+/home/&lt;user&gt; folder. On Mac systems this folder will be created in the 
+/Users/&lt;user&gt; folder.</p>
+<p>In some cases you may want Adapt It to use a custom work 
+folder in a non-default location - such as on a different disk partition, or in 
+a different folder than the default location. You can use the Administrator 
+menu's "Custom Work Folder..." item to assign the location where Adapt It will 
+establish its work folder. When you select "Custom Work Folder", Adapt It will 
+display a standard dialog in which you can navigate to the location where you 
+want Adapt It to establish its work folder.</p>
+<p>Adapt It will remember&nbsp;any custom work 
+folder&nbsp;location that you specify -&nbsp;until such time as you, the 
+administrator specify a different location or choose "Restore Default Work 
+Folder Location" from the Administrator menu. If you establish a custom work 
+folder location Adapt It will offer to lock it in that location. If you choose 
+not to lock it in that location, Adapt It will only continue using that location 
+for the current work session.</p>
 <p align="right"><a href="#Top_of_doc">Back to Top</a></p>
 <h2><a name="Guidelines_for_training_users"></a>Guidelines 
 for training Adapt It users</h2>
