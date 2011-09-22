@@ -54,6 +54,7 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
+		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
@@ -221,6 +222,8 @@
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C85CE18114103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsChk_Empty_noTU_Dlg.h; path = ../../source/ConsChk_Empty_noTU_Dlg.h; sourceTree = SOURCE_ROOT; };
 		C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConsChk_Empty_noTU_Dlg.cpp; path = ../../source/ConsChk_Empty_noTU_Dlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
+		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
 		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
 		C8DE45661323679C0030EC9B /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = ../../source/base64.cpp; sourceTree = SOURCE_ROOT; };
@@ -418,6 +421,8 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
+				C8A144BA1429F5D20022E0F1 /* convauto.cpp */,
+				C8A144BB1429F5D20022E0F1 /* convauto.h */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -926,6 +931,7 @@
 				C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */,
 				C80016911410923A009BA61F /* conschk_exists_notu_dlg.cpp in Sources */,
 				7D7335181423F70B00316F83 /* HtmlFileViewer.cpp in Sources */,
+				C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
