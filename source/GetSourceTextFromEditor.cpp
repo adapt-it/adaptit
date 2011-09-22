@@ -1014,23 +1014,36 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pProgDlg->Update(nStep,msgDisplayed);
 	//::wxSafeYield();
+	
+	wxString bookCode;
+	bookCode = m_pApp->GetBookCodeFromBookName(m_pApp->m_CollabBookSelected);
+	wxASSERT(!bookCode.IsEmpty());
 		
 	if (m_bTempCollabByChapterOnly)
 	{
 		// sourceChapterBuffer, a wxString, stores temporarily the USFM source text
 		// until we further below have finished with it and store it in the
 		// __SOURCE_INPUTS folder
-		sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
+		// whm 21Sep11 Note: When grabbing the source text, we need to ensure that 
+		// an \id XXX line is at the beginning of the text, therefore the second 
+		// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+		// the bookCode. The addition of an \id XXX line will always be needed when
+		// grabbing chapter-sized texts.
+		sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName,bookCode);
 	}
 	else
 	{
 		// likewise, the whole book USFM text is stored in sourceWholeBookBuffer until
 		// later it is put into the __SOURCE_INPUTS folder
-		sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
+		// whm 21Sep11 Note: When grabbing the source text, we need to ensure that 
+		// an \id XXX line is at the beginning of the text, therefore the second 
+		// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+		// the bookCode. The addition of an \id XXX line will not normally be needed
+		// when grabbing whole books, but the check is made to be safe.
+		sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName,bookCode);
 	}
 	// Code for setting up the Adapt It project etc requires the following data be
 	// setup beforehand also
-	wxString bookCode = m_pApp->GetBookCodeFromBookName(m_pApp->m_CollabBookSelected);
 	// we need to create standard filenames, so the following need to be calculated
 	wxString shortProjNameSrc, shortProjNameTgt;
 	shortProjNameSrc = GetShortNameFromProjectName(m_pApp->m_CollabProjectForSourceInputs);
@@ -2287,7 +2300,17 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	sourceWholeBookBuffer = wxString(pSourceByteBuf,wxConvUTF8,fileLenSrc);
 	free((void*)pSourceByteBuf);
 	*/
-	sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName);
+	// whm 21Sep11 Note: When grabbing the source text, we need to ensure that 
+	// an \id XXX line is at the beginning of the text, therefore the second 
+	// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+	// the bookCode. The addition of an \id XXX line will not normally be needed
+	// when grabbing whole books, but the check is made here to be safe. This
+	// call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole source
+	// text for use in analyzing the chapter status, but I believe it is also
+	// the main call that stores the text in the .temp folder which the app
+	// would use if the whole book is used for collaboration, so we should
+	// do the check here too just to be safe.
+	sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName,bookCode);
 
 	/*
 	wxFile f_tgt(targetTempFileName,wxFile::read);
@@ -2304,7 +2327,16 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// in ANSI builds so this should work for both ANSI and Unicode data.
 	free((void*)pTargetByteBuf);
 	*/
-	targetWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName);
+	// whm 21Sep11 Note: When grabbing the target text, we don't need to add
+	// an \id XXX line at the beginning of the text, therefore the second 
+	// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+	// the wxEmptyString. Whole books will usually already have the \id XXX
+	// line, but we don't need to ensure that it exists for the target text.
+	// The call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole 
+	// target text for use in analyzing the chapter status, but I believe it 
+	// is also the main call that stores the text in the .temp folder which the 
+	// app would use if the whole book is used for collaboration.
+	targetWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName,wxEmptyString);
 
 	SourceTextUsfmStructureAndExtentArray.Clear();
 	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);

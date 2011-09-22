@@ -5872,6 +5872,12 @@ bool IsLoadableFile(wxString& absPathToFile)
 	CBString resultStr;
 	resultStr.Empty();
 	// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
+	// whm 20Sep11 Note: Since Bruce calls tellenc2() here with len, tellenc does not
+	// include the two null bytes at the end of the buffer, and so the two added null bytes
+	// serve no purpose. But, more importantly, it is fortunate that tellenc does not
+	// include the null chars in its check, otherwise tellenc would return a result of
+	// "binary" even for a non-binary file.
+	// 
 	resultStr = tellenc2(saved_ptr, len); // xml files are returned as "binary" too
 										  // so hopefull html files without an extension
 										  // will likewise be "binary" & so be rejected
