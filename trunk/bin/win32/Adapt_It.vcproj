@@ -543,6 +543,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\convauto.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\CorGuess.cpp"
 				>
 			</File>
@@ -981,6 +985,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ConsistentChanger.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\convauto.h"
 				>
 			</File>
 			<File
