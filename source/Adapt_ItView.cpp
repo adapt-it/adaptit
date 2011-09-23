@@ -3370,6 +3370,18 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	
 	wxString printTitle;
 	printTitle = printTitle.Format(_T("Printing %s"),pApp->m_curOutputFilename.c_str());
+	
+	// klb 9/2011 : If user has requested printing of Glosses in CPrintOptionsDlg and 
+	//              Glosses are not currently visible, we need to turn glosses on so 
+	//              that they are printed. Local variable bNeedToToggleGlossing will tell
+	//              us whether we need to switch the main screen back (below) after printing
+	bool bNeedToToggleGlossing = FALSE;
+	if ((gbCheckInclGlossesText == TRUE) && !gbGlossingVisible)
+	{
+		bNeedToToggleGlossing = TRUE;
+		ShowGlosses();
+	}
+
 	AIPrintout printout(printTitle); // this calls Freeze() on the canvas
 	// #printer_Print
     if (!printer.Print(pApp->GetMainFrame(), &printout, true)) // true means 'prompt'
@@ -3381,6 +3393,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     {
         (*pApp->pPrintData) = printer.GetPrintDialogData().GetPrintData();
     }
+
+	// klb 9/2011 : toggle main screen to hide glosses again if necessary
+	if (bNeedToToggleGlossing == TRUE)
+		ShowGlosses();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -3398,6 +3414,20 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
     // Pass two printout objects: for preview, and possible printing.
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+	gbCheckInclGlossesText = TRUE;
+
+	// klb 9/2011 : If glosses are not visible, we need to make them visible in the
+	// underlying document temporarily to have them show in the print preview frame
+	bool bHideGlosses = FALSE;
+	if (!gbGlossingVisible)
+	{
+		bHideGlosses = TRUE;
+		pApp->GetView()->ShowGlosses();
+	}
+
+	GetLayout()->RecalcLayout(pApp->GetSourcePhraseList(),create_strips_and_piles);
+
     pApp->LogUserAction(_T("Initiated OnPrintPreview()"));
 	wxString previewTitle,printTitle;
 	previewTitle = previewTitle.Format(_T("Print Preview of %s"),
@@ -3428,6 +3458,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     // Since we freeze the canvas against screen updates, we may as well size the preview
     // frame to fully cover the canvas in the main window.
 	CMainFrame* pFrame = pApp->GetMainFrame();
+
 	wxSize frameClientSize = pFrame->GetClientSize();
 	// The controlbar is always visible on the main frame
 	wxSize controlbarSize = pFrame->m_pControlBar->GetSize();
@@ -3437,13 +3468,17 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	previewPosition.x += wxSystemSettings::GetMetric(wxSYS_FRAMESIZE_X); // move to the 
 														// right by thickness of frame
 	previewPosition.y += controlbarSize.y; // move the preview down just below the toolbar
-    wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame(), 
+	wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame(), 
 								previewTitle, previewPosition, frameClientSize);
     // We positioned the preview frame explicitly, so don't call Centre() here
     frame->Initialize();
     frame->Show();
 	// whm note: The preview window is closed automatically 
 	// when the user exits/closes the preview window.
+	 
+	// klb 9/2011 : hide glosses if necessary
+	if (bHideGlosses == TRUE)
+		pApp->GetView()->ShowGlosses();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -26870,13 +26905,15 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 /// whm modified 30Aug111 to remove the label and jump
 void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 {
+	
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	/*
 	CSourcePhrase* pSrcPhrase;
 	bool bOK;
 	CSourcePhrase* pSaveSrcPhrase;
 	int nSequNum;
-
+	*/
 	// whm Note: Only log user action when explicitly interacting with
 	// the menu item, not when OnAdvancedEnablglossing() is called by
 	// other functions.
@@ -26887,7 +26924,9 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 		else
 			pApp->LogUserAction(_T("See Glosses ON"));
 	}
-
+	
+	ShowGlosses();	
+	/*
 	// save the current sequence number
 	int nSaveSequNum = pApp->m_nActiveSequNum;
 
@@ -27025,6 +27064,7 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 			pApp->m_pTargetBox->SetFocus();
 	Invalidate();
 	GetLayout()->PlaceBox();
+	*/
 }
 
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode
@@ -28385,4 +28425,152 @@ void CAdapt_ItView::ToggleCopySource()
 	OnCopySource(dummy);
 }
 
+/// klb moved this logic out of OnAdvancedSeeGlosses to allow us to switch view 
+/// klb    to Show Glosses before invoking Print Preview
+void CAdapt_ItView::ShowGlosses()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CSourcePhrase* pSrcPhrase;
+	bool bOK;
+	CSourcePhrase* pSaveSrcPhrase;
+	int nSequNum;
 
+	// save the current sequence number
+	int nSaveSequNum = pApp->m_nActiveSequNum;
+
+	// won't allow a selection to be preserved, this is too major a modality change
+	if (pApp->m_selectionLine != -1)
+		RemoveSelection();
+
+    // before we redraw the layout and phrasebox, we have to save what is in the box
+    // (provided it's contents are not abandonable or null text) in the appropriate KB,
+    // then ready the pApp->m_targetPhrase member to have the correct text before
+    // the layout is recalculated
+	pApp->m_bSaveToKB = TRUE;
+
+	if (pApp->m_pActivePile != NULL)
+	{
+		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		if (gbIsGlossing) // flag has not been toggled yet
+		{
+			// we are changing from glossing to adapting, so we must store to the glossing
+			// KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
+			// m_adaption contents and remove its refString from the adapting KB
+			if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
+			{
+				// we can assume no errors for StoreTest call
+				bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
+			}
+
+			// if the active location is within a retranslation, we can't leave the box there
+			// when we are in adapting mode, so if that is the case then find a safe location
+			if (pSrcPhrase->m_bRetranslation)
+			{
+				pSaveSrcPhrase = pSrcPhrase;
+				pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a location
+															   // after retranslation section
+				if (pSrcPhrase == NULL)
+				{
+					pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
+				}
+				// we assume (we won't test) one of the above Get... calls will succeed
+				nSequNum = pSrcPhrase->m_nSequNumber;
+				pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
+				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+			}
+
+			// now the adaptation stuff
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, useTargetPhraseForLookup);
+		}
+	}
+
+	// get the Enable Glossing menu pointer
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	wxMenuItem * pAdvancedMenuSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES);
+
+	// get the checkbox pointer
+	wxPanel* pControlBar;
+	pControlBar = pFrame->m_pControlBar;
+	wxASSERT(pControlBar != NULL);
+	wxCheckBox* pCheckboxIsGlossing = 
+				(wxCheckBox*)pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
+
+ 	// whm 30Aug11 Note: We do not switch between "<no adaptation>" and "<no gloss>" here
+ 	// because the OnAdvancedSeeGlosses() does not actually switch the app into glossing
+ 	// mode. That is done in OnCheckIsGlossing() and ToggleGlossingMode().
+    
+	// toggle the setting: note; whether going to or from glossing we will not change the
+    // current values of gbGlossingUsesNavFont because the user might go back and forwards
+    // from having glossing allowed or actually on (in the one session,) and it would be a
+    // nuisance to have to manually restore this flag to its former setting each time the
+    // user enables glossing again in the one session. (Leaving the flag ON is benign when
+    // adapting.)
+	if (gbGlossingVisible)
+	{
+		// toggle the checkmark to OFF
+		if (pAdvancedMenuSeeGlosses != NULL)
+		{
+			pAdvancedMenuSeeGlosses->Check(FALSE);
+		}
+		gbGlossingVisible = FALSE;
+		gbIsGlossing = FALSE; // must be off whenever the other flag is off
+
+		// hide the mode bar checkbox when glossing is not allowed to be visible
+		// and when not visible it obligatorily must be adapting
+		if (pCheckboxIsGlossing != NULL)
+		{
+			pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
+			pCheckboxIsGlossing->Show(FALSE);
+		}
+	}
+	else
+	{
+		// toggle the checkmark to ON
+		if (pAdvancedMenuSeeGlosses != NULL)
+		{
+			pAdvancedMenuSeeGlosses->Check(TRUE);
+		}
+		gbGlossingVisible = TRUE;
+
+		// show the mode bar checkbox when glossing is allowed to be visible - user can
+		// then choose either to do glossing, or to do adapting
+		if (pCheckboxIsGlossing != NULL)
+		{
+			pCheckboxIsGlossing->Show(TRUE);
+		}
+	}
+
+	// redraw the layout etc.
+	CLayout* pLayout = GetLayout();
+
+	// BEW added 10Jun09, support phrase box matching of the text colour chosen
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+	}
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
+
+	// restore focus to the targetBox, if it is visible
+	if (pApp->m_pTargetBox != NULL)
+		if (pApp->m_pTargetBox->IsShown()) 
+			pApp->m_pTargetBox->SetFocus();
+	Invalidate();
+	GetLayout()->PlaceBox();
+}

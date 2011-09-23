@@ -493,6 +493,7 @@ public:
 	void OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);
 	void OnButtonMerge(wxCommandEvent& WXUNUSED(event));
+	void ShowGlosses();
 
 private:
 	wxFrame* pCanvasFrame;

@@ -1097,10 +1097,10 @@ void CPile::Draw(wxDC* pDC)
 		(gbIsPrinting && !gbIsGlossing))
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 
-	// klb 9/9/2011 - We need to draw the Gloss to screen if "See Glosses" is checked (gbGlossingVisible=true) OR 
-	//            to printer if "Include Glosses text" is checked in PrintOptionsDialog - 9/9/2011
+	// klb 9/2011 - We need to draw the Gloss to screen if "See Glosses" is checked (gbGlossingVisible=true) OR 
+	//            to printer if "Include Glosses text" (gbCheckInclGlossesText) is checked in PrintOptionsDialog - 9/9/2011
 	if ((gbGlossingVisible && !gbIsPrinting) || 
-		(gbIsPrinting && (gbIsGlossing || gbCheckInclGlossesText)))
+		(gbIsPrinting && gbCheckInclGlossesText))
 	{
 		// when gbGlossingVisible=TRUE, that means the menu item "See Glosses" has been ticked; but we may
 		// or may not still be in adapting mode, but a further test is not required
