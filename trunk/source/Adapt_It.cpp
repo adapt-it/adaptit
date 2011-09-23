@@ -176,6 +176,7 @@
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
+#include "convauto.h"
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -29868,15 +29869,15 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// Called from: the Doc's GetNewFile() and CCCTabbedDialog::DoEditor().
 /// Converts a UTF-8 or UTF-16 input text to the required UTF-16 for internal use in
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
-/// GDLC 8Sep11 Modified to use wxConvAuto
+/// GDLC 8Sep11 Modified to use wxConvAuto_AI
 /// GDLC 9Sep11 Removed params eEncoding and bHasBOM
-/// GDLC 16Sep11 Put eEncoding back in for wxConvAuto default encoding
-/// Note: This function now needs the wxConvAuto from wxWidgets 2.9.1 
+/// GDLC 16Sep11 Put eEncoding back in for wxConvAuto_AI default encoding
+/// Note: This function now needs the wxConvAuto_AI from wxWidgets 2.9.1 
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
 									 wxFontEncoding eEncoding)
 {
-	wxConvAuto conv(eEncoding);
+	wxConvAuto_AI conv(eEncoding);
 	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff);
 	if ( dstLen == wxCONV_FAILED )
 	{

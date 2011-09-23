@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:        src/common/convauto.cpp
-// Purpose:     implementation of wxConvAuto
+// Purpose:     implementation of wxConvAuto_AI
 // Author:      Vadim Zeitlin
 // Created:     2006-04-04
 // RCS-ID:      $Id$
@@ -27,20 +27,20 @@
     #include "wx/wx.h"
 #endif //WX_PRECOMP
 
-#include "wx/convauto.h"
+#include "convauto.h"
 
 // we use latin1 by default as it seems the least bad choice: the files we need
 // to detect input of don't always come from the user system (they are often
 // received from other machines) and so using wxFONTENCODING_SYSTEM doesn't
 // seem to be a good idea and there is no other reasonable alternative
-wxFontEncoding wxConvAuto::ms_defaultMBEncoding = wxFONTENCODING_ISO8859_1;
+wxFontEncoding wxConvAuto_AI::ms_defaultMBEncoding = wxFONTENCODING_ISO8859_1;
 
 // ============================================================================
 // implementation
 // ============================================================================
 
 /* static */
-void wxConvAuto::SetFallbackEncoding(wxFontEncoding enc)
+void wxConvAuto_AI::SetFallbackEncoding(wxFontEncoding enc)
 {
     wxASSERT_MSG( enc != wxFONTENCODING_DEFAULT,
                   wxT("wxFONTENCODING_DEFAULT doesn't make sense here") );
@@ -49,7 +49,7 @@ void wxConvAuto::SetFallbackEncoding(wxFontEncoding enc)
 }
 
 /* static */
-wxConvAuto::BOMType wxConvAuto::DetectBOM(const char *src, size_t srcLen)
+wxConvAuto_AI::BOMType wxConvAuto_AI::DetectBOM(const char *src, size_t srcLen)
 {
     // examine the buffer for BOM presence
     //
@@ -138,7 +138,7 @@ wxConvAuto::BOMType wxConvAuto::DetectBOM(const char *src, size_t srcLen)
     return BOM_None;
 }
 
-void wxConvAuto::InitFromBOM(BOMType bomType)
+void wxConvAuto_AI::InitFromBOM(BOMType bomType)
 {
     m_consumedBOM = false;
 
@@ -190,7 +190,7 @@ void wxConvAuto::InitFromBOM(BOMType bomType)
     }
 }
 
-void wxConvAuto::SkipBOM(const char **src, size_t *len) const
+void wxConvAuto_AI::SkipBOM(const char **src, size_t *len) const
 {
     int ofs;
     switch ( m_bomType )
@@ -227,7 +227,7 @@ void wxConvAuto::SkipBOM(const char **src, size_t *len) const
         *len -= ofs;
 }
 
-bool wxConvAuto::InitFromInput(const char *src, size_t len)
+bool wxConvAuto_AI::InitFromInput(const char *src, size_t len)
 {
     m_bomType = DetectBOM(src, len);
     if ( m_bomType == BOM_Unknown )
@@ -239,7 +239,7 @@ bool wxConvAuto::InitFromInput(const char *src, size_t len)
 }
 
 size_t
-wxConvAuto::ToWChar(wchar_t *dst, size_t dstLen,
+wxConvAuto_AI::ToWChar(wchar_t *dst, size_t dstLen,
                     const char *src, size_t srcLen) const
 {
     // we check BOM and create the appropriate conversion the first time we're
@@ -247,7 +247,7 @@ wxConvAuto::ToWChar(wchar_t *dst, size_t dstLen,
     // during this initial call but also during the first call with non-NULL
     // dst as typically we're first called with NULL dst to calculate the
     // needed buffer size
-    wxConvAuto *self = const_cast<wxConvAuto *>(this);
+    wxConvAuto_AI *self = const_cast<wxConvAuto_AI *>(this);
 
 
     if ( !m_conv )
@@ -305,13 +305,13 @@ wxConvAuto::ToWChar(wchar_t *dst, size_t dstLen,
 }
 
 size_t
-wxConvAuto::FromWChar(char *dst, size_t dstLen,
+wxConvAuto_AI::FromWChar(char *dst, size_t dstLen,
                       const wchar_t *src, size_t srcLen) const
 {
     if ( !m_conv )
     {
         // default to UTF-8 for the multibyte output
-        const_cast<wxConvAuto *>(this)->InitWithUTF8();
+        const_cast<wxConvAuto_AI *>(this)->InitWithUTF8();
     }
 
     return m_conv->FromWChar(dst, dstLen, src, srcLen);

@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:        wx/convauto.h
-// Purpose:     wxConvAuto class declaration
+// Purpose:     wxConvAuto_AI class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-04-03
 // RCS-ID:      $Id$
@@ -8,21 +8,21 @@
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _WX_CONVAUTO_H_
-#define _WX_CONVAUTO_H_
+#ifndef _WX_CONVAUTO_AI_H_
+#define _WX_CONVAUTO_AI_H_
 
 #include "wx/strconv.h"
 #include "wx/fontenc.h"
 
 // ----------------------------------------------------------------------------
-// wxConvAuto: uses BOM to automatically detect input encoding
+// wxConvAuto_AI: uses BOM to automatically detect input encoding
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_BASE wxConvAuto : public wxMBConv
+class WXDLLIMPEXP_BASE wxConvAuto_AI : public wxMBConv
 {
 public:
     // default ctor, the real conversion will be created on demand
-    wxConvAuto(wxFontEncoding enc = wxFONTENCODING_DEFAULT)
+    wxConvAuto_AI(wxFontEncoding enc = wxFONTENCODING_DEFAULT)
     {
         Init();
 
@@ -31,14 +31,14 @@ public:
 
     // copy ctor doesn't initialize anything neither as conversion can only be
     // deduced on first use
-    wxConvAuto(const wxConvAuto& other) : wxMBConv()
+    wxConvAuto_AI(const wxConvAuto_AI& other) : wxMBConv()
     {
         Init();
 
         m_encDefault = other.m_encDefault;
     }
 
-    virtual ~wxConvAuto()
+    virtual ~wxConvAuto_AI()
     {
         if ( m_ownsConv )
             delete m_conv;
@@ -67,7 +67,7 @@ public:
 
     virtual size_t GetMBNulLen() const { return m_conv->GetMBNulLen(); }
 
-    virtual wxMBConv *Clone() const { return new wxConvAuto(*this); }
+    virtual wxMBConv *Clone() const { return new wxConvAuto_AI(*this); }
 
 private:
     // all currently recognized BOM values
@@ -139,10 +139,10 @@ private:
     bool m_consumedBOM;
 
 
-//    wxDECLARE_NO_ASSIGN_CLASS(wxConvAuto);
-    DECLARE_NO_ASSIGN_CLASS(wxConvAuto);
+//    wxDECLARE_NO_ASSIGN_CLASS(wxConvAuto_AI);
+    DECLARE_NO_ASSIGN_CLASS(wxConvAuto_AI);
 
 };
 
-#endif // _WX_CONVAUTO_H_
+#endif // _WX_CONVAUTO_AI_H_
 
