@@ -74,6 +74,7 @@
 #include "Adapt_It.h"
 #include "ReadOnlyProtection.h"
 #include "Adapt_ItDoc.h"
+#include "AIPrintPreviewFrame.h"
 #include "helpers.h"
 #include "CollabUtilities.h"
 #include "BString.h"
@@ -3468,17 +3469,19 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	previewPosition.x += wxSystemSettings::GetMetric(wxSYS_FRAMESIZE_X); // move to the 
 														// right by thickness of frame
 	previewPosition.y += controlbarSize.y; // move the preview down just below the toolbar
-	wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame(), 
+	CAIPrintPreviewFrame *frame = new CAIPrintPreviewFrame(this, preview, pApp->GetMainFrame(), 
 								previewTitle, previewPosition, frameClientSize);
+	//wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame() 
+	//							previewTitle, previewPosition, frameClientSize);
     // We positioned the preview frame explicitly, so don't call Centre() here
     frame->Initialize();
     frame->Show();
-	// whm note: The preview window is closed automatically 
-	// when the user exits/closes the preview window.
-	 
 	// klb 9/2011 : hide glosses if necessary
 	if (bHideGlosses == TRUE)
-		pApp->GetView()->ShowGlosses();
+		frame->HideGlossesOnClose( TRUE);
+	// whm note: The preview window is closed automatically 
+	// when the user exits/closes the preview window.
+	
 }
 
 /////////////////////////////////////////////////////////////////////////////////
