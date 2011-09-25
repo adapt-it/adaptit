@@ -3416,12 +3416,36 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
     // Pass two printout objects: for preview, and possible printing.
 	CAdapt_ItApp* pApp = &wxGetApp();
 
-	gbCheckInclGlossesText = TRUE;
+	// whm 25Sep11 modified. As I did in the PrintOptionsDlg::InitDialog() function,
+	// we should initialize the values of gbCheckInclGlossesText and gbCheckInclFreeTransText
+	// based on whether the document actually has such content or not. If the doc has 
+	// free translations, we should include them in the Print Preview, otherwise we 
+	// omit them. 
+	if (pApp->DocHasFreeTranslations(pApp->m_pSourcePhrases))
+	{
+		gbCheckInclFreeTransText = TRUE;
+	}
+	else
+	{
+		gbCheckInclFreeTransText = FALSE;
+	}
+	// whm 25Sep11 modified. Likewise, if the doc has glosses, we should include them 
+	// in the Print Preview, otherwise we omit them. 
+	if (pApp->DocHasGlosses(pApp->m_pSourcePhrases))
+	{
+		gbCheckInclGlossesText = TRUE;
+	}
+	else
+	{
+		gbCheckInclGlossesText = FALSE;
+	}
+
 
 	// klb 9/2011 : If glosses are not visible, we need to make them visible in the
 	// underlying document temporarily to have them show in the print preview frame
+	// whm 25Sep11 added test below for gbCheckInclGlossesText.
 	bool bHideGlosses = FALSE;
-	if (!gbGlossingVisible)
+	if (gbCheckInclGlossesText && !gbGlossingVisible)
 	{
 		bHideGlosses = TRUE;
 		pApp->GetView()->ShowGlosses();

@@ -28149,6 +28149,49 @@ t:				m_pCurrBookNamePair = NULL;
 		gbNoGlossCaseEquivalents = TRUE; // restore this flag if user cleared source lists
 }
 
+// whm 25Sep11 added for printing support of glosses
+bool CAdapt_ItApp::DocHasGlosses(SPList* pSPList)
+{
+	bool bFound = FALSE;
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)NULL;
+	SPList::Node* pos = pSPList->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		wxASSERT(pSrcPhrase);
+		if (pSrcPhrase->m_bHasGlossingKBEntry)
+		{
+			return TRUE;
+		}
+	}
+	// if we get here no glosses were found
+	return bFound;
+}
+
+// whm 25Sep11 added for printing support of free translations
+bool CAdapt_ItApp::DocHasFreeTranslations(SPList* pSPList)
+{
+	bool bFound = FALSE;
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)NULL;
+	SPList::Node* pos = pSPList->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		wxASSERT(pSrcPhrase);
+		if (pSrcPhrase->m_bHasFreeTrans)
+		{
+			return TRUE;
+		}
+	}
+	// if we get here no free translations were found
+	return bFound;
+}
+
+
 // Gets the source language and target language ethnologue codes from the project
 // configuration file in the folder which is passed in as the absolute path to the project
 // (code taken and tweaked from GetProjectConfiguration(), GetConfigurationFile() and

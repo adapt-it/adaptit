@@ -3089,6 +3089,10 @@ protected:
 #endif
 
 public:
+	// whm 25Sep11 added the following two functions
+	bool	DocHasGlosses(SPList* pSPList);
+	bool	DocHasFreeTranslations(SPList* pSPList);
+
     // a helper in getting ethnologue language codes from an Adapt It project config file,
     // for use in matching an AI project to a Paratext or Bibledit project pair;
     // return TRUE if all went well, FALSE if there was an error along the way
