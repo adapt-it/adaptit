@@ -463,6 +463,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AIPrintPreviewFrame.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AssignLocationsForInputsAndOutputs.cpp"
 				>
 			</File>
@@ -905,6 +909,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\AIPrintout.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\AIPrintPreviewFrame.h"
 				>
 			</File>
 			<File
