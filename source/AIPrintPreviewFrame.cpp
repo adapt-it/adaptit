@@ -13,6 +13,26 @@
 /// during the print preview process.
 /// \derivation		The CAIPrintPreviewFrame class is derived from wxPreviewFrame.
 /////////////////////////////////////////////////////////////////////////////
+
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma implementation "AIPrintPreviewFrame.h"
+#endif
+
+// For compilers that support precompilation, includes "wx.h".
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+// Include your minimal set of headers here, or wx.h
+#include <wx/wx.h>
+#endif
+
+#include <wx/print.h> // for wxPrintPreview
+
 #include "AIPrintPreviewFrame.h"
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"

@@ -13,7 +13,13 @@
 /// during the print preview process.
 /// \derivation		The CAIPrintPreviewFrame class is derived from wxPreviewFrame.
 /////////////////////////////////////////////////////////////////////////////
-#include "c:\wxwidgets-2.8.11\include\wx\prntbase.h"
+#ifndef AIPrintPreviewFrame_h
+#define AIPrintPreviewFrame_h
+
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma interface "AIPrintPreviewFrame.h"
+#endif
 
 // forward declarations
 class CAdapt_ItView;
@@ -41,3 +47,5 @@ private:
 
 
 };
+
+#endif // AIPrintPreviewFrame_h
