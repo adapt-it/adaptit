@@ -213,9 +213,37 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 	// whm 30Aug11 added for the "Additional text to include in Printouts" section of
 	// the "Special Print Options" dialog.
-	// check these initially as default
-	pCheckInclFreeTransText->SetValue(TRUE);
-	pCheckInclGlossesText->SetValue(TRUE);
+	
+	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
+	// contains free translations, otherwise uncheck and disable the check box.
+	if (gpApp->DocHasFreeTranslations(gpApp->m_pSourcePhrases))
+	{
+		pCheckInclFreeTransText->Enable(TRUE);
+		pCheckInclFreeTransText->SetValue(TRUE);
+		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
+	}
+	else
+	{
+		pCheckInclFreeTransText->Enable(FALSE);
+		pCheckInclFreeTransText->SetValue(FALSE);
+		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
+	}
+	
+	
+	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
+	// contains glosses, otherwise uncheck and disable the check box.
+	if (gpApp->DocHasGlosses(gpApp->m_pSourcePhrases))
+	{
+		pCheckInclGlossesText->Enable(TRUE);
+		pCheckInclGlossesText->SetValue(TRUE);
+		// Note the global flag gbCheckInclGlossesText is set in OnOK()
+	}
+	else
+	{
+		pCheckInclGlossesText->Enable(FALSE);
+		pCheckInclGlossesText->SetValue(FALSE);
+		// Note the global flag gbCheckInclGlossesText is set in OnOK()
+	}
     
 	// Get the logical page dimensions for paginating the document and printing.
     int nPagePrintingWidthLU;
