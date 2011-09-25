@@ -32,7 +32,7 @@ public:
 		CAdapt_ItView * view,
 		wxPrintPreviewBase *  preview,  
 		wxWindow *  parent,  
-		const wxString &  title = "Print Preview",  
+		const wxString &  title = _("Print Preview"),  
 		const wxPoint &  pos = wxDefaultPosition,  
 		const wxSize &  size = wxDefaultSize,  
 		long  style = wxDEFAULT_FRAME_STYLE,  
