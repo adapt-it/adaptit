@@ -5,10 +5,15 @@ Feature changes and new features in 6.0.0
 ----------------------------------------------
 Since Adapt It 6.0.0 has so many new features and changes, we first 
     describe the "Major New Features" here and list the "Other 
-    Features and Changes" below.
+    Features and Changes" and "Bug fixes" below.
 
 Major New Features in 6.0.0:
 
+* A Help_for_Administrators.htm document is now available from 
+    the Administrator menu (and from the Start Menu on Windows).
+    This help file provides step-by-step Help designed to help
+    administrators set up Adapt It's main new features described
+    below.
 * Automatic Paratext and Bibledit data collaboration. No more 
     exporting and copying of files manually back and forth between 
     Adapt It or Bibledit! Administrators can now easily set up Adapt 
@@ -175,7 +180,7 @@ Note: if you want to safeguard the KB contents by storing it in a
     so that if the user later unmerges any of these, he'll see 
     glosses as expected rather than untransformed adaptations.
 
-Other Features and Changes:
+Other Features and Changes in 6.0.0:
 
 * Standard format exports now export the Adapt It custom markers: 
     \free, \free*, \note, \note* and \bt in a form which is more 
