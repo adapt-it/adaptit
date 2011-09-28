@@ -391,7 +391,10 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	case sourceTextExport:
 		gpApp->LogUserAction(_T("Initiated Export Source Text"));
 		// we are exporting the source text, get a default filename, set directory
-		exportFilename.Replace(_T("_Collab"),_T("_Source_Text"));
+		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
+			exportFilename.Replace(_T("_Collab"),_T("_Source_Text"));
+		else
+			exportFilename = _T("_new_source_text_") + exportFilename;
 		len = exportFilename.Length();
 		s = _("Export Source Text");
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Source Text"
@@ -399,7 +402,10 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	case glossesTextExport:
 		gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
 		// we are exporting the glosses text, get a default filename, set directory
-		exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
+		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
+			exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
+		else
+			exportFilename = _T("_glosses_text_") + exportFilename;
 		len = exportFilename.Length();
 		s = _("Export Glosses As Text");
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
@@ -408,7 +414,10 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	case freeTransTextExport:
 		gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
 		// we are exporting the free translation text, get a default filename, set directory
-		exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
+		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
+			exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
+		else
+			exportFilename = _T("_freetrans_text_") + exportFilename;
 		len = exportFilename.Length();
 		s = _("Export Free Translation Text");
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
@@ -424,7 +433,10 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// produced exports within the _TARGET_OUTPUTS folder from those generated automatically
 		// by our collaboration code, we adjust the exportFilename having a "_Collab..." prefix
 		// so that it will have "_Target_Text" prefix instead.
-		exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
+		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
+			exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
+		else
+			exportFilename = _T("_target_text_") + exportFilename;
 		len = exportFilename.Length();
 		s = _("Export Translation (Target) Text");
 		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Translation (Target) Text"
@@ -1626,7 +1638,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		exportFilename += _T(" Interlinear");
+		exportFilename = _T("_interlinear_") + exportFilename;
 	}
 	exportFilename += _T(".rtf"); // make it a *.rtf file type
 
