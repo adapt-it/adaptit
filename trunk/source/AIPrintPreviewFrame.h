@@ -22,14 +22,14 @@
 #endif
 
 // forward declarations
-class CAdapt_ItView;
+class CAdapt_ItApp;
 
 class CAIPrintPreviewFrame :
 	public wxPreviewFrame
 {
 public:
 	CAIPrintPreviewFrame(
-		CAdapt_ItView * view,
+		CAdapt_ItApp* pApp,
 		wxPrintPreviewBase *  preview,  
 		wxWindow *  parent,  
 		const wxString &  title = _("Print Preview"),  
@@ -40,10 +40,12 @@ public:
 	~CAIPrintPreviewFrame(void);
 
 	void HideGlossesOnClose( bool );
+	void HideFreeTranslationsOnClose( bool );
 
 private:
-	CAdapt_ItView* pView;
+	CAdapt_ItApp* pApp;
 	bool bHideGlossesOnClose;
+	bool bHideFreeTranslationsOnClose;
 
 
 };
