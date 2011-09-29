@@ -54,9 +54,8 @@
 #include "KBEditor.h"
 #include "RefString.h"
 #include "helpers.h"
-#include "tellenc.h"
+#include "tellenc.h"	// needed for check_ucs_bom() in MoveTextToFolderAndSave()
 #include "md5.h"
-#include "tellenc.h"
 #include <wx/progdlg.h>
 #include "CollabUtilities.h"
 
