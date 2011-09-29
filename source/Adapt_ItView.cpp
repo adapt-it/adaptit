@@ -1142,8 +1142,10 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 
     // BEW added 7Jul05 for drawing the free translation text substrings in the spaces
     // created under each of the strips (drawing is not done outside the client area for
-    // the view)- but only when we are not currently printing
-	if (pApp->m_bFreeTranslationMode && !gbIsPrinting)
+    // the view)- but only when we are not currently printing 
+	// KLB 9/2011 added check for gbCheckInclFreeTransText so free translations would print on print preview
+	if ((pApp->m_bFreeTranslationMode && !gbIsPrinting) || 
+		(gbIsPrinting && gbCheckInclFreeTransText))
 	{
 		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout(), call_from_ondraw);
 	}
@@ -3444,12 +3446,18 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// klb 9/2011 : If glosses are not visible, we need to make them visible in the
 	// underlying document temporarily to have them show in the print preview frame
 	// whm 25Sep11 added test below for gbCheckInclGlossesText.
+	bool bHideFreeTranslations = FALSE;
+	if (gbCheckInclFreeTransText && !pApp->m_bFreeTranslationMode)
+	{
+		bHideFreeTranslations = TRUE;
+		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+	}
 	bool bHideGlosses = FALSE;
 	if (gbCheckInclGlossesText && !gbGlossingVisible)
 	{
 		bHideGlosses = TRUE;
 		pApp->GetView()->ShowGlosses();
-	}
+	}	
 
 	GetLayout()->RecalcLayout(pApp->GetSourcePhraseList(),create_strips_and_piles);
 
@@ -3493,7 +3501,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	previewPosition.x += wxSystemSettings::GetMetric(wxSYS_FRAMESIZE_X); // move to the 
 														// right by thickness of frame
 	previewPosition.y += controlbarSize.y; // move the preview down just below the toolbar
-	CAIPrintPreviewFrame *frame = new CAIPrintPreviewFrame(this, preview, pApp->GetMainFrame(), 
+	CAIPrintPreviewFrame *frame = new CAIPrintPreviewFrame(pApp, preview, pApp->GetMainFrame(), 
 								previewTitle, previewPosition, frameClientSize);
 	//wxPreviewFrame *frame = new wxPreviewFrame(preview, pApp->GetMainFrame() 
 	//							previewTitle, previewPosition, frameClientSize);
@@ -3503,6 +3511,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// klb 9/2011 : hide glosses if necessary
 	if (bHideGlosses == TRUE)
 		frame->HideGlossesOnClose( TRUE);
+	if (bHideFreeTranslations == TRUE)
+		frame->HideFreeTranslationsOnClose( TRUE);
 	// whm note: The preview window is closed automatically 
 	// when the user exits/closes the preview window.
 	

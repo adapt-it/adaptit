@@ -1830,8 +1830,6 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenuFTMode = 
-						pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 
 	// whm Note: Only log user action when user explicitly selects menu
 	// item not when OnAdvancedFreeTranslationMode() is called by other
@@ -1843,6 +1841,22 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 		else
 			m_pApp->LogUserAction(_T("Free Translation Mode ON"));
 	}
+
+	// klb 9/2011 extracted most of the code here and moved to SwitchScreenFreeTranslationMode()
+	SwitchScreenFreeTranslationMode();
+
+}
+//*****************
+// klb 9/2011
+//    extracted most of the code from CFreeTrans::OnAdvancedFreeTranslationMode 
+//       and created this call so free translations could be drawn on print preview
+//       in the background when requested (print preview relies on what is on screen)
+void CFreeTrans::SwitchScreenFreeTranslationMode()
+{
+	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	wxMenuItem * pAdvancedMenuFTMode = 
+						pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 
 	gbSuppressSetup = FALSE; // setdefault value
 

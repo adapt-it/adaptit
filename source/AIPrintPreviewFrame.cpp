@@ -36,9 +36,10 @@
 #include "AIPrintPreviewFrame.h"
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
+#include "FreeTrans.h"
 
 CAIPrintPreviewFrame::CAIPrintPreviewFrame(
-	CAdapt_ItView * view,
+	CAdapt_ItApp* App,
 	wxPrintPreviewBase *  preview,  
 	wxWindow *  parent,  
 	const wxString &  title,  
@@ -48,22 +49,30 @@ CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 	const wxString &  name )
 	: wxPreviewFrame( preview, parent, title, pos, size, style, name) 
 {
-	pView = view;
-	wxASSERT(pView != NULL);
+	pApp = App;
+	wxASSERT(pApp != NULL);
 	bHideGlossesOnClose = FALSE;
 }
 
 CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 {
 	if (bHideGlossesOnClose	 == TRUE)
-		pView->ShowGlosses();
-	//wxPreviewFrame::~wxPreviewFrame();
+		pApp->GetView()->ShowGlosses();
+	if (bHideFreeTranslationsOnClose == TRUE)
+		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
 }
 
 // Setting this to true will redraw the underlying application view
-//    before closing the window, allowing us to show glosses and repaint
-//    before exiting
+//    before closing the window, allowing us to print glosses and 
+//    then hide them and repaint before exiting
 void CAIPrintPreviewFrame::HideGlossesOnClose( bool bClose )
 { 
 	bHideGlossesOnClose = bClose;
+}
+// Setting this to true will redraw the underlying application view
+//    before closing the window, allowing us to print Free Translations and 
+//    then hide them and repaint before exiting
+void CAIPrintPreviewFrame::HideFreeTranslationsOnClose( bool bClose )
+{ 
+	bHideFreeTranslationsOnClose = bClose;
 }
