@@ -5790,6 +5790,8 @@ bool IsLoadableFile(wxString& absPathToFile)
 	illegalExtensions.Add(extn);
 	extn = _T("mdb"); // MS Access
 	illegalExtensions.Add(extn);
+	extn = _T("log"); // system log files GDLC 29Sep11
+	illegalExtensions.Add(extn);
 
 	wxArrayString legalExtensions;
 	extn = _T("txt");
@@ -5821,6 +5823,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 		if (extension == legalExtensions.Item(index))
 		{
 			bIsLegal = TRUE;
+			break;	// GDLC If this one matches, further testing is redundant
 		}
 	}
 	if (bIsLegal) return TRUE;
@@ -5834,6 +5837,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 		if (extension == illegalExtensions.Item(index))
 		{
 			bIsIllegal = TRUE;
+			break;	// GDLC If this one matches, further testing is redundant
 		}
 	}
 	if (bIsIllegal) return FALSE;
@@ -5851,12 +5855,12 @@ bool IsLoadableFile(wxString& absPathToFile)
 	}
 	//size_t len = GetFileSize_t(absPathToFile); // not needed
 	size_t len = f.Length(); // it's legal to assign to size_t
-	wxMemoryBuffer* pBuffer = new wxMemoryBuffer(len + 2);
-	// ensure the last two bytes are nulls, and create acceptable pointers for calls below
+	wxMemoryBuffer* pBuffer = new wxMemoryBuffer(len);	//+ 2 removed because NULs are not needed
+	// Create acceptable pointers for calls below
 	char* ptr = (char*)pBuffer->GetData();
 	const unsigned char* const saved_ptr = (const unsigned char* const)ptr;
-	*(ptr + len) = '\0';
-	*(ptr + len + 1) = '\0';
+//	*(ptr + len) = '\0';	GDLC The NULs are not needed
+//	*(ptr + len + 1) = '\0';
 	// get the file opened and read it into a memory buffer
 	size_t numRead = f.Read(ptr,len);
 	if (numRead < len)
@@ -5898,7 +5902,9 @@ bool IsLoadableFile(wxString& absPathToFile)
 	}
 	delete pBuffer;
 
-	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
+//	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
+// GDLC I agree with Bill that we can allow ucs-4 and usc4-le
+	if (bIsXML || resultStr == "binary")
 	{
 		return FALSE;
 	}
@@ -5924,7 +5930,7 @@ bool IsLittleEndian(wxString& theText)
 	resultStr = tellenc2(pCharBuf, size_in_bytes);
 	if (resultStr == "utf-16" || resultStr == "ucs-4")
 	{
-		// this is running on a big-endian machine
+		// theText is big-endian
 		bIsLittleEndian = FALSE;
 	}
 #endif

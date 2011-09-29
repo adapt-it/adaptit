@@ -335,7 +335,7 @@ wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
 
 // next two use tellenc.cpp
 bool IsLoadableFile(wxString& absPathToFile);
-// determine endian value for the machine being run on, from how the bytes are ordered
+// determine endian value for theText, from how the bytes are ordered
 bool IsLittleEndian(wxString& theText);
 
 /* unused, but perfect good
