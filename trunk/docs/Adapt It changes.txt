@@ -67,11 +67,13 @@ Major New Features in 6.0.0:
     in LIFT format, and importing data to the knowledge base from a 
     LIFT format file. KB export as LIFT xml is now optional, the 
     older KB export in the form of \lx & \ge fields is still the 
-    default type of export. LIFT exports can be done via the 
-    selecting the type of export at export time. Exporting the KB in 
-    LIFT format only exports source text and adaptation (or gloss, 
-    if exporting when in glossing mode), and all datetime and other 
-    information in the KB is lost.
+    default type of export and recommended for KB backups. LIFT 
+    exports can be done via selecting the type of export at export 
+    time. Exporting the KB in LIFT format only exports source text 
+    and adaptation (or gloss, if exporting when in glossing mode), 
+    and all datetime and other information in the KB is not 
+    preserved, whereas exports of the KB in standard format preserves 
+    datetime and other KB information.
 * Additional "white space" characters are supported in the Unicode 
     build, which means that when parsing in source text the presence 
     of any of these characters will result in a word break: 
