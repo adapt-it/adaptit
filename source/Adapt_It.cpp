@@ -13740,15 +13740,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetDataDir() = %s"),dataDir.c_str());
 	localDataDir = stdPaths.GetLocalDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetLocalDataDir() = %s"),localDataDir.c_str());
-#ifdef __WXMAC__
+//#ifdef __WXMAC__
     // whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
     // crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
     // ::wxGetHomeDir() function for the Mac which should return the same directory string
     // on the Mac that wxStandardPaths::GetDocumentsDir() does.
-	documentsDir = ::wxGetHomeDir();
-#else
+	// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
+//	documentsDir = ::wxGetHomeDir();
+//#else
 	documentsDir = stdPaths.GetDocumentsDir();
-#endif
+//#endif
 	wxLogDebug(_T("The wxStandardPaths::GetDocumentsDir() = %s"),documentsDir.c_str());
 	userConfigDir = stdPaths.GetUserConfigDir();
 	wxLogDebug(_T("The wxStandardPaths::GetUserConfigDir() = %s"),userConfigDir.c_str());
@@ -22005,16 +22006,17 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 
 	// Get the "documents" directory for the current system/platform. 
 	wxStandardPaths stdPaths;
-#ifdef __WXMAC__
+//#ifdef __WXMAC__
 	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
 	// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
 	// ::wxGetHomeDir() function for the Mac which should return the same directory string
 	// on the Mac that wxStandardPaths::GetDocumentsDir() does.
-	stdDocsDir = ::wxGetHomeDir();
-#else
+	// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
+//	stdDocsDir = ::wxGetHomeDir();
+//#else
 	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since 
 											 // wxWidgets version 2.7.0
-#endif
+//#endif
 	// Typically the "documents" directory depends on the system:
 	// Unix: ~/(the home directory, i.e., /home/<username>/)
 	// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
@@ -35870,16 +35872,17 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
 			// class wxStandardPaths (code plagiarized from EnsureWorkFolderPresent())
 a:			wxString stdDocsDir = _T("");
 			wxStandardPaths stdPaths;
-			#ifdef __WXMAC__
+//			#ifdef __WXMAC__
 			// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
 			// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
 			// ::wxGetHomeDir() function for the Mac which should return the same directory string
 			// on the Mac that wxStandardPaths::GetDocumentsDir() does.
-			stdDocsDir = ::wxGetHomeDir();
-			#else
+			// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
+//			stdDocsDir = ::wxGetHomeDir();
+//			#else
 			stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function  
 												// is new since wxWidgets version 2.7.0
-			#endif
+//			#endif
 			// Typically the "documents" directory depends on the system:
 			// Unix: ~/(the home directory, i.e., /home/<username>/)
 			// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
@@ -37301,16 +37304,17 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// For Linux: /usr/home
 		wxStandardPaths stdPaths;
 		wxString homeDir;
-		#ifdef __WXMAC__
+//		#ifdef __WXMAC__
 		// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
 		// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
 		// ::wxGetHomeDir() function for the Mac which should return the same directory string
 		// on the Mac that wxStandardPaths::GetDocumentsDir() does.
-		homeDir = ::wxGetHomeDir();
-		#else
+		// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
+//		homeDir = ::wxGetHomeDir();
+//		#else
 		homeDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since 
 											  // wxWidgets version 2.7.0
-		#endif
+//		#endif
 		// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 		if (folderPath.GetChar(folderPath.Length() - 1) == PathSeparator)
 		{
