@@ -312,9 +312,12 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// tempWorkflowProfile here > 0, so set selectedComboProfileIndex to tempWorkflowProfile - 1
 		pComboBox->SetSelection(selectedComboProfileIndex); // this does not cause a wxEVT_COMMAND_COMBOBOX_SELECTED event
 		// whm 19Sep11 added below
-		wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
-		// Note: no need to replace entities here
-		pEditProfileDescr->ChangeValue(str);
+		if (tempUserProfiles != NULL)
+		{
+			wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
+			// Note: no need to replace entities here
+			pEditProfileDescr->ChangeValue(str);
+		}
 	}
 		
 
@@ -381,6 +384,7 @@ void CAdminEditMenuProfile::OnNotebookTabChanged(wxNotebookEvent& event)
 		int indexOfCustomProfile;
 		indexOfCustomProfile = GetIndexOfProfileFromProfileName(_("Custom"));
 		if (indexOfCustomProfile != wxNOT_FOUND 
+			&& tempUserProfiles != NULL
 			&& notebookTabIndex == indexOfCustomProfile
 			&& !ThisUserProfilesItemsDifferFromFactory(indexOfCustomProfile))
 		{
@@ -577,9 +581,12 @@ void CAdminEditMenuProfile::OnRadioUseProfile(wxCommandEvent& WXUNUSED(event))
 		// control. They will be replaced again before saving any edits back to xml. The
 		// XML.cpp file has an InsertEntities() function but it uses CBString. Rather than
 		// converting to CBString we just insert the entities here manually.
-		wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
-		// Note: no need to replace entities here
-		pEditProfileDescr->ChangeValue(str);
+		if (tempUserProfiles != NULL)
+		{
+			wxString str = tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex);
+			// Note: no need to replace entities here
+			pEditProfileDescr->ChangeValue(str);
+		}
 	}
 }
 
@@ -588,7 +595,8 @@ void CAdminEditMenuProfile::OnEditBoxDescrChanged(wxCommandEvent& WXUNUSED(event
 	// update every change in the Description edit box to the tempUserProfiles member
 	// Note: any user entered chars '>', '>', '&' ''', '"' are normal chars and NOT to be replaced
 	// by xml entities here.
-	tempUserProfiles->descriptionProfileTexts[selectedComboProfileIndex] = pEditProfileDescr->GetValue();
+	if (tempUserProfiles != NULL)
+		tempUserProfiles->descriptionProfileTexts[selectedComboProfileIndex] = pEditProfileDescr->GetValue();
 }
 
 
@@ -1110,20 +1118,23 @@ bool CAdminEditMenuProfile::UserProfileDescriptionsHaveChanged()
 	// in their descriptionProfileTexts arrays.
 	bool bChanged = FALSE;
 	int ct;
-	int tot = tempUserProfiles->descriptionProfileTexts.GetCount();
-	for (ct = 0; ct < tot; ct++)
+	if (tempUserProfiles != NULL)
 	{
-		// Note: any user entered chars '>', '>', '&' ''', '"' are normal chars and NOT to be replaced
-		// by xml entities here.
-		if (tempUserProfiles->descriptionProfileTexts[ct] != appUserProfiles->descriptionProfileTexts[ct])
+		int tot = tempUserProfiles->descriptionProfileTexts.GetCount();
+		for (ct = 0; ct < tot; ct++)
 		{
-			bChanged = TRUE;
-			bChangeMadeToDescriptionItems = TRUE;
-			bDescriptionChanged[ct] = 1;
-		}
-		else
-		{
-			bDescriptionChanged[ct] = 0;
+			// Note: any user entered chars '>', '>', '&' ''', '"' are normal chars and NOT to be replaced
+			// by xml entities here.
+			if (tempUserProfiles->descriptionProfileTexts[ct] != appUserProfiles->descriptionProfileTexts[ct])
+			{
+				bChanged = TRUE;
+				bChangeMadeToDescriptionItems = TRUE;
+				bDescriptionChanged[ct] = 1;
+			}
+			else
+			{
+				bDescriptionChanged[ct] = 0;
+			}
 		}
 	}
 	return bChanged;
@@ -1137,7 +1148,7 @@ bool CAdminEditMenuProfile::CurrentProfileDescriptionHasChanged()
 {
 	// Note: any user entered chars '>', '>', '&' ''', '"' are normal chars and NOT to be replaced
 	// by xml entities here.
-	if (tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex) != factoryDescrArrayStrings.Item(selectedComboProfileIndex))
+	if (tempUserProfiles != NULL && tempUserProfiles->descriptionProfileTexts.Item(selectedComboProfileIndex) != factoryDescrArrayStrings.Item(selectedComboProfileIndex))
 		return TRUE;
 	else
 		return FALSE;
@@ -1203,7 +1214,7 @@ void CAdminEditMenuProfile::OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event))
 	// differs from the corresponding one in factoryDescrArrayStrings, otherwise FALSE. 
 	// TODO: Should we ask the user before changing the descriptionProfileTexts
 	// part of the dialog back to their factory defaults???
-	if (CurrentProfileDescriptionHasChanged())
+	if (CurrentProfileDescriptionHasChanged() && tempUserProfiles != NULL)
 	{
 		// Note: any user entered chars '>', '>', '&' ''', '"' are normal chars and NOT to be replaced
 		// by xml entities here.
@@ -1217,15 +1228,18 @@ void CAdminEditMenuProfile::OnBtnResetToFactory(wxCommandEvent& WXUNUSED(event))
 	// their usedFactoryValues.
 	ProfileItemList::Node* piNode;
 	UserProfileItem* pUserProfileItem;
-	int ct_pi;
-	int nProfileItems = (int)tempUserProfiles->profileItemList.GetCount();
-	for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
+	if (tempUserProfiles != NULL)
 	{
-		piNode = tempUserProfiles->profileItemList.Item(ct_pi);
-		pUserProfileItem = piNode->GetData();
-		// assign the usedFactoryValues values back to the usedVisibilityValues
-		// but only for the currently selected profile
-		pUserProfileItem->usedVisibilityValues[selectedComboProfileIndex] = pUserProfileItem->usedFactoryValues[selectedComboProfileIndex];
+		int ct_pi;
+		int nProfileItems = (int)tempUserProfiles->profileItemList.GetCount();
+		for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
+		{
+			piNode = tempUserProfiles->profileItemList.Item(ct_pi);
+			pUserProfileItem = piNode->GetData();
+			// assign the usedFactoryValues values back to the usedVisibilityValues
+			// but only for the currently selected profile
+			pUserProfileItem->usedVisibilityValues[selectedComboProfileIndex] = pUserProfileItem->usedFactoryValues[selectedComboProfileIndex];
+		}
 	}
 	// reload the listbox
 	PopulateListBox(notebookTabIndex);
@@ -1320,11 +1334,11 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		m_pApp->m_pConfig->SetPath(oldPath);
 		
 	}
-	if (UserProfileDescriptionsHaveChanged() || UserProfileItemsHaveChanged())
+	if (tempUserProfiles != NULL && (UserProfileDescriptionsHaveChanged() || UserProfileItemsHaveChanged()))
 	{
 		m_pApp->MapChangesInUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
 	}
-	if (UserProfileItemsHaveChanged())
+	if (UserProfileItemsHaveChanged() && tempUserProfiles != NULL)
 	{
 		bChangesMadeToProfileItems = TRUE;
 		//m_pApp->MapChangesInUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
@@ -1513,10 +1527,14 @@ wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileValue(int tempWorkflo
 	else
 		profileIndex = tempWorkflowProfile - 1;
 	// if we get here user has selected one of the user workflow profiles
-	int totNames;
-	totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
-	wxASSERT(profileIndex >= 0 && profileIndex < totNames);
-	wxString str = tempUserProfiles->definedProfileNames.Item(profileIndex);
+	wxString str = _T("");
+	if (tempUserProfiles != NULL)
+	{
+		int totNames;
+		totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
+		wxASSERT(profileIndex >= 0 && profileIndex < totNames);
+		str = tempUserProfiles->definedProfileNames.Item(profileIndex);
+	}
 	return str;
 }
 
@@ -1525,10 +1543,14 @@ wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileValue(int tempWorkflo
 // It uses the actual names that are contained in tempUserProfiles' definedProfileNames.
 wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileIndex(int profileIndex)
 {
-	int totNames;
-	totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
-	wxASSERT(profileIndex >= 0 && profileIndex < totNames);
-	wxString str = tempUserProfiles->definedProfileNames.Item(profileIndex);
+	wxString str = _T("");
+	if (tempUserProfiles != NULL)
+	{
+		int totNames;
+		totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
+		wxASSERT(profileIndex >= 0 && profileIndex < totNames);
+		str = tempUserProfiles->definedProfileNames.Item(profileIndex);
+	}
 	return str;
 }
 
@@ -1538,14 +1560,17 @@ wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileIndex(int profileInde
 // that are contained in tempUserProfiles' definedProfileNames.
 int CAdminEditMenuProfile::GetIndexOfProfileFromProfileName(wxString profileName)
 {
-	int ct;
-	int totNames;
-	totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
-	for (ct = 0; ct < totNames; ct++)
+	if (tempUserProfiles != NULL)
 	{
-		if (tempUserProfiles->definedProfileNames.Item(ct) == profileName)
+		int ct;
+		int totNames;
+		totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
+		for (ct = 0; ct < totNames; ct++)
 		{
-			return ct;
+			if (tempUserProfiles->definedProfileNames.Item(ct) == profileName)
+			{
+				return ct;
+			}
 		}
 	}
 	return -1;
@@ -1585,23 +1610,26 @@ wxArrayString CAdminEditMenuProfile::GetArrayOfFactoryDescrStrings()
 // separated by ", ".
 wxString CAdminEditMenuProfile::GetNamesOfEditedProfiles()
 {
-	wxString str;
-	int totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
-	int ct;
-	for (ct = 0; ct < totNames; ct++)
+	wxString str = _T("");
+	if (tempUserProfiles != NULL)
 	{
-		if (bProfileChanged[ct] == 1)
+		int totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
+		int ct;
+		for (ct = 0; ct < totNames; ct++)
 		{
-			if (str.IsEmpty())
-				str = GetNameOfProfileFromProfileIndex(ct);
-			else
-				str = str + _T(", ") + GetNameOfProfileFromProfileIndex(ct);
+			if (bProfileChanged[ct] == 1)
+			{
+				if (str.IsEmpty())
+					str = GetNameOfProfileFromProfileIndex(ct);
+				else
+					str = str + _T(", ") + GetNameOfProfileFromProfileIndex(ct);
+			}
 		}
 	}
 	return str;
 }
 
-// Scans through the tempUserProfiles and, copies the userVisibility values fomr
+// Scans through the tempUserProfiles and, copies the userVisibility values from
 // the sourceProfileIndex profile to the destinationProfileIndex profile.
 // Called in OnNotebookTabChanged() if user responds with a profile to use
 // in pre-setting the Custom profile.
@@ -1609,30 +1637,35 @@ void CAdminEditMenuProfile::CopyProfileVisibilityValues(int sourceProfileIndex, 
 {
 	ProfileItemList::Node* piNode;
 	UserProfileItem* pUserProfileItem;
-	int ct_pi;
-	int nProfileItems = (int)tempUserProfiles->profileItemList.GetCount();
-	for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
+	if (tempUserProfiles != NULL
+		&& sourceProfileIndex != wxNOT_FOUND
+		&& destinationProfileIndex != wxNOT_FOUND)
 	{
-		piNode = tempUserProfiles->profileItemList.Item(ct_pi);
-		pUserProfileItem = piNode->GetData();
-		int tot;
-		tot = (int)pUserProfileItem->usedVisibilityValues.GetCount();
-		wxASSERT(tot == (int)pUserProfileItem->usedFactoryValues.GetCount());
-		// copy the sourceProfileIndex values to the destinationProfileIndex values
-		wxString destName;
-		destName = pUserProfileItem->usedProfileNames[destinationProfileIndex];
-		wxString srcName;
-		srcName = pUserProfileItem->usedProfileNames[sourceProfileIndex];
-		
-		//wxLogDebug(_T("Before Dest Visibility of %s = %s; Before Src Visibility of %s = %s"),destName.c_str(),
-		//	pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
-		//	srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
-		
-		pUserProfileItem->usedVisibilityValues[destinationProfileIndex] = pUserProfileItem->usedVisibilityValues[sourceProfileIndex];
-		
-		//wxLogDebug(_T("After Dest Visibility of %s = %s; After Src Visibility of %s = %s"),destName.c_str(),
-		//	pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
-		//	srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+		int ct_pi;
+		int nProfileItems = (int)tempUserProfiles->profileItemList.GetCount();
+		for (ct_pi = 0; ct_pi < nProfileItems; ct_pi++)
+		{
+			piNode = tempUserProfiles->profileItemList.Item(ct_pi);
+			pUserProfileItem = piNode->GetData();
+			int tot;
+			tot = (int)pUserProfileItem->usedVisibilityValues.GetCount();
+			wxASSERT(tot == (int)pUserProfileItem->usedFactoryValues.GetCount());
+			// copy the sourceProfileIndex values to the destinationProfileIndex values
+			wxString destName;
+			destName = pUserProfileItem->usedProfileNames[destinationProfileIndex];
+			wxString srcName;
+			srcName = pUserProfileItem->usedProfileNames[sourceProfileIndex];
+			
+			//wxLogDebug(_T("Before Dest Visibility of %s = %s; Before Src Visibility of %s = %s"),destName.c_str(),
+			//	pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
+			//	srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+			
+			pUserProfileItem->usedVisibilityValues[destinationProfileIndex] = pUserProfileItem->usedVisibilityValues[sourceProfileIndex];
+			
+			//wxLogDebug(_T("After Dest Visibility of %s = %s; After Src Visibility of %s = %s"),destName.c_str(),
+			//	pUserProfileItem->usedVisibilityValues[destinationProfileIndex].c_str(),
+			//	srcName.c_str(),pUserProfileItem->usedVisibilityValues[sourceProfileIndex].c_str());
+		}
 	}
 }
 
