@@ -49,12 +49,14 @@ public:
 
 	wxButton* pBtnPreLoadSourceTexts;
 	wxButton* pSelectAllCheckBoxes;
+	wxButton* pUnSelectAllCheckBoxes;
 
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnSelectAllCheckBoxes(wxCommandEvent& WXUNUSED(event));
+	void OnUnSelectAllCheckBoxes(wxCommandEvent& WXUNUSED(event));
 	void OnPreLoadSourceTexts(wxCommandEvent& WXUNUSED(event));
 
 private:

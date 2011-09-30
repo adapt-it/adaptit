@@ -8620,29 +8620,32 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
 
     wxBoxSizer *item47 = new wxBoxSizer( wxHORIZONTAL );
 
-    item47->Add( 150, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item48 = new wxButton( parent, ID_BUTTON_UNSELECT_ALL_CHECKBOXES, _("Protect None (Uncheck All Boxes)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item48 = new wxButton( parent, ID_BUTTON_SELECT_ALL_CHECKBOXES, _("Protect All (Check All Boxes)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 0 );
+    item47->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item47->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item49 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item49 = new wxButton( parent, ID_BUTTON_SELECT_ALL_CHECKBOXES, _("Protect All (Check All Boxes)"), wxDefaultPosition, wxDefaultSize, 0 );
     item47->Add( item49, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item47->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item50 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item50->SetDefault();
+    wxButton *item50 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item47->Add( item50, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item47->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item51 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item51->SetDefault();
+    item47->Add( item51, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item47, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item51 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item52 = new wxBoxSizer( wxHORIZONTAL );
 
-    item1->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item52, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 

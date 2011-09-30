@@ -56,6 +56,7 @@ BEGIN_EVENT_TABLE(CAssignLocationsForInputsAndOutputs, AIModalDialog)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CAssignLocationsForInputsAndOutputs::OnDoSomething)
 	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CAssignLocationsForInputsAndOutputs::OnUpdateDoSomething)
 	EVT_BUTTON(ID_BUTTON_SELECT_ALL_CHECKBOXES, CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes)
+	EVT_BUTTON(ID_BUTTON_UNSELECT_ALL_CHECKBOXES, CAssignLocationsForInputsAndOutputs::OnUnSelectAllCheckBoxes)
 	EVT_BUTTON(ID_BUTTON_PRE_LOAD_SOURCE_TEXTS, CAssignLocationsForInputsAndOutputs::OnPreLoadSourceTexts)
 	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CAssignLocationsForInputsAndOutputs::OnDoSomething)
 	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CAssignLocationsForInputsAndOutputs::DoSomething)
@@ -121,6 +122,8 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxASSERT(pBtnPreLoadSourceTexts != NULL);
 	pSelectAllCheckBoxes = (wxButton*)FindWindowById(ID_BUTTON_SELECT_ALL_CHECKBOXES);
 	wxASSERT(pSelectAllCheckBoxes != NULL);
+	pUnSelectAllCheckBoxes = (wxButton*)FindWindowById(ID_BUTTON_UNSELECT_ALL_CHECKBOXES);
+	wxASSERT(pUnSelectAllCheckBoxes != NULL);
 
 	// other attribute initializations
 }
@@ -231,6 +234,39 @@ void CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes(wxCommandEvent& 
 	pProtectPackedInputsAndOutputs->SetValue(TRUE);
 	pProtectCCTableInputsAndOutputs->SetValue(TRUE);
 	pProtectReportsLogsOutputs->SetValue(TRUE);
+}
+
+void CAssignLocationsForInputsAndOutputs::OnUnSelectAllCheckBoxes(wxCommandEvent& WXUNUSED(event))
+{
+	// un-tick all the checkboxes
+	// whm modification. We don't unselect source inputs or target outputs
+	// when collaboration with PT/BE is ON. Also we don't unselect free trans
+	// outputs when collaboration with PT/BE is ON and m_bCollaborationExpectsFreeTrans
+	// is TRUE.
+	if (!m_pApp->m_bCollaboratingWithParatext && !m_pApp->m_bCollaboratingWithBibledit)
+	{
+		pProtectSourceInputs->SetValue(FALSE);
+	}
+	if (!m_pApp->m_bCollaborationExpectsFreeTrans)
+	{
+		pProtectFreeTransOutputs->SetValue(FALSE);
+	}
+	pProtectFreeTransRTFOutputs->SetValue(FALSE);
+	pProtectGlossOutputs->SetValue(FALSE);
+	pProtectGlossRTFOutputs->SetValue(FALSE);
+	pProtectInterlinearRTFOutputs->SetValue(FALSE);
+	pProtectSourceOutputs->SetValue(FALSE);
+	pProtectSourceRTFOutputs->SetValue(FALSE);
+	if (!m_pApp->m_bCollaboratingWithParatext && !m_pApp->m_bCollaboratingWithBibledit)
+	{
+		pProtectTargetOutputs->SetValue(FALSE);
+	}
+	pProtectTargetRTFOutputs->SetValue(FALSE);
+	pProtectKBInputsAndOutputs->SetValue(FALSE);
+	pProtectLIFTInputsAndOutputs->SetValue(FALSE);
+	pProtectPackedInputsAndOutputs->SetValue(FALSE);
+	pProtectCCTableInputsAndOutputs->SetValue(FALSE);
+	pProtectReportsLogsOutputs->SetValue(FALSE);
 }
 
 void CAssignLocationsForInputsAndOutputs::OnPreLoadSourceTexts(wxCommandEvent& WXUNUSED(event))
