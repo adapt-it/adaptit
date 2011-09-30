@@ -204,6 +204,16 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 	m_projectSelectionMade = FALSE;
 
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	{
+		m_bCollabSettingSave = m_bTempCollaboratingWithParatext;
+	}
+	else
+	{
+		m_bCollabSettingSave = m_bTempCollaboratingWithBibledit;
+	}
+	m_bCollabChangedThisDlgSession = FALSE;
+
 	// adjust static strings substituting "Paratext" or "Bibledit" depending on
 	// the string value in m_collaborationEditor
 	// Substitute strings in the top edit box
@@ -1189,11 +1199,19 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		// Collaboration radio button is ON
 		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		{
+			if (m_pApp->m_bCollaboratingWithBibledit != TRUE)
+			{
+				m_bCollabChangedThisDlgSession = TRUE;
+			}
 			m_pApp->m_bCollaboratingWithBibledit = TRUE;
 			m_pApp->LogUserAction(_T("Collab with Bibledit ON"));
 		}
 		else
 		{
+			if (m_pApp->m_bCollaboratingWithParatext != TRUE)
+			{
+				m_bCollabChangedThisDlgSession = TRUE;
+			}
 			m_pApp->m_bCollaboratingWithParatext = TRUE;
 			m_pApp->LogUserAction(_T("Collab with Paratext ON"));
 		}
@@ -1203,11 +1221,19 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		// Collaboration radio button is OFF
 		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		{
+			if (m_pApp->m_bCollaboratingWithBibledit != FALSE)
+			{
+				m_bCollabChangedThisDlgSession = TRUE;
+			}
 			m_pApp->m_bCollaboratingWithBibledit = FALSE;
 			m_pApp->LogUserAction(_T("Collab with Bibledit OFF"));
 		}
 		else
 		{
+			if (m_pApp->m_bCollaboratingWithParatext != FALSE)
+			{
+				m_bCollabChangedThisDlgSession = TRUE;
+			}
 			m_pApp->m_bCollaboratingWithParatext = FALSE;
 			m_pApp->LogUserAction(_T("Collab with Paratext OFF"));
 		}
@@ -1241,6 +1267,53 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK()."));
 	}
 
+	bool bRemoveProtectedSourceFolder = FALSE;
+	if (m_pApp->m_collaborationEditor == _T("Paratext") 
+		&& m_bCollabChangedThisDlgSession 
+		&& m_pApp->m_bCollaboratingWithParatext == FALSE)
+	{
+		bRemoveProtectedSourceFolder = TRUE;
+	}
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit") 
+		&& m_bCollabChangedThisDlgSession 
+		&& m_pApp->m_bCollaboratingWithBibledit == FALSE)
+	{
+		bRemoveProtectedSourceFolder = TRUE;
+	}
+
+	if (bRemoveProtectedSourceFolder)
+	{
+		wxString AiProjectName = m_TempCollabSourceProjLangName + _T(" to ") + m_TempCollabTargetProjLangName + _T(" adaptations");
+		wxString msg;
+		msg = _("During collaboration with %s Adapt It got its source texts from a %s project, and the __SOURCE_INPUTS folder was automatically protected from navigation.\n\nYou just turned collaboration OFF, and Adapt It is now removing navigation protection from the __SOURCE_INPUTS folder in the %s project.\n\nIf you want the __SOURCE_INPUTS folder of the %s project to continue to be protected even while collaboration is OFF, you will need to select the \"Assign Locations for Inputs and Outputs\" dialog from the Administrator menu and tick the checkbox labeled \"Protect from Navigation\" for the __SOURCE_INPUTS folder.");
+		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str(),AiProjectName.c_str(),AiProjectName.c_str());
+		wxMessageBox(msg,_("Navigation protection for the __SOURCE_INPUTS folder is being turned OFF"),wxICON_INFORMATION);
+		int posSrcFolder = -1;
+		posSrcFolder = m_pApp->m_foldersProtectedFromNavigation.Find(_T("__SOURCE_INPUTS:"));
+		if (posSrcFolder != wxNOT_FOUND)
+		{
+			int len = m_pApp->m_sourceInputsFolderName.Length() + 1; // + 1 for the colon ':' at end
+			m_pApp->m_foldersProtectedFromNavigation.Remove(posSrcFolder,len);
+			// Change the App flag to match since the admin might access the Assign Locations... dialog
+			// in the current session and the project config file won't be read to adjust the App's
+			// m_bProtectSourceInputsFolder flag.
+			m_pApp->m_bProtectSourceInputsFolder = FALSE;
+			// update the m_pConfig file.
+			bool bWriteOK = FALSE;
+			wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+			m_pApp->m_pConfig->SetPath(_T("/Settings"));
+			// whm 30Sep11 Note: we want even a null string value for the m_foldersProtextedFromNavigation string
+			// to be saved in Adapt_It_WX.ini.
+			{ // block for wxLogNull
+				wxLogNull logNo; // eliminates spurious message from the system
+				bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
+				m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+			}
+			// restore the oldPath back to "/Recent_File_List"
+			m_pApp->m_pConfig->SetPath(oldPath);
+		}
+	}
+
 	// ================================================================================
 	// whm 8Sep11 NOTE: The administrator's settings are saved below in the Adapt_It_WX.ini
 	// file. This is a safeguard that enables the settings to be restored if the user does
@@ -1258,7 +1331,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	bool bWriteOK = FALSE;
 	wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pApp->m_pConfig->SetPath(_T("/Settings"));
-	if (m_pApp->m_bCollaboratingWithParatext == TRUE)
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
 		wxLogNull logNo; // eliminates spurious message from the system
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collaboration"), m_pApp->m_bCollaboratingWithParatext);
@@ -1275,7 +1348,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// update the values related to BE collaboration in the Adapt_It_WX.ini file
-	if (m_pApp->m_bCollaboratingWithBibledit == TRUE)
+	if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		wxLogNull logNo; // eliminates spurious message from the system
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collaboration"), m_pApp->m_bCollaboratingWithBibledit);

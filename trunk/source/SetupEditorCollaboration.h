@@ -85,6 +85,8 @@ private:
 	wxButton* pBtnSelectFmListFreeTransProj;
 	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnOK;
+	bool m_bCollabSettingSave;
+	bool m_bCollabChangedThisDlgSession;
 
 	// class attributes
 	// wxString m_stringVariable;

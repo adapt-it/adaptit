@@ -11398,6 +11398,24 @@ wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxStri
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedStr)
 {
+	// whm 30Sep11 added. Assume that folder protection for individual folders is OFF
+	// unless it is turned on by the presence of the folder name in the combinedStr
+	m_bProtectSourceInputsFolder = FALSE;
+	m_bProtectFreeTransOutputsFolder = FALSE;
+	m_bProtectFreeTransRTFOutputsFolder = FALSE;
+	m_bProtectGlossOutputsFolder = FALSE;
+	m_bProtectGlossRTFOutputsFolder = FALSE;
+	m_bProtectInterlinearRTFOutputsFolder = FALSE;
+	m_bProtectSourceOutputsFolder = FALSE;
+	m_bProtectSourceRTFOutputsFolder = FALSE;
+	m_bProtectTargetOutputsFolder = FALSE;
+	m_bProtectTargetRTFOutputsFolder = FALSE;
+	m_bProtectKbInputsAndOutputsFolder = FALSE;
+	m_bProtectLiftInputsAndOutputsFolder = FALSE;
+	m_bProtectPackedInputsAndOutputsFolder = FALSE;
+	m_bProtectCCTableInputsAndOutputsFolder = FALSE;
+	m_bProtectReportsOutputsFolder = FALSE;
+
 	// tokenize the folder name elements in m_foldersProtectedFromNavigation
 	// that are delimited by ':' chars
 	wxString tokenStr;

@@ -247,7 +247,8 @@ void CAssignLocationsForInputsAndOutputs::OnUnSelectAllCheckBoxes(wxCommandEvent
 	{
 		pProtectSourceInputs->SetValue(FALSE);
 	}
-	if (!m_pApp->m_bCollaborationExpectsFreeTrans)
+	if ((!m_pApp->m_bCollaboratingWithParatext && !m_pApp->m_bCollaboratingWithBibledit)
+		|| !m_pApp->m_bCollaborationExpectsFreeTrans)
 	{
 		pProtectFreeTransOutputs->SetValue(FALSE);
 	}
@@ -345,8 +346,9 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	bool bWriteOK = FALSE;
 	wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pApp->m_pConfig->SetPath(_T("/Settings"));
-	if (!m_pApp->m_foldersProtectedFromNavigation.IsEmpty())
-	{
+	// whm 30Sep11 Note: we want even a null string value for the m_foldersProtextedFromNavigation string
+	// to be saved in Adapt_It_WX.ini.
+	{ // block for wxLogNull
 		wxLogNull logNo; // eliminates spurious message from the system
 		bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
