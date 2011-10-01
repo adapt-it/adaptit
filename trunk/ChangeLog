@@ -1,344 +1,396 @@
 ----------------------------------------------
-Version 6.0.0 update working on release late 2010 or early 2011
+Version 6.0.0 release 30 September 2011
 ----------------------------------------------
 Feature changes and new features in 6.0.0
 ----------------------------------------------
-New Features in 6.0.0:
-* Source text exported from a document can now be edited outside
- of Adapt It, and then imported back into the same document using
- a new command "Import Edited Source Text..." on the Export-Import
- menu. Material that is unchanged retains all the adaptation information,
- but material that is new or altered appears as unadapted "holes" ready
- for adapting. The document may then be saved manually if the result 
- is satisfactory.
-* User Profiles support for an administrator to customize access to 
- certain functionalities. Default user workflow profiles are provided 
- for Novice, Experienced, Skilled, and Custom users. Each of these 
- default user profiles can be further customized by the administrator 
- to hide or make accessible over 60 of Adapt It's interface elements 
- including many of its menu bar items, mode bar items, tool bar items, 
- Preference tab pages, etc. We believe this new feature can be utilized 
- by an administrator to reduce complexity and/or confusion for new users, 
- and offer an effective means of introducing features as they are needed
-by team members.
-* Protection from navigating the file system is now available for all
-types of inputs and outputs. Administrators can now use the "Assign 
-Locations for Inputs and Outputs" dialog to automatically save certain 
-(or all) inputs and outputs to pre-defined folders controlled by 
-Adapt It. When such protection is ON, files are automatically named 
-with a date-time stamp to keep them unique, and saved automatically 
-saved in those special folders designed for the handling of inputs 
-and outputs.
-* The Help menu no longer has the Adapt It Forum menu item, but 
-now has two more helpful menu items: (1) Report a problem... menu 
-item which provides a dialog containing a partially filled in 
-report form which can be edited to provide developers with details 
-and/or how to duplicate the problem, as well as ability to send the 
-report via email with the click of a button, and (2) Give feedback... 
-menu item which provides a dialog containing a partially filled in 
-report form which can be edited to provide the developers with 
-information on how Adapt It is being used - including successes 
-and/or failures; features of Adapt It that are helpful/not helpful; 
-what features could be improved or added to make Adapt It a better 
-software tool and so on. The email function is SSL encrypted and
-operates from within Adapt It and apart from any other client email
-program.
-* Standard format exports now export the Adapt It custom markers
-\free, \free*, \note, \note* and \bt in a form which Paratext is happy
-to ignore: \zfree, \zfree*, \znote, \znote* and \zbt. Also, source text
-data with either forms of these markers will be parsed in correctly for 
-document creation within Adapt It.
-* Additional "white space" characters are supported in the Unicode
-build, which means that when parsing in source text the presence of 
-any of these characters will result in a word break:
-	NBSP (non-breaking space) U+00A0, or in Adapt It Regular, hex A0
-	U+2060 WJ (Word Joiner)
-	Plus each of the special spaces or joiners in the range
-	U+2000 to U+200D inclusive.  
-* Words and phrases in the target text which differ from the source 
- text immediately above them are given a different colour. The 
- colour used is setable from the Preferences / Fonts page.
-* The order of fields in standard format exports, particularly a 
-target text or source text export, has been altered. The information 
-is export in the following order (not all these types may be present 
-at any one location of course): 1. filtered information 2. a collected 
-back translation 3. a note, 4. a free translation, 5 the adaptation 
-(or source) text itself. The old order was 2,4,3,1, which did not 
-conform well to USFM expected ordering. Creating an adaptation document 
-from one of these exports gives the same result as before - nothing 
-is different.
-* On the languages page of the Start Working... wizard, the checkbox
-"Recognise standard format markers only following newlines" has been 
-removed, because the code for this feature has been broken now for 
-several years, and appears to be no longer needed.
-* The knowledge base has been upgraded to version 2. It now stores
-the datetime for creation of an entry, modification of an entry, and
-deletion of an entry; also, a field for who created the entry. 
-"Deletion" of an entry now does not physically delete it, rather 
-the entry is marked as deleted and is hidden, but remains in the 
-knowledge base. If the user later creates the same adaptation, the 
-KB will silently "undelete" the deleted entry.
-Note: The XML format that will be used for knowledge bases in version 
-6.0.0 (kbVersion 2) is not compatible with the XML format used by the 
-knowledge bases prior to version 6.0.0 (kbVersion 1). The kbVersion 1 
-format applies to all versions from 1.0.0 up to and including 5.2.3; 
-The kbVersion 2 format applies from version 6.0.0 and onwards. Using 
-6.0.0 or later versions will automatically transform a kbVersion 1 
-knowledge base to kbVersion 2 format. It is important to realize 
-that once that is done, earlier versions of Adapt It will not read 
-a kbVersion 2 knowledge base, assume it is corrupted and empty the 
-knowledge base file - so be warned. Before upgrading to Adapt It 
-version 6.0.0, you should make a backup of your KB files by Using 
-the Export Knowledge Base command on the Export-Import menu. The KB 
-backup should be either in LIFT format, or in \lx and \ge format -- 
-the latter is best because such a file preserves all the datetime 
-and other kbVersion 2 information, whereas LIFT format doesn't; and 
-all versions of Adapt It, from 1.0.0 to 6.0.0 and beyond can 
-successfully read a KB stored as \lx & \ge records, even when such 
-a file was produced by 6.0.0 or later versions.
-* The Export-Import menu now supports exporting the knowledge base 
-in LIFT format, and importing data to the knowledge base from a 
-LIFT format file. KB export as LIFT xml is now optional, the 
-older KB export in the form of \lx & \ge fields is still the 
-default type of export. LIFT exports can be done via the selecting
-the type of export at export time. Exporting the KB in LIFT format 
-only exports source text and adaptation (or gloss, if exporting 
-when in glossing mode), and all datetime and other information 
-in the KB is lost.
-* KB export and import in the form of records using \lx and \ge 
-fields has been extended to support the extra information in 
-kbVersion 2; and <Not In KB> entries are included in the export 
-(whereas for kbVersion 1 exports of this type they were excluded); 
-also, each time the user asks for an SFM export of the KB, a 
-message box pops up to ask how deleted KB entries (which remain 
-in the KB, but are hidden from the user) should be handled in 
-the export - whether or not to include them in the export. (This 
-option is present because to include them in the export, if the 
-exported data is to be imported to the KB of a legacy version of 
-Adapt It, would effectively make them become undeleted in the 
-legacy version's KB - which is unlikely to be helpful to the user. 
-But if the exported KB data is just a KB backup, then the deleted 
-entries should be included in the export.)
-There are additional custom SF markers for the extra kbVersion 2
-information, as follows:
-   \del for storing the deleted flag (1 if deleted, 0 if not deleted)
-   \cdt  for the creation date and time
-   \mdt for the modification date and time
-   \ddt for the deletion date and time
-   \wc for the "who created" string, of form: username:machinename
-(or, when web use is supported, probably an ip address)
-Note: if you want to safeguard the KB contents by storing it in a 
-file somewhere, this is the export type which you should do. It retains 
-ALL the information in kbVersion 2. Not only that, legacy Adapt It 
-versions (1.0.0 to 5.2.3) can still read this kind of exported KB 
-data successfully, because they will just ignore the extra 
-information in the above custom fields.
-* The internal format of Adapt It adaptation documents has been 
-upgraded to a new XML document format (docVersion 5). The previous 
-XML document format, docVersion 4, has been in operation for about 
-4 years. Users using version 6.0.0 or onwards on legacy documents, 
-will find that their legacy documents are silently upgraded to 
-docVersion 5 and saved in that (somewhat different) xml format - and 
-most or all parsing glitches embedded in the older documents (such 
-as 'orphaned' punctuation and bad parsing of !$ fixed space marker) 
-will be automatically corrected at the same time.
-NOTE: parsing of words conjoined by !$ (USFM fixed space marker)
-will not parse correctly if the word before or after the !$ marker has
-internal punctuation. Punctuation at the ends of either word is 
-acceptable and will parse correctly, but a word such as ba:te will 
-not. (Unicode has non-punctuation characters with glyphs which look
-like punctuation marks - if your data uses those as word building
-characters, there will be no problems with Adapt It's parsing. This 
-restriction about 'no internal punctuation in words' applies only to
-words conjoined with !$ fixed space marker; other words will parse
-correctly even if they have internal punctuation symbols.)
-* Legacy versions of Adapt It (prior to and including 5.2.3) will 
-not be able to read docVersion 5 xml documents. Only the legacy
-version 5.2.4 is capable of reading the new xml format. Upgrading 
-the internal document model to version 5 was necessitated by certain
-complex USFM markup scenarios that the legacy document model could
-not handle adequately.
-Note: to give limited support to people in teams where some may 
-be working with a legacy Adapt It version (5.2.3 or earlier), and 
-others in the team with 6.0.0 or later, we have included an option 
-for saving the current document in docVersion 4, doing so from 
-within version 6.0.0 or later. This option is available from the 
-File / Save As... command. (Send the document file saved as 
-docVersion 4 to whoever needs it before you do any more work in 
-it with Adapt It version 6.0.0 or later, because when you next 
-work on it using 6.0.0, it will automatically revert back to 
-being in docVersion 5 format.)
-* On the File menu there is now a Save As... command. It can 
-be used to save a document with a new name (that is, the 
-document is renamed, and no longer will be on disk with its 
-earlier name). It can also be used to have the document saved 
-in legacy docVersion 4 format. (However, when next opened in 
-the same version of Adapt It, the document will automatically 
-be restored to docVersion 5.) The Save As... command will not 
-let you change the folder in which the document is to be saved.
-* Although unseen to the user, Adapt It version 6.0.0 and later 
-versions have undergone extensive internal changes. These changes 
-will make it easier for the developers to maintain, and to provide 
-versions of the application for a number of new platforms, 
-collaborative contexts, and work environments.
-* The "Transform Adaptations Into Glosses..." feature has been 
-improved. It no longer removes placeholders and retranslations 
-from the transformed project, but just transforms their adaptations 
-to glosses as expected. Also the transformation of adaptation to 
-glosses now also takes place on any hidden original data storage 
-elements stored on a merger - so that if the user later unmerges 
-any of these, he'll see glosses as expected rather than 
-untransformed adaptations. Formerly it erased the target project's 
-adaptations and glossing KBs, then transformed the "other 
-project's" adaptations KB into the target project's glossing KB, 
-and then converted adaptions to glosses for the "other project's" 
-documents. This behaviour made it difficult to use the command 
-more than once, because it would destroy any adapting work done 
-in the target project, and lose the target project's KB data. 
-The new behaviour preserves the adapting and glossing KB data 
-in the target project while adding to it from the transformation 
-process; and any "other project" document file which has the 
-same name as a document file already in the target project, 
-is skipped (even if chosen by the user for being transformed) 
-- thereby protecting any adaptating work done in the target 
-project since the last transformation process. These changes 
-make it safe to do use the Transform Adaptations To Glosses 
-command as many times as desired, as completed "Other project" 
-adaptation documents become completed and therefore available 
-for transformation. In addition, because the process no longer 
-loses KB data, the warning message about what used to get lost 
-now no longer needs to be shown. Also the transformation of 
-adaptation to glosses now also takes place on any hidden 
-original data storage elements stored on a merger - so that 
-if the user later unmerges any of these, he'll see glosses 
-as expected rather than untransformed adaptations.
-* If the user cancelled from the Which Files? dialog when doing 
-a restore of the knowledge base, the knowledge base was left 
-emptied. Now the application will make a temporary copy of the  
-current knowledge base before attempting the restore, and if the  
-user cancels, then the knowledge base is restored automatically  
-without any changes to it having taken place.
-* The Which Files? dialog has two additional buttons: 
-"Move All Right >>" and "<< Move All Left" which move all the 
-filenames with a single click.
-* We no longer export filtered information in the glosses export,
-nor the free translation export. (Doing so was ridiculous - the
-filtered information was neither glossed nor free translated,  
-and could not ever be so while filtered, so there was no point
-in exporting it.)
-* The Preferences dialog which is accessed from the Edit Menu 
-(and/or the Adapt It application menu on a Mac) is now accessible 
-when a project is open but no document in that project is open. 
-Previously the user had to open a document to access the 
-Preferences dialog.
-* The USFM tab and Filtering tab in the Preferences dialog has
-been combined into a single tab.
-* Prior to version 6.0.0 a few user settings (the File menu's file 
-history and interface language choice) were stored in the Windows 
-registry. Now these settings are stored in an external file called 
-Adapt_IT_WX.ini on Windows systems, or a hidden file called
-.Adapt_It_WX on Linux and Mac systems.
+Since Adapt It 6.0.0 has so many new features and changes, we first 
+    describe the "Major New Features" here and list the "Other 
+    Features and Changes" and "Bug fixes" below.
+
+Major New Features in 6.0.0:
+
+* A Help_for_Administrators.htm document is now available from 
+    the Administrator menu (and from the Start Menu on Windows).
+    This help file provides step-by-step Help designed to help
+    administrators set up Adapt It's main new features described
+    below.
+* Automatic Paratext and Bibledit data collaboration. No more 
+    exporting and copying of files manually back and forth between 
+    Adapt It or Bibledit! Administrators can now easily set up Adapt 
+    It to automatically collaborate with Paratext or Bibledit. 
+* User Workflow Profiles support. Default user workflow profiles are 
+    provided for Novice, Experienced, Skilled, and Custom users. 
+    Each of these default user profiles can be further customized by 
+    the administrator to hide or make accessible more than 60 
+    interface elements including many of Adapt It's menu bar items, 
+    mode bar items, tool bar items, and Preference tab pages. 
+    Administrators can utilize this new feature to reduce complexity 
+    and/or confusion for new users, and offer an effective means of 
+    introducing features only as they are needed by team members.
+* Protection from navigating the file system is now available for 
+    all types of inputs and outputs. Never again loose files or 
+    forget what they are named or where they are saved! 
+    Administrators can now designate which types of inputs and 
+    outputs should be automatically obtained from or saved to pre-
+    defined folders controlled by Adapt It. When such protection is 
+    ON, files are automatically named to reflect their content with 
+    a date-time stamp to keep them unique, and automatically saved 
+    in special folders designed for the handling of inputs and 
+    outputs.
 * Adapt It now provides a Guesser function which attempts to guess 
-the adaptation for source words or phrases which currently have no 
-translations stored in its knowledge base. The Guesser is 
-statistical so it suggests guesses only after a knowledge base has 
-sufficient data in it to make relatively accurate guesses. The 
-Guesser is ON by default but can be turned off or its settings 
-adjusted easily by clicking on the new toolbar icon to the right 
-of the Print toolbar icon. When a guess has been placed in the 
-phrase box the background color of the phrase box turns to an 
-orange color (the color can be changed in the Guesser Settings
-dialog).
+    the adaptation for source words or phrases which currently have 
+    no translations stored in its knowledge base. The Guesser is 
+    statistical so it suggests guesses only after a knowledge base 
+    has sufficient data in it to make relatively accurate guesses. 
+    The Guesser is ON by default but can be turned off or its 
+    settings adjusted easily by clicking on the new toolbar icon to 
+    the right of the Print toolbar icon. When a guess has been 
+    placed in the phrase box the background color of the phrase box 
+    turns to an orange color (the color can be changed in the 
+    Guesser Settings dialog).
+* Secure Email Reporting. Adapt It can now send secure email 
+    directly to the developers to Report a Problem or Give Feedback. 
+    (1) Report a problem... is a menu item on the Help menu which 
+    provides a dialog containing a partially filled in report form 
+    which can be edited to provide developers with details and/or 
+    how to duplicate the problem. Send the report email from within 
+    Adapt It with the click of a button. (2) Give feedback... is a 
+    menu item on the Help menu which provides a dialog containing a 
+    partially filled in report form which can be edited to provide 
+    the developers with information on how Adapt It is being used - 
+    including successes and/or failures; features of Adapt It that 
+    are helpful/not helpful; what features could be improved or 
+    added to make Adapt It a better software tool and so on. Both 
+    email functions are SSL encrypted and operates from within Adapt 
+    It - apart from any other client email program.
+* The Export-Import menu now supports exporting the knowledge base 
+    in LIFT format, and importing data to the knowledge base from a 
+    LIFT format file. KB export as LIFT xml is now optional, the 
+    older KB export in the form of \lx & \ge fields is still the 
+    default type of export and recommended for KB backups. LIFT 
+    exports can be done via selecting the type of export at export 
+    time. Exporting the KB in LIFT format only exports source text 
+    and adaptation (or gloss, if exporting when in glossing mode), 
+    and all datetime and other information in the KB is not 
+    preserved, whereas exports of the KB in standard format preserves 
+    datetime and other KB information.
+* Additional "white space" characters are supported in the Unicode 
+    build, which means that when parsing in source text the presence 
+    of any of these characters will result in a word break: 
+	    NBSP (non-breaking space) U+00A0, or in Adapt It Regular, 
+                hex A0
+	    U+2060 WJ (Word Joiner)
+	    Plus each of the special spaces or joiners in the range 
+                U+2000 to U+200D inclusive.  
+* Words and phrases in the target text which differ from the source 
+    text immediately above them are given a different colour. The 
+    colour used is setable from the Preferences / Fonts page.
+* Source text exported from a document can now be edited outside of 
+    Adapt It, and then imported back into the same document using a 
+    new command "Import Edited Source Text..." on the Export-Import 
+    menu. Material that is unchanged retains all the adaptation 
+    information, but material that is new or altered appears as 
+    unadapted "holes" ready for adapting. The document may then be 
+    saved manually if the result is satisfactory.
+*   The Consistency Check function (from the Edit menu) has been
+    completely revised and simplified.
+* The knowledge base has been upgraded to version 2. It now stores 
+    the datetime for creation of an entry, modification of an entry, 
+    and deletion of an entry; also, a field for who created the 
+    entry. "Deletion" of an entry now does not physically delete it, 
+    rather the entry is marked as deleted and is hidden, but remains 
+    in the knowledge base. If the user later creates the same 
+    adaptation, the KB will silently "undelete" the deleted entry.
+Note: The XML format that is now used for knowledge bases in version 
+    6.0.0 (kbVersion 2) is not compatible with the XML format used 
+    by the knowledge bases prior to version 6.0.0 (kbVersion 1). The 
+    kbVersion 1 format applies to all versions from 1.0.0 up to and 
+    including 5.2.3; The kbVersion 2 format applies from version 
+    6.0.0 and onwards. Using 6.0.0 or later versions will 
+    automatically transform a kbVersion 1 knowledge base to 
+    kbVersion 2 format. It is important to realize that once that is 
+    done, earlier versions of Adapt It will not read a kbVersion 2 
+    knowledge base, assume it is corrupted and empty the knowledge 
+    base file - so be warned. Before upgrading to Adapt It version 
+    6.0.0, you should make a backup of your KB files by Using the 
+    Export Knowledge Base command on the Export-Import menu. The KB 
+    backup should be either in LIFT format, or in \lx and \ge format 
+    -- the latter is best because such a file preserves all the 
+    datetime and other kbVersion 2 information, whereas LIFT format 
+    doesn't; and all versions of Adapt It, from 1.0.0 to 6.0.0 and 
+    beyond can successfully read a KB stored as \lx & \ge records, 
+    even when such a file was produced by 6.0.0 or later versions.
+* KB export and import in the form of records using \lx and \ge 
+    fields has been extended to support the extra information in 
+    kbVersion 2; and <Not In KB> entries are included in the export 
+    (whereas for kbVersion 1 exports of this type they were 
+    excluded); also, each time the user asks for an SFM export of 
+    the KB, a message box pops up to ask how deleted KB entries 
+    (which remain in the KB, but are hidden from the user) should be 
+    handled in the export - whether or not to include them in the 
+    export. (This option is present because to include them in the 
+    export, if the exported data is to be imported to the KB of a 
+    legacy version of Adapt It, would effectively make them become 
+    undeleted in the legacy version's KB - which is unlikely to be 
+    helpful to the user. But if the exported KB data is just a KB 
+    backup, then the deleted entries should be included in the 
+    export.) There are additional custom SF markers for the extra 
+    kbVersion 2 information, as follows:
+	    \del for storing the deleted flag (1 if deleted, 0 if not 
+                deleted)
+	    \cdt  for the creation date and time
+	    \mdt for the modification date and time
+	    \ddt for the deletion date and time
+	    \wc for the "who created" string, of form: 
+                username:machinename (or, when web use is supported, 
+                probably an ip address)
+Note: if you want to safeguard the KB contents by storing it in a 
+    file somewhere, this is the export type which you should do. It 
+    retains ALL the information in kbVersion 2. Not only that, 
+    legacy Adapt It versions (1.0.0 to 5.2.3) can still read this 
+    kind of exported KB data successfully, because they will just 
+    ignore the extra information in the above custom fields.
+* The "Transform Adaptations Into Glosses..." feature has been 
+    improved. It no longer removes placeholders and retranslations 
+    from the transformed project, but just transforms their a
+    daptations to glosses as expected. Also the transformation of 
+    adaptation to glosses now also takes place on any hidden 
+    original data storage elements stored on a merger - so that if 
+    the user later unmerges any of these, he'll see glosses as 
+    expected rather than untransformed adaptations. Formerly it 
+    erased the target project's adaptations and glossing KBs, then 
+    transformed the "other project's" adaptations KB into the target 
+    project's glossing KB, and then converted adaptions to glosses 
+    for the "other project's" documents. This behaviour made it 
+    difficult to use the command more than once, because it would 
+    destroy any adapting work done in the target project, and lose 
+    the target project's KB data. The new behaviour preserves the 
+    adapting and glossing KB data in the target project while adding 
+    to it from the transformation process; and any "other project" 
+    document file which has the same name as a document file already 
+    in the target project, is skipped (even if chosen by the user 
+    for being transformed) - thereby protecting any adaptating work 
+    done in the target project since the last transformation process. 
+    These changes make it safe to do use the Transform Adaptations 
+    To Glosses command as many times as desired, as completed "Other 
+    project" adaptation documents become completed and therefore 
+    available for transformation. In addition, because the process 
+    no longer loses KB data, the warning message about what used to 
+    get lost now no longer needs to be shown. Also the 
+    transformation of adaptation to glosses now also takes place on 
+    any hidden original data storage elements stored on a merger - 
+    so that if the user later unmerges any of these, he'll see 
+    glosses as expected rather than untransformed adaptations.
+
+Other Features and Changes in 6.0.0:
+
+* Standard format exports now export the Adapt It custom markers: 
+    \free, \free*, \note, \note* and \bt in a form which is more 
+    compatible with USFM: \zfree, \zfree*, \znote, \znote* and 
+    \zbt. Also, source text data with either forms of these 
+    markers will be parsed in correctly for document creation 
+    within Adapt It.
+* The order of fields in standard format exports, particularly a 
+    target text or source text export, has been altered. The 
+    information is export in the following order (not all these 
+    types may be present at any one location of course): 
+      1. filtered information, 
+      2. a collected back translation, 
+      3. a note, 
+      4. a free translation, 
+      5. the adaptation (or source) text itself. 
+    The old order was 2,4,3,1, which did not conform well to USFM 
+    expected ordering. Creating an adaptation document from one of 
+    these exports gives the same result as before - nothing is 
+    different.
+* On the languages page of the Start Working... wizard, the checkbox 
+    "Recognise standard format markers only following newlines" has 
+    been removed, because the code for this feature has been broken 
+    now for several years, and appears to be no longer needed.
+* The Help menu no longer has the Adapt It Forum menu item. Instead 
+    the newly designed adapt-it.org website is the place to go to 
+    obtain and share information.
+* The internal format of Adapt It adaptation documents has been 
+    upgraded to a new XML document format (docVersion 5). The 
+    previous XML document format, docVersion 4, has been in 
+    operation for about 4 years. Users using version 6.0.0 or 
+    onwards on legacy documents, will find that their legacy 
+    documents are silently upgraded to docVersion 5 and saved in 
+    that (somewhat different) xml format - and most or all parsing 
+    glitches embedded in the older documents (such as 'orphaned' 
+    punctuation and bad parsing of !$ fixed space marker) has been 
+    automatically corrected at the same time.
+NOTE: parsing of words conjoined by ~ (USFM fixed space marker) 
+    will not parse correctly if the word before or after the ~ 
+    marker has internal punctuation. Punctuation at the ends of 
+    either word is acceptable and will parse correctly, but a word 
+    such as ba:te will not. (Unicode has non-punctuation characters 
+    with glyphs which look like punctuation marks - if your data 
+    uses those as word building characters, there will be no 
+    problems with Adapt It's parsing. This restriction about 'no 
+    internal punctuation in words' applies only to words conjoined 
+    with ~ fixed space marker; other words will parse correctly 
+    even if they have internal punctuation symbols.)
+* Legacy versions of Adapt It (prior to and including 5.2.3) will 
+    not be able to read docVersion 5 xml documents. Only the legacy 
+    versions 5.2.4 and 5.2.5 are capable of reading the new xml 
+    format. Upgrading the internal document model to version 5 was 
+    necessitated by certain complex USFM markup scenarios that the 
+    legacy document model could not handle adequately.
+Note: to give limited support to people in teams where some may be 
+    working with a legacy Adapt It version (5.2.3 or earlier), and 
+    others in the team with 6.0.0 or later, we have included an 
+    option for saving the current document in docVersion 4, doing so 
+    from within version 6.0.0 or later. This option is available 
+    from the File / Save As... command. (Send the document file 
+    saved as docVersion 4 to whoever needs it before you do any more 
+    work in it with Adapt It version 6.0.0 or later, because when 
+    you next work on it using 6.0.0, it will automatically revert 
+    back to being in docVersion 5 format.)
+* On the File menu there is now a Save As... command. It can be used 
+    to save a document with a new name (that is, the document is 
+    renamed, and no longer will be on disk with its earlier same). 
+    It can also be used to have the document saved in legacy 
+    docVersion 4 format. (However, when next opened in the same 
+    version of Adapt It, the document will automatically be restored 
+    to docVersion 5.) The Save As... command will not let you change 
+    the folder in which the document is to be saved.
+* If the user cancelled from the Which Files? dialog when doing a 
+    restore of the knowledge base, the knowledge base was left 
+    emptied. Now the application will make a temporary copy of the 
+    current knowledge base before attempting the restore, and if the 
+    user cancels, then the knowledge base is restored automatically 
+    without any changes to it having taken place.
+* The Which Files? dialog has two additional buttons: "Move All 
+    Right >>" and "<< Move All Left" which move all the filenames 
+    with a single click.
+* Adapt It no longer exports filtered information in the glosses 
+    export, nor the free translation export. (Doing so was 
+    ridiculous - the filtered information was neither glossed nor 
+    free translated, and could not ever be so while filtered, so 
+    there was no point in exporting it.)
+* The Preferences dialog which is accessed from the Edit Menu (and/
+    or the Adapt It application menu on a Mac) is now accessible 
+    when a project is open but no document in that project is open. 
+    Previously the user had to open a document to access the 
+    Preferences dialog.
+* The USFM tab and Filtering tab in the Preferences dialog has been 
+    combined into a single tab.
+* Prior to version 6.0.0 a few user settings (the File menu's file 
+    history and interface language choice) were stored in the 
+    Windows registry. Now these settings are stored in an external 
+    file called Adapt_IT_WX.ini on Windows systems, or a hidden file 
+    called .Adapt_It_WX on Linux and Mac systems.
 * Adapt It now uses a new logo and set of icons for a more 
-contemporary look on all platforms.
+    contemporary look on all platforms.
+* Although unseen to the user, Adapt It version 6.0.0 and later 
+    versions have undergone extensive internal changes. These 
+    changes will make it easier for the developers to maintain, and 
+    to provide versions of the application for a number of new 
+    platforms, collaborative contexts, and work environments.
 
 ----------------------------------------------
 Bug fixes in 6.0.0
 ----------------------------------------------
 * Interlinear exports in RTF have been modified so that their tables
-and cells now format properly in OpenOffice and LibreOffice.
-* Cancelling the Choose Translation dialog it would reopen and require
-a second press of the Cancel button to succeed in closing by cancelling.
-* In some circumstances a duplicate adaptation, or gloss, entry would be 
-added to the set of previously seen adaptations, or glosses, for a given
-source text word or phrase. As well as fixing this, some other less than
-optimal KB entry management behaviours were improved as well.
-* For several years, a user or two has reported an overlap problem of the 
-phrase box with the text either before it, or after it. Noone, including the 
-developers, could reproduce this error at will. We have put in some extra 
-checks and associated 'fix it' code which should make this problem never 
-happen again.
+    and cells now format properly in OpenOffice and LibreOffice.
+* Cancelling the Choose Translation dialog it would reopen and 
+    require a second press of the Cancel button to succeed in 
+    closing by cancelling.
+* In some circumstances a duplicate adaptation, or gloss, entry 
+    would be added to the set of previously seen adaptations, or 
+    glosses, for a given source text word or phrase. As well as 
+    fixing this, some other less than optimal KB entry management 
+    behaviours were improved as well.
+* Synchronized scrolling previously could get bogged down waiting
+    for Adapt It to open and close documents. Its responsiveness
+    has been greatly improved.
+* For several years, a user or two has reported an overlap problem 
+    of the phrase box with the text either before it, or after it. 
+    Noone, including the developers, could reproduce this error at 
+    will. We have put in some extra checks and associated 'fix it' 
+    code which should make this problem never happen again.
 * Removing a lot of source text near the end of the document and 
-there were several notes in the removed section, the app would crash.
-* Certain standard format markers in the USFM standard were included
-in a free translation export. These were markers for things like bold,
-italic, glossary word, and so forth. If a merger was done to form a
-phrase resulting in one of these becoming a 'medial marker' to the 
-phrase, then an RTF export of the free translation would terminate at
-the unmatched end-marker which was not in the merger. These kinds of
-markers are now automatically removed, making the RTF export well-behaved.
+    there were several notes in the removed section, the app would 
+    crash.
+* Certain standard format markers in the USFM standard were included 
+    in a free translation export. These were markers for things like 
+    bold, italic, glossary word, and so forth. If a merger was done 
+    to form a phrase resulting in one of these becoming a 'medial 
+    marker' to the phrase, then an RTF export of the free 
+    translation would terminate at the unmatched end-marker which 
+    was not in the merger. These kinds of markers are now 
+    automatically removed, making the RTF export well-behaved.
 * The search function in the KB Editor dialog would fail to match 
-stored adaptations (or glosses) other than the first for source text
-keys which have multiple adaptations (or multiple glosses).
-* When launching and the phrase box is at a "hole" where the source
-text has two or more possible adaptations, the Choose Translation
-opened (which was corrrect) but then when dismissed it re-opened.
-* Repeated Move Up or Move Down button presses in the Choose 
-Translation dialog would get the reference counts messed up.
-* If the user had an adaptation in the phrase box, then unticked the
-checkbox "Save to knowledge base" and immediately saved the document
-and knowledge base, and then inspected the KB, the "<Not In KB>" entry
-would display along with the phrase box's contents as a visible
-alternative. This is now corrected, and only <Not In KB> will appear.
-* In rare circumstances, a single-word lookup of the KB at a location
-designated as "<Not In KB>" in the KB entry, the <Not In KB> string
-would appear in the phrase box. Now, it just show puts an empty string
-in the phrase box.
+    stored adaptations (or glosses) other than the first for source 
+    text keys which have multiple adaptations (or multiple glosses).
+* When launching and the phrase box is at a "hole" where the source 
+    text has two or more possible adaptations, the Choose 
+    Translation opened (which was corrrect) but then when dismissed 
+    it re-opened.
+* Repeated Move Up or Move Down button presses in the Choose T
+    ranslation dialog would get the reference counts messed up.
+* If the user had an adaptation in the phrase box, then unticked the 
+    checkbox "Save to knowledge base" and immediately saved the 
+    document and knowledge base, and then inspected the KB, the 
+    "<Not In KB>" entry would display along with the phrase box's 
+    contents as a visible alternative. This is now corrected, and 
+    only <Not In KB> will appear.
+* In rare circumstances, a single-word lookup of the KB at a 
+    location designated as "<Not In KB>" in the KB entry, the 
+    <Not In KB> string would appear in the phrase box. Now, it just 
+    puts an empty string in the phrase box.
 * If the user cancelled for the attempt to create a new document, 
-subsequent attempts to create a new document, or to open an existing
-document, did not work correctly.
-* Choosing the command to collect back translation, or the command to
-remove collected back translations, did not update the main window 
-after the command completed.
-* If a Save was requested while the phrase box was not in existence
-because the end of the document had been reached, the application
-crashed.
+    subsequent attempts to create a new document, or to open an 
+    existing document, did not work correctly.
+* Choosing the command to collect back translation, or the command 
+    to remove collected back translations, did not update the main 
+    window after the command completed.
+* If a Save was requested while the phrase box was not in existence 
+    because the end of the document had been reached, the 
+    application crashed.
 * Editing the source text crashed the application if the edit was 
-done on the text stored at a single pile of the display.
-* If a placeholder was within a selection intended for a retranslation
-operation, the placeholder was supposed to be silently removed after
-the data it contained was mined - but instead the application would
-crash. It now works as it was designed to.
-* Any SFM export would have a bogus space put preceding an endmarker. 
-This no longer happens.
-* Parsing input text with punctuation following an endmarker would
-result in the punctuation being placed on an extra storage element with
-no source text. This, and a number of non-compliance issues with 
-complex USFM markup are now fixed.
-* The Delete All Notes button, in some recent versions, failed to  
-work (an introduced error), it's now fixed.
-* The application would crash if trying to export a free translation
-from a document containing an unknown SFM marker (e.g. \y )
-* Free translating within a footnote, cross reference or endnote, the
-automatically generated end of the section stopped one word short of 
-the actual end of the footnote, cross reference or endnote contents.
-* In free translation mode, clicking on a different section, the phrase 
-box would show the source text word rather than the adaptation word
-(or phrase) at the clicked section's anchor location.
-* It was possible, when a free translation applied to a certain span of
-text, for a click at the start of the source text for a word within that
-span to wrongly open the View Filtered Information dialog, even though
-there was no wedge icon present at that location.
-* If the document was scrolled away from the top, and the user clicked
-the command on the Layout direction which changes the layout direction,
-the window's display was garbled until the next window update.
+    done on the text stored at a single pile of the display.
+* If a placeholder was within a selection intended for a 
+    retranslation operation, the placeholder was supposed to be 
+    silently removed after the data it contained was mined - but 
+    instead the application would crash. It now works as it was 
+    designed.
+* Any SFM export would have a bogus space put preceding a USFM 
+    endmarker. This no longer happens.
+* Parsing input text with punctuation following an endmarker would 
+    result in the punctuation being placed on an extra storage 
+    element with no source text. This, and a number of non-
+    compliance issues with complex USFM markup are now fixed.
+* The Delete All Notes button, in some recent versions, failed to 
+    work (an introduced error), it's now fixed.
+* The application would crash if trying to export a free translation 
+    from a document containing an unknown SFM marker (e.g. \y )
+* Free translating within a footnote, cross reference or endnote, 
+    the automatically generated end of the section stopped one word 
+    short of the actual end of the footnote, cross reference or 
+    endnote contents.
+* In free translation mode, clicking on a different section, the 
+    phrase box would show the source text word rather than the 
+    adaptation word (or phrase) at the clicked section's anchor 
+    location.
+* It was possible, when a free translation applied to a certain span 
+    of text, for a click at the start of the source text for a word 
+    within that span to wrongly open the View Filtered Information 
+    dialog, even though there was no wedge icon present at that 
+    location.
+* If the document was scrolled away from the top, and the user 
+    clicked the command on the Layout direction which changes the 
+    layout direction, the window's display was garbled until the 
+    next window update.
 * Support for opening Adapt It with command line switches such as 
--frm (force review mode) has been broken from version 5.2.1 and 
-onwards; it's fixed again now.
-* Doing an SFM export of, say, the source text, and specifying that a
-marker be filtered, resulted in the words before and after the filtered 
-marker and its content and endmarker being wrongly joined as a bogus
-composite word due to loss of the intervening space between them.
+    the -frm (force review mode) switch has been broken from version 
+    5.2.1 and onwards; it's fixed again now.
+* Doing an SFM export of, say, the source text, and specifying that 
+    a marker be filtered, resulted in the words before and after the 
+    filtered marker and its content and endmarker being wrongly 
+    joined as a bogus composite word due to loss of the intervening 
+    space between them.
 
 ----------------------------------------------
 Version 5.2.4 update 31January2011:
