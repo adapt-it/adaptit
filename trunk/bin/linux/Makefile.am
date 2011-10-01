@@ -1,5 +1,5 @@
 # these are the headers for your project
-noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
+noinst_HEADERS = ../../source/AIPrintout.h ../../source/AIPrintPreviewFrame.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
 	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
@@ -12,7 +12,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
 	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/conschk_exists_notu_dlg.h ../../source/ConsChk_Empty_noTU_Dlg.h \
-	../../source/CorGuess.h \
+	../../source/convauto.h ../../source/CorGuess.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
 	../../source/ExportInterlinearDlg.h \
@@ -78,7 +78,7 @@ adaptit.htb: ../../hlp
 
 # the application source, library search path, and link libraries
 adaptit_SOURCES = \
-	../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
+	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
@@ -90,7 +90,7 @@ adaptit_SOURCES = \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
-	../../source/ConsistentChanger.cpp \
+	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
 	../../source/ExportFunctions.cpp \
