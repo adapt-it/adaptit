@@ -43,6 +43,11 @@ struct FreeTrElement
 	wxRect subRect;
 };
 
+// comment out next line to disable the debugging wxLogDebug() calls wrapped by this
+// symbol, for debugging various Print bugs noticed when handling printing of free 
+// translations
+#define _V6PRINT
+
 //////////////////////////////////////////////////////////////////////////////////
 /// The CFreeTrans class presents free translation fields to the user. 
 /// The functionality in the CFreeTrans class was originally contained in

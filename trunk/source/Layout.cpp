@@ -1082,6 +1082,11 @@ int CLayout::GetStripHeight()
 	return m_nStripHeight;
 }
 
+// BEW changed 1Oct11; the legacy version assumes that free translations will never be
+// printed, and so it excluded adding in the target text height + 3 pixels when free
+// translation mode is current (for printing, to print free translations, we turn that
+// mode on temporarily for the duration of the print, or print preview); so I had to fix
+// this for version 6, so that the addition was made whenever free translation mode is on
 void CLayout::SetPileAndStripHeight()
 {
 	if (gbShowTargetOnly)
@@ -1131,7 +1136,8 @@ void CLayout::SetPileAndStripHeight()
     // (Note: the m_nCurLeading value, for the navText area, is NOT regarded as part of 
     // the strip)
 	m_nStripHeight = m_nPileHeight;
-	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
+	//if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting) <<-- deprecated, BEW 1Oct11
+	if (m_pApp->m_bFreeTranslationMode)
 	{
         // add enough space for a single line of the height given by the target text's
         // height + 3 pixels to set it off a bit from the bottom of the pile
@@ -1530,7 +1536,7 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 {
 	m_logicalDocSize = m_pApp->m_saveDocSize; // copy it to our class's variable
 					// with similar name, as this is used in RecalcLayout() calls
-	// in the destructor for AIPrintout, the app member, m_savDocSize is used to
+	// in the destructor for AIPrintout, the app member, m_saveDocSize is used to
 	// restore the app member m_docSize, so we don't need to do that here - we only
 	// need to restore the CLayout::m_logicalDocSize here
 }

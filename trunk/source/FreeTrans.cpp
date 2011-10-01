@@ -115,6 +115,11 @@ extern const wxChar* filterMkrEnd; // defined in the Doc, used in free translati
 //TODO: Try to find a better way of handling this than a global.
 extern	wxRect			grectViewClient;
 
+// next two only needed for making wxLogDebug calls work; when _V6PRINT is commented out
+// in the header file, these two can be also
+extern bool gbIsPrinting;
+extern bool gbCheckInclFreeTransText;
+
 // *******************************************************************
 // Event handlers
 // *******************************************************************
@@ -782,6 +787,18 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	wxSize extent;
 	bool bSectionIntersects = FALSE;
 
+#ifdef _V6PRINT
+#ifdef __WXDEBUG__
+	{ // confine their scope to this conditional block
+		wxString strIsPrinting = gbIsPrinting ? _T("TRUE") : _T("FALSE");
+		wxString strCheckInclFreeTr = gbCheckInclFreeTransText ? _T("TRUE") : _T("FALSE");
+		wxString strFreeTranslationMode = m_pApp->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"); 
+		wxLogDebug(_T("DrawFreeTranslations(),  START  ,  gbIsPrinting = %s  ,  gbCheckInclFreeTranslations = %s  ,  m_bFreeTranslationMode = %s"),
+					strIsPrinting.c_str(), strCheckInclFreeTr.c_str(), strFreeTranslationMode.c_str()); 
+	}
+#endif
+#endif
+
     // get an offscreen pile from which to scan forwards for the anchor pile (this helps
     // keep draws snappy when docs get large; we don't draw below the bottom of the window
     // either)
@@ -922,7 +939,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	}
 
     // The a: labeled while loop below is skipped whenever drawFTCaller == call_from_edit
-	// find the next free translation section, scanning forward 
+	// finds the next free translation section, scanning forward 
     // (BEW added additional code on 13Jul09, to prevent scanning beyond the visible extent
     // of the view window - for big documents that wasted huge slabs of time)
 a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
@@ -991,6 +1008,18 @@ ed:	if (pPile == NULL)
 
 		// there are as yet no free translations in this doc, or we've come to its end
 		DestroyElements(m_pFreeTransArray); // don't leak memory
+
+#ifdef _V6PRINT
+#ifdef __WXDEBUG__
+	{ // confine their scope to this conditional block
+		wxString strIsPrinting = gbIsPrinting ? _T("TRUE") : _T("FALSE");
+		wxString strCheckInclFreeTr = gbCheckInclFreeTransText ? _T("TRUE") : _T("FALSE");
+		wxString strFreeTranslationMode = m_pApp->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"); 
+		wxLogDebug(_T("DrawFreeTranslations(),  EXIT at ed label's block  ,  gbIsPrinting = %s  ,  gbCheckInclFreeTranslations = %s  ,  m_bFreeTranslationMode = %s"),
+					strIsPrinting.c_str(), strCheckInclFreeTr.c_str(), strFreeTranslationMode.c_str()); 
+	}
+#endif
+#endif
 		return;
 	}
 	pSrcPhrase = pPile->GetSrcPhrase();
@@ -1296,7 +1325,19 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 
 	// rectangle calculations are finished, and stored in 
 	// FreeTrElement structs in m_pFreeTransArray
-b:	if (!bSectionIntersects)
+b:	if (!bSectionIntersects) // BEW commented out temporarily to test printing of free 
+    // translations, try getting them printed by forcing bSectionIntersects to be TRUE; if
+    // this works, it means we need to have a different DrawFreeTranslations() function
+    // which doesn't do intersection tests with view layout - as those are invalid when
+    // printing (result? before phr box location, none displayed, on phr box page and
+    // subsequent ones, all free trans displayed -- but there are some other problems, free
+    // trans moved to next page, etc; but test shows a new function is needed for printing
+//b:	if (gbIsPrinting && gbCheckInclFreeTransText)
+//	{
+		// when printing, force it to consider the intersection exists
+//		bSectionIntersects = TRUE;
+//	}
+	if (!bSectionIntersects)
 	{
         // nothing in this current section of free translation is visible in the view's
         // client rectangle so if we are not below the bottom of the latter, iterate to
@@ -1304,7 +1345,13 @@ b:	if (!bSectionIntersects)
         // with futher calculations & can return immediately
 		pElement = (FreeTrElement*)m_pFreeTransArray->Item(0);
 		// for next line... view only, MM_TEXT mode, y-axis positive downwards
-		
+#ifdef _V6PRINT
+#ifdef __WXDEBUG__
+		wxLogDebug(_T("DrawFreeTranslations(), TEST for EXIT,  pElement->subRect.GetTop() = %d  , logicalViewClientBottom = %d, EXITS if 1st > 2nd"),
+					pElement->subRect.GetTop(), logicalViewClientBottom);
+#endif
+#endif
+
 #ifdef DrawFT_Bug
 				wxLogDebug(_T(" NO INTERSECTION block:  Testing, is  top %d still above window bottom %d ?"),
 					pElement->subRect.GetTop(), logicalViewClientBottom);
@@ -1321,6 +1368,18 @@ b:	if (!bSectionIntersects)
 
 #ifdef DrawFT_Bug
 			wxLogDebug(_T(" NO INTERSECTION block:  Returning, as top is below grectViewClient's bottom"));
+#endif
+
+#ifdef _V6PRINT
+#ifdef __WXDEBUG__
+	{ // confine their scope to this conditional block
+		wxString strIsPrinting = gbIsPrinting ? _T("TRUE") : _T("FALSE");
+		wxString strCheckInclFreeTr = gbCheckInclFreeTransText ? _T("TRUE") : _T("FALSE");
+		wxString strFreeTranslationMode = m_pApp->m_bFreeTranslationMode ? _T("TRUE") : _T("FALSE"); 
+		wxLogDebug(_T("DrawFreeTranslations(),  EXIT at block for beyond client bottom  ,  gbIsPrinting = %s  ,  gbCheckInclFreeTranslations = %s  ,  m_bFreeTranslationMode = %s"),
+					strIsPrinting.c_str(), strCheckInclFreeTr.c_str(), strFreeTranslationMode.c_str()); 
+	}
+#endif
 #endif
 			return; // we are done
 		}
@@ -1340,7 +1399,7 @@ b:	if (!bSectionIntersects)
 #endif
 			goto c;
 		}
-	}
+	} // end of TRUE block for test:  b:	if (!bSectionIntersects)
 
     // the whole or part of this section must be drawn, so do the
     // calculations now; first, get the free translation text
@@ -4605,6 +4664,7 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 /// same as or less than totalRects.
 /// BEW 19Feb10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 1Oct11, no need to use goto commands, so I change it to use a while loop
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 											wxString&		str, 
@@ -4650,47 +4710,57 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
             // the last rectangle then we'll use a TRUE value for this flag to force a
             // second segmentation which does not use the scaling factor
 
-a:	if (bTryAgain || textHExtent > totalHExtent)
+	while (TRUE)
 	{
-        // the text is longer than the available space for drawing it, so there is
-        // no point to doing any scaling -- instead, get as much as will fit into
-        // each each rectange, and the last rectangle will have to have its text
-        // elided using TruncateToFit()
-		for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+		if (bTryAgain || textHExtent > totalHExtent)
 		{
-			pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
+			// the text is longer than the available space for drawing it, so there is
+			// no point to doing any scaling -- instead, get as much as will fit into
+			// each each rectange, and the last rectangle will have to have its text
+			// elided using TruncateToFit()
+			for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+			{
+				pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
 
-			// do the calculation, ignoring fScale (hence, last parameter is FALSE)
-			subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
-							fScale,offset,nIteration,nIterBound,bTryAgain,FALSE);
-			pSubstrings->Add(subStr);
-			remainderStr = remainderStr.Mid(offset); // shorten, 
-													 // for next segmentation
+				// do the calculation, ignoring fScale (hence, last parameter is FALSE)
+				subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
+								fScale,offset,nIteration,nIterBound,bTryAgain,FALSE);
+				pSubstrings->Add(subStr);
+				remainderStr = remainderStr.Mid(offset); // shorten, 
+														 // for next segmentation
+			}
+			break; // we are done
 		}
-	}
-	else
-	{
-        // we should be able to make the text fit (though this can't be guaranteed because
-        // some space is wasted in each rectangle if we print whole words (which we do)) -
-        // and we'll need to do scaling to ensure the best segmentation results
-		for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+		else
 		{
-			pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
+			// we should be able to make the text fit (though this can't be guaranteed because
+			// some space is wasted in each rectangle if we print whole words (which we do)) -
+			// and we'll need to do scaling to ensure the best segmentation results
+			for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+			{
+				pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
 
-			// do the calculation, using fScale (hence, last parameter is TRUE)
-			subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
-								fScale,offset,nIteration,nIterBound,bTryAgain,TRUE);
-			pSubstrings->Add(subStr);
-			remainderStr = remainderStr.Mid(offset); // shorten, for next segmentation
-		}
+				// do the calculation, using fScale (hence, last parameter is TRUE); if
+				// the apportioning doesn't fit all the text without truncation being
+				// required, the bTryAgain will be returned as TRUE, else it will be FALSE
+				subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
+									fScale,offset,nIteration,nIterBound,bTryAgain,TRUE);
+				pSubstrings->Add(subStr);
+				remainderStr = remainderStr.Mid(offset); // shorten, for next segmentation
+			}
 
-		if (bTryAgain)
-		{
-			pSubstrings->Clear();
-			remainderStr = str;
-			goto a;
+			if (bTryAgain)
+			{
+				pSubstrings->Clear();
+				remainderStr = str;
+				continue;
+			}
+			else
+			{
+				break; // we are done
+			}
 		}
-	}
+	} // end of while loop: while (TRUE)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
