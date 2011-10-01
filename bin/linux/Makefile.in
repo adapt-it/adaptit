@@ -62,7 +62,8 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" \
 	"$(DESTDIR)$(xmldir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
+am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
+	AIPrintPreviewFrame.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	Adapt_ItCanvas.$(OBJEXT) Adapt_ItDoc.$(OBJEXT) \
 	Adapt_ItView.$(OBJEXT) Adapt_It_wdr.$(OBJEXT) \
 	AdminMoveOrCopy.$(OBJEXT) \
@@ -77,7 +78,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
 	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
-	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
+	convauto.$(OBJEXT) CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
 	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
 	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
 	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
@@ -346,7 +347,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # these are the headers for your project
-noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
+noinst_HEADERS = ../../source/AIPrintout.h ../../source/AIPrintPreviewFrame.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
 	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
@@ -359,7 +360,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
 	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/conschk_exists_notu_dlg.h ../../source/ConsChk_Empty_noTU_Dlg.h \
-	../../source/CorGuess.h \
+	../../source/convauto.h ../../source/CorGuess.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
 	../../source/ExportInterlinearDlg.h \
@@ -411,7 +412,7 @@ htmlhelp_DATA = adaptit.htb
 
 # the application source, library search path, and link libraries
 adaptit_SOURCES = \
-	../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
+	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
@@ -423,7 +424,7 @@ adaptit_SOURCES = \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
-	../../source/ConsistentChanger.cpp \
+	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
 	../../source/ExportFunctions.cpp \
@@ -550,6 +551,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AIPrintPreviewFrame.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AIPrintout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_It.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_ItCanvas.Po@am__quote@
@@ -654,6 +656,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XMLErrorDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/base64.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conschk_exists_notu_dlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convauto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tellenc.Po@am__quote@
@@ -692,6 +695,20 @@ AIPrintout.obj: ../../source/AIPrintout.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AIPrintout.cpp' object='AIPrintout.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AIPrintout.obj `if test -f '../../source/AIPrintout.cpp'; then $(CYGPATH_W) '../../source/AIPrintout.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AIPrintout.cpp'; fi`
+
+AIPrintPreviewFrame.o: ../../source/AIPrintPreviewFrame.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AIPrintPreviewFrame.o -MD -MP -MF $(DEPDIR)/AIPrintPreviewFrame.Tpo -c -o AIPrintPreviewFrame.o `test -f '../../source/AIPrintPreviewFrame.cpp' || echo '$(srcdir)/'`../../source/AIPrintPreviewFrame.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AIPrintPreviewFrame.Tpo $(DEPDIR)/AIPrintPreviewFrame.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AIPrintPreviewFrame.cpp' object='AIPrintPreviewFrame.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AIPrintPreviewFrame.o `test -f '../../source/AIPrintPreviewFrame.cpp' || echo '$(srcdir)/'`../../source/AIPrintPreviewFrame.cpp
+
+AIPrintPreviewFrame.obj: ../../source/AIPrintPreviewFrame.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AIPrintPreviewFrame.obj -MD -MP -MF $(DEPDIR)/AIPrintPreviewFrame.Tpo -c -o AIPrintPreviewFrame.obj `if test -f '../../source/AIPrintPreviewFrame.cpp'; then $(CYGPATH_W) '../../source/AIPrintPreviewFrame.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AIPrintPreviewFrame.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AIPrintPreviewFrame.Tpo $(DEPDIR)/AIPrintPreviewFrame.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AIPrintPreviewFrame.cpp' object='AIPrintPreviewFrame.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AIPrintPreviewFrame.obj `if test -f '../../source/AIPrintPreviewFrame.cpp'; then $(CYGPATH_W) '../../source/AIPrintPreviewFrame.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AIPrintPreviewFrame.cpp'; fi`
 
 Adapt_It.o: ../../source/Adapt_It.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Adapt_It.o -MD -MP -MF $(DEPDIR)/Adapt_It.Tpo -c -o Adapt_It.o `test -f '../../source/Adapt_It.cpp' || echo '$(srcdir)/'`../../source/Adapt_It.cpp
@@ -1070,6 +1087,20 @@ ConsistentChanger.obj: ../../source/ConsistentChanger.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConsistentChanger.cpp' object='ConsistentChanger.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsistentChanger.obj `if test -f '../../source/ConsistentChanger.cpp'; then $(CYGPATH_W) '../../source/ConsistentChanger.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConsistentChanger.cpp'; fi`
+
+convauto.o: ../../source/convauto.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT convauto.o -MD -MP -MF $(DEPDIR)/convauto.Tpo -c -o convauto.o `test -f '../../source/convauto.cpp' || echo '$(srcdir)/'`../../source/convauto.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/convauto.Tpo $(DEPDIR)/convauto.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/convauto.cpp' object='convauto.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o convauto.o `test -f '../../source/convauto.cpp' || echo '$(srcdir)/'`../../source/convauto.cpp
+
+convauto.obj: ../../source/convauto.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT convauto.obj -MD -MP -MF $(DEPDIR)/convauto.Tpo -c -o convauto.obj `if test -f '../../source/convauto.cpp'; then $(CYGPATH_W) '../../source/convauto.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/convauto.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/convauto.Tpo $(DEPDIR)/convauto.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/convauto.cpp' object='convauto.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o convauto.obj `if test -f '../../source/convauto.cpp'; then $(CYGPATH_W) '../../source/convauto.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/convauto.cpp'; fi`
 
 CorGuess.o: ../../source/CorGuess.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CorGuess.o -MD -MP -MF $(DEPDIR)/CorGuess.Tpo -c -o CorGuess.o `test -f '../../source/CorGuess.cpp' || echo '$(srcdir)/'`../../source/CorGuess.cpp
