@@ -11,6 +11,8 @@ echo      6. setup Unicode - No Html Help
 echo ===================================================
 echo AI_USFM.xml is copied to the above installation folders
 echo books.xml is copied to the above installation folders
+echo AI_UserProfiles.xml is copied to the above installation folders
+echo rdwrtp7.exe is copied to the above installation folders
 echo ===================================================
 echo Press CRTL-C to abort or
 pause
@@ -22,6 +24,7 @@ mkdir "..\setup Regular\"
 copy "AI_USFM.xml" "..\setup Regular\"
 copy "books.xml" "..\setup Regular\"
 copy "AI_UserProfiles.xml" "..\setup Regular\"
+copy "rdwrtp7.exe" "..\setup Regular\"
 
 @echo on
 rem 2. The following copies Documentation files to the "setup Regular - Minimal" folder
@@ -30,6 +33,7 @@ mkdir "..\setup Regular - Minimal\"
 copy "AI_USFM.xml" "..\setup Regular - Minimal\"
 copy "books.xml" "..\setup Regular - Minimal\"
 copy "AI_UserProfiles.xml" "..\setup Regular - Minimal\"
+copy "rdwrtp7.exe" "..\setup Regular - Minimal\"
 
 @echo on
 rem 3. The following copies Documentation files to the "setup Regular - No Html Help" folder
@@ -38,6 +42,7 @@ mkdir "..\setup Regular - No Html Help\"
 copy "AI_USFM.xml" "..\setup Regular - No Html Help\"
 copy "books.xml" "..\setup Regular - No Html Help\"
 copy "AI_UserProfiles.xml" "..\setup Regular - No Html Help\"
+copy "rdwrtp7.exe" "..\setup Regular - No Html Help\"
 
 @echo on
 rem 4. The following copies Documentation files to the "setup Unicode" folder
@@ -46,6 +51,7 @@ mkdir "..\setup Unicode\"
 copy "AI_USFM.xml" "..\setup Unicode\"
 copy "books.xml" "..\setup Unicode\"
 copy "AI_UserProfiles.xml" "..\setup Unicode\"
+copy "rdwrtp7.exe" "..\setup Unicode\"
 
 @echo on
 rem 5. The following copies Documentation files to the "setup Unicode - Minimal" folder
@@ -54,6 +60,7 @@ mkdir "..\setup Unicode - Minimal\"
 copy "AI_USFM.xml" "..\setup Unicode - Minimal\"
 copy "books.xml" "..\setup Unicode - Minimal\"
 copy "AI_UserProfiles.xml" "..\setup Unicode - Minimal\"
+copy "rdwrtp7.exe" "..\setup Unicode - Minimal\"
 
 @echo on
 rem 6. The following copies Documentation files to the "setup Unicode - No Html Help" folder
@@ -62,6 +69,7 @@ mkdir "..\setup Unicode - No Html Help\"
 copy "AI_USFM.xml" "..\setup Unicode - No Html Help\"
 copy "books.xml" "..\setup Unicode - No Html Help\"
 copy "AI_UserProfiles.xml" "..\setup Unicode - No Html Help\"
+copy "rdwrtp7.exe" "..\setup Unicode - No Html Help\"
 
 echo ===================================================
 echo Copy process completed.
