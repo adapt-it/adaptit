@@ -35189,11 +35189,11 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 ///                             (screen pixels)
 /// Remarks:
 /// The function encapsulates the actions required for supporting a printout or print
-/// preview of selecting just a range of CSourcePhrases selected in the view - such a
+/// preview or selecting just a range of CSourcePhrases selected in the view - such a
 /// selection can be any length; when there is a selection, the original CSourcePhrase
 /// instances in the m_pSourcePhrases list are temporarily stored in the app member
 /// m_pSaveList, and (shallow) copies the CSourcePhrase instances of the selection are
-/// stored in the m_pSoucePhrases list - and only after that is the pagination done. A
+/// stored in the m_pSourcePhrases list - and only after that is the pagination done. A
 /// gloobal boolean, gbPrintingSelection is set TRUE as well, and this is used to govern
 /// what happens subsequently, in particular, to ensure that after printing, the original
 /// document state is set up again in DoPrintCleanup().
@@ -35274,7 +35274,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 			// 
             // whm note: RecalcLayout uses m_docSize.x as its width in calculating the
             // number of strips for the current document. When layout out for the screen is
-            // intended ReclacLayout sets m_docSize.x equal to the client size of the main
+            // intended RecalcLayout sets m_docSize.x equal to the client size of the main
             // window - RHSlop. But, in printing, the client window size is ignored and the
             // value for m_docSize.x is assigned (above) based on the resolution width of
             // the display context, i.e., the number of dots printed per paper width when
@@ -35289,7 +35289,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 			// will have been restored to their view-supporting width, hence when we get
 			// here after the dialog is dismissed, we have to recalculate the strips with
 			// the strip width as required by the page dimensions. It's regretable we have
-			// to do this twice (the earlier one was for getting the paramters, such as
+			// to do this twice (the earlier one was for getting the parameters, such as
 			// the number of pages to print, correct for the Print Options dialog, and was
 			// done in that dialog class's InitDialog() function prior to it being shown)
 			// but we have no option. Hence the PaginateDoc() call below, also has to be
