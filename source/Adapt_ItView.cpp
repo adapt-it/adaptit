@@ -1141,13 +1141,19 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	GetLayout()->Draw(pDC);
 
     // BEW added 7Jul05 for drawing the free translation text substrings in the spaces
-    // created under each of the strips (drawing is not done outside the client area for
-    // the view)- but only when we are not currently printing 
+    // created under each of the strips - but only when we are not currently printing 
+    // (drawing is not done outside the client area for the view)
+	// BEW 1Oct11, added a new variant for handling printing of free translations; it has
+	// to confine its drawing to the strips delineated by the PageOffset struct pointed at
+	// by the global gnCurPage - which stores indices for first and last strip to be drawn
 	// KLB 9/2011 added check for gbCheckInclFreeTransText so free translations would print on print preview
-	if ((pApp->m_bFreeTranslationMode && !gbIsPrinting) || 
-		(gbIsPrinting && gbCheckInclFreeTransText))
+	if (pApp->m_bFreeTranslationMode && !gbIsPrinting)
 	{
 		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout(), call_from_ondraw);
+	}
+	else if (gbIsPrinting && gbCheckInclFreeTransText)
+	{
+		pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, GetLayout());
 	}
 }
 

@@ -205,6 +205,15 @@ AIPrintout::~AIPrintout()
 	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->DoPrintCleanup();
 	pApp->pAIPrintout = NULL;
+	pApp->m_pLayout->m_pOffsets = NULL; // BEW 1Occt11 added, to protection insurance for
+        // DrawFreeTranslationsForPrinting() not to fail if a RecalcLayout() is called and
+        // free translations are to be printed and printing is turned on -
+        // PrintOptionsDlg::InitDialog() will also set it to NULL for the same reason; it's
+        // to be non-null only during actual printing or print previewing of a defined page
+        // as determined by a currently active PageOffsets struct being pointed at by
+        // m_pOffsets, having been set by OnPrintPage() beforehand. If DrawFreeTranslations()
+        // is called when m_pOffsets is NULL, it will immediately return without doing 
+        // anything  
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
