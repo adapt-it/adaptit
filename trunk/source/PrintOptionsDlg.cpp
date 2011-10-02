@@ -49,10 +49,11 @@
 #endif
 
 #include "Adapt_It.h"
-#include "PrintOptionsDlg.h"
-#include "Adapt_ItView.h" 
 #include "Cell.h"
 #include "Pile.h"
+#include "Layout.h"
+#include "PrintOptionsDlg.h"
+#include "Adapt_ItView.h" 
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "WaitDlg.h"
@@ -229,7 +230,21 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
 	}
 	
-	
+    // BEW 1Oct11, the m_pagesList of PageOffsets structs is not yet set up, and
+    // LayoutAndPaginate() below will call RecalcLayout() in order to get the strips
+    // populated in conformity with the page printable width. Draw() won't be called, but
+    // it would be good to have insurance that the new DrawFreeTranslationsForPrinting(),
+    // if control enters it when there are no PageOffset structs in the list in m_pagesList
+    // of the app class, would do nothing if called prematurely. A handy way to do that is
+    // to have CLayout::m_pOffsets pointer member, which is initialized to NULL when the
+    // CLayout object was created, be set to NULL before any actual printing happens. We do
+    // so here, and also in the destructor for AIPrintout() - in the latter so that a
+    // second print attempt won't find a leftover nonNULL value in m_pOffsets from a
+    // previous print session. What we do in DrawFreeTranslationsForPrinting() is test for
+    // NULL - and if it is, we exit immediately so that DrawFreeTranslationsForPrinting()
+    // does not try to do anything when no page is defined and ready for printing.
+	gpApp->m_pLayout->m_pOffsets = NULL;
+
 	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
 	// contains glosses, otherwise uncheck and disable the check box.
 	if (gpApp->DocHasGlosses(gpApp->m_pSourcePhrases))

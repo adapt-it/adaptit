@@ -37,10 +37,20 @@ class SPArray;
 /// A struct containing the information relevant to writing a subpart of the free
 /// translation in a single rectangle under a single strip. Struct members include:
 /// horizExtent and subRect.
+/// BEW 2Oct11, added int nStripIndex so as to store the index to the owning strip which
+/// this particular subRect is associated with. DrawFreeTranslations() won't use it,
+/// because that can safely draw outside the view's client area and no mess anything up
+/// visually, but DrawFreeTranslationsForPrinting() needs it, because if a free
+/// starts in the last strip to be shown on a given page, we don't want free translation
+/// data which should be on the next page being printed at the bottom of the current paper
+/// sheet - so the latter function will use the value to test for when the rectangle
+/// belongs to a strip which should not be printed on the current page; likewise for free
+/// translation material which has it's anchor at the end of the previous page
 struct FreeTrElement 
 {
 	int horizExtent;
 	wxRect subRect;
+	int nStripIndex; // BEW added 2Oct11
 };
 
 // comment out next line to disable the debugging wxLogDebug() calls wrapped by this
@@ -68,8 +78,8 @@ public:
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
 	bool		ContainsFreeTranslation(CPile* pPile);
-	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
-										 enum DrawFTCaller drawFTCaller);
+	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCaller drawFTCaller);
+	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
 	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
@@ -139,6 +149,12 @@ private:
 							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
 	void		SetupCurrentFreeTransSection(int activeSequNum);
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
+	// BEW 2Oct11, added more, for better design of drawing free translations when printing
+	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets, 
+											wxArrayString& arrFreeTranslations);
+	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
+	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
+
 public:
 	/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
 	/// and disposed of in OnExit().

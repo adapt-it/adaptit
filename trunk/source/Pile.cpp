@@ -1095,10 +1095,12 @@ void CPile::Draw(wxDC* pDC)
 	*/
 	if (!gbIsPrinting ||
 		(gbIsPrinting && !gbIsGlossing))
+	{
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
+	}
 
 	// klb 9/2011 - We need to draw the Gloss to screen if "See Glosses" is checked (gbGlossingVisible=true) OR 
-	//            to printer if "Include Glosses text" (gbCheckInclGlossesText) is checked in PrintOptionsDialog - 9/9/2011
+	// to printer if "Include Glosses text" (gbCheckInclGlossesText) is checked in PrintOptionsDialog - 9/9/2011
 	if ((gbGlossingVisible && !gbIsPrinting) || 
 		(gbIsPrinting && gbCheckInclGlossesText))
 	{
