@@ -1764,6 +1764,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	strSource.Empty();
 	CCellList::Node* pos = m_pApp->m_selection.GetFirst();
 	int nCount = m_pApp->m_selection.GetCount(); // number of src phrase instances in selection
+
+	// whm added 2Oct11 to prevent a crash in the later call of UnmergeMergersInSublist(). 
+	// If there is no selection, do nothing, just return
+	if (nCount == 0)
+		return;
 	
 	if (nCount == (int)m_pApp->m_pSourcePhrases->GetCount())
 	{
@@ -1956,6 +1961,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // accumulated any adaptations already typed into strAdapt. However, we might have
     // merged phrases in pList to be unmerged, and we have not yet removed the translation
     // for each pSrcPhrase in pList from the KB, so we must do those things next.
+ 	
+	// whm added 2Oct11 to prevent a crash in the later call of UnmergeMergersInSublist(). 
+	// If there is no selection left, do nothing, just return
+	if (pList->GetCount() == 0)
+		return;
+   
 	UnmergeMergersInSublist(pList, pSrcPhrases, nCount, nEndSequNum, bActiveLocAfterSelection,
 							nSaveActiveSequNum, TRUE, TRUE); // final 2 flags should take
 	// default values (TRUE, and FALSE, respectively), but this leads to a
