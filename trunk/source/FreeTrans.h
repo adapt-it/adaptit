@@ -154,6 +154,7 @@ private:
 											wxArrayString& arrFreeTranslations);
 	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
+	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);
 
 public:
 	/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
@@ -173,10 +174,23 @@ private:
 	/// are written to screen. Element pointers point to FreeTrElement structs - each of which
 	/// contains the information relevant to writing a subpart of the free translation in a
 	/// single rectangle under a single strip.
+	/// BEW 3Oct11: This member is used by DrawFreeTranslations(), which processses one free
+	/// translation section followed by an immediate Draw() of that section, before
+	/// iterating the loop
 	wxArrayPtrVoid*	m_pFreeTransArray; 
 
+    /// BEW 3Oct11: An array of arrays to FreeTrElement structs, each stored array stores
+    /// the structs pertaining to one free translation section. This is used for printing
+    /// of free translations, because DrawFreeTranslationsForPrinting() collects the
+    /// information for all free translation sections on a single printed Page, or
+    /// displayed Print Preview page, first; and then in a separate function it loops over
+    /// the successive sections doing the Draw() calls and any prior needed segmentations
+    /// of the free translation string when multiple strips are involved; hence an array of
+    /// arrays is required for printing support
+    wxArrayPtrVoid* m_pFreeTransSetsArray; // stores a set of wxArrayPtrVoid pointers
+
 	/// Pointer to first pile in a free translation section.
-	CPile* m_pFirstPile;
+	//CPile* m_pFirstPile;
 
 	DECLARE_EVENT_TABLE()
 };
