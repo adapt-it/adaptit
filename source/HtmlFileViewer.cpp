@@ -61,7 +61,7 @@ BEGIN_EVENT_TABLE(CHtmlFileViewer, wxFrame)
 	// ... other menu, button or control events
 END_EVENT_TABLE()
 
-CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent) // dialog constructor
+CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent, wxString* title, wxString* pathToHtmlFile) // dialog constructor
 	: wxFrame(parent, -1, _("Html File Viewer"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -84,15 +84,15 @@ CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent) // dialog constructor
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	// Note: the "Help for Administrators.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
-	adminHelpFilePath = m_pApp->GetDefaultPathForHelpFiles() + m_pApp->PathSeparator + m_pApp->m_adminHelpFileName;
+	adminHelpFilePath = *pathToHtmlFile; //m_pApp->GetDefaultPathForHelpFiles() + m_pApp->PathSeparator + m_pApp->m_adminHelpFileName;
 	this->CreateStatusBar();
-	pHtmlWindow->SetRelatedFrame(this,_("Help for Administrators"));
+	pHtmlWindow->SetRelatedFrame(this,*title);
 	pHtmlWindow->SetRelatedStatusBar(0);
 	// The ReadCustomization() and WriteCustomization() in OnCancel() result in memory leaks, so
 	// I've commented them out. Probably we dont' really need to save the position and size of the
 	// html window anyway.
 	//pHtmlFileViewer->ReadCustomization(wxConfig::Get()); // causes memory leaks
-	pHtmlWindow->LoadFile(wxFileName(adminHelpFilePath));
+	pHtmlWindow->LoadFile(wxFileName(*pathToHtmlFile));
 	
 	pBackButton = (wxButton*)FindWindowById(ID_BITMAPBUTTON_MOVE_BACK);
 	wxASSERT(pBackButton != NULL);
@@ -104,7 +104,7 @@ CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent) // dialog constructor
 	pTextCtrlHtmlFilePath->SetBackgroundColour(m_pApp->sysColorBtnFace);
 	wxASSERT(pTextCtrlHtmlFilePath != NULL);
 
-	pTextCtrlHtmlFilePath->ChangeValue(adminHelpFilePath);
+	pTextCtrlHtmlFilePath->ChangeValue(*pathToHtmlFile);
 
 	// whm Note: One problem in using this CHtmlFileViewer class is that,
 	// although CHtmlFileViewer is running modeless, it cannot be 

@@ -8996,8 +8996,8 @@ wxMenuBar *AIMenuBarFunc()
     item0->Append( item7, _("&Layout") );
     
     wxMenu* item8 = new wxMenu;
+    item8->Append( ID_MENU_AI_QUICK_START, _("Adapt It &Quick Start Help"), _("View the Adapt It Quick Start HTML document") );
     item8->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
-    item8->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
     item8->AppendSeparator();
     item8->Append( ID_REPORT_A_PROBLEM, _("Report a problem..."), _("Send a bug or problem report to the Adapt It developers") );
     item8->Append( ID_GIVE_FEEDBACK, _("Give feedback..."), _("Give the developers feedback on your use of Adapt It") );

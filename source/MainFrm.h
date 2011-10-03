@@ -183,7 +183,8 @@ class CMainFrame : public wxDocParentFrame
 	
 	//void OnHelp(wxHelpEvent& WXUNUSED(event));
 	void OnAdvancedHtmlHelp(wxCommandEvent& event);
-	void OnOnlineHelp(wxCommandEvent& WXUNUSED(event));
+	void OnQuickStartHelp(wxCommandEvent& WXUNUSED(event));
+	//void OnOnlineHelp(wxCommandEvent& WXUNUSED(event));
 	//void OnUserForum(wxCommandEvent& WXUNUSED(event));
 	void OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event));
 	void OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event));
