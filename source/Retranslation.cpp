@@ -1739,6 +1739,43 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 					 _T(""), wxICON_INFORMATION);
 		return;
 	}
+
+	// BEW 3Oct11, Bill found that it is possible to induce a crash by having the phrase
+	// box somewhere, doing ALT+downarrow to get a placeholder inserted, and then do an
+	// immediate ALT_uparrow (which invokes the OnButtonRetranslation() handler without
+	// there being any selection defined) - the lack of a selection then leaves pList (see
+	// below) empty of CSourcePhrases, and that in turn causes UnmergeMergersInSublist()
+	// to crash, because it assumes pList will be populated and it tries to access it's
+	// first CSourcePhrase instance - returns a NULL pointer for the pos SPList:Node*
+	// calculation, and so the attempt to get the srcphrase gives an invalid access error.
+	// The error results from the CTRL+uparrow handler in OnSyskeyUp() in PhraseBox.cpp,
+	// which creates a 1-cell selection, for the placehandler pile just created. Best way
+	// to fix this is to test for the placeholder, and exit OnButtonRetranslation() if
+	// that's all there was in the selection. We also will test for an empty selection and
+	// exit if so as well. We want to let other single-pile selections pass through
+	if (m_pApp->m_selection.IsEmpty())
+	{
+		::wxBell();
+		return;
+	}
+	else
+	{
+		int selCount = m_pApp->m_selection.GetCount();
+		if (selCount == 1)
+		{
+			CCellList::Node* pos = m_pApp->m_selection.GetFirst();
+			CCell* pCell = (CCell*)pos->GetData();
+			CPile* pPile = pCell->GetPile();
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+			if (pSrcPhrase->m_bNullSourcePhrase || pSrcPhrase->m_key == _T("..."))
+			{
+				// must have been a CTRL+uparrow keypress at a placeholder - disallow this
+				::wxBell();
+				return;
+			}
+		}
+	}
+
 	SPList* pList = new SPList; // list of the selected CSourcePhrase objects 
 	wxASSERT(pList != NULL);
 	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
@@ -1798,7 +1835,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 "Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."),
 		_T(""), wxICON_EXCLAMATION);
 		m_pView->RemoveSelection();
-		delete pList;
+		delete pList; // BEW 3Oct11: beware, don't try deleting the ptrs in pList, 
+					  // they are shallow copies of some of those in m_pSourcePhrases, 
+					  // and so deleting them would destroy part of the document;
+					  // similarly in other places below in this function
 		pList = (SPList*)NULL;
 		m_pApp->m_pTargetBox->SetFocus();
 		m_pApp->m_pTargetBox->SetSelection(m_pApp->m_nStartChar,m_pApp->m_nEndChar);

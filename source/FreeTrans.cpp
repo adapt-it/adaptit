@@ -976,12 +976,345 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	} while(laterStripIndex <= nIndexOfLastStrip);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 nothing
+/// \param arrPileSets  ->  An array of arrays. Each stored array contains the piles, in
+///                         natural order, pertaining to a single free translation
+/// \remarks
+/// Internally, it builds the display rectangles associated with each free translation
+/// section - and since a section may extend over more than one strip, there could be more
+/// than one display rectangle per section; the display rectangle, its extent, and the
+/// index of the strip it is associated with are stored in a PageOffsets struct, and these
+/// stucts are stored in a wxArrayPtrVoid - one such array per section, with one or more
+/// PageOffsets structs in it; and all these arrays are stored, in sequence, in the private
+/// member array m_pFreeTransSetsArray.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
+{
+	// clean out any leftover PageOffsets data from a previous Page's printing
+	int count = m_pFreeTransSetsArray->GetCount();
+	int index;
+	wxArrayPtrVoid* pPageOffsetsSet = NULL; // we store these in m_pFreeTransSetsArray
+	for (index = 0; index < count; index++)
+	{
+		pPageOffsetsSet = (wxArrayPtrVoid*)m_pFreeTransSetsArray->Item(index);
+		DestroyElements(pPageOffsetsSet);
+	}
 
+	// use the next two for the outer loop, which iterates through the set of stored
+	// arrays each of which contains the CPile set for a single free translation section
+	int ftSectionsCount = arrPileSets.GetCount();
+	int ftSectionsIndex;
 
+	// use the following for the particular set of CPile pointers being worked with
+	wxArrayPtrVoid* pPileSet = NULL;
 
+	// needed local variables
+	CPile*  pPile; // a scratch pile pointer
+	CStrip* pStrip; // a scratch strip pointer
+	wxRect rect; // a scratch rectangle variable
+	int curStripIndex;
+	int curPileIndex_in_strip;
+	int curPileCount_for_strip;
+	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles 
+                           // which make up the laid out possible writable areas
+                           // for the current free trans section
+	int pileSetCount; // for inner loop
+	int pileIndex; // for inner loop (independent of strip, it indexes over the
+				   // CPile instances in the free trans section - which could be 
+				   // less than, the same, or greater than the number of piles in
+				   // the strip which contains the anchor pile)
+	CSourcePhrase* pSrcPhrase;
+	FreeTrElement* pElement;
 
+	// work out if we must build for RTL layout, or LTR layout
+	bool bRTLLayout = FALSE;
+	#ifdef _RTL_FLAGS
+	if (m_pApp->m_bTgtRTL)
+	{
+		// free translation has to be RTL & aligned RIGHT
+		bRTLLayout = TRUE;
+	}
+	else
+	{
+		// free translation has to be LTR & aligned LEFT
+		bRTLLayout = FALSE;
+	}
+	#endif
 
+    // The outer loop iterates over the sequence of CPile sets; this function doesn't
+    // access the free translations themselves (that is done in the next function, which
+    // does the apportioning and drawing), we just deal with the layout and the rectangle
+    // sizes it gives us to work with [- these we compute so as to be ready for the next
+    // function which will get the free trans text, apportion or truncate it, or do
+    // neither, and then draw to them]
+	for (ftSectionsIndex = 0; ftSectionsIndex < ftSectionsCount; ftSectionsIndex++)
+	{
+		// get the set of CPile pointers which we are to process for the next free
+		// translation section
+		pPileSet = (wxArrayPtrVoid*)arrPileSets.Item(ftSectionsIndex);
+		pPile = (CPile*)pPileSet->Item(0); // anchor pile for this free trans section
+		pSrcPhrase = pPile->GetSrcPhrase();
+		pileSetCount = pPileSet->GetCount();
+		wxASSERT(pileSetCount >= 1); // must be at least one pile in a free trans section
 
+		// create an array on the heap to store the PageOffset struct pointers for this
+		// section & add it to the array which stores each such
+		pPageOffsetsSet = new wxArrayPtrVoid;
+		m_pFreeTransSetsArray->Add(pPageOffsetsSet); // delete all this stuff at the
+											// end of DrawFreeTranslationsForPrinting()
+
+        // create the elements (each a struct containing int horizExtent,wxRect subRect,
+        // and int nStripIndex of the associated strip for the rectangle) which define the
+        // places where the free translation substrings are to be written out, and
+        // initialize the strip and pile parameters for the loop
+		pStrip = pPile->GetStrip();
+		curPileCount_for_strip = pStrip->GetPileCount();
+		curStripIndex = pStrip->GetStripIndex();
+		curPileIndex_in_strip = pPile->GetPileIndex();
+		pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
+		pElement->nStripIndex = curStripIndex;
+		rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
+										   // and reduce as required below
+		nTotalHorizExtent = 0; // starts off as zero for each free trans section we deal with
+
+		if (gbRTL_Layout)
+		{
+			// source is to be laid out right-to-left, so free translation rectangles will be
+			// altered in location from what would be the case for a LTR layout
+			rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable 
+															// area starts (it extends leftwards)
+			pileIndex = 0;
+			do {
+				//  is this pile the ending pile for the free translation section?
+				if (pSrcPhrase->m_bEndFreeTrans || pileIndex == pileSetCount - 1)
+				{
+					// yes, we are dealing with the last pile of the current free
+					// translation section
+					
+                    // whether we make the left boundary of rect be the left of the pile's
+                    // rectangle, or let it be the leftmost remainder of the strip's free
+                    // translation rectangle, depends on whether or not this pile is the
+                    // last in the strip - find out, and set the .left parameter accordingly
+					if (curPileIndex_in_strip == curPileCount_for_strip - 1)
+					{
+						// last pile in the strip, so use the full width (so no change to rect
+						// is needed)
+						;
+					}
+					else
+					{
+                        // there are more piles to the left within this strip, so terminate
+                        // the rectangle at the pile's left boundary (use abs to make sure)
+						rect.SetLeft(pPile->GetPileRect().GetLeft()); // this only moves the
+												// rect, we have to recalc the width as well,
+												// do that next
+						rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() - 
+											pPile->GetPileRect().GetLeft()));																		
+					}
+                    // store in the pElement's subRect member (don't compute the substring
+                    // yet, to save time since the rect may not be visible), add the
+                    // element to the pointer array
+					pElement->subRect = rect;
+					pElement->horizExtent = rect.GetWidth(); 
+					nTotalHorizExtent += pElement->horizExtent; // accumulate this width
+					pPageOffsetsSet->Add(pElement);
+					break; // out of inner loop; the call is redundant, but it adds clarity
+				}
+				else
+				{
+                    // The current pile is not the ending one for the free translation
+                    // section, so check if there is a strip change here, if so restart
+                    // there with a new rectangle calculation, etc, after saving the
+                    // current FreeTrElement, and make a new element too. If there is no
+                    // strip change here, set up for the next iteration of the inner loop
+                    // (ie. get the next pile and do the initial calcs)
+					if (curPileIndex_in_strip == curPileCount_for_strip - 1)
+					{
+                        // we are at the end of the strip, so we have to close off the
+                        // current rectangle (accepting all the space that remains) and
+                        // store it
+						pElement->subRect = rect;
+						pElement->horizExtent = rect.GetWidth(); 
+						nTotalHorizExtent += pElement->horizExtent; // accumulate this width
+						pPageOffsetsSet->Add(pElement);
+
+                        // we are not yet at the end of the piles for this free
+                        // translation, so we can be sure there is a next pile so get it,
+                        // and its sourcephrase pointer
+						wxASSERT(curStripIndex < m_pLayout->GetStripCount() - 1);
+						pileIndex++;
+						pPile = (CPile*)pPileSet->Item(pileIndex);
+						wxASSERT(pPile);
+						pSrcPhrase = pPile->GetSrcPhrase();
+
+						// initialize rect to the new strip's free translation rectangle, and
+						// reinitialize the strip and pile parameters for this new strip
+						pStrip = pPile->GetStrip();
+						curStripIndex = pStrip->GetStripIndex();
+						curPileCount_for_strip = pStrip->GetPileCount();
+						curPileIndex_in_strip = pPile->GetPileIndex();
+						// get a new element
+						pElement = new FreeTrElement;
+						pElement->nStripIndex = curStripIndex;
+						rect = pStrip->GetFreeTransRect(); // rect.right is already correct,
+														   // since this is pile[0]
+						// this new pile might be the one for the end of the free translation
+						// section, so iterate
+					}
+					else
+					{
+                        // there is at least one more pile in this strip, so get it,
+                        // prepare for iteration, and don't close off the present drawing
+                        // rectangle
+						pileIndex++;
+						pPile = (CPile*)pPileSet->Item(pileIndex);
+						wxASSERT(pPile);
+						pSrcPhrase = pPile->GetSrcPhrase();
+						curPileIndex_in_strip = pPile->GetPileIndex();
+					}
+				} // end of else block for test: 
+				  // if (pSrcPhrase->m_bEndFreeTrans || pileIndex == pileCount - 1)
+
+			} while (pileIndex < pileSetCount - 1); // end of do loop
+
+		} // end RTL layout block
+		else
+		{
+            // LTR layout, and this is the only option for the non-unicode application, and
+            // use abs to make sure that this is the ending pile for the free translation
+            // section
+			rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
+			rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() - 
+								pPile->GetPileRect().GetLeft())); 
+			pileIndex = 0;
+			do {
+				//  is this pile the ending pile for the free translation section?
+				if (pSrcPhrase->m_bEndFreeTrans || pileIndex == pileSetCount - 1)
+				{
+					// yes, we are dealing with the last pile of the current free
+					// translation section
+					
+                    // whether we make the right boundary of rect be the end of the pile's
+                    // rectangle, or let it be the remainder of the strip's free
+                    // translation rectangle, depends on whether or not this pile is the
+                    // last in the strip - find out, and set the .right parameter accordingly
+					if (curPileIndex_in_strip == curPileCount_for_strip - 1)
+					{
+						// last pile in the strip, so use the full width (so no change to 
+						// rect is needed)
+						;
+					}
+					else
+					{
+                        // there are more piles to the right, so terminate the rectangle at
+                        // the pile's right boundary
+						rect.SetRight(pPile->GetPileRect().GetRight());
+					}
+                    // store in the pElement's subRect member (don't compute the substring
+                    // yet, to save time since the rect may not be visible), add the
+                    // element to the pointer array
+					pElement->subRect = rect;
+					pElement->horizExtent = rect.GetWidth(); 
+					nTotalHorizExtent += pElement->horizExtent; // accumulate this width
+					pPageOffsetsSet->Add(pElement);
+					break; // out of inner loop; the call is redundant, but it adds clarity
+				}
+				else
+				{
+                    // The current pile is not the ending one for the free translation
+                    // section, so check if there is a strip change here, if so restart
+                    // there with a new rectangle calculation, etc, after saving the
+                    // current FreeTrElement, and make a new element too. If there is no
+                    // strip change here, set up for the next iteration of the inner loop
+                    // (ie. get the next pile and do the initial calcs)
+					if (curPileIndex_in_strip == curPileCount_for_strip - 1)
+					{
+                        // we are at the end of the strip, so we have to close off the
+                        // current rectangle (accepting all the space that remains) and
+                        // store it
+						pElement->subRect = rect;
+						pElement->horizExtent = rect.GetWidth();
+						nTotalHorizExtent += pElement->horizExtent; // accumulate this width
+						pPageOffsetsSet->Add(pElement);
+
+                        // we are not yet at the end of the piles for this free
+                        // translation, so we can be sure there is a next pile so get it,
+                        // and its sourcephrase pointer
+						wxASSERT(curStripIndex < m_pLayout->GetStripCount() - 1);
+						pileIndex++;
+						pPile = (CPile*)pPileSet->Item(pileIndex);
+						wxASSERT(pPile != NULL); 
+						pSrcPhrase = pPile->GetSrcPhrase();
+
+						// initialize rect to the new strip's free translation rectangle, and
+						// reinitialize the strip and pile parameters for this new strip
+						pStrip = pPile->GetStrip();
+						curStripIndex = pStrip->GetStripIndex();
+						curPileCount_for_strip = pStrip->GetPileCount();
+						curPileIndex_in_strip = pPile->GetPileIndex();
+						// get a new element
+						pElement = new FreeTrElement;
+						pElement->nStripIndex = curStripIndex;
+						rect = pStrip->GetFreeTransRect(); // rect.left is already correct, 
+														   // since this is pile[0]
+						// this new pile might be the one for the end of the free translation
+						// section, so iterate
+					}
+					else
+					{
+                        // there is at least one more pile in this strip, so get it,
+                        // prepare for iteration, and don't close off the present drawing
+                        // rectangle
+						pileIndex++;
+						pPile = (CPile*)pPileSet->Item(pileIndex);
+						wxASSERT(pPile != NULL); 
+						pSrcPhrase = pPile->GetSrcPhrase();
+						curPileIndex_in_strip = pPile->GetPileIndex();
+					}
+				} // end of else block for test: 
+				  // if (pSrcPhrase->m_bEndFreeTrans || pileIndex == pileCount - 1)
+
+			} while (pileIndex < pileSetCount - 1); // end of do loop
+
+		} // end LTR layout block
+
+		// rectangle calculations are finished for this free translation section, and stored in 
+		// FreeTrElement structs in pPageOffsetsSet array, which is itself stored in the
+		// m_pFreeTransSetsArray (a private member of CFreeTrans class); iterate to process
+		// the next free translation section
+
+	} // end of loop: for (frSectionsIndex = 0; ftSectionsIndex < ftSectionsCount; ftSectionsIndex++)
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 nothing
+/// \param pDC          ->  a device context, for drawing and measuring text extents
+/// \param pLayout      ->  the app's CLayout instance, which contains the m_pileList
+///                         which gives us both the piles and their associated CSourcePhrase
+///                         instances; and it's m_pOffsets member gives us the nFirstStrip
+///                         and nLastStrip index values for the current page being printed
+/// \remarks
+/// Internally, the first child function finds the free translation sections which are
+/// contained by the page, as well as those which overlap at the pages start, and/or end;
+/// finds them in their natural order, and copies their CPile pointers into a set of
+/// wxArrayPtrVoid arrays, one such array per free translation section, and stores these
+/// arrays within an array. The latter array is then passed to another child function,
+/// which inputs the array of arrays of CPile pointers and builds the display rectangles
+/// associated with each free translation section - and since a section may extend over
+/// more than one strip, there could be more than one display rectangle per section; the
+/// display rectangle, its extent, and the index of the strip it is associated with are
+/// stored in a PageOffsets struct, and these stucts are stored in a wxArrayPtrVoid - one
+/// such array per section, with one or more PageOffsets structs in it; and all these
+/// arrays are stored, in sequence, in the private member array m_pFreeTransSetsArray. The
+/// latter array is then passed in to a third function which takes all the collected data
+/// and draws it to either the physical paper's page, or to the virtual page displayed by
+/// Print Preview. It also does any necessary apportioning of free translation substrings
+/// when the free translation extends over more than one strip, and any trunction need if
+/// the free translation is too long to display fully in the available rectangle(s) space.
+/// The drawing is suppressed if any rectangle being considered for printing is determined
+/// to lie outside the bounds of the Page - the strip index stored in the PageOffsets
+/// struct is used for making this test.
 void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 {
 
@@ -996,6 +1329,8 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 		return; // because there are no structs to be had yet
 
 // TODO  -- the rest...
+
+	CPile* m_pFirstPile;
 
 	DestroyElements(m_pFreeTransArray);
 	CPile*  pPile; // a scratch pile pointer
@@ -1868,6 +2203,8 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	FreeTrElement* pElement;
 	wxSize extent;
 	bool bSectionIntersects = FALSE;
+
+	CPile* m_pFirstPile;
 
     // get an offscreen pile from which to scan forwards for the anchor pile (this helps
     // keep draws snappy when docs get large; we don't draw below the bottom of the window

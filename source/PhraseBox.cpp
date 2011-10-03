@@ -4032,7 +4032,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			}
 			if (pApp->m_selectionLine != -1)
 			{
-				// if there is at least one source phrase with m_bRetranslation == TRUE, 
+				// if there is at least one source phrase with a selection defined, 
 				// then then use the selection and put up the dialog
 				pApp->GetRetranslation()->DoRetranslationByUpArrow();
 			}
