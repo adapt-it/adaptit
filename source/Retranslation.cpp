@@ -612,42 +612,6 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 	strAdapt = left + strReplace + right;
 }
 
-void CRetranslation::NewRetranslation()
-{
-	wxCommandEvent dummyevent;
-	if (gbShowTargetOnly)
-	{
-		::wxBell();
-		return;
-	}
-	if (m_pApp->m_pActivePile == NULL)
-	{
-		::wxBell();
-		return;
-	}
-	if (m_pApp->m_selectionLine != -1)
-	{
-        // if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
-        // the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
-		while (pos != NULL)
-		{
-			CCell* pCell = (CCell*)pos->GetData();
-			CPile* pPile = pCell->GetPile();
-			pos = pos->GetNext();
-			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-			if (pSrcPhrase->m_bRetranslation)
-			{
-				::wxBell(); 
-				return;
-			}
-		}
-		OnButtonRetranslation(dummyevent);
-		return;
-	}
-	::wxBell();
-}
-
 /////////////////////////////////////////////////////////////////////////////////
 //
 // Begin section for OnButtonRetranslation()
