@@ -83,6 +83,7 @@
 #include "FreeTrans.h"
 #include "StartWorkingWizard.h"
 #include "EmailReportDlg.h"
+#include "HtmlFileViewer.h"
 // includes above
 
 /// This global is defined in Adapt_It.cpp
@@ -280,7 +281,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(IDC_CHECK_SINGLE_STEP, CMainFrame::OnUpdateCheckSingleStep)
 	EVT_ACTIVATE(CMainFrame::OnActivate) // to set focus to targetbox when visible
 	EVT_MENU(wxID_HELP, CMainFrame::OnAdvancedHtmlHelp)
-	EVT_MENU(ID_ONLINE_HELP, CMainFrame::OnOnlineHelp)
+	EVT_MENU(ID_MENU_AI_QUICK_START, CMainFrame::OnQuickStartHelp)
+	//EVT_MENU(ID_ONLINE_HELP, CMainFrame::OnOnlineHelp)
 	EVT_MENU(ID_REPORT_A_PROBLEM, CMainFrame::OnHelpReportAProblem)
 	EVT_MENU(ID_GIVE_FEEDBACK, CMainFrame::OnHelpGiveFeedback)
 	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
@@ -2012,6 +2014,62 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	}
 }
 
+void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
+{
+	gpApp->LogUserAction(_T("Initiated OnQuickStartHelp()"));
+	// Note: The option to load the help file into the user's default browser
+	// a better option for this reason: When we use AI's own CHtmlWindow class,
+	// although it is shown as a modeless dialog, it cannot be accessed 
+	// (to scroll, click on links, etc.) while other Adapt It dialogs (such
+	// as the Setup Paratext Collaboration dialog) are being shown modal.
+	// Therefore, the CHtmlWindow dialog is limited in what can be shown if 
+	// the administrator wants to follow its setup instructions during 
+	// the setup of the user's Adapt It settings. Loading the html help file
+	// into the user's default browser has the advantage in that it can be
+	// accessed at the same time the administrator is doing his setup using
+	// modal dialogs within Adapt It. He might need to switch back and forth
+	// between AI and the browser, of course, depending on how much screen
+	// disktop is available to work with.
+	// 
+	// The "Adapt It Quick Start.htm" file should go into the m_helpInstallPath
+	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
+	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
+
+#ifdef _USE_HTML_FILE_VIEWER
+	// for testing the CHtmlFileViewer class dialog
+	bool bSuccess = FALSE;
+#else
+	// for normal execution of the app
+	bool bSuccess = TRUE;
+#endif
+	
+	if (bSuccess)
+	{
+		wxLogNull nogNo;
+		bSuccess = wxLaunchDefaultBrowser(quickStartHelpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
+	}
+	if (!bSuccess)
+	{
+		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
+		msg = msg.Format(msg, quickStartHelpFilePath.c_str());
+		int response = wxMessageBox(msg,_("Browser launch error"),wxYES_NO);
+		gpApp->LogUserAction(msg);
+		if (response == wxYES)
+		{
+			wxString title = _("Adapt It Quick Start");
+			gpApp->m_pHtmlFileViewer = new CHtmlFileViewer(gpApp->GetMainFrame(),&title,&quickStartHelpFilePath);
+			gpApp->m_pHtmlFileViewer->Show(TRUE);
+			gpApp->LogUserAction(_T("Launched Adapt It Quick Start.htm in browser"));
+		}
+	}
+	else
+	{
+		gpApp->LogUserAction(_T("Launched Adapt It Quick Start.htm in browser"));
+	}
+}
+
+/*
+// whm removed 2Oct11
 void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->LogUserAction(_T("Initiated OnOnlineHelp()"));
@@ -2028,6 +2086,7 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 		gpApp->LogUserAction(strMsg);
 	}
 }
+*/
 
 // whm 5Nov10 removed the Adapt It Forum... Help menu item because the Adapt It Talk forum 
 // was never well utilized its functionality was soon to be removed by Google at the end

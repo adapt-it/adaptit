@@ -22,7 +22,7 @@
 class CHtmlFileViewer : public wxFrame
 {
 public:
-	CHtmlFileViewer(wxWindow* parent); // constructor
+	CHtmlFileViewer(wxWindow* parent, wxString* title, wxString* pathToHtmlFile); // constructor
 	virtual ~CHtmlFileViewer(void); // destructor
 	// other methods
 	wxSizer* pHtmlFileViewerSizer;

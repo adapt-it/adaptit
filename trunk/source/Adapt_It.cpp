@@ -12470,7 +12470,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// PT or BE; set when setting up a doc in collab mode, used to suppress the
 			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
     
-	m_adminHelpFileName = _("Help_for_Administrators.htm");
+	m_adminHelpFileName = _T("Help_for_Administrators.htm");
+	m_quickStartHelpFileName = _T("Adapt It Quick Start.htm");
 	
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
@@ -35602,7 +35603,7 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 	wxString adminHelpFilePath = GetDefaultPathForHelpFiles() + PathSeparator + m_adminHelpFileName;
 	// Create a wxHtmlWindow to display the Help for Administrators.htm help file
     //wxFrame* pHtmlWinFrame = new wxFrame(this->GetMainFrame(),-1,_T(""));
-
+	
 #ifdef _USE_HTML_FILE_VIEWER
 	// for testing the CHtmlFileViewer class dialog
 	bool bSuccess = FALSE;
@@ -35624,7 +35625,8 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 		LogUserAction(msg);
 		if (response == wxYES)
 		{
-			m_pHtmlFileViewer = new CHtmlFileViewer(this->GetMainFrame());
+			wxString title = _("Help for Administrators");
+			m_pHtmlFileViewer = new CHtmlFileViewer(this->GetMainFrame(),&title,&adminHelpFilePath);
 			m_pHtmlFileViewer->Show(TRUE);
 			LogUserAction(_T("Launched Help_for_Administrators.htm in browser"));
 		}
