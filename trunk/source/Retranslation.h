@@ -43,7 +43,6 @@ public:
 	void		DoRetranslation();
 	void		DoRetranslationByUpArrow();
 	void		GetSelectedSourcePhraseInstances(SPList*& pList,wxString& strSource,wxString& strAdapt);
-	void		NewRetranslation();
 	
 	// getters/setters for deglobalified globals
 	inline bool GetIsRetranslationCurrent() {return m_bIsRetranslationCurrent; }

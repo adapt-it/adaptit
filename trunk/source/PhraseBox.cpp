@@ -4380,19 +4380,6 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		return;
 	}
 
-	// does the user want to open the retranslation dialog in order to make one?
-	if (event.GetKeyCode() == WXK_F9)
-	{
-		if (gbIsGlossing)
-			return;
-		else
-#ifndef __WXMAC__
-			// On Macs F9 is reserved for "Tile or untile all open windows".
-			pApp->GetRetranslation()->NewRetranslation();
-#endif
-		return;
-	}
-
 	// does user want to unmerge a phrase?
 
 	// user did not want to unmerge, so must want a scroll
