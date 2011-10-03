@@ -4386,7 +4386,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		if (gbIsGlossing)
 			return;
 		else
-#ifdef __WXMAC__
+#ifndef __WXMAC__
 			// On Macs F9 is reserved for "Tile or untile all open windows".
 			pApp->GetRetranslation()->NewRetranslation();
 #endif
