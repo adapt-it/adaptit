@@ -17,9 +17,9 @@ echo ===================================================
 echo The following files are copied to all except the Minimal 
 echo and Localizations Only folders:
 echo    Adapt It Reference.doc
-echo    Adapt It Quick Start.htm
+echo    Adapt_It_Quick_Start.htm
 echo    Help_for_Administrators.htm
-echo    Images\Adapt It Quick Start\*.*
+echo    Images\Adapt_It_Quick_Start\*.*
 echo    Images\Admin_help\*.*
 echo    Images\adaptit.ico
 echo    Adapt It Tutorial.doc
@@ -54,10 +54,10 @@ pause
 rem 1. The following copies Documentation files to the "setup Regular" folder
 @echo off
 xcopy "Adapt It Reference.doc" "..\setup Regular\" /Y
-xcopy "Adapt It Quick Start.htm" "..\setup Regular\" /Y
+xcopy "Adapt_It_Quick_Start.htm" "..\setup Regular\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Regular\" /Y
-mkdir "..\setup Regular\Images\Adapt It Quick Start\"
-xcopy "Images\Adapt It Quick Start\*.*" "..\setup Regular\Images\Adapt It Quick Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
+mkdir "..\setup Regular\Images\Adapt_It_Quick_Start\"
+xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Regular\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular\Images\Admin_help\"
 xcopy "Images\Admin_help\*.*" "..\setup Regular\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular\CC\"
@@ -86,10 +86,10 @@ xcopy "iso639-3codes.txt" "..\setup Regular - Minimal\" /Y
 rem 3. The following copies Documentation files to the "setup Regular - No Html Help" folder
 @echo off
 xcopy "Adapt It Reference.doc" "..\setup Regular - No Html Help\" /Y
-xcopy "Adapt It Quick Start.htm" "..\setup Regular - No Html Help\" /Y
+xcopy "Adapt_It_Quick_Start.htm" "..\setup Regular - No Html Help\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Regular - No Html Help\" /Y
-mkdir "..\setup Regular - No Html Help\Images\Adapt It Quick Start\"
-xcopy "Images\Adapt It Quick Start\*.*" "..\setup Regular - No Html Help\Images\Adapt It Quick Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
+mkdir "..\setup Regular - No Html Help\Images\Adapt_It_Quick_Start\"
+xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Regular - No Html Help\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular - No Html Help\Images\Admin_help\"
 xcopy "Images\Admin_help\*.*" "..\setup Regular - No Html Help\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular - No Html Help\CC\"
@@ -110,10 +110,10 @@ xcopy "iso639-3codes.txt" "..\setup Regular - No Html Help\" /Y
 rem 4. The following copies Documentation files to the "setup Regular Documentation Only" folder
 @echo off
 xcopy "Adapt It Reference.doc" "..\setup Regular Documentation Only\" /Y
-xcopy "Adapt It Quick Start.htm" "..\setup Regular Documentation Only\" /Y
+xcopy "Adapt_It_Quick_Start.htm" "..\setup Regular Documentation Only\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Regular Documentation Only\" /Y
-mkdir "..\setup Regular Documentation Only\Images\Adapt It Quick Start\"
-xcopy "Images\Adapt It Quick Start\*.*" "..\setup Regular Documentation Only\Images\Adapt It Quick Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
+mkdir "..\setup Regular Documentation Only\Images\Adapt_It_Quick_Start\"
+xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Regular Documentation Only\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular Documentation Only\Images\Admin_help\"
 xcopy "Images\Admin_help\*.*" "..\setup Regular Documentation Only\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 xcopy "Adapt It Tutorial.doc" "..\setup Regular Documentation Only\" /Y
@@ -135,10 +135,10 @@ xcopy "Localization_Readme.txt" "..\setup Regular Localizations Only\" /Y
 rem 6. The following copies Documentation files to the "setup Unicode" folder
 @echo off
 xcopy "Adapt It Reference.doc" "..\setup Unicode\" /Y
-xcopy "Adapt It Quick Start.htm" "..\setup Unicode\" /Y
+xcopy "Adapt_It_Quick_Start.htm" "..\setup Unicode\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Unicode\" /Y
-mkdir "..\setup Unicode\Images\Adapt It Quick Start\"
-xcopy "Images\Adapt It Quick Start\*.*" "..\setup Unicode\Images\Adapt It Quick Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
+mkdir "..\setup Unicode\Images\Adapt_It_Quick_Start\"
+xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Unicode\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode\Images\Admin_help\"
 xcopy "Images\Admin_help\*.*" "..\setup Unicode\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode\CC\"
@@ -167,10 +167,10 @@ xcopy "iso639-3codes.txt" "..\setup Unicode - Minimal\" /Y
 rem 8. The following copies Documentation files to the "setup Unicode - No Html Help" folder
 @echo off
 xcopy "Adapt It Reference.doc" "..\setup Unicode - No Html Help\" /Y
-xcopy "Adapt It Quick Start.htm" "..\setup Unicode - No Html Help\" /Y
+xcopy "Adapt_It_Quick_Start.htm" "..\setup Unicode - No Html Help\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Unicode - No Html Help\" /Y
-mkdir "..\setup Unicode - No Html Help\Images\Adapt It Quick Start\"
-xcopy "Images\Adapt It Quick Start\*.*" "..\setup Unicode - No Html Help\Images\Adapt It Quick Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
+mkdir "..\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\"
+xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode - No Html Help\Images\Admin_help\"
 xcopy "Images\Admin_help\*.*" "..\setup Unicode - No Html Help\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode - No Html Help\CC\"
@@ -191,10 +191,10 @@ xcopy "iso639-3codes.txt" "..\setup Unicode - No Html Help\" /Y
 rem 9. The following copies Documentation files to the "setup Unicode Documentation Only" folder
 @echo off
 xcopy "Adapt It Reference.doc" "..\setup Unicode Documentation Only\" /Y
-xcopy "Adapt It Quick Start.htm" "..\setup Unicode Documentation Only\" /Y
+xcopy "Adapt_It_Quick_Start.htm" "..\setup Unicode Documentation Only\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Unicode Documentation Only\" /Y
-mkdir "..\setup Unicode Documentation Only\Images\Adapt It Quick Start\"
-xcopy "Images\Adapt It Quick Start\*.*" "..\setup Unicode Documentation Only\Images\Adapt It Quick Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
+mkdir "..\setup Unicode Documentation Only\Images\Adapt_It_Quick_Start\"
+xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Unicode Documentation Only\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode Documentation Only\Images\Admin_help\"
 xcopy "Images\Admin_help\*.*" "..\setup Unicode Documentation Only\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 xcopy "Adapt It Tutorial.doc" "..\setup Unicode Documentation Only\" /Y
