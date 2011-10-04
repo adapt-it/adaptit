@@ -89,7 +89,6 @@
 #include "Cell.h"
 #include "Layout.h"
 #include "PhraseBox.h"
-#include "Adapt_ItView.h"
 #include "AdaptitConstants.h"
 #include "TargetUnit.h"
 #include "RetranslationDlg.h"
@@ -118,6 +117,7 @@
 #include "ECDriver.h"
 #endif
 #include "FreeTrans.h"
+#include "Adapt_ItView.h"
 #include "Notes.h"
 #include "Retranslation.h"
 #include "Placeholder.h"
