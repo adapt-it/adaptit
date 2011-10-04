@@ -1444,7 +1444,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 #ifdef __WXDEBUG__
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("\nDrawFreeTransStringsInDisplayRects(), ftCount %d , ftIndex %d , ftElements (count) %d , nTotalHorizExtent %d  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
-			ftCount, ftIndex, ftElements, nTotalHorizExtent, ftStr, length, nIndexOfFirstStrip, nIndexOfLastStrip); 
+			ftCount, ftIndex, ftElements, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip); 
 	}
 #endif
 #endif
