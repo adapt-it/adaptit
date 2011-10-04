@@ -56,7 +56,7 @@ struct FreeTrElement
 // comment out next line to disable the debugging wxLogDebug() calls wrapped by this
 // symbol, for debugging various Print bugs noticed when handling printing of free 
 // translations
-#define _V6PRINT
+//#define _V6PRINT
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CFreeTrans class presents free translation fields to the user. 
@@ -79,6 +79,7 @@ public:
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
 	bool		ContainsFreeTranslation(CPile* pPile);
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCaller drawFTCaller);
+	void		DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);

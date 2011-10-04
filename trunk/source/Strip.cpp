@@ -802,8 +802,8 @@ void CStrip::GetFreeTransRect(wxRect& rect)
 	rect.SetTop(rect.GetBottom() + 3);
 	// reset the Bottom to be the target text's height lower than the top
 	rect.SetBottom(rect.GetTop() + m_pLayout->GetTgtTextHeight());
-	// increase the width to be 50% of the RH_SLOP (which is 60) value = 30 pixels more
-	rect.SetWidth(rect.GetWidth() + RH_SLOP / 2);
+	// increase the width to be 80% of the RH_SLOP (which is 60) value = 48 pixels more
+	rect.SetWidth(rect.GetWidth() + (RH_SLOP * 4) / 5);
 }
 
 wxRect CStrip::GetFreeTransRect()
