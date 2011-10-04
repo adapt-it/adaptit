@@ -2031,7 +2031,7 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	// between AI and the browser, of course, depending on how much screen
 	// disktop is available to work with.
 	// 
-	// The "Adapt It Quick Start.htm" file should go into the m_helpInstallPath
+	// The "Adapt_It_Quick_Start.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
 
@@ -2059,12 +2059,12 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 			wxString title = _("Adapt It Quick Start");
 			gpApp->m_pHtmlFileViewer = new CHtmlFileViewer(gpApp->GetMainFrame(),&title,&quickStartHelpFilePath);
 			gpApp->m_pHtmlFileViewer->Show(TRUE);
-			gpApp->LogUserAction(_T("Launched Adapt It Quick Start.htm in browser"));
+			gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
 		}
 	}
 	else
 	{
-		gpApp->LogUserAction(_T("Launched Adapt It Quick Start.htm in browser"));
+		gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
 	}
 }
 

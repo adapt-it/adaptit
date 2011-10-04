@@ -12471,7 +12471,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
     
 	m_adminHelpFileName = _T("Help_for_Administrators.htm");
-	m_quickStartHelpFileName = _T("Adapt It Quick Start.htm");
+	m_quickStartHelpFileName = _T("Adapt_It_Quick_Start.htm");
 	
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
