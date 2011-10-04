@@ -2645,9 +2645,9 @@ public:
 	/// This name is _T("Help_for_Administrators.htm") on all platforms.
 	wxString m_adminHelpFileName;
 	
-	/// m_quickStartHelpFileName stores the actual name of the Adapt It Quick Start help file 
+	/// m_quickStartHelpFileName stores the actual name of the Adapt_It_Quick_Start.htm help file 
 	/// for the given platform.
-	/// This name is _T("Adapt It Quick Start.htm") on all platforms.
+	/// This name is _T("Adapt_It_Quick_Start.htm") on all platforms.
 	wxString m_quickStartHelpFileName;
 	
     /// m_licenseInstallPath stores the path where the license files are installed on the
