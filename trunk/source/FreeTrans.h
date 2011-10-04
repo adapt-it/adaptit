@@ -155,6 +155,8 @@ private:
 	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
 	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);
+	void		DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
+											wxArrayString& arrFreeTranslations);
 
 public:
 	/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
