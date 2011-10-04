@@ -59,7 +59,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" \
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" \
+	"$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" \
 	"$(DESTDIR)$(xmldir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
@@ -164,7 +165,7 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-DATA = $(htmlhelp_DATA) $(xml_DATA)
+DATA = $(docAdmin_DATA) $(docStart_DATA) $(htmlhelp_DATA) $(xml_DATA)
 HEADERS = $(noinst_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
@@ -347,52 +348,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # these are the headers for your project
-noinst_HEADERS = ../../source/AIPrintout.h ../../source/AIPrintPreviewFrame.h ../../source/Adapt_It.h \
-	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
-	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
-	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
-	../../source/AssignLocationsForInputsAndOutputs.h \
-	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
-	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
-	../../source/CaseEquivPage.h ../../source/Cell.h \
-	../../source/ChooseConsistencyCheckTypeDlg.h \
-	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
-	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
-	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
-	../../source/conschk_exists_notu_dlg.h ../../source/ConsChk_Empty_noTU_Dlg.h \
-	../../source/convauto.h ../../source/CorGuess.h \
-	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
-	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
-	../../source/ExportInterlinearDlg.h \
-	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h \
-	../../source/FilenameConflictDlg.h \
-	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h \
-	../../source/GetSourceTextFromEditor.h ../../source/GoToDlg.h \
-	../../source/GuesserSettingsDlg.h ../../source/HtmlFileViewer.h \
-	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
-	../../source/KBEditSearch.h ../../source/KBPage.h \
-	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
-	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h ../../source/md5.h \
-	../../source/MergeUpdatedSrc.h ../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h \
-	../../source/NavProtectNewDoc.h ../../source/NoteDlg.h \
-	../../source/Notes.h ../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h \
-	../../source/PeekAtFile.h ../../source/PhraseBox.h ../../source/Pile.h ../../source/Placeholder.h \
-	../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
-	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
-	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h \
-	../../source/RefStringMetadata.h ../../source/Retranslation.h ../../source/RetranslationDlg.h \
-	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SetupEditorCollaboration.h \
-	../../source/SilConverterSelectDlg.h \
-	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
-	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
-	../../source/tellenc.h \
-	../../source/TransformToGlossesDlg.h \
-	../../source/UsfmFilterPage.h ../../source/UnitsDlg.h \
-	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
-	../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h ../../source/WaitDlg.h \
-	../../source/Welcome.h ../../source/WhichBook.h \
-	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h
-
+noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 
 # Localization data
 SUBDIRS = po
@@ -408,7 +364,13 @@ xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
 
 # HTML help data
 htmlhelpdir = $(pkgdatadir)/help
-htmlhelp_DATA = adaptit.htb
+htmlhelp_DATA = adaptit.htb ../../docs/Help_for_Administrators.htm \
+	../../docs/Adapt_It_Quick_Start.htm
+
+docAdmindir = $(pkgdatadir)/help/Images/Admin_help
+docAdmin_DATA = $(wildcard $(srcdir)/../../docs/Images/Admin_help/*)
+docStartdir = $(pkgdatadir)/help/Images/Adapt_It_Quick_Start
+docStart_DATA = $(wildcard $(srcdir)/../../docs/Images/Adapt_It_Quick_Start/*)
 
 # the application source, library search path, and link libraries
 adaptit_SOURCES = \
@@ -2216,6 +2178,46 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-docAdminDATA: $(docAdmin_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(docAdmindir)" || $(MKDIR_P) "$(DESTDIR)$(docAdmindir)"
+	@list='$(docAdmin_DATA)'; test -n "$(docAdmindir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docAdmindir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docAdmindir)" || exit $$?; \
+	done
+
+uninstall-docAdminDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(docAdmin_DATA)'; test -n "$(docAdmindir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(docAdmindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(docAdmindir)" && rm -f $$files
+install-docStartDATA: $(docStart_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(docStartdir)" || $(MKDIR_P) "$(DESTDIR)$(docStartdir)"
+	@list='$(docStart_DATA)'; test -n "$(docStartdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docStartdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docStartdir)" || exit $$?; \
+	done
+
+uninstall-docStartDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(docStart_DATA)'; test -n "$(docStartdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(docStartdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(docStartdir)" && rm -f $$files
 install-htmlhelpDATA: $(htmlhelp_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(htmlhelpdir)" || $(MKDIR_P) "$(DESTDIR)$(htmlhelpdir)"
@@ -2572,7 +2574,7 @@ check: check-recursive
 all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(xmldir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(xmldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -2623,7 +2625,8 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-htmlhelpDATA install-xmlDATA
+install-data-am: install-docAdminDATA install-docStartDATA \
+	install-htmlhelpDATA install-xmlDATA
 
 install-dvi: install-dvi-recursive
 
@@ -2671,7 +2674,8 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-htmlhelpDATA \
+uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
+	uninstall-docStartDATA uninstall-htmlhelpDATA \
 	uninstall-xmlDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
@@ -2685,8 +2689,9 @@ uninstall-am: uninstall-binPROGRAMS uninstall-htmlhelpDATA \
 	distclean-generic distclean-libtool distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
+	install-data install-data-am install-docAdminDATA \
+	install-docStartDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am \
 	install-htmlhelpDATA install-info install-info-am install-man \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip install-xmlDATA installcheck installcheck-am \
@@ -2694,12 +2699,10 @@ uninstall-am: uninstall-binPROGRAMS uninstall-htmlhelpDATA \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-htmlhelpDATA uninstall-xmlDATA
+	uninstall-binPROGRAMS uninstall-docAdminDATA \
+	uninstall-docStartDATA uninstall-htmlhelpDATA \
+	uninstall-xmlDATA
 
-
-#doc_DATA = $(shell ls ../../docs/*.htm ../../docs/*.txt ../../docs/*.doc)
-#docImagesdir = $(docdir)/Images/Adapt_It_Quick_Start/
-#docImages_DATA = $(shell ls ../../docs/Images/Adapt_It_Quick_Start/*.gif)
 
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp

@@ -1,49 +1,5 @@
 # these are the headers for your project
-noinst_HEADERS = ../../source/AIPrintout.h ../../source/AIPrintPreviewFrame.h ../../source/Adapt_It.h \
-	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
-	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
-	../../source/AdminMoveOrCopy.h ../../source/AdminEditMenuProfile.h \
-	../../source/AssignLocationsForInputsAndOutputs.h \
-	../../source/AutoSavingPage.h ../../source/base64.h ../../source/BString.h ../../source/CCModule.h \
-	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
-	../../source/CaseEquivPage.h ../../source/Cell.h \
-	../../source/ChooseConsistencyCheckTypeDlg.h \
-	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
-	../../source/ComposeBarEditBox.h ../../source/CollabUtilities.h \
-	../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
-	../../source/conschk_exists_notu_dlg.h ../../source/ConsChk_Empty_noTU_Dlg.h \
-	../../source/convauto.h ../../source/CorGuess.h \
-	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
-	../../source/EditSourceTextDlg.h ../../source/EmailReportDlg.h ../../source/ExportFunctions.h \
-	../../source/ExportInterlinearDlg.h \
-	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h \
-	../../source/FilenameConflictDlg.h \
-	../../source/FindReplace.h ../../source/FontPage.h ../../source/FreeTrans.h \
-	../../source/GetSourceTextFromEditor.h ../../source/GoToDlg.h \
-	../../source/GuesserSettingsDlg.h ../../source/HtmlFileViewer.h \
-	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h \
-	../../source/KBEditSearch.h ../../source/KBPage.h \
-	../../source/LanguageCodesDlg.h ../../source/LanguagesPage.h \
-	../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h ../../source/md5.h \
-	../../source/MergeUpdatedSrc.h ../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h \
-	../../source/NavProtectNewDoc.h ../../source/NoteDlg.h \
-	../../source/Notes.h ../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h \
-	../../source/PeekAtFile.h ../../source/PhraseBox.h ../../source/Pile.h ../../source/Placeholder.h \
-	../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
-	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
-	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h \
-	../../source/RefStringMetadata.h ../../source/Retranslation.h ../../source/RetranslationDlg.h \
-	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SetupEditorCollaboration.h \
-	../../source/SilConverterSelectDlg.h \
-	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
-	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
-	../../source/tellenc.h \
-	../../source/TransformToGlossesDlg.h \
-	../../source/UsfmFilterPage.h ../../source/UnitsDlg.h \
-	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/Uuid_AI.h \
-	../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h ../../source/WaitDlg.h \
-	../../source/Welcome.h ../../source/WhichBook.h \
-	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h
+noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 
 #########################################################################
 # APPLICATION SECTION
@@ -66,11 +22,12 @@ xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
 
 # HTML help data
 htmlhelpdir = $(pkgdatadir)/help
-htmlhelp_DATA = adaptit.htb
-
-#doc_DATA = $(shell ls ../../docs/*.htm ../../docs/*.txt ../../docs/*.doc)
-#docImagesdir = $(docdir)/Images/Adapt_It_Quick_Start/
-#docImages_DATA = $(shell ls ../../docs/Images/Adapt_It_Quick_Start/*.gif)
+htmlhelp_DATA = adaptit.htb ../../docs/Help_for_Administrators.htm \
+	../../docs/Adapt_It_Quick_Start.htm
+docAdmindir = $(pkgdatadir)/help/Images/Admin_help
+docAdmin_DATA = $(wildcard $(srcdir)/../../docs/Images/Admin_help/*)
+docStartdir = $(pkgdatadir)/help/Images/Adapt_It_Quick_Start
+docStart_DATA = $(wildcard $(srcdir)/../../docs/Images/Adapt_It_Quick_Start/*)
 
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp

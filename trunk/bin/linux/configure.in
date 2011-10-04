@@ -1,5 +1,6 @@
-AC_INIT(../../source/Adapt_It.cpp)
-AM_INIT_AUTOMAKE(adaptit, 0.1)
+AC_INIT([adaptit], [0.1])
+AC_CONFIG_SRCDIR([../../source/Adapt_It.cpp])
+AM_INIT_AUTOMAKE([-Wno-portability])
 
 AC_PROG_CXX
 AC_PROG_INSTALL

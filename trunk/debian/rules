@@ -57,7 +57,7 @@ install: build
 
 	# Add commands here to install into the package adaptit-docs
 	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit-docs \
-		install-htmlhelpDATA
+		install-htmlhelpDATA install-docAdminDATA install-docStartDATA
 
 
 # Build architecture-independent files here.
