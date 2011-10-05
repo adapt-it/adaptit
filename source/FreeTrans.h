@@ -78,7 +78,7 @@ public:
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
 	bool		ContainsFreeTranslation(CPile* pPile);
-	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCaller drawFTCaller);
+	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);

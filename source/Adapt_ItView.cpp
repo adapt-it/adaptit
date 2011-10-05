@@ -1149,7 +1149,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	// KLB 9/2011 added check for gbCheckInclFreeTransText so free translations would print on print preview
 	if (pApp->m_bFreeTranslationMode && !gbIsPrinting)
 	{
-		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout(), call_from_ondraw);
+		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout());
 	}
 	else if (gbIsPrinting && gbCheckInclFreeTransText)
 	{
