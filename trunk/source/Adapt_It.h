@@ -894,14 +894,6 @@ enum EditBoxContents
 	retain_editbox_contents
 };
 
-/// An enum for specifying how the DrawFreeTranslations() function was called. Can be
-/// either call_from_ondraw or call_from_edit.
-enum DrawFTCaller
-{
-	call_from_ondraw,
-	call_from_edit
-};
-
 /// An enum for specifying which pass is being processed in the call to
 /// SetupForSFMSetChange(). Can be either first_pass or second_pass.
 enum WhichPass // BEW added 10Jun05 for support of SFM set changes done on the fly
