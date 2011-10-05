@@ -437,6 +437,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */,
+				7D7335171423F70B00316F83 /* HtmlFileViewer.h */,
 				C8A144BA1429F5D20022E0F1 /* convauto.cpp */,
 				7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */,
 				7D4E56EC142EDDE0007A4424 /* AIPrintPreviewFrame.h */,
@@ -722,8 +724,6 @@
 			isa = PBXGroup;
 			children = (
 				7DC0399C0F4672720047FCAF /* ai_build_phase_script.sh */,
-				7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */,
-				7D7335171423F70B00316F83 /* HtmlFileViewer.h */,
 			);
 			path = scripts;
 			sourceTree = "<group>";
