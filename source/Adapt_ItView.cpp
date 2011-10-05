@@ -831,8 +831,10 @@ int		gnToChapter = 1;
 int		gnToVerse = 1;
 int		gnRangeStartSequNum;
 int		gnRangeEndSequNum;
-bool	gbCheckInclFreeTransText = FALSE; // klb 9/9/2011-indicates whether to include Free Translation Text when printing-set in PrintOptionsDlg
-bool	gbCheckInclGlossesText = FALSE; // klb 9/9/2011-indicates whether to include Glosses Text when printing-set in PrintOptionsDlg
+bool	gbCheckInclFreeTransText = FALSE; // klb 9/9/2011-indicates whether to 
+					// include Free Translation Text when printing-set in PrintOptionsDlg
+bool	gbCheckInclGlossesText = FALSE; // klb 9/9/2011-indicates whether to include 
+					// Glosses Text when printing-set in PrintOptionsDlg
 
 /// If TRUE print the footer, otherwise skip printing of footer
 bool	gbPrintFooter = TRUE;
@@ -1098,6 +1100,11 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // The error Gerry reported, is caused by the active pile's left offset being smaller
     // than the previous pile's left offset plus its m_nWidth value. We can test for the
     // latter too, and when that happens, force the recalc before the draw.
+    
+    // BEW 5Oct11; Doing a Print Preview after PrintOptionsDlg did a print of physical
+    // pages, failed here (pActivePile below was rubbish) due to m_pActivePile having been
+    // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
+	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
 	CPile* pActivePile = pApp->m_pActivePile;
 	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
 	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
@@ -3448,6 +3455,10 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 		gbCheckInclGlossesText = FALSE;
 	}
 
+    // BEW 5Oct11, we'll unilaterally Freeze(), and unlaterally later Thaw(), whether or
+    // not we subsequently turn on glossing or free translation modality
+	pApp->GetMainFrame()->Freeze();
+	pApp->m_bFrozenForPrinting = TRUE;
 
 	// klb 9/2011 : If glosses are not visible, we need to make them visible in the
 	// underlying document temporarily to have them show in the print preview frame
@@ -3466,6 +3477,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	}	
 
 	GetLayout()->RecalcLayout(pApp->GetSourcePhraseList(),create_strips_and_piles);
+	// must reset m_pActivePile after a RecalcLayout(), else view's Draw() will crash
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum); // the param hasn't changed
 
     pApp->LogUserAction(_T("Initiated OnPrintPreview()"));
 	wxString previewTitle,printTitle;
@@ -3520,8 +3533,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	if (bHideFreeTranslations == TRUE)
 		frame->HideFreeTranslationsOnClose( TRUE);
 	// whm note: The preview window is closed automatically 
-	// when the user exits/closes the preview window.
-	
+	// when the user exits/closes the preview window.	
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -3562,8 +3574,24 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 			wxICON_EXCLAMATION);
 		return FALSE;
 	}
+
+    // BEW 5Oct11: Note, the mode (glossing, or free trans), if either are to be printed,
+    // must have been switched prior to control entering here - eg. in InitDialog() of
+    // PrintOptionsDlg, and if not done, the pagination will be wrong (strip height too
+    // small)
+	
 	int pageCount = 0;
 	// strip "height" here includes the vertical space preceding it for navText display
+	// 
+	// BEW 5Oct11, if coming here from  the OnOK() handler of the PrintOptionsDlg,
+	// gbIsPrinting is still TRUE, but the GetStripHeight() call will just grab the old
+	// value of the strip height before the user had a chance to click of either or both
+	// of the checkboxes in the PrintOptionsDlg. So we have to explicitly call pLayout's
+	// SetStripHeight() now, so that the values of gbCheckInclGlossesText and
+	// gbCheckInclFreeTransText can be used to calculate the appropriate strip height (if
+	// this is not done, the relevant data is not printed, but the line where it would be
+	// printed remains empty, and so more strips don't get into the page)
+	pLayout->SetPileAndStripHeight();
 	int nStripHeightWithLeading = pLayout->GetCurLeading() + pLayout->GetStripHeight();
     // The nPagePrintingLength passed in represents the height of the printed page between
     // the top and bottom margins (in logical units).

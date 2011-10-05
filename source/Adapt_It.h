@@ -3554,6 +3554,19 @@ public:
     // included, the TRUE value should be on when that export commences. Turn it off when
     // the exported oxes file is saved to disk.
 	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES
+	
+	// BEW added 5Oct11, because I want to do two kludges to improve print preview
+	// display, and printed strip on paper display. Print preview shows less strips than
+	// the actual printed page, but on the printed page the bottom of free translation
+	// overlaps about 10 pixes or so of the top of the navText whiteboard; so I want to
+	// make the printed page's strip.Top() coord be progressively further down the
+	// PageOffset struct, but the Print Preview page is going to need some squeezing
+	// together vertically - so I need to know when the PageOffsets structs are being used
+	// for page printing, or Print Preview display. This boolean allows me to do it. It is
+	// set by wxPrintout's IsPreview() call. wxPrintout is the base class for AIPrintout.h
+	// & .cpp
+	bool m_bIsPrintPreviewing; //set at the start of OnPreparePrinting()
+	bool m_bFrozenForPrinting; // set in view's PaginateDoc(), clear in ~PrintOptionsDlg()
 };
 
 DECLARE_APP(CAdapt_ItApp);

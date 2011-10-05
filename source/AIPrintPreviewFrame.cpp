@@ -37,6 +37,7 @@
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 #include "FreeTrans.h"
+#include "MainFrm.h"
 
 CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 	CAdapt_ItApp* App,
@@ -60,6 +61,11 @@ CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 		pApp->GetView()->ShowGlosses();
 	if (bHideFreeTranslationsOnClose == TRUE)
 		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+	if (pApp->m_bFrozenForPrinting)
+	{
+		pApp->GetMainFrame()->Thaw();
+		pApp->m_bFrozenForPrinting = FALSE;
+	}
 }
 
 // Setting this to true will redraw the underlying application view

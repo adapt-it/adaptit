@@ -12439,6 +12439,8 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bFrozenForPrinting = FALSE;
+
 	// BEW added 31Aug11 -- strings needed in the consistency check dialogs
 	m_modeWordAdapt = _("adaptation");
 	m_modeWordGloss = _("gloss");

@@ -52,6 +52,7 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "Layout.h"
+#include "FreeTrans.h"
 #include "PrintOptionsDlg.h"
 #include "Adapt_ItView.h" 
 #include "MainFrm.h"
@@ -81,6 +82,7 @@ extern bool gbSuppressPrecedingHeadingInRange;
 extern bool gbIncludeFollowingHeadingInRange;
 extern bool	gbCheckInclFreeTransText; // klb 9/9/2011
 extern bool	gbCheckInclGlossesText;   // klb 9/9/2011
+extern bool gbGlossingVisible;
 
 
 /// This global is defined in Adapt_It.cpp.
@@ -198,6 +200,20 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 ////////////////////////////////////////////////////////////////////////////////////////////
 CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (bHideFreeTranslationsOnClose)
+	{
+		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+	}
+	if (bHideGlossesOnClose)
+	{
+		pApp->GetView()->ShowGlosses();
+	}
+	if (pApp->m_bFrozenForPrinting)
+	{
+		pApp->GetMainFrame()->Thaw();
+		pApp->m_bFrozenForPrinting = FALSE;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,25 +227,11 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	//wxLogDebug(_T("InitDialog() START"));	
+	CAdapt_ItApp* pApp = &wxGetApp();
 
 	// whm 30Aug11 added for the "Additional text to include in Printouts" section of
 	// the "Special Print Options" dialog.
-	
-	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
-	// contains free translations, otherwise uncheck and disable the check box.
-	if (gpApp->DocHasFreeTranslations(gpApp->m_pSourcePhrases))
-	{
-		pCheckInclFreeTransText->Enable(TRUE);
-		pCheckInclFreeTransText->SetValue(TRUE);
-		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
-	}
-	else
-	{
-		pCheckInclFreeTransText->Enable(FALSE);
-		pCheckInclFreeTransText->SetValue(FALSE);
-		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
-	}
-	
+		
     // BEW 1Oct11, the m_pagesList of PageOffsets structs is not yet set up, and
     // LayoutAndPaginate() below will call RecalcLayout() in order to get the strips
     // populated in conformity with the page printable width. Draw() won't be called, but
@@ -243,12 +245,64 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     // previous print session. What we do in DrawFreeTranslationsForPrinting() is test for
     // NULL - and if it is, we exit immediately so that DrawFreeTranslationsForPrinting()
     // does not try to do anything when no page is defined and ready for printing.
-	gpApp->m_pLayout->m_pOffsets = NULL;
+	pApp->m_pLayout->m_pOffsets = NULL;
 
 	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
 	// contains glosses, otherwise uncheck and disable the check box.
-	if (gpApp->DocHasGlosses(gpApp->m_pSourcePhrases))
+	// 
+	// BEW 5Oct11, prior to LayoutAndPaginate() being called, mode switches to get glosses
+	// see and/or free translations visible (if in the document - we can't anticipate,
+	// however, whether or not the user will uncheck their checkboxes in the dialog) -
+	// otherwise, the calculations will be done with the current mode (probably with no
+	// glosses or free translations visible) in which case the strip height will be too
+	// small and the pagination won't agree with the Print Preview. So the mode needs to
+	// be switched here & now, and a layout done. I'll do as Kevin did in view's
+	// OnPrintPreview(), except I'll add a Freeze() here, and a Thaw() in the dialog's
+	// destructor, so as to prevent Draw() changes when the layout is recalculated until
+	// after the dialog is dismissed
+	bool bDocHasGlosses = pApp->DocHasGlosses(pApp->m_pSourcePhrases);
+	bool bDocHasFreeTrans = pApp->DocHasFreeTranslations(pApp->m_pSourcePhrases);
+
+	// we'll unilaterally Freeze(), and unlaterally later Thaw(), whether or not we
+	// subsequently turn on glossing or free translation modality
+	pApp->GetMainFrame()->Freeze();
+	pApp->m_bFrozenForPrinting = TRUE;
+	
+	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
+	// contains free translations, otherwise uncheck and disable the check box.
+	// BEW 5Oct11, work out if we need to turn on the gloss or free tr modalities, and set
+	// booleans so that the dialog destructor can turn them back off when we are done
+	bHideFreeTranslationsOnClose = FALSE;
+	if (bDocHasFreeTrans)
 	{
+		if (!pApp->m_bFreeTranslationMode)
+		{
+			// if free trans mode is not on in the document, then we'll need to turn the
+			// mode back off when done
+			bHideFreeTranslationsOnClose = TRUE;
+			pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+		}
+		pCheckInclFreeTransText->Enable(TRUE);
+		pCheckInclFreeTransText->SetValue(TRUE);
+		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
+	}
+	else
+	{
+		pCheckInclFreeTransText->Enable(FALSE);
+		pCheckInclFreeTransText->SetValue(FALSE);
+		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
+	}
+
+	bHideGlossesOnClose = FALSE;
+	if (bDocHasGlosses)
+	{
+		if (!gbGlossingVisible)
+		{
+			// if glosses are not visible, then we'll need to turn the
+			// mode back off when done
+			bHideGlossesOnClose = TRUE;
+			pApp->GetView()->ShowGlosses();
+		}
 		pCheckInclGlossesText->Enable(TRUE);
 		pCheckInclGlossesText->SetValue(TRUE);
 		// Note the global flag gbCheckInclGlossesText is set in OnOK()
@@ -263,7 +317,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// Get the logical page dimensions for paginating the document and printing.
     int nPagePrintingWidthLU;
 	int nPagePrintingLengthLU;
-	bool bOK = gpApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
+	bool bOK = pApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
 	if (!bOK)
 	{
 		// what should we do here, I guess it shouldn't happen, so I will just return and
@@ -274,7 +328,9 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	}
 
 	// setup the layout for the new pile width, and get the PageOffsets structs list populated
-	bOK = gpApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
+	// (LayoutAndPaginate() calls view class's PaginateDoc() & the latter does the PageOffsets
+	// structs)
+	bOK = pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
 	if (!bOK)
 	{
 		// what should we do here, I guess it shouldn't happen, but just in case....
@@ -507,6 +563,43 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		gbIncludeFollowingHeadingInRange = FALSE;
 	}
 
+	// BEW 5Oct11, Now that the gbCheckInclFreeTransText and gbCheckInclGlossesText global
+	// boolean values are known, they need to be used by SetPileAndStripHeight() in
+	// CLayout by the latter doing a RecalcLayout() which will set the strip height to
+	// what is needed for the user's choice. I checked, and without a repagination being
+	// forced here, the value used for the strip height will include free translation and
+	// gloss lines if those data types are in the document - but the user may one want one
+	// or neither of those lines printed; so a repagination is mandatory. Sigh :-(
+	// (Without it if, say, the use chooses no glosses and glosses are in the doc, a blank
+	// line for the glosses is in the printed page, but at least no glosses are printed;
+	// but what we want is no gloss line, and so and extra strip being squeezed in. The
+	// only way to do it is to repaginate, I think). The screen is still frozen, so the only
+	// noticeable effect should be a longer than expected delay before the print starts.
+    int nPagePrintingWidthLU;
+	int nPagePrintingLengthLU;
+	bool bOK = pApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
+	if (!bOK)
+	{
+		// what should we do here, I guess it shouldn't happen, so I will just return and
+		// hope -- maybe a beep too
+		::wxBell();
+		gbIsPrinting = FALSE;
+	}
+
+	// setup the layout for the new pile width, and get the PageOffsets structs list populated
+	// (LayoutAndPaginate() calls view class's PaginateDoc() & the latter does the PageOffsets
+	// structs)
+	// gbIsPrinting gets turned off, make sure it is turned on here
+	gbIsPrinting = TRUE;
+	bOK = pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
+	if (!bOK)
+	{
+		// what should we do here, I guess it shouldn't happen, but just in case....
+		// ring the bell
+		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
+		gbIsPrinting = FALSE;
+	}
+
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -517,7 +610,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the "Cancel" button on the dialog is pressed.
-/// It deletes the set of PageOffsets structs. Failure to do this when the user cancel
+/// It deletes the set of PageOffsets structs. Failure to do this when the user cancels
 /// would leak a lot of 16 byte memory blocks! (That's how I found we need this handler!)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnCancel(wxCommandEvent& event) 

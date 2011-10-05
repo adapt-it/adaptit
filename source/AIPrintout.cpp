@@ -523,10 +523,13 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 /// OnPreparePrinting. All that is done in the AIPrintout's destructor, rather than here in
 /// OnPreparePrinting(). See notes within OnPreparePrinting() for more detail.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void AIPrintout::OnPreparePrinting() 
+void AIPrintout::OnPreparePrinting()
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
 	//CAdapt_ItView* pView = pApp->GetView();
+	
+	pApp->m_bIsPrintPreviewing = IsPreview(); // BEW added 5Oct11, so I can do kludges which
+			// differ, depending on whether we are print previewing, or printing to paper
 
 	int nPagePrintingWidthLU = 0;
 	int nPagePrintingLengthLU = 0;
