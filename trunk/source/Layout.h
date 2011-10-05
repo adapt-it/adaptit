@@ -19,7 +19,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 // use this define to turn on wxLogDebug() calls in OnPrintPage() and CLayout::Draw()
-//#define Print_failure
+#define Print_failure
 
 
 #ifndef Layout_h

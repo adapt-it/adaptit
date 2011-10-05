@@ -89,6 +89,9 @@ private:
 	// bool m_bVariable;
 	
 	// other class attributes
+	bool bHideGlossesOnClose;
+	bool bHideFreeTranslationsOnClose;
+
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

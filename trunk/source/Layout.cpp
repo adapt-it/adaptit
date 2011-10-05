@@ -158,6 +158,12 @@ extern wxRect grectViewClient;
 /// This global is defined in Adapt_ItView.h.
 extern int gnBoxCursorOffset;
 
+/// This global is defined in Adapt_ItView.h.
+extern bool gbCheckInclFreeTransText;
+
+/// This global is defined in Adapt_ItView.h.
+extern bool gbCheckInclGlossesText;
+
 //GDLC removed 2010-02-09
 // This global is defined in PhraseBox.cpp
 //extern bool gbExpanding;
@@ -354,9 +360,18 @@ void CLayout::Draw(wxDC* pDC)
 	// drawn for the current printed page or previewed page
 	if (gbIsPrinting)
 	{
-		// printing, or print previewing is currently in effect
-		nFirstStripIndex = m_pOffsets->nFirstStrip;
-		nLastStripIndex = m_pOffsets->nLastStrip;
+		if (m_pOffsets != NULL)
+		{
+			// printing, or print previewing is currently in effect
+			nFirstStripIndex = m_pOffsets->nFirstStrip;
+			nLastStripIndex = m_pOffsets->nLastStrip;
+		}
+		else
+		{
+			// give some 'safe' values - first strip only
+			nFirstStripIndex = 0;
+			nLastStripIndex = 0;
+		}
 	}
 	else
 	{
@@ -1072,13 +1087,42 @@ void CLayout::SetSavedGapWidth(int nGapWidth)
 }
 
 // setter and getters for the pile height and strip height
+
+// BEW changed 5Oct11, if special functions change the app mode without going through the
+// standard calls, e.g. to do Print or Print Preview which switches to free translation
+// mode if there are free trans to print or preview, then the mode change happens but the
+// strip height and pile height doesn't change. So we have to call SetPileAndStripHeight()
+// internally and then return the m_nStripHeight value
+// BEW 5Oct11, commented it out again, I think the problem was that the print pagination
+// was happening from PrintOptionsDlg::InitDialog() to get the initial params for the
+// dialog to show, and at that point, SwitchScreenFreeTranslationMode() and/or
+// ShowGlosses() had not been called, and so the relevant switches, e. gbIsGlossing and
+// gbGlossingVisible and m_bFreeTranslationMode remain unset - and so PaginateDoc() in the
+// view class uses values for the StripHeight which are too small. The solution is
+// probably to get the relevant function calls done earlier before or at PaginateDoc() so
+// that the height calcs are correct when paginating...
 int CLayout::GetPileHeight()
 {
+	//SetPileAndStripHeight(); // BEW added 5Oct11
 	return m_nPileHeight;
 }
 
+// BEW changed 5Oct11, if special functions change the app mode without going through the
+// standard calls, e.g. to do Print or Print Preview which switches to free translation
+// mode if there are free trans to print or preview, then the mode change happens but the
+// strip height and pile height doesn't change. So we have to call SetPileAndStripHeight()
+// internally and then return the m_nStripHeight value
+// BEW 5Oct11, commented it out again, I think the problem was that the print pagination
+// was happening from PrintOptionsDlg::InitDialog() to get the initial params for the
+// dialog to show, and at that point, SwitchScreenFreeTranslationMode() and/or
+// ShowGlosses() had not been called, and so the relevant switches, e. gbIsGlossing and
+// gbGlossingVisible and m_bFreeTranslationMode remain unset - and so PaginateDoc() in the
+// view class uses values for the StripHeight which are too small. The solution is
+// probably to get the relevant function calls done earlier before or at PaginateDoc() so
+// that the height calcs are correct when paginating...
 int CLayout::GetStripHeight()
 {
+	//SetPileAndStripHeight(); // BEW added 5Oct11
 	return m_nStripHeight;
 }
 
@@ -1111,7 +1155,7 @@ void CLayout::SetPileAndStripHeight()
         // we've accounted for source and target lines; now handle possibility of a 3rd
         // line (note, if 3 lines, target is always one, so we've handled that above
         // already)
-		if (gbGlossingVisible)
+		if ((!gbIsPrinting && gbGlossingVisible) || (gbIsPrinting && gbCheckInclGlossesText))
 		{
 			if (gbGlossingUsesNavFont)
 			{
@@ -1137,7 +1181,7 @@ void CLayout::SetPileAndStripHeight()
     // the strip)
 	m_nStripHeight = m_nPileHeight;
 	//if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting) <<-- deprecated, BEW 1Oct11
-	if (m_pApp->m_bFreeTranslationMode)
+	if ((!gbIsPrinting && m_pApp->m_bFreeTranslationMode) || (gbIsPrinting && gbCheckInclFreeTransText))
 	{
         // add enough space for a single line of the height given by the target text's
         // height + 3 pixels to set it off a bit from the bottom of the pile
