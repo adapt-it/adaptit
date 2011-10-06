@@ -894,7 +894,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		if (resultSrc != 0)
 		{
 			// not likely to happen so an English warning will suffice
-			wxMessageBox(_T(
+			wxMessageBox(_(
 "Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
 			_T(""),wxICON_WARNING);
 			wxString temp;
@@ -2228,9 +2228,9 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 		// not likely to happen so an English warning will suffice
 		if (m_pApp->m_bCollaboratingWithParatext)
-			wxMessageBox(_T("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+			wxMessageBox(_("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
 		else if (m_pApp->m_bCollaboratingWithBibledit)
-			wxMessageBox(_T("Could not read data from the Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
+			wxMessageBox(_("Could not read data from the Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
 
 		wxString temp;
 		if (m_pApp->m_bCollaboratingWithParatext)
