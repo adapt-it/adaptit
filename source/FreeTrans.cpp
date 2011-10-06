@@ -3953,8 +3953,8 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
-	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
+	//wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
+	//wxASSERT(pMenuBar != NULL);
 
 	// whm Note: Only log user action when user explicitly selects menu
 	// item not when OnAdvancedFreeTranslationMode() is called by other
