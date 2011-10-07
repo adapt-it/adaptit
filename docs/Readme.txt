@@ -25,7 +25,7 @@ the word processor's native format - usually with a .doc or .odt
 extension. Adapt It also cannot accepts documents that have been saved 
 in rich text (.rtf) format as input source texts. A future version of 
 Adapt It may be able to accept some type of XML formatted document for 
-input as source text, but this current version 5.x does not accept 
+input as source text, but this current version 6.x does not accept 
 .xml format documents as input texts. Hence, this version of Adapt It 
 will not accept documents saved as Word 2003 XML documents as input
 texts.
@@ -119,12 +119,15 @@ Adapt It can produce a number of different kinds of exports from its
 store of data, documents and knowledge bases. Knowledge bases can be 
 exported to a plain text standard format that can be used to build a 
 dictionary within a separate dictionary management program such as 
-Toolbox or Field Works.
+Toolbox or Field Works. It can also export its knowledge base in
+LIFT format as a means of starting a dictionary project in other
+programs that recognize the LIFT format - such as WeSay or FLEX.
 
-Adapt It can export its source language texts and its adapted or 
-translated language texts in standard format (.txt), preserving any 
-backslash codes as described above. Source texts and translated texts 
-can also be exported in rich text format (.rtf) for later use in a 
+Adapt It can export its source language texts, its adapted or 
+translated language texts, glosses, and free translations in standard 
+format (.txt), preserving any backslash codes as described above. 
+Source texts, translated texts, glosses and free translations can 
+also be exported in rich text format (.rtf) for later use in a 
 word processor for printing nicely formatted documents. Adapt It can 
 also export documents in Interlinear form (as .rtf formatted files) 
 which can be used or nicely printed from a word processor.
@@ -294,10 +297,12 @@ We hope you enjoy using Adapt It!
 ---------------------------------------------------------------------
 The Adapt It Development Team:
 ---------------------------------------------------------------------
-Bill Martin   - bill_martin@sil.org
-Bruce Waters  - bruce_waters@sil.org
-Erik Brommers - erik_brommers@wycliffe.org
-Graeme Costin - adaptit@costincomputingservices.com.au (focus on
+Bill Martin    - bill_martin@sil.org
+Bruce Waters   - bruce_waters@sil.org
+Erik Brommers  - erik_brommers@wycliffe.org
+Kevin Bradford - kevin_bradford@sil.org
+Graeme Costin  - adaptit@costincomputingservices.com.au (focus on
                    MacOSX)
-Bob Buss      - bob_buss@wycliffe.org (focus on HTML Help system)
+Michael Hore   - mike_hore@aapt.net.au
+Bob Buss       - bob_buss@wycliffe.org (focus on HTML Help system)
 ---------------------------------------------------------------------
