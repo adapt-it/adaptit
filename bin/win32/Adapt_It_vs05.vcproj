@@ -464,6 +464,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AIPrintPreviewFrame.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AssignLocationsForInputsAndOutputs.cpp"
 				>
 			</File>
@@ -541,6 +545,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ConsistentChanger.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\convauto.cpp"
 				>
 			</File>
 			<File
@@ -905,6 +913,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AIPrintPreviewFrame.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AssignLocationsForInputsAndOutputs.h"
 				>
 			</File>
@@ -982,6 +994,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ConsistentChanger.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\convauto.h"
 				>
 			</File>
 			<File
