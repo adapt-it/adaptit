@@ -1050,7 +1050,8 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 	FreeTrElement* pElement;
 
 	// work out if we must build for RTL layout, or LTR layout
-	bool bRTLLayout = FALSE;
+	bool bRTLLayout;
+	bRTLLayout = FALSE;
 	#ifdef _RTL_FLAGS
 	if (m_pApp->m_bTgtRTL)
 	{
