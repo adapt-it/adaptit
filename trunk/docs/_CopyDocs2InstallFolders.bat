@@ -36,11 +36,11 @@ echo    iso639-3codes.txt
 echo.
 echo To all except Minimal, Documentation Only and Localizations Only:
 echo    CC\*.*
-echo To all except Localization Only:
+echo To all:
 echo    ..\license\*.txt 
-echo To all setup Regular except Localization Only:
+echo To all setup Regular:
 echo    Readme.txt
-echo To all setup Unicode except Localization Only:
+echo To all setup Unicode:
 echo    Readme_Unicode_Version.txt
 echo ===================================================
 echo Adapt It changes.txt is copied to ChangeLog in parent adaptit folder (11.)
@@ -130,6 +130,8 @@ xcopy "Localization_Readme.txt" "..\setup Regular Documentation Only\" /Y
 rem 5. The following copies Documentation files to the "setup Regular Localizations Only" folder
 @echo off
 xcopy "Localization_Readme.txt" "..\setup Regular Localizations Only\" /Y
+xcopy "..\license\*.txt" "..\setup Regular Localizations Only\*.*" /Y
+xcopy "Readme.txt" "..\setup Regular Localizations Only\" /Y
 
 @echo on
 rem 6. The following copies Documentation files to the "setup Unicode" folder
@@ -211,6 +213,8 @@ xcopy "Localization_Readme.txt" "..\setup Unicode Documentation Only\" /Y
 rem 10. The following copies Documentation files to the "setup Unicode Localizations Only" folder
 @echo off
 xcopy "Localization_Readme.txt" "..\setup Unicode Localizations Only\" /Y
+xcopy "..\license\*.txt" "..\setup Unicode Localizations Only\*.*" /Y
+xcopy "Readme_Unicode_Version.txt" "..\setup Unicode Localizations Only\" /Y
 
 rem 11. Copy Adapt It changes.txt to ChangeLog file in parent adaptit folder (for Linux packaging)
 copy "Adapt It changes.txt" "..\ChangeLog"
