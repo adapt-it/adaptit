@@ -188,7 +188,15 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pStaticTextUseDropDown = (wxStaticText*)FindWindowById(ID_TEXT_USE_DROP_DOWN);
 	wxASSERT(pStaticTextUseDropDown != NULL);
 
-
+	pSrcProj = (wxStaticText*)FindWindowById(ID_TEXT_SRC_PROJ);
+	wxASSERT(pSrcProj != NULL);
+	
+	pTgtProj = (wxStaticText*)FindWindowById(ID_TEXT_TGT_PROJ);
+	wxASSERT(pTgtProj != NULL);
+	
+	pFreeTransProj = (wxStaticText*)FindWindowById(ID_TEXT_FREETRANS_PROJ);
+	wxASSERT(pFreeTransProj != NULL);
+	
 	pStaticLine2 = (wxStaticLine*)FindWindowById(ID_LINE_2);
 	wxASSERT(pStaticLine2 != NULL);
 
@@ -323,6 +331,10 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		{
 			bSourceProjFound = TRUE;
 			pComboSourceProjectName->SetSelection(nIndex);
+			// whm added 7Oct11 at Bruce's request
+			wxString srcProj = pSrcProj->GetLabel();
+			srcProj += GetLanguageNameFromProjectName(pComboSourceProjectName->GetStringSelection());
+			pSrcProj->SetLabel(srcProj);
 		}
 	}
 	bool bTargetProjFound = FALSE;
@@ -338,6 +350,10 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		{
 			bTargetProjFound = TRUE;
 			pComboTargetProjectName->SetSelection(nIndex);
+			// whm added 7Oct11 at Bruce's request
+			wxString tgtProj = pTgtProj->GetLabel();
+			tgtProj += GetLanguageNameFromProjectName(pComboTargetProjectName->GetStringSelection());
+			pTgtProj->SetLabel(tgtProj);
 		}
 	}
 
@@ -354,6 +370,10 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		{
 			bFreeTransProjFound = TRUE;
 			pComboFreeTransProjectName->SetSelection(nIndex);
+			// whm added 7Oct11 at Bruce's request
+			wxString ftProj = pFreeTransProj->GetLabel();
+			ftProj += GetLanguageNameFromProjectName(pComboFreeTransProjectName->GetStringSelection());
+			pFreeTransProj->SetLabel(ftProj);
 		}
 	}
 	
@@ -1762,6 +1782,12 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject(wxCommandEvent& 
 {
 	int nSel;
 	nSel = pComboSourceProjectName->GetSelection();
+	
+	// whm added 7Oct11 at Bruce's request
+	wxString srcProj = pSrcProj->GetLabel();
+	srcProj += GetLanguageNameFromProjectName(pComboSourceProjectName->GetStringSelection());
+	pSrcProj->SetLabel(srcProj);
+	
 	m_TempCollabProjectForSourceInputs = pComboSourceProjectName->GetString(nSel);
 	m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(m_TempCollabProjectForSourceInputs);
 	
@@ -1848,6 +1874,12 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectTargetProject(wxCommandEvent& 
 	int nSel;
 	wxString selStr;
 	nSel = pComboTargetProjectName->GetSelection();
+
+	// whm added 7Oct11 at Bruce's request
+	wxString tgtProj = pTgtProj->GetLabel();
+	tgtProj += GetLanguageNameFromProjectName(pComboTargetProjectName->GetStringSelection());
+	pTgtProj->SetLabel(tgtProj);
+
 	m_TempCollabProjectForTargetExports = pComboTargetProjectName->GetString(nSel);
 	m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(m_TempCollabProjectForTargetExports);
 	
@@ -1930,6 +1962,12 @@ void CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject(wxCommandEven
 	int nSel;
 	wxString selStr;
 	nSel = pComboFreeTransProjectName->GetSelection();
+	
+	// whm added 7Oct11 at Bruce's request
+	wxString ftProj = pFreeTransProj->GetLabel();
+	ftProj += GetLanguageNameFromProjectName(pComboFreeTransProjectName->GetStringSelection());
+	pFreeTransProj->SetLabel(ftProj);
+	
 	m_TempCollabProjectForFreeTransExports = pComboFreeTransProjectName->GetString(nSel);
 	m_bTempCollaborationExpectsFreeTrans = TRUE;
 	pBtnNoFreeTrans->Enable(TRUE);

@@ -2149,7 +2149,9 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 	}
 }
 
-
+// Gets the whole path including filename of the location of the rdwrtp7.exe utility program
+// for collabotation with Paratext. It also checks to insure that the 5 Paratext dll files that
+// the utility depends on are also present in the same folder with rdwrtp7.exe.
 wxString GetPathToRdwrtp7()
 {
 	// determine the path and name to rdwrtp7.exe
@@ -2161,7 +2163,32 @@ wxString GetPathToRdwrtp7()
 	// Paratext.exe, we check for its existence here and use it if it is located in the PT
 	// installation folder. If not present, we use our own copy in AI's m_appInstallPathOnly 
 	// location (and copy the other dll files if necessary)
+	// 
+	// whm 7Oct11 modified. Because of access denied situations coming from newer 
+	// Windows versions, we cannot easily copy to, copy from, or execute the rdwrtp7.exe
+	// while it resides in the Paratext install folder (c:\Program Files\Paratext 7\).
+	// Today (7Oct11) Nathan suggested that the best course to avoid access permission 
+	// problems is probably for Adapt It to simply include rdwrtp7.exe and the 5 Paratext
+	// dll files in Adapt It's own installers, and just install them to the Adapt It
+	// install folder on Windows (c:\Program Files\Adapt It WX (Unicode)\). Therefore I've
+	// modified the code below to not bother with checking for rdwrtp7.exe and its dlls
+	// in the Paratext installation, but only check to make sure they are available in the
+	// Adapt It installation. 
 
+	rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
+	wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
+	wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
+	wxASSERT(::wxFileExists(fileName));
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll");
+	wxASSERT(::wxFileExists(fileName));
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Interop.XceedZipLib.dll");
+	wxASSERT(::wxFileExists(fileName));
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
+	wxASSERT(::wxFileExists(fileName));
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
+	wxASSERT(::wxFileExists(fileName));
+
+	/*
 	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
 	{
 		// rdwrtp7.exe exists in the Paratext installation so use it
@@ -2253,6 +2280,8 @@ wxString GetPathToRdwrtp7()
 				::wxCopyFile(pt_Path,ai_Path);
 		}
 	}
+	*/
+
 	return rdwrtp7PathAndFileName;
 }
 

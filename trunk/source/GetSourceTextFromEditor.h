@@ -50,6 +50,9 @@ public:
 	wxStaticText* pStaticTextDoNotChangeNote;
 	wxStaticText* pStaticTextUseDropDown;
 	wxStaticText* pStaticTextSelectSuitableAIProj;
+	wxStaticText* pSrcProj;
+	wxStaticText* pTgtProj;
+	wxStaticText* pFreeTransProj;
 	wxStaticLine* pStaticLine2;
 	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnChangeProjects;
