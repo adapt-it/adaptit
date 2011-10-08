@@ -241,6 +241,7 @@ class CSourcePhrase;
 	// the remote user not being aware of it.
 	wxString		SetWorkFolderPath_For_Collaboration();
 	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
+	wxString		RemoveIDMarkerAndCode(wxString textForSending);
 
 #endif
 

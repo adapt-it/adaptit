@@ -289,6 +289,7 @@ public:
 	int				GetCurrentDocVersion();
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	void			GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
+	void			GetMarkerInventoryFromCurrentDoc_For_Collab(); // bew 8Oct11, simplified for collaboration needs
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
 	//bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
 	//				wxString* fileTitle);
