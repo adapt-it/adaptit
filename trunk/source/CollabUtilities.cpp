@@ -5093,9 +5093,10 @@ wxString GetUpdatedText_UsfmsChanged(
 	preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();					
 	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
-	// in debug build verify our assumptions are correct
-	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count && 
-			  preEditMd5Arr_Count != fromEditorMd5Arr_Count);
+	// in debug build verify our assumptions are correct -- commented out, it can be
+	// violated fortuitously depending on what is in PT and what is in AI
+	//wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count && 
+	//		  preEditMd5Arr_Count != fromEditorMd5Arr_Count);
 	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
 	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
 	wxString preEditMd5Line;
