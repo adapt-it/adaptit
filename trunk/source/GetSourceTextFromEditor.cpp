@@ -2669,7 +2669,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		// a noteStr that says something about the status of the whole book, i.e., 
 		// "All chapters have content", or "The following chapters have verses
 		// that do not yet have content: 1, 5, 12-29"
-		noteStr = _("");
+		noteStr = _T("");
 		pStaticTextCtrlNote->ChangeValue(noteStr);
 		// empty the temp variable that holds the chapter selected
 		m_TempCollabChapterSelected.Empty();
@@ -3671,7 +3671,7 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 		// a noteStr that says something about the status of the whole book, i.e., 
 		// "All chapters have content", or "The following chapters have verses
 		// that do not yet have content: 1, 5, 12-29"
-		noteStr = _("");
+		noteStr = _T("");
 		pStaticTextCtrlNote->ChangeValue(noteStr);
 		// empty the temp variable that holds the chapter selected
 		m_TempCollabChapterSelected.Empty();
