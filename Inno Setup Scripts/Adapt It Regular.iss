@@ -34,7 +34,7 @@ WizardImageFile="C:\C++ Programming\Adapt It\adaptit\res\AIWX.bmp"
 WizardSmallImageFile="C:\C++ Programming\Adapt It\adaptit\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2011 Bruce Waters, Bill Martin, SIL International
-PrivilegesRequired=none
+PrivilegesRequired=poweruser
 DirExistsWarning=no
 VersionInfoVersion=6.0.0
 VersionInfoCompany=SIL
@@ -75,7 +75,11 @@ Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\License_GPLv2.txt"; D
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\rdwrtp7.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\rdwrtp7.exe"; DestDir: "{code:PTInstallDir}"; Flags: IgnoreVersion uninsneveruninstall onlyifdoesntexist; 
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
@@ -167,6 +171,7 @@ Name: "{group}\Adapt It Reference.doc"; Filename: "{app}\Adapt It Reference.doc"
 Name: "{group}\Adapt It changes.txt"; Filename: "{app}\Adapt It changes.txt"; WorkingDir: "{app}"; Comment: "Launch Adapt It changes.txt in Notepad"; 
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; WorkingDir: "{app}"; Comment: "Uninstall Adapt It from this computer"; 
 Name: {commondesktop}\{#MyAppName}; Filename: {app}\{#MyAppExeName}; Tasks: desktopicon; 
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Adapt It"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\CC\CCW32.exe"; Filename: "{app}\CC\CCW32.exe"; WorkingDir: "{app}\CC"; IconFilename: "{app}\CC\CCW32.exe"; Comment: "Launch Consistent Changes GUI program"; 
 Name: "{group}\CC\CC Summary Document"; Filename: {app}\CC\Summary.doc; WorkingDir: {app}\CC; 
 Name: "{group}\CC\Consistent Changes Documentation"; Filename: {app}\CC\CC.doc; WorkingDir: {app}\CC; 
@@ -175,42 +180,3 @@ Name: "{group}\CC\CC Debug Document"; Filename: {app}\CC\CCDebug.doc; WorkingDir
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, "&", "&&")}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-function IsPTInstalled():Boolean;
-begin
-  Result := RegKeyExists(HKEY_LOCAL_MACHINE, 'SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7');
-end;
-
-function PTInstallDir(Param:String):String;
-var
-  ptDir:String;
-begin
-  if Param = '' then
-  begin
-    RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7', '', ptDir);
-    Result := ptDir;
-  end
-  else
-    Result := Param;
-end;
-
-function rdwrtp7ExistsInPTInstall():Boolean;
-var
-  ptDir:String;
-begin
-  Result := False;
-  if IsPTInstalled() then
-  begin
-    Result := FileExists(PTInstallDir('') + 'rdwrtp7.exe');
-  end
-end;
-
-function IsCheckInstallRdwrtp7(): Boolean;
-begin
-  Result := False;
-  if not rdwrtp7ExistsInPTInstall() then
-  begin
-    Result := True;    
-  end;
-end;
