@@ -1233,9 +1233,11 @@ int	FindMkrInMarkerInventory(wxString bareMkr)
 
 void ExcludeCustomMarkersFromExport()
 {
-	// populate global m_exportBareMarkers wxArrayString, and initialize global wxArrayInt
-	// m_exportFilterFlags to same size and all items 0 (ie. FALSE)
-	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc();
+	// populate global m_exportBareMarkers wxArrayString, and make the global wxArrayInt
+	// m_exportFilterFlags which is of same size have all items 0 (ie. FALSE) except for
+	// those which default to 'filtered' status, and then below we add any extra filtered
+	// status indicators for the custom markers we want filtered out
+	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc_For_Collab();
 	// define our custom markers, (doesn't matter if we include their backslash or not,
 	// the calls below would remove initial backslash if present) and get their indices
 	// within m_exportBareMarkers; and then set the item at same index in

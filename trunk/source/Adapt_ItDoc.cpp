@@ -1454,13 +1454,15 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 
 			// whm 21Sep11 modified. For chapter sized transfers back to the external editor
 			// we need to remove the \id XXX line from the updatedText string.
-			if (gpApp->m_bCollabByChapterOnly && updatedText.Find(_T("\\id")) != wxNOT_FOUND)
-			{
+			// BEW 8Oct11, it needs to be earlier and also done on a free trans text too, so now
+			// it's in MakeUpdatedTextForExternalEditor(), with the call RemoveIDMarkerAndCode()
+			//if (gpApp->m_bCollabByChapterOnly && updatedText.Find(_T("\\id")) != wxNOT_FOUND)
+			//{
 				// the \id XXX line should be of the form:
-				wxString idLine = _T("\\id XXX") + gpApp->m_eolStr;
-				int idLineLen = idLine.Length();
-				updatedText = updatedText.Mid(idLineLen); // retains the rest of the string after the idLineLen
-			}
+			//	wxString idLine = _T("\\id XXX") + gpApp->m_eolStr;
+			//	int idLineLen = idLine.Length();
+			//	updatedText = updatedText.Mid(idLineLen); // retains the rest of the string after the idLineLen
+			//}
 			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
 			resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
 			TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
@@ -23732,7 +23734,6 @@ bool CAdapt_ItDoc::MatchAutoFixGItem(AFGList* pList,CSourcePhrase *pSrcPhrase,
 	return FALSE;
 }
 
-
 // BEW 24Mar10, updated for support of doc version 5 (some changes needed)
 void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 {
@@ -23974,6 +23975,156 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 	// last parameter in call above is 2 spaces min 
 	// between whole marker and its description
 }
+
+// BEW 8Oct11, simplified for collaboration (we don't bother with content strings) and we
+// DO need to include \free, \note, and \bt marker (as bare markers, free, note, bt) for
+// free translation export unlike the original - but we still set m_exportBareMarkers
+// string with the unique markers in the doc, and we set their default filter status
+// directly in the parallel wxArrayInt, m_exportFilterFlags rather than in
+// m_exportFilterFlagsBeforeEdit because the user doesn't get a chance to affect the
+// results with this variant
+void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc_For_Collab()
+{
+    // Scans all the doc's source phrase m_markers and m_filteredInfo members and
+    // inventories all the markers used in the current document, storing all unique markers
+    // in m_exportBareMarkers, the full markers in the local wxArrayString called
+    // MarkerList), and their corresponding include/exclude states (boolean flags) in the
+    // wxArrayInt called m_exportFilterFlags. A given marker may occur more than once in a
+    // given document, but is only stored once in m_exportBareMarkers array, and maybe
+    // multiple times in MarkerList from which the former is generated. All the boolean
+    // flags FALSE unless the marker is filtered, in which case it is TRUE - and these
+    // settings are stored in m_exportFilteredFlags
+	CAdapt_ItApp* pApp = &wxGetApp();
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxArrayString MarkerList;	// gets filled with all the currently
+							    // used markers including filtered ones
+	wxArrayString* pMarkerList = &MarkerList;
+	SPList::Node* posn;
+	wxString key;
+
+    // Gather markers from all source phrase m_marker strings BEW 24Mar10 changes for
+    // support of doc version 5: markers are now stored in m_markers and in m_filteredInfo
+    // (markers and content wrapped, in the latter, with \~FILTER and \~FILTER* bracketing
+    // markers). Also, in the legacy versions, free translations, collected back
+    // translations, and notes, were stored likewise in m_markers and wrapped with filter
+    // bracket markers, but now for doc version 5 these three information types have
+    // dedicated wxString member storage in CSourcePhrase. So for correct behaviour with
+    // the collaboration functionality we have to here treat those three information types
+    // as logically "filtered" and supply \free & \free* wrapping markers to the free
+    // translation string we recover, and \note & \note* to the note string we recover, and
+    // \bt for any collected back translation string, when any of these is present in
+    // m_freeTrans, m_note, and m_collectedBackTrans, respectively. We do that below after
+    // the call to GetMarkersAndTextFromString(), as the latter can handle the m_markers
+    // added to m_filteredInfo in the parameter list. These 3 are obligatorily filtered, so
+    // by adding the wrappers the code below will properly set the boolean markerIsFiltered
+    // to TRUE when removing that stuff again
+	posn = pList->GetFirst();
+	wxASSERT(posn != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)posn->GetData();
+	wxASSERT(pSrcPhrase);
+	wxString str;
+	str.Empty();
+	wxString filtermkr = wxString(filterMkr);
+	wxString filtermkrend = wxString(filterMkrEnd);
+	bool markerIsFiltered;
+	while (posn != 0)
+	{
+		pSrcPhrase = (CSourcePhrase*)posn->GetData();
+		posn = posn->GetNext();
+		wxASSERT(pSrcPhrase);
+		// retrieve sfms used from pSrcPhrase->m_markers & m_filteredInfo, etc
+
+        // GetMarkersAndTextFromString() retrieves each marker and its associated string
+        // and places them in the CStringList. Any Filtered markers are stored as a list
+        // item bracketed by \~FILTER ... \~FILTER* markers. To avoid a large CStringList
+        // developing we'll process the markers in each m_markers string individually, so
+        // empty the list on each iteration. Non-empty m_freeTrans, m_note, or
+        // m_collectedBackTrans is handled after the GetMarkersAndTextFromString() call
+		pMarkerList->Clear();
+		GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+		if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+		{
+			str = filtermkr + _T(" ") + _T("\\free ") + pSrcPhrase->GetFreeTrans() + _T("\\free* ") + filtermkrend;
+			pMarkerList->Add(str);
+			str.Empty();
+		}
+		if (!pSrcPhrase->GetNote().IsEmpty())
+		{
+			str = filtermkr + _T(" ") + _T("\\note ") + pSrcPhrase->GetNote() + _T("\\note* ") + filtermkrend;
+			pMarkerList->Add(str);
+			str.Empty();
+		}
+		if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+		{
+			str = filtermkr + _T(" ") + _T("\\bt ") + pSrcPhrase->GetCollectedBackTrans() + _T(" ") + filtermkrend;
+			pMarkerList->Add(str);
+			str.Empty();
+		}
+		wxString resultStr;
+		resultStr.Empty();
+		wxString bareMarker;
+		wxString temp;
+		int ct;
+		for (ct = 0; ct < (int)pMarkerList->GetCount(); ct++)
+		{
+			resultStr = pMarkerList->Item(ct);
+			if (resultStr.Find(filterMkr) != -1)
+			{
+				resultStr = RemoveAnyFilterBracketsFromString(resultStr);
+				markerIsFiltered = TRUE;
+			}
+			else
+			{
+				markerIsFiltered = FALSE;
+			}
+			resultStr.Trim(FALSE); // trim left end
+			resultStr.Trim(TRUE); // trim right end
+			wxASSERT(resultStr.Find(gSFescapechar) == 0);
+			int strLen = resultStr.Length();
+			int posm = 1; // skip initial backslash
+			bareMarker.Empty();
+			while (posm < strLen && resultStr[posm] != _T(' ') && 
+					resultStr[posm] != gSFescapechar)
+			{
+				bareMarker += resultStr[posm];
+				posm++;
+			}
+			bareMarker.Trim(FALSE); // trim left end
+			bareMarker.Trim(TRUE); // trim right end
+
+			// do not include end markers in this inventory
+			int aPos = bareMarker.Find(_T('*'));
+			if (aPos == (int)bareMarker.Length() -1)
+				bareMarker.Remove(aPos,1);
+			wxASSERT(bareMarker.Length() > 0);
+
+			// Have we already stored this marker?
+			bool mkrAlreadyExists = FALSE;
+			int mkscount = (int)m_exportBareMarkers.GetCount();
+			for (int ct = 0; ct < mkscount; ct++)
+			{
+				if (bareMarker == m_exportBareMarkers[ct])
+				{
+					mkrAlreadyExists = TRUE;
+					break;
+				}
+			}
+			if (!mkrAlreadyExists)
+			{
+				m_exportBareMarkers.Add(bareMarker);
+				if (markerIsFiltered)
+				{
+					m_exportFilterFlags.Add(FALSE);
+				}
+				else
+				{
+					m_exportFilterFlags.Add(FALSE);
+				}
+			}
+		}
+	} // end of loop: while (posn != 0)    which loops over m_pSourcePhrases
+}
+
 
 /////////////////////////////////////////////////
 ///

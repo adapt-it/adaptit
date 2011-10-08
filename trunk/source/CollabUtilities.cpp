@@ -4442,7 +4442,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	//CAdapt_ItView* pView = gpApp->GetView();
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	
-	wxString text; text.Empty();
+	wxString text; text.Empty(); // thhe final text for sending is build and stored in here
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
 	wxString fromEditorText; // the adaptation or free translation text just grabbed from PT or BE
 	fromEditorText.Empty();
@@ -4504,9 +4504,17 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		{
 			strTextTypeToSend = _("free translation"); // localizable
 			preEditText = gpApp->GetStoredFreeTransText_PreEdit();
-			// next call gets the file of data into the .temp folder, with appropriate filename
+			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
+			// chapter doc
+			if (gpApp->m_bCollabByChapterOnly)
+			{
+				preEditText = RemoveIDMarkerAndCode(preEditText);
+			}			
+            // next call gets the file of data into the .temp folder, with appropriate
+            // filename; when it is chapter data, PT (and BE) don't send it with initial
+            // \id marker etc; but it may have a BOM
 			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_freeTrans_text,
-							textIOArray, errorsIOArray, resultCode);
+												textIOArray, errorsIOArray, resultCode);
 			if (resultCode > 0)
 			{
 				// we don't expect this to fail, so a beep (plus the error message
@@ -4515,7 +4523,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 				wxBell();
 				return emptyStr;
 			}
-			// remove the BOM and get the data into wxString textFromEditor
+			// remove BOM if present and get the data into wxString textFromEditor
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text);
 			// whm 21Sep11 Note: When grabbing the free translation text, we don't need
 			// to ensure the existence of any \id XXX line, therefore the second parameter
@@ -4528,7 +4536,15 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		{
 			strTextTypeToSend = _("translation"); // localizable
 			preEditText = gpApp->GetStoredTargetText_PreEdit();
-			// next call gets the file of data into the .temp folder, with appropriate filename
+			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
+			// chapter doc
+			if (gpApp->m_bCollabByChapterOnly)
+			{
+				preEditText = RemoveIDMarkerAndCode(preEditText);
+			}
+            // next call gets the file of data into the .temp folder, with appropriate
+            // filename; when it is chapter data, PT (and BE) don't send it with initial
+            // \id marker etc; but it may have a BOM
 			TransferTextBetweenAdaptItAndExternalEditor(reading, collab_target_text,
 							textIOArray, errorsIOArray, resultCode);
 			if (resultCode > 0)
@@ -4554,6 +4570,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	{
 		return text;
 	}
+
 	// pDocList is not an empty list of CSourcePhrase instances, so build as much of the
 	// wanted data type as is done so far in the document & return it to caller
 	if (fromEditorText.IsEmpty())
@@ -4573,6 +4590,12 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			text = ExportTargetText_For_Collab(pDocList);
 			break;
 		}
+		// ensure there is no initial \id or 3-letter code lurking in it, if it's a
+		// chapter doc
+		if (gpApp->m_bCollabByChapterOnly)
+		{
+			text = RemoveIDMarkerAndCode(text);
+		}
 		return text;
 	}
 
@@ -4582,16 +4605,34 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	switch (makeTextType)
 	{
 	case makeFreeTransText:
-		postEditText = ExportFreeTransText_For_Collab(pDocList);
-			break;
+		{
+			postEditText = ExportFreeTransText_For_Collab(pDocList);
+			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
+			// chapter doc
+			if (gpApp->m_bCollabByChapterOnly)
+			{
+				postEditText = RemoveIDMarkerAndCode(postEditText);
+			}
+		}
+		break;
 	default:
 	case makeTargetText:
-		postEditText = ExportTargetText_For_Collab(pDocList);
+		{
+			postEditText = ExportTargetText_For_Collab(pDocList);
+			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
+			// chapter doc
+			if (gpApp->m_bCollabByChapterOnly)
+			{
+				postEditText = RemoveIDMarkerAndCode(postEditText);
+			}
+		}
 		break;
 	}
 
 	// abandon any wxChars which precede first marker in text, for each of the 3 texts, so
 	// that we make sure each text we compare starts with a marker
+	// (RemoveIDMarkerAndCode() will have done this already, but this is insurance because
+	// if there was no \id marker, it won't have removed anything)
 	int offset = postEditText.Find(_T('\\'));
 	if (offset != wxNOT_FOUND && offset > 0)
 	{
@@ -5387,7 +5428,35 @@ wxString GetUpdatedText_UsfmsChanged(
 	return newText;
 }
 
-
+wxString RemoveIDMarkerAndCode(wxString text)
+{
+	int offset;
+	wxString idStr = _T("\\id");
+	offset = text.Find(idStr);
+	if (offset != wxNOT_FOUND)
+	{
+		// there is an \id marker
+		text = text.Mid(offset + 3);
+		// the marker has gone, now remove everything up to the next marker
+		int length = text.Len();
+		// wx version the pBuffer is read-only so use GetData()
+		const wxChar* pBuffer = text.GetData();
+		wxChar* ptr = (wxChar*)pBuffer;		// iterator
+		wxChar* pEnd;
+		pEnd = ptr + length;// bound past which we must not go
+		wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
+		// loop, to remove data until next marker
+		int counter = 0;
+		while (ptr < pEnd && !Is_Marker(ptr, pEnd))
+		{
+			counter++;
+			ptr++;
+		}
+		// now remove those we spanned
+		text = text.Mid(counter);
+	}
+	return text;
+}
 
 
 
