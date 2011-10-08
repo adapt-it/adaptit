@@ -1,3 +1,5 @@
+IMPORTANT NOTE: YOU MUST HAVE ADMINISTRATOR OR POWERUSER PRIVILEGES
+TO INSTALL THIS SOFTWARE ON WINDOWS 7, WINDOWS VISTA AND WINDOWS XP.
 ---------------------------------------------------------------------
 Adapt It WX Unicode
 ---------------------------------------------------------------------
