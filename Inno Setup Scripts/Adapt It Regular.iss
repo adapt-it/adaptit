@@ -162,14 +162,10 @@ Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\CC\reverse_lx_ge.cct"
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Regular\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 
-[InstallDelete]
-Type: files; Name: "{group}\Consistent Changes (standalone)";
-Type: files; Name: "{group}\Uninstall";
-
 [Icons]
 Name: {group}\{#MyAppName}; Filename: {app}\{#MyAppExeName}; WorkingDir: {app}; Comment: "Launch Adapt It"; 
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppShortName}}"; Filename: {#MyAppURL}; Comment: "Go to the Adapt It website at http://adapt-it.org"; 
-Name: "{group}\Adapt It Quick Start"; Filename: "{app}\Adapt_It_Quick_Start.htm"; WorkingDir: "{app}"; Comment: "Launch Adapt_It_Quick_Start in browser"; 
+Name: "{group}\Adapt It Quick Start"; Filename: "{app}\Adapt_It_Quick_Start.htm"; WorkingDir: "{app}"; Comment: "Launch Adapt It Quick Start in browser"; 
 Name: "{group}\Help for Administrators (HTML)"; Filename: "{app}\Help_for_Administrators.htm"; WorkingDir: "{app}"; Comment: "Launch Help for Administrators"; 
 Name: "{group}\Adapt It Tutorial"; Filename: "{app}\Adapt It Tutorial.doc"; WorkingDir: "{app}"; Comment: "Launch Adapt It Tutorial.doc in word processor"; 
 Name: "{group}\Adapt It Reference"; Filename: "{app}\Adapt It Reference.doc"; WorkingDir: "{app}"; Comment: "Launch Adapt It Reference.doc in word processor"; 
