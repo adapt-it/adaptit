@@ -546,8 +546,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
 		if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
 		{
-			wxString message = _("Collaborating with ");
-			message += m_pApp->m_collaborationEditor;
+			wxString message = _("Collaborating with %s");
+			message = message.Format(message,m_pApp->m_collaborationEditor.c_str());
 			pStatusBar->SetStatusText(message,0); // use first field 0
 		}
 	}

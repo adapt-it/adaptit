@@ -19709,7 +19709,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	choices[1] = _("2. Import LIFT records into the Knowledge Base.");
 	wxString myCaption = _("Extend the knowledge base by importing SFM or LIFT dictionary records");
 	wxString message;
-	message = _("Choose Type of Knowledge Base Import (select 1 or 2), or Cancel (to abort the inport)");
+	message = _("Choose Type of Knowledge Base Import (select 1 or 2), or Cancel (to abort the import)");
 	int returnValue = wxGetSingleChoiceIndex(
 		message,myCaption,2,choices,pApp->GetMainFrame(),-1,-1,TRUE,350,80);
 	if (returnValue == -1)

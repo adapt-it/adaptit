@@ -7407,7 +7407,7 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Top level menus and category labels cannot be unchecked"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Features essential for Adapt It's operation cannot be turned off using this dialog"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -8106,11 +8106,8 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     item35->Add( 10, 15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxString strs36[] = 
-    {
-        _("ComboItem")
-    };
-    wxComboBox *item36 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 1, strs36, wxCB_DROPDOWN );
+    wxString *strs36 = (wxString*) NULL;
+    wxComboBox *item36 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 0, strs36, wxCB_DROPDOWN );
     item36->SetToolTip( _("Click Here to open the list of Adapt It projects, or to create a new Adapt It project for collaboration purposes") );
     item35->Add( item36, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -8623,13 +8620,13 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("_PACKED_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, wxT("_PACKED_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item43 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_PACKED_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("_CCTABLE_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, wxT("_CCTABLE_INPUTS_OUTPUTS"), wxDefaultPosition, wxDefaultSize, 0 );
     item37->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item45 = new wxCheckBox( parent, ID_CHECKBOX_PROTECT_CCTABLE_INPUTS_AND_OUTPUTS, _("Protect from Navigation"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -8796,7 +8793,7 @@ wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, b
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_EXISTS_STR, _("%s"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_EXISTS_STR, wxT("%s"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item8->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item7->Add( item8, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -9032,7 +9029,7 @@ wxMenuBar *AIMenuBarFunc()
     wxMenu* item9 = new wxMenu;
     item9->Append( ID_MENU_HELP_FOR_ADMINISTRATORS, _("&Help for Administrators (HTML)"), _("Step-by-step procedures to help administrators set up Adapt It to use the features on this menu.") );
     item9->AppendSeparator();
-    item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup %s Collaboration..."), _("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts") );
+    item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup %s Collaboration..."), _("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project for exporting its (target) texts") );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item9->AppendSeparator();
