@@ -15,7 +15,19 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_038B273C614E4459ADC6F0C287FAE74E"
+        "MsmKey" = "8:_0076E9F699A00B51CBB1A591E4799C05"
+        "OwnerKey" = "8:_0EF2C7A121E84C8E9873E7337E3A1D7F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_007E36FD3A3D49F3B490B182B8EBDDC6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_03EC2AC9887040748482BE909E2E21CB"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -27,25 +39,43 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_0CD64FB96DC74343977EE405449B6C12"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0DC2F14153A245F9AA75025731D48C03"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_0E612CDC59234E72B48AE9853124EDF2"
+        "MsmKey" = "8:_0E0C35D3E0C444299F38ADC19FE5F9A1"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_0E990C9250C44428A71A7718778BC898"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_0EF2C7A121E84C8E9873E7337E3A1D7F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_0F42E4FE04074D1DB6BC50441DA37419"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_104A4B204E904A35A93BFA122EFB2DD1"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_11E6EEE52E4C43EEBE1E6F1A2FF18C95"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -63,13 +93,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_16A5E717694640B79B63286A800493A0"
+        "MsmKey" = "8:_16CEBC0127654970BA52440D5080EA6B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_16CEBC0127654970BA52440D5080EA6B"
+        "MsmKey" = "8:_17E5E8432A6C41A687158972845A2FBA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -87,13 +117,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_2056936A8D734A73A9E24F0725A55C8C"
+        "MsmKey" = "8:_1F90D07E9FB94789B43955099F52F34D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_222F478A9A004B7E8CBAFE599D37AFE2"
+        "MsmKey" = "8:_2056936A8D734A73A9E24F0725A55C8C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -111,7 +141,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_2D81FB5D0B0B4F48A8B25992FD9506A7"
+        "MsmKey" = "8:_2E78195CC033492FB5435A40E4577CB0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_2EA78C2192494C88A61471F33578FBCB"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -129,19 +165,37 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_316A6A2B601A4110A93A1A80A5DCAAF7"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_31998C8C081B40149B8D27E8AB501824"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+        "MsmKey" = "8:_31CC6803C2EE49DC80F017BB2DA0D615"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_35C568490D414F08944FC2E15BB38F23"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3807F96B1410A1B26B77EC376B9ADDC4"
+        "OwnerKey" = "8:_0EF2C7A121E84C8E9873E7337E3A1D7F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_39C01670CB944A6D958E8D178B148AB7"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3CAEA62878C64D519620BDBACAA12908"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -154,6 +208,18 @@
         "Entry"
         {
         "MsmKey" = "8:_4007B921F9EA47CFA638BD20BA9F285D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4011F84C26C342AF82D0CF5AB5BE6E97"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_430534AC4F874F35BBFC3E0DB1A1F328"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -172,6 +238,12 @@
         "Entry"
         {
         "MsmKey" = "8:_46B3ED3611FF46E18663FB4036F81699"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_477A2F31DADF4E9EAC4D38E0E4917AEC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -201,7 +273,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_516E57365D8E4326A386BC8F3E03AA67"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_52C1EA10BC734E2E95C2F0A03017E618"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5363F1BA157B48E4AD67657800C7799B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -213,13 +297,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_5542AE3A7272493997AE68125C1B6C87"
+        "MsmKey" = "8:_57F0C75B2B7A4488B4CA2BCA693960EA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_57F0C75B2B7A4488B4CA2BCA693960EA"
+        "MsmKey" = "8:_58ABC95CDABC4F70AA44391259F1D7E8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -231,13 +315,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_59FD387824C8412E943EA76E7661A010"
+        "MsmKey" = "8:_5AB7F7C057364020A580DA4A98BDC190"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_5BB5686243804244B6E3729AB63B9B2E"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5D82D4D34EFF4799B40CA53868731993"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -255,8 +345,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_6927A4B2998A47F1A0825C4261E7E3A8"
+        "MsmKey" = "8:_63B00BADAFE3471799095A560B94C252"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_691E4FF4A00ADF28F8BD502D64A1AB77"
+        "OwnerKey" = "8:_0EF2C7A121E84C8E9873E7337E3A1D7F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -285,25 +381,25 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_735E1EE02A904E6AB7235359F8F2272D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_7673A3B62818401DBD49E4A9911D0C03"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
+        "MsmKey" = "8:_76C99A79F5D84D40B97CD5550C7A341F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_77929943998542A48AE01BDD75875669"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_77BFE38C6C4F4A34A2E080FC06E54D57"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_783ACA86EFA34008BF049FA4389EE655"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -327,12 +423,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_84CEEF33FF6244ABAC56CD93ED62D16C"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_85B28831198C476CAA3F02D8F00CAE29"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -345,13 +435,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_88B8CEE7A0E34EE7BDC168B3C371519F"
+        "MsmKey" = "8:_88F2184D36A8431E83199F692708C0EE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_88F2184D36A8431E83199F692708C0EE"
+        "MsmKey" = "8:_8E9BE53103CC42A0B24A2741433D00D3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_918F487D4ABD49159D16656F18BDF179"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -363,8 +459,44 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_9A3DFEAF2B474884BDA41031A114529B"
+        "MsmKey" = "8:_9470A7A2AF664E3A8F66A3C70B1CDC9D"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_95628F2EC038447ABDA0B4FE1439DABA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9689149C37AE4B81B29DB3A200E211DD"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_98BE56195AC1479382D0AF7AEB1D9908"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9A64BA063364409185572F035172B864"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A03B2D2959B14AFFA117D0D7E17B7C15"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A0FD1FC2BD1C54CE4ADC3D6B357A9CE4"
+        "OwnerKey" = "8:_0EF2C7A121E84C8E9873E7337E3A1D7F"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -393,6 +525,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_B3C8CEA45C044F2F9B1AA179FD25C756"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_B609A5A8C36F40ED9470BF847E0FC231"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -400,6 +538,12 @@
         "Entry"
         {
         "MsmKey" = "8:_B8D4B72472634FB5817ED29E2CD6EF95"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BA3FF6DA3CF24861AEB82BE0DD93C349"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -417,7 +561,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C21D16BAC99F4AEEAA87F4676D1ECC9C"
+        "MsmKey" = "8:_C1A80FF3C41F4B55B9610E224D2310C3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -429,7 +573,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_C3D1CFBB0D934534B48DE1CEDA7A2ACC"
+        "MsmKey" = "8:_C9D302456727455394FCA5E36F0D1B20"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -441,7 +585,25 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_CB791D6D70B2487BAC77A22EF422D667"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_CC5F6AFC7AE8485E918A8E62FEC71135"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D141689FA8F34ABEAF98FA9080C8C146"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D362CA6034DE4E76AE778CDAEAA9DE5A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -453,7 +615,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_D8D3CBAED81B41EA87F9AD44D0C62B7C"
+        "MsmKey" = "8:_D8952A3E972D4B57858EBF132AA82499"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -465,7 +627,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_DA8A3C495BCC46C289DC1119E0B9E509"
+        "MsmKey" = "8:_DBB5892087C04BAE8A152259572D7E68"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_DD1DFF3274A8419288F9A15C3001C03D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_DEDF9C4ECEA3409696CF3B1153BB9E87"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -477,7 +651,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_DFF2F5D6ACC6442CB08401F3BB78E261"
+        "MsmKey" = "8:_DFB713D2FAEC4267A9433738B8728298"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_E00A33DDEFDE46D48F6778DF6A7BB485"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -501,13 +681,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_EB4E7452943644DBB3F842F4544A2290"
+        "MsmKey" = "8:_E6F1C00F1A024519A702CA7EE6FE3F55"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_ED6010B560604BE6A50C0FA62AAF994B"
+        "MsmKey" = "8:_EB4E7452943644DBB3F842F4544A2290"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -525,19 +705,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_EE768597D3374F7B90CCD89F16DAC3E8"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_EEF08FB44EA246C08519048E60ADCF44"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_EFC2C11DF59445E1B02FC66AC903F3EC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -561,7 +729,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F9D908F06282400796A8435947ACD38A"
+        "MsmKey" = "8:_F5280F5FF5ED449981B181584B79A4F8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F774127BB28745DDB103DC5F60932199"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -587,6 +761,36 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_A12A9817F577467A91BBA937D03C1E77"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_0EF2C7A121E84C8E9873E7337E3A1D7F"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_3807F96B1410A1B26B77EC376B9ADDC4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_691E4FF4A00ADF28F8BD502D64A1AB77"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_A0FD1FC2BD1C54CE4ADC3D6B357A9CE4"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_0076E9F699A00B51CBB1A591E4799C05"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -674,10 +878,61 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_038B273C614E4459ADC6F0C287FAE74E"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_0076E9F699A00B51CBB1A591E4799C05"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\back_button.gif"
-            "TargetName" = "8:back_button.gif"
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ICSharpCode.SharpZipLib, Version=0.85.5.452, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_0076E9F699A00B51CBB1A591E4799C05"
+                    {
+                    "Name" = "8:ICSharpCode.SharpZipLib.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:ICSharpCode.SharpZipLib.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_007E36FD3A3D49F3B490B182B8EBDDC6"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\User_workflow_profiles.gif"
+            "TargetName" = "8:User_workflow_profiles.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_03EC2AC9887040748482BE909E2E21CB"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image9.gif"
+            "TargetName" = "8:Image9.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
@@ -714,6 +969,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0CD64FB96DC74343977EE405449B6C12"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image19.gif"
+            "TargetName" = "8:Image19.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0DC2F14153A245F9AA75025731D48C03"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Known Issues and Limitations.txt"
@@ -734,12 +1009,83 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0E612CDC59234E72B48AE9853124EDF2"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0E0C35D3E0C444299F38ADC19FE5F9A1"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image16.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image16.gif"
             "TargetName" = "8:Image16.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0E990C9250C44428A71A7718778BC898"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\PT-BE_no_chapters_and_verses_found_msg.gif"
+            "TargetName" = "8:PT-BE_no_chapters_and_verses_found_msg.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_0EF2C7A121E84C8E9873E7337E3A1D7F"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:ParatextShared, Version=7.2.154.0, Culture=neutral, processorArchitecture=x86"
+                "ScatterAssemblies"
+                {
+                    "_0EF2C7A121E84C8E9873E7337E3A1D7F"
+                    {
+                    "Name" = "8:ParatextShared.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:..\\..\\setup Unicode\\ParatextShared.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0F42E4FE04074D1DB6BC50441DA37419"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\ai_new_icon.gif"
+            "TargetName" = "8:ai_new_icon.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -760,26 +1106,6 @@
             "TargetName" = "8:Adapt_It_Unicode.mo"
             "Tag" = "8:"
             "Folder" = "8:_22B0EAAC319642DD88C6D6ACB170E1B4"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_11E6EEE52E4C43EEBE1E6F1A2FF18C95"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image6.gif"
-            "TargetName" = "8:Image6.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -834,12 +1160,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_16A5E717694640B79B63286A800493A0"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_16CEBC0127654970BA52440D5080EA6B"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image5.gif"
-            "TargetName" = "8:Image5.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\ru\\wxstd.mo"
+            "TargetName" = "8:wxstd.mo"
             "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Folder" = "8:_B00AEEE8E00543C5B57C06FCD4E77C76"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -854,12 +1180,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_16CEBC0127654970BA52440D5080EA6B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_17E5E8432A6C41A687158972845A2FBA"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\ru\\wxstd.mo"
-            "TargetName" = "8:wxstd.mo"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image5.gif"
+            "TargetName" = "8:Image5.gif"
             "Tag" = "8:"
-            "Folder" = "8:_B00AEEE8E00543C5B57C06FCD4E77C76"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -914,10 +1240,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2056936A8D734A73A9E24F0725A55C8C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1F90D07E9FB94789B43955099F52F34D"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\AI_USFM.xml"
-            "TargetName" = "8:AI_USFM.xml"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Help_for_Administrators.htm"
+            "TargetName" = "8:Help_for_Administrators.htm"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
@@ -934,12 +1260,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_222F478A9A004B7E8CBAFE599D37AFE2"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2056936A8D734A73A9E24F0725A55C8C"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\CC\\extract_free_with_markers.cct"
-            "TargetName" = "8:extract_free_with_markers.cct"
+            "SourcePath" = "8:..\\..\\setup Unicode\\AI_USFM.xml"
+            "TargetName" = "8:AI_USFM.xml"
             "Tag" = "8:"
-            "Folder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -994,10 +1320,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2D81FB5D0B0B4F48A8B25992FD9506A7"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2E78195CC033492FB5435A40E4577CB0"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image10.gif"
-            "TargetName" = "8:Image10.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image8.gif"
+            "TargetName" = "8:Image8.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2EA78C2192494C88A61471F33578FBCB"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image11.gif"
+            "TargetName" = "8:Image11.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
@@ -1054,26 +1400,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_316A6A2B601A4110A93A1A80A5DCAAF7"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image15.gif"
-            "TargetName" = "8:Image15.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_31998C8C081B40149B8D27E8AB501824"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Adapt It changes.txt"
@@ -1094,12 +1420,103 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_31CC6803C2EE49DC80F017BB2DA0D615"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image20.gif"
+            "TargetName" = "8:Image20.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_35C568490D414F08944FC2E15BB38F23"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\AI_UserProfiles.xml"
             "TargetName" = "8:AI_UserProfiles.xml"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3807F96B1410A1B26B77EC376B9ADDC4"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Utilities, Version=7.2.154.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_3807F96B1410A1B26B77EC376B9ADDC4"
+                    {
+                    "Name" = "8:Utilities.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Utilities.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_39C01670CB944A6D958E8D178B148AB7"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\SetupPTCollabNoLangNamesCtrls.gif"
+            "TargetName" = "8:SetupPTCollabNoLangNamesCtrls.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3CAEA62878C64D519620BDBACAA12908"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image7.gif"
+            "TargetName" = "8:Image7.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1140,6 +1557,46 @@
             "TargetName" = "8:CC16x16-4color.ico"
             "Tag" = "8:"
             "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4011F84C26C342AF82D0CF5AB5BE6E97"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image15.gif"
+            "TargetName" = "8:Image15.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_430534AC4F874F35BBFC3E0DB1A1F328"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\GuesserSettingsTBtn.gif"
+            "TargetName" = "8:GuesserSettingsTBtn.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1200,6 +1657,26 @@
             "TargetName" = "8:CCW32.exe"
             "Tag" = "8:"
             "Folder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_477A2F31DADF4E9EAC4D38E0E4917AEC"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\back_button.gif"
+            "TargetName" = "8:back_button.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1294,12 +1771,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_516E57365D8E4326A386BC8F3E03AA67"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\GetSourceTextFromEditorNoOptions.gif"
+            "TargetName" = "8:GetSourceTextFromEditorNoOptions.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_52C1EA10BC734E2E95C2F0A03017E618"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Adapt_It_Unicode.htb"
             "TargetName" = "8:Adapt_It_Unicode.htb"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5363F1BA157B48E4AD67657800C7799B"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Assign_locations_for_inputs_outputs_all_checked.gif"
+            "TargetName" = "8:Assign_locations_for_inputs_outputs_all_checked.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1334,12 +1851,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5542AE3A7272493997AE68125C1B6C87"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_57F0C75B2B7A4488B4CA2BCA693960EA"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image12.gif"
-            "TargetName" = "8:Image12.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\LICENSING.txt"
+            "TargetName" = "8:LICENSING.txt"
             "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1354,12 +1871,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_57F0C75B2B7A4488B4CA2BCA693960EA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_58ABC95CDABC4F70AA44391259F1D7E8"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\LICENSING.txt"
-            "TargetName" = "8:LICENSING.txt"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image3.gif"
+            "TargetName" = "8:Image3.gif"
             "Tag" = "8:"
-            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1394,12 +1911,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_59FD387824C8412E943EA76E7661A010"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5AB7F7C057364020A580DA4A98BDC190"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\License.txt"
-            "TargetName" = "8:License.txt"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Assign_locations_dlg_nothing_ticked.gif"
+            "TargetName" = "8:Assign_locations_dlg_nothing_ticked.gif"
             "Tag" = "8:"
-            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1420,6 +1937,26 @@
             "TargetName" = "8:License_GPLv2.txt"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5D82D4D34EFF4799B40CA53868731993"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\SetUpBibleditCollaboration.gif"
+            "TargetName" = "8:SetUpBibleditCollaboration.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1474,12 +2011,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6927A4B2998A47F1A0825C4261E7E3A8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_63B00BADAFE3471799095A560B94C252"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image13.gif"
-            "TargetName" = "8:Image13.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Adapt_It_Quick_Start.htm"
+            "TargetName" = "8:Adapt_It_Quick_Start.htm"
             "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1492,6 +2029,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_691E4FF4A00ADF28F8BD502D64A1AB77"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:NetLoc, Version=7.2.154.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_691E4FF4A00ADF28F8BD502D64A1AB77"
+                    {
+                    "Name" = "8:NetLoc.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:NetLoc.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_699476CA90A34B90A5DEC346F150B3BB"
@@ -1574,6 +2142,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_735E1EE02A904E6AB7235359F8F2272D"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\SetupPTCollabWithoutLangNamesCtrls.gif"
+            "TargetName" = "8:SetupPTCollabWithoutLangNamesCtrls.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7673A3B62818401DBD49E4A9911D0C03"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\fr\\fr.po"
@@ -1594,52 +2182,32 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_76C99A79F5D84D40B97CD5550C7A341F"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\AdminMenuSetupPTCollab.gif"
+            "TargetName" = "8:AdminMenuSetupPTCollab.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_77929943998542A48AE01BDD75875669"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\es\\wxstd.mo"
             "TargetName" = "8:wxstd.mo"
             "Tag" = "8:"
             "Folder" = "8:_B2391F50CBCB4DA780FCE9D52EDBFA09"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_77BFE38C6C4F4A34A2E080FC06E54D57"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image9.gif"
-            "TargetName" = "8:Image9.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_783ACA86EFA34008BF049FA4389EE655"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image19.gif"
-            "TargetName" = "8:Image19.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1714,26 +2282,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_84CEEF33FF6244ABAC56CD93ED62D16C"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image3.gif"
-            "TargetName" = "8:Image3.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_85B28831198C476CAA3F02D8F00CAE29"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\tpi\\tpi.po"
@@ -1774,12 +2322,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_88B8CEE7A0E34EE7BDC168B3C371519F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_88F2184D36A8431E83199F692708C0EE"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image17.gif"
-            "TargetName" = "8:Image17.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\tpi\\tpi_readme.txt"
+            "TargetName" = "8:tpi_readme.txt"
             "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Folder" = "8:_126B9682D22444E7A11960956EF825CE"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1794,12 +2342,32 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_88F2184D36A8431E83199F692708C0EE"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8E9BE53103CC42A0B24A2741433D00D3"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\tpi\\tpi_readme.txt"
-            "TargetName" = "8:tpi_readme.txt"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\BalsaOpeningScreen.gif"
+            "TargetName" = "8:BalsaOpeningScreen.gif"
             "Tag" = "8:"
-            "Folder" = "8:_126B9682D22444E7A11960956EF825CE"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_918F487D4ABD49159D16656F18BDF179"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Get_src_text_from_BE_proj_no_options_showing.gif"
+            "TargetName" = "8:Get_src_text_from_BE_proj_no_options_showing.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1834,10 +2402,70 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9A3DFEAF2B474884BDA41031A114529B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9470A7A2AF664E3A8F66A3C70B1CDC9D"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image14.gif"
-            "TargetName" = "8:Image14.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\GetSourceTextFromEditorOptionsNoLangNameCtrls.gif"
+            "TargetName" = "8:GetSourceTextFromEditorOptionsNoLangNameCtrls.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_95628F2EC038447ABDA0B4FE1439DABA"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\AdminMenuSetupBECollab.gif"
+            "TargetName" = "8:AdminMenuSetupBECollab.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9689149C37AE4B81B29DB3A200E211DD"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\PTNewProject.gif"
+            "TargetName" = "8:PTNewProject.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_98BE56195AC1479382D0AF7AEB1D9908"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image17.gif"
+            "TargetName" = "8:Image17.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
@@ -1852,6 +2480,77 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9A64BA063364409185572F035172B864"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Reminder_to_setup_PT_first_before_assigning_locations.gif"
+            "TargetName" = "8:Reminder_to_setup_PT_first_before_assigning_locations.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A03B2D2959B14AFFA117D0D7E17B7C15"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Move_or_Copy_Folders_or_Files.gif"
+            "TargetName" = "8:Move_or_Copy_Folders_or_Files.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A0FD1FC2BD1C54CE4ADC3D6B357A9CE4"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Interop.XceedZipLib, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_A0FD1FC2BD1C54CE4ADC3D6B357A9CE4"
+                    {
+                    "Name" = "8:Interop.XceedZipLib.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Interop.XceedZipLib.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A12A9817F577467A91BBA937D03C1E77"
@@ -1945,6 +2644,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B3C8CEA45C044F2F9B1AA179FD25C756"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Give_Feedback.gif"
+            "TargetName" = "8:Give_Feedback.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B609A5A8C36F40ED9470BF847E0FC231"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\books.xml"
@@ -1971,6 +2690,26 @@
             "TargetName" = "8:swh.po"
             "Tag" = "8:"
             "Folder" = "8:_8C9A3F8D7A9E4BE8B789017999EDBD72"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BA3FF6DA3CF24861AEB82BE0DD93C349"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image10.gif"
+            "TargetName" = "8:Image10.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2025,10 +2764,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C21D16BAC99F4AEEAA87F4676D1ECC9C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C1A80FF3C41F4B55B9610E224D2310C3"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image7.gif"
-            "TargetName" = "8:Image7.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image12.gif"
+            "TargetName" = "8:Image12.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
@@ -2065,12 +2804,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C3D1CFBB0D934534B48DE1CEDA7A2ACC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C9D302456727455394FCA5E36F0D1B20"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Adapt It Quick Start.htm"
-            "TargetName" = "8:Adapt It Quick Start.htm"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Report_a_problemDlg.gif"
+            "TargetName" = "8:Report_a_problemDlg.gif"
             "Tag" = "8:"
-            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2105,12 +2844,72 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CB791D6D70B2487BAC77A22EF422D667"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Enter_src_lang_name_dlgBE.gif"
+            "TargetName" = "8:Enter_src_lang_name_dlgBE.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CC5F6AFC7AE8485E918A8E62FEC71135"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\CC\\reverse_lx_ge.cct"
             "TargetName" = "8:reverse_lx_ge.cct"
             "Tag" = "8:"
             "Folder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D141689FA8F34ABEAF98FA9080C8C146"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image2.gif"
+            "TargetName" = "8:Image2.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D362CA6034DE4E76AE778CDAEAA9DE5A"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image14.gif"
+            "TargetName" = "8:Image14.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2145,12 +2944,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D8D3CBAED81B41EA87F9AD44D0C62B7C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D8952A3E972D4B57858EBF132AA82499"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image2.gif"
-            "TargetName" = "8:Image2.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\PT-BE_no_books_found_msg.gif"
+            "TargetName" = "8:PT-BE_no_books_found_msg.gif"
             "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2185,12 +2984,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DA8A3C495BCC46C289DC1119E0B9E509"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DBB5892087C04BAE8A152259572D7E68"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\ECDriver.dll"
-            "TargetName" = "8:ECDriver.dll"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image6.gif"
+            "TargetName" = "8:Image6.gif"
             "Tag" = "8:"
-            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DD1DFF3274A8419288F9A15C3001C03D"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\GetSourceTextFromEditorOptionsWithLangNameCtrls.gif"
+            "TargetName" = "8:GetSourceTextFromEditorOptionsWithLangNameCtrls.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DEDF9C4ECEA3409696CF3B1153BB9E87"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image4.gif"
+            "TargetName" = "8:Image4.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2225,10 +3064,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DFF2F5D6ACC6442CB08401F3BB78E261"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DFB713D2FAEC4267A9433738B8728298"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image20.gif"
-            "TargetName" = "8:Image20.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\SetupPTCollabWithLangNamesCtrls.gif"
+            "TargetName" = "8:SetupPTCollabWithLangNamesCtrls.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E00A33DDEFDE46D48F6778DF6A7BB485"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt_It_Quick_Start\\Image13.gif"
+            "TargetName" = "8:Image13.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
@@ -2305,12 +3164,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB4E7452943644DBB3F842F4544A2290"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E6F1C00F1A024519A702CA7EE6FE3F55"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\es\\Adapt_It_Unicode.mo"
-            "TargetName" = "8:Adapt_It_Unicode.mo"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\SetUpBibleditCollaborationWithLangNamesCtrls.gif"
+            "TargetName" = "8:SetUpBibleditCollaborationWithLangNamesCtrls.gif"
             "Tag" = "8:"
-            "Folder" = "8:_B2391F50CBCB4DA780FCE9D52EDBFA09"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2325,12 +3184,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ED6010B560604BE6A50C0FA62AAF994B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB4E7452943644DBB3F842F4544A2290"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\CC\\extract_free_trans.cct"
-            "TargetName" = "8:extract_free_trans.cct"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\es\\Adapt_It_Unicode.mo"
+            "TargetName" = "8:Adapt_It_Unicode.mo"
             "Tag" = "8:"
-            "Folder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Folder" = "8:_B2391F50CBCB4DA780FCE9D52EDBFA09"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2385,52 +3244,12 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EE768597D3374F7B90CCD89F16DAC3E8"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image8.gif"
-            "TargetName" = "8:Image8.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EEF08FB44EA246C08519048E60ADCF44"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\fr\\Adapt_It_Unicode.mo"
             "TargetName" = "8:Adapt_It_Unicode.mo"
             "Tag" = "8:"
             "Folder" = "8:_D71286F992894BDB9594608DCC07D559"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EFC2C11DF59445E1B02FC66AC903F3EC"
-            {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image4.gif"
-            "TargetName" = "8:Image4.gif"
-            "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2505,12 +3324,32 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F9D908F06282400796A8435947ACD38A"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F5280F5FF5ED449981B181584B79A4F8"
             {
-            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Adapt It Quick Start\\Image11.gif"
-            "TargetName" = "8:Image11.gif"
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\Enter_tgt_lang_name_dlgBE.gif"
+            "TargetName" = "8:Enter_tgt_lang_name_dlgBE.gif"
             "Tag" = "8:"
-            "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F774127BB28745DDB103DC5F60932199"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Images\\Admin_help\\BENewProject.gif"
+            "TargetName" = "8:BENewProject.gif"
+            "Tag" = "8:"
+            "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2620,6 +3459,17 @@
                     "Property" = "8:_1B514DA0841144DF9E0D73D5B640DF98"
                         "Folders"
                         {
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_C4640F9DFAB24EEE81835266E640406C"
+                            {
+                            "Name" = "8:CC"
+                            "AlwaysCreate" = "11:FALSE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_8E870C003232488788E8967D82AE955E"
+                                "Folders"
+                                {
+                                }
+                            }
                         }
                     }
                 }
@@ -2753,9 +3603,20 @@
                     "Property" = "8:_4D9B766BB73648F4BD1F7811DDB481B6"
                         "Folders"
                         {
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_3DC10C3653574DE391BACBF3E28ED4FB"
+                            {
+                            "Name" = "8:Admin_help"
+                            "AlwaysCreate" = "11:FALSE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_66A12EF82F0E43D3802F70C298415DCA"
+                                "Folders"
+                                {
+                                }
+                            }
                             "{9EF0B969-E518-4E46-987F-47570745A589}:_C2E66B2B655B4E649CC2CABF4491B49F"
                             {
-                            "Name" = "8:Adapt It Quick Start"
+                            "Name" = "8:Adapt_It_Quick_Start"
                             "AlwaysCreate" = "11:FALSE"
                             "Condition" = "8:"
                             "Transitive" = "11:FALSE"
@@ -2796,7 +3657,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Adapt It WX Unicode"
         "ProductCode" = "8:{7073EF2C-DAD5-4D4A-8D63-A39295285FEC}"
-        "PackageCode" = "8:{20605FA8-658D-4F12-A54E-5D3691ED4B0A}"
+        "PackageCode" = "8:{0E43DFB5-8675-4860-9796-C6A1AEF83C3D}"
         "UpgradeCode" = "8:{64C9A09B-737D-4B47-BF3A-ED7EFAF5831B}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
@@ -2929,18 +3790,32 @@
             "Icon" = "8:_07BB9217B01F42988EE7C26DF69F3619"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_372AD0A82B5C4F4EA13E245AACE25F8B"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_2E1F74729EDC4B75993F275396A57B6B"
             {
-            "Name" = "8:Adapt It Quick Start"
+            "Name" = "8:CC Files Document"
             "Arguments" = "8:"
-            "Description" = "8:View the Adapt It Quick Start.htm file"
+            "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_C3D1CFBB0D934534B48DE1CEDA7A2ACC"
-            "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
-            "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:_F18FEF74ACF24A02AC0034125DFC0A56"
+            "Target" = "8:_C3AAEA07CD4F4742955F17F4C0FEDA41"
+            "Folder" = "8:_C4640F9DFAB24EEE81835266E640406C"
+            "WorkingFolder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_4B844FFDDBA24914B0849B40395B0D40"
+            {
+            "Name" = "8:Consistent Changes Documentation"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_E552E14C53BC414DADE6C0F952B8A45B"
+            "Folder" = "8:_C4640F9DFAB24EEE81835266E640406C"
+            "WorkingFolder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_501052B69A6A4ADBB293B79AB02ADEF2"
@@ -2982,7 +3857,7 @@
             "Target" = "8:_FCAC448B0F9244F78B0518A007E84D8C"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:_54CC7E757FDF466A801D15AFD439B603"
+            "Icon" = "8:_25F542BD99FF44AFAB49429C9BFB46C9"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7B51398FF32B4B81A5B593AB80CA8FDB"
@@ -2999,46 +3874,74 @@
             "Icon" = "8:_4007B921F9EA47CFA638BD20BA9F285D"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B330AEBBF375473AB7131AE9F2019299"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_C2F2C8E415A7452998B10955ACBA720D"
             {
-            "Name" = "8:Known Issues and Limitations"
+            "Name" = "8:CC Debug Document"
             "Arguments" = "8:"
-            "Description" = "8:View the Known Issues and Limitations.txt file"
+            "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_0DC2F14153A245F9AA75025731D48C03"
-            "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
-            "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
+            "Target" = "8:_831984A66DAA455680564E9AC3A53ECD"
+            "Folder" = "8:_C4640F9DFAB24EEE81835266E640406C"
+            "WorkingFolder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_BEF2955980DA468E8772CEB6DDE98F18"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_CF4EE52D1A1243A589B2DEEB92F3D2F9"
             {
-            "Name" = "8:Using SIL Converters in Adapt It"
+            "Name" = "8:Help for Administrators (HTML)"
             "Arguments" = "8:"
-            "Description" = "8:View the SILConverters in AdaptIt.doc file"
+            "Description" = "8:View the Help_for_Administrators.htm file"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_4F20413098AC4F70ADA93679712CF348"
+            "Target" = "8:_1F90D07E9FB94789B43955099F52F34D"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:_07BB9217B01F42988EE7C26DF69F3619"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_D495E1F76FEF47E28D1763EA083B8E44"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_E3C5C11E253C4638840DB3681B509EAB"
             {
-            "Name" = "8:Localization Information"
+            "Name" = "8:Consistent Changes for Windows"
             "Arguments" = "8:"
-            "Description" = "8:View the Localization_Readme.txt file"
+            "Description" = "8:"
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_E3CECC3933D74EF59FCC923241B6864E"
+            "Target" = "8:_46B3ED3611FF46E18663FB4036F81699"
+            "Folder" = "8:_C4640F9DFAB24EEE81835266E640406C"
+            "WorkingFolder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_EDD74800F2BE4A338189426B068FAB88"
+            {
+            "Name" = "8:Adapt It Quick Start"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_63B00BADAFE3471799095A560B94C252"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
+            "Icon" = "8:"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_F14523C494964D6BB19A989D25E3F91E"
+            {
+            "Name" = "8:CC Summary Document"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_91FD7C43F5E84132BB74528D729E3D6F"
+            "Folder" = "8:_C4640F9DFAB24EEE81835266E640406C"
+            "WorkingFolder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_F7BEEB1BE0484925A8CA13D8A35301AF"
