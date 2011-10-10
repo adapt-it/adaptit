@@ -220,8 +220,8 @@ rem 11. Copy Adapt It changes.txt to ChangeLog file in parent adaptit folder (fo
 copy "Adapt It changes.txt" "..\ChangeLog"
 
 rem 12. Copy adapt_it.ico to the docs/Images folder of the "setup Regular" and "setup Unicode" folders
-xcopy "..\res\adapt_it.ico" "..\setup Regular\Images\" /Y
-xcopy "..\res\adapt_it.ico" "..\setup Unicode\Images\" /Y
+xcopy "..\res\ai_32.ico" "..\setup Regular\Images\adapt_it.ico" /Y
+xcopy "..\res\ai_32.ico" "..\setup Unicode\Images\adapt_it.ico" /Y
 
 echo ===================================================
 echo Copy process completed.
