@@ -8408,11 +8408,8 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     item45->Add( 10, 15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxString strs46[] = 
-    {
-        _("ComboItem")
-    };
-    wxComboBox *item46 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 1, strs46, wxCB_DROPDOWN );
+    wxString *strs46 = (wxString*) NULL;
+    wxComboBox *item46 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 0, strs46, wxCB_DROPDOWN );
     item45->Add( item46, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
     item44->Add( item45, 1, wxGROW|wxALL, 0 );
