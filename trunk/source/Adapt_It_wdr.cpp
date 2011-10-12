@@ -6939,7 +6939,7 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_INFO_REFS, wxT(""), wxDefaultPosition, wxSize(-1,20), 0 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_INFO_REFS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item11, 1, wxGROW, 0 );
 
     item3->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
