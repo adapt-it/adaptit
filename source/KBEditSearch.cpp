@@ -214,7 +214,7 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		#ifdef _RTL_FLAGS
 		pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, m_pEditBox, m_pLocalSearchBox,
 						m_pMatchListBox, m_pUpdateListBox, gpApp->m_pDlgGlossFont, gpApp->m_bNavTextRTL);
-		pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, m_pNumReferencesBox, NULL,
+		pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, NULL, NULL,
 						NULL, NULL, gpApp->m_pDlgGlossFont, gpApp->m_bNavTextRTL);
 		pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pSourceFont, m_pSrcPhraseBox, NULL,
 						NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
