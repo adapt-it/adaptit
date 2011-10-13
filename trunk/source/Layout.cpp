@@ -891,8 +891,16 @@ void CLayout::PlaceBox()
 	
 		// whm added 20Nov10 setting of target box background color for when the Guesser
 		// has provided a guess. Default m_GuessHighlightColor color is orange.
-		if (m_pApp->m_bIsGuess)
+		// BEW 13Oct11, added text for m_bFreeTranslationMode so as to get the pink
+		// background in the phrase box when it is at an anchor location
+		if (m_pApp->m_bIsGuess || m_pApp->m_bFreeTranslationMode)
 		{
+			if (m_pApp->m_bFreeTranslationMode && m_pApp->m_nActiveSequNum != -1)
+			{
+				m_pApp->m_pTargetBox->SetBackgroundColour(m_pApp->m_freeTransCurrentSectionBackgroundColor);
+			}
+			else
+			{
 			m_pApp->m_pTargetBox->SetBackgroundColour(m_pApp->m_GuessHighlightColor);
 			// Note: PlaceBox() is called twice in the process of executing PhraseBox's
 			// OnePass() function (one via a MoveToNextPile call and once later in OnePass. 
@@ -902,14 +910,13 @@ void CLayout::PlaceBox()
 			// be exectuted on the second call. Instead of resetting m_bIsGuess here, 
 			// I've reset it at the end of the OnePass() function.
 			//m_pApp->m_bIsGuess = FALSE;
+			} 
 		}
 		else
 		{
 			// normal background color in target box is white
 			m_pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
-		}
-
-		
+		}		
 		// handle the dirty flag
 		if (bSetModify)
 		{
