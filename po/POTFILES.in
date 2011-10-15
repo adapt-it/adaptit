@@ -31,7 +31,6 @@
 ../../source/ExportOptionsDlg.cpp
 ../../source/ExportSaveAsDlg.cpp
 ../../source/FilenameConflictDlg.cpp
-../../source/FilterPage.cpp
 ../../source/FindReplace.cpp
 ../../source/FontPage.cpp
 ../../source/GoToDlg.cpp
@@ -71,7 +70,6 @@
 ../../source/Strip.cpp
 ../../source/TargetUnit.cpp
 ../../source/TransformToGlossesDlg.cpp
-../../source/USFMPage.cpp
 ../../source/UnitsDlg.cpp
 ../../source/UnitsPage.cpp
 ../../source/UnpackWarningDlg.cpp
