@@ -363,7 +363,6 @@ xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
 miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
         ../../docs/curl-ca-bundle.crt \
-	$(wildcard $(srcdir)/../../license/*.txt) \
 	bibledit-rdwrt/lucid-$(host_cpu)/bibledit-rdwrt
 
 
