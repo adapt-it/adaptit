@@ -14,26 +14,50 @@ SUBDIRS = po
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = config.rpath
 
-# Resource files and help data
+#
+# Main resource files and help data
+# (part of main adaptit package)
+#
+install-adaptit-data: install-xmlDATA install-miscDATA \
+	install-htmlmainDATA install-docAdminDATA install-docStartDATA
+
 xmldir = $(pkgdatadir)
 xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
-	../../xml/books.xml ../../docs/iso639-3codes.txt \
-        ../../docs/curl-ca-bundle.crt
+	../../xml/books.xml
+miscdir = $(pkgdatadir)
+misc_DATA = ../../docs/iso639-3codes.txt \
+        ../../docs/curl-ca-bundle.crt \
+	$(wildcard $(srcdir)/../../license/*.txt) \
+	bibledit-rdwrt/lucid-$(host_cpu)/bibledit-rdwrt
 
 # HTML help data
-htmlhelpdir = $(pkgdatadir)/help
-htmlhelp_DATA = adaptit.htb ../../docs/Help_for_Administrators.htm \
+htmlmaindir = $(pkgdatadir)/help
+htmlmain_DATA = ../../docs/Help_for_Administrators.htm \
 	../../docs/Adapt_It_Quick_Start.htm
 docAdmindir = $(pkgdatadir)/help/Images/Admin_help
 docAdmin_DATA = $(wildcard $(srcdir)/../../docs/Images/Admin_help/*)
 docStartdir = $(pkgdatadir)/help/Images/Adapt_It_Quick_Start
 docStart_DATA = $(wildcard $(srcdir)/../../docs/Images/Adapt_It_Quick_Start/*)
 
+#
+# Optional resource files and help data
+# (part of adaptit documentation package)
+#
+htmlhelpdir = $(pkgdatadir)/help
+htmlhelp_DATA = adaptit.htb
+install-adaptit-docs-data: install-htmlhelpDATA install-docFileDATA
+
+docFiledir = $(pkgdatadir)/help
+docFile_DATA = ../../docs/Localization_Readme.txt "../../docs/Adapt It changes.txt"
+
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp
 	 (cd $<; zip -qr - . -x \*.svn\* ) > $@
 
+
+#
 # the application source, library search path, and link libraries
+#
 adaptit_SOURCES = \
 	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \

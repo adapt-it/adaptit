@@ -60,8 +60,9 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" \
-	"$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" \
-	"$(DESTDIR)$(xmldir)"
+	"$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" \
+	"$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" \
+	"$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	AIPrintPreviewFrame.$(OBJEXT) Adapt_It.$(OBJEXT) \
@@ -165,7 +166,8 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-DATA = $(docAdmin_DATA) $(docStart_DATA) $(htmlhelp_DATA) $(xml_DATA)
+DATA = $(docAdmin_DATA) $(docFile_DATA) $(docStart_DATA) \
+	$(htmlhelp_DATA) $(htmlmain_DATA) $(misc_DATA) $(xml_DATA)
 HEADERS = $(noinst_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
@@ -354,17 +356,20 @@ noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 SUBDIRS = po
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = config.rpath
-
-# Resource files and help data
 xmldir = $(pkgdatadir)
 xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
-	../../xml/books.xml ../../docs/iso639-3codes.txt \
-        ../../docs/curl-ca-bundle.crt
+	../../xml/books.xml
+
+miscdir = $(pkgdatadir)
+misc_DATA = ../../docs/iso639-3codes.txt \
+        ../../docs/curl-ca-bundle.crt \
+	$(wildcard $(srcdir)/../../license/*.txt) \
+	bibledit-rdwrt/lucid-$(host_cpu)/bibledit-rdwrt
 
 
 # HTML help data
-htmlhelpdir = $(pkgdatadir)/help
-htmlhelp_DATA = adaptit.htb ../../docs/Help_for_Administrators.htm \
+htmlmaindir = $(pkgdatadir)/help
+htmlmain_DATA = ../../docs/Help_for_Administrators.htm \
 	../../docs/Adapt_It_Quick_Start.htm
 
 docAdmindir = $(pkgdatadir)/help/Images/Admin_help
@@ -372,7 +377,18 @@ docAdmin_DATA = $(wildcard $(srcdir)/../../docs/Images/Admin_help/*)
 docStartdir = $(pkgdatadir)/help/Images/Adapt_It_Quick_Start
 docStart_DATA = $(wildcard $(srcdir)/../../docs/Images/Adapt_It_Quick_Start/*)
 
+#
+# Optional resource files and help data
+# (part of adaptit documentation package)
+#
+htmlhelpdir = $(pkgdatadir)/help
+htmlhelp_DATA = adaptit.htb
+docFiledir = $(pkgdatadir)/help
+docFile_DATA = ../../docs/Localization_Readme.txt "../../docs/Adapt It changes.txt"
+
+#
 # the application source, library search path, and link libraries
+#
 adaptit_SOURCES = \
 	../../source/AIPrintout.cpp ../../source/AIPrintPreviewFrame.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
@@ -2198,6 +2214,26 @@ uninstall-docAdminDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(docAdmindir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(docAdmindir)" && rm -f $$files
+install-docFileDATA: $(docFile_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(docFiledir)" || $(MKDIR_P) "$(DESTDIR)$(docFiledir)"
+	@list='$(docFile_DATA)'; test -n "$(docFiledir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docFiledir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docFiledir)" || exit $$?; \
+	done
+
+uninstall-docFileDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(docFile_DATA)'; test -n "$(docFiledir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(docFiledir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(docFiledir)" && rm -f $$files
 install-docStartDATA: $(docStart_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(docStartdir)" || $(MKDIR_P) "$(DESTDIR)$(docStartdir)"
@@ -2238,6 +2274,46 @@ uninstall-htmlhelpDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(htmlhelpdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(htmlhelpdir)" && rm -f $$files
+install-htmlmainDATA: $(htmlmain_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(htmlmaindir)" || $(MKDIR_P) "$(DESTDIR)$(htmlmaindir)"
+	@list='$(htmlmain_DATA)'; test -n "$(htmlmaindir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(htmlmaindir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(htmlmaindir)" || exit $$?; \
+	done
+
+uninstall-htmlmainDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(htmlmain_DATA)'; test -n "$(htmlmaindir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(htmlmaindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(htmlmaindir)" && rm -f $$files
+install-miscDATA: $(misc_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(miscdir)" || $(MKDIR_P) "$(DESTDIR)$(miscdir)"
+	@list='$(misc_DATA)'; test -n "$(miscdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(miscdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(miscdir)" || exit $$?; \
+	done
+
+uninstall-miscDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(misc_DATA)'; test -n "$(miscdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(miscdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(miscdir)" && rm -f $$files
 install-xmlDATA: $(xml_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(xmldir)" || $(MKDIR_P) "$(DESTDIR)$(xmldir)"
@@ -2574,7 +2650,7 @@ check: check-recursive
 all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(xmldir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -2625,8 +2701,9 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-docAdminDATA install-docStartDATA \
-	install-htmlhelpDATA install-xmlDATA
+install-data-am: install-docAdminDATA install-docFileDATA \
+	install-docStartDATA install-htmlhelpDATA install-htmlmainDATA \
+	install-miscDATA install-xmlDATA
 
 install-dvi: install-dvi-recursive
 
@@ -2675,8 +2752,9 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
-	uninstall-docStartDATA uninstall-htmlhelpDATA \
-	uninstall-xmlDATA
+	uninstall-docFileDATA uninstall-docStartDATA \
+	uninstall-htmlhelpDATA uninstall-htmlmainDATA \
+	uninstall-miscDATA uninstall-xmlDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-strip tags-recursive
@@ -2690,9 +2768,10 @@ uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-binPROGRAMS \
 	install-data install-data-am install-docAdminDATA \
-	install-docStartDATA install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am \
-	install-htmlhelpDATA install-info install-info-am install-man \
+	install-docFileDATA install-docStartDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-htmlhelpDATA install-htmlmainDATA \
+	install-info install-info-am install-man install-miscDATA \
 	install-pdf install-pdf-am install-ps install-ps-am \
 	install-strip install-xmlDATA installcheck installcheck-am \
 	installdirs installdirs-am maintainer-clean \
@@ -2700,9 +2779,18 @@ uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am \
 	uninstall-binPROGRAMS uninstall-docAdminDATA \
-	uninstall-docStartDATA uninstall-htmlhelpDATA \
-	uninstall-xmlDATA
+	uninstall-docFileDATA uninstall-docStartDATA \
+	uninstall-htmlhelpDATA uninstall-htmlmainDATA \
+	uninstall-miscDATA uninstall-xmlDATA
 
+
+#
+# Main resource files and help data
+# (part of main adaptit package)
+#
+install-adaptit-data: install-xmlDATA install-miscDATA \
+	install-htmlmainDATA install-docAdminDATA install-docStartDATA
+install-adaptit-docs-data: install-htmlhelpDATA install-docFileDATA
 
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp
