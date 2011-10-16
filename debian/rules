@@ -51,13 +51,13 @@ install: build
 
 	# Add commands here to install into the package adaptit
 	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit \
-		install-exec install-xmlDATA
+		install-exec install-adaptit-data
 	$(MAKE) -C bin/linux/Unicode/po DESTDIR=$(CURDIR)/debian/adaptit \
 		install
 
 	# Add commands here to install into the package adaptit-docs
 	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit-docs \
-		install-htmlhelpDATA install-docAdminDATA install-docStartDATA
+		install-adaptit-docs-data
 
 
 # Build architecture-independent files here.
