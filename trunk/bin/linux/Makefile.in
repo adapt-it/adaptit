@@ -384,7 +384,7 @@ docStart_DATA = $(wildcard $(srcdir)/../../docs/Images/Adapt_It_Quick_Start/*)
 htmlhelpdir = $(pkgdatadir)/help
 htmlhelp_DATA = adaptit.htb
 docFiledir = $(pkgdatadir)/help
-docFile_DATA = ../../docs/Localization_Readme.txt "../../docs/Adapt It changes.txt"
+docFile_DATA = ../../docs/Localization_Readme.txt
 
 #
 # the application source, library search path, and link libraries
