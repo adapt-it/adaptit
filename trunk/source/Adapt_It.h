@@ -3186,8 +3186,10 @@ public:
 	wxString m_ParatextProjectsDirPath;
 	wxString m_BibleditProjectsDirPath;
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
-	wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
-	wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
+	
+	// whm 17Oct11 removed
+	//wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
+	//wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
 	
 	wxArrayString GetListOfPTProjects();
 	wxArrayString GetListOfBEProjects();

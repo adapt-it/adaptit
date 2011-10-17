@@ -284,18 +284,16 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 	int nProjectCount = 0;
 	// get list of PT/BE projects
+	projList.Clear();
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		m_pApp->m_ListOfPTProjects.Clear();
-		m_pApp->m_ListOfPTProjects = m_pApp->GetListOfPTProjects();
-		nProjectCount = (int)m_pApp->m_ListOfPTProjects.GetCount();
+		projList = m_pApp->GetListOfPTProjects();
 	}
 	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
-		m_pApp->m_ListOfBEProjects.Clear();
-		m_pApp->m_ListOfBEProjects = m_pApp->GetListOfBEProjects();
-		nProjectCount = (int)m_pApp->m_ListOfBEProjects.GetCount();
+		projList = m_pApp->GetListOfBEProjects();
 	}
+	nProjectCount = (int)projList.GetCount();
 
 	// Check for at least two usable PT projects in list
 	if (nProjectCount < 2)
@@ -308,14 +306,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 		for (i = 0; i < nProjectCount; i++)
 		{
 			wxString tempStr;
-			if (m_pApp->m_collaborationEditor == _T("Paratext"))
-			{
-				tempStr = m_pApp->m_ListOfPTProjects.Item(i);
-			}
-			else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-			{
-				tempStr = m_pApp->m_ListOfBEProjects.Item(i);
-			}
+			tempStr = projList.Item(i);
 			pListOfProjects->Append(tempStr);
 		}
 
@@ -382,23 +373,11 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	wxArrayString tempListOfProjects;
 	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	tot = (int)projList.GetCount();
+	for (ct = 0; ct < tot; ct++)
 	{
-		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
-		for (ct = 0; ct < tot; ct++)
-		{
-			// load the rest of the projects into the temp array list
-			tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
-		}
-	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-	{
-		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
-		for (ct = 0; ct < tot; ct++)
-		{
-			// load the rest of the projects into the temp array list
-			tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
-		}
+		// load the rest of the projects into the temp array list
+		tempListOfProjects.Add(projList.Item(ct));
 	}
 	wxString msg;
 	msg = _("Choose a default project the user will see initially for source text inputs");
@@ -567,34 +546,16 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	wxString projShortName;
 	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	tot = (int)projList.GetCount();
+	for (ct = 0; ct < tot; ct++)
 	{
-		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
-		for (ct = 0; ct < tot; ct++)
+		// Load the rest of the projects into the temp array list.
+		// We must restrict the list of potential destination projects to those
+		// which have have an editable attribute.
+		projShortName = GetShortNameFromProjectName(projList.Item(ct));
+		if (CollabProjectIsEditable(projShortName))
 		{
-			// Load the rest of the projects into the temp array list.
-			// We must restrict the list of potential destination projects to those
-			// which have the <Editable>T</Editable> attribute
-			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfPTProjects.Item(ct));
-			if (CollabProjectIsEditable(projShortName))
-			{
-				tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
-			}
-		}
-	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-	{
-		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
-		for (ct = 0; ct < tot; ct++)
-		{
-			// load the rest of the projects into the temp array list
-			// We must restrict the list of potential destination projects to those
-			// which have the <Editable>T</Editable> attribute
-			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfBEProjects.Item(ct));
-			if (CollabProjectIsEditable(projShortName))
-			{
-				tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
-			}
+			tempListOfProjects.Add(projList.Item(ct));
 		}
 	}
 	wxString msg;
@@ -762,34 +723,16 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	pBtnNoFreeTrans->Enable(TRUE);
 	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	tot = (int)projList.GetCount();
+	for (ct = 0; ct < tot; ct++)
 	{
-		tot = (int)m_pApp->m_ListOfPTProjects.GetCount();
-		for (ct = 0; ct < tot; ct++)
+		// Load the rest of the projects into the temp array list.
+		// We must restrict the list of potential destination projects to those
+		// which have an editable attribute.
+		projShortName = GetShortNameFromProjectName(projList.Item(ct));
+		if (CollabProjectIsEditable(projShortName))
 		{
-			// Load the rest of the projects into the temp array list.
-			// We must restrict the list of potential destination projects to those
-			// which have the <Editable>T</Editable> attribute
-			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfPTProjects.Item(ct));
-			if (CollabProjectIsEditable(projShortName))
-			{
-				tempListOfProjects.Add(m_pApp->m_ListOfPTProjects.Item(ct));
-			}
-		}
-	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-	{
-		tot = (int)m_pApp->m_ListOfBEProjects.GetCount();
-		for (ct = 0; ct < tot; ct++)
-		{
-			// Load the rest of the projects into the temp array list.
-			// We must restrict the list of potential destination projects to those
-			// which have the <Editable>T</Editable> attribute
-			projShortName = GetShortNameFromProjectName(m_pApp->m_ListOfBEProjects.Item(ct));
-			if (CollabProjectIsEditable(projShortName))
-			{
-				tempListOfProjects.Add(m_pApp->m_ListOfBEProjects.Item(ct));
-			}
+			tempListOfProjects.Add(projList.Item(ct));
 		}
 	}
 	wxString msg;
