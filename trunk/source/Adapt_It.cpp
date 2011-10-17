@@ -11161,7 +11161,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 	pathToExecutable3 = _T("/usr/bin/bibleditgui");
 	pathToExecutable4 = _T("/usr/bin/bibledit-bin");
 	if (::wxFileExists(pathToExecutable1) || ::wxFileExists(pathToExecutable2)
-		|| ::wxFileExists(pathToExecutable3) || || ::wxFileExists(pathToExecutable4))
+		|| ::wxFileExists(pathToExecutable3) || ::wxFileExists(pathToExecutable4))
 		bBEInstalled = TRUE;
 	// TODO: write code to determine the version of bibledit-gtk that is
 	// installed on Linux. It must be at least version 4.2.93 to respond 
