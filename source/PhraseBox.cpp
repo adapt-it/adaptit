@@ -4168,6 +4168,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
 	CLayout* pLayout = GetLayout();
 	CSourcePhrase* pOldActiveSrcPhrase = NULL;
 	int nActiveSequNum= pApp->m_nActiveSequNum;
