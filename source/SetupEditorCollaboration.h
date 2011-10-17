@@ -87,6 +87,7 @@ private:
 	wxButton* pBtnOK;
 	bool m_bCollabSettingSave;
 	bool m_bCollabChangedThisDlgSession;
+	wxArrayString projList;
 
 	// class attributes
 	// wxString m_stringVariable;
