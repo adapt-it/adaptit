@@ -2571,6 +2571,8 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // map 1 rather than map 2.
 // BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
 // BEW 14Sep11, updated to reflect the improved code in StoreText()
+// BEW 17Oct11, updated to turn off app flag m_bForceAsk before returning (but always
+// after having used the TRUE value if it's value on entry was TRUE)
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -2584,12 +2586,11 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 
 	m_pApp->GetDocument()->Modify(TRUE);
 
-    // do not permit storage if the source phrase has an empty key (eg. user may have ...
-    // ellipsis in the source text, which generates an empty key and three periods in the
-    // punctuation)
+    // do not permit storage, when going back, if the source phrase has an empty key
 	if (pSrcPhrase->m_key.IsEmpty())
 	{
 		gbMatchedKB_UCentry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE; // this is not an error, just suppression of the store
 	}
 
@@ -2720,6 +2721,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // make sure it is now turned off
 		wxMessageBox(_(
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
 		, _T(""), wxICON_INFORMATION);
@@ -2839,6 +2841,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			{
 				m_nMaxWords = pSrcPhrase->m_nSrcWords;
 			}
+			// BEW 17Oct11, added next line (fixes bug in version 6, the checkbox, once set,
+			// was staying on at each new phrase box location, and should be off)
+			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 			return TRUE;
 		}
 		else // we found one
@@ -2926,6 +2931,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
             // add the new pRefString to the CTargetUnit instance
 			if (bMatched)
 			{
+				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 				return TRUE;
 			}
 			else
@@ -3035,6 +3041,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // BEW 14Sep11, fixed up embarrasingly bad slack code and failure to take into account
 // that the string passed in may be <Not In KB> (the legacy version got the doc flags
 // wrong!)
+// BEW 17Oct11, updated to turn of the app flag, m_bForceAsk, if it was TRUE on entry
+// before returning, (but always after having used the TRUE value of course, if passed in
+// as TRUE)
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -3042,12 +3051,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	wxString strNot = m_pApp->m_strNotInKB;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
 
-    // do not permit storage if the source phrase has an empty key (eg. user may have ...
-    // ellipsis in the source text, which generates an empty key and three periods in the
-    // punctuation)
+    // do not permit storage if the source phrase has an empty key
 	if (pSrcPhrase->m_key.IsEmpty())
 	{
 		gbMatchedKB_UCentry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE; // this is not an error, just suppression of the store
 	}
 
@@ -3109,6 +3117,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
 		{
 			::wxBell();
+			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 			return TRUE;
 		}
 
@@ -3214,9 +3223,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				{
 					pRefString->DeleteRefString(); // don't leak memory
 				}
+				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 				return TRUE;
 			}
 		}
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	} // end of block for processing a store when transliterating using SILConverters transliterator
 
@@ -3332,6 +3343,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
 		_T(""),wxICON_INFORMATION);
 		gbMatchedKB_UCentry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
 
@@ -3359,6 +3371,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 				m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
 				gbMatchedKB_UCentry = FALSE;
+				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 				return TRUE; // make caller think all is well
 			}
 		}
@@ -3426,6 +3439,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				m_nMaxWords = pSrcPhrase->m_nSrcWords;
 			}
 		}
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
 	}
 	else // the block below is for when the map is not empty
@@ -3463,6 +3477,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			m_pApp->m_bSaveToKB = TRUE; // ensure its back on (if here from a choice not 
 				// save to KB, this will be cleared by OnCheckKBSave, preserving user choice)
 			gbMatchedKB_UCentry = FALSE;
+			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 			return FALSE;
 		}
 
@@ -3550,6 +3565,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					m_nMaxWords = pSrcPhrase->m_nSrcWords;
 				}
 			}
+			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 			return TRUE;
 		}
 		else // we found one
@@ -3663,6 +3679,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // glossing mode does not support <Not In KB> entries for the glossing KB)
 			if (bMatched)
 			{
+				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 				return TRUE;
 			}
 			else
