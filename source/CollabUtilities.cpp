@@ -262,8 +262,15 @@ wxString GetShortNameFromProjectName(wxString projName)
 	// In such cases just return the incoming projName 
 	// unchanged which will function as the "short" name for
 	// Bibledit projects.
+	// whm 17Oct11 modified to replace spaces in projName to underscores.
+	// Note: The Bibledit projName will be the language name that
+	// is entered by the user. This name could contain spaces, so
+	// we need to convert any spaces within the name to underscores.
 	if (!projName.IsEmpty() && posColon == wxNOT_FOUND)
+	{
+		projName.Replace(_T(" "),_T("_"),TRUE);
 		return projName;
+	}
 	collabProjShortName = projName.Mid(0,posColon);
 	collabProjShortName.Trim(FALSE);
 	collabProjShortName.Trim(TRUE);
