@@ -38950,8 +38950,9 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 
 wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 {
-	wxArrayString tempListOfBEProjects;
+	wxArrayString tempListOfBEProjects, tempListOfAllBEProjects;
 	tempListOfBEProjects.Clear();
+	tempListOfAllBEProjects.Clear();
 	// deallocate any memory for items currently in list on heap 
 	int aTot = (int)m_pArrayOfCollabProjects->GetCount();
 	if (aTot > 0)
@@ -38984,13 +38985,13 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 	bool bWorking = finder.GetFirst(&str,_T(""),wxDIR_DIRS);
 	while (bWorking)
 	{
-		tempListOfBEProjects.Add(str);
+		tempListOfAllBEProjects.Add(str);
 		bWorking = finder.GetNext(&str);
 	}
 		
 	// Now get information from the configuration.1.xml file(s) in each project folder
 	// to use in filling out the Collab_Project_Info_Struct structs stored on the heap.
-	int nTotNumProjects = (int)tempListOfBEProjects.GetCount();
+	int nTotNumProjects = (int)tempListOfAllBEProjects.GetCount();
 
 	if (nTotNumProjects > 0)
 	{
@@ -39001,7 +39002,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 		for (projCt = 0; projCt < nTotNumProjects; projCt++)
 		{
 			wxString projConfigFilePath;
-			wxString projName = tempListOfBEProjects.Item(projCt);
+			wxString projName = tempListOfAllBEProjects.Item(projCt);
 			wxString projPath = BE_ProjectsDirPath + PathSeparator + projName;
 			projConfigFilePath = projPath + PathSeparator + _T("configuration.1.xml");
 			wxTextFile f;
@@ -39267,19 +39268,19 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 					// contained in).
 					if (bProjectIsNotResource && !shortName.IsEmpty())
 					{
-						storageStr = shortName;
-						if (!fullName.IsEmpty())
-						{
-							storageStr += _T(" : ") + fullName;
-						}
-						if (!languageName.IsEmpty())
-						{
-							storageStr += _T(" : ") + languageName;
-						}
-						if (!ethnologueCode.IsEmpty())
-						{
-							storageStr += _T(" : ") + ethnologueCode;
-						}
+						storageStr = shortName; // this is the same as languageName and fullName
+						//if (!fullName.IsEmpty())
+						//{
+						//	storageStr += _T(" : ") + fullName;
+						//}
+						//if (!languageName.IsEmpty())
+						//{
+						//	storageStr += _T(" : ") + languageName;
+						//}
+						//if (!ethnologueCode.IsEmpty())
+						//{
+						//	storageStr += _T(" : ") + ethnologueCode;
+						//}
 						tempListOfBEProjects.Add(storageStr);
 						m_pArrayOfCollabProjects->Add(pBEInfo);
 					}
