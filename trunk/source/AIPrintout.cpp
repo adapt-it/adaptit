@@ -284,7 +284,8 @@ bool AIPrintout::OnPrintPage(int page)
 		pLayout->m_pOffsets = pOffsets;
 
 #ifdef Print_failure
-		int internalDC_Y = pDC->DeviceToLogicalY(0);
+		int internalDC_Y;
+		internalDC_Y = pDC->DeviceToLogicalY(0);
 		wxLogDebug(_T("\n page = %d , DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
 			gnCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
 #endif
