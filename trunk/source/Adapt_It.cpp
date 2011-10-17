@@ -11150,25 +11150,32 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 {
 	bool bBEInstalled;
 	bBEInstalled = FALSE;
-	wxString pathToExecutable;
-	pathToExecutable.Empty();
+	wxString pathToExecutable1, pathToExecutable2, pathToExecutable3,pathToExecutable4;
+	pathToExecutable1.Empty();
+	pathToExecutable2.Empty();
+	pathToExecutable3.Empty();
+	pathToExecutable4.Empty();
 #ifdef __WXGTK__
-	pathToExecutable = _T("/usr/bin/bibledit-gtk");
-	if (::wxFileExists(pathToExecutable))
+	pathToExecutable1 = _T("/usr/bin/bibledit");
+	pathToExecutable2 = _T("/usr/bin/bibledit-gtk");
+	pathToExecutable3 = _T("/usr/bin/bibleditgui");
+	pathToExecutable4 = _T("/usr/bin/bibledit-bin");
+	if (::wxFileExists(pathToExecutable1) || ::wxFileExists(pathToExecutable2)
+		|| ::wxFileExists(pathToExecutable3) || || ::wxFileExists(pathToExecutable4))
 		bBEInstalled = TRUE;
 	// TODO: write code to determine the version of bibledit-gtk that is
 	// installed on Linux. It must be at least version 4.2.93 to respond 
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
 #ifdef __WXMAC__
-	pathToExecutable = _T("/opt/local/bin/bibledit-gtk");
-	if (::wxFileExists(pathToExecutable))
+	pathToExecutable1 = _T("/opt/local/bin/bibledit-gtk");
+	if (::wxFileExists(pathToExecutable1))
 		bBEInstalled = TRUE;
 	if (!bBEInstalled)
 	{
 		// try alternate name on Mac
-		pathToExecutable = _T("/opt/local/bin/bibledit");
-		if (::wxFileExists(pathToExecutable))
+		pathToExecutable1 = _T("/opt/local/bin/bibledit");
+		if (::wxFileExists(pathToExecutable1))
 			bBEInstalled = TRUE;
 	}
 	// TODO: write code to determine the version of bibledit-gtk that is
@@ -11548,6 +11555,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// The name of the Bibledit application in the Linux system is bibledit-gtk
 	long result = -1;
 	wxString commandLine;
+	// try the process name 'bibledit-gtk'
 	commandLine = _T("ps -C bibledit-gtk -o pid="); // outputs the pid in outputMsg if bibledit-gtk is running, nothing otherwise
 	wxArrayString outputMsg, errorsMsg;
 	wxString outputStr;
@@ -11568,6 +11576,48 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	}
 	wxLogDebug(outputStr);
 #endif
+	if (outputMsg.GetCount() > 0)
+	{
+		wxString str = outputMsg.Item(0);
+		bool bIsNumber = TRUE;
+		int ct;
+		for (ct = 0; ct < (int)str.Length(); ct++)
+		{
+			if (!wxIsdigit(str.GetChar(ct)))
+				bIsNumber = FALSE;
+		}
+		if (bIsNumber)
+			bIsRunning = TRUE;
+	}
+
+	// try the process name 'bibledit-bin'
+	commandLine = _T("ps -C bibledit-bin -o pid="); // outputs the pid in outputMsg if bibledit-bin is running, nothing otherwise
+	outputMsg.Clear(); errorsMsg.Clear();
+	outputStr.Empty();
+	// Use the wxExecute() override that takes the two wxStringArray parameters. This
+	// also redirects the output and suppresses the dos console window during execution.
+	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+	if (outputMsg.GetCount() > 0)
+	{
+		wxString str = outputMsg.Item(0);
+		bool bIsNumber = TRUE;
+		int ct;
+		for (ct = 0; ct < (int)str.Length(); ct++)
+		{
+			if (!wxIsdigit(str.GetChar(ct)))
+				bIsNumber = FALSE;
+		}
+		if (bIsNumber)
+			bIsRunning = TRUE;
+	}
+	
+	// try the process name 'bibledit'
+	commandLine = _T("ps -C bibledit -o pid="); // outputs the pid in outputMsg if bibledit-bin is running, nothing otherwise
+	outputMsg.Clear(); errorsMsg.Clear();
+	outputStr.Empty();
+	// Use the wxExecute() override that takes the two wxStringArray parameters. This
+	// also redirects the output and suppresses the dos console window during execution.
+	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
 	if (outputMsg.GetCount() > 0)
 	{
 		wxString str = outputMsg.Item(0);
