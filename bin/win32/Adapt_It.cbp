@@ -305,6 +305,8 @@
 			<Option compilerVar="WINDRES" />
 		</Unit>
 		<Unit filename="Equivalents_for_reference.h" />
+		<Unit filename="..\..\source\AIPrintPreviewFrame.cpp" />
+		<Unit filename="..\..\source\AIPrintPreviewFrame.h" />
 		<Unit filename="..\..\source\AIPrintout.cpp" />
 		<Unit filename="..\..\source\AIPrintout.h" />
 		<Unit filename="..\..\source\Adapt_It.cpp" />
@@ -353,8 +355,8 @@
 		<Unit filename="..\..\source\CollectBacktranslations.h" />
 		<Unit filename="..\..\source\ComposeBarEditBox.cpp" />
 		<Unit filename="..\..\source\ComposeBarEditBox.h" />
-		<Unit filename="..\..\source\ConflictResolutionDlg.cpp" />
-		<Unit filename="..\..\source\ConflictResolutionDlg.h" />
+		<Unit filename="..\..\source\ConsChk_Empty_noTU_Dlg.cpp" />
+		<Unit filename="..\..\source\ConsChk_Empty_noTU_Dlg.h" />
 		<Unit filename="..\..\source\ConsistencyCheckDlg.cpp" />
 		<Unit filename="..\..\source\ConsistencyCheckDlg.h" />
 		<Unit filename="..\..\source\ConsistentChanger.cpp" />
@@ -393,6 +395,8 @@
 		<Unit filename="..\..\source\GoToDlg.h" />
 		<Unit filename="..\..\source\GuesserSettingsDlg.cpp" />
 		<Unit filename="..\..\source\GuesserSettingsDlg.h" />
+		<Unit filename="..\..\source\HtmlFileViewer.cpp" />
+		<Unit filename="..\..\source\HtmlFileViewer.h" />
 		<Unit filename="..\..\source\JoinDialog.cpp" />
 		<Unit filename="..\..\source\JoinDialog.h" />
 		<Unit filename="..\..\source\KB.cpp" />
@@ -516,6 +520,10 @@
 		<Unit filename="..\..\source\XMLErrorDlg.h" />
 		<Unit filename="..\..\source\base64.cpp" />
 		<Unit filename="..\..\source\base64.h" />
+		<Unit filename="..\..\source\conschk_exists_notu_dlg.cpp" />
+		<Unit filename="..\..\source\conschk_exists_notu_dlg.h" />
+		<Unit filename="..\..\source\convauto.cpp" />
+		<Unit filename="..\..\source\convauto.h" />
 		<Unit filename="..\..\source\helpers.cpp" />
 		<Unit filename="..\..\source\helpers.h" />
 		<Unit filename="..\..\source\md5.cpp" />
