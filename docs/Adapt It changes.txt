@@ -1,4 +1,28 @@
 ----------------------------------------------
+Version 6.0.1 release 20 October 2011
+----------------------------------------------
+----------------------------------------------
+Bug fixes in 6.0.0
+----------------------------------------------
+* Adapt It was not preserving the \id marker when working in
+    collaboration with Paratext and a chapter 1 document was
+    selected for adaptation. It would send the text back to
+    Paratext OK but the \id marker would be missing, causing
+    all the markers in Paratext's standard view to turn red.
+    A work around was to add the \id marker back manually 
+    within Paratext (in unformatted view). This is now fixed 
+    in 6.0.1.
+* Collaboration with Paratext would fail on machines running
+    64-bit Windows. A fix was made to the rdwrtp7.exe utility
+    that Adapt It uses to transfer collaboration texts between
+    Paratext and Adapt It, so the utility now should work on
+    either 32-bit or 64-bit Windows systems.
+* If the user put a tick in the "Force Choice For This Item"
+    check box in the mode bar, it would stay checked instead
+    of automatically clearing when the phrase box moved to
+    the next location. This is now fixed.
+
+----------------------------------------------
 Version 6.0.0 release 10 October 2011
 ----------------------------------------------
 Feature changes and new features in 6.0.0
