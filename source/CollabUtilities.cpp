@@ -4508,10 +4508,24 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			preEditText = gpApp->GetStoredFreeTransText_PreEdit();
 			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
 			// chapter doc
+			// whm modified 19Oct11. When the Paratext rdwrtp7.exe utility grabs a chapter
+			// 1 document, it retains all introductory text including the initial \id marker.
+			// When the Bibledit bibledit-rdwrt utility grabs a chapter 1 document, however,
+			// it does not include any introductory text and so it won't have any initial \id
+			// marker (In Bibledit one needs to grab the whole book in order to get any
+			// introductory material and an initial \id marker). Adapt It adds an \id marker
+			// for all of its documents whether they are chapter or whole book. So, when 
+			// transferring document texts back to Paratext or Bibledit, we need to call
+			// RemoveIDMarkerAndCode() for all Bibledit chapter documents, and for all but
+			// chapter 1 documents for Paratext.
 			if (gpApp->m_bCollabByChapterOnly)
 			{
-				preEditText = RemoveIDMarkerAndCode(preEditText);
-			}			
+				if (gpApp->m_bCollaboratingWithBibledit 
+					|| (gpApp->m_bCollaboratingWithParatext && gpApp->m_CollabChapterSelected != _T("1")))
+				{
+					preEditText = RemoveIDMarkerAndCode(preEditText);
+				}
+			}
             // next call gets the file of data into the .temp folder, with appropriate
             // filename; when it is chapter data, PT (and BE) don't send it with initial
             // \id marker etc; but it may have a BOM
@@ -4540,9 +4554,23 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			preEditText = gpApp->GetStoredTargetText_PreEdit();
 			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
 			// chapter doc
+			// whm modified 19Oct11. When the Paratext rdwrtp7.exe utility grabs a chapter
+			// 1 document, it retains all introductory text including the initial \id marker.
+			// When the Bibledit bibledit-rdwrt utility grabs a chapter 1 document, however,
+			// it does not include any introductory text and so it won't have any initial \id
+			// marker (In Bibledit one needs to grab the whole book in order to get any
+			// introductory material and an initial \id marker). Adapt It adds an \id marker
+			// for all of its documents whether they are chapter or whole book. So, when 
+			// transferring document texts back to Paratext or Bibledit, we need to call
+			// RemoveIDMarkerAndCode() for all Bibledit chapter documents, and for all but
+			// chapter 1 documents for Paratext.
 			if (gpApp->m_bCollabByChapterOnly)
 			{
-				preEditText = RemoveIDMarkerAndCode(preEditText);
+				if (gpApp->m_bCollaboratingWithBibledit 
+					|| (gpApp->m_bCollaboratingWithParatext && gpApp->m_CollabChapterSelected != _T("1")))
+				{
+					preEditText = RemoveIDMarkerAndCode(preEditText);
+				}
 			}
             // next call gets the file of data into the .temp folder, with appropriate
             // filename; when it is chapter data, PT (and BE) don't send it with initial
@@ -4594,9 +4622,23 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		}
 		// ensure there is no initial \id or 3-letter code lurking in it, if it's a
 		// chapter doc
+		// whm modified 19Oct11. When the Paratext rdwrtp7.exe utility grabs a chapter
+		// 1 document, it retains all introductory text including the initial \id marker.
+		// When the Bibledit bibledit-rdwrt utility grabs a chapter 1 document, however,
+		// it does not include any introductory text and so it won't have any initial \id
+		// marker (In Bibledit one needs to grab the whole book in order to get any
+		// introductory material and an initial \id marker). Adapt It adds an \id marker
+		// for all of its documents whether they are chapter or whole book. So, when 
+		// transferring document texts back to Paratext or Bibledit, we need to call
+		// RemoveIDMarkerAndCode() for all Bibledit chapter documents, and for all but
+		// chapter 1 documents for Paratext.
 		if (gpApp->m_bCollabByChapterOnly)
 		{
-			text = RemoveIDMarkerAndCode(text);
+			if (gpApp->m_bCollaboratingWithBibledit 
+				|| (gpApp->m_bCollaboratingWithParatext && gpApp->m_CollabChapterSelected != _T("1")))
+			{
+				text = RemoveIDMarkerAndCode(text);
+			}
 		}
 		return text;
 	}
@@ -4611,9 +4653,23 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			postEditText = ExportFreeTransText_For_Collab(pDocList);
 			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
 			// chapter doc
+			// whm modified 19Oct11. When the Paratext rdwrtp7.exe utility grabs a chapter
+			// 1 document, it retains all introductory text including the initial \id marker.
+			// When the Bibledit bibledit-rdwrt utility grabs a chapter 1 document, however,
+			// it does not include any introductory text and so it won't have any initial \id
+			// marker (In Bibledit one needs to grab the whole book in order to get any
+			// introductory material and an initial \id marker). Adapt It adds an \id marker
+			// for all of its documents whether they are chapter or whole book. So, when 
+			// transferring document texts back to Paratext or Bibledit, we need to call
+			// RemoveIDMarkerAndCode() for all Bibledit chapter documents, and for all but
+			// chapter 1 documents for Paratext.
 			if (gpApp->m_bCollabByChapterOnly)
 			{
-				postEditText = RemoveIDMarkerAndCode(postEditText);
+				if (gpApp->m_bCollaboratingWithBibledit 
+					|| (gpApp->m_bCollaboratingWithParatext && gpApp->m_CollabChapterSelected != _T("1")))
+				{
+					postEditText = RemoveIDMarkerAndCode(postEditText);
+				}
 			}
 		}
 		break;
@@ -4623,9 +4679,23 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			postEditText = ExportTargetText_For_Collab(pDocList);
 			// ensure there is no initial \id or 3-letter code lurking in it, if it's a
 			// chapter doc
+			// whm modified 19Oct11. When the Paratext rdwrtp7.exe utility grabs a chapter
+			// 1 document, it retains all introductory text including the initial \id marker.
+			// When the Bibledit bibledit-rdwrt utility grabs a chapter 1 document, however,
+			// it does not include any introductory text and so it won't have any initial \id
+			// marker (In Bibledit one needs to grab the whole book in order to get any
+			// introductory material and an initial \id marker). Adapt It adds an \id marker
+			// for all of its documents whether they are chapter or whole book. So, when 
+			// transferring document texts back to Paratext or Bibledit, we need to call
+			// RemoveIDMarkerAndCode() for all Bibledit chapter documents, and for all but
+			// chapter 1 documents for Paratext.
 			if (gpApp->m_bCollabByChapterOnly)
 			{
-				postEditText = RemoveIDMarkerAndCode(postEditText);
+				if (gpApp->m_bCollaboratingWithBibledit 
+					|| (gpApp->m_bCollaboratingWithParatext && gpApp->m_CollabChapterSelected != _T("1")))
+				{
+					postEditText = RemoveIDMarkerAndCode(postEditText);
+				}
 			}
 		}
 		break;
