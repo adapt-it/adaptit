@@ -11611,6 +11611,27 @@ bool CAdapt_ItApp::BibleditIsRunning()
 			bIsRunning = TRUE;
 	}
 	
+	// try the process name 'bibleditgui'
+	commandLine = _T("ps -C bibleditgui -o pid="); // outputs the pid in outputMsg if bibledit-bin is running, nothing otherwise
+	outputMsg.Clear(); errorsMsg.Clear();
+	outputStr.Empty();
+	// Use the wxExecute() override that takes the two wxStringArray parameters. This
+	// also redirects the output and suppresses the dos console window during execution.
+	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+	if (outputMsg.GetCount() > 0)
+	{
+		wxString str = outputMsg.Item(0);
+		bool bIsNumber = TRUE;
+		int ct;
+		for (ct = 0; ct < (int)str.Length(); ct++)
+		{
+			if (!wxIsdigit(str.GetChar(ct)))
+				bIsNumber = FALSE;
+		}
+		if (bIsNumber)
+			bIsRunning = TRUE;
+	}
+	
 	// try the process name 'bibledit'
 	commandLine = _T("ps -C bibledit -o pid="); // outputs the pid in outputMsg if bibledit-bin is running, nothing otherwise
 	outputMsg.Clear(); errorsMsg.Clear();
