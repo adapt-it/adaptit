@@ -473,7 +473,6 @@ void CDocPage::OnSetActive()
 	wxString strNewDoc;
 	// IDS_NEW_DOCUMENT
 	strNewDoc = strNewDoc.Format(_("<New Document>"));
-	possibleAdaptions.Add(strNewDoc); // first in list
 
 	// There are now two possible folders: if book mode is OFF, we must access the Adaptations
 	// folder (legacy behaviour), but if book mode is ON, the user will have choosen a book folder
@@ -482,6 +481,13 @@ void CDocPage::OnSetActive()
 		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_bibleBooksFolderPath);
 	else
 		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_curAdaptionsPath);
+
+	// whm modified 20Oct11 to sort possibleAdaptations before adding the
+	// <New Document> as the first item. This change is needed to get a sorted
+	// list on the Linux port. Windows and Mac seem to grab the list of folders
+	// in sorted order.
+	possibleAdaptions.Sort();
+	possibleAdaptions.Insert(strNewDoc,0); // first in list
 
 	// fill the list box with the document name strings
 	int count;
