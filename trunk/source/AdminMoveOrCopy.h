@@ -178,3 +178,4 @@ private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
 #endif /* AdminMoveOrCopy_h */
+
