@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX"
-#define MyAppVersion "6.0.0"
+#define MyAppVersion "6.0.1"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It.exe"
 #define MyAppShortName "Adapt It"
@@ -22,21 +22,21 @@ DefaultDirName={pf}\Adapt It WX
 DefaultGroupName=Adapt It WX
 LicenseFile=C:\C++ Programming\Adapt It\adaptit\setup Regular - No Html Help\LICENSING.txt
 InfoBeforeFile=C:\C++ Programming\Adapt It\adaptit\setup Regular - No Html Help\Readme.txt
-OutputBaseFilename=Adapt_It_WX_6_0_0_Regular_No_HTML_HELP
+OutputBaseFilename=Adapt_It_WX_6_0_1_Regular_No_HTML_HELP
 SetupIconFile=C:\C++ Programming\Adapt It\adaptit\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir=C:\Users\Bill Martin\Desktop\AIWX Installers
 VersionInfoCopyright=2011 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX
-VersionInfoProductVersion=6.0.0
+VersionInfoProductVersion=6.0.1
 WizardImageFile="C:\C++ Programming\Adapt It\adaptit\res\AIWX.bmp"
 WizardSmallImageFile="C:\C++ Programming\Adapt It\adaptit\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2011 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.0.0
+VersionInfoVersion=6.0.1
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX
 UsePreviousGroup=false
