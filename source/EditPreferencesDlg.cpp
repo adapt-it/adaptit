@@ -307,6 +307,11 @@ void CEditPreferencesDlg::CreateControls()
 
 CEditPreferencesDlg::~CEditPreferencesDlg(void)
 {
+	/*
+	// whm 22Oct11 removed. The tab pages of pNotebook should be destroyed
+	// by the pNotebook itself since pNotebook->AddPage() was called in the
+	// CreateControls() function.
+	// 
 	// When a tab page was not visible it was not added to 
 	// the wxNotebook. It's memory therefore needs to be 
 	// deallocated here in the destructor.
@@ -343,6 +348,7 @@ CEditPreferencesDlg::~CEditPreferencesDlg(void)
 	{
 		delete usfmFilterPage;
 	}
+	*/
 }
 
 void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
