@@ -1,8 +1,8 @@
 ----------------------------------------------
-Version 6.0.1 release 20 October 2011
+Version 6.0.1 release 24 October 2011
 ----------------------------------------------
 ----------------------------------------------
-Bug fixes in 6.0.0
+Bug fixes in 6.0.1
 ----------------------------------------------
 * Adapt It was not preserving the \id marker when working in
     collaboration with Paratext and a chapter 1 document was
@@ -21,6 +21,11 @@ Bug fixes in 6.0.0
     check box in the mode bar, it would stay checked instead
     of automatically clearing when the phrase box moved to
     the next location. This is now fixed.
+* The Linux version in some distributions would crash after
+    making a change and clicking OK in the Preferences dialog.
+* The Linux version in some distributions would not run but
+    would issue a run-time error about a symbol not being 
+    found.
 
 ----------------------------------------------
 Version 6.0.0 release 10 October 2011

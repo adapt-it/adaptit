@@ -1,11 +1,11 @@
 IMPORTANT NOTES: (1) YOU MUST HAVE ADMINISTRATOR OR POWERUSER 
 PRIVILEGES TO INSTALL THIS SOFTWARE ON WINDOWS 7, WINDOWS 
 VISTA AND WINDOWS XP; (2) YOU SHOULD UNINSTALL ANY VERSION
-5.X.X OF ADAPT IT BEFORE INSTALLING VERSION 6.0.0.
+5.X.X OF ADAPT IT BEFORE INSTALLING VERSION 6.0.1.
 ---------------------------------------------------------------------
 Adapt It WX
 ---------------------------------------------------------------------
-Version 6.0.0
+Version 6.0.1
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -278,7 +278,7 @@ in translation/adaptation work.
 ---------------------------------------------------------------------
 Responsive and Timely Help is Available:
 ---------------------------------------------------------------------
-Bill Martin and Bruce Waters have had over 50 year of combined 
+Bill Martin and Bruce Waters have had over 50 years of combined 
 experience in translation and training of national mother-tongue 
 translators. They endeavour to respond quickly and effectively to 
 email questions and/or bug reports. Usually if a bug can be 
