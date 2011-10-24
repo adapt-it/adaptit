@@ -243,7 +243,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	{
 		SetTitle(_("Report a problem"));
 		// set the Title of the wxStaticBoxSizer surrounding the edit box
-		pStaticBoxTextDescription->SetLabel(_("Please provide a descriptioin of the problem (for body of Email)"));
+		pStaticBoxTextDescription->SetLabel(_("Please provide a description of the problem (for body of Email)"));
 		// Add template text guide to the multiline wxTextCtrl to guide the user
 		templateText1 = _("What steps will reproduce the problem?");
 		templateText1 += _T("\n1. \n2. \n3. \n");
