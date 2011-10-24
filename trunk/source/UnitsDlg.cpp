@@ -6,17 +6,17 @@
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CUnitsDlg class. 
+/// \description	This is the implementation file for the CUnitsDlg class.
 /// The CUnitsDlg class presents the user with a dialog with a choice between
 /// Inches and Centimeters, for use primarily in page setup and printing.
 /// \derivation		The CUnitsDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in UnitsDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -59,16 +59,16 @@ CUnitsDlg::CUnitsDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Units To Be Used For Printing"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
+	// The dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	UnitsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	
+
 	tempUseInches = FALSE; // in wx version page setup only has mm for margins, so we only use Metric for now
 	m_pRadioUseInches = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
 	m_pRadioUseCentimeters = (wxRadioButton*)FindWindowById(IDC_RADIO_CM);
@@ -78,7 +78,7 @@ CUnitsDlg::CUnitsDlg(wxWindow* parent) // dialog constructor
 
 CUnitsDlg::~CUnitsDlg() // destructor
 {
-	
+
 }
 
 void CUnitsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -101,8 +101,8 @@ void CUnitsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	}
 }
 
-void CUnitsDlg::OnRadioUseInches(wxCommandEvent& WXUNUSED(event)) 
-{	
+void CUnitsDlg::OnRadioUseInches(wxCommandEvent& WXUNUSED(event))
+{
 #ifdef __WXMSW__
 	wxString msg;
 	msg = _("Sorry, only metric units (Centimeters) can be set on the Windows platform at this time.");
@@ -117,7 +117,7 @@ void CUnitsDlg::OnRadioUseInches(wxCommandEvent& WXUNUSED(event))
 #endif
 }
 
-void CUnitsDlg::OnRadioUseCentimeters(wxCommandEvent& WXUNUSED(event)) 
+void CUnitsDlg::OnRadioUseCentimeters(wxCommandEvent& WXUNUSED(event))
 {
 	m_pRadioUseInches->SetValue(FALSE);
 	m_pRadioUseCentimeters->SetValue(TRUE);
@@ -129,14 +129,14 @@ void CUnitsDlg::OnRadioUseCentimeters(wxCommandEvent& WXUNUSED(event))
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-void CUnitsDlg::OnOK(wxCommandEvent& event) 
+void CUnitsDlg::OnOK(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// Update values on the App
 	pApp->m_bIsInches = tempUseInches;
-	
+
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
