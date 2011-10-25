@@ -57,11 +57,9 @@
 WX_DEFINE_LIST(StripList);
 
 
-extern bool gbIsPrinting; // whm added because wxDC does not have ::IsPrinting() method
 extern CAdapt_ItApp* gpApp;
 
 extern wxRect	grectViewClient; // used in OnDraw() below
-extern int		gnCurPage;
 extern bool		gbRTL_Layout;
 
 /// This global is defined in Adapt_It.cpp.
@@ -114,22 +112,24 @@ CPile* CStrip::GetPileByIndex(int index)
 
 void CStrip::Draw(wxDC* pDC)
 {
-	if (gbIsPrinting)
+	if (m_pLayout->m_pApp->m_bIsPrinting)
 	{
 		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version, but remain
 		// positive in the wx version.
 		POList* pList = &m_pLayout->m_pApp->m_pagesList;
-		POList::Node* pos = pList->Item(gnCurPage-1);
+		POList::Node* pos = pList->Item(m_pLayout->m_pApp->m_nCurPage-1);
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
 	}
 #ifdef Print_failure
-	if (gbIsPrinting)
+#ifdef __WXDEBUG__
+	if (m_pLayout->m_pApp->m_bIsPrinting)
 	{
 		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d"),
 			this->m_nStrip, Left(), Top(), Width(), Height());
 	}
+#endif
 #endif
 	int i;
 	int nPileCount = m_arrPiles.GetCount();

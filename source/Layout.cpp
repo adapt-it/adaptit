@@ -138,8 +138,6 @@ extern bool gbGlossingUsesNavFont;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
-extern bool gbIsPrinting;
-
 /// This global is defined in Adapt_ItView.cpp.
 extern int gnBeginInsertionsSequNum;
 
@@ -358,7 +356,7 @@ void CLayout::Draw(wxDC* pDC)
 	// previewing, so code is added to access the current PageOffsets struct when printing
 	// is in effect, to work out the first and last strip and the number of strips to be
 	// drawn for the current printed page or previewed page
-	if (gbIsPrinting)
+	if (m_pApp->m_bIsPrinting)
 	{
 		if (m_pOffsets != NULL)
 		{
@@ -387,7 +385,7 @@ void CLayout::Draw(wxDC* pDC)
 	// called before drawing when doing print, or print preview, there won't be invalid
 	// strips in existence, and so we don't need to do this block when gbIsPrinting is
 	// TRUE
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		CStrip* aStripPtr = NULL;
 		for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
@@ -406,7 +404,7 @@ void CLayout::Draw(wxDC* pDC)
 	// cleared and removed, check for this possibility and reset the nLastStripIndex if it
 	// no longer references an element in the array
 	int newLastIndex = 0;
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		newLastIndex = m_stripArray.GetCount() - 1;
 		if (nLastStripIndex > newLastIndex)
@@ -1162,7 +1160,7 @@ void CLayout::SetPileAndStripHeight()
         // we've accounted for source and target lines; now handle possibility of a 3rd
         // line (note, if 3 lines, target is always one, so we've handled that above
         // already)
-		if ((!gbIsPrinting && gbGlossingVisible) || (gbIsPrinting && gbCheckInclGlossesText))
+		if ((!m_pApp->m_bIsPrinting && gbGlossingVisible) || (m_pApp->m_bIsPrinting && gbCheckInclGlossesText))
 		{
 			if (gbGlossingUsesNavFont)
 			{
@@ -1187,8 +1185,8 @@ void CLayout::SetPileAndStripHeight()
     // (Note: the m_nCurLeading value, for the navText area, is NOT regarded as part of 
     // the strip)
 	m_nStripHeight = m_nPileHeight;
-	//if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting) <<-- deprecated, BEW 1Oct11
-	if ((!gbIsPrinting && m_pApp->m_bFreeTranslationMode) || (gbIsPrinting && gbCheckInclFreeTransText))
+	if ((!m_pApp->m_bIsPrinting && m_pApp->m_bFreeTranslationMode) || 
+		(m_pApp->m_bIsPrinting && gbCheckInclFreeTransText))
 	{
         // add enough space for a single line of the height given by the target text's
         // height + 3 pixels to set it off a bit from the bottom of the pile
@@ -1276,7 +1274,7 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 	m_sizeClientWindow = canvasViewSize; // set the private member, CLayout::m_sizeClientWindow
 	wxSize docSize;
 	docSize.y = 0; // can't be set yet, we call this setter before strips are laid out
-	if (gbIsPrinting)
+	if (m_pApp->m_bIsPrinting)
 	{
 		// the document width will be set by the page dimensions and margins, externally
 		// to RecalcLayout(), so do nothing here except set it to zero
@@ -1630,7 +1628,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 				pApp->m_docSize.x, m_logicalDocSize.x);
 	*/
 	SetFullWindowDrawFlag(TRUE);
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		m_numVisibleStrips = CalcNumVisibleStrips();
 		//wxLogDebug(_T("RecalcLayout()  SHOULDN'T SEE THIS WHEN PRINTING,  m_numVisibleStrips  %d  "),
@@ -1666,7 +1664,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	}
 	wxRect rectFrame(0,0,0,0);
 	CMainFrame *pFrame = NULL;
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		// send the app the current size & position data, for saving to config file on closure
 		pFrame = wxGetApp().GetMainFrame();
@@ -1696,7 +1694,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	m_pApp->GetMainFrame()->canvas->DoPrepareDC(viewDC); //  adjust origin
 	// BEW 9Jul09; add test to jump grectViewClient calculation when printing, it just
 	// wastes time because the values are not used when printing
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		m_pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(
 											0,0,&grectViewClient.x,&grectViewClient.y);
@@ -1918,7 +1916,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	//gbExpanding = FALSE; // has to be restored to default value
 	//gbContracting = FALSE; // restore default value (also done above)
 
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		// the height of the document can now be calculated
 		SetLogicalDocHeight();
@@ -1939,7 +1937,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// next line for debugging...
 	//theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
 
-	if (!gbIsPrinting)
+	if (!m_pApp->m_bIsPrinting)
 	{
 		// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
 		// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
@@ -1995,7 +1993,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 
 	// if free translation mode is turned on, get the current section
 	// delimited and made visible - but only when not currently printing
-	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
+	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bIsPrinting)
 	{
 		if (!gbSuppressSetup)
 		{

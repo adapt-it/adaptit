@@ -807,13 +807,6 @@ bool	gbHaltedAtBoundary = FALSE;
 /// This global is defined in Adapt_It.cpp.
 extern wxPoint gptLastClick;
 
-// globals relevant to the printing process
-bool	gbPrintingSelection = FALSE;
-bool	gbIsPrinting = FALSE; // TRUE when OnPreparePrinting is called, cleared only in
-							  // the AIPrintout destructor.
-bool	gbPrintingRange = FALSE; // TRUE when the user wants to print a chapter/verse range
-int		gnCurPage = 0; // to make number of current page being printed accessible to CStrip's Draw()
-
 /// For preserving selection across a RecalcLayout() or LayoutStrip().
 int		gnSelectionStartSequNum; 
 
@@ -1152,13 +1145,14 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // (drawing is not done outside the client area for the view)
 	// BEW 1Oct11, added a new variant for handling printing of free translations; it has
 	// to confine its drawing to the strips delineated by the PageOffset struct pointed at
-	// by the global gnCurPage - which stores indices for first and last strip to be drawn
-	// KLB 9/2011 added check for gbCheckInclFreeTransText so free translations would print on print preview
-	if (pApp->m_bFreeTranslationMode && !gbIsPrinting)
+	// by the app member m_nCurPage - which stores indices for first and last strip to be drawn
+	// KLB 9/2011 added check for gbCheckInclFreeTransText so free translations would 
+	// print on print preview
+	if (pApp->m_bFreeTranslationMode && !pApp->m_bIsPrinting)
 	{
 		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout());
 	}
-	else if (gbIsPrinting && gbCheckInclFreeTransText)
+	else if (pApp->m_bIsPrinting && gbCheckInclFreeTransText)
 	{
 		pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, GetLayout());
 	}
@@ -3322,7 +3316,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
    
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
 
-	gbIsPrinting = TRUE; // new printing support code needs it set before poDlg InitDialog() is called
+	pApp->m_bIsPrinting = TRUE; // new printing support code needs it set before poDlg InitDialog() is called
 	pApp->m_nSaveActiveSequNum = pApp->m_nActiveSequNum; // needed! So Cancel from PrintOptionsDlg
 														 // can restore document correctly
 
@@ -3377,7 +3371,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
 		pApp->DoPrintCleanup();
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
-		gbIsPrinting = FALSE;
+		pApp->m_bIsPrinting = FALSE;
 		pApp->LogUserAction(_T("Cancelled OnPrint()"));
 		return;
 	}
@@ -5070,7 +5064,7 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	strDocName = fn.GetFullName();
 	wxString strLeft;
 	wxString strLeftPlusPageNum;
-	if (gbPrintingRange)
+	if (pApp->m_bPrintingRange)
 	{
 		strLeft = strLeft.Format(_T("%s/%s  %s   %d:%d to %d:%d"),
 			srcName.c_str(),tgtName.c_str(),strDocName.c_str(),
