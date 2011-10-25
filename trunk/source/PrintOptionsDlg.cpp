@@ -67,8 +67,6 @@
 // This global is defined in Adapt_ItView.cpp.
 //extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
-extern bool gbIsPrinting;
-extern bool gbPrintingSelection;
 extern bool	gbPrintingRange;
 extern int	gnFromChapter;
 extern int	gnFromVerse;
@@ -136,7 +134,7 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	//m_pPrintout = pPrintout; // initialize pointer to the AIPrintout of the caller (OnPrint in the View)
 
 	m_bPrintingRange = FALSE;
-	gbPrintingRange = FALSE;
+	gpApp->m_bPrintingRange = FALSE;
 	m_bSuppressFooter = FALSE;
 	gbPrintFooter = TRUE;
 	
@@ -323,7 +321,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		// what should we do here, I guess it shouldn't happen, so I will just return and
 		// hope -- maybe a beep too
 		::wxBell();
-		gbIsPrinting = FALSE;
+		pApp->m_bIsPrinting = FALSE;
 		return;
 	}
 
@@ -458,7 +456,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     // The "Selection" radio button should be disabled if there was no selection existing before
     // invoking the print options dialog.
 	//if (gpApp->m_selectionLine != -1)
-	if (gbPrintingSelection) // LayoutAndPaginate() will have either set it or cleared it already
+	if (pApp->m_bPrintingSelection) // LayoutAndPaginate() will have either set it or cleared it already
 	{
 		// there is a selection so enable and set the "Selection" radio button by default
 		pRadioSelection->Enable(TRUE);
@@ -497,7 +495,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// turn off gbIsPrinting before the Print Options Dlg shows, otherwise, when OnPaint()
 	// has CLayout::Draw() called, tests for gbIsPringing TRUE will give crashes; we want
 	// the flag to be FALSE while the dialog is up
-	gbIsPrinting = FALSE;
+	pApp->m_bIsPrinting = FALSE;
 
 //	wxLogDebug(_T("InitDialog() END"));	
 }
@@ -546,7 +544,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	else
 		gnToVerse = 0; // whm added default
 	
-	gbPrintingRange = pRadioChVs->GetValue();
+	gpApp->m_bPrintingRange = pRadioChVs->GetValue();
 	gbPrintFooter = !m_bSuppressFooter; // reverse the boolean value here
 	gbSuppressPrecedingHeadingInRange = pCheckSuppressPrecSectHeading->GetValue();
 	gbIncludeFollowingHeadingInRange = pCheckIncludeFollSectHeading->GetValue();
@@ -556,7 +554,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	gbCheckInclGlossesText = pCheckInclGlossesText->GetValue();
 
 	// check about what to do with any section headings, if they precede or follow the range
-	if(!gbPrintingRange)
+	if(!gpApp->m_bPrintingRange)
 	{
 		// we only get here if no range print is wanted, in which case we set booleans back to default values
 		gbSuppressPrecedingHeadingInRange = FALSE;
@@ -583,21 +581,21 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		// what should we do here, I guess it shouldn't happen, so I will just return and
 		// hope -- maybe a beep too
 		::wxBell();
-		gbIsPrinting = FALSE;
+		pApp->m_bIsPrinting = FALSE;
 	}
 
 	// setup the layout for the new pile width, and get the PageOffsets structs list populated
 	// (LayoutAndPaginate() calls view class's PaginateDoc() & the latter does the PageOffsets
 	// structs)
 	// gbIsPrinting gets turned off, make sure it is turned on here
-	gbIsPrinting = TRUE;
+	pApp->m_bIsPrinting = TRUE;
 	bOK = pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
 	if (!bOK)
 	{
 		// what should we do here, I guess it shouldn't happen, but just in case....
 		// ring the bell
 		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
-		gbIsPrinting = FALSE;
+		pApp->m_bIsPrinting = FALSE;
 	}
 
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
@@ -677,7 +675,7 @@ void CPrintOptionsDlg::OnAllPagesBtn(wxCommandEvent& WXUNUSED(event))
 {
 	// for an explanation why the following test is here, see the 21Jul09 comment in the
 	// header comment for the OnRadioChapterVerseRange() function
-	if (gbPrintingSelection)
+	if (gpApp->m_bPrintingSelection)
 	{
 		// not allowed to change the "printing selection" choice at this stage
 		pRadioAll->SetValue(FALSE);
@@ -721,7 +719,7 @@ void CPrintOptionsDlg::OnSelectBtn(wxCommandEvent& WXUNUSED(event))
 	// header comment for the OnRadioChapterVerseRange() function
 	// (Actually, this test is not needed because if there was no selection, this button
 	// will be disabled prior to the dialog being shown)
-	if (!gbPrintingSelection)
+	if (!gpApp->m_bPrintingSelection)
 	{
 		// it's now too late to change to a "printing selection" choice at this stage,
 		// because there is no way for the user to set up a selection from within the
@@ -755,7 +753,7 @@ void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event))
 {
 	// for an explanation why the following test is here, see the 21Jul09 comment in the
 	// header comment for the OnRadioChapterVerseRange() function
-	if (gbPrintingSelection)
+	if (gpApp->m_bPrintingSelection)
 	{
 		// not allowed to change the "printing selection" choice at this stage
 		pRadioPages->SetValue(FALSE);
@@ -818,7 +816,7 @@ void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event))
 {
-	if (gbPrintingSelection)
+	if (gpApp->m_bPrintingSelection)
 	{
 		// not allowed to change the "printing selection" choice at this stage
 		pRadioChVs->SetValue(FALSE);

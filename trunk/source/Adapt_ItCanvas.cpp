@@ -126,8 +126,6 @@ extern wxRect grectViewClient;
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
 
-extern bool gbIsPrinting;
-
 /// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Receive;
 

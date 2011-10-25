@@ -138,7 +138,6 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
 
-extern bool gbIsPrinting; // whm added because wxDC does not have ::IsPrinting() method
 extern bool gbCheckInclGlossesText; // klb 9/9/2011 added because we now need to know when 
 										  //      to draw glosses for printing, based on checkboxes in PrintOptionsDlg.cpp
 
@@ -1093,16 +1092,16 @@ void CPile::Draw(wxDC* pDC)
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 	}
 	*/
-	if (!gbIsPrinting ||
-		(gbIsPrinting && !gbIsGlossing))
+	if (!m_pLayout->m_pApp->m_bIsPrinting ||
+		(m_pLayout->m_pApp->m_bIsPrinting && !gbIsGlossing))
 	{
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 	}
 
 	// klb 9/2011 - We need to draw the Gloss to screen if "See Glosses" is checked (gbGlossingVisible=true) OR 
 	// to printer if "Include Glosses text" (gbCheckInclGlossesText) is checked in PrintOptionsDialog - 9/9/2011
-	if ((gbGlossingVisible && !gbIsPrinting) || 
-		(gbIsPrinting && gbCheckInclGlossesText))
+	if ((gbGlossingVisible && !m_pLayout->m_pApp->m_bIsPrinting) || 
+		(m_pLayout->m_pApp->m_bIsPrinting && gbCheckInclGlossesText))
 	{
 		// when gbGlossingVisible=TRUE, that means the menu item "See Glosses" has been ticked; but we may
 		// or may not still be in adapting mode, but a further test is not required
@@ -1120,7 +1119,7 @@ void CPile::Draw(wxDC* pDC)
 	}
 
 	// draw the phrase box if it belongs to this pile
-	if (gbIsPrinting)
+	if (m_pLayout->m_pApp->m_bIsPrinting)
 	{
 		PrintPhraseBox(pDC); // internally checks if this is active location
 	}

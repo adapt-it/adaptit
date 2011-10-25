@@ -92,8 +92,6 @@ extern bool gbGlossingUsesNavFont;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
-extern bool gbIsPrinting;
-
 /// This global is defined in Adapt_ItView.cpp.
 extern int gnBeginInsertionsSequNum;
 
@@ -585,7 +583,7 @@ void CCell::Draw(wxDC* pDC)
 
     // BEW added 11Oct05 to have the top cell of the pile background coloured if the click
     // was on a green wedge or note icon
-	if (!gbShowTargetOnly && m_nCell == 0 && !gbIsPrinting && 
+	if (!gbShowTargetOnly && m_nCell == 0 && !m_pLayout->m_pApp->m_bIsPrinting &&
 		(m_pOwningPile == gpGreenWedgePile || m_pOwningPile == gpNotePile))
 	{
 		// hilight the top cell under the clicked green wedge or note, with light yellow
@@ -601,7 +599,7 @@ void CCell::Draw(wxDC* pDC)
     // there is no target (or gloss) text that can be coloured, so that there will always
     // be visual feedback about what is free translated, and what is about to be, and what
     // is not.
-	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsPrinting 
+	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting 
 		&& ((!gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_targetStr.IsEmpty()) || 
 		(gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_gloss.IsEmpty())))
 	{
@@ -624,7 +622,7 @@ void CCell::Draw(wxDC* pDC)
 	}
 	if (m_nCell == 1)// active adapting or glossing line
 	{
-		if (m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
+		if (m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting)
 		{
             // we use pastel pink and green for the current section, and other defined
             // sections, respectively, and white (default) otherwise - ie. no free
@@ -679,14 +677,14 @@ void CCell::Draw(wxDC* pDC)
 		m_pOwningPile->m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
 	{
 #ifdef Gilaki_Wide_Margin_Bug
-		if (gbIsPrinting && m_nCell == 0 && m_pOwningPile->m_pOwningStrip->m_nStrip <= 3)
+		if (m_pLayout->m_pApp->m_bIsPrinting && m_nCell == 0 && m_pOwningPile->m_pOwningStrip->m_nStrip <= 3)
 		{
             // check where the left and right boundaries are for the piles in first 4
             // strips			
 			wxLogDebug(_T("CCell::Draw(), Strip[ %d ], Pile[ %d ] (in strip), Left %d Right %d"),
 				m_pOwningPile->m_pOwningStrip->m_nStrip, m_pOwningPile->m_nPile, Left(), Left() + Width());
 		}
-#endif		//m_pText->Draw(pDC);
+#endif
 		DrawCell(pDC, color);
 	}
 	else
@@ -895,7 +893,7 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	// value for RTL layout.
 	// whm modified 7Sep09 The code below to account for differences that need to be taken
 	// into account when printing or print previewing
-	if (gbIsPrinting)
+	if (m_pLayout->m_pApp->m_bIsPrinting)
 	{
 		// wxGTK and wxMac need to start drawing text at the point urPt less the width/extent
 		// of the text to be drawn

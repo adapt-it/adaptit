@@ -190,12 +190,9 @@
 #endif // wxUSE_WXHTML_HELP
 
 // BEW added to on 18Jul09, the final set of booleans for support of printing
-extern bool gbPrintingSelection;
-extern bool gbPrintingRange;	
 extern bool gbIsBeingPreviewed;
 extern bool gbSuppressPrecedingHeadingInRange;	
 extern bool gbIncludeFollowingHeadingInRange;	
-extern bool gbIsPrinting;	
 extern int	gnFromChapter;
 extern int	gnFromVerse;
 extern int	gnToChapter;
@@ -12510,7 +12507,12 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
+	m_bIsPrinting = FALSE;
+	m_bPrintingRange = FALSE;
+	m_bPrintingSelection = FALSE;
+	m_nCurPage = 0;
 
 	// BEW added 31Aug11 -- strings needed in the consistency check dialogs
 	m_modeWordAdapt = _("adaptation");
@@ -34758,20 +34760,20 @@ void CAdapt_ItApp::DoPrintCleanup()
         // restore the selection), then do tidy up of everything else & get a new layout
         // calculated; likewise if we were printing a chapter & verse range
 		bool bSaveListHasContent = !m_pSaveList->IsEmpty();
-		if (gbPrintingSelection  || gbPrintingRange || 
+		if (m_bPrintingSelection  || m_bPrintingRange || 
 			(gbIsBeingPreviewed && bSaveListHasContent))
 		{
 			pView->RestoreOriginalList(m_pSaveList, m_pSourcePhrases); // ignore return value,
 														// either we aborted, or all was well
             // we want any selection retained if we have been doing a print preview, but we
             // want the selection removed if we have been printing
-			if (!gbIsBeingPreviewed && gbPrintingSelection)
+			if (!gbIsBeingPreviewed && m_bPrintingSelection)
 			{
 				pView->RemoveSelection();
 			}
 
-			gbPrintingSelection = FALSE;
-			gbPrintingRange = FALSE;
+			m_bPrintingSelection = FALSE;
+			m_bPrintingRange = FALSE;
 
 			// restore defaults for the checkboxes
 			gbSuppressPrecedingHeadingInRange = FALSE;
@@ -34781,7 +34783,7 @@ void CAdapt_ItApp::DoPrintCleanup()
 		// clean up
 		//pView->RestoreIndices();
 		pView->ClearPagesList();
-		gbIsPrinting = FALSE;
+		m_bIsPrinting = FALSE;
 		// wx version: I think the All Pages button gets enabled
 
         // layout again for the screen, get an updated pointer to the active location,
@@ -34909,10 +34911,10 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		// any negative offsets in printing. We can't remove gbIsPrinting altogether because of
 		// the way that it is used in the Strip's Draw() function.
 		// 
-		// whm update: It is not sufficient to set gbIsPrinting to TRUE only here, because
+		// whm update: It is not sufficient to set m_bIsPrinting to TRUE only here, because
 		// OnEndPrinting() sets it to FALSE after each page is drawn in print preview. It is
 		// also set to TRUE in OnBeginDocument().
-		gbIsPrinting = TRUE;
+		m_bIsPrinting = TRUE;
 
         // The MFC version deletes the CPrintDialog object created in the CPrintInfo
         // constructor, and substitutes a customized print dialog. The wx version is not
@@ -34930,7 +34932,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		// clear any old view settings for an earlier print, in case they were not cleared
 		pView->ClearPagesList();
 
-		if (gbPrintingRange)
+		if (m_bPrintingRange)
 		{
             // set up the range, layout, etc. (It is SetupRangePrintOp()'s responsibility
             // to set up the new index values, since the old settings have already been
@@ -35295,7 +35297,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 	// check for a selection, if it exists, assume user wants to print it & setup
 	// accordingly; similarly, check for a range - if a range, assume any selection should
 	// be ignored
-	if (gbPrintingRange && !gbIsBeingPreviewed )
+	if (m_bPrintingRange && !gbIsBeingPreviewed )
 	{
         // set up the range, layout, etc. (It is SetupRangePrintOp()'s responsibility
         // to set up the new index values, since the old settings have already been
@@ -35328,7 +35330,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         // block
 		if (!gbIsBeingPreviewed  || (gbIsBeingPreviewed && m_pSaveList->IsEmpty()))
 		{
-			if (gbPrintingSelection && !m_pSaveList->IsEmpty())
+			if (m_bPrintingSelection && !m_pSaveList->IsEmpty())
 			{
 				// a selection has been setup for, so we retain the value of
 				// gbPrintSelection unchanged
@@ -35337,7 +35339,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 			else
 			{
 				// no selection, so assume whole document (but see comment above)
-				gbPrintingSelection = FALSE;
+				m_bPrintingSelection = FALSE;
 
 				// force the selection button to be disabled, set the page range 
 				// to defaults
@@ -35387,7 +35389,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         // is sufficient.
 
 		// Be able to recover the fact that we are printing a selection.
-		gbPrintingSelection = TRUE;
+		m_bPrintingSelection = TRUE;
 
 		CCellList::Node* pos = m_selection.GetFirst();
 		CCell* pCell = pos->GetData();

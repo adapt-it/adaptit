@@ -115,9 +115,8 @@ extern const wxChar* filterMkrEnd; // defined in the Doc, used in free translati
 //TODO: Try to find a better way of handling this than a global.
 extern	wxRect			grectViewClient;
 
-// next two only needed for making wxLogDebug calls work; when _V6PRINT is commented out
+// next only needed for making wxLogDebug calls work; when _V6PRINT is commented out
 // in the header file, these two can be also
-extern bool gbIsPrinting;
 extern bool gbCheckInclFreeTransText;
 
 // *******************************************************************

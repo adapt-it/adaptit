@@ -45,6 +45,7 @@
 /// The AIPrintout class manages the printing of Adapt It Documents from within
 /// the doc/view framework.
 /// \derivation		The AIPrintout class is derived from wxPrintout.
+class CAdapt_ItApp;
 class AIPrintout: public wxPrintout
 {
  public:
@@ -61,6 +62,7 @@ class AIPrintout: public wxPrintout
 
 private:
 	// class attributes
+	CAdapt_ItApp* m_pApp;
 
 	//DECLARE_CLASS(AIPrintout);
 	// Used inside a class declaration to declare that the class should 

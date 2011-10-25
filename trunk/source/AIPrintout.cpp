@@ -54,13 +54,9 @@
 /// This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp; // for rapid access to the app class
 
-extern int gnCurPage;
-
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
 
-extern bool gbPrintingSelection;
-extern bool gbPrintingRange;
 extern int gnFromChapter;
 extern int gnFromVerse;
 extern int gnToChapter;
@@ -68,7 +64,6 @@ extern int gnToVerse;
 extern bool gbIsBeingPreviewed;
 extern bool gbSuppressPrecedingHeadingInRange;
 extern bool gbIncludeFollowingHeadingInRange;
-extern bool gbIsPrinting;
 extern int gnPrintingLength;
 extern int gnTopGap;
 extern int gnBottomGap;
@@ -140,43 +135,31 @@ IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 {
 	// refactored 6Apr09
-	CAdapt_ItApp* pApp = &wxGetApp();
+	m_pApp = &wxGetApp();
+
 	// See code:#print_flow for the order of calling of this AIPrintout constructor.
 	
     // whm: to avoid problems with calls to the View's Draw() method we should freeze the
     // canvas here at the beginning of the print preview routine, and unfreeze it in the
     // AIPrintout destructor after printing ends. For non-preview printing it is not
     // necessary to freeze the canvas.
-	pApp->GetMainFrame()->canvas->Freeze();
+	m_pApp->GetMainFrame()->canvas->Freeze();
 
 	// in the refactored design, not all strips may be fully filled, so since printing is
 	// likely to print one or more incomplete strips, the best way to prevent that is to
 	// do a fill recalc of the layout (but leave piles untouched) before printing, so that
 	// all strips are properly filled
-	pApp->m_nSaveActiveSequNum = pApp->m_nActiveSequNum;
-/* 
-    // this call of RecalcLayout is pointless, we need to first set up the printing page's
-    // width and height, and the scaling, and then call RecalcLayout() - all of that is
-    // done in OnPreparePinting()
-	CLayout* pLayout = pApp->m_pLayout;
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-*/
-	pApp->m_docSize = pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
+	m_pApp->m_nSaveActiveSequNum = m_pApp->m_nActiveSequNum;
+	m_pApp->m_docSize = m_pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
 															// back to app's member
-	pApp->m_saveDocSize = pApp->m_docSize; // store original size (can dispense with this
+	m_pApp->m_saveDocSize = m_pApp->m_docSize; // store original size (can dispense with this
 			// here if we wish, because OnPreparePrinting() will make same call)
 	// the following, defined in the app class, is a kluge to prevent problems which would
 	// happen due to the ~AIPrintout() destructor being called twice after a Print
 	// Preview, so I'm counting times reentered, and only letting the function do any work
 	// on the first time entered
-	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
-	pApp->pAIPrintout = this;
+	m_pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
+	m_pApp->pAIPrintout = this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,7 +219,7 @@ bool AIPrintout::OnPrintPage(int page)
     wxDC *pDC = GetDC();
     if (pDC)
     {
-		gnCurPage = page; // set the global for use by CStrip's Draw() function
+		pApp->m_nCurPage = page; // set the app member for use by CStrip's Draw() function
 
 		// The code block below properly scales the text to appear the correct size within both
 		// the print preview and on the printer. 
@@ -275,7 +258,7 @@ bool AIPrintout::OnPrintPage(int page)
 		float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4));
 
 		POList* pList = &pApp->m_pagesList;
-		POList::Node* pos = pList->Item(gnCurPage-1);
+		POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
@@ -284,10 +267,12 @@ bool AIPrintout::OnPrintPage(int page)
 		pLayout->m_pOffsets = pOffsets;
 
 #ifdef Print_failure
+#ifdef __WXDEBUG__
 		int internalDC_Y;
 		internalDC_Y = pDC->DeviceToLogicalY(0);
 		wxLogDebug(_T("\n page = %d , DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
-			gnCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+			pApp->m_nCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+#endif
 #endif
 
         // Note: Printing of headers and/or footers needs to be done before we call
@@ -318,8 +303,10 @@ bool AIPrintout::OnPrintPage(int page)
 		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
 
 #ifdef Print_failure
+#ifdef __WXDEBUG__
 		wxLogDebug(_T("fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
 			fitRect.x, fitRect.y, fitRect.width, fitRect.height);
+#endif
 #endif
 /* some rects I investigated to see what they x, y, width and height values are, but we don't need them
 		wxRect paperRectPixels = this->GetPaperRectPixels();
@@ -360,8 +347,10 @@ bool AIPrintout::OnPrintPage(int page)
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
 #ifdef Print_failure
+#ifdef __WXDEBUG__
 		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
 			fitRect.x, fitRect.y );
+#endif
 #endif
 		
         // SetLogicalOrigin is only documented as a method of wxPrintout, but it is also
@@ -372,8 +361,10 @@ bool AIPrintout::OnPrintPage(int page)
 		pDC->SetLogicalOrigin(0,pOffsets->nTop); // MFC used pDC->SetWindowOrg(0,pOffsets->nTop);
 
 #ifdef Print_failure
+#ifdef __WXDEBUG__
 		wxLogDebug(_T("pDC->SetLogicalOrigin(),                                x %d  y %d "),
 			0, pOffsets->nTop);
+#endif
 #endif
 
 		pView->OnDraw(pDC);
@@ -394,7 +385,7 @@ bool AIPrintout::OnPrintPage(int page)
 void AIPrintout::OnBeginPrinting()
 {
 	// refactored 6Apr09 -- do nothing except ensure the gbIsPrinting flag is TRUE
-	gbIsPrinting = TRUE;
+	m_pApp->m_bIsPrinting = TRUE;
 
 	// set the mapping mode
 	// The highest resolution choices are wxMM_TWIPS and wxMM_LOMETRIC.
@@ -463,8 +454,8 @@ bool AIPrintout::OnBeginDocument(int startPage, int endPage)
         return false;
 
 	// this initialization of gbIsPrinting need to be done because OnEndPrinting is called after each
-	// page is rendered in print preview and gbIsPrinting is set FALSE there.
-	gbIsPrinting = TRUE;
+	// page is rendered in print preview and m_bIsPrinting is set FALSE there.
+	m_pApp->m_bIsPrinting = TRUE;
     return true;
 }
 
@@ -526,28 +517,28 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnPreparePrinting()
 {
- 	CAdapt_ItApp* pApp = &wxGetApp();
+ 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//CAdapt_ItView* pView = pApp->GetView();
 	
-	pApp->m_bIsPrintPreviewing = IsPreview(); // BEW added 5Oct11, so I can do kludges which
+	m_pApp->m_bIsPrintPreviewing = IsPreview(); // BEW added 5Oct11, so I can do kludges which
 			// differ, depending on whether we are print previewing, or printing to paper
 
 	int nPagePrintingWidthLU = 0;
 	int nPagePrintingLengthLU = 0;
-	bool bAllsWell = pApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
+	bool bAllsWell = m_pApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
 	if (!bAllsWell)
 	{
 		// document state is not changed yet
 		return;
 	}
 
-	// ensure gbIsPrinting is turned on - it gets turned off when the Print Options Dlg is
+	// ensure m_bIsPrinting is turned on - it gets turned off when the Print Options Dlg is
 	// shown so that RecalcLayout() calls will draw the view correctly (the user may move
 	// the dialog relative to the visible part of the document in the view window), so we
 	// must ensure it is back on when OnPreparePrinting()is next called, because the
 	// LayoutAndPaginate() call below will need to redo the layout to the strip width as
 	// required for the physical page, rather than the view
-	gbIsPrinting = TRUE;
+	m_pApp->m_bIsPrinting = TRUE;
 
 	// use the page printing dimensions to paginate, calling RecalcLayout(), and if there
 	// is a selection, to make the selection temporarily become the whole document, and
@@ -558,7 +549,7 @@ void AIPrintout::OnPreparePrinting()
 	// printout, so that the number of printed pages is always the same number as shown in
 	// the print preview. These structs are then used by OnPrintPage() for printing or
 	// previewing. 
-	bAllsWell = pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
+	bAllsWell = m_pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
 	if (!bAllsWell)
 	{
 		// just return, ~AIPrintout() will restore the document's original state
@@ -566,11 +557,11 @@ void AIPrintout::OnPreparePrinting()
 	}
 
 	// get a pointer to the wxPrintDialogData object (from printing sample)
-	wxPrintDialogData printDialogData(*pApp->pPrintData);
+	wxPrintDialogData printDialogData(*m_pApp->pPrintData);
 
 	// pagination succeeded, so set the initial values for pInfo
 	int nTotalPages;
-	nTotalPages = pApp->m_pagesList.GetCount();
+	nTotalPages = m_pApp->m_pagesList.GetCount();
 	printDialogData.SetMaxPage(nTotalPages);
 	printDialogData.SetMinPage(1);
 	printDialogData.SetFromPage(1);
