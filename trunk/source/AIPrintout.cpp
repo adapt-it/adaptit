@@ -259,6 +259,22 @@ bool AIPrintout::OnPrintPage(int page)
 
 		POList* pList = &pApp->m_pagesList;
 		POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
+		// whm 27Oct11 added test to return FALSE if pos == NULL
+		// This test is needed to prevent crash on Linux because the Draw()
+		// function can get triggered by the Linux system on that platform 
+		// before App's m_nCurPage is calculated by OnPreparePrinting()'s 
+		// call of PaginateDoc() in the printing framework (see notes on 
+		// calling order of print routines starting at line 108 of 
+		// AIPrintout.cpp).
+		if (pos == NULL)
+		{
+			// Most likely this would be the result of a programming error
+			wxString msg = _T("The value of the App's m_nCurPage is %d in OnPrintPage()");
+			msg = msg.Format(msg,pApp->m_nCurPage);
+			wxASSERT_MSG(FALSE,msg);
+			return FALSE; // note: this ends the printing job
+		}
+		
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
