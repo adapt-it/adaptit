@@ -118,6 +118,15 @@ void CStrip::Draw(wxDC* pDC)
 		// positive in the wx version.
 		POList* pList = &m_pLayout->m_pApp->m_pagesList;
 		POList::Node* pos = pList->Item(m_pLayout->m_pApp->m_nCurPage-1);
+		// whm 27Oct11 added test to return if pos == NULL
+		// This test is needed to prevent crash on Linux because the Draw()
+		// function can get triggered by the Linux system on that platform 
+		// before App's m_nCurPage is calculated by OnPreparePrinting()'s 
+		// call of PaginateDoc() in the printing framework (see notes on 
+		// calling order of print routines starting at line 108 of 
+		// AIPrintout.cpp).
+		if (pos == NULL)
+			return;
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
