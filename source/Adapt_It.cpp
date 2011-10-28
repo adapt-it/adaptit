@@ -12512,7 +12512,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bIsPrinting = FALSE;
 	m_bPrintingRange = FALSE;
 	m_bPrintingSelection = FALSE;
-	m_nCurPage = 0;
+	m_nCurPage = 1; // a benign default, since we use this only by subtracting 1 in an
+					// list.Item() call, and if it was 0 we'd be looking for a -1 index
+	m_bPagePrintInProgress = FALSE; // default value, it's true only while OnPrintPage()
+					// is being executed
 
 	// BEW added 31Aug11 -- strings needed in the consistency check dialogs
 	m_modeWordAdapt = _("adaptation");
@@ -35442,7 +35445,9 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         // is done in the AIPrintout destructor.
 		return FALSE;
 	}
-	//int nPageCount = m_pagesList.GetCount(); // for debugging purposes only
+	int nPageCount; // for debugging purposes only, but leave it enabled
+	nPageCount = m_pagesList.GetCount();
+
 	return TRUE;
 }
 

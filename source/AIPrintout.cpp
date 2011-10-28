@@ -219,6 +219,8 @@ bool AIPrintout::OnPrintPage(int page)
     wxDC *pDC = GetDC();
     if (pDC)
     {
+		pApp->m_bPagePrintInProgress = TRUE; // BEW 28Oct11 added
+
 		pApp->m_nCurPage = page; // set the app member for use by CStrip's Draw() function
 
 		// The code block below properly scales the text to appear the correct size within both
@@ -266,6 +268,7 @@ bool AIPrintout::OnPrintPage(int page)
 		// call of PaginateDoc() in the printing framework (see notes on 
 		// calling order of print routines starting at line 108 of 
 		// AIPrintout.cpp).
+		/* BEW 28Oct11, temporarily? commented out, in favour of using bool m_bPagePrintInProgress
 		if (pos == NULL)
 		{
 			// Most likely this would be the result of a programming error
@@ -274,7 +277,7 @@ bool AIPrintout::OnPrintPage(int page)
 			wxASSERT_MSG(FALSE,msg);
 			return FALSE; // note: this ends the printing job
 		}
-		
+		*/
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
@@ -385,6 +388,7 @@ bool AIPrintout::OnPrintPage(int page)
 
 		pView->OnDraw(pDC);
         
+		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 		return TRUE;
     }
     else
