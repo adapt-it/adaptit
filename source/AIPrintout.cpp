@@ -276,6 +276,7 @@ bool AIPrintout::OnPrintPage(int page)
 		if (pos == NULL)
 		{
 			// Most likely this would be the result of a programming error
+			pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 			wxString msg = _T("The value of the App's m_nCurPage is %d in OnPrintPage()");
 			msg = msg.Format(msg,pApp->m_nCurPage);
 			wxASSERT_MSG(FALSE,msg);
