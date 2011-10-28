@@ -112,11 +112,10 @@ CPile* CStrip::GetPileByIndex(int index)
 
 void CStrip::Draw(wxDC* pDC)
 {
-	//if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	if (m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
-		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version, but remain
-		// positive in the wx version.
+		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version,
+		// but remain positive in the wx version.
 		POList* pList = &m_pLayout->m_pApp->m_pagesList;
 		POList::Node* pos = pList->Item(m_pLayout->m_pApp->m_nCurPage-1);
 		// whm 27Oct11 added test to return if pos == NULL
@@ -126,8 +125,11 @@ void CStrip::Draw(wxDC* pDC)
 		// call of PaginateDoc() in the printing framework (see notes on 
 		// calling order of print routines starting at line 108 of 
 		// AIPrintout.cpp).
-		//if (pos == NULL)
-		//	return;
+		// BEW 28Oct11, using m_bPagePrintInProgress in the above test, rather
+		// than the earlier m_bIsPrinting should make the next two lines be
+		// no longer needed, but they can remain for safety's sake
+		if (pos == NULL)
+			return;
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
