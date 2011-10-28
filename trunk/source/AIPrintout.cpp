@@ -208,6 +208,9 @@ AIPrintout::~AIPrintout()
 /// OnPrintPage() is called after OnBeginDocument() and once for each time HasPage() 
 /// returns true for a given document. The application can use wxPrintout::GetDC to obtain 
 /// a device context to validate and draw on.
+/// BEW 28Oct11, added turning on and off the app member variable, m_bPagePrintInProgress, which
+/// when TRUE, diverts a CStrip::Draw() to draw a page of the list of printed pages, rather than
+/// to print strips of the view's canvas window.
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool AIPrintout::OnPrintPage(int page)
 {
@@ -268,7 +271,8 @@ bool AIPrintout::OnPrintPage(int page)
 		// call of PaginateDoc() in the printing framework (see notes on 
 		// calling order of print routines starting at line 108 of 
 		// AIPrintout.cpp).
-		/* BEW 28Oct11, temporarily? commented out, in favour of using bool m_bPagePrintInProgress
+		// BEW 28Oct11, the addition of m_bPagePrintInProgress should make the protection
+		// of the next 8 line block unneeded, but we retain it as a safety-first measure
 		if (pos == NULL)
 		{
 			// Most likely this would be the result of a programming error
@@ -277,7 +281,7 @@ bool AIPrintout::OnPrintPage(int page)
 			wxASSERT_MSG(FALSE,msg);
 			return FALSE; // note: this ends the printing job
 		}
-		*/
+		
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
