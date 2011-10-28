@@ -112,7 +112,8 @@ CPile* CStrip::GetPileByIndex(int index)
 
 void CStrip::Draw(wxDC* pDC)
 {
-	if (m_pLayout->m_pApp->m_bIsPrinting)
+	//if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
+	if (m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
 		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version, but remain
 		// positive in the wx version.
@@ -125,15 +126,15 @@ void CStrip::Draw(wxDC* pDC)
 		// call of PaginateDoc() in the printing framework (see notes on 
 		// calling order of print routines starting at line 108 of 
 		// AIPrintout.cpp).
-		if (pos == NULL)
-			return;
+		//if (pos == NULL)
+		//	return;
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
 	}
-#ifdef Print_failure
+#ifdef Print_failure // declaration commented out in line 22 of Layout.h
 #ifdef __WXDEBUG__
-	if (m_pLayout->m_pApp->m_bIsPrinting)
+	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
 		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d"),
 			this->m_nStrip, Left(), Top(), Width(), Height());

@@ -77,7 +77,7 @@ CCCTabbedDialog::CCCTabbedDialog(wxWindow* parent) // dialog constructor
 	// wx Note: Since InsertPage also calls SetSelection (which in turn activates our OnTabSelChange
 	// handler, we need to initialize some variables before CCTabbedNotebookFunc is called below.
 	// Specifically m_nCurPage and pKB needs to be initialized - so no harm in putting all vars
-	// here before the dialog contorls are created via KBEditorDlgFunc.
+	// here before the dialog controls are created via KBEditorDlgFunc.
 	m_nCurPage = 0; // default to first page (1 Word)
 	m_nPrevSelection = -1;
 #ifdef __WXGTK__

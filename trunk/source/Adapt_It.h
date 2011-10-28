@@ -3000,6 +3000,12 @@ public:
 	bool	m_bPrintingSelection;
 	int		m_nCurPage; // to make current page being printed accessible to CStrip;s Draw()
 
+	// BEW 28Oct11, added (maybe temporarily) for allowing view drawing to proceed when 
+	// required during display of print-related dialogs, such as the Print dialog
+	bool	m_bPagePrintInProgress; // initialized to FALSE in OnInit(), set TRUE at
+							// the start of OnPrintPage(), cleared back to fALSE at
+							// the end of OnPrintPage(); CStrip::Draw() needs to use it
+
 	AIPrintout* pAIPrintout; // set instance on heap when printing
 
 	// BEW added 5Oct11, because I want to do two kludges to improve print preview
