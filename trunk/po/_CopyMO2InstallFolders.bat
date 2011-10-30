@@ -397,7 +397,7 @@ copy wxstd-zh.mo "..\bin\win32\Unicode Release\Languages\zh\wxstd.mo"
 copy az.mo "..\bin\win32\Unicode Release\Languages\az\Adapt_It_Unicode.mo"
 copy az.po "..\bin\win32\Unicode Release\Languages\az\az.po"
 copy swh.mo "..\bin\win32\Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
-copy swh.po "..\bin\win32\Unicode Release\Languages\swh\az.po"
+copy swh.po "..\bin\win32\Unicode Release\Languages\swh\swh.po"
 copy default.mo "..\bin\win32\Unicode Release\Languages\default.mo"
 copy default.po "..\bin\win32\Unicode Release\Languages\default.po"
 
