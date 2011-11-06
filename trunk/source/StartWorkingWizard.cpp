@@ -191,6 +191,10 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 			// taller pages such as the pPunctCorrespPageWiz a scrolling pane.
 			wxSize maxSz;
 			maxSz.SetHeight(displaySize.GetHeight() - 50);
+			// whm added 5Nov11 to make sure that the width is not zero in the case where
+			// this code block senses that there is not enough vertical height in the
+			// screen's displaySize.
+			maxSz.SetWidth(displaySize.GetWidth() - 50);
 			this->SetMaxSize(maxSz);
 		}
 	}
