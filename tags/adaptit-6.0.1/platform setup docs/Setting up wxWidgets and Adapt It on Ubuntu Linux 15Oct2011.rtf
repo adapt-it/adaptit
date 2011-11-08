@@ -1,0 +1,238 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033\deflangfe1033{\fonttbl{\f0\froman\fprq2\fcharset0 Times New Roman;}{\f1\fswiss\fprq2\fcharset0 Arial;}{\f2\fmodern\fprq1\fcharset0 Courier New;}}
+{\colortbl ;\red0\green0\blue255;}
+{\stylesheet{ Normal;}{\s1 heading 1;}{\s2 heading 2;}{\s3 heading 3;}}
+{\*\generator Msftedit 5.41.15.1515;}\viewkind4\uc1\pard\keepn\hyphpar0\s1\fi-432\li432\sb240\sa60\qc\tx432\f0\fs24\tab\kerning1\b\f1\fs32 Setting up wxWidgets and Adapt It on Ubuntu Linux\par
+\tab\fs24 by Bill Martin (Updated 15 October 2011)\par
+\pard\hyphpar0\sa120\kerning0\b0\f0\par
+Note: These instructions assume you are running a recent version of Ubuntu Linux. Setup for other Linux distributions, such as Debian Lenny, may differ in details, but should be similar. At the time of writing, the latest distribution of Ubuntu is 11.10 Oneiric. The instructions also assume you have Internet access.\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa120\tx576\tab\b\i\f1\fs28 Repository Organization\par
+\pard\nowidctlpar\hyphpar0\b0\i0\f0\fs24 The Adapt It project repository is organized to keep the build environments separate for building on individual platforms. Since Adapt It is a cross-platform project that uses the same set of sources for each platform, the single set of source files are stored in a \b source\b0  folder, and the individual platform specific setup and build products are kept in separate sub-folders of a \b bin\b0  folder. The project is organized within the following directory structure:\par
+\f2\fs20\par
+\lang255\b adaptit\lang1033\b0        \f0\fs24 [the top or trunk folder for the project]\par
+\f2\fs20    \b |__ bin\par
+   |     |\par
+   |     |__ \lang255 linux\par
+\lang1033    |     |\par
+   |     |__ mac\par
+   |     |\par
+   |     |__ win32\par
+   |\par
+   |__ source\b0     \f0\fs24 [contains all .\lang255 cpp\lang1033  and .h source files]\par
+\f2\fs20    \par
+\par
+\f0\fs24 Note: There are other folders in the repository that are part of a full checkout of the project, but they are not shown in the above directory tree for purposes of illustration.\par
+\par
+The \lang255\b\f2\fs20 adaptit/bin/linux\lang1033\b0\f0\fs24  folder is where the project builds are performed for the Linux port. All of the configuration and Makefile related files are also located there, as well as CodeBlocks IDE project file for adaptit (called \b adaptit.cbp)\b0 . \par
+\par
+\pard\hyphpar0\sa120 The default Ubuntu distribution does not come installed with all the software packages that are needed to actually develop software from sources. One way to install the additional software is by using Ubuntu's "Synaptic Package Manager" GUI application, which is available from the Ubuntu GUI from the System ->Administration menu on the menu bar at the top of the screen. Note: Whenever you start "Synaptic Package Manager" you'll need to enter your password since it requires Administrative access to install new software packages in the system. If you prefer to work from the command line, you can use \b apt-get \b0 to install the needed software (you would need to install the software as a root user using sudo). These tools will download and install the desired packages along with any dependencies that those packages require. We will focus on the installation of needed software using the \b Synaptic Package Manager\b0 . We will utilize the \b command-line\b0 , however, for the actual building of the wxWidgets library, the initial checkout of the adaptit project from GoogleCode, and initial build of the adaptit project.\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Installing CodeBlocks (optional)\f0\par
+\pard\hyphpar0\sa120\b0\i0\fs24 CodeBlocks is an open source IDE that is available on Windows, Linux and the Mac. It is free and is itself written using the wxWidgets library \endash  the same GUI cross-platform library that Adapt It is created from. CodeBlocks is not as polished as Visual Studio, but it is getting better all the time. It is not necessary for building Adapt It, but is one way to develop Adapt It within a free IDE. Here are the steps for installing CodeBlocks:\par
+\b 1.\b0  Run the Synaptic Package Manager, and click on the "Reload" button to insure you are working with a current view of the software repositories. Then click on the "Search" button within Synaptic Package Manager and search for "\b codeblocks\b0 ". Several items should appear. If nothing appears, you must not have gained the necessary access to the Internet (in which case you'll not be able to proceed with the following installations). The version of CodeBlocks as of this writing is 10.05 released 27 May 2010.\par
+Note: When you mark "codeblocks" in the list, a secondary dialog will pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also. As you find the above items in the list, note that one or more items may have already become automatically \ldblquote Marked for Installation\rdblquote  as a dependency of another list item \endash  if so, just verify that all items in the above list are marked for installation. \par
+\b 3.\b0  Click on the "Apply" button on the Synaptic Package Manager's tool bar. On the "Apply the following changes?" dialog that comes up, click also on the "Apply" button at the bottom right.\par
+\b 4.\b0  If you installed Ubuntu from a live DVD, it will ask you to insert the installation disk. If you installed from the live CD, it will automatically start downloading and installing from the Internet. Installation goes quicker from the DVD than from Internet download, but an Internet download may have more recently updated versions of the software, depending on the age of the DVD.\par
+The next step is to install the autotools, GTK libraries, g++ compiler, and related packages (these are the lower level programming tools and libraries that are needed to build Adapt It for Linux.\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Installing autotools, GTK libraries, g++ compiler and related packages\par
+\pard\keepn\hyphpar0\sa120\i0\f0\fs24 1.\b0  In the Synaptic Package Manager, search for "\b gnome-common\b0 ". From the list of packages that comes up mark for installation the following packages (double-click or right click the list item and choose "Mark for Installation"):\par
+\b\tab\f2\fs20 gnome-common\par
+\pard\hyphpar0\sa120\b0\f0\fs24 Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Ensure that the gnome-common selection also includes at least the following required packages: \b\f2\fs20 autoconf\b0\f0\fs24 , \b\f2\fs20 automake\b0\f0\fs24 , \b\f2\fs20 autotools-dev\b0\f0\fs24 , and \b\f2\fs20 libtool,\b0\f0\fs24  among other packages that come with \b\f2\fs20 gnome-common\b0\f0\fs24 .\par
+Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
+Go ahead and click on the "Mark" button in the secondary dialog to automatically install the additional dependencies also. \par
+\b 2.\b0  In the Synaptic Package Manager, search for "\b libgtk2.0\b0 ". Scroll down the list and mark for installation the following packages:\par
+\tab\b\f2\fs20 libgtk2.0-0-dbg\par
+\b0\f0\fs24\tab\b\f2\fs20 libgtk2.0-dev\f0\fs24  \par
+\b0 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
+\b 3.\b0  In the Synaptic Package Manager, search for "\b g++\b0 ". Scroll down the list and mark for installation the following packages:\par
+\tab\b\f2\fs20 gcc-multilib\b0\f0\fs24\tab\tab [should include \b\f2\fs20 gcc-4.5-multilib\b0\f0\fs24 ]\par
+Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
+\b 4.\b0  As of Adapt It version 6.0.x the \b\f2\fs20 uuid\b0\f0\fs24  libraries are required to build Adapt It. In the Synaptic Package Manager, search for "\b uuid-dev\b0 ". Mark for installation the following package, if it is not already marked:\par
+\b\tab\f2\fs20 uuid-dev\tab\par
+\b0\f0\fs24 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
+\b 5.\b0  In the Synaptic Package Manager, search for "\b libgnomeprintui\b0 ". Mark for installation the following package, if it is not already marked:\par
+\tab l\b\f2\fs20 ibgnomeprintui2.2-dev\par
+\b0\f0\fs24 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right. \par
+Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also\par
+\b 6.\b0  As of Adapt It version 6.0.x the curl libraries are required to build Adapt It. In the Synaptic Package Manager, search for "\b curl\b0 ". Scroll down and Mark for installation the following packages, if they are not already marked:\par
+\tab curl\b\f2\fs20\par
+\b0\f0\fs24\tab libcurl4-gnutls-dev\b\f2\fs20\par
+\b0\f0\fs24 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right. \par
+Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also. \par
+\b 7.\b0  In the Synaptic Package Manager, search for "\b wxwidgets\b0 ". Mark for installation the following packages, if not already marked:\par
+\b\f2\fs20\tab libwxbase2.8-0 (usually already marked)\par
+\tab libwxbase2.8-dbg\par
+\tab libwxbase2.8-dev\par
+\tab libwxgtk2.8-0 (usually already marked)\par
+\tab libwxgtk2.8-dbg\par
+\tab libwxgtk2.8-dev\par
+\tab wx-common\par
+\tab wx2.8-headers\par
+\tab wx2.8-i18n\par
+\b0\f0\fs24 While the Synaptic Package Manager is open, go to Settings->Repositories. This is where you can find a whole world of Linux software! The Synaptic Package Manager is a great software installation tool which has over 26,000 open source programs available from Ubuntu's official/main repositories (which are officially supported by the Ubuntu team); as well as thousands more software programs available in the "Restricted", "Universe", and "Multiverse" repositories. Click on the "Other Software" tab. Here, by clicking the "Add" button, you can add additional repositories. SIL actually has a repository for Ubuntu Linux which is available using the following APT lines:\par
+\tab\b\f2\fs20 deb http://packages.sil.org/ubuntu natty main\par
+\b0\f0\fs24 If you are running an older version of Ubuntu, just substitute \b hardy,\b0  \b intrepid\b0 , \b jaunty, karmic, \b0 or\b  maverick\b0  when adding the SIL repository. If your system cannot install \b adaptit\b0  from the \b natty main\b0  repository due to having versions of \b libwxbase\b0  and/or \b libwxgtk\b0  that are too old, you can try using the \b intrepid main\b0 , the \b hardy main, \b0 the\b  jaunty main,\b0  the \b karmic main\b0 , or the \b natty main\b0  repository instead. \par
+Now click "Reload" to get the package manager to read the new repositories. Click on the Search button again, and search for \b adaptit\b0 . You should see two packages for Adapt It: \b adaptit\b0  and \b adaptit-docs\b0 . Go ahead and install both Adapt It packages. Once installed Adapt It will appear as a menu item under \b Applications > Office\b0  in the Ubuntu interface.\par
+Now, you can close the Synaptic Package Manager. \par
+The next step is to install and build the wxWidgets library.\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Notes about the wxWidgets library:\par
+\pard\b0\i0\f0\fs24 Note: The highest version of the wxWidgets library on {\field{\*\fldinst{HYPERLINK "http://www.wxwidgets.org" }}{\fldrslt{\cf1\ul www.wxwidgets.org}}}\cf0\ulnone\f0\fs24  as of October 2011 is 2.9.2. However, version 2.9.x implements some new wxString handling and other features which will require a substantial rewrite of much of the Adapt It code. Therefore, we recommend that the development of Adapt It stick with the 2.8.x libraries for the time being. \par
+\pard\hyphpar0\sa120 The following steps refer to version \b 2.8.12\b0  of the wxWidgets library:\par
+\pard\b 1.\b0  In your browser go to \b{\field{\*\fldinst{HYPERLINK "http://www.wxwidgets.org/downloads/" }}{\fldrslt{\cf1\ul www.wxwidgets.org/downloads/}}}\cf0\ulnone\f0\fs24  \b0 for the latest releases, or go this link: \b{\field{\*\fldinst{HYPERLINK "http://sourceforge.net/projects/wxwindows/files/2.8.11/" }}{\fldrslt{\cf1\ul http://sourceforge.net/projects/wxwindows/files/2.8.12/}}}\cf0\ulnone\b0\f0\fs24\par
+\pard\hyphpar0\sa120 for a list of the various releases, and download the recommended 2.8.12 release:\par
+\b 2.\b0  Click on the "wxGTK" link for the latest release, or the "wxGTK-2.8.12.tar.gz" link at the sourceforge.net repository, and click on OK to "Open with Archive Manager." \par
+\b 3.\b0  While the Archive Manager is still open, click on the "Extract" button near the top. In the "Places" list in the left side of the dialog that pops up, click on your user directory (in my case it is "wmartin", but your own user directory), and click on the "Extract" button at bottom right. The Archive Manager (similar to Winzip in Windows) extracts the tarball placing everything in a folder called "\b wxGTK\_2.8.12\b0 " located in your \b user\b0  folder. Close the Archive Manager.\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Compile and build the wxWidgets library:\par
+\pard\hyphpar0\sa120\b0\i0\f0\fs24 Note: Recent versions of Ubuntu (i.e., Natty, Oneiric) come with a sufficiently recent version of the wxWidgets library (2.8.12). Hence, it is not strictly necessary to build our own version of the wxWidgets library following the procedure given below. It is good to know how to do this, however, in the event that a serious bug is found in the library that comes with the Ubuntu distro and we would need to build our own version of the library from a more recent release or a daily build which fixes the problem. In some cases using a particular IDE, it might be easier to set up with its build settings pointing to one\rquote s own wxWidgets library build than using the dynamic libraries that are part of the Linux distribution.\par
+\par
+We'll work at the command line to build the wxWidgets library for Linux. Although Ubuntu is a nice GUI, we'll need access to the Terminal at times, so it is helpful to put it on the "Panel" (the menu bar at the top of the screen). To do this, go to Applications -> Accessories and Right Click on the "Terminal" item. On the context menu select "Add this launcher to panel". A little icon looking like a black TV screen should appear on the panel at the right end of the items already on the left side of the panel. Now give a single click on the Terminal icon. A command line terminal session opens in all its glory. The command line prompt looks like this: \par
+\tab\f2\fs20 username@computer-name:~$\par
+\f0\fs24 The tilde \f2\fs20 ~\f0\fs24  after the colon is an abbreviation for the path to your user folder, which on my system is actually equivalent to \f2\fs20 /user/wmartin\f0\fs24 ; and the dollar sign \f2\fs20 $\f0\fs24  at the end of the prompt indicates that you are logged in as a normal user, as opposed to being logged in as root administrator, in which case the dollar sign would change to a pound \f2\fs20 # \f0\fs24 sign. \par
+Now, type: \b\f2\fs20 ls\b0\f0\fs24  at the command line [for \b l\b0 i\b s\b0 t] to show the contents of your user folder. You should see the \f2\fs20 wxGTK-2.8.12\f0\fs24  folder that was just extracted listed there.\par
+Now, let's get the wxWidgets library compiled and ready to go. We will be creating the binary library files for two versions of the library: \b Unicode Debug\b0  and \b Unicode Release\b0 . We could also build non-Unicode Debug and Release versions but we've decided to only support Unicode on the non-Windows platforms. We'll keep the different versions of the library in separate child directories off the \f2\fs20 wxGTK-2.8.12\f0\fs24  directory. All of the files produced by autotools including the configure script and Makefiles are kept in the parent \f2\fs20 wxGTK-2.8.12\f0\fs24  directory. We\rquote ll now do the following sets of commands at the command line in the Terminal.\par
+\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Build the Unicode Debug version of the wxWidgets library:\par
+\pard\hyphpar0\sa120\f0\fs24 1.\b0  Change to the wxGTK-2.8.12 folder by giving the following command:\par
+\tab\b\f2\fs20 cd\b0\f0\fs24               [typing just cd alone automatically changes to the user directory]\par
+\tab\b\f2\fs20 cd wxGTK-2.8.12\par
+\b0\f0\fs24\tab Note that the command line prompt ends with \f2\fs20 ~/wxGTK-2.8.12$\f0\fs24  which in absolute path terms is actually \f2\fs20 /user/wmartin/wxGTK-2.8.12\f0\fs24   [substituting your username for \f2\fs20 wmartin\f0\fs24 ]\par
+\b 2.\b0  Create a folder called \f2\fs20 buildgtkud\f0\fs24  for the Unicode Debug build of the library, by typing the following command:\par
+\b\tab\f2\fs20 mkdir buildgtkud\par
+\b0\f0\fs24\tab Type \f2\fs20 ls\f0\fs24  again to see that there is now a new (empty) folder called \f2\fs20 buildgtkud\f0\fs24  inside the \f2\fs20 wxGTK-2.8.12\f0\fs24  folder.\par
+\b 3.\b0  Change into the \f2\fs20 buildgtkud\f0\fs24  directory by typing:\par
+\b\tab\f2\fs20 cd buildgtkud\par
+\f0\fs24 4.\b0  The wxWidgets download uses a huge configure script to create an appropriate make files for building the library on a given machine. We'll use some options to tell configure that we want to create a \b Unicode\b0  library and that it should be also a \b debug\b0  version. Since we are calling the configure script which is located in the parent folder of where we are located we prefix the command with \b\f2\fs20 ../\b0\f0\fs24  so now type the following long command (Note that the option parameters all begin with two dashes and have a single dash in the middle):\par
+\b\f2\fs18\tab ../configure --with-gtk --enable-debug --enable-unicode\f0  --with-gnomeprint\b0\fs24\line\par
+\tab If all is well, configure will display a bunch of messages as it checks the programming environment of the computer and configures various settings. It is normal to see a number of WARNINGs, but there should not be any ERRORs in the output. Near the end of its output it will actually say it is creating the wxWidgets sample programs; and finally it should display a summary at the end (scroll back through the output to insure there were no errors).\par
+\tab If configure reported errors, check that you\rquote ve installed everything with the Synaptic Package Manager above, and that there are no typos in the \b\f2\fs20 ../configure\b0 ...\f0\fs24  command line, and repeat the \b\f2\fs20 ../config\b0 ...\f0\fs24  command line call until it completes successfully without errors.\par
+\b 5.\b0  Now, actually create the library binaries by typing the following at the command line:\par
+\b\tab\f2\fs20 make\par
+\b0\f0\fs24\tab The library build process will take a while. You\rquote ll see the verbose output from the make process dancing around on the screen. The make command runs the Makefile which invokes the g++ compiler (with many command line parameters!) on the scores of source files building them into the wxWidgets libraries.\par
+Since we are creating libraries for development we will be keeping the libraries created in local folders rather than installing the wxWidgets library into the system-wide software locations. Therefore, we will NOT install the wxWidgets libraries system-wide by typing something like  \f2\fs20 sudo make install \f0\fs24 followed by \f2\fs20 sudo ldconfig\f0\fs24 ). Instead, if working in a IDE (CodeBlocks), the IDE can be configured to supply the location of the wxWidgets libraries for debug and for release builds using:\par
+ --with-wx-config=<path>\par
+option on our calls to the configure script as part of its build process.\par
+The Unicode Debug build of the wxWidgets library is now finished. \par
+Note: The basic steps for creating each build of the wxWidgets library (and in general any software on Unix/Linux systems) are: (1) configure and (2) make [and when installing permanently, we also can call (3) sudo make install, and (4) sudo ldconfig - but we won't do steps (3) and (4) for either of our wxWidgets library builds]. Next let's build the Unicode Release library.\par
+\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Build the Unicode Release version of the wxWidgets library:\par
+\pard\hyphpar0\sa120\b0\f0\fs24 Building the Unicode Release version is very similar to the 5 steps above, but we create a different folder name for the build and leave out the \f2\fs20 --enable-debug\f0\fs24  parameter in the configure command. Here are the steps (see above for detailed explanations):\par
+\b\tab\f2\fs20 cd ..\par
+\b0\f0\fs24\tab\b\f2\fs20 cd wxGTK-2.8.12\par
+\f0\fs24\tab\f2\fs20 mkdir buildgtku\par
+\f0\fs24\tab\f2\fs20 cd buildgtku\par
+\f0\fs18\tab\f2 ../configure --with-gtk --enable-unicode --with-gnomeprint\par
+\f0\fs24\tab\f2\fs20 make\par
+\b0\f0\fs24 The Unicode Release build of the wxWidgets library is now finished. \par
+Now we can focus on getting subversion setup on Linux and the \b adaptit\b0  project sources from GoogleCode checked out, and compiling them successfully at the command line and also within the CodeBlocks IDE.\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Checking out the adaptit project from GoogleCode:\par
+\pard\hyphpar0\sa120\b0\i0\f0\fs24 Start a Terminal session and type the following at the command line:\par
+\b\tab\f2\fs20 svn --version\par
+\b0\f0\fs24 If your system reports that "the program 'svn' is not currently installed", you should be able to install it using apt-get at the command line as follows:\par
+\tab\b\f2\fs20 sudo apt-get install subversion\f0\fs24\par
+\b0 then repeat the svn --version command.\par
+If the version number of subversion on your computer is not at least 1.5.0, you can continue and check out the adaptit project, but you should eventually install a more recent version of subversion if you will be committing code changes back to the repository as a contributing developer.\par
+To make source files always have the same CRLF end-of-line characters across platforms  use gedit (or vi) to edit the config file located in the hidden \b\f2\fs20 .subversion\b0\f0\fs24  folder of your /home/<user>/ directory. Open the \b\f2\fs20 config\b0\f0\fs24  file and scroll to near the bottom. Edit the file to remove some of the # characters (un-commenting those lines) and indicate that CRLF is to be used for .c, .cpp and .h source files. Edit the following 5 lines to look like this:\par
+\b enable-auto-props = yes\par
+\'85\par
+[auto-props]\par
+*.c = svn:eol-style=CRLF\par
+*.cpp = svn:eol-style=CRLF\par
+*.h = svn:eol-style=CRLF\par
+\b0 Note especially the change at the end of the three lines where "native" is changed to CRLF. \par
+BEW added:  IMPORTANT -- make sure there is no initial space(s) on any of the lines which are to be used for configuring\par
+\par
+Now, in your home folder, make a sub-folder called \b subversion \b0 and cd into it: \par
+\b\f2\fs20\tab cd\par
+\tab mkdir subversion\par
+\tab cd subversion\par
+\b0\f0\fs24 Then, from within that \b subversion\b0  folder, you can check out the \b adaptit\b0  project from its open source repository by typing this command:\par
+\pard\hyphpar0\b\f2\fs20\tab svn checkout http://adaptit.googlecode.com/svn/trunk adaptit\par
+\par
+BEW added: If you are a member of the adaptit team, you should add to the above command the following two options:\par
+--username "<your googlecode name, eg. mine is adaptit.bruce@gmail.com>"\par
+--password "<the login member password obtained from the developers, currently d....9>"\par
+I put these two after after the checkout command, and before the path parameter, but maybe it doesn't matter where they go, but where I put them certainly works.\par
+\par
+\pard\hyphpar0\sa120\b0\f0\fs24 The entire project should now download and be placed within a folder called \b adaptit \b0 which contains at least 10 other subdirectories.\par
+Although you can checkout the entire project from GoogleCode and make changes to the code on your local machine, you will not be able to make commits back to the repository without one of us who are project administrators giving you project member ownership rights that allow you to commit changes to the source files in the repository. If you do not have commit permission you will get an error message if you attempt to do an svn commit \'85 operation that looks like the following:\par
+\b\f2\fs20 svn: Commit failed (details follow):\line svn: Server sent unexpected return value (405 Method Not Allowed) in response to MKACTIVITY request for \lquote /svn/!svn/act/\'85\rquote\par
+\b0\f0\fs24\par
+\pard To get permission to contribute to Adapt It code development, you need to get a gmail.com email account with Google, and become a member of the adaptit project. Then contact one of the developers ({\field{\*\fldinst{HYPERLINK "mailto:bill_martin@sil.org" }}{\fldrslt{\cf1\ul bill_martin@sil.org}}}\cf0\ulnone\f0\fs24  or {\field{\*\fldinst{HYPERLINK "mailto:bruce_waters@sil.org" }}{\fldrslt{\cf1\ul bruce_waters@sil.org}}}\cf0\ulnone\f0\fs24 ) and ask them to give your account commit privileges.\par
+\pard\hyphpar0\sa120 At this point we should have everything set up in the project so that we can now focus on building Adapt It either from the command line or from within the CodeBlocks IDE (whew!).\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Building Adapt It from the Command Line:\par
+\pard\hyphpar0\sa120\b0\i0\f0\fs24 At this point it is possible to build Adapt It on Linux from the command line. Here are the steps:\par
+\b 1\b0 . We'll keep the builds for UnicodeDebug and Unicode separate, by creating separate folders by each of those names in the ~/subversion/adaptit/bin/linux/ folder. So, from the \f2\fs20 ~/subversion/adaptit/bin/linux\f0\fs24  folder type the following:\par
+\tab\b\f2\fs20 mkdir UnicodeDebug\par
+\b0\f0\fs24\tab\b\f2\fs20 mkdir Unicode\par
+\f0\fs24 2.\b0  Change to the UnicodeDebug directory and invoke configure from the parent \b\f2\fs20 linux\b0\f0\fs24  directory:\par
+\tab\b\f2\fs18 cd UnicodeDebug\par
+\b0\f0\fs24 If you are building with the wxWidgets 2.8.x you can simply configure the build environment by calling: \par
+\f2\fs18\tab\b ../configure\b0\f0\fs24\par
+Note: We call configure from the parent directory so we can keep the build products separate in the current UnicodeDebug directory\par
+Optional: If you have downloaded and built local versions of a newer version of the wxWidgets library, we need to specify where configure is to find the wxWidgets libraries as follows: \par
+\f2\fs18\tab\b ../configure \endash -with-wx-config=/home/<user>/wxGTK-2.8.12/buildgtkud/wx-config\par
+\b0\f0\fs24 Note: In this case too we are calling the configure script (located the parent linux directory), from our current UnicodeDebug directory (substitute your user name for \f2\fs20 <user>\f0\fs24 )\f2\fs20 .\f0\fs24  Note that we use a special shortcut parameter \par
+\b\f2\fs18 --with-wx-config=<path_to_wxWidgets_build_directory>/wx-config\par
+\b0\f0\fs24 that tells configure which form of the wxWidgets library to use (in this case it is the build we did in the buildgtkud folder), i.e., the library we built for Unicode with Debug symbols. On my computer the configure invocation looks like this:\par
+\b\f2\fs18 ../configure \endash -with-wx-config=/home/wmartin/wxGTK-2.8.12/buildgtkud/wx-config\par
+\f0\fs24 3.\b0  While still in the UnicodeDebug folder, run make. Type the following:\par
+\tab\b\f2\fs20 make\par
+\b0\f0\fs24 This should build the \b adaptit\b0  executable program file, by compiling all of its source files using the g++ compiler, and linking it with the Unicode Debug version of the wxWidgets library.\par
+\b 4\b0 . You can build the release version in a similar way, by first changing to the \b Unicode\b0  directory (created in step 1), invoking \b\f2\fs20 ../configure\b0\f0\fs24  (with \b\f2\fs20 wx-config\b0\f0\fs24  pointing to the \b\f2\fs20 buildgtku\b0\f0\fs24  directory if you are building against a locally built wxWidgets library), followed by calling \b\f2\fs20 make\b0\f0\fs24 . Here are the detailed steps:\par
+\fs18\tab\b\f2 cd \fs20 ~/subversion/adaptit/bin/linux/Unicode\par
+\f0\tab\f2 ../configure\par
+\b0\fs18\tab\b\fs20 make\par
+\b0\f0\fs24 or\fs18\tab\f2 .\b ./configure \endash -with-wx-config=/home/<user>/wxGTK-2.8.12/buildgtku/wx-config\par
+\b0\tab\b\fs20 make\par
+\b0\f0\fs24 The above commands are illustrative of what IDEs do under the hood when they perform various builds of the project using their GUI elements. \par
+If the build completes without error, the Adapt It application will be called \b adaptit\b0  and can be run by doing the following (while you are in the \f2\fs20 ~/subversion/adaptit/bin/linux/UnicodeDebug  \f0\fs24 or the \f2\fs20 ~/subversion/adaptit/bin/linux/Unicode \f0\fs24 folder):\par
+\b\f2\fs20\tab ./adaptit\par
+\b0\f0\fs24 If you get any errors when invoking configure or make from within their respective build directories, it might help to invoke the following command:\par
+\b\f2\fs20\tab make distclean\par
+\b0\f0\fs24 and try following the "Run the autotools" and "Building Adapt It from the Command Line" sections above again:\par
+\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28  [If configure or make fails] Run the autotools\par
+\pard\hyphpar0\sa120\b0\i0\f0\fs24 The adaptit project at GoogleCode should have included at checkout, the current Linux build files necessary to build the adaptit application. If you need to reconfigure the Linux command line build tools, that can be done by running a group of tools called autotools at the command line from the \f2\fs20 subversion/adaptit/bin/linux\f0\fs24  directory, in order to get the command line build environment set up. Historically these tools were developed in order to somewhat automate the process of creating "make" files which are capable of building programs that will run correctly on any of the variety of unix-type systems. It is hard to explain everything the autotools do (but I\rquote ve briefly summarized them below).\par
+\pard\keepn\hyphpar0\sa120\b 1.\b0  Go to the linux project directory by typing the following at the command line:\par
+\b\tab\f2\fs20 cd\par
+\pard\hyphpar0\sa120\f0\fs24\tab\f2\fs20 cd subversion/adaptit/bin/linux\par
+\pard\keepn\hyphpar0\sa120\f0\fs24 2.\b0  Now, invoking the following commands in succession:\par
+\pard\hyphpar0\sa120\b\tab\f2\fs20 libtoolize --force --copy\par
+\pard\keepn\hyphpar0\sa120\f0\fs24\tab\f2\fs20 aclocal\par
+\f0\fs24\tab\f2\fs20 touch NEWS README AUTHORS ChangeLog\par
+\pard\hyphpar0\sa120\f0\fs24\tab\f2\fs20 autoconf \f0\fs24   \par
+\pard\keepn\hyphpar0\sa120\tab\f2\fs20 automake --add-missing\par
+\pard\hyphpar0\sa120\b0\f0\fs24 In case you are interested, here is a very rough summary of what the above calls do:\par
+\tab\f2\fs20 libtoolize --force --copy\f0\fs24  - The libtool package contains the GNU libtool, a set of shell scripts which automatically configure UNIX and UNIX-like architectures to generically build shared libraries.  Libtool provides a consistent, portable interface which simplifies the process of using shared libraries. libtoolize also creates the ltmain.sh symbolic link. The --force and --copy command options make libtoolize replace existing libtool files, and copy files from the libtool data directory rather than creating symlinks. These options can help to prevent build problems due to the system having different versions of the libtool utility.\par
+\tab\f2\fs20 aclocal \f0\fs24 - aclocal generates an aclocal.m4 file that contains definitions of all m4 macros required by autoconf (see below).\par
+\tab\f2\fs20 touch NEWS README AUTHORS ChangeLog\f0\fs24  - the touch command creates the files listed in the command, if they don't already exist. If they already exists the accessed or modification times are updated to all be the current date/time. This is done to make the automake command happy (see about automake below).\par
+\tab\f2\fs20 autoconf \f0\fs24 - creates a "configure" script that can be called by the user to build a program/package on any kind of unix/linux system. autoconf uses a list of features that the program needs and which are contained in a \f2\fs20 configure.in\f0\fs24  file.\par
+\tab\f2\fs20 automake --add-missing\f0\fs24   - automake automatically creates the Makefile.in file(s) from Makefile.am file(s). Makefile.am files are essentially a list of the source files (.h and .cpp) using a simple syntax (we need to change Makefile.am any time we add or remove source files from the adaptit project \endash  then run automake again from the command line. Makefile.in files are in a form that feeds \b in \b0 to the make command. The --add-missing option helps to insure that certain common files exist in certain situations, if they were not distributed with the version of automake on the current system.\par
+I have tried to be careful to use only relative paths within CodeBlocks project file (\f2\fs20 adaptit.cbp\f0\fs24 ) so that it should be able to work essentially without modification on any system that is set up following the procedures in this document. Hence, the \f2\fs20 adaptit.cbp\f0\fs24  project file is included in the svn repository and will be located within the \f2\fs20 adaptit/bin/linux\f0\fs24  folder created during a Subversion checkout operation.\par
+\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Using the CodeBlocks IDE for building Adapt It:\par
+\pard\hyphpar0\sa120\b0\f0\fs24 See the section above entitled \ldblquote Installing CodeBlocks,\rdblquote  if you have not already done so and ensure that CodeBlocks is installed. \par
+In order to use CodeBlocks, an environment variable called \b\f2\fs20 WXWIN\b0\f0\fs24  needs to be defined that points to the top level directory of the wxWidgets library installation. This location as described above would be /\b\f2\fs20 home/wmartin/wxGTK-2.8.12\b0\f0\fs24  on my Ubuntu system. To set this environment variable on your Ubuntu Linux system do the following:\par
+\pard\hyphpar0\fi-360\li720\sa120\tx720 1.\tab Using gedit, open/create a \b\f2\fs20 .pam_environment\b0\f0\fs24  file in your home directory. This is a hidden file (because of the initial dot) that gets executed each time you log in to your Ubuntu system. It probably won\rquote t exist until you create it with gedit (Note: You won\rquote t see the dot-initial hidden files from within Ubuntu\rquote s file manager unless you select View > Hidden Files). \par
+2.\tab Within the \b\f2\fs20 .pam_environment\b0\f0\fs24  file add just one line as follows:\line\line\b\f2\fs20 WXWIN=/home/<username>/wxGTK-2.8.12\line\b0\f0\fs24\line in which \b\f2\fs20 <username>\b0\f0\fs24  is the user name of your home folder (mine is \b\f2\fs20 wmartin\b0\f0\fs24 ). Do not use a path separator at the end of the path defined for \b\f2\fs20 WXWIN\b0\f0\fs24 .\par
+3.\tab Log out of your Ubuntu session, and log back in to get the \b\f2\fs20 WXWIN\b0\f0\fs24  environment recognized by the system. You can verify that it is now set in the environment by typing \line\b\f2\fs20 env | grep WXWIN\b0\f0\fs24  \line at the terminal prompt. \par
+\pard\hyphpar0\sa120 The local adaptit repository that you checked out earlier using subversion has a CodeBlocks project file for Adapt It which is called \b\f2\fs20 adaptit.cbp\b0\f0\fs24  and is located in the \b\f2\fs20 adaptit/bin/linux\b0\f0\fs24  folder of your local project repository. Run the Code::Blocks IDE from Ubuntu\rquote s Applications > Programming menu (the first run it will ask you to verify that you are using detected gcc compiler \endash  you are so click OK). Then from within CodeBlocks, choose Open from the File menu, and navigate to the \b\f2\fs20 subversion/adaptit/bin/linux\b0\f0\fs24  folder and open the \b\f2\fs20 adaptit.cbp\b0\f0\fs24  project file.\par
+To build adaptit simply click on \b Build\b0  from the \b Build\b0  menu (or Ctrl+F9). Note: The builds are Unicode even though the \ldblquote Build target\rdblquote  indicates just \ldblquote Debug\rdblquote  or \ldblquote Release.\rdblquote\par
+Note: I most often build AI and run it from the command-line on Linux, so I sometimes forget to add any new source files to the CodeBlocks project (that may have been added to adaptit/source by myself or other developers), and commit the updated \b\f2\fs20 adaptit.cbp\b0\f0\fs24  project file to the svn repository. If CodeBlocks generates a compile error about a missing function or symbol, that might be the reason. New source files can be added to the CodeBlocks adaptit project via CodeBlocks\rquote  Project > Add Files menu, and within the \ldblquote Add files to project\'85\rdblquote  dialog, navigating to the \b\f2\fs20 adaptit/source\b0\f0\fs24  folder and selecting any new source files from the list that need to be part of the project, then try the \b Build\b0  again (Ctrl+F9).\par
+\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Working with Subversion on Linux (initial checkout):\par
+\pard\hyphpar0\sa120\b0\f0\fs24 Some IDEs are supposed to be capable of working with Subversion internally, but I've not tried to get svn working internally within any IDE. I've just used Subversion from the command line when working on the Linux port. To do an initial checkout \b with commit privileges\b0  (from within ~/subversion/) of the adaptit repository:\par
+\tab\b\f2\fs16 svn checkout https://adaptit.googlecode.com/svn/trunk/ adaptit --username <username>\b0\f0  \par
+\fs24 and enter your password (your googlecode site generated password \endash  you\rquote ll only have to enter it once the first time you checkout the code). \par
+You may want to use one or more of the following Subversion commands at the command line (from within the ~/subversion/adaptit/ project):\par
+\b\tab\f2\fs20 svn update\par
+\f0\fs24\tab\f2\fs20 svn diff source/<filename>\par
+\f0\fs24\tab\f2\fs20 svn ci -m"comment about commit" [only with adaptit member commit rights]\par
+\f0\fs24\tab\f2\fs20 svn add source/<filename> [only with adaptit member commit rights]\par
+\f0\fs24\tab\f2\fs20 svn remove source/<filename> [only with adaptit member commit rights]\par
+\f0\fs24 1.\b0  \b svn\f2\fs20  checkout ...\b0\f0\fs24  I described how to do the initial checkout using Subversion in the instructions above. The command should only be done from your\f2\fs20  /home/<user>/subversion\f0\fs24  directory once. If ever you needed to delete a previous checkout of the project and re-checkout the project because of Subversion getting hopelessly confused or fouled up, you can delete the whole adaptit project tree from your local machine and checkout the project again. Usually, though you would only do this once on a given computer.\par
+\b 2.\b0  \b\f2\fs20 svn update\b0\f0\fs24 . The svn update command will go through the usual process of comparing your files with those on GoogleCode's svn server, updating any changes made by other users, merging if necessary, etc., and reporting the same single letter codes used in TortoiseSVN on Windows. \par
+\b 3. \f2\fs20 svn ci -m"comment"\b0\f0\fs24 . The svn commit command commits your changes to the repository. You should always do a svn update before you do a svn commit. The commit command also takes a little more explanation. Usually you would use the -m"comment" to add a comment explaining the nature of the commit. If you only type svn ci at the command line, it opens the GNU nano editor for you to enter the text of a comment for the commit command. After typing a comment, just press Ctrl-X to exit the editor; then y to permit it to use the temporary file it created for the svn comment, or n to abort the commit process. The output details the results of the commit. \par
+If you only want to commit changes to the repository for a single file (regardless of changes to other source files) you can optionally include a path and filename, for example:\par
+\b\tab\f2\fs20 svn ci -m"comment" ~/subversion/adaptit/source/Adapt_It.h\par
+\b0\f0\fs24 Where "comment" would tell what you've changed in Adapt_It.h.\par
+\pard\keep\hyphpar0\sa120\b 4.\b0  \b\f2\fs20 svn diff ~/subversion/adaptit/source/<filename>\b0\f0\fs24 . The diff command requires that you enter the path and name of the file you want to diff. The diff will compare the file on your local machine to the one currently in the svn repository. The results are output to the command line terminal in plain text format. You basically look for the lines preceded by - and + to see the changes (+ lines are additions, - lines are removed lines).\par
+\pard\hyphpar0\sa120\b 5.\b0  \b\f2\fs20 svn add ~/subversion/adaptit/source/<filename>\b0\f0\fs24 . The add command works like it does in TortoiseSVN on Windows. The svn add command only marks the file to be added to the repository. You have to follow up with a svn ci -m"comment" command for the file to be actually added to the repository.\par
+\b 6.\b0  \b\f2\fs20 svn remove ~/subversion/adaptit/source/<filename>\b0\f0\fs24 . The remove command likewise, works like it does in TortoiseSVN on Windows. Again, you have to follow up with a svn ci -m"comment" command for the file to be actually removed from the repository.\par
+\par
+\pard\hyphpar0\sa120\qc End of Documentation\expndtw119\par
+}
+ 
