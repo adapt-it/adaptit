@@ -155,11 +155,15 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 
 	// whm added 5Nov11. Some sanity code to ensure a minimum size wizard
 	wxSize screenSize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
-	if (screenSize.GetWidth() < 600)
-		screenSize.SetWidth(600);
-	if (screenSize.GetHeight() < 400)
-		screenSize.SetHeight(400);
-	pWizardPageSizer->SetMinSize(screenSize); // see wxSizer docs.
+	
+	if (screenSize.GetWidth() < 600 || screenSize.GetHeight() < 400)
+	{
+		if (screenSize.GetWidth() < 600)
+			screenSize.SetWidth(600);
+		if (screenSize.GetHeight() < 400)
+			screenSize.SetHeight(400);
+		pWizardPageSizer->SetMinSize(screenSize); // see wxSizer docs.
+	}
 
 	// Check if the Wizard is going to be too big. 
 	// TODO: If necessary, make the taller pages such as the pPunctCorrespPageWiz 
