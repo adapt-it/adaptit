@@ -5,16 +5,16 @@
 /// \date_created	05 January 2004
 /// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public 
+/// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
 /// \description This is the header file for the CAdapt_ItApp class and the AIModalDialog
-/// class.  
+/// class.
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
 /// Adapt It's global enums, structs and variables are declared either as members of the
 /// CAdapt_ItApp class or in this source file's global space. The AIModalDialog class
 /// provides Adapt It with a modal dialog base class which turns off Idle and UIUpdate
 /// processing while the dialog is being shown.
-/// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support 
+/// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support
 ///                 for the document/view framework.
 /// The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
@@ -65,14 +65,14 @@ class NavProtectNewDoc; // for user navigation protection feature
 // whm Note: When changing the following defines for version number, you should also change
 // the FileVersion and ProductVersion strings in the Adapt_It.rc file in bin/win32.
 // Warning: Do NOT edit the Adapt_It.rc file using the Visual Studio 2008 IDE's Resource View
-// editor directly - doing so will recreate the Adatp_It.rc file adding Windows stuff we 
+// editor directly - doing so will recreate the Adatp_It.rc file adding Windows stuff we
 // don't want in it and obliterating the wx stuff we do want in it.
-// Instead, CLOSE Visual Studio 2008 and edit the Adapt_It.rc file in a plain 
-// text editor such as Notepad. If Visual Studio 2008 is open during the editing of 
+// Instead, CLOSE Visual Studio 2008 and edit the Adapt_It.rc file in a plain
+// text editor such as Notepad. If Visual Studio 2008 is open during the editing of
 // Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
-// Adapt_It.rc file after sensing that it was changed by the external program. 
+// Adapt_It.rc file after sensing that it was changed by the external program.
 //
-// next version will be 6.0.0, temporarily use 14th August 2011 
+// next version will be 6.0.0, temporarily use 14th August 2011
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 0
 #define VERSION_BUILD_PART 1
@@ -85,7 +85,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define PROFILE_VERSION_MAJOR_PART 1
 #define PROFILE_VERSION_MINOR_PART 0
 
-#define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
+#define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt,
                       // never kept & tweaked; if #defined, piles & strips are retained &
                       // tweaked where necessary to update after user editing -- our final
                       // design requires this #define be set
@@ -95,7 +95,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 // interface).
 #define _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT 0
 
-// Use 1 to force the use of the CHtmlFileViewer for testing purposes instead of viewing the 
+// Use 1 to force the use of the CHtmlFileViewer for testing purposes instead of viewing the
 // Help for Administrators.htm file within the default browser. Set to 0 for normal execution
 // and distribution of the Application.
 //#define _USE_HTML_FILE_VIEWER
@@ -213,6 +213,14 @@ class ReadOnlyProtection;
 class Guesser;
 // forward for Admin Help
 class CHtmlFileViewer;
+
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+// forward reference that ties a Log Debug (normal) window, always on top, to the wx logging output
+// because CodeBlocks lacks any way of gathering and displaying wxLogDebug() output, so this does it
+// -- see the end of the OnInit() function for the code which creates the window and ties it to the
+// logging mechanism
+class wxLogDebug;
+#endif
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x
 // could find them but the g++ 4.x linker can't find them even though XML.h is included
@@ -465,9 +473,9 @@ const char packeddocumentfilepathname[] = "packedDocumentFilePathName";
 /// View.
 struct PageOffsets
 {
-	int nTop; // logical coord offset of first strip on page (from start of the 
+	int nTop; // logical coord offset of first strip on page (from start of the
 			  // logical/virtual document)
-	int nBottom; // logical coord offset of last strip on page (from start of the 
+	int nBottom; // logical coord offset of last strip on page (from start of the
 				 // logical/virtual document)
 	int nFirstStrip; // 0-based index of the first strip to appear on the current page
 	int nLastStrip; // 0-based index of the last strip to appear on the current page
@@ -504,7 +512,7 @@ enum ConfigFixType
 };
 
 /// An enum for selecting which configuration file type in GetConfigurationFile()
-/// whether basic configuration file, or project configuration file. 
+/// whether basic configuration file, or project configuration file.
 enum ConfigFileType
 {
     basicConfigFile = 1,
@@ -518,9 +526,9 @@ enum ConfigFileType
 // change the number of top level menus, i.e., the "Layout" menu is
 // removed for ANSI builds, and the "Administrator" menu is removed except when made
 // visible by an administrator.
-// 
+//
 // An enum for the indices for the top level menus
-// Note: item0 is the menubar itself, but that does not mean that the File menu is 
+// Note: item0 is the menubar itself, but that does not mean that the File menu is
 // at index 1; the menus in a menu bar are indexed from the first (File menu) starting
 // with index == 0
 /*
@@ -562,7 +570,7 @@ enum KBImportFileOfType
 	KBImportAllFiles
 };
 
-/// An enum for specifying the selection extension direction, 
+/// An enum for specifying the selection extension direction,
 /// either right or left.
 enum extendSelDir
 {
@@ -570,7 +578,7 @@ enum extendSelDir
 	left
 };
 
-/// An enum for specifying how the ChooseInterfaceLanguage() function 
+/// An enum for specifying how the ChooseInterfaceLanguage() function
 /// is called. Struct members include: userInitiated and firstRun.
 enum SetInterfaceLanguage
 {
@@ -586,7 +594,7 @@ enum SearchCaseType
 	caseInsensitive
 };
 
-/// An enum for specifying the search string length type, either 
+/// An enum for specifying the search string length type, either
 /// subString or exactString.
 enum SearchStrLengthType
 {
@@ -601,9 +609,9 @@ enum StartFromType
 	fromCurrentSelPosCyclingBack
 };
 
-/// A struct for specifying time settings. Struct members include: 
+/// A struct for specifying time settings. Struct members include:
 /// m_tsDoc, m_tsKB, m_tLastDocSave, and m_tLastKBSave.
-struct TIMESETTINGS 
+struct TIMESETTINGS
 {
 	wxTimeSpan	m_tsDoc;
 	wxTimeSpan	m_tsKB;
@@ -611,9 +619,9 @@ struct TIMESETTINGS
 	wxDateTime	m_tLastKBSave;
 };
 
-/// A struct for specifying paired source and target punctuation characters. 
+/// A struct for specifying paired source and target punctuation characters.
 /// Struct members include: charSrc and charTgt.
-struct PUNCTPAIR 
+struct PUNCTPAIR
 {
 	wxChar		charSrc;
 	wxChar		charTgt;
@@ -621,7 +629,7 @@ struct PUNCTPAIR
 
 /// A struct for specifying paired source and target two-punctuation characters. Struct
 /// members include: twocharSrc[2] and twocharTgt[2].
-struct TWOPUNCTPAIR 
+struct TWOPUNCTPAIR
 {
 	wxChar	twocharSrc[2];
 	wxChar	twocharTgt[2];
@@ -642,29 +650,29 @@ struct KeyPlusCount
 /// fOrientation, fWeight, fWeightConfSave, fItalic, fStyle, fUnderline, fStrikeOut,
 /// fCharset, fEncoding, fOutPrecision, fClipPrecision, fQuality, fPitchAndFamily, fFamily,
 /// and fFaceName.
-struct fontInfo 
+struct fontInfo
 {
 	wxString fLangType;	// = "SourceFont", "TargetFont", or "NavTextFont"
-						// Note: those marked *(n) are used in wxWidgets' 
+						// Note: those marked *(n) are used in wxWidgets'
 						// wxFont constructor n = order of parameters
-	int fHeight;		// = conversion of point size to lfHeight using 
+	int fHeight;		// = conversion of point size to lfHeight using
 						// PointSizeToNegHeight(); saved in conf
-	int fPointSize;		//(1) = conversion of lfHeight to point size using 
+	int fPointSize;		//(1) = conversion of lfHeight to point size using
 						// NegHeightToPointSize(); used by program
 	int fWidth;			// = lfWidth (written as 0 but not used in wxWidgets)
 	int fEscapement;	// = lfEscapement (written as 0 but not used in wxWidgets)
 	int fOrientation;	// = lfOrientation (written as 0 but not used in wxWidgets)
-	int fWeight;		//(4) = lfWeight (wxWidgets <-> MFC: wxLIGHT <-> 400, 
+	int fWeight;		//(4) = lfWeight (wxWidgets <-> MFC: wxLIGHT <-> 400,
 						// wxNORMAL <-> 500, and wxBOLD <-> 700)
 	int fWeightConfSave;// (4) = lfWeight (raw value read from/saved to conf file)
-	bool fItalic;		// = lfItalic (wxWidgets <-> MFC: wxNORMAL <-> 0, 
+	bool fItalic;		// = lfItalic (wxWidgets <-> MFC: wxNORMAL <-> 0,
 						// wxSLANT and wxITALIC <-> 1)
-	int fStyle;			//(3) = (wxNORMAL, wxSLANT, and wxITALIC in wxWidgets 
+	int fStyle;			//(3) = (wxNORMAL, wxSLANT, and wxITALIC in wxWidgets
 						// converted to/from fItalic)
 	bool fUnderline;	//(5) = lfUnderline (written as 0 for FALSE, 1 for TRUE)
-	bool fStrikeOut;	// = lfStrikeOut (written as 0 for FALSE, 1 for TRUE, 
+	bool fStrikeOut;	// = lfStrikeOut (written as 0 for FALSE, 1 for TRUE,
 						// not used in wxWidgets)
-	int fCharset;		// = lfCharSet (a compatibility value to maintain 
+	int fCharset;		// = lfCharSet (a compatibility value to maintain
                         // transferrable config files with the MFC app. This value is
                         // written to config file in as an int value consistent with MFC's
                         // fCharset as used in its LOGFONT structure. When the config file
@@ -673,14 +681,14 @@ struct fontInfo
                         // wxWidgets' context. This enum value is stored in the fEncoding
                         // struct member below, and is the actual value which is used for
                         // the font during the running of the wx app.
-	wxFontEncoding fEncoding;//(7) Not part of MS LOGFONT struct, but used in the wx app 
+	wxFontEncoding fEncoding;//(7) Not part of MS LOGFONT struct, but used in the wx app
                         // as the mapped encoding value for the font. We'll use
                         // wxFONTENCODING_DEFAULT regardless of what lfCharSet is stored in
                         // config
 	int fOutPrecision;	// = lfOutPrecision (written as 3 but not used in wxWidgets)
 	int fClipPrecision;	// = lfClipPrecision (written as 2 but not used in wxWidgets)
 	int fQuality;		// = lfQuality (written as 1 but not used in wxWidgets)
-	int fPitchAndFamily;// = conversion of family and DEFAULT_PITCH to lfPitchAndFamily 
+	int fPitchAndFamily;// = conversion of family and DEFAULT_PITCH to lfPitchAndFamily
 						// using bit mask; saved in conf
 	int fFamily;		//(2) = conversion of lfPitchAndFamily to family using bit mask
 	wxString fFaceName;	//(6) = lfFaceName (not to exceed 32 characters in Windows)
@@ -688,7 +696,7 @@ struct fontInfo
 
 // the following adapted from PoEdit source code Copyright (C) 2003-2006 Vaclav Slavik
 
-/// A struct for specifying interface language information. Struct members include: 
+/// A struct for specifying interface language information. Struct members include:
 /// fullName, code and shortName.
 struct LangInfo
 {
@@ -699,9 +707,9 @@ struct LangInfo
 
 struct CurrLocalizationInfo
 {
-	int curr_UI_Language;			// for languages known to wxWidgets this is 
+	int curr_UI_Language;			// for languages known to wxWidgets this is
 									// equivalent to a wxLanguage enum
-	wxString curr_shortName;		// the ISO 639 name of the form xx or xx_XX 
+	wxString curr_shortName;		// the ISO 639 name of the form xx or xx_XX
 									// where xx is the 2-letter language code
 	wxString curr_fullName;			// the common descriptive name for the language
 	wxString curr_localizationPath;	// the path where the above CurrLocalizationInfo
@@ -719,13 +727,13 @@ struct CurrLocalizationInfo
 WX_DECLARE_LIST(KeyPlusCount, KPlusCList); // see list definition macro in .cpp file
 
 // WX NOTE: The MFC CPtrArray collection class supports arrays of void pointers.
-// wxWidgets does not have an exact equivalent, but the docs say it predefines 
+// wxWidgets does not have an exact equivalent, but the docs say it predefines
 // the following standard array classes: wxArrayInt, wxArrayLong, and wxArrayPtrVoid.
 // We should be able to get the desired behavior with the wxArrayPtrVoid class.
 
-/// A struct for Bible Book folders support. Struct members include: dirName, 
+/// A struct for Bible Book folders support. Struct members include: dirName,
 /// seeName and bookCode.
-struct BookNamePair 
+struct BookNamePair
 {
 	wxString dirName;
 	wxString seeName;
@@ -734,9 +742,9 @@ struct BookNamePair
 
 // whm - the next five were declared static functions in MFC, but not defined that way in
 // their implementations. so I've removed "static" here, to avoid gcc warnings
-void			SetupSinglesArray(wxArrayPtrVoid* pBooks); // used in default setup, 
+void			SetupSinglesArray(wxArrayPtrVoid* pBooks); // used in default setup,
 														   // if "books.xml" absent
-void			SetupBookCodesArray(wxArrayPtrVoid* pBookCodes); // used in default 
+void			SetupBookCodesArray(wxArrayPtrVoid* pBookCodes); // used in default
 													// setup if "books.xml" is absent
 BookNamePair*	MakePair(BookNamePair*& pPair, wxChar* dirNm, wxChar* seeNm);
 void			SetupDefaultBooksArray(wxArrayPtrVoid* pBookStructs);
@@ -955,25 +963,25 @@ enum USFMAnalysisField
 // 3. The ParseAndFillStruct function in Adapt_It.cpp
 // 4. Add any necessary const char defined string literals to beginning of XML.cpp
 // 5. Change/add any necessary else if clause to the AtSFMAttr function in XML.cpp
-// 6. Change/add any necessary else if clause to the ParseXMLAttribute function in 
+// 6. Change/add any necessary else if clause to the ParseXMLAttribute function in
 //    XML.cpp (this would be appropriate for any attribute additions involving enum values)
 // 7. Change/add any necessary new USFMAnalysis struct default value for the attribute
 //    in AtSFMTag in XML.cpp
-// 8. Change/add any necessary > if(comment) dup else '' endif  line in UsfmXml.cct if 
-//    there is a default form of the attribute which should not be placed in AI_USFM.xml 
+// 8. Change/add any necessary > if(comment) dup else '' endif  line in UsfmXml.cct if
+//    there is a default form of the attribute which should not be placed in AI_USFM.xml
 //    to save space.
-// 9. The AI_USFM_full.xml attributes need to be added to the markers defined there, 
+// 9. The AI_USFM_full.xml attributes need to be added to the markers defined there,
 //    if applicable.
-// 10. Using the stand-alone Consistent Changes program with UsfmXml.cct and 
-//    UsfmXmlTidy.cct, then the resulting AI_USFM.xml file deposited/installed to the 
+// 10. Using the stand-alone Consistent Changes program with UsfmXml.cct and
+//    UsfmXmlTidy.cct, then the resulting AI_USFM.xml file deposited/installed to the
 //    Adapt It (Unicode) Work directory.
-// 11. The const wxString defaultSFM[] unix-style default strings (defined in 
-//    Adapt_It.cpp) need to be re-assembled by moving the updated AI_USFM_full.xml file 
-//    to the Adapt It (Unicode) Work directory, then uncommenting the 
+// 11. The const wxString defaultSFM[] unix-style default strings (defined in
+//    Adapt_It.cpp) need to be re-assembled by moving the updated AI_USFM_full.xml file
+//    to the Adapt It (Unicode) Work directory, then uncommenting the
 //    #define Output_Default_Style_Strings symbol near the beginning of the
-//    XML.h header file, and compiling/running the program until it reaches the 
+//    XML.h header file, and compiling/running the program until it reaches the
 //    Start Working Wizard. An AI_USFM_full.txt file is generated automatically in
-//    the Adapt It (Unicode) Work directory that contains the unix style default 
+//    the Adapt It (Unicode) Work directory that contains the unix style default
 //    strings to be copied over those located in Adapt_It.cpp.
 
 /// A struct for storing the attributes of usfm markers. Structs are created on the heap
@@ -1138,7 +1146,7 @@ WX_DECLARE_HASH_MAP(wxString,
 					wxStringEqual,
 					MapMenuLabelStrToIdInt);
 
-/// wxHashMap declaration for the MapProfileChangesToStringValues class - a mapped 
+/// wxHashMap declaration for the MapProfileChangesToStringValues class - a mapped
 /// association of profile item (compound) keys (wxString) with strings representing
 /// their values. Instantiated in m_mapProfileChangesToStringValues.
 WX_DECLARE_HASH_MAP(wxString,
@@ -1222,7 +1230,7 @@ enum ActionSelector {
 };
 
 // enums for the GetBar() function
-enum VertEditBarType 
+enum VertEditBarType
 {
 	Vert_Edit_RemovalsBar,
 	Vert_Edit_Bar,				// IDD_VERT_EDIT_BAR
@@ -1265,7 +1273,7 @@ typedef struct
     // index pairs using sequence number values, but these subspans do not have separate
     // CObLists associated with them, rather, they are defined on both the cancel span and
     // the modifications span, as those spans are coextensive.
-	
+
     // The first (and minimal length) subspan is the editable span. This is the user's
     // selection, but if the selection overlaps one or more retranslations, the span is
     // widened to include the retranslation/s in its/their entirety.
@@ -1299,7 +1307,7 @@ typedef struct
     // Cancels out of the whole vertical editing process, it is not needed for cancelling
     // from the Edit Source Text dialog because when the user presses the Cancel button
     // there, no changes have been made to the original document up to that point.)
-	
+
     // Note 4: \bt information might be found to have been stored in the editable subspan,
     // and more than one instance could be stored there; the final one of any such could
     // have a "span" (over which collection originally happened) which extends beyond the
@@ -1336,7 +1344,7 @@ typedef struct
     // programmatically once the edit is done. Notes content is not changed - if changes
     // are warranted, the user will have to do them manually after the total vertical edit
     // process ends.
-	bool	bGlossingModeOnEntry; // at entry, TRUE if glossing mode is ON, FALSE if 
+	bool	bGlossingModeOnEntry; // at entry, TRUE if glossing mode is ON, FALSE if
                 // adapting mode is ON, vertical edit is not enabled in any other mode
                 // (such as free trans mode). Default is adaptations mode is currently ON,
                 // even when it isn't; this is safe because the flag is set or cleared at
@@ -1353,22 +1361,22 @@ typedef struct
                 // span (the process looks at CSourcePhrase instances earlier and later
                 // than the editable span in order to make sure the editable span is
                 // included within an integral number of free translation sections)
-	bool	bEditSpanHasBackTranslations; // TRUE if collected backtranslations are in the 
+	bool	bEditSpanHasBackTranslations; // TRUE if collected backtranslations are in the
                 // editable span. Because each back translation is stored on only one
                 // CSourcePhrase instance which is first in the span over which its
                 // collection happened, and sets no flag in CSourcePhrase, we need only
                 // look for \bt marker content in the editable span, and in any preceding
                 // context - going back only as far as the first halt position as
                 // determined by the HaltCurrentCollection() function.
-	bool	bCollectedFromTargetText; // TRUE if back translations were collected from the 
+	bool	bCollectedFromTargetText; // TRUE if back translations were collected from the
 				// target text line, FALSE if collected from the gloss line
 
-	int		nSaveActiveSequNum; // location of the phrase box at entry 
+	int		nSaveActiveSequNum; // location of the phrase box at entry
 				// (needed only for a Cancel operation)
 	wxString	oldPhraseBoxText; // contents of the phrase box when the edit was invoked
-	TextType	nStartingTextType; // value of m_curTextType at the CSourcePhrase with 
+	TextType	nStartingTextType; // value of m_curTextType at the CSourcePhrase with
 				// sequence number nStartingSequNum
-	TextType	nEndingTextType; // value of m_curTextType at the CSourcePhrase with 
+	TextType	nEndingTextType; // value of m_curTextType at the CSourcePhrase with
                 // sequence number nEndingSequNum (It is not possible to select across a
                 // TextType boundary, and the 'none' TextType never puts a value 6 into the
                 // document, instead it propagates the context's TextType through that
@@ -1383,14 +1391,14 @@ typedef struct
                 // adaptations edit operations. This list is maintained for the life of the
                 // Adapt It session. A "Deletions List" button in a bar of the GUI will
                 // show the list data in a combobox, in adapting mode.
-	wxArrayString	deletedGlossesList; // CStringList	deletedGlossesList; // this is 
+	wxArrayString	deletedGlossesList; // CStringList	deletedGlossesList; // this is
                 //the last 100 deletions resulting from either source text editing or any
                 //adaptations edit operations - provided the CSourcePhrase instances which
                 //are involved also had glosses stored on them (not necessarily on all of
                 //them). This list is maintained for the life of the Adapt It session. A
                 //"Deletions List" button in a bar of the GUI will show the list data in a
                 //combobox, in glossing mode.
-	wxArrayString deletedFreeTranslationsList; // CStringList	deletedFreeTranslationsList; 
+	wxArrayString deletedFreeTranslationsList; // CStringList	deletedFreeTranslationsList;
                 // this isthe last 100 deletions resulting from either source text,
                 // adaptations editing, or any use of the Remove Free Translation button in
                 // the View Filtered Information dialog, or any use of the Remove button
@@ -1398,7 +1406,7 @@ typedef struct
                 // translation. This list is maintained for the life of the Adapt It
                 // session. It's members will be available in the GUI in free translation
                 // mode via a combobox, as above.
-	wxArrayString storedNotesList; // CStringList	storedNotesList; // the is the text 
+	wxArrayString storedNotesList; // CStringList	storedNotesList; // the is the text
                 // strings for any Adapt It notes within the span defined by the editable
                 // span when doing a source text edit are stored temporarily here, and at
                 // the end of the editing process they are automatically put back into the
@@ -1406,13 +1414,13 @@ typedef struct
                 // these notes is never scrambled, and if the new source text is very short
                 // or empty, they are stored in the immediate context wholely or partly as
                 // circumstances require.
-	int		nStartingSequNum;	// value of m_nSequenceNum for the start of the editable 
+	int		nStartingSequNum;	// value of m_nSequenceNum for the start of the editable
                 // span, or for adaptations editing, the start of the span of CSourcePhrase
                 // instances that were involved.
 	int		nEndingSequNum;	// value of m_nSequenceNum for the last CSourcePhrase of the
                 // editable span, or for editing of adaptations, the end of the span of
                 // CSourcePhrase instances that were involved
-	int		nFreeTrans_StartingSequNum; // sequence number for the CSourcePhrase instance 
+	int		nFreeTrans_StartingSequNum; // sequence number for the CSourcePhrase instance
                 // at the start of the span of removed free translations (it can coincide
                 // with the start of the editable span but more commonly is going to be
                 // somewhere preceding that location)
@@ -1421,13 +1429,13 @@ typedef struct
                 // with the end of the editable span but more commonly is going to be
                 // somewhere following that location) the span of removed free translations
                 // which follow (overlap) the editable span
-	int		nBackTrans_StartingSequNum; // sequence number for the CSourcePhrase instance 
+	int		nBackTrans_StartingSequNum; // sequence number for the CSourcePhrase instance
                 // from which the first (or possibly only) \bt marker and its back
                 // translation content were removed, this span (if it exists) has its start
                 // at the free translation one's start or even before that, and if no free
                 // translation span occurs then it would be at or preceding the start of
                 // the editable span
-	int		nBackTrans_EndingSequNum; // sequence number for the end of the back 
+	int		nBackTrans_EndingSequNum; // sequence number for the end of the back
                 // translation span, this span (if it exists) at the end of the editable
                 // span, or somewhere following that, depending on where the helper
                 // function, HaltCurrentCollection(), determines that collecting back
@@ -1436,15 +1444,15 @@ typedef struct
                 // in the span delineated for restoring the original document state if the
                 // user cancels after a source text edit has been accepted and he is
                 // cancelling out of subsequent dependent (vertical) edits.
-	int		nCancelSpan_EndingSequNum; // sequence number for the last CSourcePhrase in 
+	int		nCancelSpan_EndingSequNum; // sequence number for the last CSourcePhrase in
                 // the span delineated for restoring the original document state if the
                 // user cancels after a source text edit has been accepted and he is
                 // cancelling out of subsequent dependent (vertical) edits.
-	SPList cancelSpan_SrcPhraseList; // sequence of deep copied unedited CSourcePhrase 
+	SPList cancelSpan_SrcPhraseList; // sequence of deep copied unedited CSourcePhrase
                 // instances from the span for of CSourcePhrase instances which get changed
                 // in any way (not all need to be changed, the span is widened at either
                 // end to include the leftmost and rightmost modified instances.)
-	SPList	modificationsSpan_SrcPhraseList; // sequence of deep copied CSourcePhrase 
+	SPList	modificationsSpan_SrcPhraseList; // sequence of deep copied CSourcePhrase
                 // instances, coextensive with the cancel span (but containing fresh deep
                 // copies), which will be modified (by having notes, free translations and
                 // collected back translations removed) prior to showing the Edit Source
@@ -1454,10 +1462,10 @@ typedef struct
                 // m_pSourcePhrases list are modified in any way; after the click, what is
                 // in the modificationSpan list is used to make the document comply with
                 // the user's edit result.
-	SPList editableSpan_NewSrcPhraseList; // the sequence of CSourcePhrase instances 
+	SPList editableSpan_NewSrcPhraseList; // the sequence of CSourcePhrase instances
                 // resulting from the TokenizeTextString() call with the user's edited
                 // source text string as a parameter
-	SPList propagationSpan_SrcPhraseList; // stores a deep copy of the CSourcePhrase 
+	SPList propagationSpan_SrcPhraseList; // stores a deep copy of the CSourcePhrase
                 // instance which is first in the following context (deep copied before
                 // sequence numbers are changed), and any of the CSourcePhrase instances
                 // which follow it which take part in any propagation of special text and
@@ -1465,20 +1473,20 @@ typedef struct
                 // edited source text
 	int nPropagationSpan_StartingSequNum; // the index for the first CSourcePhrase instance
 				// of the following context
-	int nPropagationSpan_EndingSequNum; // the index for the last CSourcePhrase in the 
+	int nPropagationSpan_EndingSequNum; // the index for the last CSourcePhrase in the
                 // following context which was affected by the propagation process
-	wxArrayInt arrNotesSequNumbers; //CArray<int,int> arrNotesSequNumbers; // preserve old 
+	wxArrayInt arrNotesSequNumbers; //CArray<int,int> arrNotesSequNumbers; // preserve old
 				// location of each removed note in the editable subspan
-	int nOldSpanCount; // the original (after any extension) editable span's number of 
+	int nOldSpanCount; // the original (after any extension) editable span's number of
 				// CSourcePhrase instances
-	int	nNewSpanCount; // the final number of CSourcePhrase instances in the editable span 
+	int	nNewSpanCount; // the final number of CSourcePhrase instances in the editable span
                 // after the user has completed his editing of the source text (or whatever
                 // the edit did, eg. removal of a merger - but this additional stuff will
                 // only be possible within the wxWidgets versions)
-	bool bSpecialText; // stores the m_bSpecialText boolean value for the first 
+	bool bSpecialText; // stores the m_bSpecialText boolean value for the first
                 // CSourcePhrase instance in the editable span; TRUE if it was special
                 // text, FALSE if verse or poetry
-	SPList follNotesMoveSpanList; // one or more CSourcePhrase pointers from the 
+	SPList follNotesMoveSpanList; // one or more CSourcePhrase pointers from the
                 // context following the edit span, which may have had Notes moved at the
                 // Note restoration stage, only used if arrNotesSequNumbers has non-zero
                 // content (and the latter determines how many instances without notes on
@@ -1490,7 +1498,7 @@ typedef struct
                 // (and the latter determines how many instances without notes on them are
                 // stored in precNotesMoveSpanList to ensure safe restoration if the user
                 // clicks Cancel)
-	bool bTransferredFilterStuffFromCarrierSrcPhrase; // FALSE, except it is TRUE in the 
+	bool bTransferredFilterStuffFromCarrierSrcPhrase; // FALSE, except it is TRUE in the
                 // special circumstance that the user's edit resulted in a single
                 // CSourcePhrase with empty key, and m_precPunct empty and m_filteredInfo
                 // containing filtered information (this can only happen when he edited a
@@ -1520,7 +1528,7 @@ typedef struct
                 // be FALSE, and the earier state of the CSourcePhrase which was initial in
                 // the following context will be the one at the start of the propagation
                 // span.
-	bool bExtendedForFiltering; // FALSE by default. TRUE if marker edit results in the 
+	bool bExtendedForFiltering; // FALSE by default. TRUE if marker edit results in the
                 // edited marker being one which should be filtered, AND, the editable span
                 // did not include all of the marker's filterable content - so that AI had
                 // to extend the editable span by one or more words to get all that
@@ -1533,28 +1541,28 @@ typedef struct
     // adaptations level (ie. user has changed an established adaptation), free
     // translations etc will need to be removed and a cancelSpan set up, so for that, the
     // cancelSpan supporting members above will be used.
-    // The main things to note about the adaptations update step are that: 
+    // The main things to note about the adaptations update step are that:
     // (1) CSourcePhrases outside the span must not be changed (this can be done by
     // limiting the selections possible),
     // (2) the start of the span is fixed (because no source text changes are done),
     // (3) the end of the span may grow or contract (the former caused by one or more long
     // retranslations, the latter by one or more mergers, (4) extra members needed in the
     // EditRecord are few
-	bool bAdaptationStepEntered; // default FALSE, TRUE if this step is set up on the 
+	bool bAdaptationStepEntered; // default FALSE, TRUE if this step is set up on the
                 // screen, even if user then jumps to next step (TRUE is a flag which says
                 // that the step was entered, even if immediately exitted; so data members
                 // here can be expected to perhaps have content, and therefore need to be
                 // looked at by processes such as cancel or bailout)
-	SPList adaptationStep_SrcPhraseList; // the list of CSourcePhrase instances in the 
+	SPList adaptationStep_SrcPhraseList; // the list of CSourcePhrase instances in the
                 // editable span, as it is at the start of the adaptations update step
                 // before the user has had a chance to do anything
 	int	nAdaptationStep_StartingSequNum; // the (fixed) sequence number value for the first
 				// CSourcePhrase in the span
-	int	nAdaptationStep_EndingSequNum; // the (fixed) sequence number value for the last 
+	int	nAdaptationStep_EndingSequNum; // the (fixed) sequence number value for the last
 				// CSourcePhrase in the span
-	int nAdaptationStep_OldSpanCount; // how many instances are in the span when the step 
+	int nAdaptationStep_OldSpanCount; // how many instances are in the span when the step
 				// is first entered
-	int nAdaptationStep_NewSpanCount; // how many are in the span as the user does his 
+	int nAdaptationStep_NewSpanCount; // how many are in the span as the user does his
                 // updating of adaptations - mergers and / or retranslations and / or
                 // placeholder insertions can alter the span breadth.
 	int nAdaptationStep_ExtrasFromUserEdits; // the final number of extras (can be -ve)
@@ -1566,38 +1574,38 @@ typedef struct
     // adaptations level (ie. user has changed an established adaptation), free
     // translations etc will need to be removed and a cancelSpan set up, so for that, the
     // cancelSpan supporting members above will be used.
-	// The main things to note about the glosses update step are that: 
+	// The main things to note about the glosses update step are that:
     // (1) CSourcePhrases outside the span must not be changed (this can be done by
     // limiting the selections possible),
     // (2) the start of the span is fixed (because no source text changes are done),
     // (3) the end of the span is also fixed - because this mode does not permit mergers
     // etc,
 	// (4) extra members needed are equivents for those for adaptationsStep
-	bool bGlossStepEntered; // default FALSE, TRUE if this step is set up on the screen, 
+	bool bGlossStepEntered; // default FALSE, TRUE if this step is set up on the screen,
                 // even if user then jumps to next step (TRUE is a flag which says that the
                 // mode was set up, but data members here may or may not be expected to
                 // have content, and therefore need to be looked at by processes such as
                 // cancel or bailout)
-	SPList glossStep_SrcPhraseList; // the list of CSourcePhrase instances in the editable 
+	SPList glossStep_SrcPhraseList; // the list of CSourcePhrase instances in the editable
                 // span, as it is at the start of the glosses update step before the user
                 // has had a chance to do anything; so it actually preserves the state of
                 // whatever span was the last step
-	int	nGlossStep_StartingSequNum; // the (fixed) sequence number value for the first 
+	int	nGlossStep_StartingSequNum; // the (fixed) sequence number value for the first
 				// CSourcePhrase in the span
-	int	nGlossStep_EndingSequNum;   // the (fixed) sequence number value for the last 
+	int	nGlossStep_EndingSequNum;   // the (fixed) sequence number value for the last
 				// CSourcePhrase in the span
-	int nGlossStep_SpanCount; // how many instances are in the span when the step is 
+	int nGlossStep_SpanCount; // how many instances are in the span when the step is
 				// first entered (stays constant)
 
 	// next group are unique to the free translations update step
-	bool bFreeTranslationStepEntered; // TRUE once control has been in this step once, 
+	bool bFreeTranslationStepEntered; // TRUE once control has been in this step once,
 				// even if briefly
-	bool bVerseBasedSection; // default FALSE, TRUE if it looks like the section was 
+	bool bVerseBasedSection; // default FALSE, TRUE if it looks like the section was
 				// created with the radio button "Verse" turned on
-	SPList freeTranslationStep_SrcPhraseList; // we only need the initial list, because 
+	SPList freeTranslationStep_SrcPhraseList; // we only need the initial list, because
                 // the user is unable to return to this step once backTranslationsStep has
-                // been entered, and so the state of the span when freeTranslationsStep is 
-                // first entered is actually the final state of the last step - that's 
+                // been entered, and so the state of the span when freeTranslationsStep is
+                // first entered is actually the final state of the last step - that's
                 // what we are storing
 	int			nFreeTranslationStep_StartingSequNum;
 	int			nFreeTranslationStep_EndingSequNum;
@@ -1621,9 +1629,9 @@ public:
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             const long style = wxDEFAULT_DIALOG_STYLE);
-	~AIModalDialog(); // destructor calls wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL) 
+	~AIModalDialog(); // destructor calls wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL)
 					  // before calling wxDialog::~wxDialog()
-	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before 
+	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before
 					 // calling wxDialog::ShowModal()
 };
 
@@ -1636,13 +1644,13 @@ class AIToolBar : public wxToolBar
 {
 public:
 	AIToolBar();
-	AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, 
-	const wxSize& size = wxDefaultSize, long style = wxTB_HORIZONTAL | wxNO_BORDER, 
+	AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition,
+	const wxSize& size = wxDefaultSize, long style = wxTB_HORIZONTAL | wxNO_BORDER,
 	const wxString& name = wxPanelNameStr);
 	virtual ~AIToolBar();
 	wxToolBarToolsList GetToolBarToolsList();
 private:
-	DECLARE_DYNAMIC_CLASS(AIToolBar) 
+	DECLARE_DYNAMIC_CLASS(AIToolBar)
 };
 // enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1679,9 +1687,9 @@ class CAdapt_ItApp : public wxApp
     /// participate in doc-view matters. We force our application to be of the "Single
     /// Document Interface (SDI)" type by calling the doc manager's SetMaxDocsOpen(1)
     /// method.
-    wxDocManager* m_pDocManager; // for managing the doc/view // made doc manager public 
+    wxDocManager* m_pDocManager; // for managing the doc/view // made doc manager public
 								 // so wxGetApp() can access it in the View
-	
+
     /// The application's m_pConfig member is used to store and retrieve certain settings
     /// and/or information that needs to persist between application sessions. Since it is
     /// cross-platform it is clever enough to use the Registry on Windows, but uses hidden
@@ -1690,7 +1698,7 @@ class CAdapt_ItApp : public wxApp
     /// the MFC version we only use it to store the following things: (1) the user
     /// interface language of choice, (2) the recent files used list (file history), and
 	/// (3) the Html Help Controller window's size, position, fonts, etc. (4) Paratext
-	/// collaboration parameters, and when implemented, also Bibledit collaboration 
+	/// collaboration parameters, and when implemented, also Bibledit collaboration
 	/// parameters.
 	wxFileConfig* m_pConfig;
 
@@ -1740,10 +1748,10 @@ class CAdapt_ItApp : public wxApp
 	ReadOnlyProtection* m_pROP;
 
 private:
-    
+
 	// whm: This enum is made private because its enumerations should not
-	// be accessed directly, but through the public 
-	// GetTopLevelMenuName(TopLevelMenu topLevelMenu) function which 
+	// be accessed directly, but through the public
+	// GetTopLevelMenuName(TopLevelMenu topLevelMenu) function which
 	// queries the defaultTopLevelMenuNames[] array of default menu names.
 	enum TopLevelMenu
 	{
@@ -1800,7 +1808,7 @@ public:
     /// "Unicode " to compose the name of the Unicode version's work folder "Adapt It
     /// Unicode Work".
 	wxString m_strNR;
-	
+
     /// The title of the application which is written in the title bar of Adapt It's main
     /// frame, and also serves as the doc template name.
 	wxString m_FrameAndDocProgramTitle; // title for main frame and doc template name
@@ -1809,7 +1817,7 @@ public:
     // Variable declarations below were moved here from the Doc's public area because the
     // wxWidgets doc/view framework deletes the Doc and recreates it afresh (calling the
     // Doc's constructor)
-	
+
     /// The m_saveList member is a SPList which serves as a place to save m_pSourcePhrases
     /// when printing a selection or a ch/verse range. It is used in the View's
     /// SetupRangePrintOp() and in AIPrintout's OnPreparePrinting() and in its destructor.
@@ -1819,7 +1827,7 @@ public:
     /// when printing a selection or a ch/verse range. It is used in the View's
     /// SetupRangePrintOp() and in AIPrintout's OnPreparePrinting() and in its destructor.
 	SPList* m_pSaveList;
-	
+
     /// The m_curOutputFilename member holds the name of a file currently functioning as an
     /// output file. It generally only includes the file name and not the path (which is
     /// stored in m_curOutputPath).
@@ -1833,13 +1841,13 @@ public:
     /// The m_curOutputBackupFilename member holds the name of a file currently functioning
     /// as a backup file. The name of the backup file is of the form *.BAK for the wx
     /// version which only uses the xml files and not binary files.
-	wxString m_curOutputBackupFilename; // BEW added 15Aug05 to get a consistent file 
+	wxString m_curOutputBackupFilename; // BEW added 15Aug05 to get a consistent file
 										// and path naming protocol
-	
+
     /// The m_nInputFileLength member represented in the MFC version the serializable # of
     /// chars in untokenized source text (including terminating null). MFC used DWORD.
 	wxUint32 m_nInputFileLength;
-	
+
 	// !!! Doxygen commenting up to here!!!
 	wxString	m_punctuationSet; // retained in order to keep backwards compatibility in the
 								  // doc serialization (with no content), otherwise unused
@@ -1848,13 +1856,13 @@ public:
 	wxSize		m_docSize;	// stores the virtual doc size (in pixels)
 	wxSize		m_saveDocSize; // used for restoring original doc size across a printing
 							   // operation
-	int			m_nAIPrintout_Destructor_ReentrancyCount; // ~AIPrintout() is entered 
+	int			m_nAIPrintout_Destructor_ReentrancyCount; // ~AIPrintout() is entered
                 // twice in closing off a Print Preview and parameter cleanup done there is
                 // fouling things, so I'll count times reentered and have the function exit
                 // immediately if the count gets over 1; the count is initialized to 1 in
                 // the AIPrintout() constructor, and in a few other places
 	SPList*		m_pSourcePhrases;
-	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized) 
+	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized)
                 // text data on the heap; and still does so while parsing source text, but
                 // from late versions 2 the source text was not kept there, not output in
                 // the document, and from version 3 the buffer is also used for composing
@@ -1863,36 +1871,36 @@ public:
 	wxString	buffer;
 	wxString	m_curChapter;
 
-	MapWholeMkrToFilterStatus m_FilterStatusMap;// entries are a wholeMarker (ie. with 
+	MapWholeMkrToFilterStatus m_FilterStatusMap;// entries are a wholeMarker (ie. with
                 // backslash) as key with either a "0" or "1" string as its associated
                 // value
     // Note: CFilterPage maintains a temporary set of the following variables for
     // displaying the GUI state of unknown markers. When the user accepts any changes to
     // the filtering state of unknown markers, these variables on the app are updated.
     wxString m_poetryMkrs; // USFM ones
-	wxArrayString m_unknownMarkers; // array of unknown whole markers -			
+	wxArrayString m_unknownMarkers; // array of unknown whole markers -
 									// no end markers stored here
 	wxArrayInt	m_filterFlagsUnkMkrs;
-	wxString	m_currentUnknownMarkersStr;	// whm added 31May05. Stores the current 
+	wxString	m_currentUnknownMarkersStr;	// whm added 31May05. Stores the current
                 // active list of any unknown whole markers in a = delimited string (that
                 // is, = immediately follows each marker (then 0 or 1). This string is
                 // stored in the doc's Buffer member (5th field).
-	// next three added by BEW, 10June05 in support of Reconstituting the document after 
+	// next three added by BEW, 10June05 in support of Reconstituting the document after
 	// user changes the SFM set
 	wxString	m_filterMarkersBeforeEdit;	// contents of gCurrentFilterMarkers is copied
                 // to here when the user invokes the Preferences... command; this material
                 // is used only if an SFM set change is requested
-	wxString	m_secondPassFilterMarkers;	// the set of filter markers, with any common 
+	wxString	m_secondPassFilterMarkers;	// the set of filter markers, with any common
                 // ones with what is in m_saveOriginalSfmSetFilterMarkers which are to
                 // remain filtered, removed
-	enum SfmSet	m_sfmSetBeforeEdit;	// the gCurrentSfmSet value is copied here when the 
+	enum SfmSet	m_sfmSetBeforeEdit;	// the gCurrentSfmSet value is copied here when the
                 // user invokes the Preferences... command; this is used subsequently only
                 // if an SFM set change is requested
-	enum SfmSet m_sfmSetAfterEdit; // we use this after the unfiltering pass for the old 
+	enum SfmSet m_sfmSetAfterEdit; // we use this after the unfiltering pass for the old
                 // SFM set when doing doc rebuild, in order to restore the gCurrentSfmSet
                 // value to what is current
 	wxString	m_filterMarkersAfterEdit;	//whm added 10Jun05 for Bruce
-	bool		m_bWantSourcePhrasesOnly;	// Added by JF.  This is used to allow 
+	bool		m_bWantSourcePhrasesOnly;	// Added by JF.  This is used to allow
                 // load/save operations to be performed _without_ affecting any globals or
                 // the current view. This is used during the join operation to load
                 // multiple files into memory (one at a time) without closing the current
@@ -1905,13 +1913,13 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////
     // Variable declarations moved here from the View because the wxWidgets doc/view
     // framework deletes the View and recreates it afresh (calling the View's constructor)
-	
+
 	bool m_bECConnected; // whm added for wx version
 	bool bECDriverDLLLoaded; // set TRUE or FALSE in OnInit()
 	bool bParatextSharedDLLLoaded;
-	CFindDlg* m_pFindDlg; // whm added to partly replace original 
+	CFindDlg* m_pFindDlg; // whm added to partly replace original
 						  // m_pFindReplaceDlg (non-modal)
-	CReplaceDlg* m_pReplaceDlg; // whm added to partly replace original 
+	CReplaceDlg* m_pReplaceDlg; // whm added to partly replace original
 								// m_pFindReplaceDlg (non-modal)
 	CViewFilteredMaterialDlg* m_pViewFilteredMaterialDlg; // non-modal
 	CEarlierTranslationDlg* m_pEarlierTransDlg;
@@ -1924,11 +1932,11 @@ public:
 	static bool bLookAheadMerge; // TRUE when merging a matched multiword phrase
 	CPile* m_pActivePile;	// where the phrase box is to be located
 	CCell* m_pAnchor;		// anchor element for the selection
-	int m_selectionLine;	// index of line which has the selection (0 to 1, -1 
-							// if none) Selections typically have line index 0, the 
+	int m_selectionLine;	// index of line which has the selection (0 to 1, -1
+							// if none) Selections typically have line index 0, the
 							// circumstances where line with index 1 (target text) is
 							// used as the selection are rare, perhaps not in WX version
-	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active 
+	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
 							// pile location
 	bool m_bSelectByArrowKey; // TRUE when user is using ALT + arrow key to extend sel'n
                 //next two cannot be removed for refactored layout, because they are needed
@@ -1973,36 +1981,36 @@ public:
 				// locate in the target text any medial punction encountered
 	bool m_bComposeWndVisible; // TRUE whenever the compose window is potentially
 				// visible (it must always be on top)
-	bool m_bUseConsistentChanges; // turn on the use of consistent changes when copying 
+	bool m_bUseConsistentChanges; // turn on the use of consistent changes when copying
                 // source word or phrase as a default (initial) target word or phrase. For
                 // either glossing or adapting.
-	bool m_bUseSilConverter; // turn on the use of the configured SilConverter when 
+	bool m_bUseSilConverter; // turn on the use of the configured SilConverter when
                 // copying source word or phrase as a default (initial) target word or
                 // phrase. For either glossing or adapting. NOTE: this flag is mutually
                 // exclusive with m_bUseConsistentChanges -- only one can be TRUE at a
                 // time.
-	bool m_bSaveToKB; // a temporary mode, settable for next potential StoreAdaption 
+	bool m_bSaveToKB; // a temporary mode, settable for next potential StoreAdaption
                 // only, or StoreGloss only, thereafter reverts to TRUE until explicitly
                 // reset; when FALSE, the active src phrase will have its m_bNotInKB flag
                 // set TRUE if glossing is not on, but when glossing is on this flag will
                 // not be changeable and will be TRUE
-	bool m_bForceAsk; // a temporary mode, for next StoreAdaption or StoreGloss only, 
+	bool m_bForceAsk; // a temporary mode, for next StoreAdaption or StoreGloss only,
                 // it forces the CTargetUnit's m_bAlwaysAsk flag to TRUE, even if there is
                 // only one translation, or gloss, so far
-	bool m_bCopySource; // when TRUE, if no match, copy the source key as first guess 
+	bool m_bCopySource; // when TRUE, if no match, copy the source key as first guess
                 // at the target adaption or gloss, when FALSE, an empty string is used
                 // instead
 	bool m_bMarkerWrapsStrip; // when TRUE, a st.format marker causes a wrap of the strip
-	bool m_bRespectBoundaries; // TRUE by default, if FALSE, user can violate 
+	bool m_bRespectBoundaries; // TRUE by default, if FALSE, user can violate
 	bool m_bHidePunctuation;	// when TRUE, punctuation is not shown in lines 0 & 1, if
                 // FALSE (the default value) then punctuation shows in lines 0 and 1
-	bool m_bStartViaWizard; // used in OnIdle handler to force text in phrase box 
+	bool m_bStartViaWizard; // used in OnIdle handler to force text in phrase box
 				// to be selected
-	bool m_bUserTypedSomething; // FALSE when phrase box first created, TRUE when 
+	bool m_bUserTypedSomething; // FALSE when phrase box first created, TRUE when
                 // something typed provided it is not an ENTER key, or other control key
 	bool m_bUseToolTips;	// shows tooltips when TRUE, none shown when false; default
 				// is TRUE
-	int m_nTooltipDelay; // amount in milliseconds of time tooltips display before 
+	int m_nTooltipDelay; // amount in milliseconds of time tooltips display before
                 // disappearing if m_bUseToolTips is TRUE the default time is 20000 (20
                 // seconds)
 	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
@@ -2024,9 +2032,9 @@ public:
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int	m_nSrcHeight;	// line height for source language text
 	int	m_nTgtHeight;	// ditto for target lines & the pApp->m_targetBox
-	int	m_nNavTextHeight; // for use by CCell when working out where to print the 
+	int	m_nNavTextHeight; // for use by CCell when working out where to print the
                 // nav text & the value is set in the App's UpdateTextHeights() function
-	int	m_nSaveActiveSequNum; // a location to save the active sequ number across 
+	int	m_nSaveActiveSequNum; // a location to save the active sequ number across
 				// an operation
 	// window size and position saving & restoring
 	wxPoint		m_ptViewTopLeft; // client area
@@ -2049,17 +2057,17 @@ public:
 
 	CRetranslation* m_pRetranslation;
 	CRetranslation* GetRetranslation();
-	
+
 	CPlaceholder* m_pPlaceholder;
 	CPlaceholder* GetPlaceholder();
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup
-	// Note: When the page setup dialog has been closed, the app can query the 
-	// wxPageSetupDialogData object associated with the dialog. 
-	
+	// Note: When the page setup dialog has been closed, the app can query the
+	// wxPageSetupDialogData object associated with the dialog.
+
 	wxPrintData* pPrintData; // for print settings
-	
+
 	POList	m_pagesList; // MFC uses CPtrList
 	int		m_pageWidth;
 	int		m_pageLength;
@@ -2075,7 +2083,7 @@ public:
 	int		m_marginBottomMM;	// m_marginBottom converted to milimeters
 	int		m_marginLeftMM;		// m_marginLeft converted to milimeters
 	int		m_marginRightMM;	// m_marginRight converted to milimeters
-	int		m_paperSizeCode;	// keep as MFC paper size code enum (internally 
+	int		m_paperSizeCode;	// keep as MFC paper size code enum (internally
 								// we convert to wxPaperSize)
 
 	// whm 30Aug11 added for printing support of free translations and glosses text
@@ -2102,14 +2110,14 @@ public:
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
 	long			m_nStartChar;   // start of selection in the target box
 	long			m_nEndChar;		// end of selection in the target box
-	
+
 	//bool bUserSelectedFileNew; // BEW removed 24Aug10
 
 	// Single instance checker added as a new feature to wxWidgets version
-	wxSingleInstanceChecker* m_pChecker; // used for preventing more than one 
+	wxSingleInstanceChecker* m_pChecker; // used for preventing more than one
 				// program instance by the same user. See OnInit()
 	wxString PathSeparator;
-	
+
     // MFC Note: for support of splitter windows - clicks in green wedge of the non-first
     // pane crash because gpApp->GetView() as coded for the legacy app returns the first
     // view found in the doc template, but the one being clicked in won't be that one, and
@@ -2118,7 +2126,7 @@ public:
     // gpApp->GetView() will scan the list of views and return the one that matches what
     // m_pCurView points at
 	// whm WX version not initially supporting splitter window (& probably never will, BEW)
-	
+
 	// BEW added 06Mar06, to store topleft & bottomright coords of the desktop window
 	// (used for error checking on window location & size when reading basic config file)
 	wxPoint wndTopLeft;
@@ -2126,7 +2134,7 @@ public:
 
 	// BEW added for Bob Eaton 26Apr06; for transliteration mode support
 	bool		m_bTransliterationMode;
-	
+
 	// for support of user-defined font size for vernacular text in dialogs (version 2.4.0)
 	int m_dialogFontSize; // default 12 point size
 
@@ -2144,28 +2152,28 @@ public:
 	// paths to cc tables & their names
 	wxString		m_tableName[4];
 	wxString		m_tableFolderPath[4];
-	
-	// whm 6Aug11 Note: The following path values are used mainly when navigation 
-	// protection for the specific types of inputs/outputs is NOT in effect. These 
-	// values are saved in the indicated config file(s). When navigation 
-	// protection is in effect for the specific inputs/outputs, we use the special 
-	// (upper case) folders and generated file names that are automatically used 
-	// and manditory. Generally these values record the last...Path that was used 
-	// for the input/output, so that if navigation protection is OFF for a given 
-	// input/export type, the values here will still (at least initially) point to 
-	// the folder that was being used when nav protection was on in previous 
+
+	// whm 6Aug11 Note: The following path values are used mainly when navigation
+	// protection for the specific types of inputs/outputs is NOT in effect. These
+	// values are saved in the indicated config file(s). When navigation
+	// protection is in effect for the specific inputs/outputs, we use the special
+	// (upper case) folders and generated file names that are automatically used
+	// and manditory. Generally these values record the last...Path that was used
+	// for the input/output, so that if navigation protection is OFF for a given
+	// input/export type, the values here will still (at least initially) point to
+	// the folder that was being used when nav protection was on in previous
 	// session(s).
 
-	// whm Note: There was some inconsistency in where some of the following paths 
-	// were stored in the config files in versions prior to version 6.x.x. and the 
-	// config file labels that were used. Starting with version 6.x.x I've 
+	// whm Note: There was some inconsistency in where some of the following paths
+	// were stored in the config files in versions prior to version 6.x.x. and the
+	// config file labels that were used. Starting with version 6.x.x I've
 	// reassigned some of them to be saved in only one configuration file and the
-	// one that is most appropriate for the usage scenarios, with appropriate 
-	// coding modifications in the Read... and Write... configuration file routines 
-	// adjusted so that any older config values coming into version 6.x.x will be 
+	// one that is most appropriate for the usage scenarios, with appropriate
+	// coding modifications in the Read... and Write... configuration file routines
+	// adjusted so that any older config values coming into version 6.x.x will be
 	// preserved in the appropriate config file.
 
-	// Note: The following m_last...Path variables are grouped according to which 
+	// Note: The following m_last...Path variables are grouped according to which
 	// config file the are saved in.
 
 	// /////////// Basic config file (AI-BasicConfiguration.aic) ///////////
@@ -2175,33 +2183,33 @@ public:
 	/// Previously: saved in both basic and project config files under DefaultCCTablePath
 	/// Related Nav Protect folder: _CCTABLE_INPUTS_OUTPUTS
 	wxString	m_lastCcTablePath;
-	
+
 	/// Use: m_lastRetransReportPath stores the last retranslation reports path.
 	/// Now: in version 6.x.x saved in basic config file under LastRetranslationReportPath.
 	/// Previously: saved in basic config file under RetranslationReportPath.
 	/// Related Nav Protect folder: _REPORTS_OUTPUTS
 	wxString	m_lastRetransReportPath;
-	
+
 	/// Use: m_lastPackedOutputPath stores the last packed document output path.
 	/// Now: in version 6.x.x saved in basic config file under LastPackedDocumentPath.
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _PACKED_INPUTS_OUTPUTS
 	wxString	m_lastPackedOutputPath;
-	
+
 	/// Use: m_lastKbOutputPath stores the last KB SFM export/import path.
 	/// Now: in version 6.x.x saved in basic config file under LastKBExportPath.
 	/// Previously: saved in basic config file under KB_ExportPath.
 	/// Related Nav Protect folder: _KB_INPUTS_OUTPUTS
-	wxString	m_lastKbOutputPath; 
-	
+	wxString	m_lastKbOutputPath;
+
 	/// Use: m_lastKbLiftOutputPath stores the last KB LIFT format export/import path.
 	/// Now: in version 6.x.x saved in basic config file under LastKBLIFTExportPath.
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _LIFT_INPUTS_OUTPUTS
-	wxString	m_lastKbLiftOutputPath; 
+	wxString	m_lastKbLiftOutputPath;
 
 	// /////////// Project config file (AI-ProjectConfiguration.aic) ///////////
-	
+
 	/// Use: m_lastDocPath stores the last adaptation document path.
 	/// Now: in version 6.x.x saved in project config file under LastDocumentPath.
 	/// Previously: saved in basic config file under LastDocumentPath.
@@ -2212,32 +2220,32 @@ public:
 	/// Now: in version 6.x.x saved in project config files under LastNewDocumentFolder.
 	/// Previously: saved in both basic and project config files under LastNewDocumentFolder.
 	/// Related Nav Protect folder: __SOURCE_INPUTS.
-	wxString	m_lastSourceInputPath;			 
+	wxString	m_lastSourceInputPath;
 
 	/// Use: m_lastInterlinearRTFOutputPath stores the last Interlinear RTF export path.
 	/// Now: in version 6.x.x saved in project config file under LastInterlinearRTFOutputPath.
 	/// Previously: Saved in basic config file under a generic RTFExportPath.
 	/// Related Nav Protect folder: _INTERLINEAR_RTF_OUTPUTS
-	wxString	m_lastInterlinearRTFOutputPath; 
+	wxString	m_lastInterlinearRTFOutputPath;
 
 	/// Use: m_lastSourceOutputPath stores the last source text export path.
 	/// Now in version 6.x.x saved in project config file under LastSourceTextExportPath.
 	/// Previously: saved in basic config file under LastSourceTextExportPath.
 	/// Related Nav Protect folder: _SOURCE_OUTPUTS
 	wxString	m_lastSourceOutputPath;
-	
+
 	/// Use: m_lastSourceRTFOutputPath stores the last source text RTF export path.
 	/// Now: in version 6.x.x saved in project config file under .
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _SOURCE_RTF_OUTPUTS
-	wxString	m_lastSourceRTFOutputPath; 
+	wxString	m_lastSourceRTFOutputPath;
 
 	/// Use: m_lastTargetOutputPath stores the last target text export  path.
 	/// Now: in version 6.x.x saved in project config file under LastTargetExportPath.
 	/// Previously: saved in both basic and project config files under LastExportPath.
 	/// Related Nav Protect folder: _TARGET_OUTPUTS
-	wxString	m_lastTargetOutputPath; 
-	
+	wxString	m_lastTargetOutputPath;
+
 	/// Use: m_lastTargetRTFOutputPath stores the last target text RTF export path.
 	/// Now: in version 6.x.x saved in project config file under LastTargetRTFExportPath.
 	/// Previously: None - new for version 6.x.x.
@@ -2248,44 +2256,44 @@ public:
 	/// Now: in version 6.x.x saved in project config file under LastGlossesTextExportPath.
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _GLOSS_OUTPUTS
-	wxString	m_lastGlossesOutputPath; 
-	
+	wxString	m_lastGlossesOutputPath;
+
 	/// Use: m_lastGlossesRTFOutputPath stores the last glosses as text RTF export path.
 	/// Now: in version 6.x.x saved in project config file under LastGlossesTextRTFExportPath.
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _GLOSS_RTF_OUTPUTS
-	wxString	m_lastGlossesRTFOutputPath; 
+	wxString	m_lastGlossesRTFOutputPath;
 
 	/// Use: m_lastFreeTransOutputPath stores the last free translations export path.
 	/// Now: in version 6.x.x saved in project config file under LastFreeTransExportPath.
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _FREETRANS_OUTPUTS
 	wxString	m_lastFreeTransOutputPath;
-	
+
 	/// Use: m_lastFreeTransRTFOutputPath stores the last free translations RTF export path.
 	/// Now: in version 6.x.x saved in project config file under LastFreeTransRTFExportPath.
 	/// Previously: None - new for version 6.x.x.
 	/// Related Nav Protect folder: _FREETRANS_RTF_OUTPUTS
-	wxString	m_lastFreeTransRTFOutputPath; 
-	
+	wxString	m_lastFreeTransRTFOutputPath;
+
 	// Use: m_lastRtfOutputPath stores the last RTF documents export path
-	// Now: 6Aug11 - no longer used in lieu of more specific m_last...RTFOutputPath 
+	// Now: 6Aug11 - no longer used in lieu of more specific m_last...RTFOutputPath
 	//      variables held in the project config files.
 	// Previously: saved in basic config file - for all types of RTF outputs.
 	//wxString	m_lastRtfOutputPath;
-	
-	
-	wxString	m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and 
-												// outputs dirs that are protected from 
+
+
+	wxString	m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and
+												// outputs dirs that are protected from
 												// navigation. The dir names are delimited
 												// by ':' delimiters within this string which
 												// is saved in the project config file
-	
+
 	// BEW added 16Aug09, to support removing \note,\note*,\free,\free*,\bt from exports
 	// of either the glosses text or free translation text
 	bool			m_bExportingGlossesAsText;
 	bool			m_bExportingFreeTranslation;
-									
+
 	// font stuff
 	wxFont*		m_pSourceFont;
 	wxFont*		m_pTargetFont;
@@ -2303,7 +2311,7 @@ public:
 	wxFont*		m_pDlgTgtFont;
 	wxFont*		m_pDlgGlossFont;
 	wxFont*		m_pComposeFont;
-	wxFont*		m_pRemovalsFont; // BEW added 11July08, so setting of the font and size can 
+	wxFont*		m_pRemovalsFont; // BEW added 11July08, so setting of the font and size can
                 // be done for the removals bar, & the dynamic changing of the other dlg
                 // font pointers won't then clobber this one (as would be the case if I
                 // used one of them for the removals bar)
@@ -2323,15 +2331,15 @@ public:
 	wxColour	m_tgtDiffsTextColor;
 	wxColour	m_AutoInsertionsHighlightColor;
 	wxColour	m_GuessHighlightColor; // whm added 1Nov10 for Guesser support
-	wxColour	m_freeTransDefaultBackgroundColor; // it will be light pastel green 
+	wxColour	m_freeTransDefaultBackgroundColor; // it will be light pastel green
 				// (set in app constructor)
-	wxColour	m_freeTransCurrentSectionBackgroundColor; // it will be light 
+	wxColour	m_freeTransCurrentSectionBackgroundColor; // it will be light
 				// pastel pink
 	wxColour	m_freeTransTextColor; // temporarily set to dark purple (0x640064)
 				// -- in app constructor
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 				// static text info button face color
-	wxColour sysColorWindow;  // color used for read-only text controls displaying 
+	wxColour sysColorWindow;  // color used for read-only text controls displaying
 				// static text info window background color
 
 	int			m_backgroundMode;	// whm added 6July2006 Set to wxSOLID in App's
@@ -2354,22 +2362,22 @@ public:
 	wxFontEncoding m_composeFontEncoding;
 	wxFontEncoding m_removalsFontEncoding;
 	wxFontEncoding m_vertEditFontEncoding;
-	wxFontEncoding	m_systemEncoding;	// In OnInit: m_systemEncoding = 
+	wxFontEncoding	m_systemEncoding;	// In OnInit: m_systemEncoding =
 				// wxLocale::GetSystemEncoding();
 
 	bool m_bConfigFileHasFontEncodingInfo;
 
 	// whm added below for cross-platform locale and encoding considerations.
-	wxString	m_systemEncodingName; // In OnInit: m_systemEncodingName = 
+	wxString	m_systemEncodingName; // In OnInit: m_systemEncodingName =
 				// wxLocale::GetSystemEncodingName();
-	int			m_systemLanguage;	  // In OnInit: m_systemLanguage = 
+	int			m_systemLanguage;	  // In OnInit: m_systemLanguage =
 				// wxLocale::GetSystemLanguage();
-	const wxLanguageInfo* m_languageInfo; // In OnInit: m_languageInfo = 
+	const wxLanguageInfo* m_languageInfo; // In OnInit: m_languageInfo =
 				// wxLocale::GetLanguageInfo(m_systemLanguage);
-	
+
 	CurrLocalizationInfo currLocalizationInfo;
 
-	wxLocale* m_pLocale; // pointer for creating our wxLocale object (using 
+	wxLocale* m_pLocale; // pointer for creating our wxLocale object (using
                 // the non-default constructor which does not require use of
                 // wxLocale::Init()) to which we will add localization catalogs, associate
                 // catalog lookup paths, and to which we can add wxLanguage values.
@@ -2381,7 +2389,7 @@ public:
 	// whm added 10May10 for KB LIFT XML Export support
 	wxString	m_sourceLanguageCode; // 3-letter code for the source language
 	wxString	m_targetLanguageCode; // 3-letter code for the target language
-	
+
 	bool		m_bExistingAdaption;
 	bool		m_bKBReady;
 	CKB*		m_pKB; // pointer to the knowledge base
@@ -2440,7 +2448,7 @@ public:
 									// folder location
 	bool		m_bLockedCustomWorkFolderPath; // TRUE if a custom work folder location has
 									// been made persistent, else FALSE
-	
+
 	wxString	m_userProfileFileWorkFolderPath; // whm added 7Sep10
 
 	wxString	m_usageLogFilePathAndName; // whm added 8Nov10
@@ -2450,27 +2458,27 @@ public:
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
-	wxString	m_wf_forced_workFolderPath; // any path following a -wf 
+	wxString	m_wf_forced_workFolderPath; // any path following a -wf
 				// command-line option
-	wxString	m_newdoc_forced_newDocPath; // any path following a -newdoc 
+	wxString	m_newdoc_forced_newDocPath; // any path following a -newdoc
 				// command-line option
-	wxString	m_exports_forced_exportsPath; // any path following a -exports 
+	wxString	m_exports_forced_exportsPath; // any path following a -exports
 				// command-line option
 
 	wxString	m_theWorkFolder;		// "Adapt It Work" or "Adapt It Unicode Work" or
 										// since Bill's -wf switch, even some other folder
-										// name 
-	wxString	m_localPathPrefix;	// the part of the workfolder path before the 
+										// name
+	wxString	m_localPathPrefix;	// the part of the workfolder path before the
 				// m_theWorkFolder part
 	wxString	m_adaptionsFolder;	// "Adaptations" folder
-	wxString	m_curProjectName;	// <Project Name> in the form 
+	wxString	m_curProjectName;	// <Project Name> in the form
 				// "<SourceLanguageName> to <TargetLanguageName> Adaptations"
 	wxString	m_curProjectPath;	// "C:\My Documents\Adapt It Work\<Project Name>"
 	wxString	m_curAdaptionsPath;	// "C:\My Documents\Adapt It Work\<Project Name>\Adaptations"
 
-	wxString	m_setupFolder;			// whm renamed m_setupFolder to this 
+	wxString	m_setupFolder;			// whm renamed m_setupFolder to this
 										// and moved to App class 31July06
-	wxString	m_executingAppPathName;	// whm added to get the path and file 
+	wxString	m_executingAppPathName;	// whm added to get the path and file
 										// name of executing app
 	// BEW 14July10, Added next two to support hiding folder navigation from the user), along
 	// with the m_sourceInputsFolderPath variable which follows.
@@ -2479,62 +2487,62 @@ public:
 	wxString	m_sourceInputsFolderName; // in OnInit() we set to "__SOURCE_INPUTS"
 	wxString	m_sourceInputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectFreeTransOutputsFolder;
 	wxString	m_freeTransOutputsFolderName; // in OnInit() we set to "_FREETRANS_OUTPUTS"
 	wxString	m_freeTransOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectFreeTransRTFOutputsFolder;
 	wxString	m_freeTransRTFOutputsFolderName; // in OnInit() we set to "_FREETRANS_RTF_OUTPUTS"
 	wxString	m_freeTransRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectGlossOutputsFolder ;
 	wxString	m_glossOutputsFolderName; // in OnInit() we set to "_GLOSS_OUTPUTS"
 	wxString	m_glossOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectGlossRTFOutputsFolder;
 	wxString	m_glossRTFOutputsFolderName; // in OnInit() we set to "_GLOSS_RTF_OUTPUTS"
 	wxString	m_glossRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectInterlinearRTFOutputsFolder;
 	wxString	m_interlinearRTFOutputsFolderName; // in OnInit() we set to "_INTERLINEAR_RTF_OUTPUTS"
 	wxString	m_interlinearRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectSourceOutputsFolder;
 	wxString	m_sourceOutputsFolderName; // in OnInit() we set to "_SOURCE_OUTPUTS"
 	wxString	m_sourceOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectSourceRTFOutputsFolder;
 	wxString	m_sourceRTFOutputsFolderName; // in OnInit() we set to "_SOURCE_RTF_OUTPUTS"
 	wxString	m_sourceRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectTargetOutputsFolder;
 	wxString	m_targetOutputsFolderName; // in OnInit() we set to "_TARGET_OUTPUTS"
 	wxString	m_targetOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectTargetRTFOutputsFolder;
 	wxString	m_targetRTFOutputsFolderName; // in OnInit() we set to "_TARGET_RTF_OUTPUTS"
 	wxString	m_targetRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectKbInputsAndOutputsFolder;
 	wxString	m_kbInputsAndOutputsFolderName; // in OnInit() we set to "_KB_INPUTS_OUTPUTS"
 	wxString	m_kbInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectLiftInputsAndOutputsFolder;
 	wxString	m_liftInputsAndOutputsFolderName; // in OnInit() we set to "_LIFT_INPUTS_OUTPUTS"
 	wxString	m_liftInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectPackedInputsAndOutputsFolder;
 	wxString	m_packedInputsAndOutputsFolderName; // in OnInit() we set to "_PACKED_INPUTS_OUTPUTS"
 	wxString	m_packedInputsAndOutputsFolderPath; // always a child of folder that m_workFolderPath
@@ -2544,18 +2552,18 @@ public:
 	wxString	m_ccTableInputsAndOutputsFolderName; // in OnInit() we set to "_CCTABLE_INPUTS_OUTPUTS"
 	wxString	m_ccTableInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 	bool		m_bProtectReportsOutputsFolder;
 	wxString	m_reportsOutputsFolderName; // in OnInit() we set to "_REPORTS_OUTPUTS"
 	wxString	m_reportsOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
-										// gets defined 
+										// gets defined
 
 	wxString	m_logsEmailReportsFolderName; // in OnInit() we set to "_LOGS_EMAIL_REPORTS"
 	wxString	m_logsEmailReportsFolderPath; // Not in the nav protection scheme - what goes here
 										// alwaiys goes here regardless of nav protection
-	
-	
+
+
 	wxArrayString m_sortedLoadableFiles; // for use by the NavProtectNewDoc class's dialog
 
 	/// m_appUserConfigDir stores the path (only the path, not path and name) where the
@@ -2578,51 +2586,51 @@ public:
 	/// On wxGTK: "/home/wmartin/.Adapt_It_WX"
 	/// On wxMac: "/Users/wmartin/.Adapt_It_WX"
 	wxString m_wxFileConfigPathAndName;
-	
+
 	/// m_appInstallPathOnly stores the path (only the path, not path and name) where the
     /// executable application file is installed on the given platform.
-    /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
+    /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
     /// On wxGTK: "/usr/bin/"
     /// On wxMac: "/Programs/"
-	wxString m_appInstallPathOnly;		
-	
+	wxString m_appInstallPathOnly;
+
     /// m_appInstallPathName stores the path and name where the executable application file
     /// is installed on the given platform.
-	/// On wxMSW:   "C:\Program Files\Adapt It WX\Adapt_It.exe or 
+	/// On wxMSW:   "C:\Program Files\Adapt It WX\Adapt_It.exe or
 	///             C:\Program Files\Adapt It WX Unicode\Adapt_It_Unicode.exe"
-	/// On wxGTK:   "/usr/bin/adaptit"      [adaptit is the name of the executable, 
+	/// On wxGTK:   "/usr/bin/adaptit"      [adaptit is the name of the executable,
 	///             not a directory]
 	/// On wxMac: "/Programs/AdaptIt.app"
-	wxString m_appInstallPathAndName;		
-	
+	wxString m_appInstallPathAndName;
+
     /// m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are
     /// installed on the given platform.
-	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or 
-	///             C:\Program Files\Adapt It WX Unicode\" 
+	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or
+	///             C:\Program Files\Adapt It WX Unicode\"
 	/// On wxGTK:   "/usr/share/adaptit/"  [adaptit here is the name of a directory]
-	/// On wxMac:   "AdaptIt.app/Contents/Resources"  [bundle subdirectory] ??? 
+	/// On wxMac:   "AdaptIt.app/Contents/Resources"  [bundle subdirectory] ???
 	///             TODO: check this location
-	wxString m_xmlInstallPath; // whm added for path where the AI_USFM.xml and 
+	wxString m_xmlInstallPath; // whm added for path where the AI_USFM.xml and
 				// books.xml files are installed
-	
+
     /// m_localizationInstallPath stores the path where the <lang> localization files are
     /// installed on the given platform.
-	/// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or 
+	/// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or
 	///             C:\Program Files\Adapt It WX Unicode\Languages\"
-	/// On wxGTK:   "/usr/share/locale/"    which then contains multiple 
+	/// On wxGTK:   "/usr/share/locale/"    which then contains multiple
 	///             <lang>/LC_MESSAGES/adaptit.mo
 	/// On wxMac:   "AdaptIt.app/Contents/Resources/locale" [bundle subdirectory]
 	///             this is where Poedit puts its localization files.
-	wxString m_localizationInstallPath;	// whm added for path where top level <lang> 
+	wxString m_localizationInstallPath;	// whm added for path where top level <lang>
 				// localization directory is installed
-	
-	/// m_helpInstallPath stores the path where the help files are installed on the given 
+
+	/// m_helpInstallPath stores the path where the help files are installed on the given
 	/// platform.
-	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or 
+	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or
 	///             C:\Program Files\Adapt It WX Unicode\"
 	/// On wxGTK:   "/usr/share/adaptit/help/"  containing: common/.gif and .css
 	///             containing: <lang>/  .html .hhp .hhc etc
-	/// On wxMac:   "AdaptIt.app/Contents/SharedSupport" [bundle subdirectory] ??? 
+	/// On wxMac:   "AdaptIt.app/Contents/SharedSupport" [bundle subdirectory] ???
 	///             TODO: check this location
 	wxString m_helpInstallPath;
 
@@ -2636,19 +2644,19 @@ public:
 	/// m_adminHelpFileName stores the actual name of the admin help file for the given platform.
 	/// This name is _T("Help_for_Administrators.htm") on all platforms.
 	wxString m_adminHelpFileName;
-	
-	/// m_quickStartHelpFileName stores the actual name of the Adapt_It_Quick_Start.htm help file 
+
+	/// m_quickStartHelpFileName stores the actual name of the Adapt_It_Quick_Start.htm help file
 	/// for the given platform.
 	/// This name is _T("Adapt_It_Quick_Start.htm") on all platforms.
 	wxString m_quickStartHelpFileName;
-	
+
     /// m_licenseInstallPath stores the path where the license files are installed on the
     /// given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	/// On wxGTK:   "/usr/share/doc/adaptit/license/"
 	/// On wxMac:   "~/Documents"
 	wxString m_licenseInstallPath; // whm added for path where license files are installed
-	
+
     /// m_documentsInstallPath stores the path where the Adapt It documents are installed
     /// on the given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
@@ -2656,13 +2664,13 @@ public:
 	/// On wxMac:   "~/Documents"
 	wxString m_documentsInstallPath; // whm added for path where documents, reference docs,
 				// etc are installed
-	
+
 	/// m_desktopInstallPath stores the path where the Adapt It desktop menu configuration
 	/// (adaptit.desktop) file is installed on the given platform.
 	/// On wxMSW:   n/a
 	/// On wxGTK:   "/usr/share/applications/"
 	/// On wxMac:   ???
-	wxString m_desktopInstallPath; // whm added for path where adaptit.desktop file is 
+	wxString m_desktopInstallPath; // whm added for path where adaptit.desktop file is
 				// installed
 
 	wxString	m_curKBName;
@@ -2670,10 +2678,10 @@ public:
 	wxString	m_curKBBackupPath;
 	wxString	m_curGlossingKBName;	// all projects use same Glossing.KB name
 	wxString	m_curGlossingKBBackupPath;
-	wxString	m_curGlossingKBPath;	// same path as m_curKBPath except for 
+	wxString	m_curGlossingKBPath;	// same path as m_curKBPath except for
 				// filename difference
 
-	wxArrayString m_acceptedFilesList;	// for use in OnFileRestoreKB function and 
+	wxArrayString m_acceptedFilesList;	// for use in OnFileRestoreKB function and
                 // elsewhere, such as consistency check, retranslation report, transforming
                 // adaptations to glosses
 	bool		m_bBackupDocument;
@@ -2701,11 +2709,11 @@ public:
 
     // auto-capitalization support, for version 2.0 and later (also a menagerie of global
     // flags defined in Adapt_ItApp.cpp)
-	wxString	m_srcLowerCaseChars; // paired with m_srcUpperCaseChars, equivalences at 
+	wxString	m_srcLowerCaseChars; // paired with m_srcUpperCaseChars, equivalences at
 				// same index
-	wxString	m_tgtLowerCaseChars; // paired with m_tgtUpperCaseChars, equivalences at 
+	wxString	m_tgtLowerCaseChars; // paired with m_tgtUpperCaseChars, equivalences at
 				// same index
-	wxString	m_glossLowerCaseChars; // paired with m_glossUpperCaseChars, equivalences 
+	wxString	m_glossLowerCaseChars; // paired with m_glossUpperCaseChars, equivalences
 				// at same index
 	wxString	m_srcUpperCaseChars;
 	wxString	m_tgtUpperCaseChars;
@@ -2715,18 +2723,18 @@ public:
 	bool		m_bBookMode; // default is FALSE, to get legacy app functionalities only
 	wxArrayPtrVoid*	m_pBibleBooks; // MFC uses CPtrArray*
 	BookNamePair*	m_pCurrBookNamePair; // currently set ptr to book name pair's struct
-	int			m_nBookIndex; // 0-based index into an array of structs for the 
+	int			m_nBookIndex; // 0-based index into an array of structs for the
 				// (localizable) book folders
-	wxString	m_bibleBooksFolderPath; // absolute path to the currently active Bible 
+	wxString	m_bibleBooksFolderPath; // absolute path to the currently active Bible
 				// book folder
 	int			m_nDivSize[5];		// size of each division for the 5 radio buttons
 	wxString	m_strDivLabel[5];	// radio button labels for history, wisdom, etc
 	int			m_nDefaultBookIndex; // settable from an element in the  books.xml file
-	int			m_nLastBookIndex;	// store last one, it is a better default when 
+	int			m_nLastBookIndex;	// store last one, it is a better default when
 				// turning mode back on
-	bool		m_bDisableBookMode; // TRUE if the books.xml file did not parse without 
+	bool		m_bDisableBookMode; // TRUE if the books.xml file did not parse without
 				// error
-	int			m_nTotalBooks;		// total count of all the book folder names in the 
+	int			m_nTotalBooks;		// total count of all the book folder names in the
 				// books.xml file
 
 	// whm added 19Jan05 AI_USFM.xml file processing and USFM and Filtering
@@ -2742,8 +2750,8 @@ public:
 	bool		m_bChangeFixedSpaceToRegularSpace;
 
 	UserProfiles* m_pUserProfiles; // a struct on the heap that contains the profileVersion,
-									// applicationCompatibility, adminModified, an array of 
-									// definedProfileNames, descriptionProfileTexts and list 
+									// applicationCompatibility, adminModified, an array of
+									// definedProfileNames, descriptionProfileTexts and list
 									// of pointers to the UserProfileItem objects on the heap
 	UserProfiles* m_pFactoryUserProfiles; // a struct on the heap that is similar to m_pUserProfiles
 									// above, but always represents the factory version of the
@@ -2774,8 +2782,8 @@ public:
 									//    for example: "Save As...:Novice"; a key may also be
 									//    the string "descriptionProfileN" where N is
 									//    1, 2, 3, or 4 for those top level items, for example
-									//    "description3". The key maps to a variable length 
-									//    string for the descriptionProfileN key, and to a 
+									//    "description3". The key maps to a variable length
+									//    string for the descriptionProfileN key, and to a
 									//    "1" or a "2" string for UserProfileItems visibility
 									//    items.
 	bool m_bShowNewProjectItem;		// If TRUE <New Project> is to be shown as first item in the
@@ -2802,7 +2810,7 @@ public:
 	// to the word or phrase in the phrase box
 	bool		m_bCopySourcePunctuation;
 
-	// RDE: added 3Apr06 in support of calling SilEncConverters for preprocessing 
+	// RDE: added 3Apr06 in support of calling SilEncConverters for preprocessing
 	// the target word form (c.f. Consistent Changes)
     // whm: the following two need to be always available in order to interact with MFC
     // produced legacy config files which contain
@@ -2810,7 +2818,7 @@ public:
 	bool        m_bSilConverterDirForward;
 	int			m_eSilConverterNormalizeOutput;
 
-	enum SfmSet gCurrentSfmSet;	// whm 6May05. Restricted gCurrentSfmSet to indicate 
+	enum SfmSet gCurrentSfmSet;	// whm 6May05. Restricted gCurrentSfmSet to indicate
                 //only the current active SfmSet. It is initialized to UsfmOnly, but is
                 //assigned whatever value is stored in the project config file. If there is
                 //no previous project config file, it is assumed that the user has not used
@@ -2823,7 +2831,7 @@ public:
                 //It documents created prior to version 3 will have been created with a
                 //PngOnly inventory of standard format markers. See note below for
                 //gProjectSfmSetForConfig.
-	enum SfmSet gProjectSfmSetForConfig; // whm added 6May05. At program startup 
+	enum SfmSet gProjectSfmSetForConfig; // whm added 6May05. At program startup
                 // gProjectSfmSetForConfig is set equal to gCurrentSfmSet. If the project
                 // config file is successfully read, gProjectSfmSetForConfig and
                 // gCurrentSfmSet are both set to the value last stored in the config file.
@@ -2835,24 +2843,24 @@ public:
                 // user's explicitly chosen SfmSet in the project config file. The only
                 // time gProjectSfmSetForConfig changes is when the user explicitly changes
                 // the current working SfmSet to something else by means of Edit
-                // Preferences USFM and Filtering tab (forcing a rebuild) or by means of the 
-                // Start Working... wizard USFM and Filtering wizard page (no doc open, no 
+                // Preferences USFM and Filtering tab (forcing a rebuild) or by means of the
+                // Start Working... wizard USFM and Filtering wizard page (no doc open, no
                 // rebuild).
 	enum SfmSet gFactorySfmSet;	// will retain the factory default sfm set which is assigned
 				// to be UsfmOnly
 	MapSfmToUSFMAnalysisStruct*	m_pUsfmStylesMap;  // stores associations of key and ptr to
 				// USFMAnalysis instances where the key is a USFM marker without the backslash
 	MapSfmToUSFMAnalysisStruct* m_pPngStylesMap;   // "" for PNG styles
-	MapSfmToUSFMAnalysisStruct* m_pUsfmAndPngStylesMap;   // "" for combined USFM and PNG 
+	MapSfmToUSFMAnalysisStruct* m_pUsfmAndPngStylesMap;   // "" for combined USFM and PNG
 				// styles (USFM has priority)
-	wxArrayPtrVoid*		m_pMappedObjectPointers;// array of all USFMAnalysis struct pointers 
+	wxArrayPtrVoid*		m_pMappedObjectPointers;// array of all USFMAnalysis struct pointers
                 // on the heap used for ease of deleting them in the destructor
 	wxString	UsfmWrapMarkersStr;	// will hold a list of usfm wrap markers
 	wxString	PngWrapMarkersStr;	// will hold a list of png wrap markers
 	wxString	UsfmAndPngWrapMarkersStr;	// will hold a list of usfm and png wrap markers
 	wxString	UsfmSectionHeadMarkersStr;	// will hold a list of usfm sectionHead wrap markers
 	wxString	PngSectionHeadMarkersStr;	// will hold a list of png sectionHead wrap markers
-	wxString	UsfmAndPngSectionHeadMarkersStr; // will hold a list of usfm and png 
+	wxString	UsfmAndPngSectionHeadMarkersStr; // will hold a list of usfm and png
 				// sectionHead wrap markers
 	wxString	UsfmInLineMarkersStr;	// will hold a list of usfm inLine markers
 	wxString	PngInLineMarkersStr;	// will hold a list of png inLine markers
@@ -2861,14 +2869,14 @@ public:
 	wxString	PngFilterMarkersStr;	// will hold a list of png filter markers
 	wxString	UsfmAndPngFilterMarkersStr;	// will hold a list of usfm and png filter markers
 
-	wxString	gFactoryFilterMarkersStr;	// will retain the factory default filter 
+	wxString	gFactoryFilterMarkersStr;	// will retain the factory default filter
                 // markers which is defined to be the contents of the UsfmFilterMarkersStr
                 // as it was initially built when it was read from the AI_USFM.xml file.
 
     // The following two are used to keep track of Filter Markers in a similar way that the
     // gCurrentSfmSet and gProjectSfmSetForConfig above are used to keep track of user's
     // sfm set.
-	wxString	gCurrentFilterMarkers; // whm added 13May05. Stores the current active list 
+	wxString	gCurrentFilterMarkers; // whm added 13May05. Stores the current active list
                 // of whole Filter Markers. This variable is assigned the contents of
                 // UsfmFilterMarkersStr, PngFilterMarkersStr, or
                 // UsfmAndPngFilterMarkersStr, depending on the currently selected sfm set.
@@ -2878,7 +2886,7 @@ public:
                 // filter marker list stored in the doc's Buffer member, regardless of the
                 // filter marker string stored in the project config file (see the next
                 // variable gProjectFilterMarkersForConfig below).
-	wxString	gProjectFilterMarkersForConfig; // whm added 13May05. At program startup 
+	wxString	gProjectFilterMarkersForConfig; // whm added 13May05. At program startup
                 // gProjectFilterMarkersForConfig is set equal to gCurrentFilterMarkers. If
                 // the project config file is successfully read,
                 // gProjectFilterMarkersForConfig and gCurrentFilterMarkers are both set to
@@ -2910,34 +2918,34 @@ public:
 	// whitespace between marker end and certain things which must NEVER be in a marker)
 	wxString m_forbiddenInMarkers; // set contents in OnInit()
 
-	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is 
+	int m_nSequNumBeingViewed;	// The sequ num of the src phrase whose m_markers is
 				// being viewed in the ViewFilteredMaterial dialog
-	
-	wxSize	sizeLongestSfm;	// Used to determine the text extent of the largest sfm being 
-                // used in the program (using main window - system font) 
+
+	wxSize	sizeLongestSfm;	// Used to determine the text extent of the largest sfm being
+                // used in the program (using main window - system font)
     wxSize	sizeSpace; // Used to determine the text extent of a space (using main window -
                 // system font)
 
 	// BEW added 21Jun05 for support of free translation mode
-	bool	m_bFreeTranslationMode; // TRUE when free translation mode is in effect, 
+	bool	m_bFreeTranslationMode; // TRUE when free translation mode is in effect,
 				// FALSE otherwise
-	bool	m_bTargetIsDefaultFreeTrans; // TRUE if the user wants target text to be 
+	bool	m_bTargetIsDefaultFreeTrans; // TRUE if the user wants target text to be
                 // composed into the default free translation text for a section and shown
                 // in the edit box within the Compose Bar when that particular free
                 // translation section is defined, FALSE if not, and default setting is
                 // FALSE
-	bool	m_bGlossIsDefaultFreeTrans; // TRUE if the user wants glosses text to be 
+	bool	m_bGlossIsDefaultFreeTrans; // TRUE if the user wants glosses text to be
                 // composed into the default free translation text for a section and shown
                 // in the edit box within the Compose Bar when that particular free
                 // translation section is defined, FALSE if not, and default setting is
                 // FALSE
-	bool	m_bComposeBarWasAskedForFromViewMenu; // TRUE if the user used the Compose Bar 
+	bool	m_bComposeBarWasAskedForFromViewMenu; // TRUE if the user used the Compose Bar
                 // command on the View menu to open the Compose Bar (which then inhibits
                 // being able to turn on free translation mode), FALSE when the Compose Bar
                 // gets closed by any command, and FALSE is the default value. The OnUpdate
                 // handler for the Free Translation Mode command inspects this bool value
                 // to ensure the bar is not already open
-	bool	m_bDefineFreeTransByPunctuation; // TRUE by default (gives smaller free 
+	bool	m_bDefineFreeTransByPunctuation; // TRUE by default (gives smaller free
                 // translation sections), if FALSE then sections are defined as the whole
                 // verse, or if the phrase box starts off more than 5 locations before the
                 // verse end, then up to the verse's end
@@ -2945,7 +2953,7 @@ public:
 				// in the document, else FALSE
 
 	// BEW added 10Jan06
-	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE 
+	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE
 				// (used in SetupDirectories())
 
 
@@ -2991,7 +2999,7 @@ public:
 	wxArrayInt tgtPunctsAddedArray;
 
 	// Oxes export support  BEW removed 15Jun11 until we support OXES
-	//Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap	
+	//Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap
 
 	/// BEW 25Oct11, next four used to be globals; these are for Printing Support
 	bool	m_bIsPrinting;  // TRUE when OnPreparePrinting is called, cleared only in
@@ -3000,7 +3008,7 @@ public:
 	bool	m_bPrintingSelection;
 	int		m_nCurPage; // to make current page being printed accessible to CStrip;s Draw()
 
-	// BEW 28Oct11, added (maybe temporarily) for allowing view drawing to proceed when 
+	// BEW 28Oct11, added (maybe temporarily) for allowing view drawing to proceed when
 	// required during display of print-related dialogs, such as the Print dialog
 	bool	m_bPagePrintInProgress; // initialized to FALSE in OnInit(), set TRUE at
 							// the start of OnPrintPage(), cleared back to fALSE at
@@ -3026,7 +3034,7 @@ public:
     bool	OnInit();// wxApp uses non-virtual OnInit() instead of virtual bool InitInstance()
     int		OnExit();// wxApp uses non-virtual OnExit() instead of virtual int ExitInstance()
     // OnIdle() handler moved to CMainFrame. Having it here in the App was causing File |
-    // Exit and x App cancel to become unresponsive 
+    // Exit and x App cancel to become unresponsive
 
 // Declaration of event handlers
 
@@ -3040,13 +3048,13 @@ public:
 	void OnFileBackupKb(wxCommandEvent& WXUNUSED(event));
 	void OnToolsDefineCC(wxCommandEvent& WXUNUSED(event));
 	void OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event));
-	
+
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
 	//void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
-	
+
 	void OnFilePageSetup(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileChangeFolder(wxUpdateUIEvent& event);
 	void OnUpdateFileBackupKb(wxUpdateUIEvent& event);
@@ -3087,7 +3095,7 @@ protected:
 	void	AddWedgePunctPair(wxChar wedge);
 	bool	DoTransformationsToGlosses(wxArrayString& tgtDocsList, CAdapt_ItDoc* pDoc,
 				wxString& folderPath, wxString& bookFolderName, bool bSuppressStatistics = FALSE);
-	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
+	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf,
 						wxString& basePath, wxString& localPath);
 	void	FixConfigFileFonts(wxTextFile* pf); // whm added 24Feb10
 	void	GetValue(const wxString strReadIn, wxString& strValue, wxString& name);
@@ -3120,7 +3128,7 @@ public:
     // a helper in getting ethnologue language codes from an Adapt It project config file,
     // for use in matching an AI project to a Paratext or Bibledit project pair;
     // return TRUE if all went well, FALSE if there was an error along the way
-	bool	ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
+	bool	ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath,
 				EthnologueCodePair* pCodePair);
 	bool	GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCodePairsArray);
 
@@ -3161,7 +3169,7 @@ public:
 	void	SetupDefaultUserProfiles(UserProfiles*& pUserProfiles);
 	bool	CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles, UserProfiles* baseUserProfiles);
 	void	GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles);
-	void	GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath, 
+	void	GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath,
 				wxString& profileVersionStr,wxString& applicationCompatibilityStr,wxString& adminModifiedStr);
 	bool	BackupExistingUserProfilesFileInWorkFolder(wxString AIuserProfilesWorkFolderPath, wxString& backupPathNameUsed);
 	void	SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt);
@@ -3184,7 +3192,7 @@ public:
 	//wxString GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr); // unused
 	//wxArrayString GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label); // unused
-	
+
 	// whm added 9Feb11 (first 21 declarations) and then on 15Apr11 the ones which follow
 	// those: for AI-Paratext or AI-Bibledit Collaboration (these are nearly all public)
 	bool m_bParatextIsInstalled;
@@ -3195,7 +3203,7 @@ public:
 	// BEW 2Jul11, added next three booleans
 	bool m_bCollaborationExpectsFreeTrans;
 	bool m_bCollaborationDocHasFreeTrans;
-	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be 
+	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be
 												  // later restored in File / Close
 	wxString m_collaborationEditor;
 	wxString m_CollabProjectForSourceInputs;
@@ -3213,11 +3221,11 @@ public:
 	wxString m_ParatextProjectsDirPath;
 	wxString m_BibleditProjectsDirPath;
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
-	
+
 	// whm 17Oct11 removed
 	//wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()
 	//wxArrayString m_ListOfBEProjects; // gets populated by GetListOfBEProjects()
-	
+
 	wxArrayString GetListOfPTProjects();
 	wxArrayString GetListOfBEProjects();
 	wxString GetBibleditBooksPresentFlagsStr(wxString projPath);
@@ -3229,9 +3237,9 @@ public:
 	wxString GetBookNumberAsStrFromName(wxString bookName);
 	wxString GetBookCodeFastFromDiskFile(wxString pathAndName);
 	// whm 13Aug11 moved to CollabUtilities.h
-	//bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName, 
+	//bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookName,
 	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
-	//bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, 
+	//bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName,
 	//				int chapterNumber, wxString tempFilePathName, wxArrayString& errors);
 	wxString FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter);
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
@@ -3247,7 +3255,7 @@ public:
 	wxString GetBibleditProjectsDirPath();
 	wxString GetParatextInstallDirPath(); // whm added 9Feb11
 	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
-	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
+	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
@@ -3275,16 +3283,16 @@ public:
 
 
 	// end of collaboration declarations
-	
+
 	// for wxProgressDialog support
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
-	wxProgressDialog* OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed, 
-		const int nTotal, 
+	wxProgressDialog* OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed,
+		const int nTotal,
 		const int width);
 
 	// for localization support
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
-	bool	LocalizationFilesExist(); 
+	bool	LocalizationFilesExist();
 	// Functions that let the user select/change Adapt It's interface language
 	bool	ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface);
 	bool	ReverseOkCancelButtonsForMac(wxDialog* dialog);
@@ -3308,10 +3316,10 @@ public:
 	int		GetOptimumDlgFontSize(int pointSize);
 	bool	PathHas_mo_LocalizationFile(wxString dirPath, wxString subFolderName);
 	void	SaveCurrentUILanguageInfoToConfig();
-	void	SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode, 
-				const wxString shortName, const wxString fullName, 
+	void	SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
+				const wxString shortName, const wxString fullName,
 				const wxString localizationPath);
-	void	RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName, 
+	void	RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName,
 				const wxString fullName);
 	void	UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo);
 
@@ -3323,28 +3331,28 @@ public:
 	void	CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders);
 	void	DoAutoSaveDoc();
 	void	DoAutoSaveKB();
-	bool	DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+	bool	DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon,
 				bool& bSetChanged, enum Reparse reparseDoc); // whm added 23May05; BEW added bSetChanged 12Jun05
 	bool	DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, enum Reparse reparseDoc);
 	void	DoKBBackup();
 	void	DoGlossingKBBackup();
 	void	DoFileOpen(); // DoFileOpen() calls OnOpenDocument() which is in the Doc
 	bool	DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event));
-	bool	DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+	bool	DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon,
 				enum Reparse reparseDoc); // whm revised 23May05 and 5Oct10
-	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath, 
+	bool	EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath,
 				bool bSuppressDialog = FALSE);
 	bool	EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesList, wxString folderPath); // BEW added 6July10
 	bool	EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
 												enum LoadabilityFilter filtered); // BEW added 6Aug10
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
-	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
+	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);
-	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
-				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType, 
+	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr,
+				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType,
 				enum StartFromType startFromType);
-	void	FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, 
-				wxArrayString* MkrAndDescrArray, int minNumSpaces, 
+	void	FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
+				wxArrayString* MkrAndDescrArray, int minNumSpaces,
 				wxArrayInt* pUserCanSetFilterFlags);
 	bool	GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView, CPhraseBox*& pBox);
 	MapSfmToUSFMAnalysisStruct* GetCurSfmMap(enum SfmSet sfmSet);
@@ -3359,10 +3367,10 @@ public:
 	CAdapt_ItView* GetView();		// convenience function for accessing the View
 	void	InitializeFonts(); // whm added
 	void	InitializePunctuation(); // whm added
-	bool	InitializeLanguageLocale(wxString shortLangName, wxString longLangName, 
+	bool	InitializeLanguageLocale(wxString shortLangName, wxString longLangName,
 				wxString pathPrefix);
 	bool	IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks);
-	
+
     // the following ones were added by BEW to complete JF's implementation of Split, Join
     // and Move functionalities
 	bool		IsValidBookID(wxString& id);
@@ -3382,10 +3390,10 @@ public:
 	void	RefreshStatusBarInfo();
 	void	RemoveMarkerFromString(wxString& filterMkrStr, wxString wholeMarker);
 	wxString MakeExtensionlessName(wxString anyName); // removes .xml if at end of anyName
-	void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1, 
-				wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2, 
+	void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
+				wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2,
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
-	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
+	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo,
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
 	void	SetFontAndDirectionalityForStatText(wxFont* pFont, int pointsize,
 								wxStaticText* pStatTxt, wxFont*& pDlgFont, bool bIsRTL);
@@ -3408,13 +3416,13 @@ public:
 	void	SubstituteKBBackup(bool bDoOnGlossingKB = FALSE);
 	void	Terminate();
 	void	UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView));
-	bool	UseSourceDataFolderOnlyForInputFiles(); // BEW created 22July10, to support 
-				// user-protection from folder navigation when creating a new document 
+	bool	UseSourceDataFolderOnlyForInputFiles(); // BEW created 22July10, to support
+				// user-protection from folder navigation when creating a new document
 				// for adaptation
 	void	WriteFontConfiguration(const fontInfo fi, wxTextFile* pf);
 	void	WriteBasicSettingsConfiguration(wxTextFile* pf);
 	void	WriteProjectSettingsConfiguration(wxTextFile* pf);
-	bool	WriteConfigurationFile(wxString configFilename, wxString destinationFolder, 
+	bool	WriteConfigurationFile(wxString configFilename, wxString destinationFolder,
 				ConfigFileType configType);
 	void	GetProjectConfiguration(wxString projectFolderPath); // whm moved here from the Doc
 	bool	GetBasicConfiguration(); // whm 20Jan08 changed signature to return bool
@@ -3427,20 +3435,20 @@ public:
 #ifdef _UNICODE
 	void	ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding),wxFile* pFile,
 				wxString& str); // for unicode conversions
-	void	Convert8to16(CBString& bstr,wxString& convStr); // converts a CBString to a 
+	void	Convert8to16(CBString& bstr,wxString& convStr); // converts a CBString to a
 				// wide char CString
 	wxString	Convert8to16(CBString& bstr); // BEW added 09Aug05 - overloaded version
 				// (it's more useful this way)
-	CBString	Convert16to8(const wxString& str); // BEW added 10Aug05, for XML output 
+	CBString	Convert16to8(const wxString& str); // BEW added 10Aug05, for XML output
 				// in Unicode version
 // GDLC 16Sep11 DoInputConversion no longer needs bHasBOM
 	void	DoInputConversion(wxString& pBuf,const char* pbyteBuff,
 				wxFontEncoding eEncoding/*,bool WXUNUSED(bHasBOM = FALSE)*/); // for unicode conversions
 #endif
 	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, ConfigFileType configType);
-	void	GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, wxString& srcName, 
+	void	GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, wxString& srcName,
 				wxString& tgtName);
-	
+
 	// Getters, setters, and shorthands.  Added by JF.
     // Ultimately, these are best inlined for execution speed. (BEW - but none of these are
     // involved in speed-critical functionalities, so I'd prefer not to inline them.)
@@ -3455,7 +3463,7 @@ public:
 	wxString	GetCurrentDocFolderDisplayName();
 	wxString	GetCurrentDocFolderPath();
 	void		ChangeDocUnderlyingFileNameInPlace(wxString NewFileName);
-	void		ChangeDocUnderlyingFileDetailsInPlace(wxString NewFolderPath, 
+	void		ChangeDocUnderlyingFileDetailsInPlace(wxString NewFolderPath,
 					wxString NewFileName);
 	void		ChangeDocUnderlyingFileDetailsInPlace(wxString NewFileName);
 	bool		IsOpenDoc(wxString FolderPath, wxString FileName);
@@ -3466,14 +3474,14 @@ public:
 	void		DiscardDocChanges();
 	void		CloseDocDiscardingAnyUnsavedChanges();
 	static SPList *LoadSourcePhraseListFromFile(wxString FilePath);
-	bool		AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID, 
+	bool		AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID,
 					bool IsLastAppendUsingThisMethodRightNow);
 	SPList*		GetSourcePhraseList();
 	CSourcePhrase	*GetCurrentSourcePhrase();
 	void		SetCurrentSourcePhrase(CSourcePhrase *sp);
 	CSourcePhrase	*FindNextChapter(SPList *ol, CSourcePhrase *sp);
 	static wxString	ApplyDefaultDocFileExtension(wxString s);
-	void	DeleteSourcePhraseListContents(SPList *l); // deletes partner piles too, 
+	void	DeleteSourcePhraseListContents(SPList *l); // deletes partner piles too,
             // one-by-one (this is inefficient, but doing an en masse deletion of the
             // partner piles would require having an overloaded
             // CLayout::DestroyPiles(PileList* list) function which we don't yet have, and
@@ -3482,7 +3490,7 @@ public:
             // DeleteSourcePhraseListContents(); so I've been lazy and sacrificed some
             // speed to avoid this, and just let the DeleteSingleSrcPhrase() call delete
             // the partner pile each time through the internal loop
-	void	CascadeSourcePhraseListChange(bool DoFullScreenUpdate);// If 
+	void	CascadeSourcePhraseListChange(bool DoFullScreenUpdate);// If
             // DoFullScreenUpdate, the Phrase Box is moved. Otherwise, we update internal
             // variables but don't redraw. This is useful if you are going to make a series
             // of changes and want the state to be valid between each change but you don't
@@ -3496,21 +3504,21 @@ public:
 	// BEW added 17Aug09, to support custom work folder locations
 	// BEW removed 19Aug09, because it was only called in reading project config file and
 	// we no longer store flag nor custom work folder path in any config file
-	//bool	EnsureCustomWorkFolderPathIsSet(wxString customPath, wxString& newCustomPath, 
+	//bool	EnsureCustomWorkFolderPathIsSet(wxString customPath, wxString& newCustomPath,
 	//											bool& bNewPathFound);
 	bool	IsValidWorkFolder(wxString path);
-	bool	LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath, 
+	bool	LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath,
 									bool& bUserCancelled);
 	bool	m_bDoNotWriteConfigFiles; // default FALSE, TRUE to suppress config file writing
 	bool	IsURI(wxString& uriPath); // return TRUE if uriPath begins with \\ or //, else FALSE
 	bool	m_bFailedToRemoveCustomWorkFolderLocationFile; // set TRUE in
-			// OnUnlockCustomLocation() if the CustomWorkFolderLocation file failed 
+			// OnUnlockCustomLocation() if the CustomWorkFolderLocation file failed
 			// at the ::RemoveFile() call, else FALSE
 	//bool	IsConfigFileWithin(wxString path, wxString& configFilePath, bool& bIsAdminBasic); // unused
 
-	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
+	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets
 	// docs re "Writing installers for wxWidgets applications"
-	wxString FindAppPath(const wxString& argv0, const wxString& cwd, 
+	wxString FindAppPath(const wxString& argv0, const wxString& cwd,
 				const wxString& appVariableName);
 	// GDLC Added 16Apr11 from suggestion by Bill Martin in order to provide a realistic response
 	// for the amount of free memory - wxGetFreeMemory() doesn't do anything useful on MacOS.
@@ -3542,7 +3550,7 @@ public:
 	bool		m_bTypeOf_FoundBasicConfigFile; // TRUE if Admin type, FALSE if normal type,
 										// for the m_pathTo_FoundBasicConfigFile member;
 										// value is rubbish if that string is NULL
-	bool		m_bSkipBasicConfigFileCall; // always FALSE except if 
+	bool		m_bSkipBasicConfigFileCall; // always FALSE except if
 					// DealWithThePossibilityOfACustomWorkFolderLocation() has called SetDefaults()
 					// because the custom work folder path failed to find the required basic config
 					// file at the custom work folder location; we use a TRUE value to suppress the
@@ -3555,7 +3563,7 @@ public:
 	// member for support of user-navigation-protection feature; the dialog is created in
 	// OnInit() whether or not this feature is being used, but only shown when
 	// appropriate; it is destroyed in OnExit()
-	NavProtectNewDoc* m_pNavProtectDlg;	
+	NavProtectNewDoc* m_pNavProtectDlg;
 
     // ConsChk_Empty_NoTU_Dlg class uses these as input parameters for the dialog handler.
     // The 'adaptation' variants of the following are passed in via the creator when
@@ -3568,7 +3576,7 @@ public:
 	wxString m_modeWordGlossPlural; //  glosses
 	wxString m_modeWordAdaptPlusArticle;
 	wxString m_modeWordGlossPlusArticle;
-	wxString m_strNotInKB; // this one is never localizable, 
+	wxString m_strNotInKB; // this one is never localizable,
 				// and this KB entry type is not available in glossing mode either
 	wxString m_strNoAdapt; // <no adaptation>
 	wxString m_strNoGloss; // <no gloss>
@@ -3582,7 +3590,7 @@ public:
     // starts with a special case of a standard USFM target text export with \bt info not
     // included, the TRUE value should be on when that export commences. Turn it off when
     // the exported oxes file is saved to disk.
-	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES	
+	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES
 };
 
 DECLARE_APP(CAdapt_ItApp);
