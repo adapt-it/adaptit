@@ -201,7 +201,7 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (bHideFreeTranslationsOnClose)
 	{
-		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeOFF);
 	}
 	if (bHideGlossesOnClose)
 	{
@@ -278,7 +278,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 			// if free trans mode is not on in the document, then we'll need to turn the
 			// mode back off when done
 			bHideFreeTranslationsOnClose = TRUE;
-			pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+			pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeON);
 		}
 		pCheckInclFreeTransText->Enable(TRUE);
 		pCheckInclFreeTransText->SetValue(TRUE);

@@ -60,7 +60,7 @@ CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 	if (bHideGlossesOnClose	 == TRUE)
 		pApp->GetView()->ShowGlosses();
 	if (bHideFreeTranslationsOnClose == TRUE)
-		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeOFF);
 	if (pApp->m_bFrozenForPrinting)
 	{
 		pApp->GetMainFrame()->Thaw();
