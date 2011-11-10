@@ -6,17 +6,17 @@
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the AIPrintout class. 
+/// \description	This is the implementation file for the AIPrintout class.
 /// The AIPrintout class manages the functions for printing and print previewing from
 /// within Adapt It using the File | Print and File | Print Preview menu selections.
 /// \derivation		The AIPrintout class is derived from wxPrintout.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in AIPrintout.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -42,10 +42,10 @@
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
+#include "Strip.h"
 #include "Pile.h"
 #include "Cell.h"
 #include "MainFrm.h"
-//#include "SourceBundle.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
 #include "AIPrintout.h"
@@ -73,16 +73,16 @@ extern int gnFooterTextHeight;
 //extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
 
-// The AIPrPreviewFrame class below ///////////////////////////////////////////////////////////// 
+// The AIPrPreviewFrame class below /////////////////////////////////////////////////////////////
 
 // These class methods can be uncommented if it is necessary to implement the AIPreviewFrame class in
 // order to access the preview frame's methods such as OnCloseWindow().
-// 
+//
 //BEGIN_EVENT_TABLE(AIPreviewFrame, wxPreviewFrame)
 //	EVT_CLOSE(AIPreviewFrame::OnCloseWindow)
 //END_EVENT_TABLE()
-//	
-//AIPreviewFrame::AIPreviewFrame(wxPrintPreview* preview, wxWindow* parent, const wxString& title, 
+//
+//AIPreviewFrame::AIPreviewFrame(wxPrintPreview* preview, wxWindow* parent, const wxString& title,
 //		const wxPoint& pos, const wxSize& size)
 //	:wxPreviewFrame(preview,parent,title,pos,size)
 //{
@@ -93,9 +93,9 @@ extern int gnFooterTextHeight;
 //	wxPreviewFrame::OnCloseWindow(event); // must call the base class method for the window to be destroyed
 //}
 
-// End of AIPrPreviewFrame class  ///////////////////////////////////////////////////////////// 
+// End of AIPrPreviewFrame class  /////////////////////////////////////////////////////////////
 
-// The AIPrintout class below ///////////////////////////////////////////////////////////// 
+// The AIPrintout class below /////////////////////////////////////////////////////////////
 IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 
 // WX Documentation Note: The following comments utilize a nifty Visual Studio Addin called
@@ -106,11 +106,11 @@ IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 // links also have hyperlinks back to the print_flow reference below.
 
 //////////////////// Order of called methods in the wxWidgets printing framework ///////////////////
-// whm Note: The order of function calls when printing or print-previewing in the wxWidgets printing 
+// whm Note: The order of function calls when printing or print-previewing in the wxWidgets printing
 // framework is:
 // #print_flow
-// 0. code:CAdapt_ItView::OnPrint() 
-//    or code:CAdapt_ItView::OnPrintPreview() event handler [invoked by File | Print or File | Print Preview command] 
+// 0. code:CAdapt_ItView::OnPrint()
+//    or code:CAdapt_ItView::OnPrintPreview() event handler [invoked by File | Print or File | Print Preview command]
 // 1. code:AIPrintout::AIPrintout() constructor [executed once for File | Print; twice for File | Print Preview]
 // 2. The wxPrinter printer object calls printer.Print() see code:#printer_Print() [puts up platform specific print dialog]
 // 3. code:AIPrintout::OnPreparePrinting()
@@ -130,7 +130,7 @@ IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 /// \return     nothing
 /// \remarks
 /// Called to construct an AIPrintout object. This constructor freezes the canvas which is kept frozen
-/// until the corresponding destructor is called. 
+/// until the corresponding destructor is called.
 ////////////////////////////////////////////////////////////////////////////////////////////
 AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 {
@@ -138,7 +138,7 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 	m_pApp = &wxGetApp();
 
 	// See code:#print_flow for the order of calling of this AIPrintout constructor.
-	
+
     // whm: to avoid problems with calls to the View's Draw() method we should freeze the
     // canvas here at the beginning of the print preview routine, and unfreeze it in the
     // AIPrintout destructor after printing ends. For non-preview printing it is not
@@ -150,7 +150,7 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 	// do a fill recalc of the layout (but leave piles untouched) before printing, so that
 	// all strips are properly filled
 	m_pApp->m_nSaveActiveSequNum = m_pApp->m_nActiveSequNum;
-	m_pApp->m_docSize = m_pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
+	m_pApp->m_docSize = m_pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value
 															// back to app's member
 	m_pApp->m_saveDocSize = m_pApp->m_docSize; // store original size (can dispense with this
 			// here if we wish, because OnPreparePrinting() will make same call)
@@ -181,7 +181,7 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 /// second call! So, I'll try a global to count the number of times reentered, and for the
 /// second or later reenters, just exist immediately without doing anything. Crude, but it
 /// will have to do. 18Jul09 BEW moved the code, including the reentracy protection
-/// global, into a function called DoPrintCleanup() and put the latter in the app class. 
+/// global, into a function called DoPrintCleanup() and put the latter in the app class.
 ////////////////////////////////////////////////////////////////////////////////////////////
 AIPrintout::~AIPrintout()
 {
@@ -195,18 +195,18 @@ AIPrintout::~AIPrintout()
         // to be non-null only during actual printing or print previewing of a defined page
         // as determined by a currently active PageOffsets struct being pointed at by
         // m_pOffsets, having been set by OnPrintPage() beforehand. If DrawFreeTranslations()
-        // is called when m_pOffsets is NULL, it will immediately return without doing 
-        // anything  
+        // is called when m_pOffsets is NULL, it will immediately return without doing
+        // anything
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the wxDC associated with printing is valid, otherwise FALSE
 /// \param      page      -> the current page being rendered by this OnPrintPage()
 /// \remarks
-/// Called from: Called by the framework to draw the current page while printing - it is called 
+/// Called from: Called by the framework to draw the current page while printing - it is called
 /// once for each page that needs to be printed. Returning false cancels the print job.
-/// OnPrintPage() is called after OnBeginDocument() and once for each time HasPage() 
-/// returns true for a given document. The application can use wxPrintout::GetDC to obtain 
+/// OnPrintPage() is called after OnBeginDocument() and once for each time HasPage()
+/// returns true for a given document. The application can use wxPrintout::GetDC to obtain
 /// a device context to validate and draw on.
 /// BEW 28Oct11, added turning on and off the app member variable, m_bPagePrintInProgress, which
 /// when TRUE, diverts a CStrip::Draw() to draw a page of the list of printed pages, rather than
@@ -220,6 +220,10 @@ bool AIPrintout::OnPrintPage(int page)
 	CAdapt_ItView* pView = pApp->GetView();
 	CLayout* pLayout = pApp->m_pLayout;
     wxDC *pDC = GetDC();
+#if defined(__WXGTK__)
+    wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
+    int i;
+#endif
     if (pDC)
     {
 		pApp->m_bPagePrintInProgress = TRUE; // BEW 28Oct11 added
@@ -227,11 +231,11 @@ bool AIPrintout::OnPrintPage(int page)
 		pApp->m_nCurPage = page; // set the app member for use by CStrip's Draw() function
 
 		// The code block below properly scales the text to appear the correct size within both
-		// the print preview and on the printer. 
+		// the print preview and on the printer.
 
 		// Scale the display context to the correct size for either the preview or for printer.
 		// OnPrintPage() is called for both print preview and for actual printing to printer.
-		
+
 		// Get the logical pixels per inch of screen and printer
 		int ppiScreenX, ppiScreenY;
 		GetPPIScreen(&ppiScreenX, &ppiScreenY);
@@ -253,7 +257,7 @@ bool AIPrintout::OnPrintPage(int page)
         // preview bitmap width, so scale down.
 		float overallScaleX = scale * (float)(w/(float)pageWidthInPixels);
 		float overallScaleY = scale * (float)(h/(float)pageHeightInPixels);
-		pDC->SetUserScale(overallScaleX, overallScaleY); 
+		pDC->SetUserScale(overallScaleX, overallScaleY);
 
 		// Calculate the scaling factor for passing to PrintFooter. This factor must be multiplied by
 		// any absolute displacement distance desired which is expressed in mm. For example, we want
@@ -266,10 +270,10 @@ bool AIPrintout::OnPrintPage(int page)
 		POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
 		// whm 27Oct11 added test to return FALSE if pos == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
-		// function can get triggered by the Linux system on that platform 
-		// before App's m_nCurPage is calculated by OnPreparePrinting()'s 
-		// call of PaginateDoc() in the printing framework (see notes on 
-		// calling order of print routines starting at line 108 of 
+		// function can get triggered by the Linux system on that platform
+		// before App's m_nCurPage is calculated by OnPreparePrinting()'s
+		// call of PaginateDoc() in the printing framework (see notes on
+		// calling order of print routines starting at line 108 of
 		// AIPrintout.cpp).
 		// BEW 28Oct11, the addition of m_bPagePrintInProgress should make the protection
 		// of the next 8 line block unneeded, but we retain it as a safety-first measure
@@ -282,7 +286,7 @@ bool AIPrintout::OnPrintPage(int page)
 			wxASSERT_MSG(FALSE,msg);
 			return FALSE; // note: this ends the printing job
 		}
-		
+
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
@@ -303,11 +307,11 @@ bool AIPrintout::OnPrintPage(int page)
         // pDC->SetLogicalOrigin(0,pOffsets->nTop) below because headers and footers are always placed
         // on the page in constant coordinates in relation to the top and bottom page margins (scaled
         // for the appropriate pDC display context).
-		
+
 		// For drawing of footer, whose position is in relation to the whole page, margins, etc., it is easiest
 		// to set the AIPrintout logical origin at 0,0 and draw the footer with x and y coords in
-		// relation to the upper left corner of the paper. 
-		
+		// relation to the upper left corner of the paper.
+
 		// BEW changed 15Jul09: wxPrintout is not documented, and the Printing Guidlines
 		// are very sparse. It turns out that the printed page, from the top left point
 		// where the margins intersect, functions like the client rectangle when printing
@@ -352,13 +356,13 @@ bool AIPrintout::OnPrintPage(int page)
 #endif
 */
 		//this->SetLogicalOrigin(0,0); // BEW 15Jul09 moved this to precede the setting of fitRect
-		
+
 		// Now draw the footer for the page (logical origin for the printout page is at 0,0)
 		if (gbPrintFooter)
 		{
 			pView->PrintFooter(pDC,fitRect,logicalUnitsFactor,page);
 		}
-		
+
         // Set the upper left starting point of the drawn page to the point where the upper
         // margin and left margin intersect. We call SetLogicalOrigin() called on
         // AIPrintout below to set the initial drawing point for what's drawn on this page
@@ -376,7 +380,7 @@ bool AIPrintout::OnPrintPage(int page)
 			fitRect.x, fitRect.y );
 #endif
 #endif
-		
+
         // SetLogicalOrigin is only documented as a method of wxPrintout, but it is also
         // available for wxDC. Since the "Strips" that will be drawn in OnDraw() below
         // store their logical coordinates based on their position in the whole virtual
@@ -391,8 +395,25 @@ bool AIPrintout::OnPrintPage(int page)
 #endif
 #endif
 
+#if defined(__WXGTK__)
+        int nFirstStrip = pOffsets->nFirstStrip;
+        int nLastStrip = pOffsets->nLastStrip;
+        int index;
+        for (index = nFirstStrip; index <= nLastStrip; index++)
+        {
+            CStrip* pStrip = (CStrip*)(pStripArray->Item(index));
+            wxArrayPtrVoid* pPilesArray = pStrip->GetPilesArray();
+            int nPileCount = pPilesArray->GetCount();
+            CPile* aPilePtr = NULL;
+            for (i = 0; i < nPileCount; i++)
+            {
+                aPilePtr = (CPile*)pPilesArray->Item(i);
+                aPilePtr->Draw(pDC);
+            }
+        }
+#else
 		pView->OnDraw(pDC);
-        
+#endif
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 		return TRUE;
     }
@@ -403,8 +424,8 @@ bool AIPrintout::OnPrintPage(int page)
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: Called by the framework after OnPreparePrinting() and GetPageInfo() but before 
-/// OnBeginDocument(). OnBeginPrinting() is only called once at the beginning of printing. 
+/// Called from: Called by the framework after OnPreparePrinting() and GetPageInfo() but before
+/// OnBeginDocument(). OnBeginPrinting() is only called once at the beginning of printing.
 /// It is not called when the user selects a different page from print preview.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnBeginPrinting()
@@ -426,13 +447,13 @@ void AIPrintout::OnBeginPrinting()
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: CAUTION: OnEndPrinting() works differently from the function of the same name 
-/// in MFC!! Like MFC, OnEndPrinting() is called by the framework after a given document has 
-/// printed. However, surprisingly, OnEndPrinting() is also called after each page is displayed 
-/// in print preview mode. Also, note that when more than one copy of a document is printed, 
-/// OnEndPrinting() is called at the end of each document copy, and before the OnEndPrinting() 
-/// method of wxPrintout is executed. Therefore, the behavior of OnEndPrinting in the wx version 
-/// makes it unsuitable as a location for the cleanup code that is done in MFC's OnEndPrinting(). 
+/// Called from: CAUTION: OnEndPrinting() works differently from the function of the same name
+/// in MFC!! Like MFC, OnEndPrinting() is called by the framework after a given document has
+/// printed. However, surprisingly, OnEndPrinting() is also called after each page is displayed
+/// in print preview mode. Also, note that when more than one copy of a document is printed,
+/// OnEndPrinting() is called at the end of each document copy, and before the OnEndPrinting()
+/// method of wxPrintout is executed. Therefore, the behavior of OnEndPrinting in the wx version
+/// makes it unsuitable as a location for the cleanup code that is done in MFC's OnEndPrinting().
 /// The cleanup code has moved to AIPrintout's destructor in the wx version.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnEndPrinting()
@@ -442,20 +463,20 @@ void AIPrintout::OnEndPrinting()
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the page will be printed; FALSE if the printing of pages for the current
-///             document copy should stop (OnPrintPage will no longer be called for the current 
+///             document copy should stop (OnPrintPage will no longer be called for the current
 ///             document), and print control will proceed to OnEndDocument().
-/// \param      pageNum     -> 
+/// \param      pageNum     ->
 /// \remarks
-/// Called from: Called the first time after OnBeginDocument(). It is called just before each 
-/// page is printed. By default, HasPage() behaves as if the document has only one page. 
+/// Called from: Called the first time after OnBeginDocument(). It is called just before each
+/// page is printed. By default, HasPage() behaves as if the document has only one page.
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool AIPrintout::HasPage(int pageNum)
 {
  	// refactored 6Apr09
    // See code:#print_flow for the order of calling of HasPage().
 	CAdapt_ItApp* pApp = &wxGetApp();
-	wxPrintDialogData printDialogData(*pApp->pPrintData); 
-	
+	wxPrintDialogData printDialogData(*pApp->pPrintData);
+
 	if (pageNum >= printDialogData.GetMinPage() && pageNum <= printDialogData.GetMaxPage())
 		return TRUE;
 	else
@@ -467,14 +488,14 @@ bool AIPrintout::HasPage(int pageNum)
 /// \param      startPage     -> the minimum page value that the user can select for printing or previewing
 /// \param      endPage       -> the maximum page value that the user can select for printing or previewing
 /// \remarks
-/// Called from: the printing framework after OnBeginPrinting() and once just before each copy of a 
+/// Called from: the printing framework after OnBeginPrinting() and once just before each copy of a
 /// multi-copy printout (it is only called once if only 1 copy of a document is printed.
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool AIPrintout::OnBeginDocument(int startPage, int endPage)
 {
 	// refactored 6Apr09
 	// See code:#print_flow for the order of calling of OnBeginDocument().
-	
+
     if (!wxPrintout::OnBeginDocument(startPage, endPage))
         return false;
 
@@ -491,11 +512,11 @@ bool AIPrintout::OnBeginDocument(int startPage, int endPage)
 /// \param      selPageFrom   <- the starting page of any selection of pages made by the user
 /// \param      selPageTo     <- the ending page of any selection of pages made by the user
 /// \remarks
-/// Called from: The printing framework; OnPreparePrinting() is called immediately before this 
-/// GetPageInfo(). In the preceding call to OnPreparePrinting(), PaginateDoc() is called which 
+/// Called from: The printing framework; OnPreparePrinting() is called immediately before this
+/// GetPageInfo(). In the preceding call to OnPreparePrinting(), PaginateDoc() is called which
 /// populates the App's m_pagesList which this GetPageInfo accesses to determine its four parameter
-/// values which are returned to the caller. GetPageInfo() is only called once at the beginning of 
-/// the print or preview; it is not called when the user selects a different page from within print 
+/// values which are returned to the caller. GetPageInfo() is only called once at the beginning of
+/// the print or preview; it is not called when the user selects a different page from within print
 /// preview. Note: if minPage is zero, the page number controls in the print dialog will be disabled.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo)
@@ -503,8 +524,8 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
  	// refactored 6Apr09
 	// See code:#print_flow for the order of calling of GetPageInfo().
  	CAdapt_ItApp* pApp = &wxGetApp();
- 
-	wxPrintDialogData printDialogData(*pApp->pPrintData); 
+
+	wxPrintDialogData printDialogData(*pApp->pPrintData);
 	*minPage = 1;
 	*maxPage = pApp->m_pagesList.GetCount();
 	if (printDialogData.GetAllPages())
@@ -544,7 +565,7 @@ void AIPrintout::OnPreparePrinting()
 {
  	//CAdapt_ItApp* pApp = &wxGetApp();
 	//CAdapt_ItView* pView = pApp->GetView();
-	
+
 	m_pApp->m_bIsPrintPreviewing = IsPreview(); // BEW added 5Oct11, so I can do kludges which
 			// differ, depending on whether we are print previewing, or printing to paper
 
@@ -573,7 +594,7 @@ void AIPrintout::OnPreparePrinting()
 	// for both pagination of a print preview, and pagination of an actual real (paper)
 	// printout, so that the number of printed pages is always the same number as shown in
 	// the print preview. These structs are then used by OnPrintPage() for printing or
-	// previewing. 
+	// previewing.
 	bAllsWell = m_pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
 	if (!bAllsWell)
 	{
@@ -604,14 +625,14 @@ void AIPrintout::OnPreparePrinting()
     // end of OnPreparePrinting. These order differences mandate a radical change in the
     // contents of the various printing functions to implement similar functionality in the
     // wxWidgets version.
-	
+
     // The MFC version also has a code here (near the end of OnPreparePrinting and long
     // after print dialog is dismissed) to set up things for any range print called for
     // from the print dialog. The setup above sets things up for printing a selection. The
     // setup that the MFC version does at this point sets things up for a chapter:verse
     // range to print. In the wx version that code is placed at the beginning of the View's
     // OnPrint() higher level handler.
-    // 
+    //
     // Also, in the MFC version, if printing had to abort, the remainder of
     // OnPreparePrinting there was devoted to cleaning up indices, flags, doing
     // RecalcLayout, etc - things which the wx version does in the AIPrintout's class

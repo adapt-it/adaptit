@@ -7,7 +7,7 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public
 ///  License (see license directory)
-/// \description	This is the implementation file for the CStrip class. 
+/// \description	This is the implementation file for the CStrip class.
 /// The CStrip class represents the next smaller divisions of a CBundle.
 /// Each CStrip stores an ordered list of CPile instances, which are
 /// displayed in LtoR languages from left to right, and in RtoL languages
@@ -112,6 +112,7 @@ CPile* CStrip::GetPileByIndex(int index)
 
 void CStrip::Draw(wxDC* pDC)
 {
+#if !defined(__WXGTK__)
 	if (m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
 		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version,
@@ -120,10 +121,10 @@ void CStrip::Draw(wxDC* pDC)
 		POList::Node* pos = pList->Item(m_pLayout->m_pApp->m_nCurPage-1);
 		// whm 27Oct11 added test to return if pos == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
-		// function can get triggered by the Linux system on that platform 
-		// before App's m_nCurPage is calculated by OnPreparePrinting()'s 
-		// call of PaginateDoc() in the printing framework (see notes on 
-		// calling order of print routines starting at line 108 of 
+		// function can get triggered by the Linux system on that platform
+		// before App's m_nCurPage is calculated by OnPreparePrinting()'s
+		// call of PaginateDoc() in the printing framework (see notes on
+		// calling order of print routines starting at line 108 of
 		// AIPrintout.cpp).
 		// BEW 28Oct11, using m_bPagePrintInProgress in the above test, rather
 		// than the earlier m_bIsPrinting should make the next two lines be
@@ -134,6 +135,7 @@ void CStrip::Draw(wxDC* pDC)
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
 	}
+#endif
 #ifdef Print_failure // declaration commented out in line 22 of Layout.h
 #ifdef __WXDEBUG__
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
@@ -199,7 +201,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		int nHorzOffset_FromLeft = 0;
 		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
 		int nWidthOfPreviousPile = 0;
-		
+
         // we must always have at least one pile in the strip in order to prevent an
         // infinite loop of empty strips if the width of the first pile should happen to
         // exceed the strip's width; so we place the first unilaterally, regardless of its
@@ -213,7 +215,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		}
 		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
+			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
                     // large enough to accomodate the phrase box's width, even if just
                     // expanded due to the user's typing
 		}
@@ -231,8 +233,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pileIndex_InStrip++;
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 		nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
-	
-		// if m_nFree went negative or zero, we can't fit any more piles, so declare 
+
+		// if m_nFree went negative or zero, we can't fit any more piles, so declare
 		// the strip full
 		if (m_nFree <= 0)
 		{
@@ -309,7 +311,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;	
+			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 		}
 	}
 //	else
@@ -319,7 +321,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		int nHorzOffset_FromRight = 0;
 		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
 		int nWidthOfPreviousPile = 0;
-		
+
         // we must always have at least one pile in the strip in order to prevent an infinite
         // loop of empty strips if the width of the first pile should happen to exceed the
         // strip's width; so we place the first unilaterally, regardless of its width
@@ -351,7 +353,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 		nHorzOffset_FromRight = nWidthOfPreviousPile + gap;
 
-		// if m_nFree went negative or zero, we can't fit any more piles, so declare 
+		// if m_nFree went negative or zero, we can't fit any more piles, so declare
 		// the strip full
 		if (m_nFree <= 0)
 		{
@@ -392,7 +394,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			}
 			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
+				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be
                                 // large enough to accomodate the phrase box's width, even
                                 // if just expanded due to the user's typing
 			}
@@ -435,7 +437,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 //	}
 	// if the loop exits because the while test yields FALSE, then either we are at the end of the
 	// document or the first pile was wider than the whole strip - in either case we must declare
-	// this strip filled and we are done	
+	// this strip filled and we are done
 	m_bValid = TRUE;
 	return pos; // the iterator value where we start when we create the next strip
 }
@@ -477,11 +479,11 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 
 	// lay out the piles...
     // Note: RTL layout and LRT layout of the piles in the strip uses exactly the same code
-    
+
 	int nHorzOffset_FromLeft = 0;
 	int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
 	int nWidthOfPreviousPile = 0;
-	
+
     // we must always have at least one pile in the strip in order to prevent an
     // infinite loop of empty strips if the width of the first pile should happen to
     // exceed the strip's width; so we place the first unilaterally, regardless of its
@@ -553,7 +555,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	}
 	nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
 
-	// if m_nFree went negative or zero, we can't fit any more piles, so declare 
+	// if m_nFree went negative or zero, we can't fit any more piles, so declare
 	// the strip full
 	if (m_nFree <= 0)
 	{
@@ -615,7 +617,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			pileWidth = pPile->m_nMinWidth;
 		}
-		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space 
+		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space
 						// for this pile to be eligible for inclusion in the strip
 		if (nCurrentSpan <= m_nFree)
 		{
@@ -625,7 +627,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			numPlaced++; // increment counter of how many placed
 			pileIndex++; // set tracker index to index of next pile to be placed
 			m_nFree -= nCurrentSpan; // reduce the free space accordingly
-			pPile->m_nPile = pileIndex_InStrip; // store its index within strip's 
+			pPile->m_nPile = pileIndex_InStrip; // store its index within strip's
 												// m_arrPiles array
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
@@ -647,7 +649,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 #ifdef __WXDEBUG__
 	{
 		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
-		wxLogDebug(_T("2.1	inloop	CreateStrip:  nCurrentSpan <= m_nFree is TRUE so return,  pile[%d] Placed %d , nCurrentSpan %d m_nFree %d srcPhrase %s"), 
+		wxLogDebug(_T("2.1	inloop	CreateStrip:  nCurrentSpan <= m_nFree is TRUE so return,  pile[%d] Placed %d , nCurrentSpan %d m_nFree %d srcPhrase %s"),
 					pileIndex - 1, numPlaced, nCurrentSpan, m_nFree, src);
 	}
 #endif
@@ -690,12 +692,12 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		{
 			CPile* pile = pos->GetData();
 			wxString src = pile->GetSrcPhrase()->m_srcPhrase;
-			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d Trying srcPhrase %s"), 
+			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d Trying srcPhrase %s"),
 				pos, pileIndex - 1, numPlaced, src);
 		}
 		else
 		{
-			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d , and WILL EXIT since pos is NULL"), 
+			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d , and WILL EXIT since pos is NULL"),
 				pos, pileIndex - 1, numPlaced);
 		}
 	}
@@ -746,7 +748,7 @@ int CStrip::Left()
 
 int CStrip::Top()
 {
-	return m_pLayout->GetCurLeading() + m_nStrip * (Height() 
+	return m_pLayout->GetCurLeading() + m_nStrip * (Height()
 				+ m_pLayout->GetCurLeading());
 }
 
@@ -760,7 +762,7 @@ void CStrip::SetFree(int nFree)
 	m_nFree = nFree;
 }
 
-// set the value of the validity flag 
+// set the value of the validity flag
 void CStrip::SetValidityFlag(bool bValid)
 {
 	m_bValid = bValid;
