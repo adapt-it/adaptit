@@ -1138,6 +1138,12 @@ struct EmailReportData
 	wxString packedDocumentFilePathName;
 };
 
+enum freeTransModeSwitch
+{
+	ftModeOFF,
+	ftModeON
+};
+
 /// wxHashMap declaration for the MapMenuLabelStrToIdInt class - a mapped association
 /// of Menu label keys (wxString) with integers representing Menu Id int values.
 WX_DECLARE_HASH_MAP(wxString,

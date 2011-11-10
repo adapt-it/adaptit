@@ -3968,15 +3968,21 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 	}
 
 	// klb 9/2011 extracted most of the code here and moved to SwitchScreenFreeTranslationMode()
-	SwitchScreenFreeTranslationMode();
+	if (m_pApp->m_bFreeTranslationMode)
+		SwitchScreenFreeTranslationMode(ftModeOFF);
+	else
+		SwitchScreenFreeTranslationMode(ftModeON);
+	
 
 }
 //*****************
 // klb 9/2011
 //    extracted most of the code from CFreeTrans::OnAdvancedFreeTranslationMode 
 //       and created this call so free translations could be drawn on print preview
-//       in the background when requested (print preview relies on what is on screen)
-void CFreeTrans::SwitchScreenFreeTranslationMode()
+//       in the background when requested (print preview relies on what is on screen
+// whm 10Nov11 added enum freeTransModeSwitch ftModeSwitch parameter, to enable caller 
+// to explicitly turn the mode on or off rather than act like a blind toggle.
+void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch)
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
@@ -3993,7 +3999,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode()
 	gbIsUnstructuredData = m_pView->IsUnstructuredData(pSrcPhrases);
 
 	// toggle the setting
-	if (m_pApp->m_bFreeTranslationMode)
+	if (ftModeSwitch == ftModeOFF) //if (m_pApp->m_bFreeTranslationMode)
 	{
 		// toggle the checkmark to OFF
 		if (pAdvancedMenuFTMode != NULL)
@@ -4007,7 +4013,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode()
         // RecalcLayout() call within ComposeBarGuts() below
 		StoreFreeTranslationOnLeaving();
 	}
-	else
+	else if (ftModeSwitch == ftModeON)
 	{
 		// toggle the checkmark to ON
 		if (pAdvancedMenuFTMode != NULL)

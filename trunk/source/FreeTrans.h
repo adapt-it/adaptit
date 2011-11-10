@@ -90,7 +90,7 @@ public:
 					enum EditBoxContents editBoxContents, const wxString& mkrStr);
 	void		StoreFreeTranslationOnLeaving();
 	void		ToggleFreeTranslationMode();
-	void		SwitchScreenFreeTranslationMode(); // klb 9/2011 to support Print Preview
+	void		SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch); // klb 9/2011 to support Print Preview
 
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);

@@ -3461,7 +3461,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	if (gbCheckInclFreeTransText && !pApp->m_bFreeTranslationMode)
 	{
 		bHideFreeTranslations = TRUE;
-		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode();
+		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeON);
 	}
 	bool bHideGlosses = FALSE;
 	if (gbCheckInclGlossesText && !gbGlossingVisible)
