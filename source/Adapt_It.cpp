@@ -5,7 +5,7 @@
 /// \date_created	05 January 2004
 /// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public 
+/// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
 /// \description This is the implementation file for the CAdapt_ItApp class and the
 /// AIModalDialog class. The CAdapt_ItApp class initializes Adapt It's application and gets
@@ -18,8 +18,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-#if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this. 
-// Testing it is equivalent to testing (__GNUC__ && __cplusplus). 
+#if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this.
+// Testing it is equivalent to testing (__GNUC__ && __cplusplus).
     #pragma implementation "Adapt_It.h"
 #endif
 
@@ -70,7 +70,7 @@
 
 
 // the next are for wxHtmlHelpController (wxWidgets chooses the appropriate help controller
-// class) 
+// class)
 #include <wx/filesys.h>
 #include <wx/fs_arc.h>
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
@@ -94,28 +94,28 @@
 #endif
 
 // The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
-// under the LGPL. The vld.h header usage is described in an article on The Code 
-// Project called "Memory Leak Detection". It generates better memory leak detection 
+// under the LGPL. The vld.h header usage is described in an article on The Code
+// Project called "Memory Leak Detection". It generates better memory leak detection
 // reporting under Visual Studio.
-// 
+//
 // Note: The Visual Leak Detector (vld) and how it works are found at:
-// http://www.codeproject.com/KB/applications/visualleakdetector.aspx 
-// Note: Downloads from codeproject.com now require you set up a user account with password. 
-// Its code is not compiled into the program in release versions, but vld.h need only be 
-// included when memory leaks are detected by the debugger's Output report, and it is not 
+// http://www.codeproject.com/KB/applications/visualleakdetector.aspx
+// Note: Downloads from codeproject.com now require you set up a user account with password.
+// Its code is not compiled into the program in release versions, but vld.h need only be
+// included when memory leaks are detected by the debugger's Output report, and it is not
 // obvious what is the cause of the leak from the report.
-// 
+//
 // Steps I did to make this work with VC 8.0:
 // 1. copied vld.h and vldapi.h to the Visual Studio's VC include folder at:
-//    C:\Program Files\Microsoft Visual Studio 8\VC\include 
+//    C:\Program Files\Microsoft Visual Studio 8\VC\include
 // 2. copied vld.lib, vldmt.lib, and vldmtdll.lib to the Visual Studio's VC lib folder at:
-//    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
-// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
+//    C:\Program Files\Microsoft Visual Studio 8\VC\lib
+// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in
 //    debug builds.
 // 4. VLD in 2010 is better, much much faster, etc. http://vld.codeplex.com for the
 // download, and documentation is at http://vld.codeplex.com/documentation
-// 
-// If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
+//
+// If Visual Studio reports "memory leaks detected" and the source of leak is unclear,
 // uncomment the following include, recompile, run and exit the program for a more
 // detailed report of the memory leaks:
 #ifdef __WXMSW__
@@ -191,15 +191,15 @@
 
 // BEW added to on 18Jul09, the final set of booleans for support of printing
 extern bool gbIsBeingPreviewed;
-extern bool gbSuppressPrecedingHeadingInRange;	
-extern bool gbIncludeFollowingHeadingInRange;	
+extern bool gbSuppressPrecedingHeadingInRange;
+extern bool gbIncludeFollowingHeadingInRange;
 extern int	gnFromChapter;
 extern int	gnFromVerse;
 extern int	gnToChapter;
 extern int	gnToVerse;
 
 /// This global is defined in TransferMarkersDlg.cpp.
-extern bool gbPropagationNeeded;	
+extern bool gbPropagationNeeded;
 
 /// This global is defined in TransferMarkersDlg.cpp.
 extern TextType gPropagationType;
@@ -233,8 +233,8 @@ fontInfo TgtFInfo;
 /// are read and written back out to the config files to maintain backward compatibility.
 fontInfo NavFInfo;
 
-/// A global instance of PageOffsets. Used for saving top and bottom logical coord offsets 
-/// for printing pages, stored in m_pagesList. The pgOffsets are populated in the 
+/// A global instance of PageOffsets. Used for saving top and bottom logical coord offsets
+/// for printing pages, stored in m_pagesList. The pgOffsets are populated in the
 /// PaginateDoc() function in the CAdapt_ItView and AIPrintout classes.
 PageOffsets pgOffsets;
 
@@ -275,13 +275,13 @@ WX_DEFINE_LIST(MainMenuItemList);
 #define nU16BOMLen 2
 
 // globals
- 
+
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp 
+extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp
 			// (for vertical edit functionality)
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbAdaptBeforeGloss; // defined in Adapt_ItView.cpp 
+extern bool gbAdaptBeforeGloss; // defined in Adapt_ItView.cpp
 			// (for vertical edit functionality)
 
 /// BEW added 01Oct06, so that calling WriteProjectSettingsConfiguration() which is called
@@ -293,7 +293,7 @@ extern bool gbAdaptBeforeGloss; // defined in Adapt_ItView.cpp
 /// turn off book mode which was on when the app last exitted. We can't have this happen,
 /// so we use this new flag to suppress the config file write for the project settings
 /// until we are actually in the wizard (and hence passed all the initializations).
-bool gbPassedAppInitialization = FALSE; 
+bool gbPassedAppInitialization = FALSE;
 
 /// When TRUE gbUpdateDocTitleNeeded causes OnIdle() to update the window title if the open
 /// attempt failed, otherwise the failed doc name remains in the window's title bar. Note,
@@ -321,7 +321,7 @@ extern int gnEndInsertionsSequNum;
 /// active due to the user attempting to open a file from the MRU list (if the file no
 /// longer exists and is an XML one, we use the bool TRUE value to give the user a nice
 /// informative message and avoid ugly error messages, and allow him to try again.
-bool gbTryingMRUOpen = FALSE;	
+bool gbTryingMRUOpen = FALSE;
 
 /// This global is defined in SplitDialog.cpp. (It has nothing to do with window
 /// splitting, but is for splitting the document's list of source phrase instances into
@@ -409,7 +409,7 @@ bool gbSaveHilightingSetting = FALSE;
 /// base from the existing documents and reporting retranslations). TRUE if the current
 /// project's Adaptations folder contains Bible book folders (whether or not book mode is
 /// currently on) (for XML or binary, a local Boolean will suffice).
-bool gbHasBookFolders = FALSE; // 
+bool gbHasBookFolders = FALSE; //
 
 // for support of auto-capatalization
 
@@ -425,22 +425,22 @@ bool gbSrcHasUcAndLc = FALSE;
 bool gbAutoCaps = FALSE;
 
 /// Refers to first character of the source word or phrase; TRUE if the source is upper
-/// case, otherwise FALSE. 
+/// case, otherwise FALSE.
 bool gbSourceIsUpperCase = FALSE;
 
 /// Refers to first character of the contents of the phrase box, which may contain a gloss
 /// or an adaptation depending on the value of gbIsGlossing.
-bool gbNonSourceIsUpperCase = FALSE; 
+bool gbNonSourceIsUpperCase = FALSE;
 
 /// if the source has an initial UC character and the first KB lookup fails, then a KB
 /// lookup is done with UC first character, and if found this flag is set TRUE.
-bool gbMatchedKB_UCentry = FALSE; 
+bool gbMatchedKB_UCentry = FALSE;
 
 /// Set TRUE if source language is caseless, or user does not define any case equivalences.
-bool gbNoSourceCaseEquivalents = FALSE; 
+bool gbNoSourceCaseEquivalents = FALSE;
 
 /// Set TRUE if user does not define any case equivalences for the target language.
-bool gbNoTargetCaseEquivalents = FALSE; 
+bool gbNoTargetCaseEquivalents = FALSE;
 
 /// Set TRUE if user does not define any case equivalences for the gloss language.
 bool gbNoGlossCaseEquivalents = FALSE;
@@ -460,7 +460,7 @@ wxChar	gcharSrcUC;
 /// Use to suppress the message box asking if the src language has upper/lower case
 /// distinction, when the flag is being restored to TRUE from reading the project's config
 /// file.
-bool gbSuppressAutoCapsAsk = FALSE; 
+bool gbSuppressAutoCapsAsk = FALSE;
 
 /// This global is defined in OpenExistingProjectDlg.cpp.
 extern bool gbExcludeCurrentProject;
@@ -509,7 +509,7 @@ extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox function
 /// character. For cross-platform considerations, the gSFescapechar is handled totally
 /// apart from the wxWidgets PathSeparator.
 wxChar gSFescapechar = _T('\\'); // standard format escape char, default is backslash
-									
+
 /// TRUE while there is no m_targetBox created, during setup of the view. It is used to
 /// prevent premature merges, and at 6May09, also to suppress the interpretation of a null
 /// active pile pointer being due to having reached the doc end (because at initial launch
@@ -530,7 +530,7 @@ bool gbRTL_Layout = FALSE;
 /// line height too large, but is not enough because the style is diff. So I'll the sum of
 /// the ext & int leadings to the box height, and +4 to allow for the thicker boundary at
 /// top and bottom.
-int gnVerticalBoxBloat = 0; 
+int gnVerticalBoxBloat = 0;
 
 /// TRUE if <New Project> selected in the Wizard, otherwise FALSE.
 bool gbWizardNewProject = FALSE;
@@ -545,10 +545,10 @@ wxHtmlHelpController* m_pHelpController = (wxHtmlHelpController*)NULL;
 extern short gnExpandBox;  // see start of Adapt_ItView.cpp for explanation of these
 
 /// This global is defined in Adapt_ItView.cpp.
-extern short gnNearEndFactor; 
+extern short gnNearEndFactor;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern	bool gbLegacySourceTextCopy; // defined in Adapt_ItView.cpp, to govern 
+extern	bool gbLegacySourceTextCopy; // defined in Adapt_ItView.cpp, to govern
 			// the default phrase box text
 
 /// Pointer to the Start Working Wizard instance.
@@ -593,7 +593,7 @@ extern int nCurrentSequNum;
 /// set TRUE if m_bDisableBookMode is TRUE when SetupDirectories() is called (the post MRU
 /// file click is the time when this is significant, because there is not enough info to
 /// recreate the folder path if books.xml failed on input or parse).
-bool gbAbortMRUOpen = FALSE; 
+bool gbAbortMRUOpen = FALSE;
 
 // Bible books folders support - folder name defaults for when there is no "books.XML" file
 // in work folder. NT and OT book name string constants, for GUI - especially setting up a
@@ -872,9 +872,9 @@ const wxChar* _65BKCODE = _("REV");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
 const wxChar* _66BKCODE = _("OTX");
 
-wxString dummyBack = _("&Finish"); // the wxstd.mo file doesn't seem to have 
+wxString dummyBack = _("&Finish"); // the wxstd.mo file doesn't seem to have
 			// this wizard button for localizing, so I add it here
-wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have 
+wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have
 			// this wizard button for localizing, so I add it here
 
 // support for USFM and SFM Filtering
@@ -884,8 +884,8 @@ wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have
 /// the AI_USFM.xml control file.
 /// The default data strings can be produced automatically by making the following
 /// temporary changes in the code:
-/// 1. Temporarily uncomment the #define Output_Default_Style_Strings line at the 
-/// beginning of XML.h file. 
+/// 1. Temporarily uncomment the #define Output_Default_Style_Strings line at the
+/// beginning of XML.h file.
 /// 2. Copy the current AI_USFM_full.xml file from the project's xml folder to the "Adapt
 /// It Work" folder (this file which contains the full style information and from which the
 /// AI_USFM.xml file for distribution to users is produced via the UsfmXml.cct and
@@ -903,7 +903,7 @@ wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have
 /// file so that the application won't continue to produce the temporary AI_USFM_full.txt
 /// file in the work folder, but will instead revert back to using the normal (abbreviated)
 /// AI_USFM.xml file on program startup.
-const wxString defaultSFM[] = 
+const wxString defaultSFM[] =
 {
 _T("id::File identification (BOOKID, FILENAME, EDITOR, MODIFICATION DATE):1:1::::1::1:id:11::id - File - Identification:0:1:65535::::::3::::::__normal:id::1:"),
 _T("ide::File encoding information:1::1::::1:::0::ide - File - Encoding:0:1:65535::::::3::::::__normal:ide::1:"),
@@ -1199,27 +1199,27 @@ _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::3:2
 const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1.3 the
 			// gnDefaultSFMs value is 283, but it will change as UBS adds markers to USFM
 
-// whm added 10Sep10 
-/// An array of wxStrings which, when parsed by SetupDefaultUserProfiles(), is used as 
+// whm added 10Sep10
+/// An array of wxStrings which, when parsed by SetupDefaultUserProfiles(), is used as
 /// default list of User Workflow Profile dialog item definitions. There definitions are
-/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
+/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control
 /// file.
-const wxString defaultProfileItems[] = 
+const wxString defaultProfileItems[] =
 {
 	// Note: In the strings below, the itemText field must use the & ALT-key shortcut as well as the
-	// accelerator substrings, i.e., \tCtrl-A. However, since this is not xml, we don't use any 
-	// xml "entities", i.e., &amp; &lt; or &gt; for '&', '<' and '>' within the itemText strings. 
+	// accelerator substrings, i.e., \tCtrl-A. However, since this is not xml, we don't use any
+	// xml "entities", i.e., &amp; &lt; or &gt; for '&', '<' and '>' within the itemText strings.
 	// Since the descriptionProfileN strings are administrator editable, it is possible that an administrator
 	// might edit into the string one of the entity characters '<', '>', '&', ''', or '"'. While these
 	// strings are internal within the program we retain their character representations in order to
 	// facilitate accurate comparisons of the descriptionProfileN strings. When the descriptionProfileN
 	// string data is about to be written to xml, however, we replace the entitity chars with their xml
 	// entity representations.
-	// 
+	//
 	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
-	// stored in the m_pUserProfiles struct on the heap with those that are used in the 
-	// defaultProfileItems string array below. It uses wxLogDebug() calls and even an assert 
-	// in some cases to alert the programmer of any significant differences/inconsistencies. 
+	// stored in the m_pUserProfiles struct on the heap with those that are used in the
+	// defaultProfileItems string array below. It uses wxLogDebug() calls and even an assert
+	// in some cases to alert the programmer of any significant differences/inconsistencies.
 	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.0.1\":adminModified=\"No\"")
 		_T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
@@ -1922,7 +1922,7 @@ const wxString defaultProfileItems[] =
 // whm 26Apr11added wxString arrays below for AI-PT collaboration
 // Array of all book ids. (from Paratext's canon.cs source file)
 wxString AllBookIds[] = {
-    _T("GEN"),   
+    _T("GEN"),
     _T("EXO"),
     _T("LEV"),
     _T("NUM"),
@@ -2007,7 +2007,7 @@ wxString AllBookIds[] = {
     _T("BEL"),
     _T("1MA"),
     _T("2MA"),
-    _T("3MA"), 
+    _T("3MA"),
     _T("4MA"), // 80
 
     _T("1ES"),
@@ -2032,11 +2032,11 @@ wxString AllBookIds[] = {
 	_T("XXG"),
 	_T("FRT"), // 100
 
-	_T("BAK"), 
+	_T("BAK"),
 	_T("OTH"),
-    _T("3ES"),   // Used previously but really should be 2ES 
+    _T("3ES"),   // Used previously but really should be 2ES
     _T("EZA"),   // Used to be called 4ES, but not actually in any known project
-    _T("5EZ"),   // Used to be called 5ES, but not actually in any known project  
+    _T("5EZ"),   // Used to be called 5ES, but not actually in any known project
     _T("6EZ"),   // Used to be called 6ES, but not actually in any known project
 	_T("INT"),
 	_T("CNC"),
@@ -2094,7 +2094,7 @@ wxString AllBookNames[] = {
     _("Hosea"),
     _("Joel"),
     _("Amos"),
-    
+
 	_("Obadiah"),
     _("Jonah"),
     _("Micah"),
@@ -2105,7 +2105,7 @@ wxString AllBookNames[] = {
     _("Zechariah"),
     _("Malachi"),
     _("Matthew"),
-    
+
 	_("Mark"),
     _("Luke"),
     _("John"),
@@ -2116,7 +2116,7 @@ wxString AllBookNames[] = {
     _("Galatians"),
     _("Ephesians"),
     _("Philippians"),
-    
+
 	_("Colossians"),
     _("1 Thessalonians"),
     _("2 Thessalonians"),
@@ -2127,7 +2127,7 @@ wxString AllBookNames[] = {
     _("Hebrews"),
     _("James"),
     _("1 Peter"),
-    
+
 	_("2 Peter"),
     _("1 John"),
     _("2 John"),
@@ -2138,7 +2138,7 @@ wxString AllBookNames[] = {
     _T("Judith"),
     _T("Esther Greek"),
     _T("Wisdom of Solomon"),
-    
+
 	_T("Sirach (Ecclesiasticus)"),
     _T("Baruch"),
     _T("Letter of Jeremiah"),
@@ -2149,7 +2149,7 @@ wxString AllBookNames[] = {
     _T("2 Maccabees"),
     _T("3 Maccabees"),
     _T("4 Maccabees"),
-    
+
 	_T("1 Esdras (Greek)"),
     _T("2 Esdras (Latin)"),
     _T("Prayer of Manasseh"),
@@ -2202,31 +2202,31 @@ wxString AllBookNames[] = {
 /*
 // whm removed since the app now gets its default menu structure from a temporary
 // instance of the wxDesigner's AIMenuBarFunc().
-// 
+//
 // Note: An array of top level menu names is available from the App's GetToopLevelMenuName()
 // function.
 
-// whm added 10Sep10 
-/// An array of wxStrings which, when parsed by ParseMenuStructureStrings(), is used as 
+// whm added 10Sep10
+/// An array of wxStrings which, when parsed by ParseMenuStructureStrings(), is used as
 /// default list of User Workflow Profile dialog item definitions. There definitions are
-/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control 
-/// file. Note: This menu structure is complete - it also includes the "Administrator" 
+/// used only if, for some reason, the program cannot find the AI_UserProfiles.xml control
+/// file. Note: This menu structure is complete - it also includes the "Administrator"
 /// menu items which are not included in the AI_UserProfiles.xml file.
-const wxString defaultMenuStructure[] = 
+const wxString defaultMenuStructure[] =
 {
 	// Note: In the strings below, the attribute fields should be identical to what the normal default
 	// strings are that are used within the AIMenuBarFunc() produced by wxDesigner. Hence, the subMenuID
 	// field should contain the exact menu item identifiers; the subMenuLabel should contain the exact
-	// menu label strings - including any accelerators (i.e., "\tCtrl-A") and ampersands preceding the 
+	// menu label strings - including any accelerators (i.e., "\tCtrl-A") and ampersands preceding the
 	// short cut ALT+key letters; the subMenuHelp should be the same as what is in wxDesigner; and the
 	// subMenuKind should accurately indicate whether the menu item is wxITEM_NORMAL, wxITEM_CHECK
 	// or wxITEM_SEPARATOR. Cut and paste of strings from the AIMenuBarFunc() in Adapt_It_wdr.cpp helps
 	// ensure exact copy - but Note: quote marks here need to be escaped with a backslash!
-	// 
+	//
 	// The ReportMenuAndUserProfilesInconsistencies() function compares the data
-	// stored in the m_pAI_MenuStructure struct on the heap with those that are used in the 
+	// stored in the m_pAI_MenuStructure struct on the heap with those that are used in the
 	// defaultMenuStructure string array below. It uses wxLogDebug() calls to alert the
-	// programmer of any significant differences/inconsistencies. 
+	// programmer of any significant differences/inconsistencies.
 	_T("MENU_STRUCTURE:"),
 	_T("MAIN_MENU:mainMenuID=\"ID_FILE_MENU\":mainMenuLabel=\"&File\":"),
 	_T("SUB_MENU:subMenuID=\"wxID_NEW\":subMenuLabel=\"&New\\tCtrl-N\":subMenuHelp=\"Create a new document\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -2485,7 +2485,7 @@ const wxString defaultMenuStructure[] =
 /// \param      seeNm      -> the book's visible name (localizable) for the interface
 /// \param      bookcode   -> three-letter code for the book (should be same as used on \id line)
 /// \remarks
-/// Called from: SetupDefaultBooksArray(). Assigns the members of the BookNamePair struct 
+/// Called from: SetupDefaultBooksArray(). Assigns the members of the BookNamePair struct
 /// pointed to by pPair with the values pointed to by the function's parameters.
 ////////////////////////////////////////////////////////////////////////////////////////
 BookNamePair* MakePair(BookNamePair*& pPair, wxChar* dirNm, wxChar* seeNm, wxChar* bookcode)
@@ -2498,19 +2498,19 @@ BookNamePair* MakePair(BookNamePair*& pPair, wxChar* dirNm, wxChar* seeNm, wxCha
 
 /// A global scratch pointer. Instances of BookNamePair are stored in the m_pBibleBooks
 /// pointer array.
-BookNamePair* gpBookNamePair; 
+BookNamePair* gpBookNamePair;
 
 /// A global scratch pointer. Instances of USFMAnalysis are stored in the m_pUsfmStylesMap,
 /// m_pPngStylesMap, and m_pUsfmAndPngStylesMap (of type MapSfmToUSFMAnalysisStruct).
-USFMAnalysis* gpUsfmAnalysis; 
+USFMAnalysis* gpUsfmAnalysis;
 
 /// A global scratch pointer. Instances of UserProfileItem are stored in the ProfileItemList
 /// and are used in setting up user workflow profiles
-//UserProfileItem* gpUserProfileItem; 
+//UserProfileItem* gpUserProfileItem;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pBookStructs  <- the array of void pointers to hold the pointers to book 
+/// \param      pBookStructs  <- the array of void pointers to hold the pointers to book
 ///                              structs
 /// \remarks
 /// Called from: the App's OnInit() if, on app startup, the app cannot find the books.xml
@@ -2618,7 +2618,7 @@ void SetupSinglesArray(wxArrayPtrVoid* pBooks)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pBookCodes  <-  the array of void pointers to hold the pointers to book 
+/// \param      pBookCodes  <-  the array of void pointers to hold the pointers to book
 ///                             codes
 /// \remarks
 /// Called from: the App's SetupDefaultBooksArray(). SetupDefaultBooksArray() in turn is
@@ -2718,15 +2718,15 @@ bool GetBoolValueFromStr1orStr0(wxString temp)
 	else
 	{
 		wxASSERT(FALSE);
-		return TRUE; 
+		return TRUE;
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pSFM        <-  pointer to the USFMAnalysis struct whose members are 
+/// \param      pSFM        <-  pointer to the USFMAnalysis struct whose members are
 ///                             to be assigned
-/// \param      defaultSFM  ->  The Unix-like default string representing the fields 
+/// \param      defaultSFM  ->  The Unix-like default string representing the fields
 ///                             of a USFMAnalysis struct separated by colon ":" chars
 /// \remarks
 /// Called from: the App's SetupDefaultStylesMap() which fills out the members of a
@@ -2750,10 +2750,10 @@ void ParseAndFillStruct(USFMAnalysis*& pSFM, wxString defaultSFM)
 		{
 			// we're at the end of a field
 			// empty non-string fields are assumed to represent a value of "0"
-			if (temp == _T("") 
-				&& !(fieldEnum == marker || fieldEnum == endMarker 
+			if (temp == _T("")
+				&& !(fieldEnum == marker || fieldEnum == endMarker
 				     || fieldEnum == description || fieldEnum == navigationText
-					 || fieldEnum == styleName || fieldEnum == basedOn 
+					 || fieldEnum == styleName || fieldEnum == basedOn
 					 || fieldEnum == nextStyle))
 				temp = _T("0");
 			// in the switch below:
@@ -2776,7 +2776,7 @@ void ParseAndFillStruct(USFMAnalysis*& pSFM, wxString defaultSFM)
 				case navigationText:   pSFM->navigationText = temp; break;
 				case textType:         pSFM->textType  = (TextType)wxAtoi(temp); break;
 				case wrap:             pSFM->wrap = GetBoolValueFromStr1orStr0(temp); break;
-				case styleName:        pSFM->styleName = temp; break; 
+				case styleName:        pSFM->styleName = temp; break;
 				case styleType:        pSFM->styleType = (StyleType)wxAtoi(temp); break;
 				case fontSize:         pSFM->fontSize = wxAtoi(temp); break;
 				case color:            pSFM->color = wxAtoi(temp); break;
@@ -2795,9 +2795,9 @@ void ParseAndFillStruct(USFMAnalysis*& pSFM, wxString defaultSFM)
 				case nextStyle:        pSFM->nextStyle = temp; break;
 				case keepTogether:     pSFM->keepTogether = GetBoolValueFromStr1orStr0(temp); break;
 				case keepWithNext:     pSFM->keepWithNext = GetBoolValueFromStr1orStr0(temp); break;
-				default: 
+				default:
 					{
-						// This shouldn't happen. It would be an internal error due to 
+						// This shouldn't happen. It would be an internal error due to
 						// incorrectly formatted default strings in defaultSFM[] above
 						// If there is a serious problem this could be called 266 times,
 						// so only give it once.
@@ -2838,14 +2838,14 @@ void SetupDefaultStylesMap()
 	{
 		gpUsfmAnalysis = new USFMAnalysis;
 		// whm Note: The object pointed at by gpUsfmAnalysis will not ordinarily
-		// need to be deleted by calling delete on the gpUsfmAnalysis "scratch" 
-		// pointer, because each such object created here will be handed off to 
-		// another data structure which will eventually be responsible for 
+		// need to be deleted by calling delete on the gpUsfmAnalysis "scratch"
+		// pointer, because each such object created here will be handed off to
+		// another data structure which will eventually be responsible for
 		// object deletion of the objects it owns in OnExit(). It need only be
 		// deleted directly if it cannot be handed off to an appropriate data
 		// structure (see below).
-		// 
-		// set the gpUsfmAnalysis struct attributes from the parsed defaultSFM 
+		//
+		// set the gpUsfmAnalysis struct attributes from the parsed defaultSFM
 		// strings values
 		ParseAndFillStruct(gpUsfmAnalysis,defaultSFM[i]);
 		wxString bareMkr = gpUsfmAnalysis->marker;
@@ -2871,7 +2871,7 @@ void SetupDefaultStylesMap()
 				// key doesn't already exist in the map, so add it
 				(*gpApp->m_pUsfmAndPngStylesMap)[bareMkr] = gpUsfmAnalysis;
 			}
-		
+
 		}
 		if (gpUsfmAnalysis->png)
 		{
@@ -2907,20 +2907,20 @@ void SetupDefaultStylesMap()
 /// \return     nothing
 /// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being populated
 /// \remarks
-/// Called from: the App's OnInit(), ReportMenuAndUserProfilesInconsistencies(), and 
-/// CAdminEditMenuProfile::InitDialog. It is called in OnInit() to set up a 
-/// factoryUserProfiles struct on the heap for use in AdminEditMenuProfile class. 
-/// It is also called if the app cannot find the AI_UserProfiles.xml file and it must 
-/// use SetupDefaultUserProfiles() to establish its internal representation of any user 
-/// selected User Workflow Profile. 
-/// When AI_UserProfiles.xml is available (the usual case) the m_pUserProfiles is 
-/// populated by the AtPROFILEEndTag() function in XML.cpp, rather than by this 
+/// Called from: the App's OnInit(), ReportMenuAndUserProfilesInconsistencies(), and
+/// CAdminEditMenuProfile::InitDialog. It is called in OnInit() to set up a
+/// factoryUserProfiles struct on the heap for use in AdminEditMenuProfile class.
+/// It is also called if the app cannot find the AI_UserProfiles.xml file and it must
+/// use SetupDefaultUserProfiles() to establish its internal representation of any user
+/// selected User Workflow Profile.
+/// When AI_UserProfiles.xml is available (the usual case) the m_pUserProfiles is
+/// populated by the AtPROFILEEndTag() function in XML.cpp, rather than by this
 /// SetupDefaultUserProfiles() function. After setting up the pUserProfiles struct
 /// this function also calls GetAndAssignIdValuesToUserProfilesStruct().
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 {
-	
+
 	// testing below !!!
 	//wxArrayString defaultProfItems;
 	//defaultProfItems.Add(_T("Save &As...\tCtrl-A"));
@@ -2937,7 +2937,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 	// Note: testing shows that we can use ::wxGetTranslation() as long as we use the
 	// exact & and \tCtrl-key embellishments.
 	// testing above !!!
-	
+
 	wxString field = _T("");
 	int nDefaultUserProfileItems;
 	UserProfileItem* pUserProfileItem = NULL;
@@ -2963,8 +2963,8 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 				// we're at the end of a field and field contains the string token
 				// up to, but not including the : delimiter.
 				// If the field doesn't have an '=' in it, it should be an all-caps
-				// tag name; if it has an '=' in it, the field should contain an 
-				// attribute name followed by the '=' with the attribute's value 
+				// tag name; if it has an '=' in it, the field should contain an
+				// attribute name followed by the '=' with the attribute's value
 				// within quote marks, i.e., attributeName="value".
 				// Parse the field into its parts
 				if (field.Find(_T("=")) == wxNOT_FOUND)
@@ -3076,7 +3076,7 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 							tempS.Remove(posn,1);
 							tempS.insert(posn,_T("\\t"));
 						}
-						pUserProfileItem->itemText = tempS; 
+						pUserProfileItem->itemText = tempS;
 						//pUserProfileItem->itemText = valueStr;
 					}
 					else if (attrStr == wxString::FromAscii(itemDescr))
@@ -3126,12 +3126,12 @@ void CAdapt_ItApp::SetupDefaultUserProfiles(UserProfiles*& pUserProfiles)
 /// \param      <- baseUserProfiles  a pointer to the UserProfiles struct whose profile items
 ///                 are the basis against which the compareUserProfiles items are being compared
 /// \remarks
-/// Called from: the App's UpdateAdminModifiedLineToYesOrNo(). 
-/// Determines if the current user profile m_pUserProfiles (compareUserProfiles) differs from 
-/// the factory profile m_pFactoryUserProfiles (baseUserProfiles). It only check for differences in 
-/// profile items that the two profiles (compareUserProfiles and baseUserProfiles) have in common. 
-/// It ignores any profile items that are present but are not shared in common. This allows 
-/// upgrades to be done where different profile items might be present/absent in the course 
+/// Called from: the App's UpdateAdminModifiedLineToYesOrNo().
+/// Determines if the current user profile m_pUserProfiles (compareUserProfiles) differs from
+/// the factory profile m_pFactoryUserProfiles (baseUserProfiles). It only check for differences in
+/// profile items that the two profiles (compareUserProfiles and baseUserProfiles) have in common.
+/// It ignores any profile items that are present but are not shared in common. This allows
+/// upgrades to be done where different profile items might be present/absent in the course
 /// of an upgrade to a newer, or downgrade to an older version of the application and the
 /// AI_UserProfiles.xml file.
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -3141,13 +3141,13 @@ bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles
 	// and compareUserProfiles. See MapChangesInUserProfiles().
 	bool bTheyDiffer = FALSE;
 	// Strategy:
-	// There is an m_pFactoryUserProfiles (baseUserProfiles) struct created in OnInit() 
-	// that we can use for comparison with the current compareUserProfiles. This comparison 
-	// ignores the adminModified attributes and others which are not editable by the 
+	// There is an m_pFactoryUserProfiles (baseUserProfiles) struct created in OnInit()
+	// that we can use for comparison with the current compareUserProfiles. This comparison
+	// ignores the adminModified attributes and others which are not editable by the
 	// administrator. If CommonItemsInProfilesDiffer() returns FALSE it means that the
 	// compareUserProfiles struct essentially contains only baseUserProfiles (i.e., factory)
 	// data.
-	
+
 	wxASSERT(compareUserProfiles != NULL);
 	wxASSERT(baseUserProfiles != NULL);
 
@@ -3157,7 +3157,7 @@ bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles
 		// items with their associated values.
 		MapProfileChangesToStringValues tempMap;
 		MapProfileChangesToStringValues::iterator iter;
-		
+
 		// Enter all compareUserProfiles items into our tempMap
 		// First enter all of compareUserProfiles->descriptionProfileTexts into the map
 		int descCt;
@@ -3213,10 +3213,10 @@ bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles
 		//{
 		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
 		//}
-		
+
 		// Now go through all items of the baseUserProfiles struct, and do a lookup to see if
-		// each item is in the map. If so, check the map's associated value. If the map's 
-		// associated value is different, then we immediately return TRUE. 
+		// each item is in the map. If so, check the map's associated value. If the map's
+		// associated value is different, then we immediately return TRUE.
 		int appCt;
 		int appTot = (int)baseUserProfiles->descriptionProfileTexts.GetCount();
 		int nAppItemsNotAmongTempItems = 0;
@@ -3225,7 +3225,7 @@ bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles
 		{
 			wxString key = wxString::FromAscii(descriptionProfile);
 			key << appCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
-			
+
 			iter = tempMap.find(key);
 			if (iter != tempMap.end())
 			{
@@ -3298,9 +3298,9 @@ bool CAdapt_ItApp::CommonItemsInProfilesDiffer(UserProfiles* compareUserProfiles
 /// \param      <- pUserProfiles  a pointer to the UserProfiles struct whose profile items
 ///                 are being modified
 /// \remarks
-/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog(). 
+/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog().
 /// Scans through pUserProfiles and assigns the itemIDint values by looking them up in the
-/// m_mapMenuLabelStrToIdInt and assigning the mapped int values to the itemIDint member of 
+/// m_mapMenuLabelStrToIdInt and assigning the mapped int values to the itemIDint member of
 /// the UserProfileItem part of pUserProfiles.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUserProfiles)
@@ -3330,12 +3330,12 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 				// will never be menuSeparator
 				// now look up the mapped int value
 				MapMenuLabelStrToIdInt::iterator iter;
-				
+
 				// Note: the \t chars in the xml and internal strings become \\t literals
 				// and need to be changed to \t to work in the menus.
 				wxString labelStr = itemTextPlain;
 				labelStr.Replace(_T("\\t"),_T("\t"));
-				
+
 				iter = m_mapMenuLabelStrToIdInt.find(labelStr);
 				int itemId = -1;
 				if (iter != m_mapMenuLabelStrToIdInt.end())
@@ -3365,13 +3365,13 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 /// \param      -> adminModifiedStr the string value of the adminModified attribute in the xml file, i.e.,
 ///                 which is "Yes" or "No"
 /// \remarks
-/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog(). 
-/// Opens and reads the AI_UserProfiles.xml file at the AIuserProfilesWorkFolderPath path, 
-/// and retrieves the string values associated with these three attribute values: profileVersion, 
-/// applicationCompatibility, and adminModified. It returns them in the parameters passed by 
+/// Called from the App's OnInit(), SetupDefaultUserProfiles(), and CAdminEditMenuProfile::InitDialog().
+/// Opens and reads the AI_UserProfiles.xml file at the AIuserProfilesWorkFolderPath path,
+/// and retrieves the string values associated with these three attribute values: profileVersion,
+/// applicationCompatibility, and adminModified. It returns them in the parameters passed by
 /// reference.
 /////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath, 
+void CAdapt_ItApp::GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfilesWorkFolderPath,
 		wxString& profileVersionStr,wxString& applicationCompatibilityStr,wxString& adminModifiedStr)
 {
 	wxTextFile f;
@@ -3462,7 +3462,7 @@ void CAdapt_ItApp::GetVersionAndModInfoFromProfilesXMLFile(wxString AIuserProfil
 /// \param      <- backupPathNameUsed the string value returned of the backup file name generated for the
 ///                 backup, i.e., of the form AI_UserProfiles_Old_nn.xml where nn is 01, 02, 03, etc.
 /// \remarks
-/// Called from the App's OnInit(). 
+/// Called from the App's OnInit().
 /// Makes a backup copy of the user's AI_UserProfiles.xml file naming it to AI_UserProfiles_Oldnn.xml
 /// where nn is a numerical 01, 02, 03, etc., to avoid overwriting a previous backup. The backup copy
 /// is made in the user's work folder (m_userProfileFileWorkFolderPath). This function does not remove
@@ -3498,10 +3498,10 @@ bool CAdapt_ItApp::BackupExistingUserProfilesFileInWorkFolder(wxString AIuserPro
 /// \param      <- m_mapMenuLabelStrToIdInt a mapping of menu id strings to their menu id int values
 /// \remarks
 /// Called from: the App's OnInit().
-/// It represents Adapt It's default menu structure as derived from a temporary version of AI's 
-/// menu bar (without being configured for any user profiles). Assumes pMenuStructure is NULL 
-/// on entry to this function. While setting up the default menu structure, this function also 
-/// populates the m_mapMenuLabelStrToIdInt map which is used in the 
+/// It represents Adapt It's default menu structure as derived from a temporary version of AI's
+/// menu bar (without being configured for any user profiles). Assumes pMenuStructure is NULL
+/// on entry to this function. While setting up the default menu structure, this function also
+/// populates the m_mapMenuLabelStrToIdInt map which is used in the
 /// GetAndAssignIdValuesToUserProfilesStruct().
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, MapMenuLabelStrToIdInt& m_mapMenuLabelStrToIdInt)
@@ -3544,21 +3544,21 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 			//pMainMenuItem->mainMenuID = _T("");
 			pMainMenuItem->mainMenuLabel = _T("");
 			pMainMenuItem->aiSubMenuItems.Clear();
-			
+
 			// get values for pMainMenuItem's members from the temp AI menu bar pMenuBar
 			wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
 			pMainMenuItem->mainMenuLabel = mbMainMenuText;
-			// For some reason a wxMenu item (top level or sub menu item) does not have a 
+			// For some reason a wxMenu item (top level or sub menu item) does not have a
 			// GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
 			// determine the int ID of a main menu item in a round-about way.
-			
+
 			pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
 			//pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
 			// Consider: When the compiled all of the menu item IDs are determined and those const int values
 			// are used at run time. They don't change during execution or even from session to session of a
 			// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
 			// especially since the mainMenuIDint value never changes.
-			
+
 			// insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
 			// Note: we remove menu decorations since we want to be able to look up the plain label in
 			// the map
@@ -3599,8 +3599,8 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 				pSubMenuItem->subMenuLabel = _T("");
 				pSubMenuItem->subMenuHelp = _T("");
 				pSubMenuItem->subMenuKind = _T("");
-				
-				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's 
+
+				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's
 				// pmbSubMenuItem objects
 				//pSubMenuItem->subMenuID = // we can get along without this string representation mainMenuID
 				// Consider: When the compiled all of the menu item IDs are determined and those const int values
@@ -3617,12 +3617,12 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 				wxString subMenuItemLabelPlain = pSubMenuItem->subMenuLabel; //RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
 				if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
 					subMenuItemLabelPlain = _T("menuSeparator");
-				
+
 				// Note: the \t chars in the xml and internal strings become \\t literals
 				// and need to be changed to \t to work in the menus.
 				wxString labelStr = subMenuItemLabelPlain;
 				subMenuItemLabelPlain.Replace(_T("\\t"),_T("\t"));
-				
+
 				iter = m_mapMenuLabelStrToIdInt.find(subMenuItemLabelPlain);
 				if (iter != m_mapMenuLabelStrToIdInt.end())
 				{
@@ -3653,7 +3653,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 	pMenuBar = (wxMenuBar*)NULL;
 }
 
-// This function's code borrowed brom SetupDefaultMenuStructure(). In this function, however, we do not 
+// This function's code borrowed brom SetupDefaultMenuStructure(). In this function, however, we do not
 // build any AI_MenuStructure, but simply populate the m_mapMenuLabelStrToIdInt map with the untranslated
 // unlocalized menu strings. Hence this function is called before any non-English locale catalog is loaded
 // in OnInit().
@@ -3687,21 +3687,21 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 			////pMainMenuItem->mainMenuID = _T("");
 			//pMainMenuItem->mainMenuLabel = _T("");
 			//pMainMenuItem->aiSubMenuItems.Clear();
-			
+
 			// get values for pMainMenuItem's members from the temp AI menu bar pMenuBar
 			wxString mbMainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
 			//pMainMenuItem->mainMenuLabel = mbMainMenuText;
-			// For some reason a wxMenu item (top level or sub menu item) does not have a 
+			// For some reason a wxMenu item (top level or sub menu item) does not have a
 			// GetId() method. Only a wxMenuItem has a GetId() method. Hence, we have to
 			// determine the int ID of a main menu item in a round-about way.
-			
+
 			//pMainMenuItem->mainMenuIDint = GetTopLevelMenuID(mbMainMenuText); // Note: a top level menu cannot be menuSeparator
 			//pMainMenuItem->mainMenuID = // we can get along without this string representation mainMenuID
 			// Consider: When the compiled all of the menu item IDs are determined and those const int values
 			// are used at run time. They don't change during execution or even from session to session of a
 			// given build/release of the application. So we should be able to ignore them in our AI_MenuStructure
 			// especially since the mainMenuIDint value never changes.
-			
+
 			// insert the main menu id string/int association into the m_mapMenuLabelStrToIdInt if none already exists
 			// Note: we remove menu decorations since we want to be able to look up the plain label in
 			// the map
@@ -3742,8 +3742,8 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 				//pSubMenuItem->subMenuLabel = _T("");
 				//pSubMenuItem->subMenuHelp = _T("");
 				//pSubMenuItem->subMenuKind = _T("");
-				
-				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's 
+
+				// get values for pSubMenuItem's members from the temp AI menu bar pMenuBar's
 				// pmbSubMenuItem objects
 				//pSubMenuItem->subMenuID = // we can get along without this string representation mainMenuID
 				// Consider: When the compiled all of the menu item IDs are determined and those const int values
@@ -3760,12 +3760,12 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 				wxString subMenuItemLabelPlain = pmbSubMenuItem->GetItemLabel(); //pSubMenuItem->subMenuLabel; //RemoveMenuLabelDecorations(pSubMenuItem->subMenuLabel);
 				if (GetMenuItemKindAsString(pmbSubMenuItem->GetKind()) == _T("wxITEM_SEPARATOR")) //if (pSubMenuItem->subMenuKind == _T("wxITEM_SEPARATOR"))
 					subMenuItemLabelPlain = _T("menuSeparator");
-				
+
 				// Note: the \t chars in the xml and internal strings become \\t literals
 				// and need to be changed to \t to work in the menus.
 				wxString labelStr = subMenuItemLabelPlain;
 				subMenuItemLabelPlain.Replace(_T("\\t"),_T("\t"));
-				
+
 				iter = m_mapMenuLabelStrToIdInt.find(subMenuItemLabelPlain);
 				if (iter != m_mapMenuLabelStrToIdInt.end())
 				{
@@ -3796,7 +3796,7 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 	pMenuBar = (wxMenuBar*)NULL;
 }
 
-/* 
+/*
 // The following version of SetupDefaultMenuStructure() was based on collecting the
 // necessary data from the defaultMenuStructure[] array of strings in the App. This
 // version was replaced by another version (see above) that collects the same data
@@ -3806,11 +3806,11 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 /// \return     nothing
 /// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is being populated
 /// \remarks
-/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only 
-/// called if the app cannot find the AI_UserProfiles.xml file and it must use 
+/// Called from: the App's OnInit() and CAdminEditMenuProfile::InitDialog. It is only
+/// called if the app cannot find the AI_UserProfiles.xml file and it must use
 /// SetupDefaultMenuStructure() to establish its internal representation of the default
-/// menu structure. When AI_UserProfiles.xml is available (the usual case) the 
-/// m_pAI_MenuStructure is populated by the AtPROFILEEndTag() function in XML.cpp, 
+/// menu structure. When AI_UserProfiles.xml is available (the usual case) the
+/// m_pAI_MenuStructure is populated by the AtPROFILEEndTag() function in XML.cpp,
 /// rather than by this SetupDefaultMenuStructure() function.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
@@ -3840,8 +3840,8 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
 				// we're at the end of a field and field contains the string token
 				// up to, but not including the : delimiter.
 				// If the field doesn't have an '=' in it, it should be an all-caps
-				// tag name; if it has an '=' in it, the field should contain an 
-				// attribute name followed by the '=' with the attribute's value 
+				// tag name; if it has an '=' in it, the field should contain an
+				// attribute name followed by the '=' with the attribute's value
 				// within quote marks, i.e., attributeName="value".
 				// Parse the field into its parts
 				if (field.Find(_T("=")) == wxNOT_FOUND)
@@ -3945,8 +3945,8 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure)
 /// \param      <- pUserProfiles  a pointer to the UserProfiles struct that is being destroyed
 /// \remarks
 /// Called from: the App's OnInit(), OnExit(), CAdminEditMenuProfile's InitDialog(), and
-/// its class destructor and ReportMenuAndUserProfilesInconsistencies(). 
-/// It deallocates the memory of the profileItemList items, and finally of the pUserProfiles 
+/// its class destructor and ReportMenuAndUserProfilesInconsistencies().
+/// It deallocates the memory of the profileItemList items, and finally of the pUserProfiles
 /// itself.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
@@ -3975,11 +3975,11 @@ void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is 
+/// \param      <- pMenuStructure  a pointer to the AI_MenuStructure struct that is
 ///                 being destroyed
 /// \remarks
-/// Called from: the App's OnExit(). 
-/// It deallocates the memory of the individual main menu items and sub menu items, 
+/// Called from: the App's OnExit().
+/// It deallocates the memory of the individual main menu items and sub menu items,
 /// and finally of the pMenuStructure itself.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
@@ -3995,7 +3995,7 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 			AI_MainMenuItem* pmmItem;
 			pmmItem = mmpos->GetData();
 			wxASSERT(pmmItem != NULL);
-			
+
 			SubMenuItemList::Node* smpos;
 			int ct_sm;
 			int total_sm = (int)pmmItem->aiSubMenuItems.GetCount();
@@ -4023,34 +4023,34 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE on success, FALSE if a problem occurred
-/// \param      -> fullFilePath  path and file name of the AI_UserProfiles.xml file being 
+/// \param      -> fullFilePath  path and file name of the AI_UserProfiles.xml file being
 ///                 accessed (may be the one in work folder or setup install folder)
 /// \remarks
 /// Called from the App's OnEditUserMenuSettingsProfiles() after User Workflow
-/// Profiles editing, and from the App's OnInit() to upgrade (or downgrade) a 
-/// modified AI_UserProfiles.xml file to a newer (or older) version after a 
+/// Profiles editing, and from the App's OnInit() to upgrade (or downgrade) a
+/// modified AI_UserProfiles.xml file to a newer (or older) version after a
 /// version update.
 /// SaveUserProfilesMergingDataToXMLFile() saves edits of user profiles to the
 /// wxTextFile representing AI_UserProfiles.xml file on disk.
 /// The AI_UserProfiles.xml file is fairly small (only about 45kb) so we
 /// open it as a wxTextFile (into memory), make necessary changes according
-/// to the current m_pUserProfiles and write it back out in a single write 
+/// to the current m_pUserProfiles and write it back out in a single write
 /// operation. If AI_UserProfiles.xml doesn't exist we create a new wxTextFile
 /// and call BuildUserProfileXMLFile() passing our new wxTextFile to that
-/// function to create one anew. We can do double duty with this function: 
-/// (1) Save edits made by an administrator to the User Workflow Profiles dialog 
+/// function to create one anew. We can do double duty with this function:
+/// (1) Save edits made by an administrator to the User Workflow Profiles dialog
 /// back to the AI_UserProfiles.xml file located in the work folder, or
-/// (2) Merge the edits of a modified existing AI_UserProfiles.xml file into 
-/// a newer version of AI_UserProfiles.xml that was installed as an AI version 
+/// (2) Merge the edits of a modified existing AI_UserProfiles.xml file into
+/// a newer version of AI_UserProfiles.xml that was installed as an AI version
 /// update since the last running of the application.
-/// The path established in OnInit() to the AI_UserProfiles.xml file is stored 
+/// The path established in OnInit() to the AI_UserProfiles.xml file is stored
 /// in the m_userProfileFileWorkFolderPath member variable.
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 {
 	// Note: fullFilePath can be the user's work folder, or the install setup folder
 	wxTextFile textFile;
-	
+
 	// Does AI_UserProfiles.xml exist in the work folder
 	bool bUserProfilesFileExists = wxFileExists(fullFilePath);
 	wxString userProfileFileSetupInstallPath = m_xmlInstallPath + PathSeparator + _T("AI_UserProfiles.xml");
@@ -4090,8 +4090,8 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 	else
 	{
 		// Read the existing xml file into memory using wxTextFile, so we don't have
-		// to recreate the whole xml file. All we need to do is to compare the data in 
-		// memory with the xml file which is in memory as a wxTextFile, and make changes 
+		// to recreate the whole xml file. All we need to do is to compare the data in
+		// memory with the xml file which is in memory as a wxTextFile, and make changes
 		// there before saving the file back to disk.
 		// Note: fullFilePath may point to the AI_UserProfiles.xml in the setup folder (when
 		// merging changes into an upgraded AI_UserProfiles.xml), or it may point to the
@@ -4110,32 +4110,32 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		{
 			// The AI_UserProfiles.xml file is now in memory and accessible line-by-line through the
 			// methods of wxTextFile.
-			// Note: The AI_UserProfiles.xml file was read from the user's work folder and parsed into 
+			// Note: The AI_UserProfiles.xml file was read from the user's work folder and parsed into
 			// the m_pUserProfiles struct prior to the calling of SaveUserProfileMergingDataToXMLFile().
 			// (whether in InitDialog in the AdminEditMenuProfile class or in the App's OnInit). Therefore,
-			// the AI_UserProfiles.xml file (just read above into memory as a wxTextFile) is either 
+			// the AI_UserProfiles.xml file (just read above into memory as a wxTextFile) is either
 			// identical in structure to the xml file on disk (when saving edits) or similar if not
-			// identical in structure (for version upgrade). If identical, the process below should 
+			// identical in structure (for version upgrade). If identical, the process below should
 			// account for all changes. If we are merging changes into a newer AI_UserProfiles.xml file
 			// from the setup folder, there may be more candidate profile items in the setup folder's
-			// version than in the current work folder's version. Those will simply retain their 
+			// version than in the current work folder's version. Those will simply retain their
 			// existing defaul values. If the setup folder's version has fewer candidate profile items (not
 			// likely) and a change was made for one of those now-missing items, the change will simply be
-			// ignored. During editing in AdminEditMenuProfile dialog, only small parts of the xml data 
-			// would be modified as a result of the editing process. An administrator could have edited 
+			// ignored. During editing in AdminEditMenuProfile dialog, only small parts of the xml data
+			// would be modified as a result of the editing process. An administrator could have edited
 			// the following from within the dialog:
-			// 1. The UserProfiles' wxArrayString of descriptionProfileTexts (4 items, one for each profile) 
+			// 1. The UserProfiles' wxArrayString of descriptionProfileTexts (4 items, one for each profile)
 			//    may have been edited (total of 4 strings of varying length).
 			// 2. The UserProfileItem's wxArrayString of usedVisibilityValues (4 items, one for each profile
-			//    x 67 profile items) may have been edited (total of 268 1-character strings of the form 
+			//    x 67 profile items) may have been edited (total of 268 1-character strings of the form
 			//    "1" or "0".
 			// Note: When an administrator only changes the profile selected, but not any individual profile
 			// item visibility checkboxes, he does not make any changes to AI_UserProfiles.xml (his change of
 			// profile is simply recorded in the project config file.
-			// 
+			//
 			// Our approach will be to go through our map of profile changes (m_mapProfileChangesToStringValues)
-			// and change the individual lines in our wxTextFile that need to be changed to reflect the 
-			// administrator's edits. When finished we simply write the wxTextFile back to disk replacing 
+			// and change the individual lines in our wxTextFile that need to be changed to reflect the
+			// administrator's edits. When finished we simply write the wxTextFile back to disk replacing
 			// the existing AI_UserProfiles.xml file. If we read AI_UserProfiles.xml from the setup folder,
 			// we don't write it back there, but we write it to the current work folder, replacing the
 			// older version that was there - which will now have the new version number in its
@@ -4144,11 +4144,11 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 			// call, there doesn't appear to be a way to change the writing path, so we will create a new
 			// wxTextFile instance, copy all lines from the one we've changed to it and write this new file
 			// and simply close the original instance without writing it back to the setup folder.
-			// 
+			//
 			// The map key values can be:
 			//    1. A contatenation of the string values of itemText + ":" + userProfile for a given
 			//       UserProfileItem, for example: "Save As...:Novice"
-			//    2. A key may also be the string "descriptionProfileN" where N is 1, 2, 3, or 4 for 
+			//    2. A key may also be the string "descriptionProfileN" where N is 1, 2, 3, or 4 for
 			//       those top level items, for example "description3"
 			// The key maps to a variable length string for the descriptionProfileN key, and to a
 			// "1" or a "2" string for UserProfileItems visibility items.
@@ -4170,7 +4170,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 					// in the wxTextFile we search for the line that has itemText="itemTextStr" and
 					// from that line we step through each succeeding line until we come to a line
 					// that has <PROFILE userProfile="userProfileStr"
-					// from that line we get the next line, i.e., itemVisibility="x" and replace 
+					// from that line we get the next line, i.e., itemVisibility="x" and replace
 					// the "x" part with the "valueFromMap" (see ReplaceVisibilityStrInwxTextFile).
 					int linePos;
 					linePos = ReplaceVisibilityStrInwxTextFile(&textFile,itemTextStr,userProfileStr,valueFromMap);
@@ -4186,7 +4186,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 					// the keyFromMap is of the form descriptionProfileN where N is 1, 2, 3, or 4.
 					descriptionProfileN = keyFromMap;
 					// In the wxTextFile we search for the line that has descriptionProfileN="str"
-					// and we replace the "str" with "valueFromMap". 
+					// and we replace the "str" with "valueFromMap".
 					// Note: Entity chars are replaced by their xml mandated form (xml_lt, xml_gt,
 					// xml_amp, xml_apos, and xml_quote and xml_tab) in ReplaceDescriptionStrInwxTextFile() below.
 					int linePos;
@@ -4281,22 +4281,22 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      -> tempUserProfiles  pointer to the UserProfiles* being compared 
+/// \param      -> tempUserProfiles  pointer to the UserProfiles* being compared
 /// \param      -> appUserProfiles  pointer to the UserProfiles* the tempUserProfiles
-///                 if being compared with to determine changes 
+///                 if being compared with to determine changes
 /// \remarks
 /// Called from the App's OnInit(), and from CAdminEditMenuProfile::OnOK().
-/// Populates the App's m_mapProfileChangesToStringValues with user profile changes the user 
-/// has made to descriptionProfileTexts and/or to UserProfileItems' usedVisibilityValues. 
-/// The map is used to make changes in the wxTextFile representation of AI_UserProfiles.xml 
+/// Populates the App's m_mapProfileChangesToStringValues with user profile changes the user
+/// has made to descriptionProfileTexts and/or to UserProfileItems' usedVisibilityValues.
+/// The map is used to make changes in the wxTextFile representation of AI_UserProfiles.xml
 /// before writing it back to disk in SaveUserProfilesMergingDataToXMLFile().
-/// Note: the caller is responsible to call m_mapProfileChangesToStringValues.clear(), 
+/// Note: the caller is responsible to call m_mapProfileChangesToStringValues.clear(),
 /// to start a fresh map of changes.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, UserProfiles* appUserProfiles)
 {
 	// whm 21Oct10 rewritten so that tempUserProfiles and appUserProfiles can have different counts for their
-	// ->descriptionProfileTexts.GetCount() and different counts for their ->profileItemList.GetCount() 
+	// ->descriptionProfileTexts.GetCount() and different counts for their ->profileItemList.GetCount()
 	// calls. This will avoid problems for when MapChangesInUserProfiles() is called in OnInit() in the
 	// process of upgrading or downgrading versions which involve AI_UserProfiles.xml files having
 	// different numbers of these items.
@@ -4315,7 +4315,7 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 		MapProfileChangesToStringValues::iterator iter;
 		//m_mapProfileChangesToStringValues.clear();
 		// Note: The clear() method must be invoked in the caller if a fresh map of changes is desired.
-		
+
 		// Enter all tempUserProfiles items into our tempMap
 		// First enter all of tempUserProfiles->descriptionProfileTexts into the map
 		int descCt;
@@ -4371,10 +4371,10 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 		//{
 		//	wxLogDebug(_T("iter->first = %s, iter->second = %s"),iter->first.c_str(),iter->second.c_str());
 		//}
-		
+
 		// Now go through all items of the appUserProfiles struct, and do a lookup to see if
-		// each item is in the map. If so, check the map's associated value. If the map's 
-		// associated value is different, then add that item to the App's 
+		// each item is in the map. If so, check the map's associated value. If the map's
+		// associated value is different, then add that item to the App's
 		// m_mapProfileChangesToStringValues map. If any of the appUserProfiles items are
 		// not found in the map, we can ignore them, but just get a count of how many such
 		// ignored items we encountered.
@@ -4387,7 +4387,7 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 		{
 			wxString key = wxString::FromAscii(descriptionProfile);
 			key << appCt + 1; // add the numerical suffix as string "1", "2", "3", or "4"
-			
+
 			iter = tempMap.find(key);
 			if (iter != tempMap.end())
 			{
@@ -4398,7 +4398,7 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 				// check if the valueTemp differs from the appDescrText
 				if (valueTemp != appDescrText)
 				{
-					// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes 
+					// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes
 					MapProfileChangesToStringValues::iterator a_iter;
 					a_iter = m_mapProfileChangesToStringValues.find(keyTemp);
 					if (a_iter != m_mapProfileChangesToStringValues.end())
@@ -4445,7 +4445,7 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 					// check if the valueTemp differs from the appDescrText
 					if (valueTemp != appVisibility)
 					{
-						// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes 
+						// add item to m_mapProfileChangesToStringValues, our App's map of differences/changes
 						a_iter = m_mapProfileChangesToStringValues.find(keyTemp);
 						if (a_iter != m_mapProfileChangesToStringValues.end())
 						{
@@ -4476,24 +4476,24 @@ void CAdapt_ItApp::MapChangesInUserProfiles(UserProfiles* tempUserProfiles, User
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a VersionComparison enum with possible values of sameAppVersion, 
+/// \return     a VersionComparison enum with possible values of sameAppVersion,
 ///             runningAppVersionIsNewer, runningAppVersionIsOlder, or profileVersionDiffers
 /// \param      -> oldProfileVersion  string representing the existing profileVersion attribute
 ///                 value
-/// \param      -> oldApplicationCompatibility  string representing the existing 
+/// \param      -> oldApplicationCompatibility  string representing the existing
 ///                 applicationCompatibility value
 /// \remarks
 /// Called from the App's OnInit().
-/// Starting with AI version 6.0.0, the application checks the profileVersion and applicationCompatibility 
+/// Starting with AI version 6.0.0, the application checks the profileVersion and applicationCompatibility
 /// version numbers of any existing AI_UserProfiles.xml file in the Adapt It (Unicode) Work folder against
 /// the corresponding numbers of the running application. The version number of the existing AI_UserProfiles.xml
 /// are represented in the oldProfileVersion and oldApplicationCompatibility incoming parameters. The
 /// running application's corresponding numbers are set as #define constants at the beginning of Adapt_It.h.
 /// When an Adapt It user upgrades to a newer version of the application, the installer places the latest version
-/// of AI_UserProfiles.xml in the setup folder, but the installer does not copy it at install time to the 
-/// Adapt It (Unicode) Work folder. Each time the Adapt It application runs, however, this function compares 
-/// the version numbers of the running application with those of the existing AI_UserProfiles.xml file in the Adapt It 
-/// (Unicode) Work folder. The running application determines whether the newer version should be copied to 
+/// of AI_UserProfiles.xml in the setup folder, but the installer does not copy it at install time to the
+/// Adapt It (Unicode) Work folder. Each time the Adapt It application runs, however, this function compares
+/// the version numbers of the running application with those of the existing AI_UserProfiles.xml file in the Adapt It
+/// (Unicode) Work folder. The running application determines whether the newer version should be copied to
 /// overwrite the older existing version, or be merged with the older existing version. This function returns
 /// an enum VersionComparison which informs the caller whether comparison of version numbers is: sameAppVersion,
 /// runningAppVersionIsNewer, runningAppVersionIsOlder (all comparing the 6.x.x version numbers), or
@@ -4553,22 +4553,22 @@ enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(
 	intStr = tempStr.Mid(0,tempStr.Find(_T('.')));
 	nWorkFolderAppCompatBuiV = wxAtoi(intStr);
 
-	// Is the running app's version the same as the work folder's version? 
-	// If so, no merge is necessary (caller will simply copy and overwrite the 
+	// Is the running app's version the same as the work folder's version?
+	// If so, no merge is necessary (caller will simply copy and overwrite the
 	// existing older AI_UserProfiles.xml in the work folder). Return FALSE.
 	if (nRunningAppCompatMajV == nWorkFolderAppCompatMajV && nRunningAppCompatMinV == nWorkFolderAppCompatMinV && nRunningAppCompatBuiV == nWorkFolderAppCompatBuiV)
 	{
 		return sameAppVersion;
 	}
 	// If we get here the running version is either older or newer than the work folder version.
-	// 
+	//
 	// Is the running app's version older than the work folder's version?
 	// This might happen if the user installed and reverted to running an older
-	// version in the 6.x.x series for some reason (after having installed a 
+	// version in the 6.x.x series for some reason (after having installed a
 	// newer version). In this case we can't really guarantee that the older
-	// application will be able to successfully deal with a newer 
-	// AI_UserProfiles.xml file. So, we return FALSE to get the caller to 
-	// rename the work folder's copy of AI_UserProfiles.xml to 
+	// application will be able to successfully deal with a newer
+	// AI_UserProfiles.xml file. So, we return FALSE to get the caller to
+	// rename the work folder's copy of AI_UserProfiles.xml to
 	// AI_UserProfiles_old.xml and copy the newer AI_UserProfiles.xml from
 	// the setup folder to the work folder.
 	if (nRunningAppCompatMajV < nWorkFolderAppCompatMajV)
@@ -4584,11 +4584,11 @@ enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(
 		return runningAppVersionIsOlder;
 	}
 	// If we get here the running version must be newer
-	// 
+	//
 	// Is the running app's version newer than the work folder's version?
-	// If so, we should merge the setup folder's newer AI_UserProfiles.xml with 
+	// If so, we should merge the setup folder's newer AI_UserProfiles.xml with
 	// the work folder's older AI_UserProfiles.xml file. Return TRUE.
-	wxASSERT(nRunningAppCompatMajV > nWorkFolderAppCompatMajV || nRunningAppCompatMinV > nWorkFolderAppCompatMinV || nRunningAppCompatBuiV > nWorkFolderAppCompatBuiV); 
+	wxASSERT(nRunningAppCompatMajV > nWorkFolderAppCompatMajV || nRunningAppCompatMinV > nWorkFolderAppCompatMinV || nRunningAppCompatBuiV > nWorkFolderAppCompatBuiV);
 	// the defaul bMerge value is TRUE;
 	return runningAppVersionIsNewer;
 }
@@ -4596,8 +4596,8 @@ enum VersionComparison CAdapt_ItApp::CompareRunningVersionWithWorkFolderVersion(
 /// \return     a wxString representing the running applications version number in 6.x.x format
 /// \remarks
 /// Called from the App's OnInit() and from ReportMenuAndUserProfilesInconsistencies().
-/// Forms a wxString from the app's version constants that are #defined at the 
-/// beginning of Adapt_It.h. The constants are: VERSION_MAJOR_PART, VERSION_MINOR_PART, 
+/// Forms a wxString from the app's version constants that are #defined at the
+/// beginning of Adapt_It.h. The constants are: VERSION_MAJOR_PART, VERSION_MINOR_PART,
 /// and VERSION_BUILD_PART.
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetAppVersionOfRunningAppAsString()
@@ -4636,9 +4636,9 @@ enum wxLanguage
     //						val	Name	    Plain English
     //					info->CanonicalName   info->Description
     // user's default/preffered language as got from OS:
-    wxLANGUAGE_DEFAULT,			//	0	en_US	
+    wxLANGUAGE_DEFAULT,			//	0	en_US
     // unknown language, if wxLocale::GetSystemLanguage fails:
-    wxLANGUAGE_UNKNOWN,			//	1	null	null	
+    wxLANGUAGE_UNKNOWN,			//	1	null	null
 
     wxLANGUAGE_ABKHAZIAN,		//	2	ab	Abkhazian
     wxLANGUAGE_AFAR,			//	3	aa	Afar
@@ -4668,7 +4668,7 @@ enum wxLanguage
     wxLANGUAGE_AYMARA,			//	27	ay	Aymara
     wxLANGUAGE_AZERI,			//	28	az	Azeri
     wxLANGUAGE_AZERI_CYRILLIC,	//	29	az_Cyrl	Azeri (Cyrillic)
-    wxLANGUAGE_AZERI_LATIN,		//	30	az_Latn	Azeri (Latin)	
+    wxLANGUAGE_AZERI_LATIN,		//	30	az_Latn	Azeri (Latin)
     wxLANGUAGE_BASHKIR,			//	31	ba	Bashkir
     wxLANGUAGE_BASQUE,			//	32	eu_ES	Basque
     wxLANGUAGE_BELARUSIAN,		//	33	be_BY	Belarusian
@@ -5137,7 +5137,7 @@ AIToolBar::AIToolBar()
 {
 }
 
-AIToolBar::AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
+AIToolBar::AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 	const wxSize& size, long style,	const wxString& name)
 	: wxToolBar(parent, id, pos, size, style, name)
 {
@@ -5206,25 +5206,25 @@ int AIModalDialog::ShowModal()
 // end of AIModalDialog class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 IMPLEMENT_APP(CAdapt_ItApp)
-// This is used in the application class implementation file to make the 
-// application class known to wxWidgets for dynamic construction. 
+// This is used in the application class implementation file to make the
+// application class known to wxWidgets for dynamic construction.
 // Use this instead of MyApp myApp;
 
 BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
-	// OnIdle() handler was moved to CMainFrame. Having it here in 
-	// the App was causing File | Exit and x App cancel to become 
+	// OnIdle() handler was moved to CMainFrame. Having it here in
+	// the App was causing File | Exit and x App cancel to become
 	// unresponsive. Same code works fine there.
 
 	// File Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	EVT_MENU(wxID_NEW, CAdapt_ItApp::OnFileNew)
-	
+
 	// whm added the following 10Apr11 for AI-PT collaboration
 	//EVT_MENU(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnGetSourceTextFromPT)
 	//EVT_UPDATE_UI(ID_MENU_GET_SOURCE_FROM_PT, CAdapt_ItApp::OnUpdateGetSourceTextFromPT)
 	//EVT_MENU(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnTransferTransToPT)
 	//EVT_UPDATE_UI(ID_MENU_TRANSFER_TRANS_TO_PT, CAdapt_ItApp::OnUpdateTransferTransToPT)
 
-	// OnFileOpen is in the Doc 
+	// OnFileOpen is in the Doc
 	EVT_MENU(wxID_PAGE_SETUP,CAdapt_ItApp::OnFilePageSetup)
 	EVT_UPDATE_UI(wxID_PAGE_SETUP, CAdapt_ItApp::OnUpdateFilePageSetup)
 	EVT_UPDATE_UI(ID_FILE_STARTUP_WIZARD, CAdapt_ItApp::OnUpdateFileStartupWizard)
@@ -5236,7 +5236,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
 	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
-	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)// renamed to 
+	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)// renamed to
 	    //OnMRUFile and moved to CMainFrame
 
     // We must not associate OnExit with wxID_EXIT. If we do, OnExit() executes immediately
@@ -5263,7 +5263,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// OnUpdateEditSourceText is in the View
 	// OnEditConsistencyCheck is in the View
 	// OnUpdateEditConsistencyCheck is in the View
-	// Lower to Upper Case Equivalences... removed as a separate menu item from Edit 
+	// Lower to Upper Case Equivalences... removed as a separate menu item from Edit
 	// menu (now handled by Edit Preferences)
 	// OnEditPreferences is in the View
 	// OnUpdateEditPreferences is in the View
@@ -5320,14 +5320,14 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 
 	// Help menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	//OnAppAbout is in CMainFrame in wxWidgets version
-	
+
 	// Administrator menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	EVT_MENU(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnCustomWorkFolderLocation)
 	EVT_UPDATE_UI(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateCustomWorkFolderLocation)
 	EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
 	EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
 	EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation)
-	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)	
+	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)
 	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
 	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
 	EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
@@ -5352,19 +5352,19 @@ END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////
 // NOTE: Under wxWidgets I've changed the following from static TCHAR arrays to
-// just wxStrings, since all the methods in wxWidgets are efficient 
+// just wxStrings, since all the methods in wxWidgets are efficient
 // and sufficiently UNICODE aware with wxStrings.
-// 
+//
 // whm I've decided that the literal strings that are used to identify parts of
-// the configuration files should NOT be localizable. Therefore, I've used the _T() 
-// literal string macro (which makes them ignored for translation when GetText 
-// and/or PoEdit collects the translatable strings for localization). Reason: If 
-// these strings are localized, they would create a situation in which the config 
-// files would only be readable by others using the same localized interface 
-// version of Adapt It. This might become a problem if say a team using the 
-// French interface were to pack up their Adapt It documents and sent them to a 
-// consultant who is using a different interface version of Adapt It. Packed 
-// files would not be compatible except for unpacking on machines using the 
+// the configuration files should NOT be localizable. Therefore, I've used the _T()
+// literal string macro (which makes them ignored for translation when GetText
+// and/or PoEdit collects the translatable strings for localization). Reason: If
+// these strings are localized, they would create a situation in which the config
+// files would only be readable by others using the same localized interface
+// version of Adapt It. This might become a problem if say a team using the
+// French interface were to pack up their Adapt It documents and sent them to a
+// consultant who is using a different interface version of Adapt It. Packed
+// files would not be compatible except for unpacking on machines using the
 // same language interface version.
 
 /// The name used internally within the project settings configuration file.
@@ -5420,45 +5420,45 @@ wxString szHeight = _T("Height");
 /// value when loading a configuration file created by an MFC version of Adapt It.
 wxString szWidth = _T("Width");
 
-/// The label that identifies the following number as a font "Escapement". 
-/// This number is not used in the wxWidgets version of Adapt It. It is set to 
-/// zero if the wx version creates the configuration file, or preserves any 
-/// existing Escapement value when loading a configuration file created by an 
+/// The label that identifies the following number as a font "Escapement".
+/// This number is not used in the wxWidgets version of Adapt It. It is set to
+/// zero if the wx version creates the configuration file, or preserves any
+/// existing Escapement value when loading a configuration file created by an
 /// MFC version of Adapt It.
 wxString szEscapement = _T("Escapement");
 
-/// The label that identifies the following number as a font "Orientation". 
-/// This number is not used in the wxWidgets version of Adapt It. It is set to 
-/// zero if the wx version creates the configuration file, or preserves any 
-/// existing Orientation value when loading a configuration file created by an 
+/// The label that identifies the following number as a font "Orientation".
+/// This number is not used in the wxWidgets version of Adapt It. It is set to
+/// zero if the wx version creates the configuration file, or preserves any
+/// existing Orientation value when loading a configuration file created by an
 /// MFC version of Adapt It.
 wxString szOrientation = _T("Orientation");
 
-/// The label that identifies the following number as a font "Weight". 
+/// The label that identifies the following number as a font "Weight".
 /// The wx version converts this value internally to its own enum value
-/// for wxLIGHT (400-499), wxNORMAL (500-699), or wxBOLD (700 or more). 
-/// For compatability with the MFC version, the wx version writes the 
+/// for wxLIGHT (400-499), wxNORMAL (500-699), or wxBOLD (700 or more).
+/// For compatability with the MFC version, the wx version writes the
 /// numerical value only (as strings) in the configuration files.
 wxString szWeight = _T("Weight");
 
 /// The label that identifies the following number as font "Italic" if
-/// "1", or normal if "0". The wx version converts this value internally 
-/// to its own enum value for wxITALIC or wxNORMAL. 
-/// For compatability with the MFC version, the wx version writes the 
+/// "1", or normal if "0". The wx version converts this value internally
+/// to its own enum value for wxITALIC or wxNORMAL.
+/// For compatability with the MFC version, the wx version writes the
 /// numerical value only (as strings) in the configuration files.
 wxString szItalic = _T("Italic");
 
-/// The label that identifies the following number as font "StrikeOut". 
-/// This number is not used in the wxWidgets version of Adapt It. It is set to 
-/// zero if the wx version creates the configuration file, or preserves any 
-/// existing StrikeOut value when loading a configuration file created by an 
+/// The label that identifies the following number as font "StrikeOut".
+/// This number is not used in the wxWidgets version of Adapt It. It is set to
+/// zero if the wx version creates the configuration file, or preserves any
+/// existing StrikeOut value when loading a configuration file created by an
 /// MFC version of Adapt It.
 wxString szStrikeOut = _T("StrikeOut");
 
 /// The label that identifies the following number as font "Underline" if
-/// "1", or normal if "0". The wx version converts this value internally 
+/// "1", or normal if "0". The wx version converts this value internally
 /// to its own boolean values of TRUE for Underline, FALSE otherwise.
-/// For compatability with the MFC version, the wx version writes the 
+/// For compatability with the MFC version, the wx version writes the
 /// numerical value only (as strings) in the configuration files.
 wxString szUnderline = _T("Underline");
 
@@ -5469,7 +5469,7 @@ wxString szUnderline = _T("Underline");
 /// used within the wx version. The font "pitch" value is stored for later
 /// composition again with the "family" value for saving the composite in
 /// the configuration files.
-/// For compatability with the MFC version, the wx version writes the 
+/// For compatability with the MFC version, the wx version writes the
 /// numerical value only (as strings) in the configuration files.
 wxString szPitchAndFamily = _T("PitchAndFamily");
 
@@ -5552,7 +5552,7 @@ wxString szSourceLanguageCode = _T("SourceLanguageCode"); // stored in the App's
 
 // whm added following 10May10 for KB LIFT XML Export support
 /// The label that identifies the following string as the project's "TargetLanguageCode".
-/// This value is written in the "ProjectSettings" part of the project configuration file. 
+/// This value is written in the "ProjectSettings" part of the project configuration file.
 /// Adapt It stores this path in the App's m_targetLanguageCode member variable.
 wxString szTargetLanguageCode = _T("TargetLanguageCode");
 
@@ -5560,7 +5560,7 @@ wxString szTargetLanguageCode = _T("TargetLanguageCode");
 /// This value is written in the "Settings" part of the basic configuration file. After
 /// validating this path to ensure its validity on the local machine, Adapt It stores this
 /// path in the App's m_workFolderPath member variable.
-wxString szAdaptitPath = _T("AdaptItPath"); 
+wxString szAdaptitPath = _T("AdaptItPath");
 
 /// The label that identifies the following string as the project's "ProjectName". This
 /// value is written in the "Settings" part of the basic configuration file. Adapt It
@@ -5595,116 +5595,116 @@ wxString szCurKBBackupPath = _T("KBBackupPath");
 // BEGINNING of Last...Path variables below
 
 /// The label that identifies the following string as the project's
-/// "LastNewDocumentFolder". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastNewDocumentFolder". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastSourceInputPath member variable.
 wxString szLastSourceInputPath = _T("LastNewDocumentFolder");
 
 /// The label that identifies the following string as the project's
-/// "LastSourceTextExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastSourceTextExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastSourceOutputPath member variable.
 wxString szLastSourceOutputPath = _T("LastSourceTextExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastSourceTextRTFExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastSourceTextRTFExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastSourceRTFOutputPath member variable.
 wxString szLastSourceRTFOutputPath = _T("LastSourceTextRTFExportPath");
 
-/// The label that identifies the following string as the project's 
-/// "LastKBExportPath". This value is written in the "BasicSettings" part 
-/// of the basic configuration file. Adapt It stores this path in the 
+/// The label that identifies the following string as the project's
+/// "LastKBExportPath". This value is written in the "BasicSettings" part
+/// of the basic configuration file. Adapt It stores this path in the
 /// App's m_lastKbOutputPath member variable.
 /// The old config label "KB_ExportPath" is retained for reading older
 /// config files.
 wxString szLastKBExportPath = _T("LastKBExportPath"); // new label for 6.x.x and later
 wxString szKBExportPath = _T("KB_ExportPath"); // old label - retain for reading older config files
 
-/// The label that identifies the following string as the project's 
-/// "LastKBLIFTExportPath". This value is written in the "BasicSettings" 
-/// part of the basic configuration file. Adapt It stores this path in the 
+/// The label that identifies the following string as the project's
+/// "LastKBLIFTExportPath". This value is written in the "BasicSettings"
+/// part of the basic configuration file. Adapt It stores this path in the
 /// App's m_lastKbLiftOutputPath member variable.
 wxString szLastKBLIFTExportPath = _T("LastKBLIFTExportPath"); // stored in the App's m_lastKbLiftOutputPath
 wxString szKBLIFTExportPath = _T("KB_LIFT_ExportPath"); // old label used only in development but retained to avoid warning
 
 /// The label that identifies the following string as the project's
-/// "RetranslationReportPath". This value is written in the "BasicSettings" 
-/// part of the basic configuration file. Adapt It stores this path in the 
+/// "RetranslationReportPath". This value is written in the "BasicSettings"
+/// part of the basic configuration file. Adapt It stores this path in the
 /// App's m_lastRetransReportPath member variable.
 wxString szLastRetranslationReportPath = _T("LastRetranslationReportPath"); // new label for 6.x.x and later
 wxString szRetranslationReportPath = _T("RetranslationReportPath"); // old label - retain for reading older config files
 
-/// whm 6Aug11 Note: The m_lastRtfOutputPath is no longer used, but is 
-/// replaced by more specific variables that are stored in project config files. 
-/// We keep the szRTFExportPath label in config reading routines however, since 
-/// we want to be able to recognize when an old basic config file is being read 
+/// whm 6Aug11 Note: The m_lastRtfOutputPath is no longer used, but is
+/// replaced by more specific variables that are stored in project config files.
+/// We keep the szRTFExportPath label in config reading routines however, since
+/// we want to be able to recognize when an old basic config file is being read
 /// that will have this field - we read it but just ignore it.
 wxString szRTFExportPath = _T("RTFExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastInterlinearRTFOutputPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastInterlinearRTFOutputPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastInterlinearRTFOutputPath member variable.
 wxString szLastInterlinearRTFOutputPath = _T("LastInterlinearRTFOutputPath");
 
 /// The label that identifies the following string as the project's
-/// "LastGlossesExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastGlossesExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastGlossesOutputPath member variable.
 wxString szLastGlossesOutputPath = _T("LastGlossesTextExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastGlossesRTFExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastGlossesRTFExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastGlossesRTFOutputPath member variable.
 wxString szLastGlossesRTFOutputPath = _T("LastGlossesTextRTFExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastFreeTranslationsExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastFreeTranslationsExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastFreeTransOutputPath member variable.
 wxString szLastFreeTransOutputPath = _T("LastFreeTransExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastFreeTranslationsRTFExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// "LastFreeTranslationsRTFExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastFreeTransRTFOutputPath member variable.
 wxString szLastFreeTransRTFOutputPath = _T("LastFreeTransRTFExportPath");
 
 /// The label that identifies the following string as the application's
-/// "LastCCTablePath". This value is written in the "Settings" part of 
-/// the basic configuration file. Adapt It stores this path in the 
+/// "LastCCTablePath". This value is written in the "Settings" part of
+/// the basic configuration file. Adapt It stores this path in the
 /// App's m_lastCcTablePath member variable.
-/// The old "DefaultCCTablePath" label is recognized for reading of older 
+/// The old "DefaultCCTablePath" label is recognized for reading of older
 /// config files.
 wxString szLastCCTablePath = _T("LastCCTablePath");
 wxString szDefaultTablePath = _T("DefaultCCTablePath");
 
 /// The label that identifies the following string as the application's
-/// "LastPackedDocumentPath". This value is written in the "Settings" 
-/// part of the basic configuration file. Adapt It stores this path in the 
+/// "LastPackedDocumentPath". This value is written in the "Settings"
+/// part of the basic configuration file. Adapt It stores this path in the
 /// App's m_lastPackedOutputPath member variable.
 wxString szLastPackedDocumentPath = _T("LastPackedDocumentPath");
 
-/// The label that identifies the following string as the application's 
-/// "LastDocumentPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// The label that identifies the following string as the application's
+/// "LastDocumentPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastDocPath member variable.
 wxString szLastDocPath = _T("LastDocumentPath");
 
-/// The label that identifies the following string as the application's 
+/// The label that identifies the following string as the application's
 /// "LastExportPath". This value is written in the "ProjectSettings"
-/// part of the project configuration file. Adapt It stores this path 
-/// in the App's m_lastTargetOutputPath member variable. The old 
+/// part of the project configuration file. Adapt It stores this path
+/// in the App's m_lastTargetOutputPath member variable. The old
 /// "LastExportPath" label is recognized for reading of older config
 /// files.
 wxString szLastTargetOutputPath = _T("LastTargetExportPath"); // new 6.x.x label for config files
 wxString szLastExportPath = _T("LastExportPath"); // old pre-6.x.x label for reading old config files
 
-/// The label that identifies the following string as the application's 
-/// "LastTargetRTFExportPath". This value is written in the "ProjectSettings" 
-/// part of the project configuration file. Adapt It stores this path in the 
+/// The label that identifies the following string as the application's
+/// "LastTargetRTFExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastTargetRTFOutputPath member variable.
 wxString szLastTargetRTFOutputPath = _T("LastTargetRTFExportPath");
 // END of Last...Path variables
@@ -5719,7 +5719,7 @@ wxString szFoldersProtectedFromNavigation = _T("FoldersProtectedFromNavigation")
 
 // The label that identifies the following string encoded number as the application's
 // "MaxToDisplay". This value is written in the "Settings" part of the basic configuration
-// file. Adapt It stores this value in the App's m_nMaxToDisplay member variable. 
+// file. Adapt It stores this value in the App's m_nMaxToDisplay member variable.
 // BEW retained 21Mar09, but now it stores doc count of CSourcePhrase instances, no use
 // made of it though - for backwards compatibility of config files
 wxString szMaxToDisplay = _T("MaxToDisplay"); // stored in the App's m_nMaxToDisplay
@@ -5743,13 +5743,13 @@ wxString szMinFollContext = _T("MinFollowingContext");
 /// file. Adapt It stores this path in the App's m_curLeading member variable.
 wxString szLeading = _T("Leading");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "LeftMargin". This value is written in the "Settings" part of the basic configuration 
+/// The label that identifies the following string encoded number as the application's
+/// "LeftMargin". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this path in the App's m_curLMargin member  variable.
 wxString szLeftMargin = _T("LeftMargin");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "InterpileGapWidth". This value is written in the "Settings" part of the basic configuration 
+/// The label that identifies the following string encoded number as the application's
+/// "InterpileGapWidth". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this path in the App's m_curGapWidth member  variable.
 wxString szGapWidth = _T("InterpileGapWidth");
 
@@ -5995,7 +5995,7 @@ wxString szBackupDocument = _T("BackupDocumentFlag");
 // whm added 3Sep10 for user workflow profile support
 /// The label that identifies the following string encoded number as the application's
 /// "WorkflowProfile". This value is written in the "Settings" part of the basic
-/// and project configuration files. Adapt It stores this path in the App's 
+/// and project configuration files. Adapt It stores this path in the App's
 /// m_nWorkflowProfile member variable.
 wxString szWorkflowProfile = _T("WorkflowProfile");
 
@@ -6085,23 +6085,23 @@ wxString szCollabTargetLangName = _T("CollabTargetLangName");
 
 // window position and size
 
-/// The label that identifies the following string encoded number as the application's 
-/// "TopLeftX". This value is written in the "Settings" part of the basic configuration 
+/// The label that identifies the following string encoded number as the application's
+/// "TopLeftX". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this value in the App's m_ptViewTopLeft.x member variable.
 wxString szTopLeftX = _T("TopLeftX");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "TopLeftY". This value is written in the "Settings" part of the basic configuration 
+/// The label that identifies the following string encoded number as the application's
+/// "TopLeftY". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this value in the App's m_ptViewTopLeft.y member variable.
 wxString szTopLeftY = _T("TopLeftY");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "WinSizeCX". This value is written in the "Settings" part of the basic configuration 
+/// The label that identifies the following string encoded number as the application's
+/// "WinSizeCX". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this value in the App's m_szView.x member variable.
 wxString szWSizeCX = _T("WinSizeCX");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "WinSizeCY". This value is written in the "Settings" part of the basic configuration 
+/// The label that identifies the following string encoded number as the application's
+/// "WinSizeCY". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this value in the App's m_szView.y member variable.
 wxString szWSizeCY = _T("WinSizeCY");
 
@@ -6211,17 +6211,17 @@ wxString szSFMafterNewlines = _T("SFMafterNewlines");
 #ifdef _RTL_FLAGS
 // NR version support
 
-/// The label that identifies the following string encoded number as the application's 
+/// The label that identifies the following string encoded number as the application's
 /// "SourceIsRTL". Adapt It stores this value in the App's m_bSrcRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLSource = _T("SourceIsRTL");
 
-/// The label that identifies the following string encoded number as the application's 
+/// The label that identifies the following string encoded number as the application's
 /// "TargetIsRTL". Adapt It stores this value in the App's m_bTgtRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLTarget = _T("TargetIsRTL");
 
-/// The label that identifies the following string encoded number as the application's 
+/// The label that identifies the following string encoded number as the application's
 /// "NavTextIsRTL". Adapt It stores this value in the App's m_bNavTextRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLNavText = _T("NavTextIsRTL");
@@ -6364,19 +6364,19 @@ wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");
 /// View tab of Preferences is where an administrator can request the menu be shown or hid)
 wxString szAdministratorPassword = _T("AdministratorPassword");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "UseAdaptationsGuesser". Adapt It stores this value in the App's m_bUseAdaptationsGuesser 
+/// The label that identifies the following string encoded number as the application's
+/// "UseAdaptationsGuesser". Adapt It stores this value in the App's m_bUseAdaptationsGuesser
 /// member  variable.
 wxString szUseAdaptationsGuesser = _T("UseAdaptationsGuesser");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "GuessingLevel". Adapt It stores this value in the App's m_nGuessingLevel 
+/// The label that identifies the following string encoded number as the application's
+/// "GuessingLevel". Adapt It stores this value in the App's m_nGuessingLevel
 /// member  variable.
 wxString szGuessingLevel = _T("GuessingLevel");
 
-/// The label that identifies the following string encoded number as the application's 
-/// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's 
-/// m_bAllowGuesseronUnchangedCCOutput. 
+/// The label that identifies the following string encoded number as the application's
+/// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's
+/// m_bAllowGuesseronUnchangedCCOutput.
 /// member  variable.
 wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput");
 
@@ -6405,7 +6405,7 @@ const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW = _T("EncConverterConvertString");
 /// "DoAdaptingBeforeGlossing_InVerticalEdit". This value is written in the
 /// "ProjectSettings" part of the basic configuration file. Adapt It stores this value in
 /// the App's gbAdaptBeforeGloss global variable.
-wxString szDoAdaptingBeforeGlossing_InVerticalEdit = 
+wxString szDoAdaptingBeforeGlossing_InVerticalEdit =
 	_T("DoAdaptingBeforeGlossing_InVerticalEdit");   // bool -- for vertical edit settings
 
 /* this following code from AdminMoveOrCopy class is tested below at lines 5470++
@@ -6534,7 +6534,7 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 
 
 // The idea for this function was inspired by a blog by Julian Smart, wxWidgets developer
-// at:  http://wxwidgets.blogspot.com/2007/12/programming-for-eee-pc-with-wxwidgets.html 
+// at:  http://wxwidgets.blogspot.com/2007/12/programming-for-eee-pc-with-wxwidgets.html
 // This is a function to fit the dialog it is called on around the dialog's contents, but
 // then it checks that the dialog will fit in a certain maxSize. If not, the size of the
 // dialog is adjusted smaller to fit within the maxSize and, if a scrolled window is passed
@@ -6547,15 +6547,15 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 // property sheets, etc, from ending up with controls off the screen on computers that have
 // a small resolution (i.e., 800 x 600 or smaller which is typical of the new generation of
 // mini-notebook computers such as the Asus Eee PC, or the Aspire One, Dell Mini 9, etc).
-bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, 
+bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow,
 									wxSize maxSize)
 {
     wxSizer* sizer = dialog->GetSizer();
     if (!sizer)
         return false;
-        
+
     sizer->SetSizeHints(dialog);
-        
+
     wxSize windowSize = dialog->GetSize();
 
     // Allow for caption size on wxWidgets < 2.9
@@ -6579,41 +6579,41 @@ bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolled
     // The GetSize() is a method of wxRect that returns a size for the display (from the
     // rect returned by GetClientArea()).
 
-    //wxSize displaySize = 
+    //wxSize displaySize =
     //wxDisplay(wxDisplay::GetFromWindow(dialog)).GetClientArea().GetSize();
     wxSize displaySize = maxSize;
 
     bool resizeVertically = (windowSize.y >= (displaySize.y - allowExtraHeight));
     bool resizeHorizontally = (windowSize.x >= displaySize.x);
-    
+
     if (resizeVertically || resizeHorizontally)
     {
         int scrollBarExtraX = 0, scrollBarExtraY = 0;
-    
+
         if (scrolledWindow)
         {
             // Allow extra for a scrollbar, assuming we resizing in one direction only.
-            if ((resizeVertically && !resizeHorizontally) && 
+            if ((resizeVertically && !resizeHorizontally) &&
 					(windowSize.x < (displaySize.x - scrollBarSize)))
                 scrollBarExtraX = scrollBarSize;
-            if ((resizeHorizontally && !resizeVertically) && 
+            if ((resizeHorizontally && !resizeVertically) &&
 					(windowSize.y < (displaySize.y - scrollBarSize)))
                 scrollBarExtraY = scrollBarSize;
 
-            scrolledWindow->SetScrollRate(resizeHorizontally ? 
+            scrolledWindow->SetScrollRate(resizeHorizontally ?
 											10 : 0, resizeVertically ? 10 : 0);
         }
-            
+
         wxSize limitTo = windowSize + wxSize(scrollBarExtraX, scrollBarExtraY);
         if (resizeVertically)
             limitTo.y = displaySize.y - allowExtraHeight;
         if (resizeHorizontally)
             limitTo.x = displaySize.x;
-            
+
         dialog->SetMinSize(limitTo);
         dialog->SetSize(limitTo);
-        
-        dialog->SetSizeHints( limitTo.x, limitTo.y, dialog->GetMaxWidth(), 
+
+        dialog->SetSizeHints( limitTo.x, limitTo.y, dialog->GetMaxWidth(),
 								dialog->GetMaxHeight() );
     }
 
@@ -6621,8 +6621,8 @@ bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolled
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing the path to the directory which contains all of 
-///             the localization subdirectories (es, fr, in, ru, zh_TW, etc) which 
+/// \return     a wxString representing the path to the directory which contains all of
+///             the localization subdirectories (es, fr, in, ru, zh_TW, etc) which
 ///             contain .mo files
 /// \remarks
 /// Called from: the App's ChooseInterfaceLanguage().
@@ -6637,24 +6637,24 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// According to the wx docs:
 	// Adapt It looks for its possible interface translations (localizations)
 	// at the following locations, depending on the OS:
-	// 
-	// - On Windows, there appears to be no well established location for localization files. 
+	//
+	// - On Windows, there appears to be no well established location for localization files.
 	// For example I looked at two wxWidgets based applications Poedit and Audacity.
-	// The Poedit program places its localization files in: 
+	// The Poedit program places its localization files in:
 	// "C:\Program Files\Poedit\share\locale\<lang>\LC_MESSAGES\"
 	// The Audacity program uses a simpler method, putting its localization files in:
 	// C:\Program Files\Audacity\Languages\<lang>.
-	// For Windows at least, I like the simplified way that Audacity does it. So, we add a 
+	// For Windows at least, I like the simplified way that Audacity does it. So, we add a
 	// "Languages" subdirectory so that the localization subdirectories and files will
-	// be installed at:  "C:\Program Files\Adapt It WX\Languages\" or 
-	// "C:\Program Files\Adapt It WX Unicode\Languages\" and Adapt It on the Windows port 
+	// be installed at:  "C:\Program Files\Adapt It WX\Languages\" or
+	// "C:\Program Files\Adapt It WX Unicode\Languages\" and Adapt It on the Windows port
 	// will look there.
-	// 
+	//
     // - On Unix, the localization files are installed in "<prefix>/share/locale" so Adapt
     // It looks for localization <lang> subfolders and files in the /usr/share/locale/
     // subdirectory. The <lang> subfolders have an additional LC_MESSAGES subfolder which
     // contains the adaptit.mo files.
-	// 
+	//
     // - On Mac OS X, localization files are installed in the
     // "<appname>.app/Contents/Resources/locale" bundle subdirectory, so Adapt It looks for
     // localization <lang> subfolders and files in the
@@ -6709,9 +6709,9 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
     // executable name part so I'll use the built-in wxApp function GetAppName() instead.
 	wxString appName;
 	appName = GetAppName();
-	
+
     // Determine the path to the localization subdirectory where any localization
-    // subdirectories would be located. 
+    // subdirectories would be located.
     // Note: Our function FindAppPath() determined the most likely path where the Adapt It
     // executable program is located and stored that path in m_appInstallPathOnly.
 	wxString localizationFilePath;
@@ -6719,7 +6719,7 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default localizationFilePath for the Mac.
-	// 
+	//
 	// Make path to the Resources folder be a combination of the path to the executable modified by
 	// the relative path from the executable to the Resources/locale folder. The path to the executable
 	// during UnicodeDebug on my MacBook is this:
@@ -6769,29 +6769,29 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 /// \remarks
 /// Called from: the App's OnInit();
 /// Gets the path where we expect to find the AI_USFM.xml and books.xml files. Adapt It
-/// reads and parses these xml files at startup. 
+/// reads and parses these xml files at startup.
 /// If the directory cannot be determined an empty string is returned.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 {
 	// Adapt It looks for its possible interface translations (localizations)
 	// at the following locations, depending on the OS:
-	// - On Windows, there appears to be no well established location for XML control files. 
-	// For Windows these XML files will be installed together with the executable program at:  
-	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
+	// - On Windows, there appears to be no well established location for XML control files.
+	// For Windows these XML files will be installed together with the executable program at:
+	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// and Adapt It on the Windows port will look there.
-	// - On Unix, the XML control files are installed in "/usr/share/adaptit" so Adapt It 
+	// - On Unix, the XML control files are installed in "/usr/share/adaptit" so Adapt It
 	// on Linux looks for them there.
-	// - On Mac OS X, localization files are installed in the "<appname>.app/Contents/Resources" 
+	// - On Mac OS X, localization files are installed in the "<appname>.app/Contents/Resources"
 	// bundle subdirectory, so Adapt It on the Mac looks for them there.
 	//
 	// Note: the wxStandardPaths::GetDataDir() could possibly be used for determining this path
 	// but, since I'm not sure if it existed before version 2.7.0 of the wxWidgets library, I'll
 	// hard code the paths we expect here.
-	
+
 	wxString appName;
 	appName = GetAppName();
-	
+
 	wxString pathToXMLFolders;
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
@@ -6821,33 +6821,33 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 ///             files for the appropriate platform
 /// \remarks
 /// Called from: the App's OnInit();
-/// Gets the path where we expect to find the HTML Help files. 
+/// Gets the path where we expect to find the HTML Help files.
 /// If the directory cannot be determined an empty string is returned.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 {
 	// Adapt It looks for its HTML Help files at the following locations, depending on the OS:
-	// 
-	// - On Windows, there appears to be no well established location for HTML Help files. 
-	// For Windows the Html Help files will be installed together with the executable program at:  
-	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
+	//
+	// - On Windows, there appears to be no well established location for HTML Help files.
+	// For Windows the Html Help files will be installed together with the executable program at:
+	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// and Adapt It on the Windows port will look there.
-	// 
-	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" which in turn 
+	//
+	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" which in turn
 	// may contain a "common/" subdirectory with .gif and .css files (pointed to by the help files).
 	// The .../help/ subdirectory may also contain one or more <lang>/ folders which contain the
 	// .html .hhp .hhc help files for Adapt It.
-	// 
+	//
 	// - On Mac OS X, Html Help files are installed in the "AdaptIt.app/Contents/SharedSupport/"
 	// folder of the bundle subdirectory.
 	//
 	// Note: the wxStandardPaths class apparently doesn't have a method for locating the help files
 	// on the various ports.
-	
+
 	wxString appName;
 	appName = GetAppName();
 	m_htbHelpFileName = appName + _T(".htb");
-	
+
 	wxString pathToHtmlHelpFiles;
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
@@ -6855,14 +6855,14 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	//pathToHtmlHelpFiles += appName + _T(".app/Contents/SharedSupport"); // the path separator is added by the caller
 	//
 	// whm modified 17Feb09 to determine the help file path as a relative adjustment to the absolute
-	// path to the actual executable that is running. 
-	// 
+	// path to the actual executable that is running.
+	//
 	// On the Mac, the .htb help file is in the dmg bundle in a different part of the directory tree from
-	// the Adapt It executable. The executable is in <bundle>/Contents/MacOS/ folder but the .htb help file 
+	// the Adapt It executable. The executable is in <bundle>/Contents/MacOS/ folder but the .htb help file
 	// is in the <bundle>/Contents/SharedSupport/ folder. The relative help path from executable to
 	// help file then is: "../SharedSupport". The double dot backs up the tree from the MacOS folder to
 	// the Contents folder, and then goes into the SharedSupport folder.
-	// 
+	//
 	// Make path to the SharedSupport folder be a combination of the path to the executable modified by
 	// the relative path from the executable to the SharedSupport folder. The path to the executable
 	// during UnicodeDebug on my MacBook is this:
@@ -6895,7 +6895,7 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      initialPath  -> the path where subdirectories are expected/gathered 
+/// \param      initialPath  -> the path where subdirectories are expected/gathered
 ///                             into arrayStr
 /// \param      arrayStr     <- wxArrayString to receive the list of subdirectories
 /// \remarks
@@ -6930,9 +6930,9 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxLanguage value if a language value for fullLangName could be found 
+/// \return     a wxLanguage value if a language value for fullLangName could be found
 ///             otherwise wxLANGUAGE_UNKNOWN
-/// \param      fullLangName  ->    a wxString representing the common language name 
+/// \param      fullLangName  ->    a wxString representing the common language name
 ///                                 (Description)
 /// \remarks
 /// Called from: the App's ChooseInterfaceLanguage().
@@ -6952,7 +6952,7 @@ wxLanguage CAdapt_ItApp::GetLanguageFromFullLangName(const wxString fullLangName
 	{
 		if (langsKnownToWX[ct].fullName == fullLangName)
 		{
-			// we've found the shortName in our langsKnownToWX[] array, so return its 
+			// we've found the shortName in our langsKnownToWX[] array, so return its
 			// langsKnownToWX[].code
 			return langsKnownToWX[ct].code;
 		}
@@ -6964,11 +6964,11 @@ wxLanguage CAdapt_ItApp::GetLanguageFromFullLangName(const wxString fullLangName
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxLanguage value if the language value for dirStr could be found 
+/// \return     a wxLanguage value if the language value for dirStr could be found
 ///             otherwise wxLANGUAGE_UNKNOWN
-/// \param      dirStr        ->    the wxString representing the short name of the 
-///                                 localization subdirectory 
-/// \param      fullLangName  <-    a wxString to receive the full language name 
+/// \param      dirStr        ->    the wxString representing the short name of the
+///                                 localization subdirectory
+/// \param      fullLangName  <-    a wxString to receive the full language name
 ///                                 langsKnownToWX[].fullName
 /// \remarks
 /// Called from: the App's ChooseInterfaceLanguage().
@@ -7020,7 +7020,7 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 		}
 		ct++;
 	}
-	// If we get here we've searched the whole array and not found dirStr or its prefix 
+	// If we get here we've searched the whole array and not found dirStr or its prefix
 	// in langsKnownToWX[].
 	return wxLANGUAGE_UNKNOWN;
 }
@@ -7038,7 +7038,7 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 /// The incoming dirPath would normally be the a path pointing to the "Languages" directory
 /// (on Windows); or the /usr/share/locale/ directory on Linux; or
 /// /<appName>.app/Contents/Resources directory on the Mac. These directory locations should
-/// contain at least one localization <lang> subfolder containing an <appName>.mo file. If 
+/// contain at least one localization <lang> subfolder containing an <appName>.mo file. If
 /// subFolderName is not a null string, this function will only return TRUE if a subfolder
 /// exists at dirPath with the subFolderName. If subFolderName is a null string the
 /// function does not check the names of the localization subfolders, but only checks to
@@ -7055,14 +7055,14 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 	wxArrayString subDirList;
 	subDirList.Clear();
 	GetListOfSubDirectories(dirPath,subDirList);
-	
-	wxLogNull logNo;	// eliminates any spurious messages from the system while 
+
+	wxLogNull logNo;	// eliminates any spurious messages from the system while
 						// reading read-only folders/files
 
 	int ct;
 	for (ct = 0; ct < (int)subDirList.GetCount(); ct++)
 	{
-		bool bNamesMatch = TRUE; // assume match unless subFolderName parameter 
+		bool bNamesMatch = TRUE; // assume match unless subFolderName parameter
 								 // has a non-null string
 		bool bHasRegionCode = FALSE;
 		if (!subFolderName.IsEmpty())
@@ -7091,9 +7091,9 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 		if (wxDir::Exists(dirPath + PathSeparator + _T("LC_MESSAGES")))
 			dirPath = dirPath + PathSeparator + _T("LC_MESSAGES");
 		wxDir dPath(dirPath);
-		// whm Note: with wxDir we must call .Open() before enumerating files or calling 
+		// whm Note: with wxDir we must call .Open() before enumerating files or calling
 		// IsOpen()! Otherwise it asserts on wxGTK!
-		if (dPath.Open(dirPath) && bNamesMatch && dPath.HasFiles(_T("*.mo")) && 
+		if (dPath.Open(dirPath) && bNamesMatch && dPath.HasFiles(_T("*.mo")) &&
 			dPath.HasFiles(appName + _T(".mo")))
 		{
 			return TRUE;
@@ -7105,11 +7105,11 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if locale and localizations were successfully created, 
+/// \return     TRUE if locale and localizations were successfully created,
 ///             otherwise FALSE
 /// \param      shortLangName -> the short (Canonical) name of the language/locale
 /// \param      longLangName  -> the long (Description) name of the language/locale
-/// \param      pathPrefix    -> the path prefix where localization subfolders 
+/// \param      pathPrefix    -> the path prefix where localization subfolders
 ///                              and files are found
 /// \remarks
 /// Called from: the App's OnInit() and CChooseLanguageDlg::OnOK(). Deletes any existing
@@ -7132,9 +7132,9 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 	{
 		bLoadOK = FALSE;
 	}
-	if (shortLangName.Find(_T("en_")) == 0 // we have shortLangName with 
+	if (shortLangName.Find(_T("en_")) == 0 // we have shortLangName with
 										   // en_ at the start of the name
-		|| (shortLangName.Length() == 2 && shortLangName == _T("en"))) // or, 
+		|| (shortLangName.Length() == 2 && shortLangName == _T("en"))) // or,
 										   // we have the two-letter name en
 	{
         // For our default English locale we don't need a loaded string catalog table, we
@@ -7143,7 +7143,7 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 	}
 	else
 	{
-		// For a non-default non-English localization we can check if the catalog is 
+		// For a non-default non-English localization we can check if the catalog is
 		// loaded OK
 		if(!m_pLocale->IsLoaded(GetAppName()))
 		{
@@ -7164,10 +7164,10 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 {
 	// This function uses the data currently in the global struct currLocalizationInfo
-	
+
 	wxLogNull logNo; // avoid spurious messages from the system
 
-	// save current CurrLocalizationInfo struct's member information in registry/hidden 
+	// save current CurrLocalizationInfo struct's member information in registry/hidden
 	// settings file
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
@@ -7212,7 +7212,7 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 /// used. If all keys are currently filled with user defined language info, the oldest
 /// string is replaced by the new language composite string.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode, 
+void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		const wxString shortName, const wxString fullName, const wxString localizationPath)
 {
 	// A composite unix string for a user defined language such as Tok Pisin might look like
@@ -7257,7 +7257,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 			bKeysPresent = TRUE;
 			int pos;
 			pos = keyArray[ct].Find(_T(':'));
-			wxASSERT(pos > 0 && pos <= 3);	// the language code number should represented 
+			wxASSERT(pos > 0 && pos <= 3);	// the language code number should represented
 											// as a three letter string between 231 and 255
 			wxString codeStr = keyArray[ct].Left(pos);
 			foundCodesArray.Add(codeStr);
@@ -7265,7 +7265,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		if (!valReadOK)
 		{
 			bKeyMissing = TRUE;
-			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any 
+			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any
 										// keyArray element for which there is no key
 		}
 		// end of wxLogNull logNo scope
@@ -7277,14 +7277,14 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 
     // Sort the array. Since the wxLanguage number (as string) is first in compositeStr, we
     // sort the array so that unassigned keys are moved to the end where we want them.
-	//keyArray.Sort();  // sorts the array in ascending order (the unassigned keys get 
+	//keyArray.Sort();  // sorts the array in ascending order (the unassigned keys get
 						// sorted to the end of the list)
-	
+
     // Check whether the language represented by our compositeStr has been assigned
     // previously; we don't want to store duplicate user languages, but we do want to
     // update the path part of the string if the user language already exists with a
     // different path.
-	// Make a search string of just the shortName and fullName including the 
+	// Make a search string of just the shortName and fullName including the
 	// surrounding colons.
 	int nCodeAssigned = -1;
 	wxString subStr;
@@ -7298,7 +7298,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 			bAlreadyAssigned = TRUE;
 			int pos;
 			pos = keyArray[ct].Find(_T(':'));
-			wxASSERT(pos > 0 && pos <= 3); // the language code number should 
+			wxASSERT(pos > 0 && pos <= 3); // the language code number should
 					// represented as a three letter string between 231 and 255
 			wxString codeStr = keyArray[ct].Left(pos);
 			nCodeAssigned = wxAtoi(codeStr);
@@ -7306,7 +7306,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 			wxString tempStr = keyArray[ct];
 			int posPath = pos + subStr.Length();
 			tempStr = tempStr.Left(posPath);
-			tempStr = tempStr + localizationPath; // use the incoming (possibly 
+			tempStr = tempStr + localizationPath; // use the incoming (possibly
 												  // updated) path
 			keyArray[ct] = tempStr; // update the keyArray item
 			break;
@@ -7340,7 +7340,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 			wxASSERT(nCount > 0);
 			foundCodesArray.Sort();
 			wxString highestCodeStr = foundCodesArray[nCount - 1];
-			nCodeAssigned = wxAtoi(highestCodeStr) + 1; // get the next number beyond the 
+			nCodeAssigned = wxAtoi(highestCodeStr) + 1; // get the next number beyond the
 														// value for highestCodeStr
 			//nCodeAssigned = wxLANGUAGE_USER_DEFINED + 1 + nKeys; // should be 240
 		}
@@ -7351,7 +7351,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 			wxASSERT(nCount > 0);
 			foundCodesArray.Sort();
 			wxString highestCodeStr = foundCodesArray[nCount - 1];
-			nCodeAssigned = wxAtoi(highestCodeStr) + 1; // get the next number beyond 
+			nCodeAssigned = wxAtoi(highestCodeStr) + 1; // get the next number beyond
 														// the value for highestCodeStr
 		}
 		else
@@ -7361,13 +7361,13 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 	}
 	wxASSERT(nCodeAssigned >= wxLANGUAGE_USER_DEFINED+1 && nCodeAssigned <= 255);
 	wxLangCode = nCodeAssigned;
-	
+
 	// Assign this language, but only if it has not already been assigned.
 	if (!bAlreadyAssigned)
 	{
 		// Make a composite unix-like string from the parameters
 		wxString compositeStr;
-		compositeStr << wxLangCode << _T(':') << shortName << _T(':') << fullName 
+		compositeStr << wxLangCode << _T(':') << shortName << _T(':') << fullName
 					<< _T(':') << localizationPath;
 
 		// Assign compositeStr to the first empty array element in keyArray[].
@@ -7383,11 +7383,11 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 			}
 		}
 	}
-	
+
 	// Sort the array again since we may have added or inserted something.
-	//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys get 
+	//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys get
 					   //sorted to the end of the list)
-	
+
  	wxLogNull logNo; // avoid spurious messages from the system
 
 	// Rewrite all 9 keys from keyArray[] back to the registry/hidden settings file. This
@@ -7419,7 +7419,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 /// user_defined_language_n keys and write them back to the registry/hidden settings file
 /// so that they are always kept in numerical order.
 /////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName, 
+void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName,
 																 const wxString fullName)
 {
     // The string key values associated with the user_defined_language_n keys are a
@@ -7445,7 +7445,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	bool bAllKeysAssigned = FALSE;
 	for (ct = 0; ct < nKeys; ct++)
 	{
-		wxLogNull logNo; // eliminates spurious message from the system: 
+		wxLogNull logNo; // eliminates spurious message from the system:
             // "Can't read value of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid
             // until end of this block]
 		wxString str;
@@ -7469,12 +7469,12 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		if (!valReadOK)
 		{
 			bKeyMissing = TRUE;
-			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any 
+			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any
 										// keyArray element for which there is no key
 		}
 		// end of wxLogNull logNo scope
 	}
-    // Note: our keyArray[] at this point should always contain exactly 
+    // Note: our keyArray[] at this point should always contain exactly
     // 9 items regardless of whether some or all of the keys were present when
     // SaveUserDefinedLanguageInfoStringToConfig() was called.
 
@@ -7489,10 +7489,10 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		// Scan through our keyArray[] parsing the composite unix-like string elements
 		// to find the string key containing the language info that we want to remove.
 		// Remove it by assigning the "[UNASSIGNED]" string to the key.
-		// Make a search string of just the shortName and fullName including the 
+		// Make a search string of just the shortName and fullName including the
 		// surrounding colons.
 		wxString subStr;
-		subStr << _T(':') << shortName << _T(':') << fullName << _T(':'); // for Tok 
+		subStr << _T(':') << shortName << _T(':') << fullName << _T(':'); // for Tok
 											// Pisin this would be ":tpi:Tok Pisin:"
 		bool bFound = FALSE;
 		for (ct = 0; ct < nKeys; ct++)
@@ -7506,7 +7506,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		}
 
 		wxASSERT(bFound);
-		
+
         // Note: At the next running of the app, OnInit() calls
         // ProcessUILanguageInfoFromConfig() function which reads all the registry/hidden
         // settings file information and cleans it up if necessary, this cleanup includes
@@ -7517,9 +7517,9 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
         // Sort the array. Since the wxLanguage number (as string) is first in
         // compositeStr, we sort the array so that unassigned keys are moved to the end
         // where we want them.
-		//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys 
+		//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys
 						   // get sorted to the end of the list)
-		
+
 		wxLogNull logNo; // avoid spurious messages from the system
 
 		// Finally, write the 9 keys back to the registry
@@ -7534,7 +7534,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 			m_pConfig->Write(str, keyArray[ct]);
 		}
 	}
-	
+
 	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
@@ -7546,7 +7546,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 /// \remarks This function builds the complete content for a new default AI_UserProfiles.xml
 /// file including the comment at the beginning of the file. It assumes that the caller has
 /// created and opened an empty wxTextFile (the textFile parameter) before calling this
-/// function. The caller only calls this function in the unlikely case that no 
+/// function. The caller only calls this function in the unlikely case that no
 /// AI_UserProfiles.xml file exists at the fullFilePath location used in calling
 /// SaveUserProfilesMergingDataToXMLFile().
 /// Called from: SaveUserProfilesMergingDataToXMLFile().
@@ -7579,7 +7579,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		_T("***********************************************************************"),
 		_T("  -->"),
 	};
-	
+
 	wxString composeXmlStr;
 	if (textFile->IsOpened())
 	{
@@ -7611,13 +7611,13 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		composeXmlStr += _T("=\"") + verStr + _T("\"");
 		textFile->AddLine(composeXmlStr);
 		composeXmlStr.Empty();
-		
+
 		composeXmlStr = tab1 + wxString::FromAscii(applicationCompatibility);
 		wxString appCStr = m_pUserProfiles->applicationCompatibility;
 		composeXmlStr += _T("=\"") + appCStr + _T("\"");
 		textFile->AddLine(composeXmlStr);
 		composeXmlStr.Empty();
-		
+
 		composeXmlStr = tab1 + wxString::FromAscii(adminModified);
 		wxString adminModStr = m_pUserProfiles->adminModified;
 		// Indicate "Yes" for adminModified if not already set to "Yes"
@@ -7634,7 +7634,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		composeXmlStr += _T("=\"") + adminModStr + _T("\"");
 		textFile->AddLine(composeXmlStr);
 		composeXmlStr.Empty();
-		
+
 		int ct;
 		int tot = m_pUserProfiles->definedProfileNames.GetCount();
 		wxString strVal;
@@ -7645,7 +7645,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			composeXmlStr = tab1 + wxString::FromAscii(definedProfile) + strVal + _T("=\"") + m_pUserProfiles->definedProfileNames.Item(ct) + _T("\"");
 			textFile->AddLine(composeXmlStr);
 			composeXmlStr.Empty();
-			
+
 			// replace any entity chars with their xml entity representations
 			wxString str = m_pUserProfiles->descriptionProfileTexts.Item(ct);
 			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
@@ -7654,7 +7654,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			str.Replace(_T("'"),wxString::FromAscii(xml_apos));
 			str.Replace(_T("\""),wxString::FromAscii(xml_quote));
 			str.Replace(_T("\t"),wxString::FromAscii(xml_tab)); // whm added 24May11
-			
+
 			composeXmlStr = tab1 + wxString::FromAscii(descriptionProfile) + strVal + _T("=\"") + str + _T("\"");
 			textFile->AddLine(composeXmlStr);
 		}
@@ -7678,7 +7678,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			composeXmlStr = tab1 + wxString::FromAscii(itemType) + _T("=\"") + pItem->itemType + _T("\"");
 			textFile->AddLine(composeXmlStr);
 			composeXmlStr.Empty();
-			
+
 			// replace any entity chars with their xml entity representations
 			wxString str = pItem->itemText;
 			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
@@ -7691,7 +7691,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 			composeXmlStr = tab1 + wxString::FromAscii(itemText) + _T("=\"") + str + _T("\"");
 			textFile->AddLine(composeXmlStr);
 			composeXmlStr.Empty();
-			
+
 			// replace any entity chars with their xml entity representations
 			str = pItem->itemDescr;
 			str.Replace(_T("&"),wxString::FromAscii(xml_amp)); // replacing '&' must be done first!
@@ -7745,17 +7745,17 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 /// \return     nothing
 /// \remarks
 /// Called from: the App's OnInit() and OnEditUserMenuSettingsProfiles().
-/// This function calls a series of functions that set the visibility of the interface's menus, 
-/// modeBar, toolBar, wizardListItem and other potential interface settings, all based on the 
+/// This function calls a series of functions that set the visibility of the interface's menus,
+/// modeBar, toolBar, wizardListItem and other potential interface settings, all based on the
 /// information stored in AI_UserProfiles.xml and the App's m_pAI_MenuStructure member.
-/// Note: The MakeMenuInitializationsAndPlatformAdjustments() function should always be called 
+/// Note: The MakeMenuInitializationsAndPlatformAdjustments() function should always be called
 /// immediately after the ConfigureInterfaceForUserProfile() function.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 {
 	// We use the menu and settings data in m_pUserProfiles to set visibility of interface
 	// elements.
-	// 
+	//
 	// First, configure visibility of itemType == subMenu elements
 	ConfigureMenuBarForUserProfile();
 	// Note: The MakeMenuInitializationsAndPlatformAdjustments() function is called in OnInit()
@@ -7765,7 +7765,7 @@ void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	ConfigureModeBarForUserProfile();
 
 	// Note: Changes in the visibility of itemType == preferencesTab elements
-	// are not done here but within the CEditPreferencesDlg dialog class. The 
+	// are not done here but within the CEditPreferencesDlg dialog class. The
 	// tabs are hidden or shown based on the visibility flags in m_pUserProfiles
 	// at the time when the Preferences dialog is instantiated.
 
@@ -7774,9 +7774,9 @@ void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 
 	// Next, configure visibility of itemType == wizardListItem element
 	ConfigureWizardForUserProfile();
-	
+
 	// Finally, configure visibility of itemType == dialogControl elements
-	// AI_UserProfiles.xml currently does not include any dialogControl 
+	// AI_UserProfiles.xml currently does not include any dialogControl
 	// elements.
 	// Other configuration capabilities could go here
 }
@@ -7785,10 +7785,10 @@ void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 /// \return     nothing
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// This function reads the UserProfile data stored in the App's m_pUserProfiles member, 
-/// and sets the visibility of the interface's menus based on the information 
-/// stored in AI_UserProfiles.xml. It also reads the App's m_pAI_MenuStructure member and 
-/// uses it to ensure Adapt It's menu structure is restored to a uniform state when 
+/// This function reads the UserProfile data stored in the App's m_pUserProfiles member,
+/// and sets the visibility of the interface's menus based on the information
+/// stored in AI_UserProfiles.xml. It also reads the App's m_pAI_MenuStructure member and
+/// uses it to ensure Adapt It's menu structure is restored to a uniform state when
 /// changing the user profile or reverting to the "None" default profile.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
@@ -7796,28 +7796,28 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 	// whm 27Sep10 notes:
 	// I tried calling delete on pMenuBar and reconstructing it from scratch as a way to
 	// implement interface menu configuration. But deleting the menu bar (when it has
-	// already been "set" into the main frame via the SetMenuBar() function, leads to some 
-	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load 
-	// the file history from our m_pConfig. 
+	// already been "set" into the main frame via the SetMenuBar() function, leads to some
+	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load
+	// the file history from our m_pConfig.
 	// Later, I attempted to try adding menu items one-by-one to individual top level
-	// menus and tidying up any menu separators that need to be added or removed for 
+	// menus and tidying up any menu separators that need to be added or removed for
 	// the resulting menu bar. That approach also proved problematic as I could not
 	// guarantee robustness of the result. Finally I decided on removing all menu items
-	// from a given top level menu, and constructing the menu anew using the 
+	// from a given top level menu, and constructing the menu anew using the
 	// m_pAI_Menustructure's itemVisibility info as the guide. That approach gives a
 	// robust result that also allows for the insertion of menu separators at the right
 	// places to fit the profile. Note: the m_pAI_MenuStructure struct is populated from
-	// a temporary default menu bar in the SetupDefaultMenuStructure() function, not 
+	// a temporary default menu bar in the SetupDefaultMenuStructure() function, not
 	// from any internal string data, nor from any data in AI_UserProfiles.xml.
 
-	// I don't know how to get the defined int value for an idenfifier from a string 
-	// representation such as "ID_SAVE_AS", so I'll just create a temporary default 
-	// menu bar from wxDesigners AIMenuBarFunc() so we can query it for menu id int 
-	// values we may need. We don't call SetMenuBar() on any frame so it won't be 
+	// I don't know how to get the defined int value for an idenfifier from a string
+	// representation such as "ID_SAVE_AS", so I'll just create a temporary default
+	// menu bar from wxDesigners AIMenuBarFunc() so we can query it for menu id int
+	// values we may need. We don't call SetMenuBar() on any frame so it won't be
 	// visible. We delete it at the end of the menu bar handling part of this function.
 	wxMenuBar* pTempMenuBar;
 	pTempMenuBar = AIMenuBarFunc();
-	
+
 	// Go through the existing top level menus processing each one by removing existing
 	// items and adding those that need to be visible for the current profile.
 	wxString mainMenuLabel_DefaultStructure;
@@ -7900,9 +7900,9 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 						{
 							// TODO: Check the following assumption: We should unilaterally disable Glossing here.
 							// Reasoning: An administrator cannot really force the "See Glossing" Advanced
-							// menu item to remain ticked in a persistent manner by turning it ticking it "ON", 
-							// then hiding the See Glossing menu item in the current profile, because the 
-							// "See Glossing" setting is not persistent - it reverts back to being "OFF" each 
+							// menu item to remain ticked in a persistent manner by turning it ticking it "ON",
+							// then hiding the See Glossing menu item in the current profile, because the
+							// "See Glossing" setting is not persistent - it reverts back to being "OFF" each
 							// time the app starts up. Hence, we can ensure Glossing is disabled here along with
 							// the removal of the "See Glosses" Advanced menu item in this profile.
 							gbGlossingVisible = FALSE;
@@ -7915,7 +7915,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 				}
 			}
 
-			// Note: The File at this point is empty of normal menu items, but may have 
+			// Note: The File at this point is empty of normal menu items, but may have
 			// from 1 to 9 file history items. We don't want to append menu items below
 			// the group of file history items, but rather we must insert the menu items at
 			// GetMenuItemCount() - numFileHistoryItems.
@@ -7941,11 +7941,11 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 					wxASSERT(insertAtIndex >= 0);
 					int menuItemId;
 					menuItemId = GetSubMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
-					
+
 					wxItemKind itemKind;
 					itemKind = GetMenuItemKindFromString(pSubMenuItem->subMenuKind);
 					// do the menu item insertion
-					// Note: menuItemId will be wxID_SEPARATOR (-2) and itemKind will be 
+					// Note: menuItemId will be wxID_SEPARATOR (-2) and itemKind will be
 					// wxITEM_SEPARATOR (-1) for menuSeparators.
 					// Note: apparently the \t chars in the xml and internal strings become \\t literals
 					// and need to be changed to \t to work in the menus.
@@ -7955,14 +7955,14 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 					pMainMenuItem_CurrentMenuBar->Insert(insertAtIndex,item);
 				}
 			} // end of for (ct_ptr = 0; ct_ptr < numPointers; ct_ptr++)
-			
+
 			// Check for extraneous left-over menu separators in this top level menu
 			// and delete if found.
 			// Start at the bottom of the menu and remove all menu separators there.
 			bool bLastItemWasSeparator = FALSE;
 			wxMenuItemList::Node* pNode;
 			wxMenuItem* pMenuItem;
-			wxMenuItemList pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
+			wxMenuItemList pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items
 			pNode = pMenuItemList.GetLast();
 			while (pNode != NULL)
 			{
@@ -7986,7 +7986,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 				pNode = pMenuItemList.GetLast();
 			}
 			// remove any separators at the top of the top level menu
-			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items		
+			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items
 			int nSubMenuItems = (int)pMenuItemList.GetCount();
 			pNode = pMenuItemList.GetFirst();
 			while (pNode != NULL)
@@ -8009,7 +8009,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 				pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh list
 				pNode = pMenuItemList.GetFirst();
 			}
-			
+
 			// change any remaining multiple sequences of menu separators to a single separator
 			pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh the list of menu items
 			nSubMenuItems = (int)pMenuItemList.GetCount();
@@ -8059,35 +8059,35 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 /// \return     nothing
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// This function destroys the existing mode bar then constructs a new mode bar and uses 
-/// it as the starting baseline, removing elements according to the currently selected 
-/// user profile. The mode bar may be either the standard 1-line mode bar or the 
+/// This function destroys the existing mode bar then constructs a new mode bar and uses
+/// it as the starting baseline, removing elements according to the currently selected
+/// user profile. The mode bar may be either the standard 1-line mode bar or the
 /// special 2-line mode bar used when the -xo command line parameter is used with
 /// an OLPC XO computer.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 {
-	// Note: The ModeBar (also called "controlBar") is created on a wxPanel in the 
+	// Note: The ModeBar (also called "controlBar") is created on a wxPanel in the
 	// CMainFrame constructor in MainFrm.cpp. Its pointer on the App is m_pControlBar.
 	// Unlike the menu bar, the m_pControlBar is not managed directly by its enclosing
-	// frame (CMainFrame). The m_pControlBar, once created is never optionally hidden 
-	// (using the View menu) as can be done for the Tool bar, Status bar and Compose 
-	// bar. Nevertheless, the height of m_pControlBar must be current in the 
+	// frame (CMainFrame). The m_pControlBar, once created is never optionally hidden
+	// (using the View menu) as can be done for the Tool bar, Status bar and Compose
+	// bar. Nevertheless, the height of m_pControlBar must be current in the
 	// main frame's m_controlBarHeight member in order to correctly size the main frame.
 	// The m_controlBarHeight is kept current whether the application is using the normal
-	// control bar (ControlBarFunc) or the two-line control bar (ControlBar2LineFunc) 
-	// designed for better visibility on the OLPC XO machines. 
-	// We will get the control bar and recreate it for the current user profile's 
+	// control bar (ControlBarFunc) or the two-line control bar (ControlBar2LineFunc)
+	// designed for better visibility on the OLPC XO machines.
+	// We will get the control bar and recreate it for the current user profile's
 	// "modeBar" item visibility specifications. As with the AI menu bar, it is easiest
 	// to simply remove the items from the existing mode bar, and add back those which
 	// should appear in the current profile.
-	// 
-	// We need to get the mode bar's sizer(s) in order to remove and add controls to 
-	// the correct part of the mode bar. We have assigned "Access variable names" for 
-	// the needed sizers in both mode bars. For the normal single-line mode bar the 
-	// access variable name is ID_CONTROLBAR_1_LINE_SIZER; for the two-line mode bar 
-	// the access variable names are ID_CONTROLBAR_2_LINE_SIZER_TOP and 
-	// ID_CONTROLBAR_2_LINE_SIZER_BOTTOM. These sizers are created as 
+	//
+	// We need to get the mode bar's sizer(s) in order to remove and add controls to
+	// the correct part of the mode bar. We have assigned "Access variable names" for
+	// the needed sizers in both mode bars. For the normal single-line mode bar the
+	// access variable name is ID_CONTROLBAR_1_LINE_SIZER; for the two-line mode bar
+	// the access variable names are ID_CONTROLBAR_2_LINE_SIZER_TOP and
+	// ID_CONTROLBAR_2_LINE_SIZER_BOTTOM. These sizers are created as
 	// wxBoxSizer( wxHORIZONTAL ) in wxDesigner.
 	// The ID_CONTROLBAR_1_LINE_SIZER sizer has its items in the following order:
 	// 1. Drafting [wxRadioButton]
@@ -8101,7 +8101,7 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 	// 9. Glossing [wxCheckBox]
 	// Note: There are also two wxStaticLine controls created one above the ID_CONTROLBAR_1_LINE_SIZER and
 	// one below it. We won't need to change those, just the contents of ID_CONTROLBAR_1_LINE_SIZER.
-	
+
 	CMainFrame* pMainFrame;
 	pMainFrame = GetMainFrame();
 	pMainFrame->Freeze(); // to avoid flicker
@@ -8112,16 +8112,16 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 	// TODO: Make sure this works whether or not the toolbar and/or composebar are currently visible
 	wxPanel *controlBar = new wxPanel(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, 0);
 	wxASSERT(controlBar != NULL);
-	
-	// The ControlBarFunc() and ControlBar2LineFunc() functions are located 
-	// in Adapt_It_wdr.cpp. 
+
+	// The ControlBarFunc() and ControlBar2LineFunc() functions are located
+	// in Adapt_It_wdr.cpp.
 	// To populate the controlBar panel we've used wxBoxSizers. The outer
 	// most sizer is a vertical box sizer which has a horizontal line in
-	// the upper part of the box (for the line between the toolbar and 
-	// controlbar), and the row of controls laid out in wxHORIZONTAL 
+	// the upper part of the box (for the line between the toolbar and
+	// controlbar), and the row of controls laid out in wxHORIZONTAL
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
-	
+
 	if (m_bExecutingOnXO) // prefix m_bExecutingOnXO with ! to test the two-line control bar configuration
 	{
 		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
@@ -8130,7 +8130,7 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		// make m_pControlBar point to the new control bar
 		pMainFrame->m_pControlBar = controlBar;
 		// In the case of the two line control bar, we have two
-		// named wxBoxSizers. 
+		// named wxBoxSizers.
 		// The upper sizer called ID_CONTROLBAR_2_LINE_SIZER_TOP
 		// has the following controls:
 		//    1. Spacer
@@ -8148,14 +8148,14 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		//    4. <no adaptation> [wxButton]
 		//    5. Spacer
 		//    6. *Glossing [wxCheckBox]
-		// * These are the potentially "hidden" items depending on the selected 
+		// * These are the potentially "hidden" items depending on the selected
 		// user profile.
 		// Note: On the XO screen, it is the horizontal space that gets overly crowded due to
-		// the system's increase in font size, rather than the vertical space, so I don't 
-		// think it would be worth the effort to try to consolidate the two bars into a one 
-		// line control bar in the case that an administrator sets up a profile in which many 
+		// the system's increase in font size, rather than the vertical space, so I don't
+		// think it would be worth the effort to try to consolidate the two bars into a one
+		// line control bar in the case that an administrator sets up a profile in which many
 		// items are not to be made visible.
-		//  
+		//
 		// Go through the children of the two line control bar and
 		// remove any that are not supposed to be visible in the current
 		// profile.
@@ -8172,14 +8172,14 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		ControlBarFunc( controlBar, TRUE, TRUE );
 		// make m_pControlBar point to the new control bar
 		pMainFrame->m_pControlBar = controlBar;
-		
+
 		// Now we go through the children of the default mode bar and remove any that are
 		// not supposed to be visible in the current profile
 		wxSizer* pModeBarSizer = ID_CONTROLBAR_1_LINE_SIZER;
 		RemoveModeBarItemsFromModeBarSizer(pModeBarSizer);
 	}
 	// If the "[] Glossing" check box is not removed in this profile after the above code
-	// executes (i.e., NULL), check here to see if it should be visible or hidden according to the 
+	// executes (i.e., NULL), check here to see if it should be visible or hidden according to the
 	// current value of gbIsGlossing.
 	wxCheckBox* pCheckboxIsGlossing = (wxCheckBox*)pMainFrame->m_pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
 	// pCheckboxIsGlossing coulc be null if it is not visible in the current profile
@@ -8223,8 +8223,8 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 /// \remarks
 /// Called from: the App's ConfigureModeBarForUserProfile().
 /// This function is a helper function for ConfigureModeBarForUserProfile().
-/// It removes any mode bar items that are not visible in the currently selected user 
-/// profile. It also deals with the special cases of the Glossing checkbox and the Delay's 
+/// It removes any mode bar items that are not visible in the currently selected user
+/// profile. It also deals with the special cases of the Glossing checkbox and the Delay's
 /// wxTextCtrl. If Glossing is ON it turns it OFF if the Glossing checkbox is removed from
 /// the modebar. If the Delay static text is removed, it removes the associated wxTextCtrl.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -8258,8 +8258,8 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 			{
 				// TODO: Check the following assumption: We should unilaterally turn off Glossing here.
 				// Reasoning: An administrator cannot really force Glossing to be "ON" in a persistent
-				// manner by turning it on, then hiding the Glossing checkbox in the current profile, 
-				// because the Glossing setting is not persistent - it reverts back to being "OFF" each 
+				// manner by turning it on, then hiding the Glossing checkbox in the current profile,
+				// because the Glossing setting is not persistent - it reverts back to being "OFF" each
 				// time the app starts up. Hence, we can ensure Glossing is turned off here.
 				gbIsGlossing = FALSE; // we are removing the [] Glossing checkbox so gbIsGlossing should be FALSE
 			}
@@ -8291,9 +8291,9 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 /// \return     nothing
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// This function destroys the existing tool bar then constructs a new tool bar and uses 
-/// it as the starting baseline, removing elements according to the currently selected 
-/// user profile. The tool bar may be either the standard tool bar (AIToolBarFunc) or the 
+/// This function destroys the existing tool bar then constructs a new tool bar and uses
+/// it as the starting baseline, removing elements according to the currently selected
+/// user profile. The tool bar may be either the standard tool bar (AIToolBarFunc) or the
 /// alternate tool bar (AIToolBar32x32Func) which has fewer buttons but larger bitmaps for
 /// use when the -xo command line parameter is used with an OLPC XO computer.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -8304,15 +8304,15 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 	pMainFrame->Freeze(); // to avoid flicker
 	pMainFrame->m_pToolBar->Destroy(); // removes the existing tool bar which may not be showing all items in the current profile
 
-	// Create the new tool bar with our AIToolBar class override of wxToolBar (see similar 
+	// Create the new tool bar with our AIToolBar class override of wxToolBar (see similar
 	// code in CMainFrame's constructor)
     long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
 	AIToolBar* toolBar = new AIToolBar(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, style);
 	wxASSERT(toolBar != NULL);
 	pMainFrame->m_pToolBar = toolBar;
-	
-	// The AIToolBarFunc() and AIToolBar32x30Func() functions are located 
-	// in Adapt_It_wdr.cpp. 
+
+	// The AIToolBarFunc() and AIToolBar32x30Func() functions are located
+	// in Adapt_It_wdr.cpp.
 	if (gpApp->m_bExecutingOnXO) // add a ! to test the 32x32 toolbar when -xo is not set
 	{
 		toolBar->SetToolBitmapSize(wxSize(32,30));
@@ -8329,8 +8329,8 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 
 		// scan through this default toolbar and remove items that are not supposed to
 		// be visible in the current profile.
-		// The wxToolBarBase class has a protected member called 
-		// wxToolBarToolsList m_tools which is "the list of all our tools" which 
+		// The wxToolBarBase class has a protected member called
+		// wxToolBarToolsList m_tools which is "the list of all our tools" which
 		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
 		RemoveToolBarItemsFromToolBar(toolBar);
 	}
@@ -8341,22 +8341,22 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 
 		// scan through this default toolbar and remove items that are not supposed to
 		// be visible in the current profile.
-		// The wxToolBarBase class has a protected member called 
-		// wxToolBarToolsList m_tools which is "the list of all our tools" which 
+		// The wxToolBarBase class has a protected member called
+		// wxToolBarToolsList m_tools which is "the list of all our tools" which
 		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
 		RemoveToolBarItemsFromToolBar(toolBar);
 	}
-	// Note: The RemoveToolBarItemsFromToolBar() call above also removed any "leftover" 
-	// or duplicate tool bar separators. 
-	
+	// Note: The RemoveToolBarItemsFromToolBar() call above also removed any "leftover"
+	// or duplicate tool bar separators.
+
 	pMainFrame->SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
-	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
-	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage 
-	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect 
-	// the available space for application windows. Under Pocket PC, you should always use this 
-	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use 
-	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar 
+	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with
+	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage
+	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect
+	// the available space for application windows. Under Pocket PC, you should always use this
+	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use
+	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar
 	// as usual."
 	pMainFrame->m_pToolBar = pMainFrame->GetToolBar();
 	wxASSERT(pMainFrame->m_pToolBar == toolBar);
@@ -8376,8 +8376,8 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 /// \return     nothing
 /// \remarks
 /// Called from: the App's ConfigureInterfaceForUserProfile().
-/// This function sets the value of m_bShowNewProjectItem to FALSE if the <New Project> user 
-/// profile item's itemVisibility attribute for the current profile is set to "0"; otherwise 
+/// This function sets the value of m_bShowNewProjectItem to FALSE if the <New Project> user
+/// profile item's itemVisibility attribute for the current profile is set to "0"; otherwise
 /// sets the value of m_bShowNewProjectItem to TRUE. The CProjectPage class uses the App's
 /// m_bShowNewProjectItem flag to include <New Project> as the first item in the page's
 /// list of projects, or omit it from the list.
@@ -8397,7 +8397,7 @@ void CAdapt_ItApp::ConfigureWizardForUserProfile()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return    TRUE if the "<New Project>" item is supposed to be visible in this nProfile, 
+/// \return    TRUE if the "<New Project>" item is supposed to be visible in this nProfile,
 ///                 FALSE otherwise
 /// \param      -> nProfile   the user workflow profile (zero based), i.e., m_nWorkflowProfile
 ///                     i.e., the tooltip
@@ -8415,7 +8415,7 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 	{
 		// The work flow profile 0 (zero) is the "None" selection and all interface
 		// items are visible by default
-		return bItemIsVisible; 
+		return bItemIsVisible;
 	}
 	int ct;
 	int totct;
@@ -8454,7 +8454,7 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 /// \remarks
 /// Called from: the App's ConfigureToolBarForUserProfile() and CMainFrame::RecreateToolBar().
 /// This function is a helper function for ConfigureToolBarForUserProfile().
-/// It removes any tool bar items that are not visible in the currently selected user 
+/// It removes any tool bar items that are not visible in the currently selected user
 /// profile. It also removes any left-over or duplicate tool bar separators.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
@@ -8464,7 +8464,7 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 	wxToolBarToolsList toolBarToolsList = pToolBar->GetToolBarToolsList();
 	wxToolBarToolsList::Node* node;
 	wxToolBarToolBase* pTBItem;
-	// Since we are removing the tool bar items by position in the bar, we 
+	// Since we are removing the tool bar items by position in the bar, we
 	// need to remove the items from the right end (higher position) to the
 	// left end (lower) position, otherwise our position index ct will not
 	// be accurate after the first removal.
@@ -8502,7 +8502,7 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 	// Now take care of left-over or duplicate tool bar separators
 	toolCount = (int)pToolBar->GetToolsCount();
 	toolBarToolsList = pToolBar->GetToolBarToolsList();
-	// Since we are removing the tool bar items by position in the bar, we 
+	// Since we are removing the tool bar items by position in the bar, we
 	// need to remove the items from the right end (higher position) to the
 	// left end (lower) position, otherwise our position index ct will not
 	// be accurate after the first removal.
@@ -8527,13 +8527,13 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 			bLastItemWasSeparator = TRUE;
 		}
 	}
-	
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's OnInit(), OnEditUserMenuSettingsProfiles(), and from the 
+/// Called from: the App's OnInit(), OnEditUserMenuSettingsProfiles(), and from the
 /// CSetupEditorCollaboration::OnOK() handler.
 /// Makes the following adjustments to AI menus:
 /// 1. Adds parenthetical info in the Open... and Save menu labels of the File menu
@@ -8550,10 +8550,10 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 ///    version).
 /// 6. Adjust the accelerator key for the Mac platform for the Layout menu's item.
 /// 7. Set toggle menu items to reflect the current values of their GUI flags.
-/// some menu labels and hot key assignments for the different platforms - 
-/// different platforms reserve certain hot key combinations for their own system use. 
+/// some menu labels and hot key assignments for the different platforms -
+/// different platforms reserve certain hot key combinations for their own system use.
 /// Adjustments are also made here for certain modes such as Paratext/Bibledit collaboration.
-/// This function also sets the initial checked/unchecked state of menu items which are 
+/// This function also sets the initial checked/unchecked state of menu items which are
 /// checkable.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
@@ -8566,12 +8566,12 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// Note: The FileHistoryLoad() call is done in OnInit() before the first
 	// call of MakeMenuInitializationsAndPlatformAdjustments.
 
-	// Make adjustments on the Windows platform for when Paratext or Bibledit 
-	// collaboration is in effect. We modify the labels for Open... and Save... 
+	// Make adjustments on the Windows platform for when Paratext or Bibledit
+	// collaboration is in effect. We modify the labels for Open... and Save...
 	// on the File menu to include parenthetical explanations as follows:
 	// Open... (Get Source Text From Paratext) or Open... (Get Source Text From Bibledit)
 	// Save (Transfer Translation Draft To Paratext) or Save... (Transfer Translation Draft To Bibledit)
-	// Note: We do not need conditional define here for Windows because 
+	// Note: We do not need conditional define here for Windows because
 	// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit will
 	// only be TRUE on the platforms that host Paratext, i.e., Windows, or Bibledit,
 	// i.e., Linux or the Mac.
@@ -8634,7 +8634,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			label += afterTab;
 		}
 		pFileMenu->SetLabel(wxID_OPEN,label);
-		
+
 		int posTabSave;
 		label = pFileMenu->GetLabel(wxID_SAVE);
 		// whm added 28Jul11. Remove any initial underscore characters that seem
@@ -8687,7 +8687,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		}
 		pFileMenu->SetLabel(wxID_SAVE, label);
 	}
-	
+
 	// remove the Administrator menu until asked for
 	if (!m_bShowAdministratorMenu)
 	{
@@ -8717,7 +8717,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		}
 		pMenuBar->Refresh();
 	}
-	
+
 	// Format the "Setup %s Collaboration..." menu item for Paratext or Bibledit
 	wxMenu* pAdministratorMenu;
 	pAdministratorMenu = GetTopLevelMenuFromAIMenuBar(administratorMenu);
@@ -8764,30 +8764,30 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
     // Command-Shift-O, and on Linux as Ctrl-Shift-O, to avoid the conflict.
 	if (pFileMenu != NULL)
 	{
-		pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows 
+		pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows
 													// & Linux have the default Ctrl-W
 	}
 #endif
-	
+
 #ifdef __WXMAC__
 	// File | Close Project
     // On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used
     // it on Windows/Linux for Close Project, but the comperable hot key to close the
     // active window for Mac is Command-W.
-	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close 
+	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close
 	// (wxID_CLOSE) menu item.
 	if (pFileMenu != NULL)
 	{
 		if (pFileMenu->FindItem(ID_FILE_CLOSEKB) != NULL)
 		{
-			pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows 
+			pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows
 				// and Linux have the default Ctrl-J
 		}
 	}
-    
+
 	// File | Exit
 	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
-	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
+	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll
 	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
     if (pFileMenu != NULL)
 	{
@@ -8810,7 +8810,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		{
 			pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
 		}
-		
+
 		// Edit | Move Note Backward
 		// On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
 		// accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
@@ -8819,7 +8819,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		{
 			pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
 		}
-		
+
 		// Edit | Move Note Forward
 		// On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
 		// accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
@@ -8875,14 +8875,14 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 
 #endif
 
-	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on 
-	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu 
-	// resource. With wxDesigner handling resources, it's easier to start with the item 
+	// The wxWidgets version has the "Export Target Text As UTF-8..." Menu Item on
+	// the File Menu and the Layout Menu as a top level menu in the AIMenuBarFunc() menu
+	// resource. With wxDesigner handling resources, it's easier to start with the item
 	// in the menu and programmatically delete it, rather than create it from scratch.
 	// So, for ANSI version, we'll just remove them from the MenuBar.
 #ifndef _UNICODE
 	// ANSI only
-	// In the wx version we started with the Layout menu loaded with 
+	// In the wx version we started with the Layout menu loaded with
 	// other menu resources. Here we'll remove it for the ANSI version.
 	wxMenu* pLayoutMenu = GetTopLevelMenuFromAIMenuBar(layoutMenu);
 	if(pLayoutMenu != NULL)
@@ -8907,10 +8907,10 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	}
 #else
 	// Unicode version
-	
+
 	// Initialize the Layout menu to LTR
 	CAdapt_ItView* pView = GetView();
-	gbLTRLayout = TRUE; 
+	gbLTRLayout = TRUE;
 	gbRTLLayout = FALSE; // default is LTR layout
 	if (gpApp->m_bSrcRTL == TRUE && gpApp->m_bTgtRTL == TRUE)
 	{
@@ -8928,14 +8928,14 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		// Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
 	}
 
-#endif 
+#endif
 
     // These toggle menu items should be initially set as follows (TRUE=checked;
     // FALSE=unchecked):
     // whm modified 28Jul11. This MakeMenuInitializationsAndPlatformAdjustments()
     // function can now be called from places other than from OnInit(). Therefore,
     // the menu toggle items below should be set not to absolute initial values
-    // but to values that reflect the current state of the GUI elements they 
+    // but to values that reflect the current state of the GUI elements they
     // describe.
     if (pMenuBar->FindItem(ID_VIEW_TOOLBAR) != NULL)
 		pMenuBar->Check(ID_VIEW_TOOLBAR, pMainFrame->m_pToolBar != NULL); //pMenuBar->Check(ID_VIEW_TOOLBAR, TRUE);
@@ -8986,14 +8986,14 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 /// \return     nothing
 /// \remarks
 /// Called from: the App's OnInit() after the external XML file AI_UserProfiles.xml has
-/// been successfully read. This function does not re-read the raw data from the 
+/// been successfully read. This function does not re-read the raw data from the
 /// arrays nor the external file, but "reads" the data from the pTempUserProfiles and
-/// m_pUserProfiles created on the heap. The pTempUserProfiles is created by the 
+/// m_pUserProfiles created on the heap. The pTempUserProfiles is created by the
 /// SetupDefaultUserProfiles() function from the internal unix-like default strings.
-/// It then reports any inconsistencies to the developer in the form of wxLogDebug() 
-/// outputs for each inconsistency found. It only displays the wxLogDebug messages 
-/// and a few wxASSERT_MSG() messages in debug mode, so this function doesn't issue 
-/// any messages to the user in the release version; it merely exists to help the 
+/// It then reports any inconsistencies to the developer in the form of wxLogDebug()
+/// outputs for each inconsistency found. It only displays the wxLogDebug messages
+/// and a few wxASSERT_MSG() messages in debug mode, so this function doesn't issue
+/// any messages to the user in the release version; it merely exists to help the
 /// developer know of any inconsistencies and what they are.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
@@ -9001,9 +9001,9 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	// get temporary data structures from the internal unix-like strings
 	UserProfiles* pTempUserProfiles; // destroyed at end of this function
 	pTempUserProfiles = (UserProfiles*)NULL;
-	
+
 	SetupDefaultUserProfiles(pTempUserProfiles); // creates a new UserProfiles on heap pointed to by pTempUserProfiles; calls GetAndAssignIdValuesToUserProfilesStruct()
-	
+
 	// First make sure we have good pointers
 	if (pTempUserProfiles == NULL)
 	{
@@ -9025,7 +9025,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 	//    3. The descriptionProfileTexts. These are editable by the admin.
 	// Note: The definedProfileNames would not normally be edited unless the admin manually
 	// attempts to change or localize the names of the profiles/tabs.
-	
+
 	bool bVersionsDiffer = FALSE;
 	// we need to ensure that the app's version (6.x.x) and the app's profile version (1.x)
 	// agree with the data in the unix-like default strings (here it is in pTempUserProfiles).
@@ -9040,7 +9040,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 		wxLogDebug(msg);
 		wxASSERT_MSG(FALSE,msg);
 	}
-	
+
 	if (pTempUserProfiles->applicationCompatibility != appVerOfRunningApp)
 	{
 		bVersionsDiffer = TRUE;
@@ -9050,7 +9050,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 		wxLogDebug(msg);
 		wxASSERT_MSG(FALSE,msg);
 	}
-	
+
 	if (pTempUserProfiles->profileVersion != m_pUserProfiles->profileVersion)
 	{
 		bVersionsDiffer = TRUE;
@@ -9148,7 +9148,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 			pAppItem = posApp->GetData();
 			if (pTempItem->itemID != pAppItem->itemID)
 			{
-				// The itemID is the most crucial/unique identifier so ensure they match and are in 
+				// The itemID is the most crucial/unique identifier so ensure they match and are in
 				// the same order.
 				wxString tempStr = pTempItem->itemID;
 				wxString appStr = pAppItem->itemID;
@@ -9160,7 +9160,7 @@ void CAdapt_ItApp::ReportMenuAndUserProfilesInconsistencies()
 
 			if (pTempItem->itemIDint != pAppItem->itemIDint)
 			{
-				// The itemIDint is also a crucial/unique identifier so ensure they match and are in 
+				// The itemIDint is also a crucial/unique identifier so ensure they match and are in
 				// the same order.
 				wxLogDebug(_T("The itemID strings differ for %s: internal (%d) and external (%d)\n   -   aborting the ReportMenuAndUserProfilesInconsistencies() function"),
 					pAppItem->itemText.c_str(),pTempItem->itemIDint,pAppItem->itemIDint);
@@ -9305,9 +9305,9 @@ bool CAdapt_ItApp::MenuItemExistsInAIMenuBar(wxString mainMenuLabel, wxString su
 
 			// Note: Using GetItemLabel() is supposed to preserve any & and Ctrl-key accelerator characters.
 			// Testing shows that it only partially does so - the \t character that separates the label from
-			// the Ctrl-key part is a literal whitespace tab. To achieve more reliable comparisons, it is best 
+			// the Ctrl-key part is a literal whitespace tab. To achieve more reliable comparisons, it is best
 			// that we compare menu labels after removing both the & and any \tCtrl-key or Ctrl-key characters
-			// from menu labels. 
+			// from menu labels.
 			wxString smLabel = pMenuItem->GetItemLabelText(); // GetItemLabelText removes any & and \tCtrl-key accelerator chars
 			wxString subMenuLabelPlain = subMenuLabel;
 			subMenuLabelPlain = RemoveMenuLabelDecorations(subMenuLabelPlain); // removes any & chars for comparison
@@ -9364,7 +9364,7 @@ bool CAdapt_ItApp::MenuItemIsVisibleInThisProfile(const int nProfile, const int 
 	{
 		// The work flow profile 0 (zero) is the "None" selection all all interface
 		// items are visible by default
-		return bItemIsVisible; 
+		return bItemIsVisible;
 	}
 	int ct;
 	int totct;
@@ -9420,7 +9420,7 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 	{
 		// The work flow profile 0 (zero) is the "None" selection and all interface
 		// items are visible by default
-		return bItemIsVisible; 
+		return bItemIsVisible;
 	}
 	int ct;
 	int totct;
@@ -9479,7 +9479,7 @@ bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const w
 	{
 		// The work flow profile 0 (zero) is the "None" selection and all interface
 		// items are visible by default
-		return bItemIsVisible; 
+		return bItemIsVisible;
 	}
 	int ct;
 	int totct;
@@ -9535,13 +9535,13 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 {
 	// Note: All menu items that can be added to the AI menu bar, would have
 	// previously been removed and stored within the m_pRemovedMenuItemArray
-	// array of pointers to wxMenuItems. We should be able to find the wxMenuItem* 
-	// in that array that corresponds to pSubMenuItem, and Insert it into the 
-	// appropriate top level menu corresponding to pMainMenuItem. The relative 
-	// position where it gets inserted is determined by consulting the 
+	// array of pointers to wxMenuItems. We should be able to find the wxMenuItem*
+	// in that array that corresponds to pSubMenuItem, and Insert it into the
+	// appropriate top level menu corresponding to pMainMenuItem. The relative
+	// position where it gets inserted is determined by consulting the
 	// AI_MenuStructure data on the heap. Afterwards we also tidy up the menu
-	// separators. 
-	
+	// separators.
+
 	// Verify that pSubMenuItem exists within the m_pRemovedMenuItemArray
 	int nIDofSubMenutoAddBack = -1;
 	int miCt;
@@ -9568,7 +9568,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 	// in pMenuItemToAddBack, along with its int ID value in nIDofSubMenutoAddBack.
 
 	// Determine in which top level menu pMenuItemToAddBack belongs
-	wxMenu* pTopLevelAIMenuToGetItem = NULL; // 
+	wxMenu* pTopLevelAIMenuToGetItem = NULL; //
 	CMainFrame* pMainFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
 	int mCt;
@@ -9590,18 +9590,18 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		}
 	}
 	wxASSERT(pTopLevelAIMenuToGetItem != NULL);
-	
+
 	// Get the list of menu items currently in AI's top level menu
 	wxMenuItemList pAIMenuItemList = pTopLevelAIMenuToGetItem->GetMenuItems();
-	
+
 	// Get the list of all menu items in AI_MenuStructure for this top level menu
 	wxArrayPtrVoid ItemsOfThisMainMenuStructure;
 	ItemsOfThisMainMenuStructure = GetMenuStructureItemsArrayForThisTopLevelMenu(pMainMenuItem);
-	
+
 	// testing below!!!
 	// Testing shows that pMenuItemList contains menuSeparators which have empty
-	// strings for labels and -1 for wxItemKind; and, for the File menu, also 
-	// contains separate menu entries for all the file history entries prefixed 
+	// strings for labels and -1 for wxItemKind; and, for the File menu, also
+	// contains separate menu entries for all the file history entries prefixed
 	// by a number and a space (1 up to a max of 9).
 	{
 		int i,tot;
@@ -9621,7 +9621,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 	// menuSeparators, but only the wxMenuItem information.
 	// m_pRemovedMenuItemArray, of course, contains removed items
 	// from all top level menus, whereas the pMenuItemList above
-	// contains the wxMenuItems that belong only to the 
+	// contains the wxMenuItems that belong only to the
 	// pMainMenuItem parameter.
 	{
 		int i,tot;
@@ -9636,9 +9636,9 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		}
 
 	}
-	// Testing shows that ItemsOfThisMainMenuStructure contains menuSeparators 
+	// Testing shows that ItemsOfThisMainMenuStructure contains menuSeparators
 	// which have empty strings for labels and wxITEM_SEPARATOR for their item
-	// kind. And, for the File menu there, is NO separate menu entries for the 
+	// kind. And, for the File menu there, is NO separate menu entries for the
 	// file history entries.
 	{
 		int i,tot;
@@ -9655,11 +9655,11 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 	}
 	// testing above !!!
 
-	// Our task now is to compare the list called pAIMenuItemList with the void ptr array called 
+	// Our task now is to compare the list called pAIMenuItemList with the void ptr array called
 	// ItemsOfThisMainMenuStructure, and figure out where the (parameter) pSubMenuItem should go
 	// into the pTopLevelAIMenuToGetItem.
 	// TODO: Up to here !!!
-	// Plan: Try to fit the following code into the solution.	
+	// Plan: Try to fit the following code into the solution.
 	bool bInsertionMade = FALSE;
 	int nSubMenuItems = (int)pAIMenuItemList.GetCount();
 	if (nSubMenuItems == 0)
@@ -9696,18 +9696,18 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 			// A. We insert the menu item into the current menubar in its relative order
 			// as determined by examining the m_pAI_MenuStructure struct on the heap.
 			// It is sufficient to insert this item just before the first item known
-			// to follow this item in the default menu. To do that we need to query the 
-			// m_pAI_MenuStructure and get a list of menu items that normally follow 
-			// pSubMenuItem within that top level menu. The list could have one or more 
-			// items depending on where pSubMenuItem normally appears in the menu. 
-			// In our current scan of AI's current menubar, we are comparing the current 
-			// menubar item with what we found in our queried list of items. When we 
+			// to follow this item in the default menu. To do that we need to query the
+			// m_pAI_MenuStructure and get a list of menu items that normally follow
+			// pSubMenuItem within that top level menu. The list could have one or more
+			// items depending on where pSubMenuItem normally appears in the menu.
+			// In our current scan of AI's current menubar, we are comparing the current
+			// menubar item with what we found in our queried list of items. When we
 			// arrive at any one of those items in the list we insert the pSubMenuItem
 			// into the menu at that point. If we get to the end of our current scan
 			// through the menu and haven't found any item in the list, or if our list
 			// was empty, we simply insert the pSubMenuItem at the end of the menu.
 			// Note: We'll take care of inserting any menuSeparators later after having
-			// inserted the item in the menu. 
+			// inserted the item in the menu.
 
 			if (smKind != wxITEM_SEPARATOR)
 			{
@@ -9755,7 +9755,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		//	bool bLastItemWasSeparator = FALSE;
 		//	wxMenuItemList::Node* pNode;
 		//	wxMenuItem* pMenuItem;
-		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
 		//	pNode = pMenuItemList.GetLast();
 		//	while (pNode != NULL)
 		//	{
@@ -9778,7 +9778,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		//		pNode = pMenuItemList.GetLast();
 		//	}
 		//	// remove any separators at the top of the top level menu
-		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
 		//	nSubMenuItems = (int)pMenuItemList.GetCount();
 		//	pNode = pMenuItemList.GetFirst();
 		//	while (pNode != NULL)
@@ -9800,7 +9800,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		//		}
 		//		pNode = pMenuItemList.GetFirst();
 		//	}
-		//	
+		//
 		//	// change any remaining multiple sequences of menu separators to a single separator
 		//	pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
 		//	nSubMenuItems = (int)pMenuItemList.GetCount();
@@ -9830,7 +9830,7 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 		//			bLastItemWasSeparator = FALSE;
 		//		}
 		//	}
-		//	
+		//
 		//}
 
 	//}
@@ -9847,8 +9847,8 @@ void CAdapt_ItApp::AddSubMenuItemToAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_S
 /// Removes the sub menu item (whose data representation is in pSubMenuItem) from AI's current
 /// menu bar. Before calling this function a call to MenuItemIsVisibleInThisProfile() should
 /// return FALSE and a call to MenuItemExistsInAIMenuBar() should return TRUE. This function
-/// checks the resulting AI menu bar after the deletion of the sub menu item, and removes any 
-/// left over menu separators that would appear as a double separator or a separator left at 
+/// checks the resulting AI menu bar after the deletion of the sub menu item, and removes any
+/// left over menu separators that would appear as a double separator or a separator left at
 /// the bottom of the top level menu.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem,AI_SubMenuItem* pSubMenuItem)
@@ -9904,7 +9904,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 			bool bLastItemWasSeparator = FALSE;
 			wxMenuItemList::Node* pNode;
 			wxMenuItem* pMenuItem;
-			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
 			pNode = pMenuItemList.GetLast();
 			while (pNode != NULL)
 			{
@@ -9927,7 +9927,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 				pNode = pMenuItemList.GetLast();
 			}
 			// remove any separators at the top of the top level menu
-			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items		
+			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
 			nSubMenuItems = (int)pMenuItemList.GetCount();
 			pNode = pMenuItemList.GetFirst();
 			while (pNode != NULL)
@@ -9949,7 +9949,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 				}
 				pNode = pMenuItemList.GetFirst();
 			}
-			
+
 			// change any remaining multiple sequences of menu separators to a single separator
 			pMenuItemList = pMainMenu->GetMenuItems(); // refresh the list of menu items
 			nSubMenuItems = (int)pMenuItemList.GetCount();
@@ -9979,7 +9979,7 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 					bLastItemWasSeparator = FALSE;
 				}
 			}
-			
+
 		}
 	}
 }
@@ -9991,17 +9991,17 @@ void CAdapt_ItApp::RemoveSubMenuItemFromAIMenuBar(AI_MainMenuItem* pMainMenuItem
 /// \param      -> pMenuItemToAdd      the menu item to be inserted in the menu
 /// \param      -> pMenuItemComingNext the menu item before which pMenuItemToAdd should go
 /// \remarks
-/// Called from: the App's AddSubMenuItemToAIMenuBar(). 
+/// Called from: the App's AddSubMenuItemToAIMenuBar().
 /// This function is used as a test in the AddSubMenuItemToAIMenuBar() function. It is
-/// called from code that is scanning down a given menu of menu items from top to bottom. 
-/// It determines if the menu item represented by pMenuItemToAdd should be inserted in the 
+/// called from code that is scanning down a given menu of menu items from top to bottom.
+/// It determines if the menu item represented by pMenuItemToAdd should be inserted in the
 /// menu just before the menu item represented by pMenuItemComingNext, or appended to the
-/// end of the menu. When this function is called, the AI Menubar and its menus may have 
-/// had many of its normal menu items previously removed (depending on the currently 
-/// active user profile). Hence, this function consults the default menu structure 
-/// represented in m_pAI_MenuStructure to see where the pMenuItemToAdd would normally 
-/// appear within the full default menus. The caller will actually add the 
-/// pMenuItemToAdd to the menu. This function merely determines if it should be 
+/// end of the menu. When this function is called, the AI Menubar and its menus may have
+/// had many of its normal menu items previously removed (depending on the currently
+/// active user profile). Hence, this function consults the default menu structure
+/// represented in m_pAI_MenuStructure to see where the pMenuItemToAdd would normally
+/// appear within the full default menus. The caller will actually add the
+/// pMenuItemToAdd to the menu. This function merely determines if it should be
 /// inserted before pMenuItemComingNext or appended to the end of the menu.
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
@@ -10018,13 +10018,13 @@ bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
 	// that follow pMenuItemToAdd in AI's full default menu structure
 	wxArrayString followingMenuItemsArray;
 	followingMenuItemsArray = GetMenuItemsThatFollowThisSubMenuID(pMenuItemToAdd->subMenuID,pMenuItemToAdd->subMenuLabel);
-	// Note: the followingMenuItemsArray now contains all sub menu item labels and menu 
-	// separators that normally follow the pMenuItemToAdd menu item. Since it comes from 
-	// an examination of the m_pAI_MenuStructure, it does not include any file history 
+	// Note: the followingMenuItemsArray now contains all sub menu item labels and menu
+	// separators that normally follow the pMenuItemToAdd menu item. Since it comes from
+	// an examination of the m_pAI_MenuStructure, it does not include any file history
 	// items (that may show up as items on the File menu).
 
 	// Now, determine if pMenuItemComingNext is contained within the followingMenuItemsArray.
-	// If it is, or if the followingMenuItemsArray is empty, we return TRUE for bComesPrior, 
+	// If it is, or if the followingMenuItemsArray is empty, we return TRUE for bComesPrior,
 	// otherwise FALSE for bComesPrior.
 	if (followingMenuItemsArray.IsEmpty())
 	{
@@ -10047,13 +10047,13 @@ bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
 		{
 			itemLabelInArray = followingMenuItemsArray.Item(ct);
 			// We have to compare menu labels since pMenuItemComingNext is a wxMenuItem
-			// and, while we can query it with GetId() to get its int value, I don't know 
+			// and, while we can query it with GetId() to get its int value, I don't know
 			// of any way to get the string equivalent of that int's identifier!
 			// We also need to compare the strings without menu decorations.
 			// wxMenuItem::GetItemLabelText() gets without any accelerator chars or
 			// other decorations. Use this because GetItemLabel() doesn't handle \t correctly.
 			itemLabelInArray = this->RemoveMenuLabelDecorations(itemLabelInArray);
-			itemLabelOfwxMenuItem = pMenuItemComingNext->GetItemLabelText(); // 
+			itemLabelOfwxMenuItem = pMenuItemComingNext->GetItemLabelText(); //
 			if (itemLabelInArray == itemLabelOfwxMenuItem)
 			{
 				bComesPrior = TRUE;
@@ -10069,21 +10069,21 @@ bool CAdapt_ItApp::AddMenuItemBeforeThisOne(AI_SubMenuItem* pMenuItemToAdd,
 /// \return     a wxString representing the menu label in plain text with any & chars
 ///             and any accelerator/hot key notation such as \tCtrl-S or \tShift-Ctrl-x
 ///             removed from the incoming menuLabel string
-/// \param      -> menuLabel  the string value of the menu label containing any "decorations" 
+/// \param      -> menuLabel  the string value of the menu label containing any "decorations"
 /// \remarks
 /// Called from: the App's GetAndAssignIdValuesToUserProfilesStruct(), SetupDefaultMenuStructure(),
 /// ConfigureMenuBarForUserProfile() and GetSubMenuItemIdFromAIMenuBar()
 /// and from PopulateListBox() and ProfileItemIsSubMenuOfThisMainMenu() in the
-/// CAdminEditMenuProfile class. 
-/// This function is used for comparing menu label strings. It removes any '&' chars as 
-/// well as any accelerator/hot key strings embedded within the menu label such as 
-/// \tCtrl-x or \tShift-Ctrl-x. Note: This function detects the presence of both _T("\\t") 
-/// and _T("\t") in the menuLabel string, and removes all text following those occurrences. 
-/// The need for detecting both comes from the fact that strings imported from the 
+/// CAdminEditMenuProfile class.
+/// This function is used for comparing menu label strings. It removes any '&' chars as
+/// well as any accelerator/hot key strings embedded within the menu label such as
+/// \tCtrl-x or \tShift-Ctrl-x. Note: This function detects the presence of both _T("\\t")
+/// and _T("\t") in the menuLabel string, and removes all text following those occurrences.
+/// The need for detecting both comes from the fact that strings imported from the
 /// external AI_UserProfiles.xml file have embedded tabs of the form _T("\\t"). The _T("\\t")
 /// form of the string is difficult to detect because they appear as "\t" within the IDE
 /// debugger! Menu labels embedded with \\t do not right-align when the menu it shown, but
-/// display the \t and its following Ctrl-x string suffixed on the text of the menu label 
+/// display the \t and its following Ctrl-x string suffixed on the text of the menu label
 /// making for a rather ugly menu.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
@@ -10114,12 +10114,12 @@ wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
 			tempStr = tempStr.Left(tempStr.Find(_T("Shift-")));
 		}
 	}
-	return tempStr;		
+	return tempStr;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the string equivalent of the itemKind enum value
-/// \param      -> itemKind  the wxItemKind enum value of the menu item 
+/// \param      -> itemKind  the wxItemKind enum value of the menu item
 /// \remarks
 /// Called from: the App's SetupDefaultMenuStructure().
 /// Returns the wxString equivalent of a menu's wxItemKind value.
@@ -10143,10 +10143,10 @@ wxString CAdapt_ItApp::GetMenuItemKindAsString(wxItemKind itemKind)
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the wxItemKind enum value equivalent to the input itemKindStr
 /// \param      -> itemKindStr  a wxString in the form of "wxITEM_NORMAL", "wxITEM_SEPARATOR",
-///                             "wxITEM_CHECK" or "wxITEM_RADIO". 
+///                             "wxITEM_CHECK" or "wxITEM_RADIO".
 /// \remarks
 /// Called from: the App's ConfigureMenuBarForUserProfile().
-/// A convenience function that returns the wxItemKind enum equivalent of the input 
+/// A convenience function that returns the wxItemKind enum equivalent of the input
 /// wxString representation.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxItemKind CAdapt_ItApp::GetMenuItemKindFromString(wxString itemKindStr)
@@ -10176,15 +10176,15 @@ wxItemKind CAdapt_ItApp::GetMenuItemKindFromString(wxString itemKindStr)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the top level menu label corresponding to the
-///             top level menu ID (i.e., ID_FILE_MENU). The label returned will 
+///             top level menu ID (i.e., ID_FILE_MENU). The label returned will
 ///             still contain any & character for ALT-key access to the menu.
-/// \param      -> IDint    the int value representing the top level menu ID 
+/// \param      -> IDint    the int value representing the top level menu ID
 /// \remarks
-/// Called from: the App's GetTopLevelMenuName(). 
+/// Called from: the App's GetTopLevelMenuName().
 /// This function determines the string value that represents the top level menu ID according
 /// to the m_pAI_MenuStructure that was populated from the SetupDefaultMenuStructure() function.
 /// Note: The default string representations of the top level menus are all localizable as
-/// they exist in the AIMenuBarFunc() produced by wxDesigner. 
+/// they exist in the AIMenuBarFunc() produced by wxDesigner.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint)
 {
@@ -10254,8 +10254,8 @@ wxString CAdapt_ItApp::GetTopLevelMenuLabelForThisSubMenuID(wxString IDStr)
 */
 
 /* This function is currently unused (and possibly incomplete/untested) but might be useful in the future
-// Gets a wxArrayString of the menu item IDs that occur after the menu item 
-// represented by IDStr within the same top level menu, according to the current 
+// Gets a wxArrayString of the menu item IDs that occur after the menu item
+// represented by IDStr within the same top level menu, according to the current
 // information stored in the m_pAI_MenuStructure object.
 wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr)
 {
@@ -10306,8 +10306,8 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr)
 /* This function is currently unused (and possibly uncomplete/untested) but might be useful in the future
 // This is an override of the previous function that gets an array of menu
 // labels instead of menu ID strings.
-// Gets a wxArrayString of the menu item IDs that occur after the menu item 
-// represented by IDStr within the same top level menu, according to the current 
+// Gets a wxArrayString of the menu item IDs that occur after the menu item
+// represented by IDStr within the same top level menu, according to the current
 // information stored in the m_pAI_MenuStructure object.
 wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, wxString Label)
 {
@@ -10363,11 +10363,11 @@ wxArrayString CAdapt_ItApp::GetMenuItemsThatFollowThisSubMenuID(wxString IDStr, 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     an array of pointers of wxMenuItem objects on the heap
-/// \param      -> pMainMenuItem    the AI_MainMenuItem struct on the heap whose sub items are 
+/// \param      -> pMainMenuItem    the AI_MainMenuItem struct on the heap whose sub items are
 ///                                 being collected
 /// \remarks
-/// Called from: the App's ConfigureMenuBarForUserProfile(). 
-/// This function scans the main menu struct of the default AI menu structure represented 
+/// Called from: the App's ConfigureMenuBarForUserProfile().
+/// This function scans the main menu struct of the default AI menu structure represented
 /// in the pMainMenuItem incoming parameter, and collects the pointers of the structs of type
 /// AI_SubMenuItem* representing the sub menu items contained in that main menu.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -10412,14 +10412,14 @@ wxArrayPtrVoid CAdapt_ItApp::GetMenuStructureItemsArrayForThisTopLevelMenu(AI_Ma
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the menu label of the incoming topLevelMenu enum
-/// \param      -> topLevelMenu    the enum of the top level menu whose label we are 
+/// \param      -> topLevelMenu    the enum of the top level menu whose label we are
 ///                                 determining
 /// \remarks
-/// Called from: the App's ConfigureMenuBarForUserProfile() and GetTopLevelMenuFromAIMenuBar(). 
+/// Called from: the App's ConfigureMenuBarForUserProfile() and GetTopLevelMenuFromAIMenuBar().
 /// This function determines which string value label is associated (by default) with the
 /// enums describing the top level menus in Adapt It.
 /// Note: The default string representations of the top level menus are all localizable, but
-/// a user could change the labels of AI's top level menus via the AI_UserProfiles.xml file's 
+/// a user could change the labels of AI's top level menus via the AI_UserProfiles.xml file's
 /// mainMenuLabel attribute of its MENU_STRUCTURE > MAIN_MENU entires without having to do
 /// an entire localization.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -10460,9 +10460,9 @@ wxString CAdapt_ItApp::GetTopLevelMenuName(TopLevelMenu topLevelMenu)
 /// \param      -> topLevelMenuLabel the wxString value of the top level menu whose int
 ///                                  we are determining
 /// \remarks
-/// Called from: the App's SetupDefaultMenuStructure(). 
+/// Called from: the App's SetupDefaultMenuStructure().
 /// This function determines int value of the top level menu's identifier which is associated
-/// with the input string in topLevelMenuLabel. 
+/// with the input string in topLevelMenuLabel.
 //////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
 {
@@ -10471,7 +10471,7 @@ int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
 	if (topLevelMenuLabelPlain == _("&File"))
 		return ID_FILE_MENU;
 	else if (topLevelMenuLabelPlain == _("&Edit"))
-		return ID_EDIT_MENU; 
+		return ID_EDIT_MENU;
 	else if (topLevelMenuLabelPlain == _("&View"))
 		return ID_VIEW_MENU;
 	else if (topLevelMenuLabelPlain == _("&Tools"))
@@ -10499,10 +10499,10 @@ int CAdapt_ItApp::GetTopLevelMenuID(const wxString topLevelMenuLabel)
 /// \param      -> topLevelMenu the enum value of the top level menu whose int
 ///                                  we are determining
 /// \remarks
-/// Called from: the App's ConfigureMenuBarForUserProfile(). 
+/// Called from: the App's ConfigureMenuBarForUserProfile().
 /// This function is an override of the function that uses the menu label string as an
 /// imput parameter. This one determines int value of the top level menu's identifier w
-/// hich is associated with the input enum in topLevelMenu. 
+/// hich is associated with the input enum in topLevelMenu.
 //////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetTopLevelMenuID(TopLevelMenu topLevelMenu)
 {
@@ -10564,10 +10564,10 @@ int CAdapt_ItApp::GetTopLevelMenuID(TopLevelMenu topLevelMenu)
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a pointer to a wxMenu* object representing the top level menu of the AI
 ///             menu bar which is associated with the incoming topLevelMenu enum parameter
-/// \param      -> topLevelMenu    the enum of the top level menu whose wxMenu object we are 
+/// \param      -> topLevelMenu    the enum of the top level menu whose wxMenu object we are
 ///                                 locating
 /// \remarks
-/// Called from: the App's MakeMenuInitializationsAndPlatformAdjustments(). 
+/// Called from: the App's MakeMenuInitializationsAndPlatformAdjustments().
 /// This function locates and returns the pointer to the wxMenu object that represents the
 /// wxMenu* of the AI menu bar associated with the incoming topLevelMenu enum parameter.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -10588,11 +10588,11 @@ wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     an int representing the menu item id of the AI menu bar being examined
-/// \param      -> mainMenuItemLabel  the string label of the top level menu of the menu bar 
-/// \param      -> menuItemLabel  the string label of the sub menu item of the menu bar 
+/// \param      -> mainMenuItemLabel  the string label of the top level menu of the menu bar
+/// \param      -> menuItemLabel  the string label of the sub menu item of the menu bar
 /// \param      -> tempMenuBar  the AI Menu Bar we are examining (generally a temp one)
 /// \remarks
-/// Called from: the App's ConfigureMenuBarForUserProfile(). 
+/// Called from: the App's ConfigureMenuBarForUserProfile().
 /// This function determines and returns the int value of the identifier which was used
 /// in creating the menu item in the tempMenuBar; the menu item being specified by its
 /// location as being in the mainMenuItemLabel top level menu, and menuItemLabel sub
@@ -10607,7 +10607,7 @@ wxMenu* CAdapt_ItApp::GetTopLevelMenuFromAIMenuBar(TopLevelMenu topLevelMenu)
 //////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxString menuItemLabel, wxMenuBar* tempMenuBar)
 {
-	// The only available options to get an int id are via calling wxMenu::FindItem(const wxString& itemString) const 
+	// The only available options to get an int id are via calling wxMenu::FindItem(const wxString& itemString) const
 	// or wxMenuBar::FindMenuItem(const wxString& menuString, const wxString& itemString) const
 	// on the appropriate top level menu of the tempMenuBar
 	wxString menuItemLabelPlain = menuItemLabel;
@@ -10629,7 +10629,7 @@ int CAdapt_ItApp::GetSubMenuItemIdFromAIMenuBar(wxString mainMenuItemLabel,wxStr
 /// \param      -> profileStr  the profile section under itemTextStr
 /// \param      -> valueStr  the string value of the itemVisibility for the given profileStr
 /// \remarks
-/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile().
 /// This function scans through the file f until it locates the line containing itemTextStr,
 /// continues until the profileStr associated with itemTextStr is found, then replaces the
 /// itemVisibility value associated with the above with the valueStr parameter.
@@ -10669,7 +10669,7 @@ int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemT
 			bool bFoundProfileLine = FALSE;
 			bool bMadeReplacement = FALSE;
 			int chPos;
-			do 
+			do
 			{
 				chPos = lineStr.Find(profileStr);
 				if (chPos != wxNOT_FOUND)
@@ -10740,14 +10740,14 @@ int CAdapt_ItApp::ReplaceVisibilityStrInwxTextFile(wxTextFile* f, wxString itemT
 /// \return     nothing
 /// \param      -> f  the wxText file whose line we are modifying
 /// \remarks
-/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
-/// This function is called last after updating the wxTextFile with all other changes made 
-/// to the user workflow profiles. Here we update the adminModified="" line in the wxTextFile 
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile().
+/// This function is called last after updating the wxTextFile with all other changes made
+/// to the user workflow profiles. Here we update the adminModified="" line in the wxTextFile
 /// to adminModified="Yes" if the data in the file differs from the factory data (determined
-/// by calling CommonItemsInProfilesDiffer), otherwise we we ensure that the line reads 
-/// adminModified="No". Note: Working from the factory data as a baseline allows for the 
-/// possibility that a AI_UserProfiles.xml file that was previously modified resulting in the 
-/// line becoming adminModified="Yes", could now be modified again resulting in the line becoming 
+/// by calling CommonItemsInProfilesDiffer), otherwise we we ensure that the line reads
+/// adminModified="No". Note: Working from the factory data as a baseline allows for the
+/// possibility that a AI_UserProfiles.xml file that was previously modified resulting in the
+/// line becoming adminModified="Yes", could now be modified again resulting in the line becoming
 /// adminModified="No" in the event that the later modifications returned the data in the file
 /// back to be identidal to the factory data.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -10811,7 +10811,7 @@ void CAdapt_ItApp::UpdateAdminModifiedLineToYesOrNo(wxTextFile* f)
 /// \param      -> descrProfileN  the descriptionProfileN we are looking for in the file
 /// \param      -> valueStr  the value of the new replacement descriptionProfileN text
 /// \remarks
-/// Called from: the App's SaveUserProfilesMergingDataToXMLFile(). 
+/// Called from: the App's SaveUserProfilesMergingDataToXMLFile().
 /// This function scans through the file f until it locates the line containing descrProfileN,
 /// then it replaces the existing text with the text in valueSrt.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -10881,14 +10881,14 @@ int CAdapt_ItApp::ReplaceDescriptionStrInwxTextFile(wxTextFile* f, wxString desc
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's OnInit(). 
-/// On Windows machines, transitions any registry information previously stored in the 
+/// Called from: the App's OnInit().
+/// On Windows machines, transitions any registry information previously stored in the
 /// Adapt_It_WX registry key to a Adapt_It_WX.ini file-on-disk format configuration file
-/// and, once done, removes the old Adapt_It_WX registry key from the Windows registry, 
+/// and, once done, removes the old Adapt_It_WX registry key from the Windows registry,
 /// so that this transition to using the file-on-disk format needs to happen only once.
 /// As of version 6.0.0, the information saved previously in the Windows registry under
 /// the HKEY_CURRENT_USER\Software\Adapt_It_WX key is now stored instead in a disk file
-/// called Adapt_It_WX.ini - so that the Windows port now saves this information in the 
+/// called Adapt_It_WX.ini - so that the Windows port now saves this information in the
 /// same way that the Linux and Mac ports save it. It also makes Adapt It 6.0.0 more
 /// compatible as a PortableApps application.
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -10899,20 +10899,20 @@ void CAdapt_ItApp::TransitionWindowsRegistryEntriesTowxFileConfig()
 	wxRegKey keyAIWX(_T("HKEY_CURRENT_USER\\Software\\Adapt_It_WX"));
 	if (keyAIWX.Exists())
 	{
-		// From version 6.0.0 Adapt It uses a wxFileConfig object instead of a wxConfig object 
+		// From version 6.0.0 Adapt It uses a wxFileConfig object instead of a wxConfig object
 		// on the App called m_pConfig.
-		// When TransitionWindowsRegistryEntriesTowxFileConfig() is called we don't know 
-		// whether AI's config info was transitioned previously from the host Windows' 
-		// registry or not, so we'll do this with a local object that we delete at the 
+		// When TransitionWindowsRegistryEntriesTowxFileConfig() is called we don't know
+		// whether AI's config info was transitioned previously from the host Windows'
+		// registry or not, so we'll do this with a local object that we delete at the
 		// end of this function.
 		// The registry groups prior to 6.0.0 will have this heirarchical structure:
 		// Adapt_It_WX
-		//    Recent_File_List           [contains 11 REG_SZ entries and 8 REG_DWORD entries] 
+		//    Recent_File_List           [contains 11 REG_SZ entries and 8 REG_DWORD entries]
 		//       wxHtmlWindow            [contains 3 REG_SZ entries and 8 REG_DWORD entries]
 		//    Recent_File_List_Unicode   [contains 11 REG_SZ entries and 8 REG_DWORD entries]
 		//       wxHtmlWindow            [contains 3 REG_SZ entries and 8 REG_DWORD entries]
 		//    Settings                   [containes 13 REG_SZ entries and 3 REG_DWORD entries]
-		// 
+		//
 		wxConfig* mpConfig;
 		mpConfig = new wxConfig(_T("Adapt_It_WX")); // a local instance of wxConfig
 		wxASSERT(mpConfig != NULL);
@@ -11053,8 +11053,8 @@ void CAdapt_ItApp::TransitionWindowsRegistryEntriesTowxFileConfig()
 		wxASSERT(bDeletedOK == TRUE);
 		mpConfig->Flush();
 		mpFileConfig->Flush();
-		// Finally, delete the temporary objects we've used above. 
-		// Note: mpFileConfig will be created again for the duration of the running app 
+		// Finally, delete the temporary objects we've used above.
+		// Note: mpFileConfig will be created again for the duration of the running app
 		// in OnInit() just after this function ends.
 		delete mpConfig;
 		delete mpFileConfig;
@@ -11097,21 +11097,21 @@ void CAdapt_ItApp::LogUserAction(wxString msg)
 /// \remarks
 /// Called from: the App's OnInit().
 /// Looks in the Windows registry to see if Paratext is installed. Returns TRUE if host
-/// machine has a Windows registry and this function finds the following conditions to 
+/// machine has a Windows registry and this function finds the following conditions to
 /// be met:
-/// 1. The following key exists in the registry: 
+/// 1. The following key exists in the registry:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
 /// 2. The string value associated with the above key represents a valid path where
 ///    Paratext is installed, usually something like "C:\Program Files\Paratext7\".
 /// 3. The folder designated in 2 above contains the Paratext.exe executable file.
-/// If the above conditions are not all met, the function returns FALSE. This function 
+/// If the above conditions are not all met, the function returns FALSE. This function
 /// only reads/queries the Windows registry; it does not make changes to it.
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ParatextIsInstalled()
 {
 	bool bPTInstalled = FALSE;
 #ifdef __WXMSW__ // only need to do this on a Windows host system
-	
+
 	wxLogNull logNo; // eliminate any spurious messages from the system
 	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
 	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
@@ -11128,8 +11128,8 @@ bool CAdapt_ItApp::ParatextIsInstalled()
 			{
 				// Note: There are two main Paratext components that we check for to determine
 				// if Paratext is installed, Paratext.exe and ParatextShared.dll. The former is
-				// the main program. The other is the shared dynamic library with which our 
-				// collaboration with Paratext is achieved. We later interact with the 
+				// the main program. The other is the shared dynamic library with which our
+				// collaboration with Paratext is achieved. We later interact with the
 				// ParatextShared.dll library.
 				if (::wxFileExists(dirStrValue + _T("Paratext.exe"))
 					&& ::wxFileExists(dirStrValue + _T("ParatextShared.dll")))
@@ -11161,7 +11161,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 		|| ::wxFileExists(pathToExecutable3) || ::wxFileExists(pathToExecutable4))
 		bBEInstalled = TRUE;
 	// TODO: write code to determine the version of bibledit-gtk that is
-	// installed on Linux. It must be at least version 4.2.93 to respond 
+	// installed on Linux. It must be at least version 4.2.93 to respond
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
 #ifdef __WXMAC__
@@ -11176,10 +11176,10 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 			bBEInstalled = TRUE;
 	}
 	// TODO: write code to determine the version of bibledit-gtk that is
-	// installed on the Mac. It must be at least version 4.2.93 to respond 
+	// installed on the Mac. It must be at least version 4.2.93 to respond
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
-	
+
 	m_bBibleditIsInstalled = bBEInstalled; // set the App's flag
 	return bBEInstalled;
 }
@@ -11188,10 +11188,10 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 /// \remarks
 /// Called from: the App's OnInit().
 /// Looks in the Windows registry to get the path to the Paratext Projects directory.
-/// The following registry key is queried for the return value: 
+/// The following registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Settings_Directory
 /// If the key is not found, or is found but the value string does not exist on
-/// the system, the function returns an empty string. This function only reads/queries 
+/// the system, the function returns an empty string. This function only reads/queries
 /// the Windows registry; it does not make changes to it.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextProjectsDirPath()
@@ -11199,7 +11199,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 	wxString path;
 	path.Empty();
 #ifdef __WXMSW__ // only need to do this on a Windows host system
-	
+
 	wxLogNull logNo; // eliminate any spurious messages from the system
 	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
 	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Settings_Directory"));
@@ -11228,7 +11228,7 @@ wxString CAdapt_ItApp::GetParatextProjectsDirPath()
 
 wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 {
-	// by inspection of Bibledit-gtk version 4.2.93 (cloned from git nightly build 
+	// by inspection of Bibledit-gtk version 4.2.93 (cloned from git nightly build
 	// and built 13Jun11), the bibledit project folder is located at:
 	// ~/.bibledit/projects and the projects folder contains an xml file called
 	// configuration.1.xml and folders for each project by name of project. We can
@@ -11242,7 +11242,7 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 	// On Linux systems the wxStandardPaths::GetDocumentsDir() method gets
 	// the user's ~/ folder where the .bibledit folder is located. We augment
 	// that path by pointing to its projects subdirectory, i.e., ~/.bibledit/projects.
-	// Get the "documents" directory for the current system/platform. 
+	// Get the "documents" directory for the current system/platform.
 	wxStandardPaths stdPaths;
 	path = stdPaths.GetDocumentsDir() + PathSeparator + _T(".bibledit") + PathSeparator + _T("projects");
 	return path;
@@ -11254,10 +11254,10 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 /// \remarks
 /// Called from: the App's OnInit().
 /// Looks in the Windows registry to get the path to the Paratext Install directory.
-/// The following registry key is queried for the return value: 
+/// The following registry key is queried for the return value:
 ///    HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
 /// If the key is not found, or is found but the value string does not exist on
-/// the system, the function returns an empty string. This function only reads/queries 
+/// the system, the function returns an empty string. This function only reads/queries
 /// the Windows registry; it does not make changes to it.
 //////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetParatextInstallDirPath()
@@ -11265,7 +11265,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 	wxString path;
 	path.Empty();
 #ifdef __WXMSW__ // only need to do this on a Windows host system
-	
+
 	wxLogNull logNo; // eliminate any spurious messages from the system
 	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
 	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\ScrChecks\\1.0\\Program_Files_Directory_Ptw7"));
@@ -11306,7 +11306,7 @@ wxString CAdapt_ItApp::GetBibleditInstallDirPath()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing a suitable document file name for AI's collaboration 
+/// \return     a wxString representing a suitable document file name for AI's collaboration
 ///                    with Paratext or Bibledit
 /// \param      collabPrefix       -> the USFM 3-letter book code string for a Scripture book
 /// \param      bookCode           -> the USFM 3-letter book code string for a Scripture book
@@ -11314,22 +11314,22 @@ wxString CAdapt_ItApp::GetBibleditInstallDirPath()
 /// \param      chapterNumStr -> the chapter number as a string, optionally can be wxEmptyString
 /// \param      extStr        -> the extension to use, generally will be "xml"
 /// \remarks
-/// 
+///
 /// Builds a suitable file name for Adapt It's local use based partly on the Paratext naming
 /// scheme, and partly for Adapt It's own filename identification purposes. The usual resulting
 /// string is of the form represented by the following example: Collab_nn_BBB_XYZ_CHcc.ext where
 /// nn is the numerical book equivalent in the Paratext scheme (01 is Genesis, 39 is Malachi,
 /// 41 is Matthew, 67 is Revelation); BBB is the USFM 3-letter book code; XYZ is the Paratext
-/// project's short name; cc is the chapter number, and ext is the extension for the filename. 
-/// The format for nn and cc when < 10 has a leading '0'. If the chapterNumStr is empty 
-/// (wxEmptyString or _T("")), the resulting file name string is of the form: Collab_nn_BBB_XYZ.ext. 
-/// The incoming extStr can contain an initial dot or be just the extension itself; the 
+/// project's short name; cc is the chapter number, and ext is the extension for the filename.
+/// The format for nn and cc when < 10 has a leading '0'. If the chapterNumStr is empty
+/// (wxEmptyString or _T("")), the resulting file name string is of the form: Collab_nn_BBB_XYZ.ext.
+/// The incoming extStr can contain an initial dot or be just the extension itself; the
 /// function puts the initial dot if it is not present in the incoming extStr. The bookCode and
 /// extStr are the two manditory parameters that cannot be empty strings.
 /// BEW 26Jun11, removed assert for non-empty extension, so that the function can also be
 /// used for easily generating a window Title string
 //////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode, 
+wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 							wxString ptProjectShortName, wxString chapterNumStr, wxString extStr)
 {
 	wxASSERT(!bookCode.IsEmpty());
@@ -11476,12 +11476,12 @@ void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedS
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a boolean indicating whether the Paratext 7 process is running (TRUE) 
+/// \return     a boolean indicating whether the Paratext 7 process is running (TRUE)
 ///                    or not running (FALSE)
 /// \remarks
-/// 
+///
 /// Only implemented currently for Windows host environments. Others (MAC/Linux) always return FALSE.
-/// Win32 calls are made to obtain the list of running processes, which are then searched by name 
+/// Win32 calls are made to obtain the list of running processes, which are then searched by name
 ///    for 'Paratext". This finds the Paratext 7 process, but not previous Paratext versions.
 /// If the process is not found, or an error occurs, the function returns FALSE
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -11492,7 +11492,7 @@ bool CAdapt_ItApp::ParatextIsRunning()
 #ifdef __WXMSW__ // only implemented on a Windows host system currently
 
 		try {
-		
+
 			HANDLE hProcessSnap;
 			//HANDLE hProcess;
 			PROCESSENTRY32 pe32;
@@ -11511,16 +11511,16 @@ bool CAdapt_ItApp::ParatextIsRunning()
 			// Retrieve information about the first process,
 			// and exit if unsuccessful
 			if( !Process32First( hProcessSnap, &pe32 ) )  // Unknown Error retreiving process-abort
-			{	
+			{
 				return bIsRunning;
 			}
-			
+
 			// Now walk the snapshot of processes, and
 			// display information about each process in turn
 			do
-			{				
+			{
 				wxString sProcess = pe32.szExeFile;
-				//wxLogDebug(_T("PROCESS NAME = %s"),sProcess); // 
+				//wxLogDebug(_T("PROCESS NAME = %s"),sProcess); //
 
 				if (sProcess.Contains(_T("Paratext")))
 				{
@@ -11548,7 +11548,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	bool bIsRunning = FALSE;
 
 #ifndef __WXMSW__ // for the non-Windows systems, i.e., Linux and Mac
-	
+
 	// The name of the Bibledit application in the Linux system is bibledit-gtk
 	long result = -1;
 	wxString commandLine;
@@ -11607,7 +11607,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 		if (bIsNumber)
 			bIsRunning = TRUE;
 	}
-	
+
 	// try the process name 'bibleditgui'
 	commandLine = _T("ps -C bibleditgui -o pid="); // outputs the pid in outputMsg if bibledit-bin is running, nothing otherwise
 	outputMsg.Clear(); errorsMsg.Clear();
@@ -11628,7 +11628,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 		if (bIsNumber)
 			bIsRunning = TRUE;
 	}
-	
+
 	// try the process name 'bibledit'
 	commandLine = _T("ps -C bibledit -o pid="); // outputs the pid in outputMsg if bibledit-bin is running, nothing otherwise
 	outputMsg.Clear(); errorsMsg.Clear();
@@ -11662,7 +11662,7 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
 	{
 		case XML_Input_Chunks:
 		{
-			#define TwentyKB 20480	
+			#define TwentyKB 20480
 			wxULongLong  fileSizeLL;
 			fileSizeLL = wxFileName::GetSize(pathAndXMLFileName);
 			if (fileSizeLL == wxInvalidSize)
@@ -11687,15 +11687,15 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
 			CTargetUnit* pTU_sim = 0;
 			for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
 			{
-				if (m_pKB->m_pMap[numWords_sim-1]->size() == 0) 
+				if (m_pKB->m_pMap[numWords_sim-1]->size() == 0)
 					continue;
 				else
 				{
 					iter_sim = m_pKB->m_pMap[numWords_sim-1]->begin();
-					do 
+					do
 					{
 						nTotal++; // add number of <entry>s, i.e., <lexical-unit>s
-						pTU_sim = (CTargetUnit*)iter_sim->second; 
+						pTU_sim = (CTargetUnit*)iter_sim->second;
 						wxASSERT(pTU_sim != NULL);
 						nTotal += pTU_sim->m_pTranslations->GetCount(); // add number of <sense>s
 						iter_sim++;
@@ -11711,15 +11711,15 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
 			CTargetUnit* pTU_sim = 0;
 			for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
 			{
-				if (m_pGlossingKB->m_pMap[numWords_sim-1]->size() == 0) 
+				if (m_pGlossingKB->m_pMap[numWords_sim-1]->size() == 0)
 					continue;
 				else
 				{
 					iter_sim = m_pGlossingKB->m_pMap[numWords_sim-1]->begin();
-					do 
+					do
 					{
 						nTotal++; // add number of <entry>s, i.e., <lexical-unit>s
-						pTU_sim = (CTargetUnit*)iter_sim->second; 
+						pTU_sim = (CTargetUnit*)iter_sim->second;
 						wxASSERT(pTU_sim != NULL);
 						nTotal += pTU_sim->m_pTranslations->GetCount(); // add number of <sense>s
 						iter_sim++;
@@ -11738,8 +11738,8 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
 	return nTotal;
 }
 
-wxProgressDialog* CAdapt_ItApp::OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed, 
-		const int nTotal, 
+wxProgressDialog* CAdapt_ItApp::OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed,
+		const int nTotal,
 		const int width)
 {
 	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
@@ -11764,7 +11764,7 @@ wxProgressDialog* CAdapt_ItApp::OpenNewProgressDialog(wxString progTitle,wxStrin
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     the CurrLocalizationInfo struct with its members populated from 
+/// \return     the CurrLocalizationInfo struct with its members populated from
 ///             m_pConfig info
 /// \remarks
 /// Called from: the App's OnInit(). Retrieves any previously stored user defined languages
@@ -11779,16 +11779,16 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 {
 	// Some wx example code uses the following:
 	// wxString lng = wxConfig::Get()->Read(_T("ui_language"));
-	// whm note: The above wxConfig->Get()... call creates a memory leak in our case since 
-	// it does not make it possible to delete the object created in the wxConfig->Get() call. 
+	// whm note: The above wxConfig->Get()... call creates a memory leak in our case since
+	// it does not make it possible to delete the object created in the wxConfig->Get() call.
 	// We want to get the ui_language data in our own m_pConfig object anyway.
 	// So we use our m_pConfig object which was created in OnInit() and deleted in OnExit()
-    
+
 	// Retrieve the interface language information from m_pConfig if it exists.
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
 
-	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value of 
+	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value of
 		// key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 
 	// First, retrieve the current localization info
@@ -11799,7 +11799,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
     currLocInfo.curr_shortName.Empty();
     currLocInfo.curr_fullName.Empty();
     currLocInfo.curr_localizationPath.Empty();
-	
+
 	m_pConfig->Read(_T("ui_language"), &currLocInfo.curr_UI_Language);
 	m_pConfig->Read(_T("ui_language_code"),&currLocInfo.curr_shortName);
 	m_pConfig->Read(_T("ui_language_name"),&currLocInfo.curr_fullName);
@@ -11808,7 +11808,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 #else
 	m_pConfig->Read(_T("ui_language_path"),&currLocInfo.curr_localizationPath);
 #endif
-	
+
 	// Next, retrieve any user defined language data from the user_defined_language_n keys.
 	int ct;
 	const int nKeys = 9;
@@ -11845,7 +11845,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 												// for which there is no key
 		}
 	}
-	
+
 	if (bKeysPresent)
 	{
         // User defined language keys are present. Do some sanity checks and then add them
@@ -11864,13 +11864,13 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
         // values before we call AddLanguage(). In such a case we would renumber the user
         // defined languages 231 through 239, to keep from the possibility of running out
         // of wxLanguage values (which are enum values with a max value of 255).
-		// 
+		//
         // First we sort the keyArray in case
         // RemoveUserDefinedLanguageInfoStringFromConfig() was called previously and left
         // an "[UNASSIGNED]" string assigned to a key in the middle of the keys somewhere.
         // Note: This is the only place in the handling of the registry/hidden settings
         // that we will sort the keys.
-		keyArray.Sort(); // Sorts in ascending order and places any unassigned keys 
+		keyArray.Sort(); // Sorts in ascending order and places any unassigned keys
 						 // toward the end.
 
 		int nCodeToAssign;
@@ -11907,11 +11907,11 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 				int nTempCode;
 				nTempCode = wxAtoi(tempCode);
 				if (nTempCode == currLocInfo.curr_UI_Language
-					&& (tempShortName != currLocInfo.curr_shortName || 
+					&& (tempShortName != currLocInfo.curr_shortName ||
 					tempFullName != currLocInfo.curr_fullName))
 				{
 					int code;
-					code = GetFirstAvailableLanguageCodeOtherThan(currLocInfo.curr_UI_Language, 
+					code = GetFirstAvailableLanguageCodeOtherThan(currLocInfo.curr_UI_Language,
 																	keyArray);
 					if (code != -1)
 					{
@@ -11919,12 +11919,12 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
                         // user_defined_language key to avoid clash of wxLanguage values
                         // being stored in the registry/hidden settings file.
 						wxString compositeStr;
-						compositeStr << code << _T(':') << tempShortName << _T(':') 
+						compositeStr << code << _T(':') << tempShortName << _T(':')
 										<< tempFullName << _T(':') << tempPath;
 						m_pConfig->Write(str, compositeStr);
 					}
 				}
-			
+
 				const wxLanguageInfo *info = wxLocale::FindLanguageInfo(tempFullName);
 				if (!info)
 				{
@@ -11934,27 +11934,27 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 					langInfo.CanonicalName = tempShortName;
 		#ifdef __WIN32__
 					// Win32 language identifiers
-					langInfo.WinLang = 0;		// We don't know the Windows LANG_xxxx 
+					langInfo.WinLang = 0;		// We don't know the Windows LANG_xxxx
 												// value so enter zero
-					langInfo.WinSublang = 0;	// We don't know the Windows SUBLANG_xxxx 
-												// value so enter zero 
+					langInfo.WinSublang = 0;	// We don't know the Windows SUBLANG_xxxx
+												// value so enter zero
 		#endif
 					langInfo.Description = tempFullName;
 					gpApp->m_pLocale->AddLanguage(langInfo);
-					
+
 					// Now write the key
                     // Make a composite unix-like string from the data stored in the
                     // registry/hidden settings file, but use the
                     // currLocInfo.curr_localizationPath in case the path that was stored
                     // was not up to date.
 					wxString compositeStr;
-					compositeStr << nCodeToAssign << _T(':') << tempShortName << _T(':') 
+					compositeStr << nCodeToAssign << _T(':') << tempShortName << _T(':')
 						<< tempFullName << _T(':') << currLocInfo.curr_localizationPath; //tempPath;
 					m_pConfig->Write(str, compositeStr);
                     // If our compositeStr represents the current interface language to be
                     // used, we should check to see if the wxLanguage value stored in the
                     // ui_language key needs updating.
-					if (tempFullName == currLocInfo.curr_fullName && 
+					if (tempFullName == currLocInfo.curr_fullName &&
 						tempShortName == currLocInfo.curr_shortName)
 					{
                         // Our compositeStr represents the current interface language to be
@@ -11979,7 +11979,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 			}
 			else
 			{
-				// This keyArray element was already "[UNASSIGNED]" so we write it back 
+				// This keyArray element was already "[UNASSIGNED]" so we write it back
 				// that way
 				m_pConfig->Write(str, _T("[UNASSIGNED]"));
 			}
@@ -11989,7 +11989,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
-    return currLocInfo; 
+    return currLocInfo;
 	// end of wxLogNull logNo here
 }
 
@@ -12016,12 +12016,12 @@ bool CAdapt_ItApp::LocalizationFilesExist()
 {
 	bool bLocalizationFilesFound = FALSE; // assume FALSE unless we actually find them
 	// First check to see if the ui_language_path key exists.
-	// 
+	//
 	// Retrieve the interface language information from m_pConfig if it exists.
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
 
-	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value
 		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 	wxString uiLangPath;
 	uiLangPath.Empty();
@@ -12113,7 +12113,7 @@ bool CAdapt_ItApp::LocalizationFilesExist()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if user made a choice different from the current language; FALSE if 
+/// \return     TRUE if user made a choice different from the current language; FALSE if
 ///             the user canceled or made no change
 /// \remarks
 /// Called from: the App's OnInit() and ChangeUILanguage(). If localization files are
@@ -12130,17 +12130,17 @@ bool CAdapt_ItApp::LocalizationFilesExist()
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface)
 {
-	// See LangInfo struct and langsKnownToWX[] for valid wxLanguage languages 
+	// See LangInfo struct and langsKnownToWX[] for valid wxLanguage languages
 	// identifiers known to wxWidgets.
 
 	CurrLocalizationInfo currLocInfo;
 	currLocInfo = currLocalizationInfo;
 	bool bChangeMade = FALSE;
-	
+
 	if (setInterface == userInitiated || LocalizationFilesExist() || wxGetKeyState(WXK_ALT))
 	{
 
-		CChooseLanguageDlg dlg(NULL); // use NULL as "parent" window since our main frame 
+		CChooseLanguageDlg dlg(NULL); // use NULL as "parent" window since our main frame
 									  // may not be created yet
 		dlg.Centre();
 		if (dlg.ShowModal() == wxID_OK)
@@ -12160,12 +12160,12 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 		else
 		{
 			LogUserAction(_T("Cancelled ChooseInterfaceLanguage()"));
-			// TODO: Check how Canceling the dialog handles the situation where the 
-			// systemLanguage of the host machine is something like "English India" 
+			// TODO: Check how Canceling the dialog handles the situation where the
+			// systemLanguage of the host machine is something like "English India"
 			// which is not a recognized language in wxWidgets language database.
 			// In particular, we don't want curr_UI_Language to be assigned a language
 			// which has no localization.
-			// 
+			//
 			// The user aborted from the CChooseLanguageDlg dialog, so we set the
             // CurrLocalizationInfo struct's members back to their values before calling
             // CChooseLanguageDlg.
@@ -12179,19 +12179,19 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 	else
 	{
 		LogUserAction(_T("Assign default English in ChooseInterfaceLanguage()"));
-		// TODO: Check how Canceling the dialog handles the situation where the 
-		// systemLanguage of the host machine is something like "English India" 
+		// TODO: Check how Canceling the dialog handles the situation where the
+		// systemLanguage of the host machine is something like "English India"
 		// which is not a recognized language in wxWidgets language database.
 		// In particular, we don't want curr_UI_Language to be assigned a language
 		// which has no localization.
-		// 
+		//
         // Localization files could not be found, and user did not hold down the ALT key to
         // force the CChooseLanguageDlg dialog to appear. Therefore we quietly assign
         // default English language values to the currLocalizationInfo struct (which will
         // be saved to the registry/hidden settings file when
         // SaveCurrentUILanguageInforToConfig is called below).
 		int sysLanguage = wxLocale::GetSystemLanguage();
-		const wxLanguageInfo *info = wxLocale::GetLanguageInfo(sysLanguage);		
+		const wxLanguageInfo *info = wxLocale::GetLanguageInfo(sysLanguage);
 		currLocalizationInfo.curr_UI_Language = sysLanguage;
 		if (info != NULL)
 		{
@@ -12209,7 +12209,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
     // the CurrLocalizationInfo struct's members are now filled appropriately, so save the
     // data in the m_pConfig configuration.
     SaveCurrentUILanguageInfoToConfig();
-	
+
 	return bChangeMade;
 }
 
@@ -12217,12 +12217,12 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 /// \return     TRUE if reversal succeeded, FALSE otherwise
 /// \param      pDialog -> pointer to the dialog whose OK and Cancel buttons are to be swapped
 /// \remarks
-/// Called from: Nearly all dialogs having OK and Cancel buttons. 
-/// Reverses the positions of the OK and Cancel buttons within their created dialogs. This is 
+/// Called from: Nearly all dialogs having OK and Cancel buttons.
+/// Reverses the positions of the OK and Cancel buttons within their created dialogs. This is
 /// accomplished by switching the button's ids and labels. The change is only made for the
 /// wxMac port. wxDesigner positioned the dialog's OK and Cancel buttons assuming the style
 /// of dialogs for Windows which have OK button on the left and Cancel button on the right.
-/// For the proper "look and feel" on a Mac, this order should be reversed to Cancel on 
+/// For the proper "look and feel" on a Mac, this order should be reversed to Cancel on
 /// the left and OK on the right. The dialog assumes that the dialog has already been created
 /// from a function designed by wxDesigner, and that it contains a wxButton with the wxID_OK
 /// identifier and another button with the wxID_CANCEL identifier which were both created as
@@ -12232,11 +12232,11 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 {
 	wxASSERT(pDialog != NULL);
-	wxButton* pOKButton = (wxButton*)pDialog->FindWindow(wxID_OK); // FindWindow finds a 
+	wxButton* pOKButton = (wxButton*)pDialog->FindWindow(wxID_OK); // FindWindow finds a
 																   // child of pDialog
 	if (pOKButton == NULL)
 		return FALSE;
-	wxButton* pCancelButton = (wxButton*)pDialog->FindWindow(wxID_CANCEL); // FindWindow 
+	wxButton* pCancelButton = (wxButton*)pDialog->FindWindow(wxID_CANCEL); // FindWindow
 															// finds a child of pDialog
 	if (pCancelButton == NULL)
 		return FALSE;
@@ -12264,7 +12264,7 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 		wxString btnOKStr,btnCancelStr;
 		btnOKStr = pOKButton->GetLabel();
 		btnCancelStr = pCancelButton->GetLabel();
-		
+
 		// reverse the button IDs
 		pOKButton->SetId(wxID_CANCEL);
 		pCancelButton->SetId(wxID_OK);
@@ -12316,14 +12316,14 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 void CAdapt_ItApp::ChangeUILanguage()
 {
 	bool bChangeMade;
-	bChangeMade = ChooseInterfaceLanguage(userInitiated);	// calls CChooseLanguageDlg and 
+	bChangeMade = ChooseInterfaceLanguage(userInitiated);	// calls CChooseLanguageDlg and
             // insures that currLocalizationInfo's curr_UI_Language is something other than
             // wxLANGUAGE_UNKNOWN
     if (bChangeMade)
 	{
         // Try to get as many of the interface elements to layout with new localization
         // strings as possible.
-        // 
+        //
 		// Note: wx docs say of wxWindow::UpdateWindowUI():
         // This function sends wxUpdateUIEvents to the window. The particular
         // implementation depends on the window; for example a wxToolBar will send an
@@ -12377,10 +12377,10 @@ void CAdapt_ItApp::ChangeUILanguage()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-/// \return     the int value of the first available wxLanguage code for a user 
+/// \return     the int value of the first available wxLanguage code for a user
 ///             defined language
 /// \param      codeToAvoid  -> an int value to avoid when finding a wxLanguage code
-/// \param      keyArray     -> a wxArrayString of registry/hidden setting file keys 
+/// \param      keyArray     -> a wxArrayString of registry/hidden setting file keys
 ///                             (pre-populated)
 /// \remarks
 /// Called from: The App's ProcessUILanguageInfoFromConfig().
@@ -12392,14 +12392,14 @@ void CAdapt_ItApp::ChangeUILanguage()
 /// to be 230, the values that can be returned by this function range from 231 through 239.
 /// If no value can be determined, the function returns -1.
 /////////////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid, 
+int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 														 wxArrayString keyArray)
 {
 	int ct;
 	wxArrayString codeStrArray;
 	int tempCode;
 	int codeToReturn = -1;
-	const int nKeys = 9; // the max number of keys we allow in the registry/hidden 
+	const int nKeys = 9; // the max number of keys we allow in the registry/hidden
 						 // settings file
 	wxString tempStr;
 	bool bHasUnassigned = FALSE;
@@ -12445,7 +12445,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 				maxCode = code;
 			if (code < minCode)
 				minCode = code;
-			checkCode = wxLANGUAGE_USER_DEFINED + 1 + cct; // increments by the value 
+			checkCode = wxLANGUAGE_USER_DEFINED + 1 + cct; // increments by the value
 								// of loop counter cct, i.e., 231, 232, 233 ... 239
 			if (checkCode != code && code != codeToAvoid)
 			{
@@ -12473,12 +12473,12 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
     // the minCode and maxCode values
 	if (codeToReturn == -1 && bHasUnassigned)
 	{
-		if (minCode < 999 && minCode > (wxLANGUAGE_USER_DEFINED + 1) &&	
+		if (minCode < 999 && minCode > (wxLANGUAGE_USER_DEFINED + 1) &&
 			minCode != codeToAvoid)
 		{
 			codeToReturn = wxLANGUAGE_USER_DEFINED + 1;
 		}
-		else if (maxCode >= wxLANGUAGE_USER_DEFINED + 1 && 
+		else if (maxCode >= wxLANGUAGE_USER_DEFINED + 1 &&
 				(maxCode + 1) < (wxLANGUAGE_USER_DEFINED + 1 + nKeys))
 		{
 			if (maxCode + 1 != codeToAvoid)
@@ -12522,7 +12522,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_modeWordGloss = _("gloss");
 	m_modeWordAdaptPlusArticle = _("an adaptation");
 	m_modeWordGlossPlusArticle = _("a gloss");
-	m_strNotInKB = _T("<Not In KB>"); // this one is never localizable, 
+	m_strNotInKB = _T("<Not In KB>"); // this one is never localizable,
 				// and this KB entry type is not available in glossing mode either
 	m_strNoAdapt = _("<no adaptation>");
 	m_strNoGloss = _("<no gloss>");
@@ -12544,13 +12544,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // can be seen and the only response possible is to hit the Esc key to close the wizard.
     // Hence, if the screen size is below 549h x 640w we notify the user and shut down the
     // application.
-    bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with 
+    bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with
 			// PT or BE; set when setting up a doc in collab mode, used to suppress the
 			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
-    
+
 	m_adminHelpFileName = _T("Help_for_Administrators.htm");
 	m_quickStartHelpFileName = _T("Adapt_It_Quick_Start.htm");
-	
+
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
 	::wxDisplaySize(&nDisplayWidthInPixels,&nDisplayHeightInPixels);
@@ -12581,7 +12581,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
 	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
 	m_pngIndicatorMarkers = _T("\\st \\sx \\xr \\rr \\qh \\pp \\@ \\div \\dvrf \\tis \\cap \\di \\F \\fe \\pt \\ps \\sz \\bn \\tir ");
-	
+
 	// the following characters must never be in a SFM or USFM marker (we'll have the XML
 	// metacharacters, and curly quotes for now - we can add more later if we need to)
 	m_forbiddenInMarkers = _T("<>'\"&"); // possibles for later:  _T("[],.{}()%$#@!^+=|/?:;")
@@ -12609,7 +12609,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	//wxString s = _T("*f\\ *x\\");
 	//const wxChar* pBuf = s.GetData();
-	//int itemLen = ParseMarker(pBuf); // <- testing the one in helpers.cpp, it returns 2, not 3, 
+	//int itemLen = ParseMarker(pBuf); // <- testing the one in helpers.cpp, it returns 2, not 3,
 									 // for *f\ (the reversed \f* marker), so it needs fixing
 
 	//m_pUsfm2Oxes = NULL; // BEW added 2Sep10 // BEW removed 15Jun11 until we need to support OXES
@@ -12629,7 +12629,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bControlIsWithinOnInit = TRUE;
 	m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
 						   // export, which takes three obligatory string parameters following
-						   // BEW added 12Nov09 for John Hatton & Steve McEvoy; if set in OnInit() 
+						   // BEW added 12Nov09 for John Hatton & Steve McEvoy; if set in OnInit()
 						   // the app is launched does an automated default USFM adapation
 						   // export from a given doc in given project and saves to a given
 						   // folder and then shuts down, no GUI is displayed (John H will
@@ -12645,13 +12645,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bReadOnlyAccess = FALSE; // default, allows current user write access to projects
 	m_pROP = new ReadOnlyProtection(this);
 	m_pROP->Initialize();
-	
+
 	//
 	m_pRemovedMenuItemArray = new wxArrayPtrVoid;
 
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
-	
+
 	// testing of BreakStringBufIntoChapters()
 	//wxString testBookStr1,testBookStr2,testBookStr3;
 	//testBookStr1 = _T("\\id MAT \n\\mt Matthew\n\\c 1\n\\s Subheading 1\n\\v 1\n\\c 2\n\\c 3\n\\v 1 \\v2 \\v3\n\\c 4\n\\v 1 Some verse text.\n\\c 5\n\\v 1");
@@ -12686,11 +12686,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//result6 = RemoveMultipleSpaces(testMultiSpNone);
 
 	// end of testing of RemoveMultipleSpaces()
-	
+
 	/*
 	// test of ChangeFilenameExtensionTo() and ChangeFilenameExtension2() function
 	const int NUMTEST = 16;
-	wxString test[NUMTEST] = 
+	wxString test[NUMTEST] =
 	{
 	 _T(".hiddenFile"), // hidden filename (Unix) without extension
 	 _T("periodAtEnd."), // filename ending with dot - empty extension
@@ -12709,7 +12709,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\.svn"), // path to .svn folder no final \ on folder and no filename
 	 _T("C:\\C++ Programming\\Adapt It\\adaptit\\source\\.svn\\prop-base\\Adapt_It.wdr.svn-base") // path+filename to valid file multiple dots (pseudo extension)
 	};
-	
+
 	wxString testArray1[NUMTEST];
 	wxString testArray2[NUMTEST];
 	wxLogDebug(_T("\nChangeFilenameExtensionTo() results:"));
@@ -12740,7 +12740,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	*/
 
 	// test wxProcess functions
-	//unsigned long tempPID = ::wxGetProcessId(); 
+	//unsigned long tempPID = ::wxGetProcessId();
 	//bool bPIDExists;
 	//bPIDExists = wxProcess::Exists(tempPID);
 	//bPIDExists = wxProcess::Exists(9000);
@@ -12757,11 +12757,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//wxFile file(myFile,wxFile::write);
 	//if (file.IsOpened())
 	//{
-	//	m_pROP->m_strTheOtherReadOnlyProtectionFilename = 
+	//	m_pROP->m_strTheOtherReadOnlyProtectionFilename =
 	//		m_pROP->GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
 	//}
 	// end test of GetReadOnlyProtectionFileInProjectFolder() function
-	// 
+	//
 	// testing of GetUniqueIncrementedFileName
 	//int junkCt;
 	//for (junkCt = 0; junkCt < 300; junkCt++)
@@ -12771,11 +12771,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//	::wxCopyFile(testPath,newFile);
 	//}
 	// end test of GetUniqueIncrementedFileName
-	
+
 	m_nWorkflowProfile = 0; // default value is for "None" unless changed by the
 							// value stored in the basic and/or config files.
 
- 	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
+ 	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back
 								  // translating, via a frm switch for a launch from the
 								  // shell
 	m_bSkipBasicConfigFileCall = FALSE;
@@ -12803,7 +12803,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // CAdapt_ItApp::OnExit(), and NOT in the application's destructor
     // CAdapt_ItApp:~CAdapt_ItApp(), for similar reasons (i.e., the app's destructor gets
     // called much later than in previous versions).
-	
+
 	// whm moved initialization of global pointer to the appliction gpApp here at the
 	// beginning of OnInit() to make it available sooner.
     gpApp = this;
@@ -12836,18 +12836,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // times) I eventually decided it was safer just to move all variables being kept on
     // the Doc and View here to the App.
 
-	m_bJustLaunched = FALSE; // set true at end of OnInit(); then set false in OnIdle call 
+	m_bJustLaunched = FALSE; // set true at end of OnInit(); then set false in OnIdle call
 							 // within the main frame once it is created (below)
-	
+
 	m_dialogFontSize = 12; // default, but user can override // unused in WX version
-	m_pKB = (CKB*)NULL; 
+	m_pKB = (CKB*)NULL;
 	m_pGlossingKB = (CKB*)NULL; // added - not done in MFC version
 	m_bExistingAdaption = FALSE;
 	m_bKBReady = FALSE;
 	m_bGlossingKBReady = FALSE;
 	m_bAutoInsert = FALSE;
 	m_bTablesLoaded = FALSE; // whm added 23May04 not initialized in MFC
-	
+
 	// BEW 8Jun10, removed support for checkbox "Recognise standard format
 	// markers only following newlines"
 	//gbSfmOnlyAfterNewlines = FALSE; // default, so sfm escape char anywhere defines a sfm
@@ -12859,7 +12859,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
     // define the Unicode label for use in the final step, to get separate Unicode folder
-    // structures NOTE: for version 2.0.6 and onwards, we use "Unicode<SP>" rather than 
+    // structures NOTE: for version 2.0.6 and onwards, we use "Unicode<SP>" rather than
     // "NR<SP>", and the RenameNRtoUnicode( ) function does the required rename silently.
 #ifdef _UNICODE
 	m_FrameAndDocProgramTitle = _("Adapt It Unicode"); // whm added 25Apr07
@@ -12891,12 +12891,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"),m_strNR.c_str());
 	// whm Note: In the MFC version the "Adaptations" folder is localizable, so we
 	// will do the same here
-	// TODO: check the Unpack process when unpacking a packed file coming from 
+	// TODO: check the Unpack process when unpacking a packed file coming from
 	// a different localization.
 	m_adaptionsFolder = _("Adaptations");
 	m_lastSourceInputPath = m_workFolderPath; // don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
-	m_sourceInputsFolderPath = _T(""); 
+	m_sourceInputsFolderPath = _T("");
 	m_freeTransOutputsFolderPath = _T("");
 	m_freeTransRTFOutputsFolderPath = _T("");
 	m_glossOutputsFolderPath = _T("");
@@ -12909,7 +12909,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_kbInputsAndOutputsFolderPath = _T("");
 	m_liftInputsAndOutputsFolderPath = _T("");
 	m_packedInputsAndOutputsFolderPath = _T("");
-	
+
 	m_curAdaptionsPath = _T("");
 	m_curKBName = _T("");
 	m_curKBPath = _T("");
@@ -12950,7 +12950,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_lastFreeTransRTFOutputPath = _T("");
 	m_foldersProtectedFromNavigation = _T("");
 
-	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by 
+	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by
 							  // use of command-line parameter -xo
 
 	m_bSuppressWelcome = FALSE;
@@ -12958,7 +12958,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	nSequNumForLastAutoSave = -1; // global (-1 = _("turned off")
 	m_bBackupDocument = FALSE;
 
-	m_bCCTableLoaded[0] = m_bCCTableLoaded[1] = m_bCCTableLoaded[2] = 
+	m_bCCTableLoaded[0] = m_bCCTableLoaded[1] = m_bCCTableLoaded[2] =
 							m_bCCTableLoaded[3] = FALSE;
 
 	m_bUseStartupWizardOnLaunch = TRUE;
@@ -12979,7 +12979,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bMarkerWrapsStrip = TRUE;
 	m_bZoomed = FALSE;
 
-	m_bIsInches = FALSE; // Default to Metric for wx version, especially since in the 
+	m_bIsInches = FALSE; // Default to Metric for wx version, especially since in the
 						 // Windows page setup we can only use mm for margins
 	m_bIsPortraitOrientation = TRUE;
 	m_paperSizeCode = 9; // always mapped to MFC's enum for paper size code = 9; // A4
@@ -12989,12 +12989,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // should not be used for conversions relating to screen and printer display contexts.
 	config_only_thousandthsInchToMillimetres = (float)0.025; // conversion factor rounded from 0.0254
 	config_only_millimetresToThousandthsInch = (float)40.00; // conversion factor rounded from 39.37
-	
-	thousandthsInchToMillimetres = (float)0.0254; // more precise conversion factor for display 
+
+	thousandthsInchToMillimetres = (float)0.0254; // more precise conversion factor for display
 												  // context calculations
-	millimetresToThousandthsInch = (float)39.37;  // more precise conversion factor for display 
+	millimetresToThousandthsInch = (float)39.37;  // more precise conversion factor for display
 												  // context calculations
-	
+
     // Default values are set here and stored in config file in MFC's MM_LOENGLISH mapping
     // mode units (thousandths of an inch). The conversion between English and Metric in
     // MFC used two different degrees of precision for the conversion; MFC uses a
@@ -13026,7 +13026,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bEarlierProjectChosen = FALSE;
 	m_bEarlierDocChosen = FALSE;
 	nLastActiveSequNum = 0; // config file will set this
-	
+
     // initialize font pointers to NULL outside InitializeFonts() because InitializeFonts()
     // may also be called from SetDefaults().
 	m_pSourceFont = (wxFont*)NULL;
@@ -13038,7 +13038,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pComposeFont = (wxFont*)NULL;
 	m_pRemovalsFont = (wxFont*)NULL;
 	m_pVertEditFont = (wxFont*)NULL;
-	
+
 	m_pSrcFontData = (wxFontData*)NULL;
 	m_pTgtFontData = (wxFontData*)NULL;
 	m_pNavFontData = (wxFontData*)NULL;
@@ -13057,7 +13057,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 	m_bRTL_Layout = FALSE;
 
-	gbRTL_Layout = FALSE; // a global helps faster access for speed critical stuff, 
+	gbRTL_Layout = FALSE; // a global helps faster access for speed critical stuff,
 						  // don't need to get a pointer to the app first
 	m_nCurDelay = 0; // default is no delay (zero ticks)
 	m_bBookMode = FALSE; // default is OFF for "book mode" (ie. Bible books folders)
@@ -13087,19 +13087,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm added 19Oct10 for user workflow profiles support
 	m_bShowNewProjectItem = TRUE; // show <New Project> in projectPage by default
-	m_bUseAdaptationsGuesser = TRUE; // the default is TRUE; use the Guesser for adaptations unless 
+	m_bUseAdaptationsGuesser = TRUE; // the default is TRUE; use the Guesser for adaptations unless
 									// changed by config file settings
 	m_bIsGuess = FALSE;				// the default is FALSE, changed by the guesser when returning a guess
-	m_nGuessingLevel = 50;			// The guesser level (can range from 0 to 100, default is 50); 
+	m_nGuessingLevel = 50;			// The guesser level (can range from 0 to 100, default is 50);
 									// default is 50 unless changed by config file settings
 	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
 	m_nCorrespondencesLoadedInGlossingGuesser = 0;
 	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
-									// guesser output; default is FALSE unless changed by config file 
+									// guesser output; default is FALSE unless changed by config file
 									// settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
-	
+
 	// whm added 9Feb11 in support of Paratext collaboration
 	m_bParatextIsInstalled = FALSE;
 	m_bParatextIsInstalled = ParatextIsInstalled();
@@ -13126,7 +13126,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm Note: Make sure these folder names match those used in the wxDesigner's
 	// AssignLocationsForInputsOutputsFunc() resource function.
-	m_sourceInputsFolderName = _T("__SOURCE_INPUTS"); 
+	m_sourceInputsFolderName = _T("__SOURCE_INPUTS");
 	// whm 12Jun11 added in support of inputs and outputs navigation protection
 	m_freeTransOutputsFolderName = _T("_FREETRANS_OUTPUTS");
 	m_freeTransRTFOutputsFolderName = _T("_FREETRANS_RTF_OUTPUTS");
@@ -13140,9 +13140,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_OUTPUTS");
-	
-	// whm added 12Jul11 The following special folder names. Their paths need to be defined after 
-	// EnsureWorkFolderIsPresent() and DealWithThePossibilityOfACustomWorkFolderLocation() calls 
+
+	// whm added 12Jul11 The following special folder names. Their paths need to be defined after
+	// EnsureWorkFolderIsPresent() and DealWithThePossibilityOfACustomWorkFolderLocation() calls
 	// are made above.
 	m_logsEmailReportsFolderName = _T("_LOGS_EMAIL_REPORTS"); // located in m_workFolderPath or m_customWorkFolderPath
 	m_packedInputsAndOutputsFolderName = _T("_PACKED_INPUTS_OUTPUTS"); // located in m_workFolderPath or m_customWorkFolderPath
@@ -13169,13 +13169,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
-	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words 
+	m_bChangeFixedSpaceToRegularSpace = FALSE; // fixed spaces default to join words
 											   // into phrases for adapting
 	m_pUsfmStylesMap = new MapSfmToUSFMAnalysisStruct;
 	m_pPngStylesMap = new MapSfmToUSFMAnalysisStruct;
 	m_pUsfmAndPngStylesMap = new MapSfmToUSFMAnalysisStruct;
 	m_pMappedObjectPointers = new wxArrayPtrVoid;// array of all pointers to USFMAnalysis
-											// structs on the heap - for ease of 
+											// structs on the heap - for ease of
 											// deletion in the app destructor
 	gCurrentSfmSet = UsfmOnly;	// A code block at the end of GetProjectSettingsConfiguration()
 			// will check if there was a project config file line for storing the project's
@@ -13195,21 +13195,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bDoubleQuoteAsPunct = TRUE; // BEW added April 28, 2005
 	m_bCopySourcePunctuation = TRUE;// BEW added April 20, 2005
 
-	m_bFreeTranslationMode = FALSE; // BEW added 21Jun05, free translation mode is 
+	m_bFreeTranslationMode = FALSE; // BEW added 21Jun05, free translation mode is
 									// off by default
-	m_bTargetIsDefaultFreeTrans = FALSE; // default is to have no precomposed 
+	m_bTargetIsDefaultFreeTrans = FALSE; // default is to have no precomposed
 										 // free translation formed
 	m_bGlossIsDefaultFreeTrans = FALSE; // ditto
-	m_bComposeBarWasAskedForFromViewMenu = FALSE; // the bar is initially unopened by the 
+	m_bComposeBarWasAskedForFromViewMenu = FALSE; // the bar is initially unopened by the
 												  // Compose Bar command on View menu
 	m_bDefineFreeTransByPunctuation = TRUE; // default
 	m_freeTransDefaultBackgroundColor = wxColour(189,255,189); // light pastel green
 	m_freeTransCurrentSectionBackgroundColor = wxColour(255,200,200); // light pastel pink
-	
+
 	m_bNotesExist = FALSE; // 12Sep05 BEW
 	m_bUnpacking = FALSE; // BEW added 10Jan06
 
-	// RDE: added 3 Apr 06 in support of calling SilEncConverters for preprocessing 
+	// RDE: added 3 Apr 06 in support of calling SilEncConverters for preprocessing
 	// the target word form (c.f. Consistent Changes)
     m_strSilEncConverterName.Empty();
     m_bSilConverterDirForward = TRUE;
@@ -13225,7 +13225,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// Turn off system message "Failed to load shared library...(error 126: the specified
 		// module could not be found", which pops up in idle time if following .Load() call
 		// fails. We have our own message.
-		wxLogNull logNo;	// eliminates any spurious messages from the system while 
+		wxLogNull logNo;	// eliminates any spurious messages from the system while
 							// reading read-only folders/files
 		wxString secPath,secPath32,secPath64;
 		secPath32 = _T("C:\\Program Files\\Common Files\\SIL") + PathSeparator + LIB_NAME;
@@ -13243,7 +13243,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			 // SIL Encoding Converters could have been installed in a non-default location, in
 			 // which case Bob E says the wxDynamicLibrary::Load() call below should be able to
 			 // find it because the Encoding Conv installation sets the path to be able to locate
-			 // the dll. If the Load() call still fails, we won't bother the user in that case 
+			 // the dll. If the Load() call still fails, we won't bother the user in that case
 			 // with the error message.
 			secPath = LIB_NAME;
 		}
@@ -13267,17 +13267,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 	}
 #else
-	bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but 
+	bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but
 										// not referenced" warning when define is not set
 #endif	// end of if USE_SIL_CONVERTERS
 
 	// BEW added 2Sep08
-	gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating 
+	gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating
 							   // before doing glosses updating
-	
+
 	// Above initializations are from MFC's CAdapt_ItApp's constructor
 
-	m_eolStr = wxTextFile::GetEOL(); // this retrieves the platform specific end-of-line 
+	m_eolStr = wxTextFile::GetEOL(); // this retrieves the platform specific end-of-line
 				// character string for external text files:
 				// On Windows it is "\r\n"; on Linux it is "\n"; on Macintosh it is "\r"
 
@@ -13291,8 +13291,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedAppInitialization = FALSE;
 
 	// *** Initializations below were originally in the Doc in the MFC version ***
-	// Variable initializations below moved here from the Doc because the 
-	// wxWidgets' doc/view framework deletes the Doc and recreates it 
+	// Variable initializations below moved here from the Doc because the
+	// wxWidgets' doc/view framework deletes the Doc and recreates it
 	// afresh (calling the Doc's constructor when a new Doc is opened) whereas MFC's
 	// deletes its contents but reuses the old Doc pointer.
 	gPreviousTextType = verse;
@@ -13305,12 +13305,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pSourcePhrases = (SPList*)NULL; // MFC had = 0
 
 	// Set text colors (see below)
-	
+
 	int width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
 #ifdef _RTL_FLAGS
 	// NR version, we will use most of screen width
 	if (width < 800)
-		m_docSize = wxSize(width - 20,600); // the cy parameter is changed 
+		m_docSize = wxSize(width - 20,600); // the cy parameter is changed
 											// by the view later
 	else
 		m_docSize = wxSize(width - 40,600);
@@ -13320,17 +13320,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	else
 		m_docSize = wxSize(width - 80,600);
 #endif
-	// The following are initialized to their current values on entry to 
+	// The following are initialized to their current values on entry to
 	// the View's OnEditPreferences()
-	m_sfmSetBeforeEdit = UsfmOnly; // some reasonable default whm added 
+	m_sfmSetBeforeEdit = UsfmOnly; // some reasonable default whm added
 								   // 10Jun05 for Bruce
-	m_filterMarkersBeforeEdit.Empty(); // some reasonable default whm added 
+	m_filterMarkersBeforeEdit.Empty(); // some reasonable default whm added
 									   // 10Jun05 for Bruce
-	// The following are set to their new values on exit after OK in the 
+	// The following are set to their new values on exit after OK in the
 	// View's OnEditPreferences()
-	m_sfmSetAfterEdit = UsfmOnly; // some reasonable default whm added 
+	m_sfmSetAfterEdit = UsfmOnly; // some reasonable default whm added
 								  // 10Jun05 for Bruce
-	m_filterMarkersAfterEdit.Empty(); // some reasonable default whm added 
+	m_filterMarkersAfterEdit.Empty(); // some reasonable default whm added
 									  // 10Jun05 for Bruce
 	m_bWantSourcePhrasesOnly = FALSE; // Added by JF.
 
@@ -13340,7 +13340,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_poetryMkrs = _T("\\q \\q1 \\q2 \\q3 \\q4 \\qc \\qm \\qm1 \\qm2 \\qm3 \\qr \\qa \\b ");
 
 	// *** Initializations below were originally in the View in the MFC version ***
-	
+
     // Variable initializations below moved here from the View because the wxWidgets'
     // doc/view framework deletes the View and recreates it afresh (calling the View's
     // constructor when a new view is opened)
@@ -13348,7 +13348,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pEarlierTransDlg = (CEarlierTranslationDlg*)NULL;
 
-	m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version 
+	m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version
 	m_pViewFilteredMaterialDlg = (CViewFilteredMaterialDlg*)NULL; // needed in wx version
 
 	//m_pBundle = (CSourceBundle*)NULL;
@@ -13362,9 +13362,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // BEW comment 17Apr09: the next two are deprecated but retained and set TRUE, but the
     // values are never used, they cannot be eliminated (well, not easily) because they are
     // needed for backwards compatibility of the config files
-	m_bSuppressLast = TRUE; // default, very first time launched; thereafter uses config file 
+	m_bSuppressLast = TRUE; // default, very first time launched; thereafter uses config file
 							// stored value (which now will never be anything but TRUE)
-	m_bSuppressFirst = TRUE; // default, very first time launched; thereafter uses config file 
+	m_bSuppressFirst = TRUE; // default, very first time launched; thereafter uses config file
 							 // stored value (which now will never be anything but TRUE)
 	// default modes
 	m_bDrafting = TRUE;
@@ -13389,7 +13389,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pReplaceDlg = (CReplaceDlg*)NULL;
 
 	m_pHtmlFileViewer = (CHtmlFileViewer*)NULL; // whm 14Sep11 added
-		
+
 	gbGlossingVisible = FALSE;
 	gbIsGlossing = FALSE;
 	gbGlossingUsesNavFont = FALSE;
@@ -13398,18 +13398,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
 	gbPrintFooter = TRUE;
-	
+
 	gbIgnoreScriptureReference_Receive = TRUE;
 	gbIgnoreScriptureReference_Send = TRUE;
-	gbLegacySourceTextCopy = TRUE; // default is legacy behaviour, 
+	gbLegacySourceTextCopy = TRUE; // default is legacy behaviour,
                 // to copy the source text (unless the project config file establishes the
                 // FALSE value instead)
-                                   
+
 	// The following initializations are for refactored view layout support
 	m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
 
 	// *** The variable initializations above were moved here from the View ***
-	
+
 	/*
 	// Testing the GetBookCodeFastFromDiskFile() function
 	wxString testPathXML, testPathUSFM, testPathUSFMLongNoId, testPathUSFMShortHasId, testPathUSFMShortNoId;
@@ -13439,7 +13439,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//testRes = FindBookFileContainingThisReference(testPath, testRef, testExt);
 	//int junk;
 	//junk = 1;
-	
+
 	// Testing the FindBookFileContainingThisReference() function
 	//wxString testStr1 = GetFileNameForCollaboration(_T("Collab"), _T("MAT"), _T("NYNT"), _T("3"), _T("xml"));
 	//wxString testStr2 = GetFileNameForCollaboration(wxEmptyString, _T("GEN"), _T("NYNT"), _T("11"), _T(".xml"));
@@ -13448,10 +13448,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//int junk;
 	//junk = 1;
 		/*
-	
+
 	// testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
 	// 3198 above)
-	
+
 	wxString filename = _T("Filename.xml");
 	wxString anOutput = BuildChangedFilenameForCopy(&filename);
 	const wxChar* pOutput = anOutput.c_str();
@@ -13481,7 +13481,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // Testing of general C++ code fragments (not depending on Adapt It code) can be done
     // here to save time in loading the Adapt It main frame, etc.
-	
+
 	// Testing the weird world of rectangles in MFC and wxWidgets!!!
 	const int MAXITERATIONS = 18;
 	bool bNormalize = TRUE;
@@ -13495,7 +13495,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		int h;
 		double quadrant;
 	};
-	//                        
+	//
 	coord c[MAXITERATIONS] = {
 	//    point 1   point 2 width,height                           (relative posn of
 	//		x,y,    xx,yy,      w,h  Q    Test #  Cartesian Quadrant points in constructor)
@@ -13592,7 +13592,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		i = 1;
 	}
 	// The Set methods are sensitive to the order they are called on a wxRect
-	
+
 	// set left and top first
 	// a 5 by 5 rect with top left at 120,120
 	// and bottom right at 125,115
@@ -13620,14 +13620,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug (_T("r1.GetBottom() = %d"),r1.GetBottom());
 	wxLogDebug (_T("r1.GetWidth()  = %d"),r1.GetWidth());
 	wxLogDebug (_T("r1.GetHeight() = %d"),r1.GetHeight());
-	
+
 	wxLogDebug (_T("r2.x           = %d"),r2.x);
 	wxLogDebug (_T("r2.y           = %d"),r2.y);
 	wxLogDebug (_T("r2.GetRight()  = %d"),r2.GetRight());
 	wxLogDebug (_T("r2.GetBottom() = %d"),r2.GetBottom());
 	wxLogDebug (_T("r2.GetWidth()  = %d"),r2.GetWidth());
 	wxLogDebug (_T("r2.GetHeight() = %d"),r2.GetHeight());
-	
+
 	wxLogDebug (_T("r3.x           = %d"),r3.x);
 	wxLogDebug (_T("r3.y           = %d"),r3.y);
 	wxLogDebug (_T("r3.GetRight()  = %d"),r3.GetRight());
@@ -13668,7 +13668,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		bool bOpen = fileIn.Open(fullPath);
 		if (bOpen)
 		{
-			size_t aSafeLength = 320000; // about .3Mb, Takia Luke is 177MB so 
+			size_t aSafeLength = 320000; // about .3Mb, Takia Luke is 177MB so
 										 // this will get all of any Takia NT file
 			// need a big enough byte buffer
 			char* pBuff = new char[aSafeLength];
@@ -13723,11 +13723,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 					   // (it works nice - is correctly converted; or Notepad)
 		}
 	}
-	int stop_here = 1;	// put a break point here; cancel the run & reenter debugger to do next book	    
+	int stop_here = 1;	// put a break point here; cancel the run & reenter debugger to do next book
 	*/
 
 	// *** Variable initializations below moved here from the App's constructor ***
-	
+
     // BEW 24Aug10, changed comment. Reinit of KB structures is done in view->OnCreate().
     // This is because with only 1 doc allowed in WX, it first deletes the current doc and
     // view and recreates new ones before calling OnNewDocument(). The MFC version did not
@@ -13749,20 +13749,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
 	// on my Windows machine name = "Adapt_ItApp-Bill Martin"
 	// on my Linux machine name = "Adapt_ItApp-wmartin"
-	
+
 	m_pChecker = (wxSingleInstanceChecker*)NULL;
- 	
-    // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It 
+
+    // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
 	{ // begin block for wxLogNull()
-		wxLogNull logNo; // eliminates spurious "Deleted stale lock file 
+		wxLogNull logNo; // eliminates spurious "Deleted stale lock file
 		                 // '/home/user/Adapt_ItApp-wmartin' on Linux
 		m_pChecker = new wxSingleInstanceChecker(name); // must delete m_checker in OnExit()
 		wxASSERT(m_pChecker != NULL);
 		if ( m_pChecker->IsAnotherRunning() )
 		{
 			wxLogDebug(_T("Another program instance is already running for the current user."));
-			// If only a single instance is to be allowed, we could return FALSE here 
+			// If only a single instance is to be allowed, we could return FALSE here
 			// from OnInit().
 		}
 	} // end of block for wxLogNull(), the ~wxLogNull destructor is called here
@@ -13772,7 +13772,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// RichEdit stuff not needed in wxWidgets version
 	//  this should be done early on. The AfxInitRichEdit() call will load version 1
 	//	so we must do its work manually ourselves to get version 3 used
-	//   m_hmodRichEd1 = LoadLibrary(_T("riched20.dll")); // we've decided not to use Rich Edit 
+	//   m_hmodRichEd1 = LoadLibrary(_T("riched20.dll")); // we've decided not to use Rich Edit
 	//													  // controls, but this can stay
 //#endif
 
@@ -13792,28 +13792,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // application that is currently running resides at run time.
     // Different platforms expect certain kinds of files to be installed in certain
     // expected locations.
-    // 
-	// The function FindAppPath(const wxString& argv0, const wxString& cwd, 
-	//                          const wxString& appVariableName) 
+    //
+	// The function FindAppPath(const wxString& argv0, const wxString& cwd,
+	//                          const wxString& appVariableName)
 	// was suggested by Julian Smart as one means to do this.
 	// FindAppPath() makes the following checks in order:
 	// 1. Checks for existance of a path associated with an environment variable
 	//    name (passed in as the third parameter) [for situations in which the
 	//    installation program set up an environment variable]
-	// 2. Classic Mac just needs the current working directory when the 
+	// 2. Classic Mac just needs the current working directory when the
 	//    application starts, so the second parameter cwd is simply returned.
 	// 3. If above checks fail (or are inappropriate because of a null string
 	//    passed as third parameter), the function checks the commandline
-	//    argv[0] string passed as third parameter argv0. By default 
-	//    this argv0 should contain the path and name of the executable on 
+	//    argv[0] string passed as third parameter argv0. By default
+	//    this argv0 should contain the path and name of the executable on
 	//    most computer systems. FindAppPath() checks whether arfv0 represents
 	//    an absolute or relative path and insures that the executable actually
 	//    exists there.
-	// 4. If all above fails, FindAppPath() searches the computer's possible 
+	// 4. If all above fails, FindAppPath() searches the computer's possible
 	//    PATH environment variable paths for the executable. If the executable
 	//    is found, its path string is returned, otherwise the FindAppPath()
 	//    just returns an empty string.
-	//    
+	//
 	// NOTE: regardless of whether Unicode or ANSI version is being run, the
 	// string returned from FindAppPath() should be the location where we
 	// should be able to find the books.xml file.
@@ -13877,33 +13877,33 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // installed on the given platform.
 	// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// On wxGTK: "/usr/share/adaptit/"     [adaptit here is the name of a directory]
-	// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ??? 
+	// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ???
 	//             TODO: check this location
 	m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
 	wxLogDebug(_T("The m_xmlInstallPath = %s"),m_xmlInstallPath.c_str());
 
     // The m_localizationInstallPath stores the path where the <lang> localization files
     // are installed on the given platform.
-	// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or 
+	// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or
 	//             C:\Program Files\Adapt It WX Unicode\Languages\"
-	// On wxGTK:   "/usr/share/locale/"    which then contains multiple 
+	// On wxGTK:   "/usr/share/locale/"    which then contains multiple
 	//                                   "<lang>/LC_MESSAGES/adaptit.mo"
-	// On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this 
+	// On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this
 				// is where Poedit puts its localization files.
 	m_localizationInstallPath = GetDefaultPathForLocalizationSubDirectories();
 	wxLogDebug(_T("The m_localizationInstallPath = %s"),m_localizationInstallPath.c_str());
 
-	// The m_helpInstallPath stores the path where the help files are installed on 
+	// The m_helpInstallPath stores the path where the help files are installed on
 	// the given platform.
-	// On wxMSW:   "C:\Program Files\Adapt It WX\ or 
+	// On wxMSW:   "C:\Program Files\Adapt It WX\ or
 	//             C:\Program Files\Adapt It WX Unicode\"
 	// On wxGTK:   "/usr/share/adaptit/help/"  containing: common/.gif and .css
 	//             containing: <lang>/  .html .hhp .hhc etc
-	// On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ??? 
+	// On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ???
 	//             TODO: check this location
 	m_helpInstallPath = GetDefaultPathForHelpFiles();
 	wxLogDebug(_T("The m_helpInstallPath = %s"),m_helpInstallPath.c_str());
-	// Note: The m_htbHelpFileName is also determined in  
+	// Note: The m_htbHelpFileName is also determined in
 	// GetDefaultPathForHelpFiles() call above
 
 	// m_appUserConfigDir stores the path (only the path, not path and name) where the
@@ -13935,7 +13935,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// !!!!!!!!!!! SET UP SOME STANDARD PATHS ABOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-	
+
     // make a timesettings struct for autosaving feature & put some default values in it
     // (after first launch, values will come from the m_pConfig file settings instead)
 	wxDateTime time;
@@ -13962,7 +13962,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
 	// (intended for Bob Eaton, for shell opening of the application only, for a given doc)
 
-	static const wxCmdLineEntryDesc cmdLineDesc[] = 
+	static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{
 		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
@@ -14004,7 +14004,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	int itsokay = m_pParser->Parse(); // continue if it fails
 	//if (m_pParser->Parse())
-	// return false; // returns false if commandline help (-h or -help) is used or 
+	// return false; // returns false if commandline help (-h or -help) is used or
 				   // if there is an error parsing the commandline
 
 	/*
@@ -14028,7 +14028,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // TODO: In order to use wxLogStream the wxWidgets library must be compiled with
         // wxUSE_STD_IOSTREAM set to 1 (default is 0) in setup.h. This will be necessary to
         // actually output to the std::cout standard output.
-		
+
 		//wxLog *logger = new wxLogStream(&std::cout);
 		//wxLog::SetActiveTarget(logger);
 		//cout << strVersionNumber;
@@ -14109,7 +14109,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// for default adaptation export of adaptation text from a given doc file from
 	// a given project folder
 	/*
-	static const wxCmdLineEntryDesc cmdLineDesc2[] = 
+	static const wxCmdLineEntryDesc cmdLineDesc2[] =
 	{
 		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
@@ -14166,21 +14166,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm 2Nov10 design notes for use of wxConfig and wxFileConfig in version 6.0.0:
 	// The application should make as little use as possible of the Windows registry.
-	// As of version 6.0.0, the information saved previously in the Windows registry 
+	// As of version 6.0.0, the information saved previously in the Windows registry
 	// will be stored instead in an Adapt_It_WX.ini file, similar to what has been
-	// the case for the Linux and Mac ports previous to version 6.0.0. For users who 
-	// previously used a version prior to 6.0.0, we automatically and quitely 
-	// transition any registry information previously stored in the Adapt_It_WX 
-	// registry key to the Adapt_It_WX.ini on-disk file format and, once done, remove 
-	// the old registry key, so that the transition to using the file-on-disk format 
+	// the case for the Linux and Mac ports previous to version 6.0.0. For users who
+	// previously used a version prior to 6.0.0, we automatically and quitely
+	// transition any registry information previously stored in the Adapt_It_WX
+	// registry key to the Adapt_It_WX.ini on-disk file format and, once done, remove
+	// the old registry key, so that the transition to using the file-on-disk format
 	// needs to happen only once.
 	TransitionWindowsRegistryEntriesTowxFileConfig();
-	
+
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
-	// Previous to version 6.0.0 we used a wxConfig class object below to stored 
-	// some settings in the Registry under a Adapt_It_WX key on Windows, and in an 
-	// external hidden file called .Adapt_It_WX on Linux and the Mac. Starting with 
+	// Previous to version 6.0.0 we used a wxConfig class object below to stored
+	// some settings in the Registry under a Adapt_It_WX key on Windows, and in an
+	// external hidden file called .Adapt_It_WX on Linux and the Mac. Starting with
 	// version 6.0.0, however, all platforms now use wxFileConfig and store certain
 	// settings in an external file. The TransitionWindowsRegistryEntriesTowxFileConfig()
 	// call above transitions the host OS to use the external file rather than the
@@ -14188,14 +14188,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// first run of the version 6.0.0 of the program.
 	m_pConfig = new wxFileConfig(wxEmptyString,wxEmptyString,m_wxFileConfigPathAndName,wxEmptyString); // must delete m_pConfig in OnExit()
 	wxASSERT(m_pConfig != NULL);
-	// Note: We'll use "Adapt_It_WX" to distinguish the wxWidgets version from MFC version 
+	// Note: We'll use "Adapt_It_WX" to distinguish the wxWidgets version from MFC version
 
 	// Retrieve the m_bUseToolTips setting from m_pConfig if it exists.
 	{
 	// begin a local block to restrict scope of wxLogNull logNo
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
-	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value
 		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 	m_pConfig->Read(_T("use_tooltips"), &m_bUseToolTips);
 	// restore the oldPath back to "/Recent_File_List"
@@ -14208,9 +14208,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// begin a local block to restrict scope of wxLogNull logNo
 	// Here the oldPath will be set to "\" or something like that, but normally will be set
 	// to path "/Recent_File_List" (see farther below).
-	wxString oldPath = m_pConfig->GetPath(); 
+	wxString oldPath = m_pConfig->GetPath();
 	m_pConfig->SetPath(_T("/Settings"));
-	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value
 		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 	m_pConfig->Read(_T("time_tooltips_displayed_ms"), &m_nTooltipDelay);
     // TODO: Uncomment line below when figure out why it seems to disable tooltip function
@@ -14222,7 +14222,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 
 	m_bConfigFileHasFontEncodingInfo = FALSE;	// normally false for config files written by
-												// the MFC version; set to true for those 
+												// the MFC version; set to true for those
 												// written by the wx version
 
 	// Get system locale and encoding info:
@@ -14304,11 +14304,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		wxLogDebug(_T("m_systemLanguage = %d (wxLANGUAGE_UNKNOWN)"),m_systemLanguage); // 58
 		wxLogDebug(_T("m_languageInfo = NULL"));
 	}
-	
+
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
 
 	// At this point - just before loading any non-English localization catalog, we
-	// populate the m_mapMenuLabelStrToIdint with the English menu label items and 
+	// populate the m_mapMenuLabelStrToIdint with the English menu label items and
 	// their menu id int associations. This shouldn't strictly be needed, but is a
 	// precaution in case something goes awry with the localization - there will be
 	// English defaults for menu item labels in the mapping.
@@ -14319,7 +14319,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // the user changes the interface language choice at this early point in the running
     // application, the app won't have to be restarted to fully exhibit the localized
     // interface.
-	// 
+	//
     // Get any interface language data stored in the m_pConfig (registry/hidden settings
     // file); ProcessUILanguageInfoFromConfig adds any previously stored user defined
     // languages to the current locale, and returns the current localization info in
@@ -14343,9 +14343,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// subfolders exist in the localization path and contain an <appName>.mo localization
 		// file.
 		// Once the user makes the choice the interface is set to use that language.
-		// After the first run of Adapt It, the user's choice of UI language is saved in the 
-		// wxConfig's Adapt_It_WX.ini (Windows) or .Adapt_It_WX (Linux and Mac), and the user 
-		// won't be asked again at program startup - but the user can later change the interface 
+		// After the first run of Adapt It, the user's choice of UI language is saved in the
+		// wxConfig's Adapt_It_WX.ini (Windows) or .Adapt_It_WX (Linux and Mac), and the user
+		// won't be asked again at program startup - but the user can later change the interface
 		// language choice from within the app via View | "Choose Interface Language...".
 		// Note: currLocalizationInfo.curr_UI_Language is initialized to wxLANGUAGE_UNKNOWN by
 		// OnInit(), but may be changed by ProcessUILanguageInfoFromConfig() call made above
@@ -14354,7 +14354,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
 		{
 			// can disregard return bool value of ChooseInterfaceLanguage() here
-			ChooseInterfaceLanguage(firstRun);	// calls CChooseLanguageDlg and insures that 
+			ChooseInterfaceLanguage(firstRun);	// calls CChooseLanguageDlg and insures that
 				// currLocalizationInfo's curr_UI_Language is something other than wxLANGUAGE_UNKNOWN
 		}
 
@@ -14367,7 +14367,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// constructor).
 		// The currLocalizationInfo struct was initialized with the interface language of
 		// choice above, so now we can create the wxLocale object
-		if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName, 
+		if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName,
 			currLocalizationInfo.curr_fullName, currLocalizationInfo.curr_localizationPath))
 		{
 			// Loading of localization catalog failed. This means that either
@@ -14383,15 +14383,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxMessageBox(msg,_T("Previous localization file not found"),wxICON_WARNING);
 		}
 	}
-	wxString EncodingName = wxFontMapper::Get()->GetEncodingName(m_systemEncoding); 
+	wxString EncodingName = wxFontMapper::Get()->GetEncodingName(m_systemEncoding);
 												// Windows: EncodingName = "windows-1252"
 												//  Ubuntu: EncodingName = "UTF-8"
-	wxFontEncoding fontenc = wxFontMapper::Get()->GetEncodingFromName(EncodingName); 
+	wxFontEncoding fontenc = wxFontMapper::Get()->GetEncodingFromName(EncodingName);
 												// Windows: fontenc = wxFONTENCODING_CP1252
 												//  Ubuntu: fontenc = wxFONTENCODING_UTF8
 	//static const wxChar** encNames = wxFontMapper::Get()->GetAllEncodingNames(fontenc);
 	bool fontAvail;
-	fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);	
+	fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);
 												// Windows: fontAvail = true
 												//  Ubuntu: fontAvail = true
 	//wxFontEncoding altFontEnc;
@@ -14410,12 +14410,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Set things up for file history (MRU) list
 	// File History is loaded below after Main Menu is created
 	wxString strOldPath = m_pConfig->GetPath();// store old wxFileConfig path in case we need it
-    // whm Note: Recently used files (MRU) that get recorded in the settings file are not 
-    // really compatible between Unicode and Ansi versions. It may well be the case that 
-    // the user switches between the Unicode and Ansi versions. In that case we don't want 
-    // there to be a mix of files in the MRU, some using Unicode and some Ansi. Therefore 
-    // I'm setting a different settings file group for Unicode. In either case the path 
-    // that is set for m_pConfig will be one or the other as default so that wxFileHistory 
+    // whm Note: Recently used files (MRU) that get recorded in the settings file are not
+    // really compatible between Unicode and Ansi versions. It may well be the case that
+    // the user switches between the Unicode and Ansi versions. In that case we don't want
+    // there to be a mix of files in the MRU, some using Unicode and some Ansi. Therefore
+    // I'm setting a different settings file group for Unicode. In either case the path
+    // that is set for m_pConfig will be one or the other as default so that wxFileHistory
     // will use it appropriately.
 #ifdef _UNICODE
 	m_pConfig->SetPath(_T("/Recent_File_List_Unicode"));// set wxFileConfig path in external settings file
@@ -14433,8 +14433,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Since wxWidgets data files probably won't be compatible with those produced
 	// by MFC, we'll initially use .adx instead of .adt for wxWidgets AI documents
     wxDocTemplate* pDocTemplate;
-	
-	pDocTemplate = new wxDocTemplate(m_pDocManager, m_FrameAndDocProgramTitle, 
+
+	pDocTemplate = new wxDocTemplate(m_pDocManager, m_FrameAndDocProgramTitle,
 					_T(".xml"), _T(""), _T("xml"), // previously ".adx" and "adx"
                     _T("Adapt It Document"), _T("Adapt It View"),
                     CLASSINFO(CAdapt_ItDoc),
@@ -14448,7 +14448,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pHelpController = new wxHtmlHelpController(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES);
 	wxHelpControllerHelpProvider* provider = new wxHelpControllerHelpProvider;
 	wxHelpProvider::Set(provider);
-    
+
 	// Get/Set Help info (window size etc) in the config object.
     // Help window settings are saved in the registry/.Settings folder that stays the
     // default and is called "Recent_File_List". There are 10 settings in that folder plus
@@ -14457,12 +14457,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pHelpController->UseConfig(m_pConfig);
 
 	// Required for images in the online documentation
-    wxInitAllImageHandlers(); // the help sample program does this, although it is not 
+    wxInitAllImageHandlers(); // the help sample program does this, although it is not
 							  // documented anywhere in wxWidgets!
     // Note: There are also individual handlers, i.e., wxImage::AddHandler(new
     // wxGIFHandler), wxFileSystem::AddHandler(new wxZipFSHandler), etc., but ones used
     // here are what the help sample uses.
-	
+
     // Note: The docs for wxHelpController say, "Note that if you use .zip or .htb formats
     // for your books, you must add this line to your application initialization:
     // wxFileSystem::AddHandler(new wxArchiveFSHandler); or nothing will be shown in your
@@ -14470,15 +14470,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxFileSystem::AddHandler(new wxArchiveFSHandler); // docs say to use this one
 
 
-	// whm note: The new CMainFrame call below creates AI's top level Main Frame window. 
-	// It also calls m_pMenuBar = AIMenuBarFunc() to create the menuBar and calls 
+	// whm note: The new CMainFrame call below creates AI's top level Main Frame window.
+	// It also calls m_pMenuBar = AIMenuBarFunc() to create the menuBar and calls
 	// SetMenuBar(m_pMenuBar) to associate the menuBar with the Main Frame. All the
 	// other panels and bars (tool bar, mode bar, compose bar, status bar, etc.) are
 	// also created within the CMainFrame's constructor.
 
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*) NULL, -1, m_FrameAndDocProgramTitle,
                                 wxPoint(0, 0), wxSize(735, 500),
-                                wxDEFAULT_FRAME_STYLE 
+                                wxDEFAULT_FRAME_STYLE
 								| wxFRAME_NO_WINDOW_MENU);	// wxFRAME_NO_WINDOW_MENU removes
 															// the 'Window' menu from the
 															// main frame that doc/view normally
@@ -14509,7 +14509,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // icons) This xpm format should work for all platforms. It embeds the icon resource
     // inside the executable file, so no need to have to hunt for it from an external
     // resource file.
-	//	/* XPM */ 
+	//	/* XPM */
 	//	static const char * xpm_data16x16[] = {
 	//	"16 16 10 1",
 	//	" 	c None",
@@ -14834,7 +14834,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	" .............. ",
 	"   ..........   "};
 
-#elif defined (IconBlueShadesOn16x16AllTransparentBackground)	
+#elif defined (IconBlueShadesOn16x16AllTransparentBackground)
 	/* XPM */
 	// The following xpm contains the 16x16 ai blue-shades icon on a transparent background.
 	static const char * AI_16_xpm[] = {
@@ -15196,7 +15196,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	"                                                                ",
 	"                                                                ",
 	"                                                                "};
-	
+
 #elif defined (IconBlueShadesOn32x32WhiteDiskBackground)
 	/* XPM */
 	// The following xpm icon contains the 32x32 blue shades ai logo on a white disk.
@@ -15735,13 +15735,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	iconBundle.AddIcon( icon16x16 );
 	iconBundle.AddIcon( icon32x32 );
 
-	m_pMainFrame->SetIcons(iconBundle); //m_pMainFrame->SetIcon(icon); 
+	m_pMainFrame->SetIcons(iconBundle); //m_pMainFrame->SetIcon(icon);
 	//m_pMainFrame->SetIcon(wxIcon(wxICON(adaptit)));	// "adaptit" is a resource name
 													// of an ICON defined in Adapt_It.rc
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
-    
+
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
     // However, the wx version does not use serialized .adt type data files. I don't think
     // it would necessarily be a good thing for users to be able to open AI documents by
@@ -15762,7 +15762,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//ParseCommandLine(cmdInfo);
     // In the wx version, however, command-line processing is actually implemented but the
     // code was moved earlier in this OnInit() function (see above).
-	
+
     // The one thing that ParseCommandLine() does in the MFC version is to start the
     // application with a new View as though File|New were executed giving the app access
     // to valid pView and pDoc pointers. We provide the equivalent below where we call
@@ -15778,21 +15778,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //#ifdef _UNICODE
 //	RenameNRtoUnicode(); // not used in wx version
 //#endif
-	EnsureWorkFolderPresent(); 
+	EnsureWorkFolderPresent();
     // m_workFolderPath is set in EnsureWorkFolderPresent(), and this becomes the current
     // working directory. m_localPathPrefix is also set in here and is used in
     // MakeForeignBasicConfigFileSafe() below.
     // Bruce added 15Mar04 a parameter to EnsureWorkFolderPresent(m_localizedMyDocsPath),
     // but it's not needed for the wxWidgets version.
 	// The m_workFolderPath typically is set to:
-	// On Windows:	"C:\Documents and Settings\<UserName>\(My) Documents\Adapt It (Unicode) Work" 
-	// On Linux:	"/home/<UserName>/Adapt It (Unicode) Work" 
+	// On Windows:	"C:\Documents and Settings\<UserName>\(My) Documents\Adapt It (Unicode) Work"
+	// On Linux:	"/home/<UserName>/Adapt It (Unicode) Work"
 	// On MacOSX:	"/Users/<UserName>/Adapt It (Unicode) Work"
 
 	// BEW added 24Sep09: once m_workFolderPath has been set (it's the default work folder
 	// location and will be a folder "Adapt It Work" or, for Unicode version, "Adapt It
 	// Unicode Work"), and before MakeForeignBasicConfigFileSafe() is called a little
-	// further below in the DealWith...() function, we must now check for a custom work 
+	// further below in the DealWith...() function, we must now check for a custom work
 	// folder location having been made persistent in a previous session.
 	// Such a folder, which could have any name and be anywhere on the local machine or an
 	// attached read-writable drive, will have had its absolute path stored in a file
@@ -15853,7 +15853,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString bookName = _T("Matthew");
 	wxString bookCode = this->GetBookCodeFromBookName(bookName);
 	tempFolder = m_workFolderPath + PathSeparator + _T(".temp");
-	tempFilePathName = tempFolder + PathSeparator + GetFileNameForCollaboration(_T("_Collab"), bookCode, 
+	tempFilePathName = tempFolder + PathSeparator + GetFileNameForCollaboration(_T("_Collab"), bookCode,
 							shortProjName, chNumStr, _T(".tmp"));
 	bool bWriteOK;
 	wxArrayString errors;
@@ -15883,7 +15883,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // multiple monitor setup, and determine the boundaries for valid main frame positions
     // in such configurations. Checking for multiple monitors can be done with the
     // wxDisplay class.
-    // 
+    //
 	int numMonitors;
 	numMonitors = wxDisplay::GetCount();
 	if (numMonitors > 1)
@@ -15891,9 +15891,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// assume two monitors
 		wxDisplay displayOne(0);
 		wxDisplay displayTwo(1);
-		wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920, 
+		wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920,
 					// height=1140 // doesn't include taskbar on Windows
-		wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920, 
+		wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920,
 					// height=1200
 		if (dispTwoRect.x > 0 || dispOneRect.x > 0)
 		{
@@ -15902,7 +15902,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // monitor onto the other
 			int maxDispRectX, maxDispRectY;
 			maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
-			maxDispRectY = wxMin(dispOneRect.GetHeight(),dispTwoRect.GetHeight()); // account 
+			maxDispRectY = wxMin(dispOneRect.GetHeight(),dispTwoRect.GetHeight()); // account
 						// for task bar's presence
 			// set the adjusted width and height of combined desktop display rect
 			desktopWndRect.SetWidth(maxDispRectX);
@@ -15912,7 +15912,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T(
 "desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
 	desktopWndRect.x,desktopWndRect.y,desktopWndRect.GetWidth(),desktopWndRect.GetHeight());
-    // 
+    //
     // The wndTopLeft and wndBotRight point coordinates below are used within the App's
     // GetBasicSettingsConfiguration() function
 	wndTopLeft = wxPoint(desktopWndRect.GetLeft(),desktopWndRect.GetTop());
@@ -15921,7 +15921,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // The original position of MFC's Initialize() was here. In wx version it is divided up
     // into InitializeFonts() and InitializePunctuation() which are both called earler in
     // OnInit() above.
-	
+
 	// create the global Page Setup Dialog Data
 	pPgSetupDlgData = new wxPageSetupDialogData; // must delete in OnExit()
 	wxASSERT(pPgSetupDlgData != NULL);
@@ -15930,17 +15930,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxASSERT(pPrintData != NULL);
     // Set some defaults for the page setup dialog so they will show as defaults if the
     // user accesses the page setup dialog.
-	// Margin MM values determined using the less precise 
+	// Margin MM values determined using the less precise
 	// config_only_thousandthsInchToMillimetres conversion factor
 	pPgSetupDlgData->SetMarginTopLeft(wxPoint(m_marginLeftMM,m_marginTopMM));
 	pPgSetupDlgData->SetMarginBottomRight(wxPoint(m_marginRightMM,m_marginBottomMM));
-	// Paper size MM values determined using the more precise 
+	// Paper size MM values determined using the more precise
 	// thousandthsInchToMillimetres conversion factor
-	pPgSetupDlgData->SetPaperSize(wxSize(m_pageWidthMM,m_pageLengthMM)); 
-	// SetPaperId() overrides the explicit paper dimensions passed in 
+	pPgSetupDlgData->SetPaperSize(wxSize(m_pageWidthMM,m_pageLengthMM));
+	// SetPaperId() overrides the explicit paper dimensions passed in
 	// wxPageSetupDialogData::SetPaperSize()
 	pPgSetupDlgData->SetPaperId(wxPAPER_A4); // default to A4
-	 
+
 	wxSize testSize;
 	testSize = pPgSetupDlgData->GetPaperSize();
 	// Set default orientation (Portrait)
@@ -15953,7 +15953,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // that might be changed from the reading of config files need to be created by this
     // point in OnInit().
 	//////////////////////////////////////////////////////////////////////////////////
-	
+
     // If the user holds the SHIFT-DOWN key here at program startup she can bypass the
     // normal reading of Adapt It's config file settings, forcing the program to load a set
     // of default settings instead.
@@ -15969,7 +15969,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// set the following before calling basic config files, otherwise these defaults wipe
 	// out config file settings... of these 3, only the first is in the config file
-	
+
    // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
     // a PT or BE collaboration project is set up with a project nominated for receiving
 	// free translations; the second is set if the Adapt It document in a collaboration
@@ -15980,7 +15980,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	if (!m_bSkipBasicConfigFileCall)
 	{
-		// this call is skipped if the previous call to 
+		// this call is skipped if the previous call to
 		// DealWithThePossibilityOfACustomWorkFolderLocation() did not succeed in opening
 		// the AI-BasicConfiguration.aic file at the custom work folder location, and so
 		// SetDefaults() was instead called to set up default basic parameter values, and
@@ -15988,7 +15988,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// it would fail. The app's next shut down will write a correct basic config file
 		// at the custom location (provided the user or admin doesn't change the location
 		// using the Administrator menu).
-		bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration 
+		bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration
 														 // detects SHIFT-DOWN
 	}
 	m_bSkipBasicConfigFileCall = FALSE; // restore default value
@@ -15996,27 +15996,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	{
 		// this block won't be entered if the call of GetBasicConfiguration() above
 		// was skipped - see the comment above for the protocol at this point in OnInit()
-		int found = m_punctuation[0].Find(_T('\'')); // look for vertical ordinary 
+		int found = m_punctuation[0].Find(_T('\'')); // look for vertical ordinary
 													 // quote (ie. apostrophe)
 		if (found >= 0)
 			m_bSingleQuoteAsPunct = TRUE;
 		else
 			m_bSingleQuoteAsPunct = FALSE;
-		found = m_punctuation[0].Find(_T('\"')); // look for vertical 
+		found = m_punctuation[0].Find(_T('\"')); // look for vertical
 												 // ordinary double-quote
 		if (found >= 0)
 			m_bDoubleQuoteAsPunct = TRUE;
 		else
 			m_bDoubleQuoteAsPunct = FALSE;
-		// Convert and set the PaperSizeCode, and Print margins that were read 
+		// Convert and set the PaperSizeCode, and Print margins that were read
 		// from the basic config file
 		pPgSetupDlgData->SetPaperId(MapMFCtoWXPaperSizeCode(m_paperSizeCode));
 		pPgSetupDlgData->SetMarginTopLeft(wxPoint(m_marginLeftMM,m_marginTopMM));
 		pPgSetupDlgData->SetMarginBottomRight(wxPoint(m_marginRightMM,m_marginBottomMM));
 		pPgSetupDlgData->SetPaperSize(wxSize(m_pageWidthMM,m_pageLengthMM));
-		// Note: SetPageOrientation() sets the page orientation in our pPrintData global 
+		// Note: SetPageOrientation() sets the page orientation in our pPrintData global
 		SetPageOrientation(m_bIsPortraitOrientation);
-		
+
 		// initialize default path for cc tables
 		m_tableFolderPath[0] = m_lastCcTablePath;
 		m_tableFolderPath[1] = m_lastCcTablePath;
@@ -16028,7 +16028,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // so here is where we should update the position and size of the CMainFrame
         // instance before other routines such as RecalcLayout will use it, or change the
         // App's values which store the current main frame's metrics.
-        // 
+        //
         // The wndBotRight and wndTopLeft coordinate points determined by the above call to
         // the wxGetClientDisplayRect() function are used in
         // GetBasicSettingsConfiguration() to ensure that the m_ptViewTopLeft.x and
@@ -16038,7 +16038,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // should be "safe" to use in our SetSize() call on the main frame below, which is
         // called first to establish any non-zoomed window size, before re-establishing any
         // zoomed state.
-		
+
 		m_pMainFrame->SetSize(m_ptViewTopLeft.x, m_ptViewTopLeft.y, m_szView.x, m_szView.y, wxSIZE_AUTO);
 		if (m_bZoomed)
 		{
@@ -16074,7 +16074,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	/* don't need this, as use in OnNewDocument() of m_bControlIsWithinOnInit makes it unneeded
 	// we'll want to remove the ~AIROP*.lock file that may get set up here, so
-	// use the project folder path, if set up, and remove the lock file 
+	// use the project folder path, if set up, and remove the lock file
 	if (!m_curProjectPath.IsEmpty())
 	{
 		bool bWasRemoved = m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
@@ -16084,7 +16084,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 		else
 		{
-			m_bReadOnlyAccess = TRUE; // control should never enter this block, don't 
+			m_bReadOnlyAccess = TRUE; // control should never enter this block, don't
 									  // proceed further if it does, abort instead
 			wxString mssg;
 			wxMessageBox(_T("Read-only protection was not removed. Remove the ~AIROP*.lock protection file from the project folder and re-launch. Now aborting."),_T("OnInit() Initialization error"), wxICON_ERROR);
@@ -16099,7 +16099,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 	}
 	*/
-	
+
 	//CAdapt_ItView* pView;
 	//pView = (CAdapt_ItView*)m_pDocManager->CreateView(pDoc,wxDOC_NEW);
 
@@ -16123,13 +16123,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//	  After transform into glosses, File|Open		NO
 	// 7. Consistency Check...							NO
 	// Summary: Taking the actual MFC code to contain the necessary conditions then,
-	// OnInitialUpdate() and the various initializations therein, should be called 
+	// OnInitialUpdate() and the various initializations therein, should be called
 	// for only two main scenarios:
-	// (1) for File | New Menu selection (OnFileNew), and 
-	// (2) when loading a file from the MRU list. 
+	// (1) for File | New Menu selection (OnFileNew), and
+	// (2) when loading a file from the MRU list.
 	// OnFileNew() above calls CreateDocument() which eventually calls OnNewDocument()
-	// which calls OnInitialUpdate(). Hence, we do not need to explicityl call 
-	// OnInitialUpdate() here from OnInit(). 
+	// which calls OnInitialUpdate(). Hence, we do not need to explicityl call
+	// OnInitialUpdate() here from OnInit().
 	//CAdapt_ItView* pView = (CAdapt_ItView*) GetView();
 	//wxASSERT(pView != NULL);
 	//
@@ -16139,7 +16139,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Creation of targetbox moved to the View's OnCreate() method
 
 	/*
-	// whm moved the following to the MakeMenuInitializationsAndPlatformAdjustments() 
+	// whm moved the following to the MakeMenuInitializationsAndPlatformAdjustments()
 	// function.
     // These toggle menu items should be initially set as follows (TRUE=checked;
     // FALSE=unchecked):
@@ -16158,14 +16158,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 	*/
 
-	// The following code for setting the composebar font and RTL was moved here 
+	// The following code for setting the composebar font and RTL was moved here
 	// to the App from the CMainFraim constructor where it was in the MFC version
 	wxPanel* pComposeBar;
 	pComposeBar = m_pMainFrame->m_pComposeBar;
 	wxASSERT(pComposeBar != NULL);
 	wxTextCtrl* pComposeBarEdit = (wxTextCtrl*)pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(pComposeBarEdit != NULL);
-	pComposeBarEdit->SetFont(*m_pTargetFont); 
+	pComposeBarEdit->SetFont(*m_pTargetFont);
 
 	// Add RTL support for Unicode version
 #ifdef _RTL_FLAGS
@@ -16186,10 +16186,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// support 15Jun15 until such time as LSDev clarify what the future of OXES is, and
 	// until we have another app which needs to support it - TE is dead in the water,
 	// since no longer does the Mara project in Tanzania use it
-	
+
 	// For OXES -- in 6.0.0 it isn't supported, so remove the menu item temporarily, and
 	// restore it for 6.1.0
-	
+
 	// whm 23Mar11 change: The following creates a memory leak and is risks complications for
 	// the user profiles menu routines. I've commented this out, and placed a wxMessageBox()
 	// notification to the user in CAdapt_ItView::OnExportOXES()
@@ -16204,7 +16204,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 // ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
 
 	// Hide the Glossing check box
-	// whm 30Aug11 Note: At startup glossing is OFF and the <no adaptation> button label 
+	// whm 30Aug11 Note: At startup glossing is OFF and the <no adaptation> button label
 	// is the default, so just keep <no adaptatioin> on the button here
 	wxPanel* pBar;
 	pBar = m_pMainFrame->m_pControlBar;
@@ -16220,7 +16220,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// MFC has this code for drag and drop at this point
 	// Enable drag/drop open
-	// wxWidgets has various drag and drop classes, but I'm not going to try to 
+	// wxWidgets has various drag and drop classes, but I'm not going to try to
 	// implement it here
 	//m_pMainWnd->DragAcceptFiles();
 
@@ -16245,7 +16245,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	GetDocument()->SetTitle(viewTitle);
 	GetDocument()->SetFilename(viewTitle,TRUE); // here TRUE means "notify the views"
 
-	// Display message in status bar that we are loading the books.xml and 
+	// Display message in status bar that we are loading the books.xml and
 	// AI_USFM.xml files (brief)
 	wxString message = _("Loading books.xml and AI_USFM.xml ...");
 	wxStatusBar* pStatusBar = m_pMainFrame->GetStatusBar();//CStatusBar* pStatusBar;
@@ -16299,7 +16299,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // sublists (make sure xml file has a defaultBook=" some number " attribute, for
         // setting m_nBookIndex to that number less one (the XML user-readable should use
         // 1-based numbers))
-		
+
         // whm added 30Nov07 If a customized books.xml file is used with fewer than 5
         // divisions ReadBooks_XML will only populate as many divisions as are actually
         // listed within the books.xml file. We don't want the remaining default labels to
@@ -16324,7 +16324,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxMessageBox(_(
 "Warning: book folder mode will be disabled until a books.xml file is stored \nin the work folder and it is read in and parsed correctly.\nYou should exit the application and fix the books.xml file\nbefore trying to do more work."),
 			_T(""), wxICON_WARNING);
-			m_bDisableBookMode = TRUE; // it will stay disabled until we exit the app & 
+			m_bDisableBookMode = TRUE; // it will stay disabled until we exit the app &
             // fix the books.xml file disabling the mode does not change the m_bBookMode
             // value, nor the m_nBookIndex value, and these continue to be saved in the
             // document; however, m_bDisableBookMode will force the paths to be set to the
@@ -16345,22 +16345,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // no "books.xml" file in the work folder, so use default setup; m_pBibleBooks
         // pointer is already created but as yet has no content
 		SetupDefaultBooksArray(m_pBibleBooks); // hard coded for 67 folders
-		
+
 		//wxLogDebug(_T("No books.xml file found in work folder, so setting defaults via SetupDefaultBooksArray()."));
-		
-		// assume not in book mode, project config file will override this, so no 
+
+		// assume not in book mode, project config file will override this, so no
 		// point to set a default here
-		m_nBookIndex = -1; 
+		m_nBookIndex = -1;
 		m_pCurrBookNamePair = NULL;
 		m_bBookMode = FALSE;
-		m_nDefaultBookIndex = 39; // so we'd get "Matthew" if the Bible books 
+		m_nDefaultBookIndex = 39; // so we'd get "Matthew" if the Bible books
 								  // are set up as here
 	}
 
 	// !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering below
 	// If the AI_USFM.xml file is absent from the work folder, then
 	// default styles for USFM are set up.
-	// 
+	//
     // whm ammended 14Jun05. If the Output_Default_Style_Strings symbol is defined (in
     // XML.h) the program will look for the AI_USFM_full.xml file in the App Path instead
     // of AI_USFM.xml and produce a file called the AI_USFM_full.txt that contains the
@@ -16421,17 +16421,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 
 	m_userProfileFileWorkFolderPath = AIuserProfilesWorkFolderPath;
-	
+
 	m_logsEmailReportsFolderPath = AIemailReportFolderPathOnly;
 	m_packedInputsAndOutputsFolderPath = AIpackedDocumentFolderPathOnly; //m_packedDocumentFilePathOnly = AIpackedDocumentFolderPathOnly; // whm added 8Nov10
 	m_usageLogFilePathAndName = AIusageLogFolderPath; // whm added 8Nov10
 	m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
-	
+
 	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
-	
+
     // Note: The path to the m_setupFolder may differ from the default installation
     // location if user installed Adapt It to a non-default user defined folder, The call
     // to FindAppPath() above determines the path to the currently running executable,
@@ -16451,8 +16451,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// AI_USFM.xml file immediately below, but is handled farther below after the handling
 	// of the AI_USFM.xml file.
 
-	// If the AI_USFM.xml file does not exist in the work folder, look for it in the 
-	// setup folder and, if there, then copy it to the work folder before opening it 
+	// If the AI_USFM.xml file does not exist in the work folder, look for it in the
+	// setup folder and, if there, then copy it to the work folder before opening it
 	// from the latter location.
 	if (!bWorkStyleFileExists)
 	{
@@ -16508,8 +16508,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// Check if we have a newer version in the setup folder
 			bSetupFolderHasNewerVersion = FileHasNewerModTime(usfmStyleInstallFolderFileCopyPath,AIstyleFileWorkFolderPath);
 		}
-		// If setup folder has a newer version, we will first delete what is in the work 
-		// folder, then copy the file from the setup folder to replace it. If setup folder 
+		// If setup folder has a newer version, we will first delete what is in the work
+		// folder, then copy the file from the setup folder to replace it. If setup folder
 		// version is not newer then do nothing.
 		if (bSetupFolderHasNewerVersion)
 		{
@@ -16539,7 +16539,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 					//// we only need to compare the Modtimes
 					//if (dtWorkFolderFileModTime != dtSetupFolderFileModTime)
 					//{
-					//	// file in work folder is not same as the one in setup folder so make 
+					//	// file in work folder is not same as the one in setup folder so make
 					//	// Modtime of file in work folder match the Modtime of file in setup folder
 					//	fnInWorkFolderPath.SetTimes(&dtSetupFolderFileAccessTime,
 					//	   &dtSetupFolderFileModTime,&dtSetupFolderFileCreateTime);
@@ -16559,7 +16559,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
 	if (bWorkStyleFileExists)
 	{
-		// parse the file, and set up the three CMapStringToOb maps containing 
+		// parse the file, and set up the three CMapStringToOb maps containing
 		// mappings between usfm tags and the usfm analysis structs on the heap;
 		bool bReadOK = ReadSFM_XML(AIstyleFileWorkFolderPath,NULL,0);
 		if (!bReadOK)
@@ -16571,7 +16571,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxMessageBox(_(
 "Warning: using default USFM styles until a AI_USFM.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_USFM.xml file if you have previously told Adapt It to hide certain standard format markers."),
 			_T(""), wxICON_INFORMATION);
-			m_bUsingDefaultUsfmStyles = TRUE; 
+			m_bUsingDefaultUsfmStyles = TRUE;
             // To use any non-default styles, user needs to fix the AI_USFM.xml file so it
             // parses correctly, or if it did not get read in, so that it gets read in.
             // However, it is unlikely that it did not get read in; most likely there was a
@@ -16592,20 +16592,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Create the m_pAI_MenuStructure based on the default AI menu bar as found
 	// in the wxDesigner's AIMenuBarFunc() function. This also populates the
-	// m_mapMenuLabelStrToIdInt with all of AI's menu label -> menu id 
+	// m_mapMenuLabelStrToIdInt with all of AI's menu label -> menu id
 	// associations.
 	SetupDefaultMenuStructure(m_pAI_MenuStructure, m_mapMenuLabelStrToIdInt);
 	// The following SetupDefaultUserProfiles() must come after the SetupDefaultMenuStructure()
 	// call above within OnInit().
 	SetupDefaultUserProfiles(m_pFactoryUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 
-	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a 
+	// Now, check that the AI_UserProfiles.xml file exists in the work folder (make a
 	// copy there if necessary from the installation resources.
 	message = _("Loading AI_UserProfiles.xml ...");
 	wxASSERT(pStatusBar != NULL);
 	pStatusBar->SetStatusText(message,0); // use first field 0
 
-	// If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the 
+	// If the AI_UserProfiles.xml file does not exist in the work folder, look for it in the
 	// setup install folder and, if there, decide how to handle version differences due to
 	// possible upgrades/downgrades which may require merging of any changes made to
 	// AI_UserProfiles.xml by an administrator who has customized one or more profiles
@@ -16634,20 +16634,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	else
 	{
-		// There is an AI_UserProfiles.xml file already in the work folder. 
+		// There is an AI_UserProfiles.xml file already in the work folder.
 		// Does it need to be upgraded to a more recent (higher number) version?
-		// If the installation setup folder contains an AI_UserProfiles.xml file  
-		// (normally there should be one there), we need to compare their versions 
-		// and see if the one in the work folder needs to be upgraded. The one in 
-		// the installation folder might be a newer version if the user installed 
-		// an AI update since the last time the app was run. Note however, that 
-		// the user/administrator may have previously modified the work folder's 
-		// existing AI_UserProfiles.xml via edits done in the User Workflow 
-		// Profiles dialog. So, in the event the user has installed a newer AI 
-		// update, we don't want to obliterate his existing user profiles modifications 
-		// (stored in the AI_UserProfiles.xml in his work folder), but we want to 
+		// If the installation setup folder contains an AI_UserProfiles.xml file
+		// (normally there should be one there), we need to compare their versions
+		// and see if the one in the work folder needs to be upgraded. The one in
+		// the installation folder might be a newer version if the user installed
+		// an AI update since the last time the app was run. Note however, that
+		// the user/administrator may have previously modified the work folder's
+		// existing AI_UserProfiles.xml via edits done in the User Workflow
+		// Profiles dialog. So, in the event the user has installed a newer AI
+		// update, we don't want to obliterate his existing user profiles modifications
+		// (stored in the AI_UserProfiles.xml in his work folder), but we want to
 		// preserve his profile edits while upgrading the AI_UserProfiles.xml to
-		// the newer version. This requires that we merge his existing modifications 
+		// the newer version. This requires that we merge his existing modifications
 		// into the newly installed AI_UserProfiles.xml data as we copy the merged
 		// AI_UserProfiles.xml file to his work folder.
 		// In actuality the basic steps are:
@@ -16659,7 +16659,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// setup folder's (newer) version of AI_UserProfiles.xml into memory as a
 		// wxTextFile, and merges changes into the appropriate lines of its in-memory
 		// copy of the newer AI_UserProfiles.xml. Then it creates a new instance of
-		// a wxTextFile (pointing to the user's work folder), copies all of the 
+		// a wxTextFile (pointing to the user's work folder), copies all of the
 		// in-memory text lines from install setup folder's version to the newly
 		// created version. Finally it writes the newly created version out to the
 		// user's work folder as a newly created AI_UserProfiles.xml file.
@@ -16668,8 +16668,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{
 			// The AI_UserProfiles.xml file exists, but it may have been edited/customized
 			// by an administrator. If so we should attempt to merge any edited/customized
-			// data into any more recent version of AI_UserProfiles.xml file that now 
-			// exists in the work folder. We need to do the following each time the app 
+			// data into any more recent version of AI_UserProfiles.xml file that now
+			// exists in the work folder. We need to do the following each time the app
 			// runs:
 			// 1. Read the existing AI_UserProfiles.xml in the work folder and determine:
 			//    a. The profileVersion attribute's value, i.e., "1.0"
@@ -16681,30 +16681,30 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			//    replacement of the existing AI_UserProfiles.xml file with the one in the
 			//    setup folder.
 			// 3. If the adminModified attribute is "Yes" it differs from its factory defaults
-			//    and we must consider the applicationCompatibility and profileVersion 
-			//    attibutes' values and determine the following: 
-			//    a. If the versions are deemed compatible, we quietly merge the 
-			//       edits/customizations made by the administrator into the incoming 
-			//       AI_UserProfiles.xml file and copy that merged AI_UserProfiles.xml 
+			//    and we must consider the applicationCompatibility and profileVersion
+			//    attibutes' values and determine the following:
+			//    a. If the versions are deemed compatible, we quietly merge the
+			//       edits/customizations made by the administrator into the incoming
+			//       AI_UserProfiles.xml file and copy that merged AI_UserProfiles.xml
 			//       file into the work folder location.
-			//    b. If they are not compatible, we rename the existing file to 
+			//    b. If they are not compatible, we rename the existing file to
 			//       AI_UserProfiles_old.xml, and inform the user that a backup copy of
 			//       their edited/customized AI_UserProfiles.xml file was made in the work
-			//       folder by that name, and that they will likely need to edit/customize 
-			//       the user workflow profiles anew for the updated version of the 
+			//       folder by that name, and that they will likely need to edit/customize
+			//       the user workflow profiles anew for the updated version of the
 			//       application.
 
 			wxString profileVersionStr;
 			wxString applicationCompatibilityStr;
 			wxString adminModifiedStr;
-			GetVersionAndModInfoFromProfilesXMLFile(m_userProfileFileWorkFolderPath, 
+			GetVersionAndModInfoFromProfilesXMLFile(m_userProfileFileWorkFolderPath,
 				profileVersionStr,applicationCompatibilityStr,adminModifiedStr);
 			wxASSERT(!profileVersionStr.IsEmpty());
 			// NOTE COMMENT BELOW
 			wxASSERT(!applicationCompatibilityStr.IsEmpty());
 			// **** IF THE applicationCompatibilityStr ASSERT TRIPS on launch from the IDE ****
 			// - probable reason is because the AI_UserProfiles.xml file being accessed is
-			// an older version, or, it cannot be found when OnInit() looks for it. 
+			// an older version, or, it cannot be found when OnInit() looks for it.
             // Go to the adaptit working copy folder, look for the xml folder, and inside
             // that is the repository's latest AI_Profiles.xml file. Copy it to the
             // ...\bin\win32 four object file folders for the 4 configurations we support,
@@ -16712,7 +16712,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// that there is an older version of the file in the Adapt It Unicode Work
 			// folder, or in the Adapt It Work folder for the ANSI app.
 			wxASSERT(!adminModifiedStr.IsEmpty());
-			
+
 			if (adminModifiedStr == _T("No"))
 			{
 				// The work folder's version of AI_UserProfiles.xml has not been modified so
@@ -16724,11 +16724,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			{
 				// The work folder's version of AI_UserProfiles.xml has been modified by an
 				// administrator. How we proceed depends on what we find when we compare the
-				// versions encoded in the profileVersion attribute and the applicationCompatibility 
-				// attribute of the work folder's AI_UserProfiles.xml against the application's 
-				// running versions (encoded in #defines at the beginning of Adapt_It.h). 
-				// Note: The running App's versions encoded in #defines should be identical to 
-				// those encoded in the AI_UserProfiles.xml file in the setup install folder - if 
+				// versions encoded in the profileVersion attribute and the applicationCompatibility
+				// attribute of the work folder's AI_UserProfiles.xml against the application's
+				// running versions (encoded in #defines at the beginning of Adapt_It.h).
+				// Note: The running App's versions encoded in #defines should be identical to
+				// those encoded in the AI_UserProfiles.xml file in the setup install folder - if
 				// we have prepared our installers correctly!
 				wxString runningAppVerStr;
 				runningAppVerStr = GetAppVersionOfRunningAppAsString();
@@ -16737,30 +16737,30 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				enum VersionComparison versionComparison;
 				// CompareRunningVersionWithWorkFolderVersion() compares the App's running version numbers
 				// against those of the current work folder's AI_UserProfile.xml file. The profileVersionStr
-				// and applicationCompatibilityStr strings were determined above in the 
+				// and applicationCompatibilityStr strings were determined above in the
 				// GetVersionAndModInfoFromProfilesXMLFile() function call.
 				versionComparison = CompareRunningVersionWithWorkFolderVersion(profileVersionStr, applicationCompatibilityStr);
-				
-				// whm Note Regarding the handling of version "conflicts" between AI and 
+
+				// whm Note Regarding the handling of version "conflicts" between AI and
 				// AI_UserProfiles.xml:
-				// We attempt to handle both the case situations below together by merging the 
-				// AI_UserProfiles.xml file in the work folder with the one that now exists in the 
-				// install setup folder (which compared with the running application has a newer or 
-				// older version. For example, the running application may be version 6.0.3 but the 
-				// version of the AI_UserProfiles.xml file in the work folder might be 6.0.0 (which 
-				// could happen in a normal upgrade scenario). Another possible example might happen 
-				// when the running application may be version 6.0.1 but the version of the 
-				// AI_UserProfiles.xml file in the work folder might be 6.0.3 (which might happen if 
-				// a user decided to downgrade from AI version 6.0.3 to 6.0.1 because of some bug or 
-				// other problem, or could happen in a circumstance when someone copies a work 
+				// We attempt to handle both the case situations below together by merging the
+				// AI_UserProfiles.xml file in the work folder with the one that now exists in the
+				// install setup folder (which compared with the running application has a newer or
+				// older version. For example, the running application may be version 6.0.3 but the
+				// version of the AI_UserProfiles.xml file in the work folder might be 6.0.0 (which
+				// could happen in a normal upgrade scenario). Another possible example might happen
+				// when the running application may be version 6.0.1 but the version of the
+				// AI_UserProfiles.xml file in the work folder might be 6.0.3 (which might happen if
+				// a user decided to downgrade from AI version 6.0.3 to 6.0.1 because of some bug or
+				// other problem, or could happen in a circumstance when someone copies a work
 				// folder from a computer running version 6.0.3 to a computer that is still using
 				// version 6.0.1). In either case, I've tried to make the upgrade and downgrade process
 				// capable of handling such scenarios without problems. The worst that might happen is
-				// that there could be some instances in which a profile item might return to its 
-				// default factory value or might not be available after an upgrade or downgrade. 
-				// It is not likely this would happen to much extent since I don't forsee us making 
+				// that there could be some instances in which a profile item might return to its
+				// default factory value or might not be available after an upgrade or downgrade.
+				// It is not likely this would happen to much extent since I don't forsee us making
 				// huge changes to the profiles design of the user profiles features in the future.
-				// 
+				//
 				switch (versionComparison)
 				{
 				case runningAppVersionIsNewer:
@@ -16768,10 +16768,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 					{
 						// The work folder's AI_UserProfiles.xml was modified and there is a newer or
 						// older version in the install setup folder.
-						// In either case we do a backup of the user's modified AI_UserProfiles.xml file 
+						// In either case we do a backup of the user's modified AI_UserProfiles.xml file
 						// before merging it with the newer or older version associated with the currently
 						// running AI application.
-						
+
 						// Backup the existing AI_UserProfiles.xml file to AI_UserProfiles_Old_01.xml
 						wxString backupPathNameUsed = _T("");
 						bool bOK;
@@ -16797,7 +16797,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						//	msg = msg.Format(msg,applicationCompatibilityStr.c_str(),runningAppVerStr.c_str(),backupPathNameUsed.c_str());
 						//	wxMessageBox(msg,_T(""),wxICON_WARNING);
 						//}
-						
+
 						// The "normal" calling of ReadPROFILES_XML() has not happened yet, so we need to
 						// do it temporarily here in order to populate the existing m_pUserProfiles struct
 						// in order to use it in the merging process.
@@ -16825,8 +16825,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// We don't call GetAndAssignIdValuesToUserProfilesStruct(m_pUserProfiles)
 							// nor ReportMenuAndUserProfilesInconsistencies() here - they are called
 							// later after merging issues are handled.
-							
-							// The SaveUserProfilesMergingDataToXMLFile() below requires that we first 
+
+							// The SaveUserProfilesMergingDataToXMLFile() below requires that we first
 							// have the m_mapProfileChangesToStringValues map populated with the user's
 							// modifications by a call to MapChangesInUserProfiles().
 							// MapChangesInUserProfiles() allows for different number of
@@ -16835,12 +16835,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// versions are different due to upgrades, downgrades, or copying of
 							// work folder contents to a different machine running a different version
 							// of Adapt It.
-							// MapChangesInUserProfiles() internally keeps track of the number of 
+							// MapChangesInUserProfiles() internally keeps track of the number of
 							// differences it encounteres in listed profile items.
 							MapChangesInUserProfiles(m_pUserProfiles, m_pFactoryUserProfiles);
 
 							// Remove the existing work folder's AI_UserProfiles.xml file. It was backed
-							// up above and we have its data already in m_pUserProfiles because of the 
+							// up above and we have its data already in m_pUserProfiles because of the
 							// ReadPROFILES_XML() call above.
 							bool bRemovedOK;
 							bRemovedOK = wxRemoveFile(m_userProfileFileWorkFolderPath);
@@ -16878,8 +16878,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						// there has been a major change to the AI_UserProfiles.xml file that
 						// would make it incompatible with the earlier "1.0" version. The
 						// CompareRunningVersionWithWorkFolderVersion() function above indicates
-						// that this is the case. Whether a merge would be possible in this 
-						// situation will need to be determined when the new profileVersion is 
+						// that this is the case. Whether a merge would be possible in this
+						// situation will need to be determined when the new profileVersion is
 						// created (if ever). So, for now we notify the programmer via a debug assert,
 						// make a backup copy of the edited/customized AI_UserProfiles.xml, and notify
 						// the user that they will likely need to "check and recreate your user work
@@ -16924,24 +16924,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						// This is the most common case when edits have been made to AI_UserProfiles.xml
 						// by an administrator. We set bSetupFoldersVersionCanReplace = FALSE so the
 						// existing AI_UserProfiles.xml file in the user's work folder does NOT get
-						// overwritten (in code below) by the unmodified one residing in the setup install 
+						// overwritten (in code below) by the unmodified one residing in the setup install
 						// folder.
 						bSetupFoldersVersionCanReplace = FALSE;
 					}
 				}
 			}
-			
+
 			// Note: The checking for modification times of files is not appropriate for our
 			// AI_UserProfiles.xml file handling in regards to upgrades or downgrades.
 			// The AI_UserProfiles.xml file is likely to be edited by an administrator so
-			// its modification date cannot be compared to the modification date of the 
-			// AI_UserProfiles.xml file installed in a given AI version update. The 
-			// modification time of the AI_UserProfiles.xml file in the user's work folder 
+			// its modification date cannot be compared to the modification date of the
+			// AI_UserProfiles.xml file installed in a given AI version update. The
+			// modification time of the AI_UserProfiles.xml file in the user's work folder
 			// could well be newer than one recently installed in the setup folder that
 			// has a newer internal version.
 		}
-		// If bSetupFoldersVersionCanReplace is TRUE, we will first delete what is in the 
-		// work folder, then copy the file from the setup folder to replace it. If 
+		// If bSetupFoldersVersionCanReplace is TRUE, we will first delete what is in the
+		// work folder, then copy the file from the setup folder to replace it. If
 		// bSetupFoldersVersionCanReplace is FALSE then do nothing.
 		if (bSetupFoldersVersionCanReplace)
 		{
@@ -17014,11 +17014,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 
 	// At this point the config files have been read and the AI_UserProfiles.xml file has been
-	// read and the m_pUserProfiles and m_pFactoryUserProfiles data structures have been 
+	// read and the m_pUserProfiles and m_pFactoryUserProfiles data structures have been
 	// created.
-	// 
+	//
 	// Adjust menus and settings for the selected user workflow profile by calling
-	// ConfigureInterfaceForUserProfile(). However, if the m_nWorkflowProfile is 0 "None" 
+	// ConfigureInterfaceForUserProfile(). However, if the m_nWorkflowProfile is 0 "None"
 	// we simply bypass calling ConfigureInterfaceForUserProfile() and the application
 	// uses its default interface of menus, etc.
 	if (m_nWorkflowProfile != 0)
@@ -17033,65 +17033,65 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
 #endif
 
-	// whm Note: We should associate the file history with the File menu, and load 
+	// whm Note: We should associate the file history with the File menu, and load
 	// the File History AFTER calling ConfigureInterfaceForUserProfile() above.
-	// 
+	//
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
 	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
 	wxASSERT(pFileMenu != NULL);
 	m_pDocManager->FileHistoryUseMenu(pFileMenu);
 	// This must come after Main Menu is created and FileHistoryUseMenu call
-	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) 
+	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU)
 												// list from *m_pConfig
-   
+
 
 	// whm 20Jun11 Notes:
 	// We need to provide a sanity check to ensure that certain settings
 	// that were configured by an administrator are still valid on this running of
-	// the application. These sanity checks are for settings an administrator may 
+	// the application. These sanity checks are for settings an administrator may
 	// have configured using the Administrator menu, and include the following:
 	//    1. Settings for any active Paratext collaboration.
 	//    2. Settings for any active Bibledit collaboration.
-	
-	// if m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit is TRUE 
+
+	// if m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit is TRUE
 	// (after the basic config file has been read in), the Paratext/Bibledit
 	// program is actually installed on the user's computer.
-	// The CGetSourceTextFromEditor class checks that the collaboration selection of 
-	// Paratext/Bibledit Projects indicated in the Basic Configuration file are still 
-	// valid. The definitions stored in the Basic Config file include the 
-	// PTProjectForSourceInputs and the PTProjectForTargetExports string values. 
-	// If Paratext/Bibledit itself, or the needed projects were removed from the 
-	// user's computer while Adapt It is set up to collaborate with Paratext/Bibledit, 
-	// we don't want the user to be locked in to Paratext/Bibledit collaboration mode, 
-	// with no possibility of doing any useful work. 
-	
+	// The CGetSourceTextFromEditor class checks that the collaboration selection of
+	// Paratext/Bibledit Projects indicated in the Basic Configuration file are still
+	// valid. The definitions stored in the Basic Config file include the
+	// PTProjectForSourceInputs and the PTProjectForTargetExports string values.
+	// If Paratext/Bibledit itself, or the needed projects were removed from the
+	// user's computer while Adapt It is set up to collaborate with Paratext/Bibledit,
+	// we don't want the user to be locked in to Paratext/Bibledit collaboration mode,
+	// with no possibility of doing any useful work.
+
 	// whm added 9Feb11 Sanity Checks for Paratext/Bibledit Collaboration support
-	// 
+	//
 	// The ParatextIsInstalled() function looks for the following key in the Windows registry:
 	// HKEY_LOCAL_MACHINE\SOFTWARE\ScrChecks\1.0\Program_Files_Directory_Ptw7
 	// If it exists, it queries the string value associated with the key which will be
 	// the directory where Paratext is installed, i.e., "C:\Program Files\Paratext 7\"
 	// It then checks for the existence of a "Paratext.exe" executable file and a
-	// ParatextShared.dll dynamic library file within that directory. If all checks 
+	// ParatextShared.dll dynamic library file within that directory. If all checks
 	// pass, we assume Paratext is installed on the host system.
 	if (!m_bParatextIsInstalled)
 	{
 		// Paratext is not installed on this computer.
-		// Check to see if Paratext Collaboration is in effect (according to the 
-		// m_bCollaboratingWithParatext flag being set TRUE by the above reading of 
+		// Check to see if Paratext Collaboration is in effect (according to the
+		// m_bCollaboratingWithParatext flag being set TRUE by the above reading of
 		// the basic config file). If it is, we must unilaterally turn Paratext
 		// collaboration OFF, and notify the user to ask the administrator to check
 		// on the user's setup.
 		if (m_bCollaboratingWithParatext == TRUE)
 		{
 			m_bCollaboratingWithParatext = FALSE;
-			
+
 			// update the values related to PT collaboration in the Adapt_It_WX.ini file
 			wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 			bool bWriteOK;
 			m_pConfig->SetPath(_T("/Settings"));
-			wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
+			wxLogNull logNo; // eliminates spurious message from the system: "Can't read value
 				// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 			bWriteOK = m_pConfig->Write(_T("pt_collaboration"), m_bCollaboratingWithParatext);
 			// the string values below can still be kept in the settings file in case PT 7 is
@@ -17108,7 +17108,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
-			
+
 			wxString msg;
 			msg = _("Your administrator has configured Adapt It to collaborate with Paratext, but Paratext 7 is not installed on this computer. Adapt It will now start in normal mode.\nAsk your administrator to set up Paratext again if you want to adapt texts from Paratext projects.");
 			wxMessageBox(msg,_T("No Paratext installation found on this computer"),wxICON_WARNING);
@@ -17119,13 +17119,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	else
 	{
 		// Paratext is installed on this computer.
-		// When m_bParatextIsInstalled is TRUE, the Get "Source Text from 
-		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start 
+		// When m_bParatextIsInstalled is TRUE, the Get "Source Text from
+		// Paratext Project" dialog will appear in lieu of the normal Adapt It Start
 		// Working Wizard after OnInit() finishes below.
-		// Note: The CGetSourceTextFromEditor class will check to see if there are 
+		// Note: The CGetSourceTextFromEditor class will check to see if there are
 		// sufficient PT projects for AI-PT work to be able to proceed.
 	}
-	
+
 	// whm testing below !!!
 
 	//wxArrayString testBEProjects;
@@ -17141,19 +17141,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //	}
 //#endif
 	// whm testing above !!!
-	
+
 	if (!BibleditIsInstalled())
 	{
 		// Bibledit is not installed on this computer.
-		// Check to see if Bibledit Collaboration is in effect (according to the 
-		// m_bCollaboratingWithBibledit flag being set TRUE by the above reading of 
+		// Check to see if Bibledit Collaboration is in effect (according to the
+		// m_bCollaboratingWithBibledit flag being set TRUE by the above reading of
 		// the basic config file). If it is, we must unilaterally turn Bibledit
 		// collaboration OFF, and notify the user to ask the administrator to check
 		// on the user's setup.
 		if (m_bCollaboratingWithBibledit == TRUE)
 		{
 			m_bCollaboratingWithBibledit = FALSE;
-			
+
 			// update the values related to BE collaboration in the Adapt_It_WX.ini file
 			wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 			bool bWriteOK;
@@ -17174,7 +17174,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
-			
+
 			wxString msg;
 			msg = _("Your administrator has configured Adapt It to collaborate with Bibledit, but Bibledit is not installed on this computer. Adapt It will now start in normal mode.\nAsk your administrator to set up Bibledit again if you want to adapt texts from Bibledit projects.");
 			wxMessageBox(msg,_T("No Bibledit installation found on this computer"),wxICON_WARNING);
@@ -17185,8 +17185,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	// whm added 9Feb11 for Paratext Collaboration support
 	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
-	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\". 
-	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on 
+	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\".
+	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on
 	// a Windows host system.
 	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
 	// the Windows \ path separator from the end of the string
@@ -17206,10 +17206,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_collaborationEditor = _T("Paratext"); // default editor
 #endif
 
-	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally 
-	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile() 
-	// it makes better sense to do the menu modifications (mostly for the Mac) here at this 
-	// point in OnInit(). It also configures the initial state of the Administrator menu 
+	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally
+	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile()
+	// it makes better sense to do the menu modifications (mostly for the Mac) here at this
+	// point in OnInit(). It also configures the initial state of the Administrator menu
 	// according to the m_bShowAdministratorMenu flag set above.
 	// whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
 	// within OnInit() after the above m_collaborationEditor string has been assigned.
@@ -17227,7 +17227,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// Turn off system message "Failed to load shared library...(error 126: the specified
 			// module could not be found", which pops up in idle time if following .Load() call
 			// fails. We have our own message.
-			wxLogNull logNo;	// eliminates any spurious messages from the system while 
+			wxLogNull logNo;	// eliminates any spurious messages from the system while
 								// reading read-only folders/files
 			bParatextSharedDLLLoaded = ptSharedDynamicLibrary.Load(PT_LIB_NAME);
 			if (!ptSharedDynamicLibrary.IsLoaded())
@@ -17246,24 +17246,24 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				bParatextSharedDLLLoaded = TRUE;
 			}
 		}
-		
+
 	}
 
-	
+
 	// whm 28Mar11 TESTING ABOVE !!!
 	*/
 
-	// Next, initialise the help system. We do it here because our m_setupFolder was 
-	// determined above and we now know the path to the setup folder where any help 
+	// Next, initialise the help system. We do it here because our m_setupFolder was
+	// determined above and we now know the path to the setup folder where any help
 	// file is installed.
-    //  
+    //
     // Determine the path to the installation folder where Adapt_It.xxx is located
-    // Note: Our function FindAppPath() determined the most likely path where the 
+    // Note: Our function FindAppPath() determined the most likely path where the
     // Adapt It executable program is located and stored it in m_setupFolder.
 
 	wxString appName;
 	appName = GetAppName();
-	
+
 	wxString helpFilePath,helpFileName;
     // Note: earlier in OnInit() m_helpInstallPath was determined in
     // GetDefaultPathForHelpFiles() which also determined the name stored in
@@ -17272,7 +17272,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // The file name stored in helpFileName below will be Adapt_It.htb for Windows;
     // adaptit.htb for Linux and AdaptIt.htb for Mac. The extension may be .zip, .htb or
     // .hhp when using wxHtmlHelpController
-	helpFileName = m_htbHelpFileName;  
+	helpFileName = m_htbHelpFileName;
 
 #ifdef __WXGTK__
 	// The call to m_pHelpController->Initialize() below will fail on wxGTK unless wxUSE-LIBMSPACK is 1
@@ -17300,7 +17300,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     {
         wxLogDebug(wxT("Cannot initialize the help system. Online help will not be available."));
     }
-	
+
     // Get the text extent of the longest sfm represented in the input data. We only need
     // to scan the UsfmAndPng map since it has all the markers in it. For a pDC we've
     // already created our canvas within the Main Frame above, so we can use it, setting
@@ -17309,11 +17309,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxFont tempFont = *m_pNavTextFont;
 	tempFont.SetPointSize(12);
 	aDC.SetFont(tempFont);
-	sizeLongestSfm = GetExtentOfLongestSfm(&aDC); // sizeLongestSFM does not include 
+	sizeLongestSfm = GetExtentOfLongestSfm(&aDC); // sizeLongestSFM does not include
 												  // any unknown markers
 	aDC.GetTextExtent(_T(' '),&sizeSpace.x,&sizeSpace.y);
 
-	// Set up the rapid access data strings for wrap markers, sectionHead markers, 
+	// Set up the rapid access data strings for wrap markers, sectionHead markers,
 	// inLine markers, and filter markers.
 	SetupMarkerStrings();
 
@@ -17321,7 +17321,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // gProjectFilterMarkersForConfig assigned gCurrentFilterMarkers's list of filter
     // markers; gProjectFilterMarkersForConfig may be changed once the config file is read
     // in
-	gProjectFilterMarkersForConfig = gCurrentFilterMarkers; 
+	gProjectFilterMarkersForConfig = gCurrentFilterMarkers;
 
 	// Retain the initial USFM filter marker string as "Factory default"
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
@@ -17332,8 +17332,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// using PushEventHandler() here appears to be too early (there is no 'previous' event
 	// handler yet), so try at end of OnInit()
-	
-	
+
+
 	// Display message in status bar that startup initialization is complete
 	message = _("Initialization complete. Call Start Working...");
 	pStatusBar->SetStatusText(message,0); // use first field 0
@@ -17343,7 +17343,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedAppInitialization = TRUE;
 
 	// **** test code fragments here ****
-	 
+
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes
@@ -17370,7 +17370,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString fileBuffer;
 	// now read the file into a buffer in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
-	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
 	// UNICODE BOM of ef bb bf
 	wxFile f(fileAndPath,wxFile::read);
 	wxFileOffset fileLen;
@@ -17553,7 +17553,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     delete [] astrChoices;
 
     // set grey background for every second entry
-    for ( ui = 0; ui < WXSIZEOF(aszChoices); ui += 2 ) 
+    for ( ui = 0; ui < WXSIZEOF(aszChoices); ui += 2 )
 	{
         //AdjustColour(ui);
      // even items have grey backround, odd ones - white
@@ -17567,7 +17567,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 /*
 	CString bookIDStr;
-	CString docPath = 
+	CString docPath =
 	_T("C:\\Documents and Settings\\watersb\\My Documents\\Adapt It Unicode Work\\Takia to English adaptations\\Adaptations\\1Timothy.xml");
 	bool isOK = FileContainsBookIndicator(docPath,bookIDStr);
 	int yes = 1;
@@ -17675,7 +17675,7 @@ int ii = 1;
 
 /*
 // test UUID generation
-	wxString anUuid; 
+	wxString anUuid;
 	int i;
 	for (i = 1; i<20; i++)
 	{
@@ -17723,7 +17723,7 @@ int ii = 1;
 	m_bJustLaunched = TRUE;// set false in OnIdle call
 	m_bExportingGlossesAsText = FALSE;   // set TRUE during export of glosses
 	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
-	
+
 	m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
 
 	// override the default for m_bDrafting if the frm switch was found
@@ -17737,14 +17737,14 @@ int ii = 1;
 		wxPanel* pControlBar;
 		pControlBar = pFrame->m_pControlBar;
 		wxASSERT(pControlBar);
-		wxRadioButton* pDraftingBtn = 
+		wxRadioButton* pDraftingBtn =
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
 		// whm 12Oct10 modified below to make safe for user workflow profiles
 		if (pDraftingBtn != NULL)
 		{
 			pDraftingBtn->Hide();
 		}
-		wxRadioButton* pReviewingBtn = 
+		wxRadioButton* pReviewingBtn =
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
 		if (pReviewingBtn != NULL)
 		{
@@ -17766,7 +17766,7 @@ int ii = 1;
 		wxString fullPath;
 		m_curProjectName = m_autoexport_projectname;
 		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
-		//m_sourceInputsFolderPath = m_curProjectPath + PathSeparator + m_sourceInputsFolderName; 
+		//m_sourceInputsFolderPath = m_curProjectPath + PathSeparator + m_sourceInputsFolderName;
 		//m_freeTransOutputsFolderPath = m_curProjectPath + PathSeparator + m_freeTransOutputsFolderName;
 		//m_freeTransRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_freeTransRTFOutputsFolderName;
 		//m_glossOutputsFolderPath = m_curProjectPath + PathSeparator + m_glossOutputsFolderName;
@@ -17778,14 +17778,14 @@ int ii = 1;
 		//m_targetRTFOutputsFolderPath = m_curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		//m_kbInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		//m_liftInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
-		
+
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
 		GetDocument()->OnOpenDocument(fullPath);
 	}
 	m_bControlIsWithinOnInit = FALSE;
 
- 
+
 	//GDLC 2010-02-12
 	// Create the free translation display handler
 	m_pFreeTrans = new CFreeTrans(this);
@@ -17799,7 +17799,7 @@ int ii = 1;
 	m_pRetranslation = new CRetranslation(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pRetranslation);
-	
+
 	m_pPlaceholder = new CPlaceholder(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
@@ -17826,7 +17826,7 @@ int ii = 1;
     // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
     // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
     // whatever is the current value of m_docVersionCurrent. So set the current value:
-    // 
+    //
 	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
 
 	m_pNavProtectDlg = NULL; // it's created on heap just before being shown, in OnNewDocument()
@@ -17834,7 +17834,7 @@ int ii = 1;
 
 	// add oxes support here, the creator will call an initializing function to have oxes
 	// export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
-	// 
+	//
 	// BEW temporarily (or permanently?) deprecated 15Jun11, until need for OXES support
 	// is clarified and there is some other app 'out there' that could benefit from AI
 	// supporting an OXES export
@@ -17844,6 +17844,16 @@ int ii = 1;
 	m_pAdaptationsGuesser = new Guesser;
 	m_pGlossesGuesser = new Guesser;
 
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
+	wxFrame* pLogFrame;
+	wxLogWindow* m_pLogWindow = new wxLogWindow(GetMainFrame()->canvas,wxT("Debug Log"),true,true);
+    pLogFrame = m_pLogWindow->GetFrame();
+	pLogFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
+	//pLogFrame->SetSize( wxRect(0,900,1600,200));
+	pLogFrame->SetSize( wxRect(0,900,160,200));
+	wxLog::SetActiveTarget(m_pLogWindow);
+#endif
 	//klb test
 	//bool a = ParatextIsRunning();
 
@@ -17853,12 +17863,12 @@ int ii = 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-/// \return   nothing  
+/// \return   nothing
 /// \remarks
 /// Called from: the App's OnExit(). The function is a misnomer, because all the function
 /// does is call WriteConfigurationFile() to save the basic configuration file.
 /// BEW modified 19Aug09 for support of administrator access to custom work folder
-/// locations 
+/// locations
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::Terminate()
 {
@@ -17880,7 +17890,7 @@ void CAdapt_ItApp::Terminate()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return   the maximum index for the CSourcePhrases in the m_pSourcePhrases list  
+/// \return   the maximum index for the CSourcePhrases in the m_pSourcePhrases list
 /// \remarks
 /// created 21Mar09 to replace the now deprecated m_maxIndex app member
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -17916,13 +17926,13 @@ int CAdapt_ItApp::OnExit(void)
 	// do the class instance deletion from the heap for us. Do that if we ever suspect the
 	// order below is not correct, and remove our explicit delete statements, and add the
 	// appropriate casts on the RHS and the appropriate class pointer on the left.)
-	// 
+	//
 	// The push order is so far:
 	// 1. CFreeTrans
 	// 2. CNotes
-	// 3. 
+	// 3.
 	//wxEvtHandler* pHdlr = NULL;
-	
+
 	// delete the Guesser objects
 	if (m_pAdaptationsGuesser != NULL)
 		delete m_pAdaptationsGuesser;
@@ -17937,27 +17947,27 @@ int CAdapt_ItApp::OnExit(void)
 
 	// delete the CRetranslation object
 	delete m_pRetranslation;
-	
+
 	// delete the CPlaceholder object
 	delete m_pPlaceholder;
-	
+
 	//GDLC Added 2010-02-12
 	// Delete the CFreeTrans manager after popping its event table off the stack of
 	// windows event handlers
-	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
+	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE
 								// (meaning that we'll do the deleting ourselves)
 	delete m_pFreeTrans;
-		
+
 	delete m_pROP; // delete the ReadOnlyProtection class's only instance
 	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
 	delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
-						 // open read-only protection file of form 
+						 // open read-only protection file of form
 						 // ~AIRIOP-machinename-username.lock while the owning user
 						 // has a project folder open (on this or a remote machine)
 
 	m_pDocManager->FileHistorySave(* m_pConfig);
 
-	bool bOK; // we won't care whether it succeeds or not, since the later 
+	bool bOK; // we won't care whether it succeeds or not, since the later
 			  // Get... can use defaults
 	// WriteConfigurationFile projectConfigFile forces write of project config info
 	if (!m_bAutoExport)
@@ -17967,7 +17977,7 @@ int CAdapt_ItApp::OnExit(void)
 		{
 			// whm 10Mar10, must save using what paths are current, but when the custom
 			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// becomes a "normal" project configuration file in m_curProjectPath at the
 			// custom location.
 			if (m_bLockedCustomWorkFolderPath)
 				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
@@ -18037,7 +18047,7 @@ int CAdapt_ItApp::OnExit(void)
 	m_pRemovalsFont = (wxFont*)NULL;
 	delete m_pVertEditFont;
 	m_pVertEditFont = (wxFont*)NULL;
-	
+
 	delete m_pSrcFontData;
 	m_pSrcFontData = (wxFontData*)NULL;
 	delete m_pTgtFontData;
@@ -18108,7 +18118,7 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pMappedObjectPointers;
 	}
 
-	// USFMAnalysis objects are destroyed, now destroy the map keys and 
+	// USFMAnalysis objects are destroyed, now destroy the map keys and
 	// maps themselves
 	if (m_pUsfmStylesMap->size() > 0) //if (m_pUsfmStylesMap->GetCount() > 0)
 	{
@@ -18117,7 +18127,7 @@ int CAdapt_ItApp::OnExit(void)
 	}
 	// destroy the Usfm map itself
 	delete m_pUsfmStylesMap;
-	
+
 	if (m_pPngStylesMap->size() > 0)
 	{
 		// destroy all Png key/object associations
@@ -18125,7 +18135,7 @@ int CAdapt_ItApp::OnExit(void)
 	}
 	// destroy the Png map itself
 	delete m_pPngStylesMap;
-	
+
 	if (m_pUsfmAndPngStylesMap->size() > 0)
 	{
 		// destroy all UsfmAndPng key/object associations
@@ -18134,24 +18144,24 @@ int CAdapt_ItApp::OnExit(void)
 	// destroy the UsfmAndPng map itself
 	delete m_pUsfmAndPngStylesMap;
 
-	// destroy the allocated memory in m_pUserProfiles. This is a single 
+	// destroy the allocated memory in m_pUserProfiles. This is a single
 	// instance of the UserProfiles struct that was allocated on the heap. Note
-	// that m_pUserProfiles also contains a list of pointers in its 
-	// profileItemList member that point to UserProfileItem instances on the 
+	// that m_pUserProfiles also contains a list of pointers in its
+	// profileItemList member that point to UserProfileItem instances on the
 	// heap.
 	DestroyUserProfiles(m_pUserProfiles);
-	// also destroy the allocated memory in m_pFactoryUserProfiles. This is a single 
+	// also destroy the allocated memory in m_pFactoryUserProfiles. This is a single
 	// instance of the UserProfiles struct that was allocated on the heap. Note
-	// that m_pFactoryUserProfiles also contains a list of pointers in its 
-	// profileItemList member that point to UserProfileItem instances on the 
+	// that m_pFactoryUserProfiles also contains a list of pointers in its
+	// profileItemList member that point to UserProfileItem instances on the
 	// heap.
 	DestroyUserProfiles(m_pFactoryUserProfiles);
 
 	if (m_pEmailReportData != NULL)
 		delete m_pEmailReportData;
-	
+
 	DestroyMenuStructure(m_pAI_MenuStructure);
-	
+
 	if (m_userLogFile != NULL)
 	{
 		LogUserAction(_T("AppShutDown"));
@@ -18215,7 +18225,7 @@ int CAdapt_ItApp::OnExit(void)
 	{
         // add code here to ensure the CLayout's lists are cleared before deleting it, we
         // don't want to leak memory
-		m_pLayout->DestroyStrips(); // destroys each strip and the memory involved with 
+		m_pLayout->DestroyStrips(); // destroys each strip and the memory involved with
 									// their m_arrPiles & m_arrPileOffsets arrays (these
 									// are both wxArrayInt arrays)
 		m_pLayout->DestroyPiles();	// destroys each pile in m_pLayout's m_pPiles lists,
@@ -18236,7 +18246,7 @@ int CAdapt_ItApp::OnExit(void)
 		// can't do this from a call of OnExit() from OnOpenDocument() without it
 		// asking if I want to save the document because it is changed, so I moved
 		// this to the end, and we do it only if not auto exporting
-		delete m_pDocManager; // deleting this 
+		delete m_pDocManager; // deleting this
 		m_pDocManager = (wxDocManager*)NULL;
 	}
 
@@ -18272,23 +18282,23 @@ void CAdapt_ItApp::InitializeFonts()
 	==========================
 	ANSI_CHARSET		0
 	DEFAULT_CHARSET		1
-	MFC docs say about DEFAULT_CHARSET on Windows 95/98/Me: You can use the DEFAULT_CHARSET value to allow 
-	the name and size of a font to fully describe the logical font. If the specified font name does not 
-	exist, a font from any character set can be substituted for the specified font, so you should use 
-	DEFAULT_CHARSET sparingly to avoid unexpected results. 
-	MFC docs say about DEFAULT_CHARSET on Windows NT/2000/XP: DEFAULT_CHARSET is set to a value based on the 
-	current system locale. For example, when the system locale is English (United States), it is set as 
-	ANSI_CHARSET 0. 
+	MFC docs say about DEFAULT_CHARSET on Windows 95/98/Me: You can use the DEFAULT_CHARSET value to allow
+	the name and size of a font to fully describe the logical font. If the specified font name does not
+	exist, a font from any character set can be substituted for the specified font, so you should use
+	DEFAULT_CHARSET sparingly to avoid unexpected results.
+	MFC docs say about DEFAULT_CHARSET on Windows NT/2000/XP: DEFAULT_CHARSET is set to a value based on the
+	current system locale. For example, when the system locale is English (United States), it is set as
+	ANSI_CHARSET 0.
 
 	SYMBOL_CHARSET		2  [N/A IN WX]
-	MAC_CHARSET			77 
+	MAC_CHARSET			77
 	SHIFTJIS_CHARSET	128
 	HANGUL_CHARSET		129
 	JOHAB_CHARSET		130 Korean language edition of Windows [N/A IN WX]
 	GB2312_CHARSET		134
 	CHINESEBIG5_CHARSET	136
 	GREEK_CHARSET		161
-	TURKISH_CHARSET		162 
+	TURKISH_CHARSET		162
 	VIETNAMESE_CHARSET	163 [N/A IN WX]
 	HEBREW_CHARSET		177 Middle East language edition of Windows
 	ARABIC_CHARSET		178 Middle East language edition of Windows
@@ -18296,34 +18306,34 @@ void CAdapt_ItApp::InitializeFonts()
 	RUSSIAN_CHARSET		204
 	THAI_CHARSET		222 Thai language edition of Windows
 	EASTEUROPE_CHARSET	238
-	OEM_CHARSET			255 The OEM_CHARSET value specifies a character set that is operating-system 
+	OEM_CHARSET			255 The OEM_CHARSET value specifies a character set that is operating-system
 							dependent
-	Fonts with other character sets may exist in the operating system. If an application uses a font 
+	Fonts with other character sets may exist in the operating system. If an application uses a font
 	with an unknown character set, it should not attempt to translate or interpret strings that are
-	rendered with that font. 
-	The lfCharset parameter of LOGFONT is important in the font mapping process. To ensure consistent 
-	results, specify a specific character set. If you specify a typeface name in the lfFaceName member, 
-	make sure that the lfCharSet value matches the character set of the typeface specified in lfFaceName. 
-	
+	rendered with that font.
+	The lfCharset parameter of LOGFONT is important in the font mapping process. To ensure consistent
+	results, specify a specific character set. If you specify a typeface name in the lfFaceName member,
+	make sure that the lfCharSet value matches the character set of the typeface specified in lfFaceName.
+
 	Here is how the above charsets compare/map to the wxWidgets font encoding values for 8-bit fonts:
 	(Note: "Value" is the value of the enum wxFontEncoding struct; there are also values in that
 	struct which apply to Unicode encodings including: wxFONTENCODING_UTF7 40 for UTF-7 Unicode encoding;
-    wxFONTENCODING_UTF8 41 for UTF-8 Unicode encoding; wxFONTENCODING_UNICODE 43 for Unicode - currently 
+    wxFONTENCODING_UTF8 41 for UTF-8 Unicode encoding; wxFONTENCODING_UNICODE 43 for Unicode - currently
 	used only by the wxEncodingConverter class.
 	The following is from the wxWidgets header file fontenc.h
-	
+
 								 WX   MFC
 	wxWidgets Symbol:			 Val  Val
 	======================================
-	wxFONTENCODING_SYSTEM		-1    255 The default encoding of the underlying operating system (notice that 
-									      this might be a "foreign" encoding for foreign versions of Windows 9x/NT).  
+	wxFONTENCODING_SYSTEM		-1    255 The default encoding of the underlying operating system (notice that
+									      this might be a "foreign" encoding for foreign versions of Windows 9x/NT).
 	wxFONTENCODING_DEFAULT		0	  1	  The applications default encoding as returned by wxFont::GetDefaultEncoding.
-									      On program startup, the applications default encoding is the same as 
-									      wxFONTENCODING_SYSTEM, but may be changed to make all the fonts created 
-									      later to use it (by default). 
-									      The 1..15 ISO8859 family encodings are usually used by all non-Microsoft 
+									      On program startup, the applications default encoding is the same as
+									      wxFONTENCODING_SYSTEM, but may be changed to make all the fonts created
+									      later to use it (by default).
+									      The 1..15 ISO8859 family encodings are usually used by all non-Microsoft
 									      operating systems
-	wxFONTENCODING_ISO8859_1	1         West European (Latin1)  
+	wxFONTENCODING_ISO8859_1	1         West European (Latin1)
 	wxFONTENCODING_ISO8859_2	2	      Central and East European (Latin2)
 	wxFONTENCODING_ISO8859_3	3	      Esperanto (Latin3)
 	wxFONTENCODING_ISO8859_4	4	      Baltic (old) (Latin4)
@@ -18339,20 +18349,20 @@ void CAdapt_ItApp::InitializeFonts()
 	wxFONTENCODING_ISO8859_14	14	      Latin8
 	wxFONTENCODING_ISO8859_15	15	      Latin9 (a.k.a. Latin0, includes euro)
     wxFONTENCODING_ISO8859_MAX	16       (max value for the ISO8859 encodings)
-	wxFONTENCODING_KOI8			17        Standard Cyrillic encoding for the Internet (but see also 
-									      wxFONTENCODING_ISO8859_5 and wxFONTENCODING_CP1251)  
+	wxFONTENCODING_KOI8			17        Standard Cyrillic encoding for the Internet (but see also
+									      wxFONTENCODING_ISO8859_5 and wxFONTENCODING_CP1251)
 									      Cyrillic charset soup (see http://czyborra.com/charsets/cyrillic.html)
 									      we don't support any of KOI8 variants
     wxFONTENCODING_KOI8_U		18	      KOI8 Ukrainian
     wxFONTENCODING_ALTERNATIVE	19	      same as MS-DOS CP866
     wxFONTENCODING_BULGARIAN	20	      used under Linux in Bulgaria
-    wxFONTENCODING_CP437		21	 254  original MS-DOS codepage (what would we do without Microsoft? They have 
+    wxFONTENCODING_CP437		21	 254  original MS-DOS codepage (what would we do without Microsoft? They have
 									      their own encodings for DOS)
     wxFONTENCODING_CP850		22	      CP437 merged with Latin1
     wxFONTENCODING_CP852		23	      CP437 merged with Latin2
     wxFONTENCODING_CP855		24	      another cyrillic encoding
-    wxFONTENCODING_CP866		25	      and another one  
-	
+    wxFONTENCODING_CP866		25	      and another one
+
 	wxFONTENCODING_CP874		26	 222  WinThai
     wxFONTENCODING_CP932		27	 128  Japanese (shift-JIS)
     wxFONTENCODING_CP936		28	 134  Chinese simplified (GB)
@@ -18367,7 +18377,7 @@ void CAdapt_ItApp::InitializeFonts()
     wxFONTENCODING_CP1256		37	 178  WinArabic
     wxFONTENCODING_CP1257		38	 186  WinBaltic (same as Latin 7)
     wxFONTENCODING_CP12_MAX		39	      (max cp12... encoding defined)
-    
+
 	wxFONTENCODING_UTF7			40		  UTF-7 Unicode encoding
     wxFONTENCODING_UTF8			41		  UTF-8 Unicode encoding
     wxFONTENCODING_EUC_JP		42		  Extended Unix Codepage for Japanese
@@ -18483,7 +18493,7 @@ void CAdapt_ItApp::InitializeFonts()
 		Ubuntu Linux environment, we can set the initial encoding for source, target, nav,
 		and the dialog fonts to wxFONTENCODING_ISO8859_1, so that the text controls and
 		display contexts can convert any upper ASCII character data to UTF-8 without generating
-		the "Failed to set text in text control" error (displaying it as "boxed" hex values 
+		the "Failed to set text in text control" error (displaying it as "boxed" hex values
 		inline in the displayed string)
 	2.	We can give the user the option in the fontPage to change the encoding for a given
 		language font which would then override the default setting when setting up an
@@ -18491,30 +18501,30 @@ void CAdapt_ItApp::InitializeFonts()
 	3.	Presumably, the Charset value stored for each Unicode font in the config files (of
 		the Unicode version) would be 0 (zero), as the charset value is not significant for
 		Unicode operations.
-	4.	We can determine from the project config file whether the config file was generated 
+	4.	We can determine from the project config file whether the config file was generated
 		by the legacy MFC version or the newer wxWidgets version, by whether the config file
-		has the "SourceHasUpperCaseAndLowerCase n" field in it (which is unique to the 
-		wxWidgets version). Then, the Charset fields for each of the fonts read at the 
+		has the "SourceHasUpperCaseAndLowerCase n" field in it (which is unique to the
+		wxWidgets version). Then, the Charset fields for each of the fonts read at the
 		beginning of the config files can be interpreted accordingly. If we know that the
 		config file was generated by the wxWidgets version, we can accurately know the
 		font encoding for the particular font in the data. If that font encoding is available
 		on the current system all is OK; if the font encoding is not available, we can ask
 		the user to select a font encoding via a "Choose Font Encoding" dialog for each font
-		necessary when opening the project. 
+		necessary when opening the project.
 		If the config file was generated by the MFC version, we can assume that we should be
 		able to map the Charset from the MFC byte Charset values to any corresponding wxWidgets
-		encodings. If a reliable mapping is not available, we can ask the user to select a font 
-		encoding via a "Choose Font Encoding" dialog for each font necessary when opening the 
+		encodings. If a reliable mapping is not available, we can ask the user to select a font
+		encoding via a "Choose Font Encoding" dialog for each font necessary when opening the
 		project.
 	*/
 
-	// First, in case this is very first time app is run, default to a platform appropriate 
+	// First, in case this is very first time app is run, default to a platform appropriate
 	// font for source, target, and navtext languages and also appropriate fonts for the
 	// dialog fonts.
-	// Notes: 
+	// Notes:
 	//    1. wxFont objects are created on the heap, and must be deleted in OnExit();
-	//    2. Vadim Zeitlin's suggestion for ANSI builds was to create a wxNORMAL_FONT and then 
-	//       set its encoding appropriately (and use SetFont) for converting the smart quotes to 
+	//    2. Vadim Zeitlin's suggestion for ANSI builds was to create a wxNORMAL_FONT and then
+	//       set its encoding appropriately (and use SetFont) for converting the smart quotes to
 	//       UTF-8 used internally by the wxGTK library
 	if (m_pSourceFont == NULL)
 		m_pSourceFont = new wxFont(*wxNORMAL_FONT);
@@ -18528,7 +18538,7 @@ void CAdapt_ItApp::InitializeFonts()
 
 	// Create suitable dialog fonts
 	if (m_pDlgSrcFont == NULL)
-		m_pDlgSrcFont = new wxFont(*wxNORMAL_FONT); 
+		m_pDlgSrcFont = new wxFont(*wxNORMAL_FONT);
 	wxASSERT(m_pDlgSrcFont != NULL);
 	if (m_pDlgTgtFont == NULL)
 		m_pDlgTgtFont = new wxFont(*wxNORMAL_FONT);
@@ -18546,7 +18556,7 @@ void CAdapt_ItApp::InitializeFonts()
 		m_pVertEditFont = new wxFont(*wxNORMAL_FONT);
 	wxASSERT(m_pVertEditFont != NULL);
 
-	// Set a suitable default font encoding. 
+	// Set a suitable default font encoding.
     // Note: To accommodate Word's "smart quotes," we'll set the default font encoding as
     // follows:
     // For ANSI builds, we'll use what Windows calls the ANSI_CHARSET (value 0), which in
@@ -18557,19 +18567,19 @@ void CAdapt_ItApp::InitializeFonts()
 #ifndef _UNICODE
 	// For ANSI use a default Windows encoding CP1252 which can represent the smart quotes
 
-	// whm added 19Feb07 
-	// The following static function call sets the default font encoding application wide to 
+	// whm added 19Feb07
+	// The following static function call sets the default font encoding application wide to
 	// wxFONTENCODING_CP1252 so that any new font created with no parameter or with wxNORMAL_FONT
 	// as parameter will use this encoding
 	wxFont::SetDefaultEncoding(wxFONTENCODING_CP1252);
 
-	// whm TODO: Some of the wxFontEncoding identifiers below duplicate the functions of others 
+	// whm TODO: Some of the wxFontEncoding identifiers below duplicate the functions of others
 	// that are initialized in OnInit(), namely m_srcEncoding and m_tgtEncoding. Eliminate the
 	// duplication if possible.
 	m_srcEncoding = wxFONTENCODING_CP1252;
 	m_tgtEncoding = wxFONTENCODING_CP1252;
 	m_navtextFontEncoding = wxFONTENCODING_CP1252;
-	
+
 	m_dlgSrcFontEncoding = wxFONTENCODING_CP1252;
 	m_dlgTgtFontEncoding = wxFONTENCODING_CP1252;
 	m_dlgGlossFontEncoding = wxFONTENCODING_CP1252;
@@ -18581,7 +18591,7 @@ void CAdapt_ItApp::InitializeFonts()
 	m_srcEncoding = wxFONTENCODING_DEFAULT;
 	m_tgtEncoding = wxFONTENCODING_DEFAULT;
 	m_navtextFontEncoding = wxFONTENCODING_DEFAULT;
-	
+
 	m_dlgSrcFontEncoding = wxFONTENCODING_DEFAULT;
 	m_dlgTgtFontEncoding = wxFONTENCODING_DEFAULT;
 	m_dlgGlossFontEncoding = wxFONTENCODING_DEFAULT;
@@ -18594,14 +18604,14 @@ void CAdapt_ItApp::InitializeFonts()
 	m_pSourceFont->SetEncoding(m_srcEncoding);
 	m_pTargetFont->SetEncoding(m_tgtEncoding);
 	m_pNavTextFont->SetEncoding(m_navtextFontEncoding);
-	
+
 	m_pDlgSrcFont->SetEncoding(m_dlgSrcFontEncoding);
 	m_pDlgTgtFont->SetEncoding(m_dlgTgtFontEncoding);
 	m_pDlgGlossFont->SetEncoding(m_dlgGlossFontEncoding);
 	m_pComposeFont->SetEncoding(m_composeFontEncoding);
 	m_pRemovalsFont->SetEncoding(m_removalsFontEncoding);
 	m_pVertEditFont->SetEncoding(m_vertEditFontEncoding);
-	
+
 
     // create the corresponding wxFontData ojbects on the heap; delete them in OnExit() In
     // wxWidgets these wxFontData objects are used mainly to get the user's chosen font
@@ -18619,7 +18629,7 @@ void CAdapt_ItApp::InitializeFonts()
     // For wxWidgets we have our own fontInfo structure to hold the legacy MFC LOGFONT
     // struct-type data, mainly for use in maintaining backward compatibility in reading
     // and writing config files.
-	// We'll initialize the fontInfo values and set the necessary font characteristics 
+	// We'll initialize the fontInfo values and set the necessary font characteristics
 	// in those fontInfo structs to use the default system fonts as created above.
 
 	// For our default system Source Font, we only set its size to 12 points and its
@@ -18638,9 +18648,9 @@ void CAdapt_ItApp::InitializeFonts()
 	// the GetFont() call above gave us as a system font for the current platform.
 	m_pTargetFont->SetPointSize(12); // 12 point
 	m_pTargetFont->SetWeight(wxBOLD);
-	m_targetColor = wxColour(0,0,0); // black 
+	m_targetColor = wxColour(0,0,0); // black
 	// It is necessary to call the font data's SetColour() function to effect color change
-	m_pTgtFontData->SetColour(m_targetColor); // 
+	m_pTgtFontData->SetColour(m_targetColor); //
 
 	// For our default system Nav Text Font, we only set its size to 12 points and its
 	// weight to bold and its color (via its wxFontData class) to bright green.
@@ -18650,7 +18660,7 @@ void CAdapt_ItApp::InitializeFonts()
 	m_pNavTextFont->SetWeight(wxBOLD);
 	m_navTextColor = wxColour(0,255,0); //bright green "65280"
 	// It is necessary to call the font data's SetColour() function to effect color change
-	m_pNavFontData->SetColour(m_navTextColor); // 
+	m_pNavFontData->SetColour(m_navTextColor); //
 
 	m_specialTextColor = wxColour(255,0,0); // red "255" - whm added
 	m_reTranslnTextColor = wxColour(160,80,0); // mid brown "32896" - whm added
@@ -18680,8 +18690,8 @@ void CAdapt_ItApp::InitializeFonts()
 	UpdateFontInfoStruct(m_pTargetFont,TgtFInfo);
 	UpdateFontInfoStruct(m_pNavTextFont,NavFInfo);
 
-	// the following are additional font characteristics not used by wxWidgets 
-	// but are stored in the legacy config files. We set the default values to 
+	// the following are additional font characteristics not used by wxWidgets
+	// but are stored in the legacy config files. We set the default values to
 	// arbitrary defaults initially. If a legacy config file is read, the existing
 	// values are stored in the appropriate fontInfo fields and used only for
 	// writing the values back out to the config files.
@@ -18750,12 +18760,12 @@ void CAdapt_ItApp::InitializePunctuation()
 
     // whm moved following here from block after GetBasicConfiguration() call in
     // OnInit() where bConfigFilesRead was false. This was done to simplify the handling of
-    // default punctuation which should be consolidated in InitializePunctuation. 
+    // default punctuation which should be consolidated in InitializePunctuation.
     // if (m_punctuation[0].IsEmpty())
 	//{
 		// leave this block here, but we no longer set up the defaults here, but rather in
 		// the code following this block
-		m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] "); // defaults for narrow or 
+		m_punctuation[0] = _T(" . , < > ; ? ! : ( ) \" { } [ ] "); // defaults for narrow or
 																// wide characters
 		m_punctWordBuilding[0] = _T(""); // leave this in the code, just don't use them --
 										// since reading an old config file would require them
@@ -18766,7 +18776,7 @@ void CAdapt_ItApp::InitializePunctuation()
 		}
 
 		// next, set up the correspondence strings...
-		// BEW inserted in following section on March 17, 2005 
+		// BEW inserted in following section on March 17, 2005
 		// for support of curly quotes as punctuation for stripping out
 		wxString additions;
 		additions.Empty();
@@ -18778,7 +18788,7 @@ void CAdapt_ItApp::InitializePunctuation()
 		wxString strPunctPairsTgtSet;
 		wxString strTwoPunctPairsSrcSet;
 		wxString strTwoPunctPairsTgtSet;
-		
+
 		strPunctPairsSrcSet = _T("?.,;:\"!()<>{}[]");
 
 		ch.SetChar(0,L'\x201C'); // hex for left double quotation mark
@@ -18834,8 +18844,8 @@ void CAdapt_ItApp::InitializePunctuation()
         // wxGTK uses UTF-8 internally in its wxTextCtrl widgets, so let's try converting
         // the punctuation string to UTF-8 for wxGTK ANSI builds.
 //#ifdef __GNUG__
-//			// The following converts strValue to 
-//			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));  
+//			// The following converts strValue to
+//			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));
 //#endif
 		//int found = strValue.Find(_T('\''),0); // look for vertical ordinary quote (ie. apostrophe)
 		//if (found >= 0)
@@ -18855,11 +18865,11 @@ void CAdapt_ItApp::InitializePunctuation()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return    TRUE if the basic configuration file exists and was successfully read, FALSE
 ///             if the basic config file could not be read or if the user held the SHIFT key
-///             down on application startup 
+///             down on application startup
 /// \remarks
-/// Called from: the App's OnInit(), SetupCustomWorkFolderLocation(), and 
+/// Called from: the App's OnInit(), SetupCustomWorkFolderLocation(), and
 /// OnRestoreDefaultWorkFolderLocation().
-/// Reads the basic configuration file (AI-BasicConfiguration.aic) by calling the 
+/// Reads the basic configuration file (AI-BasicConfiguration.aic) by calling the
 /// GetConfigurationFile() function with szBasicConfiguration passed as input parameter.
 /// If the user holds down the SHIFT key during application startup, or if the configuration
 /// file cannot be read, this function calls SetDefaults() instead.
@@ -18872,13 +18882,13 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 	// Called from OnInit() at program startup. Or from CustomWorkFolderLocation() command
 	// handler when administrator has Administrator menu showing
 	// If user starts up with the SHIFT key down, or if an existing basic config file cannot
-	// be read successfully, SetupDefaults() is called and all initializations and settings 
+	// be read successfully, SetupDefaults() is called and all initializations and settings
 	// are drawn from there. Otherwise, intializations and settings contained in the basic
 	// config file are used
 	// Now attempt to set source, target language fonts, and nav text font set up from the
 	// data in the configuration file
-	// ::wxGetKeyState() was not available as a global function in wxWidgets 
-	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3 
+	// ::wxGetKeyState() was not available as a global function in wxWidgets
+	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3
 	// and later, so we use it here.
 	bool bReturn = FALSE;
 	if (!wxGetKeyState(WXK_SHIFT)) // if (keyState != WXK_SHIFT)
@@ -18889,7 +18899,7 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 		{
 			// Before GetBasicConfiguration() is called,
 			// MakeForeignBasicConfigFileSafe() will have been called and the "foreign" basic
-			// config file at the custom location will have been cloned, renamed, and 
+			// config file at the custom location will have been cloned, renamed, and
 			// modified to have the appropriate paths for the custom location, so the
 			// following call will not fail; it's stored in the default work folder
 			// BEW 17Sep09, it's now at m_workFolderPath, not m_customWorkFolderPath, when
@@ -18914,8 +18924,8 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 	}
 	else
 	{
-		// SHIFT key is down at launch time, so user wants to bypass configuration file settings 
-		// (which may be corrupt), so set up default values for the settings needed for a 
+		// SHIFT key is down at launch time, so user wants to bypass configuration file settings
+		// (which may be corrupt), so set up default values for the settings needed for a
 		// successful launch -- BEW 19Aug09, this functionality needs to also be supported when
 		// pointing the application at a custom work folder location
 		SetDefaults();
@@ -18928,27 +18938,27 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 /// \param		projectFolderPath -> the path/name of the project config file
 ///                                  which is generally m_curProjectPath
 /// \remarks
-/// Called from: the Doc's OnOpenDocument() [via MRU call], DoUnpackDocument(), 
-/// the COpenExistingProjectDlg's OnOK() and OnDblclkListboxAdaptions(), the ProjectPage's 
+/// Called from: the Doc's OnOpenDocument() [via MRU call], DoUnpackDocument(),
+/// the COpenExistingProjectDlg's OnOK() and OnDblclkListboxAdaptions(), the ProjectPage's
 /// OnWizardPageChanging().
-/// Calls the App's GetConfigurationFile() function to retrieve the settings from the project 
+/// Calls the App's GetConfigurationFile() function to retrieve the settings from the project
 /// config file. If the user is holding the SHIFT key down, the function does not load
-/// settings from the project config file, but instead calls the App's 
-/// SetDefaultCaseEquivalences() function (the other defaults will have been done from the 
+/// settings from the project config file, but instead calls the App's
+/// SetDefaultCaseEquivalences() function (the other defaults will have been done from the
 /// application-level configuration file already).
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 {
 	// attempt to set project source, target language fonts, and nav text font from the
 	// data in the project configuration file; but if SHIFT key is still down, then bypass it
-	// (the values set as defaults when the basic config file was bypassed will remain in 
+	// (the values set as defaults when the basic config file was bypassed will remain in
 	// effect)
 	bool bReturn = FALSE;
 	if (!wxGetKeyState(WXK_SHIFT))
 	{
-		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned, 
+		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
 		// renamed, and modified to have the appropriate (or compatible) fonts for the project.
-		// MakeForeignProjectConfigFileSafe() also deals with any font mismatches before  
+		// MakeForeignProjectConfigFileSafe() also deals with any font mismatches before
 		// the appropriate GetConfigurationFile() is called below.
 		wxString configFName = szProjectConfiguration + _T(".aic");
 		wxString adminConfigFName = szAdminProjectConfiguration + _T(".aic");
@@ -18957,14 +18967,14 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 		if ((m_customWorkFolderPath != m_workFolderPath) && m_bUseCustomWorkFolderPath)
 		{
 			// We are using a custom work folder path.
-			// MakeForeignProjectConfigFileSafe() (called above) insured that a "foreign" 
-			// project config file has been cloned, renamed, and modified to have the 
-			// appropriate (or compatible) fonts for the project. The project admin config 
-			// file is at m_curProjectPath if administrator is accessing a custom or remote 
+			// MakeForeignProjectConfigFileSafe() (called above) insured that a "foreign"
+			// project config file has been cloned, renamed, and modified to have the
+			// appropriate (or compatible) fonts for the project. The project admin config
+			// file is at m_curProjectPath if administrator is accessing a custom or remote
 			// (non-persistent) work folder location and it is a custom work folder path that
 			// is not locked. If no custom work folder path is being used, or it a custom
-			// path is being used that is a locked (persistent) custom work folder path, then 
-			// the project admin config file is at the m_customWorkFolderPath. 
+			// path is being used that is a locked (persistent) custom work folder path, then
+			// the project admin config file is at the m_customWorkFolderPath.
 			if (m_bLockedCustomWorkFolderPath)
 				bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
 			else
@@ -18986,18 +18996,18 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return    TRUE if the directory structure and KBs were created successfully 
-///             and/or exist, FALSE if an error occurred. 
+/// \return    TRUE if the directory structure and KBs were created successfully
+///             and/or exist, FALSE if an error occurred.
 /// \remarks
 /// Called from: the App's OnRestoreDefaultWorkFolderLocation(), Doc's OnOpenDocument(),
 /// DoUnpackDocument(), CreateNewAIProject() in CollabUtilities, and from
 /// CLangaugesPage::OnWizardPageChanging().
-/// when processing MRU file and m_pKB == NULL, DoUnpackDocument(), and from 
-/// CLanguagesPage::OnWizardPageChanging() when the wizard page is moving forward. 
+/// when processing MRU file and m_pKB == NULL, DoUnpackDocument(), and from
+/// CLanguagesPage::OnWizardPageChanging() when the wizard page is moving forward.
 /// SetupDirectories() ensures that the appropriate directory/folder structure is created
 /// when a new project is started, and that the appropriate directory/folder structure
 /// exists or can be created prior to opening or unpacking a document. It sets up various
-/// derivative paths, based on m_workFolderPath. 
+/// derivative paths, based on m_workFolderPath.
 /// BEW modified 18Aug09 to support custom work folder locations:
 /// When the m_bUseCustomWorkFolderPath flag is TRUE, a custom location (never the same as
 /// the default location, because if that were the case then OnCustomWorkFolderLocation()
@@ -19005,8 +19015,8 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 /// is already set as the working directory. Derivative paths are then based on the
 /// contents of the m_customWorkFolderPath application class member; these are paths such
 /// as m_curProjectPath, m_curAdaptationsPath, m_curOutputPath, etc.
-/// whm revised 12Jun11 to simplify by using a workOrCustomFolderPath which here at the 
-/// beginning is defined as m_workFolderPath when not using a custom work folder, or as 
+/// whm revised 12Jun11 to simplify by using a workOrCustomFolderPath which here at the
+/// beginning is defined as m_workFolderPath when not using a custom work folder, or as
 /// m_customWorkFolderPath when using a custom work folder. Also added the creation of
 /// the various inputs and outputs folders being used in AI version 6. Previously a
 /// "Source Data" folder might be created as needed, however, with version 6 it has been
@@ -19029,7 +19039,7 @@ bool CAdapt_ItApp::SetupDirectories()
 	{
 		workOrCustomFolderPath = m_customWorkFolderPath;
 	}
-	
+
 	// this is where we have to start setting up the directory structures
 	bool bWorkExists = FALSE;
 	if (::wxFileExists(workOrCustomFolderPath) || ::wxDirExists(workOrCustomFolderPath))
@@ -19093,7 +19103,7 @@ bool CAdapt_ItApp::SetupDirectories()
 	m_curProjectName = workFolder;
 	wxASSERT(!m_curProjectName.IsEmpty());
 	m_curProjectPath = workOrCustomFolderPath + PathSeparator + m_curProjectName;
-	
+
 	// check to see if this folder already exists
 	bool bLangWorkFolderExists = FALSE;
 	if (::wxFileExists(m_curProjectPath) || ::wxDirExists(m_curProjectPath))
@@ -19240,7 +19250,7 @@ bool CAdapt_ItApp::SetupDirectories()
 	// whm 12Jun11 added the following for creating inputs and outputs directories
 	wxString pathCreationErrors = _T("");
 	CreateInputsAndOutputsDirectories(m_curProjectPath, pathCreationErrors);
-	
+
 	if (!pathCreationErrors.IsEmpty())
 	{
 			wxString str;
@@ -19258,7 +19268,7 @@ bool CAdapt_ItApp::SetupDirectories()
     // (SetupDirectories() is called immediately after a MRU document is serialized in,
     // so the user can have done nothing to muck up the restored book mode settings
     // which we will use now
-	
+
     // BEW added 09Jan06; we also need to do this in case SetupDirectories() was called
     // on someone else's computer as part of the Unpack Document... command, because it
     // cannot be certain that that person will already have turned on book mode, but
@@ -19288,8 +19298,8 @@ bool CAdapt_ItApp::SetupDirectories()
 		if (m_bDisableBookMode)
 			gbAbortMRUOpen = TRUE;
 	}
-	
-	//Now we need to get a KB initialized and stored in the languages-specific folder. 
+
+	//Now we need to get a KB initialized and stored in the languages-specific folder.
 	// Ditto for the glossing KB (version 2)
 	// BEW changed 15Aug05
 	// whm 26Aug11 modified wxProgressDialog to be able to pass pProgDlg pointers
@@ -19303,24 +19313,24 @@ bool CAdapt_ItApp::SetupDirectories()
 	// the creation of in-memory KB objects and the loading of external xml file
 	// data into those objects. It also allows program control to continue on
 	// failures after notifying the user of the failures.
-	// The CreateAndLoadKBs() is called from here as well as from 
-	// the View's OnCreate(), the CollabUtilities' HookUpToExistingAIProject() 
+	// The CreateAndLoadKBs() is called from here as well as from
+	// the View's OnCreate(), the CollabUtilities' HookUpToExistingAIProject()
 	// and the ProjectPage::OnWizardPageChanging().
-	// 
+	//
 	// open the two knowledge bases and load their contents;
 	if (!CreateAndLoadKBs())
 	{
 		// deal with failures here
 		// There is not much we can do other than what was suggested in the
 		// error messages within CreatAndLoadKBs() itself.
-		// 
+		//
 		// whm TODO: Go through each use of SetupDirectories() and adjust
 		// the code subsequent to its use to best deal with such failures.
-		// 
-		// whm Note: The SetupDirectories() is called from: the App's 
+		//
+		// whm Note: The SetupDirectories() is called from: the App's
 		// OnRestoreDefaultWorkFolderLocation(), the Doc's OnOpenDocument(),
 		// DoUnpackDocument(), CreateNewAIProject() in CollabUtilities, and from
-		// CLangaugesPage::OnWizardPageChanging() when the wizard page is moving 
+		// CLangaugesPage::OnWizardPageChanging() when the wizard page is moving
 		// forward.
 	}
 
@@ -19334,7 +19344,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 	bool bCreatedOK = TRUE;
 	if (!curProjectPath.IsEmpty())
 	{
-		m_sourceInputsFolderPath = curProjectPath + PathSeparator + m_sourceInputsFolderName; 
+		m_sourceInputsFolderPath = curProjectPath + PathSeparator + m_sourceInputsFolderName;
 		m_freeTransOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransOutputsFolderName;
 		m_freeTransRTFOutputsFolderPath = curProjectPath + PathSeparator + m_freeTransRTFOutputsFolderName;
 		m_glossOutputsFolderPath = curProjectPath + PathSeparator + m_glossOutputsFolderName;
@@ -19346,12 +19356,12 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
-		// Note: the m_packedInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not 
+		// Note: the m_packedInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not
 		// curProjectPath (see OnInit()).
 		// Note: the m_ccTableInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not
 		// curProjectPath (see OnInit()).
 		m_reportsOutputsFolderPath = curProjectPath + PathSeparator + m_reportsOutputsFolderName;
-		
+
 		if (!::wxDirExists(m_sourceInputsFolderPath))
 		{
 			bool bOK = ::wxMkdir(m_sourceInputsFolderPath);
@@ -19568,7 +19578,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				bCreatedOK = FALSE;
 			}
 		}
-		// OnInit() creates the _PACKED_INPUTS_OUTPUTS, but we can check that 
+		// OnInit() creates the _PACKED_INPUTS_OUTPUTS, but we can check that
 		// it is created here
 		if (!::wxDirExists(m_packedInputsAndOutputsFolderPath))
 		{
@@ -19588,7 +19598,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				bCreatedOK = FALSE;
 			}
 		}
-		// OnInit() creates the _CCTABLE_INPUTS_OUTPUTS, but we can check that 
+		// OnInit() creates the _CCTABLE_INPUTS_OUTPUTS, but we can check that
 		// it is created here
 		if (!::wxDirExists(m_ccTableInputsAndOutputsFolderPath))
 		{
@@ -19631,7 +19641,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return    nothing 
+/// \return    nothing
 /// \remarks
 /// Called from: the App's SetupDirectories(), the Doc's DoUnpackDocument(), the
 /// CProjectPage::OnWizardPageChanging() when the wizard page is moving forward, and
@@ -19659,7 +19669,7 @@ void CAdapt_ItApp::SetupKBPathsEtc()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
 /// \param      punctPgCommon   ->  pointer to the actual punctuation page in use
-/// \param      reparseDoc      ->  enum value of DoReparse 
+/// \param      reparseDoc      ->  enum value of DoReparse
 ///                                 (NoReparse if available but not used)
 /// \remarks
 /// Called from: CPunctCorrespPagePrefs::OnOK().
@@ -19727,7 +19737,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 														FALSE,	// bFilterChange FALSE = no filter changes here
 														FALSE);	// bSfmSetChange FALSE = no sfm set change here
 
-			// set up some safe indices, since the counts could be quite different 
+			// set up some safe indices, since the counts could be quite different
 			// than before
 			difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
 
@@ -19745,7 +19755,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 			{
 				if (m_pGlossingKB != NULL)
 				{
-					m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+					m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase,
 														useTargetPhraseForLookup);
 				}
 			}
@@ -19753,7 +19763,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 			{
 				if (m_pKB != NULL)
 				{
-					m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+					m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase,
 														useTargetPhraseForLookup);
 				}
 			}
@@ -19768,7 +19778,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     an int value representing the active sequence number of a safe phrase 
+/// \return     an int value representing the active sequence number of a safe phrase
 ///             box location
 /// \param      pView   -> pointer to the View
 /// \remarks
@@ -19783,7 +19793,7 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
     // for GetSafePhraseBoxLocationUsingList() to work correctly, the view's
     // m_nActiveSequNum value must be set to a valid list location before the function is
     // called; and likewise for the view's maximum index value
-	// 
+	//
 	// get the sourcephrase which is at the potential active location
 	CSourcePhrase*  pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
 
@@ -19802,7 +19812,7 @@ int CAdapt_ItApp::GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView)
 			// retranslation, so search forward instead
 a:			pNextSrcPhrase = pSaveSrcPhrase;
 			int nNextSequNum = m_nActiveSequNum;
-			while (pNextSrcPhrase->m_bRetranslation) 
+			while (pNextSrcPhrase->m_bRetranslation)
 			{
 				++nNextSequNum;
 				if (nNextSequNum > GetMaxIndex())
@@ -19825,7 +19835,7 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 		{
 			// not yet at the doc start, so we can search back further
 			CSourcePhrase* pPrevSrcPhrase = pView->GetSrcPhrase(nPrevSequNum);
-			while (pPrevSrcPhrase->m_bRetranslation) 
+			while (pPrevSrcPhrase->m_bRetranslation)
 			{
 				--nPrevSequNum;
 				if (nPrevSequNum < 0)
@@ -19863,14 +19873,14 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
-/// \param      pUsfmFilterPageCommon ->  pointer to the usfmFilterPage being 
+/// \param      pUsfmFilterPageCommon ->  pointer to the usfmFilterPage being
 ///                                     displayed
-/// \param      reparseDoc           ->  enum value that can be either NoReparse or 
+/// \param      reparseDoc           ->  enum value that can be either NoReparse or
 ///                                     DoReparse
 /// \remarks
-/// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the 
+/// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the
 /// CUsfmFilterPagePrefs::OnOK().
-/// Updates the internal data structures for any changes made in the usfm filter page. 
+/// Updates the internal data structures for any changes made in the usfm filter page.
 /// It first checks for filtering changes made to the markers currently being
 /// used in the Doc. If filtering changes are made in the doc and/or the parameter
 /// reparseDoc == DoReparse, DoUSFMFilterChanges calls RetokenizeText() with the
@@ -19879,7 +19889,7 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 /// the updated filtering markers list in the App's gProjectFilterMarkersForConfig for
 /// later writing to the project config file.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon,
 				enum Reparse reparseDoc)
 {
 	// whm added 26Apr05
@@ -19914,12 +19924,12 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 	//    a. build the pDoc->m_FilterStatusMap which Bruce uses in the doc rebuild code.
 	//    b. build the strMarkersToBeUnfiltered and strMarkersToBeFiltered strings for
 	//       ResetUSFMFilterStructs() - DoUsfmFilterChanges now uses Bruce's version of
-	//       ResetUSFMFilterStructs which handles the reset of USFM filter structs correctly 
-	//       whereas the original version did not handle unfiltering correctly here in 
+	//       ResetUSFMFilterStructs which handles the reset of USFM filter structs correctly
+	//       whereas the original version did not handle unfiltering correctly here in
 	//       DoUsfmFilterChanges.
 	for (int index = 0; index < numFlags;  index++)
 	{
-		if (pUsfmFilterPageCommon->m_filterFlagsDoc[index] != 
+		if (pUsfmFilterPageCommon->m_filterFlagsDoc[index] !=
 			pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit[index])
 		{
 			bFilterChangeInDoc = TRUE;
@@ -19947,7 +19957,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 
 			filterMkr.Trim(TRUE); // trim right end
 			filterMkr.Trim(FALSE); // trim left end
-			
+
 			wxString valStr;
 			if (gpApp->m_FilterStatusMap.find(filterMkr) == gpApp->m_FilterStatusMap.end())
 			{
@@ -19981,7 +19991,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 		// Any filter change in the Doc requires updating the current USFM and Filtering data
 		// structures.
 
-		// Update the active set of USFMAnalysis structs. 
+		// Update the active set of USFMAnalysis structs.
         // ResetUSFMFilterStructs calls the App's SetupMarkerStrings which updates
         // gCurrentFilterMarkers Use Bruce's version of ResetUSFMFilterStructs
 		pDoc->ResetUSFMFilterStructs(gpApp->gCurrentSfmSet, strMarkersToBeFiltered,
@@ -20031,7 +20041,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 
 			// now do the reparse
 			int nNewSrcPhraseCount = pDoc->RetokenizeText(FALSE, // FALSE = punctuation not changed here
-															bFilterChangeInDoc, 
+															bFilterChangeInDoc,
 															FALSE); // FALSE = sfm set change not flagged here
 			// a dummy line to avoid a compiler warning
 			nNewSrcPhraseCount = nNewSrcPhraseCount;
@@ -20091,7 +20101,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 			filterMkrStr += filterMkr + _T(' ');
 		}
 		// check for changes
-		if (pUsfmFilterPageCommon->m_filterFlagsProj[index] != 
+		if (pUsfmFilterPageCommon->m_filterFlagsProj[index] !=
 			pUsfmFilterPageCommon->m_filterFlagsProjBeforeEdit[index])
 		{
 			bFilterChangeInProj = TRUE;
@@ -20101,11 +20111,11 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 	if (bFilterChangeInProj)
 	{
 		// Filtering changes in the Project do not require adjustments to any of the
-		// document's current data structures. Project changes only require storing the 
+		// document's current data structures. Project changes only require storing the
 		// new list of filter marker strings in the App's gProjectFilterMarkersForConfig
 		// for later saving in the project config file.
-		// Note: Here is the only place where gProjectFilterMarkersForConfig is set. 
-		// The filter markers saved in the project config file are only set from the 
+		// Note: Here is the only place where gProjectFilterMarkersForConfig is set.
+		// The filter markers saved in the project config file are only set from the
 		// Filtering tab/wizard page.
 		gpApp->gProjectFilterMarkersForConfig  = filterMkrStr;
 	}
@@ -20115,19 +20125,19 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE
 /// \param      pUsfmFilterPageCommon   -> pointer to the usfmFilterPage
-/// \param      bSetChanged       <- TRUE by reference if the sfm set changed, 
+/// \param      bSetChanged       <- TRUE by reference if the sfm set changed,
 ///                                  FALSE otherwise
-/// \param      reparseDoc        -> enum value that can be either NoReparse 
+/// \param      reparseDoc        -> enum value that can be either NoReparse
 ///                                  or DoReparse
 /// \remarks
 /// Called from: the CUsfmFilterPageWiz::OnWizardPageChanging() when moving forward, and the
 /// CUsfmFilterPagePrefs::OnOK().
-/// It updates the internal data structures for any changes made to the sfm set in the 
-/// usfmFilterPage. It calls RetokenizeText with reparseDoc == DoReparse if the user changed 
+/// It updates the internal data structures for any changes made to the sfm set in the
+/// usfmFilterPage. It calls RetokenizeText with reparseDoc == DoReparse if the user changed
 /// the SfmSet in the document.
 /// whm 5Oct10 modified user workflow profiles compatibility.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon, 
+bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon,
 									bool& bSetChanged, enum Reparse reparseDoc)
 {
 	// whm added 23May05
@@ -20146,13 +20156,13 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
     // constructors, we can unconditionally copy those local copies back to their
     // corresponding variables on the App and Doc when the user clicks on OK in the
     // Preferences, and/or clicks FINISH in the wizard. These variables are:
-	// 1. gpApp->gCurrentSfmSet (enum SfmSet) [always represents the current sfm set of 
+	// 1. gpApp->gCurrentSfmSet (enum SfmSet) [always represents the current sfm set of
 	//     the active document]
-	// 2. gpApp->gCurrentFilterMarkers (wxString) [always represents the filter markers 
+	// 2. gpApp->gCurrentFilterMarkers (wxString) [always represents the filter markers
 	//     of the active document]
-	// 3. gpApp->gProjectSfmSetForConfig (enum SfmSet) [always has the current value for 
+	// 3. gpApp->gProjectSfmSetForConfig (enum SfmSet) [always has the current value for
 	//     storing in proj config]
-	// 4. gpApp->gProjectFilterMarkersForConfig (wxString) [always has the current value 
+	// 4. gpApp->gProjectFilterMarkersForConfig (wxString) [always has the current value
 	//     for storing in proj config]
 	// 5. gpApp->m_sfmSetAfterEdit (enum SfmSet)
 	// 6. gpApp->m_filterMarkersAfterEdit (wxString)
@@ -20167,28 +20177,28 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
     // variables on the App.
 
     // Update the sfm set stored in gCurrentSfmSet on the App (gCurrentSfmSet always
-    // reflects the state of the current Doc) with the USFM and Filtering page's 
+    // reflects the state of the current Doc) with the USFM and Filtering page's
     // tempSfmSetAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
-	// Update the App's gCurrentFilterMarkers with the USFM and Filtering page's 
+	// Update the App's gCurrentFilterMarkers with the USFM and Filtering page's
 	// tempFilterMarkersAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gCurrentFilterMarkers = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
-	// Update the global for the project sfm set with the USFM and Filtering page's 
+	// Update the global for the project sfm set with the USFM and Filtering page's
 	// tempSfmSetAfterEditProj
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gProjectSfmSetForConfig = pUsfmFilterPageCommon->tempSfmSetAfterEditProj;
-	// Update the global for the project's filter markers with the USFM and Filtering page's 
+	// Update the global for the project's filter markers with the USFM and Filtering page's
 	// tempFilterMarkersAfterEditProj
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gProjectFilterMarkersForConfig = pUsfmFilterPageCommon->tempFilterMarkersAfterEditProj;
-	// Update the sfm set stored on the App with the USFM and Filtering page's 
+	// Update the sfm set stored on the App with the USFM and Filtering page's
 	// tempSfmSetAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
-		gpApp->m_sfmSetAfterEdit = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc; // whm added 
+		gpApp->m_sfmSetAfterEdit = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc; // whm added
 		// 10Jun05 for Bruce
-	// Update the list of filter markers on the App with the USFM and Filtering page's 
+	// Update the list of filter markers on the App with the USFM and Filtering page's
 	// tempFilterMarkersAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->m_filterMarkersAfterEdit = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
@@ -20222,7 +20232,7 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 								// is called)
 		}
 
-		if (pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace != 
+		if (pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace !=
 			pUsfmFilterPageCommon->bChangeFixedSpaceToRegularBeforeEdit)
 		{
 			gpApp->m_bChangeFixedSpaceToRegularSpace = pUsfmFilterPageCommon->bChangeFixedSpaceToRegularSpace;
@@ -20248,7 +20258,7 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 		TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
 #endif
 
-		// Sfm set change requires updating the rapid access data strings 
+		// Sfm set change requires updating the rapid access data strings
 		gpApp->SetupMarkerStrings();
 
 #ifdef _Trace_FilterMarkers
@@ -20358,15 +20368,15 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView))
 	//    GetEncodingStringForXmlFiles() [Bob Eaton's function for Windows]
 	//    MapMFCCharsetToWXFontEncoding()
 	//    MapWXFontEncodingToMFCCharset()
-	
+
 	dC.SetFont(*m_pTargetFont);
 	m_nTgtHeight = dC.GetCharHeight();
 
 	// whm Note: The wxDC class does not use a separate TEXTMETRIC struct. Within
 	// the wxDC class there appears to be no way to access an internal leading
-	// value. And, the external leading value seems to be only available when 
-	// measuring an actual string of text using GetTextExtent(). 
-#ifdef _RTL_FLAGS 
+	// value. And, the external leading value seems to be only available when
+	// measuring an actual string of text using GetTextExtent().
+#ifdef _RTL_FLAGS
     // still the Unicode version, but using CEdit for the base class for the phrase box box
     // height needs to include external and internal leading for CRichEditCtrl, else text
     // is cut off at the bottom by the bottom of the box; see globals for explanation of
@@ -20398,14 +20408,14 @@ bool CAdapt_ItApp::LoadGlossingKB(bool bShowProgress)
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
-	
+
 	// whm 26Aug11 Open a wxProgressDialog instance here for "Loading the Knowledge
 	// Base".
 	// The dialog's pProgDlg pointer is passed along through various functions that
 	// get called in the process, starting with LoadGlossingKB() below.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	wxString progMsg;
@@ -20494,7 +20504,7 @@ bool CAdapt_ItApp::LoadGlossingKB(bool bShowProgress)
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("LoadGlossingKB executed in %s ms"), 
+		wxLogDebug(_T("LoadGlossingKB executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
@@ -20514,7 +20524,7 @@ bool CAdapt_ItApp::LoadGlossingKB(bool bShowProgress)
 /// not be read), it creates a new (empty) adapting KB.
 /// BEW added 13Nov09: call of m_bReadOnlyAccess = SetReadOnlyProtection(), in order to give
 /// the person entering the project ownership for writing permission (if FALSE is returned)
-/// or READ-ONLY access (if TRUE is returned). (Also added to OnNewDocument & 
+/// or READ-ONLY access (if TRUE is returned). (Also added to OnNewDocument &
 /// OnOpenDocument() and OnCreate() for the view class.)
 /// whm 26Aug11 revised to show or hide a wxProgressDialog
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -20531,7 +20541,7 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 	// get called in the process, starting with LoadKB() below.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	wxString progMsg;
@@ -20571,7 +20581,7 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 	// version 3.0 and upwards, the default is to do i/o in XML
 	if (wxFileExists(path))
 	{
-        // the expected *.xml knowledge base file is in the project folder 
+        // the expected *.xml knowledge base file is in the project folder
         // attempt the load
 		if (bShowProgress)
 		{
@@ -20608,7 +20618,7 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
         // not be translated, otherwise other localizations would not be able to handle
         // the unpacking of files created on different localizations.
 		index = name.Find(_T(" to ")); // find "to" between spaces
-		m_sourceName = name.Left(index); // get the source name, can contain 
+		m_sourceName = name.Left(index); // get the source name, can contain
 										 // multiple words
 		index += 4;
 		name = name.Mid(index); // name has target name plus "adaptations"
@@ -20652,10 +20662,10 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("LoadKB executed in %s ms"), 
+		wxLogDebug(_T("LoadKB executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
-	
+
 	// remove the progress dialog
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
@@ -20667,23 +20677,23 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 ///                     otherwise
 /// \remarks
 /// Called from: the App's SetupDirectories(), the View's OnCreate(), the CollabUtilities'
-/// HookUpToExistingAIProject(), and the CProjectPage::OnWizardPageChanging() when moving 
-/// forward. First, this function removes/erases any existing in-memory CKB object to 
-/// avoid leaking memory. Then it creates new in-memory KB objects, and then reads the 
+/// HookUpToExistingAIProject(), and the CProjectPage::OnWizardPageChanging() when moving
+/// forward. First, this function removes/erases any existing in-memory CKB object to
+/// avoid leaking memory. Then it creates new in-memory KB objects, and then reads the
 /// appropriate KBs to load the xml data from disk into the newly created KB objects.
-/// Has the side-effect of setting the App's m_bKBReady and m_bGlossingKBReady values to 
+/// Has the side-effect of setting the App's m_bKBReady and m_bGlossingKBReady values to
 /// TRUE on success, and FALSE if unable to create/load the KB data. A return value of
 /// FALSE (rather than aborting the program as previous code did) allows the caller to
 /// more adequately deal with any failures.
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 {
-	// whm 25Aug11 Note: I initially modelled this function from reworking the code in 
-	// SetupDirectories() and HookUpToExistingAIProject() that functioned to create the 
-	// KBs and load them with xml data from disk, and making unique adjustments for 
+	// whm 25Aug11 Note: I initially modelled this function from reworking the code in
+	// SetupDirectories() and HookUpToExistingAIProject() that functioned to create the
+	// KBs and load them with xml data from disk, and making unique adjustments for
 	// any failures there in the caller's code by handling them in a FALSE block test
 	// when calling this function.
-	// 
+	//
 	// First, delete/erase any existing in-memory KB object to avoid leaking memory.
 	// This probably would also prevent the problems with an assert he described
 	// on 23Aug10 in the View's OnCreate() function.
@@ -20721,10 +20731,10 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		else
 		{
 			// whm modified 28Aug11: Don't abort but notify the user, set
-			// m_bKBReady to FALSE and return FALSE. 
+			// m_bKBReady to FALSE and return FALSE.
 			// In the user message we should inform the user
-			// of possible actions he can take - such as using the Restore 
-			// Knowledge Base... command, or restoring the kb files from 
+			// of possible actions he can take - such as using the Restore
+			// Knowledge Base... command, or restoring the kb files from
 			// backups.
 			wxMessageBox(_(
 "Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."),
@@ -20757,9 +20767,9 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		else
 		{
 			// whm modified 28Aug11: Don't abort but notify the user, set
-			// m_bKBReady to FALSE and return FALSE. 
+			// m_bKBReady to FALSE and return FALSE.
 			// In the user message we should inform the user
-			// of possible actions he can take - such as ensuring 
+			// of possible actions he can take - such as ensuring
 			// that some other app does not have the files in use,
 			// using the Restore Knowledge Base... command, or restoring
 			// the kb files from backups.
@@ -20793,10 +20803,10 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		else
 		{
 			// whm modified 28Aug11: Don't abort but notify the user, set
-			// m_bGlossingKBReady to FALSE and return FALSE. 
+			// m_bGlossingKBReady to FALSE and return FALSE.
 			// In the user message we should inform the user
-			// of possible actions he can take - such as using the Restore 
-			// Knowledge Base... command, or restoring the kb files from 
+			// of possible actions he can take - such as using the Restore
+			// Knowledge Base... command, or restoring the kb files from
 			// backups.
 			wxMessageBox(_(
 "Error: loading the glossing knowledge base failed. The application will now close."),
@@ -20809,10 +20819,10 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	}
 	else
 	{
-        // The glossing KB file does not exist, so make sure there is an 
-        // initialized CKB  instance on the application ready to receive data, 
+        // The glossing KB file does not exist, so make sure there is an
+        // initialized CKB  instance on the application ready to receive data,
         // and save it to disk.
-        // Note: This operation goes fast because it is storing an empty 
+        // Note: This operation goes fast because it is storing an empty
         // glossing KB.
 		wxASSERT(m_pGlossingKB == NULL);
 		m_pGlossingKB = new CKB(TRUE);
@@ -20827,9 +20837,9 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		else
 		{
 			// whm modified 28Aug11: Don't abort but notify the user, set
-			// m_bKBReady to FALSE and return FALSE. 
+			// m_bKBReady to FALSE and return FALSE.
 			// In the user message we should inform the user
-			// of possible actions he can take - such as ensuring 
+			// of possible actions he can take - such as ensuring
 			// that some other app does not have the files in use,
 			// using the Restore Knowledge Base... command, or restoring
 			// the kb files from backups.
@@ -20851,7 +20861,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 ///                 which can be either the m_pAdaptationsGuesser or the m_pGlossesGuesser
 /// \remarks
 /// Called from: the App's SetupDirectories(), SubstituteKBBackup(), OnFileRestoreKb(),
-/// the View's OnCreate(), and CProjectPage::OnWizardPageChanging() when moving forward. 
+/// the View's OnCreate(), and CProjectPage::OnWizardPageChanging() when moving forward.
 /// Initializes the appropriate Guesser, then reads the appropriate KB to populate the
 /// correspondence list of the guesser object.
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -20875,21 +20885,21 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 		if (m_pKB->IsThisAGlossingKB() && numWords > 1)
 			continue; // when glossing we want to consider only the first map, the others
 					  // are all empty
-		if (m_pKB->m_pMap[numWords-1]->size() == 0) 
+		if (m_pKB->m_pMap[numWords-1]->size() == 0)
 			continue;
 		else
 		{
 			iter = m_pKB->m_pMap[numWords-1]->begin();
-			do 
+			do
 			{
 				counter++;
-				key = iter->first; 
-				pTU = (CTargetUnit*)iter->second; 
+				key = iter->first;
+				pTU = (CTargetUnit*)iter->second;
 				wxASSERT(pTU != NULL);
 				baseKey = key;
 
 				// get the reference strings
-				TranslationsList::Node* posRef = 0; 
+				TranslationsList::Node* posRef = 0;
 
 				// if the data somehow got corrupted by a CTargetUnit being retained in the
 				// list but which has an empty list of reference strings, this illegal
@@ -20897,14 +20907,14 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				// remove it from the list and then just continue looping
 				if (pTU->m_pTranslations->IsEmpty())
 				{
-					m_pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
+					m_pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this
 														// invalid association
 					delete pTU; // its memory chunk is freed (don't leak memory)
 					continue;
 				}
 				else
 				{
-					posRef = pTU->m_pTranslations->GetFirst(); 
+					posRef = pTU->m_pTranslations->GetFirst();
 				}
 				wxASSERT(posRef != 0);
 
@@ -20924,14 +20934,14 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 						m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
 					numCorrespondencesLoaded++;
 				}
-				// According to Alan Buseman, he says, "I recommend for the guesser that you only 
-				// give it one equivalent for each word, preferably the most frequent. Giving the 
-				// guesser multiple equivalents for a word will tend to reduce the number of guesses 
+				// According to Alan Buseman, he says, "I recommend for the guesser that you only
+				// give it one equivalent for each word, preferably the most frequent. Giving the
+				// guesser multiple equivalents for a word will tend to reduce the number of guesses
 				// it can make." If this is the case we should limit the correspondences given to
 				// the Guesser to the first item in the m_pTranslations list - which presumably also
 				// is the one at the top of the list in the ChooseTranslation dialog and as such
 				// probably also the one the user feels is the most frequent or important translation
-				// for a given target unit. Therefore I will comment out the code below which 
+				// for a given target unit. Therefore I will comment out the code below which
 				// functions to add the additional CRefString instances within the same CTargetUnit
 				// instance.
 				/*
@@ -20941,7 +20951,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				while (posRef != 0)
 				{
 					pRefStr = (CRefString*)posRef->GetData();
-					wxASSERT(pRefStr != NULL); 
+					wxASSERT(pRefStr != NULL);
 					posRef = posRef->GetNext(); // prepare for possibility of yet another
 					gloss = pRefStr->m_translation;
 					baseGloss = gloss;
@@ -20959,7 +20969,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 
 				*/
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
-				// completeness has been obtained in traversing the map 
+				// completeness has been obtained in traversing the map
 				iter++;
 			} while (iter != m_pKB->m_pMap[numWords-1]->end());
 		} // end of normal situation block ...
@@ -20977,7 +20987,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the title is a project folder name (i.e., has " adaptations" 
+/// \return     TRUE if the title is a project folder name (i.e., has " adaptations"
 ///             and " to " in it) and is is not less than 18 characters, otherwise FALSE
 /// \param      title   ->  the incoming title string
 /// \remarks
@@ -21010,7 +21020,7 @@ bool CAdapt_ItApp::IsAdaptitProjectDirectory(wxString title)
 /// CMoveDialog::UpdateFileList(), and CSplitDialog::ListFiles().
 /// Fills the array string pList with the file names having .xml extension in dirPath.
 /// Note: The caller should ensure that dirPath exists before calling this function
-/// since it does not have a graceful way to return if dirPath is bad. 
+/// since it does not have a graceful way to return if dirPath is bad.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString dirPath)
 {
@@ -21018,7 +21028,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 	// since it does not have a graceful way to return if dirPath is bad. See CDocPage.
 	wxDir finder;//CFileFind finder;
 
-	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir 
+	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir
 										// must call .Open() before enumerating files!
 	if (!bOK)
 	{
@@ -21055,12 +21065,12 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 			//wxASSERT(pDoc != NULL);
 			wxDocTemplate* pTemplate = pDoc->GetDocumentTemplate();
 			wxASSERT(pTemplate != NULL);
-			strExt = pTemplate->GetFileFilter(); // GetFileFilter returns "*.xml" 
+			strExt = pTemplate->GetFileFilter(); // GetFileFilter returns "*.xml"
 												 // in wx version
 		}
 		// Must call wxDir::Open() before calling GetFirst() - see above
 		wxString str = _T("");
-		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES);
 		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
 		while (bWorking)
 		{
@@ -21070,7 +21080,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 			wxString strEndLower = strEnd;
 			strEndLower = strEndLower.MakeLower();
 			int nFound = str.Find(_T(".BAK"));
-			if ((strEnd == strExt || strEndLower == strExt) && nFound == -1) 
+			if ((strEnd == strExt || strEndLower == strExt) && nFound == -1)
 				pList->Add(str); // add filename to the list, if it's extension is ours,
 								 // but exclude backup document files with ".BAK"
 			bWorking = finder.GetNext(&str);
@@ -21080,7 +21090,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      dirPath   -> must be the absolute path to the current project's Adaptations 
+/// \param      dirPath   -> must be the absolute path to the current project's Adaptations
 ///                         folder (this is stored in the app's m_curAdaptionsPath member)
 /// \param      pFolders  -> the app's m_pBibleBooks member
 /// \remarks
@@ -21116,7 +21126,7 @@ void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 			// makes a directory with full read, write, and execute permissions.
 			if (!bOK)
 			{
-				// error, we'll just warn user, skip this folder, and carry on; 
+				// error, we'll just warn user, skip this folder, and carry on;
 				// user could manually try create it later
 				wxString str;
 				str = str.Format(_(
@@ -21129,10 +21139,10 @@ void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the Adaptations folder contains a subdirectory name which 
+/// \return     TRUE if the Adaptations folder contains a subdirectory name which
 ///             is contained within, and of equal length to, the seeName name in one of
 ///             structs in the book folders array
-/// \param      dirPath   ->    must be the absolute path to the current project's 
+/// \param      dirPath   ->    must be the absolute path to the current project's
 ///                             Adaptations folder (this is stored in the app's
 ///                             m_curAdaptionsPath member)
 /// \remarks
@@ -21167,7 +21177,7 @@ bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 	else
 	{
 		wxString str;
-		// whm note: in GetFirst below, wxDIR_FILES | wxDIR_DIRS flag finds files 
+		// whm note: in GetFirst below, wxDIR_FILES | wxDIR_DIRS flag finds files
 		// or directories, but not . or .. or hidden files
 		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES | wxDIR_DIRS);
 		while (bWorking)
@@ -21175,7 +21185,7 @@ bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 			bWorking = finder.GetNext(&str);
 			if (str.IsEmpty())
 				continue;
-			if (finder.Exists(str)) // wxDir::Exists(str) returns true if str is 
+			if (finder.Exists(str)) // wxDir::Exists(str) returns true if str is
 									// a directory that exists
 			{
 				// BEW changed 25Aug05, so that other user-defined folders can be
@@ -21200,12 +21210,12 @@ bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the folder represented by dir is one of the recognized 
+/// \return     TRUE if the folder represented by dir is one of the recognized
 ///             book folders listed in pBooks
 /// \param      dir    -> the folder name being checked
 /// \param      pBooks -> the array/list of recognized book names
 /// \remarks
-/// Called from: the App's AreBookFoldersCreated(), OnFileRestoreKb(), 
+/// Called from: the App's AreBookFoldersCreated(), OnFileRestoreKb(),
 /// AccessOtherAdaptionProject(), the View's OnRetransReport().
 /// Determines is dir is one of the recognized book folder names.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -21261,7 +21271,7 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 	}
 	wxDir finder;
 
-	bool bOK = ::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath); // wxDir must 
+	bool bOK = ::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath); // wxDir must
 											// call .Open() before enumerating files!
 	if (!bOK)
 	{
@@ -21275,12 +21285,12 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 	{
 		wxString str;
 		// by default, finder enumerates everything except '.' and '..'
-		// using wxDIR_FILES | wxDIR_DIRS as flag finds files or directories, 
+		// using wxDIR_FILES | wxDIR_DIRS as flag finds files or directories,
 		// but not . or .. or hidden files
 		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES | wxDIR_DIRS);
 		while (bWorking)
 		{
-			// whm Note: The Exists() method of wxDIR used below returns TRUE if 
+			// whm Note: The Exists() method of wxDIR used below returns TRUE if
 			// the passed name IS a directory.
 			if (finder.Exists(str))
 			{
@@ -21325,14 +21335,14 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 
 	// ensure the extension is what it should be
 	gpApp->GetDocument()->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
-		
+
 	// open a CFile stream
 	path = m_curGlossingKBPath;
-	
+
 	if (!f.Open(m_curGlossingKBPath, wxFile::write))
 	{
 		wxString message;
-		message = _("Error opening glossing KB file for writing with path:\n") 
+		message = _("Error opening glossing KB file for writing with path:\n")
 			+ m_curGlossingKBPath + _(
 "\nThe glossing knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
 		wxMessageBox(message, _T(""), wxICON_INFORMATION);
@@ -21345,7 +21355,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = GetMaxRangeForProgressDialog(Glossing_KB_Item_Count) + 1;
@@ -21386,7 +21396,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("StoreGlossingKB executed in %s ms"), 
+		wxLogDebug(_T("StoreGlossingKB executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 	if (pProgDlg != NULL)
@@ -21395,7 +21405,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE unless a serious enough error occurs that the app cannot continue 
+/// \return     TRUE unless a serious enough error occurs that the app cannot continue
 ///             in which case it returns FALSE
 /// \param      bAutoBackup   -> if TRUE it also saves a backup copy of the KB
 /// \remarks
@@ -21422,20 +21432,20 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	if (!f.Open(m_curKBPath, wxFile::write))
 	{
 			wxString message;
-			message = _("Error opening KB file for writing with path:\n") 
+			message = _("Error opening KB file for writing with path:\n")
 				+ m_curKBPath + _(
 "\nThe knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
 			wxMessageBox(message, _T(""), wxICON_INFORMATION);
 			LogUserAction(message);
 			return FALSE;
 	}
-	
+
 	// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
 	// The dialog's pProgDlg pointer is passed along through various functions that
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(Adapting_KB_Item_Count) + 1;
@@ -21450,7 +21460,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	// close the file
 	f.Close();
 	f.Flush();
-	
+
     // if backing up is desired, we rename the newly saved copy as a *.BAK, then resave
     // the knowledge base to the old name again
 	if (bAutoBackup)
@@ -21477,9 +21487,9 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("StoreKB executed in %s ms"), 
+		wxLogDebug(_T("StoreKB executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
-#endif	
+#endif
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
 	return TRUE;
@@ -21506,7 +21516,7 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
         // m_curKBPath too, because we keep all three in sync
 		gpApp->GetDocument()->UpdateFilenamesAndPaths(TRUE,TRUE,TRUE,FALSE,FALSE);
 
-		// is there a backup file? remove it if so 
+		// is there a backup file? remove it if so
 		if(::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
@@ -21527,11 +21537,11 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE unless an error occurred and the glossing KB could not be stored 
+/// \return     TRUE unless an error occurred and the glossing KB could not be stored
 ///             in which case it returns FALSE
 /// \param      bAutoBackup   -> if TRUE it also saves a backup copy of the glossing KB
 /// \remarks
-/// Called from: the App's DoGlossingKBBackup(), DoKBRestore(), 
+/// Called from: the App's DoGlossingKBBackup(), DoKBRestore(),
 /// SetupDirectories(), LoadKB(), SaveKB(), the View's OnFileSaveKB(), and
 /// OnToolsKbEditor().
 /// Calls StoreGlossingKB() to store the glossing KB data in the external xml file.
@@ -21578,7 +21588,7 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 /// and before the menu is displayed. If the app is in Vertical Edit Mode the Start Working
 /// Wizard is disabled and this handler returns immediately.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
 	{
@@ -21600,7 +21610,7 @@ void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event)
 /// CPhraseBox::ChooseTranslation().
 /// Gets pointers for the Doc, View, and PhraseBox.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView, 
+bool CAdapt_ItApp::GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView,
 									CPhraseBox*& pBox)
 // return FALSE if not successful in getting all pointers, TRUE if all are okay
 {
@@ -21614,7 +21624,7 @@ bool CAdapt_ItApp::GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView,
 	if (pDoc == NULL) return FALSE;
 	pView = (CAdapt_ItView*)pDoc->GetFirstView();
 	if (pView == NULL) return FALSE;
-	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView))); 
+	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 	pBox = pApp->m_pTargetBox;
 	if (pBox == NULL) return FALSE;
 	return TRUE;
@@ -21630,9 +21640,9 @@ bool CAdapt_ItApp::GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView,
 /// BuildRTFTagsMap(), BuildColorTableFromUSFMColorAttributes(), GetMaxMarkerLength(), the
 /// CUsfmFilterPageCommon::LoadDocSFMListBox(), CUsfmFilterPageCommon::LoadProjSFMListBox(),
 /// CUsfmFilterPageCommon::DoInit(), CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(),
-/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(), 
-/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
-/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(),
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(),
 /// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
 /// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj().
 /// Gets a pointer to the current MapSfmToUSFMAnalysisStruct map specified by sfmSet.
@@ -21650,7 +21660,7 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-/// \return     always TRUE (but it aborts the program with a call to wxExit() if 
+/// \return     always TRUE (but it aborts the program with a call to wxExit() if
 ///             the path represented by m_curAdaptionsPath could not be found)
 /// \param      event   -> (unused)
 /// \remarks
@@ -21666,30 +21676,30 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 {
-	// Note: This version of DoStartWorkingWizard() is 
+	// Note: This version of DoStartWorkingWizard() is
 	// structured quite differently from the MFC version.
 	// WX Notes:
 	// 1. The CPropertySheet and CPropertyPage classes in MFC are designed
-	//    to double as tabbed property sheet pages in a single preferences dialog, 
+	//    to double as tabbed property sheet pages in a single preferences dialog,
 	//    or, when CPropertySheet::SetWizardMode() is called, the property sheet
-	//    turns into a wizard with more or less linear traversal of the pages. 
-	//    In WX we don't have a single CPropertySheet class for both functions, 
-	//    instead, we can define individual pages as in MFC, but we then use them 
-	//    in two separate built-in WX classes: wxNotebook (for tabbed preferences 
+	//    turns into a wizard with more or less linear traversal of the pages.
+	//    In WX we don't have a single CPropertySheet class for both functions,
+	//    instead, we can define individual pages as in MFC, but we then use them
+	//    in two separate built-in WX classes: wxNotebook (for tabbed preferences
 	//    dialog), and wxWizard for the Start Working wizard.
 	// 2. I originally tried to structure the operation of the wizard using all
 	//    wxWizardSimple page classes. That design, however, resulted in problems
 	//    because I destroyed the wizard and called RunWizard again each time
 	//    I wanted the wizard to change the page ordering/sequencing. Eventually
-	//    I decided to use the more advanced wxWizardPage class for all the wizard 
+	//    I decided to use the more advanced wxWizardPage class for all the wizard
 	//    pages.
 
 
 	// whm added 20Apr11 support for Paratext/Bibledit collaboration.
 	// The App's m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit
 	// flags indicate whether Paratext collaboration or Bibledit collaboration
-	// is currently in effect. When either is ON, we don't show the typical 
-	// Start Working Wizard, but instead we show the "Get Source Text from 
+	// is currently in effect. When either is ON, we don't show the typical
+	// Start Working Wizard, but instead we show the "Get Source Text from
 	// Paratext/Bibledit Project" dialog.
 	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
@@ -21700,26 +21710,26 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		dlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
 		if (dlg.ShowModal() == wxID_CANCEL)
 		{
-			// The user explicitly clicked on Cancel from the "Get Source Text 
-			// from Paratext/Bibledit Project" dialog. Set m_bJustLaunched to 
-			// FALSE so the MainFrame's OnIdle() handler won't call up the dialog 
-			// again, but instead leave the main window blank. After such a Cancel, 
-			// the user can always get the dialog up again by clicking on the 
-			// Open tool bar button, or selecting File | Open or File | Start 
+			// The user explicitly clicked on Cancel from the "Get Source Text
+			// from Paratext/Bibledit Project" dialog. Set m_bJustLaunched to
+			// FALSE so the MainFrame's OnIdle() handler won't call up the dialog
+			// again, but instead leave the main window blank. After such a Cancel,
+			// the user can always get the dialog up again by clicking on the
+			// Open tool bar button, or selecting File | Open or File | Start
 			// Working...).
 			m_bJustLaunched = FALSE;
 			return TRUE;
 		}
 
-		// In PT or BE Collaboration mode, the CGetSourceTextFromEditorDlg class 
-		// above will ensure that a path is set for m_curAdaptionsPath and that 
+		// In PT or BE Collaboration mode, the CGetSourceTextFromEditorDlg class
+		// above will ensure that a path is set for m_curAdaptionsPath and that
 		// it exists even upon a SHIFT-down startup and calling of SetDefaults().
 		// Hence, we return below without executing the remining code below.
 
 		// Note: we should return TRUE for PT or BE collaboration.
 		return TRUE;
 	}
-	
+
 
 	// Do we have a valid directory? Probably not if user copied
 	// a project from another user or a different platform.
@@ -21736,14 +21746,14 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		// SetDefaults() was called to get default parameters -- but doing that leaves
 		// the m_curAdaptionsPath empty, so just show the user whatever is in the
 		// custom work folder and let him choose unless he prefers to exit
-		if (m_curAdaptionsPath.IsEmpty() && !m_customWorkFolderPath.IsEmpty() 
+		if (m_curAdaptionsPath.IsEmpty() && !m_customWorkFolderPath.IsEmpty()
 			&& m_bUseCustomWorkFolderPath)
 		{
 			// no config file read in
 			wxString message1, message2;
 			message1 = message1.Format(_("No project folder defined yet. "),
 				m_curAdaptionsPath.c_str());
-			message2 = message1 + 
+			message2 = message1 +
 _("\nIf you want to continue, you must choose a project or create a new project.\nDo you want to continue? ");
 			int result = wxMessageBox(message2,_("Basic Configuration File Not Read"), wxYES_NO | wxICON_WARNING);
 			if (result == wxNO)
@@ -21788,7 +21798,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 	//
     // Since all the wizard pages have the startWorkingWizard as parent window they will be
     // destroyed automatically when startWorkingWizard goes out of scope below.
-	//	
+	//
     // Each of the wizard page's InitDialog() handlers is NOT automatically called when the
     // pages are created or shown in the Start Working Wizard. They must be called
     // explicitly in program code to execute. We've made them public functions in their
@@ -21820,19 +21830,19 @@ _("\nIf you want to continue, you must choose a project or create a new project.
     // to create a new document within the selected project. The reverse also happens if at
     // the docPage, the user clicks on the Prev button - the previous page is the
     // projectPage.
-	// 
+	//
     // The full 8-page wizard will appear if the user selects <New Project> on the
     // projectPage and proceeds (via Next or double click). The 8 pages define the most
     // important items of information and parameters for any new project.
 	// The 8 pages of the full wizard are presented in order, which are:
-	//   (1) the projectPage, 
+	//   (1) the projectPage,
 	//   (2) the langaugesPage,
 	//   (3) the fontPage,
 	//   (4) the punctMapPage,
 	//   (5) the caseEquivPage,
 	//   (6) the USFMpage,      [added in version 3]
 	//   (7) the FilteringPage, [added in version 3]
-	//   (8) the docPage. 
+	//   (8) the docPage.
     // At any time within the 1-page or 2-page wizard the user can use the Back button to
     // go back to the project page and start creating a new project by selecting <New
     // Project> from the project page and continuing through the now active full 8-page
@@ -21875,7 +21885,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the document
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the document is 
+/// Called from: many places throughout the application where a pointer to the document is
 /// requited to call a function/method of the Doc.
 /// Gets a pointer to the current document.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -21897,7 +21907,7 @@ CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the free translations manager
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the CFreeTrans 
+/// Called from: many places throughout the application where a pointer to the CFreeTrans
 /// is required to call a function/method of the CFreeTrans.
 /// Gets a pointer to the current CFreeTrans.
 /// NOTE: Needs to be called with reference to the app object e.g. pApp->GetFreeTrans()
@@ -21912,7 +21922,7 @@ CFreeTrans*	CAdapt_ItApp::GetFreeTrans()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the Layout
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the Layout 
+/// Called from: many places throughout the application where a pointer to the Layout
 /// is required to call a function/method of the Layout.
 /// Gets a pointer to the current Layout.
 /// NOTE: Needs to be called with reference to the app object e.g. pApp->GetLayout()
@@ -21927,7 +21937,7 @@ CLayout*	CAdapt_ItApp::GetLayout()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the CNotes object instance
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the CNotes 
+/// Called from: many places throughout the application where a pointer to the CNotes
 /// object is required to call a function/method of CNotes.
 /// Gets a pointer to the current CNotes object.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -21940,7 +21950,7 @@ CNotes*	CAdapt_ItApp::GetNotes()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the CRetranslation object instance
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the CRetranslation 
+/// Called from: many places throughout the application where a pointer to the CRetranslation
 /// object is required to call a function/method of CRetranslation.
 /// Gets a pointer to the current CRetranslation object.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -21953,7 +21963,7 @@ CRetranslation*	CAdapt_ItApp::GetRetranslation()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the CPlaceholder object instance
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the CPlaceholder 
+/// Called from: many places throughout the application where a pointer to the CPlaceholder
 /// object is required to call a function/method of CPlaceholder.
 /// Gets a pointer to the current CPlaceholder object.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -21966,7 +21976,7 @@ CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
 /// \remarks
-/// Called from: many places throughout the application where a pointer to the view is 
+/// Called from: many places throughout the application where a pointer to the view is
 /// required to call a function/method of the View.
 /// Gets a pointer to the current view.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -22023,7 +22033,7 @@ void CAdapt_ItApp::DoFileOpen()
 /// Makes use of the wxWidgets ::wxGetHomeDir() method to determine the best
 /// platform-specific location for the user's work folder, creating it if necessary. The
 /// user's work folder is stored in the m_workFolderPath global.
-/// 
+///
 /// BEW modified 18Aug09 to support custom work folder locations:
 /// The approach I have taken for this in EnsureWorkFolderPresent() always calculates the
 /// legacy default location for every call of this function; but when the
@@ -22051,15 +22061,15 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// if, in Windows, the user changes/moves the location of his "Documents" folder (on
 	// Vista) or "My Documents" folder (on 2000/XP) to a non-default drive or folder
 	// location.
-	// 
+	//
 	// We also want to accommodate the power-user who may want to set up a work folder
-	// path in a non-default location. 
+	// path in a non-default location.
 	// Some possibilities for accommodating a power user's desire to use a non-default
 	// location for his work folder:
 	// 1. Provide a Browse button on the Project page that would allow the user to select a
 	// different path for the project folder. There could also be a "Restore Default Path"
 	// button next to it on the Project page. This makes it easy to change (or too easy -
-	// could get naive users in trouble?). 
+	// could get naive users in trouble?).
     // BEW note 17Sep09: Interpretting "Project page" literally as meaning where a project
     // folder is to be placed, I don't think we should allow a project folder to be
     // relocated independently (and therefore potentially outside of) its work folder -
@@ -22092,7 +22102,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// whm Note 5Jun09: I am initially providing the -wf <path> command-line option (2
 	// above). This option could eventually be supplemented with other options including
 	// option 1 above.
-	
+
 	// whm Note: I first used the wxWidgets ::wxGetHomeDir() function to determine the
 	// users home directory and then augment it to include "Documents" or "My Documents"
 	// folder (if Windows). The wxGetHomeDir() function however, does not detect the
@@ -22101,7 +22111,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// wxStandardPaths::GetDocumentsDir() function does get the right folder, regardless of
 	// whether the user has "moved" it or not.
 
-	// Get the "documents" directory for the current system/platform. 
+	// Get the "documents" directory for the current system/platform.
 	wxStandardPaths stdPaths;
 //#ifdef __WXMAC__
 	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
@@ -22111,37 +22121,37 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
 //	stdDocsDir = ::wxGetHomeDir();
 //#else
-	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since 
+	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since
 											 // wxWidgets version 2.7.0
 //#endif
 	// Typically the "documents" directory depends on the system:
 	// Unix: ~/(the home directory, i.e., /home/<username>/)
 	// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
 	// Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-	// Mac: ~/(the home directory, i.e., /Users/<username>/ 
+	// Mac: ~/(the home directory, i.e., /Users/<username>/
 
 	// whm note: In the cross-platform version we never refer to a specific "Documents" or
 	// "My Documents" folder and so we do not need to localize the name of the folder that
 	// is returned by the "GetDocumentsDir() function call.
-	// 
+	//
 	// Set the current working directory to point to the standard docs directory which
 	// would normally be the "Documents" or "My Documents" folder on Windows, the ~ (home
 	// directory) on Linux, or the ~/Documents directory on the Mac.
 	::wxSetWorkingDirectory(stdDocsDir);
 	dirPath = ::wxGetCwd();
-	m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe 
+	m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe
 								 // which gets called subsequently in OnInit().
 
 	// whm modified 5Jun09 to use m_wf_forced_workFolderPath if it was defined on the
-	// command-line 
+	// command-line
 	if (!m_wf_forced_workFolderPath.IsEmpty())
 	{
 		// Ensure that the user supplied work folder path does not end with a path separator
-		// character 
-		if (m_wf_forced_workFolderPath.GetChar(m_wf_forced_workFolderPath.Length() - 1) 
+		// character
+		if (m_wf_forced_workFolderPath.GetChar(m_wf_forced_workFolderPath.Length() - 1)
 			== PathSeparator)
 		{
-			m_wf_forced_workFolderPath.RemoveLast(); // remove the PathSeparator char 
+			m_wf_forced_workFolderPath.RemoveLast(); // remove the PathSeparator char
 													 // at the end of the path string
 		}
 		workFolderPath = m_wf_forced_workFolderPath;
@@ -22154,12 +22164,12 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	{
 		// check that dirPath doesn't end with a PathSeparator character, eg. on Windows
 		// the user may have pointed Documents at D:\, and so adding an additional separator
-		// would generate a wrong path... this check will have to be done in 
+		// would generate a wrong path... this check will have to be done in
 		// MakeForeignBasicConfigFileSafe() too. Easiest thing to do is just remove the
 		// final separator if it is there...  BEW added 31Jan10
 		if (dirPath.GetChar(dirPath.Length() - 1) == PathSeparator)
 		{
-			dirPath.RemoveLast(); // remove the PathSeparator char 
+			dirPath.RemoveLast(); // remove the PathSeparator char
 								  // at the end of the path string
 		}
 		workFolderPath = dirPath + PathSeparator + workFolder;
@@ -22179,7 +22189,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 			message += _("\nAdapt It cannot continue and will now abort.");
 			wxMessageBox(message, _("Critical Error"), wxICON_ERROR | wxOK);
 			LogUserAction(_T("Adapt It cannot create its work folder in EnsureWorkFolderPresent()"));
-			abort(); // wxExit() not used, as it calls OnExit() before aborting the program 
+			abort(); // wxExit() not used, as it calls OnExit() before aborting the program
 					 // which would attempt to delete some objects not yet created.
 		}
 	}
@@ -22190,12 +22200,12 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 
 	if ((m_workFolderPath != m_customWorkFolderPath) && m_bUseCustomWorkFolderPath)
 	{
-		// customWorkFolderPath exists so set the current work directory to it 
+		// customWorkFolderPath exists so set the current work directory to it
 		::wxSetWorkingDirectory(m_customWorkFolderPath);
 	}
 	else
 	{
-		// workFolderPath exists so set the current work directory to it 
+		// workFolderPath exists so set the current work directory to it
 		::wxSetWorkingDirectory(workFolderPath);
 	}
 
@@ -22211,12 +22221,12 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoGlossingKBBackup()
 {
-	SaveGlossingKB(TRUE); // resaves the KB and makes a backup which is a copy, 
+	SaveGlossingKB(TRUE); // resaves the KB and makes a backup which is a copy,
 						  // after deleting old one
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     
+/// \return
 /// \remarks
 /// Called from: the App's OnFileBackupKb() and OnFileRestoreKb().
 /// Calls SaveKB().
@@ -22225,13 +22235,13 @@ void CAdapt_ItApp::DoKBBackup()
 {
     // NOTE: wxWidgets version: SaveKB returns bool value which is ignored here. I've added
     // an error message in SaveKB() in case it fails.
-	SaveKB(TRUE); // resaves the KB and makes a backup which is a copy, 
+	SaveKB(TRUE); // resaves the KB and makes a backup which is a copy,
 				  // after deleting old one
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table when "Backup Knowledge Base" item is selected on the File
@@ -22240,7 +22250,7 @@ void CAdapt_ItApp::DoKBBackup()
 /// whm 15Jan11 changed so that both DoGlossingKBBackup() and DoKBBackup() are called
 /// when the File > Backup Knowledge Base menu item is selected.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event)) 
+void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event))
 {
 	LogUserAction(_T("Initiated OnFileBackKb()"));
 	//if (gbIsGlossing)
@@ -22261,7 +22271,7 @@ void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event))
 /// FALSE (using the normal KB), and the m_bKBReady flag is TRUE the the "Backup Knowledge
 /// Base" item on the File menu is enabled, otherwise it is disabled.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 {
 	if (m_bReadOnlyAccess)
 	{
@@ -22286,7 +22296,7 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxUpdateUIEvent that is generated when the File Menu 
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the File Menu
 ///                         is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -22301,7 +22311,7 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 /// a remote project (it must not be possible to initiate a KB restoration on the remote
 /// user's machine; that could lose some of his data. He must do it locally.)
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 {
 	if (m_bReadOnlyAccess)
 	{
@@ -22349,7 +22359,7 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      bDoOnGlossingKB      ->     check the glossing KB if TRUE, otherwise 
+/// \param      bDoOnGlossingKB      ->     check the glossing KB if TRUE, otherwise
 ///                                         check the regular KB
 /// \remarks
 /// Called from: the App's DoGlossingKBBackup(), DoKBBackup()
@@ -22393,7 +22403,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
 			strUseThisPath = m_curGlossingKBPath;
 		}
-		else 
+		else
 		{
 			strUseThisPath = m_altGlossingKBPath;
 		}
@@ -22404,7 +22414,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
 			strUseThisPath = m_curKBPath;
 		}
-		else 
+		else
 		{
 			strUseThisPath = m_altKBPath;
 		}
@@ -22555,7 +22565,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		else
 		{
 			// it has to be there, so again something quick & diry since this should never
-			// happen 
+			// happen
 			wxMessageBox(_(
 			"Glossing KB file not found immediately after it was renamed!\n"),
 			_T(""), wxICON_ERROR);
@@ -22593,7 +22603,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		else
 		{
 			// it has to be there, so again something quick & diry since this should never
-			// happen 
+			// happen
 			wxMessageBox(_(
 			"KB file not found immediately after it was renamed!\n"),
 			_T(""), wxICON_ERROR);
@@ -22605,7 +22615,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxUpdateUIEvent that is generated when the Tools Menu 
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the Tools Menu
 ///                         is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -22614,7 +22624,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 /// on the Tools menu is always disabled and this event handler returns immediately,
 /// otherwise the "Load Consistent Changes..." item on the Tools menu is enabled.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateLoadCcTables(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateLoadCcTables(wxUpdateUIEvent& event)
 {
 	if (m_bFreeTranslationMode)
 	{
@@ -22626,7 +22636,7 @@ void CAdapt_ItApp::OnUpdateLoadCcTables(wxUpdateUIEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxUpdateUIEvent that is generated when the Tools Menu 
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the Tools Menu
 ///                         is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -22636,7 +22646,7 @@ void CAdapt_ItApp::OnUpdateLoadCcTables(wxUpdateUIEvent& event)
 /// m_bTablesLoaded flag is TRUE the "Unload Consistent Changes..." item on the Tools menu
 /// is enabled, otherwise it is disabled.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 {
 	if (m_bFreeTranslationMode)
 	{
@@ -22647,7 +22657,7 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
     // booleans, and since the array name m_bCCTableLoaded is just a pointer the condition
     // will be false if the array is NULL otherwise true, probably not what Bruce wanted.
     // I'm changing this UpdateUI to use the m_bTablesLoaded boolean instead
-	if (m_bTablesLoaded) 
+	if (m_bTablesLoaded)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -22655,7 +22665,7 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: the Tools menu when the "Load Consistent Changes..." menu item is
@@ -22673,13 +22683,13 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// loaded until the user either selects "Unload Consistent Changes" from the Tools menu,
 /// or exits the application.
 ///////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event)) 
+void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 {
 	// define and load one or more consistent change tables
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnToolsDefineCC()"));
-	
+
 	// The wxWidgets version handles consistent changes directly via our CCModule which
     // incapsulates the CC functionality of the old cc32.dll dynamic library within the
     // Adapt It executable, without having to resort to calling any external dynamic
@@ -22688,7 +22698,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     // CCModule is a C++ class modified for wxWidgets, the CC functionality is
     // automatically available without need for further modifications for Windows, Linux
     // and/or Macintosh builds.
-    // 
+    //
     // In the MFC version the Adapt It program itself cannot run at all unless the cc32.dll
     // file is present on the user's system. Although the wxWidgets framework has a
     // wxDynamicLibrary class which could be used to load external dynamic library files
@@ -22708,9 +22718,9 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
     // actually loads one. See the "ShowModal() == wxID_OK" block below.
     // We can tell which instance has been created by examining the flags in the
     // m_bCCTableLoaded[] array.
-	
+
 	CCCTabbedDialog ccPropertySheet(pApp->GetMainFrame());
-	
+
 	// make the font show only 12 point size in the dialog
 	CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
 	m_pDlgSrcFont->SetPointSize(12);
@@ -22723,7 +22733,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 			m_tableFolderPath[i] = ccPropertySheet.m_folderPath[i];
 			m_tableName[i] = ccPropertySheet.m_tblName[i];
 			// create consistent changer instances and consider loaded only those the user asked
-			// for 
+			// for
 			if (m_tableName[i].IsEmpty())
 				m_bCCTableLoaded[i] = FALSE;
 			else
@@ -22769,11 +22779,11 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 			switch (whichOne)
 			{
 			case 0:
-				m_bCCTableLoaded[0] = m_bCCTableLoaded[1] = m_bCCTableLoaded[2] = 
+				m_bCCTableLoaded[0] = m_bCCTableLoaded[1] = m_bCCTableLoaded[2] =
 													m_bCCTableLoaded[3] = FALSE;
 				break;
 			case 1:
-				m_bCCTableLoaded[1] = m_bCCTableLoaded[2] = 
+				m_bCCTableLoaded[1] = m_bCCTableLoaded[2] =
 													m_bCCTableLoaded[3] = FALSE;
 				break;
 			case 2:
@@ -22791,7 +22801,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
         // our algorithm above allows processing to proceed even if an exception was
         // thrown, the relevant table, and any subsequent ones, just won't be used; but the
         // user will have been alerted
-		if (m_bCCTableLoaded[0] || m_bCCTableLoaded[1] || m_bCCTableLoaded[2] 
+		if (m_bCCTableLoaded[0] || m_bCCTableLoaded[1] || m_bCCTableLoaded[2]
 			|| m_bCCTableLoaded[3])
 			m_bTablesLoaded = TRUE;
 		else
@@ -22814,7 +22824,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: the Tools menu when the "Unload Consistent Changes" menu item is selected.
@@ -22826,7 +22836,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 /// the "Use Consistent Changes" toggle item in the Tools menu.
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event)) 
+void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 {
 
 	m_tableName[0] = m_tableName[1] = m_tableName[2] = m_tableName[3] = _T("");
@@ -22853,7 +22863,7 @@ void CAdapt_ItApp::OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event))
 	// turn the checkmarks off
 	CMainFrame *pFrame = GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsUseCC = pMenuBar->FindItem(ID_USE_CC);
 	if(pToolsUseCC != NULL)
@@ -22940,7 +22950,7 @@ BOOL CWinApp::OnOpenRecentFile(UINT nID)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table when "Restore Knowledge Base..." item is selected on the
@@ -22977,8 +22987,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// BEW 24Aug11, change protocol so as to allow the user to initiate a restore even
 	// when a document is open. We check here, and if open, we force it to close and then
 	// proceed as before. The .Enable() for the menu commands will enable the command so
-	// long as the relevant CKB is ready 
-	wxString savedCurOutputPath = m_curOutputPath;	// includes filename			
+	// long as the relevant CKB is ready
+	wxString savedCurOutputPath = m_curOutputPath;	// includes filename
 	wxString savedCurOutputFilename = m_curOutputFilename;
 	int		 savedCurSequNum = m_nActiveSequNum;	// for resetting the box location
 	bool	 savedBookmodeFlag = m_bBookMode;	// for ensuring correct mode
@@ -22994,7 +23004,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// get called in the process.
 		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 		// be changed after the dialog is created. So any routine that gets passed the
-		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// pProgDlg pointer, must make sure that value in its Update() function does not
 		// exceed the same maximum value (nTotal).
 		wxString msgDisplayed;
 		const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -23003,7 +23013,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 		wxProgressDialog* pProgDlg;
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
-		
+
 		// doc is open, so close it -- we want all docs accessible to the scanning loop
 		bDocForcedToClose = TRUE;
 		bool fsOK = pDoc->DoFileSave_Protected(TRUE,pProgDlg); // TRUE - show the wait/progress dialog
@@ -23047,7 +23057,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	if (m_nWorkflowProfile == 0)
 	{
 		// recover as many m_bAlwaysAsk flag = TRUE instances as possible
-		// from the corrupted KB 
+		// from the corrupted KB
 		value = wxMessageBox(_(
 		"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
 		_T("Restore Knowledge Base..."), wxYES_NO);
@@ -23075,13 +23085,13 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// 6. DoGlossingKBBackup() or DoKBBackup() depending on gbIsGlossing
 	//    Note: ReOpenDocument() if doc was open at step 1 has its own prog dlg
 	// 7. End of processes.
-	
+
 	// whm 26Aug11 Open a wxProgressDialog instance here for Restoring KB operations.
 	// The dialog's pProgDlg pointer is passed along through various functions that
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = 7; // we will do up to 7 Steps
@@ -23089,7 +23099,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 	wxProgressDialog* pProgDlg;
 	pProgDlg = gpApp->OpenNewProgressDialog(_("Restoring Knowledge Base..."),msgDisplayed,nTotal,500);
-	
+
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 	pProgDlg->Update(1,msgDisplayed);
@@ -23115,14 +23125,14 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	msgDisplayed = progMsg.Format(progMsg,2,nTotal);
 	pProgDlg->Update(2,msgDisplayed);
 	//::wxSafeYield();
-	// clear out the KB, actually erase it & create a new empty one & store it ready 
+	// clear out the KB, actually erase it & create a new empty one & store it ready
 	// for filling
 	// whm Note: ClearKB() is a potentially time consuming operation for long
 	// documents.
 	ClearKB(pKB,pDoc); // checks clears whichever KB is passed in as first param, &
 					   // recreates an empty one
 
-    // the pointer will be a new one because of ClearKB( ) call, 
+    // the pointer will be a new one because of ClearKB( ) call,
     // so update pKB to point to it
 	if (gbIsGlossing)
 		pKB = m_pGlossingKB;
@@ -23156,7 +23166,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	msgDisplayed = progMsg.Format(progMsg,3,nTotal);
 	pProgDlg->Update(3,msgDisplayed);
 	//::wxSafeYield();
-    
+
 	// handle the Adaptations folder's files first - for these, we allow the
     // IDD_WHICH_FILES dialog to show and the user can remove some files from the
     // processing using it if he wishes, but for looping across all the book folders, we'll
@@ -23210,7 +23220,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		msgDisplayed = progMsg.Format(progMsg,4,nTotal);
 		pProgDlg->Update(4,msgDisplayed);
 		//::wxSafeYield();
-    
+
 		// there is at least one document, so do the restore
 		pKB->DoKBRestore(nCount, nCumulativeTotal);
 	}
@@ -23275,7 +23285,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         // are sisters of the Bible book folders for which the Adaptations folder is the
         // common parent folder
 		wxDir finder; //CFileFind finder;
-		bool bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath)); // wxDir 
+		bool bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath)); // wxDir
 											// must call .Open() before enumerating files!
 		if (!bOK)
 		{
@@ -23311,7 +23321,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			msgDisplayed = progMsg.Format(progMsg,5,nTotal);
 			pProgDlg->Update(5,msgDisplayed);
 			//::wxSafeYield();
-    
+
 			wxString str;
 			bool bWorking = finder.GetFirst(&str,_T("*.*"),wxDIR_FILES | wxDIR_DIRS);
 			while (bWorking)
@@ -23375,7 +23385,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 							// needed here because EnumerateDocFiles() has been called
 							// and it has clobbered the setting of the working directory
 							// to the Adaptations folder & call finder.GetNext()
-							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath); 
+							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath);
 									// restore parent folder as current
 							wxASSERT(bOK);
 							bWorking = finder.GetNext(&str); // needed for the iteration
@@ -23386,12 +23396,12 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 						if (pList->GetCount() == 0)
 						{
 							// no documents to work on in this folder, so iterate...
-							
+
 							// BEW added 19Mar10, a call of wxSetWorkingDirectory() is
 							// needed here because EnumerateDocFiles() has been called
 							// and it has clobbered the setting of the working directory
 							// to the Adaptations folder; and call finder.GetNext()
-							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath); 
+							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath);
 									// restore parent folder as current
 							wxASSERT(bOK);
 							bWorking = finder.GetNext(&str); // needed for the iteration
@@ -23399,14 +23409,14 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 						}
 
 						// There are files to be processed. TRUE parameter suppresses the statistics
-						// dialog 
+						// dialog
 						pKB->DoKBRestore(nCount, nCumulativeTotal);
-                        
+
 						//bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
 						// BEW altered 19Mar2010, because the reopening of finder by the
-						// above line of code destroyed the iterator, contributing to infinite 
+						// above line of code destroyed the iterator, contributing to infinite
 						// looping
-						bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath); 
+						bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath);
 								// restore parent folder as current
 						wxASSERT(bOK);
 					} // end of TRUE block for test IsDirectoryWithin(str,m_pBibleBooks)
@@ -23435,15 +23445,15 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                 // the loop is never processed; and on return to top of the loop, the
                 // GetNext() call then fails but str stays unchanged, contributing to
                 // infinite looping
-				bWorking = finder.GetNext(&str);				
+				bWorking = finder.GetNext(&str);
 			} // end loop for FindFile() scanning all possible files in folder
 		}  // end block for bOK == TRUE
 	} // end block for test for gbHasBookFolders yielding TRUE
-	
+
 	if (bRescueFlags)
 	{
 		// do the rescue, for either glossing KB or the adaptation KB
-		pKB->RestoreForceAskSettings(&keys); // also cleans up after itself, 
+		pKB->RestoreForceAskSettings(&keys); // also cleans up after itself,
 											  // deleting the list contents
 	}
 
@@ -23451,7 +23461,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	msgDisplayed = progMsg.Format(progMsg,6,nTotal);
 	pProgDlg->Update(6,msgDisplayed);
 	//::wxSafeYield();
-	
+
 	// do the KB backup, if the relevant flag is set
 	if(m_bAutoBackupKB)
 	{
@@ -23495,7 +23505,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	{
 		if (m_bibleBooksFolderPath.IsEmpty())
 		{
-			// no path defined, so having the mode on would lead to a crash, 
+			// no path defined, so having the mode on would lead to a crash,
 			// so turn it off (a manual turn on subsequently will get all
 			// set up correctly)
 			m_bBookMode = FALSE;
@@ -23524,19 +23534,19 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	}
 	// let the view respond again to updates
 	pView->canvas->Thaw();
-	
+
 	// remove the progress dialog
 	pProgDlg->Destroy();
-	
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if all was okay, FALSE if the path to the folder could not be 
+/// \return     TRUE if all was okay, FALSE if the path to the folder could not be
 ///             made the current directory, or if the user cancelled the Which Files dialog
 /// \param      pDoc        ->  pointer to the document class (unused)
-/// \param      folderPath  ->  a wxString representing the full path to the folder which 
+/// \param      folderPath  ->  a wxString representing the full path to the folder which
 ///                             is to have its document files enumerated
-/// \param      bSuppressDialog -> default is FALSE (ie. the IDD_WHICH_FILES dialog is 
+/// \param      bSuppressDialog -> default is FALSE (ie. the IDD_WHICH_FILES dialog is
 ///                             visible), but if set TRUE then the dialog is suppressed
 ///                             (and all document files in the passed in folderPath are
 ///                             left in m_acceptedFilesList for the caller to use)
@@ -23557,7 +23567,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 /// Note: EnumerateDocFiles() has the side effect of changing the current work directory to
 /// the passed in folderPath.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath, 
+bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString folderPath,
 									 bool bSuppressDialog)
 {
 	// set a local var for the Adaptations folder's path, or book folder path - whichever
@@ -23593,28 +23603,28 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 			}
 			else
 			{
-				return FALSE; // user cancelled the dialog, typically this 
+				return FALSE; // user cancelled the dialog, typically this
                 //constitutes a wish to abort the operation - so return FALSE so that the
                 //caller can use the FALSE value if it wants to effect the operation abort
 			}
 		}
 	}
-	return TRUE; // return TRUE even if the list is empty, because the caller may wish 
+	return TRUE; // return TRUE even if the list is empty, because the caller may wish
             // not to abort the operation, but instead attempt it on another folder of
             // files, so we need to allow different functionalities to interpret an empty
             // list in different ways
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if all was okay, FALSE if the path to the folder could not be 
+/// \return     TRUE if all was okay, FALSE if the path to the folder could not be
 ///             made the current directory
-/// \param      docNamesList -> a wxArrayString to store the documents' filenames 
-/// \param      folderPath   -> a wxString representing the full path to the folder which 
+/// \param      docNamesList -> a wxArrayString to store the documents' filenames
+/// \param      folderPath   -> a wxString representing the full path to the folder which
 ///                             is to have its document files enumerated
 /// \remarks
 /// Called from: the App's AccessOtherAdaptionProjects().
 /// This is a similar function to EnumerateDocFiles, but with a few differences as follows:
-/// 1.  EnumerateDocFiles() stores in CAdapt_ItApp::m_acceptedFilesList, and so is not a 
+/// 1.  EnumerateDocFiles() stores in CAdapt_ItApp::m_acceptedFilesList, and so is not a
 ///     useful function if we wish to enumerate the documents in more than one folder (which
 ///     is the case when transforming adaptations to glosses); so we pass in the storage
 ///     array as the first parameter
@@ -23661,7 +23671,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 //////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if one or more loadable files was added to the passed in array, FALSE
 ///             if there was an error or if there were no loadable files in the folder
-/// \param      array         ->    ref to a sorted string array to store the names of the files 
+/// \param      array         ->    ref to a sorted string array to store the names of the files
 ///                                 judged to be loadable for creating valid adaptation docs
 /// \param      folderPath    ->    the absolute path to the folder whose files are to be
 ///                                 enumerated and tested for loadability
@@ -23685,7 +23695,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
 													enum LoadabilityFilter filtered)
 {
-	wxArrayString arrFilenames; // the unfiltered enumeration stores filenames here, 
+	wxArrayString arrFilenames; // the unfiltered enumeration stores filenames here,
 								// but the passed in array parameter will only store those
 								// that get through the filter (i.e. IsLoadableFile())
 	array.Clear();
@@ -23709,7 +23719,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 	wxString filename = _T("");
 	wxDir finder;
 	// wxDirmust call .Open() before enumerating files!
-	bool bItsOK = (finder.Open(folderPath)); 									
+	bool bItsOK = (finder.Open(folderPath));
 	if (!bItsOK)
 	{
 		// a significant error, so we'll make the icon be the error one, but let the app
@@ -23723,7 +23733,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 	{
 		// Must call wxDir::Open() before calling GetFirst() - see above
 		wxString str = _T("");
-		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES);
 		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
 		while (bWorking)
 		{
@@ -23821,7 +23831,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 /// m_sourceInputsFolderPath. Error conditions do not halt the app, but instead allow
 /// processing to continue in the legacy way, with no user navigation protection (that is,
 /// the wxFileDialog is used in the OPEN state, rather than the SAVE state).
-/// 
+///
 /// The UseSourceDataFolderOnlyForInputFiles() function is used at any point in the
 /// application where the user has the possibility of creating a new adaptation document.
 /// (Currently, there is only one such place - the OnNewDocument() call, and the latter
@@ -23846,7 +23856,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 	else
 	{
 		// whm added 13Jun11. With version 6.0.0, AI will always create a __SOURCE_INPUTS
-		// folder in a new project. The crucial test for switching ON nav protection now 
+		// folder in a new project. The crucial test for switching ON nav protection now
 		// is not whether the __SOURCE_INPUTS folder exists, nor whether it has at least
 		// one loadable file, but whether the "Protect from Navigation" checkbox has been
 		// selected by the administrator (or has been unilaterally checked because Paratext
@@ -23868,7 +23878,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 		{
 			// a warning will already have been given about the specific error, so pass
 			// the FALSE value back to the caller; an empty folder is not regarded as an
-			// error and so we check for that below 
+			// error and so we check for that below
 			return FALSE;
 		}
 		else
@@ -23993,12 +24003,12 @@ void CAdapt_ItApp::ClearKB(CKB* pKB, CAdapt_ItDoc *pDoc)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      fi   ->     the fontInfo struct containing the font information for 
+/// \param      fi   ->     the fontInfo struct containing the font information for
 ///                         writing in the configuration files
-/// \param      pf   <-     pointer to the wxTextFile that is being written as the 
+/// \param      pf   <-     pointer to the wxTextFile that is being written as the
 ///                         config file
 /// \remarks
-/// Called from: the App's WriteConfigurationFile(). 
+/// Called from: the App's WriteConfigurationFile().
 /// Writes the font configuration part of a configuration file. WriteFontConfiguration()
 /// gets called once for each of the three main fonts used: source language, target
 /// language, and navigation text language. The text file is opened by the caller and
@@ -24038,7 +24048,7 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
 	if (fi.fItalic)
 		number = _T("1");
 	else
-		number = _T("0"); 
+		number = _T("0");
 	data.Empty();
 	data << szItalic << tab << number; //data = szItalic + tab + number + end;
 	pf->AddLine(data);
@@ -24130,7 +24140,7 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
 	if (fi.fItalic)
 		number = _T("1");
 	else
-		number = _T("0"); 
+		number = _T("0");
 	data.Empty();
 	data << szItalic << tab << number; //data = szItalic + tab + number + end;
 	pf->AddLine(data);
@@ -24147,7 +24157,7 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
 		number = _T("1");
 	else
 		number = _T("0");
-	data.Empty(); 
+	data.Empty();
 	data << szStrikeOut << tab << number; //data = szStrikeOut + tab + number + end;
 	pf->AddLine(data);
 
@@ -24194,10 +24204,10 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pf   <-     pointer to the wxTextFile that is being written as the 
+/// \param      pf   <-     pointer to the wxTextFile that is being written as the
 ///                         config file
 /// \remarks
-/// Called from: the App's WriteConfigurationFile(). 
+/// Called from: the App's WriteConfigurationFile().
 /// Writes the basic settings part of a configuration file. The text file is opened by the
 /// caller and remains open after the call to WriteFontConfiguration().
 /// Note: wxTextFile is processed entirely in memory, so it is up to the caller to actually
@@ -24246,7 +24256,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     // to read the flag value nor the custom work folder path from the basic configuration
     // file, because there is no way to determine where that folder is from configuration
 	// files alone - at least as long as we retain the model in which the basic config
-	// file is stored in the work folder itself. 
+	// file is stored in the work folder itself.
     // Therefore, the location of the persisent custom folder is found by looking at the
     // default work folder to see if a file CustomWorkFolderLocation is present - if it is,
     // that fact sets the m_bLockedCustomWorkFolderPath boolean, and the contents of the
@@ -24261,7 +24271,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szLockedCustomWorkFolderPath << tab << number;
 	pf->AddLine(data);
-	
+
 	data.Empty();
 	if (m_bLockedCustomWorkFolderPath)
 	{
@@ -24296,20 +24306,20 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szCurKBBackupPath << tab << m_curKBBackupPath;
 	pf->AddLine(data);
 
-	// whm 6Aug11: From version 6.x.x on store the m_lastDocPath 
+	// whm 6Aug11: From version 6.x.x on store the m_lastDocPath
 	// only in the appropriate project config file under szLastDocPath
 	//data.Empty();
 	//data << szLastDocPath << tab << m_lastDocPath;
 	//pf->AddLine(data);
 
-	// whm 6Aug11: From version 6.x.x on store the m_lastSourceInputPath 
+	// whm 6Aug11: From version 6.x.x on store the m_lastSourceInputPath
 	// only in the appropriate project config file under szLastSourceInputPath
 	//data.Empty();
 	//data << szLastSourceInputPath << tab << m_lastSourceInputPath;
 	//pf->AddLine(data);
 
 
-	// whm 6Aug11: From version 6.x.x on store the m_lastTargetOutputPath 
+	// whm 6Aug11: From version 6.x.x on store the m_lastTargetOutputPath
 	// only in the appropriate project config file under szLastTargetOutputPath
 	//data.Empty();
 	//data << szLastExportPath << tab << m_lastTargetOutputPath;
@@ -24340,7 +24350,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
 	pf->AddLine(data);
-	
+
 	data.Empty();
 	data << szAdministratorPassword << tab << m_adminPassword;
 	pf->AddLine(data);
@@ -24364,7 +24374,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
 #else
 	// UNICODE
-	// From version 2.3.0 the hard-coding of the encoding ID in punctuation fields 
+	// From version 2.3.0 the hard-coding of the encoding ID in punctuation fields
 	// has been removed, we use UTF-8 for them all now
 	wxString src;
 	wxString tgt;
@@ -24379,13 +24389,13 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	TwoPunctPairsToTwoStrings(m_twopunctPairs,src,tgt);
-	
+
 	data.Empty();
 	data << szTwoPunctPairsSrc << tab << src;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szTwoPunctPairsTgt << tab << tgt; 
+	data << szTwoPunctPairsTgt << tab << tgt;
 	pf->AddLine(data);
 
 #endif // _UNICODE
@@ -24454,7 +24464,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 
-	// whm Note 8Sep11. ALL of the collaboration-related 
+	// whm Note 8Sep11. ALL of the collaboration-related
 	// settings need to be in the basic configuration file
 	// because the GetSourceTextFromEditor dialog needs them
 	// at the time that only the basic config file has been
@@ -24723,7 +24733,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szRTLNavText << tab << number;
 	pf->AddLine(data);
 #endif // _RTL_FLAGS
-	
+
 	// whm 6Aug11 Note: the m_lastRtfOutputPath is no longer used because it is
 	// replaced by other specific m_last...RTFOutputPath variables (in project
 	// config files). See GetBasicSettingsConfiguration() where we read the value
@@ -24745,7 +24755,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 /// \return     nothing
 /// \param      strReadIn   ->  a text line read from the config file
 /// \param      strValue    <-  the "value" of the setting as a string
-/// \param      name        <-  the "label" or setting being defined on the left part of 
+/// \param      name        <-  the "label" or setting being defined on the left part of
 ///                             the config file line
 /// \remarks
 /// Called from: the App's GetFontConfiguration(), GetBasicSettingsConfiguration(),
@@ -24774,9 +24784,9 @@ void CAdapt_ItApp::GetValue(const wxString strReadIn, wxString& strValue, wxStri
     // extract the data which follows the second tab; but if there is only one tab, then
     // the data we want follows immediately after it. Version 2.3.0 will no longer write
     // out the encoding value.
-	offset++; // offset now references the start of 
+	offset++; // offset now references the start of
 			  // either the data or the encoding subfield
-	int freq = strReadIn.Freq(delimiter); // returns the number of 
+	int freq = strReadIn.Freq(delimiter); // returns the number of
 										  // occurrences of delimiter
 	int nFound;
 	if (freq >= 2)
@@ -24800,7 +24810,7 @@ void CAdapt_ItApp::GetValue(const wxString strReadIn, wxString& strValue, wxStri
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxSize representing the extent of the longest sfm string in the 
+/// \return     a wxSize representing the extent of the longest sfm string in the
 ///             styles map
 /// \param      pDC   -> pointer to the display context
 /// \remarks
@@ -24815,7 +24825,7 @@ wxSize CAdapt_ItApp::GetExtentOfLongestSfm(wxDC* pDC)
 	USFMAnalysis* pSfm;
 	wxString key;
 	MapSfmToUSFMAnalysisStruct::iterator iter;
-	for( iter = m_pUsfmAndPngStylesMap->begin(); 
+	for( iter = m_pUsfmAndPngStylesMap->begin();
 		iter != m_pUsfmAndPngStylesMap->end(); ++iter )
 	{
 		pSfm = iter->second;
@@ -24834,11 +24844,11 @@ wxSize CAdapt_ItApp::GetExtentOfLongestSfm(wxDC* pDC)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      s   <-  a wxString on which any "NR Work" substring exists is converted 
+/// \param      s   <-  a wxString on which any "NR Work" substring exists is converted
 ///                     to "Unicode Work"
 /// \remarks
 /// Called from: the App's GetBasicSettingsConfiguration(),
-/// GetProjectSettingsConfiguration(). 
+/// GetProjectSettingsConfiguration().
 /// Changes an instance of "NR Work" found within a config file (path) string s to "Unicode
 /// Work". This is done to automatically update any path names that were created with very
 /// old versions of Adapt It to agree with the current work folder name scheme for the
@@ -24863,8 +24873,8 @@ void CAdapt_ItApp::ChangeNRtoUnicode(wxString& s)
 /// \param      str   -> the string to be converted to the local charset/encoding
 /// \remarks
 /// Called from: (currently unused)
-/// An inline function that onverts an input string to the local charset or encoding using the 
-/// wxConvUTF8 and wxConvLocal predefined converters. Attempts conversion only in ANSI builds. 
+/// An inline function that onverts an input string to the local charset or encoding using the
+/// wxConvUTF8 and wxConvLocal predefined converters. Attempts conversion only in ANSI builds.
 /// In Unicode builds it simply returns the (Unicode) str unchanged.
 ////////////////////////////////////////////////////////////////////////////////////////
 inline wxString convertToLocalCharset(const wxString& str)
@@ -24881,9 +24891,9 @@ inline wxString convertToLocalCharset(const wxString& str)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing the input string converted from the local 
+/// \return     a wxString representing the input string converted from the local
 ///             charset/encoding to UTF-8 encoding
-/// \param      str   ->    the string to be converted from the local charset/encoding 
+/// \param      str   ->    the string to be converted from the local charset/encoding
 ///                         to UTF-8
 /// \remarks
 /// Called from: (currently unused)
@@ -24903,19 +24913,19 @@ inline wxString convertFromLocalCharset(const wxString& str)
 // ReadTextLine is not used in the wx version which uses the wxTextFile class.
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE when font info section of config file was read up to a blank 
+/// \return     TRUE when font info section of config file was read up to a blank
 ///             line. If there was a problem reading a font setting it returns FALSE to
 ///             tell the caller to issue a warning message (but config file reading
 ///             continues)
-/// \param      fi   <-     the fontInfo struct containing the font information as read 
+/// \param      fi   <-     the fontInfo struct containing the font information as read
 ///                         in from the configuration files
-/// \param      pf   ->     pointer to the wxTextFile that is being read as the 
+/// \param      pf   ->     pointer to the wxTextFile that is being read as the
 ///                         config file
-/// \param      bFaceNameFound   ->     TRUE if the font's face name was found on the 
+/// \param      bFaceNameFound   ->     TRUE if the font's face name was found on the
 ///                                     local machine, otherwise FALSE if the face name
 ///                                     was not found
 /// \remarks
-/// Called from: the App's GetConfigurationFile(). 
+/// Called from: the App's GetConfigurationFile().
 /// Reads the font configuration part of a configuration file. GetFontConfiguration() gets
 /// called once for each of the three main fonts used: source language, target language,
 /// and navigation text language. The text file is opened by the caller and remains open
@@ -24961,7 +24971,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 	data = pf->GetLine(curLine);
 	// don't use GetNextLine if we've just opened the file, otherwise we would skip
 	// the first line of the file before getting a chance to process it below
-	if (curLine != 0) 
+	if (curLine != 0)
 	{
 		data = pf->GetNextLine();
 	}
@@ -24976,12 +24986,12 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
         // by the time the program counter gets here, so Mid(3) needs to become Mid(1)
         // (from Bob Eaton)
 #ifdef _UNICODE
-		name = name.Mid(1); // in the Unicode version, the UTF-8 BOM (which was 3 bytes 
+		name = name.Mid(1); // in the Unicode version, the UTF-8 BOM (which was 3 bytes
 							// long) is turned into a single UTF16 character
 #else
 		name = name.Mid(3);	// in the ansi version, the UTF-8 BOM is 3 characters
 #endif
-		chSelector = name.GetChar(0); // S for source, T for target, N for navText; 
+		chSelector = name.GetChar(0); // S for source, T for target, N for navText;
 									  // use for setting color
 		if ((chSelector != _T('S')) && (chSelector != _T('T')) && (chSelector != _T('N')))
 		{
@@ -25002,7 +25012,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		if ( name == szHeight)
 		{
 			num = wxAtoi(strValue); // MFC has _ttoi((LPCTSTR)strValue);
-									// Note: both _ttoi and wxAtoi return 0 if strValue is 
+									// Note: both _ttoi and wxAtoi return 0 if strValue is
 									// empty string ""
 			if (num < -120 || num > 120)
 				num = -16; // 12 point
@@ -25054,7 +25064,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 										 // its normally 400, or 700 for bold
 				num = 700; // default bold
 
-			// we'll retain the raw fWeight value read in, in order to be able to 
+			// we'll retain the raw fWeight value read in, in order to be able to
 			// save it out to config file again
 			fi.fWeightConfSave = num;
 			// wxWidgets needs the predefined const value for Weight
@@ -25074,8 +25084,8 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		}
 		else if (name == szWidth)
 		{
-			num = wxAtoi(strValue); // allow nearly anything positive, 
-									// but 0 for automatic calculation - 
+			num = wxAtoi(strValue); // allow nearly anything positive,
+									// but 0 for automatic calculation -
 			if (num < 0 || num > 1000)
 				num = 0;
 			fi.fWidth = num; // font width is ignored in wxWidgets
@@ -25084,14 +25094,14 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		{
 			num = wxAtoi(strValue);
 			if (num < -10 || num > 10) // only allow one degree, its normally 0
-				num = 0; 
+				num = 0;
 			fi.fEscapement = num; // font escapement is ignored in wxWidgets
 		}
 		else if (name == szOrientation)
 		{
-			num = wxAtoi(strValue); 
+			num = wxAtoi(strValue);
 			if (num < -10 || num > 10) // only allow one degree, its normally 0
-				num = 0; 
+				num = 0;
 			fi.fOrientation = num; // font orientation is ignored in wxWidgets
 		}
 		else if (name == szItalic)
@@ -25101,7 +25111,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 				num = 0; // regular
 			if (num == 0)
 				fi.fStyle = wxNORMAL;
-			else 
+			else
 				fi.fStyle = wxITALIC;
 			// set the style (normal or italic) of the actual font on the App
 			if (fi.fLangType.GetChar(0)  == _T('S'))
@@ -25126,9 +25136,9 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1)) // TRUE if underline, regular is FALSE
 				num = 0; // regular
-			if (num == 0) 
+			if (num == 0)
 				fi.fUnderline = FALSE;
-			else 
+			else
 				fi.fUnderline = TRUE;
 			// set the underline of the actual font on the App
 			if (fi.fLangType.GetChar(0)  == _T('S'))
@@ -25187,13 +25197,13 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 			else if (fi.fLangType.GetChar(0)  == _T('N'))
 				this->m_pNavTextFont->SetFamily(fi.fFamily);
 		}
-		else if (name == szFontEncoding) // if present in config file, 
+		else if (name == szFontEncoding) // if present in config file,
 										 // this should preceed szCharset
 		{
 			m_bConfigFileHasFontEncodingInfo = TRUE;
 			num = wxAtoi(strValue);
 			if (num < -1 || num > 255)
-				num = 0; // allow only possible values, default to 0 
+				num = 0; // allow only possible values, default to 0
 						 // (wxFONTENCODING_DEFAULT) if value corrupted out of range
 			fi.fEncoding = (wxFontEncoding)num;
             // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
@@ -25202,7 +25212,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		{
 			num = wxAtoi(strValue);
 			if (num < 0 || num > 255)
-				num = 0; // allow many values, usual value is 0 
+				num = 0; // allow many values, usual value is 0
 						 // (probably DEFAULT_CHARSET)
 			fi.fCharset = num;
 			if (!m_bConfigFileHasFontEncodingInfo)
@@ -25253,20 +25263,20 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		}
 		else if (name == szColor)
 		{
-			num = wxAtoi(strValue); // allow anything 
+			num = wxAtoi(strValue); // allow anything
 			if (fi.fLangType.GetChar(0)  == _T('S'))
 			{
 				m_sourceColor = Int2wxColour(num);
 				// It is necessary to call the font data's SetColour() function to effect color
-				// change 
+				// change
 				m_pSrcFontData->SetColour(m_sourceColor);
 			}
 			else if (fi.fLangType.GetChar(0)  == _T('T'))
 			{
 				m_targetColor = Int2wxColour(num);
 				// It is necessary to call the font data's SetColour() function to effect color
-				// change 
-				m_pTgtFontData->SetColour(m_targetColor); // 
+				// change
+				m_pTgtFontData->SetColour(m_targetColor); //
 			}
 			else if (fi.fLangType.GetChar(0)  == _T('N'))
 			{
@@ -25295,7 +25305,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 /// \return     nothing
 /// \param      pf   -> pointer to the wxTextFile that is being read as the config file
 /// \remarks
-/// Called from: the App's GetConfigurationFile(). 
+/// Called from: the App's GetConfigurationFile().
 /// Reads the basic settings part of a basic configuration file. The text file is opened by
 /// the caller. Note: wxTextFile is processed entirely in memory. For most settings, this
 /// function accepts the config file entries in any order as long as the format of each
@@ -25326,7 +25336,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 	wxString strTwoPunctPairsSrcSet;
 	wxString strTwoPunctPairsTgtSet;
 #endif
-				 
+
 	do
 	{
 		data = pf->GetNextLine();
@@ -25394,7 +25404,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szCurLanguagesPath)
 		{
 			m_curProjectPath = strValue;
-			//m_sourceInputsFolderPath = m_curProjectPath + PathSeparator + m_sourceInputsFolderName; // whm 12Jun11 commented out 
+			//m_sourceInputsFolderPath = m_curProjectPath + PathSeparator + m_sourceInputsFolderName; // whm 12Jun11 commented out
 		}
 		else if (name == szCurAdaptionsPath)
 		{
@@ -25434,31 +25444,31 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			m_lastKbLiftOutputPath = strValue;
 		}
-		// whm 6Aug11 From version 6.x.x on store the m_lastDocPath 
+		// whm 6Aug11 From version 6.x.x on store the m_lastDocPath
 		// only in the appropriate project config file
 		else if (name == szLastDocPath) // for reading pre-6.x.x basic config files without a warning
 		{
 			m_lastDocPath = strValue;
 		}
-		// whm 6Aug11 From version 6.x.x on store the m_lastSourceInputPath 
+		// whm 6Aug11 From version 6.x.x on store the m_lastSourceInputPath
 		// only in the appropriate project config file
 		else if (name == szLastSourceInputPath) // for reading pre-6.x.x basic config files without a warning
 		{
 			m_lastSourceInputPath = strValue;
 		}
-		// whm 6Aug11 From version 6.x.x on store the m_lastTargetOutputPath 
+		// whm 6Aug11 From version 6.x.x on store the m_lastTargetOutputPath
 		// only in the appropriate project config file.
 		else if (name == szLastExportPath) // for reading pre-6.x.x basic config files without a warning
 		{
 			m_lastTargetOutputPath = strValue;
 		}
-		// whm 6Aug11 From version 6.x.x on store the m_lastSourceOutputPath 
+		// whm 6Aug11 From version 6.x.x on store the m_lastSourceOutputPath
 		// only in the appropriate project config file.
 		else if (name == szLastSourceOutputPath) // for reading pre-6.x.x basic config files without a warning
 		{
 			m_lastSourceOutputPath = strValue;
 		}
-		// whm 6Aug11 From version 6.x.x on store the m_lastSourceRTFOutputPath 
+		// whm 6Aug11 From version 6.x.x on store the m_lastSourceRTFOutputPath
 		// only in the appropriate project config file.
 		else if (name == szLastSourceRTFOutputPath) // for reading pre-6.x.x basic config files without a warning
 		{
@@ -25564,7 +25574,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // quotes converted to regular quotes in the punctuation lists. Maybe they used
             // smart quotes for all their quotes requirements, and used a regular single
             // quote (apostrophe) as a word building glottal character, for example.
-			
+
             // whm note: For wx ANSI version, when compiled for wxGTK, we should check the
             // punct strings for illegal 8-bit chars, specifically for MS' smart quotes
             // which cause problems because the wxGTK library internally keeps strings in
@@ -25646,8 +25656,8 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // wxGTK uses UTF-8 internally in its wxTextCtrl widgets, so let's try
             // converting the punctuation string to UTF-8 for wxGTK ANSI builds.
 //#ifdef __GNUG__
-//			// The following converts strValue to 
-//			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));  
+//			// The following converts strValue to
+//			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));
 //#endif
 			// set flag if apostrophe is designated as a punctuation character (this makes
 			// ParseWord() do its job smarter within TokenizeText())
@@ -25758,7 +25768,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			strTwoPunctPairsTgtSet = strValue;
 		}
 #endif
-		
+
 		// now stuff for the view
 		else if (name == szZoomed)
 		{
@@ -25777,7 +25787,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // count of doc pSrcPhrase instances - though we generate that value now on the
             // fly when we need it, so m_nMaxToDisplay is only for backwards compatibility
             // of the config files)
-			//if (num <= 80 || num > 4000) 
+			//if (num <= 80 || num > 4000)
 			//	num = 300;
 			m_nMaxToDisplay = num;
 		}
@@ -25795,7 +25805,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szMinFollContext)
 		{
 			num = wxAtoi(strValue);
-			/* 
+			/*
 			if (num <= 10 || num > 60)
 				num = 30;
 			m_nFollowingContext = num;
@@ -25808,14 +25818,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			num = wxAtoi(strValue);
 			if (num <= 16 || num > 80)
 				num = 32;
-			m_curLeading = num; 
+			m_curLeading = num;
 		}
 		else if (name == szLeftMargin)
 		{
-			// whm 2Aug06 changed default to 16 for better visibility 
+			// whm 2Aug06 changed default to 16 for better visibility
 			// of the notes icon at left margin
 			num = wxAtoi(strValue);
-			if (num < 16 || num > 80) 
+			if (num < 16 || num > 80)
 				num = 16;
 			m_curLMargin = num;
 		}
@@ -25863,7 +25873,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 0; // if out of reasonable range default to a profile of "None".
 			m_nWorkflowProfile = num;
 		}
-		// whm Note 8Sep11. ALL of the collaboration-related 
+		// whm Note 8Sep11. ALL of the collaboration-related
 		// settings need to be in the basic configuration file
 		// because the GetSourceTextFromEditor dialog needs them
 		// at the time that only the basic config file has been
@@ -26024,12 +26034,12 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szReTranslnTextColor) // read but no longer written in the basic config file
 		{
-			//num = wxAtoi(strValue); // allow anything 
+			//num = wxAtoi(strValue); // allow anything
 			; //m_reTranslnTextColor = Int2wxColour(num);// Int2wxColour() in helpers.h
 		}
 		else if (name == szTgtDiffsTextColor) // read but no longer written in the basic config file
 		{
-			// num = wxAtoi(strValue); // allow anything 
+			// num = wxAtoi(strValue); // allow anything
 			; //m_tgtDiffsTextColor = Int2wxColour(num);// Int2wxColour() in helpers.h
 		}
 		else if (name == szTS_DOC_MINS)
@@ -26165,13 +26175,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szLoEnglishFlag)
 		{
-			// in wx version page setup only has mm for margins, 
+			// in wx version page setup only has mm for margins,
 			// so we only use Metric for now
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
-				num = 1; 
+				num = 1;
 			if (num == 0)
-				m_bIsInches = FALSE; 
+				m_bIsInches = FALSE;
 			else
 				m_bIsInches = TRUE;
 		}
@@ -26179,7 +26189,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
-				num = 1; 
+				num = 1;
 			if (num == 0)
 				m_bIsPortraitOrientation = FALSE;
 			else
@@ -26187,31 +26197,31 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szLastPageWidth)
 		{
-			// whm MFC used if (num < 0), wx versions uses if (num <= 0) 
+			// whm MFC used if (num < 0), wx versions uses if (num <= 0)
 			// to set default to A4 if config has 0
 			num = wxAtoi(strValue);
-			if (num <= 0) 
+			if (num <= 0)
 				num = 8267;
 			m_pageWidth = num;
 			// use the more prcise conversion factor for page size
-			m_pageWidthMM = wxRound(num * thousandthsInchToMillimetres); 
+			m_pageWidthMM = wxRound(num * thousandthsInchToMillimetres);
 		}
 		else if (name == szLastPageLength)
 		{
-			// whm MFC used if (num < 0), wx versions uses if (num <= 0) 
+			// whm MFC used if (num < 0), wx versions uses if (num <= 0)
 			// to set default to A4 if config has 0
 			num = wxAtoi(strValue);
-			if (num <= 0) 
+			if (num <= 0)
 				num = 11692;
 			m_pageLength = num;
 			// use the more prcise conversion factor for page size
-			m_pageLengthMM = wxRound(num * thousandthsInchToMillimetres); 
+			m_pageLengthMM = wxRound(num * thousandthsInchToMillimetres);
 		}
 		else if (name == szPaperSizeCode)
 		{
 			num = wxAtoi(strValue);
 			if (num < 0 || num > 300)
-				num = 9; // A4 
+				num = 9; // A4
 			m_paperSizeCode = num;
 		}
 		else if (name == szMarginTop)
@@ -26246,11 +26256,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 1000;
 			m_marginRight = num;
 			// use the less precise conversion factor for margins
-			m_marginRightMM = (int)(num * config_only_thousandthsInchToMillimetres); 
+			m_marginRightMM = (int)(num * config_only_thousandthsInchToMillimetres);
 		}
 		else if (name == szPunctuation) // (now very) old punctuation system
 		{
-			; // m_punctuation[0] = strValue; // retain in case a pre-2001 
+			; // m_punctuation[0] = strValue; // retain in case a pre-2001
 			  // config file needs to be read
 		}
 		else if (name == szPunctAsWordBuilding)
@@ -26328,14 +26338,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szAutoInsertionsHighlightColor) // whm 6Aug11 moved to project config file
 		{
 			// whm 6Aug11 we read the value from old config files but ignore it
-			//num = wxAtoi(strValue); // allow anything 
+			//num = wxAtoi(strValue); // allow anything
 			//m_AutoInsertionsHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 			;
 		}
 		else if (name == szGuessHighlightColor) // whm 6Aug11 moved to project config file
 		{
 			// whm 6Aug11 we read the value from old config files but ignore it
-			//num = wxAtoi(strValue); // allow anything 
+			//num = wxAtoi(strValue); // allow anything
 			//m_GuessHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 			;
 		}
@@ -26378,11 +26388,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's GetProjectConfiguration() if SHIFT key is being held down, 
+/// Called from: the App's GetProjectConfiguration() if SHIFT key is being held down,
 /// CCaseEquivPageCommon::DoBnClickedSrcSetEnglish(),
 /// CCaseEquivPageCommon::DoBnClickedTgtSetEnglish(),
 /// CCaseEquivPageCommon::DoBnClickedGlossSetEnglish(), and
-/// CProjectPage::OnWizardPageChanging() moving forward and creating a <New Project>. 
+/// CProjectPage::OnWizardPageChanging() moving forward and creating a <New Project>.
 /// Sets the default source, target and gloss language case equivalences to the
 /// English/Latin alphabetical set.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -26414,7 +26424,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
     // if the basic config file cannot be read successfully, i.e., the call to
     // GetConfigurationFile(szBasicConfiguration,m_workFolderPath,1) in the App's
     // Initialize() function returns FALSE.
-	// 
+	//
     // Although InitializeFonts() always gets called from OnInit(), SetDefaults() can also
     // be invoked if there was a bad read of the basic config file, so we call
     // InitializeFonts() again here to correct any garbage settings that may have been set
@@ -26423,7 +26433,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	InitializePunctuation();
 
 	// TODO: Should some/all of the following be put in Adapt_ItConstants.h ???
-	//m_nMaxToDisplay = 300; // 22Mar09, no longer used, but retained for backwards 
+	//m_nMaxToDisplay = 300; // 22Mar09, no longer used, but retained for backwards
 							 // compatibility of config file
 	//m_nPrecedingContext = 50;
 	//m_nFollowingContext = 30;
@@ -26439,12 +26449,12 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 
 	m_bUseStartupWizardOnLaunch = TRUE;
 	m_bAutoBackupKB = TRUE;
-	/* 
+	/*
 	//BEW changed default to FALSE, because new users won't realize they start out
 	//unprotected from total work loss if the power goes out during their first session,
 	//as happened in Bob Buss's Brazil training workshop
-	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in 
-						  // App's constructor as default)	
+	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in
+						  // App's constructor as default)
 	*/
 	m_bNoAutoSave = FALSE; // AutoSavingPage.cpp, InitDialog() takes this value and
 						   // sets up the wiz page's control value from it
@@ -26462,7 +26472,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	m_ptViewTopLeft.y = 20;
 	m_szView.x = 640;
 	m_szView.y = 580;
-	m_bMarkerWrapsStrip = TRUE; 
+	m_bMarkerWrapsStrip = TRUE;
 	m_bZoomed = FALSE;
 
 	m_bIsInches = FALSE; // in wx version's Windows page setup only has mm
@@ -26493,20 +26503,20 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	m_nCurDelay = 0; // default is no delay (zero ticks)
 
 	// whm note 9Jun11:
-	// TODO: The code block below for re-establishing a custom work folder setup when 
-	// a user does a SHIFT-down startup, works OK when PT collaboration is in effect, 
-	// but I think it can be improved to make a SHIFT-down startup work better. 
-	// I think that adding the storage of critical custom workfolder values in the 
+	// TODO: The code block below for re-establishing a custom work folder setup when
+	// a user does a SHIFT-down startup, works OK when PT collaboration is in effect,
+	// but I think it can be improved to make a SHIFT-down startup work better.
+	// I think that adding the storage of critical custom workfolder values in the
 	// Adapt_It_WX.ini - in particular the m_bLockedCustomWorkFolderPath,
 	// the m_bUseCustomWorkFolderPath, and the m_customWorkFolderPath - would improve
-	// reliability and usability. The values stored in Adapt_It_WX.ini are likely to 
-	// be only stored on a user's machine and won't be transferred to other machines 
-	// if/when an Adapt It project is copied to another machine via a thumbdrive or 
-	// via Pack/Unpack Document operation. Hence, the values stored within 
-	// Adapt_It_WX.ini are more stable for a give user's computing environment. 
-	// If the user needs to do a SHIFT-down startup because of a corruption problem 
-	// in one of the .aic config files or from getting a foreign .aic config file, the 
-	// Adapt_It_WX.ini values would very likely be those that an administrator would 
+	// reliability and usability. The values stored in Adapt_It_WX.ini are likely to
+	// be only stored on a user's machine and won't be transferred to other machines
+	// if/when an Adapt It project is copied to another machine via a thumbdrive or
+	// via Pack/Unpack Document operation. Hence, the values stored within
+	// Adapt_It_WX.ini are more stable for a give user's computing environment.
+	// If the user needs to do a SHIFT-down startup because of a corruption problem
+	// in one of the .aic config files or from getting a foreign .aic config file, the
+	// Adapt_It_WX.ini values would very likely be those that an administrator would
 	// have wanted to be preserved for that given user's computer.
 
 	if (bAllowCustomLocationCode)
@@ -26555,8 +26565,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 
 	// whm added 7Jun11. If Paratext collaboration was ON at the time the user used the SHIFT
 	// key to get the app going again, we would want the values related to Paratext collaboration
-	// that are stored in Adapt_It_WX.ini to be restored since it is likely to be accurate even if 
-	// the basic config file needs to be re-created from scratch (most likely due to errant edits 
+	// that are stored in Adapt_It_WX.ini to be restored since it is likely to be accurate even if
+	// the basic config file needs to be re-created from scratch (most likely due to errant edits
 	// done by a user).
 
 	// Read the PT related flags that were last stored in the Adapt_It_WX.ini file and restore
@@ -26701,16 +26711,16 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 			m_CollabAIProjectName = tempCollabAIProjectName;
 		}
 	}
-	
-	
+
+
 	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
 	// the SHIFT key to get the app going again, we would want the workflow related values
 	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
 	// the basic config file needs to be re-created from scratch (most likely due to errant
 	// edits done by a user).
 	// The basic config file value of concern is m_nWorkflowProfile.
-	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file 
-	// and restore it if it differs from what was stored in the corresponding App's 
+	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file
+	// and restore it if it differs from what was stored in the corresponding App's
 	// m_nWorkflowProfile value (due to SHIFT-down restart).
 	bReadOK = FALSE;
 	int nTempUserProfile = 0;
@@ -26722,7 +26732,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	{
 		m_nWorkflowProfile = nTempUserProfile;
 	}
-	
+
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 
@@ -26735,9 +26745,9 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 {
 	wxString customPathFilename = _T("CustomWorkFolderLocation"); // must NOT be localizable
 	wxString aPath = m_workFolderPath + PathSeparator + customPathFilename;
-	
+
 	wxLogNull logNo; // avoid spurious messages from the system
-	
+
 	bool bIsCustomLocationPersistent = ::FileExists(aPath);
 	if (bIsCustomLocationPersistent)
 	{
@@ -26792,7 +26802,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		}
 		else
 		{
-			// since we've already verified that there is something in the 
+			// since we've already verified that there is something in the
 			// CustomWorkFolderLocation file and that file is not locked, there ought to
 			// be no problem getting it open; so this failure can be an English message
 			// and then abort, because the fix required would be a developer issue
@@ -26818,7 +26828,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		{
 			// this normally doesn't fail, but it will certainly fail if the user at
 			// an earlier session set up a custom work folder on an external (removable)
-			// drive and made it persistant there, but then unmounted the drive before 
+			// drive and made it persistant there, but then unmounted the drive before
 			// the current launch, or while working -- so because these possibilities are
 			// real, we need to give the user a chance to recover
 			wxString str;
@@ -26863,7 +26873,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			case editCustomWorkFolderLocationFile:
 				{
 					// assume the bad directory path specification has been edited and the
-					// CustomWorkFolderLocation file resaved where it is, or if the file was open 
+					// CustomWorkFolderLocation file resaved where it is, or if the file was open
 					// then the user has closed it; and so try the code from
 					// the beginning of DealWithThePossibilityOfACustomWorkFolderLocation()
 					// again, and if it succeeds then we've successfully recovered
@@ -26947,7 +26957,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					// administrator to re-locate the custom work folder by using the
 					// Administrator menu command "Custom Work Folder Location" on
 					// relaunch; on exit from the switch, two flags are redundantly
-					// reset TRUE, and then control passes on - having 'recovered' 
+					// reset TRUE, and then control passes on - having 'recovered'
 					// (provided the user chose the correct folder!)
 					bool bSucceeded = SetupCustomWorkFolderLocation(); // let user search
 					if (bSucceeded)
@@ -26956,7 +26966,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						OnLockCustomLocation(dummy);
 						// since the above code is being called from OnInit() or SetDefaults(),
 						// in other case control will enter the Start Working Wizard and
-						// so the projects in the custom work folder location should be 
+						// so the projects in the custom work folder location should be
 						// accessible now (a way to test this is to set up a custom work
 						// folder on a thumb drive, then close AI, remove the thumb drive,
 						// launch AI, and when the recovery messages are visible, plug in
@@ -27008,7 +27018,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 	{
  		// we do expect a basic config file to be located ready for us at the custom work
 		// folder location; but if for any reason one is not found there, we don't want to
-		// abort the app, instead, we will just warn the user that one was not found, and 
+		// abort the app, instead, we will just warn the user that one was not found, and
 		// call SetDefaults() to set up default basic config values. The user will then
 		// need to perhaps do a little fiddling later in Preferences to restore his desired
 		// settings, but at least when he next exits the app, a valid basic config file will
@@ -27027,7 +27037,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			m_bSkipBasicConfigFileCall = TRUE;
 			return TRUE;
 		}
-		
+
 	   // ultimately, the custom work folder location could have been locked down, and if so,
 		// then the basic config file will have its location, and m_bUseCustomWorkFolderPath
 		// will have been set TRUE and so too will m_bLockedCustomWorkFolderPath be set TRUE if
@@ -27058,10 +27068,10 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pf   <- pointer to the wxTextFile that is being written as the 
+/// \param      pf   <- pointer to the wxTextFile that is being written as the
 ///                     config file
 /// \remarks
-/// Called from: the App's WriteConfigurationFile(). 
+/// Called from: the App's WriteConfigurationFile().
 /// Writes the project settings part of a project configuration file. The text file is
 /// opened by the caller.
 /// BEW modified 17Aug09 & removed modification on 19Aug09 for following reason:
@@ -27138,7 +27148,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szLastSourceRTFOutputPath << tab << m_lastSourceRTFOutputPath; // whm 6Aug 11 moved here from basic config file
 	pf->AddLine(data);
-	
+
 	data.Empty();
 	data << szLastTargetOutputPath << tab << m_lastTargetOutputPath; // use the new LastTargetExportPath label from 6.x.x on
 	pf->AddLine(data);
@@ -27181,7 +27191,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 #else
 	// UNICODE
-	// From version 2.3.0 we no longer write out the encoding ID 
+	// From version 2.3.0 we no longer write out the encoding ID
 	// value for the punctuation fields
 	wxString src;
 	wxString tgt;
@@ -27224,13 +27234,13 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
 	// whm 6Aug11 moved here from the basic config file
 	data.Empty();
-	data << szAutoInsertionsHighlightColor << tab 
+	data << szAutoInsertionsHighlightColor << tab
 			<< WxColour2Int(m_AutoInsertionsHighlightColor);
 	pf->AddLine(data);
 
 	// whm 6Aug11 moved here from the basic config file
 	data.Empty();
-	data << szGuessHighlightColor << tab 
+	data << szGuessHighlightColor << tab
 			<< WxColour2Int(m_GuessHighlightColor); // whm added 1Nov10
 	pf->AddLine(data);
 	if (m_bBackupDocument)
@@ -27250,11 +27260,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	if (m_bUseAdaptationsGuesser)
 		number = _T("1");
-	else 
+	else
 		number = _T("0");
 	data << szUseAdaptationsGuesser << tab << number;
 	pf->AddLine(data);
-	
+
 	data.Empty();
 	data << szGuessingLevel << tab << m_nGuessingLevel;
 	pf->AddLine(data);
@@ -27262,11 +27272,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	if (m_bAllowGuesseronUnchangedCCOutput)
 		number = _T("1");
-	else 
+	else
 		number = _T("0");
 	data << szAllowCConUnchangedGuesserOutput << tab << number;
 	pf->AddLine(data);
-	
+
 	if (m_bRTL_Layout)
 		number = _T("1");
 	else
@@ -27318,7 +27328,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 #endif // _RTL_FLAGS
-	
+
 	// now for the auto-capitalization stuff
 	data.Empty();
 	data << szLowerCaseSourceChars << tab << m_srcLowerCaseChars;
@@ -27364,7 +27374,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFontSizeForDialogs << tab << m_dialogFontSize;
 	pf->AddLine(data);
 
-	switch (gProjectSfmSetForConfig) // whm ammended 6May05 to use gProjectSfmSetForConfig 
+	switch (gProjectSfmSetForConfig) // whm ammended 6May05 to use gProjectSfmSetForConfig
 	{
 		case UsfmOnly: number = szUsfmOnly;break;
 		case PngOnly: number = szPngOnly;break;
@@ -27386,7 +27396,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szChangeFixedSpaceToRegSpace << tab << number;
 	pf->AddLine(data);
-	
+
     // order is important for the next two - m_bBookMode must be in the config file earlier
     // than m_nBookIndex, since the latter must be used to restore the pair pointer when
     // book mode is on
@@ -27449,10 +27459,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 /// \return     nothing
 /// \param      pf   -> pointer to the wxTextFile that is being read as the config file
 /// \remarks
-/// Called from: the App's GetConfigurationFile(). 
-/// Reads the project settings part of a project configuration file. 
-/// For the most part, the project settings entries can be in any order, as long as the 
-/// format of each line's entry is correct: that is, a name, tab, and string value. The 
+/// Called from: the App's GetConfigurationFile().
+/// Reads the project settings part of a project configuration file.
+/// For the most part, the project settings entries can be in any order, as long as the
+/// format of each line's entry is correct: that is, a name, tab, and string value. The
 /// exception is that the source language punctuation pairs data must be read before the
 /// target punctuation pairs data.
 /// NOTE: This function expects pf to already have been opened and the internal
@@ -27464,7 +27474,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 /// because the latter's code block sets the boolean bForeignConfigFile which is needed
 /// for handling the other paths safely
 /// whm 7Aug11 removed the boolean bForeignConfigFile test - as now unnecessary, therefore
-/// Bruce's comment above about additional order dependence for glosses and free 
+/// Bruce's comment above about additional order dependence for glosses and free
 /// translation exports is no longer an issue. The only remaining order dependence in
 /// the project config file is for the BookModeFlag to preceed the BookIndexValue item.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -27493,11 +27503,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 	bool bAddedLeftSingleQuote = FALSE;
 	bool bAddedRightSingleQuote = FALSE;
 #endif
-				 
+
 	do
 	{
 		data = pf->GetNextLine();
-		
+
 #ifdef _UNICODE
 		ChangeNRtoUnicode(data);
 #endif
@@ -27645,12 +27655,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			strValue += additions;
 #else
 			// In non-windows ANSI versions, remove any smart quotes that exist in the
-			// punctuation string. 
+			// punctuation string.
             // Possible Problem: We cannot assume that the user would always want smart
             // quotes converted to regular quotes in the punctuation lists. Maybe they used
             // smart quotes for all their quotes requirements, and used a regular single
             // quote (apostrophe) as a word building glottal character, for example.
-			
+
 			// whm note: For wx ANSI version, when compiled for wxGTK, we should
 			// check the punct strings for illegal 8-bit chars, specifically for MS' smart
 			// quotes which cause problems because the wxGTK library internally
@@ -27732,8 +27742,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
             // wxGTK uses UTF-8 internally in its wxTextCtrl widgets, so let's try
             // converting the punctuation string to UTF-8 for wxGTK ANSI builds.
 //#ifdef __GNUG__
-//			// The following converts strValue to 
-//			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));  
+//			// The following converts strValue to
+//			wxConvUTF8.cWC2MB(wxConvCurrent->cMB2WC(strValue));
 //#endif
 			// set flag if apostrophe is designated as a punctuation character (this makes
 			// ParseWord() do its job smarter within TokenizeText())
@@ -27824,7 +27834,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				// add it if the source had it added
 				additions += ch;
 			}
-			int found = strValue.Find(_T('\'')); // look for vertical ordinary 
+			int found = strValue.Find(_T('\'')); // look for vertical ordinary
 												 // quote (ie. apostrophe)
 			if (found >= 0)
 				m_bSingleQuoteAsPunct = TRUE;
@@ -27850,12 +27860,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szReTranslnTextColor)
 		{
-			num = wxAtoi(strValue); // allow anything 
+			num = wxAtoi(strValue); // allow anything
 			m_reTranslnTextColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
 		else if (name == szTgtDiffsTextColor)
 		{
-			num = wxAtoi(strValue); // allow anything 
+			num = wxAtoi(strValue); // allow anything
 			m_tgtDiffsTextColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
 		else if (name == szNavTextColor)
@@ -27869,12 +27879,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szAutoInsertionsHighlightColor) // whm 6Aug11 moved here from basic config file
 		{
-			num = wxAtoi(strValue); // allow anything 
+			num = wxAtoi(strValue); // allow anything
 			m_AutoInsertionsHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
 		else if (name == szGuessHighlightColor) // whm 6Aug11 moved here from basic config file
 		{
-			num = wxAtoi(strValue); // allow anything 
+			num = wxAtoi(strValue); // allow anything
 			m_GuessHighlightColor = Int2wxColour(num); // Int2wxColour() in helpers.h
 		}
 		else if (name == szPunctuation) // old punctuation system
@@ -28043,7 +28053,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				num = 12;
 			m_dialogFontSize = num;
 		}
-		else if (name == szUseSFMarkerSet) 
+		else if (name == szUseSFMarkerSet)
 		{
 			num = wxAtoi(strValue);
 			if (strValue == szUsfmOnly)
@@ -28062,7 +28072,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			{
 				gProjectFilterMarkersForConfig = strValue;
 			}
-			else 
+			else
 			{
                 // config has szUseFilterMarkers label but no filter markers following it
                 // so use the gCurrentFilterMarkers value for
@@ -28099,7 +28109,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if ((num < -1 || num > 66))
 				num = -1; // -1, if there was an error
 			m_nBookIndex = num;
-			
+
 			// we must now restore the pair pointer, if book mode is on
 			// and the folder path
 			if (m_bBookMode && !m_bDisableBookMode)
@@ -28112,7 +28122,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				// of range (i.e., user changed to a custom books.xml or edited the
 				// project config file's BookIndexValue to an erroneous value), turn
 				// off book mode and set flags to default values.
-				if (m_nBookIndex < -1 || 
+				if (m_nBookIndex < -1 ||
 					(m_nBookIndex + 1) > (int)(*m_pBibleBooks).GetCount())
 				{
 					goto t;
@@ -28199,7 +28209,7 @@ t:				m_pCurrBookNamePair = NULL;
         // inventory of standard format markers, therefore we assign both gCurrentSfmSet
         // and gProjectSfmSetForConfig to be PngOnly. This setting remains PngOnly until
         // the user explicitly changes to a different SfmSet using Edit Preferences USFM
-        // and Filtering tab, or the USFM and Filtering page in the Start Working... wizard 
+        // and Filtering tab, or the USFM and Filtering page in the Start Working... wizard
         // upon creation of a new project.
 		gCurrentSfmSet = PngOnly;
 		gProjectSfmSetForConfig = gCurrentSfmSet; // whm added 6May05
@@ -28220,7 +28230,7 @@ t:				m_pCurrBookNamePair = NULL;
 	// BEW added 31Oct05; else remove the checkmark if the value was FALSE
 	// remove the checkmark
 	gbSuppressAutoCapsAsk = TRUE;
-	// toggle the flag value because the OnToolsAutoCapitalization call will 
+	// toggle the flag value because the OnToolsAutoCapitalization call will
 	// retoggle it back again
 	if (gbAutoCaps)
 	{
@@ -28298,7 +28308,7 @@ bool CAdapt_ItApp::DocHasFreeTranslations(SPList* pSPList)
 // return TRUE if all went well, FALSE if there was an error along the way
 // Used in Paratext or Bibledit collaboration feature -- see GetSourceTextFromEditor.h & .cpp
 // BEW created 22Jun11
-bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
+bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath,
 																EthnologueCodePair* pCodePair)
 {
 	wxString configFName = szProjectConfiguration + _T(".aic");
@@ -28358,8 +28368,8 @@ bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projec
 	} while (name != szSourceLanguageCode && !f.Eof()); // whm added !f.Eof() condition 30Jun11
 	// we exit the loop at the line with label _T("SourceLanguageName"), the strValue has
 	// the first code that we want
-	// whm modified 30Jun11. Older config files won't have the szSourceLanguageCode or 
-	// soTargetLanguageCode values, therefore we must test for f.Eof() in the do loop 
+	// whm modified 30Jun11. Older config files won't have the szSourceLanguageCode or
+	// soTargetLanguageCode values, therefore we must test for f.Eof() in the do loop
 	// above, and prevent the calling of f.GetNextLine() below if we are at Eof().
 	pCodePair->srcLangCode = strValue;
 	// the next line has the target language code, get it
@@ -28384,7 +28394,7 @@ bool CAdapt_ItApp::ExtractEthnologueLangCodesFromProjConfigFile(wxString& projec
 // language code pairs from each one's project config file, returned an array of
 // EthnologueCodePair structs containing the gleaned information, the structs also return
 // the project's folder name and the absolute path to the project folder.
-// Calls: bool ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath, 
+// Calls: bool ExtractEthnologueLangCodesFromProjConfigFile(wxString& projectFolderPath,
 // EthnologueCodePair* pCodePair); see above
 // Return FALSE if there was an error preventing successful populating of the
 // pCodePairsArray, otherwise return TRUE.
@@ -28445,14 +28455,14 @@ bool CAdapt_ItApp::GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCode
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table of the CAdapt_ItDoc class where the Doc's OnFileNew()
 /// handler gets triggered by a File | New command, and the Doc's OnFileNew() explicitly
 /// calls this function. This OnFileNew() handler is also called explicitly from the App's
 /// OnInit() function with a wxID_NEW command event passed to it in order to create an
-/// initial default document when the app is first run. 
+/// initial default document when the app is first run.
 /// This handler simply calls the OnFileNew() method of the m_pDocManager object.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnFileNew(wxCommandEvent& event)
@@ -28649,7 +28659,7 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
 		// we'll do the fix silently for the target language
 		tgtPunctuation += _T(" >"); // add it after a delimiting space
 	}
-	
+
 	// finally, add a delimiting space to the end, provided there is some content already
 	if (!srcPunctuation.IsEmpty())
 		srcPunctuation += _T(' ');
@@ -28753,28 +28763,28 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     FALSE if destinationFolder is empty, if no configuration file yet 
+/// \return     FALSE if destinationFolder is empty, if no configuration file yet
 ///             exists, or could not set directory path, otherwise TRUE indicating write
 ///             was successful
-/// \param      configFilename     ->   the name of the configuration file (without 
+/// \param      configFilename     ->   the name of the configuration file (without
 ///                                     .aic extension)
-/// \param      destinationFolder  ->   the path location where the configuration file 
+/// \param      destinationFolder  ->   the path location where the configuration file
 ///                                     is to be written
-/// \param      configType         ->   an enum of basicConfigFile when writing the 
-///                                     Basic config file; projectConfigFile if writing 
+/// \param      configType         ->   an enum of basicConfigFile when writing the
+///                                     Basic config file; projectConfigFile if writing
 ///                                     the Project config file
 /// \remarks
 /// Called from: the App's Terminate() and OnExit(), the Doc's OnNewDocument(),
 /// OnSaveModified(), OnOpenDocument(), and OnFilePackDoc(). BEW 9Sep09, also can be
 /// called from MakeForeignBasicConfigFileSafe() when needing to clone a basic
 /// configuration file in order to produce a AI-AdminBasicConfiguration.aic file.
-/// 
+///
 /// Composes the whole configuration file in memory (as a wxTextFile) by calling the
 /// appropriate helper functions (WriteFontConfiguration and either
 /// WriteBasicSettingsConfiguration or WriteProjectSettingsConfiguration), then writes the
 /// in-memory text file to its path/name destination.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename, 
+bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 										  wxString destinationFolder,ConfigFileType configType)
 {
 	if (m_bReadOnlyAccess || (IsURI(destinationFolder) && configFilename.Find(_T("AI-Admin")) != 0))
@@ -28825,7 +28835,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 
 	// open the config file for writing
 	bool bIsOK = TRUE;
-	wxTextFile f; 
+	wxTextFile f;
 	// make the working directory the "Adapt It Work" one
 	// bool bOK = ::SetCurrentDirectory(destinationFolder); // ignore failures
 	bool bOK;
@@ -28863,12 +28873,12 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 
 	if (!bSuccessful)
 	{
-		// assume there was no configuration file in existence yet, 
+		// assume there was no configuration file in existence yet,
 		// so nothing needs to be fixed
 		return FALSE;
 	}
 
-	// Since we are going to write a new config file we clear the 
+	// Since we are going to write a new config file we clear the
 	// current contents from memory
 	while (f.GetLineCount())
 		f.RemoveLine(0);
@@ -28905,7 +28915,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 		f.AddLine(szProjectSettings);
 		WriteProjectSettingsConfiguration(&f);
 	}
-		
+
 	if (!f.Write())
 		bIsOK = FALSE;
 
@@ -28919,19 +28929,19 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     FALSE if if no configuration file yet exists, or could not could 
+/// \return     FALSE if if no configuration file yet exists, or could not could
 ///             not read it, otherwise TRUE indicating read was successful
-/// \param      configFilename     ->   the name of the configuration file (without 
+/// \param      configFilename     ->   the name of the configuration file (without
 ///                                     .aic extension)
-/// \param      sourceFolder       ->   the path location where the configuration file 
+/// \param      sourceFolder       ->   the path location where the configuration file
 ///                                     is to be read
 /// \param      configType         ->   either the basicConfigFile or projectConfigFile
 /// \remarks
-/// Called from: the App's GetBasicConfiguration() and GetProjectConfiguration(). 
+/// Called from: the App's GetBasicConfiguration() and GetProjectConfiguration().
 /// Reads the whole config file into memory and from there it decomposes it line-by-line
 /// (as a wxTextFile) by calling the appropriate helper functions: GetFontConfiguration()
 /// and either GetBasicSettingsConfiguration() or GetProjectSettingsConfiguration().
-/// whm 24Feb10 modified to move the font mismatch checking to FixConfigFileFonts(). 
+/// whm 24Feb10 modified to move the font mismatch checking to FixConfigFileFonts().
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString sourceFolder,
 										ConfigFileType configType)
@@ -29042,7 +29052,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		configFileType = _("project");
 	msg = _(
 "Unable to read %s font data from the %s configuration file. Default values will be used instead.");
-	
+
 	// get the source font's SrcFInfo data from the configFileType config file
 	bOK = GetFontConfiguration(SrcFInfo,&f);
 	if (!bOK)
@@ -29074,9 +29084,9 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
     // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
-	
+
 	// get the section heading from our in-memory config file
-	data = f.GetNextLine(); // data should be "Settings" for basic config file 
+	data = f.GetNextLine(); // data should be "Settings" for basic config file
 							// or "ProjectSettings" for proj config file
 
 	GetValue(data, strValue, name);
@@ -29120,17 +29130,17 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 /// \param      pp[MAXPUNCTPAIRS]   ->  the PUNCTPAIR array
 /// \param      rSrcStr             <-  a wxString that receives the source language
 ///                                     punctuation characters
-/// \param      rTgtStr             <-  a wxString that receives the target language 
+/// \param      rTgtStr             <-  a wxString that receives the target language
 ///                                     punctuation characters
 /// \remarks
-/// Called from: the App's WriteBasicSettingsConfiguration() and 
+/// Called from: the App's WriteBasicSettingsConfiguration() and
 /// WriteProjectSettingsConfiguration().
 /// Populates the strings with the current contents of the array of pairs; source puncts in
 /// the rSrcStr, and target ones in rTgtStr. Separating them in such a way allows us to
 /// convert each with the encoding appropriate for each when we output the config files to
 /// disk.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::PunctPairsToTwoStrings(PUNCTPAIR pp[MAXPUNCTPAIRS], 
+void CAdapt_ItApp::PunctPairsToTwoStrings(PUNCTPAIR pp[MAXPUNCTPAIRS],
 											wxString& rSrcStr, wxString& rTgtStr)
 {
 	// clear strings
@@ -29193,17 +29203,17 @@ void CAdapt_ItApp::PunctPairsToTwoStrings(PUNCTPAIR pp[MAXPUNCTPAIRS],
 /// \param      pp[MAXTWOPUNCTPAIRS]   ->   the TWOPUNCTPAIR array
 /// \param      rSrcStr                <-   a wxString that receives the source language
 ///                                         punctuation characters
-/// \param      rTgtStr                <-   a wxString that receives the target language 
+/// \param      rTgtStr                <-   a wxString that receives the target language
 ///                                         punctuation characters
 /// \remarks
-/// Called from: the App's WriteBasicSettingsConfiguration() and 
+/// Called from: the App's WriteBasicSettingsConfiguration() and
 /// WriteProjectSettingsConfiguration().
 /// Populates the strings with the current contents of the array of twopunct pairs; source
 /// puncts in the rSrcStr, and target ones in rTgtStr. Separating them in such a way allows
 /// us to convert each with the encoding appropriate for each when we output the config
 /// files to disk.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::TwoPunctPairsToTwoStrings(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], 
+void CAdapt_ItApp::TwoPunctPairsToTwoStrings(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 											 wxString& rSrcStr, wxString& rTgtStr)
 {
 	// clear strings
@@ -29286,20 +29296,20 @@ void CAdapt_ItApp::TwoPunctPairsToTwoStrings(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pp[MAXPUNCTPAIRS]   <-  the PUNCTPAIR array that gets populated with 
+/// \param      pp[MAXPUNCTPAIRS]   <-  the PUNCTPAIR array that gets populated with
 ///                                     punct pairs
-/// \param      rSrcStr             ->  a wxString that contains the source language 
+/// \param      rSrcStr             ->  a wxString that contains the source language
 ///                                     punctuation characters
-/// \param      rTgtStr             ->  a wxString that contains the target language 
+/// \param      rTgtStr             ->  a wxString that contains the target language
 ///                                     punctuation characters
 /// \remarks
-/// Called from: the App's GetBasicSettingsConfiguration() and 
+/// Called from: the App's GetBasicSettingsConfiguration() and
 /// GetProjectSettingsConfiguration().
 /// Populates the PUNCTPAIR array with the current contents of the punctuation characters
 /// stored in the rSrcStr and rTgtStr strings. See PunctPairsToTwoStrings() for the
 /// function that does the opposite action.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::TwoStringsToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], 
+void CAdapt_ItApp::TwoStringsToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS],
 										  wxString& rSrcStr, wxString& rTgtStr)
 {
 	// clear the array
@@ -29356,20 +29366,20 @@ void CAdapt_ItApp::TwoStringsToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS],
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pp[MAXTWOPUNCTPAIRS]   <-   the TWOPUNCTPAIR array that gets populated 
+/// \param      pp[MAXTWOPUNCTPAIRS]   <-   the TWOPUNCTPAIR array that gets populated
 ///                                         with  two punct pairs
-/// \param      rSrcStr                ->   a wxString that contains the source language 
+/// \param      rSrcStr                ->   a wxString that contains the source language
 ///                                         punctuation characters
-/// \param      rTgtStr                ->   a wxString that contains the target language 
+/// \param      rTgtStr                ->   a wxString that contains the target language
 ///                                         punctuation characters
 /// \remarks
-/// Called from: the App's GetBasicSettingsConfiguration() and 
+/// Called from: the App's GetBasicSettingsConfiguration() and
 /// GetProjectSettingsConfiguration().
 /// Populates the TWOPUNCTPAIR array with the current contents of the punctuation
 /// characters stored in the rSrcStr and rTgtStr strings. See TwoPunctPairsToTwoStrings()
 /// for the function that does the opposite action.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], 
+void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 											 wxString& rSrcStr, wxString& rTgtStr)
 {
     // if a single character, it can be only in the first position of a pair because in the
@@ -29387,13 +29397,13 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 		pp[j].twocharTgt[1] = _T('\0');
 	}
 
-	// populate the contents of the array of two-character pairs using the 
+	// populate the contents of the array of two-character pairs using the
 	// string contents
 	int lenSrc = rSrcStr.Length();
 	int lenTgt = rTgtStr.Length();
 	int nCount = -1; // from version 2.2.1, we don't require spaces at the end,
 					 // just build as many pairs as possible
-	
+
     // BEW changed 4 May, since allowing singles to be placed in the doubles rows, we can
     // no longer assume pairs; but we can assert the strings must be equal length
 	//wxASSERT(lenSrc % 2 == 0); // must be even
@@ -29404,7 +29414,7 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 	wxASSERT(lenSrc % 2 == 0); // must be even
 	wxASSERT(lenTgt % 2 == 0); // must be even
 	wxASSERT(lenSrc == lenTgt); // must be same length
-	
+
 	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
 	{
 		nCount++;
@@ -29432,7 +29442,7 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 				// second character of the pair exists, so put it in the array
 				pp[i].twocharSrc[1] = ch1;
 			}
-		
+
 		if (nCount >= lenTgt/2) // divide by 2, since dealing with pairs
 		{
 			return;
@@ -29440,7 +29450,7 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 
 		// now the target side...
 		ch = rTgtStr.GetChar(k[0]);  // get its paired target punct chars
-		ch1 = rTgtStr.GetChar(k[1]); // assume there are at least two 
+		ch1 = rTgtStr.GetChar(k[1]); // assume there are at least two
 									 // chars left, perhaps spaces
 
 		pp[i].twocharTgt[0] = ch; // first of pair is never empty
@@ -29464,10 +29474,10 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS],
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pp[MAXPUNCTPAIRS]   ->  the PUNCTPAIR array
-/// \param      rStr                <-  a wxString that receives the punctuation 
+/// \param      rStr                <-  a wxString that receives the punctuation
 ///                                     characters
 /// \remarks
-/// Called from: the App's WriteBasicSettingsConfiguration() and 
+/// Called from: the App's WriteBasicSettingsConfiguration() and
 /// WriteProjectSettingsConfiguration().
 /// Populates the string with the current contents of the array of pairs.
 /// See StringToPunctPairs() for a function that does the opposite action.
@@ -29487,7 +29497,7 @@ void CAdapt_ItApp::PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rSt
 		wxChar chSrc = pp[i].charSrc;
 		wxChar chTgt = pp[i].charTgt;
 		if (chSrc == _T('\0') && chTgt == _T('\0'))
-			continue; // iterate when there is no character in 
+			continue; // iterate when there is no character in
 					  // source & target of the pair
 		if (chSrc == _T('\0'))
 		{
@@ -29499,7 +29509,7 @@ void CAdapt_ItApp::PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rSt
 		}
 		if (chTgt == '\0')
 		{
-			rStr += _T(" "); // use space as a placeholder when 
+			rStr += _T(" "); // use space as a placeholder when
 							 // user has specified no equivalence
 		}
 		else
@@ -29512,10 +29522,10 @@ void CAdapt_ItApp::PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rSt
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pp[MAXTWOPUNCTPAIRS]   ->   the TWOPUNCTPAIR array
-/// \param      rStr                   <-   a wxString that receives the punctuation 
+/// \param      rStr                   <-   a wxString that receives the punctuation
 ///                                         characters
 /// \remarks
-/// Called from: the App's WriteBasicSettingsConfiguration() and 
+/// Called from: the App's WriteBasicSettingsConfiguration() and
 /// WriteProjectSettingsConfiguration().
 /// Populates the string with the current contents of the array of two-punct pairs.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -29562,7 +29572,7 @@ void CAdapt_ItApp::TwoPunctPairsToString(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxSt
 		}
 		if (chTgt0 == '\0')
 		{
-			// if first is null, put a placeholder space there in the string, 
+			// if first is null, put a placeholder space there in the string,
 			// then check second
 			rStr += _T(" ");
 			if (chTgt1 == _T('\0'))
@@ -29583,7 +29593,7 @@ void CAdapt_ItApp::TwoPunctPairsToString(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxSt
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pp[MAXPUNCTPAIRS]   <-  the PUNCTPAIR array that is populated from the 
+/// \param      pp[MAXPUNCTPAIRS]   <-  the PUNCTPAIR array that is populated from the
 ///                                     characters in rStr
 /// \param      rStr                ->  a wxString that stores the punctuation characters
 /// \remarks
@@ -29606,7 +29616,7 @@ void CAdapt_ItApp::StringToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rSt
 	wxASSERT(len % 2 == 0); // len must be even
 	if (rStr.IsEmpty())
 		return;
-	
+
     // from version 2.2.1 I won't pad the string with nulls, which will reduce the
     // fragility of the config file to user editing
 	int nCount = -1; // count (index) of how man pairs have been formed
@@ -29626,7 +29636,7 @@ void CAdapt_ItApp::StringToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rSt
 		{
 			pp[i].charSrc = ch;
 		}
-		ch = rStr.GetChar(j); // get its paired target punct char 
+		ch = rStr.GetChar(j); // get its paired target punct char
 							  // (it could be a placeholding space)
 		if (ch == _T(' '))
 		{
@@ -29641,9 +29651,9 @@ void CAdapt_ItApp::StringToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rSt
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pp[MAXTWOPUNCTPAIRS]   <-   the TWOPUNCTPAIR array that is populated 
+/// \param      pp[MAXTWOPUNCTPAIRS]   <-   the TWOPUNCTPAIR array that is populated
 ///                                         from the characters in rStr
-/// \param      rStr                   ->   a wxString that stores the punctuation 
+/// \param      rStr                   ->   a wxString that stores the punctuation
 ///                                         characters
 /// \remarks
 /// Called from: the App's InitializePunctuation(), GetBasicSettingsConfiguration() and
@@ -29662,13 +29672,13 @@ void CAdapt_ItApp::StringToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxSt
 		pp[m].twocharTgt[1] = _T('\0');
 	}
 
-	// populate the contents of the array of two-character pairs using the 
+	// populate the contents of the array of two-character pairs using the
 	// string contents
 	int len = rStr.Length();
 	int nCount = -1; // from version 2.2.1, we don't require spaces at the end, just build
 					 // as many pairs as possible
 	wxASSERT(len % 2 == 0); // len must be even - if not for allowing singles correspondence,
-						    // we'd  be able to make it a modulo 4 test; but it will have to 
+						    // we'd  be able to make it a modulo 4 test; but it will have to
 						    // be just mod 2
 	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
 	{
@@ -29678,7 +29688,7 @@ void CAdapt_ItApp::StringToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxSt
 		if (rStr.IsEmpty())
 			return; // no correspondences at all
 		if (nCount >= len/4) // divide  by 4, since we deal with pairs of pairs of chars
-			return; // we are at the end of the string, so bale out early 
+			return; // we are at the end of the string, so bale out early
 					// (don't pad with spaces)
 		wxChar ch = rStr.GetChar(k[0]);
 		wxChar ch1 = rStr.GetChar(k[1]);
@@ -29729,7 +29739,7 @@ void CAdapt_ItApp::StringToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxSt
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table of the CAdapt_ItApp class in response to a File | Page
@@ -29777,14 +29787,14 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
     // The MFC version internally keeps these measurements in 1,000ths of an inch. We'll
     // maintain the MFC internal storage units, but we'll need to convert them to
     // millimetres for the dialog's text boxes.
-	// SetMarginTopLeft, SetMarginBottomRight, and SetPaperSize expect values 
+	// SetMarginTopLeft, SetMarginBottomRight, and SetPaperSize expect values
 	// in millimetres (use thousandths of inches internally)
 
     // Set the page orientation according to the App's m_bIsPortraitOrientation. Note:
-    // SetPageOrientation() sets the page orientation in our pPrintData global 
+    // SetPageOrientation() sets the page orientation in our pPrintData global
 	SetPageOrientation(m_bIsPortraitOrientation);
 	// the initializations of pPgSetupDlgData are done in OnInit()
-	
+
     // Patrick Rietveld reported 19Dec08 that in his Dutch version of Windows XP the paper
     // size selection and the orientation came up from the system grayed out. The following
     // lines attempt to enable those parts of the Page Setup dialog (assuming the system
@@ -29798,17 +29808,17 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 	pPgSetupDlgData->EnablePaper(TRUE);
 	pPgSetupDlgData->EnablePrinter(TRUE);
 
-	// Margin MM values determined using the less precise 
+	// Margin MM values determined using the less precise
 	// config_only_thousandthsInchToMillimetres conversion factor
 	pPgSetupDlgData->SetMarginTopLeft(wxPoint(m_marginLeftMM,m_marginTopMM));
 	pPgSetupDlgData->SetMarginBottomRight(wxPoint(m_marginRightMM,m_marginBottomMM));
-	// Paper size MM values determined using the more precise 
+	// Paper size MM values determined using the more precise
 	// thousandthsInchToMillimetres conversion factor
-	pPgSetupDlgData->SetPaperSize(wxSize(m_pageWidthMM,m_pageLengthMM)); 
+	pPgSetupDlgData->SetPaperSize(wxSize(m_pageWidthMM,m_pageLengthMM));
 	// set the paper id, converting it from MFC's enum to wx's enum.
-	// Note: SetPaperId() overrides the explicit paper dimensions passed in 
+	// Note: SetPaperId() overrides the explicit paper dimensions passed in
 	// wxPageSetupDialogData::SetPaperSize()
-	pPgSetupDlgData->SetPaperId(MapMFCtoWXPaperSizeCode(m_paperSizeCode)); 
+	pPgSetupDlgData->SetPaperId(MapMFCtoWXPaperSizeCode(m_paperSizeCode));
 
 	// put up page setup dialog for the canvas using default print data setup
     wxPageSetupDialog pageSetupDialog(GetMainFrame()->canvas, pPgSetupDlgData);
@@ -29821,7 +29831,7 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// User pressed OK
-		// 
+		//
 		// Get any new values and store them in the global print data object.
 		(*pPrintData) = pageSetupDialog.GetPageSetupData().GetPrintData();
 		// Get updated values and store them in the global page setup dialog data object.
@@ -29860,7 +29870,7 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxUpdateUIEvent that is generated when the File Menu 
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the File Menu
 ///                         is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -29918,7 +29928,7 @@ void CAdapt_ItApp::SetPageOrientation(bool bIsPortrait)
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetPageOrientation()
 {
-	// returns 1 if dmOrientation = 1 (portrait), 
+	// returns 1 if dmOrientation = 1 (portrait),
 	// returns 2 if dmOrientation = 2 (landscape)
 	int nOrientation = 1; // default is portrait
 
@@ -29938,7 +29948,7 @@ int CAdapt_ItApp::GetPageOrientation()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      bstr       ->   a CBString containing the single-byte character 
+/// \param      bstr       ->   a CBString containing the single-byte character
 ///                             string to be converted
 /// \param      convStr    <-   a wxString representing the UTF-16 converted string
 /// \remarks
@@ -29974,7 +29984,7 @@ void CAdapt_ItApp::Convert8to16(CBString& bstr,wxString& convStr)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the UTF-16 converted string
-/// \param      bstr       ->   a CBString containing the single-byte character string 
+/// \param      bstr       ->   a CBString containing the single-byte character string
 ///                             to be converted
 /// \remarks
 /// Called from: the Doc's DoUnpackDocument(), the View's DoConsistentChanges(),
@@ -30014,7 +30024,7 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// GDLC 8Sep11 Modified to use wxConvAuto_AI
 /// GDLC 9Sep11 Removed params eEncoding and bHasBOM
 /// GDLC 16Sep11 Put eEncoding back in for wxConvAuto_AI default encoding
-/// Note: This function now needs the wxConvAuto_AI from wxWidgets 2.9.1 
+/// Note: This function now needs the wxConvAuto_AI from wxWidgets 2.9.1
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
 									 wxFontEncoding eEncoding)
@@ -30023,14 +30033,14 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
 	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff);
 	if ( dstLen == wxCONV_FAILED )
 	{
-		::wxBell(); 
+		::wxBell();
 		wxASSERT(FALSE);
 		return;
 	}
 	wchar_t *dst = new wchar_t[dstLen];
 	if ( conv.ToWChar(dst, dstLen, pbyteBuff) == wxCONV_FAILED )
 	{
-		::wxBell(); 
+		::wxBell();
 		wxASSERT(FALSE);
 		return;
 	}
@@ -30041,7 +30051,7 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
 #endif
 
 // whm Note: The ConvertAndWrite() function might not actually be needed within the WX version because
-// the wxTextFile class in wxWidgets automatically takes care of UNICODE and non-Unicode conversions. 
+// the wxTextFile class in wxWidgets automatically takes care of UNICODE and non-Unicode conversions.
 // The places in the MFC app where ConvertAndWrite() is used is for the writing of:
 //    1. The WriteFontConfiguration parts of the config files. [WX version uses wxTextFile]
 //    2. The WriteBasicSettingsConfiguration config file. [WX version uses wxTextFile]
@@ -30064,7 +30074,7 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
 /// \param      eEncoding           ->  (unused in wx version)
 /// \param      pFile               <-  a pointer to the wxFile being written
 /// \param      str                 ->  the string being converted and written
-/// \param      bNoTerminatingNull  ->  if TRUE we don't allow for a terminating 
+/// \param      bNoTerminatingNull  ->  if TRUE we don't allow for a terminating
 ///                                     null (line-based output)
 /// \remarks
 /// Called from: the View's OnRetransReport(), DoOneDocReport(), DoKBExport(), and
@@ -30077,31 +30087,31 @@ void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* p
     // MFC original Note: convert from internal UTF-16 to either the user's legacy
     // encoding, or for all other input encodings, (including UTF-16 or variants thereof)
     // to UTF-8; and then write the bytes out
-	
+
 	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
 	size_t nLen = strlen(tempBuf); //strlen(lpMacroConvertedText);
-	// don't allow for a terminating null when we are doing line-based output 
+	// don't allow for a terminating null when we are doing line-based output
 	// (ie. the flag is TRUE)
     // whm Note: In the wx version we handle the output of platform appropriate eol
     // sequences as a separate output process, so the bNoTerminatingNull is always TRUE.
-	//if (!bNoTerminatingNull) // whm: defaults to TRUE and never explicitly called with 
+	//if (!bNoTerminatingNull) // whm: defaults to TRUE and never explicitly called with
 							   // FALSE in wx version, so not needed
 	//	nLen++;
-	
+
 	// Note: Early on in Unicode builds, tempBuf ended up with only the first character
-	// of the string str (a backslash). This resulted in the pFile->Write(tempBuf,nLen) 
-	// and the alternate pFile->Write(str) function calls outputting only a backslash 
-	// character. The failure turned out to happened in the str.mb_str(wxConvUTF8) conversion 
-	// which is apparently also used implicitly in the pFile-Write(str) call. 
+	// of the string str (a backslash). This resulted in the pFile->Write(tempBuf,nLen)
+	// and the alternate pFile->Write(str) function calls outputting only a backslash
+	// character. The failure turned out to happened in the str.mb_str(wxConvUTF8) conversion
+	// which is apparently also used implicitly in the pFile-Write(str) call.
 	// It turns out that the reason for the failure was that in the caller (the View), the
-	// source.UngetWriteBuf() call was not made to get the buffer back into shape before 
+	// source.UngetWriteBuf() call was not made to get the buffer back into shape before
 	// passing the source string to ConvertAndWrite!!
-	
+
 	wxLogNull logNo; // avoid spurious messages from the system
 
 	// write it out
 	pFile->Write(tempBuf,nLen);
-	
+
 	// whm note: the following defaults to doing the same thing as the code above
 	// using the str.mb_str(wxConvUTF8) call and the wxCharBuffer.
 	//pFile->Write(str); // default for wxFile Write is wxConvUTF8
@@ -30120,7 +30130,7 @@ void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* p
 CBString CAdapt_ItApp::Convert16to8(const wxString& str)
 {
 	// converts UTF-16 strings to UTF-8
-	
+
     // The wxString::mb_str() method returns a wxCharBuffer. The wxConvUTF8 is a predefined
     // instance of the wxMBConvUTF8 class which converts between Unicode (UTF-16) and
     // UTF-8. The CBString constructor is happy to accept the wxCharBuffer
@@ -30132,7 +30142,7 @@ CBString CAdapt_ItApp::Convert16to8(const wxString& str)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxUpdateUIEvent that is generated when the 
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the
 ///                         Advanced Menu is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -30155,13 +30165,13 @@ void CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEve
 	// wxWidgets uses OnIdle time to poll the wxUpdateUIEvents. Hence, onUpdate
 	// handlers get called earlier in the wxWidgets version than in the MFC version.
 	// Hence this, and other OnUpdate handlers get called when the m_pSourcePhrases
-	// pointer is still NULL, causing the following if() line to crash. 
+	// pointer is still NULL, causing the following if() line to crash.
 	//if (GetDocument()->m_pSourcePhrases->GetCount() == 0 && m_bKBReady && m_bGlossingKBReady)
 	// To prevent this I've added a conditional statement to prevent the test being made when
-	// the Doc's m_pSourcePhrases member pointer is NULL. 
-	// TODO: I think a better approach would be to have actual global boolean flags called 
-	// bProjectOpen and bDocumentOpen that could be used for the many cases (especially 
-	// for the OnUpdate... handlers) when certain actions need to be taken based on 
+	// the Doc's m_pSourcePhrases member pointer is NULL.
+	// TODO: I think a better approach would be to have actual global boolean flags called
+	// bProjectOpen and bDocumentOpen that could be used for the many cases (especially
+	// for the OnUpdate... handlers) when certain actions need to be taken based on
 	// whether the project and/or document is open or not.
 
 	if (m_bFreeTranslationMode)
@@ -30189,7 +30199,7 @@ void CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEve
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table of the CAdapt_ItApp class in response to a "Transform
@@ -30263,7 +30273,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 		{
 			if (m_bibleBooksFolderPath.IsEmpty())
 			{
-				// no path defined, so having the mode on would lead to a crash, 
+				// no path defined, so having the mode on would lead to a crash,
 				// so turn it off
 				m_bBookMode = FALSE;
 				m_nBookIndex = -1;
@@ -30294,7 +30304,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 /// - which then causes a dialog to open for the user to navigate to the source project to
 /// be used for the transformations. Note: the source project's doc files and kbs are NOT
 /// changed in any way in this transformation process. Then when the dialog is dismissed
-/// the transformations are done. 
+/// the transformations are done.
 /// The target target project's KB and glossingKB are exported to temporary files before
 /// the transforms are done, and then after they are finished, they are imported
 /// automatically back to the KBs - so if there are adaptations or glosses initially in the
@@ -30325,18 +30335,18 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		wxString strOtherProjectPath = _T("");
 		if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
 		{
-			strOtherProjectPath = m_customWorkFolderPath + 
+			strOtherProjectPath = m_customWorkFolderPath +
 											PathSeparator + strOtherProjectName;
 		}
 		else
 		{
-			strOtherProjectPath = m_workFolderPath + 
+			strOtherProjectPath = m_workFolderPath +
 											PathSeparator + strOtherProjectName;
 		}
-		wxString strOtherAdaptationsPath = strOtherProjectPath + 
+		wxString strOtherAdaptationsPath = strOtherProjectPath +
 										PathSeparator + m_adaptionsFolder;
 		// m_adaptionsFolder is defined in the app creator as _T("Adaptations")
-		
+
         // determine whether or not there are Bible book folders in the Adaptations folder
         // of the "other" project (the one to be transformed)
         // whm note: AreBookFoldersCreated() has the side effect of changing the current
@@ -30385,7 +30395,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		// (either Adaptations, or a Bible book folder, as the case may require).
 		// A beneficial effect of these changes is that it is no longer necessary to warn
 		// the user about the KB contents being cleared, so that is comment out (below)
-		/* 
+		/*
         // count the entries in the current project's KB, since we must warn the user that
         // it's contents are now about to be removed, so if the user is in a project in
         // which some work has been done, he better know that this operation (if he
@@ -30510,7 +30520,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		// get called in the process.
 		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 		// be changed after the dialog is created. So any routine that gets passed the
-		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// pProgDlg pointer, must make sure that value in its Update() function does not
 		// exceed the same maximum value (nTotal).
 		wxString msgDisplayed;
 		wxString progMsg;
@@ -30569,17 +30579,17 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 				continue; // could be some of the maps are empty
 			else // the map is not empty, so process its contents
 			{
-				iter = pMap->begin(); 
+				iter = pMap->begin();
 				while (iter != pMap->end())
 				{
 					// get the next association (ie. a CTargetUnit instance associated
 					// with a key string)
 					key = iter->first;
-					pTgtUnit = iter->second; 
+					pTgtUnit = iter->second;
 					iter++;
-	
+
 					// BEW 2July10, additions to the tests have to be made for kbVersion
-					// 2, and the copy actions modified somewhat - see below. 
+					// 2, and the copy actions modified somewhat - see below.
 					// We now have a key, and its associated CTargetUnit instance. These
                     // will need to go in the glossing KB except as follows: we throw away
                     // the CTargetUnit instance if it is for a null source phrase (key =
@@ -30634,7 +30644,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
 					//m_pGlossingKB->m_nMaxWords = 1; // always is 1 for the glossing KB
 					m_pGlossingKB->m_nMaxWords = nMaxIndex; // BEW 13Nov10, glossing KB uses all maps now
-					
+
 				} // end block for scanning all associations stored in the current map
 			} // end block for processing a map with contents
 		} // end for loop for processing all maps
@@ -30659,7 +30669,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
 		// delete the other project's copied KB from the heap (the original is still safe
 		// on disk)
-		pDoc->EraseKB(pOtherKB); 
+		pDoc->EraseKB(pOtherKB);
 
 		// store the filled glossing KB on disk; leave it open since the user may want to
 		// do some work or examine the glossing KB in the KB editor etc.
@@ -30684,13 +30694,13 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // first, get a list of all the documents the user wants transformed (normally all
         // of them, but the dialog which comes up allows fewer than all to be worked on)
 		m_acceptedFilesList.Clear(); // ensure we start with a clear list
-		
+
         // BEW 31Aug05, for version 3 we must deal first with document files in the
         // Adaptations folder, as in the legacy app, but then if there are embedded book
         // folders in the Adaptations folder, we must loop through each such folder and
         // enumerate the doc files in each, and call DoTransformationsToGlosses() for each
         // document in each of the book folders
-		
+
         // Enumerate the document files (fills m_acceptedFilesList with the document
         // filenames, which potentially could be a mix of *.xml and *.adt names, and some
         // book folders can be expected to contain no documents) -- this first enumeration
@@ -30756,8 +30766,8 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // user-created folders which are sisters of the Bible book folders for which
             // the Adaptations folder is the common parent folder
 			wxDir finder;
-			bool bOK = (::wxSetWorkingDirectory(strOtherAdaptationsPath) && 
-													finder.Open(strOtherAdaptationsPath)); 
+			bool bOK = (::wxSetWorkingDirectory(strOtherAdaptationsPath) &&
+													finder.Open(strOtherAdaptationsPath));
 										// wxDir must call .Open() before enumerating files!
 			if (!bOK)
 			{
@@ -30783,7 +30793,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			{
 				// Must call wxDir::Open() before calling GetFirst() - see above
 				wxString str = _T("");
-				// whm note: in GetFirst below, wxDIR_FILES | wxDIR_DIRS flag finds 
+				// whm note: in GetFirst below, wxDIR_FILES | wxDIR_DIRS flag finds
 				// files or directories, but not . or .. or hidden files
 				bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES | wxDIR_DIRS);
 				while (bWorking)
@@ -30797,7 +30807,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
                     // working directory is and checks for a sub-directory "str" below that
                     // - a difference we must account for here in the wx version.
                     // whm Note: The Exists() method of wxDIR used below returns TRUE if
-                    // the passed name IS a directory. 
+                    // the passed name IS a directory.
 					if (finder.Exists(strOtherAdaptationsPath + PathSeparator + str))
 					{
 						// BEW changed 25Aug05, so that other user-defined folders can be
@@ -30906,10 +30916,10 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 ///                                     transformed (it could be the Adaptations folder, or
 ///                                     any one of the embedded Bible book folders if that
 ///                                     mode has previously been turned on)
-/// \param      bookFolderName       <- an empty string when the function is being called 
+/// \param      bookFolderName       <- an empty string when the function is being called
 ///                                     on the Adaptations folder; otherwise pass the name
 ///                                     of the currently being accessed Bible book folder
-/// \param      bSuppressStatistics  -> If FALSE (default) presents statistics for the 
+/// \param      bSuppressStatistics  -> If FALSE (default) presents statistics for the
 ///                                     operation, otherwise does the transformations
 ///                                     quietly
 /// \remarks
@@ -30928,10 +30938,10 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 /// fixedspace symbol ~ particularly)
 /// BEW 13Nov10 no changes for supporting Bob Eaton's request that glossing KB use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList, 
+bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 											  CAdapt_ItDoc* pDoc,
-											  wxString& folderPath, 
-											  wxString& bookFolderName, 
+											  wxString& folderPath,
+											  wxString& bookFolderName,
 											  bool bSuppressStatistics)
 {
     // BEW updated it on 31Aug05 to comply with version 3 - specifically, to handle book
@@ -30965,9 +30975,9 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 		}
 		wxASSERT(!newDocName.IsEmpty());
 		wxString ourProjectsDocFileName = newDocName;
-		wxString curOutputPath; // for full path to the transformed document to 
+		wxString curOutputPath; // for full path to the transformed document to
 								// be saved in current project
-		wxString newPathName; // for the full path to whatever document is 
+		wxString newPathName; // for the full path to whatever document is
 							  // currently to be loaded and transformed
 
         // create the path to the other project's document file using the passed in
@@ -30994,16 +31004,16 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 			bookFolderPath = curOutputPath; // extract the path to the book folder
 			curOutputPath += PathSeparator + ourProjectsDocFileName; // the path to the file
 		}
-		
+
 		bool bOK = pDoc->OpenDocumentInAnotherProject(newPathName);
 		if (bOK)
 		{
-			// why do I do set the path name? Should not be necessary since the view is 
+			// why do I do set the path name? Should not be necessary since the view is
 			// frozen while the documents are processed, but there is no harm in it
 			pDoc->SetFilename(newPathName,TRUE);
 
 			// the document may be the last to be processed, so we must ensure that if it
-			// turned book mode on then we have a valid path for the app member 
+			// turned book mode on then we have a valid path for the app member
 			// m_bibleBooksFolderPath, and m_nLastBookIndex can be set to m_nBookIndex
 			// as obtained from the document settings as loaded
 			if (gpApp->m_bBookMode && !m_bDisableBookMode)
@@ -31013,7 +31023,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 			}
 			else if (m_bDisableBookMode)
 			{
-				// if the XML read did not succeed, then disable the mode and 
+				// if the XML read did not succeed, then disable the mode and
 				// set parameters accordingly
 				gpApp->m_bibleBooksFolderPath.Empty();
 				gpApp->m_nBookIndex = -1;
@@ -31021,13 +31031,13 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 				gpApp->m_nDefaultBookIndex = 39;
 				gpApp->m_bBookMode = FALSE;
 			}
-			
+
 			// whm 26Aug11 Open a wxProgressDialog instance here for transform to glosses operations.
 			// The dialog's pProgDlg pointer is passed along through various functions that
 			// get called in the process.
 			// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 			// be changed after the dialog is created. So any routine that gets passed the
-			// pProgDlg pointer, must make sure that value in its Update() function does not 
+			// pProgDlg pointer, must make sure that value in its Update() function does not
 			// exceed the same maximum value (nTotal).
 			wxString msgDisplayed;
 			const int nTotal = GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -31036,7 +31046,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 			wxProgressDialog* pProgDlg;
 			pProgDlg = OpenNewProgressDialog(_("Transformations To Glosses"),msgDisplayed,nTotal,500);
-			
+
 			SPList* pPhrases = m_pSourcePhrases;
 			SPList::Node* pos1;
 			pos1 = pPhrases->GetFirst();
@@ -31060,7 +31070,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 				if (bRemoveIt)
 				{
                     // removing the one at savePos, so pos1 will remain valid since it is
-                    // next 
+                    // next
 					pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
 					pPhrases->DeleteNode(savePos);
 					pDoc->UpdateSequNumbers(0); // update from the start to be safe
@@ -31074,12 +31084,12 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 					//::wxSafeYield();
 				}
 			}
-			
+
 			bool bSavedOK;
 			bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
 
 			pView->ClobberDocument();
-			
+
 			// remove the progress indicator window
 			pProgDlg->Destroy();
 		}
@@ -31152,7 +31162,7 @@ void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table of the CAdapt_ItApp class in response to a "Use Automatic
@@ -31171,7 +31181,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 	// and/or LowerToUpperCaseEquivalencesPage routines.
 	CMainFrame *pFrame = GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pToolsMenuAutoCap = pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION);
 	//wxASSERT(pToolsMenuAutoCap != NULL);
@@ -31301,7 +31311,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxCommandEvent that is generated when the associated 
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
 /// Called from: The Event Table of the CAdapt_ItApp class in response to a "Change
@@ -31349,7 +31359,7 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      event   ->  the wxUpdateUIEvent that is generated when the File Menu 
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the File Menu
 ///                         is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -31376,7 +31386,7 @@ void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 	// enable if a project is active and book mode is ON
 	if ((m_bKBReady || m_bGlossingKBReady) && m_bBookMode && !m_bDisableBookMode)
 	{
-		event.Enable(TRUE); 
+		event.Enable(TRUE);
 	}
 	else
 	{
@@ -31398,12 +31408,12 @@ void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 /// and/or creating new documents.
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event) 
+void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 {
 	CAdapt_ItView* pView = GetView();
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
 	//wxASSERT(pAdvancedMenu != NULL);
@@ -31436,7 +31446,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 			pAdvancedMenu->Check(FALSE);
 		}
 		m_bBookMode = FALSE;
-		m_nLastBookIndex = m_nBookIndex; // store last used index, in case 
+		m_nLastBookIndex = m_nBookIndex; // store last used index, in case
 										 // the user restarts book mode
 		m_nBookIndex = -1;
 		m_pCurrBookNamePair = NULL;
@@ -31451,7 +31461,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 			pAdvancedMenu->Check(TRUE);
 		}
 
-		// restore the settings, set the name pair structure, and redefine 
+		// restore the settings, set the name pair structure, and redefine
 		// the book folder's path
 		m_bBookMode = TRUE;
 		if (m_nLastBookIndex < 0)
@@ -31461,12 +31471,12 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		}
 		else
 		{
-			// the mode was in effect earlier in this run, so reset same 
+			// the mode was in effect earlier in this run, so reset same
 			// book as was last used at that time
 			m_nBookIndex = m_nLastBookIndex;
 		}
 		m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
-		m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator + 
+		m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator +
 												m_pCurrBookNamePair->dirName;
 
 		// check the book folders are already present, and if not then create them
@@ -31519,7 +31529,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 /// whm modified 6Jul11 to prevent switching to book folder mode when collaborating with
 /// Paratext or Bibledit.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 {
 	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
@@ -31539,7 +31549,7 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 	// BEW changed 27Nov05 to get the tick shown or not when the menu is opened
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pAdvancedMenu = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
 	if (pAdvancedMenu == NULL)//wxASSERT(pAdvancedMenu != NULL);
@@ -31557,7 +31567,7 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 	// enable if a project is active & the disable flag is not set
 	if ((m_bKBReady || m_bGlossingKBReady) && !m_bDisableBookMode)
 	{
-		event.Enable(TRUE); 
+		event.Enable(TRUE);
 	}
 	else
 	{
@@ -31575,12 +31585,12 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 /// The "Change Location of Adapt It Work Folder..." menu item on the Advanced menu is
 /// enabled only when there is no project currently open.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& event) 
+void CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& event)
 {
 	// enable only if no project is active
 	if (!(m_bKBReady || m_bGlossingKBReady))
 	{
-		event.Enable(TRUE); 
+		event.Enable(TRUE);
 	}
 	else
 	{
@@ -31589,7 +31599,7 @@ void CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& eve
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if s contains an ordinary double quote " or a single 
+/// \return     TRUE if s contains an ordinary double quote " or a single
 ///             quote ' mark, FALSE otherwise
 /// \param      s   -> the wxString being examined
 /// \param      ch  -> the quote character for comparison, either \" or \'
@@ -31610,8 +31620,8 @@ bool CAdapt_ItApp::ContainsOrdinaryQuote(wxString s, wxChar ch)
     // wx version note: Since we require a read-only buffer we use GetData which just
     // returns a const wxChar* to the data in the string.
 	const wxChar* pBuff = s.GetData();
-	wxChar* pEnd = (wxChar*)pBuff + len; // 
-	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there; this must be done 
+	wxChar* pEnd = (wxChar*)pBuff + len; //
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there; this must be done
 								 // for all wxStringBuffer calls!!!
 	wxChar* ptr = (wxChar*)pBuff;
 	while (ptr < pEnd)
@@ -31808,7 +31818,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
     for (index = 0; index < unkCount; index++)
     {
         bareMkr = m_unknownMarkers.Item(index);
-        // if the unknown marker doesn't already exist in 
+        // if the unknown marker doesn't already exist in
         // m_currentUnknownMarkersStr add it
         if (!pDoc->MarkerExistsInString(m_currentUnknownMarkersStr,bareMkr,dummyPos))
         {
@@ -31824,12 +31834,12 @@ void CAdapt_ItApp::SetupMarkerStrings()
             {
                 // the unknown marker is filtered
                 m_currentUnknownMarkersStr += _T("=1 ");
-                // also add this marker to gCurrentFilterMarkers if it doesn't 
+                // also add this marker to gCurrentFilterMarkers if it doesn't
                 // already exist
                 if (!pDoc->MarkerExistsInString(gCurrentFilterMarkers,bareMkr,dummyPos))
                 {
                     gCurrentFilterMarkers += bareMkr;
-                    gCurrentFilterMarkers += _T(' '); // add the space for efficient 
+                    gCurrentFilterMarkers += _T(' '); // add the space for efficient
 													  // parsing later
 #ifdef _Trace_UnknownMarkers
 					filteredUnkMkrsAddedTogCurrentFilterMarkers += bareMkr;
@@ -31849,7 +31859,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      markerStr     <- the string from which any instance of wholeMarker 
+/// \param      markerStr     <- the string from which any instance of wholeMarker
 ///                              is removed
 /// \param      wholeMarker   -> the whole marker of interest
 /// \remarks
@@ -31879,29 +31889,29 @@ void CAdapt_ItApp::RemoveMarkerFromString(wxString& markerStr, wxString wholeMar
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pDC                -> pointer to the display context
-/// \param      MkrAndDescrArray   <- a wxStringArray containing strings of markers 
+/// \param      MkrAndDescrArray   <- a wxStringArray containing strings of markers
 ///                                   and their descriptions
-/// \param      minNumSpaces       -> the minimum number of spaces required to be 
+/// \param      minNumSpaces       -> the minimum number of spaces required to be
 ///                                   maintained between the whole marker and the following
 ///                                   descriptive text
 /// \remarks
-/// Called from: the View's GetMarkerInventoryFromCurrentDoc(), 
+/// Called from: the View's GetMarkerInventoryFromCurrentDoc(),
 /// from CUsfmFilterPageCommon::LoadDocSFMListBox(), CUsfmFilterPageCommon::LoadProjSFMListBox(),
 /// from CUsfmFilterPageCommon::DoInit(),
-/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(),
 /// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(),
-/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(), 
+/// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(),
 /// CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(),
 /// CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(),
 /// CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj().
-/// This function scans the array to find the whole marker that has the greatest text extent 
-/// in the pDC. It then scans the array again and uses that text extent determined in the 
-/// first scan to calculate and insert the amount of white space needed between the whole 
-/// marker and the following descriptive text in order to make them line up relatively 
+/// This function scans the array to find the whole marker that has the greatest text extent
+/// in the pDC. It then scans the array again and uses that text extent determined in the
+/// first scan to calculate and insert the amount of white space needed between the whole
+/// marker and the following descriptive text in order to make them line up relatively
 /// straight within the containing list box.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, 
-						wxArrayString* MkrAndDescrArray, int minNumSpaces, 
+void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
+						wxArrayString* MkrAndDescrArray, int minNumSpaces,
 						wxArrayInt* pUserCanSetFilterFlags)
 {
     // Takes an input CStringArray which is assumed to be composed of strings which are
@@ -31924,8 +31934,8 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
     // the beginning of the list box. Because of this we preserve any initial white space
     // found on the array strings and only adjust the medial space in our formatting
     // process. wx version note: The wx version does not have a "Show All" button in the
-    // usfm filter page dialog, therefore I've modified the code within the usfm filter page 
-    // to eliminate from the wxArrayString items that won't be shown in the listbox before 
+    // usfm filter page dialog, therefore I've modified the code within the usfm filter page
+    // to eliminate from the wxArrayString items that won't be shown in the listbox before
     // the wxArrayString is input into this FormatMarkerAndDescriptionsStringArray function.
     // Hence, here in this function we only calculate the extents of markers that do not
     // display within list boxes.
@@ -31969,7 +31979,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 	{
 		if (pUserCanSetFilterFlags == NULL)
 		{
-			// No pUserCanSetFilterFlags array was passed in so we format all 
+			// No pUserCanSetFilterFlags array was passed in so we format all
 			// MkrAndDescArray items
 			tempStr = MkrAndDescrArray->Item(ct);
 			int spCt = 0;
@@ -32005,7 +32015,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 		}
 		else // pUserCanSetFilterFlags was not NULL
 		{
-			if (pUserCanSetFilterFlags->Item(ct) == 1) // we only format those that 
+			if (pUserCanSetFilterFlags->Item(ct) == 1) // we only format those that
 													   // will fill the box
 			{
                 // pUserCanSetFilterFlags array was passed in so we format only those
@@ -32024,7 +32034,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 				{
 					nwspCt++;
 				}
-				// checkStr is the array string up to but not including the first 
+				// checkStr is the array string up to but not including the first
 				// "medial space"
 				checkStr = tempStr.Mid(0, spCt + nwspCt);
 
@@ -32053,7 +32063,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 	{
 		if (pUserCanSetFilterFlags == NULL)
 		{
-			// No pUserCanSetFilterFlags array was passed in so we format all 
+			// No pUserCanSetFilterFlags array was passed in so we format all
 			// MkrAndDescArray items
 			initialWhiteSp.Empty();
 			descrStr.Empty();
@@ -32085,7 +32095,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 
 			if (pDC != NULL)
 			{
-				// measure the text extent of this marker (including preceeding 
+				// measure the text extent of this marker (including preceeding
 				// white space)
 				 pDC->GetTextExtent(checkStr, &testExtent.x, &testExtent.y);
 				if (testExtent.x > longestSfmExtent.x)
@@ -32134,7 +32144,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 		}
 		else
 		{
-			if (pUserCanSetFilterFlags->Item(ct) == 1) // we only format those that 
+			if (pUserCanSetFilterFlags->Item(ct) == 1) // we only format those that
 													   // will fill the box
 			{
                 // pUserCanSetFilterFlags array was passed in so we format only those
@@ -32162,14 +32172,14 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC,
 					wholeMkr += tempStr.GetChar(nwspCt);
 					nwspCt++;
 				}
-				// checkStr is the array string up to but not including the first 
+				// checkStr is the array string up to but not including the first
 				// "medial space"
 				checkStr = tempStr.Mid(0, nwspCt);
 
 
 				if (pDC != NULL)
 				{
-					// measure the text extent of this marker (including preceeding 
+					// measure the text extent of this marker (including preceeding
 					// white space)
 					 pDC->GetTextExtent(checkStr, &testExtent.x, &testExtent.y);
 					if (testExtent.x > longestSfmExtent.x)
@@ -32274,7 +32284,7 @@ wxFontEncoding CAdapt_ItApp::MapMFCCharsetToWXFontEncoding(const int Charset)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     an int representing the MFC Charset value that fontEnc maps 
+/// \return     an int representing the MFC Charset value that fontEnc maps
 ///             to from wxWidgets
 /// \param      fontEnc   -> the wxFontEncoding value to map from
 /// \remarks
@@ -32308,28 +32318,28 @@ int CAdapt_ItApp::MapWXFontEncodingToMFCCharset(const wxFontEncoding fontEnc)
 	case wxFONTENCODING_ISO8859_14: return 14; // TODO: verify
 	case wxFONTENCODING_ISO8859_15: return 15; // Latin 9 (ISO) TODO: verify
 	case wxFONTENCODING_MACROMAN: return 77; // wxFONTENCODING_MACROMAN [mac has encodings 47-86 under wx, default to Roman] maps to MAC_CHARSET
-	case wxFONTENCODING_CP932: return 128; // wxFONTENCODING_CP932 [shift-JIS] maps to SHIFTJIS_CHARSET 
+	case wxFONTENCODING_CP932: return 128; // wxFONTENCODING_CP932 [shift-JIS] maps to SHIFTJIS_CHARSET
 	case wxFONTENCODING_CP949: return 129; // wxFONTENCODING_CP949 [Korean (Hangul charset)] maps to HANGUL_CHARSET
-	//case wxFONTENCODING_DEFAULT: return 130; // wxFONTENCODING_DEFAULT maps to [???] JOHAB_CHARSET 
-	case wxFONTENCODING_CP936: return 134; // wxFONTENCODING_CP936 [Chinese simplified (GB)] maps to GB2312_CHARSET 
-	case wxFONTENCODING_CP950: return 136; // wxFONTENCODING_CP950 [Chinese (traditional - Big5)] maps to CHINESEBIG5_CHARSET 
-	case wxFONTENCODING_CP1253: return 161; // wxFONTENCODING_CP1253 [WinGreek (8859-7)] maps to GREEK_CHARSET 
-	case wxFONTENCODING_CP1254: return 162; // wxFONTENCODING_CP1254 [WinTurkish] maps to TURKISH_CHARSET 
-	//case wxFONTENCODING_DEFAULT: return 163; // wxFONTENCODING_DEFAULT maps to [???] VIETNAMESE_CHARSET 
-	case wxFONTENCODING_CP1255: return 177; // wxFONTENCODING_CP1255 [WinHebrew] maps to HEBREW_CHARSET 
-	case wxFONTENCODING_CP1256: return 178; // wxFONTENCODING_CP1256 [WinArabic] maps to ARABIC_CHARSET 
-	case wxFONTENCODING_CP1257: return 186; // wxFONTENCODING_CP1257 [WinBaltic (same as Latin 7)] maps to BALTIC_CHARSET 
-	case wxFONTENCODING_CP1251: return 204; // wxFONTENCODING_CP1251 [Microsoft analogue of ISO8859-5 "WinCyrillic"] maps to RUSSIAN_CHARSET 
-	case wxFONTENCODING_CP874: return 222; // wxFONTENCODING_CP874 [WinThai] maps to THAI_CHARSET 
-	case wxFONTENCODING_CP1250: return 238; // wxFONTENCODING_CP1250 [Microsoft analogue of ISO8859-2 "WinLatin2"] maps to EASTEUROPE_CHARSET 
-	//case wxFONTENCODING_SYSTEM: return 255; // wxFONTENCODING_SYSTEM maps to OEM_CHARSET 
+	//case wxFONTENCODING_DEFAULT: return 130; // wxFONTENCODING_DEFAULT maps to [???] JOHAB_CHARSET
+	case wxFONTENCODING_CP936: return 134; // wxFONTENCODING_CP936 [Chinese simplified (GB)] maps to GB2312_CHARSET
+	case wxFONTENCODING_CP950: return 136; // wxFONTENCODING_CP950 [Chinese (traditional - Big5)] maps to CHINESEBIG5_CHARSET
+	case wxFONTENCODING_CP1253: return 161; // wxFONTENCODING_CP1253 [WinGreek (8859-7)] maps to GREEK_CHARSET
+	case wxFONTENCODING_CP1254: return 162; // wxFONTENCODING_CP1254 [WinTurkish] maps to TURKISH_CHARSET
+	//case wxFONTENCODING_DEFAULT: return 163; // wxFONTENCODING_DEFAULT maps to [???] VIETNAMESE_CHARSET
+	case wxFONTENCODING_CP1255: return 177; // wxFONTENCODING_CP1255 [WinHebrew] maps to HEBREW_CHARSET
+	case wxFONTENCODING_CP1256: return 178; // wxFONTENCODING_CP1256 [WinArabic] maps to ARABIC_CHARSET
+	case wxFONTENCODING_CP1257: return 186; // wxFONTENCODING_CP1257 [WinBaltic (same as Latin 7)] maps to BALTIC_CHARSET
+	case wxFONTENCODING_CP1251: return 204; // wxFONTENCODING_CP1251 [Microsoft analogue of ISO8859-5 "WinCyrillic"] maps to RUSSIAN_CHARSET
+	case wxFONTENCODING_CP874: return 222; // wxFONTENCODING_CP874 [WinThai] maps to THAI_CHARSET
+	case wxFONTENCODING_CP1250: return 238; // wxFONTENCODING_CP1250 [Microsoft analogue of ISO8859-2 "WinLatin2"] maps to EASTEUROPE_CHARSET
+	//case wxFONTENCODING_SYSTEM: return 255; // wxFONTENCODING_SYSTEM maps to OEM_CHARSET
 	default: return 0; // Use the default encoding of the underlying operating system for all the others
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      aStr   <- a CBString (byte string) representing the prologue line 
+/// \param      aStr   <- a CBString (byte string) representing the prologue line
 ///                       for an XML file which contains the encoding
 /// \remarks
 /// Called from: the App's DoKBSaveAsXML(), the Doc's BackupDocument(), DoFileSave(), and
@@ -32398,8 +32408,8 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 	// THAI_CHARSET			222
 	//
 	// If the function fails, the return value is DEFAULT_CHARSET.
-	// The TranslateCharsetInfo() function "translates based on the specified character set, 
-	// code page, or font signature value, setting all members of the destination structure 
+	// The TranslateCharsetInfo() function "translates based on the specified character set,
+	// code page, or font signature value, setting all members of the destination structure
 	// to appropriate values."
 	// The TranslateCharsetInfo() function
 
@@ -32407,20 +32417,20 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 	// font, and if so, use a different "encoding" string in Adapt It's xml files.
 	// Problem: m_nCodePage in the MFC version is a 32 bit int, whereas within the wxWidgets
 	// font encoding representation they are represented as an enum, which has a maximum of
-	// 255 different values. Bob's GetEncodingStringForXmlFiles() function has a 
+	// 255 different values. Bob's GetEncodingStringForXmlFiles() function has a
 	// switch(m_nCodePage) statement which has 141 cases in it, but the values in the
 	// switch/case range from 42 to 65006. The values above 255 are not legal for an enum.
 	// The appropriate thing to do within wxWidgets is to supply the encoding string
 	// for the font encodings that wxWidgets knows about. Therefore, I've commented out
-	// parts of Bob's large switch() statement and provided the encoding strings 
+	// parts of Bob's large switch() statement and provided the encoding strings
 	// that match those Bob uses where the closest font encoding equivalents match,
-	// and a few that don't match - based on the current encoding of Adapt It's source 
+	// and a few that don't match - based on the current encoding of Adapt It's source
 	// font.
 
 	aStr = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n";
 #else
 
-	
+
 	switch (m_srcEncoding) //switch(m_nCodePage)
 	{
 	//case 37:
@@ -32874,12 +32884,12 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 	CMainFrame* pFrame = gpApp->GetMainFrame();
-	wxString rscStr; // MFC Note: to get past a bug 
+	wxString rscStr; // MFC Note: to get past a bug
 
-	// BEW 6Nov09, added "[Default Work Folder Location]" versus "[Custom Work Folder Location]" 
+	// BEW 6Nov09, added "[Default Work Folder Location]" versus "[Custom Work Folder Location]"
 	// to distinguish between whether a custom work folder location is in effect versus the
-	// default "Adapt It Work" or "Adapt It Unicode Work" folder at the standard data folder 
-	// for the particular OS (the latter also includes non-standard locations specified by 
+	// default "Adapt It Work" or "Adapt It Unicode Work" folder at the standard data folder
+	// for the particular OS (the latter also includes non-standard locations specified by
 	// use of the -wf switch) -- also added "[Temporary Work Folder Location]" for when
 	// the custom location is not locked down (ie. will not persist beyond the session)
 	if (m_bUseCustomWorkFolderPath)
@@ -32908,18 +32918,18 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	if (gpApp->m_pTargetBox != NULL)
 	{
 		// whm added test for m_pActivePile == NULL
-		//if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->m_pSrcPhrase == NULL 
-		if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->GetSrcPhrase() == NULL 
+		//if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->m_pSrcPhrase == NULL
+		if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->GetSrcPhrase() == NULL
 			|| gpApp->m_nActiveSequNum < 0
 			|| gpApp->m_pTargetBox->IsShown())
 			bDocIsThere = FALSE;
 	}
 	else
 		bDocIsThere = FALSE;
-	
+
 	if (bDocIsThere)
 	{
-		gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum); // ensure a 
+		gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum); // ensure a
 												// valid pointer (BEW added 28Jun05)
 		wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->GetSrcPhrase());
 		if (!chVerse.IsEmpty())
@@ -32981,10 +32991,10 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	}
 	if (gpApp->m_bTransliterationMode)
 	{
-		// add the extra !! Using Transliteration Mode !! to the end, 
+		// add the extra !! Using Transliteration Mode !! to the end,
 		// when it is turned on
 		//IDS_USING_TRANSLIT_STATUS_MSG
-		mssg = _("!! TRANSLITERATING !!"); 
+		mssg = _("!! TRANSLITERATING !!");
 		message += _T("    ") + mssg;
 	}
 	pView->StatusBarMessage(message);
@@ -33014,8 +33024,8 @@ wxString CAdapt_ItApp::GetCurrentBookDisplayName()
 /// Gets the value stored in m_bibleBooksFolderPath.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetCurrentBookFolderPath() {
-	return m_bibleBooksFolderPath; 
-	// OR perhaps 
+	return m_bibleBooksFolderPath;
+	// OR perhaps
 	// ConcatenatePathBits(GetAdaptationsFolderPath(), m_pCurrBookNamePair->dirName);
 }
 
@@ -33023,7 +33033,7 @@ wxString CAdapt_ItApp::GetCurrentBookFolderPath() {
 /// \return     a wxString representing the current book folder name
 /// \remarks
 /// Called from: (currently unused).
-/// Gets the current book folder name by stripping the path from the current 
+/// Gets the current book folder name by stripping the path from the current
 /// book folder path.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetCurrentBookFolderName()
@@ -33061,8 +33071,8 @@ wxString CAdapt_ItApp::GetAdaptationsFolderPath()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the adaptations folder name
 /// \remarks
-/// Called from: (currently unused). 
-/// Gets the adaptations folder name by stripping the path from the 
+/// Called from: (currently unused).
+/// Gets the adaptations folder name by stripping the path from the
 /// adaptations folder path.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetAdaptationsFolderName()
@@ -33073,8 +33083,8 @@ wxString CAdapt_ItApp::GetAdaptationsFolderName()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the current document's name
 /// \remarks
-/// Called from: the App's GetCurrentDocPath(), CJoinDialog's OnBnClickedJoinNow(),  
-/// InitialiseLists(), CSplitDialog's OnBnClickedButtonSplitNow(), 
+/// Called from: the App's GetCurrentDocPath(), CJoinDialog's OnBnClickedJoinNow(),
+/// InitialiseLists(), CSplitDialog's OnBnClickedButtonSplitNow(),
 /// SplitAtPhraseBoxLocation_Interactive(), and InitDialog().
 /// Gets the current document's name as stored in m_curOutputFilename.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -33196,7 +33206,7 @@ bool CAdapt_ItApp::GetDocHasUnsavedChanges()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing the book indicator string for the current 
+/// \return     a wxString representing the book indicator string for the current
 ///             book folder if in book mode, otherwise a null string if book mode is not
 ///             activated
 /// \remarks
@@ -33209,7 +33219,7 @@ wxString CAdapt_ItApp::GetBookIndicatorStringForCurrentBookFolder()
 	wxString rv;
 	rv.Empty();
 	wxString s;
-	
+
     // BEW modified 03Nov05: we rely on the fact that when book mode is on, the
     // m_nBookIndex tells us which BookNamePair pointer to index in m_pBibleBooks in order
     // to get the current directory name, and the book ID code (from the same BookNamePair
@@ -33225,9 +33235,9 @@ wxString CAdapt_ItApp::GetBookIndicatorStringForCurrentBookFolder()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if in book mode, otherwise FALSE
 /// \remarks
-/// Called from: the App's GetCurrentDocFolderDisplayName(), GetCurrentDocFolderPath(), 
+/// Called from: the App's GetCurrentDocFolderDisplayName(), GetCurrentDocFolderPath(),
 /// GetBookIndicatorStringForCurrentBookFolder(), and GetBookID().
-/// Determines if the application is in book mode or not. Simply returns the 
+/// Determines if the application is in book mode or not. Simply returns the
 /// value in m_bBookMode.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetBookMode()
@@ -33285,7 +33295,7 @@ void CAdapt_ItApp::CloseDocDiscardingAnyUnsavedChanges()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a pointer to a SPList of source phrases loaded from the document 
+/// \return     a pointer to a SPList of source phrases loaded from the document
 ///             at FilePath
 /// \remarks
 /// Called from: CJoinDialog::OnBnClickedJoinNow().
@@ -33297,12 +33307,12 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE unless there was a mismatch book ID or an invalid book ID in 
+/// \return     TRUE unless there was a mismatch book ID or an invalid book ID in
 ///             which case returns FALSE
-/// \param      ol                                   <- pointer to the list of source 
+/// \param      ol                                   <- pointer to the list of source
 ///                                                     phrases to be appended
 /// \param      curBookID                            -> the current book ID
-/// \param      IsLastAppendUsingThisMethodRightNow  -> TRUE when being called on the 
+/// \param      IsLastAppendUsingThisMethodRightNow  -> TRUE when being called on the
 ///                                                     last of the listed files to be
 ///                                                     appended
 /// \remarks
@@ -33313,7 +33323,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// handled properly.
 /// BEW 12Apr10, changed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID, 
+bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID,
 												 bool IsLastAppendUsingThisMethodRightNow)
 {
     // In AppendSourcePhrasesToCurrentDoc the bool input parameter will be true when this
@@ -33342,7 +33352,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	if (pFirstSrcPhrase->m_markers.Find(_T("\\id ")) == 0)
 	{
 		// there is an \id defined, and so we can get it and check for a match
-		appendingDoc_BookID = pFirstSrcPhrase->m_srcPhrase; // if it had 
+		appendingDoc_BookID = pFirstSrcPhrase->m_srcPhrase; // if it had
 										// punctuation it would be invalid
 		if (IsValidBookID(appendingDoc_BookID))
 		{
@@ -33356,21 +33366,21 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 			}
 			else
 			{
-				// matched book IDs, so delete the first source phrase in the 
+				// matched book IDs, so delete the first source phrase in the
 				// doc to be appended's list
 				ol->DeleteNode(ol->GetFirst()); //ol->RemoveHead();
 			}
 		}
 		else
 		{
-			// an invalid ID cannot possibly match the passed in bookID, 
+			// an invalid ID cannot possibly match the passed in bookID,
 			// so we have a mismatch
 			return FALSE;
 		}
 	}
 	else
 	{
-		// here is no \id, (the document might not have USFM or SFM markup), 
+		// here is no \id, (the document might not have USFM or SFM markup),
 		// so don't make any book ID check
 		;
 	}
@@ -33395,18 +33405,18 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	}
 	// now do the adjustments for our refactored view design
 	d->UpdateSequNumbers(0); // even though it's done in next block, next block is called
-							 // only for the last set of appends, and we need it here 
+							 // only for the last set of appends, and we need it here
 							 // each time
 	pLayout->RecalcLayout(m_pSourcePhrases,create_strips_and_piles); // this call destroys
 							// the smaller set of current piles and builds all from scratch
 							// and then the strips based on them - this ensures that a later
 							// ScrollIntoView() call, which will use CPile::m_pOwningStrip
 							// will always succeed for whatever CPile instance is used
-	if (IsLastAppendUsingThisMethodRightNow) 
+	if (IsLastAppendUsingThisMethodRightNow)
 	{
 		// get all the sequence numbers into correct sequence
 		d->UpdateSequNumbers(0);
-		int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just 
+		int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just
 										 // joined doc part
 		if (anActiveSequNum <= GetMaxIndex())
 		{
@@ -33418,7 +33428,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 			m_nActiveSequNum = GetMaxIndex();
 		}
 		CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
-		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; 
+		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible;
 								   // else to a safe location
 	}
 	return TRUE;
@@ -33438,7 +33448,7 @@ SPList *CAdapt_ItApp::GetSourcePhraseList()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a pointer to the current source phrase (at m_cruIndex)
 /// \remarks
-/// Called from: the App's CascadeSourcePhraseListChange(), and 
+/// Called from: the App's CascadeSourcePhraseListChange(), and
 /// CSplitDialog::GoToNextChapter_Interactive().
 /// Simply calls GetSourcePhraseByIndex() passing in the view's m_nActiveSequNum
 /// remarks:
@@ -33480,10 +33490,10 @@ void CAdapt_ItApp::SetCurrentSourcePhrase(CSourcePhrase *sp)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a pointer to a source phrase that starts the next chapter of text 
+/// \return     a pointer to a source phrase that starts the next chapter of text
 ///             or NULL if none found
 /// \param      ol   -> the SPList of the document
-/// \param      sp   <- the source phrase at the initial and subsequent active 
+/// \param      sp   <- the source phrase at the initial and subsequent active
 ///                     search locations
 /// \remarks
 /// Called from: CSplitDialog::GoToNextChapter_Interactive().
@@ -33507,7 +33517,7 @@ CSourcePhrase *CAdapt_ItApp::FindNextChapter(SPList *ol, CSourcePhrase *sp)
     // point
 	SPList::Node* p = ol->Find(sp);
 	sp = (CSourcePhrase*)p->GetData();
-	p = p->GetNext();	// TODO: check this - doesn't MFC version skip a source 
+	p = p->GetNext();	// TODO: check this - doesn't MFC version skip a source
 						// phrase before the while loop below???
 
 	// get over any \id content, or other TextType(s)
@@ -33518,15 +33528,15 @@ CSourcePhrase *CAdapt_ItApp::FindNextChapter(SPList *ol, CSourcePhrase *sp)
 	}
 
 	// get past any sourcephrase which may start the current rather than next chapter
-	//if (p) sp = (CSourcePhrase*)ol->GetNext(p); 
+	//if (p) sp = (CSourcePhrase*)ol->GetNext(p);
 	if (p)
 	{
 		sp = (CSourcePhrase*)p->GetData();
 		p = p->GetNext();
 	}
-												
+
 	// scan until the next start of chapter location is found
-	while (p != NULL && sp->m_bChapter == false) 
+	while (p != NULL && sp->m_bChapter == false)
 	{
 		sp = (CSourcePhrase*)p->GetData();
 		p = p->GetNext();
@@ -33535,7 +33545,7 @@ CSourcePhrase *CAdapt_ItApp::FindNextChapter(SPList *ol, CSourcePhrase *sp)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing a filename guaranteed to end with 
+/// \return     a wxString representing a filename guaranteed to end with
 ///             the .xml extension
 /// \param      s   -> a wxString representing a file name
 /// \remarks
@@ -33546,12 +33556,12 @@ CSourcePhrase *CAdapt_ItApp::FindNextChapter(SPList *ol, CSourcePhrase *sp)
 wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 {
 	wxString defExtn = _T(".xml");
-	if (s.Find(_T(".")) == wxNOT_FOUND) 
+	if (s.Find(_T(".")) == wxNOT_FOUND)
 	{
 		// if there is no point, then we can unlaterally add the default extension
 		return s + defExtn;
-	} 
-	else 
+	}
+	else
 	{
         // there is a point character, but it might not be .xml and so we must check out if
         // the point is a chapter and/or verse delimiter in the filename - our criterion
@@ -33578,7 +33588,7 @@ wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 /// \return     nothing
 /// \param      l   -> pointer to a list of source phrases
 /// \remarks
-/// Called from: CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and 
+/// Called from: CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 /// SplitIntoChapters_Interactive().
 /// Deletes the source phrases from the list pointed to by l. Does nothing if there
 /// are no source phrases in l.
@@ -33611,8 +33621,8 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 /// \return     nothing
 /// \param      DoFullScreenUpdate   -> fully updates the screen if TRUE
 /// \remarks
-/// Called from: CJoinDialog::OnBnClickedJoinNow(), 
-/// CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and 
+/// Called from: CJoinDialog::OnBnClickedJoinNow(),
+/// CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 /// SplitIntoChapters_Interactive().
 /// Updates sequence numbers and the various indices including: m_curIndex, m_beginIndex,
 /// m_endIndex, m_lowerIndex, and m_upperIndex to ensure they are within proper ranges.
@@ -33647,7 +33657,7 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a pointer to the source phrase found by index value
-/// \param      Index   -> an int representing the index of the source phrase 
+/// \param      Index   -> an int representing the index of the source phrase
 ///                        in m_pSourcePhrases
 /// \remarks
 /// Called from: the App's GetCurrentSourcePhrase() and SetCurrentSourcePhraseByIndex().
@@ -33667,19 +33677,19 @@ CSourcePhrase *CAdapt_ItApp::GetSourcePhraseByIndex(int Index)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return nothing 
-/// \param 
+/// \return nothing
+/// \param
 ///     Index ->    an int representing the index of the source phrase to Jump to
-/// \remarks 
+/// \remarks
 /// Called from: CSplitDialog::SplitAtPhraseBoxLocation_Interactive().
 /// Calls the View's Jump() method to jump to the source phrase instance at Index in
-/// m_pSourcePhrases. 
+/// m_pSourcePhrases.
 /// whm: *** TODO someday *** Does not do any error checking so it assumes that Index is a
 /// valid index into the list, i.e., within the list.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCurrentSourcePhraseByIndex(int Index)
 {
-	gbIsDocumentSplittingDialogActive = TRUE; // suppress source text copy if the 
+	gbIsDocumentSplittingDialogActive = TRUE; // suppress source text copy if the
 											  // box location is empty
 	GetView()->Jump(this, GetSourcePhraseByIndex(Index));
 	gbIsDocumentSplittingDialogActive = FALSE;
@@ -33720,7 +33730,7 @@ bool CAdapt_ItApp::IsValidBookID(wxString& id)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing the document's book ID if present and if 
+/// \return     a wxString representing the document's book ID if present and if
 ///             valid, otherwise a null string
 /// \remarks
 /// Called from: the App's GetBookID() if the GetBookMode() call returns FALSE.
@@ -33766,7 +33776,7 @@ wxString CAdapt_ItApp::GetBookIDFromDoc()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing the document's book ID if present and if valid, 
+/// \return     a wxString representing the document's book ID if present and if valid,
 ///             otherwise a null string
 /// \remarks
 /// Called from: CJoinDialog::InitDialog(), CSplitDialog's
@@ -33786,7 +33796,7 @@ wxString CAdapt_ItApp::GetBookID()
 /// \param      pSrcPhrasesList   <- pointer to the SPList of a document
 /// \param      id                -> a wxString representing the book ID to be added
 /// \remarks
-/// Called from: CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and 
+/// Called from: CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 /// DoSplitIntoChapters().
 /// Makes sure that the document has the correct \id entry at its beginning after a
 /// document split operation. To effect this this function adds a pointer to a new source
@@ -33823,7 +33833,7 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      project   -> the project name in the form of "srcName to tgtName 
+/// \param      project   -> the project name in the form of "srcName to tgtName
 ///                          Adaptations"
 /// \param      srcName   <- a wxString that receives the source name of the project name
 /// \param      tgtName   <- a wxString that receives the target name of the project name
@@ -33846,7 +33856,7 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 /// For additional extended comments, see the comments within RestoreDocParamsOnInput()
 /// itself.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, 
+void CAdapt_ItApp::GetSrcAndTgtLanguageNamesFromProjectName(wxString& project,
 													wxString& srcName, wxString& tgtName)
 {
 	if (project.IsEmpty())
@@ -33855,13 +33865,13 @@ void CAdapt_ItApp::GetSrcAndTgtLanguageNamesFromProjectName(wxString& project,
 		tgtName.Empty();
 		return;
 	}
-	// whm: For localization purposes the " to " and " adaptations" strings should not be 
-	// translated, otherwise other localizations would not be able to handle the unpacking 
+	// whm: For localization purposes the " to " and " adaptations" strings should not be
+	// translated, otherwise other localizations would not be able to handle the unpacking
 	// of files created on different localizations.
 	int curPos = project.Find(_T(" to "));
 	srcName = project.Left(curPos);
 	curPos += 4; // where we think the target name starts
-	int curPos2 = FindFromPos(project,_T(" adaptations"),curPos); // find the end of 
+	int curPos2 = FindFromPos(project,_T(" adaptations"),curPos); // find the end of
 																  // the target name
 	int count = curPos2 - curPos;
 	wxASSERT(count > 0);
@@ -33895,20 +33905,20 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
 	//fInfo.fOrientation = 0; // orientation ignored in wxWidgets, so leave current value
 	switch(font->GetWeight())
 	{
-		case wxLIGHT: 
-			fInfo.fWeight = 400; 
-			fInfo.fWeightConfSave = 400; 
+		case wxLIGHT:
+			fInfo.fWeight = 400;
+			fInfo.fWeightConfSave = 400;
 			break; // same as normal
-		case wxNORMAL: 
-			fInfo.fWeight = 400; 
-			fInfo.fWeightConfSave = 400;  
+		case wxNORMAL:
+			fInfo.fWeight = 400;
+			fInfo.fWeightConfSave = 400;
 			break;
-		case wxBOLD: 
-			fInfo.fWeight = 700; 
-			fInfo.fWeightConfSave = 700;  
+		case wxBOLD:
+			fInfo.fWeight = 700;
+			fInfo.fWeightConfSave = 700;
 			break;
-		default: 
-			fInfo.fWeight = 700;  
+		default:
+			fInfo.fWeight = 700;
 			fInfo.fWeightConfSave = 700;
 	}
 	if (font->GetStyle() == wxNORMAL)
@@ -33922,7 +33932,7 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
 	//fInfo.fStrikeOut = 0; // strikeout ignored in wxWidgets, so leave current value
 	// Note: wxWidgets does use wxFontEncoding which can be retrieved with GetEncoding()
 	fInfo.fEncoding = font->GetEncoding();
-	fInfo.fCharset = MapWXFontEncodingToMFCCharset(fInfo.fEncoding); // the wx encodings 
+	fInfo.fCharset = MapWXFontEncodingToMFCCharset(fInfo.fEncoding); // the wx encodings
 											// that MFC doesn't know about map to 0 (zero)
 	//fInfo.fOutPrecision = 1; // outprecision ignored in wxWidgets, so leave current value
 	//fInfo.fClipPrecision = 2; // clipprecision ignored in wxWidgets, so leave current value
@@ -33939,15 +33949,15 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
 	}
 	// wxWidgets is only interested in the family which is encoded in bits 4-7
 	// of the fPitchAndFamily value. The Pitch is encoded in the two lower order
-	// bits of fPitchAndFamily (bits 1 and 2), and can be (MFC) DEFAULT_PITCH, 
+	// bits of fPitchAndFamily (bits 1 and 2), and can be (MFC) DEFAULT_PITCH,
 	// FIXED_PITCH, or VARIABLE_PITCH. MFC defines determine these to be:
 	// #define DEFAULT_PITCH 0
 	// #define FIXED_PITCH 1
 	// #define VARIABLE_PITCH 2
-	// According to the MFC docs "The proper value can be obtained by using the 
+	// According to the MFC docs "The proper value can be obtained by using the
 	// Boolean OR operator to join one pitch constant with one family constant."
-	// wxFont does not track font pitch, so we'll assume a default pitch (0) 
-	// then we should be able to get the fPitchAndFamily by shifting the fFamily 
+	// wxFont does not track font pitch, so we'll assume a default pitch (0)
+	// then we should be able to get the fPitchAndFamily by shifting the fFamily
 	// value 3 bits to the left.
 	fInfo.fPitchAndFamily = fInfo.fFamily << 4;
 	fInfo.fFaceName = font->GetFaceName();
@@ -33955,7 +33965,7 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
 
 // helper function
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     an int representing the calculated optimal height for a dialog's 
+/// \return     an int representing the calculated optimal height for a dialog's
 ///             text control
 /// \param      pointSize  -> an int representing the font point size
 /// \remarks
@@ -33965,8 +33975,8 @@ void CAdapt_ItApp::UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo)
 ////////////////////////////////////////////////////////////////////////////////////////
 int	 CAdapt_ItApp::GetOptimumDlgEditBoxHeight(int pointSize)
 {
-	// For 12pt font the default height of a text ctrl is about 20 pixels. 
-	// With the following ratio a 24pt font would need a text ctrl with 
+	// For 12pt font the default height of a text ctrl is about 20 pixels.
+	// With the following ratio a 24pt font would need a text ctrl with
 	// height of about 40 pixels.
 	int intTemp = (int)(22.0 + ((float)pointSize - MIN_DLG_FONT_SIZE)*1.667);
 	return intTemp;
@@ -33983,7 +33993,7 @@ int	 CAdapt_ItApp::GetOptimumDlgEditBoxHeight(int pointSize)
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::GetOptimumDlgFontSize(int pointSize)
 {
-	// Limit Optimum dialog text edit box font size to 
+	// Limit Optimum dialog text edit box font size to
 	// between MIN_DLG_FONT_SIZE (11 points) and
 	// MAX_DLG_FONT_SIZE (24 points)
 	int ps = pointSize;
@@ -33998,7 +34008,7 @@ int CAdapt_ItApp::GetOptimumDlgFontSize(int pointSize)
 /// \return     a wxString representing the path of the currently executing program
 ///                 or an empty/null string if the path could not be determined
 /// \param      argv0  -> a wxString representing the system's argv[0] parameter (to Main)
-/// \param      cwd    -> a wxString representing the current working directory (value 
+/// \param      cwd    -> a wxString representing the current working directory (value
 ///                       returned by wxGetCwd)
 /// \param      appVariableName  -> an (optional) application environment variable name
 /// \remarks
@@ -34007,10 +34017,10 @@ int CAdapt_ItApp::GetOptimumDlgFontSize(int pointSize)
 /// could not be determined. This function also stores the argv0 parameter in the App's
 /// m_executingAppPathName member.
 ////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::FindAppPath(const wxString& argv0, const wxString& cwd, 
-										const wxString& appVariableName) 
+wxString CAdapt_ItApp::FindAppPath(const wxString& argv0, const wxString& cwd,
+										const wxString& appVariableName)
 {
-	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
+	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets
 	// docs re "Writing installers for wxWidgets applications"
     wxString str;
 
@@ -34061,14 +34071,14 @@ wxString CAdapt_ItApp::FindAppPath(const wxString& argv0, const wxString& cwd,
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxMemorySize giving the number of bytes of free memory
 /// \remarks
-/// Called from the App's OnInit() and CEmailReportDlg::FormatSysInfoIntoString(). 
+/// Called from the App's OnInit() and CEmailReportDlg::FormatSysInfoIntoString().
 /// On Windows and Linux uses the wxWidgets function wxGetFreeMemory but on Macintosh uses
 /// Mac OS X APIs to determine the free memory (this code was put into helpers.cpp to
 /// avoid header problems with __BEGIN_DECLS inside the class CAdapt_ItApp.
 ////////////////////////////////////////////////////////////////////////////////////////
 
 wxMemorySize CAdapt_ItApp::GetFreeMemory(void)
-{	
+{
 #ifdef __WXMSW__
 	return ::wxGetFreeMemory();
 #elif defined(__WXGTK__)
@@ -34082,7 +34092,7 @@ wxMemorySize CAdapt_ItApp::GetFreeMemory(void)
 /// \return     a wxString representing the file name with any .xml extension removed
 /// \param      anyName   -> a wxString representing a file name
 /// \remarks
-/// Called from: the Doc's SetDocumentWindowTitle(), and 
+/// Called from: the Doc's SetDocumentWindowTitle(), and
 /// CMoveDialog::OnBnClickedButtonRenameDoc().
 /// Removes any .xml extension occurring at the end of anyName and returns the result.
 /// BEw changed 23Aug10, because we'll want to use this to remove extensions like ".txt"
@@ -34125,13 +34135,13 @@ wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pFont      -> a pointer to the font from which its base properties are 
+/// \param      pFont      -> a pointer to the font from which its base properties are
 ///                           copied in setting pDlgFont
 /// \param      pointsize  -> the pointsize (+ve number) for the text to be displayed in
 ///                           the control
 /// \param      pStatTxt   <- a pointer to the wxStaticText control whose font is to be set
 /// \param      pDlgFont   <- the dialog font being adjusted for use in the control
-/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the 
+/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the
 ///                           control is Left-to-Right (LTR)
 /// \remarks
 /// Called from: The InitDialog() methods of most of the application's dialogs that use
@@ -34146,7 +34156,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForStatText(wxFont* pFont, int points
 	wxASSERT(pFont != NULL);
 	wxASSERT(pDlgFont != NULL);
 	CopyFontBaseProperties(pFont,pDlgFont);
-	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show the wanted font size.
 	pDlgFont->SetPointSize(pointsize);
 	if (pStatTxt != NULL)
@@ -34171,19 +34181,19 @@ void CAdapt_ItApp::SetFontAndDirectionalityForStatText(wxFont* pFont, int points
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pFont      -> a pointer to the font from which its base properties are 
+/// \param      pFont      -> a pointer to the font from which its base properties are
 ///                           copied in setting the pDlgFont
-/// \param      pEdit1     <- a pointer to the first text control whose font that can 
+/// \param      pEdit1     <- a pointer to the first text control whose font that can
 ///                           be set
-/// \param      pEdit2     <- a pointer to the second text control whose font that can 
+/// \param      pEdit2     <- a pointer to the second text control whose font that can
 ///                           be set
-/// \param      pListBox1  <- a pointer to the first list box control whose font that can 
+/// \param      pListBox1  <- a pointer to the first list box control whose font that can
 ///                           be set
-/// \param      pListBox2  <- a pointer to the second list box control whose font that can 
+/// \param      pListBox2  <- a pointer to the second list box control whose font that can
 ///                           be set
-/// \param      pDlgFont   <- the dialog font being adjusted for use in the above 
+/// \param      pDlgFont   <- the dialog font being adjusted for use in the above
 ///                           dialog controls
-/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the 
+/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the
 ///                           control is Left-to-Right (LTR)
 /// \remarks
 /// Called from: The InitDialog() methods of most of the application's dialogs that use
@@ -34198,8 +34208,8 @@ void CAdapt_ItApp::SetFontAndDirectionalityForStatText(wxFont* pFont, int points
 /// Use NULL for any control which is to be ignored, but the font pointer must never be
 /// NULL.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1, 
-					wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2, 
+void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
+					wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2,
 					wxFont*& pDlgFont, bool bIsRTL)
 {
     // whm Note: The MFC function deletes any existing dialog font that is passed in; then
@@ -34214,7 +34224,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 	wxASSERT(pFont != NULL);
 	wxASSERT(pDlgFont != NULL);
 	CopyFontBaseProperties(pFont,pDlgFont);
-	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show in the proper dialog font size.
 	pDlgFont->SetPointSize(m_dialogFontSize);
 	if (pEdit1 != NULL)
@@ -34256,7 +34266,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
         // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
         // probably don't want the list item right justified and the scroll bar mirrored on
         // the left side, since the main window is not similarly mirrored.
-        // 
+        //
         //if (bIsRTL)
         //{
         // pListBox1->SetLayoutDirection(wxLayout_RightToLeft);
@@ -34271,7 +34281,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
         // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we
         // probably don't want the list item right justified and the scroll bar mirrored on
         // the left side, since the main window is not similarly mirrored.
-        // 
+        //
 		//if (bIsRTL)
 		//{
 		// pListBox2->SetLayoutDirection(wxLayout_RightToLeft);
@@ -34286,12 +34296,12 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pFont      -> a pointer to the font from which its base properties are 
+/// \param      pFont      -> a pointer to the font from which its base properties are
 ///                           copied in setting the pDlgFont
 /// \param      pCombo     <- a pointer to the wxComboBox for which we wish to set the font
-/// \param      pDlgFont   <- the dialog font being adjusted for use in the above 
+/// \param      pDlgFont   <- the dialog font being adjusted for use in the above
 ///                           combobox
-/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the 
+/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the
 ///                           control is Left-to-Right (LTR)
 /// \remarks
 /// Called from: The InitDialog() methods of most of the application's dialogs that use a
@@ -34303,7 +34313,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 /// should be TRUE when right to left reading text is wanted (and right justification),
 /// default is FALSE for left to right.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
+void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo,
 				wxFont*& pDlgFont, bool bIsRTL)
 {
     // whm Note: The MFC function deletes any existing dialog font that is passed in; then
@@ -34318,7 +34328,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox
 	wxASSERT(pFont != NULL);
 	wxASSERT(pDlgFont != NULL);
 	CopyFontBaseProperties(pFont,pDlgFont);
-	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show in the proper dialog font size.
 	pDlgFont->SetPointSize(m_dialogFontSize);
 	if (pCombo != NULL)
@@ -34343,7 +34353,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     an int representing the index into the array where findStr was found, 
+/// \return     an int representing the index into the array where findStr was found,
 ///             otherwise -1 if the string was not found.
 /// \param      findStr   -> a wxString representing the (exact) string being searched for
 /// \param      strArray  <- a pointer to the wxArrayString being searched
@@ -34351,7 +34361,7 @@ void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox
 /// Called from: CExportOptionsDlg's OnBnClickedRadioExportSelectedMarkers(),
 /// OnLbnSelchangeListSfms(), OnCheckListBoxToggle(),
 /// OnBnClickedButtonFilterOutFromExport(), OnBnClickedButtonIncludeInExport(),
-/// OnBnClickedButtonUndo(), DoBoxClickedIncludeOrFilterOutDoc() and 
+/// OnBnClickedButtonUndo(), DoBoxClickedIncludeOrFilterOutDoc() and
 /// DoBoxClickedIncludeOrFilterOutProj().
 /// This function does a brute force linear search through strArray looking for findStr. If
 /// found (array element == findStr exactly) it returns the found element's index in the
@@ -34374,9 +34384,9 @@ int CAdapt_ItApp::FindArrayString(const wxString& findStr, wxArrayString* strArr
 /// \return     an int representing the index of the list box item if found, otherwise -1
 /// \param      pListBox         -> a pointer to the list box being searched
 /// \param      searchStr        <- a wxString representing the string being searched for
-/// \param      searchCaseType   -> a SearchCaseType which can be caseSensitive or 
+/// \param      searchCaseType   -> a SearchCaseType which can be caseSensitive or
 ///                                 caseInsensitive
-/// \param      searchStrLenType <- a SearchStrLengthType which can be subString or 
+/// \param      searchStrLenType <- a SearchStrLengthType which can be subString or
 ///                                 exactString
 /// \remarks
 /// Called from: CChooseTranslation's OnButtonMoveUp(), OnButtonMoveDown(),
@@ -34396,7 +34406,7 @@ int CAdapt_ItApp::FindArrayString(const wxString& findStr, wxArrayString* strArr
 /// time taken can be considerable for list boxes that may contain very large numbers of
 /// items.
 ////////////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
+int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType)
 {
     // FindListBoxItem searches for searchStr in pListBox and returns the zero-based index
@@ -34423,7 +34433,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
             // an additional enum parameter SubStrType {initialOnly, anywhere}
 			if (srcStr.Find(caseKeyStr) == 0)
 			{
-				// we found an item whose beginning chars match 
+				// we found an item whose beginning chars match
 				bFound = TRUE;
 				return ct;
 			}
@@ -34446,11 +34456,11 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 /// \return     an int representing the index of the list box item if found, otherwise -1
 /// \param      pListBox         -> a pointer to the list box being searched
 /// \param      searchStr        <- a wxString representing the string being searched for
-/// \param      searchCaseType   -> a SearchCaseType which can be caseSensitive or 
+/// \param      searchCaseType   -> a SearchCaseType which can be caseSensitive or
 ///                                 caseInsensitive
-/// \param      searchStrLenType <- a SearchStrLengthType which can be subString or 
+/// \param      searchStrLenType <- a SearchStrLengthType which can be subString or
 ///                                 exactString
-/// \param      startFromType    -> a StartFromType which can be fromFirstListPos, 
+/// \param      startFromType    -> a StartFromType which can be fromFirstListPos,
 ///                                 fromCurrentSelPosToListEnd,
 ///                                 or fromCurrentSelPosCyclingBack
 /// \remarks
@@ -34478,8 +34488,8 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 /// the find operation is a simple brute force search through each item, the time taken can
 /// be considerable for list boxes that may contain very large numbers of items.
 ////////////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
-		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType, 
+int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
+		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType,
 		enum StartFromType startFromType)
 {
     // FindListBoxItem searches for searchStr in pListBox and returns the zero-based index
@@ -34499,22 +34509,22 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 	if (searchCaseType == caseInsensitive)
 		caseKeyStr.UpperCase();
 	nStartIndex = 0; // the default starting point case which is fromFirstListPos
-	nEndIndex = nTotLBItems - 1; // the default ending point is index of 
+	nEndIndex = nTotLBItems - 1; // the default ending point is index of
 								 // last item in list
-	
+
 	// handle the special cases where starting index is from current
 	// selection index
-	if (startFromType == fromCurrentSelPosToListEnd || 
+	if (startFromType == fromCurrentSelPosToListEnd ||
 		startFromType == fromCurrentSelPosCyclingBack)
 	{
 		// Set starting index at next index below the current selection position.
-		nStartIndex = nCurrSel + 1; // start searching with next item below 
+		nStartIndex = nCurrSel + 1; // start searching with next item below
 									// current selection
 		// But first do some sanity checks.
 		if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
 		{
 			// no valid selection is current so cannot search
-			return -1; 
+			return -1;
 		}
 	}
 	// Search from starting index through end of list
@@ -34531,7 +34541,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
             // an additional enum parameter SubStrType {initialOnly, anywhere}
 			if (srcStr.Find(caseKeyStr) == 0)
 			{
-				// we found an item whose beginning chars match 
+				// we found an item whose beginning chars match
 				bFound = TRUE;
 				return ct;
 			}
@@ -34566,7 +34576,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
                 // require an additional enum parameter SubStrType {initialOnly, anywhere}
 				if (srcStr.Find(caseKeyStr) == 0)
 				{
-					// we found an item whose beginning chars match 
+					// we found an item whose beginning chars match
 					bFound = TRUE;
 					return ct;
 				}
@@ -34587,7 +34597,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     an int representing an MFC paper size code value equivalent to the 
+/// \return     an int representing an MFC paper size code value equivalent to the
 ///             wxPaperSize id
 /// \param      id   -> the wxPaperSize id to be mapped to an MFC value
 /// \remarks
@@ -34749,7 +34759,7 @@ void CAdapt_ItApp::DoPrintCleanup()
     // and more often in the wx version (especially when doing print preview).
 	CAdapt_ItView* pView = GetView();
 
-	if (m_nAIPrintout_Destructor_ReentrancyCount == 1) 
+	if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
 	{
 		// so the the stuff in this block only when we enter this function the first time
 
@@ -34763,7 +34773,7 @@ void CAdapt_ItApp::DoPrintCleanup()
         // restore the selection), then do tidy up of everything else & get a new layout
         // calculated; likewise if we were printing a chapter & verse range
 		bool bSaveListHasContent = !m_pSaveList->IsEmpty();
-		if (m_bPrintingSelection  || m_bPrintingRange || 
+		if (m_bPrintingSelection  || m_bPrintingRange ||
 			(gbIsBeingPreviewed && bSaveListHasContent))
 		{
 			pView->RestoreOriginalList(m_pSaveList, m_pSourcePhrases); // ignore return value,
@@ -34801,14 +34811,14 @@ void CAdapt_ItApp::DoPrintCleanup()
 #else
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
 	#endif
-	} // kluge block ends here so that a call to ScrollIntoView() is done for each 
+	} // kluge block ends here so that a call to ScrollIntoView() is done for each
       // time entered, otherwise, the scroll position gets lost for the second entrance,
       // and a manual scroll is then required to make the active strip visible; but having
       // the call done each time solves this problem
 
 	// recalculate the active pile & update location for phraseBox creation
 	m_pActivePile = pView->GetPile(m_nActiveSequNum);
-	if (m_pActivePile != NULL) // whm added 27Feb05 to avoid crash when 
+	if (m_pActivePile != NULL) // whm added 27Feb05 to avoid crash when
             // m_nActiveSequNum == -1 as can be the case when user finishes adapting a doc,
             // dismisses the dialog that informs of such, then immediately does print
             // preview. When closing print preview this routine would otherwise crash below
@@ -34820,14 +34830,14 @@ void CAdapt_ItApp::DoPrintCleanup()
 		m_pTargetBox->SetSelection(-1,-1); // select all
 		m_pTargetBox->SetFocus();
 	}
-   	
+
 	pView->Invalidate();
 	m_pLayout->PlaceBox();
 	wxWindow* pWnd;
-	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set 
+	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set
             // by the above code, so unfortunately the cursor will have to be manually put
             // back in the box
-	
+
     // Code to thaw the canvas needs to go here in OnCloseWindow, because OnEndPrinting
     // gets called prematurely by the framework as each preview page is about to be shown.
 	// (Also, now that BEW has added the m_nAIPrintout_Destructor_ReentrancyCount kluge,
@@ -34836,24 +34846,24 @@ void CAdapt_ItApp::DoPrintCleanup()
 	if (GetMainFrame()->canvas->IsFrozen())
 		GetMainFrame()->canvas->Thaw();
 
-	m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this 
+	m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this
             // function is entered, we do nothing in this block if it is is entered more
             // than once
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if all was well, FALSE if the width and length were not successfully 
+/// \return     TRUE if all was well, FALSE if the width and length were not successfully
 ///             calculated
 /// \param
 /// nPagePrintingWidthLU    <-  return the printable page width in logical units (
 ///                             screen pixels)
-/// nPagePrintingLengthLU   <-  return the printable page length in logical units 
+/// nPagePrintingLengthLU   <-  return the printable page length in logical units
 ///                             (screen pixels)
 /// \remarks
 /// Takes the docSize value as modified for the printable width of the paper, and converts
 /// it to logical units (which means 'screen pixels')
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU, 
+bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 							int& nPagePrintingLengthLU)
 {
 	if (gbIsBeingPreviewed)
@@ -34861,12 +34871,12 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		//wxLogDebug(_T("OnPreparePrint() START"));
 		// refactored 6Apr09, moved from OnPreparePrint() in AIPrintout.cpp and made a
 		// function here in the app class by BEW on 18Jul09
-		m_docSize = m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
+		m_docSize = m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value
 													// back to app's member
  		m_saveDocSize = m_docSize; // also done in creator of AIPrintout class
 
 	  // whm notes:
-		// 
+		//
         // 1. OnPreparePrinting() is called automatically by the framework when an
         // OnPrint() event is handled (via wxID_PRINT standard Identifier). According to
         // the docs, "It is called once by the framework before any other demands are made
@@ -34878,12 +34888,12 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // File | Print is selected OnPreparePrinting() is not called until after the the
         // OK button is pressed at the print dialog, so, if user cancels the print dialog
         // OnPreparePrinting() is never called in that case.
-		// 
+		//
         // 2. MFC uses a CPrintInfo* pInfo parameter, but the wx version creates a
         // wxPrintData object (pPrintData) in OnInit() of the App. pPrintData is also used
         // as a data member of wxPrintDialogData and wxPageSetupDialogData, as part of the
         // mechanism for transferring data between the print dialogs and the application.
-		// 
+		//
         // 3. For the wx version, as the wxWidgets' printing sample illustrates, it is not
         // necessary to explicitly change the display context's mapping mode for printing
         // and print previewing, but that printing can be done readily just using the
@@ -34891,21 +34901,21 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // that MFC does of the printing routines that are conditional on the gbIsPrinting
         // global (especially in the handling of negative y axis offsets) are not
         // necessary.
-		// 
+		//
         // 4. Note: The page setup routines in wx mostly return values in millimeters, so
         // I've revised the App to maintain page size and margin data in metric
         // (millimeters) as well as MFC's thousandths of an inch. The internal routines
         // here in OnPreparePrinting() handle the data in mm.
-		// 
+		//
         // 5. The MFC version actually calls up the print dialog from within its version of
         // OnPreparePrinting (by calling the MFC DoPreparePrinting(pInfo) function). The wx
         // version works differently. The print dialog is called up in its high level
         // OnPrint() handler at the point where the wxPrinter object's Print() method is
         // called. There is therefore no need for cleanup code to fix indices, call
         // RecalcLayout, etc. All that is done in the AIPrintout's destructor.
-		// 
+		//
 		// See code:#print_flow for the order of calling of OnPreparePrinting().
-	    
+
 		CAdapt_ItView* pView = GetView();
 
 		// whm Note: Most of the approximately 50 blocks of code where gbIsPrinting is used in
@@ -34913,7 +34923,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		// Pile.cpp and Strip.cpp), are removed in the wx version. The wx version does not use
 		// any negative offsets in printing. We can't remove gbIsPrinting altogether because of
 		// the way that it is used in the Strip's Draw() function.
-		// 
+		//
 		// whm update: It is not sufficient to set m_bIsPrinting to TRUE only here, because
 		// OnEndPrinting() sets it to FALSE after each page is drawn in print preview. It is
 		// also set to TRUE in OnBeginDocument().
@@ -34926,8 +34936,8 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // platform.
 
 		// whm: get a pointer to the wxPrintDialogData object (from printing sample)
-		wxPrintDialogData printDialogData(*pPrintData); 
-		
+		wxPrintDialogData printDialogData(*pPrintData);
+
 		// set the page range to defaults
 		printDialogData.SetMinPage(1); // must start at 1
 		printDialogData.SetMaxPage(0xffff); // don't know how many yet
@@ -34941,7 +34951,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
             // to set up the new index values, since the old settings have already been
             // saved)
 			bool bSetupOK = pView->SetupRangePrintOp(gnFromChapter,gnFromVerse,gnToChapter,
-									gnToVerse,pPrintData,gbSuppressPrecedingHeadingInRange, 
+									gnToVerse,pPrintData,gbSuppressPrecedingHeadingInRange,
 									gbIncludeFollowingHeadingInRange);
 			if(!bSetupOK)
 			{
@@ -34964,25 +34974,25 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 			pPgSetupDlgData->SetMarginTopLeft(wxPoint(25,25)); // sets top left margin in mm (approx 1 inch)
 			pPgSetupDlgData->SetMarginBottomRight(wxPoint(25,25)); // sets bottom right margin in mm (approx 1 inch)
 		}
-		
+
         // whm: Caution: The following commented out call to SetDefaultInfo(TRUE) would
         // cause the page setup handler to be inable to call up the page setup dialog after
         // a print preview.
 		// pPgSetupDlgData->SetDefaultInfo(TRUE);
-		// TRUE means we return default printer information without showing a dialog 
+		// TRUE means we return default printer information without showing a dialog
 		// (Windows only)
 
 		// whm Notes:
-		// 
+		//
         // 1. If the user has not accessed the page setup dialog pPgSetupDlgData's
         // GetPaperSize() and actually selected a paper size explicitly, this
         // GetPaperSize() method will return a (0,0) size, Check for a (0,0) sized paper.
-		// 
+		//
         // 2. It should not be necessary to store the m_paperSizeCode value here from
         // within the print or print preview routines. If the user changes the paper size
         // selection (which can only be done from the Page Setup Dialog), the App's storage
         // variables should only be changed from there not here.
-		// 
+		//
         // 3. For compatibility with MFC version we could store the paper size in config
         // file as an int representative of MFC's DEVMODE enum values, however the paper
         // size codes in MFC and wx don't match because they use different enum structures.
@@ -35021,7 +35031,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		if (!m_bIsPortraitOrientation)
 		{
 			// Swap the width and length values for landscape in the pPgSetupDlgData object.
-			// 
+			//
             // Note: the pPrintData->SetOrientation(wxLANDSCAPE) method will already have
             // been called (via SetPageOrientation() function) for landscape mode. That
             // call switches the printer into that mode when printing, so we only need to
@@ -35043,10 +35053,10 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		paperSize_mm = pPgSetupDlgData->GetPaperSize();
 		wxASSERT(paperSize_mm.x != 0);
 		wxASSERT(paperSize_mm.y != 0);
-		
+
 		// We should also have valid (non-zero) margins stored in our pPgSetupDlgData object.
 		wxPoint topLeft_mm, bottomRight_mm; // MFC uses CRect for margins, wx uses wxPoint
-		topLeft_mm = pPgSetupDlgData->GetMarginTopLeft(); // returns top (y) and 
+		topLeft_mm = pPgSetupDlgData->GetMarginTopLeft(); // returns top (y) and
 										// left (x) margins as wxPoint in milimeters
 		bottomRight_mm = pPgSetupDlgData->GetMarginBottomRight(); // returns bottom (y)
 										// and right (x) margins as wxPoint in milimeters
@@ -35054,23 +35064,23 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		wxASSERT(topLeft_mm.y != 0);
 		wxASSERT(bottomRight_mm.x != 0);
 		wxASSERT(bottomRight_mm.y != 0);
-		
+
 		// whm Note: Up to this point the code in OnPreparePrinting() has focused on insuring
         // that we have good (or default) page and margin sizes established before
         // proceeding with printing and/or print previewing. Now we focus on getting the
         // actual dimensions of the printing area and determining the scaling factors we'll
         // use to properly draw into our differing display contexts (screen resolutions are
         // generally different from printer resolutions).
-		
+
         // whm Note: The MFC application assumed the screen resolution would always be
         // 96dpi, or each dot being approximately 1/100th of an inch; hence, it divided the
         // calculated printing area (whose value was in 1000ths of an inch) by 10 to get
         // the assumed printing width (nPrintingWidth) to pass to RecalcLayout (via the
         // m_docSize global) and to PaginateDoc (directly as parameter). I've written the
         // code below for the wx version so that no screen resolution is assumed.
-		
+
 		// The code below was patterned after the wxWidgets printing sample.
-		// 
+		//
         // whm Note: For a good explanation of GDI Mapping Modes, SetWindowOrg and
         // SetViewportOrg see: http://wvware.sourceforge.net/caolan/mapmode.html See also:
         // http://functionx.com/visualc/gdi/gdicoord.htm for a decent graphical
@@ -35081,7 +35091,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // want to draw strips within the printed page's margins - from the top margin to
         // the bottom margin - paginating the document into full pages plus any final
         // partially filled page.
-		// 
+		//
         // See CAdapt_ItView::SetupRangePrintOp() and CPrintOptionsDlg::InitDialog() for
         // coding similar to that below which calculates the page dimensions in logical
         // units. TODO: It might be good to write a separate function to do the job for all
@@ -35089,7 +35099,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // wxPrintout::GetPPIScreen() and wxPrintout::GetPPIPrinter() convenience methods,
         // but the method used in SetupRangePrintOp() and CPrintOptionsDlg's InitDialog()
         // would also work here.
-		// 
+		//
         // When printing, Adapt It's RecalcLayout generates strips whose width is based on
         // the margin dimensions of a printed page (printer device context), rather than
         // RecalcLayout's usual (when not printing) docSize.x based on the dimensions of
@@ -35112,7 +35122,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		// Now, convert the pageHeightBetweenMargins to logical units for use in calling
 		// PaginateDoc. Get the logical pixels per inch of screen and printer.
 		int ppiScreenX, ppiScreenY;
-		pAIPrintout->GetPPIScreen(&ppiScreenX, &ppiScreenY); // usually 96 dpi but may 
+		pAIPrintout->GetPPIScreen(&ppiScreenX, &ppiScreenY); // usually 96 dpi but may
 													// differ on newer/future computers
 		int ppiPrinterX, ppiPrinterY;
 		pAIPrintout->GetPPIPrinter(&ppiPrinterX, &ppiPrinterY); // dependent on the printer
@@ -35123,14 +35133,14 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // moment."
 
 		// Do a reality check. On wxMAC sometimes the ppiPrinterX and ppiScreenX values
-		// are zero! If either value is zero we set up a wxDC and try to calculate those 
+		// are zero! If either value is zero we set up a wxDC and try to calculate those
 		// values using the wxDC::GetPPI() method.
 		float scale;
 		if (ppiPrinterX == 0 || ppiScreenX == 0)
 		{
             // Now, convert the pageHeightBetweenMarginsMM to logical units for use in
             // calling PaginateDoc.
-            // 
+            //
 			// Get the logical pixels per inch of screen and printer.
             // whm NOTE: We can't yet use the wxPrintout::GetPPIScreen() and
             // GetPPIPrinter() methods because the wxPrintout object is not created yet at
@@ -35138,7 +35148,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
             // calculations by using the wxDC::GetPPI() method call on both a wxPrinterDC
             // and a wxClientDC of our canvas.
 			//
-			// Set up printer and screen DCs and determine the scaling factors between 
+			// Set up printer and screen DCs and determine the scaling factors between
 			// printer and screen.
 			wxASSERT(pPrintData->IsOk());
 
@@ -35152,12 +35162,12 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		#else
 			wxPrinterDC printerDC(*pPrintData);
 		#endif
-			
+
 			wxASSERT(printerDC.IsOk());
 			wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the
 												// printer in pixels per inch (dpi)
 			wxClientDC canvasDC(GetMainFrame()->canvas);
-			wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the 
+			wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the
 												// screen/canvas in pixels per inch (dpi)
 			scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
             // Calculate the conversion factor for converting millimetres into logical
@@ -35179,7 +35189,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 			// Therefore 1 mm corresponds to ppi/25.4 device units. We also divide by the
 			// screen-to-printer scaling factor, because we need to unscale to pass logical
 			// units to PaginateDoc.
-			float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4)); // use the more 
+			float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4)); // use the more
 																// precise conversion factor
 			nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
 			nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
@@ -35188,7 +35198,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 	else
 	{
 		// normal printing to a real printer
-		
+
 		GetView()->ClearPagesList();
 
 		int pageWidthBetweenMarginsMM, pageHeightBetweenMarginsMM;
@@ -35198,7 +35208,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		wxASSERT(paperSize_mm.y != 0);
 		 // We should also have valid (non-zero) margins stored in our pPgSetupDlgData object.
 		wxPoint topLeft_mm, bottomRight_mm; // MFC uses CRect for margins, wx uses wxPoint
-		topLeft_mm = pPgSetupDlgData->GetMarginTopLeft(); // returns top (y) and 
+		topLeft_mm = pPgSetupDlgData->GetMarginTopLeft(); // returns top (y) and
 									// left (x) margins as wxPoint in milimeters
 		bottomRight_mm = pPgSetupDlgData->GetMarginBottomRight(); // returns bottom (y)
 									// and right (x) margins as wxPoint in milimeters
@@ -35214,17 +35224,17 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // margins.
 		pageWidthBetweenMarginsMM = paperSize_mm.x - topLeft_mm.x - bottomRight_mm.x;
 		pageHeightBetweenMarginsMM = paperSize_mm.y - topLeft_mm.y - bottomRight_mm.y;
-		
+
         // Now, convert the pageHeightBetweenMarginsMM to logical units for use in calling
         // PaginateDoc.
-        // 
+        //
 		// Get the logical pixels per inch of screen and printer.
         // whm NOTE: We can't yet use the wxPrintout::GetPPIScreen() and GetPPIPrinter()
         // methods because the wxPrintout object is not created yet at the time this print
         // options dialog is displayed. But, we can do the same calculations by using the
         // wxDC::GetPPI() method call on both a wxPrinterDC and a wxClientDC of our canvas.
 		//
-		// Set up printer and screen DCs and determine the scaling factors between 
+		// Set up printer and screen DCs and determine the scaling factors between
 		// printer and screen.
 		wxASSERT(pPrintData->IsOk());
 
@@ -35237,12 +35247,12 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 	#else
 		wxPrinterDC printerDC(*pPrintData);
 	#endif
-		
+
 		wxASSERT(printerDC.IsOk());
-		wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the 
+		wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the
 											// printer in pixels per inch (dpi)
 		wxClientDC canvasDC(GetMainFrame()->canvas);
-		wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the 
+		wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the
 										// screen/canvas in pixels per inch (dpi)
 		float scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
 
@@ -35259,12 +35269,12 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if all was well, FALSE if the layout and pagination was not 
+/// \return     TRUE if all was well, FALSE if the layout and pagination was not
 ///             successful
 /// parameters:
-/// nPagePrintingWidthLU    ->  the printable page width in logical units 
+/// nPagePrintingWidthLU    ->  the printable page width in logical units
 ///                             (screen pixels)
-/// nPagePrintingLengthLU   ->  the printable page length in logical units 
+/// nPagePrintingLengthLU   ->  the printable page length in logical units
 ///                             (screen pixels)
 /// Remarks:
 /// The function encapsulates the actions required for supporting a printout or print
@@ -35277,7 +35287,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 /// what happens subsequently, in particular, to ensure that after printing, the original
 /// document state is set up again in DoPrintCleanup().
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU, 
+bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 									 int& nPagePrintingLengthLU)
 {
 	CAdapt_ItView* pView = GetView();
@@ -35287,8 +35297,8 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
     // whm: m_docSize.x is normally the width of the main window client area in pixels. For
     // printing we want this to be the size of the printable area within the page's
     // margins.
-	//pApp->m_docSize.x = nPagePrintingWidthLU; 
-	m_docSize.x = nPagePrintingWidthLU; 
+	//pApp->m_docSize.x = nPagePrintingWidthLU;
+	m_docSize.x = nPagePrintingWidthLU;
     // Note: the document's length m_docSize.y is determined after call to PaginateDoc()
     // farther below, so just set the .y value to zero here - then call
     // CopyLogicalDocSizeFromApp() to inform the CLayout::m_logicalDocSize member (used in
@@ -35296,7 +35306,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
     // with piles for printing
 	m_docSize.y = 0;
     m_pLayout->CopyLogicalDocSizeFromApp();
-   
+
 	// check for a selection, if it exists, assume user wants to print it & setup
 	// accordingly; similarly, check for a range - if a range, assume any selection should
 	// be ignored
@@ -35306,7 +35316,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         // to set up the new index values, since the old settings have already been
         // saved)
 		bool bSetupOK = pView->SetupRangePrintOp(gnFromChapter,gnFromVerse,gnToChapter,
-								gnToVerse,pPrintData,gbSuppressPrecedingHeadingInRange, 
+								gnToVerse,pPrintData,gbSuppressPrecedingHeadingInRange,
 								gbIncludeFollowingHeadingInRange);
 		if(!bSetupOK)
 		{
@@ -35344,13 +35354,13 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 				// no selection, so assume whole document (but see comment above)
 				m_bPrintingSelection = FALSE;
 
-				// force the selection button to be disabled, set the page range 
+				// force the selection button to be disabled, set the page range
 				// to defaults
 				printDialogData.SetSelection(FALSE); // must start at 1
 			}
-			
+
 			// Recalc the layout with the new width.
-			// 
+			//
             // whm note: RecalcLayout uses m_docSize.x as its width in calculating the
             // number of strips for the current document. When layout out for the screen is
             // intended RecalcLayout sets m_docSize.x equal to the client size of the main
@@ -35426,7 +35436,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 	}
 
 	// do pagination
-	// 
+	//
     // whm: In the following call to PaginateDoc, we use the current document
     // m_nStripCount, because the PaginateDoc() call here is done within
     // OnPreparePrinting() which is called after the print dialog has been dismissed with
@@ -35440,8 +35450,8 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 																  // RecalcLayout()
 	if (!bOK)
 	{
-        // PaginateDoc will have notified the user of any problem, so just return here - 
-        // we can't print without paginating the doc. Cleanup of the doc's indices, etc, 
+        // PaginateDoc will have notified the user of any problem, so just return here -
+        // we can't print without paginating the doc. Cleanup of the doc's indices, etc,
         // is done in the AIPrintout destructor.
 		return FALSE;
 	}
@@ -35498,7 +35508,7 @@ bool CAdapt_ItApp::IsConfigFileWithin(wxString path, wxString& configFilePath, b
 		configFilePath = configPath; // return path to caller, it may want it
 		bIsAdminBasic = FALSE;
 		return TRUE;
-	}	
+	}
 	// couldn't find a normal basic config file, try for an administrator one - perhaps an
 	// administrator was here earlier and this really is a valid work folder if so
 	// check for one with \ separator first
@@ -35526,13 +35536,13 @@ bool CAdapt_ItApp::IsConfigFileWithin(wxString path, wxString& configFilePath, b
 // return TRUE if a valid work folder was located, otherwise return FALSE, and return the
 // path found (or an empty string if used cancelled browse dialog) in the returnedPath
 // parameter; if the user cancelled, bUserCancelled will be returned set to TRUE
-bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath, 
+bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath,
 										  bool& bUserCancelled)
 {
 	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxString msg = _("Locate the folder you wish to use for Adapt It work");
 	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
-		// second param suppresses a Create button being shown, 3rd makes chose directory 
+		// second param suppresses a Create button being shown, 3rd makes chose directory
 		// the working directory, first param is for default dialog style with resizable
 		// border (see wxDirDialog for details)
 	long style = wxDD_DEFAULT_STYLE | wxDD_CHANGE_DIR; // allow Create button in dialog
@@ -35643,7 +35653,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 	editMenuDlg.Center();
 	if (editMenuDlg.ShowModal() == wxID_OK)
 	{
-		if (editMenuDlg.bChangesMadeToProfileItems 
+		if (editMenuDlg.bChangesMadeToProfileItems
 			|| editMenuDlg.bChangeMadeToProfileSelection
 			|| editMenuDlg.bChangeMadeToDescriptionItems)
 		{
@@ -35666,24 +35676,24 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: The option to load the help file into the user's default browser
 	// a better option for this reason: When we use AI's own CHtmlWindow class,
-	// although it is shown as a modeless dialog, it cannot be accessed 
+	// although it is shown as a modeless dialog, it cannot be accessed
 	// (to scroll, click on links, etc.) while other Adapt It dialogs (such
 	// as the Setup Paratext Collaboration dialog) are being shown modal.
-	// Therefore, the CHtmlWindow dialog is limited in what can be shown if 
-	// the administrator wants to follow its setup instructions during 
+	// Therefore, the CHtmlWindow dialog is limited in what can be shown if
+	// the administrator wants to follow its setup instructions during
 	// the setup of the user's Adapt It settings. Loading the html help file
 	// into the user's default browser has the advantage in that it can be
 	// accessed at the same time the administrator is doing his setup using
 	// modal dialogs within Adapt It. He might need to switch back and forth
 	// between AI and the browser, of course, depending on how much screen
 	// disktop is available to work with.
-	// 
+	//
 	// The "Help for Administrators.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	wxString adminHelpFilePath = GetDefaultPathForHelpFiles() + PathSeparator + m_adminHelpFileName;
 	// Create a wxHtmlWindow to display the Help for Administrators.htm help file
     //wxFrame* pHtmlWinFrame = new wxFrame(this->GetMainFrame(),-1,_T(""));
-	
+
 #ifdef _USE_HTML_FILE_VIEWER
 	// for testing the CHtmlFileViewer class dialog
 	bool bSuccess = FALSE;
@@ -35691,7 +35701,7 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 	// for normal execution of the app
 	bool bSuccess = TRUE;
 #endif
-	
+
 	if (bSuccess)
 	{
 		wxLogNull nogNo;
@@ -35780,7 +35790,7 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& event)
 {
 	//wxLogDebug(_T("m_bAdminMenuRemoved %d , equal paths %d , m_bUseCustomWorkFolderPath %d , m_customWorkFolderPath %s , m_workFolderpath %s"),
-	//			m_bAdminMenuRemoved, m_workFolderPath == m_customWorkFolderPath, m_bUseCustomWorkFolderPath , 
+	//			m_bAdminMenuRemoved, m_workFolderPath == m_customWorkFolderPath, m_bUseCustomWorkFolderPath ,
 	//			m_customWorkFolderPath, m_workFolderPath);
 	if (m_bAdminMenuRemoved)
 	{
@@ -35791,7 +35801,7 @@ void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& eve
 	if (!m_bAdminMenuRemoved)
 	{
 		// the menu is showing
-		
+
 		// don't enable if the m_customWorkFolderPath is empty string
 		if (m_customWorkFolderPath.IsEmpty())
 		{
@@ -35869,7 +35879,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 
 		//wxLogDebug(_T("2  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 		//wxLogDebug(_T("2  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
-		
+
 		m_customWorkFolderPath.Empty();
 		m_bUseCustomWorkFolderPath = FALSE;
 		bool bIsValid = IsValidWorkFolder(m_workFolderPath);
@@ -35885,11 +35895,11 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 			// wrong paths set up, and a crash (I'll see if I can remove the use of
 			// m_localPathPrefix at the custom location, that will be added protection -- yes,
 			// I did that)
-			EnsureWorkFolderPresent();	// <- this call should not now be needed, because 
+			EnsureWorkFolderPresent();	// <- this call should not now be needed, because
 										// m_localPathPrefix is not now reset when setting
-										// up for a custom work folder location, and so that 
+										// up for a custom work folder location, and so that
 										// variable should still be valid; however, calling
-										// it will ensure its validity so I've left it here	
+										// it will ensure its validity so I've left it here
 			wxString configFName = szBasicConfiguration + _T(".aic");
 			wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
 			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
@@ -35980,20 +35990,20 @@ a:			wxString stdDocsDir = _T("");
 			// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
 //			stdDocsDir = ::wxGetHomeDir();
 //			#else
-			stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function  
+			stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function
 												// is new since wxWidgets version 2.7.0
 //			#endif
 			// Typically the "documents" directory depends on the system:
 			// Unix: ~/(the home directory, i.e., /home/<username>/)
 			// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
 			// Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-			// Mac: ~/(the home directory, i.e., /Users/<username>/ 
+			// Mac: ~/(the home directory, i.e., /Users/<username>/
 
             // whm note: In the cross-platform version we never refer to a specific
             // "Documents" or "My Documents" folder and so we do not need to localize
             // the name of the folder that is returned by the "GetDocumentsDir()
             // function call.
-			// 
+			//
             // Set the current working directory to point to the standard docs
             // directory which would normally be the "Documents" or "My Documents"
             // folder on Windows, the ~ (home directory) on Linux, or the ~/Documents
@@ -36048,7 +36058,7 @@ a:			wxString stdDocsDir = _T("");
             // assume a cancel means cancel from the whole attempt, so restore whatever was
             // the earlier work folder location - whether legacy location or a custom
             // location
-            
+
 			// whm added 10Jun11 to better handlel a Cancel from LocateCustomWorkFolder()
 			// above.
 			// restore custom work folder to saved state
@@ -36074,12 +36084,12 @@ a:			wxString stdDocsDir = _T("");
 		{
 			// Bill suggests this block should ask the user what to do. Either cancel, or try
 			// a different folder -- implement these options.
-			
+
 
 			// ** TODO **  first shot at it in code below - check it is enough
 
 			// a valid work folder location was not obtained, so warn the user and let him try
-			// again 
+			// again
 			m_bUseCustomWorkFolderPath = bSaveUsageFlag;
 			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
 			wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
@@ -36113,7 +36123,7 @@ a:			wxString stdDocsDir = _T("");
 						// this path is to a valid custom work folder location, so use it
 						; // nothing more to do
 					}
-				} 
+				}
 			}
 		} // end of else block for bWasCancelled test
 	}
@@ -36123,13 +36133,13 @@ a:			wxString stdDocsDir = _T("");
 		// earlier one which was in effect at entry, or a different one.
 		m_bUseCustomWorkFolderPath = TRUE;
 		m_customWorkFolderPath = workFolderPath;
-		
-		// whm added 12Aug11. 
+
+		// whm added 12Aug11.
 		// The administrator has just successfully slected a folder to be used as a
 		// custom work folder. I think we should ask the administrator at this point
 		// if his intent is that this custom work folder be locked in or not. Otherwise
-		// if he forgets to tick the Administrator item "Lock Custom Location" 
-		// afterwards, he (or the MTT) may be dismayed to find out that the custom 
+		// if he forgets to tick the Administrator item "Lock Custom Location"
+		// afterwards, he (or the MTT) may be dismayed to find out that the custom
 		// work folder is not being used after it was set up. This is the way the
 		// Load Consistent Changes... and "Use Consistent Changes" menu items work.
 		wxString msg;
@@ -36152,8 +36162,8 @@ a:			wxString stdDocsDir = _T("");
 	// the current project, if one is open, and or and open doc, can't stay open when the
 	// work folder location is changed, so close doc and project
 	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
-	
-	
+
+
 	//wxLogDebug(_T("7  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 
 	// if the user has made the legacy default location the "custom" one, then revert to
@@ -36164,7 +36174,7 @@ a:			wxString stdDocsDir = _T("");
 		if (m_customWorkFolderPath == m_workFolderPath)
 		{
 			// the two locations are the same, so revert to the standard situation...
-			
+
 			// the user may have a persistent custom work folder location set, and not bothered to
 			// use the Unlock Custom Location command first, to make that location non-persistent,
 			// so we must check for that now and do it for him here, or he may have tried it and
@@ -36205,7 +36215,7 @@ a:			wxString stdDocsDir = _T("");
 	}
 
 	//OnInit(); // <--- must not call this
-	
+
 	EnsureWorkFolderPresent();
 
 	//wxLogDebug(_T("9  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
@@ -36247,7 +36257,7 @@ a:			wxString stdDocsDir = _T("");
     // now that the basic config file, whether foreign or not, and whether at the default
     // location or the custom location, is made safe for use, read it in and set up the app
     // for work folder access
-	GetBasicConfiguration(); // distinguishes between custom & default locations 
+	GetBasicConfiguration(); // distinguishes between custom & default locations
 				// internally, and for custom locations, it distinguishes between
 				// a persistent versus a non-persistent custom location
 
@@ -36274,8 +36284,8 @@ void CAdapt_ItApp::OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
 }
 
 // \return     TRUE if the path passed in begins with either pair of backslashes,
-//             or a pair of forward slashes 
-// \remarks    Use a TRUE returned value to disable the Administrator menu's command "Lock 
+//             or a pair of forward slashes
+// \remarks    Use a TRUE returned value to disable the Administrator menu's command "Lock
 // Custom Location", because if the path is a URI then Adapt It is being pointed at a
 // remote machine, and our code cannot make a custom work folder location on a remote
 // machine be persistent - that has to be done from the local machine only
@@ -36308,7 +36318,7 @@ void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
 	{
 		// the menu is showing
 		bool bURI = IsURI(m_customWorkFolderPath);
-		
+
 		// don't enable the menu item if the custom work folder path is a URI
 		// specification, or if the path is empty, or if the default path and the
 		// custom path are the same
@@ -36325,7 +36335,7 @@ void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
 		else
 		{
 			// the application is pointing at some other work folder than the default, and
-			// it is not a folder on a remote machine, and not an empty path, so allow the 
+			// it is not a folder on a remote machine, and not an empty path, so allow the
 			// user to choose it - provided a path is not already locked in
 			if (m_bLockedCustomWorkFolderPath)
 			{
@@ -36364,8 +36374,8 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 	{
 		LogUserAction(_T("Initiated OnLockCustomLocation()"));
 	}
-	
-	m_bFailedToRemoveCustomWorkFolderLocationFile = FALSE; // ensure default value is in 
+
+	m_bFailedToRemoveCustomWorkFolderLocationFile = FALSE; // ensure default value is in
 								// effect before OnUnlockCustomLocation() can be called
 	// a) get the absolute path to the custom work folder
 	// b) put it in a file called CustomWorkFolderLocation
@@ -36373,7 +36383,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 	// one that m_workFolderPath points at, even if nothing else is there)
 	bool bOK;
 	wxFile f; // create a wxFile instance with default constructor
-	
+
 	wxLogNull logNo; // avoid spurious messages from the system
 
 	bOK = ::wxSetWorkingDirectory(m_workFolderPath); // the default work folder location
@@ -36388,7 +36398,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 		abort();
 		return;
 	}
-	wxString theFilename = _T("CustomWorkFolderLocation"); // a hard-coded name, we 
+	wxString theFilename = _T("CustomWorkFolderLocation"); // a hard-coded name, we
 														   //don't want this localized
 	// open the file for writing, & if it already exists, clear it's contents too
 	if (!f.Open(theFilename,wxFile::write))
@@ -36414,7 +36424,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 	}
 	else
 	{
-		f.Write(m_customWorkFolderPath); // in Unicode build, converts 
+		f.Write(m_customWorkFolderPath); // in Unicode build, converts
 										 // contents to UTF-8 before writing
 	}
 	f.Close(); // close the created file with the custom path within it
@@ -36441,7 +36451,7 @@ void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
 	}
 	if (!m_bAdminMenuRemoved)
 	{
-		// the menu is showing 
+		// the menu is showing
 		if (m_bLockedCustomWorkFolderPath)
 		{
 			// the application has a locked path currently
@@ -36545,7 +36555,7 @@ void CAdapt_ItApp::CheckLockFileOwnership()
 {
 	// The App class holds the m_pROP pointer to the ReadOnlyProtection object, so we can
 	// call m_pROP's public methods from here.
-	// Get the 
+	// Get the
 	//wxString ropFile = m_pROP->GetReadOnlyProtectionFileInProjectFolder(m_curProjectPath);
 	if (m_pROP->IsItNotMe(m_curProjectPath))
 	{
@@ -36554,7 +36564,7 @@ void CAdapt_ItApp::CheckLockFileOwnership()
 			m_timer.Stop();
 			m_bReadOnlyAccess = TRUE;
 			// force a refresh of the main window so it changes to pink
-			GetView()->canvas->Refresh(); // force color change to pink 
+			GetView()->canvas->Refresh(); // force color change to pink
 			wxMessageBox(
 	_("Someone just opened the project folder on the remote computer, so you have READ-ONLY access."),_("Another process owns write permission"),
 			wxICON_INFORMATION);
@@ -36589,12 +36599,12 @@ void CAdapt_ItApp::CheckLockFileOwnership()
 /// used subsequently for making safe the other 4 critical paths.
 ////////////////////////////////////////////////////////////////////////////////////////
 
-void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
+void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf,
 						wxString& basePath, wxString& localPath)
 {
 	wxString tab = _T('\t');
 	wxString fileLine;
-	int basePathLength = 0; // set it at szAdaptitPath line, the use that value for 
+	int basePathLength = 0; // set it at szAdaptitPath line, the use that value for
 							// subsequent critical path lines
 	switch (pathType)
 	{
@@ -36602,7 +36612,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 		// scan the in-memory file line-by-line and process those needing path updates
 		for ( fileLine = pf->GetFirstLine(); !pf->Eof(); fileLine = pf->GetNextLine() )
 		{
-			wxString subFoldersPath = _T("");	// for the part of the path to the 
+			wxString subFoldersPath = _T("");	// for the part of the path to the
 												// right of m_theCustomWorkFolder
 			int nStartOfSubFoldersPath;
 			int strLength;
@@ -36611,13 +36621,13 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 				// whm modified 10Jun11 to correct the logic in this block below.
 				// The problem is this: The incoming parameter basePath is set by its calling
 				// code to be based on the App's m_customWorkFolderPath because we are
-				// currently dealing with a customPathsFix. We cannot safely reset the 
-				// incoming basePath to the string value associated with AdaptItPath in 
-				// the basic config file now being read because by design AdaptItPath is 
+				// currently dealing with a customPathsFix. We cannot safely reset the
+				// incoming basePath to the string value associated with AdaptItPath in
+				// the basic config file now being read because by design AdaptItPath is
 				// never going to be anything but the default path. Therefore I've commented
 				// out the three lines below which can result in a garbled path being
 				// assigned to the four critical paths in the else if blocks below.
-				// 
+				//
 				// [original comment below:]
 				// we're at a line with "AdaptItPath" in it that we want to adjust; here
 				// we must set basePath to whatever follows the tab character, as that
@@ -36666,7 +36676,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			}
 			else if (fileLine.First(szCurAdaptionsPath) != -1)
 			{
-				// we're at a line with "DocumentsFolderPath" in it that we want to 
+				// we're at a line with "DocumentsFolderPath" in it that we want to
 				// adjust
 				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
 				strLength = fileLine.Length();
@@ -36687,7 +36697,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			}
 			else if (fileLine.First(szCurKBPath) != -1)
 			{
-				// we're at a line with "KnowledgeBasePath" in it that we want to 
+				// we're at a line with "KnowledgeBasePath" in it that we want to
 				// adjust
 				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
 				strLength = fileLine.Length();
@@ -36708,7 +36718,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			}
 			else if (fileLine.First(szCurKBBackupPath) != -1)
 			{
-				// we're at a line with "KBBackupPath" in it that we want to 
+				// we're at a line with "KBBackupPath" in it that we want to
 				// adjust
 				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
 				strLength = fileLine.Length();
@@ -36778,9 +36788,9 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			{
 				// we're at a line with "ProjectFolderPath" in it that we want to check/adjust
 				// Compare the imported localPathPrefix with that of our local machine
-				nStartOfForeignFilePath = fileLine.First(szCurLanguagesPath) + 
+				nStartOfForeignFilePath = fileLine.First(szCurLanguagesPath) +
 															szCurLanguagesPath.Length();
-				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) + 
+				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) +
 															m_theWorkFolder.Length();
 				strLength = fileLine.Length();
 				foreignFilePath = fileLine.Right(strLength - nStartOfForeignFilePath);
@@ -36810,12 +36820,12 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			}
 			else if (fileLine.First(szCurAdaptionsPath) != -1)
 			{
-				// we're at a line with "DocumentsFolderPath" in it that we want to 
+				// we're at a line with "DocumentsFolderPath" in it that we want to
 				// check/adjust
 				// Compare the imported localPathPrefix with that of our local machine
-				nStartOfForeignFilePath = fileLine.First(szCurAdaptionsPath) + 
+				nStartOfForeignFilePath = fileLine.First(szCurAdaptionsPath) +
 														szCurAdaptionsPath.Length();
-				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) + 
+				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) +
 														m_theWorkFolder.Length();
 				strLength = fileLine.Length();
 				foreignFilePath = fileLine.Right(strLength - nStartOfForeignFilePath);
@@ -36845,12 +36855,12 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			}
 			else if (fileLine.First(szCurKBPath) != -1)
 			{
-				// we're at a line with "KnowledgeBasePath" in it that we want to 
+				// we're at a line with "KnowledgeBasePath" in it that we want to
 				// check/adjust
 				// Compare the imported localPathPrefix with that of our local machine
-				nStartOfForeignFilePath = fileLine.First(szCurKBPath) + 
+				nStartOfForeignFilePath = fileLine.First(szCurKBPath) +
 																szCurKBPath.Length();
-				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) + 
+				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) +
 															m_theWorkFolder.Length();
 				strLength = fileLine.Length();
 				foreignFilePath = fileLine.Right(strLength - nStartOfForeignFilePath);
@@ -36880,12 +36890,12 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 			}
 			else if (fileLine.First(szCurKBBackupPath) != -1)
 			{
-				// we're at a line with "KBBackupPath" in it that we want to 
+				// we're at a line with "KBBackupPath" in it that we want to
 				// check/adjust
 				// Compare the imported localPathPrefix with that of our local machine
-				nStartOfForeignFilePath = fileLine.First(szCurKBBackupPath) + 
+				nStartOfForeignFilePath = fileLine.First(szCurKBBackupPath) +
 															szCurKBBackupPath.Length();
-				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) + 
+				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) +
 															m_theWorkFolder.Length();
 				strLength = fileLine.Length();
 				foreignFilePath = fileLine.Right(strLength - nStartOfForeignFilePath);
@@ -36923,22 +36933,22 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 /// \param      pf                  -> pointer to an opened wxTextFile for the config file
 /// \remarks
 /// Called from MakeForeignBasicConfigFileSafe().
-/// This function fixes, or attempts to fix the font information in a basic config file 
-/// when a foreign config file is read. The font characteristics at the beginning of the 
-/// config file that are checked for needed adjustment are the CharSet, FontEncoding, 
-/// and FaceName - for each of the three main fonts: SourceFont, TargetFont and NavTextFont. 
-/// All other font characteristics especially Height, Width, Weight, PitchAndFamily, 
+/// This function fixes, or attempts to fix the font information in a basic config file
+/// when a foreign config file is read. The font characteristics at the beginning of the
+/// config file that are checked for needed adjustment are the CharSet, FontEncoding,
+/// and FaceName - for each of the three main fonts: SourceFont, TargetFont and NavTextFont.
+/// All other font characteristics especially Height, Width, Weight, PitchAndFamily,
 /// Italic, Underline and Color are not changed.
-/// FixConfigFileFonts() parallels FixBasicConfigPaths() but deals with font mismatches 
+/// FixConfigFileFonts() parallels FixBasicConfigPaths() but deals with font mismatches
 /// encountered when a foreign config file is processed. Like FixBasicConfigPaths(),
-/// it only makes font adjustments to the in-memory wxTextFile pf, therefore it is the 
-/// responsibility of the caller MakeForeignBasicConfigFileSafe() to write any changes 
+/// it only makes font adjustments to the in-memory wxTextFile pf, therefore it is the
+/// responsibility of the caller MakeForeignBasicConfigFileSafe() to write any changes
 /// made here to the persistent media.
 void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 {
-	// whm added 24Feb10. 
-	// This function consolidates some font error handling previously done in 
-	// GetConfigurationFile(). 
+	// whm added 24Feb10.
+	// This function consolidates some font error handling previously done in
+	// GetConfigurationFile().
 	//wxString errStr = fontErrInfoStr; // a local copy
 	wxString tab = _T('\t');
 	wxString fileLine;
@@ -36948,7 +36958,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 
 	// In the first for loop below we collect the three font characteristics for
 	// the three fonts; in the second for loop we save back any changed values
-	
+
 	int nFontEncodingIndex = 0;
 	int nCharSetIndex = 0;
 	int nFaceNameIndex = 0;
@@ -37044,11 +37054,11 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 					;
 					wxASSERT(FALSE);
 				}
-				m_pSourceFont->SetPointSize(12); // use a reasonable size for 
+				m_pSourceFont->SetPointSize(12); // use a reasonable size for
 												 // the system font
 				delete tempFont;
 				tempFont = (wxFont*)NULL;
-				
+
 				errMsg += _T("\n   ");
 				errMsg += _("Source Font Name");
 				errMsg += _T(": ");
@@ -37057,7 +37067,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 													// same face name in all cases
 			}
 		}
-		// update values for XxxFInfo structs and three local wxString arrays used in 
+		// update values for XxxFInfo structs and three local wxString arrays used in
 		// updating config file below
 		SrcFInfo.fEncoding = m_pSourceFont->GetEncoding();
 		Encoding[0].Empty();
@@ -37067,13 +37077,13 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 		SrcFInfo.fFaceName = m_pSourceFont->GetFaceName();
 		Facename[0] = SrcFInfo.fFaceName;
 	}
-		
+
 	int tgtPointSize = m_pTargetFont->GetPointSize();
 	int tgtFamily = m_pTargetFont->GetFamily();
 	int tgtStyle = m_pTargetFont->GetStyle();
 	int tgtWeight = m_pTargetFont->GetWeight();
 	bool tgtUnderlined = m_pTargetFont->GetUnderlined();
-	
+
 	bFoundFaceName = m_pTargetFont->SetFaceName(Facename[1]);
 	if (!bFoundFaceName)
 	{
@@ -37126,20 +37136,20 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 					;
 					wxASSERT(FALSE);
 				}
-				m_pTargetFont->SetPointSize(12); // use a reasonable size 
+				m_pTargetFont->SetPointSize(12); // use a reasonable size
 												 // for the system font
 				delete tempFont;
 				tempFont = (wxFont*)NULL;
-				
+
 				errMsg += _T("\n   ");
 				errMsg += _("Target Font Name");
 				errMsg += _T(": ");
 				errMsg += Facename[1];
-				sysFontName = TgtFInfo.fFaceName; // a system font should have the 
+				sysFontName = TgtFInfo.fFaceName; // a system font should have the
 												  // same face name in all cases
 			}
 		}
-		// update values for XxxFInfo structs and three local wxString arrays used in 
+		// update values for XxxFInfo structs and three local wxString arrays used in
 		// updating config file below
 		TgtFInfo.fEncoding = m_pTargetFont->GetEncoding();
 		Encoding[1].Empty();
@@ -37155,7 +37165,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 	int navStyle = m_pNavTextFont->GetStyle();
 	int navWeight = m_pNavTextFont->GetWeight();
 	bool navUnderlined = m_pNavTextFont->GetUnderlined();
-	
+
 	bFoundFaceName = m_pNavTextFont->SetFaceName(Facename[2]);
 	if (!bFoundFaceName)
 	{
@@ -37208,20 +37218,20 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 					;
 					wxASSERT(FALSE);
 				}
-				m_pNavTextFont->SetPointSize(12); // use a reasonable size 
+				m_pNavTextFont->SetPointSize(12); // use a reasonable size
 												  // for the system font
 				delete tempFont;
 				tempFont = (wxFont*)NULL;
-				
+
 				errMsg += _T("\n   ");
 				errMsg += _("Navigation Font Name");
 				errMsg += _T(": ");
 				errMsg += Facename[2];
-				sysFontName = NavFInfo.fFaceName; // a system font should have the 
+				sysFontName = NavFInfo.fFaceName; // a system font should have the
 												  // same face name in all cases
 			}
 		}
-		// update values for XxxFInfo structs and three local wxString arrays used in 
+		// update values for XxxFInfo structs and three local wxString arrays used in
 		// updating config file below
 		NavFInfo.fEncoding = m_pNavTextFont->GetEncoding();
 		Encoding[2].Empty();
@@ -37245,13 +37255,13 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 		wxMessageBox(errMsg2,_("Font name in configuration file not found"),
 		wxICON_WARNING);
 	}
-	
-	// Note: In GetFontConfiguration() in the "else if (name == szFontEncoding)" 
-	// block FontEncoding values read in from the configuration file are 
+
+	// Note: In GetFontConfiguration() in the "else if (name == szFontEncoding)"
+	// block FontEncoding values read in from the configuration file are
 	// restricted to values between -1 and 255, and set to 0 if outside that range.
 
 	// Note: In GetFontConfiguration() in the "else if (name == szCharSet)" block
-	// the CharSet values read in from the configuration file are restricted 
+	// the CharSet values read in from the configuration file are restricted
 	// to values between 0 and 255, and set to 0 if outside that range.
 
 	// Call SetEncoding() only if the encoding is available on this system
@@ -37292,7 +37302,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 			{
 				// there was no FontEncoding item occurring preceding this CharSet item
 				// (indicating we're processing a conf file produced by MFC version 3.6.4
-				// or earlier). We'll insert at this point (before the CharSet line) the 
+				// or earlier). We'll insert at this point (before the CharSet line) the
 				// default encoding that was determined above
 				nFontEncodingIndex = nCharSetIndex;
 				bEncodingProcessed[nFontEncodingIndex] = TRUE;
@@ -37333,9 +37343,9 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 /// \param      configFName         -> the default name of the basic config file (this
 ///									   is always AI-BasicConfiguration.aic)
 /// \param      folderPath          -> the work folder path m_workFolderPath, or
-///                                    m_customWorkFolderPath, at which the fixed 
+///                                    m_customWorkFolderPath, at which the fixed
 ///									   configuration file will be saved
-/// \param      adminConfigFName    -> pointer to the name of the administor configuration 
+/// \param      adminConfigFName    -> pointer to the name of the administor configuration
 ///                                    file name, for use when m_bUseCustomWorkFolderPath
 ///                                    is TRUE, because administrator is looking into a
 ///                                    work folder stored at a custom location on the
@@ -37348,29 +37358,29 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 /// BEW modified 18Aug09 in support of custom work folder locations.
 /// whm modified 24Feb10 to incorporate font mismatch handling via helper function called
 /// FixConfigFileFonts() which parallels Bruce's FixBasicConfigPaths().
-/// 
+///
 /// Called from: the App's OnInit(), SetupCustomWorkFolderLocation(), OnLockCustomLocation(),
 /// OnRestoreDefaultWorkFolderLocation(), DealWithThePossibilityOfACustomWorkFolderLocation().
-/// 
+///
 /// Compares the "home" directory part of the current user's path to the "(My) Documents"
 /// folder (or the "Adapt It Work" folder for non-Win systems), with the paths in the
 /// AdaptItPath, ProjectFolderPath, DocumentsFolderPath, KnowledgeBasePath, and
 /// KBBackupPath pathname strings in the current AI-BasicConfiguration.aic file. If its a
 /// foreign config file, this first part of these paths will differ for any of the
 /// following reasons:
-/// 1. The foreign machine uses a different drive letter, 
+/// 1. The foreign machine uses a different drive letter,
 /// 2. Or, because the user's name is different,
-/// 3. Or, the foreign machine uses the Unix/Linux home directory scheme 
+/// 3. Or, the foreign machine uses the Unix/Linux home directory scheme
 ///     (typically /usr/home).
 /// 4. An administrator is pointing the running Adapt It at a custom work folder location.
 /// The function then fixes these paths so as to get safe defaults for the current machine,
 /// and the subsequent read of the updated config file will not cause an app crash due to
-/// bad paths. 
-/// 
+/// bad paths.
+///
 /// The passed in path at folderPath can be m_workFolderPath when
 /// m_bUseCustomWorkFolderPath is FALSE, or when TRUE a local wxString is used instead
-/// which is nice as the code is not dependent on something being set in the caller; the 
-/// local string is basePath, and it's set from whatever AI-BasicConfiguration.aic file 
+/// which is nice as the code is not dependent on something being set in the caller; the
+/// local string is basePath, and it's set from whatever AI-BasicConfiguration.aic file
 /// that we grab or create for cloning purposes in order to form an administrator's basic
 /// configuration file - using the szAdaptitPath line's stored path following the tab.
 /// So we'll get a basic configuration file somehow, clone it, and change the relevant
@@ -37398,7 +37408,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
         // traverses this code block - this is important now that the path which was
         // formerly being used may be to a non-standard work folder location somewhere deep
         // in the folder hierarchy!
-		
+
 		// Get the "home" directory for the current system/platform. This would typically be:
 		// For Windows: C:\Documents and Settings\<UserName>
 		// For Linux: /usr/home
@@ -37412,19 +37422,19 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
 //		homeDir = ::wxGetHomeDir();
 //		#else
-		homeDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since 
+		homeDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since
 											  // wxWidgets version 2.7.0
 //		#endif
 		// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 		if (folderPath.GetChar(folderPath.Length() - 1) == PathSeparator)
 		{
-			folderPath.RemoveLast(); // remove the PathSeparator char 
+			folderPath.RemoveLast(); // remove the PathSeparator char
 				// at the end of the path string, so next line won't give two contiguous
-				
+
 		}
 		wxString configPath = folderPath + PathSeparator + configFName;
-		basePath = m_localPathPrefix; // m_localPathPrefix was set 
-					// in EnsureWorkFolderPresent, and it is relevant in 
+		basePath = m_localPathPrefix; // m_localPathPrefix was set
+					// in EnsureWorkFolderPresent, and it is relevant in
 					// MakeForeignBasicConfigFileSafe() only when m_bUseCustomWorkFolderPath
 					// is FALSE
 		// m_localPathPrefix represents the part of the path preceeding the m_theWorkFolder
@@ -37434,14 +37444,14 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// below
 
 		// For small config type text files, wxTextFile is probably most convenient. A version
-		// of the Open() function also understands Unicode, so we don't need to distinguish 
+		// of the Open() function also understands Unicode, so we don't need to distinguish
 		// for example CStdioFile from CStdioFileEx. We just conditional compile with the
 		// appropriate methods for Unicode.
 
 		wxTextFile f;
 		// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
 		// call. It is set up so we can treat it as a line oriented text file while in memory,
-		// modifying it, then writing it back out to persistent storage with a single 
+		// modifying it, then writing it back out to persistent storage with a single
 		// call to Write().
 
 		wxLogNull logNo; // avoid spurious messages from the system
@@ -37463,14 +37473,14 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			// there was a problem opening the file, so we'll just return
 			return;
 
-		// The entire basic config file is now in memory and we can modify the lines we want 
-		// to change. Basically we want the wxHomeDir part of the paths of concern to be the 
-		// same as what wxHomeDir returns on the local machine. 
+		// The entire basic config file is now in memory and we can modify the lines we want
+		// to change. Basically we want the wxHomeDir part of the paths of concern to be the
+		// same as what wxHomeDir returns on the local machine.
 
 		// In the MFC version the first instance of the string "\My Documents" is located
 		// and the left part of that path determined. In our wxWidgets context we want to
-		// know the foreign localPathPrefix part that differs from the basePath of 
-		// the local machine, which won't necessarily have the string "My Documents" in it. 
+		// know the foreign localPathPrefix part that differs from the basePath of
+		// the local machine, which won't necessarily have the string "My Documents" in it.
 
 		// The five paths of concern are:
 		// szAdaptitPath = _("AdaptItPath");
@@ -37478,7 +37488,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// szCurAdaptionsPath = _("DocumentsFolderPath");
 		// szCurKBPath = _("KnowledgeBasePath");
 		// szCurKBBackupPath = _("KBBackupPath");
-		
+
 		// whm modified 5Jun09. If the user is forcing the work folder to be what s/he wants
 		// then we won't suffix the forced path with m_theWorkFolder ("Adapt It <Unicode>
 		// Work").
@@ -37488,8 +37498,8 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// child folder name...
 		if (basePath.GetChar(basePath.Length() - 1) == PathSeparator)
 		{
-			basePath.RemoveLast(); // remove the PathSeparator char 
-				// at the end of the path string, so next line won't give two contiguous	
+			basePath.RemoveLast(); // remove the PathSeparator char
+				// at the end of the path string, so next line won't give two contiguous
 		}
 		wxString localPath;
 		if (m_wf_forced_workFolderPath.IsEmpty())
@@ -37510,7 +37520,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		bSuccessful = f.Write(); // write ANSI file back to disk
 		#else
 		// UNICODE
-		bSuccessful = f.Write(); // write UNICODE file back to disk 
+		bSuccessful = f.Write(); // write UNICODE file back to disk
 								 // whm note: default is to use wxConvUTF8 in Unicode build
 		#endif
 		if (!bSuccessful)
@@ -37519,7 +37529,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			wxMessageBox(_("Unable to write updated config file, so just did nothing"));
 			return;
 		}
-	} // end of TRUE block for test 
+	} // end of TRUE block for test
 	  // if ((m_customWorkFolderPath == m_workFolderPath) || !m_bUseCustomWorkFolderPath)
 	else
 	{
@@ -37537,8 +37547,8 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			// contents and save them to a different file called AI_AdminBasicConfiguration.aic,
 			// in the administrator's default work folder location (the latter is always
 			// pointed at by the path in m_workFolderLocation)
-			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
-											 // basic config file saved to disk only for cloning 
+			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary
+											 // basic config file saved to disk only for cloning
 											 // purposes
 			wxString configPath = m_workFolderPath + PathSeparator + configFName; // use native separator
 			// construct the path for where to save the admin basic config file from the
@@ -37564,7 +37574,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			{
 				// none available, so force one to be written out to m_workFolderPath
 				// and then use that, and remove the one we forced after the cloning is
-				// done further below; parameter 1 in the following call forces writing 
+				// done further below; parameter 1 in the following call forces writing
 				// of a basic config file rather than a project one
 				bool bWrittenOK = WriteConfigurationFile(configFName,basePath,basicConfigFile);
 				if (!bWrittenOK)
@@ -37586,14 +37596,14 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			wxTextFile f;
 			// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
 			// call. It is set up so we can treat it as a line oriented text file while in memory,
-			// modifying it, then writing it back out to persistent storage with a single 
+			// modifying it, then writing it back out to persistent storage with a single
 			// call to Write().
-			 
+
 			wxLogNull logNo; // avoid spurious messages from the system
 
 			// At this point we must clone the configPath file, and give the clone the
 			// adminConfigPath filename. But if an admin basic config file already exists, we
-			// don't need to clone it, but just fix it's contents further below. 
+			// don't need to clone it, but just fix it's contents further below.
 			bool bRemoved = TRUE;
 			if (!bBestChoice)
 			{
@@ -37628,7 +37638,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 				wxExit();
 				return;
 			}
-			
+
 			// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
 			#ifndef _UNICODE
 			// ANSI
@@ -37640,7 +37650,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			if (!bSuccessful)
 			{
 				// there was a problem opening the file, so we'll just shut down after warning
-				// developer 
+				// developer
 				wxMessageBox(
 _T("MakeForeignBasicConfigFileSafe(): custom location block, could not open adminConfigPath file. Shutting down."));
 				wxExit();
@@ -37657,7 +37667,7 @@ _T("MakeForeignBasicConfigFileSafe(): custom location block, could not open admi
 			// szCurAdaptionsPath = _("DocumentsFolderPath");
 			// szCurKBPath = _("KnowledgeBasePath");
 			// szCurKBBackupPath = _("KBBackupPath");
-			
+
 			wxString localPath = folderPath; // target work folder after the fix is done
 
 			// do the actual path fixes
@@ -37670,7 +37680,7 @@ _T("MakeForeignBasicConfigFileSafe(): custom location block, could not open admi
 			bSuccessful = f.Write(); // write ANSI file back to disk
 			#else
 			// UNICODE
-			bSuccessful = f.Write(); // write UNICODE file back to disk 
+			bSuccessful = f.Write(); // write UNICODE file back to disk
 									 // whm note: default is to use wxConvUTF8 in Unicode build
 			#endif
 			if (!bSuccessful)
@@ -37692,7 +37702,7 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 			// the custom work folder location
 			// Note: the AI-BasicConfiguration.aic file will contain the work folder path
 			// string in its szAdaptitPath line, but this is unused at startup, rather,
-			// the path in the CustomWorkFolderLocation file is used, and that is accessed, 
+			// the path in the CustomWorkFolderLocation file is used, and that is accessed,
 			// in OnInit(), before the basic configuration file is read.
 
 			// If there is already an AI-BasicConfiguration.aic file at the custom work
@@ -37705,11 +37715,11 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 			// the case when Lock Custom Location is clicked for the first time, or when
 			// returning in a later session to the permanently locked custom work folder
 			// location.
-		
+
 			wxLogNull logNo; // avoid spurious messages from the system
 
 			wxString configPath_Basic_CustomLoc = folderPath + PathSeparator + configFName;
-			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator 
+			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator
 													+ *adminConfigFNamePtr;
 			bool bBasicConfigFileAtCustomLoc = ::wxFileExists(configPath_Basic_CustomLoc);
 			if (bBasicConfigFileAtCustomLoc)
@@ -37724,13 +37734,13 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 			{
 				// must be the case that Lock Custom Location has just been clicked and
 				// there is no AI-BasicConfiguration.aic file at the custom location yet,
-				// so we must clone the default work folder location's 
+				// so we must clone the default work folder location's
 				// AI-AdminBasicConfiguration.aic file, and store it at the custom
 				// location with the name AI-BasicConfiguration.aic -- and although we
 				// expect it's internal paths don't need fixing, we'll do so to guarantee
 				// they point where they should
-				bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a 
-												 // temporary basic config file saved to 
+				bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a
+												 // temporary basic config file saved to
 												 // disk only for cloning purposes
 				bool bCloneableBasicConfigFilePresent = TRUE;
 				bCloneableBasicConfigFilePresent = ::wxFileExists(configPath_Admin_DefaultLoc);
@@ -37822,7 +37832,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 			// szCurAdaptionsPath = _("DocumentsFolderPath");
 			// szCurKBPath = _("KnowledgeBasePath");
 			// szCurKBBackupPath = _("KBBackupPath");
-			
+
 			wxString localPath = folderPath; // target work folder after the fix is done
 
 			// do the actual path fixes
@@ -37835,7 +37845,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 			bSuccessful = f.Write(); // write ANSI file back to disk
 			#else
 			// UNICODE
-			bSuccessful = f.Write(); // write UNICODE file back to disk 
+			bSuccessful = f.Write(); // write UNICODE file back to disk
 									 // whm note: default is to use wxConvUTF8 in Unicode build
 			#endif
 			if (!bSuccessful)
@@ -37857,7 +37867,7 @@ _T("Unable to write adjusted basic config file for persistent custom location, s
 /// \param      configFName         -> the default name of the project config file (this
 ///									   is always AI-ProjectConfiguration.aic)
 /// \param      folderPath          -> the project folder path m_curProjectPath
-/// \param      adminConfigFName    -> pointer to the name of the administor configuration 
+/// \param      adminConfigFName    -> pointer to the name of the administor configuration
 ///                                    file name, for use when m_bUseCustomWorkFolderPath
 ///                                    is TRUE, because administrator is looking into a
 ///                                    work folder stored at a custom location on the
@@ -37870,18 +37880,18 @@ _T("Unable to write adjusted basic config file for persistent custom location, s
 /// Called from: The App's GetProjectConfiguration().
 /// whm created 24Feb10 to incorporate font mismatch handling via a helper function called
 /// FixConfigFileFonts() which parallels Bruce's FixBasicConfigPaths().
-/// This function parallels the MakeForeignBasicConfigFileSafe() function, but rather than 
-/// dealing with foreign paths that might be detected in the config file, this function 
-/// adjusts the font(s) if mismatches are detected in incoming project configuration files. 
-/// This function also creates an AI-AdminProjectConfiguration.aic file when necessary to 
-/// avoid modifying the regular project config files (both those of the remote user and of 
+/// This function parallels the MakeForeignBasicConfigFileSafe() function, but rather than
+/// dealing with foreign paths that might be detected in the config file, this function
+/// adjusts the font(s) if mismatches are detected in incoming project configuration files.
+/// This function also creates an AI-AdminProjectConfiguration.aic file when necessary to
+/// avoid modifying the regular project config files (both those of the remote user and of
 /// the administrator) while the administrator is accessing the project remotely.
-/// 
+///
 /// The AI-AdminProjectConfiguration.aic file, if created, will not exist in a project
 /// folder, but in the current work folder, and its contents are significant only during
-/// the time the administrator is accessing the remote project. The contents of the 
-/// AI-AdminProjectConfiguration.aic file are recreated for each project folder the 
-/// administrator accesses remotely. 
+/// the time the administrator is accessing the remote project. The contents of the
+/// AI-AdminProjectConfiguration.aic file are recreated for each project folder the
+/// administrator accesses remotely.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxString& folderPath,
 											wxString* adminConfigFNamePtr)
@@ -37890,31 +37900,31 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 	if ((m_customWorkFolderPath == m_workFolderPath) || !m_bUseCustomWorkFolderPath)
 	{
 		// We are NOT using a custom work folder path.
-        // We can check for font mismatches in project config files even when we are not 
+        // We can check for font mismatches in project config files even when we are not
         // using a custom work folder path, as there could be font mismatches because the
         // project folder was copied from another computer to the current work folder at
         // m_workFolderPath.
-		
+
 		// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 		if (folderPath.GetChar(folderPath.Length() - 1) == PathSeparator)
 		{
-			folderPath.RemoveLast(); // remove the PathSeparator char 
+			folderPath.RemoveLast(); // remove the PathSeparator char
 				// at the end of the path string, so next line won't give two contiguous
-				
+
 		}
 		wxString configPath = folderPath + PathSeparator + configFName;
 
 		// For small config type text files, wxTextFile is probably most convenient. A version
-		// of the Open() function also understands Unicode, so we don't need to distinguish 
+		// of the Open() function also understands Unicode, so we don't need to distinguish
 		// for example CStdioFile from CStdioFileEx. We just conditional compile with the
 		// appropriate methods for Unicode.
 
 		wxTextFile f;
 		// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
 		// call. It is set up so we can treat it as a line oriented text file while in memory,
-		// modifying it, then writing it back out to persistent storage with a single 
+		// modifying it, then writing it back out to persistent storage with a single
 		// call to Write().
-			
+
 		wxLogNull logNo; // avoid spurious messages from the system
 
 		// wx note: To avoid an annoying system message that pops up if Open is called on
@@ -37934,13 +37944,13 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			// there was a problem opening the file, so we'll just return
 			return;
 
-		// The entire basic config file is now in memory and we can modify the lines we want 
-		// to change. 
-		// 
-		// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
-		// the foreign config file and those available on the local machine. In this case we 
-		// are not dealing with a custom work folder location, but we may still have to deal 
-		// with a foreign basic config file that gets copied from a "foreign" machine that 
+		// The entire basic config file is now in memory and we can modify the lines we want
+		// to change.
+		//
+		// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in
+		// the foreign config file and those available on the local machine. In this case we
+		// are not dealing with a custom work folder location, but we may still have to deal
+		// with a foreign basic config file that gets copied from a "foreign" machine that
 		// has fonts not found on the local machine.
 		// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
 		// be found.
@@ -37951,7 +37961,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 		bSuccessful = f.Write(); // write ANSI file back to disk
 		#else
 		// UNICODE
-		bSuccessful = f.Write(); // write UNICODE file back to disk 
+		bSuccessful = f.Write(); // write UNICODE file back to disk
 								 // whm note: default is to use wxConvUTF8 in Unicode build
 		#endif
 		if (!bSuccessful)
@@ -37964,31 +37974,31 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 	else
 	{
 		// We are using a custom work folder path. If m_bLockedCustomWorkFolderPath if FALSE
-		// we are just looking at someone's project folder in a custom location and need to 
-		// set up and use an admin project config file. If m_bLockedCustomWorkFolderPath is 
-		// TRUE we can go ahead and use the project config file for that project's folder 
-		// itself. Note: When we are looking at a project folder over a network (as opposed 
+		// we are just looking at someone's project folder in a custom location and need to
+		// set up and use an admin project config file. If m_bLockedCustomWorkFolderPath is
+		// TRUE we can go ahead and use the project config file for that project's folder
+		// itself. Note: When we are looking at a project folder over a network (as opposed
 		// to a project folder at a custom work folder on the same computer) the custom work
 		// folder location cannot be locked and m_bLockedCustomWorkFolderPath will be FALSE.
 		if (!m_bLockedCustomWorkFolderPath)
 		{
-			// this block for when the administrator is looking at a project in someone's work 
-			// folder in a custom location, and an AI-AdminProjectConfiguration.aic file needs 
+			// this block for when the administrator is looking at a project in someone's work
+			// folder in a custom location, and an AI-AdminProjectConfiguration.aic file needs
 			// to be found there to "fix". If an AI-AdminProjectConfiguration.aic file already
-			// exists in the project folder of the custom location we check it and fix it if 
-			// necessary. But if there is not an admin project config file yet in project folder 
+			// exists in the project folder of the custom location we check it and fix it if
+			// necessary. But if there is not an admin project config file yet in project folder
 			// (in the custom location) being accessed, we resort to the expedient of generating
-			// a normal project config file from the administrator's own project config settings, 
-			// renaming it, and fixing the fonts in that one. Hence by one means or another we 
-			// obtain a configuration file for cloning, modify its contents and save them to a 
-			// different file called AI_AdminProjectConfiguration.aic, in the administrator's 
-			// default work folder location (the latter is always pointed at by the path in 
+			// a normal project config file from the administrator's own project config settings,
+			// renaming it, and fixing the fonts in that one. Hence by one means or another we
+			// obtain a configuration file for cloning, modify its contents and save them to a
+			// different file called AI_AdminProjectConfiguration.aic, in the administrator's
+			// default work folder location (the latter is always pointed at by the path in
 			// m_workFolderLocation)
-			
+
 			wxLogNull logNo; // avoid spurious messages from the system
-			
-			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
-											 // project config file saved to disk only for cloning 
+
+			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary
+											 // project config file saved to disk only for cloning
 											 // purposes
 			wxString configPath = m_curProjectPath + PathSeparator + configFName; // use native separator
 			// construct the path for where to save the admin project config file from the
@@ -38013,7 +38023,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			{
 				// none available, so force one to be written out to m_workFolderPath
 				// and then use that, and remove the one we forced after the cloning is
-				// done further below; parameter 2 in the following call forces writing 
+				// done further below; parameter 2 in the following call forces writing
 				// of a project config file rather than a basic one
 				bool bWrittenOK = WriteConfigurationFile(szProjectConfiguration,basePath,projectConfigFile);
 				if (!bWrittenOK)
@@ -38025,16 +38035,16 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 				bRemoveCloneSource = TRUE;
 			}
 			// once here, basePath has the path to whatever folder stores the project config file
-			// we are going to clone off; bBestChoice tells us which it will be. 
+			// we are going to clone off; bBestChoice tells us which it will be.
 			wxTextFile f;
 			// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
 			// call. It is set up so we can treat it as a line oriented text file while in memory,
-			// modifying it, then writing it back out to persistent storage with a single 
+			// modifying it, then writing it back out to persistent storage with a single
 			// call to Write().
-			 
+
 			// At this point we must clone the configPath file, and give the clone the
 			// adminConfigPath filename. But if an admin project config file already exists, we
-			// don't need to clone it, but just fix it's contents further below. 
+			// don't need to clone it, but just fix it's contents further below.
 			bool bRemoved = TRUE;
 			if (!bBestChoice)
 			{
@@ -38081,20 +38091,20 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			if (!bSuccessful)
 			{
 				// there was a problem opening the file, so we'll just shut down after warning
-				// developer 
+				// developer
 				wxMessageBox(
 _T("MakeForeignProjectConfigFileSafe(): custom location block, could not open adminConfigPath file."));
 				//wxExit(); // not serious enough in this case to shut down
 				return;
 			}
 			// The entire cloned project config file is now in memory under the name
-			// adminConfigPath, and we can modify the lines we want to change. 
+			// adminConfigPath, and we can modify the lines we want to change.
 
-			// FixConfigFileFonts() deals intelligently with mismatch between fonts contained 
+			// FixConfigFileFonts() deals intelligently with mismatch between fonts contained
 			// in the foreign config file and those available on the local machine.
 			// In this case the custom work folder location is used but it is NOT locked,
 			// so we are likely to get references to fonts that are different from the fonts
-			// installed on the local machine. 
+			// installed on the local machine.
 			FixConfigFileFonts(&f);
 
 			#ifndef _UNICODE
@@ -38102,7 +38112,7 @@ _T("MakeForeignProjectConfigFileSafe(): custom location block, could not open ad
 			bSuccessful = f.Write(); // write ANSI file back to disk
 			#else
 			// UNICODE
-			bSuccessful = f.Write(); // write UNICODE file back to disk 
+			bSuccessful = f.Write(); // write UNICODE file back to disk
 									 // whm note: default is to use wxConvUTF8 in Unicode build
 			#endif
 			if (!bSuccessful)
@@ -38120,24 +38130,24 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 			// If there is already an AI-ProjectConfiguration.aic file in a project folder
 			// of the custom work folder location, then use that - and fix its fonts; but if
 			// not, then clone any AI-AdminProjectConfiguration.aic file which is at the
-			// default work folder location (or generate one if necessary) and give it the 
-			// new name of AI-ProjectConfiguration.aic, but store it in the approproate 
-			// project folder at the custom work folder location - because code comes 
-			// through this block only when m_bLockedCustomWorkFolderPath is TRUE, as is 
-			// the case when Lock Custom Location is clicked for the first time, or when 
-			// returning in a later session to the permanently locked custom work folder 
+			// default work folder location (or generate one if necessary) and give it the
+			// new name of AI-ProjectConfiguration.aic, but store it in the approproate
+			// project folder at the custom work folder location - because code comes
+			// through this block only when m_bLockedCustomWorkFolderPath is TRUE, as is
+			// the case when Lock Custom Location is clicked for the first time, or when
+			// returning in a later session to the permanently locked custom work folder
 			// location.
-			
+
 			wxTextFile f;
 			// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
 			// call. It is set up so we can treat it as a line oriented text file while in memory,
-			// modifying it, then writing it back out to persistent storage with a single 
+			// modifying it, then writing it back out to persistent storage with a single
 			// call to Write().
 			wxString configPath = m_curProjectPath + PathSeparator + configFName; // use native separator
-			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator 
+			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator
 													+ *adminConfigFNamePtr;
 			wxLogNull logNo; // avoid spurious messages from the system
-			
+
 			if (::wxFileExists(configPath))
 			{
 				// There is a project config file at m_curProjectPath, so use it and adjust for
@@ -38155,13 +38165,13 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 					// there was a problem opening the file, so we'll just return
 					return;
 
-				// The entire project config file is now in memory and we can modify the lines we want 
-				// to change. 
-				// 
-				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
-				// the foreign config file and those available on the local machine. In this case we 
-				// are not dealing with a custom work folder location, but we may still have to deal 
-				// with a foreign project config file that gets copied from a "foreign" machine that 
+				// The entire project config file is now in memory and we can modify the lines we want
+				// to change.
+				//
+				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in
+				// the foreign config file and those available on the local machine. In this case we
+				// are not dealing with a custom work folder location, but we may still have to deal
+				// with a foreign project config file that gets copied from a "foreign" machine that
 				// has fonts not found on the local machine.
 				// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
 				// be found.
@@ -38172,7 +38182,7 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 				bSuccessful = f.Write(); // write ANSI file back to disk
 				#else
 				// UNICODE
-				bSuccessful = f.Write(); // write UNICODE file back to disk 
+				bSuccessful = f.Write(); // write UNICODE file back to disk
 										 // whm note: default is to use wxConvUTF8 in Unicode build
 				#endif
 				if (!bSuccessful)
@@ -38211,13 +38221,13 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 					// there was a problem opening the file, so we'll just return
 					return;
 
-				// The entire project config file is now in memory and we can modify the lines we want 
-				// to change. 
-				// 
-				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
-				// the foreign config file and those available on the local machine. In this case we 
-				// are not dealing with a custom work folder location, but we may still have to deal 
-				// with a foreign project config file that gets copied from a "foreign" machine that 
+				// The entire project config file is now in memory and we can modify the lines we want
+				// to change.
+				//
+				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in
+				// the foreign config file and those available on the local machine. In this case we
+				// are not dealing with a custom work folder location, but we may still have to deal
+				// with a foreign project config file that gets copied from a "foreign" machine that
 				// has fonts not found on the local machine.
 				// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
 				// be found.
@@ -38228,7 +38238,7 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 				bSuccessful = f.Write(); // write ANSI file back to disk
 				#else
 				// UNICODE
-				bSuccessful = f.Write(); // write UNICODE file back to disk 
+				bSuccessful = f.Write(); // write UNICODE file back to disk
 										 // whm note: default is to use wxConvUTF8 in Unicode build
 				#endif
 				if (!bSuccessful)
@@ -38241,7 +38251,7 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 			else
 			{
 				// There is no project config file we can clone, so we just generate one in
-				// m_curProjectPath (where the path to the file is configPath) using our current 
+				// m_curProjectPath (where the path to the file is configPath) using our current
 				// instance's settings
 				bool bOK;
 				bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
@@ -38257,13 +38267,13 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 					// there was a problem opening the file, so we'll just return
 					return;
 
-				// The entire project config file is now in memory and we can modify the lines we want 
-				// to change. 
-				// 
-				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
-				// the foreign config file and those available on the local machine. In this case we 
-				// are not dealing with a custom work folder location, but we may still have to deal 
-				// with a foreign project config file that gets copied from a "foreign" machine that 
+				// The entire project config file is now in memory and we can modify the lines we want
+				// to change.
+				//
+				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in
+				// the foreign config file and those available on the local machine. In this case we
+				// are not dealing with a custom work folder location, but we may still have to deal
+				// with a foreign project config file that gets copied from a "foreign" machine that
 				// has fonts not found on the local machine.
 				// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
 				// be found.
@@ -38274,7 +38284,7 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 				bSuccessful = f.Write(); // write ANSI file back to disk
 				#else
 				// UNICODE
-				bSuccessful = f.Write(); // write UNICODE file back to disk 
+				bSuccessful = f.Write(); // write UNICODE file back to disk
 										 // whm note: default is to use wxConvUTF8 in Unicode build
 				#endif
 				if (!bSuccessful)
@@ -38319,7 +38329,7 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	event.Enable(TRUE); 
+	event.Enable(TRUE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -38352,16 +38362,16 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	// whm revised 5Aug11. We don't know what protected folder to use for KB exports
 	// until the user specifies either SFM or LIFT. That specification previously
-	// would occur at the time the user gets the wxFileDialog and accesses the 
-	// "File Type" drop-down list of options. However, with navigation protection we 
-	// don't provide a standard wxFileDialog where a user can make that selection. 
+	// would occur at the time the user gets the wxFileDialog and accesses the
+	// "File Type" drop-down list of options. However, with navigation protection we
+	// don't provide a standard wxFileDialog where a user can make that selection.
 	// Therefore, I think the better way of handling the choice between SFM and LIFT
 	// KB exports is to get that decision earlier via a wxSingleChoice dialog, and
 	// not from the wxFileDialog - even when no protection is in effect. Doing so, I
 	// think will simplify the file naming process too.
-	
+
 	// While nav protection is ON, the user doesn't see a wxFileDialog where the
-	// Save As Type dropdown box is an option. So, we have to ask the user directly 
+	// Save As Type dropdown box is an option. So, we have to ask the user directly
 	// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
 	// filterIndex according to the user's response.
 	KBExportSaveAsType kbExportType = KBExportSaveAsSFM_TXT;
@@ -38385,16 +38395,16 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	// Calculate the appropriate KB export's dictFilename and defaultDir.
     // Note: In the App's SetupDirectories() function the m_curProjectName is
-    // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"), 
-    // so the "to" and "adaptations" parts are non-localized, i.e., we can depend on 
-    // them being constant in project names. All KB exports use a default name based 
+    // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"),
+    // so the "to" and "adaptations" parts are non-localized, i.e., we can depend on
+    // them being constant in project names. All KB exports use a default name based
     // on m_curProjectName without " adaptations" part.
 	wxString dictFilename;
 	dictFilename = m_curProjectName; // m_curProjectName is of the form "x to y adaptations"
 	int offset = dictFilename.Find(_T(' '),TRUE); // TRUE - find from right end
 	dictFilename = dictFilename.Mid(0,offset); // remove "adaptations" or Tok Pisin equivalent
 	// The base dictFilename is now in the form of "x to y"
-	
+
 	wxString defaultDir;
 	wxString glossStr;
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
@@ -38402,8 +38412,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	{
 		gpApp->LogUserAction(_T("SFM Export"));
 		// The user wants KB export in standard format (\x and \ge).
-		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS, 
-		// and whether the App's m_lastKbOutputPath is empty or has a valid path, 
+		// Check whether navigation protection is in effect for _KB_INPUTS_OUTPUTS,
+		// and whether the App's m_lastKbOutputPath is empty or has a valid path,
 		// and set the defaultDir for the export accordingly.
 		if (this->m_bProtectKbInputsAndOutputsFolder)
 		{
@@ -38415,11 +38425,11 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		else if (m_lastKbOutputPath.IsEmpty()
 			|| (!m_lastKbOutputPath.IsEmpty() && !::wxDirExists(m_lastKbOutputPath)))
 		{
-			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-			// to appear. But the m_lastKbOutputPath is either empty or, if not empty, 
-			// it points to an invalid path, so we initialize the defaultDir to point to 
-			// the special protected folder, even though Navigation protection is not ON. 
-			// In this case, the user could point the export path elsewhere using the 
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			// to appear. But the m_lastKbOutputPath is either empty or, if not empty,
+			// it points to an invalid path, so we initialize the defaultDir to point to
+			// the special protected folder, even though Navigation protection is not ON.
+			// In this case, the user could point the export path elsewhere using the
 			// wxFileDialog that will appear.
 			bBypassFileDialog_ProtectedNavigation = FALSE;
 			defaultDir = m_kbInputsAndOutputsFolderPath;
@@ -38427,8 +38437,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			// Navigation protection is OFF and we have a valid path in m_lastKbOutputPath,
-			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
-			// location of the export. The user could still point the export path elsewhere 
+			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the
+			// location of the export. The user could still point the export path elsewhere
 			// in the wxFileDialog that will appear.
 			bBypassFileDialog_ProtectedNavigation = FALSE;
 			defaultDir = m_lastKbOutputPath;
@@ -38440,7 +38450,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		{
 			glossStr = _T(" ");
 			glossStr += _("glossing");
-			dictFilename += glossStr; // ensure the glossing KB 
+			dictFilename += glossStr; // ensure the glossing KB
 									  // export has its own filename
 		}
 		// Add the default extension for SFM KB exports
@@ -38449,8 +38459,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	else if (kbExportType == KBExportSaveAsLIFT_XML)
 	{
 		gpApp->LogUserAction(_T("LIFT Export"));
-		// Check whether navigation protection is in effect for _LIFT_INPUTS_OUTPUTS, 
-		// and whether the App's m_lastKbLiftOutputPath is empty or has a valid path, 
+		// Check whether navigation protection is in effect for _LIFT_INPUTS_OUTPUTS,
+		// and whether the App's m_lastKbLiftOutputPath is empty or has a valid path,
 		// and set the defaultDir for the export accordingly.
 		if (this->m_bProtectLiftInputsAndOutputsFolder)
 		{
@@ -38462,11 +38472,11 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		else if (m_lastKbLiftOutputPath.IsEmpty()
 			|| (!m_lastKbLiftOutputPath.IsEmpty() && !::wxDirExists(m_lastKbLiftOutputPath)))
 		{
-			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-			// to appear. But the m_lastKbLiftOutputPath is either empty or, if not empty, 
-			// it points to an invalid path, so we initialize the defaultDir to point to 
-			// the special protected folder, even though Navigation protection is not ON. 
-			// In this case, the user could point the export path elsewhere using the 
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			// to appear. But the m_lastKbLiftOutputPath is either empty or, if not empty,
+			// it points to an invalid path, so we initialize the defaultDir to point to
+			// the special protected folder, even though Navigation protection is not ON.
+			// In this case, the user could point the export path elsewhere using the
 			// wxFileDialog that will appear.
 			bBypassFileDialog_ProtectedNavigation = FALSE;
 			defaultDir = m_liftInputsAndOutputsFolderPath;
@@ -38474,19 +38484,19 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			// Navigation protection is OFF and we have a valid path in m_lastKbLiftOutputPath,
-			// so we initialize the defaultDir to point to the m_lastKbLiftOutputPath for the 
-			// location of the export. The user could still point the export path elsewhere 
+			// so we initialize the defaultDir to point to the m_lastKbLiftOutputPath for the
+			// location of the export. The user could still point the export path elsewhere
 			// in the wxFileDialog that will appear.
 			bBypassFileDialog_ProtectedNavigation = FALSE;
 			defaultDir = m_lastKbLiftOutputPath;
 		}
-		
+
 		// Add " glossing" (if gbIsGlossing) to the dictFilename
 		if (gbIsGlossing)
 		{
 			glossStr = _T(" ");
 			glossStr += _("glossing");
-			dictFilename += glossStr; // ensure the glossing KB 
+			dictFilename += glossStr; // ensure the glossing KB
 									  // export has its own filename
 		}
 		// Add the default extension for LIFT KB exports
@@ -38502,11 +38512,11 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		wxString filter;
 		if (kbExportType == KBExportSaveAsSFM_TXT)
 		{
-			filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+			filter = _("SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||");
 		}
 		else if (kbExportType == KBExportSaveAsLIFT_XML)
 		{
-			filter = _("XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"); 
+			filter = _("XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||");
 		}
 		wxFileDialog fileDlg(
 			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
@@ -38514,7 +38524,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 			defaultDir,	// empty string causes it to use the current working directory (set above)
 			dictFilename,	// default filename
 			filter,
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 			// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
 			// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 		fileDlg.Centre();
@@ -38527,7 +38537,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		}
 
 		// get the user's desired path and file name
-		exportPath = fileDlg.GetPath(); 
+		exportPath = fileDlg.GetPath();
 
 		// whm 5Aug11 note: When nav protection is OFF, we allow the user to
 		// determine the dictFilename's extension for SFM exports (default is .txt)
@@ -38575,8 +38585,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// whm Note: We set the App's m_lastKbOutputPath and/or m_lastKbLiftOutputPath
-	// variables with the path part of the exportPath just used. We do this even when 
-	// navigation protection is on, so that the special folders would be the initial 
+	// variables with the path part of the exportPath just used. We do this even when
+	// navigation protection is on, so that the special folders would be the initial
 	// path suggested if the administrator were to switch Navigation Protection OFF.
 	wxString path, fname, ext;
 	wxFileName::SplitPath(exportPath, &path, &fname, &ext);
@@ -38601,16 +38611,16 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	}
 	// close the file
 	f.Close();
-	
+
 	// whm revised 5Aug11 to always inform the user of the completion of
 	// the export operation.
 	// Report the completion of the export to the user.
 	// Note: For protected navigation situations AI determines the actual
-	// filename that is used for the export, and the export itself is 
+	// filename that is used for the export, and the export itself is
 	// automatically saved in the appropriate outputs folder. Especially
-	// in these situations where the user has no opportunity to provide a 
-	// file name nor navigate to a random path, we should inform the user 
-	// of the successful completion of the export, and indicate the file 
+	// in these situations where the user has no opportunity to provide a
+	// file name nor navigate to a random path, we should inform the user
+	// of the successful completion of the export, and indicate the file
 	// name that was used and its outputs folder name and location.
 	wxFileName fn(exportPath);
 	wxString fileNameAndExtOnly = fn.GetFullName();
@@ -38665,8 +38675,8 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxArrayString that contains usable Paratext projects on the 
-///             host computer, formatted in string format with fields separated 
+/// \return		a wxArrayString that contains usable Paratext projects on the
+///             host computer, formatted in string format with fields separated
 ///             by ':' delimiters (see remarks)
 /// \remarks
 /// Called from: the CGetSourceTextFromEditorDlg::InitDialog and
@@ -38674,26 +38684,26 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 /// Gathers a list of "usable" Paratext (PT) projects from the user's
 /// PT installation (if PT 7.1 is installed). A "usable" PT project is
 /// one which is not a PT "resource" project. It parses the PT project's
-/// .ssf files extracting from the xml the various properties described 
+/// .ssf files extracting from the xml the various properties described
 /// for the given PT project.
-/// 
-/// As a side effect, this function populates the App's m_pArrayOfCollabProjects 
-/// array of pointers to Collab_Project_Info_Struct structs stored on the heap. 
-/// In the returned wxArrayString, each string element contains identifying 
+///
+/// As a side effect, this function populates the App's m_pArrayOfCollabProjects
+/// array of pointers to Collab_Project_Info_Struct structs stored on the heap.
+/// In the returned wxArrayString, each string element contains identifying
 /// fields structured as follows:
 /// "shortName : fullName : languageName : ethnologueCode"
 /// The ethnologueCode field is optional and won't appear unless the user has
 /// explicitly entered it in for LIFT file properites within PT.
-/// This string is used in various places such as the combo box controls the 
+/// This string is used in various places such as the combo box controls the
 /// "Setup Paratext Collaboration... and "Get Source Text from Paratext Project".
-/// It is also used in the basic config file as string values for the 
+/// It is also used in the basic config file as string values for the
 /// PTProjectForSourceInputs and PTProjectForTargetExports entries.
 ///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 {
 	wxArrayString tempListOfPTProjects;
 	tempListOfPTProjects.Clear();
-	// deallocate any memory for items currently in list on heap 
+	// deallocate any memory for items currently in list on heap
 	int aTot = (int)m_pArrayOfCollabProjects->GetCount();
 	if (aTot > 0)
 	{
@@ -38709,22 +38719,22 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 	PT_ProjectsDirPath = GetParatextProjectsDirPath();
 	// Note: PT_ProjectsDirPath will end with a backslash
 	// Within the PT_ProjectsDirPath folder, the Paratext projects each have a file
-	// composed of the abbreviated PT project name with a .ssf extension. 
+	// composed of the abbreviated PT project name with a .ssf extension.
 	// Resource projects under Paratext cannot be used as collaboration projects
 	// (technically they could be read from, but we cannot assume that is possible
 	// without specific permission of UBS).
 	// So, we read each <file>.ssf within the folder and determine if the project
 	// represented is a candidate for Adapt It collaboration (either for reading
 	// as source texts, or for transferring AI-produced translation drafts).
-	
+
 	// PT's ssf files are small xml formatted files. We only need some values from
 	// the file, so rather than using our XML reading routines, I think it will be
-	// more efficient to just use the xxTextFile class to read each xml formatted 
+	// more efficient to just use the xxTextFile class to read each xml formatted
 	// file into memory and read the information we need from it there.
-			
+
 	wxDir finder;
-	bool bOK = (::wxSetWorkingDirectory(PT_ProjectsDirPath) && 
-								finder.Open(PT_ProjectsDirPath)); 
+	bool bOK = (::wxSetWorkingDirectory(PT_ProjectsDirPath) &&
+								finder.Open(PT_ProjectsDirPath));
 								// wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
@@ -38733,7 +38743,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 
 	// Must call wxDir::Open() before calling GetFirst() - see above
 	wxString str = _T("");
-	// whm note: in GetFirst below, the wxDIR_FILES flag finds 
+	// whm note: in GetFirst below, the wxDIR_FILES flag finds
 	// files only, not . nor .. nor hidden files
 	bool bWorking = finder.GetFirst(&str,_T("*.ssf"),wxDIR_FILES);
 	while (bWorking)
@@ -38741,7 +38751,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 		// the str variable contains the found .ssf file (case is ignored
 		// so it will find .ssf as well as .SSF files).
 		//wxLogDebug(_T("Found file: %s"),str.c_str());
-		
+
 		// open the .ssf file and glean the necessary information to
 		// determine if the project is a potential collaboration project
 		wxTextFile f;
@@ -38754,7 +38764,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 			{
 				// The ssf file is now in memory and accessible line-by-line using wxTextFile
 				// methods.
-				
+
 				Collab_Project_Info_Struct* pPTInfo = new Collab_Project_Info_Struct;
 				pPTInfo->booksPresentFlags = _T("");
 				pPTInfo->ethnologueCode = _T("");
@@ -38981,7 +38991,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 	wxArrayString tempListOfBEProjects, tempListOfAllBEProjects;
 	tempListOfBEProjects.Clear();
 	tempListOfAllBEProjects.Clear();
-	// deallocate any memory for items currently in list on heap 
+	// deallocate any memory for items currently in list on heap
 	int aTot = (int)m_pArrayOfCollabProjects->GetCount();
 	if (aTot > 0)
 	{
@@ -38999,16 +39009,16 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 	// Within the BE_ProjectsDirPath folder, the Bibledit projects are represented by
 	// individual folders. Hence, we can get an inventory of Bibledit project names
 	// by collecting the names of all subdirectories in this BE_ProjectsDirPath.
-	
+
 	wxDir finder;
-	bool bOK = (::wxSetWorkingDirectory(BE_ProjectsDirPath) && 
-								finder.Open(BE_ProjectsDirPath)); 
+	bool bOK = (::wxSetWorkingDirectory(BE_ProjectsDirPath) &&
+								finder.Open(BE_ProjectsDirPath));
 								// wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
 		// TODO: error
 	}
-	
+
 	wxString str;
 	bool bWorking = finder.GetFirst(&str,_T(""),wxDIR_DIRS);
 	while (bWorking)
@@ -39016,14 +39026,14 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 		tempListOfAllBEProjects.Add(str);
 		bWorking = finder.GetNext(&str);
 	}
-		
+
 	// Now get information from the configuration.1.xml file(s) in each project folder
 	// to use in filling out the Collab_Project_Info_Struct structs stored on the heap.
 	int nTotNumProjects = (int)tempListOfAllBEProjects.GetCount();
 
 	if (nTotNumProjects > 0)
 	{
-		// Open the configuration.1.xml file in each project folder and glean the 
+		// Open the configuration.1.xml file in each project folder and glean the
 		// necessary information populating the Collab_Project_Info_Struct fields
 		// for the given project.
 		int projCt;
@@ -39043,7 +39053,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 				{
 					// The ssf file is now in memory and accessible line-by-line using wxTextFile
 					// methods.
-					
+
 					Collab_Project_Info_Struct* pBEInfo = new Collab_Project_Info_Struct;
 					pBEInfo->booksPresentFlags = _T(""); // computed for BE
 					pBEInfo->ethnologueCode = _T(""); // not used by BE
@@ -39079,7 +39089,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 					bool bProjectIsEditable = TRUE;
 
 					wxString lineStr;
-					
+
 					// The Bibledit configuration files do not have an xml field that
 					// is parallel to the Paratext xml tag <BooksPresent>...</BooksPresent>.
 					// Instead, we must scan the BE project's "data" directory and collect
@@ -39098,7 +39108,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 					// because Bibledit's drop down list for Language in its project dialog only allows
 					// for selecting a small number (about 16) languages. Hence, for Bibledit we
 					// have to assume that the languageName is the same as the projName
-					languageName = projName; 
+					languageName = projName;
 					pBEInfo->languageName = languageName;
 					// I don't thing the projectDir is used anywhere, but we will set it to point to
 					// the top-level folder of the Bibledit project (note project texts are located
@@ -39165,7 +39175,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						//}
 
 						// whm Note: PT used a <Versification> tag, Bibledit uses a <versification> tag
-						// [different capitalization in the tag], and nests the actual value within a 
+						// [different capitalization in the tag], and nests the actual value within a
 						// deeper <value>...</value> tag.
 						tagName = _T("<versification>");
 						endTagName = _T("</versification>");
@@ -39196,13 +39206,13 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 						if (lineStr.Find(tagName) != wxNOT_FOUND)
 						{
 							wxString tempStr = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
-							// whm Note: Bibledit's font name and size are combined in the same text 
+							// whm Note: Bibledit's font name and size are combined in the same text
 							// string as for example "Sans 14", therefore we will get both defaultFont
 							// and defaultFontSize here.
 							wxString fontName;
 							wxString fontSize;
 							int posSp = tempStr.Find(_T(' '),TRUE); // TRUE - Find from right end
-							if (posSp != wxNOT_FOUND) 
+							if (posSp != wxNOT_FOUND)
 							{
 								fontSize = tempStr.Mid(posSp);
 								fontSize.Trim(TRUE);
@@ -39211,7 +39221,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 								fontName.Trim(TRUE);
 								fontName.Trim(FALSE);
 							}
-							
+
 							defaultFont = fontName;
 							pBEInfo->defaultFont  = fontName;
 							defaultFontSize = fontSize;
@@ -39356,14 +39366,14 @@ wxString CAdapt_ItApp::GetBibleditBooksPresentFlagsStr(wxString projPath)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a pointer to a Collab_Project_Info_Struct struct on the heap
 /// \param      projShortName -> the PT/BE project's short name which is unique
-///                             and is used for the PT project's ssf file 
+///                             and is used for the PT project's ssf file
 ///                             and/or the PT or BE project folder where PT/BE stores
 ///                             the project's documents
 /// \remarks
 /// Called from: various places in the CGetSourceTextFromEditorDlg's
-/// class methods. 
+/// class methods.
 /// Examines the App's m_pArrayOfCollabProjects and finds the item that points
-/// to the struct containing the given PT/BE project which is uniquely identified 
+/// to the struct containing the given PT/BE project which is uniquely identified
 /// by projShortName.
 ///////////////////////////////////////////////////////////////////////////////
 Collab_Project_Info_Struct* CAdapt_ItApp::GetCollab_Project_Struct(wxString projShortName)
@@ -39392,13 +39402,13 @@ Collab_Project_Info_Struct* CAdapt_ItApp::GetCollab_Project_Struct(wxString proj
 /// \param      endTag -> the xml tag before which we stop copying non-tag text
 /// \remarks
 /// Called from: GetListOfPTProjects() and GetListOfBEProjects().
-/// A convenience function to extract the PCDATA text between an xml begin tag 
-/// and its end tag, i.e., <tag> text </tag>. The caller has determined that 
-/// beginTag is located within the lineStr. The endTag can also be on the same 
+/// A convenience function to extract the PCDATA text between an xml begin tag
+/// and its end tag, i.e., <tag> text </tag>. The caller has determined that
+/// beginTag is located within the lineStr. The endTag can also be on the same
 /// line (as in PT) or on a subsequent line (as in BE where the text string to
-/// be copied is within a deeper nested <value>... </value> set of tags. 
-/// This function is used in parsing the xml Paratext ssf project description 
-/// files and/or Bibledit configuration.1.xml files. The file being read resides 
+/// be copied is within a deeper nested <value>... </value> set of tags.
+/// This function is used in parsing the xml Paratext ssf project description
+/// files and/or Bibledit configuration.1.xml files. The file being read resides
 /// in memory as a wxTextFile.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, wxString beginTag, wxString endTag)
@@ -39420,7 +39430,7 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 			// <tag> <=== we are currently pointing at this line
 			//  <value>PCDATA</value>  <=== we want the PCDATA value between <value> and </value> on next line
 			// <endtag>
-			// Hence, we will use the wxTextFile::GetLine() function to 
+			// Hence, we will use the wxTextFile::GetLine() function to
 			int nCurLine = f->GetCurrentLine();
 			wxString valueLine;
 			valueLine = f->GetLine(nCurLine + 1); // doesn't change wxTextFile's internal pointer
@@ -39494,10 +39504,10 @@ int CAdapt_ItApp::GetBookFlagIndexFromFullBookName(wxString fullBookName)
 ///             part of the input file at pathAndName
 /// \param      pathAndName -> the full path and name of the file being examined
 /// \remarks
-/// Called from: 
+/// Called from:
 /// Finds the 3-letter book code encoded in the \id marker field that exists in
 /// properly formed USFM and AI Document files. The input file pathAndName can be
-/// either an AI xml document file, or a plain text USFM formatted file. 
+/// either an AI xml document file, or a plain text USFM formatted file.
 /// Opens the file at pathAndName and reads a small portion into a buffer of
 /// 4K size (4096 bytes - more than enough to get past the header stuff in an AI
 /// xml document file). In plain text files the \id line should be right at
@@ -39505,13 +39515,13 @@ int CAdapt_ItApp::GetBookFlagIndexFromFullBookName(wxString fullBookName)
 /// work as long as it is within the first 4K of the file.
 /// If the file is an AI xml adaptation document it searches for the m="\id "
 /// attribute, and if found then scans backwards in the buffer until it finds
-/// the associated s= attribute which should be followed by the book code 
+/// the associated s= attribute which should be followed by the book code
 /// within quote marks, i.e., m="MAT".
 /// If the file is a USFM formatted file, it searches for the \id line (normally
 /// the first line of the file), and if found then gets the code following that
-/// \id line, i.e., \id MAT. 
+/// \id line, i.e., \id MAT.
 /// For large files this routine can be much faster that opening whole documents
-/// with ReadDoc_XML() or with OnOpenDocument(), or even by using the wxTextFile 
+/// with ReadDoc_XML() or with OnOpenDocument(), or even by using the wxTextFile
 /// class (especially for large files).
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
@@ -39608,7 +39618,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 /// \param      extensionFilter -> the file extension to limit the search if any
 ///                             i.e., ".XML"
 /// \remarks
-/// Called from: 
+/// Called from:
 /// Use this function to get the the path and name of the first disk file in a folder
 /// which contains the Scripture reference specified in the reference parameter.
 /// The reference is of the form "REV 1:10". The search algorithm attempts to take
@@ -39620,12 +39630,12 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 /// a hint for the book and _CH01 is a hint for the chapter contained in the file.
 /// Most of the time this function is called on files we have named so this should
 /// work quite efficiently. But, there are times when this function may be called
-/// on files which may not have hints in their names. In such cases we have to 
+/// on files which may not have hints in their names. In such cases we have to
 /// examine each file within the folder (matching the extensionFilter) and scan its
 /// contents for a \id NNN marker identifying the book, then scanning the rest of
 /// the contents to find matching chapter and verse markers that are specified by
 /// the reference parameter. This function uses the GetBookCodeFastFromDiskFile()
-/// function for speed, and also block reads the file where necessary into a 
+/// function for speed, and also block reads the file where necessary into a
 /// buffer for fast in-memory searches.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, wxString reference, wxString extensionFilter)
@@ -39655,15 +39665,15 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 
 	// scan the folderPath and get a list of files which have the \id with the
 	// 3-letter book code (bookStr). This could be more than one file since chapter
-	// files of a given book would have the same \id and book code within them, so 
+	// files of a given book would have the same \id and book code within them, so
 	// we store the names and paths in a wxArrayString. Later below we open fully
 	// only those files that have the right \id and book code, and search for the
 	// actual reference. Eventually we find and return the first book that has all
 	// three: the book code, the chapter reference, and the verse reference.
-	 
+
 	// we may be able to save time by looking at the actual file name and trying to
 	// determine the searched-for book from the number prefixed to its name.
-	
+
 	// Gather all of the file names that exist in the folder
 	wxArrayString filesInFolder;
 	wxDir finder;
@@ -39673,7 +39683,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 	if (bOK)
 	{
 		wxString str = _T("");
-		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES);
 		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
 		// GetFirst() returns just a file name without the path
 		wxString extFilterLower = extensionFilter.MakeLower();
@@ -39683,7 +39693,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 			// incoming extenstionFilter has the dot in the extension, so set flag to add dot below
 			bAddDotToExt = TRUE;
 		}
-		
+
 		while (bWorking)
 		{
 			if (str.IsEmpty())
@@ -39703,7 +39713,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 			}
 			bWorking = finder.GetNext(&str);
 		}
-		
+
 		// if filesInFolder is empty just return an empty string
 		if (filesInFolder.GetCount() == 0)
 			return wxEmptyString;
@@ -39714,13 +39724,13 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 		int PT_bookNum;
 		PT_bookNum = GetNumberFromBookCodeForFileNaming(bookStr);
 		wxString pt_bookNumStr;
-		pt_bookNumStr << PT_bookNum; 
+		pt_bookNumStr << PT_bookNum;
 		if (PT_bookNum < 10)
 			pt_bookNumStr = _T('0') + pt_bookNumStr;
-		// At this point pt_bookNumStr will be something like "01" for GEN, "39" 
+		// At this point pt_bookNumStr will be something like "01" for GEN, "39"
 		// for MAL, "41" for MAT, "67" for REV
-		
-		// Now, scan through the filesInFolder array and see if there is one or more 
+
+		// Now, scan through the filesInFolder array and see if there is one or more
 		// there whose filename begins with the pt_bookNumStr number. Collect them
 		// into a booksWithNamesToCheck array.
 		int totFiles = (int)filesInFolder.GetCount();
@@ -39739,14 +39749,14 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 				booksWithNamesToCheck.Add(tempFileName);
 			}
 		}
-		// If the booksWithNamesToCheck has one or more array elements, we check 
+		// If the booksWithNamesToCheck has one or more array elements, we check
 		// those to see if they have a "_CHnn" element in the file name where nn is
 		// a chapter number "01", "02", etc. If such a chapter indication exists we
 		// will just open that file. If it doesn't exist we will check for \id NNN
-		// in that file. 
+		// in that file.
 		int totNamesToCheck = booksWithNamesToCheck.GetCount();
 		wxString fileNameToCheck = _T("");
-		
+
 		if (totNamesToCheck != 0)
 		{
 			int ct;
@@ -39785,7 +39795,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 					// the book code matches, so now verify that the book has the chapter and verse reference
 					bool bRefFound = FALSE;
 					bRefFound = BookHasChapterAndVerseReference(tempFileAndPath,chapterStr,verseStr);
-					
+
 					if (bRefFound)
 					{
 						// we found the file containing the book code and the chapter and verse reference
@@ -39796,9 +39806,9 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 			} // end of if (bFoundChapterHintToCheck)
 			else
 			{
-				// The file name had a number hint, but we did not find a file name also 
+				// The file name had a number hint, but we did not find a file name also
 				// containing a _CHnn hint so we'll need to scan, all the files in the
-				// booksWithNamesToCheck array. 
+				// booksWithNamesToCheck array.
 				for (ct = 0; ct < totNamesToCheck; ct++)
 				{
 					tempFileName = booksWithNamesToCheck.Item(ct);
@@ -39810,7 +39820,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 						// the book code matches, so now verify that the book has the chapter and verse reference
 						bool bRefFound = FALSE;
 						bRefFound = BookHasChapterAndVerseReference(tempFileAndPath,chapterStr,verseStr);
-						
+
 						if (bRefFound)
 						{
 							// we found the file containing the book code and the chapter and verse reference
@@ -39823,10 +39833,10 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 		} // end of if (totNamesToCheck != 0)
 		else
 		{
-			// there were no file names with number hints within their 
+			// there were no file names with number hints within their
 			// names as used in Paratext, so we will have to do a brute check of all
-			// the files in the folder (names stored in filesInFolder array) until we 
-			// either run out of files to check or find the one with the book code, 
+			// the files in the folder (names stored in filesInFolder array) until we
+			// either run out of files to check or find the one with the book code,
 			// chapter and reference.
 			for (ct = 0; ct < totFiles; ct++)
 			{
@@ -39839,7 +39849,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 					// the book code matches, so now verify that the book has the chapter and verse reference
 					bool bRefFound = FALSE;
 					bRefFound = BookHasChapterAndVerseReference(tempFileAndPath,chapterStr,verseStr);
-					
+
 					if (bRefFound)
 					{
 						// we found the file containing the book code and the chapter and verse reference
@@ -39860,7 +39870,7 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 	wxString fileBuffer;
 	// now read the file into a buffer in preparation for analyzing their chapter and
 	// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
-	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
 	// UNICODE BOM of ef bb bf
 	wxFile f(fileAndPath,wxFile::read);
 	wxFileOffset fileLen;
@@ -39984,10 +39994,10 @@ wxString CAdapt_ItApp::GetBookNumberAsStrFromName(wxString bookName)
 /// \remarks
 /// Called from: CGetSourceTextFromEditorDlg::LoadBookNamesIntoList().
 /// Used to get an array of the book names that are present in a Paratext/Bibledit
-/// project according to the bookFlagsStr, a string composed of 123 characters in 
-/// which a 1 indicates the book is present and 0 indicates the book is not present. 
-/// The index into the bookFlagsStr is parallel to the array of Scripture books 
-/// called AllBookNames held on the App. 
+/// project according to the bookFlagsStr, a string composed of 123 characters in
+/// which a 1 indicates the book is present and 0 indicates the book is not present.
+/// The index into the bookFlagsStr is parallel to the array of Scripture books
+/// called AllBookNames held on the App.
 ///////////////////////////////////////////////////////////////////////////////
 wxArrayString CAdapt_ItApp::GetBooksArrayFromBookFlagsString(wxString bookFlagsStr)
 {
