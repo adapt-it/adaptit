@@ -19,6 +19,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+#define Print_failure
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "AIPrintout.h"
@@ -334,6 +336,49 @@ bool AIPrintout::OnPrintPage(int page)
 #ifdef __WXDEBUG__
 		wxLogDebug(_T("fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
 			fitRect.x, fitRect.y, fitRect.width, fitRect.height);
+		wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
+    /* 2 repeats, showing effect of device coords being set to (0,) and scale factor to 1.0 (makes object think device dpi == pixels resolution)
+        wxCoord devOriginX, devOriginY;
+        pDC->GetDeviceOrigin(&devOriginX,&devOriginY);
+ 		wxLogDebug(_T("Page %d  DeviceOrigin:  pDC->GetDeviceOrigin( , ) x %d  y %d "), page, devOriginX, devOriginY);
+		wxRect logicalPaperRect = this->GetLogicalPaperRect();
+		// next two should be the same rect if the pDC is a wxPostScriptDC, and the width should be approx 800, height approx 1100
+		wxLogDebug(_T("logicalPaperRect:  this->GetLogicalPaperRect() x %d  y %d , width %d  height %d"),
+			logicalPaperRect.x, logicalPaperRect.y, logicalPaperRect.width, logicalPaperRect.height);
+		wxRect logicalPageRect = this->GetLogicalPageRect();
+		wxLogDebug(_T("logicalPageRect:  this->GetLogicalPageRect() x %d  y %d , width %d  height %d"),
+			logicalPageRect.x, logicalPageRect.y, logicalPageRect.width, logicalPageRect.height);
+
+		pDC->SetDeviceOrigin(0,0);
+        wxRect fitRectB = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
+			fitRectB.x, fitRectB.y, fitRectB.width, fitRectB.height);
+ 		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) Page %d  DeviceOrigin:  pDC->GetDeviceOrigin( , ) x %d  y %d "), page, devOriginX, devOriginY);
+		logicalPaperRect = this->GetLogicalPaperRect();
+		// next two should be the same rect if the pDC is a wxPostScriptDC, and the width should be approx 800, height approx 1100
+		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) logicalPaperRect:  this->GetLogicalPaperRect() x %d  y %d , width %d  height %d"),
+			logicalPaperRect.x, logicalPaperRect.y, logicalPaperRect.width, logicalPaperRect.height);
+		logicalPageRect = this->GetLogicalPageRect();
+		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) logicalPageRect:  this->GetLogicalPageRect() x %d  y %d , width %d  height %d"),
+			logicalPageRect.x, logicalPageRect.y, logicalPageRect.width, logicalPageRect.height);
+
+        pDC->SetUserScale(1.0, 1.0);
+        wxRect fitRectC = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) UserScale(1.0, 1.0) fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
+			fitRectC.x, fitRectC.y, fitRectC.width, fitRectC.height);
+ 		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) UserScale(1.0, 1.0) Page %d  DeviceOrigin:  pDC->GetDeviceOrigin( , ) x %d  y %d "), page, devOriginX, devOriginY);
+		logicalPaperRect = this->GetLogicalPaperRect();
+		// next two should be the same rect if the pDC is a wxPostScriptDC, and the width should be approx 800, height approx 1100
+		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) UserScale(1.0, 1.0) logicalPaperRect:  this->GetLogicalPaperRect() x %d  y %d , width %d  height %d"),
+			logicalPaperRect.x, logicalPaperRect.y, logicalPaperRect.width, logicalPaperRect.height);
+		logicalPageRect = this->GetLogicalPageRect();
+		wxLogDebug(_T("DEVICE ORIGIN AT (0,0) UserScale(1.0, 1.0) logicalPageRect:  this->GetLogicalPageRect() x %d  y %d , width %d  height %d"),
+			logicalPageRect.x, logicalPageRect.y, logicalPageRect.width, logicalPageRect.height);
+
+        // restore settings
+        pDC->SetDeviceOrigin(devOriginX, devOriginY);
+        pDC->SetUserScale(overallScaleX, overallScaleY);
+    */
 #endif
 #endif
 /* some rects I investigated to see what they x, y, width and height values are, but we don't need them
@@ -374,11 +419,9 @@ bool AIPrintout::OnPrintPage(int page)
         // in the paper "device".
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
-#ifdef Print_failure
-#ifdef __WXDEBUG__
+#if defined(Print_failure) && defined(__WXDEBUG__)
 		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
 			fitRect.x, fitRect.y );
-#endif
 #endif
 
         // SetLogicalOrigin is only documented as a method of wxPrintout, but it is also
@@ -388,31 +431,58 @@ bool AIPrintout::OnPrintPage(int page)
         // from the top of our printout/preview page.
 		pDC->SetLogicalOrigin(0,pOffsets->nTop); // MFC used pDC->SetWindowOrg(0,pOffsets->nTop);
 
-#ifdef Print_failure
-#ifdef __WXDEBUG__
+#if defined(Print_failure) && defined(__WXDEBUG__)
 		wxLogDebug(_T("pDC->SetLogicalOrigin(),                                x %d  y %d "),
 			0, pOffsets->nTop);
 #endif
+
+#if defined (__WXGTK__)
+// a simple solution to get data printed at the right device offset on pages 2 and higher - it overrides
+// some of the above settings (which don't generate correct values)
+    if (!IsPreview())
+    {
+        // the following appears to be a satisfactory way for getting the Linux print to work right, as
+        // far as where the strips are to be on the page; it doesn't fix the footer - that requires a
+        // separate recalculation
+        int Yoffset = 0;
+        int leading = pLayout->GetCurLeading(); // in pixels -- subtract this from nTop to get logical Yoffset
+        Yoffset = -(pOffsets->nTop - leading); // this puts the device's topleft of page printing area at the
+            // topleft of the page's first strip, plus the amount of leading required for the nav text area
+        pDC->SetLogicalOrigin(0,Yoffset); // doing it outside of the wxPrintout subclass presumably leaves
+            // the latter's left margin setting intact, and so the margin setting remains correct
+#if defined(Print_failure)
+        wxLogDebug(_T("Kludge's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d "), 0, Yoffset);
+#endif
+    }
 #endif
 
 #if defined(__WXGTK__)
-        int nFirstStrip = pOffsets->nFirstStrip;
-        int nLastStrip = pOffsets->nLastStrip;
-        int index;
-        for (index = nFirstStrip; index <= nLastStrip; index++)
+    int nFirstStrip = pOffsets->nFirstStrip;
+    int nLastStrip = pOffsets->nLastStrip;
+    int index;
+    for (index = nFirstStrip; index <= nLastStrip; index++)
+    {
+        CStrip* pStrip = (CStrip*)(pStripArray->Item(index));
+        wxArrayPtrVoid* pPilesArray = pStrip->GetPilesArray();
+        int nPileCount = pPilesArray->GetCount();
+        CPile* aPilePtr = NULL;
+        for (i = 0; i < nPileCount; i++)
         {
-            CStrip* pStrip = (CStrip*)(pStripArray->Item(index));
-            wxArrayPtrVoid* pPilesArray = pStrip->GetPilesArray();
-            int nPileCount = pPilesArray->GetCount();
-            CPile* aPilePtr = NULL;
-            for (i = 0; i < nPileCount; i++)
-            {
-                aPilePtr = (CPile*)pPilesArray->Item(i);
-                aPilePtr->Draw(pDC);
-            }
+            aPilePtr = (CPile*)pPilesArray->Item(i);
+            aPilePtr->Draw(pDC);
         }
+    }
 #else
 		pView->OnDraw(pDC);
+#endif
+
+#if defined(__WXGTK__)
+    if (!IsPreview())
+    {
+
+        // do the footer-handling code here.....   TODO
+
+    }
 #endif
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 		return TRUE;
