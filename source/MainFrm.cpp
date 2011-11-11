@@ -2991,12 +2991,15 @@ void CMainFrame::OnUpdateCheckForceAsk(wxUpdateUIEvent& event)
 void CMainFrame::OnViewComposeBar(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->m_bComposeBarWasAskedForFromViewMenu = TRUE;
-	ComposeBarGuts();
+	if (m_pComposeBar->IsShown())
+		ComposeBarGuts(composeBarHide);
+	else
+		ComposeBarGuts(composeBarShow);
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
-void CMainFrame::ComposeBarGuts()
+void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 {
 	if (m_pComposeBar == NULL)
 		return;
@@ -3084,7 +3087,7 @@ void CMainFrame::ComposeBarGuts()
 	{
 		wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 		// toggle the compose bar's flag and its visibility - whm: simplified a little from MFC version
-		if (m_pComposeBar->IsShown())
+		if (composeBarVisibility == composeBarHide) //if (m_pComposeBar->IsShown())
 		{
 			// Hide it
 			m_pComposeBar->Hide();
@@ -3094,7 +3097,7 @@ void CMainFrame::ComposeBarGuts()
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode
 			SendSizeEvent(); // needed to force redraw
 		}
-		else
+		else if (composeBarVisibility == composeBarShow)
 		{
 			// Show the composeBar
 			m_pComposeBar->Show(TRUE);
@@ -3109,7 +3112,7 @@ void CMainFrame::ComposeBarGuts()
         // Advanced menu command to turn off free translation mode, we must clear
         // m_bComposeBarWasAskedForFromViewMenu to FALSE; and we don't need to do anything
         // with the fonts when we have closed the window
-		if (!gpApp->m_bComposeWndVisible) //if (!pAppView->m_bComposeWndVisible)
+		if (!m_pComposeBar->IsShown()) //if (!gpApp->m_bComposeWndVisible)
 		{
 			// the bar has just been made invisible
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode

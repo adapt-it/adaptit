@@ -4038,10 +4038,21 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 	// restore focus to the targetBox, if free translation mode was just turned off,
 	// else to the CEdit in the Compose Bar because it has just been turned on
 	// -- providing the box or bar is visible and its handle exists
-	m_pFrame->ComposeBarGuts(); // open or close the Compose Bar -- it does a 
+	// whm modified 10Nov11 to use a parameter in ComposeBarGuts() 
+	if (ftModeSwitch == ftModeON)
+	{
+		m_pFrame->ComposeBarGuts(composeBarShow); // Show the Compose Bar -- it does a 
             // RecalcLayout() call, so if turning off free translation mode, the
             // m_pCurFreeTransSectionPileArray array will store hanging pointers,
             // so don't use it below
+	}
+	else
+	{
+		m_pFrame->ComposeBarGuts(composeBarHide); // Hide the Compose Bar -- it does a 
+            // RecalcLayout() call, so if turning off free translation mode, the
+            // m_pCurFreeTransSectionPileArray array will store hanging pointers,
+            // so don't use it below
+	}
 
 	if (m_pApp->m_bFreeTranslationMode)
 	{
@@ -5115,7 +5126,15 @@ void CFreeTrans::ToggleFreeTranslationMode()
         // restore focus to the targetBox, if free translation mode was just turned off,
         // else to the CEdit in the Compose Bar because it has just been turned on --
         // providing the box or bar is visible and its handle exists
-		m_pFrame->ComposeBarGuts(); // open or close the Compose Bar
+		// whm modified 10Nov11 to use a parameter in ComposeBarGuts() 
+		if (m_pApp->m_bFreeTranslationMode)
+		{
+			m_pFrame->ComposeBarGuts(composeBarShow); // open the Compose Bar
+		}
+		else
+		{
+			m_pFrame->ComposeBarGuts(composeBarHide); // close the Compose Bar
+		}
 
 		if (m_pApp->m_bFreeTranslationMode)
 		{
