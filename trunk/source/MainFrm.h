@@ -175,7 +175,7 @@ class CMainFrame : public wxDocParentFrame
     void OnViewComposeBar(wxCommandEvent& WXUNUSED(event));
 	void OnViewAdminMenu(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateViewAdminMenu(wxUpdateUIEvent& event);
-	void ComposeBarGuts();
+	void ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility);
 	void OnUpdateViewComposeBar(wxUpdateUIEvent& event);
 	void OnActivate(wxActivateEvent& event); 
 	void OnSize(wxSizeEvent& WXUNUSED(event));

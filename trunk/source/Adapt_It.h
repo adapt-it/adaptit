@@ -1144,6 +1144,12 @@ enum freeTransModeSwitch
 	ftModeON
 };
 
+enum composeBarViewSwitch
+{
+	composeBarHide,
+	composeBarShow
+};
+
 /// wxHashMap declaration for the MapMenuLabelStrToIdInt class - a mapped association
 /// of Menu label keys (wxString) with integers representing Menu Id int values.
 WX_DECLARE_HASH_MAP(wxString,
