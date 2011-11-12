@@ -19,7 +19,6 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#define Print_failure
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -334,8 +333,10 @@ bool AIPrintout::OnPrintPage(int page)
 
 #ifdef Print_failure
 #ifdef __WXDEBUG__
+#if !defined(__WXGTK__)
 		wxLogDebug(_T("fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
 			fitRect.x, fitRect.y, fitRect.width, fitRect.height);
+#endif
 		wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
     /* 2 repeats, showing effect of device coords being set to (0,) and scale factor to 1.0 (makes object think device dpi == pixels resolution)
         wxCoord devOriginX, devOriginY;
@@ -402,12 +403,14 @@ bool AIPrintout::OnPrintPage(int page)
 */
 		//this->SetLogicalOrigin(0,0); // BEW 15Jul09 moved this to precede the setting of fitRect
 
+#if !defined(__WXGTK__)
+        // Window and Mac....
 		// Now draw the footer for the page (logical origin for the printout page is at 0,0)
 		if (gbPrintFooter)
 		{
 			pView->PrintFooter(pDC,fitRect,logicalUnitsFactor,page);
 		}
-
+#endif
         // Set the upper left starting point of the drawn page to the point where the upper
         // margin and left margin intersect. We call SetLogicalOrigin() called on
         // AIPrintout below to set the initial drawing point for what's drawn on this page
@@ -451,7 +454,7 @@ bool AIPrintout::OnPrintPage(int page)
         pDC->SetLogicalOrigin(0,Yoffset); // doing it outside of the wxPrintout subclass presumably leaves
             // the latter's left margin setting intact, and so the margin setting remains correct
 #if defined(Print_failure)
-        wxLogDebug(_T("Kludge's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d "), 0, Yoffset);
+        wxLogDebug(_T("Linux solution's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d "), 0, Yoffset);
 #endif
     }
 #endif
@@ -477,11 +480,28 @@ bool AIPrintout::OnPrintPage(int page)
 #endif
 
 #if defined(__WXGTK__)
-    if (!IsPreview())
+    // Now draw the footer for the page (logical origin for the printout page is at 0,0)
+    // but for the Linux build, (0,0) is the paper top left
+    if (gbPrintFooter)
     {
-
-        // do the footer-handling code here.....   TODO
-
+        // we use a different version of the function, and calculate a local fitRect
+        // internally from the different passed in parameters
+        wxPoint paperTopLeft;
+        wxPoint paperBottomRight;
+        wxPoint paperDimensions;
+        paperTopLeft = pApp->pPgSetupDlgData->GetMarginTopLeft(); // values are mm
+        paperBottomRight = pApp->pPgSetupDlgData->GetMarginBottomRight(); // values are mm
+        // convert to pixels
+        paperTopLeft.x = wxRound((float)(float)paperTopLeft.x * ((float)ppiScreenX / 25.4));
+        paperTopLeft.y = wxRound((float)(float)paperTopLeft.y * ((float)ppiScreenY / 25.4));
+        paperBottomRight.x = wxRound((float)(float)paperBottomRight.x * ((float)ppiScreenX / 25.4));
+        paperBottomRight.y = wxRound((float)(float)paperBottomRight.y * ((float)ppiScreenY / 25.4));
+        wxRect paperRect = this->GetLogicalPaperRect(); // bad values are returned, but width
+                                                        // and height are correct (mm)
+        paperDimensions.x = paperRect.GetWidth();
+        paperDimensions.y = paperRect.GetHeight();
+        pDC->SetLogicalOrigin(0,0);
+        pView->PrintFooter(pDC,paperTopLeft, paperBottomRight, paperDimensions, logicalUnitsFactor, page);
     }
 #endif
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
@@ -605,8 +625,11 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 	}
 	else
 	{
+        // the selPageFrom and selPageTo can't be changed from here, so we can give any values
+        // OnPrint() has to get the user's page range choice
 		*selPageFrom = printDialogData.GetMinPage();
 		*selPageTo = printDialogData.GetMaxPage();
+
 	}
 }
 
@@ -709,4 +732,6 @@ void AIPrintout::OnPreparePrinting()
     // destructor.
     //wxLogDebug(_T("OnPreparePrint() END"));
 } // end of OnPreparePrinting()
+
+
 
