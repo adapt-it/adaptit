@@ -136,15 +136,16 @@ void CStrip::Draw(wxDC* pDC)
 			return;
 	}
 #endif
-#ifdef Print_failure // declaration commented out in line 22 of Layout.h
-#ifdef __WXDEBUG__
+
+// declaration of Print_failure commented out at start of Adapt_It.h
+#if defined(__WXDEBUG__) && defined(Print_failure)
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
 		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d"),
 			this->m_nStrip, Left(), Top(), Width(), Height());
 	}
 #endif
-#endif
+
 	int i;
 	int nPileCount = m_arrPiles.GetCount();
 	CPile* aPilePtr = NULL;

@@ -5,15 +5,15 @@
 /// \date_created	05 January 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General 
+/// \license		The Common Public License or The GNU Lesser General
 ///                 Public License (see license directory)
-/// \description	This is the header file for the CAdapt_ItView class. 
-/// The CAdapt_ItView class is the most complex class in the application. 
+/// \description	This is the header file for the CAdapt_ItView class.
+/// The CAdapt_ItView class is the most complex class in the application.
 /// It controls every aspect of how the
-/// data is presented to the user, and most aspects of the user interface. 
-/// The data for the view is held entirely in memory and is kept logically 
+/// data is presented to the user, and most aspects of the user interface.
+/// The data for the view is held entirely in memory and is kept logically
 /// separate from and independent of the document class's persistent data
-/// structures. This schemea is an implementation of the document/view 
+/// structures. This schemea is an implementation of the document/view
 /// framework.
 /// \derivation		The CAdapt_ItView class is derived from wxView.
 /////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ class PileList;
 // dynamically swapped into the Toolbar when user clicks the appropriate
 // button. They are declared here rather than in Adapt_It_Resources.h
 // because these buttons are not defined in the wxDesigner's initial
-// design of the Toolbar. We assign them values just above wxID_HIGHEST 
+// design of the Toolbar. We assign them values just above wxID_HIGHEST
 // which is predefined to be 5999.
 //#define ID_BUTTON_IGNORING_BDRY 6001
 //#define ID_BUTTON_HIDING_PUNCT 6002
@@ -62,15 +62,15 @@ class PileList;
 #define ID_CANVAS_WINDOW 6005
 
 //////////////////////////////////////////////////////////////////////////////////
-/// The CAdapt_ItView class is the most complex class in the application. 
-/// It controls every aspect of how the data is presented to the user, 
-/// and most aspects of the user interface. 
-/// The data for the view is held entirely in memory and is kept logically 
+/// The CAdapt_ItView class is the most complex class in the application.
+/// It controls every aspect of how the data is presented to the user,
+/// and most aspects of the user interface.
+/// The data for the view is held entirely in memory and is kept logically
 /// separate from and independent of the document class's persistent data
-/// structures. This schemea is an implementation of the document/view 
+/// structures. This schemea is an implementation of the document/view
 /// framework.
 /// Note: wxWidgets does not have an equivalent to MFC's CScrollView, so we implement
-/// a canvas as a member of the View which is based on CAdapt_ItCanvas which is based 
+/// a canvas as a member of the View which is based on CAdapt_ItCanvas which is based
 /// on wxScrolledWindow.
 /// \derivation		The CAdapt_ItView class is derived from wxView.
 class CAdapt_ItView : public wxView
@@ -83,8 +83,8 @@ public:
 
 	// wx Note: All MFC coded variables except for our canvas have been moved to the App
 	// Use the "canvas" of a wxScrolledWindow for depicting our view
-	
-	CAdapt_ItCanvas *canvas; // This canvas pointer is owned by the view, 
+
+	CAdapt_ItCanvas *canvas; // This canvas pointer is owned by the view,
             // but OnCreate() sets this pointer to always point to the main canvas pointer
             // in CMainFrame
 
@@ -104,7 +104,16 @@ public:
 
 	void OnDraw(wxDC* pDC);
 	bool PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength); // whm moved to public for wx
+
+#if !defined(__WXGTK__)
+    // Windows and Mac
 	void PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFactor, int page);
+#endif
+#if defined(__WXGTK__)
+    // Linux
+	void PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint marginBottomRight, wxPoint paperDimensions,
+                    float logicalUnitsFactor, int page);
+#endif
 
 protected:
 	void OnPrint(wxCommandEvent& WXUNUSED(event));
@@ -145,10 +154,10 @@ public:
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE);
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE); // BEW added 1Aug08
 	void		DoFileSaveKB();
-	bool		DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
+	bool		DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 						bool bSpecialSearch,bool bSrcOnly, bool bTgtOnly, bool bSrcAndTgt,
-						bool bFindRetranslation,bool bFindNullSrcPhrase, bool bFindSFM, 
-						wxString& src, wxString& tgt,wxString& sfm, bool bIgnoreCase, 
+						bool bFindRetranslation,bool bFindNullSrcPhrase, bool bFindSFM,
+						wxString& src, wxString& tgt,wxString& sfm, bool bIgnoreCase,
 						int& nSequNum, int& nCount);
 	bool		DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& tgt, wxString& replStr,
 						int nCount);
@@ -168,7 +177,7 @@ public:
 	CCell*		GetClickedCell(const wxPoint* pPoint);
 	CKB*		GetKB();
 	CLayout*	GetLayout();
-	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum, 
+	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum,
 							int nEndingFreeTransSequNum, bool bFreeTransPresent); // BEW added 01Oct08
 							// moved to public GDLC 2010-02-15
 	CStrip*		GetNearestStrip(const wxPoint *pPoint); // moved here from protected
@@ -194,13 +203,13 @@ public:
 	void		MergeWords();
 
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
-	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNum);	
+	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNum);
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
 	void		RemoveSelection();
-	
+
 	// Bruce put the following functions in helpers.h and .cpp, but it is only used in the View so I'm putting it
 	// on the View
 	void		DeepCopySublist2Sublist(SPList* pOriginalList, SPList* pCopiedSublist); // copies a list
@@ -208,7 +217,7 @@ public:
 						SPList* pCopiedSublist); // BEW added 16Apr08
 	bool		PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRec);  // BEW added 18Jul08
 	void		RemoveFilterWrappersButLeaveContent(wxString& str);	// removes "\~FILTER" and "\~FILTER*" from
-					// str, but leaves the SFM, its content, and any following endmarker followed by any whitespace etc.	
+					// str, but leaves the SFM, its content, and any following endmarker followed by any whitespace etc.
 	bool		ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 											SPList*  pReplacementsList, int nReplaceStartAt, int nReplaceCount); // BEW added 27May08
 	void		GetMarkerArrayFromString(wxArrayString* pStrArr, const wxString& str); // BEW added 17June08
@@ -217,8 +226,8 @@ public:
 							bool& bFilteringRequired);  // created 17June08 BEW
 	bool		IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpace, wxString& strFilterMarkers); // BEW added 4July08
 	void		SetVerticalEditModeMessage(wxString messageText);
-	
-	
+
+
 	void		ResizeBox(const wxPoint* pLoc,const int nWidth,const int nHeight,wxString& text,
 									int nStartChar, int nEndChar, CPile* pActivePile);
 	int			RecalcPhraseBoxWidth(wxString& phrase);
@@ -232,9 +241,9 @@ public:
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 					const int nToV,wxPrintData* WXUNUSED(pPrintData),
-					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE), 
+					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE),
 					bool WXUNUSED(bIncludeFollowingHeadingInRange=FALSE));
-	void		SetWhichBookPosition(wxDialog* pDlg); 
+	void		SetWhichBookPosition(wxDialog* pDlg);
 	void		StatusBarMessage(wxString& message);
 	bool		StoreBeforeProceeding(CSourcePhrase* pSrcPhrase);
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
@@ -266,13 +275,13 @@ public:
 	void		RemoveFollowingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public
 	void		RemoveLaterSelForShortening(wxClientDC* pDC, CCell* pEndCell);
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
-	
+
 	// property getters / setters
 	inline wxString GetSearchString() {return m_SearchStr; }
 	inline wxString GetReplacementString() {return m_ReplaceStr; }
 	inline void SetSearchString(wxString s) {m_SearchStr = s; }
 	inline void SetReplacementString(wxString s) {m_ReplaceStr = s; }
-	
+
 // helper functions (protected)
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing
 protected:
@@ -280,22 +289,22 @@ protected:
 	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
 public: // edb 05 March 2010 - set to public (this is called from CRetranslation)
-	void		DeleteTempList(SPList* pList);	// must be a list of ptrs to CSourcePhrase instances on the heap 
+	void		DeleteTempList(SPList* pList);	// must be a list of ptrs to CSourcePhrase instances on the heap
 protected:
 	wxString	DoConsistentChanges(wxString& str);
 	wxString	DoSilConvert(const wxString& str);
 	wxString	DoGuess(const wxString& str, bool& bIsGuess);
-	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc, 
+	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc,
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
 	bool		DoSrcAndTgtFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 						wxString& src,wxString& tgt, bool bIgnoreCase, int& nSequNum, int& nCount);
-	bool		DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
+	bool		DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 								wxString& src,bool bIgnoreCase, int& nSequNum, int& nCount);
 	void		DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
 								int selector, CPile* pActivePile, wxString& str, bool bHasNothing,
 								bool bNoValidText, bool bSomethingIsCopied); // added 3Apr09
-	bool		DoTgtOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
+	bool		DoTgtOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 								wxString& tgt,bool bIgnoreCase, int& nSequNum, int& nCount);
 	void		DoSrcPhraseSelCopy();
 	void		DoTargetBoxPaste(CPile* pPile);
@@ -308,19 +317,19 @@ public: // edb 05 March 2010 - set to public (this is called from CRetranslation
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
 protected:
 	bool		GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
-							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum), 
-							int& WXUNUSED(nEndingFreeTransSequNum),int& nStartingBackTransSequNum, 
-							int& nEndingBackTransSequNum, bool& bHasBackTranslations, 
+							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum),
+							int& WXUNUSED(nEndingFreeTransSequNum),int& nStartingBackTransSequNum,
+							int& nEndingBackTransSequNum, bool& bHasBackTranslations,
 							bool& bCollectedFromTargetText); // BEW added 25Apr08
 	bool		GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
-							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
+							int& nEndingSequNum, int& nStartingFreeTransSequNum,
 							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
 	CCell*		GetNextCell(CCell* pCell,  const int cellIndex); // GetNextCell(const CCell* pCell,  const int cellIndex)
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
 protected:
 	void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
-	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int&   nCount); 
+	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int&   nCount);
 public:
 	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
 protected:
@@ -335,14 +344,14 @@ protected:
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
 	void		RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
-	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec, 
+	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec,
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,
 					bool remFT, bool remBT); // BEW added 27Apr08
 	void		RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 27May08
 public: // edb 05 March 2010 - need this public in order to call it from CRetranslation
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
-	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
+	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine,
 									 bool bDoRecalcLayoutInternally);
 	void		ToggleCopySource();
 protected:
@@ -353,7 +362,7 @@ protected:
 					int nStartingSN, int nEndingSN, wxString& strSource); //BEW added 5May08
 	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
-	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases, 
+	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases,
 							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
 							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
 
@@ -389,7 +398,7 @@ protected:
 	void OnSelectAllButton(wxCommandEvent& WXUNUSED(event));
 	void OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateImportEditedSourceText(wxUpdateUIEvent& event);
-	
+
 	void OnEditCopy(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditCopy(wxUpdateUIEvent& event);
 	void OnEditPaste(wxCommandEvent& WXUNUSED(event));
@@ -497,7 +506,7 @@ public:
 
 private:
 	wxFrame* pCanvasFrame;
-	
+
 	// search and replace strings
 	// These are used for inserting a replacement target text into a retranslation, when the latter is
 	// wholly or partly matched (CRetranslation::OnButtonEditRetranslation() makes use of these vars)
@@ -505,9 +514,9 @@ private:
 	wxString m_ReplaceStr;
 
 	DECLARE_DYNAMIC_CLASS(CAdapt_ItView)
-	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to 
-	// declare that the objects of this class should be dynamically 
-	// creatable from run-time type information. 
+	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to
+	// declare that the objects of this class should be dynamically
+	// creatable from run-time type information.
 
 	DECLARE_EVENT_TABLE()
 };

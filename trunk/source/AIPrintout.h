@@ -6,7 +6,7 @@
 /// \date_revised	23 February 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the AIPrintout class. 
+/// \description	This is the header file for the AIPrintout class.
 /// The AIPrintout class manages the functions for printing and print previewing from
 /// within Adapt It using the File | Print and File | Print Preview menu selections.
 /// \derivation		The AIPrintout class is derived from AIPrintout.
@@ -20,7 +20,7 @@
     #pragma interface "AIPrintout.h"
 #endif
 
-// The AIPrPreviewFrame class below ///////////////////////////////////////////////////////////// 
+// The AIPrPreviewFrame class below /////////////////////////////////////////////////////////////
 
 // These class methods can be uncommented if it is necessary to declare the AIPreviewFrame class in
 // order to access the preview frame's methods such as OnCloseWindow().
@@ -31,7 +31,7 @@
 //class AIPreviewFrame: public wxPreviewFrame
 //{
 //public:
-//	AIPreviewFrame(wxPrintPreview* preview, wxWindow* parent, const wxString& title, 
+//	AIPreviewFrame(wxPrintPreview* preview, wxWindow* parent, const wxString& title,
 //		const wxPoint& pos, const wxSize& size);
 //	void OnCloseWindow(wxCloseEvent& event);
 //private:
@@ -39,7 +39,7 @@
 //    DECLARE_EVENT_TABLE(); // MFC uses DECLARE_MESSAGE_MAP()
 //};
 
-// End of AIPrPreviewFrame class  ///////////////////////////////////////////////////////////// 
+// End of AIPrPreviewFrame class  /////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The AIPrintout class manages the printing of Adapt It Documents from within
@@ -65,14 +65,14 @@ private:
 	CAdapt_ItApp* m_pApp;
 
 	//DECLARE_CLASS(AIPrintout);
-	// Used inside a class declaration to declare that the class should 
-	// be made known to the class hierarchy, but objects of this class 
+	// Used inside a class declaration to declare that the class should
+	// be made known to the class hierarchy, but objects of this class
 	// cannot be created dynamically. The same as DECLARE_ABSTRACT_CLASS.
-	
+
 	// or, comment out above and uncomment below to
-	DECLARE_DYNAMIC_CLASS(AIPrintout) 
-	// Used inside a class declaration to declare that the objects of 
-	// this class should be dynamically creatable from run-time type 
+	DECLARE_DYNAMIC_CLASS(AIPrintout)
+	// Used inside a class declaration to declare that the objects of
+	// this class should be dynamically creatable from run-time type
 	// information. MFC uses DECLARE_DYNCREATE(AIPrintout)
 };
 

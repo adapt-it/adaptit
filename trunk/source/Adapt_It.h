@@ -81,6 +81,8 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2011
 
+//#define Print_failure
+
 // whm added 20Oct10 for user profiles support
 #define PROFILE_VERSION_MAJOR_PART 1
 #define PROFILE_VERSION_MINOR_PART 0
