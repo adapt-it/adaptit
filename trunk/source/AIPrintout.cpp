@@ -37,6 +37,8 @@
 #include <wx/wx.h>
 #endif
 
+#define Print_failure
+
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/print.h>

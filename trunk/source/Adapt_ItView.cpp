@@ -797,8 +797,8 @@ extern wxString		translation; // translation, for a matched source phrase key
 extern CTargetUnit*	pCurTargetUnit; // when valid, it is the matched CTargetUnit instance
 extern wxString		curKey; // when non empty, it is the current key string which was matched
 
-// global set by ChooseTranslation, when user selects <no adaptation>, then PhraseBox will not
-// use CopySource() but instead use an empty string for the adaptation
+// global set by ChooseTranslation, when user selects <no adaptation>, then PhraseBox will
+// not use CopySource() but instead use an empty string for the adaptation
 bool	gbEmptyAdaptationChosen = FALSE;
 
 // global for alerting OnLButtonUp() that selection has been halted at a boundary
@@ -3376,7 +3376,6 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		pApp->LogUserAction(_T("Cancelled OnPrint()"));
 		return;
 	}
-
 	wxPrinter printer(& printDialogData);
 
 	wxString printTitle;
@@ -3732,6 +3731,11 @@ void CAdapt_ItView::ClearPagesList()
 /// sublist and the partner CSourcePhrase instances are renumbered in the sublist using
 /// UpdateSequNumbers() -- which itself has been modified to accept the sublist pointer as
 /// a second parameter.
+/// BEW 14Nov11, refactored to do deep copies, rather than shallow; because we do deep
+/// copies there are ramifications:
+/// (i)Any RecalcLayout() call will use the create_strips_and_piles enum value,
+/// (ii) We won't need to store or restore CLayout's pile list. We'll recreate it on
+/// demand by passing create_strips_and_piles to RecalcLayout()
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBeginSequNum,
 							   int nEndSequNum)
@@ -3742,55 +3746,19 @@ bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBe
 	wxASSERT(pOriginalList->GetCount() > 0); // ensure the list is not empty
 	wxASSERT(nBeginSequNum >= 0 && nEndSequNum >= nBeginSequNum); // ensure valid start and end values
 	wxASSERT(nEndSequNum < (int)pOriginalList->GetCount()); // make sure both sequence numbers are in range
-	if (pSaveList->GetCount() > 0)
-	{
-		pSaveList->Clear();
-	}
 
-	// prepare a parallel save list for the original piles in CLayout (it's
-	// m_pSavePileList member), and get a copy of m_pSavePileList for use here
-	PileList* pSavePileList = pLayout->GetSavePileList();
-	wxASSERT(pSavePileList);
-	PileList* pOriginalPileList = pLayout->GetPileList(); // this is where all
-						// the CPile instances in CLayout currently are stored
-
-	// copy the original list to the saveList
-	// wxList doesn't support appending one list onto another so do it manually.
-	SPList::Node* node = NULL;
-	for (node = pOriginalList->GetFirst(); node; node = node->GetNext())
-	{
-		CSourcePhrase *pData = node->GetData();
-		pSaveList->Append(pData); // copy the pointers across
-		// above two lines could be shortened to the single line: pSaveList->Append(node->GetData());
-	}
-	pOriginalList->Clear();
-	// do the same for the list of piles
-	PileList::Node* pileNode = NULL;
-	for (pileNode = pOriginalPileList->GetFirst(); pileNode; pileNode = pileNode->GetNext())
-	{
-		CPile *pData = pileNode->GetData();
-		pSavePileList->Append(pData); // copy the pointers across
-	}
-	pOriginalPileList->Clear(); // pSavePileList is now managing the document's inventory of piles
-
-    // copy across to pOriginalList the pointers to the source phrases which are wanted for
-    // the sublist; then do the same for the same range of partner piles, into
-    // pOriginalPileList
-	SPList::Node* pos = pSaveList->Item(nBeginSequNum);
-	PileList::Node* pilePos = pSavePileList->Item(nBeginSequNum);
-	int sn = nBeginSequNum;
-	while (sn <= nEndSequNum)
-	{
-		CSourcePhrase* pSrcPhrase = pos->GetData();
-		CPile* pPile = pilePos->GetData();
-		pos = pos->GetNext();
-		pilePos = pilePos->GetNext();
-		sn++;
-		wxASSERT(pSrcPhrase != NULL);
-		wxASSERT(pPile != NULL);
-		pOriginalList->Append(pSrcPhrase);
-		pOriginalPileList->Append(pPile);
-	}
+	m_pDoc->DeleteSourcePhrases(pSaveList, TRUE); // TRUE means 'delete any partner piles too
+												  // (it won't matter if there aren't any)
+	// copy the original list of CSourcePhrase instances in m_pSourcePhrases to the saveList
+	// wxList doesn't support appending one list onto another so do it manually
+	int countOriginals = pOriginalList->GetCount();
+	bOK = DeepCopySourcePhraseSublist(pOriginalList, 0, countOriginals - 1, pSaveList); // copies full list
+	// destroy the originals in m_pSourcePhrases
+	m_pDoc->DeleteSourcePhrases(pOriginalList, TRUE); // TRUE means 'delete partner piles too'
+	
+    // deep copy across to pOriginalList the pointers to the CSourcePhrase instances which
+    // are wanted for the sublist
+    bOK = DeepCopySourcePhraseSublist(pSaveList, nBeginSequNum, nEndSequNum, pOriginalList); 
 
 	// inhibit printing the phrase box when printing a sublist, and store the active
 	// sequence number for later one when RestoreOriginalList() is called in order to set
@@ -3831,7 +3799,7 @@ bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBe
 /// needed to have separately stored in CLayout::m_pSavePileList the original list of
 /// piles, so that CLayout::m_pileList can store just shallow copies of the range of
 /// partner piles we need to deal with. After renumbering the m_nSequNumber member of the
-/// subsete of CSourcePhrase instances, RecalcLayout() will work correctly with what
+/// subset of CSourcePhrase instances, RecalcLayout() will work correctly with what
 /// appears to it to be a suddenly shorter, but valid, document. Then RestoreOriginalList
 /// has to restore the original document state, putting back both the full set of
 /// CSourcePhrase instances, and their partner piles. A call to UpdateSequNumbers() to
@@ -3840,6 +3808,9 @@ bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBe
 /// subrange is 0, and that means a subrange of the original ones will have their sequence
 /// number values reset to wrong values. So call UpdateSequNumbers(0) to get everything
 /// back as it should be.
+/// BEW 14Nov11, print chapter/verse range was not working (all platforms). So I've changed
+/// to using deep copies. This means I don't need to save the layout's PileList, and the
+/// pile list is recreated by the RecalcLayout() call passin in create_strips_and_piles
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 // when called, pSaveList has the original (full) list, and pOriginalList has the sublist
@@ -3847,9 +3818,7 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
-	// get the CLayout::m_pSavePileList pointer which holds the original set of piles
-	PileList* pOriginalPileList = pLayout->GetPileList();
-	PileList* pSavePileList = pLayout->GetSavePileList();
+	bool bOK = TRUE;
 
 	// BEW changed 21Jul09: it can happen that this function is entered before the culling
 	// of a range print's CSourcePhrases to just those needed for printing the range (and
@@ -3863,44 +3832,20 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 	// still has the full list of the document's piles, and pSavePileList is empty. So we
 	// have to test for this scenario and when we have such a situation, detect it and
 	// just return TRUE immediately because there is no restoration required
-	if (!pOriginalPileList->IsEmpty() && pSavePileList->IsEmpty())
+	if (!pOriginalList->IsEmpty() && pSaveList->IsEmpty())
 		return TRUE;
-	wxASSERT(pSavePileList->GetCount() > 0);
+
 	wxASSERT(pSaveList->GetCount() > 0); // ensure the list is not empty
     // If the list is empty, which may happen if there is a range error, we don't want to
-	// copy an empty pSaveList back over a populated pOriginalList, nor an empty
-	// pSavePileList over a populated pOriginalPileList, so just return
+	// copy an empty pSaveList back over a populated pOriginalList
 	if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
 		return FALSE;
 
-	// abandon the now unwanted sublist of CSourcePhrase instances (these are shallow copies)
-	if (pOriginalList->GetCount() > 0)
-	{
-		pOriginalList->Clear();
-	}
-	// likewise, the shallow copied sublist of CPile instances
-	if (pOriginalPileList->GetCount() > 0)
-	{
-		pOriginalPileList->Clear();
-	}
+	m_pDoc->DeleteSourcePhrases(pOriginalList, TRUE); // TRUE means 'delete partner piles too'
 
-	// copy the saved list back to the originalList; likewise for the saved pile list
-	// wxList doesn't support appending one list directly onto another so do it manually.
-	SPList::Node *node = NULL;
-	PileList::Node *pileNode = NULL;
-	for (node = pSaveList->GetFirst(); node; node = node->GetNext())
-	{
-		CSourcePhrase *pData = node->GetData();
-		pOriginalList->Append(pData); // copy the pointers across
-	}
-	pSaveList->Clear();
-	for (pileNode = pSavePileList->GetFirst(); pileNode; pileNode = pileNode->GetNext())
-	{
-		CPile *pData = pileNode->GetData();
-		pOriginalPileList->Append(pData); // copy the pointers across
-	}
-	pLayout->ClearSavePileList();  // also destroys m_pSavePileList and sets the pointer
-								   // to NULL
+	// deep copy the saved list back to the original list (i.e. to m_pSourcePhrases list)
+	int countOriginals = pSaveList->GetCount();
+	bOK = DeepCopySourcePhraseSublist(pSaveList, 0, countOriginals - 1, pOriginalList);
 
 	// restore the former active sequ number; CSourcePhrase m_nSequNumber values are
 	// already correct
@@ -3910,12 +3855,14 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 	// parameter for UpdateSequNumbers() is strictly speaking not needed, because the only
 	// time we use it it points to m_pSourcePhrases anyway, but it's probably a good idea
 	// to retain it to make the code a bit better at self-documenting what is happening)
-	pApp->GetDocument()->UpdateSequNumbers(0,pOriginalList);
+	pApp->GetDocument()->UpdateSequNumbers(0,pOriginalList); // redundant, but harmless insurance
 
 	// restore assumption that a gap will need to be calculated at the active pile when
 	// RecalcLayout() is next called
 	pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE);
 
+	// Note, with the 14Nov11 changes we have to call RecalcLayout() with create_strips_and_piles
+	// rather than with create_strips_keep_piles
 	return TRUE;
 }
 
@@ -4369,6 +4316,11 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 /// and verse range and gets the appropriate sublist of source phrases making up that
 /// range. From this data it calls RecalcLayout to format the printout for the correct
 /// width, and PaginateDoc().
+/// BEW 14Nov11, fixed errors in printing a chapter/verse range (errors on all platforms),
+/// mainly by using deep copies for saving m_pSourcePhrases, and creating sublist
+/// NOTE: this function must be entered only once per entrance later on to DoPrintCleanup(),
+/// otherwise, double entry but only one cleanup would result in part of the document
+/// being lost, and probably a crash
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 									  const int nToV, wxPrintData* WXUNUSED(pPrintData),
@@ -4795,11 +4747,18 @@ d:	;
 	// we have the required range of sequence numbers, so we can reuse the selection code here
 e:	bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequNum);
 
-	// recalc the layout with the new width
+	// recalc the layout with the shorter range masquerading as the whole document
+	/* legacy code, deprecated 14Nov11
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pList, create_strips_keep_piles);
 #else
 	pLayout->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+	*/
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pList, create_strips_and_piles);
+#else
+	pLayout->RecalcLayout(pList, create_strips_and_piles);
 #endif
 
 	// hide the box, and set safe values for a non-active location (leave m_targetPhrase

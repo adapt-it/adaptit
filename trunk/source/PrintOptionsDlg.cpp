@@ -561,6 +561,10 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		gbIncludeFollowingHeadingInRange = FALSE;
 	}
 
+	/* BEW removed 14Nov11, because these are called later in OnPreparePrinting(), so
+	// there's not need to call this stuff here, and if we do, a range print causes doc
+	// data to get lost because GetSublist() is called twice without being restored - the 
+	// second call results in the doc data loss!
 	// BEW 5Oct11, Now that the gbCheckInclFreeTransText and gbCheckInclGlossesText global
 	// boolean values are known, they need to be used by SetPileAndStripHeight() in
 	// CLayout by the latter doing a RecalcLayout() which will set the strip height to
@@ -597,7 +601,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
 		pApp->m_bIsPrinting = FALSE;
 	}
-
+	*/
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog

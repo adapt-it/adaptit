@@ -4818,8 +4818,9 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// \remarks
 /// Called from: the View's InitializeEditRecord(), OnEditSourceText(), 
 /// OnCustomEventAdaptationsEdit(), and OnCustomEventGlossesEdit().
-/// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
-/// list.
+/// If pList has any items this function calls DeleteSingleSrcPhrase() for each 
+/// item in the list. The boolean parameter is default FALSE (i.e. default is to 
+/// not attempt partner pile deletion)
 /// BEW 26Mar10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso)

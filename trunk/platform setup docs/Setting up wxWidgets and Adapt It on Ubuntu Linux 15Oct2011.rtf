@@ -1,238 +1,710 @@
-{\rtf1\ansi\ansicpg1252\deff0\deflang1033\deflangfe1033{\fonttbl{\f0\froman\fprq2\fcharset0 Times New Roman;}{\f1\fswiss\fprq2\fcharset0 Arial;}{\f2\fmodern\fprq1\fcharset0 Courier New;}}
-{\colortbl ;\red0\green0\blue255;}
-{\stylesheet{ Normal;}{\s1 heading 1;}{\s2 heading 2;}{\s3 heading 3;}}
-{\*\generator Msftedit 5.41.15.1515;}\viewkind4\uc1\pard\keepn\hyphpar0\s1\fi-432\li432\sb240\sa60\qc\tx432\f0\fs24\tab\kerning1\b\f1\fs32 Setting up wxWidgets and Adapt It on Ubuntu Linux\par
-\tab\fs24 by Bill Martin (Updated 15 October 2011)\par
-\pard\hyphpar0\sa120\kerning0\b0\f0\par
-Note: These instructions assume you are running a recent version of Ubuntu Linux. Setup for other Linux distributions, such as Debian Lenny, may differ in details, but should be similar. At the time of writing, the latest distribution of Ubuntu is 11.10 Oneiric. The instructions also assume you have Internet access.\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa120\tx576\tab\b\i\f1\fs28 Repository Organization\par
-\pard\nowidctlpar\hyphpar0\b0\i0\f0\fs24 The Adapt It project repository is organized to keep the build environments separate for building on individual platforms. Since Adapt It is a cross-platform project that uses the same set of sources for each platform, the single set of source files are stored in a \b source\b0  folder, and the individual platform specific setup and build products are kept in separate sub-folders of a \b bin\b0  folder. The project is organized within the following directory structure:\par
-\f2\fs20\par
-\lang255\b adaptit\lang1033\b0        \f0\fs24 [the top or trunk folder for the project]\par
-\f2\fs20    \b |__ bin\par
-   |     |\par
-   |     |__ \lang255 linux\par
-\lang1033    |     |\par
-   |     |__ mac\par
-   |     |\par
-   |     |__ win32\par
-   |\par
-   |__ source\b0     \f0\fs24 [contains all .\lang255 cpp\lang1033  and .h source files]\par
-\f2\fs20    \par
-\par
-\f0\fs24 Note: There are other folders in the repository that are part of a full checkout of the project, but they are not shown in the above directory tree for purposes of illustration.\par
-\par
-The \lang255\b\f2\fs20 adaptit/bin/linux\lang1033\b0\f0\fs24  folder is where the project builds are performed for the Linux port. All of the configuration and Makefile related files are also located there, as well as CodeBlocks IDE project file for adaptit (called \b adaptit.cbp)\b0 . \par
-\par
-\pard\hyphpar0\sa120 The default Ubuntu distribution does not come installed with all the software packages that are needed to actually develop software from sources. One way to install the additional software is by using Ubuntu's "Synaptic Package Manager" GUI application, which is available from the Ubuntu GUI from the System ->Administration menu on the menu bar at the top of the screen. Note: Whenever you start "Synaptic Package Manager" you'll need to enter your password since it requires Administrative access to install new software packages in the system. If you prefer to work from the command line, you can use \b apt-get \b0 to install the needed software (you would need to install the software as a root user using sudo). These tools will download and install the desired packages along with any dependencies that those packages require. We will focus on the installation of needed software using the \b Synaptic Package Manager\b0 . We will utilize the \b command-line\b0 , however, for the actual building of the wxWidgets library, the initial checkout of the adaptit project from GoogleCode, and initial build of the adaptit project.\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Installing CodeBlocks (optional)\f0\par
-\pard\hyphpar0\sa120\b0\i0\fs24 CodeBlocks is an open source IDE that is available on Windows, Linux and the Mac. It is free and is itself written using the wxWidgets library \endash  the same GUI cross-platform library that Adapt It is created from. CodeBlocks is not as polished as Visual Studio, but it is getting better all the time. It is not necessary for building Adapt It, but is one way to develop Adapt It within a free IDE. Here are the steps for installing CodeBlocks:\par
-\b 1.\b0  Run the Synaptic Package Manager, and click on the "Reload" button to insure you are working with a current view of the software repositories. Then click on the "Search" button within Synaptic Package Manager and search for "\b codeblocks\b0 ". Several items should appear. If nothing appears, you must not have gained the necessary access to the Internet (in which case you'll not be able to proceed with the following installations). The version of CodeBlocks as of this writing is 10.05 released 27 May 2010.\par
-Note: When you mark "codeblocks" in the list, a secondary dialog will pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also. As you find the above items in the list, note that one or more items may have already become automatically \ldblquote Marked for Installation\rdblquote  as a dependency of another list item \endash  if so, just verify that all items in the above list are marked for installation. \par
-\b 3.\b0  Click on the "Apply" button on the Synaptic Package Manager's tool bar. On the "Apply the following changes?" dialog that comes up, click also on the "Apply" button at the bottom right.\par
-\b 4.\b0  If you installed Ubuntu from a live DVD, it will ask you to insert the installation disk. If you installed from the live CD, it will automatically start downloading and installing from the Internet. Installation goes quicker from the DVD than from Internet download, but an Internet download may have more recently updated versions of the software, depending on the age of the DVD.\par
-The next step is to install the autotools, GTK libraries, g++ compiler, and related packages (these are the lower level programming tools and libraries that are needed to build Adapt It for Linux.\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Installing autotools, GTK libraries, g++ compiler and related packages\par
-\pard\keepn\hyphpar0\sa120\i0\f0\fs24 1.\b0  In the Synaptic Package Manager, search for "\b gnome-common\b0 ". From the list of packages that comes up mark for installation the following packages (double-click or right click the list item and choose "Mark for Installation"):\par
-\b\tab\f2\fs20 gnome-common\par
-\pard\hyphpar0\sa120\b0\f0\fs24 Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Ensure that the gnome-common selection also includes at least the following required packages: \b\f2\fs20 autoconf\b0\f0\fs24 , \b\f2\fs20 automake\b0\f0\fs24 , \b\f2\fs20 autotools-dev\b0\f0\fs24 , and \b\f2\fs20 libtool,\b0\f0\fs24  among other packages that come with \b\f2\fs20 gnome-common\b0\f0\fs24 .\par
-Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
-Go ahead and click on the "Mark" button in the secondary dialog to automatically install the additional dependencies also. \par
-\b 2.\b0  In the Synaptic Package Manager, search for "\b libgtk2.0\b0 ". Scroll down the list and mark for installation the following packages:\par
-\tab\b\f2\fs20 libgtk2.0-0-dbg\par
-\b0\f0\fs24\tab\b\f2\fs20 libgtk2.0-dev\f0\fs24  \par
-\b0 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
-\b 3.\b0  In the Synaptic Package Manager, search for "\b g++\b0 ". Scroll down the list and mark for installation the following packages:\par
-\tab\b\f2\fs20 gcc-multilib\b0\f0\fs24\tab\tab [should include \b\f2\fs20 gcc-4.5-multilib\b0\f0\fs24 ]\par
-Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
-\b 4.\b0  As of Adapt It version 6.0.x the \b\f2\fs20 uuid\b0\f0\fs24  libraries are required to build Adapt It. In the Synaptic Package Manager, search for "\b uuid-dev\b0 ". Mark for installation the following package, if it is not already marked:\par
-\b\tab\f2\fs20 uuid-dev\tab\par
-\b0\f0\fs24 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.\par
-\b 5.\b0  In the Synaptic Package Manager, search for "\b libgnomeprintui\b0 ". Mark for installation the following package, if it is not already marked:\par
-\tab l\b\f2\fs20 ibgnomeprintui2.2-dev\par
-\b0\f0\fs24 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right. \par
-Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also\par
-\b 6.\b0  As of Adapt It version 6.0.x the curl libraries are required to build Adapt It. In the Synaptic Package Manager, search for "\b curl\b0 ". Scroll down and Mark for installation the following packages, if they are not already marked:\par
-\tab curl\b\f2\fs20\par
-\b0\f0\fs24\tab libcurl4-gnutls-dev\b\f2\fs20\par
-\b0\f0\fs24 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right. \par
-Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also. \par
-\b 7.\b0  In the Synaptic Package Manager, search for "\b wxwidgets\b0 ". Mark for installation the following packages, if not already marked:\par
-\b\f2\fs20\tab libwxbase2.8-0 (usually already marked)\par
-\tab libwxbase2.8-dbg\par
-\tab libwxbase2.8-dev\par
-\tab libwxgtk2.8-0 (usually already marked)\par
-\tab libwxgtk2.8-dbg\par
-\tab libwxgtk2.8-dev\par
-\tab wx-common\par
-\tab wx2.8-headers\par
-\tab wx2.8-i18n\par
-\b0\f0\fs24 While the Synaptic Package Manager is open, go to Settings->Repositories. This is where you can find a whole world of Linux software! The Synaptic Package Manager is a great software installation tool which has over 26,000 open source programs available from Ubuntu's official/main repositories (which are officially supported by the Ubuntu team); as well as thousands more software programs available in the "Restricted", "Universe", and "Multiverse" repositories. Click on the "Other Software" tab. Here, by clicking the "Add" button, you can add additional repositories. SIL actually has a repository for Ubuntu Linux which is available using the following APT lines:\par
-\tab\b\f2\fs20 deb http://packages.sil.org/ubuntu natty main\par
-\b0\f0\fs24 If you are running an older version of Ubuntu, just substitute \b hardy,\b0  \b intrepid\b0 , \b jaunty, karmic, \b0 or\b  maverick\b0  when adding the SIL repository. If your system cannot install \b adaptit\b0  from the \b natty main\b0  repository due to having versions of \b libwxbase\b0  and/or \b libwxgtk\b0  that are too old, you can try using the \b intrepid main\b0 , the \b hardy main, \b0 the\b  jaunty main,\b0  the \b karmic main\b0 , or the \b natty main\b0  repository instead. \par
-Now click "Reload" to get the package manager to read the new repositories. Click on the Search button again, and search for \b adaptit\b0 . You should see two packages for Adapt It: \b adaptit\b0  and \b adaptit-docs\b0 . Go ahead and install both Adapt It packages. Once installed Adapt It will appear as a menu item under \b Applications > Office\b0  in the Ubuntu interface.\par
-Now, you can close the Synaptic Package Manager. \par
-The next step is to install and build the wxWidgets library.\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Notes about the wxWidgets library:\par
-\pard\b0\i0\f0\fs24 Note: The highest version of the wxWidgets library on {\field{\*\fldinst{HYPERLINK "http://www.wxwidgets.org" }}{\fldrslt{\cf1\ul www.wxwidgets.org}}}\cf0\ulnone\f0\fs24  as of October 2011 is 2.9.2. However, version 2.9.x implements some new wxString handling and other features which will require a substantial rewrite of much of the Adapt It code. Therefore, we recommend that the development of Adapt It stick with the 2.8.x libraries for the time being. \par
-\pard\hyphpar0\sa120 The following steps refer to version \b 2.8.12\b0  of the wxWidgets library:\par
-\pard\b 1.\b0  In your browser go to \b{\field{\*\fldinst{HYPERLINK "http://www.wxwidgets.org/downloads/" }}{\fldrslt{\cf1\ul www.wxwidgets.org/downloads/}}}\cf0\ulnone\f0\fs24  \b0 for the latest releases, or go this link: \b{\field{\*\fldinst{HYPERLINK "http://sourceforge.net/projects/wxwindows/files/2.8.11/" }}{\fldrslt{\cf1\ul http://sourceforge.net/projects/wxwindows/files/2.8.12/}}}\cf0\ulnone\b0\f0\fs24\par
-\pard\hyphpar0\sa120 for a list of the various releases, and download the recommended 2.8.12 release:\par
-\b 2.\b0  Click on the "wxGTK" link for the latest release, or the "wxGTK-2.8.12.tar.gz" link at the sourceforge.net repository, and click on OK to "Open with Archive Manager." \par
-\b 3.\b0  While the Archive Manager is still open, click on the "Extract" button near the top. In the "Places" list in the left side of the dialog that pops up, click on your user directory (in my case it is "wmartin", but your own user directory), and click on the "Extract" button at bottom right. The Archive Manager (similar to Winzip in Windows) extracts the tarball placing everything in a folder called "\b wxGTK\_2.8.12\b0 " located in your \b user\b0  folder. Close the Archive Manager.\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Compile and build the wxWidgets library:\par
-\pard\hyphpar0\sa120\b0\i0\f0\fs24 Note: Recent versions of Ubuntu (i.e., Natty, Oneiric) come with a sufficiently recent version of the wxWidgets library (2.8.12). Hence, it is not strictly necessary to build our own version of the wxWidgets library following the procedure given below. It is good to know how to do this, however, in the event that a serious bug is found in the library that comes with the Ubuntu distro and we would need to build our own version of the library from a more recent release or a daily build which fixes the problem. In some cases using a particular IDE, it might be easier to set up with its build settings pointing to one\rquote s own wxWidgets library build than using the dynamic libraries that are part of the Linux distribution.\par
-\par
-We'll work at the command line to build the wxWidgets library for Linux. Although Ubuntu is a nice GUI, we'll need access to the Terminal at times, so it is helpful to put it on the "Panel" (the menu bar at the top of the screen). To do this, go to Applications -> Accessories and Right Click on the "Terminal" item. On the context menu select "Add this launcher to panel". A little icon looking like a black TV screen should appear on the panel at the right end of the items already on the left side of the panel. Now give a single click on the Terminal icon. A command line terminal session opens in all its glory. The command line prompt looks like this: \par
-\tab\f2\fs20 username@computer-name:~$\par
-\f0\fs24 The tilde \f2\fs20 ~\f0\fs24  after the colon is an abbreviation for the path to your user folder, which on my system is actually equivalent to \f2\fs20 /user/wmartin\f0\fs24 ; and the dollar sign \f2\fs20 $\f0\fs24  at the end of the prompt indicates that you are logged in as a normal user, as opposed to being logged in as root administrator, in which case the dollar sign would change to a pound \f2\fs20 # \f0\fs24 sign. \par
-Now, type: \b\f2\fs20 ls\b0\f0\fs24  at the command line [for \b l\b0 i\b s\b0 t] to show the contents of your user folder. You should see the \f2\fs20 wxGTK-2.8.12\f0\fs24  folder that was just extracted listed there.\par
-Now, let's get the wxWidgets library compiled and ready to go. We will be creating the binary library files for two versions of the library: \b Unicode Debug\b0  and \b Unicode Release\b0 . We could also build non-Unicode Debug and Release versions but we've decided to only support Unicode on the non-Windows platforms. We'll keep the different versions of the library in separate child directories off the \f2\fs20 wxGTK-2.8.12\f0\fs24  directory. All of the files produced by autotools including the configure script and Makefiles are kept in the parent \f2\fs20 wxGTK-2.8.12\f0\fs24  directory. We\rquote ll now do the following sets of commands at the command line in the Terminal.\par
-\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Build the Unicode Debug version of the wxWidgets library:\par
-\pard\hyphpar0\sa120\f0\fs24 1.\b0  Change to the wxGTK-2.8.12 folder by giving the following command:\par
-\tab\b\f2\fs20 cd\b0\f0\fs24               [typing just cd alone automatically changes to the user directory]\par
-\tab\b\f2\fs20 cd wxGTK-2.8.12\par
-\b0\f0\fs24\tab Note that the command line prompt ends with \f2\fs20 ~/wxGTK-2.8.12$\f0\fs24  which in absolute path terms is actually \f2\fs20 /user/wmartin/wxGTK-2.8.12\f0\fs24   [substituting your username for \f2\fs20 wmartin\f0\fs24 ]\par
-\b 2.\b0  Create a folder called \f2\fs20 buildgtkud\f0\fs24  for the Unicode Debug build of the library, by typing the following command:\par
-\b\tab\f2\fs20 mkdir buildgtkud\par
-\b0\f0\fs24\tab Type \f2\fs20 ls\f0\fs24  again to see that there is now a new (empty) folder called \f2\fs20 buildgtkud\f0\fs24  inside the \f2\fs20 wxGTK-2.8.12\f0\fs24  folder.\par
-\b 3.\b0  Change into the \f2\fs20 buildgtkud\f0\fs24  directory by typing:\par
-\b\tab\f2\fs20 cd buildgtkud\par
-\f0\fs24 4.\b0  The wxWidgets download uses a huge configure script to create an appropriate make files for building the library on a given machine. We'll use some options to tell configure that we want to create a \b Unicode\b0  library and that it should be also a \b debug\b0  version. Since we are calling the configure script which is located in the parent folder of where we are located we prefix the command with \b\f2\fs20 ../\b0\f0\fs24  so now type the following long command (Note that the option parameters all begin with two dashes and have a single dash in the middle):\par
-\b\f2\fs18\tab ../configure --with-gtk --enable-debug --enable-unicode\f0  --with-gnomeprint\b0\fs24\line\par
-\tab If all is well, configure will display a bunch of messages as it checks the programming environment of the computer and configures various settings. It is normal to see a number of WARNINGs, but there should not be any ERRORs in the output. Near the end of its output it will actually say it is creating the wxWidgets sample programs; and finally it should display a summary at the end (scroll back through the output to insure there were no errors).\par
-\tab If configure reported errors, check that you\rquote ve installed everything with the Synaptic Package Manager above, and that there are no typos in the \b\f2\fs20 ../configure\b0 ...\f0\fs24  command line, and repeat the \b\f2\fs20 ../config\b0 ...\f0\fs24  command line call until it completes successfully without errors.\par
-\b 5.\b0  Now, actually create the library binaries by typing the following at the command line:\par
-\b\tab\f2\fs20 make\par
-\b0\f0\fs24\tab The library build process will take a while. You\rquote ll see the verbose output from the make process dancing around on the screen. The make command runs the Makefile which invokes the g++ compiler (with many command line parameters!) on the scores of source files building them into the wxWidgets libraries.\par
-Since we are creating libraries for development we will be keeping the libraries created in local folders rather than installing the wxWidgets library into the system-wide software locations. Therefore, we will NOT install the wxWidgets libraries system-wide by typing something like  \f2\fs20 sudo make install \f0\fs24 followed by \f2\fs20 sudo ldconfig\f0\fs24 ). Instead, if working in a IDE (CodeBlocks), the IDE can be configured to supply the location of the wxWidgets libraries for debug and for release builds using:\par
- --with-wx-config=<path>\par
-option on our calls to the configure script as part of its build process.\par
-The Unicode Debug build of the wxWidgets library is now finished. \par
-Note: The basic steps for creating each build of the wxWidgets library (and in general any software on Unix/Linux systems) are: (1) configure and (2) make [and when installing permanently, we also can call (3) sudo make install, and (4) sudo ldconfig - but we won't do steps (3) and (4) for either of our wxWidgets library builds]. Next let's build the Unicode Release library.\par
-\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Build the Unicode Release version of the wxWidgets library:\par
-\pard\hyphpar0\sa120\b0\f0\fs24 Building the Unicode Release version is very similar to the 5 steps above, but we create a different folder name for the build and leave out the \f2\fs20 --enable-debug\f0\fs24  parameter in the configure command. Here are the steps (see above for detailed explanations):\par
-\b\tab\f2\fs20 cd ..\par
-\b0\f0\fs24\tab\b\f2\fs20 cd wxGTK-2.8.12\par
-\f0\fs24\tab\f2\fs20 mkdir buildgtku\par
-\f0\fs24\tab\f2\fs20 cd buildgtku\par
-\f0\fs18\tab\f2 ../configure --with-gtk --enable-unicode --with-gnomeprint\par
-\f0\fs24\tab\f2\fs20 make\par
-\b0\f0\fs24 The Unicode Release build of the wxWidgets library is now finished. \par
-Now we can focus on getting subversion setup on Linux and the \b adaptit\b0  project sources from GoogleCode checked out, and compiling them successfully at the command line and also within the CodeBlocks IDE.\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Checking out the adaptit project from GoogleCode:\par
-\pard\hyphpar0\sa120\b0\i0\f0\fs24 Start a Terminal session and type the following at the command line:\par
-\b\tab\f2\fs20 svn --version\par
-\b0\f0\fs24 If your system reports that "the program 'svn' is not currently installed", you should be able to install it using apt-get at the command line as follows:\par
-\tab\b\f2\fs20 sudo apt-get install subversion\f0\fs24\par
-\b0 then repeat the svn --version command.\par
-If the version number of subversion on your computer is not at least 1.5.0, you can continue and check out the adaptit project, but you should eventually install a more recent version of subversion if you will be committing code changes back to the repository as a contributing developer.\par
-To make source files always have the same CRLF end-of-line characters across platforms  use gedit (or vi) to edit the config file located in the hidden \b\f2\fs20 .subversion\b0\f0\fs24  folder of your /home/<user>/ directory. Open the \b\f2\fs20 config\b0\f0\fs24  file and scroll to near the bottom. Edit the file to remove some of the # characters (un-commenting those lines) and indicate that CRLF is to be used for .c, .cpp and .h source files. Edit the following 5 lines to look like this:\par
-\b enable-auto-props = yes\par
-\'85\par
-[auto-props]\par
-*.c = svn:eol-style=CRLF\par
-*.cpp = svn:eol-style=CRLF\par
-*.h = svn:eol-style=CRLF\par
-\b0 Note especially the change at the end of the three lines where "native" is changed to CRLF. \par
-BEW added:  IMPORTANT -- make sure there is no initial space(s) on any of the lines which are to be used for configuring\par
-\par
-Now, in your home folder, make a sub-folder called \b subversion \b0 and cd into it: \par
-\b\f2\fs20\tab cd\par
-\tab mkdir subversion\par
-\tab cd subversion\par
-\b0\f0\fs24 Then, from within that \b subversion\b0  folder, you can check out the \b adaptit\b0  project from its open source repository by typing this command:\par
-\pard\hyphpar0\b\f2\fs20\tab svn checkout http://adaptit.googlecode.com/svn/trunk adaptit\par
-\par
-BEW added: If you are a member of the adaptit team, you should add to the above command the following two options:\par
---username "<your googlecode name, eg. mine is adaptit.bruce@gmail.com>"\par
---password "<the login member password obtained from the developers, currently d....9>"\par
-I put these two after after the checkout command, and before the path parameter, but maybe it doesn't matter where they go, but where I put them certainly works.\par
-\par
-\pard\hyphpar0\sa120\b0\f0\fs24 The entire project should now download and be placed within a folder called \b adaptit \b0 which contains at least 10 other subdirectories.\par
-Although you can checkout the entire project from GoogleCode and make changes to the code on your local machine, you will not be able to make commits back to the repository without one of us who are project administrators giving you project member ownership rights that allow you to commit changes to the source files in the repository. If you do not have commit permission you will get an error message if you attempt to do an svn commit \'85 operation that looks like the following:\par
-\b\f2\fs20 svn: Commit failed (details follow):\line svn: Server sent unexpected return value (405 Method Not Allowed) in response to MKACTIVITY request for \lquote /svn/!svn/act/\'85\rquote\par
-\b0\f0\fs24\par
-\pard To get permission to contribute to Adapt It code development, you need to get a gmail.com email account with Google, and become a member of the adaptit project. Then contact one of the developers ({\field{\*\fldinst{HYPERLINK "mailto:bill_martin@sil.org" }}{\fldrslt{\cf1\ul bill_martin@sil.org}}}\cf0\ulnone\f0\fs24  or {\field{\*\fldinst{HYPERLINK "mailto:bruce_waters@sil.org" }}{\fldrslt{\cf1\ul bruce_waters@sil.org}}}\cf0\ulnone\f0\fs24 ) and ask them to give your account commit privileges.\par
-\pard\hyphpar0\sa120 At this point we should have everything set up in the project so that we can now focus on building Adapt It either from the command line or from within the CodeBlocks IDE (whew!).\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28 Building Adapt It from the Command Line:\par
-\pard\hyphpar0\sa120\b0\i0\f0\fs24 At this point it is possible to build Adapt It on Linux from the command line. Here are the steps:\par
-\b 1\b0 . We'll keep the builds for UnicodeDebug and Unicode separate, by creating separate folders by each of those names in the ~/subversion/adaptit/bin/linux/ folder. So, from the \f2\fs20 ~/subversion/adaptit/bin/linux\f0\fs24  folder type the following:\par
-\tab\b\f2\fs20 mkdir UnicodeDebug\par
-\b0\f0\fs24\tab\b\f2\fs20 mkdir Unicode\par
-\f0\fs24 2.\b0  Change to the UnicodeDebug directory and invoke configure from the parent \b\f2\fs20 linux\b0\f0\fs24  directory:\par
-\tab\b\f2\fs18 cd UnicodeDebug\par
-\b0\f0\fs24 If you are building with the wxWidgets 2.8.x you can simply configure the build environment by calling: \par
-\f2\fs18\tab\b ../configure\b0\f0\fs24\par
-Note: We call configure from the parent directory so we can keep the build products separate in the current UnicodeDebug directory\par
-Optional: If you have downloaded and built local versions of a newer version of the wxWidgets library, we need to specify where configure is to find the wxWidgets libraries as follows: \par
-\f2\fs18\tab\b ../configure \endash -with-wx-config=/home/<user>/wxGTK-2.8.12/buildgtkud/wx-config\par
-\b0\f0\fs24 Note: In this case too we are calling the configure script (located the parent linux directory), from our current UnicodeDebug directory (substitute your user name for \f2\fs20 <user>\f0\fs24 )\f2\fs20 .\f0\fs24  Note that we use a special shortcut parameter \par
-\b\f2\fs18 --with-wx-config=<path_to_wxWidgets_build_directory>/wx-config\par
-\b0\f0\fs24 that tells configure which form of the wxWidgets library to use (in this case it is the build we did in the buildgtkud folder), i.e., the library we built for Unicode with Debug symbols. On my computer the configure invocation looks like this:\par
-\b\f2\fs18 ../configure \endash -with-wx-config=/home/wmartin/wxGTK-2.8.12/buildgtkud/wx-config\par
-\f0\fs24 3.\b0  While still in the UnicodeDebug folder, run make. Type the following:\par
-\tab\b\f2\fs20 make\par
-\b0\f0\fs24 This should build the \b adaptit\b0  executable program file, by compiling all of its source files using the g++ compiler, and linking it with the Unicode Debug version of the wxWidgets library.\par
-\b 4\b0 . You can build the release version in a similar way, by first changing to the \b Unicode\b0  directory (created in step 1), invoking \b\f2\fs20 ../configure\b0\f0\fs24  (with \b\f2\fs20 wx-config\b0\f0\fs24  pointing to the \b\f2\fs20 buildgtku\b0\f0\fs24  directory if you are building against a locally built wxWidgets library), followed by calling \b\f2\fs20 make\b0\f0\fs24 . Here are the detailed steps:\par
-\fs18\tab\b\f2 cd \fs20 ~/subversion/adaptit/bin/linux/Unicode\par
-\f0\tab\f2 ../configure\par
-\b0\fs18\tab\b\fs20 make\par
-\b0\f0\fs24 or\fs18\tab\f2 .\b ./configure \endash -with-wx-config=/home/<user>/wxGTK-2.8.12/buildgtku/wx-config\par
-\b0\tab\b\fs20 make\par
-\b0\f0\fs24 The above commands are illustrative of what IDEs do under the hood when they perform various builds of the project using their GUI elements. \par
-If the build completes without error, the Adapt It application will be called \b adaptit\b0  and can be run by doing the following (while you are in the \f2\fs20 ~/subversion/adaptit/bin/linux/UnicodeDebug  \f0\fs24 or the \f2\fs20 ~/subversion/adaptit/bin/linux/Unicode \f0\fs24 folder):\par
-\b\f2\fs20\tab ./adaptit\par
-\b0\f0\fs24 If you get any errors when invoking configure or make from within their respective build directories, it might help to invoke the following command:\par
-\b\f2\fs20\tab make distclean\par
-\b0\f0\fs24 and try following the "Run the autotools" and "Building Adapt It from the Command Line" sections above again:\par
-\pard\keepn\hyphpar0\s2\fi-576\li576\sb240\sa60\tx576\tab\b\i\f1\fs28  [If configure or make fails] Run the autotools\par
-\pard\hyphpar0\sa120\b0\i0\f0\fs24 The adaptit project at GoogleCode should have included at checkout, the current Linux build files necessary to build the adaptit application. If you need to reconfigure the Linux command line build tools, that can be done by running a group of tools called autotools at the command line from the \f2\fs20 subversion/adaptit/bin/linux\f0\fs24  directory, in order to get the command line build environment set up. Historically these tools were developed in order to somewhat automate the process of creating "make" files which are capable of building programs that will run correctly on any of the variety of unix-type systems. It is hard to explain everything the autotools do (but I\rquote ve briefly summarized them below).\par
-\pard\keepn\hyphpar0\sa120\b 1.\b0  Go to the linux project directory by typing the following at the command line:\par
-\b\tab\f2\fs20 cd\par
-\pard\hyphpar0\sa120\f0\fs24\tab\f2\fs20 cd subversion/adaptit/bin/linux\par
-\pard\keepn\hyphpar0\sa120\f0\fs24 2.\b0  Now, invoking the following commands in succession:\par
-\pard\hyphpar0\sa120\b\tab\f2\fs20 libtoolize --force --copy\par
-\pard\keepn\hyphpar0\sa120\f0\fs24\tab\f2\fs20 aclocal\par
-\f0\fs24\tab\f2\fs20 touch NEWS README AUTHORS ChangeLog\par
-\pard\hyphpar0\sa120\f0\fs24\tab\f2\fs20 autoconf \f0\fs24   \par
-\pard\keepn\hyphpar0\sa120\tab\f2\fs20 automake --add-missing\par
-\pard\hyphpar0\sa120\b0\f0\fs24 In case you are interested, here is a very rough summary of what the above calls do:\par
-\tab\f2\fs20 libtoolize --force --copy\f0\fs24  - The libtool package contains the GNU libtool, a set of shell scripts which automatically configure UNIX and UNIX-like architectures to generically build shared libraries.  Libtool provides a consistent, portable interface which simplifies the process of using shared libraries. libtoolize also creates the ltmain.sh symbolic link. The --force and --copy command options make libtoolize replace existing libtool files, and copy files from the libtool data directory rather than creating symlinks. These options can help to prevent build problems due to the system having different versions of the libtool utility.\par
-\tab\f2\fs20 aclocal \f0\fs24 - aclocal generates an aclocal.m4 file that contains definitions of all m4 macros required by autoconf (see below).\par
-\tab\f2\fs20 touch NEWS README AUTHORS ChangeLog\f0\fs24  - the touch command creates the files listed in the command, if they don't already exist. If they already exists the accessed or modification times are updated to all be the current date/time. This is done to make the automake command happy (see about automake below).\par
-\tab\f2\fs20 autoconf \f0\fs24 - creates a "configure" script that can be called by the user to build a program/package on any kind of unix/linux system. autoconf uses a list of features that the program needs and which are contained in a \f2\fs20 configure.in\f0\fs24  file.\par
-\tab\f2\fs20 automake --add-missing\f0\fs24   - automake automatically creates the Makefile.in file(s) from Makefile.am file(s). Makefile.am files are essentially a list of the source files (.h and .cpp) using a simple syntax (we need to change Makefile.am any time we add or remove source files from the adaptit project \endash  then run automake again from the command line. Makefile.in files are in a form that feeds \b in \b0 to the make command. The --add-missing option helps to insure that certain common files exist in certain situations, if they were not distributed with the version of automake on the current system.\par
-I have tried to be careful to use only relative paths within CodeBlocks project file (\f2\fs20 adaptit.cbp\f0\fs24 ) so that it should be able to work essentially without modification on any system that is set up following the procedures in this document. Hence, the \f2\fs20 adaptit.cbp\f0\fs24  project file is included in the svn repository and will be located within the \f2\fs20 adaptit/bin/linux\f0\fs24  folder created during a Subversion checkout operation.\par
-\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Using the CodeBlocks IDE for building Adapt It:\par
-\pard\hyphpar0\sa120\b0\f0\fs24 See the section above entitled \ldblquote Installing CodeBlocks,\rdblquote  if you have not already done so and ensure that CodeBlocks is installed. \par
-In order to use CodeBlocks, an environment variable called \b\f2\fs20 WXWIN\b0\f0\fs24  needs to be defined that points to the top level directory of the wxWidgets library installation. This location as described above would be /\b\f2\fs20 home/wmartin/wxGTK-2.8.12\b0\f0\fs24  on my Ubuntu system. To set this environment variable on your Ubuntu Linux system do the following:\par
-\pard\hyphpar0\fi-360\li720\sa120\tx720 1.\tab Using gedit, open/create a \b\f2\fs20 .pam_environment\b0\f0\fs24  file in your home directory. This is a hidden file (because of the initial dot) that gets executed each time you log in to your Ubuntu system. It probably won\rquote t exist until you create it with gedit (Note: You won\rquote t see the dot-initial hidden files from within Ubuntu\rquote s file manager unless you select View > Hidden Files). \par
-2.\tab Within the \b\f2\fs20 .pam_environment\b0\f0\fs24  file add just one line as follows:\line\line\b\f2\fs20 WXWIN=/home/<username>/wxGTK-2.8.12\line\b0\f0\fs24\line in which \b\f2\fs20 <username>\b0\f0\fs24  is the user name of your home folder (mine is \b\f2\fs20 wmartin\b0\f0\fs24 ). Do not use a path separator at the end of the path defined for \b\f2\fs20 WXWIN\b0\f0\fs24 .\par
-3.\tab Log out of your Ubuntu session, and log back in to get the \b\f2\fs20 WXWIN\b0\f0\fs24  environment recognized by the system. You can verify that it is now set in the environment by typing \line\b\f2\fs20 env | grep WXWIN\b0\f0\fs24  \line at the terminal prompt. \par
-\pard\hyphpar0\sa120 The local adaptit repository that you checked out earlier using subversion has a CodeBlocks project file for Adapt It which is called \b\f2\fs20 adaptit.cbp\b0\f0\fs24  and is located in the \b\f2\fs20 adaptit/bin/linux\b0\f0\fs24  folder of your local project repository. Run the Code::Blocks IDE from Ubuntu\rquote s Applications > Programming menu (the first run it will ask you to verify that you are using detected gcc compiler \endash  you are so click OK). Then from within CodeBlocks, choose Open from the File menu, and navigate to the \b\f2\fs20 subversion/adaptit/bin/linux\b0\f0\fs24  folder and open the \b\f2\fs20 adaptit.cbp\b0\f0\fs24  project file.\par
-To build adaptit simply click on \b Build\b0  from the \b Build\b0  menu (or Ctrl+F9). Note: The builds are Unicode even though the \ldblquote Build target\rdblquote  indicates just \ldblquote Debug\rdblquote  or \ldblquote Release.\rdblquote\par
-Note: I most often build AI and run it from the command-line on Linux, so I sometimes forget to add any new source files to the CodeBlocks project (that may have been added to adaptit/source by myself or other developers), and commit the updated \b\f2\fs20 adaptit.cbp\b0\f0\fs24  project file to the svn repository. If CodeBlocks generates a compile error about a missing function or symbol, that might be the reason. New source files can be added to the CodeBlocks adaptit project via CodeBlocks\rquote  Project > Add Files menu, and within the \ldblquote Add files to project\'85\rdblquote  dialog, navigating to the \b\f2\fs20 adaptit/source\b0\f0\fs24  folder and selecting any new source files from the list that need to be part of the project, then try the \b Build\b0  again (Ctrl+F9).\par
-\pard\keepn\hyphpar0\s3\fi-720\li720\sb240\sa60\tx720\tab\b\f1\fs26 Working with Subversion on Linux (initial checkout):\par
-\pard\hyphpar0\sa120\b0\f0\fs24 Some IDEs are supposed to be capable of working with Subversion internally, but I've not tried to get svn working internally within any IDE. I've just used Subversion from the command line when working on the Linux port. To do an initial checkout \b with commit privileges\b0  (from within ~/subversion/) of the adaptit repository:\par
-\tab\b\f2\fs16 svn checkout https://adaptit.googlecode.com/svn/trunk/ adaptit --username <username>\b0\f0  \par
-\fs24 and enter your password (your googlecode site generated password \endash  you\rquote ll only have to enter it once the first time you checkout the code). \par
-You may want to use one or more of the following Subversion commands at the command line (from within the ~/subversion/adaptit/ project):\par
-\b\tab\f2\fs20 svn update\par
-\f0\fs24\tab\f2\fs20 svn diff source/<filename>\par
-\f0\fs24\tab\f2\fs20 svn ci -m"comment about commit" [only with adaptit member commit rights]\par
-\f0\fs24\tab\f2\fs20 svn add source/<filename> [only with adaptit member commit rights]\par
-\f0\fs24\tab\f2\fs20 svn remove source/<filename> [only with adaptit member commit rights]\par
-\f0\fs24 1.\b0  \b svn\f2\fs20  checkout ...\b0\f0\fs24  I described how to do the initial checkout using Subversion in the instructions above. The command should only be done from your\f2\fs20  /home/<user>/subversion\f0\fs24  directory once. If ever you needed to delete a previous checkout of the project and re-checkout the project because of Subversion getting hopelessly confused or fouled up, you can delete the whole adaptit project tree from your local machine and checkout the project again. Usually, though you would only do this once on a given computer.\par
-\b 2.\b0  \b\f2\fs20 svn update\b0\f0\fs24 . The svn update command will go through the usual process of comparing your files with those on GoogleCode's svn server, updating any changes made by other users, merging if necessary, etc., and reporting the same single letter codes used in TortoiseSVN on Windows. \par
-\b 3. \f2\fs20 svn ci -m"comment"\b0\f0\fs24 . The svn commit command commits your changes to the repository. You should always do a svn update before you do a svn commit. The commit command also takes a little more explanation. Usually you would use the -m"comment" to add a comment explaining the nature of the commit. If you only type svn ci at the command line, it opens the GNU nano editor for you to enter the text of a comment for the commit command. After typing a comment, just press Ctrl-X to exit the editor; then y to permit it to use the temporary file it created for the svn comment, or n to abort the commit process. The output details the results of the commit. \par
-If you only want to commit changes to the repository for a single file (regardless of changes to other source files) you can optionally include a path and filename, for example:\par
-\b\tab\f2\fs20 svn ci -m"comment" ~/subversion/adaptit/source/Adapt_It.h\par
-\b0\f0\fs24 Where "comment" would tell what you've changed in Adapt_It.h.\par
-\pard\keep\hyphpar0\sa120\b 4.\b0  \b\f2\fs20 svn diff ~/subversion/adaptit/source/<filename>\b0\f0\fs24 . The diff command requires that you enter the path and name of the file you want to diff. The diff will compare the file on your local machine to the one currently in the svn repository. The results are output to the command line terminal in plain text format. You basically look for the lines preceded by - and + to see the changes (+ lines are additions, - lines are removed lines).\par
-\pard\hyphpar0\sa120\b 5.\b0  \b\f2\fs20 svn add ~/subversion/adaptit/source/<filename>\b0\f0\fs24 . The add command works like it does in TortoiseSVN on Windows. The svn add command only marks the file to be added to the repository. You have to follow up with a svn ci -m"comment" command for the file to be actually added to the repository.\par
-\b 6.\b0  \b\f2\fs20 svn remove ~/subversion/adaptit/source/<filename>\b0\f0\fs24 . The remove command likewise, works like it does in TortoiseSVN on Windows. Again, you have to follow up with a svn ci -m"comment" command for the file to be actually removed from the repository.\par
-\par
-\pard\hyphpar0\sa120\qc End of Documentation\expndtw119\par
-}
- 
+{\rtf1\adeflang1025\ansi\ansicpg1252\uc1\adeff0\deff0\stshfdbch31505\stshfloch31506\stshfhich31506\stshfbi31507\deflang3081\deflangfe3081\themelang3081\themelangfe0\themelangcs0{\fonttbl{\f0\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}{\f1\fbidi \fswiss\fcharset0\fprq2{\*\panose 020b0604020202020204}Arial;}
+{\f2\fbidi \fmodern\fcharset0\fprq1{\*\panose 02070309020205020404}Courier New;}{\f34\fbidi \froman\fcharset1\fprq2{\*\panose 00000000000000000000}Cambria Math;}
+{\flomajor\f31500\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}{\fdbmajor\f31501\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}
+{\fhimajor\f31502\fbidi \froman\fcharset0\fprq2{\*\panose 02040503050406030204}Cambria;}{\fbimajor\f31503\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}
+{\flominor\f31504\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}{\fdbminor\f31505\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}
+{\fhiminor\f31506\fbidi \fswiss\fcharset0\fprq2{\*\panose 020f0502020204030204}Calibri;}{\fbiminor\f31507\fbidi \froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}{\f39\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}
+{\f40\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}{\f42\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}{\f43\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}{\f44\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}
+{\f45\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}{\f46\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}{\f47\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}{\f49\fbidi \fswiss\fcharset238\fprq2 Arial CE;}
+{\f50\fbidi \fswiss\fcharset204\fprq2 Arial Cyr;}{\f52\fbidi \fswiss\fcharset161\fprq2 Arial Greek;}{\f53\fbidi \fswiss\fcharset162\fprq2 Arial Tur;}{\f54\fbidi \fswiss\fcharset177\fprq2 Arial (Hebrew);}
+{\f55\fbidi \fswiss\fcharset178\fprq2 Arial (Arabic);}{\f56\fbidi \fswiss\fcharset186\fprq2 Arial Baltic;}{\f57\fbidi \fswiss\fcharset163\fprq2 Arial (Vietnamese);}{\f59\fbidi \fmodern\fcharset238\fprq1 Courier New CE;}
+{\f60\fbidi \fmodern\fcharset204\fprq1 Courier New Cyr;}{\f62\fbidi \fmodern\fcharset161\fprq1 Courier New Greek;}{\f63\fbidi \fmodern\fcharset162\fprq1 Courier New Tur;}{\f64\fbidi \fmodern\fcharset177\fprq1 Courier New (Hebrew);}
+{\f65\fbidi \fmodern\fcharset178\fprq1 Courier New (Arabic);}{\f66\fbidi \fmodern\fcharset186\fprq1 Courier New Baltic;}{\f67\fbidi \fmodern\fcharset163\fprq1 Courier New (Vietnamese);}{\flomajor\f31508\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}
+{\flomajor\f31509\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}{\flomajor\f31511\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}{\flomajor\f31512\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}
+{\flomajor\f31513\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}{\flomajor\f31514\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}{\flomajor\f31515\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}
+{\flomajor\f31516\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}{\fdbmajor\f31518\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}{\fdbmajor\f31519\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}
+{\fdbmajor\f31521\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}{\fdbmajor\f31522\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}{\fdbmajor\f31523\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}
+{\fdbmajor\f31524\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}{\fdbmajor\f31525\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}{\fdbmajor\f31526\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}
+{\fhimajor\f31528\fbidi \froman\fcharset238\fprq2 Cambria CE;}{\fhimajor\f31529\fbidi \froman\fcharset204\fprq2 Cambria Cyr;}{\fhimajor\f31531\fbidi \froman\fcharset161\fprq2 Cambria Greek;}{\fhimajor\f31532\fbidi \froman\fcharset162\fprq2 Cambria Tur;}
+{\fhimajor\f31535\fbidi \froman\fcharset186\fprq2 Cambria Baltic;}{\fhimajor\f31536\fbidi \froman\fcharset163\fprq2 Cambria (Vietnamese);}{\fbimajor\f31538\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}
+{\fbimajor\f31539\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}{\fbimajor\f31541\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}{\fbimajor\f31542\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}
+{\fbimajor\f31543\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}{\fbimajor\f31544\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}{\fbimajor\f31545\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}
+{\fbimajor\f31546\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}{\flominor\f31548\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}{\flominor\f31549\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}
+{\flominor\f31551\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}{\flominor\f31552\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}{\flominor\f31553\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}
+{\flominor\f31554\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}{\flominor\f31555\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}{\flominor\f31556\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}
+{\fdbminor\f31558\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}{\fdbminor\f31559\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}{\fdbminor\f31561\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}
+{\fdbminor\f31562\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}{\fdbminor\f31563\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}{\fdbminor\f31564\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}
+{\fdbminor\f31565\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}{\fdbminor\f31566\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}{\fhiminor\f31568\fbidi \fswiss\fcharset238\fprq2 Calibri CE;}
+{\fhiminor\f31569\fbidi \fswiss\fcharset204\fprq2 Calibri Cyr;}{\fhiminor\f31571\fbidi \fswiss\fcharset161\fprq2 Calibri Greek;}{\fhiminor\f31572\fbidi \fswiss\fcharset162\fprq2 Calibri Tur;}
+{\fhiminor\f31575\fbidi \fswiss\fcharset186\fprq2 Calibri Baltic;}{\fhiminor\f31576\fbidi \fswiss\fcharset163\fprq2 Calibri (Vietnamese);}{\fbiminor\f31578\fbidi \froman\fcharset238\fprq2 Times New Roman CE;}
+{\fbiminor\f31579\fbidi \froman\fcharset204\fprq2 Times New Roman Cyr;}{\fbiminor\f31581\fbidi \froman\fcharset161\fprq2 Times New Roman Greek;}{\fbiminor\f31582\fbidi \froman\fcharset162\fprq2 Times New Roman Tur;}
+{\fbiminor\f31583\fbidi \froman\fcharset177\fprq2 Times New Roman (Hebrew);}{\fbiminor\f31584\fbidi \froman\fcharset178\fprq2 Times New Roman (Arabic);}{\fbiminor\f31585\fbidi \froman\fcharset186\fprq2 Times New Roman Baltic;}
+{\fbiminor\f31586\fbidi \froman\fcharset163\fprq2 Times New Roman (Vietnamese);}}{\colortbl;\red0\green0\blue0;\red0\green0\blue255;\red0\green255\blue255;\red0\green255\blue0;\red255\green0\blue255;\red255\green0\blue0;\red255\green255\blue0;
+\red255\green255\blue255;\red0\green0\blue128;\red0\green128\blue128;\red0\green128\blue0;\red128\green0\blue128;\red128\green0\blue0;\red128\green128\blue0;\red128\green128\blue128;\red192\green192\blue192;}{\*\defchp 
+\fs22\loch\af31506\hich\af31506\dbch\af31505 }{\*\defpap \ql \li0\ri0\sa200\sl276\slmult1\widctlpar\wrapdefault\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 }\noqfpromote {\stylesheet{\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\rin0\lin0\itap0 
+\rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\f0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 \snext0 \sqformat \spriority0 Normal;}{\s1\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\outlinelevel0\rin0\lin0\itap0 
+\rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\f0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 \sbasedon0 \snext0 \slink15 \sqformat heading 1;}{
+\s2\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\outlinelevel1\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\f0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 \sbasedon0 \snext0 \slink16 \sqformat 
+heading 2;}{\s3\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\outlinelevel2\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\f0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 
+\sbasedon0 \snext0 \slink17 \sqformat heading 3;}{\*\cs10 \additive \ssemihidden \sunhideused \spriority1 Default Paragraph Font;}{\*
+\ts11\tsrowd\trftsWidthB3\trpaddl108\trpaddr108\trpaddfl3\trpaddft3\trpaddfb3\trpaddfr3\trcbpat1\trcfpat1\tblind0\tblindtype3\tsvertalt\tsbrdrt\tsbrdrl\tsbrdrb\tsbrdrr\tsbrdrdgl\tsbrdrdgr\tsbrdrh\tsbrdrv \ql \li0\ri0\sa200\sl276\slmult1
+\widctlpar\wrapdefault\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \rtlch\fcs1 \af31507\afs22\alang1025 \ltrch\fcs0 \fs22\lang3081\langfe3081\loch\f31506\hich\af31506\dbch\af31505\cgrid\langnp3081\langfenp3081 \snext11 \ssemihidden \sunhideused 
+Normal Table;}{\*\cs15 \additive \rtlch\fcs1 \ab\af31503\afs32 \ltrch\fcs0 \b\fs32\lang1033\langfe0\kerning32\loch\f31502\hich\af31502\dbch\af31501\langnp1033 \sbasedon10 \slink1 \slocked \spriority9 Heading 1 Char;}{\*\cs16 \additive \rtlch\fcs1 
+\ab\ai\af31503\afs28 \ltrch\fcs0 \b\i\fs28\lang1033\langfe0\loch\f31502\hich\af31502\dbch\af31501\langnp1033 \sbasedon10 \slink2 \slocked \ssemihidden \spriority9 Heading 2 Char;}{\*\cs17 \additive \rtlch\fcs1 \ab\af31503\afs26 \ltrch\fcs0 
+\b\fs26\lang1033\langfe0\loch\f31502\hich\af31502\dbch\af31501\langnp1033 \sbasedon10 \slink3 \slocked \ssemihidden \spriority9 Heading 3 Char;}}{\*\rsidtbl \rsid2367408\rsid3473465\rsid7428383\rsid9594533\rsid9727864\rsid10511691\rsid11089840
+\rsid14360999\rsid15532234}{\mmathPr\mmathFont34\mbrkBin0\mbrkBinSub0\msmallFrac0\mdispDef1\mlMargin0\mrMargin0\mdefJc1\mwrapIndent1440\mintLim0\mnaryLim1}{\info{\operator waters}{\creatim\yr2011\mo11\dy10\hr15\min1}{\revtim\yr2011\mo11\dy10\hr18\min23}
+{\version4}{\edmins202}{\nofpages13}{\nofwords5254}{\nofchars29950}{\nofcharsws35134}{\vern49273}}{\*\xmlnstbl {\xmlns1 http://schemas.microsoft.com/office/word/2003/wordml}}\paperw12240\paperh15840\margl1440\margr1440\margt1440\margb1440\gutter0\ltrsect 
+\widowctrl\ftnbj\aenddoc\trackmoves0\trackformatting1\donotembedsysfont0\relyonvml0\donotembedlingdata1\grfdocevents0\validatexml0\showplaceholdtext0\ignoremixedcontent0\saveinvalidxml0\showxmlerrors0\horzdoc\dghspace120\dgvspace120\dghorigin1701
+\dgvorigin1984\dghshow0\dgvshow3\jcompress\viewkind1\viewscale100\rsidroot3473465 \fet0{\*\wgrffmtfilter 2450}\ilfomacatclnup0\ltrpar \sectd \ltrsect\linex0\sectdefaultcl\sftnbj {\*\pnseclvl1\pnucrm\pnstart1\pnindent720\pnhang {\pntxta .}}{\*\pnseclvl2
+\pnucltr\pnstart1\pnindent720\pnhang {\pntxta .}}{\*\pnseclvl3\pndec\pnstart1\pnindent720\pnhang {\pntxta .}}{\*\pnseclvl4\pnlcltr\pnstart1\pnindent720\pnhang {\pntxta )}}{\*\pnseclvl5\pndec\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl6
+\pnlcltr\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl7\pnlcrm\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl8\pnlcltr\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl9\pnlcrm\pnstart1\pnindent720\pnhang 
+{\pntxtb (}{\pntxta )}}\pard\plain \ltrpar\s1\qc \fi-432\li432\ri0\sb240\sa60\keepn\nowidctlpar\tx432\wrapdefault\hyphpar0\faauto\outlinelevel0\rin0\lin432\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \lang3081\langfe3081\langnp3081\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af1\afs32 \ltrch\fcs0 
+\b\f1\fs32\lang3081\langfe3081\kerning1\langnp3081\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 Setting up wxWidgets and Adapt It on Ubuntu Linux
+\par \tab }{\rtlch\fcs1 \ab\af1 \ltrch\fcs0 \b\f1\lang3081\langfe3081\kerning1\langnp3081\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 by Bill Martin (Updated 15 October 2011)
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \lang3081\langfe3081\langnp3081\insrsid9594533 
+\par \hich\af0\dbch\af31505\loch\f0 
+Note: These instructions assume you are running a recent version of Ubuntu Linux. Setup for other Linux distributions, such as Debian Lenny, may differ in details, but should be similar. At the time of writing, the latest distribution of Ubuntu is 11.10 O
+\hich\af0\dbch\af31505\loch\f0 n\hich\af0\dbch\af31505\loch\f0 eiric. The instructions also assume you have Internet access.
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa120\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \lang3081\langfe3081\langnp3081\insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 
+\b\i\f1\fs28\lang3081\langfe3081\langnp3081\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 Repository Organization
+\par }\pard\plain \ltrpar\ql \li0\ri0\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 
+\lang3081\langfe3081\langnp3081\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The Adapt It project repository is organized to keep the build environments separate for building on individual platforms. Since Adapt It is a cross-platform project tha
+\hich\af0\dbch\af31505\loch\f0 t uses the same set of sources for each platform, the single set of source files are stored in a }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\lang3081\langfe3081\langnp3081\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 source}{
+\rtlch\fcs1 \af0 \ltrch\fcs0 \lang3081\langfe3081\langnp3081\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder, and the individual platform specific setup and build products are kept in separate sub-folders of a }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 
+\b\lang3081\langfe3081\langnp3081\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 bin}{\rtlch\fcs1 \af0 \ltrch\fcs0 \lang3081\langfe3081\langnp3081\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder. The project is organized within 
+\hich\af0\dbch\af31505\loch\f0 the following directory structure:
+\par }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\lang3081\langfe3081\langnp3081\insrsid9594533 
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\lang255\langfe3081\langnp255\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2        }{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 [the top or trunk folder for the project]
+\par }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2    }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 |__ bin
+\par \hich\af2\dbch\af31505\loch\f2    |     |
+\par \hich\af2\dbch\af31505\loch\f2    |     |__ }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\lang255\langfe3081\langnp255\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 linux
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2    |     |
+\par \hich\af2\dbch\af31505\loch\f2    |     |__ mac
+\par \hich\af2\dbch\af31505\loch\f2    |     |
+\par \hich\af2\dbch\af31505\loch\f2    |     |__ win32
+\par \hich\af2\dbch\af31505\loch\f2    |
+\par \hich\af2\dbch\af31505\loch\f2    |__ source}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2     }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 [contains all .}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \lang255\langfe3081\langnp255\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 cpp}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  and .h source files]
+\par }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2    
+\par 
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Note: There are other folders in the repository that are part of a full checkout of the project, but they are not shown in the above directory tree for purposes of illustration.
+
+\par 
+\par \hich\af0\dbch\af31505\loch\f0 The }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\lang255\langfe3081\langnp255\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit/bin/linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  folder is where the project builds are performed for \hich\af0\dbch\af31505\loch\f0 
+the Linux port. All of the configuration and Makefile related files are also located there, as well as CodeBlocks IDE project file for adaptit (called }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit.cbp)}{
+\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . 
+\par 
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The default Ubuntu distribution does not come installed with all the software packages th
+\hich\af0\dbch\af31505\loch\f0 
+at are needed to actually develop software from sources. One way to install the additional software is by using Ubuntu's "Synaptic Package Manager" GUI application, which is available from the Ubuntu GUI from the System ->Administration menu on the menu b
+\hich\af0\dbch\af31505\loch\f0 a\hich\af0\dbch\af31505\loch\f0 
+r at the top of the screen. Note: Whenever you start "Synaptic Package Manager" you'll need to enter your password since it requires Administrative access to install new software packages in the system. If you prefer to work from the command line, you can
+\hich\af0\dbch\af31505\loch\f0  \hich\af0\dbch\af31505\loch\f0 use }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 apt-get }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+to install the needed software (you would need to install the software as a root user using sudo). These tools will download and install the desired packages along with any dependencies that those packages require. We will focus on the installa
+\hich\af0\dbch\af31505\loch\f0 tion of needed software using the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Synaptic Package Manager}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+. We will utilize the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 command-line}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+, however, for the actual building of the wxWidgets library, the initial checkout of the adaptit project from GoogleCode, and initial build of the adaptit project.
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Installing CodeBlocks (optional)}{\rtlch\fcs1 \ab\ai\af0\afs28 \ltrch\fcs0 \b\i\fs28\insrsid9594533 
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 CodeBlocks is an open source IDE that is available on Windows, Linux and the Mac. It is free and is itself written using the wxWidgets library \hich\f0 \endash \hich\af0\dbch\af31505\loch\f0 
+ the same GUI cross-platform library that Adapt It is created from. CodeBlocks is not as polished as Visual Studio, but it is getting better all the time. It is not necessary for building Adapt It, but is one way to develop Adapt It within a free IDE. Her
+\hich\af0\dbch\af31505\loch\f0 e\hich\af0\dbch\af31505\loch\f0  are the steps for installing CodeBlocks:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ Run the Synaptic Package Manager, and click on the "Reload" button to insure you are working with a current view of the software repositories. Then click on the "Search" button within Synaptic Package Manager an\hich\af0\dbch\af31505\loch\f0 
+d search for "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 codeblocks}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+". Several items should appear. If nothing appears, you must not have gained the necessary access to the Internet (in which case you'll not be able to proceed with the following installations). The version of CodeBlocks as of this w
+\hich\af0\dbch\af31505\loch\f0 riting is 10.05 released 27 May 2010.
+\par \hich\af0\dbch\af31505\loch\f0 Note: When you mark "codeblocks" in the list, a secondary dialog will pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to 
+\hich\af0\dbch\af31505\loch\f0 \hich\f0 automatically install those dependencies also. As you find the above items in the list, note that one or more items may have already become automatically \'93\loch\f0 \hich\f0 Marked for Installation\'94\loch\f0 
+ as a dependency of another list item \hich\f0 \endash \loch\f0  if so, just verify that all items in\hich\af0\dbch\af31505\loch\f0  \hich\af0\dbch\af31505\loch\f0 the above list are marked for installation. 
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 3.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ Click on the "Apply" button on the Synaptic Package Manager's tool bar. On the "Apply the following changes?" dialog that comes up, click also on the "Apply" button at the bottom right.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 4.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  If you installed Ub\hich\af0\dbch\af31505\loch\f0 
+untu from a live DVD, it will ask you to insert the installation disk. If you installed from the live CD, it will automatically start downloading and installing from the Internet. Installation goes quicker from the DVD than from Internet download, but an 
+\hich\af0\dbch\af31505\loch\f0 I\hich\af0\dbch\af31505\loch\f0 nternet download may have more recently updated versions of the software, depending on the age of the DVD.
+\par \hich\af0\dbch\af31505\loch\f0 The next step is to install the autotools, GTK libraries, g++ compiler, and related packages (these are the lower level programming tools and librari\hich\af0\dbch\af31505\loch\f0 
+es that are needed to build Adapt It for Linux.
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Installing autotools, GTK libraries, g++ compiler and related packages
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\keepn\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \ab\af0 
+\ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  In the Synaptic Package Manager, search for "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 gnome-common}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ". From the list of packages that comes up mark for installation the followi\hich\af0\dbch\af31505\loch\f0 
+ng packages (double-click or right click the list item and choose "Mark for Installation"):
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 gnome-common
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be in\hich\af0\dbch\af31505\loch\f0 
+stalled. Ensure that the gnome-common selection also includes at least the following required packages: }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 autoconf}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 , }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 automake}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 , }{\rtlch\fcs1 
+\ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 autotools-dev}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 , and }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 libtool,}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  among other packages that come with }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+gnome-common}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 .
+\par \hich\af0\dbch\af31505\loch\f0 Click on the "Apply" button on the manager's tool bar.\hich\af0\dbch\af31505\loch\f0  On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.
+\par \hich\af0\dbch\af31505\loch\f0 Go ahead and click on the "Mark" button in the secondary dialog to automatically install the additional dependencies also. 
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 2.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  In the Synaptic Package Manager, s\hich\af0\dbch\af31505\loch\f0 earch for "}{\rtlch\fcs1 
+\ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 libgtk2.0}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ". Scroll down the list and mark for installation the following packages:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 libgtk2.0-0-dbg
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 libgtk2.0-dev}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button a\hich\af0\dbch\af31505\loch\f0 
+t the bottom right.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 3.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  In the Synaptic Package Manager, search for "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 
+\b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 g++}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ". Scroll down the list and mark for installation the following packages:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 gcc-multilib}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab \tab \hich\af0\dbch\af31505\loch\f0 [should include }{\rtlch\fcs1 \ab\af2\afs20 
+\ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 gcc-4.5-multilib}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ]
+\par \hich\af0\dbch\af31505\loch\f0 Click on the "Apply" button on the manager's tool bar. On the \hich\af0\dbch\af31505\loch\f0 "Apply the following changes?" dialog click on the "Apply" button at the bottom right.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 4.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  As of Adapt It version 6.0.x the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 uuid}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  libraries are required to build Adapt It. In the Synaptic Package Manager, search for "}{\rtlch\fcs1 \ab\af0 
+\ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 uuid-dev}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ". Mark for installation the foll\hich\af0\dbch\af31505\loch\f0 owing package, if it is not already marked:
+
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 uuid-dev\tab 
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 5.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  In the Synaptic Package Manager, search for "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 
+\b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 libg\hich\af0\dbch\af31505\loch\f0 nomeprintui}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ". Mark for installation the following package, if it is not already marked:
+
+\par \tab \hich\af0\dbch\af31505\loch\f0 l}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ibgnomeprintui2.2-dev
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes?" dialog click on the "Apply" button at the bottom right. 
+\par \hich\af0\dbch\af31505\loch\f0 Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additi\hich\af0\dbch\af31505\loch\f0 
+onal package dependencies that need to be installed. Go ahead and click on the "Mark" button in the secondary dialog to automatically install those dependencies also
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 6.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  As of Adapt It version 6.0.x the curl libraries are required to build Adapt It. In the 
+\hich\af0\dbch\af31505\loch\f0 Synaptic Package Manager, search for "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 curl}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+". Scroll down and Mark for installation the following packages, if they are not already marked:
+\par \tab \hich\af0\dbch\af31505\loch\f0 curl}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab \hich\af0\dbch\af31505\loch\f0 libcurl4-gnutls-dev}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Click on the "Apply" button on the manager's tool bar. On the "Apply the following changes\hich\af0\dbch\af31505\loch\f0 
+?" dialog click on the "Apply" button at the bottom right. 
+\par \hich\af0\dbch\af31505\loch\f0 Note: As before, when you mark some items in the list, a secondary dialog may pop up with a list of additional package dependencies that need to be installed. Go ahead and click on the "Mark" butt
+\hich\af0\dbch\af31505\loch\f0 on in the secondary dialog to automatically install those dependencies also. 
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 7.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  In the Synaptic Package Manager, search for "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 
+\b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 wxwidgets}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ". Mark for installation the following packages, if not already marked:
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \tab \hich\af2\dbch\af31505\loch\f2 libwxbase2.8-0 (usually already marked)
+\par \tab \hich\af2\dbch\af31505\loch\f2 libwxba\hich\af2\dbch\af31505\loch\f2 se2.8-dbg
+\par \tab \hich\af2\dbch\af31505\loch\f2 libwxbase2.8-dev
+\par \tab \hich\af2\dbch\af31505\loch\f2 libwxgtk2.8-0 (usually already marked)
+\par \tab \hich\af2\dbch\af31505\loch\f2 libwxgtk2.8-dbg
+\par \tab \hich\af2\dbch\af31505\loch\f2 libwxgtk2.8-dev
+\par \tab \hich\af2\dbch\af31505\loch\f2 wx-common
+\par \tab \hich\af2\dbch\af31505\loch\f2 wx2.8-headers
+\par \tab \hich\af2\dbch\af31505\loch\f2 wx2.8-i18n
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 While the Synaptic Package Manager is open, go to Settings->Repositories. This is where you can find a whole world o\hich\af0\dbch\af31505\loch\f0 
+f Linux software! The Synaptic Package Manager is a great software installation tool which has over 26,000 open source programs available from Ubuntu's official/main repositories (which are officially supported by the Ubuntu team); as well as thousands mo
+\hich\af0\dbch\af31505\loch\f0 r\hich\af0\dbch\af31505\loch\f0 
+e software programs available in the "Restricted", "Universe", and "Multiverse" repositories. Click on the "Other Software" tab. Here, by clicking the "Add" button, you can add additional repositories. SIL actually has a repository for Ubuntu Linux which 
+\hich\af0\dbch\af31505\loch\f0 i\hich\af0\dbch\af31505\loch\f0 s available using the following APT lines:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 deb http://packages.sil.org/ubuntu natty main
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 If you are running an older version of Ubuntu, just substitute }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 hardy,}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 intrepid}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 , }{\rtlch\fcs1 \ab\af0 
+\ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 jaunty, karmic, }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 or}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  maverick}{
+\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  when adding the SIL repository. If your system cannot inst\hich\af0\dbch\af31505\loch\f0 all }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+adaptit}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  from the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 natty main}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  repository due to having versions of }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 libwxbase}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  and/or }{
+\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 libwxgtk}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  that are too old, you can try using the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 
+\b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 intrepid main}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 , the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 hardy main, }{\rtlch\fcs1 
+\af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 the}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  jaunty main,}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  the }{
+\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 karmic main}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 , or the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 natty main}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  repository instead. 
+\par \hich\af0\dbch\af31505\loch\f0 Now click "Reload" to get the package manager to read the new repositories. Click on the Search button again, and search for }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit}{
+\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . You should see two packages for Adapt It: }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  and }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit-docs}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+. Go ahead and install both Adapt It packages. Once inst\hich\af0\dbch\af31505\loch\f0 alled Adapt It will appear as a menu item under }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Applications > Office}{\rtlch\fcs1 
+\af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  in the Ubuntu interface.
+\par \hich\af0\dbch\af31505\loch\f0 Now, you can close the Synaptic Package Manager. 
+\par \hich\af0\dbch\af31505\loch\f0 The next step is to install and build the wxWidgets library.
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Notes about the wxWidgets library:
+\par }\pard\plain \ltrpar\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Note: The high\hich\af0\dbch\af31505\loch\f0 est version of the wxWidgets library on }{\field{\*\fldinst {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+HYPERLINK "http://www.wxwidgets.org" }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid3473465 {\*\datafield 
+00d0c9ea79f9bace118c8200aa004ba90b0200000003000000e0c9ea79f9bace118c8200aa004ba90b4c00000068007400740070003a002f002f007700770077002e007700780077006900640067006500740073002e006f00720067002f000000795881f43b1d7f48af2c825dc485276300000000a5ab0000}}}{\fldrslt 
+{\rtlch\fcs1 \af0 \ltrch\fcs0 \ul\cf2\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 www.wxwidgets.org}}}\sectd \ltrsect\linex0\sectdefaultcl\sftnbj {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ as of October 2011 is 2.9.2. However, version 2.9.x implements some new wxString handling and other features which will require a substantial rewrite of much \hich\af0\dbch\af31505\loch\f0 
+of the Adapt It code. Therefore, we recommend that the development of Adapt It stick with the 2.8.x libraries for the time being. 
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The following steps refer to version }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  of the wxWidgets library:
+\par }\pard \ltrpar\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ In your browser go to }{\field{\*\fldinst {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 HYPERLINK "http://www.wxwidgets.org/downloads/" }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid3473465 {\*\datafield 
+00d0c9ea79f9bace118c8200aa004ba90b0200000003000000e0c9ea79f9bace118c8200aa004ba90b6000000068007400740070003a002f002f007700770077002e007700780077006900640067006500740073002e006f00720067002f0064006f0077006e006c006f006100640073002f000000795881f43b1d7f48af2c
+825dc485276300000000a5ab0000}}}{\fldrslt {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\ul\cf2\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 www.wxwidgets.org/downloads/}}}\sectd \ltrsect\linex0\sectdefaultcl\sftnbj {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 
+\b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 for the latest releases, or go this link: }{\field{\*\fldinst {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 HYPERLINK "http://sourceforge.net/projects/wxwindows/files/2.8.11/" }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid3473465 {\*\datafield 
+00d0c9ea79f9bace118c8200aa004ba90b0200000003000000e0c9ea79f9bace118c8200aa004ba90b8800000068007400740070003a002f002f0073006f00750072006300650066006f007200670065002e006e00650074002f00700072006f006a0065006300740073002f0077007800770069006e0064006f0077007300
+2f00660069006c00650073002f0032002e0038002e00310031002f000000795881f43b1d7f48af2c825dc485276300000000a5ab0000}}}{\fldrslt {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\ul\cf2\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+http://sourceforge.net/projects/wxwindows/files/2.8.12/}}}\sectd \ltrsect\linex0\sectdefaultcl\sftnbj {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 for a l\hich\af0\dbch\af31505\loch\f0 
+ist of the various releases, and download the recommended 2.8.12 release:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 2.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ Click on the "wxGTK" link for the latest release, or the "wxGTK-2.8.12.tar.gz" link at the sourceforge.net repository, and click on OK to "Open with Archive Manager." 
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 3.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  While th\hich\af0\dbch\af31505\loch\f0 
+e Archive Manager is still open, click on the "Extract" button near the top. In the "Places" list in the left side of the dialog that pops up, click on your user directory (in my case it is "wmartin", but your own user directory), and click on the "Extrac
+\hich\af0\dbch\af31505\loch\f0 t\hich\af0\dbch\af31505\loch\f0 " button at bottom right. The Archive Manager (similar to Winzip in Windows) extracts the tarball placing everything in a folder called "}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 wxGTK\_2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 " located in your }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 user}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder. Close the Archive Manager.
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Compile and build the wxWidgets library:
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Note: R\hich\af0\dbch\af31505\loch\f0 
+ecent versions of Ubuntu (i.e., Natty, Oneiric) come with a sufficiently recent version of the wxWidgets library (2.8.12). Hence, it is not strictly necessary to build our own version of the wxWidgets library following the procedure given below. It is goo
+\hich\af0\dbch\af31505\loch\f0 d\hich\af0\dbch\af31505\loch\f0 
+ to know how to do this, however, in the event that a serious bug is found in the library that comes with the Ubuntu distro and we would need to build our own version of the library from a more recent release or a daily build which fixes the problem. In s
+\hich\af0\dbch\af31505\loch\f0 o\hich\af0\dbch\af31505\loch\f0 me cases using a particular IDE, it might be easier to set up with its build settings pointing to one\hich\f0 \rquote \loch\f0 
+s own wxWidgets library build than using the dynamic libraries that are part of the Linux distribution.
+\par 
+\par \hich\af0\dbch\af31505\loch\f0 We'll work at the command line to build the wxWid\hich\af0\dbch\af31505\loch\f0 
+gets library for Linux. Although Ubuntu is a nice GUI, we'll need access to the Terminal at times, so it is helpful to put it on the "Panel" (the menu bar at the top of the screen). To do this, go to Applications -> Accessories and Right Click on the "Ter
+\hich\af0\dbch\af31505\loch\f0 m\hich\af0\dbch\af31505\loch\f0 
+inal" item. On the context menu select "Add this launcher to panel". A little icon looking like a black TV screen should appear on the panel at the right end of the items already on the left side of the panel. Now give a single click on the Terminal icon.
+\hich\af0\dbch\af31505\loch\f0  \hich\af0\dbch\af31505\loch\f0 A command line terminal session opens in all its glory. The command line prompt looks like this: 
+\par \tab }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 username@computer-name:~$
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The tilde }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ~}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  after the colon is an abbreviation for the path to your user folder, which on my system is actually equivalent to }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 /user
+\hich\af2\dbch\af31505\loch\f2 /wmartin}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ; and the dollar sign }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 $}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  at the end of the prompt indicates that you are logged in as a normal user, as opposed to being logged in as root administrator, in which case the dollar sign would change to a pound }{
+\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 # }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 sign. 
+\par \hich\af0\dbch\af31505\loch\f0 Now, type: }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ls}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  at the command lin
+\hich\af0\dbch\af31505\loch\f0 e [for }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 l}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 i}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 s}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 t] to show the contents of your user folder. You should see the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 wxGTK-2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder that was just extracted listed there.
+\par \hich\af0\dbch\af31505\loch\f0 Now, let's get the \hich\af0\dbch\af31505\loch\f0 wxWidgets library compiled and ready to go. We will be creating the binary library files for two versions of the library: }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 Unicode Debug}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  and }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Unicode Release}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . We could also build non-Unicode Debug and Release versions but we've decided to only support Unicod\hich\af0\dbch\af31505\loch\f0 
+e on the non-Windows platforms. We'll keep the different versions of the library in separate child directories off the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 wxGTK-2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory. All of the files produced by autotools including the configure script and Makefiles are kept in the parent }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 wxGTK-\hich\af2\dbch\af31505\loch\f2 2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory. We\hich\f0 \rquote \loch\f0 
+ll now do the following sets of commands at the command line in the Terminal.
+\par }\pard\plain \ltrpar\s3\ql \fi-720\li720\ri0\sb240\sa60\keepn\nowidctlpar\tx720\wrapdefault\hyphpar0\faauto\outlinelevel2\rin0\lin720\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af1\afs26 \ltrch\fcs0 \b\f1\fs26\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Build the Unicode Debug version of the wxWidgets library:
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \ab\af0 
+\ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  Change to the wxGTK-2.8.12 folder by giving the following command:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0               [typing jus\hich\af0\dbch\af31505\loch\f0 
+t cd alone automatically changes to the user directory]
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd wxGTK-2.8.12
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab \hich\af0\dbch\af31505\loch\f0 Note that the command line prompt ends with }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ~/wxGTK-2.8.12$}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  which in absolute path terms is actually }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 /user/wmartin/wxGTK-2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0   [substituting your username for }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 wmartin}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 ]
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 2.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  Create a \hich\af0\dbch\af31505\loch\f0 folder called }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 
+\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 buildgtkud}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  for the Unicode Debug build of the library, by typing the following command:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 mkdir buildgtkud
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab \hich\af0\dbch\af31505\loch\f0 Type }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ls}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  again to see that there is now a new (empty) folder called }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 buildgtkud}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  inside the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 wxGTK-2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 3.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  Change into the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 buildg\hich\af2\dbch\af31505\loch\f2 tkud}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory by typing:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd buildgtkud
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 4.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ The wxWidgets download uses a huge configure script to create an appropriate make files for building the library on a given machine. We'll use some options to tell configure that we want to create a }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 Unicode}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  libra\hich\af0\dbch\af31505\loch\f0 ry and that it should be also a }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 debug}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  version. Since we are calling the configure script which is located in the parent folder of where we are located we prefix the command with 
+}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  so now type the following long command (Note that the option parameters al
+\hich\af0\dbch\af31505\loch\f0 l begin with two dashes and have a single dash in the middle):
+\par }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \tab \hich\af2\dbch\af31505\loch\f2 ../configure --with-gtk --enable-debug --enable-unicode}{\rtlch\fcs1 \ab\af0\afs18 \ltrch\fcs0 \b\fs18\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ --with-gnomeprint}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \line 
+\par \tab \hich\af0\dbch\af31505\loch\f0 If all is well, configure will display a bunch of messages as it c\hich\af0\dbch\af31505\loch\f0 
+hecks the programming environment of the computer and configures various settings. It is normal to see a number of WARNINGs, but there should not be any ERRORs in the output. Near the end of its output it will actually say it is creating the wxWidgets sam
+\hich\af0\dbch\af31505\loch\f0 p\hich\af0\dbch\af31505\loch\f0 le programs; and finally it should display a summary at the end (scroll back through the output to insure there were no errors).
+\par \tab \hich\af0\dbch\af31505\loch\f0 If configure reported errors, check that you\hich\f0 \rquote \loch\f0 ve installed everything with the Synaptic Package Manager above, and that there a\hich\af0\dbch\af31505\loch\f0 re no typos in the }{\rtlch\fcs1 
+\ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 ...}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ command line, and repeat the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../config}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 ...}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  command line call until it completes successfully without errors.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 5.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  Now, actually create the library binaries by typing the following at the command line:
+
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 make
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab \hich\af0\dbch\af31505\loch\f0 The library buil\hich\af0\dbch\af31505\loch\f0 d process will take a while. You\hich\f0 \rquote \loch\f0 
+ll see the verbose output from the make process dancing around on the screen. The make command runs the Makefile which invokes the g++ compiler (with many command line parameters!) on the scores of source files building th\hich\af0\dbch\af31505\loch\f0 e
+\hich\af0\dbch\af31505\loch\f0 m into the wxWidgets libraries.
+\par \hich\af0\dbch\af31505\loch\f0 Since we are creating libraries for development we will be keeping the libraries created in local folders rather than installing the wxWidgets library into the system-wide software locations. Therefore, we will NOT install t
+\hich\af0\dbch\af31505\loch\f0 he wxWidgets libraries system-wide by typing something like  }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 sudo make install }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 followed by }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 sudo ldconfig}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+). Instead, if working in a IDE (CodeBlocks), the IDE can be configured to supply the location of the wxWidgets libraries for debug and for release buil\hich\af0\dbch\af31505\loch\f0 ds using:
+\par \hich\af0\dbch\af31505\loch\f0  --with-wx-config=<path>
+\par \hich\af0\dbch\af31505\loch\f0 option on our calls to the configure script as part of its build process.
+\par \hich\af0\dbch\af31505\loch\f0 The Unicode Debug build of the wxWidgets library is now finished. 
+\par \hich\af0\dbch\af31505\loch\f0 Note: The basic steps for creating each build of the wxWidgets library (and in g\hich\af0\dbch\af31505\loch\f0 
+eneral any software on Unix/Linux systems) are: (1) configure and (2) make [and when installing permanently, we also can call (3) sudo make install, and (4) sudo ldconfig - but we won't do steps (3) and (4) for either of our wxWidgets library builds]. Nex
+\hich\af0\dbch\af31505\loch\f0 t\hich\af0\dbch\af31505\loch\f0  let's build the Unicode Release library.
+\par }\pard\plain \ltrpar\s3\ql \fi-720\li720\ri0\sb240\sa60\keepn\nowidctlpar\tx720\wrapdefault\hyphpar0\faauto\outlinelevel2\rin0\lin720\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af1\afs26 \ltrch\fcs0 \b\f1\fs26\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Build the Unicode Release version of the wxWidgets library:
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Building the Unicode Release version is very similar to the 5 steps above, but we create a different folder name for the build and leave out the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 
+\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 --enable\hich\af2\dbch\af31505\loch\f2 -debug}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ parameter in the configure command. Here are the steps (see above for detailed explanations):
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd ..
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd wxGTK-2.8.12
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 mkdir buildgtku
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd buildgtku
+\par }{\rtlch\fcs1 \ab\af0\afs18 \ltrch\fcs0 \b\fs18\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure --with-gtk --enable-unicode --with-gnomeprint
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 make
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The Unicode Release build of the wxWidgets library is now finished. 
+\par \hich\af0\dbch\af31505\loch\f0 Now we can focus on getting subversion setup on Linux and the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  project sources from GoogleCode checked out, and compiling them successfully at the command line and also within the \hich\af0\dbch\af31505\loch\f0 CodeBlocks IDE.
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Checking out the adaptit project from GoogleCode:
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Start a Terminal session and type the following at the command line:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn --version
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 If your system rep\hich\af0\dbch\af31505\loch\f0 
+orts that "the program 'svn' is not currently installed", you should be able to install it using apt-get at the command line as follows:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 sudo apt-get install subversion}{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 then repeat the svn --version command.
+\par \hich\af0\dbch\af31505\loch\f0 If the version number of subversion on your com\hich\af0\dbch\af31505\loch\f0 
+puter is not at least 1.5.0, you can continue and check out the adaptit project, but you should eventually install a more recent version of subversion if you will be committing code changes back to the repository as a contributing developer.
+\par \hich\af0\dbch\af31505\loch\f0 To make source\hich\af0\dbch\af31505\loch\f0  files always have the same CRLF end-of-line characters across platforms  use gedit (or vi) to edit the config file located in the hidden }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 .subversion}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder of your /home/<user>/ directory. Open the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 config}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  file and scroll to near the bottom. Edit the file \hich\af0\dbch\af31505\loch\f0 
+to remove some of the # characters (un-commenting those lines) and indicate that CRLF is to be used for .c, .cpp and .h source files. Edit the following 5 lines to look like this:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 enable-auto-props = yes
+\par \loch\af0\dbch\af31505\hich\f0 \'85
+\par \hich\af0\dbch\af31505\loch\f0 [auto-props]
+\par \hich\af0\dbch\af31505\loch\f0 *.c = svn:eol-style=CRLF
+\par \hich\af0\dbch\af31505\loch\f0 *.cpp = svn:\hich\af0\dbch\af31505\loch\f0 eol-style=CRLF
+\par \hich\af0\dbch\af31505\loch\f0 *.h = svn:eol-style=CRLF
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Note especially the change at the end of the three lines where "native" is changed to CRLF. 
+\par \hich\af0\dbch\af31505\loch\f0 BEW added:  IMPORTANT -- make sure there is no initial space(s) on any of the lines which are to be used for configuring
+\par 
+\par \hich\af0\dbch\af31505\loch\f0 N\hich\af0\dbch\af31505\loch\f0 ow, in your home folder, make a sub-folder called }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 subversion }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 and cd into it: 
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \tab \hich\af2\dbch\af31505\loch\f2 cd
+\par \tab \hich\af2\dbch\af31505\loch\f2 mkdir subversion
+\par \tab \hich\af2\dbch\af31505\loch\f2 cd subversion
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Then, from within that }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 subversion}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  folder, you can check out the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ project from its open source repository by typing this command:
+\par }\pard \ltrpar\ql \li0\ri0\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \tab \hich\af2\dbch\af31505\loch\f2 svn \hich\af2\dbch\af31505\loch\f2 
+checkout http://adaptit.googlecode.com/svn/trunk adaptit
+\par 
+\par \hich\af2\dbch\af31505\loch\f2 BEW added: If you are a member of the adaptit team, you should add to the above command }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid15532234 \hich\af2\dbch\af31505\loch\f2 ( }{\rtlch\fcs1 \ab\af2\afs20 
+\ltrch\fcs0 \b\f2\fs20\cf6\insrsid15532234\charrsid9727864 \hich\af2\dbch\af31505\loch\f2 BUT USE https: \hich\af2\dbch\af31505\loch\f2 NOT\hich\af2\dbch\af31505\loch\f2  http\hich\af2\dbch\af31505\loch\f2 :\hich\af2\dbch\af31505\loch\f2 )}{\rtlch\fcs1 
+\ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid15532234 \hich\af2\dbch\af31505\loch\f2  \hich\af2\dbch\af31505\loch\f2 & add }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 the following two options:
+\par \hich\af2\dbch\af31505\loch\f2 --username "<your googlecode name, eg. mine is adaptit.bruce@gmail.com>"
+\par \hich\af2\dbch\af31505\loch\f2 --password\hich\af2\dbch\af31505\loch\f2  "<the login member password obtained from the developers, currently d....9>"
+\par \hich\af2\dbch\af31505\loch\f2 I put these two after after the checkout command, and before the path parameter, but maybe it doesn't matter where they go, but where I put them certainly works.
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid14360999 
+\par \hich\af2\dbch\af31505\loch\f2 It may also be necessary to take ownership of the adaptit folder before a commit will succeed. Do the equivalent of the following:
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid10511691 \hich\af2\dbch\af31505\loch\f2 s\hich\af2\dbch\af31505\loch\f2 udo \loch\af2\dbch\af31505\hich\f2 \endash \hich\af2\dbch\af31505\loch\f2 s\hich\af2\dbch\af31505\loch\f2  
+\hich\af2\dbch\af31505\loch\f2   (to become root\hich\af2\dbch\af31505\loch\f2 , }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid11089840 \hich\af2\dbch\af31505\loch\f2 & }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid10511691 
+\hich\af2\dbch\af31505\loch\f2 cd to the subversion folder if not already there\hich\af2\dbch\af31505\loch\f2 )
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid14360999 \hich\af2\dbch\af31505\loch\f2 chown \loch\af2\dbch\af31505\hich\f2 \endash \hich\af2\dbch\af31505\loch\f2 R}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid11089840 
+\hich\af2\dbch\af31505\loch\f2  }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid14360999 \hich\af2\dbch\af31505\loch\f2  }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid11089840 \hich\af2\dbch\af31505\loch\f2 bruce}{\rtlch\fcs1 
+\ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid14360999 \hich\af2\dbch\af31505\loch\f2 : adaptit}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid11089840 \hich\af2\dbch\af31505\loch\f2   \hich\af2\dbch\af31505\loch\f2 (for bruce: use whatever 
+\hich\af2\dbch\af31505\loch\f2 is the name of your home folder)}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid14360999 
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The entire proj\hich\af0\dbch\af31505\loch\f0 
+ect should now download and be placed within a folder called }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+which contains at least 10 other subdirectories.
+\par \hich\af0\dbch\af31505\loch\f0 Although you can checkout the entire project from GoogleCode and make changes to the code on your local machine, you will not be able to m\hich\af0\dbch\af31505\loch\f0 
+ake commits back to the repository without one of us who are project administrators giving you project member ownership rights that allow you to commit changes to the source files in the repository. If you do not have commit permission you will get an err
+\hich\af0\dbch\af31505\loch\f0 o\hich\af0\dbch\af31505\loch\f0 \hich\f0 r message if you attempt to do an svn commit \'85\loch\f0  operation that looks like the following:
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn: Commit failed (details follow):\line svn: Server sent unexpected return value (405 Method Not Allowed) in response to MKACTIVITY request for \hich\f2 
+\lquote \loch\f2 \hich\f2 /svn/!svn/act/\'85\rquote 
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\par }\pard \ltrpar\ql \li0\ri0\nowidctlpar\wrapdefault\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+To get permission to contribute to Adapt It code development, you need to get a gmail.com email account with Google, and become a member of the adaptit project. Then contact one of the developers (}{\field{\*\fldinst {\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 HYPERLINK "mailto:bill_martin@sil.org" }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid3473465 {\*\datafield 
+00d0c9ea79f9bace118c8200aa004ba90b0200000003000000e0c9ea79f9bace118c8200aa004ba90b4e0000006d00610069006c0074006f003a00620069006c006c005f006d0061007200740069006e004000730069006c002e006f00720067000000795881f43b1d7f48af2c825dc485276300000000a5ab0000}}
+}{\fldrslt {\rtlch\fcs1 \af0 \ltrch\fcs0 \ul\cf2\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 bill_martin@sil.org}}}\sectd \ltrsect\linex0\sectdefaultcl\sftnbj {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  or }
+{\field{\*\fldinst {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 HYPERLINK "mailto:bruce_waters@sil.org" }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid3473465 {\*\datafield 
+00d0c9ea79f9bace118c8200aa004ba90b0200000003000000e0c9ea79f9bace118c8200aa004ba90b500000006d00610069006c0074006f003a00620072007500630065005f007700610074006500720073004000730069006c002e006f00720067000000795881f43b1d7f48af2c825dc485276300000000a5ab0000}}
+}{\fldrslt {\rtlch\fcs1 \af0 \ltrch\fcs0 \ul\cf2\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 bruce_waters@sil.org}}}\sectd \ltrsect\linex0\sectdefaultcl\sftnbj {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+) and ask them to give your account commit privileges.
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+At this point we should have everything set up in the project so that we can now focus on building Adapt It either from the command \hich\af0\dbch\af31505\loch\f0 line or from within the CodeBlocks IDE (whew!).
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Building Adapt It from the Command Line:
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 At this point it is possible to build Adapt It on Linux from the command line. Here are the steps:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . We'll keep the builds for UnicodeDebug and Unicode separate, by 
+\hich\af0\dbch\af31505\loch\f0 creating separate folders by each of those names in the ~/subversion/adaptit/bin/linux/ folder. So, from the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+~/subversion/adaptit/bin/linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder type the following:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 mkdir UnicodeDebug
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 mkdir Unicode
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 2.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  Change to the UnicodeDebug directory and invoke con\hich\af0\dbch\af31505\loch\f0 
+figure from the parent }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd UnicodeDebug
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 If you are building with the wxWidgets 2.8.x you can simply configure the build environment by calling: 
+\par }{\rtlch\fcs1 \af2\afs18 \ltrch\fcs0 \f2\fs18\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\par \hich\af0\dbch\af31505\loch\f0 Note: We call configure from the parent directory so we can keep the build produ\hich\af0\dbch\af31505\loch\f0 cts separate in the current UnicodeDebug directory
+\par \hich\af0\dbch\af31505\loch\f0 Optional: If you have downloaded and built local versions of a newer version of the wxWidgets library, we need to specify where configure is to find the wxWidgets libraries as follows: 
+\par }{\rtlch\fcs1 \af2\afs18 \ltrch\fcs0 \f2\fs18\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure \hich\f2 \endash \loch\f2 -wit\hich\af2\dbch\af31505\loch\f2 
+h-wx-config=/home/<user>/wxGTK-2.8.12/buildgtkud/wx-config
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Note: In this case too we are calling the configure script (located the parent linux directory), from our current UnicodeDebug directory (substitute your user name for }{
+\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 <user>}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 )}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 .}{\rtlch\fcs1 
+\af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  Note that we use a special shortcut parameter 
+\par }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 --with-wx-config=<path_to_wxWidgets_build_directory>/wx-config
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 that tells configure which form of the wxWidgets library to use (in this case it is the build we did in the buildgtkud folder), i.e., the library\hich\af0\dbch\af31505\loch\f0 
+ we built for Unicode with Debug symbols. On my computer the configure invocation looks like this:
+\par }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure \hich\f2 \endash \loch\f2 -with-wx-config=/home/wmartin/wxGTK-2.8.12/buildgtkud/wx-config
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 3.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  While still in the UnicodeDebug folder, run make. Type the following:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 make
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 This should build the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  executable program file, by compiling all of its source files using the g++ compiler, and linking it with the Unicode Debug version of the wxWidgets library.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 4}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . You can build the release version in a similar way, by first chan
+\hich\af0\dbch\af31505\loch\f0 ging to the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Unicode}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory (created in step 1), invoking }{
+\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  (with }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 wx-config}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  pointing to the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 buildgtku}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory if you are building against a locally built wxWidgets library), followed by calling }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 make}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . Here are the detailed steps:
+\par }{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \fs18\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 \b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 ~/subver\hich\af2\dbch\af31505\loch\f2 sion/adaptit/bin/linux/Unicode
+\par }{\rtlch\fcs1 \ab\af0\afs20 \ltrch\fcs0 \b\fs20\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ../configure
+\par }{\rtlch\fcs1 \af2\afs18 \ltrch\fcs0 \f2\fs18\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 make
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 or}{\rtlch\fcs1 \af0\afs18 \ltrch\fcs0 \fs18\insrsid9594533 \tab }{\rtlch\fcs1 \af2\afs18 \ltrch\fcs0 \f2\fs18\insrsid9594533 .}{\rtlch\fcs1 \ab\af2\afs18 \ltrch\fcs0 
+\b\f2\fs18\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 ./configure \hich\f2 \endash \loch\f2 -with-wx-config=/home/<user>/wxGTK-2.8.12/buildgtku/wx-config
+\par }{\rtlch\fcs1 \af2\afs18 \ltrch\fcs0 \f2\fs18\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 make
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The above commands are illustrative of what IDEs do under the hood when they perform various builds of the project using their GUI elements. 
+\par \hich\af0\dbch\af31505\loch\f0 If the build completes without error, the Adapt It application will be called }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 adaptit}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  and can be run by doing the \hich\af0\dbch\af31505\loch\f0 following (while you are in the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+~/subversion/adaptit/bin/linux/UnicodeDebug  }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 or the }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+~/subversion/adaptit/bin/linux/Unicode }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 folder):
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \tab \hich\af2\dbch\af31505\loch\f2 ./adaptit
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 If you get any errors when invoking configure or make from within their respective build directories, it might he\hich\af0\dbch\af31505\loch\f0 
+lp to invoke the following command:
+\par }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \tab \hich\af2\dbch\af31505\loch\f2 make distclean
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 and try following the "Run the autotools" and "Building Adapt It from the Command Line" sections above again:
+\par }\pard\plain \ltrpar\s2\ql \fi-576\li576\ri0\sb240\sa60\keepn\nowidctlpar\tx576\wrapdefault\hyphpar0\faauto\outlinelevel1\rin0\lin576\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\ai\af1\afs28 \ltrch\fcs0 \b\i\f1\fs28\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+ [If configure or make fails] Run the autotools
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 The adaptit project at GoogleCode should have\hich\af0\dbch\af31505\loch\f0 
+ included at checkout, the current Linux build files necessary to build the adaptit application. If you need to reconfigure the Linux command line build tools, that can be done by running a group of tools called autotools at the command line from the }{
+\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 subve\hich\af2\dbch\af31505\loch\f2 rsion/adaptit/bin/linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ directory, in order to get the command line build environment set up. Historically these tools were developed in order to somewhat automate the process of creating "make" files which are capable of building programs that will run co
+\hich\af0\dbch\af31505\loch\f0 rrectly on any of the variety of unix-type systems. It is hard to explain everything the autotools do (but I\hich\f0 \rquote \loch\f0 ve briefly summarized them below).
+\par }\pard \ltrpar\ql \li0\ri0\sa120\keepn\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  Go to the linux project directory by typing the following at the command line:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 cd
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+cd subversion/adaptit/bin\hich\af2\dbch\af31505\loch\f2 /linux
+\par }\pard \ltrpar\ql \li0\ri0\sa120\keepn\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 2.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  Now, invoking the following commands in succession:
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+libtoolize --force --copy
+\par }\pard \ltrpar\ql \li0\ri0\sa120\keepn\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 aclocal
+
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 touch NEWS README AUTHORS ChangeLog
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 autoconf }{
+\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0   
+\par }\pard \ltrpar\ql \li0\ri0\sa120\keepn\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 
+automake --add-missing
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 In case you are interested, here is a very rough summary of what the above calls do:
+
+\par \tab }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 libtoolize --force --copy}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ - The libtool package contains the GNU libtool, a set of shell scripts which automatically configure UNIX and UNIX-like architectures to generically build shared libraries.  Libtool provides a consistent, portable interface whic
+\hich\af0\dbch\af31505\loch\f0 
+h simplifies the process of using shared libraries. libtoolize also creates the ltmain.sh symbolic link. The --force and --copy command options make libtoolize replace existing libtool files, and copy files from the libtool data directory rather than crea
+\hich\af0\dbch\af31505\loch\f0 t\hich\af0\dbch\af31505\loch\f0 ing symlinks. These options can help to prevent build problems due to the system having different versions of the libtool utility.
+\par \tab }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 aclocal }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+- aclocal generates an aclocal.m4 file that contains definitions of all m4 macros required by autoconf (see below).
+\par \tab }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 touch NEWS README AUTHORS ChangeLog}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ - the touch command creates the files listed in the command, if they don't already exist. If they already exists the accessed or modification times are updated to all be the current date/time. This is done to make the a\hich\af0\dbch\af31505\loch\f0 
+utomake command happy (see about automake below).
+\par \tab }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 autoconf }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+- creates a "configure" script that can be called by the user to build a program/package on any kind of unix/linux system. autoconf uses a list of features that the program needs and which are con\hich\af0\dbch\af31505\loch\f0 tained in a }{\rtlch\fcs1 
+\af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 configure.in}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  file.
+\par \tab }{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 automake --add-missing}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+  - automake automatically creates the Makefile.in file(s) from Makefile.am file(s). Makefile.am files are essentially a list of the source files (.h and .cpp) using a simple syntax (we need to change Makefile.am any time we add or remove source files fro
+\hich\af0\dbch\af31505\loch\f0 m\hich\af0\dbch\af31505\loch\f0  the adaptit project \hich\f0 \endash \loch\f0  then run automake again from the command line. Makefile.in files are in a form that feeds }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0 in }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 to the make command. The --add-missing option helps to insure that certain common files exist in certain situations, if they were not distri
+\hich\af0\dbch\af31505\loch\f0 buted with the version of automake on the current system.
+\par \hich\af0\dbch\af31505\loch\f0 I have tried to be careful to use only relative paths within CodeBlocks project file (}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit.cbp}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ) so that it should be able to work essentially without modification on any system that is set up fol\hich\af0\dbch\af31505\loch\f0 lowing the procedures in this document. Hence, the }{\rtlch\fcs1 \af2\afs20 
+\ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit.cbp}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  project file is included in the svn repository and will be located within the }{\rtlch\fcs1 
+\af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit/bin/linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder created during a Subversion checkout operation.
+\par }\pard\plain \ltrpar\s3\ql \fi-720\li720\ri0\sb240\sa60\keepn\nowidctlpar\tx720\wrapdefault\hyphpar0\faauto\outlinelevel2\rin0\lin720\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af1\afs26 \ltrch\fcs0 \b\f1\fs26\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Using the CodeBlocks IDE for building Ada\hich\af1\dbch\af31505\loch\f1 pt It:
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 \hich\f0 See the section above entitled \'93\loch\f0 \hich\f0 Installing CodeBlocks,\'94\loch\f0  if you have not already done so and ensure that CodeBlocks is installed. 
+\par \hich\af0\dbch\af31505\loch\f0 In order to use CodeBlocks, an environment variable called }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 WXWIN}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  needs to be defined that points to the top level direc\hich\af0\dbch\af31505\loch\f0 tory of the wxWidgets library installation. This location as described above would be /}{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 home/wmartin/wxGTK-2.8.12}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ on my Ubuntu system. To set this environment variable on your Ubuntu Linux system do the following:
+\par }\pard \ltrpar\ql \fi-360\li720\ri0\sa120\nowidctlpar\tx720\wrapdefault\hyphpar0\faauto\rin0\lin720\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.\tab Using gedit, open/create a }{\rtlch\fcs1 \ab\af2\afs20 
+\ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 .pam_environm\hich\af2\dbch\af31505\loch\f2 ent}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ file in your home directory. This is a hidden file (because of the initial dot) that gets executed each time you log in to your Ubuntu system. It probably won\hich\f0 \rquote \loch\f0 t exist until you create it with gedit (Note: You won\hich\f0 \rquote 
+\loch\f0 t see the dot-initial hidden files from\hich\af0\dbch\af31505\loch\f0  within Ubuntu\hich\f0 \rquote \loch\f0 s file manager unless you select View > Hidden Files). 
+\par \hich\af0\dbch\af31505\loch\f0 2.\tab Within the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 .pam_environment}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ file add just one line as follows:\line \line }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 WXWIN=/home/<username>/wxGTK-2.8.12\line }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \line 
+\hich\af0\dbch\af31505\loch\f0 in which }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 <username>}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ is the user name of your home folder (mine is }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 wmartin}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 ). Do no
+\hich\af0\dbch\af31505\loch\f0 t use a path separator at the end of the path defined for }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 WXWIN}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 .
+\par \hich\af0\dbch\af31505\loch\f0 3.\tab Log out of your Ubuntu session, and log back in to get the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 WXWIN}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  environment recognized by the system. You can verify that it is now set in the environment by typing \line }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 env | grep WXWIN}{
+\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  \line at \hich\af0\dbch\af31505\loch\f0 the terminal prompt. 
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+The local adaptit repository that you checked out earlier using subversion has a CodeBlocks project file for Adapt It which is called }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit.cbp}{
+\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  and is located in the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit/bin/linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder of your local project repository. Run the\hich\af0\dbch\af31505\loch\f0  Code::Blocks IDE from Ubuntu\hich\f0 \rquote \loch\f0 
+s Applications > Programming menu (the first run it will ask you to verify that you are using detected gcc compiler \hich\f0 \endash \loch\f0  you are so click OK). Then from within CodeBlocks, choose Open from the File menu, and navigate to the }{
+\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 subve\hich\af2\dbch\af31505\loch\f2 rsion/adaptit/bin/linux}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  folder and open the }{
+\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit.cbp}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  project file.
+\par \hich\af0\dbch\af31505\loch\f0 To build adaptit simply click on }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Build}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  from the }{\rtlch\fcs1 
+\ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Build}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 \hich\f0  menu (or Ctrl+F9). Note: The builds are Unicode even though the \'93\loch\f0 \hich\f0 
+Build target\'94\loch\f0 \hich\f0  indicates just \'93\loch\f0 \hich\f0 Debug\'94\loch\f0 \hich\f0  or \'93\loch\f0 \hich\f0 Release.\'94
+\par \hich\af0\dbch\af31505\loch\f0 Note: I most oft\hich\af0\dbch\af31505\loch\f0 
+en build AI and run it from the command-line on Linux, so I sometimes forget to add any new source files to the CodeBlocks project (that may have been added to adaptit/source by myself or other developers), and commit the updated }{\rtlch\fcs1 
+\ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit.cbp}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  project file t\hich\af0\dbch\af31505\loch\f0 
+o the svn repository. If CodeBlocks generates a compile error about a missing function or symbol, that might be the reason. New source files can be added to the CodeBlocks adaptit project via CodeBlocks\hich\f0 \rquote \loch\f0 \hich\f0 
+ Project > Add Files menu, and within the \'93\loch\f0 Add files\hich\af0\dbch\af31505\loch\f0  \hich\af0\dbch\af31505\loch\f0 \hich\f0 to project\'85\'94\loch\f0  dialog, navigating to the }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 
+\b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 adaptit/source}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+ folder and selecting any new source files from the list that need to be part of the project, then try the }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Build}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  again (Ctrl+F9).
+\par }\pard\plain \ltrpar\s3\ql \fi-720\li720\ri0\sb240\sa60\keepn\nowidctlpar\tx720\wrapdefault\hyphpar0\faauto\outlinelevel2\rin0\lin720\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 
+\fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \tab }{\rtlch\fcs1 \ab\af1\afs26 \ltrch\fcs0 \b\f1\fs26\insrsid9594533 \hich\af1\dbch\af31505\loch\f1 
+Working with Subversion on Linux (initial checkout):
+\par }\pard\plain \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs24\alang1025 \ltrch\fcs0 \fs24\lang1033\langfe3081\loch\af0\hich\af0\dbch\af31505\cgrid\langnp1033\langfenp3081 {\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Some IDEs are suppo\hich\af0\dbch\af31505\loch\f0 
+sed to be capable of working with Subversion internally, but I've not tried to get svn working internally within any IDE. I've just used Subversion from the command line when working on the Linux port. To do an initial checkout }{\rtlch\fcs1 \ab\af0 
+\ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 with commit privileges}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  (from\hich\af0\dbch\af31505\loch\f0  within ~/subversion/) of the adaptit repository:
+\par \tab }{\rtlch\fcs1 \ab\af2\afs16 \ltrch\fcs0 \b\f2\fs16\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn checkout https://adaptit.googlecode.com/svn/trunk/ adaptit --username <username>}{\rtlch\fcs1 \af0\afs16 \ltrch\fcs0 \fs16\insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 and enter your password (your googlecode site generated password \hich\f0 \endash \loch\f0  you\hich\f0 \rquote \loch\f0 ll only have to enter it once the first time you
+\hich\af0\dbch\af31505\loch\f0  checkout the code). 
+\par \hich\af0\dbch\af31505\loch\f0 You may want to use one or more of the following Subversion commands at the command line (from within the ~/subversion/adaptit/ project):
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn update
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn diff source/<filename>
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn ci -m"comment about commit" [only with adaptit member commit rights]
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn add source/<filename> [only with adaptit member commit rights]
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn remove source/<filename> [only with adaptit member commit rights]
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 1.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 svn}{
+\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2  checkout ...}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  I described how to do th\hich\af0\dbch\af31505\loch\f0 
+e initial checkout using Subversion in the instructions above. The command should only be done from your}{\rtlch\fcs1 \af2\afs20 \ltrch\fcs0 \f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2  /home/<user>/subversion}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\insrsid9594533 \hich\af0\dbch\af31505\loch\f0  directory once. If ever you needed to delete a previous checkout of the project and re-checkout the project because of Subversi\hich\af0\dbch\af31505\loch\f0 
+on getting hopelessly confused or fouled up, you can delete the whole adaptit project tree from your local machine and checkout the project again. Usually, though you would only do this once on a given computer.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 2.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 svn update}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 . The svn update command will g\hich\af0\dbch\af31505\loch\f0 
+o through the usual process of comparing your files with those on GoogleCode's svn server, updating any changes made by other users, merging if necessary, etc., and reporting the same single letter codes used in TortoiseSVN on Windows. 
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 3. }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn ci -m"commen\hich\af2\dbch\af31505\loch\f2 t"}{\rtlch\fcs1 \af0 
+\ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+. The svn commit command commits your changes to the repository. You should always do a svn update before you do a svn commit. The commit command also takes a little more explanation. Usually you would use the -m"comment" to add a comment explaining the 
+\hich\af0\dbch\af31505\loch\f0 
+nature of the commit. If you only type svn ci at the command line, it opens the GNU nano editor for you to enter the text of a comment for the commit command. After typing a comment, just press Ctrl-X to exit the editor; then y to permit it to use the tem
+\hich\af0\dbch\af31505\loch\f0 p\hich\af0\dbch\af31505\loch\f0 orary file it created for the svn comment, or n to abort the commit process. The output details the results of the commit. 
+\par \hich\af0\dbch\af31505\loch\f0 If you only want to commit changes to the repository for a single file (regardless of changes to other source files) you can optionally include a path and filename, for example:
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \tab }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn ci -m"comment" ~/subversion/adaptit/source/Adapt_It.h
+\par }{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 Where "comment" wou\hich\af0\dbch\af31505\loch\f0 ld tell what you've changed in Adapt_It.h.
+\par }\pard \ltrpar\ql \li0\ri0\sa120\keep\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 4.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 
+\hich\af0\dbch\af31505\loch\f0  }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn diff ~/subversion/adaptit/source/<filename>}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+. The diff command requires that you enter the path and name of the file you want to diff. The diff will compare the file on your local machine to the one currentl\hich\af0\dbch\af31505\loch\f0 
+y in the svn repository. The results are output to the command line terminal in plain text format. You basically look for the lines preceded by - and + to see the changes (+ lines are additions, - lines are removed lines).
+\par }\pard \ltrpar\ql \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 5.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  }{
+\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 \hich\af2\dbch\af31505\loch\f2 svn add ~/subversion/adaptit/s\hich\af2\dbch\af31505\loch\f2 ource/<filename>}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+. The add command works like it does in TortoiseSVN on Windows. The svn add command only marks the file to be added to the repository. You have to follow up with a svn ci -m"comment" command for the file to be actually added to the reposito
+\hich\af0\dbch\af31505\loch\f0 ry.
+\par }{\rtlch\fcs1 \ab\af0 \ltrch\fcs0 \b\insrsid9594533 \hich\af0\dbch\af31505\loch\f0 6.}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0  }{\rtlch\fcs1 \ab\af2\afs20 \ltrch\fcs0 \b\f2\fs20\insrsid9594533 
+\hich\af2\dbch\af31505\loch\f2 svn remove ~/subversion/adaptit/source/<filename>}{\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 
+. The remove command likewise, works like it does in TortoiseSVN on Windows. Again, you have to follow up with a svn ci -m"comment" command for the file to be actually removed from the repository.
+\par 
+\par }\pard \ltrpar\qc \li0\ri0\sa120\nowidctlpar\wrapdefault\hyphpar0\faauto\rin0\lin0\itap0 {\rtlch\fcs1 \af0 \ltrch\fcs0 \insrsid9594533 \hich\af0\dbch\af31505\loch\f0 En\hich\af0\dbch\af31505\loch\f0 d of Documentation}{\rtlch\fcs1 \af0 \ltrch\fcs0 
+\expnd23\expndtw119\insrsid9594533 
+\par }{\*\themedata 504b030414000600080000002100e9de0fbfff0000001c020000130000005b436f6e74656e745f54797065735d2e786d6cac91cb4ec3301045f748fc83e52d4a
+9cb2400825e982c78ec7a27cc0c8992416c9d8b2a755fbf74cd25442a820166c2cd933f79e3be372bd1f07b5c3989ca74aaff2422b24eb1b475da5df374fd9ad
+5689811a183c61a50f98f4babebc2837878049899a52a57be670674cb23d8e90721f90a4d2fa3802cb35762680fd800ecd7551dc18eb899138e3c943d7e503b6
+b01d583deee5f99824e290b4ba3f364eac4a430883b3c092d4eca8f946c916422ecab927f52ea42b89a1cd59c254f919b0e85e6535d135a8de20f20b8c12c3b0
+0c895fcf6720192de6bf3b9e89ecdbd6596cbcdd8eb28e7c365ecc4ec1ff1460f53fe813d3cc7f5b7f020000ffff0300504b030414000600080000002100a5d6
+a7e7c0000000360100000b0000005f72656c732f2e72656c73848fcf6ac3300c87ef85bd83d17d51d2c31825762fa590432fa37d00e1287f68221bdb1bebdb4f
+c7060abb0884a4eff7a93dfeae8bf9e194e720169aaa06c3e2433fcb68e1763dbf7f82c985a4a725085b787086a37bdbb55fbc50d1a33ccd311ba548b6309512
+0f88d94fbc52ae4264d1c910d24a45db3462247fa791715fd71f989e19e0364cd3f51652d73760ae8fa8c9ffb3c330cc9e4fc17faf2ce545046e37944c69e462
+a1a82fe353bd90a865aad41ed0b5b8f9d6fd010000ffff0300504b0304140006000800000021006b799616830000008a0000001c0000007468656d652f746865
+6d652f7468656d654d616e616765722e786d6c0ccc4d0ac3201040e17da17790d93763bb284562b2cbaebbf600439c1a41c7a0d29fdbd7e5e38337cedf14d59b
+4b0d592c9c070d8a65cd2e88b7f07c2ca71ba8da481cc52c6ce1c715e6e97818c9b48d13df49c873517d23d59085adb5dd20d6b52bd521ef2cdd5eb9246a3d8b
+4757e8d3f729e245eb2b260a0238fd010000ffff0300504b03041400060008000000210030dd4329a8060000a41b0000160000007468656d652f7468656d652f
+7468656d65312e786d6cec594f6fdb3614bf0fd87720746f6327761a07758ad8b19b2d4d1bc46e871e698996d850a240d2497d1bdae38001c3ba618715d86d87
+615b8116d8a5fb34d93a6c1dd0afb0475292c5585e9236d88aad3e2412f9e3fbff1e1fa9abd7eec70c1d1221294fda5efd72cd4324f1794093b0eddd1ef62fad
+79482a9c0498f184b4bd2991deb58df7dfbb8ad755446282607d22d771db8b944ad79796a40fc3585ee62949606ecc458c15bc8a702910f808e8c66c69b9565b
+5d8a314d3c94e018c8de1a8fa94fd05093f43672e23d06af89927ac06762a049136785c10607758d9053d965021d62d6f6804fc08f86e4bef210c352c144dbab
+999fb7b4717509af678b985ab0b6b4ae6f7ed9ba6c4170b06c788a705430adf71bad2b5b057d03606a1ed7ebf5babd7a41cf00b0ef83a6569632cd467faddec9
+699640f6719e76b7d6ac355c7c89feca9cccad4ea7d36c65b258a206641f1b73f8b5da6a6373d9c11b90c537e7f08dce66b7bbeae00dc8e257e7f0fd2badd586
+8b37a088d1e4600ead1ddaef67d40bc898b3ed4af81ac0d76a197c86826828a24bb318f3442d8ab518dfe3a20f000d6458d104a9694ac6d88728eee2782428d6
+0cf03ac1a5193be4cbb921cd0b495fd054b5bd0f530c1931a3f7eaf9f7af9e3f45c70f9e1d3ff8e9f8e1c3e3073f5a42ceaa6d9c84e5552fbffdeccfc71fa33f
+9e7ef3f2d117d57859c6fffac327bffcfc793510d26726ce8b2f9ffcf6ecc98baf3efdfdbb4715f04d814765f890c644a29be408edf3181433567125272371be
+15c308d3f28acd249438c19a4b05fd9e8a1cf4cd296699771c393ac4b5e01d01e5a30a787d72cf1178108989a2159c77a2d801ee72ce3a5c545a6147f32a9979
+3849c26ae66252c6ed637c58c5bb8b13c7bfbd490a75330f4b47f16e441c31f7184e140e494214d273fc80900aedee52ead87597fa824b3e56e82e451d4c2b4d
+32a423279a668bb6690c7e9956e90cfe766cb37b077538abd27a8b1cba48c80acc2a841f12e698f13a9e281c57911ce298950d7e03aba84ac8c154f8655c4f2a
+f074481847bd804859b5e696007d4b4edfc150b12addbecba6b18b148a1e54d1bc81392f23b7f84137c2715a851dd0242a633f900710a218ed715505dfe56e86
+e877f0034e16bafb0e258ebb4faf06b769e888340b103d331115bebc4eb813bf83291b63624a0d1475a756c734f9bbc2cd28546ecbe1e20a3794ca175f3fae90
+fb6d2dd99bb07b55e5ccf68942bd0877b23c77b908e8db5f9db7f024d9239010f35bd4bbe2fcae387bfff9e2bc289f2fbe24cfaa301468dd8bd846dbb4ddf1c2
+ae7b4c191ba8292337a469bc25ec3d411f06f53a73e224c5292c8de0516732307070a1c0660d125c7d44553488700a4d7bddd3444299910e254ab984c3a219ae
+a4adf1d0f82b7bd46cea4388ad1c12ab5d1ed8e1153d9c9f350a3246aad01c6873462b9ac05999ad5cc988826eafc3acae853a33b7ba11cd1445875ba1b236b1
+399483c90bd560b0b0263435085a21b0f22a9cf9356b38ec6046026d77eba3dc2dc60b17e92219e180643ed27acffba86e9c94c7ca9c225a0f1b0cfae0788ad5
+4adc5a9aec1b703b8b93caec1a0bd8e5de7b132fe5113cf312503b998e2c2927274bd051db6b35979b1ef271daf6c6704e86c73805af4bdd476216c26593af84
+0dfb5393d964f9cc9bad5c313709ea70f561ed3ea7b053075221d51696910d0d339585004b34272bff7213cc7a510a5454a3b349b1b206c1f0af490176745d4b
+c663e2abb2b34b23da76f6352ba57ca2881844c1111ab189d8c7e07e1daaa04f40255c77988aa05fe06e4e5bdb4cb9c5394bbaf28d98c1d971ccd20867e556a7
+689ec9166e0a522183792b8907ba55ca6e943bbf2a26e52f48957218ffcf54d1fb09dc3eac04da033e5c0d0b8c74a6b43d2e54c4a10aa511f5fb021a07533b20
+5ae07e17a621a8e082dafc17e450ffb739676998b48643a4daa7211214f623150942f6a02c99e83b85583ddbbb2c4996113211551257a656ec1139246ca86be0
+aadedb3d1441a89b6a929501833b197fee7b9641a3503739e57c732a59b1f7da1cf8a73b1f9bcca0945b874d4393dbbf10b1680f66bbaa5d6f96e77b6f59113d
+316bb31a795600b3d256d0cad2fe354538e7566b2bd69cc6cbcd5c38f0e2bcc63058344429dc2121fd07f63f2a7c66bf76e80d75c8f7a1b622f878a18941d840
+545fb28d07d205d20e8ea071b283369834296bdaac75d256cb37eb0bee740bbe278cad253b8bbfcf69eca23973d939b97891c6ce2cecd8da8e2d343578f6648a
+c2d0383fc818c798cf64e52f597c740f1cbd05df0c264c49134cf09d4a60e8a107260f20f92d47b374e32f000000ffff0300504b030414000600080000002100
+0dd1909fb60000001b010000270000007468656d652f7468656d652f5f72656c732f7468656d654d616e616765722e786d6c2e72656c73848f4d0ac2301484f7
+8277086f6fd3ba109126dd88d0add40384e4350d363f2451eced0dae2c082e8761be9969bb979dc9136332de3168aa1a083ae995719ac16db8ec8e4052164e89
+d93b64b060828e6f37ed1567914b284d262452282e3198720e274a939cd08a54f980ae38a38f56e422a3a641c8bbd048f7757da0f19b017cc524bd62107bd500
+1996509affb3fd381a89672f1f165dfe514173d9850528a2c6cce0239baa4c04ca5bbabac4df000000ffff0300504b01022d0014000600080000002100e9de0f
+bfff0000001c0200001300000000000000000000000000000000005b436f6e74656e745f54797065735d2e786d6c504b01022d0014000600080000002100a5d6
+a7e7c0000000360100000b00000000000000000000000000300100005f72656c732f2e72656c73504b01022d00140006000800000021006b799616830000008a
+0000001c00000000000000000000000000190200007468656d652f7468656d652f7468656d654d616e616765722e786d6c504b01022d00140006000800000021
+0030dd4329a8060000a41b00001600000000000000000000000000d60200007468656d652f7468656d652f7468656d65312e786d6c504b01022d001400060008
+00000021000dd1909fb60000001b0100002700000000000000000000000000b20900007468656d652f7468656d652f5f72656c732f7468656d654d616e616765722e786d6c2e72656c73504b050600000000050005005d010000ad0a00000000}
+{\*\colorschememapping 3c3f786d6c2076657273696f6e3d22312e302220656e636f64696e673d225554462d3822207374616e64616c6f6e653d22796573223f3e0d0a3c613a636c724d
+617020786d6c6e733a613d22687474703a2f2f736368656d61732e6f70656e786d6c666f726d6174732e6f72672f64726177696e676d6c2f323030362f6d6169
+6e22206267313d226c743122207478313d22646b3122206267323d226c743222207478323d22646b322220616363656e74313d22616363656e74312220616363
+656e74323d22616363656e74322220616363656e74333d22616363656e74332220616363656e74343d22616363656e74342220616363656e74353d22616363656e74352220616363656e74363d22616363656e74362220686c696e6b3d22686c696e6b2220666f6c486c696e6b3d22666f6c486c696e6b222f3e}
+{\*\latentstyles\lsdstimax267\lsdlockeddef0\lsdsemihiddendef1\lsdunhideuseddef1\lsdqformatdef0\lsdprioritydef99{\lsdlockedexcept \lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority0 \lsdlocked0 Normal;
+\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdlocked0 heading 1;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdlocked0 heading 2;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdlocked0 heading 3;\lsdqformat1 \lsdpriority9 \lsdlocked0 heading 4;
+\lsdqformat1 \lsdpriority9 \lsdlocked0 heading 5;\lsdqformat1 \lsdpriority9 \lsdlocked0 heading 6;\lsdqformat1 \lsdpriority9 \lsdlocked0 heading 7;\lsdqformat1 \lsdpriority9 \lsdlocked0 heading 8;\lsdqformat1 \lsdpriority9 \lsdlocked0 heading 9;
+\lsdpriority39 \lsdlocked0 toc 1;\lsdpriority39 \lsdlocked0 toc 2;\lsdpriority39 \lsdlocked0 toc 3;\lsdpriority39 \lsdlocked0 toc 4;\lsdpriority39 \lsdlocked0 toc 5;\lsdpriority39 \lsdlocked0 toc 6;\lsdpriority39 \lsdlocked0 toc 7;
+\lsdpriority39 \lsdlocked0 toc 8;\lsdpriority39 \lsdlocked0 toc 9;\lsdqformat1 \lsdpriority35 \lsdlocked0 caption;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority10 \lsdlocked0 Title;\lsdpriority1 \lsdlocked0 Default Paragraph Font;
+\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority11 \lsdlocked0 Subtitle;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority22 \lsdlocked0 Strong;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority20 \lsdlocked0 Emphasis;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority59 \lsdlocked0 Table Grid;\lsdunhideused0 \lsdlocked0 Placeholder Text;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority1 \lsdlocked0 No Spacing;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading;\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List;\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List;\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List;\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid;\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading Accent 1;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1 Accent 1;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2 Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1 Accent 1;\lsdunhideused0 \lsdlocked0 Revision;
+\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority34 \lsdlocked0 List Paragraph;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority29 \lsdlocked0 Quote;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority30 \lsdlocked0 Intense Quote;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2 Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1 Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2 Accent 1;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3 Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading Accent 1;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid Accent 1;\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading Accent 2;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1 Accent 2;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2 Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1 Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2 Accent 2;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1 Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2 Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3 Accent 2;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List Accent 2;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid Accent 2;\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List Accent 3;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1 Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2 Accent 3;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1 Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2 Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1 Accent 3;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2 Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3 Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List Accent 3;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List Accent 3;\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid Accent 3;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid Accent 4;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1 Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2 Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1 Accent 4;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2 Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1 Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2 Accent 4;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3 Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading Accent 4;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid Accent 4;\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading Accent 5;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1 Accent 5;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2 Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1 Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2 Accent 5;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1 Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2 Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3 Accent 5;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List Accent 5;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid Accent 5;\lsdsemihidden0 \lsdunhideused0 \lsdpriority60 \lsdlocked0 Light Shading Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority61 \lsdlocked0 Light List Accent 6;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority62 \lsdlocked0 Light Grid Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority63 \lsdlocked0 Medium Shading 1 Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority64 \lsdlocked0 Medium Shading 2 Accent 6;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority65 \lsdlocked0 Medium List 1 Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority66 \lsdlocked0 Medium List 2 Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority67 \lsdlocked0 Medium Grid 1 Accent 6;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority68 \lsdlocked0 Medium Grid 2 Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority69 \lsdlocked0 Medium Grid 3 Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority70 \lsdlocked0 Dark List Accent 6;
+\lsdsemihidden0 \lsdunhideused0 \lsdpriority71 \lsdlocked0 Colorful Shading Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority72 \lsdlocked0 Colorful List Accent 6;\lsdsemihidden0 \lsdunhideused0 \lsdpriority73 \lsdlocked0 Colorful Grid Accent 6;
+\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority19 \lsdlocked0 Subtle Emphasis;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority21 \lsdlocked0 Intense Emphasis;
+\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority31 \lsdlocked0 Subtle Reference;\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority32 \lsdlocked0 Intense Reference;
+\lsdsemihidden0 \lsdunhideused0 \lsdqformat1 \lsdpriority33 \lsdlocked0 Book Title;\lsdpriority37 \lsdlocked0 Bibliography;\lsdqformat1 \lsdpriority39 \lsdlocked0 TOC Heading;}}{\*\datastore 010500000200000018000000
+4d73786d6c322e534158584d4c5265616465722e362e3000000000000000000000060000
+d0cf11e0a1b11ae1000000000000000000000000000000003e000300feff090006000000000000000000000001000000010000000000000000100000feffffff00000000feffffff0000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+fffffffffffffffffdfffffffeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffff52006f006f007400200045006e00740072007900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016000500ffffffffffffffffffffffff0c6ad98892f1d411a65f0040963251e5000000000000000000000000509f
+78ab799fcc01feffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000
+000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffff000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000000000000105000000000000}}

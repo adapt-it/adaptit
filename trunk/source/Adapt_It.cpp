@@ -17844,6 +17844,9 @@ int ii = 1;
 	m_pAdaptationsGuesser = new Guesser;
 	m_pGlossesGuesser = new Guesser;
 
+	CAdapt_ItView* pView = (CAdapt_ItView*) GetView();
+	pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
+
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
     // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
 	wxFrame* pLogFrame;
@@ -34748,6 +34751,11 @@ wxPaperSize CAdapt_ItApp::MapMFCtoWXPaperSizeCode(int id)
 /// Set bRestoreView, which defaults to TRUE, to FALSE if using DoPrintCleanup to remove a
 /// layout and pagination as an intermediate step in doing a real print job, and then the
 /// view window won't be updated at this call
+/// BEW 14Nov11, changed to reflect the fact that chapter/verse range printing will have
+/// used deep copies of the CSourcePhrase instances, and the partner piles will need to
+/// be recreated for each RecalcLayout() call, passing in create_strips_and_piles. This
+/// needs to be the case until the full document is restored, and thereafter normal value
+/// create_strips_keep_piles can be used
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoPrintCleanup()
 {
@@ -34773,9 +34781,9 @@ void CAdapt_ItApp::DoPrintCleanup()
         // restore the selection), then do tidy up of everything else & get a new layout
         // calculated; likewise if we were printing a chapter & verse range
 		bool bSaveListHasContent = !m_pSaveList->IsEmpty();
-		if (m_bPrintingSelection  || m_bPrintingRange ||
-			(gbIsBeingPreviewed && bSaveListHasContent))
+		if (m_bPrintingSelection  || m_bPrintingRange || (gbIsBeingPreviewed && bSaveListHasContent))
 		{
+			// BEW 14Nov11, RestorOriginalList now does a deep copy restore
 			pView->RestoreOriginalList(m_pSaveList, m_pSourcePhrases); // ignore return value,
 														// either we aborted, or all was well
             // we want any selection retained if we have been doing a print preview, but we
@@ -34803,14 +34811,16 @@ void CAdapt_ItApp::DoPrintCleanup()
         // restore the phrase box, scroll, invalidate window to restore pre-printing
         // appearance (if we had been printing a selection, it will get restored now
         // because the globals will have been preserved)
-		m_nActiveSequNum = m_nSaveActiveSequNum;
-		// get a temporary m_pActivePile pointer
-		m_pActivePile = pView->GetPile(m_nActiveSequNum);
+		m_nActiveSequNum = m_nSaveActiveSequNum; // restore active location sequ num
+		m_pActivePile = NULL; // the piles are destroyed and recreated 
+							  // so the old pointer is useless
+
 #ifdef _NEW_LAYOUT
-		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #else
-		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
-	#endif
+		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#endif
+
 	} // kluge block ends here so that a call to ScrollIntoView() is done for each
       // time entered, otherwise, the scroll position gets lost for the second entrance,
       // and a manual scroll is then required to make the active strip visible; but having

@@ -1439,6 +1439,23 @@ void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 }
 */
 
+// The copying is done by appending. Normally pDestPileList will be empty at the start,
+// but if not, whatever is copied will be appended to any CPile instances already in the
+// passed in pDestPileList
+void CLayout::CopyPileList_Shallow(PileList* pOrigPileList, PileList* pDestPileList)
+{
+	wxASSERT(pOrigPileList != NULL);
+	wxASSERT(pDestPileList != NULL);
+	PileList::Node* pileNode = NULL;
+	for (pileNode = pOrigPileList->GetFirst(); pileNode; pileNode = pileNode->GetNext())
+	{
+		CPile *pData = pileNode->GetData();
+		pDestPileList->Append(pData); // shallow copy the pointers across
+	}
+    // both list now have their saved CPile pointers pointing at the one set of CPile
+    // instances on the heap
+}
+
 void CLayout::DestroyPiles()
 {
 	if (m_pileList.IsEmpty())
