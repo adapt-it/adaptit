@@ -139,6 +139,7 @@ public:
 
 // Implementation
 public:
+	CAdapt_ItDoc* m_pDoc; // BEW added 14Nov11
 	void		AdjustAlignmentMenu(bool bRTL,bool bLTR);
 	bool		AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,int& vLast,int nWantedVerse);
 	//CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation); //moved to CKB
