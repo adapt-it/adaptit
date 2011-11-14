@@ -81,6 +81,7 @@
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
+#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
 #include "StartWorkingWizard.h"
 #include "EmailReportDlg.h"
 #include "HtmlFileViewer.h"

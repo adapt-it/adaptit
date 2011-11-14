@@ -46,18 +46,9 @@
 
 // event handler table
 BEGIN_EVENT_TABLE(CGuesserSettingsDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CGuesserSettingsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CGuesserSettingsDlg::InitDialog)
 	EVT_BUTTON(ID_BUTTON_GUESS_HIGHLIGHT_COLOR, CGuesserSettingsDlg::OnChooseGuessHighlightColor)
 	EVT_BUTTON(wxID_OK, CGuesserSettingsDlg::OnOK)
-	// Samples:
-	//EVT_MENU(ID_SOME_MENU_ITEM, CGuesserSettingsDlg::OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CGuesserSettingsDlg::OnUpdateDoSomething)
-	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CGuesserSettingsDlg::OnDoSomething)
-	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CGuesserSettingsDlg::DoSomething)
-	//EVT_LISTBOX(ID_SOME_LISTBOX, CGuesserSettingsDlg::DoSomething)
-	//EVT_COMBOBOX(ID_SOME_COMBOBOX, CGuesserSettingsDlg::DoSomething)
-	//EVT_TEXT(IDC_SOME_EDIT_CTRL, CGuesserSettingsDlg::OnEnChangeEditSomething)
-	// ... other menu, button or control events
 END_EVENT_TABLE()
 
 CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
@@ -166,7 +157,7 @@ void CGuesserSettingsDlg::OnOK(wxCommandEvent& event)
 	// Note: The App's member values are updated in CAdapt_ItView::OnButtonGuesserSettings()
 	// and LoadGuesser() called if necessary, by comparing this local class' values with 
 	// those on the App (for detecting changes made in this dialog class).
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

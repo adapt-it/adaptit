@@ -51,7 +51,7 @@ extern LangInfo langsKnownToWX[];
 
 // event handler table
 BEGIN_EVENT_TABLE(CLanguageCodesDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CLanguageCodesDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CLanguageCodesDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CLanguageCodesDlg::OnOK)
 	EVT_BUTTON(ID_BUTTON_FIND_NEXT, CLanguageCodesDlg::OnFindNext)
 	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_SRC, CLanguageCodesDlg::OnUseSelectedCodeForSrcLanguage)
@@ -393,7 +393,7 @@ void CLanguageCodesDlg::OnOK(wxCommandEvent& event)
 {
 	m_sourceLangCode = pEditSourceLangCode->GetValue();
 	m_targetLangCode = pEditTargetLangCode->GetValue();
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 wxString CLanguageCodesDlg::Get3LetterCodeFromLBItem()

@@ -11,7 +11,7 @@
 /// and navigating through Adapt It notes (those prefixed by \note).
 /// The CNoteDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CNoteDlg class is derived from wxDialog.
+/// \derivation		The CNoteDlg class is derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef NoteDlg_h
@@ -26,8 +26,8 @@
 /// and navigating through Adapt It notes (those prefixed by \note).
 /// The CNoteDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CNoteDlg class is derived from wxDialog.
-class CNoteDlg : public wxDialog
+/// \derivation		The CNoteDlg class is derived from wxScrollingDialog.
+class CNoteDlg : public wxScrollingDialog
 {
 public:
 	CNoteDlg(wxWindow* parent); // constructor

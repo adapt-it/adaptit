@@ -12,7 +12,7 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CClassName class. 
 /// The CClassName class (does what)
-/// \derivation		The CClassName class is derived from wxDialog.
+/// \derivation		The CClassName class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in ClassName.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -48,7 +48,7 @@
 
 // event handler table
 BEGIN_EVENT_TABLE(CClassName, AIModalDialog)
-	EVT_INIT_DIALOG(CClassName::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CClassName::InitDialog)
 	// Samples:
 	//EVT_BUTTON(wxID_OK, CClassName::OnOK)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CClassName::OnDoSomething)
@@ -133,7 +133,7 @@ void CClassName::OnOK(wxCommandEvent& event)
 	//}
 	//m_projectName = pListBox->GetString(nSel);
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

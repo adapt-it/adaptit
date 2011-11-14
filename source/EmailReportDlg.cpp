@@ -66,7 +66,7 @@ static int totalBytesSent = 0;
 
 // a helper class for CEmailReportDlg
 CLogViewer::CLogViewer(wxWindow* parent)
-: wxDialog(parent, -1, _("View User Log File"),
+: AIModalDialog(parent, -1, _("View User Log File"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	LogViewerFunc(this, TRUE, TRUE); // wxDesigner dialog function
@@ -94,7 +94,7 @@ CLogViewer::~CLogViewer() // destructor
 
 // event handler table
 BEGIN_EVENT_TABLE(CEmailReportDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CEmailReportDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CEmailReportDlg::InitDialog)
 	EVT_BUTTON(ID_BUTTON_SEND_NOW, CEmailReportDlg::OnBtnSendNow)
 	EVT_BUTTON(ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE, CEmailReportDlg::OnBtnSaveReportAsXmlFile)
 	EVT_BUTTON(ID_BUTTON_LOAD_SAVED_REPORT, CEmailReportDlg::OnBtnLoadASavedReport)
@@ -795,7 +795,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
-	EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void CEmailReportDlg::OnBtnSaveReportAsXmlFile(wxCommandEvent& WXUNUSED(event))
@@ -1052,7 +1052,7 @@ void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 			}
 		}
 	}
-	EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))

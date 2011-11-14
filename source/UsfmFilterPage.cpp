@@ -56,6 +56,7 @@
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "CaseEquivPage.h"
+#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
 #include "StartWorkingWizard.h"
 #include "MainFrm.h"
 #include "DocPage.h"
@@ -3128,7 +3129,7 @@ IMPLEMENT_DYNAMIC_CLASS( CUsfmFilterPageWiz, wxWizardPage )
 
 // event handler table
 BEGIN_EVENT_TABLE(CUsfmFilterPageWiz, wxWizardPage)
-	EVT_INIT_DIALOG(CUsfmFilterPageWiz::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CUsfmFilterPageWiz::InitDialog)
 	//EVT_SET_FOCUS(CUsfmFilterPageWiz::OnSetFocus) // doesn't get called in a wizard page
     EVT_WIZARD_PAGE_CHANGING(-1, CUsfmFilterPageWiz::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
     EVT_WIZARD_CANCEL(-1, CUsfmFilterPageWiz::OnWizardCancel)
@@ -3167,11 +3168,6 @@ bool CUsfmFilterPageWiz::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
-	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
-	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
-	// scroll if necessary so the user can still access the whole wxWizardPage. 
-	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 
@@ -3182,8 +3178,6 @@ void CUsfmFilterPageWiz::CreateControls()
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	usfm_filterPgCommon.pUsfmFilterPageSizer = UsfmFilterPageFunc(this, TRUE, TRUE);
-	//m_scrolledWindow = new wxScrolledWindow( this, -1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxHSCROLL|wxVSCROLL );
-	//m_scrolledWindow->SetSizer(usfm_filterPgCommon.pFilterPageSizer);
 }
 
 // implement wxWizardPage functions
@@ -3317,7 +3311,7 @@ IMPLEMENT_DYNAMIC_CLASS( CUsfmFilterPagePrefs, wxPanel )
 
 // event handler table
 BEGIN_EVENT_TABLE(CUsfmFilterPagePrefs, wxPanel)
-	EVT_INIT_DIALOG(CUsfmFilterPagePrefs::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CUsfmFilterPagePrefs::InitDialog)
 	//EVT_SET_FOCUS(CUsfmFilterPagePrefs::OnSetFocus) // doesn't get called in a wizard page
 	EVT_LISTBOX(IDC_LIST_SFMS, CUsfmFilterPagePrefs::OnLbnSelchangeListSfmsDoc)
 	EVT_LISTBOX(IDC_LIST_SFMS_PROJ, CUsfmFilterPagePrefs::OnLbnSelchangeListSfmsProj)

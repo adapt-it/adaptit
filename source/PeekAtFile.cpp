@@ -46,7 +46,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CPeekAtFileDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CPeekAtFileDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CPeekAtFileDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CPeekAtFileDlg::OnClose)
 	EVT_BUTTON(ID_BUTTON_TOGGLE_TEXT_DIRECTION, CPeekAtFileDlg::OnBnClickedToggleDirectionality)
 

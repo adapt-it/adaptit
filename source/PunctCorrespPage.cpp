@@ -1103,7 +1103,7 @@ IMPLEMENT_DYNAMIC_CLASS( CPunctCorrespPageWiz, wxWizardPage )
 
 // event handler table
 BEGIN_EVENT_TABLE(CPunctCorrespPageWiz, wxWizardPage)
-	EVT_INIT_DIALOG(CPunctCorrespPageWiz::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CPunctCorrespPageWiz::InitDialog)
     EVT_WIZARD_PAGE_CHANGING(-1, CPunctCorrespPageWiz::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
 #ifdef _UNICODE
 	EVT_BUTTON(IDC_TOGGLE_UNNNN_BTN, CPunctCorrespPageWiz::OnBnClickedToggleUnnnn)
@@ -1134,11 +1134,6 @@ bool CPunctCorrespPageWiz::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
-	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
-	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
-	// scroll if necessary so the user can still access the whole wxWizardPage. 
-	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 
@@ -1249,7 +1244,7 @@ IMPLEMENT_DYNAMIC_CLASS( CPunctCorrespPagePrefs, wxPanel )
 
 // event handler table
 BEGIN_EVENT_TABLE(CPunctCorrespPagePrefs, wxPanel)
-	EVT_INIT_DIALOG(CPunctCorrespPagePrefs::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CPunctCorrespPagePrefs::InitDialog)
 END_EVENT_TABLE()
 
 CPunctCorrespPagePrefs::CPunctCorrespPagePrefs()

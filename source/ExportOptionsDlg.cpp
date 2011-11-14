@@ -72,7 +72,7 @@ extern wxString embeddedWholeMkrs; // whm added 27Nov07
 
 // event handler table
 BEGIN_EVENT_TABLE(CExportOptionsDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CExportOptionsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CExportOptionsDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CExportOptionsDlg::OnCancel)
 	EVT_RADIOBUTTON(IDC_RADIO_EXPORT_SELECTED_MARKERS, CExportOptionsDlg::OnBnClickedRadioExportSelectedMarkers)
 	EVT_RADIOBUTTON(IDC_RADIO_EXPORT_ALL, CExportOptionsDlg::OnBnClickedRadioExportAll)
@@ -901,7 +901,7 @@ void CExportOptionsDlg::OnOK(wxCommandEvent& event)
 {
 	TransferFilterFlagValuesBetweenCheckListBoxAndArray(FromControls);
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

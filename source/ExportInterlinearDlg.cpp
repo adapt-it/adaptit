@@ -71,7 +71,7 @@ extern bool bExportToRTF;
 
 // event handler table
 BEGIN_EVENT_TABLE(CExportInterlinearDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CExportInterlinearDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CExportInterlinearDlg::InitDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_OUTPUT_ALL, CExportInterlinearDlg::OnRadioOutputAll)
 	EVT_RADIOBUTTON(IDC_RADIO_OUTPUT_CHAPTER_VERSE_RANGE, CExportInterlinearDlg::OnRadioOutputChapterVerseRange)
 	EVT_RADIOBUTTON(IDC_RADIO_OUTPUT_PRELIM, CExportInterlinearDlg::OnRadioOutputPrelim)
@@ -334,7 +334,7 @@ void CExportInterlinearDlg::OnOK(wxCommandEvent& event)
 {
 	TransferDataFromWindow(); // not needed here, but doesn't hurt
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

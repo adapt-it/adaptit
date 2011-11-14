@@ -50,7 +50,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CXMLErrorDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CXMLErrorDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CXMLErrorDlg::InitDialog)
 END_EVENT_TABLE()
 
 

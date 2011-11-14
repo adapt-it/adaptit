@@ -11,7 +11,7 @@
 /// indicate which of the predefined AI folders should be assigned for AI's inputs and outputs. When
 /// selected AI provides navigation protection for the user from navigating away from the assigned
 /// folders during the selection of inputs and generation of outputs.
-/// \derivation		The CAssignLocationsForInputsAndOutputs class is derived from wxDialog.
+/// \derivation		The CAssignLocationsForInputsAndOutputs class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in AssignLocationsForInputsAndOutputs.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -356,7 +356,7 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	// restore the oldPath back to "/Recent_File_List"
 	m_pApp->m_pConfig->SetPath(oldPath);
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 // other class methods

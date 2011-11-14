@@ -59,7 +59,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table for the CCCTabbedDialog class
 BEGIN_EVENT_TABLE(CCCTabbedDialog, AIModalDialog)
-	EVT_INIT_DIALOG(CCCTabbedDialog::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CCCTabbedDialog::InitDialog)
 	EVT_NOTEBOOK_PAGE_CHANGED(-1, CCCTabbedDialog::OnTabPageChanging) // value from EVT_NOTEBOOK_PAGE_CHANGING are inconsistent across platforms - better to use ..._CHANGED
 	EVT_BUTTON(IDC_BUTTON_BROWSE, CCCTabbedDialog::OnButtonBrowse)
 	EVT_LISTBOX(IDC_LIST_CCTABLES, CCCTabbedDialog::OnSelchangeListCctables)
@@ -1059,5 +1059,5 @@ void CCCTabbedDialog::OnOK(wxCommandEvent& event) // unused in CKBEditor
 		gpApp->m_tableFolderPath[ct] = m_folderPath[ct];
 		gpApp->m_bCCTableLoaded[ct] = m_bTableLoaded[ct];
 	}
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

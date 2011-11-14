@@ -190,7 +190,7 @@ void CHtmlFileViewer::OnOK(wxCommandEvent& event)
 	//}
 	//m_projectName = pListBox->GetString(nSel);
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

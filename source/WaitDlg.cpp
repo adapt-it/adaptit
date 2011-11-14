@@ -81,7 +81,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 
 // event handler table
 BEGIN_EVENT_TABLE(CWaitDlg, wxDialog)
-	EVT_INIT_DIALOG(CWaitDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CWaitDlg::InitDialog)
 END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////

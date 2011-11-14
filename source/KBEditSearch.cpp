@@ -690,7 +690,7 @@ void KBEditSearch::OnOK(wxCommandEvent& event)
 			}
 		}
 	}
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void KBEditSearch::OnBnClickedCancel(wxCommandEvent& event)

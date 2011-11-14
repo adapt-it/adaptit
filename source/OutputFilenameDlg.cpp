@@ -58,7 +58,7 @@ extern fontInfo NavFInfo;
 
 // event table
 BEGIN_EVENT_TABLE(COutputFilenameDlg, AIModalDialog)
-	EVT_INIT_DIALOG(COutputFilenameDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(COutputFilenameDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, COutputFilenameDlg::OnOK)
 END_EVENT_TABLE()
 
@@ -161,5 +161,5 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 		//message = message.Format(_("Names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
 		//wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION);	}
 	}
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

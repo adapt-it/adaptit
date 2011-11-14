@@ -74,7 +74,7 @@ bool bExportToRTF;
 
 // event handler table
 BEGIN_EVENT_TABLE(CExportSaveAsDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CExportSaveAsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CExportSaveAsDlg::InitDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_EXPORT_AS_SFM, CExportSaveAsDlg::OnBnClickedRadioExportAsSfm)
 	EVT_RADIOBUTTON(IDC_RADIO_EXPORT_AS_RTF, CExportSaveAsDlg::OnBnClickedRadioExportAsRtf)
 	EVT_BUTTON(IDC_BUTTON_EXPORT_FILTER_OPTIONS, CExportSaveAsDlg::OnBnClickedButtonExportFilterOptions)
@@ -226,7 +226,7 @@ void CExportSaveAsDlg::OnBnClickedButtonExportFilterOptions(wxCommandEvent& WXUN
 // if the dialog is modeless.
 void CExportSaveAsDlg::OnOK(wxCommandEvent& event) 
 {
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

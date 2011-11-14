@@ -21,7 +21,7 @@
 #endif
 
 // a helper class for CEmailReportDlg
-class CLogViewer : public wxDialog
+class CLogViewer : public AIModalDialog
 {
 public:
 	CLogViewer(wxWindow* parent); // constructor

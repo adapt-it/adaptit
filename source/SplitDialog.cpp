@@ -75,7 +75,7 @@ WX_DEFINE_LIST(ChList);
 
 // event handler table
 BEGIN_EVENT_TABLE(CSplitDialog, AIModalDialog)
-	EVT_INIT_DIALOG(CSplitDialog::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CSplitDialog::InitDialog)
 	EVT_BUTTON(wxID_OK, CSplitDialog::OnOK)
 	EVT_BUTTON(IDC_BUTTON_NEXT_CHAPTER, CSplitDialog::OnBnClickedButtonNextChapter)
 	EVT_BUTTON(IDC_BUTTON_SPLIT_NOW, CSplitDialog::OnBnClickedButtonSplitNow)

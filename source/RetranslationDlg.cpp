@@ -50,7 +50,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CRetranslationDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CRetranslationDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CRetranslationDlg::InitDialog)
 	EVT_BUTTON(IDC_COPY_RETRANSLATION_TO_CLIPBOARD, CRetranslationDlg::OnCopyRetranslationToClipboard)
 	EVT_BUTTON(IDC_BUTTON_TOGGLE, CRetranslationDlg::OnButtonToggleContext)
 END_EVENT_TABLE()

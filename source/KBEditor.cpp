@@ -86,7 +86,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
-	EVT_INIT_DIALOG(CKBEditor::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CKBEditor::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CKBEditor::OnCancel)
 	EVT_BUTTON(wxID_OK, CKBEditor::OnOK)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_KB_EDITOR_NOTEBOOK, CKBEditor::OnTabSelChange)
@@ -1609,7 +1609,7 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
 	if (m_bRemindUserToDoAConsistencyCheck)

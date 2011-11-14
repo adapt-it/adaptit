@@ -55,6 +55,7 @@
 #include "CaseEquivPage.h"
 #include "UsfmFilterPage.h"
 #include "DocPage.h"
+#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
 #include "Pile.h"
@@ -125,7 +126,7 @@ IMPLEMENT_DYNAMIC_CLASS( CDocPage, wxWizardPage )
 
 // event handler table
 BEGIN_EVENT_TABLE(CDocPage, wxWizardPage)
-	EVT_INIT_DIALOG(CDocPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CDocPage::InitDialog)
     EVT_WIZARD_PAGE_CHANGING(-1, CDocPage::OnWizardPageChanging)
     EVT_WIZARD_CANCEL(-1, CDocPage::OnWizardCancel)
 	EVT_LISTBOX_DCLICK(IDC_LIST_NEWDOC_AND_EXISTINGDOC, CDocPage::OnCallWizardFinish)// double click also activates OnWizardFinish
@@ -202,11 +203,6 @@ bool CDocPage::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
-	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
-	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
-	// scroll if necessary so the user can still access the whole wxWizardPage. 
-	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 

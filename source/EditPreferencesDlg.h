@@ -3,7 +3,7 @@
 /// \file			EditPreferencesDlg.h
 /// \author			Bill Martin
 /// \date_created	13 August 2004
-/// \date_revised	15 January 2008
+/// \date_revised	13 November 2011
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the definition file for the CEditPreferencesDlg class. 
@@ -13,7 +13,7 @@
 /// maintained by wxDesigner. The notebook contains up to 8 tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", and
 /// "USFM and Filtering" depending on the current user workflow profile selected.
-/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
+/// \derivation		The CEditPreferencesDlg class is derived from wxScrollingPropertySheetDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef EditPreferencesDlg_h
@@ -33,6 +33,7 @@ class CViewPage;
 class CAutoSavingPage;
 class CUnitsPage;
 class CUsfmFilterPagePrefs;
+class wxScrollingPropertySheetDialog;
 
 /// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
 /// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
@@ -40,10 +41,10 @@ class CUsfmFilterPagePrefs;
 /// maintained by wxDesigner. The notebook contains up to 8 tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
 /// "USFM and Filtering" depending on the current user workflow profile selected.
-/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
-class CEditPreferencesDlg : public wxPropertySheetDialog
+/// \derivation		The CEditPreferencesDlg class is derived from wxScrollingPropertySheetDialog.
+class CEditPreferencesDlg : public wxScrollingPropertySheetDialog
 {
-	DECLARE_DYNAMIC_CLASS(CEditPreferencesDlg)
+	//DECLARE_DYNAMIC_CLASS(CEditPreferencesDlg)
 public:
 	CEditPreferencesDlg();
 	CEditPreferencesDlg(

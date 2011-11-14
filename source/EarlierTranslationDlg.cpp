@@ -79,7 +79,7 @@ extern bool gbVerticalEditInProgress;
 
 // event handler table
 BEGIN_EVENT_TABLE(CEarlierTranslationDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CEarlierTranslationDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CEarlierTranslationDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CEarlierTranslationDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CEarlierTranslationDlg::OnCancel)
 	EVT_CLOSE(CEarlierTranslationDlg::OnClose)
@@ -891,6 +891,6 @@ void CEarlierTranslationDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	Destroy();
 	//delete gpApp->m_pEarlierTransDlg; // BEW added 19Nov05, to prevent memory leak // No, this is harmful in wx!!!
 	gpApp->m_pEarlierTransDlg = NULL;
-	//wxDialog::OnOK(event); // we are running modeless so don't call the base class method
+	//AIModalDialog::OnOK(event); // we are running modeless so don't call the base class method
 }
 

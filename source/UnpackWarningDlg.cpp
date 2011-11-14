@@ -46,7 +46,7 @@
 
 // event handler table
 BEGIN_EVENT_TABLE(CUnpackWarningDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CUnpackWarningDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CUnpackWarningDlg::InitDialog)
 END_EVENT_TABLE()
 
 

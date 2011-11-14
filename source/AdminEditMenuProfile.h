@@ -23,7 +23,7 @@
 /// The selection is saved in the basic and project config files, and the 
 /// profile information is saved in an external control file under the
 /// name AI_UserProfiles.xml. 
-/// \derivation		The CAdminEditMenuProfile class is derived from wxDialog.
+/// \derivation		The CAdminEditMenuProfile class is derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef AdminEditMenuProfile_h
@@ -34,7 +34,7 @@
     #pragma interface "AdminEditMenuProfile.h"
 #endif
 
-class CAdminEditMenuProfile : public wxDialog // use wxDialog instead of AIModalDialog because we use wxUpdateUIEvent
+class CAdminEditMenuProfile : public wxScrollingDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
 {
 public:
 	CAdminEditMenuProfile(wxWindow* parent); // constructor

@@ -47,7 +47,7 @@
 
 // event handler table
 BEGIN_EVENT_TABLE(CWelcome, AIModalDialog)
-	EVT_INIT_DIALOG(CWelcome::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CWelcome::InitDialog)
 	EVT_CHECKBOX(IDC_CHECK_NOLONGER_SHOW, CWelcome::OnCheckNolongerShow)
 END_EVENT_TABLE()
 
@@ -119,7 +119,7 @@ void CWelcome::OnCheckNolongerShow(wxCommandEvent& WXUNUSED(event))
 // if the dialog is modeless.
 void CWelcome::OnOK(wxCommandEvent& event) 
 {
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

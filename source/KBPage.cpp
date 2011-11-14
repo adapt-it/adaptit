@@ -65,7 +65,7 @@ IMPLEMENT_DYNAMIC_CLASS( CKBPage, wxPanel )
 
 // event handler table
 BEGIN_EVENT_TABLE(CKBPage, wxPanel)
-	EVT_INIT_DIALOG(CKBPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CKBPage::InitDialog)
 	EVT_CHECKBOX(IDC_CHECK_KB_BACKUP, CKBPage::OnCheckKbBackup)
 	EVT_CHECKBOX(IDC_CHECK_BAKUP_DOC, CKBPage::OnCheckBakupDoc)
 	EVT_RADIOBUTTON(IDC_RADIO_ADAPT_BEFORE_GLOSS, CKBPage::OnBnClickedRadioAdaptBeforeGloss)

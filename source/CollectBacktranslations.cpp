@@ -49,7 +49,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CCollectBacktranslations, AIModalDialog)
-	EVT_INIT_DIALOG(CCollectBacktranslations::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CCollectBacktranslations::InitDialog)
 	EVT_BUTTON(wxID_OK, CCollectBacktranslations::OnOK)
 END_EVENT_TABLE()
 
@@ -109,7 +109,7 @@ void CCollectBacktranslations::OnOK(wxCommandEvent& event)
 {
 	wxRadioButton* pAdaptationsBtn = (wxRadioButton*)FindWindowById(IDC_RADIO_COLLECT_ADAPTATIONS);
 	m_bUseAdaptations = (bool)pAdaptationsBtn->GetValue();
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

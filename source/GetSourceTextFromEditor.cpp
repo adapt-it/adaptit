@@ -9,7 +9,7 @@
 /// \description	This is the implementation file for the CGetSourceTextFromEditorDlg class. 
 /// The CGetSourceTextFromEditorDlg class represents a dialog in which a user can obtain a source text
 /// for adaptation from an external editor such as Paratext or Bibledit. 
-/// \derivation		The CGetSourceTextFromEditorDlg class is derived from wxDialog.
+/// \derivation		The CGetSourceTextFromEditorDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in GetSourceTextFromEditorDlg.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -67,7 +67,7 @@ extern CAdapt_ItApp* gpApp;
 
 // event handler table
 BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CGetSourceTextFromEditorDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CGetSourceTextFromEditorDlg::InitDialog)
 	EVT_COMBOBOX(ID_COMBO_SOURCE_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectSourceProject)
 	EVT_COMBOBOX(ID_COMBO_DESTINATION_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectTargetProject)
 	EVT_COMBOBOX(ID_COMBO_FREE_TRANS_PROJECT_NAME, CGetSourceTextFromEditorDlg::OnComboBoxSelectFreeTransProject)
@@ -1772,7 +1772,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
     // pre-edit wxString on the app. It won't ever be put in the _FREETRANS_OUTPUTS folder.
     // Only non-collaboration free translation exports will go there.
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

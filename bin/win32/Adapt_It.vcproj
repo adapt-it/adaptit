@@ -82,7 +82,7 @@
 				Version="6.0.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -181,7 +181,7 @@
 				Version="6.0.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile=".\Release/Adapt_It.pdb"
 				SubSystem="2"
@@ -265,7 +265,7 @@
 				Version="6.0.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -352,7 +352,7 @@
 				Version="6.0.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -764,6 +764,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\RetranslationDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\scrollingdialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\scrollingwizard.cpp"
 				>
 			</File>
 			<File
@@ -1221,6 +1229,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\RetranslationDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\scrollingdialog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\scrollingwizard.h"
 				>
 			</File>
 			<File

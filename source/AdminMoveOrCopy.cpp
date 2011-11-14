@@ -483,7 +483,7 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 // if the dialog is modeless.
 void AdminMoveOrCopy::OnOK(wxCommandEvent& event) 
 {
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void AdminMoveOrCopy::SetupLeftList(wxString& folderPath)
