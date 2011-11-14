@@ -528,6 +528,10 @@
 		<Unit filename="..\..\source\helpers.h" />
 		<Unit filename="..\..\source\md5.cpp" />
 		<Unit filename="..\..\source\md5.h" />
+		<Unit filename="..\..\source\scrollingdialog.cpp" />
+		<Unit filename="..\..\source\scrollingdialog.h" />
+		<Unit filename="..\..\source\scrollingwizard.cpp" />
+		<Unit filename="..\..\source\scrollingwizard.h" />
 		<Unit filename="..\..\source\tellenc.cpp" />
 		<Extensions>
 			<code_completion>
