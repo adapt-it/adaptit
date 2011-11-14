@@ -86,7 +86,7 @@ IMPLEMENT_DYNAMIC_CLASS( CLanguagesPage, wxWizardPage )
 
 // event handler table
 BEGIN_EVENT_TABLE(CLanguagesPage, wxWizardPage)
-	EVT_INIT_DIALOG(CLanguagesPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CLanguagesPage::InitDialog)
 	EVT_TEXT(IDC_SOURCE_LANGUAGE,CLanguagesPage::OnEditSourceLanguageName)
 	EVT_TEXT(IDC_TARGET_LANGUAGE,CLanguagesPage::OnEditTargetLanguageName)
 	EVT_WIZARD_PAGE_CHANGING(-1, CLanguagesPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack

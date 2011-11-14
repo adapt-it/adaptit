@@ -47,7 +47,7 @@ extern bool gbDoingSplitOrJoin;
 
 // event handler table
 BEGIN_EVENT_TABLE(CJoinDialog, AIModalDialog)
-	EVT_INIT_DIALOG(CJoinDialog::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CJoinDialog::InitDialog)
 	EVT_BUTTON(wxID_OK, CJoinDialog::OnOK)
 	EVT_BUTTON(ID_JOIN_NOW, CJoinDialog::OnBnClickedJoinNow)
 	EVT_BUTTON(IDC_BUTTON_MOVE_ALL_LEFT, CJoinDialog::OnBnClickedButtonMoveAllLeft)
@@ -172,7 +172,7 @@ void CJoinDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 // if the dialog is modeless.
 void CJoinDialog::OnOK(wxCommandEvent& event) 
 {
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

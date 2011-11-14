@@ -78,7 +78,7 @@ void CEncodingTestBox::OnChar(wxKeyEvent& event)
 
 // event handler table
 BEGIN_EVENT_TABLE(CSetEncodingDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CSetEncodingDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CSetEncodingDlg::InitDialog)
 	EVT_BUTTON(ID_BUTTON_CHART_FONT_SIZE_INCREASE, CSetEncodingDlg::OnBtnChartFontSizeIncrease)
 	EVT_BUTTON(ID_BUTTON_CHART_FONT_SIZE_DECREASE, CSetEncodingDlg::OnBtnChartFontSizeDecrease)
 	EVT_LISTBOX(ID_LISTBOX_POSSIBLE_ENCODINGS, CSetEncodingDlg::OnListEncodingsChanged)
@@ -580,7 +580,7 @@ void CSetEncodingDlg::OnOK(wxCommandEvent& event)
 {
 	// Nothing special to be done here. The fontPage checks for changes and
 	// effects there if user presses OK button or Next in wizard
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void CSetEncodingDlg::DoResizeFont(int diff)

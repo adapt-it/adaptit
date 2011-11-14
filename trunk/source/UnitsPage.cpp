@@ -51,7 +51,7 @@ IMPLEMENT_DYNAMIC_CLASS( CUnitsPage, wxPanel )
 
 // event handler table
 BEGIN_EVENT_TABLE(CUnitsPage, wxPanel)
-	EVT_INIT_DIALOG(CUnitsPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CUnitsPage::InitDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_INCHES, CUnitsPage::OnRadioUseInches)
 	EVT_RADIOBUTTON(IDC_RADIO_CM, CUnitsPage::OnRadioUseCentimeters)
 END_EVENT_TABLE()

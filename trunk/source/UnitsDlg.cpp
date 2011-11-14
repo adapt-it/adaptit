@@ -48,7 +48,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CUnitsDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CUnitsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CUnitsDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CUnitsDlg::OnOK)
 	EVT_RADIOBUTTON(IDC_RADIO_INCHES, CUnitsDlg::OnRadioUseInches)
 	EVT_RADIOBUTTON(IDC_RADIO_CM, CUnitsDlg::OnRadioUseCentimeters)
@@ -137,7 +137,7 @@ void CUnitsDlg::OnOK(wxCommandEvent& event)
 	// Update values on the App
 	pApp->m_bIsInches = tempUseInches;
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

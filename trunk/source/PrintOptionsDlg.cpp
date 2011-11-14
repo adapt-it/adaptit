@@ -11,7 +11,7 @@
 /// of pages, range of chapter/verse and specify how to handle margin elements 
 /// such as section headings and footers at print time. This dialog pops up
 /// before the standard print dialog when the user selects File | Print.
-/// \derivation		The CPrintOptionsDlg class is derived from wxDialog.
+/// \derivation		The CPrintOptionsDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in PrintOptionsDlg.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -88,7 +88,7 @@ extern CAdapt_ItApp* gpApp;
 
 // event handler table
 BEGIN_EVENT_TABLE(CPrintOptionsDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CPrintOptionsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CPrintOptionsDlg::InitDialog)
 	EVT_RADIOBUTTON(ID_RADIO_ALL, CPrintOptionsDlg::OnAllPagesBtn)
 	EVT_RADIOBUTTON(ID_RADIO_SELECTION, CPrintOptionsDlg::OnSelectBtn)
 	EVT_RADIOBUTTON(IDC_RADIO_PAGES, CPrintOptionsDlg::OnPagesBtn)
@@ -604,7 +604,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	*/
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

@@ -571,7 +571,7 @@ IMPLEMENT_DYNAMIC_CLASS( CFontPageWiz, wxWizardPage )
 
 // event handler table
 BEGIN_EVENT_TABLE(CFontPageWiz, wxWizardPage)
-	EVT_INIT_DIALOG(CFontPageWiz::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CFontPageWiz::InitDialog)
     EVT_WIZARD_PAGE_CHANGING(-1, CFontPageWiz::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
     EVT_WIZARD_CANCEL(-1, CFontPageWiz::OnWizardCancel)
 
@@ -609,11 +609,6 @@ bool CFontPageWiz::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent ); // CFontPageWiz is based on wxWizardPage
 	CreateControls();
-	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
-	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
-	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
-	// scroll if necessary so the user can still access the whole wxWizardPage. 
-	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 

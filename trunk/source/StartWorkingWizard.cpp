@@ -3,12 +3,12 @@
 /// \file			StartWorkingWizard.cpp
 /// \author			Bill Martin
 /// \date_created	17 November 2006
-/// \date_revised	15 January 2008
+/// \date_revised	13 November 2011
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CStartWorkingWizard class. 
 /// The CStartWorkingWizard class implements Adapt It's Start Working Wizard.
-/// \derivation		The CStartWorkingWizard class is derived from wxWizard.
+/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in StartWorkingWizard.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -41,6 +41,7 @@
 #include <wx/wizard.h> // for wxWizard
 #include <wx/display.h> // for wxDisplay
 #include "Adapt_It.h"
+#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
 #include "StartWorkingWizard.h"
 
 #include "FontPage.h"
@@ -82,12 +83,12 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 extern CStartWorkingWizard* pStartWorkingWizard;
 
 // event handler table
-BEGIN_EVENT_TABLE(CStartWorkingWizard, wxWizard)
+BEGIN_EVENT_TABLE(CStartWorkingWizard, wxScrollingWizard)
 END_EVENT_TABLE()
 
 
 CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
-	: wxWizard(parent, wxID_ANY, _("Start Working"), wxNullBitmap,
+	: wxScrollingWizard(parent, wxID_ANY, _("Start Working"), wxNullBitmap,
 				wxDefaultPosition, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// The Start Working Wizard is not generated in wxDesigner.
@@ -153,6 +154,9 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	//pUsfmPageWiz->InitDialog(ievent);
 	//pFilterPageWiz->InitDialog(ievent);
 
+	/*
+	// This code below is now unneeded with the use of the special wxScrolledWizard class.
+	// 
 	// whm added 5Nov11. Some sanity code to ensure a minimum size wizard
 	wxSize screenSize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
 	
@@ -195,7 +199,6 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 		wxSize wizardSize = this->GetSize();
 		wxSize wizardClientSize = this->GetClientSize();
 		int wizFrameHeight = abs(wizardSize.GetY() - wizardClientSize.GetY());
-		//int wizFrameWidth = abs(wizardSize.GetX() - wizardClientSize.GetX());
 		if (neededSize.GetHeight() + wizFrameHeight > displaySize.GetHeight())
 		{
 			// We fit the prefs to the neededSize but it will be too big to fit in the display
@@ -213,6 +216,7 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 
 	pWizardPageSizer->Layout();
 
+	*/
 	// Note: Since all the above wizard pages have wizard as parent window
 	// they will be destroyed automatically when wizard is destroyed below.
 }

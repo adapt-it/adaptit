@@ -80,7 +80,8 @@
 #include "CollabUtilities.h"
 #include "BString.h"
 #include "XML.h"
-#include "EditPreferencesDlg.h"
+#include "scrollingdialog.h" // whm added 13Nov11 for wxScrollingPropertySheetDialog - needs to be included here before EditPreferencesDlg.h
+#include "EditPreferencesDlg.h" 
 #include "RefString.h"
 #include "RefStringMetadata.h"
 #include "KB.h"
@@ -5747,7 +5748,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
     // - as does the MFC version.
 
 	// Put up the "Edit Preferences" dialog
-    // wx note: Since CEditPreferencesDlg is based on wxPropertySheetDialog rather than on
+    // wx note: Since CEditPreferencesDlg is based on wxScrollingPropertySheetDialog rather than on
     // wxDialog, it does not get its idle event processing turned off while it is in modal
     // state, therefore we turn off idle processing here manually just before the ShowModal
     // call; and turn it back on afterwards (below).

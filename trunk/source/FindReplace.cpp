@@ -13,7 +13,7 @@
 /// user to specify a replacement string.
 /// Both CFindDlg and CReplaceDlg are created as a Modeless dialogs. They are created on 
 /// the heap and are displayed with Show(), not ShowModal().
-/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxDialog.
+/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 // BEW 26Mar10, these classes are updated for support of doc version 5
@@ -90,11 +90,11 @@ bool	gbJustCancelled = FALSE;
 
 // the CFindDlg class //////////////////////////////////////////////////////////////////////
 
-IMPLEMENT_DYNAMIC_CLASS( CFindDlg, wxDialog )
+IMPLEMENT_DYNAMIC_CLASS( CFindDlg, wxScrollingDialog )
 
 // event handler table
-BEGIN_EVENT_TABLE(CFindDlg, wxDialog)
-	EVT_INIT_DIALOG(CFindDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+BEGIN_EVENT_TABLE(CFindDlg, wxScrollingDialog)
+	EVT_INIT_DIALOG(CFindDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CFindDlg::OnCancel)	
 	
 	EVT_COMBOBOX(IDC_COMBO_SFM, CFindDlg::OnSelchangeComboSfm)
@@ -121,7 +121,7 @@ CFindDlg::~CFindDlg()
 
 // BEW 26Mar10, no changes needed for support of doc version 5
 CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
-	: wxDialog(parent, -1, _("Find"),
+	: wxScrollingDialog(parent, -1, _("Find"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -1009,12 +1009,11 @@ void CFindDlg::OnRadioSrcAndTgt(wxCommandEvent& WXUNUSED(event))
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CReplaceDlg !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-IMPLEMENT_DYNAMIC_CLASS( CReplaceDlg, wxDialog )
+IMPLEMENT_DYNAMIC_CLASS( CReplaceDlg, wxScrollingDialog )
 
 // event handler table
-BEGIN_EVENT_TABLE(CReplaceDlg, wxDialog)
-	EVT_INIT_DIALOG(CReplaceDlg::InitDialog) // not strictly necessary for 
-											 // dialogs based on wxDialog
+BEGIN_EVENT_TABLE(CReplaceDlg, wxScrollingDialog)
+	EVT_INIT_DIALOG(CReplaceDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CReplaceDlg::OnCancel)	
 	
 	EVT_BUTTON(IDC_REPLACE, CReplaceDlg::OnReplaceButton)
@@ -1036,7 +1035,7 @@ CReplaceDlg::~CReplaceDlg()
 }
 
 CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
-	: wxDialog(parent, -1, _("Find and Replace"),
+	: wxScrollingDialog(parent, -1, _("Find and Replace"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     // This dialog function below is generated in wxDesigner, and defines the controls and

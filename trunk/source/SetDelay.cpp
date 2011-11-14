@@ -50,7 +50,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CSetDelay, AIModalDialog)
-	EVT_INIT_DIALOG(CSetDelay::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CSetDelay::InitDialog)
 END_EVENT_TABLE()
 
 
@@ -103,7 +103,7 @@ void CSetDelay::OnOK(wxCommandEvent& event)
 	// update the variable m_nDelay to user-set value
 	TransferDataFromWindow();
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

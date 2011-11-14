@@ -11,7 +11,7 @@
 /// collaborate with an external editor such as Paratext or Bibledit. Once set up Adapt It will use projects
 /// under the control of the external editor; obtaining its input (source) texts from one or more of the
 /// editor's projects, and transferring its translation (target) texts to one of the editor's projects.
-/// \derivation		The CSetupEditorCollaboration class is derived from wxDialog.
+/// \derivation		The CSetupEditorCollaboration class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in SetupEditorCollaboration.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -55,7 +55,7 @@ extern const wxString createNewProjectInstead;
 extern wxSizer *pNewNamesSizer2; // created in wxDesigner's SetupEditorCollaborationFunc()
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
-	EVT_INIT_DIALOG(CSetupEditorCollaboration::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CSetupEditorCollaboration::InitDialog)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListSourceProj)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListTargetProj)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj)
@@ -1363,7 +1363,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		message += m_pApp->m_collaborationEditor;
 		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

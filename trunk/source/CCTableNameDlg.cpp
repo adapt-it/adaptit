@@ -48,7 +48,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CCCTableNameDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CCCTableNameDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CCCTableNameDlg::InitDialog)
 END_EVENT_TABLE()
 
 CCCTableNameDlg::CCCTableNameDlg(wxWindow* parent) // dialog constructor

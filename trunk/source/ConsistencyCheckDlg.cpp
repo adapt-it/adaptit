@@ -73,7 +73,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CConsistencyCheckDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CConsistencyCheckDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CConsistencyCheckDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CConsistencyCheckDlg::OnOK)
 	EVT_RADIOBUTTON(IDC_RADIO_ACCEPT_HERE, CConsistencyCheckDlg::OnRadioAcceptHere)
 	EVT_RADIOBUTTON(IDC_RADIO_CHANGE_INSTEAD, CConsistencyCheckDlg::OnRadioChangeInstead)

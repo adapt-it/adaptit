@@ -49,7 +49,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CTransformToGlossesDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CTransformToGlossesDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CTransformToGlossesDlg::InitDialog)
 END_EVENT_TABLE()
 
 
@@ -106,6 +106,6 @@ void CTransformToGlossesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 // if the dialog is modeless.
 void CTransformToGlossesDlg::OnOK(wxCommandEvent& event) 
 {
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

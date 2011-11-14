@@ -56,7 +56,7 @@ extern CAdapt_ItApp* gpApp;
 
 // event handler table
 BEGIN_EVENT_TABLE(CMoveDialog, AIModalDialog)
-	EVT_INIT_DIALOG(CMoveDialog::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CMoveDialog::InitDialog)
 	EVT_BUTTON(IDC_MOVE_NOW, CMoveDialog::OnBnClickedMoveNow)
 	EVT_BUTTON(IDC_BUTTON_RENAME_DOC, CMoveDialog::OnBnClickedButtonRenameDoc)
 	EVT_BUTTON(IDC_VIEW_OTHER, CMoveDialog::OnBnClickedViewOther)
@@ -118,7 +118,7 @@ void CMoveDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 // if the dialog is modeless.
 void CMoveDialog::OnOK(wxCommandEvent& event) 
 {
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

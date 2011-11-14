@@ -47,7 +47,7 @@
 
 // event handler table
 BEGIN_EVENT_TABLE(CWhichBook, AIModalDialog)
-	EVT_INIT_DIALOG(CWhichBook::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CWhichBook::InitDialog)
 	EVT_COMBOBOX(IDC_COMBO_CHOOSE_BOOK, CWhichBook::OnSelchangeChooseBook)
 	EVT_RADIOBUTTON(IDC_RADIO_DIV1, CWhichBook::OnRadioDivButton1)
 	EVT_RADIOBUTTON(IDC_RADIO_DIV2, CWhichBook::OnRadioDivButton2)
@@ -416,5 +416,5 @@ void CWhichBook::OnOK(wxCommandEvent& event)
 	// update the status bar
 	gpApp->RefreshStatusBarInfo();
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event);
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event);
 }

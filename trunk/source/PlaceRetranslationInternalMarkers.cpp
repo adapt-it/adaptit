@@ -47,7 +47,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CPlaceRetranslationInternalMarkers, AIModalDialog)
-	EVT_INIT_DIALOG(CPlaceRetranslationInternalMarkers::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CPlaceRetranslationInternalMarkers::InitDialog)
 	EVT_BUTTON(wxID_OK, CPlaceRetranslationInternalMarkers::OnOK)
 	EVT_BUTTON(IDC_BUTTON_PLACE, CPlaceRetranslationInternalMarkers::OnButtonPlace)
 END_EVENT_TABLE()

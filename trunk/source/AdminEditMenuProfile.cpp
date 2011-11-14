@@ -23,7 +23,7 @@
 /// The selection is saved in the basic and project config files, and the 
 /// profile information is saved in an external control file under the
 /// name AI_UserProfiles.xml. 
-/// \derivation		The CAdminEditMenuProfile class is derived from wxDialog.
+/// \derivation		The CAdminEditMenuProfile class is derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in AdminEditMenuProfile.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -64,7 +64,7 @@
 extern CAdapt_ItApp* m_pApp;
 
 // event handler table
-BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxDialog)
+BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxScrollingDialog)
 	EVT_INIT_DIALOG(CAdminEditMenuProfile::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_CANCEL, CAdminEditMenuProfile::OnCancel)
 	EVT_BUTTON(wxID_OK, CAdminEditMenuProfile::OnOK)
@@ -81,10 +81,10 @@ BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxDialog)
 END_EVENT_TABLE()
 
 CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constructor
-	: wxDialog(parent, -1, _("User Workflow Profiles"),
+	: wxScrollingDialog(parent, -1, _("User Workflow Profiles"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	// Note: Since this dialog is derived from wxDialog rather than AIModalDialog we need to turn
+	// Note: Since this dialog is derived from wxScrollingDialog rather than AIModalDialog we need to turn
 	// off update idle handling here early in the constructor until initialization is done. We 
 	// turn it back on at the end of InitDialog().
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
@@ -1432,7 +1432,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		CopyUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
 	}
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 	
 // This update ui handler insures that the "OK" button changes to "Save Changes"

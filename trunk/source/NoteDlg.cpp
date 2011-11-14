@@ -11,7 +11,7 @@
 /// and navigating through Adapt It notes (those prefixed by \note).
 /// The CNoteDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CNoteDlg class is derived from wxDialog.
+/// \derivation		The CNoteDlg class is derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -62,8 +62,8 @@ int    gnEndOffset = -1; // ending offset to the matched note substring
 wxString gSearchStr; // a place to store the search string so it can be restored when a match was made in searching
 
 // event handler table
-BEGIN_EVENT_TABLE(CNoteDlg, wxDialog)
-	EVT_INIT_DIALOG(CNoteDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+BEGIN_EVENT_TABLE(CNoteDlg, wxScrollingDialog)
+	EVT_INIT_DIALOG(CNoteDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CNoteDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CNoteDlg::OnCancel)
 	EVT_BUTTON(IDC_NEXT_BTN, CNoteDlg::OnBnClickedNextBtn)
@@ -78,7 +78,7 @@ END_EVENT_TABLE()
 
 
 CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
-	: wxDialog(parent, -1, _("Note"),
+	: wxScrollingDialog(parent, -1, _("Note"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -390,7 +390,7 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pLayout->Redraw(); // needed in order to get rid of the selection
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
-	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
+	//AIModalDialog::OnOK(event); // we are running modeless so don't call the base method
 }
 
 

@@ -59,7 +59,7 @@ extern const wxChar *FUNC_NAME_EC_CONVERTER_DESCRIPTION_AW;
 
 // event handler table
 BEGIN_EVENT_TABLE(CSilConverterSelectDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CSilConverterSelectDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CSilConverterSelectDlg::InitDialog)
     EVT_BUTTON(IDC_BTN_SELECT_SILCONVERTER, CSilConverterSelectDlg::OnBnClickedBtnSelectSilconverter)
     EVT_BUTTON(IDC_BTN_CLEAR_SILCONVERTER, CSilConverterSelectDlg::OnBnClickedBtnClearSilconverter)
 END_EVENT_TABLE()
@@ -227,7 +227,7 @@ void CSilConverterSelectDlg::OnBnClickedBtnClearSilconverter(wxCommandEvent& WXU
 void CSilConverterSelectDlg::OnOK(wxCommandEvent& event) 
 {
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

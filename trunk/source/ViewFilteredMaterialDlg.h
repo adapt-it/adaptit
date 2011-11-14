@@ -12,7 +12,7 @@
 /// (green) wedge signaling the presence of filtered information hidden within the document.
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CViewFilteredMaterialDlg class is derived from wxDialog.
+/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef ViewFilteredMaterialDlg_h
@@ -28,8 +28,8 @@
 /// (green) wedge signaling the presence of filtered information hidden within the document.
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CViewFilteredMaterialDlg class is derived from wxDialog.
-class CViewFilteredMaterialDlg : public wxDialog
+/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog.
+class CViewFilteredMaterialDlg : public wxScrollingDialog
 {
 public:
 	CViewFilteredMaterialDlg(wxWindow* parent); // constructor

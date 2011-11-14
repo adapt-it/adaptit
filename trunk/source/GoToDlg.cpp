@@ -48,7 +48,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CGoToDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CGoToDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CGoToDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CGoToDlg::OnOK)
 	EVT_SET_FOCUS(CGoToDlg::OnSetFocus)// This focus event handler doesn't appear to be triggered for some reason
 END_EVENT_TABLE()
@@ -128,6 +128,6 @@ void CGoToDlg::OnOK(wxCommandEvent& event)
 	m_chapterVerse = str1 + _T(":") + str2;
 	m_verse = str2;
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

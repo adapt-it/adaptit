@@ -16,7 +16,7 @@
 /// processing while the dialog is being shown.
 /// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support
 ///                 for the document/view framework.
-/// The AIModalDialog class is derived from wxDialog.
+/// The AIModalDialog class is derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
@@ -151,6 +151,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define CF_CLIPBOARDFORMAT CF_TEXT
 #endif
 
+#include "scrollingdialog.h"
 #include "PhraseBox.h"
 #include "FindReplace.h"
 #include "Retranslation.h"
@@ -1635,8 +1636,8 @@ typedef struct
 /// The AIModalDialog class is used as the base class for most of Adapt It's modal dialogs.
 /// Its primary purpose is to turn off background idle processing while the dialog is being
 /// displayed.
-/// \derivation The AIModalDialog is derived from wxDialog.
-class AIModalDialog : public wxDialog
+/// \derivation The AIModalDialog is derived from wxScrollingDialog.
+class AIModalDialog : public wxScrollingDialog
 {
 public:
     AIModalDialog(wxWindow *parent, const wxWindowID id, const wxString& title,
@@ -1644,9 +1645,9 @@ public:
             const wxSize& size = wxDefaultSize,
             const long style = wxDEFAULT_DIALOG_STYLE);
 	~AIModalDialog(); // destructor calls wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL)
-					  // before calling wxDialog::~wxDialog()
+					  // before calling wxScrollingDialog::~wxScrollingDialog()
 	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before
-					 // calling wxDialog::ShowModal()
+					 // calling wxScrollingDialog::ShowModal()
 };
 
 // whm 12Oct10 added this class. It didn't seem worth the bother to put it into
@@ -3317,7 +3318,7 @@ public:
 
 	// miscellaneous (this group in alphabetical order mostly)
 	void	ChangeUILanguage();
-	bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
+	//bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
 	wxString GetDefaultPathForLocalizationSubDirectories();
 	wxString GetDefaultPathForXMLControlFiles();
 	wxString GetDefaultPathForHelpFiles();

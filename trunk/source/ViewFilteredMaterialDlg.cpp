@@ -12,7 +12,7 @@
 /// (green) wedge signaling the presence of filtered information hidden within the document.
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CViewFilteredMaterialDlg class is derived from wxDialog.
+/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog.
 /// 
 /// BEW 22Mar10, updated for support of doc version 5 (some changes needed)
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ extern bool gbFreeTranslationJustRemovedInVFMdialog;
 wxFontEncoding editBoxEncoding; // stores an enum for which of the encodings is the current one
 
 // event handler table
-BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxDialog)
+BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxScrollingDialog)
 	EVT_INIT_DIALOG(CViewFilteredMaterialDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, CViewFilteredMaterialDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CViewFilteredMaterialDlg::OnCancel)
@@ -79,7 +79,7 @@ END_EVENT_TABLE()
 
 
 CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog constructor
-	: wxDialog(parent, -1, _("View Filtered Material"),
+	: wxScrollingDialog(parent, -1, _("View Filtered Material"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -690,7 +690,7 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
-	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
+	//AIModalDialog::OnOK(event); // we are running modeless so don't call the base method
 }
 
 

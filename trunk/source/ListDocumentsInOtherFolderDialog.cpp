@@ -48,7 +48,7 @@ extern CAdapt_ItApp* gpApp;
 
 // event handler table
 BEGIN_EVENT_TABLE(CListDocumentsInOtherFolderDialog, AIModalDialog)
-	EVT_INIT_DIALOG(CListDocumentsInOtherFolderDialog::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CListDocumentsInOtherFolderDialog::InitDialog)
 END_EVENT_TABLE()
 
 CListDocumentsInOtherFolderDialog::CListDocumentsInOtherFolderDialog(wxWindow* parent) // dialog constructor
@@ -127,7 +127,7 @@ void CListDocumentsInOtherFolderDialog::InitDialog(wxInitDialogEvent& WXUNUSED(e
 void CListDocumentsInOtherFolderDialog::OnOK(wxCommandEvent& event) 
 {
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

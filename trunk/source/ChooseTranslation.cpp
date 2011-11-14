@@ -48,7 +48,7 @@
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseTranslation, AIModalDialog)
-EVT_INIT_DIALOG(CChooseTranslation::InitDialog)// not strictly necessary for dialogs based on wxDialog
+EVT_INIT_DIALOG(CChooseTranslation::InitDialog)
 	EVT_BUTTON(wxID_OK, CChooseTranslation::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CChooseTranslation::OnCancel)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CChooseTranslation::OnButtonMoveUp)
@@ -1035,7 +1035,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	}
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

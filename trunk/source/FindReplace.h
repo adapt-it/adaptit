@@ -13,7 +13,7 @@
 /// user to specify a replacement string.
 /// Both CFindDlg and CReplaceDlg are created as a Modeless dialogs. They are created on 
 /// the heap and are displayed with Show(), not ShowModal().
-/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxDialog.
+/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxScrollingDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef FindReplace_h
@@ -29,8 +29,8 @@
 /// checkbox, a "Special Search" button, and other options. 
 /// CFindDlg is created as a Modeless dialogs. It is created on 
 /// the heap and is displayed with Show(), not ShowModal().
-/// \derivation		The CFindDlg class is derived from wxDialog.
-class CFindDlg : public wxDialog
+/// \derivation		The CFindDlg class is derived from wxScrollingDialog.
+class CFindDlg : public wxScrollingDialog
 {
 public:
 	CFindDlg();
@@ -126,8 +126,8 @@ private:
 /// user to specify a replacement string.
 /// CReplaceDlg is created as a Modeless dialogs. It is created on 
 /// the heap and is displayed with Show(), not ShowModal().
-/// \derivation		The CReplaceDlg class is derived from wxDialog.
-class CReplaceDlg : public wxDialog
+/// \derivation		The CReplaceDlg class is derived from wxScrollingDialog.
+class CReplaceDlg : public wxScrollingDialog
 {
 public:
 	CReplaceDlg();

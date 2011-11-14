@@ -46,7 +46,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // event handler table
 BEGIN_EVENT_TABLE(CWhichFilesDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CWhichFilesDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CWhichFilesDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CWhichFilesDlg::OnOK)
 	EVT_BUTTON(IDC_BUTTON_REJECT, CWhichFilesDlg::OnButtonReject)
 	EVT_BUTTON(IDC_BUTTON_ACCEPT, CWhichFilesDlg::OnButtonAccept)
@@ -349,5 +349,5 @@ void CWhichFilesDlg::OnOK(wxCommandEvent& event)
 		pApp->m_acceptedFilesList.Add(str);
 	}
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

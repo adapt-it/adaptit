@@ -11,7 +11,7 @@
 /// the interface language used by Adapt It. The dialog also allows the user to
 /// browse to a different path (from that expected) to find the interface
 /// language folders containing the <appName>.mo localization files.
-/// \derivation		The CChooseLanguageDlg class is derived from wxDialog.
+/// \derivation		The CChooseLanguageDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in ChooseLanguageDlg.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -58,7 +58,7 @@ extern LangInfo langsKnownToWX[];
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseLanguageDlg, AIModalDialog)
-	EVT_INIT_DIALOG(CChooseLanguageDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CChooseLanguageDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CChooseLanguageDlg::OnOK)
 	EVT_BUTTON(IDC_BTN_BROWSE_PATH, CChooseLanguageDlg::OnBrowseForPath)
 	EVT_LISTBOX(ID_LIST_UI_LANGUAGES, CChooseLanguageDlg::OnSelchangeListboxLanguages)
@@ -773,7 +773,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 	pEditAsStaticShortName->SetValue(gpApp->currLocalizationInfo.curr_shortName);
 	pEditAsStaticLongName->SetValue(gpApp->currLocalizationInfo.curr_fullName);
 
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 

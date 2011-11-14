@@ -3,7 +3,7 @@
 /// \file			EditPreferencesDlg.cpp
 /// \author			Bill Martin
 /// \date_created	13 August 2004
-/// \date_revised	15 January 2008
+/// \date_revised	13 November 2011
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CEditPreferencesDlg class. 
@@ -13,7 +13,7 @@
 /// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", and
 /// "USFM and Filtering" depending on the current user workflow profile selected.
-/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
+/// \derivation		The CEditPreferencesDlg class is derived from wxScrollingPropertySheetDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in EditPreferencesDlg.cpp (in order of importance): (search for "TODO")
 // 1. Debug the RTL stuff and conditional compile it for other platforms
@@ -49,10 +49,11 @@
 #include <wx/valgen.h>
 #include <wx/colordlg.h>
 #include <wx/wizard.h>
-#include <wx/propdlg.h>
+//#include <wx/propdlg.h>
 #include <wx/display.h> // for wxDisplay
 
 #include "Adapt_It.h" // for access to extern fontInfo structs below
+#include "scrollingdialog.h" // whm added 13Nov11 for wxScrollingPropertySheetDialog - needs to be included here before EditPreferencesDlg.h
 #include "EditPreferencesDlg.h"
 #include "Adapt_It_Resources.h"
 #include "Adapt_ItDoc.h"
@@ -85,11 +86,11 @@ extern CAdapt_ItApp* gpApp;
 // our config files.
 extern struct fontInfo SrcFInfo, TgtFInfo, NavFInfo;
 
-IMPLEMENT_DYNAMIC_CLASS(CEditPreferencesDlg, wxPropertySheetDialog)
+//IMPLEMENT_DYNAMIC_CLASS(CEditPreferencesDlg, wxScrollingPropertySheetDialog)
 
 // event handler table
-BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxPropertySheetDialog)
-	EVT_INIT_DIALOG(CEditPreferencesDlg::InitDialog) // not strictly necessary for dialogs based on wxDialog
+BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxScrollingPropertySheetDialog)
+	EVT_INIT_DIALOG(CEditPreferencesDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CEditPreferencesDlg::OnOK)
 
 	// Note: The following handlers call methods of the same name in CFontPagePrefs
@@ -170,10 +171,10 @@ CEditPreferencesDlg::CEditPreferencesDlg(
 bool CEditPreferencesDlg::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
-    wxPropertySheetDialog::Create( parent, id, caption, pos, size, style );
+    wxScrollingPropertySheetDialog::Create( parent, id, caption, pos, size, style );
 
     CreateButtons(wxOK|wxCANCEL); //|wxHELP);
-	// whm note: the wxPropertySheetDialog has internal smarts to reverse the order of the
+	// whm note: the wxScrollingPropertySheetDialog has internal smarts to reverse the order of the
 	// OK and Cancel buttons on creation, so we don't need to call the App's 
 	// ReverseOkCancelButtonsForMac() function.
     CreateControls();
@@ -273,11 +274,12 @@ void CEditPreferencesDlg::CreateControls()
 		if (usfmPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(usfmPageSize.GetY());
 	}
 
-	// TODO: Make the pPunctCorrespPageWiz and the pCaseEquivPageWiz
+	// Make the pPunctCorrespPageWiz and the pCaseEquivPageWiz
 	// scrollable if we are on a small screen
-	// Check the display size to see if we need to make size adjustments in
-	// the Wizard.
 
+	/*
+	// This code below is now unneeded with the use of the special wxScrolledWizard class.
+	// 
 	// whm 31Aug10 added test below to validate results from wxDisplay after finding some problems with
 	// an invalid index on a Linux machine that had dual monitors.
 	int indexOfDisplay,numDisplays;
@@ -296,11 +298,16 @@ void CEditPreferencesDlg::CreateControls()
 			// taller pages such as the punctMapPage a scrolling pane.
 			wxSize maxSz;
 			maxSz.SetHeight(displaySize.GetHeight() - 50);
+			// whm added 5Nov11 to make sure that the width is not zero in the case where
+			// this code block senses that there is not enough vertical height in the
+			// screen's displaySize.
+			maxSz.SetWidth(displaySize.GetWidth() - 50);
 			this->SetMaxSize(maxSz);
 		}
 	}
 	// The wxNotebook will automatically adjust to the largest page if the conditional block above
 	// doesn't execute.
+	*/
 }
 
 
@@ -758,7 +765,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		usfmFilterPage->OnOK(event);
 
 	if (m_bDismissDialog)
-		event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event);
+		event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event);
 
 }// end of OnOK
 

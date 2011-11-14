@@ -57,7 +57,7 @@ IMPLEMENT_DYNAMIC_CLASS( CViewPage, wxPanel )
 
 // event handler table
 BEGIN_EVENT_TABLE(CViewPage, wxPanel)
-	EVT_INIT_DIALOG(CViewPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CViewPage::InitDialog)
 	EVT_BUTTON(IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, CViewPage::OnButtonHighlightColor)
 	EVT_CHECKBOX(IDC_CHECK_SHOW_ADMIN_MENU, CViewPage::OnCheckShowAdminMenu)
 END_EVENT_TABLE()

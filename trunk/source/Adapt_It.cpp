@@ -142,6 +142,7 @@
 #include "OpenExistingProjectDlg.h"
 #include "ProjectPage.h"
 #include "DocPage.h"
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
 #include "StartWorkingWizard.h"
 #include "TargetUnit.h"
 #include "RefString.h"
@@ -5170,7 +5171,7 @@ wxToolBarToolsList AIToolBar::GetToolBarToolsList()
 /////////////////////////////////////////////////////////////////////////////////////
 AIModalDialog::AIModalDialog( wxWindow *parent, const wxWindowID id, const wxString& title,
 			const wxPoint& pos, const wxSize& size, const long windowStyle ) :
-			wxDialog(parent, id, title, pos, size, windowStyle)
+			wxScrollingDialog(parent, id, title, pos, size, windowStyle)
 {
 }
 
@@ -5191,7 +5192,7 @@ AIModalDialog::~AIModalDialog()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \remarks
-/// Override of the wxDialog's ShowModal() method.
+/// Override of the wxScrollingDialog's ShowModal() method.
 /// This override effectively turns off the wxIdleEvent and wxUpdateUIEvent idle processing
 /// while any AIModalDialog based dialog is being shown in modal fashion.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -5201,7 +5202,7 @@ int AIModalDialog::ShowModal()
 	// processing of UI events while the modal dialog is displaying.
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
-	return wxDialog::ShowModal();
+	return wxScrollingDialog::ShowModal();
 }
 // end of AIModalDialog class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6532,7 +6533,11 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
     return m_pMainFrame;
 }
 
-
+/*
+// whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's 
+// wxScrollingDialog class which (along with scScrollingWizard) is now used throughout 
+// Adapt It.
+//
 // The idea for this function was inspired by a blog by Julian Smart, wxWidgets developer
 // at:  http://wxwidgets.blogspot.com/2007/12/programming-for-eee-pc-with-wxwidgets.html
 // This is a function to fit the dialog it is called on around the dialog's contents, but
@@ -6619,6 +6624,7 @@ bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolled
 
     return true;
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the directory which contains all of

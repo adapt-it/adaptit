@@ -627,7 +627,7 @@ IMPLEMENT_DYNAMIC_CLASS( CCaseEquivPageWiz, wxWizardPage )
 
 // event handler table
 BEGIN_EVENT_TABLE(CCaseEquivPageWiz, wxWizardPage)
-	EVT_INIT_DIALOG(CCaseEquivPageWiz::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CCaseEquivPageWiz::InitDialog)
     EVT_WIZARD_PAGE_CHANGING(-1, CCaseEquivPageWiz::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
     EVT_WIZARD_CANCEL(-1, CCaseEquivPageWiz::OnWizardCancel)
 	EVT_BUTTON(IDC_BUTTON_CLEAR_SRC_LIST, CCaseEquivPageWiz::OnBnClickedClearSrcList)
@@ -666,11 +666,6 @@ bool CCaseEquivPageWiz::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
-	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
-	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
-	// scroll if necessary so the user can still access the whole wxWizardPage. 
-	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 
@@ -902,7 +897,7 @@ IMPLEMENT_DYNAMIC_CLASS( CCaseEquivPagePrefs, wxPanel )
 
 // event handler table
 BEGIN_EVENT_TABLE(CCaseEquivPagePrefs, wxPanel)
-	EVT_INIT_DIALOG(CCaseEquivPagePrefs::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CCaseEquivPagePrefs::InitDialog)
 	EVT_BUTTON(IDC_BUTTON_CLEAR_SRC_LIST, CCaseEquivPagePrefs::OnBnClickedClearSrcList)
 	EVT_BUTTON(IDC_BUTTON_SRC_SET_ENGLISH, CCaseEquivPagePrefs::OnBnClickedSrcSetEnglish)
 	EVT_BUTTON(IDC_BUTTON_SRC_COPY_TO_NEXT, CCaseEquivPagePrefs::OnBnClickedSrcCopyToNext)

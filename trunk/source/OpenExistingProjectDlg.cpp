@@ -66,7 +66,7 @@ bool gbExcludeCurrentProject = FALSE;
 // Glosses" functionality ***
 
 BEGIN_EVENT_TABLE(COpenExistingProjectDlg, AIModalDialog)
-	EVT_INIT_DIALOG(COpenExistingProjectDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(COpenExistingProjectDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, COpenExistingProjectDlg::OnOK)
 	EVT_LISTBOX(IDC_LISTBOX_ADAPTIONS, COpenExistingProjectDlg::OnSelchangeListboxAdaptions)
 	EVT_LISTBOX_DCLICK(IDC_LISTBOX_ADAPTIONS, COpenExistingProjectDlg::OnDblclkListboxAdaptions)
@@ -206,7 +206,7 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 	gpApp->m_sourceInputsFolderPath = gpApp->m_curProjectPath + gpApp->PathSeparator + gpApp->m_sourceInputsFolderName; 
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath);
 	
-	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void COpenExistingProjectDlg::OnSelchangeListboxAdaptions(wxCommandEvent& WXUNUSED(event)) 
