@@ -105,6 +105,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	PunctCorrespPage.$(OBJEXT) ReadOnlyProtection.$(OBJEXT) \
 	RefString.$(OBJEXT) RefStringMetadata.$(OBJEXT) \
 	Retranslation.$(OBJEXT) RetranslationDlg.$(OBJEXT) \
+	scrollingdialog.$(OBJEXT) scrollingwizard.$(OBJEXT) \
 	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
 	SetupEditorCollaboration.$(OBJEXT) \
 	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
@@ -424,6 +425,7 @@ adaptit_SOURCES = \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
 	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
+	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
@@ -636,6 +638,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convauto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingdialog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingwizard.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tellenc.Po@am__quote@
 
 .cpp.o:
@@ -1820,6 +1824,34 @@ RetranslationDlg.obj: ../../source/RetranslationDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/RetranslationDlg.cpp' object='RetranslationDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o RetranslationDlg.obj `if test -f '../../source/RetranslationDlg.cpp'; then $(CYGPATH_W) '../../source/RetranslationDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/RetranslationDlg.cpp'; fi`
+
+scrollingdialog.o: ../../source/scrollingdialog.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT scrollingdialog.o -MD -MP -MF $(DEPDIR)/scrollingdialog.Tpo -c -o scrollingdialog.o `test -f '../../source/scrollingdialog.cpp' || echo '$(srcdir)/'`../../source/scrollingdialog.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/scrollingdialog.Tpo $(DEPDIR)/scrollingdialog.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/scrollingdialog.cpp' object='scrollingdialog.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingdialog.o `test -f '../../source/scrollingdialog.cpp' || echo '$(srcdir)/'`../../source/scrollingdialog.cpp
+
+scrollingdialog.obj: ../../source/scrollingdialog.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT scrollingdialog.obj -MD -MP -MF $(DEPDIR)/scrollingdialog.Tpo -c -o scrollingdialog.obj `if test -f '../../source/scrollingdialog.cpp'; then $(CYGPATH_W) '../../source/scrollingdialog.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/scrollingdialog.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/scrollingdialog.Tpo $(DEPDIR)/scrollingdialog.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/scrollingdialog.cpp' object='scrollingdialog.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingdialog.obj `if test -f '../../source/scrollingdialog.cpp'; then $(CYGPATH_W) '../../source/scrollingdialog.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/scrollingdialog.cpp'; fi`
+
+scrollingwizard.o: ../../source/scrollingwizard.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT scrollingwizard.o -MD -MP -MF $(DEPDIR)/scrollingwizard.Tpo -c -o scrollingwizard.o `test -f '../../source/scrollingwizard.cpp' || echo '$(srcdir)/'`../../source/scrollingwizard.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/scrollingwizard.Tpo $(DEPDIR)/scrollingwizard.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/scrollingwizard.cpp' object='scrollingwizard.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingwizard.o `test -f '../../source/scrollingwizard.cpp' || echo '$(srcdir)/'`../../source/scrollingwizard.cpp
+
+scrollingwizard.obj: ../../source/scrollingwizard.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT scrollingwizard.obj -MD -MP -MF $(DEPDIR)/scrollingwizard.Tpo -c -o scrollingwizard.obj `if test -f '../../source/scrollingwizard.cpp'; then $(CYGPATH_W) '../../source/scrollingwizard.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/scrollingwizard.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/scrollingwizard.Tpo $(DEPDIR)/scrollingwizard.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/scrollingwizard.cpp' object='scrollingwizard.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o scrollingwizard.obj `if test -f '../../source/scrollingwizard.cpp'; then $(CYGPATH_W) '../../source/scrollingwizard.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/scrollingwizard.cpp'; fi`
 
 SetDelay.o: ../../source/SetDelay.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SetDelay.o -MD -MP -MF $(DEPDIR)/SetDelay.Tpo -c -o SetDelay.o `test -f '../../source/SetDelay.cpp' || echo '$(srcdir)/'`../../source/SetDelay.cpp
