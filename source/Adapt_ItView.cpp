@@ -3755,10 +3755,10 @@ bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBe
 	bOK = DeepCopySourcePhraseSublist(pOriginalList, 0, countOriginals - 1, pSaveList); // copies full list
 	// destroy the originals in m_pSourcePhrases
 	m_pDoc->DeleteSourcePhrases(pOriginalList, TRUE); // TRUE means 'delete partner piles too'
-	
+
     // deep copy across to pOriginalList the pointers to the CSourcePhrase instances which
     // are wanted for the sublist
-    bOK = DeepCopySourcePhraseSublist(pSaveList, nBeginSequNum, nEndSequNum, pOriginalList); 
+    bOK = DeepCopySourcePhraseSublist(pSaveList, nBeginSequNum, nEndSequNum, pOriginalList);
 
 	// inhibit printing the phrase box when printing a sublist, and store the active
 	// sequence number for later one when RestoreOriginalList() is called in order to set
@@ -4301,6 +4301,142 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 	return nOldSN;
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     FALSE if the range op fouled up, otherwise TRUE
+/// \param      nBeginSequNum     -> sequence number for the first CSourcePhrase in the range
+/// \param      nEndSequNum       -> sequence number for the last CSourcePhrase in the range
+/// \param      pPrintData        -> the printer's wxPrintData struct, filled out
+/// \remarks
+/// Called from: view's DoRangePrintOp(); and in the Linux build only, called from a function
+/// to handle the printing of a range of pages -- because the page range support in wxGnomeprinter
+/// is broken; so we have to get a range print done similarly to the way Bill coded for a
+/// chapter/verse range -- the latter converts chapter/verse bounds to sequence numbers for
+/// range begining and end, and then uses those; so this DoRangePrintOp() function handles
+/// the job from that point onwards. Our __WXGTK__ build function can then call it.
+/// NOTE: this function must be entered only once per entrance later on to DoPrintCleanup(),
+/// otherwise, double entry but only one cleanup would result in part of the document
+/// being lost, and probably a crash
+/////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRangeEndSequNum,
+                                   wxPrintData* pPrintData)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = GetLayout();
+	SPList* pList = pApp->m_pSourcePhrases;
+	SPList* pSaveList = pApp->m_pSaveList;
+
+	// we have the required range of sequence numbers, so we can reuse the selection code here
+	bool bIsOK = GetSublist(pSaveList, pList, nRangeStartSequNum, nRangeEndSequNum);
+
+	// recalc the layout with the shorter range masquerading as the whole document
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pList, create_strips_and_piles);
+#else
+	pLayout->RecalcLayout(pList, create_strips_and_piles);
+#endif
+
+	// hide the box, and set safe values for a non-active location (leave m_targetPhrase
+	// untouched)
+	pApp->m_pActivePile = NULL;
+	pApp->m_nActiveSequNum = -1;
+	// wm: I don't think the phrase box needs to be hidden here
+
+	// The stuff below could go into a separate function -
+	// see also CPrintOptionsDlg::InitDialog
+	// Determine the length of the printed page in logical units.
+	int pageWidthBetweenMarginsMM, pageHeightBetweenMarginsMM;
+	wxSize paperSize_mm;
+	paperSize_mm = pApp->pPgSetupDlgData->GetPaperSize();
+	wxASSERT(paperSize_mm.x != 0);
+	wxASSERT(paperSize_mm.y != 0);
+     // We should also have valid (non-zero) margins stored in our pPgSetupDlgData object.
+	wxPoint topLeft_mm, bottomRight_mm; // MFC uses CRect for margins, wx uses wxPoint
+	topLeft_mm = pApp->pPgSetupDlgData->GetMarginTopLeft(); // returns  top (y)
+								// and left (x) margins as wxPoint in milimeters
+	bottomRight_mm = pApp->pPgSetupDlgData->GetMarginBottomRight(); // returns bottom (y)
+								// and right (x) margins as wxPoint in milimeters
+	wxASSERT(topLeft_mm.x != 0);
+	wxASSERT(topLeft_mm.y != 0);
+	wxASSERT(bottomRight_mm.x != 0);
+	wxASSERT(bottomRight_mm.y != 0);
+    // The size data returned by GetPageSizeMM is not the actual paper size edge to edge,
+    // nor the size within the margins, but it is the usual printable area of a paper,
+    // i.e., the limit of where most printers are physically able to print; it is the area
+    // in between the actual paper size and the usual margins. We therefore start with the
+    // raw paperSize and determine the intended print area between the margins.
+	pageWidthBetweenMarginsMM = paperSize_mm.x - topLeft_mm.x - bottomRight_mm.x;
+	pageHeightBetweenMarginsMM = paperSize_mm.y - topLeft_mm.y - bottomRight_mm.y;
+
+    // Now, convert the pageHeightBetweenMarginsMM to logical units for use in calling
+    // PaginateDoc.
+    //
+	// Get the logical pixels per inch of screen and printer.
+    // whm NOTE: We can't yet use the wxPrintout::GetPPIScreen() and GetPPIPrinter()
+    // methods because the wxPrintout object is not created yet at the time this print
+    // options dialog is displayed. But, we can do the same calculations by using the
+    // wxDC::GetPPI() method call on both a wxPrinterDC and a wxClientDC of our canvas.
+	//
+    // Set up printer and screen DCs and determine the scaling factors between printer and screen.
+	wxASSERT(pApp->pPrintData->IsOk());
+
+#ifdef __WXGTK__
+	// Linux requires we use wxPostScriptDC rather than wxPrinterDC
+	// Note: If the Print Preview display is drawn with text displaced up and off the display on wxGTK,
+	// the wxWidgets libraries probably were not configured properly. They should have included a
+	// --with-gnomeprint parameter in the configure call.
+	wxPostScriptDC printerDC(*pApp->pPrintData); // MUST use * here otherwise printerDC will not be initialized properly
+#else
+	wxPrinterDC printerDC(*pApp->pPrintData); // MUST use * here otherwise printerDC will not be initialized properly
+#endif
+
+	wxASSERT(printerDC.IsOk());
+	wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the printer in pixels per inch (dpi)
+	wxClientDC canvasDC(pApp->GetMainFrame()->canvas);
+	wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the screen/canvas in pixels per inch (dpi)
+	float scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
+
+    // Calculate the conversion factor for converting millimetres into logical units. There
+    // are approx. 25.4 mm to the inch. There are ppi device units to the inch. Therefore 1
+    // mm corresponds to ppi/25.4 device units. We also divide by the screen-to-printer
+    // scaling factor, because we need to unscale to pass logical units to PaginateDoc.
+	float logicalUnitsFactor = (float)(printerSizePPI.GetHeight()/(scale*25.4));
+									// use the more precise conversion factor
+	int nPagePrintingWidthLU, nPagePrintingLengthLU;
+	nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
+	nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
+	// The stuff above could go into a separate function - see also CPrintOptionsDlg::InitDialog
+
+	gnPrintingLength = nPagePrintingLengthLU; //nPrintingLength;
+
+	// Footer adjustments and printing are done in the View's PrintFooter() function
+
+	// do pagination
+	//
+    // whm: In the following call to PaginateDoc, we use the current m_nStripCount stored
+    // on pBundle, because the PaginateDoc() call here is done within SetupRangePrintOp()
+    // which is called after the print dialog has been dismissed with OK, and thus we are
+    // paginating the actual doc to print and not merely simulating it for purposes of
+    // getting the pages edit box values for the print options dialog.
+	bIsOK = PaginateDoc(pLayout->GetStripArray()->GetCount(), nPagePrintingLengthLU);
+													// doesn't call RecalcLayout()
+	if (!bIsOK)
+	{
+		wxMessageBox(_T("Pagination failed."),_T(""), wxICON_STOP);
+		return FALSE;
+	}
+
+	wxPrintDialogData printDialogData(*pApp->pPrintData);
+	// pagination succeeded, so set the initial values
+	int nTotalPages = pApp->m_pagesList.GetCount();
+	printDialogData.SetMaxPage(nTotalPages);
+	printDialogData.SetMinPage(1);
+	printDialogData.SetFromPage(1);
+	printDialogData.SetToPage(nTotalPages);
+
+   return TRUE;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if the range could not be determined or found, otherwise TRUE
 /// \param      nFromCh     -> an int representing the chapter at the beginning of the range
@@ -4320,21 +4456,26 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 /// mainly by using deep copies for saving m_pSourcePhrases, and creating sublist
 /// NOTE: this function must be entered only once per entrance later on to DoPrintCleanup(),
 /// otherwise, double entry but only one cleanup would result in part of the document
-/// being lost, and probably a crash
+/// being lost, and probably a crash. I removed the WXUNUSED() - Bill's code uses thse
+/// 3 params.
 /////////////////////////////////////////////////////////////////////////////////
+//bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
+//									  const int nToV, wxPrintData* WXUNUSED(pPrintData),
+//									  bool WXUNUSED(bSuppressPrecedingHeadingInRange),
+//									  bool WXUNUSED(bIncludeFollowingHeadingInRange))
 bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
-									  const int nToV, wxPrintData* WXUNUSED(pPrintData),
-									  bool WXUNUSED(bSuppressPrecedingHeadingInRange),
-									  bool WXUNUSED(bIncludeFollowingHeadingInRange))
+									  const int nToV, wxPrintData* pPrintData,
+									  bool bSuppressPrecedingHeadingInRange,
+									  bool bIncludeFollowingHeadingInRange)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	CLayout* pLayout = GetLayout();
+	//CLayout* pLayout = GetLayout();
 
 	// whm revised 8Mar08 to correct logic of tests for range inclusion
 	if (pApp->m_selectionLine != -1)
 		RemoveSelection();
 	SPList* pList = pApp->m_pSourcePhrases;
-	SPList* pSaveList = pApp->m_pSaveList;
+	//SPList* pSaveList = pApp->m_pSaveList;
 	wxASSERT(nFromCh >= 0);
 	wxASSERT(nToCh >= 0);
 	wxASSERT(nFromV >= 1);
@@ -4745,16 +4886,14 @@ d:	;
 	return FALSE;
 
 	// we have the required range of sequence numbers, so we can reuse the selection code here
-e:	bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequNum);
+e:	;
+    bool bIsOk = DoRangePrintOp(gnRangeStartSequNum, gnRangeEndSequNum, pPrintData);
+    return bIsOk;
+
+/*
+    bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequNum);
 
 	// recalc the layout with the shorter range masquerading as the whole document
-	/* legacy code, deprecated 14Nov11
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pList, create_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pList, create_strips_keep_piles);
-#endif
-	*/
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pList, create_strips_and_piles);
 #else
@@ -4860,6 +4999,7 @@ e:	bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequ
 	printDialogData.SetToPage(nTotalPages);
 
 	return TRUE;
+*/
 }
 
 // whm revised 15Feb05 to include all markers of sectionHead textType
