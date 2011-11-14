@@ -6,13 +6,13 @@
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CAdapt_ItDoc class. 
-/// The CAdapt_ItDoc class implements the storage structures and methods 
-/// for the Adapt It application's persistent data. Adapt It's document 
-/// consists mainly of a list of CSourcePhrases stored in order of occurrence 
-/// of source text words. The document's data structures are kept logically 
-/// separate from and independent of the view class's in-memory data structures. 
-/// This schema is an implementation of the document/view framework. 
+/// \description	This is the implementation file for the CAdapt_ItDoc class.
+/// The CAdapt_ItDoc class implements the storage structures and methods
+/// for the Adapt It application's persistent data. Adapt It's document
+/// consists mainly of a list of CSourcePhrases stored in order of occurrence
+/// of source text words. The document's data structures are kept logically
+/// separate from and independent of the view class's in-memory data structures.
+/// This schema is an implementation of the document/view framework.
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -60,7 +60,7 @@
 #endif
 
 // The following are from IBM's International Components for Unicode (icu) used under the LGPL license.
-//#include "csdetect.h" // used in GetNewFile(). 
+//#include "csdetect.h" // used in GetNewFile().
 //#include "csmatch.h" // " "
 
 // Other includes uncomment as implemented
@@ -142,19 +142,19 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 
 #endif
 
-/// This global is defined in Adapt_ItView.cpp. 
-extern int	gnBeginInsertionsSequNum;	
+/// This global is defined in Adapt_ItView.cpp.
+extern int	gnBeginInsertionsSequNum;
 
-/// This global is defined in Adapt_ItView.cpp. 
-extern int	gnEndInsertionsSequNum;	
+/// This global is defined in Adapt_ItView.cpp.
+extern int	gnEndInsertionsSequNum;
 
-/// This global boolean informs the Doc's BackupDocument() function whether a split or 
-/// join operation is in progress. If gbDoingSplitOrJoin is TRUE BackupDocument() exits 
-/// immediately without performing any backup operations. Split operations especially 
+/// This global boolean informs the Doc's BackupDocument() function whether a split or
+/// join operation is in progress. If gbDoingSplitOrJoin is TRUE BackupDocument() exits
+/// immediately without performing any backup operations. Split operations especially
 /// could produce a plethora of backup docs, especially for a single-chapters document split.
 bool gbDoingSplitOrJoin = FALSE; // TRUE during one of these 3 operations
 
-/// This global is defined in DocPage.cpp. 
+/// This global is defined in DocPage.cpp.
 extern bool gbMismatchedBookCode; // BEW added 21Mar07
 
 /// This global is defined in Adapt_It.cpp.
@@ -213,12 +213,12 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 /// Indicates if a source word or phrase is to be considered special text when the propagation
 /// of text attributes needs to be considered as after editing the source text or after rebuilding
-/// the source text subsequent to filtering changes. Normally used to set or store the m_bSpecialText 
+/// the source text subsequent to filtering changes. Normally used to set or store the m_bSpecialText
 /// attribute of a source phrase instance.
 bool   gbSpecialText = FALSE;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern CSourcePhrase* gpPrecSrcPhrase; 
+extern CSourcePhrase* gpPrecSrcPhrase;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern CSourcePhrase* gpFollSrcPhrase;
@@ -280,7 +280,7 @@ bool	gbIgnoreIt = FALSE; // used when "Ignore it, I will fix it later" button wa
 							// in consistency check dlg
 
 // whm added 6Apr05 for support of export filtering of sfms and RTF output of the same in
-// the appropriate functions in the Export-Import file, etc. These globals are defined 
+// the appropriate functions in the Export-Import file, etc. These globals are defined
 // in ExportSaveAsDlg.cpp
 extern wxArrayString m_exportMarkerAndDescriptions;
 extern wxArrayString m_exportBareMarkers;
@@ -308,7 +308,7 @@ IMPLEMENT_DYNAMIC_CLASS(CAdapt_ItDoc, wxDocument)
 BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 
 	// The events that are normally handled by the doc/view framework use predefined
-	// event identifiers, i.e., wxID_NEW, wxID_SAVE, wxID_CLOSE, wxID_OPEN, etc. 
+	// event identifiers, i.e., wxID_NEW, wxID_SAVE, wxID_CLOSE, wxID_OPEN, etc.
 	EVT_MENU(wxID_NEW, CAdapt_ItDoc::OnFileNew)
 	EVT_MENU(wxID_SAVE, CAdapt_ItDoc::OnFileSave)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
@@ -366,7 +366,7 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 /// \remarks
 /// Called from: the DocPage's OnWizardFinish() function.
 /// In OnNewDocument, we aren't creating the document via serialization
-/// of data from persistent storage (as does OnOpenDocument()), rather 
+/// of data from persistent storage (as does OnOpenDocument()), rather
 /// we are creating the new document from scratch, by doing the following:
 /// 1. Making sure our working directory is set properly.
 /// 2. Calling parts of the virtual base class wxDocument::OnNewDocument() method
@@ -397,7 +397,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 {
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
-	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc 
+	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
 
 	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
 	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
@@ -412,14 +412,14 @@ bool CAdapt_ItDoc::OnNewDocument()
     // OnInitialUpdate() to be early in OnNewDocument() and protected from a crash by
     // having the recalculation do nothing at all with the layout until all the layout
     // components are in place... (moved here from end of function)
-	// 
-	// whm added OnInitialUpdate(), since in WX the doc/view framework doesn't call it 
+	//
+	// whm added OnInitialUpdate(), since in WX the doc/view framework doesn't call it
 	// automatically we need to call it manually here. MFC calls its OnInitialUpdate()
 	// method sometime after exiting its OnNewDocument() and before showing the View. See
 	// Notes at OnInitialUpdate() for more info.
-	pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't 
+	pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't
 								// automatically call it
-	
+
 	// whm 26Jul11 revised. When m_lastSourceInputPath is empty, use the special folder
 	// __SOURCE_INPUTS. See similar code in DocPage.cpp::OnWizardFinish().
 	wxString dirPath;
@@ -438,7 +438,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(dirPath);
 
-	// the above may have failed, so if so use m_workFolderPath as the folder, 
+	// the above may have failed, so if so use m_workFolderPath as the folder,
 	// so we can proceed to the file dialog safely
 	if (!bOK)
 	{
@@ -454,7 +454,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				msg = msg.Format(msg,dirPath.c_str());
 				wxMessageBox(msg,_T(""), wxICON_ERROR);
 				pApp->LogUserAction(msg);
-				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
+				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
 			}
 		}
@@ -464,8 +464,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 	//	return FALSE;
 	// whm NOTES: The wxWidgets base class OnNewDocument() calls OnCloseDocument()
 	// which fouls up the KB structures due to the OnCloseDocument() calls to
-	// EraseKB(), etc. To get around this problem which arises because of 
-	// different calling orders in the two doc/view frameworks, we'll not 
+	// EraseKB(), etc. To get around this problem which arises because of
+	// different calling orders in the two doc/view frameworks, we'll not
 	// call the base class wxDocument::OnNewDocument() method in wxWidgets,
 	// but instead we call the remainder of its contents here:
 	// whm verified the need for this 20July2006
@@ -477,7 +477,7 @@ bool CAdapt_ItDoc::OnNewDocument()
      SetTitle(name);
      SetFilename(name, TRUE);
 	 // above calls come from wxDocument::OnNewDocument()
-	 // Note: The OnSaveModified() call is handled when needed in 
+	 // Note: The OnSaveModified() call is handled when needed in
 	 // the Doc's Close() and/or OnOpenDocument()
 
 	// (SDI documents will reuse this document)
@@ -502,7 +502,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 	int width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
 #ifdef _RTL_FLAGS
-	pApp->m_docSize = wxSize(width - 40,600); // a safe default width, the length doesn't matter 
+	pApp->m_docSize = wxSize(width - 40,600); // a safe default width, the length doesn't matter
 											  // (it will change shortly)
 #else
 	pApp->m_docSize = wxSize(width - 80,600); // ditto
@@ -527,11 +527,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 		wxASSERT(pApp->m_pBuffer != NULL);
 		pApp->m_nInputFileLength = 0;
 		wxString filter = _T("*.*");
-		wxString fileTitle = _T(""); // stores name (including extension) of user's 
+		wxString fileTitle = _T(""); // stores name (including extension) of user's
 				// chosen source file; however, when taken into the COutFilenameDlg
 				// dialog below, the latter's InitDialog() call strips off any
 				// filename extension before showing what's left to the user
-		wxString pathName; // stores the path (including filename & extension) to the 
+		wxString pathName; // stores the path (including filename & extension) to the
 						   // chosen input source text file to be used for doc create
 
         // The following wxFileDialog part was originally in GetNewFile(), but moved here
@@ -555,7 +555,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// navigation-protection feature be forced on him when the Administrator menu is
 		// visible. I've also put a conditional compile here so that when the developer is
 		// debugging, he can choose which behaviour he wants for testing purposes
-		// 
+		//
 		// whm modified 16Aug11. When the __SOURCE_INPUTS folder is NOT protected we need
 		// to bypass the call to UseSourceDataFolderOnlyForInputFiles()
 		bool bUseSourceDataFolderOnly;
@@ -576,7 +576,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		// override the 'on' setting so that the legacy File Open dialog is used; and
 		// making the administrator menu invisible again automatically restores user
 		// navigation protection to being 'on'
-		
+
 		//if (bUseSourceDataFolderOnly && !gpApp->m_bShowAdministratorMenu)
 
 		// un-comment out the next line to have navigation protection for loading source
@@ -585,7 +585,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		bUserNavProtectionInForce = FALSE; // use this for allowing or suppressing
 		// the COutputFilenameDlg further below, depending on whether the legacy
 		// File New dialog is used, or the NavProtectNewDoc's dialog, respectively
-		
+
 		if (bUseSourceDataFolderOnly)
 #else
 		if (bUseSourceDataFolderOnly && !gpApp->m_bShowAdministratorMenu)
@@ -615,12 +615,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 			wxString docsPath;
 			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 			{
-				docsPath = gpApp->m_bibleBooksFolderPath; // path to a book folder within 
+				docsPath = gpApp->m_bibleBooksFolderPath; // path to a book folder within
 														  // the "Adaptations" folder
 			}
 			else
 			{
-				docsPath = gpApp->m_curAdaptionsPath; // path to the "Adaptations" 
+				docsPath = gpApp->m_curAdaptionsPath; // path to the "Adaptations"
 													  // folder of the project
 			}
 			wxArrayString arrDocFilenames;
@@ -640,9 +640,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// rather than in the app's OnInit() function, because we want the dialog
 			// handler's InitDialog() function called each time the dialog is to be shown using
 			// ShowModal() so that the two buttons will be initialized correctly
-			wxWindow* docWindow = GetDocumentWindow(); 
-			gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow); 
-            
+			wxWindow* docWindow = GetDocumentWindow();
+			gpApp->m_pNavProtectDlg = new NavProtectNewDoc(docWindow);
+
 			// display the dialog, it's list of filenames is monocline & no navigation
 			// capability is provided
 			if (gpApp->m_pNavProtectDlg->ShowModal() == wxID_CANCEL)
@@ -736,7 +736,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->LogUserAction(_T("User cancelled OnNewDocument() from wxFileDialog"));
 					return TRUE;
 				}
-				else // must be wxID_OK 
+				else // must be wxID_OK
 				{
 					pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
 					fileTitle = fileDlg.GetFilename(); // just the file name (including any extension)
@@ -744,7 +744,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					{
 						wxFileName fn(pathName);
 						wxString msg,title;
-						title = _("Adapt It requires plain text files for input"); // 
+						title = _("Adapt It requires plain text files for input"); //
 						msg = _("The following file:\n\n%s\n\nhas a %s extension which indicates that it is not loadable as an input file for Adapt It.\n\nPlease try again or click Cancel at the file selection dialog.");
 						msg = msg.Format(msg,pathName.c_str(),fn.GetExt().c_str());
 						wxMessageBox(msg,title,wxICON_WARNING);
@@ -783,7 +783,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// only want the path part, so we also call ::wxPathOnly() on the full path to
 			// get only the directory part.
 			gpApp->m_lastSourceInputPath = ::wxPathOnly(tempSelectedFullPath);
-	
+
             // Check if it has an \id line. If it does, get the 3-letter book code. If
             // a valid code is present, check that it is a match for the currently
             // active book folder. If it isn't tell the user and abort the <New
@@ -824,7 +824,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					{
 						// it matches one of the 67 codes known to Adapt It, so we need to check if it
 						// is the correct code for the active folder; if it's not, tell the user and
-						// go back to the Documents page of the wizard; if it is, just let processing 
+						// go back to the Documents page of the wizard; if it is, just let processing
 						// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
 						if (theCode != aBookCode)
 						{
@@ -846,7 +846,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
 
 							pApp->LogUserAction(msg1);
-							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if 
+							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
 										// framework, it partially clobbers the latter -- this can be
@@ -893,7 +893,7 @@ bool CAdapt_ItDoc::OnNewDocument()
                         // one there originally); it doesn't get removed until
                         // SetDocumentWindowTitle() is called below
 				// remove any extension user may have typed -- we'll keep control ourselves
-				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
+				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is
 											// returned as the last parameter in the signature
 				// for XML output
 				pApp->m_curOutputFilename = strUserTyped + _T(".xml");
@@ -910,7 +910,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				{
 					// get the filename
 					strUserTyped = dlg.m_strFilename;
-					
+
                     // The COutputFilenameDlg::OnOK() handler checks for duplicate file
                     // name or a file name with bad characters in it.
 					// abort the operation if user gave no explicit or bad output filename
@@ -940,7 +940,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 					// remove any extension user may have typed -- we'll keep control
 					// ourselves
-					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name 
+					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name
 										// is returned as the last parameter in the signature
 
 					// for XML output
@@ -977,13 +977,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// depend on whether book mode is ON or OFF; likewise for backups if turned on
 			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 			{
-				pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
+				pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator
 						+ pApp->m_curOutputFilename; // to send to the app when saving
 													 // m_lastDocPath to config files
 			}
 			else
 			{
-				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
+				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator
 						+ pApp->m_curOutputFilename; // to send to the app when saving
 													 // m_lastDocPath to config files
 			}
@@ -998,7 +998,7 @@ bool CAdapt_ItDoc::OnNewDocument()
             // Paratext import of data containing 3rd party markers unknown to
             // Paratext/USFM.)
 			ChangeParatextPrivatesToCustomMarkers(*pApp->m_pBuffer);
-			
+
            // remove any optional hyphens in the source text for use by Ventura Publisher
             // (skips over any <-> sequences, and gives new m_pBuffer contents & new
             // m_nInputFileLength value)
@@ -1047,9 +1047,9 @@ bool CAdapt_ItDoc::OnNewDocument()
             // same project within the same session, so I've changed the last parameter
             // of GetUnknownMarkersFromDoc from setAllUnfiltered to
             // useCurrentUnkMkrFilterStatus.
-			GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, 
-									&gpApp->m_filterFlagsUnkMkrs, 
-									gpApp->m_currentUnknownMarkersStr, 
+			GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers,
+									&gpApp->m_filterFlagsUnkMkrs,
+									gpApp->m_currentUnknownMarkersStr,
 									useCurrentUnkMkrFilterStatus);
 
 	#ifdef _Trace_UnknownMarkers
@@ -1075,13 +1075,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pView->Invalidate();
 				GetLayout()->PlaceBox();
 				pApp->LogUserAction(_T("No source language data in input file in OnNewDocument()"));
-				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if 
+				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
 			}
 
 			// try this for the refactored layout design....
 			CLayout* pLayout = GetLayout();
-			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and 
+			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and
 						// UpdateTextHeights() and calls other relevant setters
 #ifdef _NEW_LAYOUT
 			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
@@ -1160,7 +1160,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 			pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // calls RecalcLayout()
 
-			// save old sequ number in case required for toolbar's Back button - in this case 
+			// save old sequ number in case required for toolbar's Back button - in this case
 			// there is no earlier location, so set it to -1
 			gnOldSequNum = -1;
 
@@ -1246,7 +1246,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		}
 		}// end of switch()
 	}// end of if (bKBReady)
-	
+
 	// get rid of the stored rebuilt source text, leave a space there instead (the value of
 	// m_nInputFileLength can be left unchanged)
 	if (pApp->m_pBuffer)
@@ -1263,7 +1263,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
 			// whm 10Mar10, must save using what paths are current, but when the custom
 			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// becomes a "normal" project configuration file in m_curProjectPath at the
 			// custom location.
 			if (pApp->m_bLockedCustomWorkFolderPath)
 				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
@@ -1279,7 +1279,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 	}
 
 	// Note: On initial program startup OnNewDocument() is executed from OnInit()
-	// to get a temporary doc and view. pApp->m_curOutputPath will be empty in 
+	// to get a temporary doc and view. pApp->m_curOutputPath will be empty in
 	// that case, so only call AddFileToHistory() when it's not empty.
 	if (!pApp->m_curOutputPath.IsEmpty())
 	{
@@ -1291,7 +1291,7 @@ bool CAdapt_ItDoc::OnNewDocument()
         // any tricks with the path, so the following is a dirty fix to keep the full
         // paths.
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
-		fileHistory->RemoveFileFromHistory(0); // 
+		fileHistory->RemoveFileFromHistory(0); //
 	}
 
     // BEW added 13Nov09, for setting or denying ownership for writing permission. This is
@@ -1346,7 +1346,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 /// CMainFrame's SyncScrollReceive() when it is necessary to save the current document before
 /// opening another document when sync scrolling is on.
 /// OnFileSave simply calls DoFileSave() and the latter sets an enum value of normal_save
-/// 
+///
 /// BEW changed 28Apr10 A failure might be due to the Open call failing, in which case the
 /// document's file is probably unchanged, or an unknown error, in which case the
 /// document's file may have been truncated to zero length by the f.Open call done
@@ -1362,14 +1362,14 @@ bool CAdapt_ItDoc::OnNewDocument()
 /// BEW 28Jul11, added some initial support for collaboration scenario's tranfer of data to
 /// external editor
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event)) 
+void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 {
 	// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
 	// The dialog's pProgDlg pointer is passed along through various functions that
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -1378,7 +1378,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	wxProgressDialog* pProgDlg;
 	pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
-	
+
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
         // For testing purposes, assume it's target text, and a single-chapter
@@ -1387,7 +1387,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
         // is deliberately written so as to be agnostic about which is the case, it just
         // knows there is a doc containing information to extract and send to PT or BE,
         // with possibly some automated conflict resolution to be done when doing so.
-		
+
         // we want the phrase box's contents put into the document, so that the export of
         // the pre-user-editing-happens adaptation text will have the box contents in it -
         // so get it done here, but don't bother about the save to KB because the
@@ -1404,9 +1404,9 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
-		wxString postEditText; 
+		wxString postEditText;
 		wxString updatedText;
-		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
+		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
 										makeTargetText, postEditText);
 		// comment out the #define when a wxLogDebug listing of the updated text is not wanted
 //#define _HAVE_A_LOOK
@@ -1513,7 +1513,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
                 // to be saved in the app member for that purpose, becoming the new
                 // preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
 				wxString postEditFreeTransText;
-				wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases, 
+				wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
 												makeFreeTransText, postEditFreeTransText);
 #ifdef _HAVE_A_LOOK
 #ifdef __WXDEBUG__
@@ -1556,7 +1556,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 					}
 					//::wxSafeYield();
 					pProgDlg->Pulse(msgDisplayed);
-				
+
 					bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
 					resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
 					TransferTextBetweenAdaptItAndExternalEditor(writing, collab_freeTrans_text,
@@ -1619,7 +1619,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// no collaboration - do a normal protected save
-		
+
 		// we are not interested in the returned boolean from the following call
 		DoFileSave_Protected(TRUE,pProgDlg); // // TRUE means - show wait/progress dialog
 	}
@@ -1704,7 +1704,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 	}
 	else // handle failure
 	{
-		wxASSERT(!bUserCancelled); // DoFileSave_Protected shows no GUI, 
+		wxASSERT(!bUserCancelled); // DoFileSave_Protected shows no GUI,
 								   // so bUserCancelled should be FALSE
 		if (bOutputFileExists)
 		{
@@ -1795,12 +1795,12 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 /// \return TRUE if file was successfully saved; FALSE otherwise ( the return value
 ///         may not be used by some functions which call this one, such as OnFileSave()
 ///         or OnFileSaveAs() )
-/// \param	bShowWaitDlg	 -> if TRUE the wait/progress dialog is shown, otherwise it 
+/// \param	bShowWaitDlg	 -> if TRUE the wait/progress dialog is shown, otherwise it
 ///                             is not shown
 /// \param  type             -> an enum value, either normal_save or, save_as, depending
 ///                             whether the user chose Save or Save As... command, respectively
-/// \param  pRenamedFilename -> pointer to a string which is the new filename (it may 
-///                             have an attached extension which our code will remove 
+/// \param  pRenamedFilename -> pointer to a string which is the new filename (it may
+///                             have an attached extension which our code will remove
 ///                             and replace with .xml), if the user requested a rename,
 ///                             but will be (default) NULL if no renamed filename was
 ///                             supplied, or if the user chose Save command.
@@ -1816,19 +1816,19 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 /// OnFileSave(), OnSaveModified() and OnFilePackDoc(), the Doc's OnEditConsistencyCheck()
 /// and DoConsistencyCheck(), and SplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 /// DoSplitIntoChapters().
-/// Saves the current document and KB files in XML format and takes care of the necessary 
+/// Saves the current document and KB files in XML format and takes care of the necessary
 /// housekeeping involved.
 /// Ammended for handling saving when glossing or adapting.
 /// BEW modified 13Nov09, if the local user has only read-only access to a remote
-/// project folder, the local user must not be able to cause his local copy of the 
+/// project folder, the local user must not be able to cause his local copy of the
 /// remote document to be saved to the remote user's disk; if that could happen, the
 /// remote user would almost certainly lose some of his edits
 /// BEW 16Apr10, added SaveType param, for support of Save As... menu item
 /// BEW 20Aug10, changed 2nd and 3rd params to have no default, and added the bool
 /// reference 4th param (needed for OnFileSaveAs())
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, 
-							  wxString* pRenamedFilename, bool& bUserCancelled, 
+bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
+							  wxString* pRenamedFilename, bool& bUserCancelled,
 							  wxProgressDialog* pProgDlg)
 {
 	bUserCancelled = FALSE;
@@ -1837,7 +1837,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	// save is a normal_save, but if a Save As... was asked for, the user may be about to
 	// choose a legacy doc version number for the save, in which case the call of the
 	// wxFileDialog below may result in a different value being set by the code further
-	// below 
+	// below
 	RestoreCurrentDocVersion();  // assume the default
 	m_bLegacyDocVersionForSaveAs = FALSE; // initialize private member
 	m_bDocRenameRequestedForSaveAs = FALSE; // initialize private member
@@ -1855,7 +1855,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	}
 
     CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
-	
+
 	// make the working directory the "Adaptations" one; or the current Bible book folder
 	// if the m_bBookMode flag is TRUE
 
@@ -1934,7 +1934,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	gpApp->GetEncodingStringForXmlFiles(aStr);
 	DoWrite(f,aStr);
 
-	// add the comment with the warning about not opening the XML file in MS WORD 
+	// add the comment with the warning about not opening the XML file in MS WORD
 	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
 	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
 	// the latter goes into an infinite loop when the file is being parsed in.
@@ -1958,7 +1958,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 		// version number in this dialog)
 		wxString defaultDir = pathToSaveFolder; // set above
 		wxString filter;
-		filter = _("New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||"); 
+		filter = _("New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||");
 		wxString filename = gpApp->m_curOutputFilename;
 
 retry:	bFileIsRenamed = FALSE;
@@ -1987,7 +1987,7 @@ retry:	bFileIsRenamed = FALSE;
 			f.Close();
 			bUserCancelled = TRUE; // inform the caller that the user hit the Cancel button
 			gpApp->LogUserAction(_T("Cancelled from Save As at wxFileDialog()"));
-			return FALSE; 
+			return FALSE;
 		}
 
 		// check that the user did not change the folder's path, the user must not be able
@@ -2033,7 +2033,7 @@ retry:	bFileIsRenamed = FALSE;
 				gpApp->LogUserAction(_T("Cannot Change The Document's Filename"));
 				goto retry;
 			}
-			
+
 			// check for illegal characters in the user's typed new filename (this code
 			// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
 			wxString fn = theNewFilename;
@@ -2118,7 +2118,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			pRenamedFilename->Empty();  // tells caller no rename is wanted
 		}
 		// delay any requested doc file rename to the end of the calling function...
-		
+
         // get the docVersion number the user wants used for the save, an index value of 0
         // always uses the VERSION_NUMBER as currently set, but index values 1 or higher
         // select a legacy docVersion number (which gives different XML structure)
@@ -2140,7 +2140,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		// (to prevent corrupting the internal data structures which are docVersion5
 		// compliant)
 		m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
-		
+
 		if (m_bLegacyDocVersionForSaveAs)
 		{
 			// Saving in doc version 4 may require the addition of a doc-final dummy
@@ -2151,7 +2151,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			CSourcePhrase* pLastSrcPhrase = posLast->GetData();
 			wxASSERT(pLastSrcPhrase != NULL);
 			if (!pLastSrcPhrase->GetEndMarkers().IsEmpty())
-			{ 
+			{
 				// we need a dummy one at the end
 				bDummySrcPhraseAdded = TRUE;
 				int aCount = gpApp->m_pSourcePhrases->GetCount();
@@ -2178,7 +2178,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	wxFileName fn(gpApp->m_curOutputFilename);
 	wxString msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),0,nTotal);
 	// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
-	// DoFileSave() are called from DoAutoSaveDoc() which does not set up a 
+	// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 	// wxProgressDialog(). Therefore we must test for NULL here.
 	if (pProgDlg != NULL)
 	{
@@ -2211,11 +2211,11 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			if (bShowWaitDlg)
 			{
 				counter++;
-				if (counter % 1000 == 0) 
+				if (counter % 1000 == 0)
 				{
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 					// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
-					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a 
+					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 					// wxProgressDialog(). Therefore we must test for NULL here.
 					if (pProgDlg != NULL)
 					{
@@ -2230,7 +2230,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			// version 5
 			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 			pDeepCopy->DeepCopy();
-			
+
 			// do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
 			// passed in non-empty, the endmarkers are inserted internally at the start of
 			// pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
@@ -2263,11 +2263,11 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			if (bShowWaitDlg)
 			{
 				counter++;
-				if (counter % 1000 == 0) 
+				if (counter % 1000 == 0)
 				{
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 					// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
-					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a 
+					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 					// wxProgressDialog(). Therefore we must test for NULL here.
 					if (pProgDlg != NULL)
 					{
@@ -2295,7 +2295,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 
 	// remove the dummy that was appended, if we did append one in the code above
 	if (type == save_as && m_bLegacyDocVersionForSaveAs)
-	{	
+	{
 		if (bDummySrcPhraseAdded)
 		{
 			posLast = gpApp->m_pSourcePhrases->GetLast();
@@ -2310,15 +2310,15 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// if the filename extension was changed by code earlier in DoFileSave()
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
-		gpApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + 
+		gpApp->m_curOutputPath = pApp->m_bibleBooksFolderPath +
 									gpApp->PathSeparator + gpApp->m_curOutputFilename;
 	}
 	else
 	{
-		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath + 
+		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath +
 									gpApp->PathSeparator + gpApp->m_curOutputFilename;
 	}
-	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was 
+	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was
 												   // used for this save operation
 
 	// Do the document backup if required (This call supports a docVersion 4 choice, and
@@ -2354,10 +2354,10 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 
 	Modify(FALSE); // declare the document clean
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator + 
+		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator +
 			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
 	else
-		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator + 
+		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator +
 			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
 
 	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
@@ -2365,13 +2365,13 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// save
 	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
 	gpApp->StoreKB(FALSE);
-	
+
 	// remove the phrase box's entry again (this code is sensitive to whether glossing is on
 	// or not, because it is an adjustment pertaining to the phrasebox contents only, to undo
 	// what was done above - namely, the entry put into either the glossing KB or the normal KB)
 	if (pApp->m_pTargetBox != NULL)
 	{
-		if (pApp->m_pTargetBox->IsShown() && 
+		if (pApp->m_pTargetBox->IsShown() &&
 			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox && !bNoStore)
 		{
 			wxString emptyStr = _T("");
@@ -2388,7 +2388,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			{
 				if (!bNoStore)
 				{
-					pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+					pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(),
 													emptyStr, useGlossOrAdaptationForLookup);
 				}
 				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
@@ -2420,7 +2420,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 /// CMainFrame's SyncScrollReceive() when it is necessary to save the current document before
 /// opening another document when sync scrolling is on.
 /// OnFileSaveAs simply calls DoFileSave() and the latter sets an enum value of save_as
-/// 
+///
 /// BEW changed 28Apr10 A failure might be due to the Open call failing, in which case the
 /// document's file is unchanged, or to the user clicking the Cancel buton in the Save As
 /// dialog, in which case the document's file will have been truncated to zero length by
@@ -2434,7 +2434,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 /// needed. Doing this means that the GUI never reveals it to the user, which is how it
 /// should behave.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event)) 
+void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 {
 	SaveType saveType = save_as;
 	wxString renamedFilename; renamedFilename.Empty();
@@ -2472,13 +2472,13 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 	// requested; first param, value being TRUE, means "show wait/progress dialog"
 	bool bUserCancelled = FALSE; // it's initialized to FALSE inside the DoFileSave() call to
 	gpApp->LogUserAction(_T("Initiated Save As"));
-	
+
 	// whm 26Aug11 Open a wxProgressDialog instance here for transform to glosses operations.
 	// The dialog's pProgDlg pointer is passed along through various functions that
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -2488,7 +2488,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 	wxProgressDialog* pProgDlg;
 	pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
 
-	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, pProgDlg); 
+	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, pProgDlg);
 	if (bSuccess)
 	{
 		if (bOutputFileExists && bCopiedSuccessfully)
@@ -2666,7 +2666,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 /// xml, nothing should ever change the extention to anything else - nevertheless, we'll
 /// retain it
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::ValidateFilenameAndPath(wxString& curFilename, wxString& curPath, 
+void CAdapt_ItDoc::ValidateFilenameAndPath(wxString& curFilename, wxString& curPath,
 										   wxString& pathForSaveFolder)
 {
     // m_curOutputFilename was set when user created the doc; or it an existing doc was
@@ -2714,18 +2714,18 @@ void CAdapt_ItDoc::ValidateFilenameAndPath(wxString& curFilename, wxString& curP
 /// and before the menu is displayed.
 /// Enables or disables menu and/or toolbar items associated with the wxID_SAVE identifier.
 /// If Vertical Editing is in progress the File Save menu item is always disabled, and this
-/// handler returns immediately. Otherwise, the item is enabled if the KB exists, and if 
-/// m_pSourcePhrases has at least one item in its list, and IsModified() returns TRUE; 
+/// handler returns immediately. Otherwise, the item is enabled if the KB exists, and if
+/// m_pSourcePhrases has at least one item in its list, and IsModified() returns TRUE;
 /// otherwise the item is disabled.
 /// BEW modified 13Nov09, if the local user has only read-only access to a remote
 /// project folder, do not let him save his local copy of the remote document to the
 /// remote machine, otherwise the remote user is almost certainly to lose some edits
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event) 
+void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 
 	if (pApp->m_bReadOnlyAccess)
 	{
@@ -2738,13 +2738,13 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	// whm 25May11 Note: When collaborating with Paratext the Save... command is 
+	// whm 25May11 Note: When collaborating with Paratext the Save... command is
 	// available under the same conditions as when not collaborating with Paratext,
 	// i.e., a Doc is open and it is dirty/modified.
 	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
 		event.Enable(TRUE);
 	else
-		event.Enable(FALSE);	
+		event.Enable(FALSE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2764,7 +2764,7 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 /// remote machine, otherwise the remote user is almost certainly to lose some edits
 /// BEW 9Aug11, disabled when in collaboration mode with Paratext or Bibledit
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event) 
+void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2791,7 +2791,7 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
-		event.Enable(FALSE);	
+		event.Enable(FALSE);
 }
 
 
@@ -2800,7 +2800,7 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 /// \param	lpszPathName	-> the name and path of the document to be opened
 /// \remarks
 /// Called from: the App's DoTransformationsToGlosses( ) function.
-/// Opens a document in another project in preparation for transforming its adaptations into 
+/// Opens a document in another project in preparation for transforming its adaptations into
 /// glosses in the current project. The other project's documents get copied in the process, but
 /// are left unchanged in the other project. Since we are not going to look at the contents of
 /// the document, we don't do anything except get it into memory ready for transforming.
@@ -2810,7 +2810,7 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 {
 	// BEW added 31Aug05 for XML doc support (we have to find out what extension it has
-	// and then choose the corresponding code for loading that type of doc 
+	// and then choose the corresponding code for loading that type of doc
 	wxString thePath = lpszPathName;
 	wxString extension = thePath.Right(4);
 	extension.MakeLower();
@@ -2819,13 +2819,13 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 	wxFileName fn(thePath);
 	wxString fullFileName;
 	fullFileName = fn.GetFullName();
-	
+
 	// whm 26Aug11 Open a wxProgressDialog instance here for opening doc operations.
 	// The dialog's pProgDlg pointer is passed along through various functions that
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	wxString progMsg;
@@ -2841,7 +2841,7 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Opening Document In Another Project"),msgDisplayed,nTotal,500);
 	}
-	
+
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
@@ -2879,11 +2879,11 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 /// wxID_OPEN identifier (such as File | Open) is generated within the framework. It is
 /// also called by the Doc's OnOpenDocument(), by the DocPage's OnWizardFinish() and by
 /// SplitDialog's SplitIntoChapters_Interactive() function.
-/// Rather than using the doc/view's default behavior for OnFileOpen() this function calls 
+/// Rather than using the doc/view's default behavior for OnFileOpen() this function calls
 /// our own DoFileOpen() function after setting the current work folder to the Adaptations
 /// path, or the current book folder if book mode is on.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event)) 
+void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2917,18 +2917,18 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 /// before a new doc can be made or opened). For version 2.0, which supports glossing, if one KB
 /// gets saved, then the other should be too - this needs to be done in our SaveModified( ) function
 /// NOTE: we don't change the values of the four flags associated with glossing, because this
-/// function may be called for processes which serially open and close each document of a 
+/// function may be called for processes which serially open and close each document of a
 /// project, and the flags will have to maintain their values across the calls to ClobberDocument;
 /// and certainly ClobberDocumen( ) will be called each time even if this one isn't.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);	
+	wxASSERT(pApp != NULL);
 	if (gbVerticalEditInProgress)
 	{
 		// don't allow doc closure until the vertical edit is finished
-		::wxBell(); 
+		::wxBell();
 		pApp->LogUserAction(_T("Disallow File Close - gbVerticalEditInProgress"));
 		return;
 	}
@@ -2947,7 +2947,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	// the KB pointers become NULL and a crash can result in StoreText() farther down
 	// the calling chain, when UpdateDocWithPhraseBoxContents( is called with bAttemptStoreToKB
 	// == TRUE) and KB::StoreText() is called on NULL KBs. I've moved the block containing
-	// the UnLoadKBs() call below down past the OnSaveModified() call. I've also added tests 
+	// the UnLoadKBs() call below down past the OnSaveModified() call. I've also added tests
 	// in CKB::StoreText() for NULL KBs.
 	/*
 	// Remove KBs from the heap, when colloborating with an external editor
@@ -2974,7 +2974,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		// free translation mode is on, so we must first turn it off
 		gpApp->GetFreeTrans()->OnAdvancedFreeTranslationMode(event);
 	}
-	
+
 	bUserCancelled = FALSE; // default
 	if(!OnSaveModified())
 	{
@@ -3013,7 +3013,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		if (bRemoved)
 		{
 			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
-			pApp->GetView()->canvas->Refresh(); // try force color change back to normal 
+			pApp->GetView()->canvas->Refresh(); // try force color change back to normal
 				// white background -- it won't work as the canvas is empty, but the
 				// removal of read only protection is still done if possible
 		}
@@ -3023,7 +3023,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 				// for this running process, as we are still in this project folder
 		}
 	}
-	
+
 	bUserCancelled = FALSE;
 	CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
 	wxASSERT(pView != NULL);
@@ -3047,8 +3047,8 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 									// in the MFC version TRUE meant "add to MRU list"
     // Note: SetTitle works, but the doc/view framework overwrites the result with "Adapt
     // It [unnamed1]", etc unless SetFilename() is also used.
-	// 
-	// whm modified 13Mar09: 
+	//
+	// whm modified 13Mar09:
 	// When the doc is explicitly closed on Linux, the Ctrl+O hot key doesn't work unless the focus is
 	// placed on an existing element such as the toolbar's Open icon (which is where the next action
 	// would probably happen).
@@ -3067,10 +3067,10 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 /// the menu is displayed.
 /// Enables or disables menu item associated with the wxID_CLOSE identifier.
 /// If Vertical Editing is in progress the File Close menu item is disabled, and this handler
-/// immediately returns. Otherwise, the item is enabled if m_pSourcePhrases has at least one 
+/// immediately returns. Otherwise, the item is enabled if m_pSourcePhrases has at least one
 /// item in its list; otherwise the item is disabled.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event) 
+void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
 	{
@@ -3093,9 +3093,9 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 /// \return TRUE if the document is successfully backed up, otherwise FALSE.
 /// \param	pApp	         -> currently unused
 /// \param  pRenamedFilename -> points to NULL (the default value), but if a valid
-///                             different filename was supplied by the user in the 
+///                             different filename was supplied by the user in the
 ///                             Save As dialog, then it points to the wxString which
-///                             holds that name (the caller will have verified 
+///                             holds that name (the caller will have verified
 ///                             beforehand that it is a valid filename))
 /// \remarks
 /// Called by the Doc's DoFileSave() function.
@@ -3117,7 +3117,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 
 	wxFile f; // create a CFile instance with default constructor
 
-	// make the working directory the "Adaptations" one; or a bible book folder 
+	// make the working directory the "Adaptations" one; or a bible book folder
 	// if in book mode
 	wxString basePath;
 	bool bOK;
@@ -3200,7 +3200,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		wxMessageBox(str,_T(""),wxICON_EXCLAMATION);
 		return FALSE;
 	}
-	
+
 	// copied from DoFileSave - I didn't change the share options, not likely to matter here
 	bool bFailed = FALSE;
 	if (!f.Open(gpApp->m_curOutputBackupFilename,wxFile::write))
@@ -3214,12 +3214,12 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		// well, we could build some protection code but we'll not bother as failure to
 		// Open() is unlikely, and it's only a backup which gets lost - presumably the doc
 		// file itself is still good
-		return FALSE; 
+		return FALSE;
 	}
 
 	CSourcePhrase* pSrcPhrase;
 	CBString aStr;
-	CBString openBraceSlash = "</"; // to avoid "warning: 
+	CBString openBraceSlash = "</"; // to avoid "warning:
 			// deprecated conversion from string constant to 'char*'"
 
 	// prologue (BEW changed 02July07 to use Bob's huge switch in the
@@ -3228,11 +3228,11 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	gpApp->GetEncodingStringForXmlFiles(aStr);
 	DoWrite(f,aStr);
 
-	// add the comment with the warning about not opening the XML file in MS WORD 
+	// add the comment with the warning about not opening the XML file in MS WORD
 	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
 	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
 	// the latter goes into an infinite loop when the file is being parsed in.
-	aStr = MakeMSWORDWarning(); // the warning ends with \r\n 
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n
 								// so we don't need to add them here
 	// doc opening tag
 	aStr += "<";
@@ -3262,7 +3262,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
             // doc version 5
 			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 			pDeepCopy->DeepCopy();
-			
+
 			// see comments in DoFileSave()
 			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr, &inlineNonbindingEndMkrs,
 										&inlineBindingEndMkrs);
@@ -3309,7 +3309,7 @@ void CAdapt_ItDoc::RestoreCurrentDocVersion()
 }
 
 void CAdapt_ItDoc::SetDocVersion(int index)
-{	
+{
 	switch (index)
 	{
 	default: // default to the current doc version number
@@ -3368,7 +3368,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += numStr; // add doc width number string
 	// TODO: Bruce substituted m_nActiveSequNum for the m_docSize.cy value here. Should this be rolled back?
 	// I think he no longer needed it this way for the Dana's progress gauge, and hijacking the m_docSize.cy
-	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was 
+	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was
 	// out of bounds. (BEW note, the error no longer happens, so we should keep this for
 	// support of the Dana's Palm OS version of Adapt It)
 	bstr += "\" sizey=\"";
@@ -3444,7 +3444,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += numStr; // add doc width number string
 	// TODO: Bruce substituted m_nActiveSequNum for the m_docSize.cy value here. Should this be rolled back?
 	// I think he no longer needed it this way for the Dana's progress gauge, and hijacking the m_docSize.cy
-	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was 
+	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was
 	// out of bounds.
 	bstr += "\" sizey=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
@@ -3581,7 +3581,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
     // Adaptations if book folder mode is off, a book folder if it is on) and so the
     // current setting is what we must go with. Whew!! Hope you cotton on to all this!
 	wxString curSourceName; // can't use app's m_sourceName & m_targetName because these will already be
-	wxString curTargetName; // overwritten so we set curSourceName and curTargetName 
+	wxString curTargetName; // overwritten so we set curSourceName and curTargetName
                 // by extracting the names from the app's m_curProjectName member which
                 // doesn't get updated until the doc read has been successfully completed
 	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName, curSourceName, curTargetName);
@@ -3675,7 +3675,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 						}
 						else
 						{
-							// it's a -1 index, or the mode is disabled due to a bad parse of the 
+							// it's a -1 index, or the mode is disabled due to a bad parse of the
 							//  books.xml file, so ensure no named pair and the folder path is empty
 							gpApp->m_nBookIndex = -1;
 							gpApp->m_pCurrBookNamePair = NULL;
@@ -3700,7 +3700,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 				}
 			case 5: // unknown markers string field
 				{
-					// The doc has not been serialized in yet so we cannot use 
+					// The doc has not been serialized in yet so we cannot use
 					// GetUnknownMarkersFromDoc() here, so we'll populate the
 					// unknown markers arrays here.
 					gpApp->m_currentUnknownMarkersStr = field;
@@ -3712,7 +3712,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 
 					wxString tempUnkMrksStr = gpApp->m_currentUnknownMarkersStr;
 
-					// Parse out the unknown markers in tempUnkMrksStr 
+					// Parse out the unknown markers in tempUnkMrksStr
 					wxString unkField, wholeMkr, fStr;
 
 					wxStringTokenizer tkz2(tempUnkMrksStr); // use default " " whitespace here
@@ -3720,7 +3720,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 					while (tkz2.HasMoreTokens())
 					{
 						unkField = tkz2.GetNextToken();
-						// field1 should contain a token in the form of "\xx=0 " or "\xx=1 " 
+						// field1 should contain a token in the form of "\xx=0 " or "\xx=1 "
 						int dPos1 = unkField.Find(_T("=0"));
 						int dPos2 = unkField.Find(_T("=1"));
 						wxASSERT(dPos1 != -1 || dPos2 != -1);
@@ -3760,7 +3760,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 			fieldNum++;
 		} // end of while (tkz.HasMoreTokens())
 	}
-	else if (dataLen < 5) 
+	else if (dataLen < 5)
 	{
 		// case 2 above
 		// assume we have book mode information - so restore it
@@ -3782,7 +3782,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 		// m_bibleBooksFolderPath here, but SetupDirectories() can recreate it from the
 		// doc-serialized m_sourceName and m_targetName strings, and so we do it there;
 		// however, if book mode was off when this document was serialized out, then the
-		// saved index value was -1, so we must check for this and not try to set up a 
+		// saved index value was -1, so we must check for this and not try to set up a
 		// name pair when that is the case
 		if (i >= 0  && !gpApp->m_bDisableBookMode)
 		{
@@ -3790,7 +3790,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 		}
 		else
 		{
-			// it's a -1 index, or the mode is disabled due to a bad parse of the books.xml file, 
+			// it's a -1 index, or the mode is disabled due to a bad parse of the books.xml file,
 			// so ensure no named pair and the folder path is empty
 			gpApp->m_pCurrBookNamePair = NULL;
 			gpApp->m_bibleBooksFolderPath.Empty();
@@ -3827,13 +3827,13 @@ t:		if (gbTryingMRUOpen /* && !bSameProject */)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return a wxString
-/// \param	pCString	-> pointer to a wxString formatted into delimited fields containing the 
+/// \param	pCString	-> pointer to a wxString formatted into delimited fields containing the
 ///						book mode, the book index, the current sfm set, a list of the filtered
 ///						markers, and a list of the unknown markers
 /// \remarks
 /// Called from: ConstructSettingsInfoAsXML().
-/// Creates a wxString composed of delimited fields containing the current book mode, the 
-/// book index, the current sfm set, a list of the filtered markers, and a list of the 
+/// Creates a wxString composed of delimited fields containing the current book mode, the
+/// book index, the current sfm set, a list of the filtered markers, and a list of the
 /// unknown markers used in the document.
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
@@ -3913,31 +3913,31 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 {
 	wxFile f; // create a CFile instance with default constructor
 	bool bFailed = FALSE;
-	
+
 	if (!f.Open(path,wxFile::write))
 	{
 		wxString s;
 		s = s.Format(_(
 		"When transforming documents, the Open function failed, for the path: %s"),
-			path.c_str()); 
+			path.c_str());
 		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
 		return FALSE;
 	}
 
 	CSourcePhrase* pSrcPhrase;
 	CBString aStr;
-	CBString openBraceSlash = "</"; // to avoid "warning: 
+	CBString openBraceSlash = "</"; // to avoid "warning:
 				// deprecated conversion from string constant to 'char*'"
 
 	// prologue (BEW changed 02July07)
 	gpApp->GetEncodingStringForXmlFiles(aStr);
 	DoWrite(f,aStr);
 
-	// add the comment with the warning about not opening the XML file in MS WORD 
+	// add the comment with the warning about not opening the XML file in MS WORD
 	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
 	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
 	// the latter goes into an infinite loop when the file is being parsed in.
-	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so 
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so
 								// we don't need to add them here
 
 	// doc opening tag
@@ -3980,7 +3980,7 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 /// \return TRUE if currently opened document was successfully saved; FALSE otherwise
 /// \remarks
 /// Called from: the Doc's OnFileClose() and CMainFrame's OnMRUFile().
-/// Takes care of saving a modified document, saving the project configuration file, and 
+/// Takes care of saving a modified document, saving the project configuration file, and
 /// other housekeeping tasks related to file saves.
 /// BEW modified 13Nov09: if local user has read-only access to a remote project
 /// folder, don't let any local actions result in saving the local copy of the document
@@ -3998,7 +3998,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 
 	wxCommandEvent dummyevent;
 
-	// should not close a document or project while in "show target only" mode; so detect if that 
+	// should not close a document or project while in "show target only" mode; so detect if that
 	// mode is still active & if so, restore normal mode first
 	if (gbShowTargetOnly)
 	{
@@ -4013,7 +4013,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 	bool bUserSavedDoc = FALSE; // use this flag to cause the KB to be automatically saved
 								// if the user saves the Doc, without asking; but if the user
 								// does not save the doc, he should be asked for the KB
-	bool bOK; // we won't care whether it succeeds or not, 
+	bool bOK; // we won't care whether it succeeds or not,
 			  // since the later Get... can use defaults
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
@@ -4021,7 +4021,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 		{
 			// whm 10Mar10, must save using what paths are current, but when the custom
 			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// becomes a "normal" project configuration file in m_curProjectPath at the
 			// custom location.
 			if (pApp->m_bLockedCustomWorkFolderPath)
 				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
@@ -4047,7 +4047,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 	// the app crashes. So we detect an empty document next and prevent the message from appearing
 	if (pApp->m_pSourcePhrases->GetCount() == 0)
 	{
-		// if there are none, there is no document to save, so useless to go on, 
+		// if there are none, there is no document to save, so useless to go on,
 		// so return TRUE immediately
 		return TRUE;
 	}
@@ -4065,14 +4065,14 @@ bool CAdapt_ItDoc::OnSaveModified()
 		// If so, either Save or Update, as appropriate
         // BEW changed 29Apr10, DoFileSave_Protected() protects against loss of the
         // document file, which is safer
-		//bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog	
-		
+		//bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog
+
 		// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
 		// The dialog's pProgDlg pointer is passed along through various functions that
 		// get called in the process.
 		// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 		// be changed after the dialog is created. So any routine that gets passed the
-		// pProgDlg pointer, must make sure that value in its Update() function does not 
+		// pProgDlg pointer, must make sure that value in its Update() function does not
 		// exceed the same maximum value (nTotal).
 		wxString msgDisplayed;
 		const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -4081,8 +4081,8 @@ bool CAdapt_ItDoc::OnSaveModified()
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 		wxProgressDialog* pProgDlg;
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
-	
-		bUserSavedDoc = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog	
+
+		bUserSavedDoc = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog
 		if (!bUserSavedDoc)
 		{
 			wxMessageBox(_("Warning: document save failed for some reason.\n"),
@@ -4106,15 +4106,15 @@ bool CAdapt_ItDoc::OnSaveModified()
 	}
 	// whm Note: Since the progDlg is created on the stack, it will automatically
 	// be disposed of when this funciton returns.
-	return TRUE;    // keep going	
+	return TRUE;    // keep going
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// NOTE: This OnSaveDocument() is from the docview sample program. 
+// NOTE: This OnSaveDocument() is from the docview sample program.
 //
-// The wxWidgets OnSaveDocument() method "Constructs an output file stream 
-// for the given filename (which must not be empty), and then calls SaveObject. 
-// If SaveObject returns TRUE, the document is set to unmodified; otherwise, 
+// The wxWidgets OnSaveDocument() method "Constructs an output file stream
+// for the given filename (which must not be empty), and then calls SaveObject.
+// If SaveObject returns TRUE, the document is set to unmodified; otherwise,
 // an error message box is displayed.
 //
 //bool CAdapt_ItDoc::OnSaveDocument(const wxString& filename) // from wxWidgets mdi sample
@@ -4139,14 +4139,14 @@ bool CAdapt_ItDoc::OnSaveModified()
 //bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) // from wxWidgets mdi sample
 //{
 //    CAdapt_ItView* view = (CAdapt_ItView*) GetFirstView();
-//    
-//    if (!view->textsw->LoadFile(filename)) 
+//
+//    if (!view->textsw->LoadFile(filename))
 //        return FALSE;
 //
 //    SetFilename(filename, TRUE);
 //    Modify(FALSE);
 //    UpdateAllViews();
-//    
+//
 //    return TRUE;
 //}
 
@@ -4155,7 +4155,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 // and the wxWidgets implementation of doc/view necessitate some
 // adjustments in order to not foul up the state of AI's data structures.
 //
-// Here below is the contents of the MFC base class CDocument::OnOpenDocument() 
+// Here below is the contents of the MFC base class CDocument::OnOpenDocument()
 // method (minus __WXDEBUG__ statements):
 //BOOL CDocument::OnOpenDocument(LPCTSTR lpszPathName)
 //{
@@ -4203,7 +4203,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 //	return TRUE;
 //}
 
-// Here below is the contents of the wxWidgets base class WxDocument::OnOpenDocument() 
+// Here below is the contents of the wxWidgets base class WxDocument::OnOpenDocument()
 // method (minus alternate wxUSE_STD_IOSTREAM statements):
 //bool wxDocument::OnOpenDocument(const wxString& file)
 //{
@@ -4241,19 +4241,19 @@ bool CAdapt_ItDoc::OnSaveModified()
 //}
 
 // The significant differences in the BASE class methods are:
-// 1. MFC OnOpenDocument() calls DeleteContents() before loading the archived 
+// 1. MFC OnOpenDocument() calls DeleteContents() before loading the archived
 //    file (with Serialize(loadArchive)). The base class DeleteContents() of
 //    both MFC and wxWidgets do nothing themselves. The overrides of DeleteContents()
 //    have the same code in both versions.
-// 2. wxWidgets' OnOpenDocument() does NOT call DeleteContents(), but first calls 
-//    OnSaveModified(). OnSaveModified() calls Save() if the doc is dirty. Save() 
-//    calls either SaveAs() or OnSaveDocument() depending on whether the doc was 
-//    previously saved with a name. SaveAs() takes care of getting a name from 
+// 2. wxWidgets' OnOpenDocument() does NOT call DeleteContents(), but first calls
+//    OnSaveModified(). OnSaveModified() calls Save() if the doc is dirty. Save()
+//    calls either SaveAs() or OnSaveDocument() depending on whether the doc was
+//    previously saved with a name. SaveAs() takes care of getting a name from
 //    user, then eventually also calls OnSaveDocument(). OnSaveDocument() finally
 //    calls SaveObject(store).
 // The Implications for our conversion to wxWidgets:
 // 1. In our OnOpenDocument() override we need to first call DeleteContents().
-// 2. We just comment out the call to the wxDocument::OnOpenDocument() base class 
+// 2. We just comment out the call to the wxDocument::OnOpenDocument() base class
 //    transfer its calls to our override and make any appropriate adjustments to
 //    the stream error messages.
 
@@ -4261,7 +4261,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 /// \return TRUE if file at filename was successfully opened; FALSE otherwise
 /// \param	filename	-> the path/name of the file to open
 /// \remarks
-/// Called from: the App's DoKBRestore() and DiscardDocChanges(), the Doc's 
+/// Called from: the App's DoKBRestore() and DiscardDocChanges(), the Doc's
 /// LoadSourcePhraseListFromFile() and DoUnpackDocument(), the View's OnEditConsistencyCheck(),
 /// DoConsistencyCheck() and DoRetranslationReport(), the DocPage's OnWizardFinish(), and
 /// CMainFrame's SyncScrollReceive() and OnMRUFile().
@@ -4273,14 +4273,14 @@ bool CAdapt_ItDoc::OnSaveModified()
 /// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnNewDocument()
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) 
+bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 {
 	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
 
 	// refactored 10Mar09
-	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc 
-	
+	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
+
     // whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use
     // the legacy version's OnOpenDocument() serialization facilities, and can thus avoid
     // the black box problems it caused.
@@ -4295,10 +4295,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// 1. The wxWidgets base class wxDocument::OnOpenDocument() method DOES NOT
 	//    automatically call DeleteContents(), so we must do so here. Also,
 	// 2. The OnOpenDocument() base class handles stream errors with some
-	//    generic messages. For these reasons then, rather than calling the base 
-	//    class method, we first call DeleteContents(), then we just transfer 
-	//    and/or merge the relevant contents of the base class method here, and 
-	//    taylor its stream error messages to Adapt It's needs, as was done in 
+	//    generic messages. For these reasons then, rather than calling the base
+	//    class method, we first call DeleteContents(), then we just transfer
+	//    and/or merge the relevant contents of the base class method here, and
+	//    taylor its stream error messages to Adapt It's needs, as was done in
 	//    DoFileSave().
 
 	// BEW added 06Aug05 for XML doc support (we have to find out what extension it has
@@ -4338,7 +4338,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	wxString progMsg;
@@ -4354,9 +4354,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Opening the Document"),msgDisplayed,nTotal,500);
 	}
-	
+
 	wxFileName fn(filename);
-	
+
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
@@ -4410,9 +4410,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		gpApp->LogUserAction(_T("Return TRUE early from OnOpenDocument() m_bWantSourcePhrasesOnly"));
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-		return TRUE; // Added by JF.  
+		return TRUE; // Added by JF.
 	}
-        
+
 	// update the window title
 	SetDocumentWindowTitle(fname, extensionlessName);
 
@@ -4434,7 +4434,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	gpApp->m_curOutputBackupFilename = filenameStr;
 	gpApp->m_curOutputPath = filename;
 
-    // filenames and paths for the doc and any backup are now guaranteed to be 
+    // filenames and paths for the doc and any backup are now guaranteed to be
     // what they should be
 	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = pApp->GetView();
@@ -4484,7 +4484,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		return FALSE;
 	}
 	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
-	pApp->m_nActiveSequNum = 0; // and this is it's sequ num; use these values 
+	pApp->m_nActiveSequNum = 0; // and this is it's sequ num; use these values
 								// unless changed below
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
@@ -4503,7 +4503,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         //ensure we have the right KB & project (the parameters SetupDirectories() needs
         //are stored in the document, so will be already serialized back in; and our
         //override of CWinApp's OnOpenRecentFile() first does a CloseProject (which ensures
-        //m_pKB gets set to null) before OnOpenDocument is called. 
+        //m_pKB gets set to null) before OnOpenDocument is called.
         //WX Note: We override CMainFrame's OnMRUFile().
         // If we did not come via a File... MRU file choice, then the m_pKB will not be
         // null and the following call won't be made. The SetupDirectories call has
@@ -4557,7 +4557,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
     // gets removed unconditionally from the KB when that is NOT what we want to occur!
 	if (!gbConsistencyCheckCurrent)
 	{
-		// ensure its not a retranslation - if it is, move the active location to first 
+		// ensure its not a retranslation - if it is, move the active location to first
 		// non-retranslation pile
 		if (pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
 		{
@@ -4592,19 +4592,19 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		// so just use the value -1
 		gnOldSequNum = -1;
 	}
-	
+
 	// update status bar with project name
 	gpApp->RefreshStatusBarInfo();
 
 	// determine m_curOutputPath, so it can be saved to config files as m_lastDocPath
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
-		pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
+		pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator
 								+ pApp->m_curOutputFilename;
 	}
 	else
 	{
-		pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
+		pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator
 								+ pApp->m_curOutputFilename;
 	}
 
@@ -4626,7 +4626,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		{
 			// whm 10Mar10, must save using what paths are current, but when the custom
 			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// becomes a "normal" project configuration file in m_curProjectPath at the
 			// custom location.
 			if (pApp->m_bLockedCustomWorkFolderPath)
 				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
@@ -4653,7 +4653,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         // any tricks with the path, so the following is a dirty fix to keep the full
         // paths.
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
-		fileHistory->RemoveFileFromHistory(0); // 
+		fileHistory->RemoveFileFromHistory(0); //
 	}
 
 	// BEW added 12Nov09, do the auto-export here, if asked for, and shut
@@ -4697,7 +4697,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		#ifndef _UNICODE // ANSI
 		f.Write(target);
 		#else // _UNICODE
-		wxFontEncoding enc = wxFONTENCODING_UTF8; 
+		wxFontEncoding enc = wxFONTENCODING_UTF8;
 		pApp->ConvertAndWrite(enc,&f,target);
 		#endif // for _UNICODE
 		f.Close();
@@ -4720,7 +4720,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		// if he had read only access, and the other person has relinquished the project,
 		// then the local user will now get ownership. We do this here in the else block
 		// because we don't want to support this functionality for automated adaptation
-		// exports from the command line because those have the app open only for a few 
+		// exports from the command line because those have the app open only for a few
 		// seconds at most, and when they happen they change nothing so can be done
 		// safely no matter who currently has ownership for writing.
 		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
@@ -4759,7 +4759,7 @@ CPile* CAdapt_ItDoc::GetPile(const int nSequNum)
 		// bounds error, so return NULL
 		return (CPile*)NULL;
 	}
-	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of 
+	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of
 								// the m_pSourcePhrases and m_pileList lists
 	wxASSERT(pos != NULL);
 	return pos->GetData();
@@ -4789,14 +4789,14 @@ bool CAdapt_ItDoc::IsModified() const // from wxWidgets mdi sample
 /// \param mod		-> if FALSE, discards any edits
 /// \remarks
 /// Called from: all places that need to set the document as either dirty or clean including:
-/// the App's DoUsfmFilterChanges() and DoUsfmSetChanges(), the Doc's OnNewDocument(), 
+/// the App's DoUsfmFilterChanges() and DoUsfmSetChanges(), the Doc's OnNewDocument(),
 /// OnFileSave(), OnCloseDocument(), the View's PlacePhraseBox(), StoreText(), StoreTextGoingBack(),
 /// ClobberDocument(), OnAdvancedRemoveFilteredFreeTranslations(), OnButtonDeleteAllNotes(),
 /// OnAdvancedRemoveFilteredBacktranslations(), the DocPage's OnWizardFinish(), the CKBEditor's
 /// OnButtonUpdate(), OnButtonAdd(), OnButtonRemove(), OnButtonMoveUp(), OnButtonMoveDown(),
 /// the CMainFrame's OnMRUFile(), the CNoteDlg's OnBnClickedNextBtn(), OnBnClickedPrevBtn(),
 /// OnBnClickedFirstBtn(), OnBnClickedLastBtn(), OnBnClickedFindNextBtn(), the CPhraseBox's
-/// OnPhraseBoxChanged(), CViewFilteredMaterialDlg's UpdateContentOnRemove(), OnOK(), 
+/// OnPhraseBoxChanged(), CViewFilteredMaterialDlg's UpdateContentOnRemove(), OnOK(),
 /// OnBnClickedRemoveBtn().
 /// Sets the Doc's dirty flag according to the value of mod by calling wxDocument::Modify(mod).
 ///////////////////////////////////////////////////////////////////////////////
@@ -4816,10 +4816,10 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// \return nothing
 /// \param      pList -> pointer to a SPList of source phrases
 /// \remarks
-/// Called from: the View's InitializeEditRecord(), OnEditSourceText(), 
+/// Called from: the View's InitializeEditRecord(), OnEditSourceText(),
 /// OnCustomEventAdaptationsEdit(), and OnCustomEventGlossesEdit().
-/// If pList has any items this function calls DeleteSingleSrcPhrase() for each 
-/// item in the list. The boolean parameter is default FALSE (i.e. default is to 
+/// If pList has any items this function calls DeleteSingleSrcPhrase() for each
+/// item in the list. The boolean parameter is default FALSE (i.e. default is to
 /// not attempt partner pile deletion)
 /// BEW 26Mar10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
@@ -4850,7 +4850,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 				DeleteSingleSrcPhrase(pSrcPhrase, bDoPartnerPileDeletionAlso); // default
 					// for the boolean passed in to DeleteSourcePhrases() is FALSE
 			}
-			pList->Clear(); 
+			pList->Clear();
 		}
 	}
 }
@@ -4859,7 +4859,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 /// \return nothing
 /// \remarks
 /// Called from: the Doc's DeleteContents(), the View's ClobberDocument().
-/// If the App's m_pSourcePhrases SPList has any items this function calls 
+/// If the App's m_pSourcePhrases SPList has any items this function calls
 /// DeleteSingleSrcPhrase() for each item in the list.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteSourcePhrases()
@@ -4886,13 +4886,13 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 	// the heap pointer value  (in hex) for each CSourcePhrase instance - so as to match
 	// with the error report, since the error happens after this successful display of all of
 	// the CSourcePhrase instances in the m_pSourcePhrase list.
-	// 
+	//
 	// The bug fix? Bill found I'd used UngetWriteBuf() in wxString to restore a read-only
 	// buffer I'd created with GetData() call - this is verbotten, and leads to heap
 	// corruption; UngetWriteBuf() should only be used after a GetWriteBuf() call. I'd
 	// made this error in two places.
 	{
-		 
+
 		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
 		if (pSrcPhrases != NULL)
 		{
@@ -4925,7 +4925,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 					originalSN = pOriginalSP->m_nSequNumber;
 					originalSrcStr = pOriginalSP->m_srcPhrase;
 					// display info in the Output window
-					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"), 
+					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"),
 						originalSN, originalSrcStr.c_str(), (unsigned int)pOriginalSP);
 				}
 			}
@@ -4961,7 +4961,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 					// the  one by one way involves a search to find the
 					// partner, so it is slower
 			}
-			pApp->m_pSourcePhrases->Clear(); 
+			pApp->m_pSourcePhrases->Clear();
 		}
 	}
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
@@ -4983,14 +4983,14 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 /// is TRUE (its default value), then the partner pile in the CLayout::m_pileList list which
 /// points at it is also deleted. Pass FALSE for this boolean if the CSourcePhrase being destroyed
 /// is a temporary one in a list other than m_pSourcePhrases.
-/// 
+///
 /// Called from: the App's DoTransformationsToGlosses(), DeleteSourcePhraseListContents(),
-/// the Doc's DeleteSourcePhrases(), ConditionallyDeleteSrcPhrase(), 
+/// the Doc's DeleteSourcePhrases(), ConditionallyDeleteSrcPhrase(),
 /// ReconstituteOneAfterPunctuationChange(), ReconstituteOneAfterFilteringChange(),
-/// DeleteListContentsOnly(), ReconstituteAfterPunctuationChange(), the View's 
-/// ReplaceCSourcePHrasesInSpan(), TransportWidowedEndmarkersToFollowingContext(), 
+/// DeleteListContentsOnly(), ReconstituteAfterPunctuationChange(), the View's
+/// ReplaceCSourcePHrasesInSpan(), TransportWidowedEndmarkersToFollowingContext(),
 /// TransferCOmpletedSrcPhrases(), and CMainFrame's DeleteSourcePhrases_ForSyncScrollReceive().
-/// 
+///
 /// Clears and deletes any m_pMedialMarkers, m_pMedialPuncts and m_pSavedWords before deleting
 /// pSrcPhrase itself.
 /// BEW 11Oct10, to support doc version 5's better handling of USFM fixedspace symbol ~,
@@ -5004,7 +5004,7 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 	if (pSrcPhrase == NULL)
 		return;
 
-	// if requested delete the CPile instance in CLayout::m_pileList which 
+	// if requested delete the CPile instance in CLayout::m_pileList which
 	// points to this pSrcPhrase
 	if (bDoPartnerPileDeletionAlso)
 	{
@@ -5037,7 +5037,7 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 	// will never have medial puctuation nor medial markers nor will they store
 	// any saved minimal phrases since they are CSourcePhrase instances for single
 	// words only (nor will it point to any CRefString instances) (but these will
-	// have SPList instances on heap, so must delete those) 
+	// have SPList instances on heap, so must delete those)
 	// BEW note, 11Oct10, this block will also handle deletion of conjoined words using
 	// USFM fixedspace symbol, ~
 	if (pSrcPhrase->m_pSavedWords != NULL)
@@ -5115,13 +5115,13 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 	else
 	{
 		// found the partner pile in CLayout::m_pileList, so delete it...
- 		
+
         // get the CPile* instance currently at index, from it we can determine which strip
         // the deletion will take place from (even if we get this a bit wrong, it won't
         // matter)
 		pPile = posPile->GetData();
 		wxASSERT(pPile != NULL);
-		MarkStripInvalid(pPile); // sets CStrip::m_bValid to FALSE, and adds the 
+		MarkStripInvalid(pPile); // sets CStrip::m_bValid to FALSE, and adds the
 								 // strip index to CLayout::m_invalidStripArray
 
 		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
@@ -5135,7 +5135,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 		{
 			pLayout->m_pApp->m_pActivePile = NULL;
 		}
-		pLayout->DestroyPile(pPile,pLayout->GetPileList()); // destroy the pile, & remove 
+		pLayout->DestroyPile(pPile,pLayout->GetPileList()); // destroy the pile, & remove
 					// its node from m_pileList, because bool param, bRemoveFromListToo, is
 					// default TRUE
 		pPile = NULL;
@@ -5144,7 +5144,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param		pSrcPhrase -> the source phrase that was created and inserted in the 
+/// \param		pSrcPhrase -> the source phrase that was created and inserted in the
 ///                           application's m_pSourcePhrases list
 /// \remarks
 /// Created 13Mar09 for layout refactoring. The m_pileList's CPile instances point to
@@ -5152,7 +5152,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 /// list always needs to have the CPile instance which points to it also created,
 /// initialized and inserted into the corresponding place in the m_pileList. That task is
 /// done here.
-/// 
+///
 /// Called from various places. It is not made a part of the CSourcePhrase creation process
 /// for a good reason. Quite often CSourcePhrase instances are created and are only
 /// temporary - such as those deep copied to be saved in various local lists during the
@@ -5278,17 +5278,17 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 										   bool bNoActiveLocationCalculation)
 {
 	// refactored 13Mar09 & some more on 27Apr09
-	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in 
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in
 									 // pSrcPhrase, in the app's m_pSourcePhrases list
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
 	PileList* pPiles = GetLayout()->GetPileList();
-	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond 
+	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond
 												   // the end of m_pileList
 	if (posPile != NULL)
 	{
 		CPile* pPile = posPile->GetData();
 		wxASSERT(pPile != NULL);
-		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src, 
+		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src,
 							  // adapt or gloss text
 
         // if it is at the active location, then the width needs to be wider -
@@ -5310,7 +5310,7 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 			pPile->SetPhraseBoxGapWidth();
 		}
 
-		// mark the strip invalid and put the parent strip's index into 
+		// mark the strip invalid and put the parent strip's index into
 		// CLayout::m_invalidStripArray if it is not in the array already
 		MarkStripInvalid(pPile);
 	}
@@ -5366,8 +5366,8 @@ void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 /// \param		pOtherList -> another list of source phrases
 /// \remarks
 /// Called from : the Doc's ReconstituteAfterPunctuationChange().
-/// This function is used in document reconstitution after a punctuation change forces a 
-/// rebuild. 
+/// This function is used in document reconstitution after a punctuation change forces a
+/// rebuild.
 /// Clears and deletes any m_pMedialMarkers, m_pMedialPuncts before deleting
 /// pSrcPhrase itself.
 /// SmartDeleteSingleSrcPhrase deletes only those pSrcPhrase instances in its m_pSavedWords
@@ -5528,13 +5528,13 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 ///             and the passed in pSrcPhrase retained unchanged
 /// \param		pView		-> pointer to the View
 /// \param		pList		-> pointer to m_pSourcePhrases (its use herein is deprecated)
-/// \param		pos			-> the iterator position locating the passed in pSrcPhrase 
+/// \param		pos			-> the iterator position locating the passed in pSrcPhrase
 ///                            pointer (its use herein is deprecated)
 /// \param		pSrcPhrase	<- pointer of the source phrase
 /// \param		fixesStr	-> (its use herein is deprecated, the caller adds to it if
 ///                            FALSE is returned)
 /// \param		pNewList	<- the parsed new source phrase instances
-/// \param		bIsOwned	-> specifies whether or not the pSrcPhrase passed in is one which is 
+/// \param		bIsOwned	-> specifies whether or not the pSrcPhrase passed in is one which is
 ///                            owned by another sourcephrase instance or not (ie. TRUE
 ///                            means that it is one of the originals stored in an owning
 ///                            CSourcePhrase's m_pSavedWords list member, FALSE means it
@@ -5556,8 +5556,8 @@ void CAdapt_ItDoc::TransferFixedSpaceInfo(CSourcePhrase* pDestSrcPhrase, CSource
 /// below, but just to leave pSrcPhrase unchanged in that case, abandon the new instances,
 /// and return FALSE to have the caller put an appropriate entry in fixesStr
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView, 
-		SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos), CSourcePhrase*& pSrcPhrase, 
+bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
+		SPList*& WXUNUSED(pList), SPList::Node* WXUNUSED(pos), CSourcePhrase*& pSrcPhrase,
 		wxString& WXUNUSED(fixesStr), SPList*& pNewList, bool bIsOwned)
 {
 	// BEW added 5Apr05
@@ -5601,12 +5601,12 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	//				pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 //#endif
 
-	srcPhrase = FromSingleMakeSstr(pSrcPhrase, bAttachFilteredInfo, bAttach_m_markers, 
-					mMarkersStr, xrefStr, filteredInfoStr, bDoCount, bCountInTargetText);	
+	srcPhrase = FromSingleMakeSstr(pSrcPhrase, bAttachFilteredInfo, bAttach_m_markers,
+					mMarkersStr, xrefStr, filteredInfoStr, bDoCount, bCountInTargetText);
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
 	if (pSrcPhrase->m_adaption.IsEmpty())
 	{
-		bHasTargetContent = FALSE;	// use to suppress copying of source punctuation 
+		bHasTargetContent = FALSE;	// use to suppress copying of source punctuation
 									// to an adaptation not yet existing
 	}
 	else
@@ -5625,7 +5625,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	SPList::Node* newpos;
 	if (bPlaceholder)
 	{
-		// the adaptation, and gloss if any, is already presumably what the user wants, 
+		// the adaptation, and gloss if any, is already presumably what the user wants,
 		// so we'll just remove punctuation from the adaptation, and set the relevant members
 		// (m_targetStr is already correct) - but only provided there is an existing adaptation
 		pSrcPhrase->m_gloss = gloss;
@@ -5640,7 +5640,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 			pView->RemovePunctuation(this, &adaption, from_target_text);
 			pSrcPhrase->m_adaption = adaption;
 
-			// update the KBs (both glossing and adapting KBs) provided it is 
+			// update the KBs (both glossing and adapting KBs) provided it is
 			// appropriate to do so
 			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
 				pView->StoreKBEntryForRebuild(pSrcPhrase, adaption, gloss);
@@ -5707,7 +5707,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 		pSrcPhrase->m_follPunct = pNewSrcPhrase->m_follPunct;
 		/* deprecated 10Mar11
 		pSrcPhrase->m_markers = pNewSrcPhrase->m_markers;
-		*/ 
+		*/
 		// finally, the new docV5 members...
 		pSrcPhrase->SetFollowingOuterPunct(pNewSrcPhrase->GetFollowingOuterPunct());
 		/* deprecated 10Mar11
@@ -5721,7 +5721,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 		pSrcPhrase->SetCollectedBackTrans(pNewSrcPhrase->GetCollectedBackTrans());
 		pSrcPhrase->SetFilteredInfo(pNewSrcPhrase->GetFilteredInfo());
 		*/
-		// the adaptation, and gloss if any, is already presumably what the user wants, 
+		// the adaptation, and gloss if any, is already presumably what the user wants,
 		// so we'll just remove punctuation from the adaptation, and set the relevant members
 		// (m_targetStr is already correct) - but only provided there is an existing adaptation
 		/* deprecated 10Mar11
@@ -5737,7 +5737,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 			pView->RemovePunctuation(this,&adaption,from_target_text);
 			pSrcPhrase->m_adaption = adaption;
 
-			// update the KBs (both glossing and adapting KBs) provided it is 
+			// update the KBs (both glossing and adapting KBs) provided it is
 			// appropriate to do so
 			if (!bPlaceholder && !bRetranslation && !bNotInKB && !bIsOwned)
 				pView->StoreKBEntryForRebuild(pSrcPhrase, pSrcPhrase->m_adaption, pSrcPhrase->m_gloss);
@@ -5776,8 +5776,8 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return		FALSE if the rebuild fails internally at one or more locations so that the 
-///				user must later inspect the doc visually and do something corrective at such 
+/// \return		FALSE if the rebuild fails internally at one or more locations so that the
+///				user must later inspect the doc visually and do something corrective at such
 ///				locations; TRUE if the rebuild was successful everywhere.
 /// \param		pView		-> pointer to the View
 /// \param		pList		-> pointer to m_pSourcePhrases
@@ -5804,7 +5804,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	bool bSuccessful = TRUE;
 	wxString endingMkrsStr; // BEW added 25May05 to handle endmarker sequences like \fq*\f*
 
-	// Recalc the layout in case the view does some painting when the progress 
+	// Recalc the layout in case the view does some painting when the progress
 	// was removed earlier or when the bar is recreated below
 	UpdateSequNumbers(0); // get the numbers updated, as a precaution
 #ifdef _NEW_LAYOUT
@@ -5828,7 +5828,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -5886,7 +5886,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	// the changed filtering settings rather than the old settings (this also updates the app's
 	// rapid access strings, by a call to SetupMarkerStrings() done just before returning)
 	ResetUSFMFilterStructs(gpApp->gCurrentSfmSet, strMarkersToBeFiltered, strMarkersToBeUnfiltered);
-	
+
 	// Initialize for the loops. We must loop through the sourcephrases list twice - the
 	// first pass will do all the needed unfilterings, the second pass will do the
 	// required new filterings - trying to do these tasks in one pass would be much more
@@ -6008,7 +6008,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                     // determine whether or not the marker we found is one of those
                     // designated for being unfiltered (ie. its content made visible in the
                     // adaptation window)
-					wxString mkrPlusSpace = mkr + _T(' '); // prevents spurious Finds, 
+					wxString mkrPlusSpace = mkr + _T(' '); // prevents spurious Finds,
 														   // such as \h finding \hr, etc
 					if (strMarkersToBeUnfiltered.Find(mkrPlusSpace) == -1)
 					{
@@ -6046,13 +6046,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						remainderStr = pSrcPhrase->GetFilteredInfo().Mid(end); // remainder, from end of \~FILTER*
 						if (remainderStr[0] == _T(' '))
 							remainderStr = remainderStr.Mid(1); // remove an initial space if there is one
-						offsetNextSection = end; // update, this section is to be 
+						offsetNextSection = end; // update, this section is to be
 												 // unfiltered (on this pass at least)
 						// tokenize the substring (using this we get its inline marker handling for free)
 						wxASSERT(extractedStr[0] == gSFescapechar);
 						int count = pView->TokenizeTextString(pSublist,extractedStr,pSrcPhrase->m_nSequNumber);
 						bool bIsContentlessMarker = FALSE;
-						
+
 						USFMAnalysis* pSfm = NULL;	// whm moved here from below to ensure it is
 													// initialized before call to AnalyseMarker
 
@@ -6074,13 +6074,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                         // the unknown marker; so we have to take this special case into
                         // consideration too - we don't want to end up inserting this
                         // spurious sourcephrase into the doc's list.
-                        // 
+                        //
                         // BEW 20Sep10 note on the above comment; docVersion 5 tokenization
                         // stores an endmarker now on the CSourcePhrase which ends the
                         // content, not on the next in line, so the check is no longer
                         // needed; but the comment about the empty unknown marker remains
                         // valid
-						bGotEndmarker = FALSE; // if it remains false, the endmarker was 
+						bGotEndmarker = FALSE; // if it remains false, the endmarker was
 											   // omitted in the source
 						bool bHaventAClueWhatItIs = FALSE; // if it's really something
 														   // unexpected, set this TRUE below
@@ -6111,7 +6111,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 										goto f;
 									}
 
-									// it's not contentless, so it must be an endmarker, so ensure the 
+									// it's not contentless, so it must be an endmarker, so ensure the
 									// endmarker is present
 									curPos = endmarkersStr.Find(gSFescapechar);
 									if (curPos == -1)
@@ -6180,7 +6180,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 									pSublist->Erase(lastOne);
 
 									// delete the memory block to prevent a leak, update the count
-									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete a 
+									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete a
 																	// non-existent partner pile
 									count--;
 								} // end of block for detecting the parsing of an endmarker
@@ -6212,7 +6212,7 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
 								// find the next backslash
 								curPos = FindFromPos(extractedStr,gSFescapechar,nStart);
 								wxString possibleEndMkr = extractedStr.Mid(nStart, curPos - nStart);
-								possibleEndMkr = MakeReverse(possibleEndMkr); // if an 
+								possibleEndMkr = MakeReverse(possibleEndMkr); // if an
 												// endmarker, this should equal bareMarker
 								bHasEndMarker = bareMarker == possibleEndMkr;
 							}
@@ -6220,17 +6220,17 @@ f:						bareMarker = mkr.Mid(1); // remove backslash
 						extractedStr = MakeReverse(extractedStr);// restore normal order
 
                         // point at the marker's backslash in the buffer (ready for calling
-                        // AnalyseMarker) 
+                        // AnalyseMarker)
                         // whm moved code block that was here down past the
                         // h: label
-						{	// this extra block extends for the next 28 lines. It avoids the bogus 
+						{	// this extra block extends for the next 28 lines. It avoids the bogus
 							// warning C4533: initialization of 'f_iter' is skipped by 'goto h'
 							// by putting its code within its own scope
 						bool bFound = FALSE;
 						MapSfmToUSFMAnalysisStruct::iterator f_iter;
 						f_iter = pSfmMap->find(bareMarker); // find returns an iterator
 						if (f_iter != pSfmMap->end())
-							bFound = TRUE; 
+							bFound = TRUE;
 						if (bFound)
 						{
 							pSfm = f_iter->second;
@@ -6275,9 +6275,9 @@ h:						bool bIsInitial = TRUE;
 						wxChar* pEnd;
 						pEnd = (wxChar*)pChar + extractedStrLen; // whm added
 						wxASSERT(*pEnd == _T('\0'));
-						// lookup the marker in the active USFMAnalysis struct map, 
+						// lookup the marker in the active USFMAnalysis struct map,
 						// get its struct
-						int mkrLen = mkr.Length(); // we want the length including 
+						int mkrLen = mkr.Length(); // we want the length including
 												   // backslash for AnalyseMarker()
 						SPList::Node* pos2 = pSublist->GetFirst();
 						CSourcePhrase* pSPprevious = NULL;
@@ -6314,7 +6314,7 @@ h:						bool bIsInitial = TRUE;
                                     //  result we must set up remainderStr to have preStr
                                     //  plus this marker and space plus remainderStr's
                                     //  previous content, in that order
-                                    //  
+                                    //
 									//  BEW 20Sep10; preStr and remainderStr for
 									//  docVersion 5 are now associated with
 									//  m_filteredInfo; but the unknown marker - being at
@@ -6337,7 +6337,7 @@ h:						bool bIsInitial = TRUE;
 									else
 										pSrcPhrase->SetFilteredInfo(_T(""));
 									nWhich = 0;
-									DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory; 
+									DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory;
 										// & FALSE means don't delete a non-existent partner pile
 									pSublist->Clear();
 									break;
@@ -6388,7 +6388,7 @@ h:						bool bIsInitial = TRUE;
 										pSP->m_srcPhrase += _T(" ") + pSP2->m_srcPhrase;
 										pSP->m_key += _T(" ") + pSP2->m_key;
 									}
-									// delete all the elements in pSP2, and then delete 
+									// delete all the elements in pSP2, and then delete
 									// the list itself
 									DeleteListContentsOnly(pSublist2);
 									delete pSublist2;
@@ -6438,7 +6438,7 @@ h:						bool bIsInitial = TRUE;
 								bIsInitial = FALSE;
 							} // end of TRUE block for test: if (bIsInitial)
 
-							// when not the 0th iteration, we need to propagate the flags, 
+							// when not the 0th iteration, we need to propagate the flags,
 							// texttype, etc
 							if (nWhich > 0)
 							{
@@ -6471,7 +6471,7 @@ h:						bool bIsInitial = TRUE;
 								pSP->m_bBoundary = TRUE;
 								// rely on the foonote TextType having been propagated
 								if (pSP->m_curTextType == footnote)
-									pSP->m_bFootnoteEnd = TRUE; 
+									pSP->m_bFootnoteEnd = TRUE;
 							}
 						} // end of while loop for pSublist elements
 
@@ -6505,7 +6505,7 @@ h:						bool bIsInitial = TRUE;
 						pSublist->Clear(); // clear the local list (but leave the memory chunks in RAM)
 
  //wxLogDebug(_T("Loc doc4603 INNER LOOP ; before SequNum Update: curSequNum %d ,  SN = %d"), curSequNum, gpApp->m_nActiveSequNum);
-						
+
 						// update the active sequence number on the view
 						// BEW changed 29Jul09, the test needs to be > rather than >=,
 						// because otherwise a spurious increment by 1 can happen at the
@@ -6568,12 +6568,12 @@ h:						bool bIsInitial = TRUE;
 						remainderStr.Empty();
 						offset = 0;
 						offsetNextSection = 0;
-						UpdateSequNumbers(0); // get all the sequence 
+						UpdateSequNumbers(0); // get all the sequence
 											  // numbers into correct order
 					}
 					else
 					{
-						// we didn't unfilter anything, so prepare for the next 
+						// we didn't unfilter anything, so prepare for the next
 						// iteration of inner loop
 						offset = offsetNextSection;
 					}
@@ -6622,7 +6622,7 @@ h:						bool bIsInitial = TRUE;
 	pSrcPhrase = NULL;
 	mkr.Empty();
 	nFound = -1;
-	bool bBoxLocationDestroyed = FALSE; // set TRUE if the box was within a filtered 
+	bool bBoxLocationDestroyed = FALSE; // set TRUE if the box was within a filtered
                 // section, since that will require resetting it an arbitrary location and
                 // the latter could be within a retranslation - so we'd have to do an
                 // adjustment
@@ -6673,13 +6673,13 @@ h:						bool bIsInitial = TRUE;
 		endMkr.Empty();
 		bool bHasEndmarker = FALSE;
 		pos = pList->GetFirst();
-		SPList::Node* posStart = NULL; // location of first sourcephrase instance 
+		SPList::Node* posStart = NULL; // location of first sourcephrase instance
 									   // being filtered out
-		SPList::Node* posEnd = NULL; // location of first sourcephrase instance 
+		SPList::Node* posEnd = NULL; // location of first sourcephrase instance
 									 // after the section being filtered out
 		wxString filteredStr; // accumulate filtered source text here
 		wxString tempStr;
-		preStr.Empty(); // store in here m_markers content (from first pSrcPhrase) 
+		preStr.Empty(); // store in here m_markers content (from first pSrcPhrase)
                         // which precedes a marker for filtering out
 		remainderStr.Empty(); // store here anything in m_markers which follows
                               // the to-be-filtered marker (from first pSrcPhrase)
@@ -6708,13 +6708,13 @@ h:						bool bIsInitial = TRUE;
 			// 1. m_markers is not empty
 			// 2. m_markers has at least one marker in it (look for gSFescapechar)
 			// 3. the candidate marker, will be in m_markers currently, (because in
-			//       docVersion 5 anything filtered which is potentially unfilterable is 
+			//       docVersion 5 anything filtered which is potentially unfilterable is
 			//       stored in the m_filteredInfo member, bracketed there by \~FILTER and
 			//       \~FILTER* markers)
 			// 4. the candidate marker will NEVER be an endmarker (docVersion 5 stores
 			//      them now in the m_endMarkers member)
 			// 5. the marker's USFMAnalysis struct's filter member is currently set to TRUE
-			//		(note: markers like xk, xr, xt, xo, fk, fr, ft etc which are inline 
+			//		(note: markers like xk, xr, xt, xo, fk, fr, ft etc which are inline
             //      between \x and its matching \x* or \f and its matching \f*, etc, are
             //      marked filter==TRUE, but they have to be skipped, and their
             //      userCanSetFilter member is **always** FALSE. We won't use that fact,
@@ -6729,14 +6729,14 @@ h:						bool bIsInitial = TRUE;
             //      we want our code to correctly filter a misspelled marker which is
             //      always to be filtered, after the user has edited it to be spelled
             //      correctly.
-			// 6. the marker is listed for filtering in the wxString strMarkersToBeFiltered 
+			// 6. the marker is listed for filtering in the wxString strMarkersToBeFiltered
             //      (determined from the m_FilterStatusMap map which is set from the
             //      Filtering page of the GUI)
 			wxString markersStr;
 			if (pSrcPhrase->m_markers.IsEmpty())
 			{
 
-				// the following copied from bottom of loop to here in order to 
+				// the following copied from bottom of loop to here in order to
 				// remove the goto c; and label
 				++nOldCount;
 				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
@@ -6770,7 +6770,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                 // either wholeMkr is not filterable, or its not in strMarkersToBeFiltered
                 // -- if so, just iterate to the next sourcephrase
 
-				// the following copied from bottom of loop to here in order to remove the 
+				// the following copied from bottom of loop to here in order to remove the
 				// goto c; and label
 				++nOldCount;
 				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
@@ -6789,7 +6789,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // if we get there, it's a marker which is to be filtered out, and we know its
             // offset - so set up preStr and remainderStr so we can commence the filtering
             // properly...
-            
+
             // Question: What if we filter a section containing within it filtered
             // information? Answer: This is not possible, except if there is filtered
             // information stored on the CSourcePhrase which has the wholeMkr in its
@@ -6814,11 +6814,11 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				//	wxString theSrcPhrase = pSrcPhrase->m_srcPhrase;
 				//}
 #endif
-			
+
 			// BEW 21Sep10 -- read the next two paragraphs carefully, because for
 			// docVersion 5 the protocols described in them need changing slightly - the
 			// variations will be explained after these two paragraphs...
-			// 
+			//
             // Legacy comments (when filtered info was all stored in m_markers):
             // We have to be careful here, we can't assume that .Mid(filterableMkrOffset)
             // will deliver the correct remainderStr to be stored till later on, because a
@@ -6842,7 +6842,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // unknown and unfiltered marker when PngOnly is the SFM set, to \~FILTER \b
             // \~FILTER* when the user changes to the UsfmOnly set, or the UsfmAndPng set.
             // Similarly for other contentless markers.
-            // 
+            //
 			// Variations for docVersion 5: \~FILTER and \~FILTER* no longer will appear
 			// in the CSourcePhrase m_markers member; \b and similar markers can still
 			// appear there, and the protocols for this and other contentless filterable
@@ -6850,10 +6850,10 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			// with \~FILTER and \~FILTER* in the m_markers member, but rather move it to
 			// the end of the m_filteredInfo member and provide \~FILTER and \~FILTER*
 			// bracketing markers for it there instead.
-			int itsLen = wholeMkr.Length();			
+			int itsLen = wholeMkr.Length();
 			int nOffsetToNextBit = filterableMkrOffset + itsLen;
 			if ((wholeMkr != _T("\\f")) && (wholeMkr != _T("\\x")) &&
-				(nFound = FindFromPos(markersStr,backslash,nOffsetToNextBit)) != wxNOT_FOUND) 
+				(nFound = FindFromPos(markersStr,backslash,nOffsetToNextBit)) != wxNOT_FOUND)
 			{
                 // there is a following SF marker which is not a \f or \x (the latter two
                 // can have a following marker within their scope, so whether that happens
@@ -6875,8 +6875,8 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                 // wx version note: Since we require a read-only buffer we use GetData
                 // which just returns a const wxChar* to the data in the string.
 				const wxChar* ptr = contentlessMkr.GetData();
-				
-				// whm added two lines below because wxStringBuffer needs to ensure buffer 
+
+				// whm added two lines below because wxStringBuffer needs to ensure buffer
 				// ends with null char
 				wxChar* pEnd;
 				pEnd = (wxChar*)ptr + itsLen;
@@ -6894,12 +6894,12 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				// if so, delete it
 				if (markersStr[filterableMkrOffset] == _T(' '))
 				{
-					// wxString::Remove needs 1 as second parameter otherwise it truncates 
+					// wxString::Remove needs 1 as second parameter otherwise it truncates
 					// remainder of string
-					markersStr.Remove(filterableMkrOffset,1); // delete extra space 
+					markersStr.Remove(filterableMkrOffset,1); // delete extra space
 															  // if one is here
 				}
-				// now update the m_filteredInfo member to contain this marker 
+				// now update the m_filteredInfo member to contain this marker
 				// appropriately filtered
 				wxString filteredStr = pSrcPhrase->GetFilteredInfo();
 				filteredStr += temp;
@@ -6908,15 +6908,15 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo();
 				// update the m_markers member with the shorter markersStr contents
 				pSrcPhrase->m_markers = markersStr;
-				
+
                 // get the navigation text set up correctly (the contentless marker just
                 // now filtered out should then no longer appear in the nav text line)
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 
                 // advance beyond this just-filtered contentless marker's location and try
-                // again 
+                // again
                 // BEW 21Sep10, for docVersion 5 the calculation is different (simpler)
-				nStartingOffset = nFound; // point at the next marker found at 
+				nStartingOffset = nFound; // point at the next marker found at
 										  // the above FindFromPos() call
 				goto g;
 			}
@@ -6926,14 +6926,14 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
                 // have content currently visible in the interlinear display
 				;
 			}
-			preStr = markersStr.Left(filterableMkrOffset); // this stuff we 
+			preStr = markersStr.Left(filterableMkrOffset); // this stuff we
 						// accumulate for later on -- it will later go to the CSourcePhrase
 						// which follows the instances about to be filtered out; in
 						// docVersion 5 I can't think of anything that might be in preStr
 						// and so it is likely to always be empty, but just in case it
 						// isn't, we must preserve whatever is there & transfer it
-			remainderStr = markersStr.Mid(filterableMkrOffset); // this stuff is the 
-                        // marker for the stuff we are about to filter, and there may 
+			remainderStr = markersStr.Mid(filterableMkrOffset); // this stuff is the
+                        // marker for the stuff we are about to filter, and there may
                         // be other following markers - such as \p or \v etc which need
                         // to be accumulated and forwarded to the CSourcePhrase which
                         // follows the instances about to be filtered out (in docVersion
@@ -6942,12 +6942,12 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 						// We now must remove the marker we found, and retain anything
 						// which remains other than spaces
 			remainderStr = remainderStr.Mid(itsLen); // itsLen is the length of wholeMkr
-			remainderStr.Trim(FALSE); // trim off any initial spaces, or if only spaces 
+			remainderStr.Trim(FALSE); // trim off any initial spaces, or if only spaces
 									  // remain, then this will empty remainderStr
-									  
+
 
 			/* I don't think this next bit is needed any longer
-			bareMkr = wholeMkr.Mid(1); // remove the backslash, we already know 
+			bareMkr = wholeMkr.Mid(1); // remove the backslash, we already know
 									   // it has no final *
             // it is not valid to have formed a prefix like \f or \x if the marker from
             // which it is being formed is already only a single character preceded by a
@@ -6956,7 +6956,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // BEW extended test, 2Jul05, to prevent a marker like \imt (which gives a
             // short form of \i) from giving spurious shortMkr matches with unrelated
             // markers like \ip \ipq \im \io1 2 or 3, \is1 etc.
-			if (wholeShortMkr == wholeMkr || 
+			if (wholeShortMkr == wholeMkr ||
 				((wholeShortMkr != _T("\\f")) && (wholeShortMkr != _T("\\x"))) )
 			{
                 // this will prevent spurious matches in our code below, and prevent \f or
@@ -6979,15 +6979,15 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // which sourcephrase instance is the last one in this filtering sequence - we
             // will assume the following:
             // BEW 21Sep10: the following protocols are valid also for docVersion 5
-			// 1. unknown markers never have an associated endmarker - so their extent ends 
+			// 1. unknown markers never have an associated endmarker - so their extent ends
 			//      when a subsequent marker is encounted which is not an inline one, and
 			//      is found in m_markers - the owning CSourcePhrase instance is NOT in
-			//      the filterable span     
+			//      the filterable span
 			// 2. if the marker has an endmarker, then any other markers are skipped over -
 			//      we just look for the matching endmarker as the last marker in m_endMarkers
 			//      member - that owning CSourcePhrase instance would then be the last in the
 			//      span
-			// 3. filterable markers which lack an endmarker will end their content when the 
+			// 3. filterable markers which lack an endmarker will end their content when the
 			//      next marker is encountered in a subsequent CSourcePhrase instance
 			//      whose m_markers member contains that marker - which must not be an
 			//      inline one (easily satisfied, since docV5 NEVER stores inline markers
@@ -6997,7 +6997,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             //      identical to wholeShortMkr - in which case the section will end when
             //      the first marker is encountered for which that is not so
 
-			// we can now partly or fully determine where the active location is in 
+			// we can now partly or fully determine where the active location is in
 			// relation to this location
 			if (nCurActiveSequNum < pSrcPhrase->m_nSequNumber)
 			{
@@ -7015,7 +7015,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				bBoxAfter = TRUE;
 			}
 			nStartLocation = pSrcPhrase->m_nSequNumber;
-			// NOTE: we'll deal with preStr when we set up pUnfilteredSrcPhrase's 
+			// NOTE: we'll deal with preStr when we set up pUnfilteredSrcPhrase's
 			// m_markers member later on; likewise for anything still in remainderStr
 
 			posStart = oldPos; // preserve this starting location for later on
@@ -7043,10 +7043,10 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			// means that we have one place only for reconstituting the source text,
 			// giving us consistency, and we get the inline markers handling done 'for
 			// free' rather than having to add it to the complex code this approach replaces.
-            // 
+            //
             // BEW 7Dec10:
 			// Question: What if we filter a section where there is a note, or free
-			// translation or a collected backtranslation? 
+			// translation or a collected backtranslation?
 			// Answer: note information is irreversibly lost. Free and / or collected back
 			// translation information halts parsing, so we retain those. (Legacy code
 			// didn't retain those though.)
@@ -7056,7 +7056,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 									// m_markers member of pSrcPhraseNext instead; if
 									// we find a matching endmarker, pSrcPhrase would be
 									// WITHIN and at the end of the filterable section
-			CSourcePhrase* pSrcPhraseNext; // this could have in its m_markers member 
+			CSourcePhrase* pSrcPhraseNext; // this could have in its m_markers member
 										   // a non-inline marker which ends the section
 										   // that is, this one would NOT be part of the
 										   // filterable section
@@ -7079,7 +7079,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				wxASSERT(pSrcPhr);
 				bAtEnd = FALSE;
 				bAtDocEnd = FALSE;
-				posEnd = pos2; // on exit of the loop, posEnd will be where 
+				posEnd = pos2; // on exit of the loop, posEnd will be where
 							   // pSrcPhraseNext is located, or NULL if we reached
 							   // the end of the document
 				if (pos2 == NULL)
@@ -7154,7 +7154,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // and make the adjustment
 			if (bBoxBefore == FALSE)
 			{
-				// adjustment maybe needed only when we know the box was not located 
+				// adjustment maybe needed only when we know the box was not located
 				// preceding the filter section
 				if (posEnd == NULL)
 				{
@@ -7169,17 +7169,17 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 					// posEnd is defined, so get the sequence number for this location
 					nAfterLocation = posEnd->GetData()->m_nSequNumber;
 
-					// work out if an adjustment to bBoxAfter is needed (bBoxAfter is 
+					// work out if an adjustment to bBoxAfter is needed (bBoxAfter is
 					// set TRUE so far)
 					if (nCurActiveSequNum < nAfterLocation)
-						bBoxAfter = FALSE; // the box lay within this section 
+						bBoxAfter = FALSE; // the box lay within this section
 										   // being filtered
 				}
 			}
 			bool bPosEndNull = posEnd == NULL ? TRUE : FALSE; // used below to work out
 											// where to set the final active location
 
-			// here 'export' the src text into a wxString, and then append that to 
+			// here 'export' the src text into a wxString, and then append that to
 			// filteredStr
 			wxString strFilteredStuff;
 			strFilteredStuff.Empty();
@@ -7217,7 +7217,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // filtered out), and delete their memory chunks; any adaptations on these are
             // lost forever, but not from the KB unless the latter is rebuilt from the
             // document contents at a later time
-			SPList::Node* pos3; // use this to save the old location so as to delete the 
+			SPList::Node* pos3; // use this to save the old location so as to delete the
 								// old node once the iterator has moved past it
 			int filterCount = 0;
 			for (pos2 = posStart; (pos3 = pos2) != posEnd; )
@@ -7238,12 +7238,12 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			nStartLocation = nStartLocation > 0 ? nStartLocation - 1: 0;
 
 			// we can now work out what adjustment is needed
-			// 1. if the active location was before the filter section, no adjustment is 
+			// 1. if the active location was before the filter section, no adjustment is
 			//     needed
-			// 2. if it was after the filter section, the active sequence number must be 
+			// 2. if it was after the filter section, the active sequence number must be
             //     decreased by the number of sourcephrase instances in the section being
             //     filtered out
-			// 3. if it was within the filter section, it will not be possible to preserve 
+			// 3. if it was within the filter section, it will not be possible to preserve
             //     its location in which case we must try find a safe location (a) as close
             //     as possible after the filtered section (when posEnd exists), or (b), as
             //     close as possible before the filtered section (when posEnd is NULL)
@@ -7255,7 +7255,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				}
 				else
 				{
-					// the box was located within the span of the material which was 
+					// the box was located within the span of the material which was
 					// filtered out
 					bBoxLocationDestroyed = TRUE;
 					if (bPosEndNull)
@@ -7299,9 +7299,9 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			{
 				pUnfilteredSrcPhrase = new CSourcePhrase;
 
-				// force it to at least display an asterisk in nav text area to alert the 
+				// force it to at least display an asterisk in nav text area to alert the
 				// user to its presence
-				pUnfilteredSrcPhrase->m_bNotInKB = TRUE; 
+				pUnfilteredSrcPhrase->m_bNotInKB = TRUE;
 				pList->Append(pUnfilteredSrcPhrase);
 			}
 			else
@@ -7311,18 +7311,18 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			}
 			wxASSERT(pUnfilteredSrcPhrase);
 
-			// fill its m_markers with the material it needs to store, 
+			// fill its m_markers with the material it needs to store,
 			// in the correct order
-			tempStr = pUnfilteredSrcPhrase->m_markers; // hold this stuff temporarily, 
+			tempStr = pUnfilteredSrcPhrase->m_markers; // hold this stuff temporarily,
 							// as we must later add it to the end of everything else
 			tempStr.Trim(FALSE); // this is easier than the above line
-			pUnfilteredSrcPhrase->m_markers = preStr; // any previously assumulated 
+			pUnfilteredSrcPhrase->m_markers = preStr; // any previously assumulated
 													  // filtered info, or markers
 			// BEW 22Sep10 added next 3 lines
 			pUnfilteredSrcPhrase->m_markers.Trim();
 			pUnfilteredSrcPhrase->m_markers += _T(" "); //ensure an intervening space
 			pUnfilteredSrcPhrase->m_markers += remainderStr;
-			pUnfilteredSrcPhrase->m_markers.Trim(FALSE); // delete contents 
+			pUnfilteredSrcPhrase->m_markers.Trim(FALSE); // delete contents
 												// if only spaces are present
 			if (!tempStr.IsEmpty())
 			{
@@ -7381,11 +7381,11 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			}
 			else
 			{
-				pos = posEnd; // this could be the start of a consecutive section 
+				pos = posEnd; // this could be the start of a consecutive section
 							  // for filtering out
 			}
 			// update progress bar every 200 iterations (1000 is a bit too many)
-			
+
 			++nOldCount;
 			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
@@ -7397,7 +7397,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				}
 			}
 		} // end of loop for scanning contents of successive pSrcPhrase instances
-		
+
 		// remove the progress indicator window
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
@@ -7420,7 +7420,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 
 	// remove the progress window, clear out the sublist from memory
 	// wx version note: Since the progress dialog is modeless we do not need to destroy
-	// or otherwise end its modeless state; it will be destroyed when 
+	// or otherwise end its modeless state; it will be destroyed when
 	// ReconstituteAfterFilteringChange goes out of scope
 	if (pSublist)
 	{
@@ -7431,7 +7431,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 	// BEW added 29Jul09, turn back on CLayout Draw() so drawing of the view
 	// can now be done
 	GetLayout()->m_bInhibitDraw = FALSE;
-	
+
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
 
@@ -7444,7 +7444,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 ///				from being changed by whatever marker has just been parsed (and the caller will
 ///				reset the global to default TextType verse when an endmarker is encountered).
 /// \param		pChar		-> points at the marker just found (ie. at its backslash)
-/// \param		pAnalysis	-> points at the USFMAnalysis struct for this marker, if the marker 
+/// \param		pAnalysis	-> points at the USFMAnalysis struct for this marker, if the marker
 ///								is not unknown otherwise it is NULL.
 /// \remarks
 /// Called from: the Doc's RetokenizeText().
@@ -7487,10 +7487,10 @@ bool CAdapt_ItDoc::IsPreviousTextTypeWanted(wxChar* pChar,USFMAnalysis* pAnalysi
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		
+/// \return
 /// \param		filename	-> the filename to associate with the current document
-/// \param		notifyViews	-> defaults to FALSE; if TRUE wxView's OnChangeFilename 
-///                            is called for all views 
+/// \param		notifyViews	-> defaults to FALSE; if TRUE wxView's OnChangeFilename
+///                            is called for all views
 /// \remarks
 /// Called from: the App's OnInit(), DoKBRestore(), DoTransformationsToGlosses(),
 /// ChangeDocUnderlyingFileDetailsInPlace(), the Doc's OnNewDocument(), OnFileClose(),
@@ -7509,9 +7509,9 @@ void CAdapt_ItDoc::SetFilename(const wxString& filename, bool notifyViews)
         while (node)
         {
             wxView *view = (wxView *)node->GetData();
-            view->OnChangeFilename(); 
-			// OnChangeFilename() is called when the filename has changed. The default 
-			// implementation constructs a suitable title and sets the title of 
+            view->OnChangeFilename();
+			// OnChangeFilename() is called when the filename has changed. The default
+			// implementation constructs a suitable title and sets the title of
 			// the view frame (if any).
             node = node->GetNext();
         }
@@ -7557,17 +7557,17 @@ bool CAdapt_ItDoc::IsPrevCharANewline(wxChar* ptr, wxChar* pBufStart)
 /// Called from: the Doc's ParseWhiteSpace(), ParseNumber(), IsVerseMarker(), ParseMarker(),
 /// MarkerAtBufPtr(), ParseWord(), IsChapterMarker(), TokenizeText(), DoMarkerHousekeeping(),
 /// the View's DetachedNonQuotePunctuationFollows(), DoExportSrcOrTgtRTF(), DoesTheRestMatch(),
-/// PrecedingWhitespaceHadNewLine(), NextMarkerIsFootnoteEndnoteCrossRef(), 
+/// PrecedingWhitespaceHadNewLine(), NextMarkerIsFootnoteEndnoteCrossRef(),
 /// the CViewFilteredMaterialDlg's InitDialog().
 /// Note: The XML.cpp file has its own IsWhiteSpace() function which is used within XML.cpp (it
-/// does not use wxIsspace() internally but defines whitespace explicitly as a space, tab, \r 
+/// does not use wxIsspace() internally but defines whitespace explicitly as a space, tab, \r
 /// or \n.
 /// Whitespace is generally defined as a space, a tab, or an end-of-line character/sequence.
 /// BEW 30July11, add support in Unicode version for zero-width space (needed in Khmer
 /// scripts) and some other special characters
 ///////////////////////////////////////////////////////////////////////////////
-/* 
-// deprecated, different logic is needed for supporting exotic spaces and joiners without 
+/*
+// deprecated, different logic is needed for supporting exotic spaces and joiners without
 // wasting lots of time when such exotic ones are not in the data
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
@@ -7596,7 +7596,7 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 #else
 	wxChar NBSP = (unsigned char)0xA0;  // standard Non-Breaking SPace
 #endif
-	
+
 	// handle common ones first...
 	// returns true for tab 0x09, return 0x0D or space 0x20
 	// _istspace not recognized by g++ under Linux; the wxIsspace() fn and those it relies
@@ -7641,8 +7641,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 			wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
 			wxChar NQSP = (wxChar)0x2000; // NQSP is "?? SPace" dunno, don't care
 			wxChar MQSP = (wxChar)0x2001; // MQSP is "?? SPace" dunno, don't care
-			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP 
-				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ  
+			if (*pChar == ENSP || *pChar == EMSP || *pChar == M3SP || *pChar == M4SP || *pChar == M6SP
+				|| *pChar == FSP || *pChar == PSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ
 				|| *pChar == NQSP || *pChar == MQSP)
 			{
 				return TRUE;
@@ -7663,7 +7663,7 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 /// the View's DetachedNonQuotePunctuationFollows(), FormatMarkerBufferForOutput(),
 /// FormatUnstructuredTextBufferForOutput(), DoExportInterlinearRTF(), DoExportSrcOrTgtRTF(),
 /// DoesTheRestMatch(), ProcessAndWriteDestinationText(), ApplyOutputFilterToText(),
-/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(), 
+/// ParseAnyFollowingChapterLabel(), NextMarkerIsFootnoteEndnoteCrossRef(),
 /// IsFixedSpaceAhead() and from Usfm2Oxes ParseMarker_Content_Endmarker()
 /// Parses through a buffer's whitespace beginning at pChar.
 ///////////////////////////////////////////////////////////////////////////////
@@ -7688,14 +7688,14 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
 /// \remarks
 /// Called from: the Doc's TokenizeText().
 /// Parses through the filtering marker beginning at pChar (the initial backslash).
-/// Upon entry pChar must point to a filtering marker determined by a prior call to 
-/// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging to the 
+/// Upon entry pChar must point to a filtering marker determined by a prior call to
+/// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging to the
 /// parent marker.
 /// BEW 9Sep10 removed need for papram pBufStart, since only IsMarker() used to use it as
 /// its second param and with docVersion 5 changes that become unnecessary, so for now
 /// I've resorted to the identity assignment hack to avoid the compiler warning
 ///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
+int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 									wxChar *pBufStart, wxChar *pEnd)
 {
 	pBufStart = pBufStart; // a hack to avoid compiler warning
@@ -7712,7 +7712,7 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 	// 3. ptr points to a subsequent non-inLine and non-end marker. This
 	//    means that the "content markers"
 	// whm ammended 30Apr05 to include "embedded content markers" in
-	// the parsed filtered marker, i.e., any \xo, \xt, \xk, \xq, and 
+	// the parsed filtered marker, i.e., any \xo, \xt, \xk, \xq, and
 	// \xdc that follow the marker to be parsed will be included within
 	// the span that is parsed. The same is true for any footnote content
 	// markers (see notes below).
@@ -7743,14 +7743,14 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 			else if (IsInLineMarker(ptr, pEnd) && *(ptr + 1) == wholeMkr.GetChar(1))
 			{
 				; // continue parsing
-				// We continue incrementing ptr past all inLine markers following a 
-				// filtering marker that start with the same initial letter (after 
+				// We continue incrementing ptr past all inLine markers following a
+				// filtering marker that start with the same initial letter (after
 				// the backslash) since those can be assumed to be "content markers"
 				// embedded within the parent marker. For example, if our filtering
-				// marker is the footnote marker \f, any of the footnote content 
-				// markers \fr, \fk, \fq, \fqa, \ft, \fdc, \fv, and \fm that happen to 
+				// marker is the footnote marker \f, any of the footnote content
+				// markers \fr, \fk, \fq, \fqa, \ft, \fdc, \fv, and \fm that happen to
 				// follow \f will also be filtered. Likewise, if the cross reference
-				// marker \x if filtered, any inLine "content" markers such as \xo, 
+				// marker \x if filtered, any inLine "content" markers such as \xo,
 				// \xt, \xq, etc., that might follow \x will also be subsumed in the
 				// parse and therefore become filtered along with the \x and \x*
 				// markers. The check to match initial letters of the following markers
@@ -7780,7 +7780,7 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 					else
 					{
 						break;	// it's another marker other than corresponding end marker, or
-								// a subsequent inLine marker or one with TextType none, so break 
+								// a subsequent inLine marker or one with TextType none, so break
 								// because we are at the end of the filtered text.
 					}
 				}
@@ -7803,7 +7803,7 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 /// \return		the number of numeric characters parsed
 /// \param		pChar		-> pointer to the first numeric character
 /// \remarks
-/// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(), and 
+/// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(), and
 /// DoExportInterlinearRTF().
 /// Parses through the number until whitespace is encountered (generally a newline)
 /// BEW added test for a null, because this function is used in DoMarkerHousekeeping() and
@@ -7830,7 +7830,7 @@ int CAdapt_ItDoc::ParseNumber(wxChar *pChar)
 /// \param		pChar		-> pointer to the first character to be examined (a backslash)
 /// \param		nCount		<- returns the number of characters forming the marker
 /// \remarks
-/// Called from: the Doc's TokenizeText() and DoMarkerHousekeeping(), 
+/// Called from: the Doc's TokenizeText() and DoMarkerHousekeeping(),
 /// DoExportInterlinearRTF() and DoExportSrcOrTgtRTF().
 /// Determines if the marker at pChar is a verse marker. Intelligently handles verse markers
 /// of the form \v and \vn.
@@ -7867,7 +7867,7 @@ bool CAdapt_ItDoc::IsVerseMarker(wxChar *pChar, int& nCount)
 /// \param		pChar		-> a pointer to the first character to be examined (a backslash)
 /// \param		pEnd		-> a pointer to the end of the buffer
 /// \remarks
-/// Called from: the Doc's GetMarkersAndTextFromString() 
+/// Called from: the Doc's GetMarkersAndTextFromString()
 /// Determines if the marker being pointed at is a \~FILTER marking the beginning of filtered
 /// material.
 /// BEW 24Mar10 no changes needed for support of doc version 5
@@ -7917,7 +7917,7 @@ bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 /// \param		pChar		-> a pointer to the first character to be parsed (a backslash)
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(), GetWholeMarker(), TokenizeText(),
-/// DoMarkerHousekeeping(), IsEndingSrcPhrase(), ContainsMarkerToBeFiltered(), 
+/// DoMarkerHousekeeping(), IsEndingSrcPhrase(), ContainsMarkerToBeFiltered(),
 /// RedoNavigationText(), GetNextFilteredMarker(), the View's FormatMarkerBufferForOutput(),
 /// DoExportSrcOrTgtRTF(), FindFilteredInsertionLocation(), IsFreeTranslationEndDueToMarker(),
 /// ParseFootnote(), ParseEndnote(), ParseCrossRef(), ProcessAndWriteDestinationText(),
@@ -7957,8 +7957,8 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 	wxChar* pBegin = ptr;
 	while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 	{
-		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']'))) 
-			break; 
+		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']')))
+			break;
 		ptr++;
 		len++;
 		if (*(ptr -1) == _T('*')) // whm ammended 17May06 to halt after asterisk (end marker)
@@ -8032,7 +8032,7 @@ bool CAdapt_ItDoc::IsFootnoteInternalEndMarker(wxChar* pChar)
 			return TRUE;
 		}
 	}
-	return FALSE; 
+	return FALSE;
 }
 
 bool CAdapt_ItDoc::IsCrossReferenceInternalEndMarker(wxChar* pChar)
@@ -8392,18 +8392,18 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// can get it's iterator position set correctly, but the caller will then just ignore any
 /// such white space returned
 /// BEW created 11Oct10 (actually 27Jan11), to support the improved USFM parser build into
-/// doc version 5 
+/// doc version 5
 /// BEW 2Feb11, added a string to signature for storing punctuation characters that have
 /// changed their status to being word-building
 //////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper, 
+void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 		wxString& firstFollPuncts, int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 		wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
 		wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
 {
 	// initialize
 	wordProper.Empty(); firstFollPuncts.Empty(); inlineBindingEndMarkers.Empty();
-	secondFollPuncts.Empty(); ignoredWhiteSpaces.Empty(); 
+	secondFollPuncts.Empty(); ignoredWhiteSpaces.Empty();
 	wordBuildersForPostWordLoc.Empty(); // potentially used when parsing the first or
 										// second word of a conjoined pair, or when
 										// parsing a non-conjoined word
@@ -8479,7 +8479,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
         // add the puncts to secondFollPuncts, if any were found -- note, there could be a
         // space (it's not necessarily bad USFM markup, some languages require it) at the
         // end of the (reversed)substring -- we'll collect it & retain it if present
-		if (!puncts.IsEmpty())	
+		if (!puncts.IsEmpty())
 		{
 			secondFollPuncts = MakeReverse(puncts); // normal order
 			punctsLen2 = secondFollPuncts.Len();
@@ -8508,7 +8508,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
     // marker, thinking it is to remain as punctuation, and if it is now no longer in the
     // punctuation set being used, then it needs to be stored for the caller to process it,
     // and the parsing point set to follow it before further parsing takes place. Test and
-    // do that now. There could be more than one. 
+    // do that now. There could be more than one.
 	wxString nowWordBuilding; nowWordBuilding.Empty();
 	bool bStoredSome = FALSE;
 	if (nEndMkrsCount > 0 && *p != _T('*') && punctSet.Find(*p) == wxNOT_FOUND)
@@ -8526,8 +8526,8 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 	// word-internal punctuation -- this is the cost we pay for refusing to generate a
 	// pair of CSourcePhrase instances from a single instance when the user changes
 	// punctuation settings - otherwise, we get potential messes, and this 'solution' is
-	// the best compromise. 
-	// To generate data to illustrate this, a sequence like \k extreme\k* is useful, 
+	// the best compromise.
+	// To generate data to illustrate this, a sequence like \k extreme\k* is useful,
     // make m and e become punctuation characters, then unmake e as a punctuation
     // (returning it to word-building status) -- when the reverse parse comes to the eme
     // 3-char sequence, the first e goes to the end of the word, but m continuing as
@@ -8568,7 +8568,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 		int index;
 		for (index = 0; index < nEndMkrsCount; index++)
 		{
-			// use the helpers.cpp function: int FindFromPos(const wxString& inputStr, 
+			// use the helpers.cpp function: int FindFromPos(const wxString& inputStr,
 			// const wxString& subStr, int startAtPos), it allows us to find several
 			// instances of a substring within the string
 			lastPos = FindFromPos(aReversedSpan,_T("\\"),lastPos);
@@ -8600,7 +8600,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
         // add the puncts to firstFollPuncts, if any were found -- note, there could be a
         // space (it's not necessarily bad USFM markup, some languages require it) at the
         // end of the (reversed)substring -- we'll collect it & retain it if present
-		if (!puncts.IsEmpty())	
+		if (!puncts.IsEmpty())
 		{
 			firstFollPuncts = MakeReverse(puncts); // normal order
 			punctsLen1 = firstFollPuncts.Len();
@@ -8609,7 +8609,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 		}
 	}
 
-	
+
 	// finally, what remains is the word proper (it could have embedded punctuation
 	// 'invisible' to our parsing algorithms - it's invisible provided it has a
 	// non-punctuation character both before and after it)
@@ -8620,7 +8620,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 #ifdef __WXDEBUG__
 	int wordLen = wordProper.Len();
 	int storedRevertedPunctsLen = wordBuildersForPostWordLoc.Len();
-	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 + 
+	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 +
 				ignoredWhitespaceLen + storedRevertedPunctsLen == length);
 #endif
 }
@@ -8655,7 +8655,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 /// feel this is a satisfactory simplification, because use of ~ in actual data is rare (no
 /// known instances in a decade of Adapt It use), and so too is the use of punctuation as a
 /// word-building character.
-/// 
+///
 /// BEW 25Jan11: ***BIGGER NOTE**** I've left the above NOTE here, at the time it seemed a
 /// reasonable simplification. But user's dynamic changes to punctuation settings proved
 /// it be it's archilles heel. The early code used ScanExcluding() to parse over the word
@@ -8673,7 +8673,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 /// reversal of what lies between and then do the scan in. If there is a ~ fixed space, we
 /// can use that as defining the other end. But if there is no fixed space (~) present, we
 /// have to define the other end as whitespace or a backslash (ie. ignore punctuation for
-/// determining where the other end is). In support of these observations the code will be 
+/// determining where the other end is). In support of these observations the code will be
 /// re-written below.
 /// ******************************************************** END NOTE *****************
 /// When the scanning ptr points at a word, we don't know whether the word will be a
@@ -8697,10 +8697,10 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 /// frequency in the text, and the caller will reparse that information quickly anyway).
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
 //////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
-	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
+bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
+	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr,
 	wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
-{	
+{
 	wxChar* p = ptr; // scan with p, so that we can return a ptr value which is at
 					 // the place we want the caller to pick up from (and that will
 					 // be determined by what we find herein)
@@ -8726,8 +8726,8 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	bool bFoundHaltingWhitespace = FALSE;
 	int nFixedSpaceOffset = -1;
 	int nEndMarkerCount = 0;
-	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
-					&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
+					&bFoundFixedSpaceMarker, &bFoundClosingBracket,
 					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
 	bFixedSpaceIsAhead = bFoundFixedSpaceMarker;
 	wxString aSpan(ptr,pHaltLoc); // this could be up to ~, or a [ or ], or a whitespace
@@ -8744,9 +8744,9 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	// about an empty span, instead code to jump the call
 	if (!aSpan.IsEmpty())
 	{
-		ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
-						inlineBindingEndMarkers, secondFollPuncts, 
-						ignoredWhiteSpaces, wordBuildersForPostWordLoc, 
+		ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount,
+						inlineBindingEndMarkers, secondFollPuncts,
+						ignoredWhiteSpaces, wordBuildersForPostWordLoc,
 						spacelessPuncts);
 	}
 	else
@@ -8777,7 +8777,7 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 		// whatever is already after the endmarkers. We won't remove any initial whitespace
 		// before the puncts, as that would be inappropriate -- some languages'
 		// punctuation conventions are to have a space between the word and preceding or
-		// following punctuation - so if there is space there, we must retain it 
+		// following punctuation - so if there is space there, we must retain it
 		if (nEndMarkerCount == 0)
 		{
 			// all the punctuation is together in secondFollPuncts, if there is any at all
@@ -8818,7 +8818,7 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 			while (inlineBindingEndMarkers.Find(_T(' ')) != wxNOT_FOUND)
 			{
 				// remove all spaces, leaving only the one or more inline binding endmarkers
-				inlineBindingEndMarkers.Remove(inlineBindingEndMarkers.Find(_T(' ')),1); 
+				inlineBindingEndMarkers.Remove(inlineBindingEndMarkers.Find(_T(' ')),1);
 			}
 			endMkr = inlineBindingEndMarkers;
 		}
@@ -8893,9 +8893,9 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 /// Punctuation tab to dynamically change the punctuation settings)
 //////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
-		wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr, 
+		wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
 		wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
-		wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc, 
+		wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
 		wxString& spacelessPuncts)
 {
 	// Note: the punctAfter param is "punctuation after the ~ fixedspace, which, since
@@ -8926,7 +8926,7 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 		// check out the possibility of word-initial punctuation preceding word2's
 		// characters, and beware there may be detached opening quote, and so we can't
 		// assume there won't be a space within the punctuation string (if there is a
-		// punctuation string, that is)   
+		// punctuation string, that is)
 		punctAfter = SpanIncluding(p, pEnd, punctuation);
 		length = punctAfter.Len();
 		if (length > 0)
@@ -9015,7 +9015,7 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 				// *p is a punctuation character now, so store it and advance p
 				newPunctFrom2ndPreWordLoc += *p++;
 			}
-			
+
 			// we are at the start of word2, we can't scan over it using SpanExcluding()
 			// because if there is embedded punctuation, it would foul the integrity of
 			// the parse; so use FindParseHaltLocation() and ParseSpanBackwards() as the
@@ -9044,10 +9044,10 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 			bool bFoundHaltingWhitespace = FALSE;
 			int nFixedSpaceOffset = -1;
 			int nEndMarkerCount = 0;
-			pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
-							&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+			pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
+							&bFoundFixedSpaceMarker, &bFoundClosingBracket,
 							&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
-			wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a 
+			wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a
 										  // whitespace or a beginmarker
 			// now parse backwards to extract the span's info
 			wxString wordProper; // emptied at start of ParseSpanBackwards() call below
@@ -9055,7 +9055,7 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 			wxString inlineBindingEndMarkers; // ditto
 			wxString secondFollPuncts; // ditto
 			wxString ignoredWhiteSpaces; // ditto
-			ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
+			ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount,
 								inlineBindingEndMarkers, secondFollPuncts, ignoredWhiteSpaces,
 								wordBuildersFor2ndPostWordLoc, spacelessPuncts);
             // now use the info extracted to set the FinishedOffConjoinedWordsParse() param
@@ -9079,7 +9079,7 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// \param  ptr            -> pointer to the next wxChar to be parsed (it should
 ///                           point at the starting character of the word proper,
 ///                           and after preceding punctuation for that word (if any)
-/// \param  pEnd		   -> a pointer to the first character beyond the input 
+/// \param  pEnd		   -> a pointer to the first character beyond the input
 ///                           buffer's end (could be tens of kB ahead of ptr)
 ///                           marker, or an inline binding marker)
 /// \param	pbFoundInlineBindingEndMarker   <- ptr to boolean, its name explains it; there
@@ -9102,17 +9102,17 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// which looks ahead for a fixed space marker (~), but only looks ahead a certain distance
 /// - ensuring the parsing pointer does not encroach into material which belows to any of
 /// the words which follow. This is that subparser. In doing it's job, it may parse over
-/// whitespace which is ignorable, and possibly one or more inline binding endmarkers. 
+/// whitespace which is ignorable, and possibly one or more inline binding endmarkers.
 /// The halting conditions are:
 /// a) finding non-ignorable whitespace
 /// b) finding ~ (the fixed space marker of USFM)
 /// c) finding a closing bracket, ] or an opening bracket [
 /// d) finding a begin-marker, or an endmarker which is not an inline binding one
 /// We return, via the signature, information about the data types parsed over, to help
-/// the caller to do it's more definitive parsing and data storage more easily. 
+/// the caller to do it's more definitive parsing and data storage more easily.
 /// The following conditions define ignorable whitespace for the scanning process:
 /// i)  immediately after an inline binding endmarker - provided what follows the whitespace
-///     is either ] or ~ or another inline binding endmarker or punctuation which is a 
+///     is either ] or ~ or another inline binding endmarker or punctuation which is a
 ///     closing quote or closing doublequote
 /// ii) between non-punctuation and an immediately following inline binding endmarker
 /// iii)after punctuation, provided a closing quote or closing doublequote follows
@@ -9195,7 +9195,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 						// it's an endmarker, but we parse over only those which are
 						// inline binding ones, otherwise the marker halts scanning
 						wxString beginMkr = wholeMkr;
-						beginMkr = beginMkr.Truncate(beginMkr.Len() - 1); // remove 
+						beginMkr = beginMkr.Truncate(beginMkr.Len() - 1); // remove
 											// the * (we are assuming the asterisk was at
 											// the end where it should be)
 						wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
@@ -9226,7 +9226,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 				// it's whitespace - some such can just be ignored, others constitute the
 				// end of the word or word plus punctuation (and possibly binding
 				// endmarker(s)) and so constitute grounds for halting - determine which
-				// is the case 
+				// is the case
 				// first, handle condition (i) in the remarks of the function description
 				if (*pbFoundInlineBindingEndMarker == TRUE && p == (ptr + offsetToEndOfLastBindingEndMkr))
 				{
@@ -9286,7 +9286,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							{
 								// it's an endmarker, but we parse over only those which are
 								// inline binding ones, otherwise the marker halts scanning
-								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove
 													// the * (we are assuming the asterisk was at
 													// the end where it should be)
 								wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
@@ -9307,7 +9307,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 									*pbFoundInlineBindingEndMarker = TRUE;
 									nEndMarkerCount++;
 									unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
-									p = p + whitespaceSpan; // point p at the start of the binding endmarker 
+									p = p + whitespaceSpan; // point p at the start of the binding endmarker
 									offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
 									p = p + markerLen;
 								}
@@ -9317,7 +9317,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 					else if (IsClosingCurlyQuote(p + whitespaceSpan))
 					{
 						// it's a closing curly quote, or a > chevron -- so scan over it &
-						// continue 
+						// continue
 						p = p + whitespaceSpan;
 					}
 					else
@@ -9329,7 +9329,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 						break;
 					}
 
-				} // end of TRUE block for test: if (*pbFoundInlineBindingEndMarker == TRUE && 
+				} // end of TRUE block for test: if (*pbFoundInlineBindingEndMarker == TRUE &&
 				  //                                 p == (ptr + offsetToEndOfLastBindingEndMkr))
 				else
 				{
@@ -9366,7 +9366,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							{
 								// it's an endmarker, but we parse over only those which are
 								// inline binding ones, otherwise the marker halts scanning
-								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove 
+								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove
 													// the * (we are assuming the asterisk was at
 													// the end where it should be)
 								wxString mkrPlusSpace = beginMkr + _T(' '); // append a space
@@ -9387,14 +9387,14 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 									*pbFoundInlineBindingEndMarker = TRUE;
 									nEndMarkerCount++;
 									unsigned int markerLen = wholeMkr.Len(); // use this to jump p forwards
-									p = p + whitespaceSpan; // point p at the start of the binding endmarker 
+									p = p + whitespaceSpan; // point p at the start of the binding endmarker
 									offsetToEndOfLastBindingEndMkr = (int)(p - ptr) + markerLen;
 									p = p + markerLen;
 								}
 							}
 						} // end of else block for test: if (whichSFMSet == PngOnly)
 					} // end of TRUE block for test: else if (IsMarker(p + whitespaceSpan))
-					else 
+					else
 					{
 						// subcondition (ii) doesn't apply, so try subconditon (iii) --
 						// this boils down to testing for a closing (curly) quote or >
@@ -9414,7 +9414,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							break;
 						}
 					}
-				} // end of else block for test: if (*pbFoundInlineBindingEndMarker == TRUE && 
+				} // end of else block for test: if (*pbFoundInlineBindingEndMarker == TRUE &&
 				  //                                 p == (ptr + offsetToEndOfLastBindingEndMkr))
 			} // end of TRUE block for test: else if (IsWhiteSpace(p))
 			else
@@ -9422,7 +9422,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 				// it's not whitespace -- control should never enter here, but if it does,
 				// then halt for safety's sake
 				break;
-			}	
+			}
 		} // end of else block for test: if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
 	}
 	pHaltLoc = p;
@@ -9514,7 +9514,7 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 	// of the characters at issue (because it's only such a marker that caused the move of
 	// the former word-building char to become a punt in the first place, so it's only
 	// from that kind of movement round the marker that we need a recovery mechanism for)
-	while (bItsAnInlineBindingMarker && ptr < pNewEnd && ptr < pEnd && 
+	while (bItsAnInlineBindingMarker && ptr < pNewEnd && ptr < pEnd &&
 			spacelessPuncts.Find(*ptr) == wxNOT_FOUND)
 	{
 		squirrel += *ptr++;
@@ -9548,7 +9548,7 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 /// \param	spacelessPuncts     -> punctuation characters set used herein, spaces removed
 /// \param	boundarySet	        -> same as spacelessSrcPunct but also with comma removed
 /// \param inlineNonbindingMrks -> space-delimited markers, \wj \qt \sls \tl \fig
-///	\param bIsInlineNonbindingMkr -> TRUE if pChar points at one of the above 5 mkrs								 
+///	\param bIsInlineNonbindingMkr -> TRUE if pChar points at one of the above 5 mkrs
 ///	\param bIsInlineBindingMkr  -> TRUE if pChar points at any of the other lineline
 ///	                               markers (but not any from the footnote or
 ///	                               crossReference set, which start with \f or \x,
@@ -9565,7 +9565,7 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 /// occurs between them - after that, any further one will be assumed to be at the start
 /// of the next CSourcePhrase instance (if that is a bad assumption, the user can edit the
 /// source text to make the quotes curly ones, and then the parse will be redone right).
-/// 
+///
 /// BEW 11Oct10, changed for docVersion5, to support inline markers and following
 /// punctuation which may occur both before and after endmarkers. Also, entry to
 /// ParseWord() is potentially earlier - as soon as an inline marker is encountered which
@@ -9583,7 +9583,7 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 /// without comment the following variations:
 /// (i) following punctuation preceding a) -- but we'll export in the above order
 /// (ii) inline non-binding endmarkers which occur preceding d) -- but we'll export in the
-/// above order 
+/// above order
 /// Note: the parser now supports ~ USFM fixed space conjoining of a word pair (but not
 /// sequences or 3 words or more), and it will parse punctuation before or after (or both)
 /// the ~ symbol and also any inline binding marker or endmarker occuring with either of
@@ -9606,11 +9606,11 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wxChar* pEnd,
-		CSourcePhrase* pSrcPhrase, 
+		CSourcePhrase* pSrcPhrase,
 		wxString& spacelessPuncts, // caller determines whether it's src set or tgt set
 		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
 		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
-		bool& bIsInlineNonbindingMkr, 
+		bool& bIsInlineNonbindingMkr,
 		bool& bIsInlineBindingMkr)
 {
 	int len = 0;
@@ -9685,7 +9685,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// we are not pointing at one of the five
 		pSrcPhrase->SetInlineNonbindingMarkers(emptyStr);
 	}
-	bIsInlineNonbindingMkr = FALSE; // it's passed by ref, so clear the value 
+	bIsInlineNonbindingMkr = FALSE; // it's passed by ref, so clear the value
 									// otherwise next entry will fail
 	// what might ptr be pointing at now? One of the following 3 possibilities:
 	// 1. punctuation which needs to be stored in m_precPunct, or
@@ -9722,7 +9722,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		len += itemLen;
 		wxASSERT(ptr < pEnd);
 	}
-	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value 
+	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
 
 	// what might ptr be pointing at now? If the above block actually stored a marker,
@@ -9756,7 +9756,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		if (bStraightQuote)
 			m_bHasPrecedingStraightQuote = TRUE; // a public boolean of CAdapt_ItDoc class
 				// which gets cleared to default FALSE at the start of each new verse, and
-				// also after having been used to help decide who owns a straight quote 
+				// also after having been used to help decide who owns a straight quote
 				// which was detected following the word being parsed
 
         // this block gets us over all detached preceding quotes and the spaces which
@@ -9773,7 +9773,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		}
 		else
 		{
-			bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening 
+			bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening
                 // quote (when initial in a following word) from being interpretted as
                 // belonging to the current sourcephrase in the circumstance where there is
                 // detached non-quote punctuation being spanned in this current block. That
@@ -9843,7 +9843,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			ptr += itemLen;
 			len += itemLen;
 			wxASSERT(ptr < pEnd);
-			
+
 		}
 		// once control gets to here, ptr should be pointing at the first character of the
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
@@ -9954,7 +9954,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		bHasPrecPunct = TRUE;
 
 	// this is where the first character of the word possibly starts...
-	
+
 	// BEW 31Jan11, it is possible that a dynamic punctuation change has just made one or
 	// more of the former word-initial character/characters into punctuation
 	// characters, and if that is the case, then our algorithm won't handle it without
@@ -10040,9 +10040,9 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// in the next call, if ~ is found, ptr returns pointing at whatever follows it, but
 	// if ~ is not found, then ptr returns pointing at whatever pEndWordProper points at
 	// (which is usually space, or endmarker, or punctuation)
-	bMatchedFixedSpaceSymbol = IsFixedSpaceAhead(ptr, pEnd, pWordProper, pEndWordProper, 
+	bMatchedFixedSpaceSymbol = IsFixedSpaceAhead(ptr, pEnd, pWordProper, pEndWordProper,
 				finalPunctBeforeFixedSpaceSymbol, inlineBindingEndMkrBeforeFixedSpace,
-				wordBuildersForPostWordLoc, spacelessPuncts); // the punctuationSet 
+				wordBuildersForPostWordLoc, spacelessPuncts); // the punctuationSet
 												// passed in has all spaces removed
 	if (bMatchedFixedSpaceSymbol)
 	{
@@ -10066,7 +10066,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		len += nChangeInLenValue; // note, if ptr and pSecondWordBegins point at different
 								  // locations, then the number of word-initial characters
 								  // which have just become punctuation due to the user just
-								  // having changed the punctuation settings, have already 
+								  // having changed the punctuation settings, have already
 								  // been included in the update for len, hence we don't do
 								  // it again below -- see below for a note to this effect
 								  // there also (yep, this stuff is VERY complex)
@@ -10142,7 +10142,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				if (bStartedPunctParse)
 				{
 					// we've already found at least one, so set pPunctEnd to the location
-					// following the punctuation character we are point at 
+					// following the punctuation character we are point at
 					pPunctEnd = ptr + 1;
 				}
 				else
@@ -10162,7 +10162,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// word or a punctuation character
 			ptr++;
 			len++;
-			
+
 			// check for a closing bracket
 			if (*ptr == _T(']'))
 			{
@@ -10274,7 +10274,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
     // endmarker within m_endMarkers - such 'outer' punctuation we must store in the
     // m_follOuterPunct member. All of the above is complex, so we will tackle it in up to
     // 5 sequential stages, to keep our algorithms comprehensible.
-	
+
 	// The first thing to do is handle any following punctuation's storage, and set up
 	// m_key and m_srcPhrase members, and take into account the possibility that ~ may
 	// conjoin a word pair when doing the latter. We have enough information to set the
@@ -10380,14 +10380,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			//one or more characters, if in fact ptr and pSecondWordBegins don't point at
 			//the same location (if they do, the user didn't make any punct changes that
 			//resulted in any character at the start of the second word becoming punctuation)
-			
+
 			// also add the new punctuation char(s) to m_srcPhrase being built up
 			pSrcPhrase->m_srcPhrase += newPunctFrom2ndPreWordLoc;
 		}
 
 		pSrcPhrase->m_srcPhrase += secondWord;
 		// add any final punctuation to pSrcPhrase->m_srcPhrase further below
-		
+
 		// if we found an inline binding endmarker before the ~, store it - we can only
 		// store it in the embedded CSourcePhrase which is first (the parent can't
 		// distinguish such medial markers, so we don't try - we don't want a placement
@@ -10402,7 +10402,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			pSrcPhrWord2->SetInlineBindingMarkers(inlineBindingMkrAfterFixedSpace);
 		}
-		
+
 		// next, the parent, pSrcPhrase, now needs to have the m_key and m_srcPhrase
 		// members set on each of its children instances, in case the user unmerges later
 		// on
@@ -10435,7 +10435,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			pSrcPhrWord2->m_follPunct = newPunctFrom2ndPostWordLoc;
 			// don't empty newPunctFrom2ndPostWordLoc in case we need it later to
 			// increment ptr value without doing a further len increment
-			
+
 			// append it also to pSrcPhrase->m_srcPhrase which is being built up, and also
 			// to pSrcPhrWord2->m_srcPhrase, which will then have further parsed following
 			// punctuation appended in the blocks below if there is more present in the buffer
@@ -10492,7 +10492,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		size_t length = pPunctEnd - pPunctStart;
 		wxString finalPunct(pPunctStart,length);
 		pSrcPhrase->m_follPunct += finalPunct;
-		pSrcPhrase->m_srcPhrase += finalPunct;  // append what we have so far, more									   									  
+		pSrcPhrase->m_srcPhrase += finalPunct;  // append what we have so far, more
 												// may be appended further below
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
 		{
@@ -10513,7 +10513,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
         bExitParseWordOnReturn = FALSE;
 		wxString additions; additions.Empty();
 		// in next call, FALSE is bPutInOuterStorage
-		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
+		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
 					bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
 		{
@@ -10523,9 +10523,9 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (bExitParseWordOnReturn)
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
-			// the above call, so just return len to the caller 
+			// the above call, so just return len to the caller
 			return len;
-		} 
+		}
 	} // end of TRUE block for test: if (bStartedPunctParse)
 	else
 	{
@@ -10539,7 +10539,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (len > saveLen)
 		{
 			// some whites were thrown away
-			bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've 
+			bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've
 							// started into parsing of following puncts & endmarkers
 		}
 	}
@@ -10658,8 +10658,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		do {
 			saveLen = len;
 			bool bBindingEndMkrFound = FALSE;
-			len = ParseInlineEndMarkers(ptr, pEnd, pSrcPhrase, 
-										gpApp->m_inlineNonbindingEndMarkers, len, 
+			len = ParseInlineEndMarkers(ptr, pEnd, pSrcPhrase,
+										gpApp->m_inlineNonbindingEndMarkers, len,
 										bBindingEndMkrFound, endMarker);
 			if (bBindingEndMkrFound)
 			{
@@ -10693,7 +10693,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
             // backslash
 			if (bBindingEndMkrFound && IsWhiteSpace(ptr))
 			{
-				len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len); 
+				len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
 			}
 		} while (len > saveLen); // repeat as long as there was ptr advancement each time
 
@@ -10725,7 +10725,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				ptr += wordBuildersFor2ndPostWordLoc.Len();
 
 			}
-		}	
+		}
 	}
 
 	// What now? Final punctuation may already have been collected and stored. But if we
@@ -10745,7 +10745,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// unnecessary and probably unhelpful and should be ignored. This calls for some
 	// tricky parsing and delays of the decisions about what to do until all the ducks are
 	// lined up.
-	//wxChar* pWhiteSpaceStarts = ptr; 
+	//wxChar* pWhiteSpaceStarts = ptr;
 	//pWhiteSpaceStarts = pWhiteSpaceStarts; // avoid compiler warning
 	wxChar* pWhiteSpaceEnds = ptr;
 	int nWhiteSpaceSpan = 0;
@@ -10831,7 +10831,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
         // attempt to find any detached endquotes; but if both are not satisfied, we won't
         // attempt to find detached endquotes as in all probability there should not be any
         // (and if there were, the USFM markup is badly formed) and defer any decisions
-        // until we know the situation with possible following endmarkers. 
+        // until we know the situation with possible following endmarkers.
         // We also do this block if we've been handling a ~ conjoined word pair and have
         // just parsed some final punctuation for the second word of the pair
 		if ((nWhiteSpaceSpan == 0 && bInlineBindingEndMkrFound) || bMatchedFixedSpaceSymbol)
@@ -10855,7 +10855,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			int nOldLen = len;
 			wxString additions; additions.Empty();
 			// in next call, FALSE is bPutInOuterStorage
-			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
+			len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
 					bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, FALSE);
 			if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty())
 			{
@@ -10952,7 +10952,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// trying to collect additional detached puncts and check for a non-binding inline
 		// endmarker too. So the same delay tactics apply as we did earlier
 		// ******   end note about protocol change   ********
-		
+
 		if (spacelessPuncts.Find(*ptr) != wxNOT_FOUND && *ptr != _T(']'))
 		{
 			// there is at least one, parse over as many as their are until non-punct
@@ -10993,8 +10993,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
         // follows and so will not be part of the data for this call of ParseWord()
         bExitParseWordOnReturn = FALSE;
 		wxString additions; additions.Empty();
-		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len, 
-						bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions, 
+		len = ParseAdditionalFinalPuncts(ptr, pEnd, pSrcPhrase, spacelessPuncts, len,
+						bExitParseWordOnReturn, m_bHasPrecedingStraightQuote, additions,
 						bPutInOuterStorage);
 		if (IsFixedSpaceSymbolWithin(pSrcPhrase) && !additions.IsEmpty() &&
 			!bExitParseWordOnReturn)
@@ -11007,7 +11007,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller; ptr is updated too
 			return len;
-		} 
+		}
 
 		// if we didn't return to the caller, then there must be an inline non-binding
 		// endmarker to grab - get it, store, update len and ptr & then return
@@ -11056,7 +11056,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				// implement this in exports until someone complains. I think the
 				// possibility that there would be following punctuation in such an
 				// environment would be zero. It would be a USFM markup error if it were
-				// so. 
+				// so.
 				//             ********* END PROTOCOL NOTE ***********
                 // So, having entered this block, now we know that any of the 'more
                 // punctuation' from earlier one where we delayed our decision, if there is
@@ -11168,7 +11168,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
 
 				return len;
-			} // end of TRUE block for test: 
+			} // end of TRUE block for test:
 			  // if (inlineNonbindingEndMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
 			else
 			{
@@ -11366,7 +11366,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 //                     punctuation to be appended to its m_follPunct member
 // spacelessPuncts ->  the punctuation set being used (either source puncts, or target ones)
 // len             ->  the len value before ptr is advanced in this internal scan
-// bExitOnReturn  <-   return TRUE if ParseWord() should be exited on return 
+// bExitOnReturn  <-   return TRUE if ParseWord() should be exited on return
 // bHasPrecedingStraightQuote <-> default is FALSE, the boolean passed in is stored
 //                                on the CAdapt_ItDoc class with public access; and
 //                                is set TRUE if a straight quote (" or ') is detected
@@ -11376,7 +11376,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 //                                until one of the following happens, whichever is first:
 //                                a new verse is started, or, its TRUE value is used to
 //                                assign ownership of ' or " to the currently being parsed
-//                                word as its final punctuation, or part of its final 
+//                                word as its final punctuation, or part of its final
 //                                punctuation (if there are more than one, we'll assign them
 //                                all - which could lead to a misparse if an opening
 //                                straight quote occurs prior to the next word - it's
@@ -11388,9 +11388,9 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 // them appropriately in pSrcPhrase, and advances len and ptr to the end of the material
 // parsed over.
 // BEW created 11Oct10
-// BEW 2Dec10 added ] character as cause to return, ptr should be pointing at it on return                
+// BEW 2Dec10 added ] character as cause to return, ptr should be pointing at it on return
 int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
-					CSourcePhrase*& pSrcPhrase, wxString& spacelessPuncts, 
+					CSourcePhrase*& pSrcPhrase, wxString& spacelessPuncts,
 					int len, bool& bExitOnReturn, bool& bHasPrecedingStraightQuote,
 					wxString& additions, bool bPutInOuterStorage)
 {
@@ -11398,10 +11398,10 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 	wxChar* pPunctEnd = ptr;
 	size_t counter = 0;
 	bool bFoundClosingQuote = FALSE;
-	wxChar* pLocation_OK = ptr; // every time we parse over curly endquotes, we 
-								// set this pointer to the location after the 
+	wxChar* pLocation_OK = ptr; // every time we parse over curly endquotes, we
+								// set this pointer to the location after the
 								// acceptable quote character, but we won't update
-								// it if we come to a straightquote character 
+								// it if we come to a straightquote character
 	while (!IsEnd(ptr) && (IsWhiteSpace(ptr) || IsClosingQuote(ptr)) && !IsMarker(ptr)
 			&& *ptr != _T(']'))
 	{
@@ -11513,7 +11513,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 						pSrcPhrase->m_follPunct += finalPunct;
 					}
 					pSrcPhrase->m_srcPhrase += finalPunct;
-					additions += finalPunct; 
+					additions += finalPunct;
 					size_t theRest = pPunctEnd - pLocation_OK;
 					wxString remainder(pLocation_OK,theRest);
 					wxString minusEndingSpaces = remainder.Trim();
@@ -11542,13 +11542,13 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 								pSrcPhrase->m_follPunct += remainder;
 							}
 							pSrcPhrase->m_srcPhrase += remainder;
-							additions += remainder; 
+							additions += remainder;
 							ptr += theRest;
 							len += (int)theRest;
 							bHasPrecedingStraightQuote = FALSE; // we've made a decision
 									// based on it's TRUE value, so we must now restore
 									// its default FALSE value in case further matching
-									// of preceding and following straight quotes is 
+									// of preceding and following straight quotes is
 									// required in the parse of further words
 						}
 						else
@@ -11581,7 +11581,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 						pSrcPhrase->m_follPunct += finalPunct;
 					}
 					pSrcPhrase->m_srcPhrase += finalPunct;
-					additions += finalPunct; 
+					additions += finalPunct;
 					len += counter;
 					// are we pointing at ] bracket?
 					if (*ptr == _T(']'))
@@ -11605,7 +11605,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 							pSrcPhrase->m_follPunct += *ptr;
 						}
 						pSrcPhrase->m_srcPhrase += *ptr;
-						additions += *ptr; 
+						additions += *ptr;
 						len++;
 						ptr++;
 					}
@@ -11650,7 +11650,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 				else
 				{
 					// reject the lot
-					ptr = pPunctStart; // restore ptr to location where we started from 
+					ptr = pPunctStart; // restore ptr to location where we started from
 					bExitOnReturn = TRUE;
 					return len;
 				}
@@ -11688,7 +11688,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 		else
 		{
 			// nothing extra, so return, but continue parsing in ParseWord() on return
-			ptr = pPunctStart; // restore ptr to location where we started from 
+			ptr = pPunctStart; // restore ptr to location where we started from
 			bExitOnReturn = FALSE;
 			return len;
 		}
@@ -11719,7 +11719,7 @@ int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 		// we either didn't parse over anything, including white space; or we only
 		// parsed over whitespace -- the latter is of no interest (we let the caller
 		// advance over it)
-		ptr = pPunctStart; // restore ptr to location where we started from 
+		ptr = pPunctStart; // restore ptr to location where we started from
 		bExitOnReturn = TRUE;
 		return len;
 	} // end of else block for test: if (bFoundClosingQuote)
@@ -11746,11 +11746,11 @@ int CAdapt_ItDoc::ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int l
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 ///	\param		useSfmSet	->	which of the three sfm set possibilities we are dealing with
-/// \param		filterMkrs	->	concatenated markers (each with a following space) which are 
-///								the markers formerly unfiltered but now designated by the user 
+/// \param		filterMkrs	->	concatenated markers (each with a following space) which are
+///								the markers formerly unfiltered but now designated by the user
 ///								as to be filtered,
-/// \param		unfilterMkrs ->	concatenated markers (each with a following space) which are 
-///								the markers formerly filtered but now designated by the user 
+/// \param		unfilterMkrs ->	concatenated markers (each with a following space) which are
+///								the markers formerly filtered but now designated by the user
 ///								as to be unfiltered.
 /// \remarks
 /// Called from: the App's DoUsfmFilterChanges(), the Doc's RestoreDocParamsOnInput(),
@@ -11759,7 +11759,7 @@ int CAdapt_ItDoc::ParseOverAndIgnoreWhiteSpace(wxChar*& ptr, wxChar* pEnd, int l
 /// Changes only the USFMAnalysis structs which deal with the markers in the filterMkrs
 /// string and the unfilterMkrs string.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, 
+void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs,
 										  wxString unfilterMkrs)
 {
     // BEW added 25May05 in support of changing filtering settings for USFM, SFM or
@@ -11787,7 +11787,7 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 	{
 		wxString key = iter->first; // use only for inspection
 		pSfm = iter->second;
-		fullMkr = gSFescapechar + pSfm->marker + _T(' '); // each marker in filterMkrs is 
+		fullMkr = gSFescapechar + pSfm->marker + _T(' '); // each marker in filterMkrs is
 														  // delimited by a space
 		if (filterMkrs.Find(fullMkr) != -1)
 		{
@@ -11795,7 +11795,7 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
             // because of how the caller constructs filterMkrs and unfilterMkrs, it is
             // never possible that a marker will be in both these strings, so if we do this
             // block we can skip the next
-			continue; 
+			continue;
 		}
 		if (unfilterMkrs.Find(fullMkr) != -1)
 		{
@@ -11803,37 +11803,37 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 		}
 	}
 	// redo the special fast access marker strings to reflect any changes to pSfm->filter
-	// attributes 
+	// attributes
 	gpApp->SetupMarkerStrings();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 ///	\param		useSfmSet	->	which of the three sfm set possibilities we are dealing with
-/// \param		filterMkrs	->	concatenated markers (each with a following space) which are 
-///								the markers formerly unfiltered but now designated by the user 
+/// \param		filterMkrs	->	concatenated markers (each with a following space) which are
+///								the markers formerly unfiltered but now designated by the user
 ///								as to be filtered,
 /// \param		resetMkrs	-> an enum indicating whether to reset allInSet or onlyThoseInString
 /// \remarks
 /// Called from: the Doc's RestoreDocParamsOnInput().
-/// The filterMkrs parameter is a wxString of concatenated markers delimited by following spaces. 
-/// If resetMkrs == allInSet, ResetUSFMFilterStructs() sets the filter attributes of the 
-/// appropriate SfmSet of markers to filter="1" if the marker is present in the 
-/// filterMkrs string, and for all others the filter attribute is set to filter="0" 
+/// The filterMkrs parameter is a wxString of concatenated markers delimited by following spaces.
+/// If resetMkrs == allInSet, ResetUSFMFilterStructs() sets the filter attributes of the
+/// appropriate SfmSet of markers to filter="1" if the marker is present in the
+/// filterMkrs string, and for all others the filter attribute is set to filter="0"
 /// if it is not already zero.
 /// If resetMkrs == onlyThoseInString ResetUSFMFilterStructs() sets the filter attributes
 /// of the appropriate SfmSet of markers to filter="1" of only those markers which
 /// are present in the filterMkrs string.
-/// ResetUSFMFilterStructs does nothing to the USFMAnalysis structs nor their 
+/// ResetUSFMFilterStructs does nothing to the USFMAnalysis structs nor their
 /// maps in response to the presence of unknown markers (filtered or not), since unknown markers
 /// do not have any identifiable attributes, except for being considered userCanSetFilter
 /// as far as the filterPage is concerned.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, 
+void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs,
 										  enum resetMarkers resetMkrs)
 {
 	// whm added 5Mar2005 in support of USFM and SFM Filtering support
-	MapSfmToUSFMAnalysisStruct* pSfmMap; 
+	MapSfmToUSFMAnalysisStruct* pSfmMap;
 	USFMAnalysis* pSfm;
 	wxString key;
 	wxString fullMkr;
@@ -11849,7 +11849,7 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 	{
 		wxString key = iter->first; // use only for inspection
 		pSfm = iter->second;
-		fullMkr = gSFescapechar + pSfm->marker + _T(' '); // each marker in filterMkrs 
+		fullMkr = gSFescapechar + pSfm->marker + _T(' '); // each marker in filterMkrs
 														  // is delimited by a space
 		if (filterMkrs.Find(fullMkr) != -1)
 		{
@@ -11874,12 +11874,12 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 /// \param		pChar			-> a pointer to the first character of the marker (a backslash)
 /// \remarks
 /// Called from: the Doc's GetMarkerWithoutBackslash(), IsInLineMarker(), IsCorresEndMarker(),
-/// TokenizeText(), the View's RebuildSourceText(), FormatMarkerBufferForOutput(), 
-/// DoExportInterlinearRTF(), ParseFootnote(), ParseEndnote(), ParseCrossRef(), 
+/// TokenizeText(), the View's RebuildSourceText(), FormatMarkerBufferForOutput(),
+/// DoExportInterlinearRTF(), ParseFootnote(), ParseEndnote(), ParseCrossRef(),
 /// ProcessAndWriteDestinationText(), ApplyOutputFilterToText(), IsCharacterFormatMarker(),
 /// DetermineRTFDestinationMarkerFlagsFromBuffer().
 /// Returns the whole standard format marker including the initial backslash and any ending
-/// asterisk. 
+/// asterisk.
 /// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
 /// at a backslash - so test and return the empty string. (Better this way for OXES support)
 ///////////////////////////////////////////////////////////////////////////////
@@ -11899,7 +11899,7 @@ wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the whole standard format marker including the initial backslash 
+/// \return		the whole standard format marker including the initial backslash
 ///             and any ending *
 /// \param		str	-> a wxString in which the initial backslash of the marker to be
 ///					   obtained is at the beginning of the string
@@ -11934,11 +11934,11 @@ wxString CAdapt_ItDoc::GetWholeMarker(wxString str)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the standard format marker without the initial backslash, but including 
+/// \return		the standard format marker without the initial backslash, but including
 ///             any ending *
 /// \param		pChar	-> a pointer to the first character of the marker (a backslash)
 /// \remarks
-/// Called from: the Doc's IsPreviousTextTypeWanted(), GetBareMarkerForLookup(), 
+/// Called from: the Doc's IsPreviousTextTypeWanted(), GetBareMarkerForLookup(),
 /// IsEndMarkerForTextTypeNone(), the View's InsertNullSourcePhrase().
 /// Returns the standard format marker without the initial backslash, but includes any end
 /// marker asterisk. Internally calls GetWholeMarker().
@@ -11957,9 +11957,9 @@ wxString CAdapt_ItDoc::GetMarkerWithoutBackslash(wxChar *pChar)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the standard format marker without the initial backslash and 
+/// \return		the standard format marker without the initial backslash and
 ///             without any ending *
-/// \param		pChar	-> a pointer to the first character of the marker in the 
+/// \param		pChar	-> a pointer to the first character of the marker in the
 ///                        buffer (a backslash)
 /// \remarks
 /// Called from: the Doc's IsPreviousTextTypeWanted(), ParseFilteringSFM(), LookupSFM(),
@@ -11978,11 +11978,11 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
     wxChar* ptr = pChar;
     wxString bareMkr = GetMarkerWithoutBackslash(ptr);
     int posn = bareMkr.Find(_T('*'));
-    // The following GetLength() call could on rare occassions return a 
+    // The following GetLength() call could on rare occassions return a
 	// length of 1051 when processing the \add* marker.
 	// whm comment: the reason for the erroneous result from GetLength
 	// stems from the problem with the original code used in ParseMarker.
-	// (see caution statement in ParseMarker). 
+	// (see caution statement in ParseMarker).
     if (posn >= 0) // whm revised 7Jun05
         // strip off asterisk for attribute lookup
 		bareMkr = bareMkr.Mid(0,posn);
@@ -11991,19 +11991,19 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param		pMkrList	<- a wxArrayString that holds standard format markers and 
+/// \param		pMkrList	<- a wxArrayString that holds standard format markers and
 ///							   associated content parsed from the input string str
-/// \param		str			-> the string containing standard format markers and associated text 
+/// \param		str			-> the string containing standard format markers and associated text
 /// \remarks
 /// Called from: the Doc's GetUnknownMarkersFromDoc(), the View's GetMarkerInventoryFromCurrentDoc(),
 /// CPlaceInternalMarkers::InitDialog().
-/// Scans str and collects all standard format markers and their associated text into 
+/// Scans str and collects all standard format markers and their associated text into
 /// pMkrList, one marker and associated content text per array item (and final endmarker
 /// if there is one).
 /// whm added str param 18Feb05
 /// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str) 
+void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str)
 {
 	// Populates a wxArrayString containing sfms and their associated
 	// text parsed from the input str. pMkrList will contain one list item for
@@ -12050,7 +12050,7 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 		else if (IsMarker(ptr))
 		{
 			// It's a non-filtered sfm. Non-filtered sfms can be followed by
-			// a corresponding markers or no end markers. We'll parse and 
+			// a corresponding markers or no end markers. We'll parse and
 			// accumulate chars until we reach the next marker (or end of buffer).
 			// If the marker is a corresponding end marker we'll parse and
 			// accumulate it too, otherwise we'll not accumulate it with the
@@ -12096,7 +12096,7 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if there is a filename clash, FALSE if the typed name is unique
-/// 
+///
 /// \remarks
 /// Get the active document folder's document names into the app class's
 /// m_acceptedFilesList and test them against the user's typed filename.
@@ -12124,7 +12124,7 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 	rev = MakeReverse(rev);
 
 	// BEW note 26Apr10, .adt extensions occurred on in versions 1-3, but there is no harm
-	// in leaving this line unremoved and similarly the test a little further below 
+	// in leaving this line unremoved and similarly the test a little further below
 	wxString adtExtn = _T(".adt");
 
 	wxString xmlExtn = _T(".xml");
@@ -12177,7 +12177,7 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
                 // beep as well; but if shorter, then it's a different name & we'll accept
                 // it by falling through and returning FALSE
                 if (docNameLen == len)
-				{ 
+				{
 					// it's the same name
 					::wxBell();
 					gpApp->m_acceptedFilesList.Clear();
@@ -12193,12 +12193,12 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a pointer to the USFMAnalysis struct associated with the marker at pChar,
 ///				or NULL if the marker was not found in the MapSfmToUSFMAnalysisStruct.
-/// \param		pChar	-> a pointer to the first character of the marker in the 
+/// \param		pChar	-> a pointer to the first character of the marker in the
 ///                        buffer (a backslash)
 /// \remarks
 /// Called from: the Doc's ParseWord(), IsMarker(), TokenizeText(), DoMarkerHousekeeping(),
 /// IsEndMarkerForTextTypeNone(), the View's InsertNullSourcePhrase(),
-/// Determines the marker pointed to at pChar and performs a look up in the 
+/// Determines the marker pointed to at pChar and performs a look up in the
 /// MapSfmToUSFMAnalysisStruct hash map. If the marker has an association in the map it
 /// returns a pointer to the USFMAnalysis struct. NULL is returned if no marker could be
 /// parsed from pChar, or if the marker could not be found in the hash map.
@@ -12215,8 +12215,8 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 	bool bFound = FALSE;
 	// get the bare marker
 	wxString bareMkr = GetBareMarkerForLookup(ptr);
-	// look up and Retrieve the USFMAnalysis into our local usfmAnalysis struct 
-	// variable. 
+	// look up and Retrieve the USFMAnalysis into our local usfmAnalysis struct
+	// variable.
 	// If bareMkr begins with bt... we will simply use bt which will return the
 	// USFMAnalysis struct for \bt for all back-translation markers based on \bt...
 	if (bareMkr.Find(_T("bt")) == 0)
@@ -12225,23 +12225,23 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 		bareMkr = _T("bt");
 	}
 	MapSfmToUSFMAnalysisStruct::iterator iter;
-	// The particular MapSfmToUSFMAnalysisStruct used for lookup below depends the appropriate 
+	// The particular MapSfmToUSFMAnalysisStruct used for lookup below depends the appropriate
 	// sfm set being used as stored in gCurrentSfmSet enum.
 	switch (gpApp->gCurrentSfmSet)
 	{
-		case UsfmOnly: 
+		case UsfmOnly:
 			iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 			bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 			break;
-		case PngOnly: 
+		case PngOnly:
 			iter = gpApp->m_pPngStylesMap->find(bareMkr);
-			bFound = (iter != gpApp->m_pPngStylesMap->end()); 
+			bFound = (iter != gpApp->m_pPngStylesMap->end());
 			break;
-		case UsfmAndPng: 
+		case UsfmAndPng:
 			iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
-			bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end()); 
+			bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
 			break;
-		default: 
+		default:
 			iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 			bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 	}
@@ -12263,11 +12263,11 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// \param		bareMkr	-> a wxString containing the bare marker to use in the lookup
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(), ParseFilteringSFM(),
-/// GetUnknownMarkersFromDoc(), AnalyseMarker(), IsEndingSrcPhrase(), 
+/// GetUnknownMarkersFromDoc(), AnalyseMarker(), IsEndingSrcPhrase(),
 /// ContainsMarkerToBeFiltered(), RedoNavigationText(), DoExportInterlinearRTF(),
 /// IsFreeTranslationEndDueToMarker(), HaltCurrentCollection(), ParseFootnote(),
-/// ParseEndnote(), ParseCrossRef(), ParseMarkerAndAnyAssociatedText(), 
-/// GetMarkerInventoryFromCurrentDoc(), MarkerTakesAnEndMarker(), 
+/// ParseEndnote(), ParseCrossRef(), ParseMarkerAndAnyAssociatedText(),
+/// GetMarkerInventoryFromCurrentDoc(), MarkerTakesAnEndMarker(),
 /// CViewFilteredMaterialDlg::GetAndShowMarkerDescription().
 /// Looks up the bareMkr in the MapSfmToUSFMAnalysisStruct hash map. If the marker has an
 /// association in the map it returns a pointer to the USFMAnalysis struct. NULL is
@@ -12286,8 +12286,8 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 	if (bareMkr.IsEmpty())
 		return (USFMAnalysis*)NULL;
 	bool bFound = FALSE;
-	// look up and Retrieve the USFMAnalysis into our local usfmAnalysis struct 
-	// variable. 
+	// look up and Retrieve the USFMAnalysis into our local usfmAnalysis struct
+	// variable.
 	// If bareMkr begins with bt... we will simply use bt which will return the
 	// USFMAnalysis struct for \bt for all back-translation markers based on \bt...
 	if (bareMkr.Find(_T("bt")) == 0)
@@ -12300,19 +12300,19 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
     // appropriate sfm set being used as stored in gCurrentSfmSet enum.
 	switch (gpApp->gCurrentSfmSet)
 	{
-		case UsfmOnly: 
+		case UsfmOnly:
 			iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 			bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 			break;
-		case PngOnly: 
+		case PngOnly:
 			iter = gpApp->m_pPngStylesMap->find(bareMkr);
-			bFound = (iter != gpApp->m_pPngStylesMap->end()); 
+			bFound = (iter != gpApp->m_pPngStylesMap->end());
 			break;
-		case UsfmAndPng: 
+		case UsfmAndPng:
 			iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
-			bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end()); 
+			bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
 			break;
-		default: 
+		default:
 			iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
 			bFound = (iter != gpApp->m_pUsfmStylesMap->end());
 	}
@@ -12336,13 +12336,13 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if the passed-in marker unkMkr exists in any element of the pUnkMarkers 
+/// \return		TRUE if the passed-in marker unkMkr exists in any element of the pUnkMarkers
 ///				array, FALSE otherwise
-/// \param		pUnkMarkers		-> a pointer to a wxArrayString that contains a list of 
+/// \param		pUnkMarkers		-> a pointer to a wxArrayString that contains a list of
 ///									markers
-/// \param		unkMkr			-> the whole marker being checked to see if it exists 
+/// \param		unkMkr			-> the whole marker being checked to see if it exists
 ///                                in pUnkMarkers
-/// \param		MkrIndex		<- the index into the pUnkMarkers array if unkMkr is 
+/// \param		MkrIndex		<- the index into the pUnkMarkers array if unkMkr is
 ///                                found, otherwise -1
 /// \remarks
 /// Called from: the Doc's RestoreDocParamsOnInput(), GetUnknownMarkersFromDoc(),
@@ -12353,7 +12353,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 /// marker was found is returned in MkrIndex. If the marker doesn't exist in the array
 /// MkrIndex returns -1.
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::MarkerExistsInArrayString(wxArrayString* pUnkMarkers, 
+bool CAdapt_ItDoc::MarkerExistsInArrayString(wxArrayString* pUnkMarkers,
 											 wxString unkMkr, int& MkrIndex)
 {
 	// returns TRUE if the passed-in marker unkMkr already exists in the pUnkMarkers
@@ -12370,7 +12370,7 @@ bool CAdapt_ItDoc::MarkerExistsInArrayString(wxArrayString* pUnkMarkers,
 			return TRUE;
 		}
 	}
-	// if we get to here we didn't find unkMkr in the array; 
+	// if we get to here we didn't find unkMkr in the array;
 	// MkrIndex is still -1 and return FALSE
 	return FALSE;
 }
@@ -12408,7 +12408,7 @@ bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, i
 /// Determines if a USFMAnalysis struct indicates that the associated standard format marker
 /// is a filtering marker.
 /// Prior to calling IsAFilteringSFM, the caller should have called LookupSFM(wxChar* pChar)
-/// or LookupSFM(wxString bareMkr) to populate the pUsfmAnalysis struct, which should then 
+/// or LookupSFM(wxString bareMkr) to populate the pUsfmAnalysis struct, which should then
 /// be passed to this function.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
@@ -12434,21 +12434,21 @@ bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if unkMkr is both an unknown marker and it also is designated as a 
+/// \return		TRUE if unkMkr is both an unknown marker and it also is designated as a
 ///				filtering marker, FALSE otherwise.
 /// \param		unkMkr	-> a bare marker (without a backslash)
 /// \remarks
 /// Called from: the Doc's AnalyseMarker(), RedoNavigationText().
-/// Determines if a marker is both an unknown marker and it also is designated as a 
+/// Determines if a marker is both an unknown marker and it also is designated as a
 /// filtering marker.
 /// unkMKr should be an unknown marker in bare form (without backslash)
-/// Returns TRUE if unkMKr exists in the m_unknownMarkers array, and its filter flag 
+/// Returns TRUE if unkMKr exists in the m_unknownMarkers array, and its filter flag
 /// in m_filterFlagsUnkMkrs is TRUE.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 {
 	// unkMKr should be an unknown marker in bare form (without backslash)
-	// Returns TRUE if unkMKr exists in the m_unknownMarkers array, and its filter flag 
+	// Returns TRUE if unkMKr exists in the m_unknownMarkers array, and its filter flag
 	// in m_filterFlagsUnkMkrs is TRUE.
 	int ct;
 	unkMkr = gSFescapechar + unkMkr; // add the backslash
@@ -12469,9 +12469,9 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 /// \return		TRUE if pChar is pointing at a standard format marker, FALSE otherwise
 /// \param		pChar		-> a pointer to a character in a buffer
 /// \remarks
-/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
+/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(),
 /// GetMarkerAndTextFromString(), TokenizeText(), DoMarkerHousekeeping(), the View's
-/// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(), 
+/// FormatMarkerBufferForOutput(), FormatUnstructuredTextBufferForOutput(),
 /// ApplyOutputFilterToText(), ParseMarkerAndAnyAssociatedText(), IsMarkerRTF(), and in
 /// Usfm2Oxes class
 /// Determines if pChar is pointing at a standard format marker in the given buffer
@@ -12536,14 +12536,14 @@ bool CAdapt_ItDoc::IsMarker(wxString& mkr)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if pChar is pointing at a standard format marker which is also an end 
+/// \return		TRUE if pChar is pointing at a standard format marker which is also an end
 ///				marker (ends with an asterisk), FALSE otherwise.
 /// \param		pChar	-> a pointer to a character in a buffer
 /// \param		pEnd	-> a pointer to the end of the buffer
 /// \remarks
 /// Called from: the Doc's GetMarkersAndTextFromString(), AnalyseMarker(), the View's
 /// FormatMarkerBufferForOutput(), DoExportInterlinearRTF(), ProcessAndWriteDestinationText().
-/// Determines if the marker at pChar is a USFM end marker (ends with an asterisk). 
+/// Determines if the marker at pChar is a USFM end marker (ends with an asterisk).
 /// BEW added to it, 11Feb10, to handle SFM endmarkers \F or \fe for 'footnote end'
 /// BEw added 11Oct10, support for halting at ] bracket
 ///////////////////////////////////////////////////////////////////////////////
@@ -12557,7 +12557,7 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 	// 3. ptr points to another marker (return FALSE)
 	// 4. ptr points to a * (return TRUE)
 	// 5. ptr points to a ]
-	
+
 	// First, handle the PngOnly special case of \fe or \F footnote end markers
 	if (gpApp->gCurrentSfmSet == PngOnly)
 	{
@@ -12582,7 +12582,7 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if pChar is pointing at a standard format marker which is also 
+/// \return		TRUE if pChar is pointing at a standard format marker which is also
 ///             an inLine marker (or embedded marker), FALSE otherwise.
 /// \param		pChar	-> a pointer to a character in a buffer
 /// \param		pEnd	<- currently unused
@@ -12611,7 +12611,7 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 
 	switch(gpApp->gCurrentSfmSet)
 	{
-	case UsfmOnly: 
+	case UsfmOnly:
 		if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr) != -1)
 		{
 			// it's an inLine marker
@@ -12650,14 +12650,14 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 /// \param		pChar		-> a pointer to a character in a buffer
 /// \param		pEnd		-> a pointer to the end of the buffer
 /// \remarks
-/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(), 
+/// Called from: the Doc's ParseFilteringSFM(), ParseFilteredMarkerText(),
 /// GetMarkersAndTextFromString(), the View's ParseFootnote(), ParseEndnote(),
 /// ParseCrossRef(), ProcessAndWriteDestinationText(), ApplyOutputFilterToText()
 /// ParseMarkerAndAnyAssociatedText(), and CViewFilteredMaterialDlg::InitDialog().
 /// Determines if the marker at pChar is the corresponding end marker for the
-/// specified wholeMkr. 
+/// specified wholeMkr.
 /// IsCorresEndMarker returns TRUE if the marker matches wholeMkr and ends with an
-/// asterisk. It also returns TRUE if the gCurrentSfmSet is PngOnly and wholeMkr 
+/// asterisk. It also returns TRUE if the gCurrentSfmSet is PngOnly and wholeMkr
 /// passed in is \f and marker being checked at ptr is \fe or \F.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd)
@@ -12681,8 +12681,8 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 		}
 	}
 
-	// not a PngOnly footnote situation so do regular USFM check 
-	// for like a marker ending with * 
+	// not a PngOnly footnote situation so do regular USFM check
+	// for like a marker ending with *
 	int wholeMkrLen = wholeMkr.Length(); // only needs to be calculated once
 	for (int i = 0; i < wholeMkrLen; i++)
 	{
@@ -12715,7 +12715,7 @@ bool CAdapt_ItDoc::IsLegacyDocVersionForFileSaveAs()
 ///				chapter marker (\c ), FALSE otherwise.
 /// \param		pChar		-> a pointer to a character in a buffer
 /// \remarks
-/// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(), 
+/// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(),
 /// DoExportInterlinearRTF(), DoExportSrcOrTgtRTF().
 /// Returns TRUE only if the character following the backslash is a c followed by whitespace,
 /// FALSE otherwise. Does not check to see if a number follows the whitespace.
@@ -12759,7 +12759,7 @@ bool CAdapt_ItDoc::IsEnd(wxChar *pChar)
 /// AppendItem() actually does double duty. It not only returns the wxString constructed from
 /// itemLen characters (starting at ptr); it also returns by reference the composed
 /// string concatenated to whatever was previously in dest.
-/// In actual code, no use is made of the returned wxString of the AppendItem() 
+/// In actual code, no use is made of the returned wxString of the AppendItem()
 /// function itself; only the value returned by reference in dest is used.
 /// TODO: Change to a Void function since no use is made of the wxString returned.
 /// BEW 13Jul11, the legacy version formed the string including any final \r\n or in other
@@ -12815,7 +12815,7 @@ wxString& CAdapt_ItDoc::AppendItem(wxString& dest,wxString& src, const wxChar* p
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxString constructed of dest + src (with inserted space between them if 
+/// \return		a wxString constructed of dest + src (with inserted space between them if
 ///				dest doesn't already end with a space).
 /// \param		dest		<- a wxString that gets concatenated with the composed src string
 /// \param		src			-> a wxString to be appended/concatenated to dest
@@ -12824,14 +12824,14 @@ wxString& CAdapt_ItDoc::AppendItem(wxString& dest,wxString& src, const wxChar* p
 /// AppendFilteredItem() actually does double duty. It not only returns the wxString src;
 /// it also returns by reference in dest the composed/concatenated dest + src (insuring
 /// that a space intervenes between unless dest was originally empty.
-/// In actual code, no use is made of the returned wxString of the AppendFilteredItem() 
+/// In actual code, no use is made of the returned wxString of the AppendFilteredItem()
 /// function itself; only the value returned by reference in dest is used.
 /// TODO: Change to a Void function since no use is made of the wxString returned.
 ///////////////////////////////////////////////////////////////////////////////
 wxString& CAdapt_ItDoc::AppendFilteredItem(wxString& dest,wxString& src)
 {
 	// whm added 11Feb05
-	// ensure the filtered item is padded with space if it is not first 
+	// ensure the filtered item is padded with space if it is not first
 	// in dest
     if (!dest.IsEmpty())
 	{
@@ -12845,10 +12845,10 @@ wxString& CAdapt_ItDoc::AppendFilteredItem(wxString& dest,wxString& src)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		the wxString starting at ptr and composed of itemLen characters 
+/// \return		the wxString starting at ptr and composed of itemLen characters
 ///             after enclosing the string between \~FILTER and \~FILTER* markers.
 /// \param		ptr			-> a pointer to a character in a buffer
-/// \param		itemLen		-> the number of buffer characters to use in composing the 
+/// \param		itemLen		-> the number of buffer characters to use in composing the
 ///                            bracketed string
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(), TokenizeText().
@@ -12881,7 +12881,7 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 /// \param		src		-> the string to be processed (which has \~FILTER and \~FILTER* markers)
 /// \remarks
 /// Called from: the View's IsWrapMarker().
-/// Returns the string after removing any \~FILTER ... \~FILTER* filter bracketing markers 
+/// Returns the string after removing any \~FILTER ... \~FILTER* filter bracketing markers
 /// that exist in the string. Strips out multiple sets of bracketing filter markers if found
 /// in the string. If src does not have any \~FILTER and \~FILTER* bracketing markers, src is
 /// returned unchanged. Trims off any remaining space at left end of the returned string.
@@ -12890,10 +12890,10 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 {
 	// whm added 11Feb05
-	// If src does not have the unique markers \~FILTER and \~FILTER* we only need return 
+	// If src does not have the unique markers \~FILTER and \~FILTER* we only need return
 	// the src unchanged
 	// The src may have embedded \n chars in it. Note: Testing shows that use
-	// of CString's Find method here, even with embedded \n chars works OK. 
+	// of CString's Find method here, even with embedded \n chars works OK.
 	int beginMkrPos = src.Find(filterMkr);
 	int endMkrPos = src.Find(filterMkrEnd);
 	while (beginMkrPos != -1 && endMkrPos != -1)
@@ -12908,7 +12908,7 @@ wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 		beginMkrPos = src.Find(filterMkr);
 		endMkrPos = src.Find(filterMkrEnd);
 	}
-	// Note: The string returned by GetUnFilteredMarkers may have an initial 
+	// Note: The string returned by GetUnFilteredMarkers may have an initial
 	// space, which I think would not usually happen in the legacy app before
 	// filtering. I have therefore added the following line, which is also
 	// probably needed for proper functioning of IsWrapMarker in the View:
@@ -12919,10 +12919,10 @@ wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		0 (zero)
 /// \remarks
-/// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(), 
+/// Called from: the Doc's TokenizeText(), DoMarkerHousekeeping(),
 /// Clear's the App's working buffer.
-/// TODO: Eliminate this function and the App's working buffer and just declare and use a local 
-/// wxString buffer in the two Doc functions that call ClearBuffer(), and the View's version of 
+/// TODO: Eliminate this function and the App's working buffer and just declare and use a local
+/// wxString buffer in the two Doc functions that call ClearBuffer(), and the View's version of
 /// ClearBuffer().
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ClearBuffer()
@@ -12934,7 +12934,7 @@ int CAdapt_ItDoc::ClearBuffer()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE unless the text in rText contains at least one marker that defines it 
+/// \return		TRUE unless the text in rText contains at least one marker that defines it
 ///				as "structured" text, in which case returns FALSE
 /// \param		rText	-> the string buffer being examined
 /// \remarks
@@ -13003,13 +13003,13 @@ bool CAdapt_ItDoc::IsUnstructuredPlainText(wxString& rText)
 	nFound = rText.Find(s);
 	if (nFound >= 0)
 		return FALSE; // has \x
-	// that should be enough, ensuring correct identification 
+	// that should be enough, ensuring correct identification
 	// of even small test files with only a few SFM markers
 	return TRUE; // assume unstructured plain text
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if some character other than end-of-line char(s) (\n and/or \r) is found 
+/// \return		TRUE if some character other than end-of-line char(s) (\n and/or \r) is found
 ///				past the nFound position in rText, otherwise FALSE.
 /// \param		rText		-> the string being examined
 /// \param		nTextLength	-> the length of the rText string
@@ -13050,12 +13050,12 @@ bool CAdapt_ItDoc::NotAtEnd(wxString& rText, const int nTextLength, int nFound)
 void CAdapt_ItDoc::AddParagraphMarkers(wxString& rText, int& nTextLength)
 {
 	// adds \p followed by a space following every \n in the text buffer
-	wxString s = gSFescapechar; 
+	wxString s = gSFescapechar;
 	s += _T("p ");
 	const wxChar* paragraphMarker = (const wxChar*)s;
 	int nFound = 0;
 	int nNewLength = nTextLength;
-	while (((nFound = FindFromPos(rText,_T("\n"),nFound)) >= 0) && 
+	while (((nFound = FindFromPos(rText,_T("\n"),nFound)) >= 0) &&
 			NotAtEnd(rText,nNewLength,nFound))
 	{
 		nFound++; // point past the newline
@@ -13073,13 +13073,13 @@ void CAdapt_ItDoc::AddParagraphMarkers(wxString& rText, int& nTextLength)
 /// \param		rString		-> the string we are reading characters from
 /// \remarks
 /// Called from: the Doc's OnOpenDocument(); ExportTargetText_For_Collab(),
-/// ExportFreeTransText_For_Collab(), DoExportSfmText() and 
+/// ExportFreeTransText_For_Collab(), DoExportSfmText() and
 /// RebuildText_For_Collaboration().
 /// Cleans up rString by reducing multiple spaces to single spaces.
-/// whm 11Aug11 revised this function to do its work much faster using both a 
-/// read buffer and a write buffer instead of reading each character from the 
-/// source buffer and concatenating the character onto a wxString - a process 
-/// which can be rather slow and inefficient for lengthy strings. Also I'm 
+/// whm 11Aug11 revised this function to do its work much faster using both a
+/// read buffer and a write buffer instead of reading each character from the
+/// source buffer and concatenating the character onto a wxString - a process
+/// which can be rather slow and inefficient for lengthy strings. Also I'm
 /// using an algorithm that eliminates the unconditional jump the original
 /// function had.
 ///////////////////////////////////////////////////////////////////////////////
@@ -13087,11 +13087,11 @@ wxString CAdapt_ItDoc::RemoveMultipleSpaces(wxString& rString)
 {
 	// We are building a destination buffer which will eventually contain a string
 	// that is the same size or smaller than the string in the source buffer,
-	// i.e., smaller by the number of any multiple spaces that get reduced to single 
+	// i.e., smaller by the number of any multiple spaces that get reduced to single
 	// spaces.
 	int nLen = rString.Length();
 	wxASSERT(nLen >= 0);
-	
+
 	// Set up a write buffer for atemp which is the same size as rString.
 	// Then copy characters using pointers from the rString buffer to the atemp buffer (not
 	// advancing the pointer for where multiple spaces are adjacent to each other).
@@ -13114,7 +13114,7 @@ wxString CAdapt_ItDoc::RemoveMultipleSpaces(wxString& rString)
 			if (pNextSource < pEndSourceBuff && *pNextSource == _T(' '))
 			{
 				// Advance only the pSourceBuffChar pointer and continue which
-				// will bypass writing this space into the destination buffer 
+				// will bypass writing this space into the destination buffer
 				// because the next character in the source buffer is a space.
 				pSourceBuffChar++;
 				continue; // skip this space because another one follows this one
@@ -13129,16 +13129,16 @@ wxString CAdapt_ItDoc::RemoveMultipleSpaces(wxString& rString)
 	wxASSERT(pDestBuffChar <= pEndDestBuff);
 	*pDestBuffChar = _T('\0'); // terminate the dest buffer string with null char
 	destString.UngetWriteBuf();
-	
+
 	return destString;
 }
 */
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param		pstr	<- the wxString buffer 
+/// \param		pstr	<- the wxString buffer
 /// \remarks
-/// Called from: the Doc's OnNewDocument(), 
+/// Called from: the Doc's OnNewDocument(),
 /// Removes any existing fixed space ~ in pstr by overwriting it with a space. The
 /// processed text is returned by reference in pstr. This function call would normally be
 /// followed by a call to RemoveMultipleSpaces() to remove any remaining multiple spaces.
@@ -13160,7 +13160,7 @@ void CAdapt_ItDoc::OverwriteUSFMFixedSpaces(wxString*& pstr)
 	{
 		if (*ptr == _T('~'))
 		{
-			// we are pointing at an instance of ~, 
+			// we are pointing at an instance of ~,
 			// so overwrite it and continue processing
 			*ptr++ = _T(' ');
 		}
@@ -13175,9 +13175,9 @@ void CAdapt_ItDoc::OverwriteUSFMFixedSpaces(wxString*& pstr)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param		pstr	<- the wxString buffer 
+/// \param		pstr	<- the wxString buffer
 /// \remarks
-/// Called from: the Doc's OnNewDocument(), 
+/// Called from: the Doc's OnNewDocument(),
 /// Removes any existing discretionary line break // sequences in pstr by overwriting the
 /// sequence with spaces. The processed text is returned by reference in pstr.
 /// This function call would normally be followed by a call to RemoveMultipleSpaces() to
@@ -13196,7 +13196,7 @@ void CAdapt_ItDoc::OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr)
 	{
 		if (wxStrncmp(ptr,_T("//"),2) == 0)
 		{
-			// we are pointing at an instance of //, 
+			// we are pointing at an instance of //,
 			// so overwrite it and continue processing
 			*ptr++ = _T(' ');
 			*ptr++ = _T(' ');
@@ -13214,12 +13214,12 @@ void CAdapt_ItDoc::OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr)
 #ifndef _UNICODE
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param		pstr	<- the wxString buffer 
+/// \param		pstr	<- the wxString buffer
 /// \remarks
 /// Called from: the Doc's OnNewDocument().
 /// Changes MS Word "smart quotes" to regular quotes. The character values for smart quotes
-/// are negative (-108, -109, -110, and -111). Warns the user if other negative character 
-/// values are encountered in the text, i.e., that he should use TecKit to convert the data 
+/// are negative (-108, -109, -110, and -111). Warns the user if other negative character
+/// values are encountered in the text, i.e., that he should use TecKit to convert the data
 /// to Unicode then use the Unicode version of Adapt It.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
@@ -13309,9 +13309,9 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 /// \remarks
 /// Called from: the Doc's TokenizeText().
 /// Test for one of the custom Adapt It markers which require the filtered information to
-/// be stored on m_freeTrans, m_note, or m_collectedBackTrans string members used for 
+/// be stored on m_freeTrans, m_note, or m_collectedBackTrans string members used for
 /// document version 5 (see docVersion in the xml)
-/// 
+///
 /// BEW modified 19Feb10 for support of doc version = 5. Bob Eaton's markers will be
 /// parsed, and when identified, will be wrapped with filterMkr and filterMkrEnd, and
 /// stored in m_filteredInfo; and got from there for any exports where requested; but
@@ -13345,7 +13345,7 @@ bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool&
 				// it has at least one extra character before the final space,
 				// so it is a foreign one
 				bIsForeignBackTransMkr = TRUE;
-			}	
+			}
 			return TRUE;
 		}
 	}
@@ -13417,15 +13417,15 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
 /// \param		nStartingSequNum	-> the initial sequence number
-/// \param		pList				<- list of CSourcePhrase instances, each populated with 
+/// \param		pList				<- list of CSourcePhrase instances, each populated with
 ///                                    a word token
-/// \param		rBuffer				-> the buffer from which words are tokenized and stored 
+/// \param		rBuffer				-> the buffer from which words are tokenized and stored
 ///									   as CSourcePhrase instances in pList
 /// \param		nTextLength			-> the initial text length
 /// \param      bTokenizingTargetText -> default FALSE, set TRUE if rBuffer contains target
 ///                                    text which is to be parsed, using target punctuation,
 ///                                    so as to make use of its smarts in separating text,
-///                                    punctuation and inline markers 
+///                                    punctuation and inline markers
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), the View's TokenizeTextString(),
 /// DoExtendedSearch(), DoSrcOnlyFind(), DoTgtOnlyFind(), DoSrcAndTgtFind().
@@ -13439,7 +13439,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// rewriting the ParseWord() function it calls -- and the latter potentially consumes more
 /// data on each call. TokenizeText also reworked to handle text colouring better.
 ///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
+int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
 							   int nTextLength, bool bTokenizingTargetText)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -13475,7 +13475,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	while (spacelessPuncts.Find(_T(' ')) != -1)
 	{
 		// remove all spaces, leaving only the list of punctation characters
-		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1); 
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
 	}
 	wxString boundarySet = spacelessPuncts;
 	while (boundarySet.Find(_T(',')) != -1)
@@ -13495,7 +13495,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
     // output.
 	bool bIsUnstructured = IsUnstructuredPlainText(rBuffer);
 
-	// if unstructured plain text, add a paragraph marker after any newline, to preserve 
+	// if unstructured plain text, add a paragraph marker after any newline, to preserve
 	// user's paragraphing updating nTextLength for each one added
 	int nDerivedLength = nTextLength;
 	if (bIsUnstructured)
@@ -13508,7 +13508,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	int nTheLen;
 	if (bIsUnstructured)
 	{
-		nTheLen = nDerivedLength; // don't use rBuffer.GetLength() - as any newlines 
+		nTheLen = nDerivedLength; // don't use rBuffer.GetLength() - as any newlines
         // don't get counted; Bruce commented out the next line 10May08, but I've left it
         // there because I've dealt with and checked that other code agrees with the code
         // as it stands.
@@ -13523,7 +13523,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	}
 	else
 	{
-		nTheLen = nTextLength; // nTextLength was probably m_nInputFileLength in 
+		nTheLen = nTextLength; // nTextLength was probably m_nInputFileLength in
 							   // the caller, which already counts the null at the end
 	}
 
@@ -13539,7 +13539,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	wxChar* pEnd = pBufStart + rBuffer.Length(); // bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
 	wxString temp;		// small working buffer in which to build a string
-	tokBuffer.Empty(); 
+	tokBuffer.Empty();
 	int	 sequNumber = nStartingSequNum - 1;
 	CSourcePhrase* pLastSrcPhrase = (CSourcePhrase*)NULL; // initially there isn't one
 	bool bHitMarker;
@@ -13579,7 +13579,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
             // advance pointer past the white space (inter-word spaces should be thrown
             // away, they have no useful role once tokenization has taken place)
 			itemLen = ParseWhiteSpace(ptr);
-			ptr += itemLen; 
+			ptr += itemLen;
 		}
 		// BEW 11Oct10 we need to support [ and ] brackets as markers indicating 'this is
 		// disputed material', and so we will do so by storing [ and ] on their own
@@ -13610,7 +13610,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				{
 					ptr++; // point past the [
 				}
-				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct; // need this for the [ 
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct; // need this for the [
 						// bracket (and its following space if we stored one) to be visible
 				if (pSrcPhrase != NULL)
 				{
@@ -13632,7 +13632,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
 				}
 				ptr++; // point past the ]
-				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ] 
+				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ]
 						// bracket (and its preceding space if we stored one) to be visible
 				if (pSrcPhrase != NULL)
 				{
@@ -13687,7 +13687,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// are we pointing at a standard format marker?
 		while (IsMarker(ptr))
 		{
-			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before 
+			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before
 									// checking which marker it is
 			bIsForeignBackTrans = FALSE;
 			bHitMarker = TRUE; // set whenever a marker of any type is reached
@@ -13754,7 +13754,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// test, we'll just keep accumulating each marker into the one
 					// m_markers member of the current pSrcPhrase, instead of going to the
 					// outer loop, saving it and creating a new one etc
-					break; 
+					break;
 				}
 				else
 				{
@@ -13779,7 +13779,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// to FALSE, except when a previous poetry marker has set poetry TextType already
 				// Removed because later code will override what we do here, so might as
 				// well not do it
-				//pSrcPhrase->m_bSpecialText = FALSE;	
+				//pSrcPhrase->m_bSpecialText = FALSE;
 				//if (pSrcPhrase->m_curTextType != poetry)
 				//{
 					// the text type is not poetry, so change to it to verse
@@ -13787,7 +13787,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				//}
 				continue; // iterate inner loop to check if another marker follows
 			}
-			else if (IsChapterMarker(ptr)) // is it some other kind of marker - 
+			else if (IsChapterMarker(ptr)) // is it some other kind of marker -
 										   // perhaps it's a chapter marker?
 			{
 				// its a chapter marker
@@ -13807,7 +13807,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 				// set pSrcPhrase attributes
 				pSrcPhrase->m_bChapter = TRUE;
-				
+
 				itemLen = ParseWhiteSpace(ptr); // parse white space following the number
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
 				ptr += itemLen; // point past it
@@ -13834,7 +13834,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// here, resulting in a spagetti mishmash of code. I've taken out the
 				// propagation code and put it after the ParseWord() call, so that what is
 				// done here is simpler - just handling any needed filtering.
-                 
+
                 // BEW 11Oct10, A note about how we handle inline markers, other than those
                 // beginning with \f (footnote type) or \x (crossReference type), is
                 // appropriate. While not a USFM distinction, for Adapt It's purposes we
@@ -13857,7 +13857,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // parser, that was not true).
                 // BEW 25Feb11, added code to use pUsfmAnalysis looked up to set
                 // m_curTextType and m_bSpecialText which were forgottten here
-				
+
 				bool bDidSomeFiltering = FALSE;
 
 				wxString wholeMkr = GetWholeMarker(ptr);
@@ -13868,7 +13868,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// BEW 11Oct10, the block for detecting an inline marker which is not
 				// one of the \f set nor one of the \x set..., if the test succeeds, then
 				// in the block we set needed flags and then break out of the inner loop
-				// 
+				//
                 // BEW 25Feb11, we don't want to hand off \va ...\va*, (verse alternate)
                 // nor \vp ...\vp* (verse published) to ParseWord() - which will correctly
                 // handle them as inline binding markers, but leave the number as adaptable
@@ -13877,7 +13877,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// these was what bareMkr is (only if the user unfilters them should their
 				// number be seeable and adaptable)
 				if (pUsfmAnalysis != NULL && pUsfmAnalysis->inLine &&
-					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 && 
+					bareMkr.Find('f') != 0 && bareMkr.Find('x') != 0 &&
 					bareMkr.Find(_T("va")) != 0 && bareMkr.Find(_T("vp")) != 0)
 				{
                     // inline markers are known to USFM, so pUsfmAnalysis will not be
@@ -13885,7 +13885,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                     // inline marker, but not one of the inline markers which begin with
                     // \x or \f; these are the ones which we immediately hand off to
                     // ParseWord() to deal with
-					
+
 					// the hand-off takes place outside the loop, so set the flags we need
 					// to know beforehand, they are needed for ParseWord()'s signature
 					anOffset = pApp->m_inlineNonbindingMarkers.Find(augmentedWholeMkr);
@@ -13901,12 +13901,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 					break; // break out of the inner loop, to get to ParseWord()
 				}
-				
+
                 // this is the legacy code block, simplified - for handling all other
                 // markers other than those we've bled out in the above block
 				// BEW 11Oct10, removed code for propagating TextType and m_bSpecialText
 				// from here, as we do it after ParseWord() call now
-				
+
 				// check if we have located an SFM designated as one to be filtered
 				// pUsfmAnalysis is populated regardless of whether it's a filter marker
 				// or not. If an unknown marker, pUsfmAnalysis will be NULL
@@ -13935,7 +13935,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				// to occur after some other special text, such as a footnote, then (even
 				// worse) both have the same colour and the text in the unknown marker
 				// looks like it is part of the footnote! Yuck.
-				// 
+				//
                 // The solution is to ensure that TokenizeText() gets to look at the
                 // contents of gCurrentFilterMarkers every time a new doc is created, and
                 // if it finds the marker listed there, to ensure it is filtered out. It's
@@ -13943,7 +13943,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // pUsfmAnalysis, and that comes from AI_USFM.xml, which by definition,
                 // never lists unknown markers. So the changes in the next few lines fix
                 // all this - the test after the || had to be added.
-				if (IsAFilteringSFM(pUsfmAnalysis) || 
+				if (IsAFilteringSFM(pUsfmAnalysis) ||
 					(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1))
 				{
 					bDidSomeFiltering = TRUE;
@@ -13989,7 +13989,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					{
 						// there is some free translation to be handled
 						int nFound2 = temp.Find(_T("@| "));
-						wxASSERT(nFound2 - nFound < 10); // characters between can't be 
+						wxASSERT(nFound2 - nFound < 10); // characters between can't be
 														 // too big a number
 						wxString aNumber = temp.Mid(nFound + 2, nFound2 - nFound - 2);
 						nFreeTransWordCount = wxAtoi(aNumber);
@@ -14038,12 +14038,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 							// since we obviously haven't we'll do so now
 							if (nFreeTransWordCount != 0)
 							{
-								bFreeTranslationIsCurrent = TRUE; // turn on this flag to 
-									// inform parser in subsequent iterations that a new 
+								bFreeTranslationIsCurrent = TRUE; // turn on this flag to
+									// inform parser in subsequent iterations that a new
 									// one is current
 								if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
 								{
-									pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off 
+									pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
 																	// previous section
 								}
 
@@ -14058,7 +14058,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 								if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
 								{
-									pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off 
+									pLastSrcPhrase->m_bEndFreeTrans = TRUE; // turn off
 																	// previous section
 								}
 							}
@@ -14077,7 +14077,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// see if one is about to start
 						if (wholeMkr == _T("\\free"))
 						{
-							bFreeTranslationIsCurrent = TRUE; // turn on this flag to inform 
+							bFreeTranslationIsCurrent = TRUE; // turn on this flag to inform
 								// parser in subsequent iterations that one is current
 							pSrcPhrase->m_bHasFreeTrans = TRUE;
 							pSrcPhrase->m_bStartFreeTrans = TRUE;
@@ -14131,10 +14131,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 			} // BEW added 11Oct10, end of else block for test for inline mrk,
 			  // this else block has the legacy code for the pre-11Oct10 versions
-			  
+
 		} // end of inner loop, while (IsMarker(ptr)), BEW 11Oct10
-		
-		// Back in the outer loop now. We have one of the following three situations: 
+
+		// Back in the outer loop now. We have one of the following three situations:
 		// (1) ptr is not pointing at an inline marker that we need to handle within
 		// ParseWord(), so it may be pointing at punctuation or a word of text to be
 		// parsed; or
@@ -14163,7 +14163,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		else
 		{
 			// legacy/standard parsing block... which calls ParseWord()...
-			
+
 			// bleed out the ptr pointing at [ bracket situation
 			if (*ptr == _T('['))
 			{
@@ -14194,7 +14194,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			}
 			// not pointing at [ so do the parsing of the word - including puncts and inline
 			// markers
-			
+
 			// the TokenizeText() caller determines whether spacelessPuncts contains the
 			// m_punctuation[0] source puncts set, or m_punctuation[1] target set; typically,
 			// it is the source set, but we do use an override of the TokenizeTextString()
@@ -14256,7 +14256,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					int len = 0;
 					wxString wholeMkr; wholeMkr.Empty();
 					bool bContainsPoetryMarker = FALSE; // BEW added 25Feb11
-					while ((offset = tokBuffer.Find(gSFescapechar)) != wxNOT_FOUND) 
+					while ((offset = tokBuffer.Find(gSFescapechar)) != wxNOT_FOUND)
 					{
 						tokBuffer = tokBuffer.Mid(offset);
 						wholeMkr = GetWholeMarker(tokBuffer);
@@ -14285,7 +14285,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						pEnd = (wxChar*)pChar2 + length;
 						wxChar* pBufStart = (wxChar*)pChar2;
 						// in the next call NULL is returned if bareMkr is an unknown marker
-						USFMAnalysis* pUsfmAnalysis = LookupSFM(bareMkr); 
+						USFMAnalysis* pUsfmAnalysis = LookupSFM(bareMkr);
 						// the AnalyseMarker() call looks up the characteristics of the marker
 						// and assigns TextType, returns m_bSpecialText value, puts appropriate
 						// text into the m_inform member, deals appropriately with
@@ -14296,7 +14296,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 															pBufStart, length, pUsfmAnalysis);
 						// if there was a preceding poetry marker for a verse marker,
 						// choose the poetry TextType instead
-						if (bContainsPoetryMarker) 
+						if (bContainsPoetryMarker)
 						{
 							pSrcPhrase->m_curTextType = poetry;
 							bTextTypeChanges = TRUE;
@@ -14374,7 +14374,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// display in the nav text area of the view) -- note, \fe in m_endMarkers
 					// can only be the PNG SFM 1998 footnote endmarker, not USFM endnote
 					// beginmarker) likewise \F must be from the same 1998 set if found there
-					if ((pSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) || 
+					if ((pSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) ||
 						(pSrcPhrase->GetEndMarkers().Find(_T("\\fe")) != wxNOT_FOUND) ||
 						(pSrcPhrase->GetEndMarkers().Find(_T("\\F")) != wxNOT_FOUND))
 					{
@@ -14397,14 +14397,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			}
 			// ************ New Propagation Code Ends Here ******************
 
-			// BEW added 30May05, to remove any initial space that may be in m_markers 
+			// BEW added 30May05, to remove any initial space that may be in m_markers
 			// from the parse
 			if (pSrcPhrase->m_markers.GetChar(0) == _T(' '))
 				pSrcPhrase->m_markers.Trim(FALSE);
 
 			// BEW 11Oct10, Handle setting of the m_bBoundary flag here, rather than in
 			// ParseWord() itself
-			if (!pSrcPhrase->m_follPunct.IsEmpty() || 
+			if (!pSrcPhrase->m_follPunct.IsEmpty() ||
 				!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 			{
 				wxChar anyChar;
@@ -14489,17 +14489,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// we decremented to zero, so we are at the end of the current free
 						// translation section, so set the flags accordingly
 						pSrcPhrase->m_bEndFreeTrans = TRUE; // indicate 'end of section'
-						bFreeTranslationIsCurrent = FALSE; // indicate next sourcephrase 
+						bFreeTranslationIsCurrent = FALSE; // indicate next sourcephrase
 							// is not in the section (but a \free marker may turn it back
 							// on at next word)
 					}
-					
+
 				}
 			}
 			// BEW added comment 11Oct10, the comment below was for the legacy parser, but it
 			// is still apt if the new ParseWord() returns leaving some punctuation at the end
 			// of the buffer - unlikely, but we can't rule it out. So keep this stuff.
-			// 
+			//
 			// If endmarkers are at the end of the buffer, code further up will have put them
 			// into the m_endMarkers member of pLastSrcPhrase, and any punctuation following
 			// that would be in the m_precPunt member of pSrcPhrase, but if the buffer end has
@@ -14516,7 +14516,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// TransportWidowedFilteredInfoToFollowingContext() and if there is a following
 			// context, the transfer can be done, but if not, we must just leave the source
 			// phrase there in the document to carry the filtered information.
-			// 
+			//
 			// A further complication of similar kind is when the user types in non-endmarker
 			// information at the end of the string. When editing the source text, this will
 			// end up in m_markers but m_key will be empty, and so we need to leave it to
@@ -14569,7 +14569,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						}
 					}
 				}
-			} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() && 
+			} // end of TRUE block for test: if (pSrcPhrase->m_key.IsEmpty() &&
 			  //                                 pSrcPhrase->m_precPunct.IsEmpty())
 		} // end of else block for text: if (bEmptyUSFM)
 
@@ -14582,11 +14582,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			if (bEmptyUSFM)
 			{
 				tokBuffer.Empty();
-				bEmptyUSFM = FALSE; // next verse may have content, so be ready 
+				bEmptyUSFM = FALSE; // next verse may have content, so be ready
 									// for that possibility
 				// ensure there is always a final space at end of m_markers when parsing
 				// contentless USFM data
-				if (!pSrcPhrase->m_markers.IsEmpty() && 
+				if (!pSrcPhrase->m_markers.IsEmpty() &&
 					pSrcPhrase->m_markers.GetChar(pSrcPhrase->m_markers.Len() - 1) != _T(' '))
 				{
 					pSrcPhrase->m_markers += _T(' ');
@@ -14600,7 +14600,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	} // end of while (ptr < pEndText)
 
 	// fix the sequence numbers, so that they are in sequence with no gaps, from the
-	// beginning 
+	// beginning
 	tokBuffer.Empty();
 	AdjustSequNumbers(nStartingSequNum,pList);
 
@@ -14619,10 +14619,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 /// \param		useSfmSet		-> an enum of type SfmSet: UsfmOnly, PngOnly, or UsfmAndPng
 /// \param		pUnkMarkers		<- a wxArrayString that gets populated with unknown (whole) markers,
 ///									always populated in parallel with pUnkMkrsFlags.
-/// \param		pUnkMkrsFlags	<- a wxArrayInt of flags that gets populated with ones or zeros, 
+/// \param		pUnkMkrsFlags	<- a wxArrayInt of flags that gets populated with ones or zeros,
 ///									always populated in parallel with pUnkMarkers.
 /// \param		unkMkrsStr		-> a wxString containing the current unknown (whole) markers within
-///									the string - the markers are delimited by spaces following each 
+///									the string - the markers are delimited by spaces following each
 ///									whole marker.
 /// \param		mkrInitStatus	-> an enum of type SetInitialFilterStatus: setAllUnfiltered,
 ///									setAllFiltered, useCurrentUnkMkrFilterStatus, or
@@ -14638,17 +14638,17 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 /// An unknown marker may occur more than once in a given document, but is only stored once
 /// in the unknown marker inventory arrays and string.
 /// The SetInitialFilterStatus enum values can be used as follows:
-///	  The setAllUnfiltered enum would gather the unknown markers into m_unknownMarkers 
+///	  The setAllUnfiltered enum would gather the unknown markers into m_unknownMarkers
 ///      and set them all to unfiltered state in m_filterFlagsUnkMkrs (currently
 ///      unused);
-///	  The setAllFiltered could be used to gather the unknown markers and set them all to 
+///	  The setAllFiltered could be used to gather the unknown markers and set them all to
 ///      filtered state (currently unused);
-///	  The useCurrentUnkMkrFilterStatus would gather the markers and use any currently 
-///      listed filter state for unknown markers it already knows about (by inspecting 
+///	  The useCurrentUnkMkrFilterStatus would gather the markers and use any currently
+///      listed filter state for unknown markers it already knows about (by inspecting
 ///     m_filterFlagsUnkMkrs), but process any other "new" unknown markers as unfiltered.
-///   The preserveUnkMkrFilterStatusInDoc causes GetUnknownMarkersFromDoc to preserve 
-///     the filter state of an unknown marker in the Doc, i.e., set m_filterFlagsUnkMkrs 
-///     to TRUE if the unknown marker in the Doc was within \~FILTER ... \~FILTER* brackets, 
+///   The preserveUnkMkrFilterStatusInDoc causes GetUnknownMarkersFromDoc to preserve
+///     the filter state of an unknown marker in the Doc, i.e., set m_filterFlagsUnkMkrs
+///     to TRUE if the unknown marker in the Doc was within \~FILTER ... \~FILTER* brackets,
 ///     otherwise sets the flag in the array to FALSE.
 /// BEW 24Mar10 updated for support of doc version 5 (some changes were needed)
 ///////////////////////////////////////////////////////////////////////////////
@@ -14683,7 +14683,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 	}
 	wxArrayInt saveFilterFlagsUnkMkrs;
 	// again copy by brute force elements from m_filterFlagsUnkMkrs to
-	// saveFilterFlagsUnkMkrs 
+	// saveFilterFlagsUnkMkrs
 	saveFilterFlagsUnkMkrs.Empty();
 	for (act = 0; act < (int)gpApp->m_filterFlagsUnkMkrs.GetCount(); act++)
 	{
@@ -14735,7 +14735,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 			wxString wholeMarker, bareMarker;
 			bool markerIsFiltered;
 			int mlct;
-			for (mlct = 0; mlct < (int)pMarkerList->GetCount(); mlct++) 
+			for (mlct = 0; mlct < (int)pMarkerList->GetCount(); mlct++)
 			{
 				// examine this string list item
 				resultStr = pMarkerList->Item(mlct);
@@ -14752,7 +14752,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 				int posm = 1;
 				wholeMarker.Empty();
 				// get the whole marker from the string
-				while (posm < strLen && resultStr[posm] != _T(' ') && 
+				while (posm < strLen && resultStr[posm] != _T(' ') &&
 						resultStr[posm] != gSFescapechar)
 				{
 					wholeMarker += resultStr[posm];
@@ -14762,7 +14762,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 				// do not include end markers in this inventory, so remove any final *
 				int aPos = wholeMarker.Find(_T('*'));
 				if (aPos == (int)wholeMarker.Length() -1)
-					wholeMarker.Remove(aPos,1); 
+					wholeMarker.Remove(aPos,1);
 
 				wxString tempStr = wholeMarker;
 				tempStr.Remove(0,1);
@@ -14781,7 +14781,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
                 // whm ammended 11Jul05 Here we want to use the LookupSFM() routine which
                 // treats all \bt... initial back-translation markers as known markers all
                 // under the \bt marker with its description "Back-translation"
-				pSfm = LookupSFM(bareMarker); // use LookupSFM which properly handles 
+				pSfm = LookupSFM(bareMarker); // use LookupSFM which properly handles
 											  // \bt... forms as \bt
 				bool bFound = pSfm != NULL;
 				if (!bFound)
@@ -14789,7 +14789,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
                     // it's an unknown marker, so process it as such only add marker to
                     // m_unknownMarkers if it doesn't already exist there
 					int newArrayIndex = -1;
-					if (!MarkerExistsInArrayString(pUnkMarkers, wholeMarker, 
+					if (!MarkerExistsInArrayString(pUnkMarkers, wholeMarker,
 											newArrayIndex)) // 2nd param not used here
 					{
 						bool bFound = FALSE;
@@ -14859,12 +14859,12 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxString containing a list of whole unknown markers; each 
+/// \return		a wxString containing a list of whole unknown markers; each
 ///             marker (xx) formatted as "\xx=0 " or "\xx=1 " with following space within
 ///             the string.
 /// \param		pUnkMarkers*	-> pointer to a wxArrayString of whole unknown markers
-/// \param		pUnkMkrsFlags*	-> pointer to a wxArrayInt of int flags indicating 
-///                                whether the unknown marker is filtered (1) 
+/// \param		pUnkMkrsFlags*	-> pointer to a wxArrayInt of int flags indicating
+///                                whether the unknown marker is filtered (1)
 ///                                or unfiltered (0).
 /// \remarks
 /// Called from: Currently GetUnknownMarkerStrFromArrays() is only called from debug trace
@@ -14875,7 +14875,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 /// function also verifies the integrity of the arrays, i.e., that they are consistent in
 /// length - required for them to operate in parallel.
 ///////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers, 
+wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 													 wxArrayInt* pUnkMkrsFlags)
 {
 	int ctMkrs = pUnkMarkers->GetCount();
@@ -14902,25 +14902,25 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 /// \param		pNewSrcPhrasesList			-> a list of pointers to CSourcePhrase instances
 /// \param		nNewCount					-> how many entries are in the pNewSrcPhrasesList
 ///												list (currently unused)
-/// \param		propagationType				<- the TextType value for the last CSourcePhrase 
+/// \param		propagationType				<- the TextType value for the last CSourcePhrase
 ///												instance in the list
-/// \param		bTypePropagationRequired	<- TRUE if the function determines that the caller 
-///												must take the returned propagationType value 
-///												and propagate it forwards until a CSourcePhrase 
-///												instance with its m_bFirstOfType member set TRUE 
-///												is encountered, otherwise FALSE (no propagation 
+/// \param		bTypePropagationRequired	<- TRUE if the function determines that the caller
+///												must take the returned propagationType value
+///												and propagate it forwards until a CSourcePhrase
+///												instance with its m_bFirstOfType member set TRUE
+///												is encountered, otherwise FALSE (no propagation
 ///												needed)
 /// \remarks
 /// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and OnEditSourceText(),
 /// and also from XML's MurderTheDocV4Orphans()
 /// There are two uses for this function:
-///   (1) To do navigation text, special text colouring, and TextType value cleanup 
+///   (1) To do navigation text, special text colouring, and TextType value cleanup
 ///         after the user has edited the source text - which potentially allows the user
 ///         to edit, add or remove markers and/or change their location. Editing of markers
 ///         potentially might make a typo marker into one currently designated as to be
 ///         filtered, so this is checked for and if it obtains, then the requisite
 ///         filtering is done at the end as an extra (automatic) step.
-///   (2) To do the same type of cleanup job, but over the whole document from start to 
+///   (2) To do the same type of cleanup job, but over the whole document from start to
 ///         end, after the user has changed the SFM set (which may also involve changing
 ///         filtering settings in the newly chosen SFM set, or it may not) - when used in
 ///         this way, all filtering changes will already have been done by custom code for
@@ -14934,7 +14934,7 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 /// BEW 11Oct10 (actually 6Jan11) added code for closing off a TextType span because of
 /// endmarker content within m_endMarkers - I missed doing this in the earlier tweaks
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
+void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount),
 							TextType& propagationType, bool& bTypePropagationRequired)
 {
     // The following comments were in the legacy versions, when this function was only used
@@ -14963,15 +14963,15 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	SPList* pL = pNewSrcPhrasesList;
 	wxASSERT(pL);
-	CSourcePhrase* pLastSrcPhrase = gpPrecSrcPhrase; // the one immediately preceding sublist 
+	CSourcePhrase* pLastSrcPhrase = gpPrecSrcPhrase; // the one immediately preceding sublist
 													 // (it could be null)
 	CSourcePhrase* pFollowing = gpFollSrcPhrase; // first, following the sublist (could be null)
 	CSourcePhrase* pSrcPhrase = 0; // the current one, used in our iterations
 
-	gpApp->m_FilterStatusMap.clear(); 
+	gpApp->m_FilterStatusMap.clear();
             // empty the map, we want to use it to handle filtering of an edited marker
             // when the editing changes it to be a marker designated as one which is to be
             // filtered; we repopulate it just before the AnalyseMarker() call below
@@ -14996,7 +14996,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
     // end of the sublist contents; so we get it instead from the gpFollSrcPhrase global,
     // which will have been set in the caller already (if at the end of the doc we'll
     // default the value to verse so that the source text edit does not fail)
-	TextType finalType; // set this to the TextType for the last sourcephrase instance 
+	TextType finalType; // set this to the TextType for the last sourcephrase instance
                         // in the sublist -- but take note of the above comment sublist
 
     // whm Note: if the first position node of pL is NULL finalType will not have been
@@ -15010,7 +15010,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 	SPList::Node* pos = pL->GetFirst();
 	bool bInvalidLast = FALSE;
 	if (pLastSrcPhrase == NULL) // MFC had == 0
-		bInvalidLast = TRUE; // only possible if user edited source text at the very 
+		bInvalidLast = TRUE; // only possible if user edited source text at the very
                              // first sourcephrase in the doc iterate over each
                              // sourcephrase instance in the sublist
     bool bStartDefaultTextTypeOnNextIteration = FALSE;
@@ -15020,7 +15020,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase);
-		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =, 
+		pSrcPhrase->m_inform.Empty(); // because AnalyseMarker() does +=, not =,
 									  // so we must clear its contents first
 
 		// BEW 11Oct10 (actually 6Jan11) endmarkers in docV5 are no longer stored at the
@@ -15105,13 +15105,13 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
         // wx version note: Since we require a read-only buffer we use GetData which just
         // returns a const wxChar* to the data in the string.
 		const wxChar* pBuffer = mkrBuffer.GetData();
-		wxChar* pEndMkrBuff; // set this dynamically, for each 
+		wxChar* pEndMkrBuff; // set this dynamically, for each
 							 // source phrase's marker string
 		wxString temp; // can build a string here
 		wxChar* ptr = (wxChar*)pBuffer;
 		wxChar* pBufStart = (wxChar*)pBuffer;
 		pEndMkrBuff = pBufStart + lengthMkrs; // point to null at end
-		wxASSERT(*pEndMkrBuff == _T('\0')); // whm added for wx version - needs to be 
+		wxASSERT(*pEndMkrBuff == _T('\0')); // whm added for wx version - needs to be
 											// set explicitly when mkrBuffer is empty
 		if (mkrBuffer.IsEmpty())
 		{
@@ -15122,9 +15122,9 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 			if (bInvalidLast)
 			{
 				pSrcPhrase->m_bFirstOfType = TRUE;
-				pSrcPhrase->m_curTextType = verse; // this is the only possibility, 
+				pSrcPhrase->m_curTextType = verse; // this is the only possibility,
 												   // at start of doc & no marker
-				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid 
+				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid
 									  // preceding one
 				pSrcPhrase->m_inform.Empty();
 				pSrcPhrase->m_chapterVerse.Empty();
@@ -15139,14 +15139,14 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 					// TRUE, we skip because in code above we've closed of a TextType span
 					// already and so this pSrcPhrase is the first of a new TextType span,
 					// which defaults to verse and not special text in the absence of a
-					// marker to specify otherwise 
+					// marker to specify otherwise
 					pSrcPhrase->m_bFirstOfType = FALSE;
-					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the 
+					pSrcPhrase->m_curTextType = pLastSrcPhrase->m_curTextType; // propagate the
 																	// earlier instance's type
 					pSrcPhrase->m_inform.Empty();
 					pSrcPhrase->m_chapterVerse.Empty();
 					// propagate the previous value
-					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; 
+					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
 				}
 			}
 		}
@@ -15157,17 +15157,17 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 			{
 				// we are at the very beginning of the document
 				pLastSrcPhrase = 0; // ensure its null
-				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid 
+				bInvalidLast = FALSE; // all subsequent sourcephrases will have a valid
 									  // preceding one
-				pSrcPhrase->m_bSpecialText = bSpecialText; // assume this value, the marker 
-														   // may later change it 
-				goto x; // code at x comes from TokenizeText, and should not break for 
+				pSrcPhrase->m_bSpecialText = bSpecialText; // assume this value, the marker
+														   // may later change it
+				goto x; // code at x comes from TokenizeText, and should not break for
 						// pLast == 0
 			}
 			else
 			{
 				// we are not at the beginning of the document
-				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate 
+				pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText; // propagate
 																	// previous, as default
 x:				while (ptr < pEndMkrBuff)
 				{
@@ -15186,7 +15186,7 @@ x:				while (ptr < pEndMkrBuff)
 					}
 
 					// are we pointing at a standard format marker?
-b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1 
+b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 									   // contextual sfms
 					{
 						bHitMarker = TRUE;
@@ -15210,19 +15210,19 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 							}
 
 							itemLen = ParseWhiteSpace(ptr);
-							AppendItem(pApp->buffer,temp,ptr,itemLen); // add white 
+							AppendItem(pApp->buffer,temp,ptr,itemLen); // add white
 																	   // space to buffer
 							ptr += itemLen; // point at verse number
 
 							itemLen = ParseNumber(ptr);
-							AppendItem(pApp->buffer,temp,ptr,itemLen); // add number (or range 
+							AppendItem(pApp->buffer,temp,ptr,itemLen); // add number (or range
 																	   // eg. 3-5) to buffer
 							if (pApp->m_curChapter.GetChar(0) == '0')
-								pApp->m_curChapter.Empty(); // caller will have set it non-zero 
+								pApp->m_curChapter.Empty(); // caller will have set it non-zero
 															// if there are chapters
 							pSrcPhrase->m_chapterVerse = pApp->m_curChapter; // set to n: form
 							pSrcPhrase->m_chapterVerse += temp; // append the verse number
-							pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a 
+							pSrcPhrase->m_bVerse = TRUE; // set the flag to signal start of a
 														 // new verse
 							ptr += itemLen; // point past verse number
 
@@ -15235,7 +15235,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 							}
 							pSrcPhrase->m_bSpecialText = FALSE;
 
-							itemLen = ParseWhiteSpace(ptr); // past white space which is 
+							itemLen = ParseWhiteSpace(ptr); // past white space which is
 															// after the marker
 							AppendItem(pApp->buffer,temp,ptr,itemLen); // add it to the buffer
 							ptr += itemLen; // point past the white space
@@ -15260,13 +15260,13 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 								AppendItem(pApp->buffer,temp,ptr,itemLen); // add chapter number
                                                                            // to buffer
 								pApp->m_curChapter = temp;
-								pApp->m_curChapter += _T(':'); // get it ready to 
+								pApp->m_curChapter += _T(':'); // get it ready to
 															   // append verse numbers
 								ptr += itemLen; // point past chapter number
 
 								// set pSrcPhrase attributes
 								pSrcPhrase->m_bChapter = TRUE;
-								pSrcPhrase->m_bVerse = TRUE; // always have verses following a 
+								pSrcPhrase->m_bVerse = TRUE; // always have verses following a
 															 // chapter
 								if (pSrcPhrase->m_curTextType != poetry) // poetry sfm comes before \v
 								{
@@ -15274,7 +15274,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 								}
 								pSrcPhrase->m_bSpecialText = FALSE;
 
-								itemLen = ParseWhiteSpace(ptr); // parse white space following 
+								itemLen = ParseWhiteSpace(ptr); // parse white space following
 																// the number
 								AppendItem(pApp->buffer,temp,ptr,itemLen); // add it to buffer
 								ptr += itemLen; // point past it
@@ -15310,7 +15310,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 								if (curPos >= 0)
 								{
 									// its a marker, currently unfiltered, which should be
-									// filtered 
+									// filtered
 									wxString valStr;
 									if (gpApp->m_FilterStatusMap.find(mkr) == gpApp->m_FilterStatusMap.end())
 									{
@@ -15323,7 +15323,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 
 								// set default pSrcPhrase attributes
 								if (pSrcPhrase->m_curTextType != poetry)
-									pSrcPhrase->m_curTextType = verse; // assume verse unless 
+									pSrcPhrase->m_curTextType = verse; // assume verse unless
 																	 // AnalyseMarker changes it
 
 								// analyse the marker and set fields accordingly
@@ -15358,9 +15358,9 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 
 		// make this one be the "last" one for next time through
 		pLastSrcPhrase = pSrcPhrase;
-		finalType = pSrcPhrase->m_curTextType; // keep this updated continuously, to be used 
+		finalType = pSrcPhrase->m_curTextType; // keep this updated continuously, to be used
 											   // below
-		gbSpecialText = pSrcPhrase->m_bSpecialText; // the value to be propagated at end of 
+		gbSpecialText = pSrcPhrase->m_bSpecialText; // the value to be propagated at end of
 													// OnEditSourceText()
 	} // end of while (pos != 0) loop
 
@@ -15368,7 +15368,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
     // entered so finalType won't yet be set
 	if (pL->IsEmpty())
 	{
-		finalType = verse; // the most likely value, so the best default if the code 
+		finalType = verse; // the most likely value, so the best default if the code
 						   // below doesn't set it
 		if (gpFollSrcPhrase != NULL)
 		{
@@ -15401,7 +15401,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 	if (pFollowing->m_curTextType == finalType)
 		return;		// types are identical, so no propagation is needed
 	if (pFollowing->m_bFirstOfType)
-		return; // type changes here obligatorily (probably due to a marker), so 
+		return; // type changes here obligatorily (probably due to a marker), so
                 // we cannot propagate
 
 	// if we get here, then propagation is required - so return that fact to the caller
@@ -15412,19 +15412,19 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 /// \return		TRUE if no errors; FALSE if an error occurred
 /// \param		exportPathUsed		<- a wxString to return the path/name of the packed
 ///                                 document to the caller
-/// \param      bInvokeFileDialog -> TRUE (default) presents the wxFileDialog; FALSE 
+/// \param      bInvokeFileDialog -> TRUE (default) presents the wxFileDialog; FALSE
 ///                                 uses the <current doc name>.aip
 /// \remarks
 /// Called from: the Doc's OnFilePackDocument() and EmailReportDlg::OnBtnAttachPackedDoc.
 /// Assembles the raw contents that go into an Adapt It Packed Document into the packByteStr
-/// which is a CBString byte buffer. 
+/// which is a CBString byte buffer.
 /// whm 6Aug11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
-/// folder. Note: The Pack Document... and the Unpack Document... commands are not available 
+/// folder. Note: The Pack Document... and the Unpack Document... commands are not available
 /// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog)
 {
-	CBString packByteStr; 
+	CBString packByteStr;
 	wxString packStr;
 	packStr.Empty();
 
@@ -15433,7 +15433,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not 
+	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -15442,7 +15442,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	wxProgressDialog* pProgDlg;
 	pProgDlg = gpApp->OpenNewProgressDialog(_("Packing Document"),msgDisplayed,nTotal,500);
-	
+
     // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
     // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
     // check that it is matching; and if not, warn user that continuing the unpack might
@@ -15473,7 +15473,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// get source and target language names, or whatever is used for these
 	wxString curSourceName;
 	wxString curTargetName;
-	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName, 
+	gpApp->GetSrcAndTgtLanguageNamesFromProjectName(gpApp->m_curProjectName,
 											curSourceName, curTargetName);
 
     // get the book information (mode flag, disable flag, and book index; as ASCII string
@@ -15516,7 +15516,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		{
 			// whm 10Mar10, must save using what paths are current, but when the custom
 			// location has been locked in, the filename lacks "Admin" in it, so that it
-			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// becomes a "normal" project configuration file in m_curProjectPath at the
 			// custom location.
 			if (gpApp->m_bLockedCustomWorkFolderPath)
 				bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
@@ -15542,7 +15542,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 
 	// get the size of the configuration file, in bytes
 	wxFile f;
-	wxString configFile = gpApp->m_curProjectPath + gpApp->PathSeparator + 
+	wxString configFile = gpApp->m_curProjectPath + gpApp->PathSeparator +
 									szProjectConfiguration + _T(".aic");
 	int nConfigFileSize = 0;
 	if (f.Open(configFile,wxFile::read))
@@ -15631,7 +15631,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 
 	if (!f.Open(configFile,wxFile::read))
 	{
-		// if error, just return after telling the user about it -- English will do, 
+		// if error, just return after telling the user about it -- English will do,
 		// it shouldn't happen
 		wxString s;
 		s = s.Format(_T(
@@ -15641,9 +15641,9 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		gpApp->LogUserAction(s);
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-		return FALSE; 
+		return FALSE;
 	}
-	int nFileLength = nConfigFileSize; // our files won't require more than 
+	int nFileLength = nConfigFileSize; // our files won't require more than
 									   // an int for the length
 
     // create a buffer large enough to receive the whole lot, allow for final null byte (we
@@ -15660,21 +15660,21 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		gpApp->LogUserAction(_T("Project file read was short, some data missed so abort the command"));
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-		return FALSE; 
+		return FALSE;
 	}
 	f.Close(); // assume no errors
 
-	// append the configuration file's data to packStr and add the next 
+	// append the configuration file's data to packStr and add the next
 	// unique delimiter string
 	packByteStr += pBuff;
 	packByteStr += "|*5*|"; // the fifth unique delimiter
 
-	// clear the buffer, then read in the document file in similar fashion & 
+	// clear the buffer, then read in the document file in similar fashion &
 	// delete the buffer when done
 	delete[] pBuff;
 	if (!f.Open(docPath,wxFile::read))
 	{
-		// if error, just return after telling the user about it -- English will do, 
+		// if error, just return after telling the user about it -- English will do,
 		// it shouldn't happen
 		wxString s;
 		s = s.Format(_T(
@@ -15684,10 +15684,10 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		gpApp->LogUserAction(s);
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-		return FALSE; 
+		return FALSE;
 	}
 	nFileLength = nDocFileSize; // our files won't require more than an int for the length
-	pBuff = new char[nFileLength + 1];	
+	pBuff = new char[nFileLength + 1];
 	memset(pBuff,0,nFileLength + 1);
 	nReadBytes = f.Read(pBuff,nFileLength);
 	if (nReadBytes < nFileLength)
@@ -15698,7 +15698,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		gpApp->LogUserAction(_T("Document file read was short, some data missed so abort the command"));
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-		return FALSE; 
+		return FALSE;
 	}
 	f.Close(); // assume no errors
 	packByteStr += pBuff;
@@ -15714,18 +15714,18 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// 3. If in future we want to do the packing/zipping in internal buffers, we would do it
 	//    with the contents of packByteStr after this point in OnFilePackDoc, and before
 	//    the pBuf is written out via CFile ff below.
-	// 4. If done in a buffer, after compression we could add the following Warning statement 
-	//    in uncompressed form to the beginning of the compressed character buffer (before 
-	//    writing it to the .aip file): "|~WARNING: DO NOT ATTEMPT TO CHANGE THIS FILE WITH 
+	// 4. If done in a buffer, after compression we could add the following Warning statement
+	//    in uncompressed form to the beginning of the compressed character buffer (before
+	//    writing it to the .aip file): "|~WARNING: DO NOT ATTEMPT TO CHANGE THIS FILE WITH
 	//    AN EDITOR OR WORD PROCESSOR! IT CAN ONLY BE UNCOMPRESSED WITH THE UNPACK COMMAND
-	//    FROM WITHIN ADAPT IT VERSION 3.X. COMPRESSED DATA FOLLOWS:~|" 
+	//    FROM WITHIN ADAPT IT VERSION 3.X. COMPRESSED DATA FOLLOWS:~|"
 	//    The warning would serve as a warning to users if they were to try to load the file
 	//    into a word processor, not to edit it or save it within the word processor,
 	//    otherwise the packed file would be corrupted. The warning (without line breaks
 	//    or quote marks) would be 192 bytes long. When the file would be read from disk
 	//    by DoUnpackDocument, this 192 byte warning would be stripped off prior to
 	//    uncompressing the remaining data using the zlib tools.
-	
+
     // whm 22Sep06 update: The wx version now uses wxWidget's built-in wxZipOutputStream
     // facilities for compressing and uncompressing packed documents, hence, it no longer
     // needs the services of Lucian Eischik's zip and unzip library. The wxWidget's zip
@@ -15737,8 +15737,8 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	wxString uniqueFilenameAndPath;
 	wxString defaultDir;
 	// whm 6Aug11 modified.
-	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS, 
-	// and whether the App's m_lastPackedOutputPath is empty or has a valid path, 
+	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS,
+	// and whether the App's m_lastPackedOutputPath is empty or has a valid path,
 	// and set the defaultDir for the export accordingly.
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
@@ -15752,11 +15752,11 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	else if (gpApp->m_lastPackedOutputPath.IsEmpty()
 		|| (!gpApp->m_lastPackedOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastPackedOutputPath)))
 	{
-		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-		// to appear. But the m_lastPackedOutputPath is either empty or, if not empty, 
-		// it points to an invalid path, so we initialize the defaultDir to point to 
-		// the special protected folder, even though Navigation protection is not ON. 
-		// In this case, the user could point the export path elsewhere using the 
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog
+		// to appear. But the m_lastPackedOutputPath is either empty or, if not empty,
+		// it points to an invalid path, so we initialize the defaultDir to point to
+		// the special protected folder, even though Navigation protection is not ON.
+		// In this case, the user could point the export path elsewhere using the
 		// wxFileDialog that will appear.
 		bBypassFileDialog_ProtectedNavigation = FALSE;
 		exportPath = gpApp->m_packedInputsAndOutputsFolderPath;
@@ -15765,8 +15765,8 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	else
 	{
 		// Navigation protection is OFF and we have a valid path in m_lastPackedOutputPath,
-		// so we initialize the defaultDir to point to the m_lastPackedOutputPath for the 
-		// location of the export. The user could still point the export path elsewhere 
+		// so we initialize the defaultDir to point to the m_lastPackedOutputPath for the
+		// location of the export. The user could still point the export path elsewhere
 		// in the wxFileDialog that will appear.
 		bBypassFileDialog_ProtectedNavigation = FALSE;
 		exportPath = gpApp->m_lastPackedOutputPath;
@@ -15779,7 +15779,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	exportFilename += _T("aip"); // make it a *.aip file type
 
 	// Here we add the incoming parameter bInvokeFileDialog to the test. When DoPackDocument()
-	// is called from EmailReportDlg.cpp it calls it with the bInvokeFileDialog parameter 
+	// is called from EmailReportDlg.cpp it calls it with the bInvokeFileDialog parameter
 	// FALSE because it wants the document packed without user interaction in order to attach
 	// the currently open doc as a packed document to the email report.
 	if (!bBypassFileDialog_ProtectedNavigation && bInvokeFileDialog)
@@ -15799,7 +15799,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 			defaultDir,
 			exportFilename,
 			filter,
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
 			// GDLC wxSAVE & wxOVERWRITE_PROMPT were deprecated in 2.8
 		fileDlg.Centre();
@@ -15811,7 +15811,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 			gpApp->LogUserAction(_T("Cancelled from DoPackDocument() at wxFileDialog()"));
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
-			return FALSE; 
+			return FALSE;
 		}
 
 		// get the user's desired path
@@ -15845,7 +15845,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	extPos = exportFilename.Find(_T(".aip"));
 	nameInZip = exportFilename.Left(extPos);
 	nameInZip = nameInZip + _T(".aiz");
-	
+
 	wxFFileOutputStream zippedfile(exportPath);
 	// then, declare a zip stream placed on top of it (as zip generating filter)
 	wxZipOutputStream zipStream(zippedfile);
@@ -15857,28 +15857,28 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	zipStream.PutNextEntry(nameInZip);
 	// finally write the zipped file, using the data associated with the zipEntry
 	zipStream.Write(memStr);
-	if (!zipStream.Close() || !zippedfile.Close() || 
-		zipStream.GetLastError() == wxSTREAM_WRITE_ERROR) // Close() finishes writing the 
+	if (!zipStream.Close() || !zippedfile.Close() ||
+		zipStream.GetLastError() == wxSTREAM_WRITE_ERROR) // Close() finishes writing the
 													// zip returning TRUE if successfully
 	{
 		wxString msg;
 		msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_ERROR);
 		gpApp->LogUserAction(msg);
-	} 
+	}
 
 	exportPathUsed = exportPath;
-	
-	// whm 14Jul11 added message 
+
+	// whm 14Jul11 added message
 	if (bInvokeFileDialog)
 	{
-		// Except for when preparing packed documents to attach to email reports 
-		// (bInvokeFileDialog will be FALSE) we inform the user at this point of 
-		// the successful completion of the export, and indicate the file name 
+		// Except for when preparing packed documents to attach to email reports
+		// (bInvokeFileDialog will be FALSE) we inform the user at this point of
+		// the successful completion of the export, and indicate the file name
 		// that was used and its outputs folder name and location.
 		wxFileName fn(exportPath);
 		wxString fileNameAndExtOnly = fn.GetFullName();
-		
+
 		// Store this export path in the App's m_lastPackedOutputPath. We do this
 		// only within this bInvokeFileDialog, so it doesn't remember a last path
 		// for packed documents that were prepared as part of email reports.
@@ -15897,34 +15897,34 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the value of the m_bSpecialText member of pSrcPhrase
-/// \param		pSrcPhrase		<- a pointer to the source phrase instance on 
+/// \param		pSrcPhrase		<- a pointer to the source phrase instance on
 ///									which this marker will be stored
 /// \param		pLastSrcPhrase	<- a pointer to the source phrase immediately preceding
 ///									the current pSrcPhrase one (may be null)
-/// \param		pChar			-> pChar points to the marker itself (ie. the marker's 
+/// \param		pChar			-> pChar points to the marker itself (ie. the marker's
 ///									backslash)
-/// \param		len				-> len is the length of the marker at pChar in characters 
+/// \param		len				-> len is the length of the marker at pChar in characters
 ///									(not bytes), determined by ParseMarker() in the caller
-/// \param		pUsfmAnalysis	<- a pointer to the struct on the heap that a prior call to 
-///									LookupSFM(ptr) returned, and could be NULL for an 
+/// \param		pUsfmAnalysis	<- a pointer to the struct on the heap that a prior call to
+///									LookupSFM(ptr) returned, and could be NULL for an
 ///									unknown marker. AnalyseMarker can potentially change
 ///									this to NULL, but it doesn't appear that such a change
 ///									affects pUsfmAnalysis in any calling routine
 /// \remarks
-/// Called from: the Doc's ReconstituteAfterFilteringChange(), TokenizeText() and 
+/// Called from: the Doc's ReconstituteAfterFilteringChange(), TokenizeText() and
 /// DoMarkerHousekeeping().
-/// Analyzes the current marker at pChar and determines what TextType and/or other 
+/// Analyzes the current marker at pChar and determines what TextType and/or other
 /// attributes should be applied to the the associated pSrcPhrase, and particularly
-/// what the m_curTextType member should be. Determines if the current TextType should 
-/// be propagated or changed to something else. The return value is used to set the 
+/// what the m_curTextType member should be. Determines if the current TextType should
+/// be propagated or changed to something else. The return value is used to set the
 /// m_bSpecialText member of pSrcPhrase in the caller.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
 									wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis)
 // BEW ammended 21May05 to improve handling of endmarkers and suppressing their display
 // in navigation text area of main window
-// pSrcPhrase is the source phrase instance on which this marker will be stored, 
-// pChar points to the marker itself (ie. the marker's backslash), 
+// pSrcPhrase is the source phrase instance on which this marker will be stored,
+// pChar points to the marker itself (ie. the marker's backslash),
 // len is its length in characters (not bytes), determined by ParseMarker() in the caller
 // pUsfmAnalysis is the struct on the heap that a prior call to LookupSFM(ptr) returned,
 // and could be NULL for an unknown marker.
@@ -15941,7 +15941,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 
 	// BEW added 23Mayo5; the following test only can return TRUE when the passed in marker
 	// at pChar is a beginning marker for an inline section (these have the potential to
-	// temporarily interrupt the propagation of the TextType value, while another value 
+	// temporarily interrupt the propagation of the TextType value, while another value
 	// takes effect), or is the beginning marker for a footnote
 	wxString nakedMkr = GetBareMarkerForLookup(pChar);
 	bool bIsPreviousTextTypeWanted = FALSE;
@@ -15965,42 +15965,42 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 	// Determine how to handle usfm markers that can occur embedded
 	// within certain other usfm markers. These include:
 	//
-	// 1. The "footnote content elements" marked by \fr...\fr*, \fk...\fk*, 
+	// 1. The "footnote content elements" marked by \fr...\fr*, \fk...\fk*,
 	// \fq...\fq*, \fqa...\fqa*, \fv...\fv*, \ft...\ft* and \fdc...\fdc*.
-	// These footnote content element markers would be found only between 
+	// These footnote content element markers would be found only between
 	// \f and \f*. Their presence outside of \f and \f*, i.e., outside of
 	// the footnote textType, would be considered an error.
-	// Note: The ending markers for these footnote content elements are 
-	// optional according to UBS docs, and the default is to only use the 
+	// Note: The ending markers for these footnote content elements are
+	// optional according to UBS docs, and the default is to only use the
 	// beginning marker and \ft to return to regular footnote text.
 	//
 	// 2. The "cross reference content element" markers. These include:
 	// \xo...\xo*, \xk...\xk*, \xq...\xq*, \xt...\xt* and \xdc...\xdc*.
-	// These cross reference content elements would be found only between 
+	// These cross reference content elements would be found only between
 	// \x and \x*. Their presence outside of \x and \x*, i.e., outside of
 	// the crossReference textType, would be considered an error.
 	//
-	// 3. The "Special kinds of text" markers. These include: 
-	// \qt...\qt*, \nd...\nd*, \tl...\tl*, \dc...\dc*, \bk...\bk*, 
-	// \sig...\sig*, \pn...\pn*, \wj...\wj*, \k...\k*, \sls...\sls*, 
-	// \ord...\ord*, and \add...\add*. Note: \lit is a special kind of 
+	// 3. The "Special kinds of text" markers. These include:
+	// \qt...\qt*, \nd...\nd*, \tl...\tl*, \dc...\dc*, \bk...\bk*,
+	// \sig...\sig*, \pn...\pn*, \wj...\wj*, \k...\k*, \sls...\sls*,
+	// \ord...\ord*, and \add...\add*. Note: \lit is a special kind of
 	// text but is a paragraph style. These special kinds of text markers
-	// can occur in verse, poetry, note and noType textTypes. Most of the 
+	// can occur in verse, poetry, note and noType textTypes. Most of the
 	// special kinds of text markers could also occur in footnote textType.
 	//
-	// 4. The "Character styling" markers. These are now considered 
+	// 4. The "Character styling" markers. These are now considered
 	// "DEPRECATED" by UBS, but include:
-	// \no...\no*, \bd...\bd*, \it...\it*, \bdit...\bdit*, \em...\em*, 
+	// \no...\no*, \bd...\bd*, \it...\it*, \bdit...\bdit*, \em...\em*,
 	// and \sc...\sc*. They also can potentially be found anywhere. Adapt
 	// It could (optionally) convert bar coded character formatting to
 	// the equivalent character styling markers.
 	//
-	// 5. The "Special features" markers. These include: 
-	// \fig...\fig*  (with the bar code separated parameters 
-	// Desc|Cat|Size|Loc|Copy|Cap|Ref), and also the markers \pro...\pro*, 
+	// 5. The "Special features" markers. These include:
+	// \fig...\fig*  (with the bar code separated parameters
+	// Desc|Cat|Size|Loc|Copy|Cap|Ref), and also the markers \pro...\pro*,
 	// \w...\w*, \wh...\wh*, \wg...\wg*, and \ndx...\ndx*. These also
 	// may potentially be found anywhere.
-	// 
+	//
 	// The only end markers used in the legacy app were the footnotes \f* and \fe.
 	// In USFM, however, we can potentially have many end markers, so we need
 	// to have some special processing. I think I've got it smart enough, but it
@@ -16014,17 +16014,17 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 	{
 		if (bEndMarker)
 		{
-			// verify that the found USFM marker matches  
+			// verify that the found USFM marker matches
 			if (pUsfmAnalysis->endMarker != strMkr)
 			{
 				bEndMarker = FALSE;		// it isn't a recognized end marker
-				pUsfmAnalysis = NULL;	// although the bare form was found 
+				pUsfmAnalysis = NULL;	// although the bare form was found
 										// lookup didn't really succeed
 			}
 		}
-		// check for legacy png \fe and \F endmarkers that have no asterisk 
+		// check for legacy png \fe and \F endmarkers that have no asterisk
         // (BEW changes below, 23May05)
-		if (pUsfmAnalysis && pUsfmAnalysis->png && (pUsfmAnalysis->marker == _T("fe") 
+		if (pUsfmAnalysis && pUsfmAnalysis->png && (pUsfmAnalysis->marker == _T("fe")
 								|| pUsfmAnalysis->marker == _T("F")))
 		{
 			bEndMarker = TRUE; // we have a png end marker
@@ -16045,7 +16045,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 		// Handle common//typical cases first...
 
         // Beginning footnote markers must set m_bFootnote to TRUE for backwards
-        // compatibility with the legacy app (fortunately both usfm and png use 
+        // compatibility with the legacy app (fortunately both usfm and png use
         // the same \f marker!)
 		if (strMkr == _T("f"))
 		{
@@ -16057,7 +16057,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
         // specified in AI_USFM.xml (or default strings embedded in program code when
         // AI_USFM.xml is not available); we set a default here, but the special cases
         // further down may set different values
-        // 
+        //
         // BEW note 11Oct10: if AnalyseMarker() is called more than once for the same
         // marker, then this next block appends the navigationText value to m_inform once
         // per call; so if we leave it as is (which is what I'm doing for the present), we
@@ -16065,7 +16065,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
         // a place to watch out for carefully; otherwise, change it to search for
         // navigationText in m_inform and not add it on subsequent calls if it is already
         // stored there.
-		
+
 		pThis->m_curTextType = pUsfmAnalysis->textType;
 		if (pUsfmAnalysis->inform && !bEndMarker)
 		{
@@ -16128,7 +16128,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 			else
 			{
 				// we are dealing with an endmarker
-				
+
 				// BEW 11Oct10 ************* NOTE ****************
 				// This else block won't be entered for doc version 5, because we only
 				// call AnalyseMarker() on markers in m_markers and no longer will
@@ -16139,7 +16139,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 				// is stored on pSrcPhrase; as for the code below here, just comment it
 				// out and return default FALSE in order to get a clean compile
 				/*
-				bEndMarkerForTextTypeNone = IsEndMarkerForTextTypeNone(pChar); // see if 
+				bEndMarkerForTextTypeNone = IsEndMarkerForTextTypeNone(pChar); // see if
                     // its an endmarker from the marker subset: ord, bd, it, em, bdit, sc,
                     // pro, ior, w, wr, wh, wg, ndx, k, pn, qs ?)
 				if (bEndMarkerForTextTypeNone)
@@ -16168,14 +16168,14 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
                     // TextType). Our approach is to copy the texttype saved ealier in
                     // gPreviousTextType, but before doing that we try get the right
                     // m_bFirstOfType value set
-					
-					// bleed out the footnote end case 
+
+					// bleed out the footnote end case
 					if (bFootnoteEndMarker)
 					{
                         // its the end of a footnote (either png set or usfm set) so retore
                         // previous type
 						pLast->m_bFootnoteEnd = TRUE;
-						pThis->m_bFirstOfType = TRUE; // it's going to be something 
+						pThis->m_bFirstOfType = TRUE; // it's going to be something
 													  // different from a footnote
 					}
 					else
@@ -16206,20 +16206,20 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 						}
 						else
 						{
-							// wasn't a recognised marker, so all we can do is 
+							// wasn't a recognised marker, so all we can do is
 							// default to verse TextType
 							pThis->m_curTextType = verse;
 						}
 					}
-					pThis->m_curTextType = gPreviousTextType; // restore previous 
+					pThis->m_curTextType = gPreviousTextType; // restore previous
 															  // context's value
 					if (gPreviousTextType == verse || gPreviousTextType == poetry)
 						pThis->m_bSpecialText = FALSE;
 					else
 						pThis->m_bSpecialText = TRUE;
-					gPreviousTextType = verse; // restore the global's default value 
+					gPreviousTextType = verse; // restore the global's default value
 											   // for safety's sake
-					return pThis->m_bSpecialText; // once we know its value, 
+					return pThis->m_bSpecialText; // once we know its value,
 												  // we must return with it
 				}
 				*/
@@ -16264,7 +16264,7 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		always TRUE
 /// \remarks
-/// Called from: the doc/view framework - but at different times in MFC than 
+/// Called from: the doc/view framework - but at different times in MFC than
 /// in the wx framework.
 /// Deletes the list of source phrases (by calling DeleteSourcePhrases) and destroys the
 /// view's strips, piles and cells.
@@ -16296,7 +16296,7 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
 	// delete the source phrases
-	DeleteSourcePhrases(); // this does not delete the partner piles as 
+	DeleteSourcePhrases(); // this does not delete the partner piles as
 		// the internal DeleteSingleSrcPhrase() has the 2nd param FALSE so
 		// that it does not call DeletePartnerPile() -- so delete those
 		// separately below en masse with the DestroyPiles() call
@@ -16322,7 +16322,7 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
 	translation = _T(""); // make sure the global var is clear
-	
+
 	return wxDocument::DeleteContents(); // just returns TRUE
 }
 
@@ -16333,8 +16333,8 @@ bool CAdapt_ItDoc::DeleteContents()
 /// \remarks
 /// Called from: the App's SubstituteKBBackup(), ClearKB(), AccessOtherAdaptionProject(),
 /// the Doc's OnCloseDocument(), the View's OnFileCloseProject(), DoConsistencyCheck().
-/// Deletes the Knowledge Base after emptying and deleting its maps and its contained 
-/// list of CTargetUnit instances, and each CTargetUnit's contained list of CRefString 
+/// Deletes the Knowledge Base after emptying and deleting its maps and its contained
+/// list of CTargetUnit instances, and each CTargetUnit's contained list of CRefString
 /// objects. (Note: OnCloseDocument() is not called explicitly by the Adapt It
 /// code. It is called only by the framework when the application is being shut down.
 /// Therefore it really involves a project closure as well, and therefore Erasure
@@ -16370,7 +16370,7 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 						TranslationsList::Node* tnode = NULL;
 						if (pTU->m_pTranslations->GetCount() > 0)
 						{
-							for (tnode = pTU->m_pTranslations->GetFirst(); 
+							for (tnode = pTU->m_pTranslations->GetFirst();
 									tnode; tnode = tnode->GetNext())
 							{
 								CRefString* pRefStr = (CRefString*)tnode->GetData();
@@ -16424,13 +16424,13 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 /// housekeeping and calls DeleteContents() and finally sets Modify(FALSE).
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnCloseDocument()
-// MFC Note: This function just closes the doc down, with no saving, and clears out 
-// the KBs from memory with no saving of them either (presumably, they were saved 
-// to disk earlier if their contents were of value.) The disk copies of the KBs 
+// MFC Note: This function just closes the doc down, with no saving, and clears out
+// the KBs from memory with no saving of them either (presumably, they were saved
+// to disk earlier if their contents were of value.) The disk copies of the KBs
 // therefore are unchanged from the last save.
 //
 // whm notes on CLOSING the App, the View, and the Doc:
-// This note describes the flow of control when the MFC app (CFrameWnd) does OnClose() 
+// This note describes the flow of control when the MFC app (CFrameWnd) does OnClose()
 // and the WX app (wxDocParentFrame) does OnCloseWindow():
 // IN MFC:	CFrameWnd::OnClose()
 // - ->		pApp::CloseAllDocuments(FALSE) // parameter BOOL bEndSession
@@ -16443,7 +16443,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 // lastly calls the CDocument::OnCloseDocument() which itself calls pFrame->DestroyWindow()
 // for any/all views, then calls the doc's DeleteContents(), and finally calls delete on
 // "this" the document if necessary (i.e., if m_bAutoDelete is TRUE). The important thing
-// to note here is that WITHIN OnCloseDocument() ALL 3 of the following are done in this 
+// to note here is that WITHIN OnCloseDocument() ALL 3 of the following are done in this
 // order:	(1) The view(s) are closed (and associated frames destroyed) - a flag is used
 //				to prevent (3) below from happening while closing/deleting the views
 //			(2) The Doc's DeleteContents() is called
@@ -16569,7 +16569,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	// the heap pointer value  (in hex) for each CSourcePhrase instance - so as to match
 	// with the error report, since the error happens after this successful display of all of
 	// the CSourcePhrase instances in the m_pSourcePhrase list.
-	// 
+	//
 	// The bug fix? Bill found I'd used UngetWriteBuf() in wxString to restore a read-only
 	// buffer I'd created with GetData() call - this is verbotten, and leads to heap
 	// corruption; UngetWriteBuf() should only be used after a GetWriteBuf() call. I'd
@@ -16605,7 +16605,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 					originalSN = pOriginalSP->m_nSequNumber;
 					originalSrcStr = pOriginalSP->m_srcPhrase;
 					// display info in the Output window
-					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"), 
+					wxLogDebug(_T("              sn = %d  srcPhrase = %s   HEX  %x"),
 						originalSN, originalSrcStr.c_str(), (unsigned int)pOriginalSP);
 				}
 			}
@@ -16618,10 +16618,10 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	// the EraseKB() call will also try to remove any read-only protection
 	EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 	pApp->m_pKB = (CKB*)NULL; // whm added
-	EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory - 
+	EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory -
 								  // EraseKB in the App in wx
 	pApp->m_pGlossingKB = (CKB*)NULL; // whm added
-	
+
 // GDLC 2010-03-27 pFreeTrans is now unused in this function
 //	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
 //	wxASSERT(pFreeTrans);
@@ -16649,7 +16649,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	rectFrame = NormalizeRect(rectFrame); // use our own from helpers.h
 	pApp->m_ptViewTopLeft.x = rectFrame.GetX();
 	pApp->m_ptViewTopLeft.y = rectFrame.GetY();
-	
+
 	pApp->m_szView.SetWidth(rectFrame.GetWidth());
 	pApp->m_szView.SetHeight(rectFrame.GetHeight());
 	pApp->m_bZoomed = pFrame->IsMaximized();
@@ -16667,11 +16667,11 @@ bool CAdapt_ItDoc::OnCloseDocument()
 ///									to be put in sequence
 /// \remarks
 /// Called from: the Doc's TokenizeText().
-/// Resets the m_nSequNumber member of all the source phrases in pList so that they are in 
+/// Resets the m_nSequNumber member of all the source phrases in pList so that they are in
 /// numerical sequence (ascending order) with no gaps, starting with nValueForFirst.
-/// This function differs from UpdateSequNumbers() in that AdjustSequNumbers() effects its 
-/// changes only on the pList passed to the function; in UpdateSequNumbers() the current 
-/// document's source phrases beginning with nFirstSequNum are set to numerical sequence 
+/// This function differs from UpdateSequNumbers() in that AdjustSequNumbers() effects its
+/// changes only on the pList passed to the function; in UpdateSequNumbers() the current
+/// document's source phrases beginning with nFirstSequNum are set to numerical sequence
 /// through to the end of the document.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::AdjustSequNumbers(int nValueForFirst, SPList* pList)
@@ -16684,7 +16684,7 @@ void CAdapt_ItDoc::AdjustSequNumbers(int nValueForFirst, SPList* pList)
 	{
 		sn++;
 		pSrcPhrase = (CSourcePhrase*)node->GetData();
-		node = node->GetNext(); 
+		node = node->GetNext();
 		pSrcPhrase->m_nSequNumber = sn;
 	}
 }
@@ -16695,7 +16695,7 @@ void CAdapt_ItDoc::AdjustSequNumbers(int nValueForFirst, SPList* pList)
 /// \remarks
 /// Called from: the Doc's OnNewDocument().
 /// Removes any ventura publisher optional hyphen codes ("<->") from string buffer pstr.
-/// After removing any ventura optional hyphens it resets the App's m_nInputFileLength 
+/// After removing any ventura optional hyphens it resets the App's m_nInputFileLength
 /// global to reflect the new length.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::RemoveVenturaOptionalHyphens(wxString*& pstr)
@@ -16747,7 +16747,7 @@ wxString CAdapt_ItDoc::NormalizeToSpaces(wxString str)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if pChar is pointing at an end marker whose associated textType is none, 
+/// \return		TRUE if pChar is pointing at an end marker whose associated textType is none,
 ///				otherwise FALSE
 /// \param		pChar	-> a pointer to a character in a buffer
 /// \remarks
@@ -16790,7 +16790,7 @@ bool CAdapt_ItDoc::IsEndMarkerForTextTypeNone(wxChar* pChar)
 /// members of pSrcPhrase are set correctly at each location after the other major changes
 /// have been effected.
 ///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering, 
+int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering,
 								 bool bChangedSfmSet)
 // bew modified signature 18Apr05
 // Returns the count of how many CSourcePhrase instances are in the m_pSourcePhrases list
@@ -16861,7 +16861,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 
             // acts on ONE instance of pSrcPhrase only each time it loops, & it may add
             // many to the list, or remove some, or leave number in the list unchanged
-			bSuccessful = ReconstituteAfterPunctuationChange(pView, 
+			bSuccessful = ReconstituteAfterPunctuationChange(pView,
 							gpApp->m_pSourcePhrases, oldPos, pSrcPhrase,fixesStr);
 			if (!bSuccessful)
 			{
@@ -16913,18 +16913,18 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		TRACE1("\n saveCurrentSfmSet = %d\n",(int)m_sfmSetAfterEdit);
 		TRACE3("\n bChangedSfmSet TRUE; origSet %d, newSet %d, origMkrs %s\n", m_sfmSetBeforeEdit,
 					gpApp->gCurrentSfmSet, m_filterMarkersBeforeEdit);
-		TRACE2("\n bChangedSfmSet TRUE; curFilterMkrs: %s\n and the secPassMkrs: %s, pass = FIRST\n\n", 
+		TRACE2("\n bChangedSfmSet TRUE; curFilterMkrs: %s\n and the secPassMkrs: %s, pass = FIRST\n\n",
 					gpApp->gCurrentFilterMarkers, m_secondPassFilterMarkers);
 #endif
 
-		SetupForSFMSetChange(gpApp->m_sfmSetBeforeEdit, gpApp->gCurrentSfmSet, 
-				gpApp->m_filterMarkersBeforeEdit,gpApp->gCurrentFilterMarkers, 
+		SetupForSFMSetChange(gpApp->m_sfmSetBeforeEdit, gpApp->gCurrentSfmSet,
+				gpApp->m_filterMarkersBeforeEdit,gpApp->gCurrentFilterMarkers,
 				gpApp->m_secondPassFilterMarkers, first_pass);
 
 		if (gpApp->m_FilterStatusMap.size() > 0)
 		{
 			// we only unfilter if there is something to unfilter
-			bSuccessful = ReconstituteAfterFilteringChange(pView, 
+			bSuccessful = ReconstituteAfterFilteringChange(pView,
 								gpApp->m_pSourcePhrases, fixesStr);
 			if (!bSuccessful)
 			{
@@ -16947,21 +16947,21 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		gpApp->gCurrentSfmSet = gpApp->m_sfmSetAfterEdit;
 
 #ifdef _Trace_RebuildDoc
-		TRACE3("\n bChangedSfmSet TRUE; origSet %d, newSet %d, origMkrs %s\n", m_sfmSetBeforeEdit, 
+		TRACE3("\n bChangedSfmSet TRUE; origSet %d, newSet %d, origMkrs %s\n", m_sfmSetBeforeEdit,
 				gpApp->gCurrentSfmSet, m_filterMarkersBeforeEdit);
-		TRACE2("\n bChangedSfmSet TRUE; gCurrentFilterMarkers: %s\n and the secPassMkrs: %s, pass = SECOND\n\n", 
+		TRACE2("\n bChangedSfmSet TRUE; gCurrentFilterMarkers: %s\n and the secPassMkrs: %s, pass = SECOND\n\n",
 				gpApp->gCurrentFilterMarkers, m_secondPassFilterMarkers);
 #endif
 
-		SetupForSFMSetChange(gpApp->m_sfmSetBeforeEdit, 
+		SetupForSFMSetChange(gpApp->m_sfmSetBeforeEdit,
 					gpApp->gCurrentSfmSet, gpApp->m_filterMarkersBeforeEdit,
-					gpApp->gCurrentFilterMarkers, gpApp->m_secondPassFilterMarkers, 
+					gpApp->gCurrentFilterMarkers, gpApp->m_secondPassFilterMarkers,
 					second_pass);
 
 		if (gpApp->m_FilterStatusMap.size() > 0)
 		{
 			// we only filter if there is something to filter
-			bSuccessful = ReconstituteAfterFilteringChange(pView, 
+			bSuccessful = ReconstituteAfterFilteringChange(pView,
 											gpApp->m_pSourcePhrases, fixesStr);
 			if (!bSuccessful)
 			{
@@ -16982,11 +16982,11 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
         // DoMarkerHousekeeping() function, which duplicates some of TokenizeText()'s code,
         // to get the TextType, m_bSpecialText, and m_inform members of pSrcPhrase correct
         // at each location Setup the globals for this call...
-		gpFollSrcPhrase = NULL; // the "sublist" is the whole document, so there is no 		
+		gpFollSrcPhrase = NULL; // the "sublist" is the whole document, so there is no
 		gpPrecSrcPhrase = NULL; // preceding or following source phrase to be considered
 		gbSpecialText = FALSE;
 		gPropagationType = verse; // default at start of a document
-		gbPropagationNeeded = FALSE; // gpFollSrcPhrase is null, & we can't propagate 
+		gbPropagationNeeded = FALSE; // gpFollSrcPhrase is null, & we can't propagate
 									 // at end of doc
 		int docSrcPhraseCount = gpApp->m_pSourcePhrases->size();
 		DoMarkerHousekeeping(gpApp->m_pSourcePhrases,
@@ -16997,7 +16997,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	{
         // if called, ReconstituteAfterFilteringChange() sets up the progress window again
         // and destroys it before returning
-		bool bSuccessful = ReconstituteAfterFilteringChange(pView, 
+		bool bSuccessful = ReconstituteAfterFilteringChange(pView,
 													gpApp->m_pSourcePhrases, fixesStr);
 		if (!bSuccessful)
 		{
@@ -17009,10 +17009,10 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	}
 
 	// find out how many instances are in the list when all is done and return it to the
-	// caller 
+	// caller
     int count = gpApp->m_pSourcePhrases->GetCount();
 
-	// make sure everything is correctly numbered in sequence; shouldn't be necessary, 
+	// make sure everything is correctly numbered in sequence; shouldn't be necessary,
     // but no harm done
 	UpdateSequNumbers(0);
 
@@ -17045,7 +17045,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 			path += _T(".txt");
 			//path << suffixStr;
 			//path << _T(".txt");
-		
+
 			wxLogNull logNo; // avoid spurious messages from the system
 
 			wxFile fout;
@@ -17060,7 +17060,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
         // the project folder for the "Rebuild Log.txt" file
 		if (len > 1200 && !gbIsUnstructuredData)
 		{
-			// trim the excess and add the string telling user to check visually 
+			// trim the excess and add the string telling user to check visually
 			// & of the existence of Rebuild Log.txt
 			fixesStr = fixesStr.Left(1200);
 			fixesStr = MakeReverse(fixesStr);
@@ -17086,7 +17086,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		}
         // display the message - in the case of unstructured data, there will be no list of
         // locations and the user will just have to search the document visually
-		wxMessageBox(fixesStr, _T(""), wxICON_INFORMATION); 
+		wxMessageBox(fixesStr, _T(""), wxICON_INFORMATION);
 	}
 
 	// this is where we need to have the layout updated. We will do the whole lot, that is,
@@ -17114,10 +17114,10 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 /// other places - about two dozen in all so far.
 /// Fixes the m_nSequNumber member of the source phrases in the current document
 /// starting with nFirstSequNum in pList, so that all the remaining source phrases' sequence
-/// numbers continue in numerical sequence (ascending order) with no gaps. 
-/// This function differs from AdjustSequNumbers() in that AdjustSequNumbers() effects its 
-/// changes only on the pList passed to the function; in UpdateSequNumbers() the current 
-/// document's source phrases beginning with nFirstSequNum are set to numerical sequence 
+/// numbers continue in numerical sequence (ascending order) with no gaps.
+/// This function differs from AdjustSequNumbers() in that AdjustSequNumbers() effects its
+/// changes only on the pList passed to the function; in UpdateSequNumbers() the current
+/// document's source phrases beginning with nFirstSequNum are set to numerical sequence
 /// through to the end of the document.
 /// BEW changed 16Jul09 to have a second parameter which defaults to NULL, but otherwise is
 /// a pointer to the SPList on which the updating is to be done. This allows the function
@@ -17153,7 +17153,7 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 	wxASSERT(pos != NULL);
 	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 	pos = pos->GetNext();
-	wxASSERT(pSrcPhrase); 
+	wxASSERT(pSrcPhrase);
 	pSrcPhrase->m_nSequNumber = nFirstSequNum;
 	int index = nFirstSequNum;
 
@@ -17161,7 +17161,7 @@ void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		wxASSERT(pSrcPhrase); 
+		wxASSERT(pSrcPhrase);
 		index++; // next sequence number
 		pSrcPhrase->m_nSequNumber = index;
 	}
@@ -17194,7 +17194,7 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
 /// If Vertical Editing is in progress the Split Document menu item is disabled and this
-/// handler returns immediately. Otherwise, it enables the Split Document command on the 
+/// handler returns immediately. Otherwise, it enables the Split Document command on the
 /// Tools menu if a document is open, unless the app is in Free Translation Mode.
 /// BEW modified 13Nov09, don't allow user with read-only access to cause document
 /// change of this kind on the remote user's machine
@@ -17228,7 +17228,7 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
-		event.Enable(FALSE);	
+		event.Enable(FALSE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17238,8 +17238,8 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
-/// If Vertical Editing is in progress or if the app is in Free Translation mode, the 
-/// Join Documents menu item is disabled and this handler returns immediately. It 
+/// If Vertical Editing is in progress or if the app is in Free Translation mode, the
+/// Join Documents menu item is disabled and this handler returns immediately. It
 /// enables the Join Document command if a document is open, otherwise it
 /// disables the command.
 /// BEW added 13Nov09, don't allow local user with read-only access to a remote project
@@ -17272,7 +17272,7 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
-		event.Enable(FALSE);	
+		event.Enable(FALSE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17313,33 +17313,33 @@ void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_pKB != NULL && gpApp->m_bBookMode && gpApp->m_nBookIndex != -1 
+	if (gpApp->m_pKB != NULL && gpApp->m_bBookMode && gpApp->m_nBookIndex != -1
 			&& !gpApp->m_bDisableBookMode)
 		event.Enable(TRUE);
 	else
-		event.Enable(FALSE);	
+		event.Enable(FALSE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if there is a SF marker in the passed in markers string which for the 
-///				SfmSet is determined to be a marker which should halt the scanning of successive 
-///				pSrcPhase instances during doc rebuild for filtering out a marker and its content 
+/// \return		TRUE if there is a SF marker in the passed in markers string which for the
+///				SfmSet is determined to be a marker which should halt the scanning of successive
+///				pSrcPhase instances during doc rebuild for filtering out a marker and its content
 ///				which are required to be filtered, FALSE otherwise.
-/// \param		sfmSet	   -> indicates which SFM set is to be considered active for the 
+/// \param		sfmSet	   -> indicates which SFM set is to be considered active for the
 ///						      LookupSFM() call
 /// \param		pSrcPhrase -> the CSourcePhrase instance whose m_markers member contains the
 ///						      stuff we are wanting to check out for a halt condition
 /// \remarks
-/// Called from: the Doc's ReconstituteAfterFilteringChange(). 
+/// Called from: the Doc's ReconstituteAfterFilteringChange().
 /// Implements the protocol for determining when to stop scanning in a variety of
 /// situations, if a prior call to a different function did not halt scanning at the
-/// previous CSourcePhrase instance because of a matching endmarker being there... 
+/// previous CSourcePhrase instance because of a matching endmarker being there...
 ///    - pSrcPhrase->m_markers might contain filtered material (this must stop scanning because
 ///      we can't embed filtered material),
 ///    - or pSrcPhrase may contain a marker which Adapt It should ignore (eg. most inline markers)
 ///       those don't halt scanning
-///    - or an unknown marker - these always halt scanning, 
-///    - or an embedded content marker within an \x (cross reference section) or \f (footnote) 
+///    - or an unknown marker - these always halt scanning,
+///    - or an embedded content marker within an \x (cross reference section) or \f (footnote)
 ///         or \fe (endnote) section - these don't halt scanning,
 ///    - or an inLine == FALSE marker - these halt scanning.
 ///    Note: when examining m_markers, it is the last SF marker we are interested in -
@@ -17378,7 +17378,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhra
 	wxString bareMkr = wholeMkr.Mid(1);
 
 	// do lookup of the marker
-	SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set temporarily, 
+	SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set temporarily,
 											// as sfmSet may be different
 	gpApp->gCurrentSfmSet = sfmSet; // install the set to be used - as passed in
 	USFMAnalysis* analysis = LookupSFM(bareMkr); // internally uses gUserSfmSet
@@ -17404,7 +17404,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhra
 		{
 			// it's not an inLine marker, so it must end the filtering scan
 			gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
-			return TRUE; 
+			return TRUE;
 		}
 		else
 		{
@@ -17437,25 +17437,25 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, CSourcePhrase* pSrcPhra
 
 /* legacy code
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if there is a SF marker in the passed in markers string which for the 
-///				SfmSet is determined to be a marker which should halt the scanning of successive 
-///				pSrcPhase instances during doc rebuild for filtering out a marker and its content 
+/// \return		TRUE if there is a SF marker in the passed in markers string which for the
+///				SfmSet is determined to be a marker which should halt the scanning of successive
+///				pSrcPhase instances during doc rebuild for filtering out a marker and its content
 ///				which are required to be filtered, FALSE otherwise.
-/// \param		sfmSet	-> indicates which SFM set is to be considered active for the 
+/// \param		sfmSet	-> indicates which SFM set is to be considered active for the
 ///							LookupSFM() call
-/// \param		markers	-> the pSrcPhrase->m_markers string from the sourcephrase being 
+/// \param		markers	-> the pSrcPhrase->m_markers string from the sourcephrase being
 ///							currently considered
 /// \remarks
-/// Called from: the Doc's ReconstituteAfterFilteringChange(). 
+/// Called from: the Doc's ReconstituteAfterFilteringChange().
 /// Implements the protocol for determining when to stop scanning in a variety of
 /// situations, if a prior call to a different function did not halt scanning at the
-/// previous CSourcePhrase instance... 
+/// previous CSourcePhrase instance...
 ///    - the param, markers, might contain filtered material (this must stop scanning because
 ///      we can't embed filtered material),
 ///    - or it may contain a marker which Adapt It should ignore (eg. most inline markers, but
-///      not those for footnote, endnote or crossReference), 
-///    - or an unknown marker - these always halt scanning, 
-///    - or an embedded content marker within an \x (cross reference section) or \f (footnote) 
+///      not those for footnote, endnote or crossReference),
+///    - or an unknown marker - these always halt scanning,
+///    - or an embedded content marker within an \x (cross reference section) or \f (footnote)
 ///         or \fe (endnote) section - these don't halt scanning,
 ///    - or an inLine == FALSE marker - these halt scanning.
 ///    BEW 22Sep10, no changes needed for support of docVersion 5
@@ -17477,7 +17477,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 	wxChar* pFound = pBufStart + nFound; // point at the backslash of the marker
 	wxASSERT(pFound < pEnd);
 
-	wxString fltrMkr(filterMkr); // filterMkr is a literal string defined at 
+	wxString fltrMkr(filterMkr); // filterMkr is a literal string defined at
 								 // start of the doc's .cpp file
 	int lenFilterMkr = fltrMkr.Length();
 
@@ -17504,12 +17504,12 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 	if (nFound2 > 0)
 	{
 		// there's a marker
-		nFound2++; // include the backslash in the leftmost part (of the reversed 
+		nFound2++; // include the backslash in the leftmost part (of the reversed
 				   // markers string)
-		lenRest -= nFound2; // lenRest will be the offset of this marker, if we 
+		lenRest -= nFound2; // lenRest will be the offset of this marker, if we
                     // determine we need to use it, later when we reverse back to normal
                     // order
-		wxString endStr = str2.Left(nFound2); // this could be something like 
+		wxString endStr = str2.Left(nFound2); // this could be something like
 											  // "\v 1 " reversed
 		endStr = MakeReverse(endStr); // restore natural order
 		int len = endStr.Length(); // whm added 18Jun06
@@ -17525,7 +17525,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
         // exit this block and just go on using the one at pFound; if not, we have to check
         // the marker at the end is not a filter endmarker, and providing it's not, we
         // would use the one at the end in subsequent code following this block
-		if (wxStrncmp(pFound,pCharStart,itemLen2 + 1) == 0) // include space after the marker 
+		if (wxStrncmp(pFound,pCharStart,itemLen2 + 1) == 0) // include space after the marker
 															// in the comparison
 		{
 			// the two are the same marker so no adjustment is needed
@@ -17533,7 +17533,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 		}
 		else
 		{
-			// they are different markers, so we have to make sure we didn't just locate 
+			// they are different markers, so we have to make sure we didn't just locate
 			// a \~FILTER* marker
 			wxString theLastMkr(pCharStart,itemLen2);
 			if (theLastMkr.Find(fltrMkr) != -1)
@@ -17572,7 +17572,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 	bareMkr = bareMkr.Mid(1); // remove initial backslash, so we can use it for Lookup
 
 	// do lookup
-	SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set temporarily, 
+	SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set temporarily,
 											// as sfmSet may be different
 	gpApp->gCurrentSfmSet = sfmSet; // install the set to be used - as passed in
 	USFMAnalysis* analysis = LookupSFM(bareMkr); // internally uses gUserSfmSet
@@ -17587,11 +17587,11 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 	else
 	{
 		// this is a known marker in the sfmSet marker set, so check out inLine and
-		// TextType 
+		// TextType
 		gpApp->gCurrentSfmSet = saveSet; // restore earlier setting
 		//markers.ReleaseBuffer(); // whm moved to main block above
 		if (analysis->inLine == FALSE)
-			return TRUE; // it's not an inLine marker, 
+			return TRUE; // it's not an inLine marker,
 						 // so it must end the filtering scan
 		else
 		{
@@ -17617,7 +17617,7 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 				if (((shortMkr == _T("f") || shortMkr == _T("x")) && shortMkr != bareMkr) ||
 					((shortMkr == _T("f")) && (bareMkr != _T("fe"))))
 				{
-					// its an embedded content marker of a kind which does 
+					// its an embedded content marker of a kind which does
 					// not halt scanning
 					return FALSE;
 				}
@@ -17633,26 +17633,26 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 */
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		offset of the marker which is to be filtered (ie. offset of its backslash) if markers 
-///				is a non-empty string containing a SFM which is designated as to be filtered (by being 
+/// \return		offset of the marker which is to be filtered (ie. offset of its backslash) if markers
+///				is a non-empty string containing a SFM which is designated as to be filtered (by being
 ///				listed in filterList string) and it is not preceded by \~FILTER; otherwise it returns -1.
-/// \param		sfmSet			-> indicates which SFM set is to be considered active for the 
+/// \param		sfmSet			-> indicates which SFM set is to be considered active for the
 ///									LookupSFM() call
-/// \param		markers			-> the pSrcPhrase->m_markers string from the sourcephrase being 
+/// \param		markers			-> the pSrcPhrase->m_markers string from the sourcephrase being
 ///									currently considered
-/// \param		filterList		-> the list of markers to be filtered out, space delimited, including 
-///									backslashes... (the list might be just those formerly unfiltered 
-///									and now designated to be filtered, or in another context (such as 
-///									changing the SFM set) it might be the full set of markers designated 
+/// \param		filterList		-> the list of markers to be filtered out, space delimited, including
+///									backslashes... (the list might be just those formerly unfiltered
+///									and now designated to be filtered, or in another context (such as
+///									changing the SFM set) it might be the full set of markers designated
 ///									for filtering - which is the case is determined by the caller)
 /// \param		wholeMkr		<- the SFM, including backslash, found to be designated for filtering out
-/// \param		wholeShortMkr	<- the backslash and first character of wholeMkr (useful, when wholeMkr 
+/// \param		wholeShortMkr	<- the backslash and first character of wholeMkr (useful, when wholeMkr
 ///									is \x or \f)
-/// \param		endMkr			<- the endmarker for wholeMkr, or an empty string if it does not potentially 
+/// \param		endMkr			<- the endmarker for wholeMkr, or an empty string if it does not potentially
 ///									take an endmarker
 /// \param		bHasEndmarker	<- TRUE when wholeMkr potentially takes an endmarker (determined by Lookup())
 /// \param		bUnknownMarker	<- TRUE if Lookup() determines the SFM does not exist in the sfmSet marker set
-/// \param		startAt			-> the starting offset in the markers string at which the scanning is to be 
+/// \param		startAt			-> the starting offset in the markers string at which the scanning is to be
 ///									commenced
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange().
@@ -17660,9 +17660,9 @@ bool CAdapt_ItDoc::IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers)
 /// if so, returns the offset into m_markers where the marker resides.
 /// BEW 21Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, 
-				wxString filterList, wxString& wholeMkr, wxString& wholeShortMkr, 
-				wxString& endMkr, bool& bHasEndmarker, bool& bUnknownMarker, 
+int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers,
+				wxString filterList, wxString& wholeMkr, wxString& wholeShortMkr,
+				wxString& endMkr, bool& bHasEndmarker, bool& bUnknownMarker,
 				int startAt)
 {
 	int offset = startAt;
@@ -17679,53 +17679,53 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 	wxASSERT(*pEnd == _T('\0')); // whm added 18Jun06, not in MFC
 	wxChar* pBufStart = (wxChar*)pBuff;
 	wxChar* ptr = pBufStart;
-	wxChar* pFound = pBufStart; // pointer returned from _tcsstr() 
+	wxChar* pFound = pBufStart; // pointer returned from _tcsstr()
 								// (ie. strstr() or wcsstr()), null if unfound
-	pFound += offset; // get the scan start location (offset will be reused below, 
+	pFound += offset; // get the scan start location (offset will be reused below,
                       // so don't rely on it staying this present value)
 	wxChar backslash[2] = {gSFescapechar,_T('\0')};
 	int itemLen;
 
     // scan the buffer, looking for a filterable marker
 	while ((pFound = wxStrstr(pFound, backslash)) != NULL)
-	{	
+	{
 		// we have come to a backslash
 		ptr = pFound;
 		itemLen = ParseMarker(ptr);
-		wxString mkr(ptr,itemLen); // this is the whole marker, 
+		wxString mkr(ptr,itemLen); // this is the whole marker,
 								   // including its backslash
-		
+
         // it's potentially a marker which might be one for filtering out
 		wxString mkrPlusSpace = mkr + _T(' '); // prevent spurious matches,
 											   // eg. \h finding \hr
 		int nFound = filterList.Find(mkrPlusSpace);
 		if (nFound == wxNOT_FOUND)
 		{
-			// it's not in the list of markers designated as to be filtered, 
+			// it's not in the list of markers designated as to be filtered,
 			// so keep iterating
 			pFound++;
 			continue;
 		}
 		else
 		{
-			// this marker is to be filtered, so set up the parameters to 
+			// this marker is to be filtered, so set up the parameters to
 			// be returned etc
 			offset = pFound - pBuff;
 			wxASSERT(offset >= 0);
 			wholeMkr = mkr;
 			wholeShortMkr = wholeMkr.Left(2);
 
-			// get its SFM characteristics, whether it has an endmarker, 
+			// get its SFM characteristics, whether it has an endmarker,
 			// and whether it is unknown
-			SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set 
+			SfmSet saveSet = gpApp->gCurrentSfmSet; // save current set
 								// temporarily, as sfmSet may be different
-			gpApp->gCurrentSfmSet = sfmSet; // install the set to be used 
+			gpApp->gCurrentSfmSet = sfmSet; // install the set to be used
 											// - as passed in
 			wxString bareMkr = wholeMkr.Mid(1); // lop off the backslash
 			USFMAnalysis* analysis = LookupSFM(bareMkr); // uses gCurrentSfmSet
 			if (analysis == NULL)
 			{
-				// this must be an unknown marker designated for filtering by 
+				// this must be an unknown marker designated for filtering by
 				// the user in the GUI
 				bUnknownMarker = TRUE;
 				bHasEndmarker = FALSE; // unknown markers NEVER have endmarkers
@@ -17761,16 +17761,16 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a copy of the wxString which is the appropriate nav text message 
+/// \return		a copy of the wxString which is the appropriate nav text message
 ///             for the passed in CSourcePhrase instance (typically returned to the
 ///             m_inform member in the caller)
-/// \param		pSrcPhrase	-> the CSourcePhrase instance which is to have its 
+/// \param		pSrcPhrase	-> the CSourcePhrase instance which is to have its
 ///                            m_inform member reconstructed, modified, partly or wholely,
 ///                            by the set of markers changed by the user in the GUI)
 /// \remarks
 /// Called from: the App's AddBookIDToDoc(), the Doc's ReconstituteAfterFilteringChange(),
 /// the View's OnRemoveFreeTranslationButton().
-/// Re-composes the navigation text that is stored in a source phrase's m_inform member. 
+/// Re-composes the navigation text that is stored in a source phrase's m_inform member.
 /// The idea behind this function is to get the appropriate m_inform text redone when
 /// rebuilding the document - as when filtering changes are made, or a change of SFM set
 /// which has the side effect of altering filtering settings as well, or the insertion of a
@@ -17778,7 +17778,7 @@ int CAdapt_ItDoc::ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString marker
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 {
-	wxString strInform; 
+	wxString strInform;
 	strInform.Empty();
 
 	// get the current m_markers contents
@@ -17800,15 +17800,15 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
         // returns a const wxChar* to the data in the string.
 		ptr = markersStr.GetData();
 		wxChar* pEnd;
-		pEnd = (wxChar*)ptr + markersStrLen - 1; // whm added -1 compensates for 
+		pEnd = (wxChar*)ptr + markersStrLen - 1; // whm added -1 compensates for
 												 // increment of markerStrLen above
 		wxASSERT(*pEnd == _T('\0')); // whm added 18Jun96
 		wxChar* pBufStart = (wxChar*)ptr;
 		mkrLen = ParseMarker(pBufStart + curPos);
 		wxASSERT(mkrLen > 0);
-		wxString bareMkr(ptr + curPos + 1, mkrLen - 1); // no gSFescapechar 
+		wxString bareMkr(ptr + curPos + 1, mkrLen - 1); // no gSFescapechar
 														// (but may be an endmarker)
-		curPos++; // increment, so the loop's .Find() test will advance curPos 
+		curPos++; // increment, so the loop's .Find() test will advance curPos
 				  // to the next marker
 		wxString nakedMkr = bareMkr;
 		nakedMkr = MakeReverse(nakedMkr);
@@ -17824,20 +17824,20 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 		wholeMkr += bareMkr;
 		if (wholeMkr == filterMkr)
 		{
-			bFILTERwasLastMkr = TRUE; // suppresses forming nav text for 
+			bFILTERwasLastMkr = TRUE; // suppresses forming nav text for
 									// the next marker (coz it's filtered)
 			continue; // skip \~FILTER
 		}
 		if (wholeMkr == filterMkrEnd)
 		{
-			bFILTERwasLastMkr = FALSE; // this will re-enable possible forming 
+			bFILTERwasLastMkr = FALSE; // this will re-enable possible forming
 									   // of nav text for the next marker
 			continue; // skip \~FILTER*
 		}
-		
+
 		// we only show navText for markers which are not endmarkers, and not filtered
 		if (bFILTERwasLastMkr)
-			continue; // this marker was preceded by \~FILTER, 
+			continue; // this marker was preceded by \~FILTER,
 					  // so it must not have nav text formed
 		if (!bEndMarker)
 		{
@@ -17854,7 +17854,7 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 					navtextStr = pAnalysis->navigationText;
 					if (!navtextStr.IsEmpty())
 					{
-//a:						
+//a:
 						if (strInform.IsEmpty())
 						{
 							strInform = navtextStr;
@@ -17876,7 +17876,7 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
                 // appropriate here too. If Bruce thinks the conditional call to
                 // IsAFilteringUnknownSFM is not appropriate here the conditional I've
                 // added should be removed; likewise the parallel code I've added near the
-                // end of AnalyseMarker should be evaluated for appropriateness. 
+                // end of AnalyseMarker should be evaluated for appropriateness.
                 // ( <--Bill's addition is fine, BEW 15Jun05)
 				if (!IsAFilteringUnknownSFM(nakedMkr))
 				{
@@ -17894,7 +17894,7 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
                     // the required characters in the buffer explicitly.
 					navtextStr += _T("? ");
 				}
-				// code block at goto a; copied down here to get rid of goto a; and label 
+				// code block at goto a; copied down here to get rid of goto a; and label
                 // (and gcc warning)
 				if (strInform.IsEmpty())
 				{
@@ -17927,7 +17927,7 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 /// made in the loop below; therefore we specify the FALSE parameter for the call of the
 /// latter function in order to suppress deletion of the partner pile (as RecalcLayout()
 /// will do it much more efficiently, en masse, and speedily).
-/// 
+///
 /// Note: if ever we use this function elsewhere, and need the partner pile deletion to
 /// work there, then we will need to alter the signature to become:
 /// (SPList*& pList, bool bDoPartnerPileDeletionAlso = TRUE) instead
@@ -17941,20 +17941,20 @@ void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 	{
 		pSrcPh = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		DeleteSingleSrcPhrase(pSrcPh,FALSE); // no need to bother to delete the 
+		DeleteSingleSrcPhrase(pSrcPh,FALSE); // no need to bother to delete the
 											 // partner pile
 	}
 	pList->Clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxString with any filtered brackets removed from around its filtered 
+/// \return		a wxString with any filtered brackets removed from around its filtered
 ///				information
-/// \param		str		-> a wxString containing filtered information enclosed within 
+/// \param		str		-> a wxString containing filtered information enclosed within
 ///							\~FILTER ... \~FILTER* filtering brackets
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange(), GetUnknownMarkersFromDoc(),
-/// the View's RebuildSourceText(), DoPlacementOfMarkersInRetranslation(), 
+/// the View's RebuildSourceText(), DoPlacementOfMarkersInRetranslation(),
 /// RebuildTargetText(), DoExportInterlinearRTF(), GetMarkerInventoryFromCurrentDoc(),
 /// and CViewFilteredMaterialDlg::InitDialog().
 /// Removes any \~FILTER and \~FILTER* brackets from a string. The information the was
@@ -17981,7 +17981,7 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 			str.Remove(endMkrPos,1);
 		str.Remove(mkrPos, wxStrlen_(filterMkr));
 		// after deleting the beginning marker, mkrPos should point to the space that
-		// followed the beginning filter bracket marker - at least for well formed 
+		// followed the beginning filter bracket marker - at least for well formed
 		// filtered material. Before deleting that space, however, we check to ensure
 		// it is indeed a space.
 		if (str.GetChar(mkrPos) == _T(' '))
@@ -18007,11 +18007,11 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 /// \param		markers	-> references the content of a CSourcePhrase instance's m_markers member
 /// \param		offset	-> character offset to where to commence the Find operation for the
 ///						   \~FILTER marker
-/// \param		nStart	<- offset (from beginning of markers) to the next \~FILTER instance found, 
-///						   if none is found it is set to the offset value (so a Left() call can 
+/// \param		nStart	<- offset (from beginning of markers) to the next \~FILTER instance found,
+///						   if none is found it is set to the offset value (so a Left() call can
 ///						   extract any preceding non-filtered text stored in markers)
-/// \param		nEnd	<- offset (ditto) to the first character past the matching \~FILTER* 
-///						   (& space) instance, if none is found it is set to the offset value 
+/// \param		nEnd	<- offset (ditto) to the first character past the matching \~FILTER*
+///						   (& space) instance, if none is found it is set to the offset value
 ///						   (so a Mid() call can get the remainder)
 /// \remarks
 /// Called from: the Doc's ReconstituteAfterFilteringChange().
@@ -18032,7 +18032,7 @@ wxString CAdapt_ItDoc::RemoveAnyFilterBracketsFromString(wxString str) // whm ad
 /// updated offset value for iterating the function call to find the next filtered marker.
 /// BEw 20Sep10, updated for docVersion 5
 ///////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset, 
+wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 											 int& nStart, int& nEnd)
 {
 	wxString mkrStr;
@@ -18053,11 +18053,11 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 	{
 		// we found one, so get the metrics calculated and the marker parsed
 		nStart = nFound;
-		wxString theRest = markers.Mid(nStart); // \~FILTER\marker followed 
+		wxString theRest = markers.Mid(nStart); // \~FILTER\marker followed
 												// by its content etc.
-		wxString f(filterMkr); // so I can get a length calculation done 
+		wxString f(filterMkr); // so I can get a length calculation done
 							   // (this may be localized later)
-		int len = f.Length() + 1; // + 1 because \~FILTER is always 
+		int len = f.Length() + 1; // + 1 because \~FILTER is always
 								  // followed by a space
 		theRest = theRest.Mid(len); // \marker followed by its content etc.
 		int len2 = theRest.Length();
@@ -18075,7 +18075,7 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
         // now find the end of the matching \~FILTER* endmarker - we must find this for the
         // function to succeeed; if we don't, then we must throw away the mkrStr value (ie.
         // empty it) and revert to the nStart and nEnd values for a failure
-		int nStartFrom = nStart + len + len3; // offset to character after the marker 
+		int nStartFrom = nStart + len + len3; // offset to character after the marker
 											  // in mkrStr (a space)
 		nFound = FindFromPos(markers,filterMkrEnd,nStartFrom);
 		if (nFound == wxNOT_FOUND)
@@ -18090,7 +18090,7 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
             // we found the matching filter marker which brackets the end, so get offset to
             // first character beyond it (?? and its following space?? see below) & we are
             // done...
-            // 
+            //
 			// BEW 20Sep10: in docVersion 5, not only do we store filtered stuff in
 			// m_filteredInfo, but we but filter markers up against each other, so we can get
 			// a sequence "\~FILTER*\~FILTER " and so we can't assume a space between these,
@@ -18108,21 +18108,21 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param	oldSet				-> indicates which SFM set was active before the user changed 
+/// \param	oldSet				-> indicates which SFM set was active before the user changed
 ///									to a different one
 /// \param	newSet				-> indicates which SFM set the user changed to
-/// \param	oldFilterMarkers	-> the list of markers that was filtered out, space delimited, 
-///									including backslashes, which were in effect when the oldSet 
+/// \param	oldFilterMarkers	-> the list of markers that was filtered out, space delimited,
+///									including backslashes, which were in effect when the oldSet
 ///									was the current set,
-/// \param	newFilterMarkers	-> the list of markers to be filtered out, along with their 
+/// \param	newFilterMarkers	-> the list of markers to be filtered out, along with their
 ///									content, now that the newSet has become current
-/// \param	secondPassFilterMkrs <- a list of the markers left after common ones have been 
-///									removed from the newFilterMarkers string -- these markers 
+/// \param	secondPassFilterMkrs <- a list of the markers left after common ones have been
+///									removed from the newFilterMarkers string -- these markers
 ///									are used on the second pass which does the filtering
-/// \param	pass				-> an enum value, which can be first_pass or second_pass; the 
-///									first pass through the document does unfiltering within 
-///									the context of the oldSet, and the second pass does 
-///									filtering within the context of the newSet. 
+/// \param	pass				-> an enum value, which can be first_pass or second_pass; the
+///									first pass through the document does unfiltering within
+///									the context of the oldSet, and the second pass does
+///									filtering within the context of the newSet.
 /// \remarks
 /// Called from: the Doc's RetokenizeText().
 /// Sets up the document's data structures for the two pass reconstitution that must be
@@ -18132,8 +18132,8 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 /// the first time, and it must restore it after this function is called the second time
 /// and the changes effected.)
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, 
-					wxString oldFilterMarkers, wxString newFilterMarkers, 
+void CAdapt_ItDoc::SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet,
+					wxString oldFilterMarkers, wxString newFilterMarkers,
 					wxString& secondPassFilterMkrs, enum WhichPass pass)
 {
     // get a MapWholeMkrToFilterStatus map filled first with the set of original filter
@@ -18157,11 +18157,11 @@ void CAdapt_ItDoc::SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet,
         // if not in each
 		gpApp->m_FilterStatusMap.clear();
 		MapWholeMkrToFilterStatus::iterator iter;
-		for (iter = pMap->begin(); iter != pMap->end(); ++iter) 
+		for (iter = pMap->begin(); iter != pMap->end(); ++iter)
 		{
 			mkr = iter->first;
 			wxString mkrPlusSpace = mkr + _T(' ');
-			bool bRemoved = RemoveMarkerFromBoth(mkrPlusSpace, oldFilterMarkers, 
+			bool bRemoved = RemoveMarkerFromBoth(mkrPlusSpace, oldFilterMarkers,
 												newFilterMarkers);
 
 #ifdef _Trace_RebuildDoc
@@ -18174,7 +18174,7 @@ void CAdapt_ItDoc::SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet,
             // ReconstituteAfterFilteringChange() call in the caller
 			if (!bRemoved)
 			{
-				(gpApp->m_FilterStatusMap)[mkr] = _T("0"); // "0" means 
+				(gpApp->m_FilterStatusMap)[mkr] = _T("0"); // "0" means
 											// "was filtered, but now to be unfiltered"
 			}
 		}
@@ -18184,7 +18184,7 @@ void CAdapt_ItDoc::SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet,
         // does the filtering
 		secondPassFilterMkrs = newFilterMarkers;
 
-		// set the old SFM set to be the current one; setup is complete for the first pass 
+		// set the old SFM set to be the current one; setup is complete for the first pass
         // through the doc
 		gpApp->gCurrentSfmSet = oldSet;
 
@@ -18210,14 +18210,14 @@ void CAdapt_ItDoc::SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet,
 
 		// set up m_FilterStatusMap again
 		gpApp->m_FilterStatusMap.clear();
-		
-		{	// this extra block extends for the next 28 lines. It avoids the bogus 
+
+		{	// this extra block extends for the next 28 lines. It avoids the bogus
 			// warning C4533: initialization of 'f_iter' is skipped by 'goto h'
 			// by putting its code within its own scope
 		MapWholeMkrToFilterStatus::iterator iter;
 		for (iter = pMap->begin(); iter != pMap->end(); ++iter)
 		{
-			(gpApp->m_FilterStatusMap)[mkr] = _T("1"); // "1" means 
+			(gpApp->m_FilterStatusMap)[mkr] = _T("1"); // "1" means
 									// "was unfiltered, but now to be filtered"
 
 #ifdef _Trace_RebuildDoc
@@ -18237,12 +18237,12 @@ h:		gpApp->gCurrentSfmSet = newSet; // caller has done it already, or should hav
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param		pMkrMap		<- pointer to a map of wholeMkr (including backslash) strings 
-///								derived from the str parameter, with the wholeMkr as key, 
+/// \param		pMkrMap		<- pointer to a map of wholeMkr (including backslash) strings
+///								derived from the str parameter, with the wholeMkr as key,
 ///								and value being an empty string (we don't care a hoot about
 ///								the value, we just want the benefits of the hashing on the key)
-/// \param		str			-> a sequence of whole markers (including backslashes), with a 
-///								space following each, but there should not be any endmarkers 
+/// \param		str			-> a sequence of whole markers (including backslashes), with a
+///								space following each, but there should not be any endmarkers
 ///								in str, but we'll make them begin markers if there are
 /// \remarks
 /// Called from: the Doc's SetupForSFMSetChange().
@@ -18252,7 +18252,7 @@ h:		gpApp->gCurrentSfmSet = newSet; // caller has done it already, or should hav
 /// crept in unnoticed, and if unique, stores the bareMkr in the map; if the input string str is empty,
 /// it exits without doing anything.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap, 
+void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap,
 										  wxString str) // BEW added 06Jun05
 {
 	wxChar nix[] = _T(""); // an arbitrary value, we don't care what it is
@@ -18276,7 +18276,7 @@ void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if the passed in wholeMarker and trailing space were removed from both 
+/// \return		TRUE if the passed in wholeMarker and trailing space were removed from both
 ///				str1 and str2, FALSE otherwise
 /// \param		mkr		-> the wholeMarker (includes backslash, but no * at end) plus a trailing space
 /// \param		str1	<- a set of filter markers (wholeMarkers, with a single space following each)
@@ -18293,7 +18293,7 @@ void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap,
 bool CAdapt_ItDoc::RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2)
 {
 	int curPos1 = str1.Find(mkr);
-	wxASSERT(curPos1 >= 0); // mkr MUST be in str1, since the set of mkr strings 
+	wxASSERT(curPos1 >= 0); // mkr MUST be in str1, since the set of mkr strings
 							// was obtained from str1 earlier
 	int curPos2 = str2.Find(mkr);
 	if (curPos2 != -1)
@@ -18353,7 +18353,7 @@ void CAdapt_ItDoc::CopyFlags(CSourcePhrase* dest, CSourcePhrase* src)
 // param 2, only in order that the reparse doesn't try deal with a value of -1; but the
 // param 2 value actually makes no difference to what is computed for returning as the
 // adaptation without any punctuation
-wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation, 
+wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWithPunctuation,
 														  int startingSequNum)
 {
 	wxString str = targetStrWithPunctuation;
@@ -18424,20 +18424,20 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 ///             usually means that rebuilding one CSourcePhrase instance resulted in two
 ///             or more new ones being created - so we have to replace the old one with
 ///             the rebuilds; whereas a successful rebuild means one CSourcePhrase is
-///             just changed internally and no new ones needed to be created), TRUE if 
+///             just changed internally and no new ones needed to be created), TRUE if
 ///             the rebuild was successful
 /// \param		pView		-> a pointer to the View
-/// \param		pList		<- the list of source phrases of the current document 
+/// \param		pList		<- the list of source phrases of the current document
 ///                            (i.e. m_pSourcePhrases)
 /// \param		pos			-> the node location which stores the passed in pSrcPhrase
 /// \param		pSrcPhrase	<- the pointer to the CSourcePhrase instance on the pos Node
 ///                            passed in as the previous parameter
 /// \param		fixesStr	<- reference to the caller's storage string for accumulating
-///							   a list of references to the locations where the rebuild 
-///							   potentially isn't quite fully right, for specific 
+///							   a list of references to the locations where the rebuild
+///							   potentially isn't quite fully right, for specific
 ///							   pSrcPhrase instances, if any
 /// \remarks
-/// Called from: the Doc's RetokenizeText(). 
+/// Called from: the Doc's RetokenizeText().
 /// Rebuilds the document after a punctuation change has been made. If the function "fails"
 /// internally (ie. potentially isn't a simple rebuild, as discussed above for the return
 /// value), that particular pSrcPhrase instance has to be noted with a reference to chapter
@@ -18451,7 +18451,7 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// the rebuild done on a single CSourcePhrase instance, result in a single CSourcePhrase
 /// instance - but rather two or more (it is not possible for the rebuild of a single
 /// instance to result in none).
-/// 
+///
 /// ???? the next paragraph may be inaccurate -- I'm gunna reparse fully, so probably
 /// we'll insert the new one or more before the old one, on every call, and delete the old
 /// one, rather than messing with copying info etc -- remove the next paragraph if this is
@@ -18467,7 +18467,7 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// internally keep track of how many new CSourcePhrase instances are created and how many
 /// of these precede the view's m_nActiveSequNum value so we can progressively update the
 /// latter and so reconstitute the phrase box at the correct location when done.
-/// 
+///
 /// BEW ammended definition and coded the function
 /// whm added to wxWidgets build 4Apr05
 /// BEW 11Oct10 (actually 13Jan11)added code to base reparse on returned string from the
@@ -18481,8 +18481,8 @@ wxString CAdapt_ItDoc::MakeAdaptionAfterPunctuationChange(wxString& targetStrWit
 /// without loss, and alerting the user to where we think a visual inspection should be
 /// done in order to verify the results are acceptable - and edit if not.
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, 
-					SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase, 
+bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
+					SPList*& pList, SPList::Node* pos, CSourcePhrase*& pSrcPhrase,
 					wxString& fixesStr)
 {
 	int nOriginalCount = pSrcPhrase->m_nSrcWords;
@@ -18491,7 +18491,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	if (pSrcPhrase->m_bRetranslation) bRetranslation = TRUE;
 	if (pSrcPhrase->m_bNotInKB) bNotInKB = TRUE;
 
-	SPList* pResultList = new SPList; // where we'll store pointers to parsed 
+	SPList* pResultList = new SPList; // where we'll store pointers to parsed
             // new CSourcePhrase instances; but only use what is in it provided there is
             // only one stored there - if more than one, we delete them and retain
             // unchanged the original pSrcPhrase passed in
@@ -18502,7 +18502,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
     // (because they know whether the rebuild succeeded or not and they have the required
     // strings at hand) - but do the removal from the KB only if not a placeholder, not a
     // retranslation not specified as "not in the KB", and there is a non-empty adaptation
-	if (!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation && 
+	if (!pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bRetranslation &&
 		!pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_adaption.IsEmpty())
 	{
 		pView->RemoveKBEntryForRebuild(pSrcPhrase);
@@ -18553,7 +18553,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		// for the m_adaption member of the merger (ie. of pSrcPhrase), all we need do is
 		// pass pSrcPhrase->m_srcPhrase through RemovePunctuation() using the final
 		// parameter from_target_text so as to do it with the target language's new
-		// punctuation settings (which may, or may not, have changed). 
+		// punctuation settings (which may, or may not, have changed).
         // Once (f) is completed, the whole original merged pSrcPhrase has been
         // successfully updated to the new punctuation settings.
 		SPList* pOwnedList = pSrcPhrase->m_pSavedWords; // for convenience's sake
@@ -18565,7 +18565,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		wxString targetStr; // for a copy of m_targetStr member
 		wxString adaption; // for a copy of m_adaption member
 		wxString gloss; // for a copy of m_gloss member
-		adaption.Empty(); 
+		adaption.Empty();
 		gloss.Empty();
 
         // setup the srcPhrase, targetStr and gloss strings - we must handle glosses too
@@ -18708,7 +18708,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 					pSrcPhrase->m_follPunct = pOwnedSrcPhrase->m_follPunct; // as set above
 					pSrcPhrase->SetFollowingOuterPunct(pOwnedSrcPhrase->GetFollowingOuterPunct()); // as set above
 
-					// but anything in m_precPunct in the instance from pResultsList, has to 
+					// but anything in m_precPunct in the instance from pResultsList, has to
 					// be copied to pSrcPhrase->m_pMedialPuncts array
 					wxString precPunctStr = pNewSrcPhrase->m_precPunct;
 					if (!precPunctStr.IsEmpty())
@@ -18739,14 +18739,14 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				}
 			} // end of loop for test: while (posOwned != NULL && posNew != NULL)
 		} // end of TRUE block for test:  if ((int)pResultList->GetCount() == nOriginalCount)
-		else // the reparsed source text has generated a different number of CSourcePhrase instances 
+		else // the reparsed source text has generated a different number of CSourcePhrase instances
 		{
 			// we got too many or two few CSourcePhrase instances in the reparse of the
 			// source text (including markers etc) from the merger, so we'll have to
 			// abandon this merger; instead, just retain the pSrcPhrase passed in,
 			// unchanged, - clear out pResultList, leave an entry in fixesStr and return
 			// FALSE
-			pView->UpdateSequNumbers(0); // make sure they are in sequence, 
+			pView->UpdateSequNumbers(0); // make sure they are in sequence,
 										 // so next call won't fail
 			if (!gbIsUnstructuredData)
 			{
@@ -18757,7 +18757,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				fixesStr += srcStr;
 				fixesStr += _T("   ");
 			}
-			// the pResultList list was not used in this block, 
+			// the pResultList list was not used in this block,
 			// so we can unilaterally clear it here
 			SPList::Node* aPos = pResultList->GetFirst();
 			CSourcePhrase* pASrcPhrase = NULL;
@@ -18765,7 +18765,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			{
 				pASrcPhrase = (CSourcePhrase*)aPos->GetData();
 				aPos = aPos->GetNext();
-				DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+				DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means
 					// "don't delete its partner pile" as we'll let RecalcLayout()
 					// delete them all quickly en masse later
 			}
@@ -18774,7 +18774,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			return FALSE;
 		} // end of else block for test: if ((int)pResultList->GetCount() == nOriginalCount)
 	} // end of block for when dealing with a merged sourcephrase
-	else // the test of pSrcPhrase->m_nSrcWords yielded 1 
+	else // the test of pSrcPhrase->m_nSrcWords yielded 1
 		 // (ie. an unmerged sourcephrase)
 	{
         // we are dealing with a plain vanila single-word non-owned sourcephrase in either
@@ -18803,7 +18803,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 				fixesStr += _T("   ");
 			}
 
-			// the pResultList list was not used in this block, 
+			// the pResultList list was not used in this block,
 			// so we can unilaterally clear it here
 			SPList::Node* aPos = pResultList->GetFirst();
 			CSourcePhrase* pASrcPhrase = NULL;
@@ -18811,13 +18811,13 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 			{
 				pASrcPhrase = (CSourcePhrase*)aPos->GetData();
 				aPos = aPos->GetNext();
-				DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+				DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means
 					// "don't delete its partner pile" as we'll let RecalcLayout()
 					// delete them all quickly en masse later
 			}
 			pResultList->Clear();
 			delete pResultList;
-			
+
 			return FALSE;
 		}
 	} // end of else block for test: if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
@@ -18829,7 +18829,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	{
 		pASrcPhrase = (CSourcePhrase*)aPos->GetData();
 		aPos = aPos->GetNext();
-		DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means 
+		DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means
 						// "don't delete its partner pile" as we'll let RecalcLayout()
 						// delete them all quickly en masse later
 	}
@@ -18838,7 +18838,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 
 	// the 8Mar11 changes should mean that the m_nActiveSequNum will not be changed by
 	// this function nor any it calls
-	//gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member 
+	//gpApp->m_nActiveSequNum = nActiveSequNum; // update the view's member
 											  // so all keeps in sync
 	// sequence numbers should not need updating, but we'll do so for safety's sake
 	pView->UpdateSequNumbers(0);
@@ -18854,11 +18854,11 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 /// \param		bGlossingKBPath			-> if TRUE the glossing KB path is to be updated
 /// \param		bGlossingKBBackupPath	-> if TRUE the glossing KB's backup path is to be updated
 /// \remarks
-/// Called from: the App's LoadGlossingKB(), LoadKB(), StoreGlossingKB(), StoreKB(), 
+/// Called from: the App's LoadGlossingKB(), LoadKB(), StoreGlossingKB(), StoreKB(),
 /// SaveKB(), SaveGlossingKB(), SubstituteKBBackup().
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
-						bool bKBBackupPath,bool bGlossingKBPath, 
+						bool bKBBackupPath,bool bGlossingKBPath,
 						bool bGlossingKBBackupPath)
 {
 	// ensure the current KB filename ends with .xml extension
@@ -18877,7 +18877,7 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 			gpApp->m_curKBName = thisFilename; // update to correct filename
 		}
 	}
-	
+
 	// KB Path (m_curKBPath)
 	if (bKBPath)
 	{
@@ -18894,7 +18894,7 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 			gpApp->m_curKBPath = thisPath;
 		}
 	}
-	
+
 	// KB Backup Path (m_curKBBackupPath)
 	// BEW 3Mar11, changed for .BAK rather than .BAK.xml, at Bob Eaton's request
 	if (bKBBackupPath)
@@ -18965,8 +18965,8 @@ void CAdapt_ItDoc::UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,
 /// Called from: the Doc's OnNewDocument(), OnOpenDocument() and CMainFrame's OnIdle().
 /// Sets or updates the main frame's title bar with the appropriate name of the current
 /// document. It also suffixes " - Adapt It" or " - Adapt It Unicode" to the document title,
-/// depending on which version of Adapt It is being used. 
-/// The extension for all documents in the wx version is .xml. This function also calls 
+/// depending on which version of Adapt It is being used.
+/// The extension for all documents in the wx version is .xml. This function also calls
 /// the doc/view framework's SetFilename() to inform the framework of the change in the
 /// document's name.
 ///////////////////////////////////////////////////////////////////////////////
@@ -18974,7 +18974,7 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 {
 	// remove any extension user may have typed -- we'll keep control ourselves
 	wxString noExtnName = gpApp->MakeExtensionlessName(title);
-	nameMinusExtension = noExtnName; // return to the caller the name 
+	nameMinusExtension = noExtnName; // return to the caller the name
 									 // without the final extension
 
     // we'll now put on it what the extension should be, according to the doc type we have
@@ -18984,9 +18984,9 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 
 	// whm Note: the m_strTitle is internal to CDocument
 	// update the target platform's native storage for the doc title
-	this->SetFilename(title, TRUE); // see above where default unnamedN is set - 
+	this->SetFilename(title, TRUE); // see above where default unnamedN is set -
 									// TRUE means "notify views"
-		
+
     // our Adapt It main window should also show " - Adapt It" or " - Adapt It Unicode"
     // after the document title, so we'll set that up by explicitly overwriting the title
     // bar's document name (Also, via the Setup Wizard, an output filename is not
@@ -18998,8 +18998,8 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 	// BEW added Unicode for unicode build, 06Aug05
 	typeName = pTemplate->GetDocumentName(); // returns the document type name as passed
 											 // to the doc template constructor
-	typeName2 = pTemplate->GetDescription(); 
-	if (!typeName.IsEmpty()) 
+	typeName2 = pTemplate->GetDescription();
+	if (!typeName.IsEmpty())
 	{
 		typeName = _T(" - Adapt It");
 		#ifdef _UNICODE
@@ -19023,12 +19023,12 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 /// \remarks
 /// Called from: the Doc's BackupDocument() and DoFileSave().
 /// Ensures that the m_curOutputBackupFilename ends with ".BAK". The wx version does
-/// not handle the legacy .adt binary file types/extensions. 
+/// not handle the legacy .adt binary file types/extensions.
 /// BEW 30Apr10, removed second param (the m_bSaveAsXML flag)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 {
-    // input should be the current m_curOutputFilename value, a renamed filename; the 
+    // input should be the current m_curOutputFilename value, a renamed filename; the
 	// function assumes that the caller's value for m_curOutputFilename, or the renamed
 	// filename, is correct
 
@@ -19050,12 +19050,12 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 	{
 		// no extension
 		thisBackupFilename = baseFilename;
-	}	
+	}
 	thisBackupFilename = MakeReverse(thisBackupFilename);
 
 	// saving will be done in XML format, so backup filenames must comply with that...
 
-	// add the required extensions; the complying backup filename is always of form:  *.BAK 
+	// add the required extensions; the complying backup filename is always of form:  *.BAK
 	thisBackupFilename += _T(".BAK");
 	//gpApp->m_curOutputBackupFilename = thisBackupFilename + _T(".xml"); BEW removed 3Mar11
 }
@@ -19114,7 +19114,7 @@ void CAdapt_ItDoc::OnMoveDocument(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->GetView()->RemoveSelection();
 	CMoveDialog d(gpApp->GetMainFrame());
-	d.ShowModal(); // We don't care about the results of the dialog - 
+	d.ShowModal(); // We don't care about the results of the dialog -
 				   // it does all it's own work.
 }
 
@@ -19122,7 +19122,7 @@ void CAdapt_ItDoc::OnMoveDocument(wxCommandEvent& WXUNUSED(event))
 /// \return		a list of source phrases composing the document
 /// \param		FilePath	-> the path + name of the file
 /// \remarks
-/// Called from: the App's LoadSourcePhraseListFromFile() and 
+/// Called from: the App's LoadSourcePhraseListFromFile() and
 /// CJoinDialog::OnBnClickedJoinNow().
 /// In the wx version the current doc's m_pSourcePhrases list is not on the Doc, but on the
 /// App. Since OnOpenDocument() always places the source phrases it retrieves from the
@@ -19156,22 +19156,22 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 	// I'm taking this approach rather than redesigning things at this point. Having
 	// all the doc's members moved to the App was necessitated at the beginning of the
 	// wx version conversion effort (because of the volatility of the doc's member
-	// pointers within the wx doc-view framework). It would have been helpful to 
+	// pointers within the wx doc-view framework). It would have been helpful to
 	// redesign some other routines (OnOpenDocument and the XML doc parsing routines)
 	// to pass the list of source phrases being built as a parameter rather than keeping
 	// it as a global list.
 	// At any rate, here we need to juggle the source phrase pointer lists in order to
 	// load a source phrase list from a document file.
-	
+
 	rv = new SPList();
 	rv->Clear();
 
 	gpApp->m_bWantSourcePhrasesOnly = true;
-	SPList* m_pSourcePhrasesSaveFromApp = new SPList(); // a temp list to save the 
+	SPList* m_pSourcePhrasesSaveFromApp = new SPList(); // a temp list to save the
 												// SPList of the currently open document
-	// save the list of pointers from those on the app to a temp list 
+	// save the list of pointers from those on the app to a temp list
 	// (the App's list to be restored later)
-	for (SPList::Node *node = gpApp->m_pSourcePhrases->GetFirst(); 
+	for (SPList::Node *node = gpApp->m_pSourcePhrases->GetFirst();
 			node; node = node->GetNext())
 	{
 		m_pSourcePhrasesSaveFromApp->Append((CSourcePhrase*)node->GetData());
@@ -19179,18 +19179,18 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
     // pointers are now saved in the temp SPList, so clear the list on the App to be ready
     // to receive the new list within OnOpenDocument()
 	gpApp->m_pSourcePhrases->Clear();
-	d.OnOpenDocument(FilePath); // OnOpenDocument loads source phrases into 
+	d.OnOpenDocument(FilePath); // OnOpenDocument loads source phrases into
 								// m_pSourcePhrases on the App
 	gpApp->m_bWantSourcePhrasesOnly = false;
 	// copy the pointers to the list we are returning from LoadSourcePhraseListFromFile
-	for (SPList::Node *node = gpApp->m_pSourcePhrases->GetFirst(); 
+	for (SPList::Node *node = gpApp->m_pSourcePhrases->GetFirst();
 			node; node = node->GetNext())
 	{
 		rv->Append((CSourcePhrase*)node->GetData());
 	}
 	// now restore original App list
 	gpApp->m_pSourcePhrases->Clear();
-	for (SPList::Node *node = m_pSourcePhrasesSaveFromApp->GetFirst(); 
+	for (SPList::Node *node = m_pSourcePhrasesSaveFromApp->GetFirst();
 			node; node = node->GetNext())
 	{
 		gpApp->m_pSourcePhrases->Append((CSourcePhrase*)node->GetData());
@@ -19219,7 +19219,7 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// doing a project config file write and a doc save, but instead to just take the project
 /// config file and doc files as they currently are on disk in order to do the pack
 /// whm 14Jul11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
-/// folder. Note: The Pack Document... and the Unpack Document... commands are not available 
+/// folder. Note: The Pack Document... and the Unpack Document... commands are not available
 /// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
@@ -19234,7 +19234,7 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-    // enable if there is a KB ready (even if only a stub), and the document loaded and 
+    // enable if there is a KB ready (even if only a stub), and the document loaded and
     // glossing mode is turned off
 	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady && !gbIsGlossing)
 	{
@@ -19253,7 +19253,7 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// If Vertical Editing is in progress it disables the Unpack Document..." command on the File 
+/// If Vertical Editing is in progress it disables the Unpack Document..." command on the File
 /// menu, otherwise it enables the item as long as glossing mode is turned off.
 /// BEW modified 13Nov09, if read-only access to project folder, don't permit unpack doc
 /// whm added 7Jul11 Don't allow unpacking of documents when collaborating with an external
@@ -19320,11 +19320,11 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 /// \param		event	-> unused wxCommandEvent
 /// \remarks
 /// Called from: the "Unpack Document..." command on the File menu.
-/// OnFileUnpackDoc gets the name of a packed *.aip file from the user, uncompresses it and 
+/// OnFileUnpackDoc gets the name of a packed *.aip file from the user, uncompresses it and
 /// calls DoUnpackDocument() to do the remaining work of unpacking the document and loading
-/// it into Adapt It ready to do work. 
-/// If a document of the same name already exists on the destination machine in 
-/// the same folder, the user is warned before the existing doc is overwritten by the document 
+/// it into Adapt It ready to do work.
+/// If a document of the same name already exists on the destination machine in
+/// the same folder, the user is warned before the existing doc is overwritten by the document
 /// extracted from the packed file.
 /// The .aip files pack with the Unicode version of Adapt It cannot be unpacked with the regular
 /// version of Adapt It, nor vice versa.
@@ -19334,13 +19334,13 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 {
-	// OnFileUnpackDoc is the handler for the Unpack Document... command on the File menu. 
+	// OnFileUnpackDoc is the handler for the Unpack Document... command on the File menu.
 	// first, get the file and load it into a CBString
 	wxString defaultDir;
 	wxString packedDocPath;
-	
-	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS, 
-	// and whether the App's m_lastPackedOutputPath is empty or has a valid path, 
+
+	// Check whether navigation protection is in effect for _PACKED_INPUTS_OUTPUTS,
+	// and whether the App's m_lastPackedOutputPath is empty or has a valid path,
 	// and set the defaultDir for the export accordingly.
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
@@ -19373,7 +19373,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 			defaultDir,
 			_T(""), // file name is null string
 			filter,
-			wxFD_OPEN); 
+			wxFD_OPEN);
 			// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
 			// GDLC wxOPEN weredeprecated in 2.8
 		fileDlg.Centre();
@@ -19387,7 +19387,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 			gpApp->LogUserAction(_T("Cancelled from OnFileUnpackDoc() at wxFileDialog()"));
 			return; // user Cancelled, or closed the dialog box
 		}
-	
+
 		packedDocPath = fileDlg.GetPath();
 	}
 	else
@@ -19445,7 +19445,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
     // "filter" unzipping the stream from pathName
 	wxZipInputStream zipStream(zippedfile);
 	wxString unzipFileName;
-	pEntry = zipStream.GetNextEntry(); // gets the one and only zip entry in the 
+	pEntry = zipStream.GetNextEntry(); // gets the one and only zip entry in the
 									   // .aip file
 	unzipFileName = pEntry->GetName(); // access the meta-data
     // construct the path to the .aiz file so that it goes temporarily in the project
@@ -19454,7 +19454,7 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 	// get a buffered output stream
 	wxFFileOutputStream outFile(packedDocPath);
 	// write out the filtered (unzipped) stream to the .aiz file
-	outFile.Write(zipStream); // this form writes from zipStream to outFile until a 
+	outFile.Write(zipStream); // this form writes from zipStream to outFile until a
 							  // stream "error" (i.e., end of file)
 	delete pEntry; // example in wx book shows the zip entry data being deleted
 	outFile.Close();
@@ -19503,14 +19503,14 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the Doc's OnFileUnpackDocument().
 /// Does the main work of unpacking the uncompressed file received from OnFileUnpackDocument().
-/// It creates the required folder structure (including project folder) or 
-/// makes that project current if it already exists on the destination machine, and then 
-/// updates its project configuration file, and stores the xml document file in whichever of 
-/// the Adaptations folder or one of its book folders if pack was done from a book folder, 
-/// and then reads in the xml document, parses it and sets up the document and view leaving 
-/// the user in the project and document ready to do work. 
-/// If a document of the same name already exists on the destination machine in 
-/// the same folder, the user is warned before the existing doc is overwritten by the document 
+/// It creates the required folder structure (including project folder) or
+/// makes that project current if it already exists on the destination machine, and then
+/// updates its project configuration file, and stores the xml document file in whichever of
+/// the Adaptations folder or one of its book folders if pack was done from a book folder,
+/// and then reads in the xml document, parses it and sets up the document and view leaving
+/// the user in the project and document ready to do work.
+/// If a document of the same name already exists on the destination machine in
+/// the same folder, the user is warned before the existing doc is overwritten by the document
 /// extracted from the packed file.
 /// The .aip files pack with the Unicode version of Adapt It cannot be unpacked with the regular
 /// version of Adapt It, nor vice versa.
@@ -19535,7 +19535,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 "Compressed document file read was short, some data missed so abort the command.\n"),
 			_T(""), wxICON_EXCLAMATION);
 		gpApp->LogUserAction(_T("Compressed document file read was short, some data missed so abort the command."));
-		return FALSE; 
+		return FALSE;
 	}
 	pFile->Close(); // assume no errors
 
@@ -19543,7 +19543,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	packByteStr.ReleaseBuffer();
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// whm Note 19Jan06: 
+	// whm Note 19Jan06:
     // If the design included the addition of a warning string embedded in the compressed
     // file, and/or we wished to uncompress the data within an internal buffer, the
     // following considerations would need to be taken into account:
@@ -19571,7 +19571,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
     // correctly unpack such a document - so to make it able to do so, instead of assuming
     // that the first character is a digit, we will scan till we find the first digit
     // (which will be 1 or 2) and then proceed with our unpack.
-	unsigned char aOne = 49; // ASCII for digit 1 (isdigit() depends on locale, so 
+	unsigned char aOne = 49; // ASCII for digit 1 (isdigit() depends on locale, so
 							 // is unsafe to use here)
 	unsigned char aTwo = 50; // ASCII for 2
 	unsigned char charAtOffset = pBuff[offset];
@@ -19608,9 +19608,9 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
     // assume all is well formed and proceed from the offset value
 	chDigit[0] = packByteStr[offset];
 	offset += 6;
-	packByteStr = packByteStr.Mid(offset); // remove extracted app type code 
+	packByteStr = packByteStr.Mid(offset); // remove extracted app type code
 										   // char & its |*0*| delimiter
-	
+
     // whm Note: The legacy logic doesn't work cross-platform! The sizeof(char) and
     // sizeof(w_char) is not constant across platforms. On Windows sizeof(char) is 1 and
     // sizeof(w_char) is 2; but on all Unix-based systems (i.e., Linux and Mac OS X) the
@@ -19636,7 +19636,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 #endif
 	{
 		// mismatched application types. Doc data won't be rendered right unless all text was
-		// ASCII 
+		// ASCII
 		CUnpackWarningDlg dlg(gpApp->GetMainFrame());
 		if (dlg.ShowModal() == wxID_OK)
 		{
@@ -19659,17 +19659,17 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	offset = packByteStr.Find("|*1*|");
 	CBString srcName = packByteStr.Left(offset);
 	offset += 5;
-	packByteStr = packByteStr.Mid(offset); // remove the extracted source 
+	packByteStr = packByteStr.Mid(offset); // remove the extracted source
 										   // language name & delimiter
 	offset = packByteStr.Find("|*2*|");
 	CBString tgtName = packByteStr.Left(offset);
 	offset += 5;
-	packByteStr = packByteStr.Mid(offset); // remove the extracted target 
+	packByteStr = packByteStr.Mid(offset); // remove the extracted target
 										   // language name & delimiter
 	offset = packByteStr.Find("|*3*|");
 	CBString bookInfo = packByteStr.Left(offset);
 	offset += 5;
-	packByteStr = packByteStr.Mid(offset); // remove the extracted book 
+	packByteStr = packByteStr.Mid(offset); // remove the extracted book
 										   // information & delimiter
 
     // offset now points at the start of the UTF-8 current output filename; if the packing
@@ -19704,7 +19704,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	}
 	nFound++;
 	CBString theIndex = bookInfo.Mid(nFound);
-	gpApp->m_nBookIndex = atoi(theIndex.GetBuffer()); // no ReleaseBuffer call 
+	gpApp->m_nBookIndex = atoi(theIndex.GetBuffer()); // no ReleaseBuffer call
             // is needed the later SetupDirectories() call will create the book folders
             // if necessary, and set up the current book folder and its path from the
             // m_nBookIndex value
@@ -19713,7 +19713,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	offset = packByteStr.Find("|*4*|");
 	CBString utf8Filename = packByteStr.Left(offset);
 	offset += 5;
-	packByteStr = packByteStr.Mid(offset); // remove the extracted utf-8 filename 
+	packByteStr = packByteStr.Mid(offset); // remove the extracted utf-8 filename
 			// & delimiter (what remains is the project config file & document file)
 
     // we could be in the Unicode application, so we here might have to convert our srcName
@@ -19736,7 +19736,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	// we now can set up the directory structures, if they are not already setup
 	gpApp->m_sourceName = sourceName;
 	gpApp->m_targetName = targetName;
-	gpApp->m_bUnpacking = TRUE; // may be needed in SetupDirectories() 
+	gpApp->m_bUnpacking = TRUE; // may be needed in SetupDirectories()
 								// if destination machine has same project folder
 	bool bSetupOK = gpApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
 	if (!bSetupOK)
@@ -19767,26 +19767,26 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
 		// m_strPathName is a member of MFC's Document class
-		SetFilename(gpApp->m_bibleBooksFolderPath + gpApp->PathSeparator + 
+		SetFilename(gpApp->m_bibleBooksFolderPath + gpApp->PathSeparator +
 														gpApp->m_curOutputFilename,TRUE);
-		gpApp->m_curOutputPath = gpApp->m_bibleBooksFolderPath + gpApp->PathSeparator + 
+		gpApp->m_curOutputPath = gpApp->m_bibleBooksFolderPath + gpApp->PathSeparator +
 														gpApp->m_curOutputFilename;
 	}
 	else
 	{
-		SetFilename(gpApp->m_curAdaptionsPath + gpApp->PathSeparator + 
+		SetFilename(gpApp->m_curAdaptionsPath + gpApp->PathSeparator +
 														gpApp->m_curOutputFilename,TRUE);
-		gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator + 
+		gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator +
 														gpApp->m_curOutputFilename;
 	}
-	
+
     // if the document does not exist in the unpacking computer yet, then an attempt to get
     // its status struct will return FALSE - we need to check both possible paths
 	bool bAskUser = FALSE;
 	bool bItsXML = TRUE;
 	if (::wxFileExists(gpApp->m_curOutputPath)) //if (f.GetStatus(m_curOutputPath,status))
 	{
-		// the xml document file is in the folder, so the user must be asked 
+		// the xml document file is in the folder, so the user must be asked
 		// whether to overwrite or not
 		bAskUser = TRUE;
 	}
@@ -19818,7 +19818,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 				{
 					wxString thismsg;
 					thismsg = thismsg.Format(_(
-					"Failed removing %s before overwrite."), 
+					"Failed removing %s before overwrite."),
 					gpApp->m_curOutputPath.c_str());
 					wxMessageBox(thismsg,_T(""),wxICON_WARNING);
 					gpApp->LogUserAction(thismsg);
@@ -19841,8 +19841,8 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			wxString path = gpApp->m_curOutputPath;
 			path = MakeReverse(path);
 			int nFound1 = path.Find(_T("lmx."));
-			if (nFound1 == 0) 
-			{ 
+			if (nFound1 == 0)
+			{
                 // m_curOutputPath is a valid path to a doc in a project's Adaptations or
                 // book folder so open it again - the project is still in effect
 				bool bGotItOK = OnOpenDocument(gpApp->m_curOutputPath);
@@ -19864,11 +19864,11 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	offset = packByteStr.Find("|*5*|");
 	CBString projConfigFileStr = packByteStr.Left(offset);
 	offset += 5;
-	packByteStr = packByteStr.Mid(offset); // remove the extracted configuration file 
+	packByteStr = packByteStr.Mid(offset); // remove the extracted configuration file
                     // information & delimiter & the remainder now in packByteStr is the
                     // xml document file
 
-	// construct the path to the project's configuration file so it can be saved to the 
+	// construct the path to the project's configuration file so it can be saved to the
 	// project folder
 	wxString projectPath = gpApp->m_curProjectPath;
 	projectPath += gpApp->PathSeparator;
@@ -19888,7 +19888,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		renamedPath = projectPath;
 		int len = projectPath.Length();
 		renamedPath.Remove(len-3,3); // delete the aic extension
-		renamedPath += _T("BAK"); // make it a 'backup' type temporarily in case user 
+		renamedPath += _T("BAK"); // make it a 'backup' type temporarily in case user
 								  // ever sees it in Win Explorer
 		if (!::wxRenameFile(projectPath,renamedPath))
 		{
@@ -19989,7 +19989,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // put into effect; and we reset the KB paths. The KBs have already been loaded, or
     // stubs created, so the SetupKBPathsEtc call here just has the effect of getting paths
     // set up for the xml form of KB i/o.
-	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as 
+	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as
 															// noted in comments above
 	gpApp->SetupKBPathsEtc();
 
@@ -20007,12 +20007,12 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		gpApp->m_curOutputPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
 		gpApp->LogUserAction(msg);
-		return FALSE; // don't goto a; instead leave the new paths intact because the 
+		return FALSE; // don't goto a; instead leave the new paths intact because the
                 // config file is already written out, so the user can do something in the
                 // project if he wants
 	}
 	pBuf = packByteStr.GetBuffer(); // whm moved here from outer block above (local scope)
-	if (!ff.Write(pBuf,nFileLength)) 
+	if (!ff.Write(pBuf,nFileLength))
 	{
 		// notify user, and then return without doing any more
 		wxString thismsg;
@@ -20048,8 +20048,8 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the path of the current working directory/folder
 /// \remarks
-/// Called from: the App's OnFileRestoreKb(), WriteConfigurationFile(), 
-/// AccessOtherAdaptionProject(), the View's OnRetransReport() and CMainFrame's 
+/// Called from: the App's OnFileRestoreKb(), WriteConfigurationFile(),
+/// AccessOtherAdaptionProject(), the View's OnRetransReport() and CMainFrame's
 /// SyncScrollReceive().
 /// Gets the path of the current working directory/folder as a wxString.
 ///////////////////////////////////////////////////////////////////////////////
@@ -20066,8 +20066,8 @@ wxString CAdapt_ItDoc::GetCurrentDirectory()
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// If Vertical Editing is in progress it disables "Receive Synchronized Scrolling Messages" item 
-/// on the Advanced menu and this handler returns immediately. Otherwise, it enables the 
+/// If Vertical Editing is in progress it disables "Receive Synchronized Scrolling Messages" item
+/// on the Advanced menu and this handler returns immediately. Otherwise, it enables the
 /// "Receive Synchronized Scrolling Messages" item on the Advanced menu as long as a project
 /// is open.
 ///////////////////////////////////////////////////////////////////////////////
@@ -20105,11 +20105,11 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 	wxASSERT(pFrame != NULL);
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenuReceiveSSMsgs = 
+	wxMenuItem * pAdvancedMenuReceiveSSMsgs =
 				pMenuBar->FindItem(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES);
 
-	// whm Note: Only log the action when the even comes from the menu item, 
-	// not when OnAdvancedReceiveSynchronizedScrollingMessages() is called 
+	// whm Note: Only log the action when the even comes from the menu item,
+	// not when OnAdvancedReceiveSynchronizedScrollingMessages() is called
 	// from the View's OnInitialUpdate() and elsewhere.
 	if (event.GetId() == ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES)
 	{
@@ -20118,7 +20118,7 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 		else
 			gpApp->LogUserAction(_T("Receive Synchronized Scrolling Messages ON"));
 	}
-	
+
 	// toggle the setting
 	if (!gbIgnoreScriptureReference_Receive)
 	{
@@ -20175,7 +20175,7 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& e
 	wxASSERT(pFrame != NULL);
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenuSendSSMsgs = 
+	wxMenuItem * pAdvancedMenuSendSSMsgs =
 				pMenuBar->FindItem(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES);
 
 	// whm Note: Only log the user action when OnAdvancedSendSynchronizedScrollingMessages()
@@ -20234,23 +20234,23 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
 	bool bOK = TRUE;
 	pApp->m_acceptedFilesList.Clear();
 	pApp->LogUserAction(_T("Initiated ReOpenDocument()"));
-	
+
 	// whm 25Aug11 Note: We do not need a wait dialog to pop up here
 	// in ReOpenDocument(), since there is already a wxProgressDialog
-	// showing from the caller of ReOpenDocument(). Also the 
+	// showing from the caller of ReOpenDocument(). Also the
 	// OnOpenDocument() call below has its own wxProgressDialog which
 	// superimposes itself over the caller's progress dialog showing
 	// the opening process - and when the progress dialog from
 	// OnOpenDocument closes, it leaves the dialog in the caller to
 	// finish its display of progress.
-	
+
 	// restore book mode parameters as at the time when doc was forced to close
 	pApp->m_bBookMode = savedBookmodeFlag;
 	pApp->m_bDisableBookMode = savedDisableBookmodeFlag;
 	pApp->m_curOutputFilename = curOutputFilename;
 	pApp->m_pCurrBookNamePair = pSavedCurBookNamePair;
 	pApp->m_nBookIndex = savedBookIndex;
-	
+
 	/* // whm 26Aug11 commented out the following because it incorrectly sets the
 	   // values of pApp->m_bibleBooksFolderPath and pApp->m_curAdaptionsPath to
 	   // the incoming parameter value of savedWorkFolderPath. Also the value
@@ -20331,9 +20331,9 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE; // this is a global boolean
-	wxArrayString arrSetNotInKB; // list of src words and phrases for being 
+	wxArrayString arrSetNotInKB; // list of src words and phrases for being
 				// made <Not In KB> in KB
-	wxArrayString arrRemoveNotInKB; // list of src words and phrases for 
+	wxArrayString arrRemoveNotInKB; // list of src words and phrases for
 				// restoring normal saving after being <Not In KB> in KB
 
 
@@ -20485,7 +20485,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	*/
 
     // BEW added 01Aug06 Support for Book Mode was absent in 3.2.1 and earlier, but it is
-    // now added here & below. 
+    // now added here & below.
 	// BEW comment 25Aug11. The legacy function prior to this data worked as follows: it
 	// gave different options depending on the contrast "a doc is currently open"
 	// (Situation 1) versus "no document is currently open" (Situation 2).
@@ -20508,7 +20508,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	// was confined to all files in the current Bible book folder.
 	// (d) If book mode was OFF, the user was asked nothing, and all doc files in the
 	// Adaptation folder only were checked, and any book folders, if present, were ignored.
-    // 
+    //
     // Now, at 25Aug11, the above protocols can be changed, as follows.
 	// (1) There will be no difference between what is available when "a doc is currently
 	// open" versus "no doc is currently open"; and collaboration mode will support all
@@ -20526,7 +20526,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	// (ii) Book mode OFF; checks either the currently open document in the Adaptations
 	// folder, or (for an 'all documents choice at 2'), checks all documents in the
 	// Adaptations folder (and ignores any documents stored in Bible book folders).
-     
+
 	wxString dirPath;
 	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
 		dirPath = pApp->m_bibleBooksFolderPath;
@@ -20569,7 +20569,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	AFList afList;
 	AFGList afgList;
 
-	wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename			
+	wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename
 	wxString savedCurOutputFilename = pApp->m_curOutputFilename;
 	int		 savedCurSequNum = pApp->m_nActiveSequNum;	// for resetting the box location
 	bool	 savedBookmodeFlag = pApp->m_bBookMode;	// for ensuring correct mode
@@ -20587,13 +20587,13 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
 	// Put up the Choose Consistency Check Type dialog
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
-	if (ccDlg.ShowModal() == wxID_OK) 
+	if (ccDlg.ShowModal() == wxID_OK)
 	{
 		// handle user's choice of consistency check type
 		if (ccDlg.m_bCheckOpenDocOnly)
 		{
 			// check open doc only (whether in Adaptations or a book folder)
-		
+
  			// save and remove open doc, if open
 			if (!bDocIsClosed)
 			{
@@ -20635,12 +20635,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				nFileCount++;
 				if (gbIsGlossing)
 				{
-					bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
+					bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList,
 														nCumulativeTotal); // for glossing mode
 				}
 				else
 				{
-					bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
+					bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList,
 							nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
 				}
 				if (!bConsCheckDone)
@@ -20729,7 +20729,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// the current working directory to be the book folder from which all the
 				// documents within that folder are to be checked; because internally
 				// DoConsistencyCheck()calls OnOpenDocument() and passes in, in the
-				// latter's single parameter, not an absolute path as is normally the case, 
+				// latter's single parameter, not an absolute path as is normally the case,
 				// but just the filename of a file in the currently targetted book folder.
 				// [ OnOpenDocument() also computes the correct m_curOutputPath correctly
 				// using the bible book path and filename variables, but we don't use that
@@ -20790,12 +20790,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					}
 					if (gbIsGlossing)
 					{
-						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
+						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList,
 												nCumulativeTotal); // for glossing mode
 					}
 					else
 					{
-						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
+						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList,
 								nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
 					}
 					if (!bConsCheckDone)
@@ -20835,12 +20835,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// it's not book mode, do the check over all books in the Adaptations folder
 				// (dirPath has been set to pApp->m_curAdaptionsPath if book mode is not
 				// on, that is, to Adaptations folder)
-				
+
 				// need a copy of pKB to check for inconsistencies in
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
 
-                // Enumerate the doc files and do the consistency check 
+                // Enumerate the doc files and do the consistency check
                 // whm note: EnumerateDocFiles() has the side effect of changing the current
                 // work directory to the passed in dirPath.
 				bOK = pApp->EnumerateDocFiles(this, dirPath);
@@ -20854,7 +20854,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						_T(""),wxICON_EXCLAMATION);
                         pApp->LogUserAction(_T(
 "There are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
-						// before exiting, restore the former open document, 
+						// before exiting, restore the former open document,
 						// if one was open formerly
 						if (bDocForcedToClose)
 						{
@@ -20886,12 +20886,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					}
 					if (gbIsGlossing)
 					{
-						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList, 
+						bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList,
 												nCumulativeTotal); // for glossing mode
 					}
 					else
 					{
-						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList, 
+						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList,
 								nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
 					}
 					if (!bConsCheckDone)
@@ -20940,7 +20940,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		// reopen the doc with all as it was before; bMarkAsDirty = TRUE
 		bOK = ReOpenDocument(	pApp, strSaveCurrentDirectoryFullPath,
 			savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
-			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); 
+			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
 	}
 
 	// show stats
@@ -21062,7 +21062,7 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 	int index1 = 0;
 	while (index1 < 9 && index1 < setMax)
 	{
-		set[index1] = arrSetNotInKB.Item(index1); 
+		set[index1] = arrSetNotInKB.Item(index1);
 		index1++;
 	}
 	int index2 = 0;
@@ -21103,7 +21103,7 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // it 'flash' if it is visible only a short time); and
 // (b) collects a CSourcePhrase count and total for the statistics dialog shown by the
 // caller when the total job is done
-// 
+//
 // Modified, July 2003, for support of Auto Capitalization
 // BEW 12Apr10, no changes needed for support of doc version 5
 // BEW 17May10, moved to here from CAdapt_ItView
@@ -21111,7 +21111,7 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // the bible book folders in a loop set up in the caller (which is
 // OnEditConsistencyCheck())
 // BEW 11Oct10, changed to support ~ conjoining (without this fix, such joined words end
-// up in map 2, instead of being in map 1) 
+// up in map 2, instead of being in map 1)
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 // BEW 26Aug11, changes to prevent false positives, made this the only function of this
 // name, and added nCumulativeTotal 4th param
@@ -21129,8 +21129,8 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // IN THE SAME KB (ie. in pKBCopy). Therefore, we maintain
 // pTU, and pRefStr, as pertaining only to the pKBCopy knowledge base instance
 // but pTU_OnOrig, and pRefStr_OnOrig, for pKB's knowledge base instance
-bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
-						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB, 
+bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
+						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB,
 						wxArrayString& arrRemoveNotInKB)
 {
 	wxASSERT(pKB->IsThisAGlossingKB() == FALSE); // must be an adaptation kb for this fn version
@@ -21156,7 +21156,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 	int nTotal = 0;
 
 	// iterate over the document files
-	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
+	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
 								 // of the extern global of the same name
 	int i;
 	for (i=0; i < nCount; i++)
@@ -21195,7 +21195,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
         // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
         // returns TRUE to the caller if the attempted store fails for some reason, for all
-        // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure 
+        // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
         // is TRUE as we don't expect a failure and will ignore it if it does anyway;
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
@@ -21204,7 +21204,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		CSourcePhrase* pSrcPhrase = NULL;
 		int nWords;
 		// for the IsAlreadyInKB() test, we pass in pSrcPhrase->adaption
-		
+
 		// We also have to do some of the tests in parallel on both KBs, so that we get
 		// CTargetUnit and CRefString pointers in parallel from both KBs' entries when we
 		// need to make parallel changes to both KBs. Slows the check, but unavoidable
@@ -21221,7 +21221,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		// these two, for CTargetUnit and CRefString pts within pKB
 		CTargetUnit* pTU_OnOrig = NULL;
 		CRefString* pRefStr_OnOrig = NULL;
-		// we may need two flags here too 
+		// we may need two flags here too
 		bool bFoundTgtUnit = FALSE;
 		//bool bFoundTgtUnit_OnOrig = FALSE;
 
@@ -21233,7 +21233,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		AutoFixRecord* pAutoFixRec = NULL;
 
 		SPList* pPhrases = pApp->m_pSourcePhrases;
-		SPList::Node* pos1; 
+		SPList::Node* pos1;
 		pos1 = pPhrases->GetFirst();
 		wxASSERT(pos1 != NULL);
 		int counter = 0;
@@ -21269,7 +21269,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
             // presence
 			bInconsistency = FALSE;
 			pAutoFixRec = NULL;
-			bAddedToAFList = FALSE; // set TRUE if a created AutoFixRecord is 
+			bAddedToAFList = FALSE; // set TRUE if a created AutoFixRecord is
 									// Append()-ed to the passed in afList
 
 			// check the KBCopy has the required association of key with translation
@@ -21306,7 +21306,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// Check to get all other places it occurs compliant; and if a former <Not In
 			// KB> entry is declared to be no longer such for a given source text word or
 			// phrase, it is also our job here to enforce this decision everywhere - which
-			// typically means giving "deleted" status to the CRefString storing the 
+			// typically means giving "deleted" status to the CRefString storing the
 			// <Not In KB> string, and undeleting the CRefString (if present) of the adaptation
 			// corresponding to the source text word. To do these jobs, we have to collect
 			// entries where there are, for locations in the docs), non-deleted and
@@ -21361,7 +21361,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 					continue;
-				}	
+				}
 			}
 			// In the following block, we must test if the source word or phrase belongs
 			// to either array, arrSetNotInKB or arrRemoveNotInKB (and remember, the
@@ -21370,7 +21370,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// issue at the current location), and do whatever is appropriate; the
 			// diagnostic test must be done in pKBCopy, but parallel changes made in pKB
 			// too (because otherwise pKB wouldn't get the updates it needs from this process)
-			
+
 			// Start with those which require setting <Not In KB>
 			bool bMakeNotInKB = FALSE;
 			if (gbAutoCaps)
@@ -21383,7 +21383,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				// bCase is default TRUE, for a case-sensitive search (i.e. a and A are different)
 				bMakeNotInKB = arrSetNotInKB.Index(key) != wxNOT_FOUND;
 			}
-			if (bMakeNotInKB) 
+			if (bMakeNotInKB)
 			{
                 // found; so the current pSrcPhrase has to be made into a <Not In KB> one -
                 // we retain any adaptation; if it already is one, no harm is done; if
@@ -21511,7 +21511,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					{
                         // if there is a deleted <Not In KB> entry for this key in pKBCopy,
                         // add it to the array so that subsquent same key values will
-                        // enforce consistency in pKB 
+                        // enforce consistency in pKB
 						AddUniqueString(&arrRemoveNotInKB, key);
 						// (no need to do it also for pKB, because we maintain only lists
 						// done from diagnosis within pKBCopy's knowledge base)
@@ -21526,7 +21526,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                     // m_adaption is in the pKBCopy for this key; but
                     // pSrcPhrase->m_bHasKBEntry is FALSE, so we might have an
                     // inconsistency...
-	
+
                     // we might be in an unadapted part of the document, where there is no
                     // adaptation as yet and so m_bHasKBEntry would be FALSE, and fortuitously
                     // we matched in pKBCopy a source text key that earlier was given a
@@ -21560,7 +21560,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									bOrigToo = pTU_OnOrig->IsItNotInKB();
 								}
 
-								// this can be healed without calling a dialog, the 
+								// this can be healed without calling a dialog, the
 								// <NotIn KB> has priority
 								AddUniqueString(&arrSetNotInKB, key);
 
@@ -21597,7 +21597,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								bOrigToo = pTU_OnOrig->IsItNotInKB();
 							}
 
-							// this can be healed without calling a dialog, the 
+							// this can be healed without calling a dialog, the
 							// <Not In KB> has priority
 							AddUniqueString(&arrSetNotInKB, key);
 
@@ -21662,12 +21662,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					}
 
 					// we've handled all possibilities for <Not In KB> inconsistencies,
-					// the rest below is for adaptation inconsistencies -- whether empty 
+					// the rest below is for adaptation inconsistencies -- whether empty
 					// or not
-					
+
 					/* see the one after this, we prefer the "split adaptation" support, rather than this one
 					// keep this in case we later change our mind...
-					
+
 					if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_adaption.IsEmpty() &&
 						pSrcPhrase->m_bHasKBEntry && bDeleted)
 					{
@@ -21683,7 +21683,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// b) honour the deletion, and so set m_bHasKBEntry to FALSE, leaving
 						// a "hole" in the document here, or
 						// c) this src text shouldn't ever have a KB entry (so make it a <Not
-						// In KB> entry. The dialog for  
+						// In KB> entry. The dialog for
 						bInconsistency = TRUE;
 						inconsistencyType = member_empty_flag_on_PTUexists_deleted_Refstr;
 						pAutoFixRec = new AutoFixRecord;
@@ -21699,7 +21699,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					}
 					*/
 					// Lots of checks to do here -- we continue to use the m_adaption lookup above
-					
+
 					// remember, in the stuff below, pTU and pRefStr are in the pKBCopy
 					// kb, not the pKB original; for the latter we use pTU_OnOrig, or pKB
 					// itself, in our fixes (but not when diagnosing)
@@ -21711,7 +21711,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// This is an inconsistency. The CTargetUnit and CRefString exist, and
 						// pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
 						// which shouldn't be the case if the doc's m_bHasKBEntry flag is
-						// TRUE, and the adaptation is an empty string. 
+						// TRUE, and the adaptation is an empty string.
 						// There are 4 possibilies,
 						// a) it should be a <no adaptation> entry (so undelete it), or
 						// b) honour the deletion, and so set m_bHasKBEntry to FALSE, leaving
@@ -21720,7 +21720,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// <Not In KB> entry, or
 						// d) the user wants to "split" an empty adaptation to be different in
 						// some locations in the dialog (ie. non-empty)
-						
+
 						// NOTE -- supporting d) is incompatible with supporting b) and c) if
 						// we stick with just 3 dialogs; if we supported b) and c) we'd use
 						// the ConsChk_Empty_noTU_Dlg.h & .cpp, which gives no support to
@@ -21778,7 +21778,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					}
 
 					// final possibilities -- there was no CTargetUnit returned from the
-					// auto-caps lookup done in pKBCopy->IsAlreadyInKB(nWords, key, adaption, 
+					// auto-caps lookup done in pKBCopy->IsAlreadyInKB(nWords, key, adaption,
 					// pTU, pRefStr, bDeleted);
 					else if (pTU == NULL)
 					{
@@ -21798,13 +21798,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// empty, but there is no pTU
 							// Three fixes are possible:
 							// (1) a <no adaptation> entry added to the KB
-							// (2) a <Not In KB> entry added to the KB (empty adaptation 
-							// is retained in the doc & certain flags change value, 
+							// (2) a <Not In KB> entry added to the KB (empty adaptation
+							// is retained in the doc & certain flags change value,
 							// eg. m_bNotInKB)
-							// (3) leave this location unadapted (the fix is then that 
+							// (3) leave this location unadapted (the fix is then that
 							// m_bHasKBEntry flag needs to be reset to FALSE and nothing
 							// is added to the KB)
-							// 
+							//
 							//For the dialog for this, give a simple explanation of the
 							//options, radio buttons for the 3 choices, a checkbox for the
 							//"Auto-fix later instances the same way" option, a Cancel
@@ -21826,12 +21826,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						} // end of TRUE block for test: if (adaption.IsEmpty())
 						else if (pSrcPhrase->m_bHasKBEntry)
 						{
-							// pSrcPhrase->m_adaption is not empty, and the flag is TRUE, so 
+							// pSrcPhrase->m_adaption is not empty, and the flag is TRUE, so
 							// the possible fixes for this are:
 							// (1) store the adaption string in the KB, and make the
 							// m_targetStr member (ie. no inhibition of making m_targetStr)
 							// (2) a <Not In KB> entry added to the KB (the adaptation is
-							// retained in the doc, & certain flags change value, eg. 
+							// retained in the doc, & certain flags change value, eg.
 							// m_bNotInKB)
 							// The dialog for this is similar to the one for above, but
 							// with 2 options and showing the target text
@@ -21847,7 +21847,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 							// the dialog for this one is conschk_exists_notu_dlg
 							// which has wxDesigner func, ConsistencyCheck_ExistsNoTU_DlgFunc()
-							
+
 						} // end of else if block for test: if (pSrcPhrase->m_bHasKBEntry)
 						else
 						{
@@ -21872,7 +21872,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // ******* Inconsistency fixes (by AutoFixRecord or by dialog) begins here ********
 
 			// open a dialog if we have an inconsistency, or do the fix without a dialog
-			// if we match a stored auto-fix record (the latter first, if there is such) 
+			// if we match a stored auto-fix record (the latter first, if there is such)
 			if (bInconsistency)
 			{
                 // work out if this is an auto-fix item, if so, don't show the dialog, but
@@ -22000,7 +22000,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									}
 									pKBCopy->StoreText(pSrcPhrase, pApp->m_strNotInKB);
 									pKB->StoreText(pSrcPhrase, pApp->m_strNotInKB);
-									
+
 									// ensure this src word or phrase is <Not In KB>
 									// elsewhere too
 									AddUniqueString(&arrSetNotInKB, key);
@@ -22035,7 +22035,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							if (tempStr != pApp->m_strNotInKB)
 							{
 								// the user chose a normal adaptation or empty string
-								
+
 								// the following call is now done internally in StoreText()
 								//pApp->GetView()->RemovePunctuation(this, &tempStr, from_target_text);
 
@@ -22044,7 +22044,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								{
 									// TRUE = allow empty string storage
 									gbInhibitMakeTargetStringCall = TRUE;
-									pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+									pKB->StoreText(pSrcPhrase,tempStr,TRUE);
 									gbInhibitMakeTargetStringCall = FALSE;
 								}
 								else
@@ -22193,11 +22193,11 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							;
 						}
 						break;
-					} // end of switch (pAFRecord->incType)  
-					
+					} // end of switch (pAFRecord->incType)
+
 					pApp->m_targetPhrase = pAutoFixRec->finalAdaptation; // any brief glimpse
 						// of the box should show the current adaptation string
-	
+
 				} // end of TRUE block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 				else
 				{
@@ -22205,7 +22205,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 					// no match, so this is has to be handled with user intervention via
 					// the dialogs
-					
+
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
                     // the dialog, return ptr to the phrase box's cell in the view
@@ -22256,8 +22256,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 								afList.Append(pAutoFixRec);
-							} 
-							
+							}
+
 							// do the fixit action
 							switch (pAutoFixRec->fixAction)
 							{
@@ -22361,7 +22361,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						{
 							bUserCancelled = TRUE;
 							break;
-						}	
+						}
 						}
 						break;
 					case member_exists_flag_on_noPTU:
@@ -22398,8 +22398,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 								afList.Append(pAutoFixRec);
-							} 
-							
+							}
+
 							// do the fixit action
 							switch (pAutoFixRec->fixAction)
 							{
@@ -22428,7 +22428,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									}
 									pKBCopy->StoreText(pSrcPhrase, pApp->m_strNotInKB);
 									pKB->StoreText(pSrcPhrase, pApp->m_strNotInKB);
-									
+
 									// ensure this src word or phrase is <Not In KB>
 									// elsewhere too
 									AddUniqueString(&arrSetNotInKB, key);
@@ -22503,8 +22503,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 								afList.Append(pAutoFixRec);
-							} 
-							
+							}
+
 							// if the adaptation is null, then assume user wants it that way
 							// and so store an empty string, else store whatever it is -- and
 							// since the actions all involve just a StoreText() call, we don't
@@ -22523,7 +22523,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								{
 									// TRUE = allow empty string storage
 									gbInhibitMakeTargetStringCall = TRUE;
-									pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
+									pKB->StoreText(pSrcPhrase,tempStr,TRUE);
 									gbInhibitMakeTargetStringCall = FALSE;
 								}
 								else
@@ -22637,8 +22637,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 								bAddedToAFList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 								afList.Append(pAutoFixRec);
-							} 
-							
+							}
+
 							// do the fixit action
 							switch (pAutoFixRec->fixAction)
 							{
@@ -22665,7 +22665,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case store_empty_meaning:
 								{
-									// make the empty adaptation a normal entry  in KB 
+									// make the empty adaptation a normal entry  in KB
 									gbInhibitMakeTargetStringCall = TRUE;
 									pKB->StoreText(pSrcPhrase,pAutoFixRec->finalAdaptation,TRUE);
 									gbInhibitMakeTargetStringCall = FALSE;
@@ -22697,7 +22697,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									{
 										bOnOrig = TRUE;
 									}
-									
+
 									pSrcPhrase->m_bHasKBEntry = FALSE;
 									pSrcPhrase->m_bNotInKB = TRUE;
 
@@ -22746,7 +22746,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					} // end of switch (pAFRecord->incType)
 					if (bUserCancelled)
 					{
-						break; // break again, this time from the consistency check loop for 
+						break; // break again, this time from the consistency check loop for
 							   // this doc, so that code below can cancel the overall check
 					}
 
@@ -22795,7 +22795,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
                 // TRUE, which would cause an assert to trip
 		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
 											     // since it won't get recreated
-		
+
         // BEW 9July10, added test and changed param to FALSE if doing bible book folders
         // loop, as we don't want time wasted for a progress dialog for what are probably a
         // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
@@ -22807,7 +22807,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			_T(""), wxICON_EXCLAMATION);
 		}
 		pApp->GetView()->ClobberDocument();
-		
+
 		// delete the buffer containing the filed-in source text
 		if (pApp->m_pBuffer != NULL)
 		{
@@ -22829,7 +22829,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // Returns TRUE if process runs to completion, FALSE if the user clicks the Cancel button
 // in any dialog which is shown - the FALSE is then passed back to the caller,
 // OnEditConsistencyCheck() to cause the whole process to be cancelled
-bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy, 
+bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 									   AFGList& afgList, int& nCumulativeTotal)
 {
 	// use AutoFixRecordG, and AFGList, and m_gloss herein
@@ -22855,7 +22855,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 	int nTotal = 0;
 
 	// iterate over the document files
-	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope 
+	bool bUserCancelled = FALSE; // whm note: Caution: This bUserCancelled overrides the scope
 								 // of the extern global of the same name
 	int i;
 	for (i=0; i < nCount; i++)
@@ -22892,7 +22892,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
         // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
         // returns TRUE to the caller if the attempted store fails for some reason, for all
-        // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure 
+        // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
         // is TRUE as we don't expect a failure and will ignore it if it does anyway;
 		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
@@ -22915,7 +22915,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		bool bInconsistency = FALSE;
 
 		SPList* pPhrases = pApp->m_pSourcePhrases;
-		SPList::Node* pos1; 
+		SPList::Node* pos1;
 		pos1 = pPhrases->GetFirst();
 		wxASSERT(pos1 != NULL);
 		int counter = 0;
@@ -22951,7 +22951,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
             // presence
 			bInconsistency = FALSE;
 			pAutoFixGRec = NULL;
-			bAddedToAFGList = FALSE; // set TRUE if a created AutoFixRecordG is 
+			bAddedToAFGList = FALSE; // set TRUE if a created AutoFixRecordG is
 									// Append()-ed to the passed in afgList
 
 			// check the KBCopy has the required association of key with translation
@@ -22985,7 +22985,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 				else
 				{
 					// pSrcPhrase->m_bHasGlossingKBEntry is FALSE, so we might have an inconsistency...
-	
+
                     // we might be in a part of the document, where there is no
                     // gloss as yet and m_bHasGlossingKBEntry would be FALSE, and fortuitously
                     // we matched an earlier source text key that has been given a
@@ -23013,8 +23013,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 			else
 			{
 				// lookup determined that there was no gloss string matched with the given key
-				// value in the glossing KB, but that could be for a variety of reasons, 
-				// including 
+				// value in the glossing KB, but that could be for a variety of reasons,
+				// including
 				// (1) the KB gloss value was deleted (it might have been done
 				// deliberately in the KB editor by the user, in order to force the option
 				// to split a gloss into different glosses at different locations
@@ -23039,10 +23039,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 				}
 
 				// the rest below is for gloss inconsistencies -- whether empty or not
-				
+
 				/* see below, this is the alternative we've rejected, in favour of "splitting a gloss" support
 				// keep this in case we later change our mind...
-				
+
 				if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_gloss.IsEmpty() &&
 					pSrcPhrase->m_bHasGlossingKBEntry && bDeleted)
 				{
@@ -23084,7 +23084,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// leaving a glossing "hole" in the document here, or
 					// c) the user wants to "split" an empty gloss to be different in
 					// some locations in the dialog (ie. non-empty)
-					
+
                     // NOTE -- supporting c) is incompatible with supporting b) if we stick
                     // with just 3 dialogs; if we supported b) we'd use the
                     // ConsChk_Empty_noTU_Dlg.h & .cpp, which gives no support to splitting
@@ -23096,7 +23096,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
                     // former - and this we won't do. The ability to split the gloss
                     // meaning is more likely to be useful in real situations than b); so
                     // we support the revamped legacy dialog here - which allows the user
-                    // to at least have a <no gloss> entry put in the glossing KB if he 
+                    // to at least have a <no gloss> entry put in the glossing KB if he
                     // elects to leave the top right box empty.
 					bInconsistency = TRUE;
 					inconsistencyType = member_empty_flag_on_PTUexists_deleted_Refstr;
@@ -23132,7 +23132,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					pAutoFixGRec->fixAction = no_GUI_needed; // a default value
 						// until such time as the dialog is shown and the user's
 						// fixit choice becomes known & replaces this value
-						
+
 					// dialog for this is the revamped legacy ConsistencyCheckDlg.h &.cpp
 				}
 				else if (!pSrcPhrase->m_bHasGlossingKBEntry && pTU != NULL && pRefStr != NULL && bDeleted)
@@ -23142,13 +23142,13 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// the flag is not set, and the pRefStr''s m_translation contents has
 					// been marked as bDeleted = TRUE; the only thing possible here is
 					// that really it shouldn't be deleted (in which case, it should be
-					// re-stored in the KB) -- we can fix this one automatically 
+					// re-stored in the KB) -- we can fix this one automatically
 					bool bStored;
 					bStored = pKB->StoreText(pSrcPhrase, gloss);
 					continue;
 				}
 				// final possibilities -- there was no CTargetUnit returned from the
-				// auto-caps lookup done in IsAlreadyInKB(nWords, key, gloss, 
+				// auto-caps lookup done in IsAlreadyInKB(nWords, key, gloss,
 				// pTU, pRefStr, bDeleted);
 				else if (pTU == NULL)
 				{
@@ -23160,7 +23160,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
                         // m_gloss is empty, but there is no pTU
                         // Two fixes are possible:
 						// (1) a <no gloss> entry added to the glossing KB
-						// (2) leave this location unglossed (the fix is then that 
+						// (2) leave this location unglossed (the fix is then that
                         // m_bHasGlossingKBEntry flag needs to be reset to FALSE and
                         // nothing is added to the glossingKB)
 						inconsistencyType = member_empty_flag_on_noPTU;
@@ -23178,16 +23178,16 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						pAutoFixGRec->fixAction = no_GUI_needed; // a default value
 						// until such time as the dialog is shown and the user's
 						// fixit choice becomes known & replaces this value
-						
+
 						// the dialog for this one is ConsChk_Empty_noTU_Dlg with the
 						// <Not In KB> option hidden
 
 					} // end of TRUE block for test: if (gloss.IsEmpty())
 					else if (pSrcPhrase->m_bHasGlossingKBEntry)
 					{
-						// pSrcPhrase->m_gloss is not empty, and the flag is TRUE, so 
+						// pSrcPhrase->m_gloss is not empty, and the flag is TRUE, so
 						// only one fix is possible...
-						// (1) store the gloss string in the KB - and for that a GUI is 
+						// (1) store the gloss string in the KB - and for that a GUI is
 						// not required
 						pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // <<-- required so we can store without an assert tripping
 						bool bStored;
@@ -23287,8 +23287,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							if (tempStr.IsEmpty())
 							{
 								// TRUE = allow empty string storage
-								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
-				
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
+
 							}
 							else
 							{
@@ -23300,12 +23300,12 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 								bool bNoError = SetCaseParameters(pSrcPhrase->m_key);
 								if (bNoError && gbSourceIsUpperCase)
 								{
-									bNoError = SetCaseParameters(tempStr,FALSE); 
+									bNoError = SetCaseParameters(tempStr,FALSE);
 															// FALSE means "it's target text"
-									if (bNoError && !gbNonSourceIsUpperCase && 
+									if (bNoError && !gbNonSourceIsUpperCase &&
 										(gcharNonSrcUC != _T('\0')))
 									{
-										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC); 
+										pSrcPhrase->m_gloss.SetChar(0,gcharNonSrcUC);
 															// get m_adaption member done
 									}
 								}
@@ -23320,17 +23320,17 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							;
 						}
 						break;
-					} // end of switch (pAutoFixGRec->incType)  
-					
+					} // end of switch (pAutoFixGRec->incType)
+
 					pApp->m_targetPhrase = pAutoFixGRec->finalGloss; // any brief glimpse
 						// of the box should show the current gloss string
-	
+
 				} // end of TRUE block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 				else
 				{
 					// no match, so this is has to be handled with user intervention via
 					// the dialogs
-					
+
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
                     // the dialog, return ptr to the phrase box's cell in the view
@@ -23381,8 +23381,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							{
 								bAddedToAFGList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 								afgList.Append(pAutoFixGRec);
-							} 
-							
+							}
+
 							// do the fixit action
 							switch (pAutoFixGRec->fixAction)
 							{
@@ -23404,7 +23404,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 									pKB->StoreText(pSrcPhrase, pAutoFixGRec->finalGloss);
 								}
 								break;
-							// whm 19Sep11 added the case items below to avoid g++ warnings about unused 
+							// whm 19Sep11 added the case items below to avoid g++ warnings about unused
 							// enums.
 							// This is based on a similar switch statement above at line 23204 where bruce
 							// appears to have done the same thing.
@@ -23472,7 +23472,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						{
 							// get and store the FixItAction (all 3 possibilities are storage
 							// actions: store_nonempty_meaning, store_empty_meaning, or
-							// restore_meaning_to_doc); also get the user's final string 
+							// restore_meaning_to_doc); also get the user's final string
 							pAutoFixGRec->fixAction = dlg.actionTaken;
 							pAutoFixGRec->finalGloss = dlg.m_finalAdaptation;
 
@@ -23482,7 +23482,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							{
 								bAddedToAFGList = TRUE; // <<- BEW added 30Aug11, the new code needs it
 								afgList.Append(pAutoFixGRec);
-							} 
+							}
 
 							// if the adaptation is null, then assume user wants it that way
 							// and so store an empty string, else store whatever it is -- and
@@ -23495,20 +23495,20 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							if (tempStr.IsEmpty())
 							{
 								// TRUE = allow empty string storage
-								pKB->StoreText(pSrcPhrase, tempStr, TRUE); 
-									// StoreText() sets m_gloss for glossing KB					
+								pKB->StoreText(pSrcPhrase, tempStr, TRUE);
+									// StoreText() sets m_gloss for glossing KB
 							}
 							else
 							{
 								// glossing store can have punctuation in it
-								pKB->StoreText(pSrcPhrase, tempStr); 
-									// StoreText() sets m_gloss for glossing KB					
+								pKB->StoreText(pSrcPhrase, tempStr);
+									// StoreText() sets m_gloss for glossing KB
 
 								// now handle what the doc has
 								/* StoreText() does this now
 								if (gbAutoCaps)
 								{
-									// if Auto Caps is on, gloss text can be auto 
+									// if Auto Caps is on, gloss text can be auto
 									// capitalized too, but it would be only if there was
 									// no initial punctuation (since no punctuation
 									// stripping happens in glossing mode), so we only
@@ -23520,7 +23520,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 												// FALSE means "using target punct list"
 									wxString strInitialPunct = SpanIncluding(
 														tempStr,pApp->m_punctuation[1]);
-									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE 
+									bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE
 													// means "using target punct list"
 									if (bNoError && gbSourceIsUpperCase && !gbNonSourceIsUpperCase
 										&& (gcharNonSrcUC != _T('\0')))
@@ -23551,10 +23551,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							;
 						}
 						break;
-					} // end of switch (pAFRecord->incType)  
+					} // end of switch (pAFRecord->incType)
 					if (bUserCancelled)
 					{
-						break; // again, this time from the consistency check loop for 
+						break; // again, this time from the consistency check loop for
 							   // this doc, so that code below can cancel the overall check
 					}
 
@@ -23581,7 +23581,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		// BEW removed 29Apr10 in favour of the "_Protected" version below, to
 		// give better data protection
 		//bool bSavedOK = pDoc->DoFileSave(TRUE);
-		
+
         // BEW 9July10, added test and changed param to FALSE if doing bible book folders
         // loop, as we don't want time wasted for a progress dialog for what are probably a
         // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
@@ -23593,7 +23593,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 			_T(""), wxICON_EXCLAMATION);
 		}
 		pApp->GetView()->ClobberDocument();
-		
+
 		// delete the buffer containing the filed-in source text
 		if (pApp->m_pBuffer != NULL)
 		{
@@ -23630,7 +23630,7 @@ CCell* CAdapt_ItDoc::LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhr
 	GetLayout()->RecalcLayout(pPhrases, create_strips_keep_piles);
 #endif
 	pApp->m_pActivePile = GetPile(nActiveSequNum);
-	
+
 	pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
 	CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where
 											 // the phraseBox is to be
@@ -23662,7 +23662,7 @@ bool CAdapt_ItDoc::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
 	wxASSERT(pSrcPhrase != NULL);
 	if (pList->IsEmpty() || pRecTest == NULL)
 		return FALSE;
-	AFList::Node* pos = pList->GetFirst(); 
+	AFList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	while (pos != NULL)
 	{
@@ -23672,7 +23672,7 @@ bool CAdapt_ItDoc::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
 		{
  			if (pRec->incType == pRecTest->incType)
 			{
-                // the inconsistency types are the same (and have to be for a match) 
+                // the inconsistency types are the same (and have to be for a match)
                 // NOTE:
                 // the passed in pRecTest won't have had it's finalAdaptation member set
                 // yet and if we get a match and pass it back without setting the value
@@ -23708,7 +23708,7 @@ bool CAdapt_ItDoc::MatchAutoFixGItem(AFGList* pList,CSourcePhrase *pSrcPhrase,
 	wxASSERT(pSrcPhrase != NULL);
 	if (pList->IsEmpty() || pRecTest == NULL)
 		return FALSE;
-	AFGList::Node* pos = pList->GetFirst(); 
+	AFGList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	while (pos != NULL)
 	{
@@ -23785,7 +23785,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 	// recover, and \bt for any collected back translation string, when any of these is
 	// present in m_freeTrans, m_note, and m_collectedBackTrans, respectively. We do that
 	// below after the call to GetMarkersAndTextFromString(), as the latter can handle the
-	// m_markers added to m_filteredInfo in the parameter list. 
+	// m_markers added to m_filteredInfo in the parameter list.
 	posn = pList->GetFirst();
 	wxASSERT(posn != NULL);
 	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)posn->GetData();
@@ -23855,7 +23855,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 				int posm = 1; // skip initial backslash
 				bareMarker.Empty();
 				displayStr.Empty();
-				while (posm < strLen && resultStr[posm] != _T(' ') && 
+				while (posm < strLen && resultStr[posm] != _T(' ') &&
 						resultStr[posm] != gSFescapechar)
 				{
 					bareMarker += resultStr[posm];
@@ -23886,13 +23886,13 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
                 // file to read: "Back Translation (and all \bt... initial forms)".
 				if (bareMarker.Find(_T("bt")) == 0)
 				{
-					bareMarker = _T("bt"); // make any \bt... initial forms be just 
+					bareMarker = _T("bt"); // make any \bt... initial forms be just
 										   // \bt in the listbox
 				}
-				pSfm = LookupSFM(bareMarker); // use LookupSFM which properly 
+				pSfm = LookupSFM(bareMarker); // use LookupSFM which properly
 													// handles \bt... forms as \bt
 				bool bFound = pSfm != NULL;
-				lbStr = _T(' '); // prefix one initial space - looks better 
+				lbStr = _T(' '); // prefix one initial space - looks better
 								 // in a CCheckListBox
 				lbStr += gSFescapechar; // add backslash
 				// Since LookupSFM will find any back-translation marker of the form
@@ -23906,7 +23906,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 				{
 					// unknown marker so make the description [UNKNOWN MARKER]
 					// IDS_UNKNOWN_MARKER
-					temp = _("[UNKNOWN MARKER]"); // prefix description 
+					temp = _("[UNKNOWN MARKER]"); // prefix description
 												  // with "[UNKNOWN MARKER]"
 					lbStr = lbStr + temp;
 				}
@@ -23915,7 +23915,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 					if (markerIsFiltered)
 					{
 						// IDS_FILTERED
-						temp = _("[FILTERED]"); // prefix description 
+						temp = _("[FILTERED]"); // prefix description
 												// with "[FILTERED] ..."
 						lbStr += temp;
 						lbStr += _T(' ');
@@ -23942,7 +23942,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 					// when exporting either free translations or glosses as text
 					if (pApp->m_bExportingFreeTranslation || pApp->m_bExportingGlossesAsText)
 					{
-						if (bareMarker == _T("note") || 
+						if (bareMarker == _T("note") ||
 							bareMarker == _T("free") ||
 							bareMarker == _T("bt"))
 						{
@@ -23954,16 +23954,16 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 							m_exportBareMarkers.Add(bareMarker);
 							m_exportMarkerAndDescriptions.Add(lbStr);
 							m_exportFilterFlags.Add(FALSE);
-							m_exportFilterFlagsBeforeEdit.Add(FALSE); 
+							m_exportFilterFlagsBeforeEdit.Add(FALSE);
 						}
 					}
 					else
 					{
 						m_exportBareMarkers.Add(bareMarker);
 						m_exportMarkerAndDescriptions.Add(lbStr);
-						m_exportFilterFlags.Add(FALSE); // export defaults to nothing 
+						m_exportFilterFlags.Add(FALSE); // export defaults to nothing
 														// filtered out
-						m_exportFilterFlagsBeforeEdit.Add(FALSE); // export defaults to 
+						m_exportFilterFlagsBeforeEdit.Add(FALSE); // export defaults to
 																  // nothing filtered out
 					}
 				}
@@ -23973,7 +23973,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 	wxClientDC dC(pApp->GetMainFrame()->canvas);
 	pApp->FormatMarkerAndDescriptionsStringArray(&dC,
 							&m_exportMarkerAndDescriptions, 2, NULL);
-	// last parameter in call above is 2 spaces min 
+	// last parameter in call above is 2 spaces min
 	// between whole marker and its description
 }
 
@@ -24084,7 +24084,7 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc_For_Collab()
 			int strLen = resultStr.Length();
 			int posm = 1; // skip initial backslash
 			bareMarker.Empty();
-			while (posm < strLen && resultStr[posm] != _T(' ') && 
+			while (posm < strLen && resultStr[posm] != _T(' ') &&
 					resultStr[posm] != gSFescapechar)
 			{
 				bareMarker += resultStr[posm];
@@ -24190,7 +24190,7 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 			return FALSE;
 		}
 
-		// determine if it is a lower case source character 
+		// determine if it is a lower case source character
 		// which has an upper case equivalent
 		bIsLower = IsInCaseCharSet(chFirst,pApp->m_srcLowerCaseChars,nOffset);
 		if (bIsLower)
@@ -24211,7 +24211,7 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 			bIsUpper = IsInCaseCharSet(chFirst,pApp->m_srcUpperCaseChars,nOffset);
 			if (bIsUpper)
 			{
-				// it is an upper case source char for which there is a lower case 
+				// it is an upper case source char for which there is a lower case
 				// equivalent
 				gbSourceIsUpperCase = TRUE;
 				gcharSrcUC = chFirst;
@@ -24220,7 +24220,7 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 			}
 			else
 			{
-				// it has indeterminate case, so treat as lower case with zero as its 
+				// it has indeterminate case, so treat as lower case with zero as its
 				// upper case equiv
 				gbSourceIsUpperCase = FALSE;
 				gcharSrcLC = chFirst;
@@ -24305,7 +24305,7 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 			}
 			else
 			{
-				// it has indeterminate case, so treat as lower case with zero as 
+				// it has indeterminate case, so treat as lower case with zero as
 				// its upper case equiv
 				gbNonSourceIsUpperCase = FALSE;
 				gcharNonSrcLC = chFirst;
