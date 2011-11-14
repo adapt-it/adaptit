@@ -1,4 +1,26 @@
 ----------------------------------------------
+Version 6.0.2 release 23 November 2011
+----------------------------------------------
+----------------------------------------------
+Bug fixes and enhancements in 6.0.2
+----------------------------------------------
+* The problems with the Print routines have been fixed for 
+the Linux version.
+* Adapt It now can run on computers with smaller screen
+resolutions, and on Balsa which reduces the effective
+screen resolution due to its large system font sizes. Now,
+when Adapt It needs to display the Start Working Wizard,
+the Preferences dialog or any other dialog, it detects if
+the dialog cannot be displayed in its entirety due to lack 
+of screen space. In such cases Adapt It will display the OK, 
+Cancel and other important dialog buttons within clear view
+at the bottom of the dialog frame, but the remainder of the 
+dialog will be able to scroll (horizontallyi and/or 
+vertically if needed) in order to allow the user to view all 
+the remaining information on the dialog.
+* 
+
+----------------------------------------------
 Version 6.0.1 release 24 October 2011
 ----------------------------------------------
 ----------------------------------------------
