@@ -20,6 +20,9 @@
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
 					<Add option="-L$(WXWIN)/buildgtkud/lib -pthread   -Wl,-rpath,$(WXWIN)/buildgtkud/lib -lwx_gtk2ud_richtext-2.8 -lwx_gtk2ud_aui-2.8 -lwx_gtk2ud_xrc-2.8 -lwx_gtk2ud_qa-2.8 -lwx_gtk2ud_html-2.8 -lwx_gtk2ud_adv-2.8 -lwx_gtk2ud_core-2.8 -lwx_baseud_xml-2.8 -lwx_baseud_net-2.8 -lwx_baseud-2.8 -lcurl -luuid" />
 				</Linker>
+				<ExtraCommands>
+					<Add before="#define __WXDEBUG__" />
+				</ExtraCommands>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/adaptit" prefix_auto="1" extension_auto="1" />
@@ -44,6 +47,9 @@
 			<Add directory="$(WXWIN)/include" />
 			<Add directory="$(WXWIN)/contrib/include" />
 		</Compiler>
+		<ExtraCommands>
+			<Add before="#define __WXGTK__" />
+		</ExtraCommands>
 		<Unit filename="../../res/32x32/adaptit.png" />
 		<Unit filename="../../res/48x48/adaptit.png" />
 		<Unit filename="../../res/AI16x16-4color.ico" />
