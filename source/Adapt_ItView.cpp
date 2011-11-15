@@ -3315,6 +3315,13 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	gbIsBeingPreviewed = FALSE; // from MFC's OnPreparePrinting
 
 	CAdapt_ItApp* pApp = &wxGetApp();
+#if defined(__WXGTK__)
+    // BEW added 15Nov11  -- set up defaults for page range choice, 'no choice', PageOffsets the initial page only
+    pApp->m_bPrintingPageRange = FALSE;
+    pApp->m_userPageRangePrintStart = 1; // 1-base indexing
+    pApp->m_userPageRangePrintEnd = 1;   // 1-based indexing
+#endif
+
 
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
 
@@ -3354,6 +3361,13 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 			nTo = wxAtoi(strTo);
 			printDialogData.SetFromPage(nFrom);
 			printDialogData.SetToPage(nTo);
+#if defined(__WXGTK__)
+            // BEW added 15Nov11  -- a workaround because the Linux build loses the
+            // nFrom and nTo values somewhere in the wxGnomeprinter framework
+            pApp->m_bPrintingPageRange = TRUE;
+            pApp->m_userPageRangePrintStart = nFrom; // 1-base indexing
+            pApp->m_userPageRangePrintEnd = nTo; // 1-based indexing
+#endif
 		}
 		else if (poDlg.pRadioSelection->GetValue() == TRUE)
 		{
@@ -3375,6 +3389,13 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
 		pApp->m_bIsPrinting = FALSE;
 		pApp->LogUserAction(_T("Cancelled OnPrint()"));
+#if defined(__WXGTK__)
+        // BEW added 15Nov11  -- restore defaults for page range choice, 'no choice',
+        // PageOffsets the initial page only
+        pApp->m_bPrintingPageRange = FALSE;
+        pApp->m_userPageRangePrintStart = 1; // 1-base indexing
+        pApp->m_userPageRangePrintEnd = 1; // 1-based indexing
+#endif
 		return;
 	}
 	wxPrinter printer(& printDialogData);
@@ -3412,6 +3433,8 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     {
         (*pApp->pPrintData) = printer.GetPrintDialogData().GetPrintData();
     }
+    // Do not clear m_bPrintingPageRange to FALSE here, it is needed until DoPrintCleanup()'s
+    // internal test of it's value is done in the AIPrintout destructor
 
 	// klb 9/2011 : toggle main screen to hide glosses again if necessary
 	if (bNeedToToggleGlossing == TRUE)
@@ -4438,6 +4461,51 @@ bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRang
    return TRUE;
 }
 
+#if defined(__WXGTK__)
+bool CAdapt_ItView::SetupPageRangePrintOp(const int nFromPage, const int nToPage, wxPrintData* pPrintData)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    POList* pList = &pApp->m_pagesList;
+    int count;
+    count = pList->GetCount();
+    if (count < 1)
+    {
+        // there has to be a range
+        return FALSE;
+    }
+    int nFromSequNum = -1;
+    int nToSequNum = -1;
+    // find the sequence number of the first pile in the top strip in the nFromPage
+    // PageOffsets struct
+    POList::Node* pos = pList->Item(nFromPage - 1);
+    PageOffsets* pPageOffsets = pos->GetData();
+    int nFirstStrip = pPageOffsets->nFirstStrip;
+    CLayout* pLayout = pApp->GetLayout();
+    wxArrayPtrVoid* pStrips = pLayout->GetStripArray();
+    CStrip* pStrip = (CStrip*)pStrips->Item(nFirstStrip);
+    CPile* pPile = pStrip->GetPileByIndex(0);
+    CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+    nFromSequNum = pSrcPhrase->m_nSequNumber;
+    wxASSERT(nFromSequNum >= (int)0 && nFromSequNum < (int)pApp->m_pSourcePhrases->GetCount());
+    // find the sequence number of the last pile in the last strip in the nToPage
+    // PageOffsets struct
+    pos = pList->Item(nToPage - 1);
+    pPageOffsets = pos->GetData();
+    int nLastStrip = pPageOffsets->nLastStrip;
+    pStrip = (CStrip*)pStrips->Item(nLastStrip);
+    wxArrayPtrVoid* pPilesArray = pStrip->GetPilesArray();
+    int pileCount = pPilesArray->GetCount();
+    pPile = pStrip->GetPileByIndex(pileCount - 1);
+    pSrcPhrase = pPile->GetSrcPhrase();
+    nToSequNum = pSrcPhrase->m_nSequNumber;
+    wxASSERT(nToSequNum >= (int)0 && nToSequNum >= nFromSequNum && nToSequNum < (int)pApp->m_pSourcePhrases->GetCount());
+
+    // get this range printed
+    bool bOK = DoRangePrintOp(nFromSequNum, nToSequNum, pPrintData);
+    return bOK;
+}
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if the range could not be determined or found, otherwise TRUE
 /// \param      nFromCh     -> an int representing the chapter at the beginning of the range
@@ -4460,17 +4528,18 @@ bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRang
 /// being lost, and probably a crash. I removed the WXUNUSED() - Bill's code uses thse
 /// 3 params.
 /////////////////////////////////////////////////////////////////////////////////
-//bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
-//									  const int nToV, wxPrintData* WXUNUSED(pPrintData),
-//									  bool WXUNUSED(bSuppressPrecedingHeadingInRange),
-//									  bool WXUNUSED(bIncludeFollowingHeadingInRange))
 bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 									  const int nToV, wxPrintData* pPrintData,
-									  bool bSuppressPrecedingHeadingInRange,
-									  bool bIncludeFollowingHeadingInRange)
+									  bool WXUNUSED(bSuppressPrecedingHeadingInRange),
+									  bool WXUNUSED(bIncludeFollowingHeadingInRange))
+//bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
+//									  const int nToV, wxPrintData* pPrintData,
+//									  bool bSuppressPrecedingHeadingInRange,
+//									  bool bIncludeFollowingHeadingInRange)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	//CLayout* pLayout = GetLayout();
+	pPrintData = pPrintData; // to avoid a spurious compiler warning
 
 	// whm revised 8Mar08 to correct logic of tests for range inclusion
 	if (pApp->m_selectionLine != -1)
