@@ -6,19 +6,19 @@
 /// \date_revised	1 March 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CPrintOptionsDlg class. 
+/// \description	This is the implementation file for the CPrintOptionsDlg class.
 /// The CPrintOptionsDlg class provides a dialog for the user to enter a range
-/// of pages, range of chapter/verse and specify how to handle margin elements 
+/// of pages, range of chapter/verse and specify how to handle margin elements
 /// such as section headings and footers at print time. This dialog pops up
 /// before the standard print dialog when the user selects File | Print.
 /// \derivation		The CPrintOptionsDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in PrintOptionsDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -54,7 +54,7 @@
 #include "Layout.h"
 #include "FreeTrans.h"
 #include "PrintOptionsDlg.h"
-#include "Adapt_ItView.h" 
+#include "Adapt_ItView.h"
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "WaitDlg.h"
@@ -109,11 +109,11 @@ END_EVENT_TABLE()
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      parent   -> 
+/// \param      parent   ->
 /// \remarks
 /// The CPrintOptionsDlg constructor. Called from the View's OnPrint() high level handler (activated on the
-/// File | Print menu command). It uses the C++ resource code created by wxDesigner to create the dialog, 
-/// sets some variables, and gets pointers to the dialog controls. 
+/// File | Print menu command). It uses the C++ resource code created by wxDesigner to create the dialog,
+/// sets some variables, and gets pointers to the dialog controls.
 ////////////////////////////////////////////////////////////////////////////////////////////
 CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose your special print options"),
@@ -125,7 +125,7 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	// size dialog.
 	PrintOptionsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 
@@ -137,8 +137,8 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	gpApp->m_bPrintingRange = FALSE;
 	m_bSuppressFooter = FALSE;
 	gbPrintFooter = TRUE;
-	
-	// whm 30Aug11 added the next two for the "Additional text to include 
+
+	// whm 30Aug11 added the next two for the "Additional text to include
 	// in Printouts" section of the "Special Print Options" dialog.
 	pCheckInclFreeTransText = (wxCheckBox*)FindWindowById(ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT);
 	wxASSERT(pCheckInclFreeTransText != NULL);
@@ -148,45 +148,45 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 
 	pEditChFrom = (wxTextCtrl*)FindWindowById(IDC_EDIT1);
 	wxASSERT(pEditChFrom != NULL);
-	
+
 	pEditVsFrom = (wxTextCtrl*)FindWindowById(IDC_EDIT2);
 	wxASSERT(pEditVsFrom != NULL);
-	
+
 	pEditChTo = (wxTextCtrl*)FindWindowById(IDC_EDIT3);
 	wxASSERT(pEditChTo != NULL);
-	
+
 	pEditVsTo = (wxTextCtrl*)FindWindowById(IDC_EDIT4);
 	wxASSERT(pEditVsTo != NULL);
-	
+
 	pEditPagesFrom = (wxTextCtrl*)FindWindowById(IDC_EDIT_PAGES_FROM);
 	wxASSERT(pEditPagesFrom != NULL);
-	
+
 	pEditPagesTo = (wxTextCtrl*)FindWindowById(IDC_EDIT_PAGES_TO);
 	wxASSERT(pEditPagesTo != NULL);
-	
+
 	pEditAsStatic = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_AS_STATIC); // the read only information
 	wxASSERT(pEditAsStatic != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
 	pEditAsStatic->SetBackgroundColour(backgrndColor);
-	
+
 	pRadioAll = (wxRadioButton*)FindWindowById(ID_RADIO_ALL);
 	wxASSERT(pRadioAll != NULL);
-	
+
 	pRadioSelection = (wxRadioButton*)FindWindowById(ID_RADIO_SELECTION);
 	wxASSERT(pRadioSelection != NULL);
-	
+
 	pRadioPages = (wxRadioButton*)FindWindowById(IDC_RADIO_PAGES);
 	wxASSERT(pRadioPages != NULL);
-	
+
 	pRadioChVs = (wxRadioButton*)FindWindowById(IDC_RADIO_CHAPTER_VERSE_RANGE);
 	wxASSERT(pRadioChVs != NULL);
-	
+
 	pCheckSuppressPrecSectHeading = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_PREC_HEADING);
 	wxASSERT(pCheckSuppressPrecSectHeading != NULL);
-	
+
 	pCheckIncludeFollSectHeading = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_FOLL_HEADING);
 	wxASSERT(pCheckIncludeFollSectHeading != NULL);
-	
+
 	pCheckSuppressPrintingFooter = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_FOOTER);
 	wxASSERT(pCheckSuppressPrintingFooter != NULL);
 }
@@ -194,7 +194,7 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// The CPrintOptionsDlg destructor.  
+/// The CPrintOptionsDlg destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////
 CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 {
@@ -218,18 +218,18 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 /// \return     nothing
 /// \param      event   -> (unused)
 /// \remarks
-/// Called to initialize the CPrintOptionsDlg object. It sets the initial state of the dialog 
+/// Called to initialize the CPrintOptionsDlg object. It sets the initial state of the dialog
 /// controls.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	//wxLogDebug(_T("InitDialog() START"));	
+	//wxLogDebug(_T("InitDialog() START"));
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 	// whm 30Aug11 added for the "Additional text to include in Printouts" section of
 	// the "Special Print Options" dialog.
-		
+
     // BEW 1Oct11, the m_pagesList of PageOffsets structs is not yet set up, and
     // LayoutAndPaginate() below will call RecalcLayout() in order to get the strips
     // populated in conformity with the page printable width. Draw() won't be called, but
@@ -247,7 +247,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
 	// contains glosses, otherwise uncheck and disable the check box.
-	// 
+	//
 	// BEW 5Oct11, prior to LayoutAndPaginate() being called, mode switches to get glosses
 	// see and/or free translations visible (if in the document - we can't anticipate,
 	// however, whether or not the user will uncheck their checkboxes in the dialog) -
@@ -265,7 +265,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// subsequently turn on glossing or free translation modality
 	pApp->GetMainFrame()->Freeze();
 	pApp->m_bFrozenForPrinting = TRUE;
-	
+
 	// whm 25Sep11 modified. Enable the box and put a check in it if the document actually
 	// contains free translations, otherwise uncheck and disable the check box.
 	// BEW 5Oct11, work out if we need to turn on the gloss or free tr modalities, and set
@@ -311,7 +311,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		pCheckInclGlossesText->SetValue(FALSE);
 		// Note the global flag gbCheckInclGlossesText is set in OnOK()
 	}
-    
+
 	// Get the logical page dimensions for paginating the document and printing.
     int nPagePrintingWidthLU;
 	int nPagePrintingLengthLU;
@@ -352,12 +352,12 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	nNumPagesStr << nNumPages;
 	pEditPagesFrom->SetValue(_T("1"));
 	pEditPagesTo->SetValue(nNumPagesStr);
-	
+
 	// Populate the Chapter/Verse Range edit boxes with the maximum possible range - if any ch:vs
 	// markers exist. We'll scan the doc's list of source phrases, inspecting their m_markers and m_chapterVerse
 	// members; then we use AnalyseReference() to parse out what we find for populating the
 	// Chapter/Verse Range edit boxes.
-	// 
+	//
 	wxString ChVsFirst = _T(""); // will contain the first instance of any pSrcPhrase->m_chapterVerse in the doc
 	wxString ChVsLast = _T(""); // will contain the last instance of any pSrcPhrase->m_chapterVerse in the doc
 
@@ -497,7 +497,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// the flag to be FALSE while the dialog is up
 	pApp->m_bIsPrinting = FALSE;
 
-//	wxLogDebug(_T("InitDialog() END"));	
+//	wxLogDebug(_T("InitDialog() END"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -505,15 +505,15 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the "Print >>" button on the dialog is pressed (same as an OK button on a normal
-/// dialog). It sets the printing globals to reflect the users choices made in the Print Options dialog. 
+/// dialog). It sets the printing globals to reflect the users choices made in the Print Options dialog.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CPrintOptionsDlg::OnOK(wxCommandEvent& event) 
+void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 	// whm note: Since we are not fiddling with our print options within a customized print dialog, we
-	// could do all this from within the wxID_OK block of code in OnPrint(). 
-	// 
+	// could do all this from within the wxID_OK block of code in OnPrint().
+	//
 	// set the globals for the ch & verse range
 	// MFC version doesn't do any validation checking of the numbers entered into the ch:verse edit boxes
 	// TODO: do we need to do some validation of the number data? We could veto the OnOK() process to allow the
@@ -531,19 +531,19 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		gnFromVerse = wxAtoi(s);
 	else
 		gnFromVerse = 0; // whm added default
-	
+
 	s = pEditChTo->GetValue();
 	if (!s.IsEmpty())
 		gnToChapter = wxAtoi(s);
 	else
 		gnToChapter = 0; // whm added default
-	
+
 	s = pEditVsTo->GetValue();
 	if (!s.IsEmpty())
 		gnToVerse = wxAtoi(s);
 	else
 		gnToVerse = 0; // whm added default
-	
+
 	gpApp->m_bPrintingRange = pRadioChVs->GetValue();
 	gbPrintFooter = !m_bSuppressFooter; // reverse the boolean value here
 	gbSuppressPrecedingHeadingInRange = pCheckSuppressPrecSectHeading->GetValue();
@@ -561,47 +561,9 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		gbIncludeFollowingHeadingInRange = FALSE;
 	}
 
-	/* BEW removed 14Nov11, because these are called later in OnPreparePrinting(), so
-	// there's not need to call this stuff here, and if we do, a range print causes doc
-	// data to get lost because GetSublist() is called twice without being restored - the 
-	// second call results in the doc data loss!
-	// BEW 5Oct11, Now that the gbCheckInclFreeTransText and gbCheckInclGlossesText global
-	// boolean values are known, they need to be used by SetPileAndStripHeight() in
-	// CLayout by the latter doing a RecalcLayout() which will set the strip height to
-	// what is needed for the user's choice. I checked, and without a repagination being
-	// forced here, the value used for the strip height will include free translation and
-	// gloss lines if those data types are in the document - but the user may one want one
-	// or neither of those lines printed; so a repagination is mandatory. Sigh :-(
-	// (Without it if, say, the use chooses no glosses and glosses are in the doc, a blank
-	// line for the glosses is in the printed page, but at least no glosses are printed;
-	// but what we want is no gloss line, and so and extra strip being squeezed in. The
-	// only way to do it is to repaginate, I think). The screen is still frozen, so the only
-	// noticeable effect should be a longer than expected delay before the print starts.
-    int nPagePrintingWidthLU;
-	int nPagePrintingLengthLU;
-	bool bOK = pApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
-	if (!bOK)
-	{
-		// what should we do here, I guess it shouldn't happen, so I will just return and
-		// hope -- maybe a beep too
-		::wxBell();
-		pApp->m_bIsPrinting = FALSE;
-	}
+    // we handle the possibility of the user having set a page range, in CAdapt_ItView::OnPrint()
+    // after the latter has returned
 
-	// setup the layout for the new pile width, and get the PageOffsets structs list populated
-	// (LayoutAndPaginate() calls view class's PaginateDoc() & the latter does the PageOffsets
-	// structs)
-	// gbIsPrinting gets turned off, make sure it is turned on here
-	pApp->m_bIsPrinting = TRUE;
-	bOK = pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
-	if (!bOK)
-	{
-		// what should we do here, I guess it shouldn't happen, but just in case....
-		// ring the bell
-		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
-		pApp->m_bIsPrinting = FALSE;
-	}
-	*/
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
@@ -615,7 +577,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 /// It deletes the set of PageOffsets structs. Failure to do this when the user cancels
 /// would leak a lot of 16 byte memory blocks! (That's how I found we need this handler!)
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CPrintOptionsDlg::OnCancel(wxCommandEvent& event) 
+void CPrintOptionsDlg::OnCancel(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -633,7 +595,7 @@ void CPrintOptionsDlg::OnCancel(wxCommandEvent& event)
 /// ensure that the radio button associated with the edit box is selected (assumes that if the user is
 /// entering data into an edit box, the user wants to also select the associated radio button).
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CPrintOptionsDlg::OnSetfocus(wxFocusEvent& event) 
+void CPrintOptionsDlg::OnSetfocus(wxFocusEvent& event)
 {
 	// MFC uses separate focus handlers, but wx is designed to handle focus events in a single handler with
 	// queries to event.GetEventObject() and event.GetEventType() and setting focus on the desired control
@@ -712,9 +674,9 @@ void CPrintOptionsDlg::OnAllPagesBtn(wxCommandEvent& WXUNUSED(event))
 /// \return     nothing
 /// \param      event   -> (unused)
 /// \remarks
-/// Called when the user clicks on the "Select" radio button. It insures that the "Selection" radio button 
+/// Called when the user clicks on the "Select" radio button. It insures that the "Selection" radio button
 /// is selected and all other radio buttons in the group are not selected. It also disables the edit
-/// boxes for page and chapter/verse ranges which are not appropriate for data entry as long as the 
+/// boxes for page and chapter/verse ranges which are not appropriate for data entry as long as the
 /// "Selection" radio button is selected.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnSelectBtn(wxCommandEvent& WXUNUSED(event))
@@ -748,12 +710,12 @@ void CPrintOptionsDlg::OnSelectBtn(wxCommandEvent& WXUNUSED(event))
 /// \return     nothing
 /// \param      event   -> (unused)
 /// \remarks
-/// Called when the user clicks on the "Pages" radio button. It insures that the "Pages" radio button 
+/// Called when the user clicks on the "Pages" radio button. It insures that the "Pages" radio button
 /// is selected and all other radio buttons in the group are not selected. It also enables the "from"
 /// and "to" edit boxes, but disables the edit boxes for chapter/verse ranges. When the "Pages" radio
 /// button is clicked, focus moves to the first empty edit box associated with the "pages" button.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event)) 
+void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event))
 {
 	// for an explanation why the following test is here, see the 21Jul09 comment in the
 	// header comment for the OnRadioChapterVerseRange() function
@@ -792,16 +754,16 @@ void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event))
 	// state. This code is not needed in the wx version, because at the point in the Print Options
 	// Dialog, nothing has changed in the document, OnPreparePrinting has not been called etc.
 }
-	
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the user clicks on the "Chapter/Verse Range" radio button. It insures that the
-/// "Chapter/Verse Range" radio button is selected and all other radio buttons in the group are 
+/// "Chapter/Verse Range" radio button is selected and all other radio buttons in the group are
 /// not selected. It also enables the four edit boxes associated with the Chapter/Verse Range radio
 /// button, and disables the two edit boxes associated with the Pages radio button. When the
-/// "Chapter/Verse Range" radio button is clicked, focus moves to the first empty edit box associated 
+/// "Chapter/Verse Range" radio button is clicked, focus moves to the first empty edit box associated
 /// with it.
 /// BEW changed 21Jul09, a selection should have priority over a chapter:verse range,
 /// because the selection is something the user does explicitly in the view before
@@ -831,7 +793,7 @@ void CPrintOptionsDlg::OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event))
 	pRadioAll->SetValue(FALSE);
 	pRadioSelection->SetValue(FALSE);
 	pRadioPages->SetValue(FALSE);
-	
+
 	// enable the Chapter/Verse Range edit boxes
 	pEditChFrom->Enable(TRUE);
 	pEditVsFrom->Enable(TRUE);
@@ -871,9 +833,9 @@ void CPrintOptionsDlg::OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event))
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the user clicks on the Suppress Footer checkbox. It insures that the
-/// m_bSuppressFooter variable is assigned accordingly. 
+/// m_bSuppressFooter variable is assigned accordingly.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CPrintOptionsDlg::OnCheckSuppressFooter(wxCommandEvent& WXUNUSED(event)) 
+void CPrintOptionsDlg::OnCheckSuppressFooter(wxCommandEvent& WXUNUSED(event))
 {
 	m_bSuppressFooter = pCheckSuppressPrintingFooter->GetValue();
 }
@@ -882,8 +844,8 @@ void CPrintOptionsDlg::OnCheckSuppressFooter(wxCommandEvent& WXUNUSED(event))
 /// \return     nothing
 /// \param      event   -> (unused)
 /// \remarks
-/// Called when the user clicks on the Suppress Preceding Section Heading checkbox. It insures 
-/// that the gbSuppressPrecedingHeadingInRange global is assigned accordingly. 
+/// Called when the user clicks on the Suppress Preceding Section Heading checkbox. It insures
+/// that the gbSuppressPrecedingHeadingInRange global is assigned accordingly.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnCheckSuppressPrecedingHeading(wxCommandEvent& WXUNUSED(event))
 {
@@ -894,8 +856,8 @@ void CPrintOptionsDlg::OnCheckSuppressPrecedingHeading(wxCommandEvent& WXUNUSED(
 /// \return     nothing
 /// \param      event   -> (unused)
 /// \remarks
-/// Called when the user clicks on the Include Following Section Heading checkbox. It insures 
-/// that the gbIncludeFollowingHeadingInRange global is assigned accordingly. 
+/// Called when the user clicks on the Include Following Section Heading checkbox. It insures
+/// that the gbIncludeFollowingHeadingInRange global is assigned accordingly.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnCheckIncludeFollowingHeading(wxCommandEvent& WXUNUSED(event))
 {
@@ -908,7 +870,7 @@ void CPrintOptionsDlg::OnCheckIncludeFollowingHeading(wxCommandEvent& WXUNUSED(e
 /// \remarks
 /// Called when the user makes any change in the Pages "from" edit box. It first insures that the Pages
 /// radio button is selected, enables the Pages related edit boxes, and disables the four edit boxes
-/// associated with the "Chapter/Verse Range" radio button. 
+/// associated with the "Chapter/Verse Range" radio button.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 {
@@ -942,7 +904,7 @@ void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called when the user makes any change in the Pages "to" edit box. It first insures that the Pages
 /// radio button is selected, enables the Pages related edit boxes, and disables the four edit boxes
-/// associated with the "Chapter/Verse Range" radio button. 
+/// associated with the "Chapter/Verse Range" radio button.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesTo(wxCommandEvent& WXUNUSED(event))
 {
@@ -975,8 +937,8 @@ void CPrintOptionsDlg::OnEditPagesTo(wxCommandEvent& WXUNUSED(event))
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the user makes any change in the "chapter from" edit box. It first insures that the
-/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables 
-/// the two edit boxes associated with the "Pages" radio button. 
+/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables
+/// the two edit boxes associated with the "Pages" radio button.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditChapterFrom(wxCommandEvent& WXUNUSED(event))
 {
@@ -1009,8 +971,8 @@ void CPrintOptionsDlg::OnEditChapterFrom(wxCommandEvent& WXUNUSED(event))
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the user makes any change in the "verse" (from) edit box. It first insures that the
-/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables 
-/// the two edit boxes associated with the "Pages" radio button. 
+/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables
+/// the two edit boxes associated with the "Pages" radio button.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditVerseFrom(wxCommandEvent& WXUNUSED(event))
 {
@@ -1043,8 +1005,8 @@ void CPrintOptionsDlg::OnEditVerseFrom(wxCommandEvent& WXUNUSED(event))
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the user makes any change in the "chapter to" edit box. It first insures that the
-/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables 
-/// the two edit boxes associated with the "Pages" radio button. 
+/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables
+/// the two edit boxes associated with the "Pages" radio button.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditChapterTo(wxCommandEvent& WXUNUSED(event))
 {
@@ -1077,8 +1039,8 @@ void CPrintOptionsDlg::OnEditChapterTo(wxCommandEvent& WXUNUSED(event))
 /// \param      event   -> (unused)
 /// \remarks
 /// Called when the user makes any change in the "verse" (to) edit box. It first insures that the
-/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables 
-/// the two edit boxes associated with the "Pages" radio button. 
+/// Chapter/Verses Range radio button is selected, enables all the related edit boxes, and disables
+/// the two edit boxes associated with the "Pages" radio button.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditVerseTo(wxCommandEvent& WXUNUSED(event))
 {

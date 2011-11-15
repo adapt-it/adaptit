@@ -12517,6 +12517,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bFrozenForPrinting = FALSE;
 	m_bIsPrinting = FALSE;
 	m_bPrintingRange = FALSE;
+#if defined(__WXGTK__)
+    // BEW added 15Nov11
+    m_bPrintingPageRange = FALSE;
+    m_userPageRangePrintStart = 1;
+    m_userPageRangePrintEnd = 1;
+#endif
 	m_bPrintingSelection = FALSE;
 	m_nCurPage = 1; // a benign default, since we use this only by subtracting 1 in an
 					// list.Item() call, and if it was 0 we'd be looking for a -1 index
@@ -34787,7 +34793,11 @@ void CAdapt_ItApp::DoPrintCleanup()
         // restore the selection), then do tidy up of everything else & get a new layout
         // calculated; likewise if we were printing a chapter & verse range
 		bool bSaveListHasContent = !m_pSaveList->IsEmpty();
+#if defined(__WXGTK__)
+        if (m_bPrintingSelection  || m_bPrintingRange || m_bPrintingPageRange || (gbIsBeingPreviewed && bSaveListHasContent))
+#else
 		if (m_bPrintingSelection  || m_bPrintingRange || (gbIsBeingPreviewed && bSaveListHasContent))
+#endif
 		{
 			// BEW 14Nov11, RestorOriginalList now does a deep copy restore
 			pView->RestoreOriginalList(m_pSaveList, m_pSourcePhrases); // ignore return value,
@@ -34801,6 +34811,13 @@ void CAdapt_ItApp::DoPrintCleanup()
 
 			m_bPrintingSelection = FALSE;
 			m_bPrintingRange = FALSE;
+
+#if defined(__WXGTK__)
+            // BEW added 15Nov11 - restore defaults
+            m_bPrintingPageRange = FALSE;
+            m_userPageRangePrintStart = 1;
+            m_userPageRangePrintEnd = 1;
+#endif
 
 			// restore defaults for the checkboxes
 			gbSuppressPrecedingHeadingInRange = FALSE;
@@ -34818,7 +34835,7 @@ void CAdapt_ItApp::DoPrintCleanup()
         // appearance (if we had been printing a selection, it will get restored now
         // because the globals will have been preserved)
 		m_nActiveSequNum = m_nSaveActiveSequNum; // restore active location sequ num
-		m_pActivePile = NULL; // the piles are destroyed and recreated 
+		m_pActivePile = NULL; // the piles are destroyed and recreated
 							  // so the old pointer is useless
 
 #ifdef _NEW_LAYOUT
@@ -34961,6 +34978,7 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 		// clear any old view settings for an earlier print, in case they were not cleared
 		pView->ClearPagesList();
 
+/*  This doesn't belong here, Print Preview can't do range printing
 		if (m_bPrintingRange)
 		{
             // set up the range, layout, etc. (It is SetupRangePrintOp()'s responsibility
@@ -34971,14 +34989,34 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 									gbIncludeFollowingHeadingInRange);
 			if(!bSetupOK)
 			{
-				// IDS_RANGE_SETUP_FAILED
-				wxMessageBox(_(
-"Sorry, setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."),
-				_T(""), wxICON_STOP);
+				// printing a chapter/verse range failed
+				wxString str = _("Setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified.");
+				LogUserAction(str);
+				wxMessageBox(str, _T(""), wxICON_STOP);
 				return FALSE; // abort the print operation
 			}
 		}
-
+*/
+/* -- can't do this here, m_pagesList is empty, and SetupPageRangePrintOp() relies on it
+#if defined(__WXGTK__)
+        else if (m_bPrintingPageRange)
+        {
+            // this is required in the Linux build because support for a user-set range of
+            // pages to print, is broken - so we have to support it by this workaround
+            int nFromPage = m_userPageRangePrintStart; // RHS was set in view's OnPrint()
+            int nToPage = m_userPageRangePrintEnd;     // ditto
+            bool bSetupOK = pView->SetupPageRangePrintOp(nFromPage, nToPage, pPrintData);
+ 			if(!bSetupOK)
+			{
+				// Page range printing failed
+				wxString str = _("Setup of your choice for the range of pages to be printed, failed. This printing operation has been aborted. Please alert the developers.");
+				LogUserAction(str);
+				wxMessageBox(str, _T(""), wxICON_STOP);
+				return FALSE; // abort the print operation
+			}
+       }
+#endif
+*/
 		bool bDefaultPgSetupInfoAvailable;
 		bDefaultPgSetupInfoAvailable = pPgSetupDlgData->GetDefaultInfo();
 		if (!bDefaultPgSetupInfoAvailable)
@@ -35336,15 +35374,51 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 								gbIncludeFollowingHeadingInRange);
 		if(!bSetupOK)
 		{
-			// IDS_RANGE_SETUP_FAILED
-			wxMessageBox(_(
-"Sorry, setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."),
-			_T(""), wxICON_STOP);
+			// chapter/verse range print failed
+			wxString str = _("Setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified.");
+			LogUserAction(str);
+			wxMessageBox(str, _T(""), wxICON_STOP);
 			return FALSE; // abort the print operation
 		}
 		m_pActivePile = NULL;
 		m_nActiveSequNum = -1;
 	}
+#if defined(__WXGTK__)
+	else if (m_bPrintingPageRange)
+	{
+	    // printing a user-chosen page range (we have to handle it explicitly
+        // because the wxGnomeprinter framework is broken for this feature
+
+        // The call below for setting up the page range requires we have m_pagesList
+        // populated, and it isn't yet. So we'll do a preliminary pagination so as to
+        // get a full-document list of PageOffsets structs -- from these the user's
+        // choices for the page to start and the page to end can be made, the
+        // appropriate sequence number bounds calculated, and then the range of
+        // CSourcePhrase instances defined by the starting and ending sequence numbers
+        // allows a sublist to be extracted to form a shortened doc, which we then print
+        // and restore the full list later in DoPrintCleanup() in the AIPrintout destructor
+#ifdef _NEW_LAYOUT
+			m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+#else
+			m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+#endif
+       int aStripCount = m_pLayout->GetStripArray()->GetCount();
+        bool bIsOK;
+        bIsOK = pView->PaginateDoc(aStripCount, nPagePrintingLengthLU);
+        // app's m_pagesList is now populated
+	    bool bSetupOK = pView->SetupPageRangePrintOp(m_userPageRangePrintStart, m_userPageRangePrintEnd, pPrintData);
+		if(!bSetupOK)
+		{
+			// chapter/verse range print failed
+			wxString str = _("Setup of your chosen range of pages for printing, failed. This printing operation has been aborted. Please alert the developers.");
+			LogUserAction(str);
+			wxMessageBox(str, _T(""), wxICON_STOP);
+			return FALSE; // abort the print operation
+		}
+		m_pActivePile = NULL;
+		m_nActiveSequNum = -1;
+	}
+#endif
 	else if (m_selectionLine == -1)
 	{
         // BEW added wrapping test on 18Jul09, Print Preview enters OnPreparePrinting

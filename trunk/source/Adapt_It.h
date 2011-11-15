@@ -3022,6 +3022,12 @@ public:
 	bool	m_bPrintingRange; // TRUE when the user wants to print a chapter/verse range
 	bool	m_bPrintingSelection;
 	int		m_nCurPage; // to make current page being printed accessible to CStrip;s Draw()
+#if defined(__WXGTK__)
+    // BEW added 15Nov11
+    bool    m_bPrintingPageRange;
+    int     m_userPageRangePrintStart;
+    int     m_userPageRangePrintEnd;
+#endif
 
 	// BEW 28Oct11, added (maybe temporarily) for allowing view drawing to proceed when
 	// required during display of print-related dialogs, such as the Print dialog
