@@ -2309,13 +2309,6 @@ wxString GetPathToBeRdwrt()
 		// bibledit-rdwrt exists in the Bibledit installation so use it.
 		// First, determine if file is executable from the current process
 		beRdwrtPathAndFileName = gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt");
-		if (!wxFileName::IsFileExecutable(gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt")))
-		{
-			wxString msg = _("Adapt It cannot execute the helper application bibledit-rdwrt at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for bibledit-rdwrt.");
-			msg = msg.Format(msg,beRdwrtPathAndFileName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
-			gpApp->LogUserAction(msg);
-		}
 	}
 	else
 	{
@@ -2325,6 +2318,13 @@ wxString GetPathToBeRdwrt()
 		wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
 		// Note: The beRdwrtPathAndFileName console app does not have any dependencies, but uses the
 		// same Linux dynamic libraries that the main bibledit-gtk program uses.
+	}
+	if (!wxFileName::IsFileExecutable(beRdwrtPathAndFileName))
+	{
+		wxString msg = _("Adapt It cannot execute the helper application bibledit-rdwrt at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for bibledit-rdwrt.");
+		msg = msg.Format(msg,beRdwrtPathAndFileName.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		gpApp->LogUserAction(msg);
 	}
 	return beRdwrtPathAndFileName;
 }
