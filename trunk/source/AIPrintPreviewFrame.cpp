@@ -3,12 +3,12 @@
 /// \file			AIPrintPreviewFrame.cpp
 /// \author			Kevin Bradford
 /// \date_created	23 September 2011
-/// \date_revised	
+/// \date_revised
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General 
+/// \license		The Common Public License or The GNU Lesser General
 ///                 Public License (see license directory)
-/// \description	This is the implementation file for the CAIPrintPreviewFrame class. 
-/// The CAIPrintPreviewFrame class is the derived from wxPreviewFrame. 
+/// \description	This is the implementation file for the CAIPrintPreviewFrame class.
+/// The CAIPrintPreviewFrame class is the derived from wxPreviewFrame.
 /// It allows control of the underlying frame/window
 /// during the print preview process.
 /// \derivation		The CAIPrintPreviewFrame class is derived from wxPreviewFrame.
@@ -41,14 +41,14 @@
 
 CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 	CAdapt_ItApp* App,
-	wxPrintPreviewBase *  preview,  
-	wxWindow *  parent,  
-	const wxString &  title,  
-	const wxPoint &  pos,  
-	const wxSize &  size,  
-	long  style,  
+	wxPrintPreviewBase *  preview,
+	wxWindow *  parent,
+	const wxString &  title,
+	const wxPoint &  pos,
+	const wxSize &  size,
+	long  style,
 	const wxString &  name )
-	: wxPreviewFrame( preview, parent, title, pos, size, style, name) 
+	: wxPreviewFrame( preview, parent, title, pos, size, style, name)
 {
 	pApp = App;
 	wxASSERT(pApp != NULL);
@@ -69,16 +69,16 @@ CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 }
 
 // Setting this to true will redraw the underlying application view
-//    before closing the window, allowing us to print glosses and 
+//    before closing the window, allowing us to print glosses and
 //    then hide them and repaint before exiting
 void CAIPrintPreviewFrame::HideGlossesOnClose( bool bClose )
-{ 
+{
 	bHideGlossesOnClose = bClose;
 }
 // Setting this to true will redraw the underlying application view
-//    before closing the window, allowing us to print Free Translations and 
+//    before closing the window, allowing us to print Free Translations and
 //    then hide them and repaint before exiting
 void CAIPrintPreviewFrame::HideFreeTranslationsOnClose( bool bClose )
-{ 
+{
 	bHideFreeTranslationsOnClose = bClose;
 }

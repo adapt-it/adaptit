@@ -282,13 +282,24 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		}
 		pCheckInclFreeTransText->Enable(TRUE);
 		pCheckInclFreeTransText->SetValue(TRUE);
-		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
+		// Deprecated 19Nov11 --> Note the global flag gbCheckInclFreeTransText is set in OnOK()
+		// BEW 19Nov11, CLayout::SetPileAndStripHeight() needs to use gbCheckInclFreeTransText
+		// to get the correct strip height to use in the PaginateDoc() call within the
+		// LayoutAndPaginate() call below, and the strip height will therefore not be correct
+		// unless gbCheckInclFreeTransText is set TRUE here if, indeed, there actually are
+		// free translations (failure to do this results in the dialog showing the max page
+        // number as lower than what Print Preview shows - and the latter shows the correct
+        // value. Therefore, we will set the flag here, because setting it in OnOK() is too
+        // late.
+        gbCheckInclFreeTransText = TRUE;
 	}
 	else
 	{
 		pCheckInclFreeTransText->Enable(FALSE);
 		pCheckInclFreeTransText->SetValue(FALSE);
-		// Note the global flag gbCheckInclFreeTransText is set in OnOK()
+		// BEW deprecated comment on 19Nov11 (Note the global flag gbCheckInclFreeTransText
+        // is set in OnOK()  -- see the block above for the reason)
+        gbCheckInclFreeTransText = FALSE;
 	}
 
 	bHideGlossesOnClose = FALSE;
@@ -303,13 +314,24 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		}
 		pCheckInclGlossesText->Enable(TRUE);
 		pCheckInclGlossesText->SetValue(TRUE);
-		// Note the global flag gbCheckInclGlossesText is set in OnOK()
+		// Deprecated 19Nov11 --> Note the global flag gbCheckInclGlossesText is set in OnOK()
+		// BEW 19Nov11, CLayout::SetPileAndStripHeight() needs to use gbCheckInclGlossesText
+		// to get the correct strip height to use in the PaginateDoc() call within the
+		// LayoutAndPaginate() call below, and the strip height will therefore not be correct
+		// unless gbCheckInclGlossesText is set TRUE here if, indeed, there actually are
+		// gloses in the doc (failure to do this results in the dialog showing the max page
+        // number as lower than what Print Preview shows - and the latter shows the correct
+        // value. Therefore, we will set the flag here, because setting it in OnOK() is too
+        // late.
+        gbCheckInclGlossesText = TRUE;
 	}
 	else
 	{
 		pCheckInclGlossesText->Enable(FALSE);
 		pCheckInclGlossesText->SetValue(FALSE);
-		// Note the global flag gbCheckInclGlossesText is set in OnOK()
+		// Deprecated comment 19Nov11 --> Note the global flag gbCheckInclGlossesText is set
+		//  in OnOK()  -- for the reason, see the comment in the block above
+        gbCheckInclGlossesText = FALSE;
 	}
 
 	// Get the logical page dimensions for paginating the document and printing.
@@ -549,9 +571,20 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	gbSuppressPrecedingHeadingInRange = pCheckSuppressPrecSectHeading->GetValue();
 	gbIncludeFollowingHeadingInRange = pCheckIncludeFollSectHeading->GetValue();
 
-	// Load new selections for including freetext and gloss info - klb 9/9/2011
-	gbCheckInclFreeTransText = pCheckInclFreeTransText->GetValue();
-	gbCheckInclGlossesText = pCheckInclGlossesText->GetValue();
+	// Deprecated comment 19Nov11 --> Load new selections for including freetext and
+	// gloss info - klb 9/9/2011
+    // BEW 19Nov11, CLayout::SetPileAndStripHeight() needed to use gbCheckInclFreeTransText
+    // and/or gbCheckInclGlossesText, to get the correct strip height to use in the
+    // PaginateDoc() call within the LayoutAndPaginate() call in InitDialog(), and the
+    // strip height would therefore not be correct unless the correct values of these
+    // flags were set in InitDialog() -- if, indeed, there actually are
+    // free translations and/or glosses in the document. (Failure to set the flags
+    // TRUE when need, in InitDialog(), results in the dialog showing the max page
+    // number as lower than what Print Preview shows - and the latter shows the correct
+    // value. Therefore, we will set the flag there, because setting it here in OnOK() is
+    // too late, and for that reason the next two lines are now commented out.
+	//gbCheckInclFreeTransText = pCheckInclFreeTransText->GetValue();
+	//gbCheckInclGlossesText = pCheckInclGlossesText->GetValue();
 
 	// check about what to do with any section headings, if they precede or follow the range
 	if(!gpApp->m_bPrintingRange)
@@ -583,6 +616,15 @@ void CPrintOptionsDlg::OnCancel(wxCommandEvent& event)
 	CAdapt_ItView* pView = gpApp->GetView();
 	pView->ClearPagesList();
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
+	// BEW 19Nov11, added the next two lines, because as of 19Nov these flags are set, not
+	// in OnOK() any longer, but earlier, within InitDialog() -- because the calculation of
+	// a correct strip height needs to know if free translation and/or gloss lines are to
+	// be included in the printing, and that knowledge has to be available to the
+	// LayoutAndPaginate() call done within InitDialog() -- and hence, if the user cancels
+	// from the dialog, the flags have to here be restored to their default values
+    gbCheckInclFreeTransText = FALSE;
+	gbCheckInclGlossesText = FALSE;
+
 	event.Skip();
 }
 

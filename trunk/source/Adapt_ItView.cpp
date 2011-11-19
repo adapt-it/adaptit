@@ -81,7 +81,7 @@
 #include "BString.h"
 #include "XML.h"
 #include "scrollingdialog.h" // whm added 13Nov11 for wxScrollingPropertySheetDialog - needs to be included here before EditPreferencesDlg.h
-#include "EditPreferencesDlg.h" 
+#include "EditPreferencesDlg.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
 #include "KB.h"
@@ -3884,6 +3884,10 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 	// restore assumption that a gap will need to be calculated at the active pile when
 	// RecalcLayout() is next called
 	pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE);
+
+	// the m_pSavedList contents are no longer needed, so delete them (no partner piles, so the
+    // second param can be FALSE)
+    m_pDoc->DeleteSourcePhrases(pSaveList, FALSE);
 
 	// Note, with the 14Nov11 changes we have to call RecalcLayout() with create_strips_and_piles
 	// rather than with create_strips_keep_piles
