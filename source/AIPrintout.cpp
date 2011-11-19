@@ -51,6 +51,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
+#include "FreeTrans.h"
 #include "AIPrintout.h"
 
 
@@ -71,6 +72,10 @@ extern int gnPrintingLength;
 extern int gnTopGap;
 extern int gnBottomGap;
 extern int gnFooterTextHeight;
+
+// for debugging (in order to track their values in function calls here), the next two are added
+extern bool gbCheckInclFreeTransText;
+extern bool gbCheckInclGlossesText;
 
 // This global is defined in Adapt_It.cpp.
 //extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
@@ -189,6 +194,14 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 AIPrintout::~AIPrintout()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout ~AIPrintout() line 199 before DoPrintCleanup(): gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
+
 	pApp->DoPrintCleanup();
 	pApp->pAIPrintout = NULL;
 	pApp->m_pLayout->m_pOffsets = NULL; // BEW 1Occt11 added, to protection insurance for
@@ -200,6 +213,12 @@ AIPrintout::~AIPrintout()
         // m_pOffsets, having been set by OnPrintPage() beforehand. If DrawFreeTranslations()
         // is called when m_pOffsets is NULL, it will immediately return without doing
         // anything
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout ~AIPrintout() line 217 after DoPrintCleanup(): gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,9 +236,16 @@ AIPrintout::~AIPrintout()
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool AIPrintout::OnPrintPage(int page)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("\n\nAIPrintout OnPrintPage() line 240 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
+
 	// refactored 6Apr09
 	// See code:#print_flow for the order of calling of OnPrintPage().
-	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItView* pView = pApp->GetView();
 	CLayout* pLayout = pApp->m_pLayout;
     wxDC *pDC = GetDC();
@@ -301,7 +327,7 @@ bool AIPrintout::OnPrintPage(int page)
 #ifdef __WXDEBUG__
 		int internalDC_Y;
 		internalDC_Y = pDC->DeviceToLogicalY(0);
-		wxLogDebug(_T("\n page = %d , DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
+		wxLogDebug(_T("  page = %d , DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
 			pApp->m_nCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
 #endif
 #endif
@@ -437,8 +463,7 @@ bool AIPrintout::OnPrintPage(int page)
 		pDC->SetLogicalOrigin(0,pOffsets->nTop); // MFC used pDC->SetWindowOrg(0,pOffsets->nTop);
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
-		wxLogDebug(_T("pDC->SetLogicalOrigin(),                                x %d  y %d "),
-			0, pOffsets->nTop);
+		wxLogDebug(_T("pDC->SetLogicalOrigin(),    x %d  y %d   m_bIsPrinting = %d"), 0, pOffsets->nTop, pApp->m_bIsPrinting);
 #endif
 
 #if defined (__WXGTK__)
@@ -477,7 +502,19 @@ bool AIPrintout::OnPrintPage(int page)
             aPilePtr->Draw(pDC);
         }
     }
+    // do any free translation printing if the relevant flags are turned on -- for some
+    // unknown reason, Print Previewing just loves the next lines, but it obsteporously
+    // declines to print any free translations on 'real' page!
+    // I'll try the view's OnDraw() instead... the experiment didn't work, so stick with
+    // drawing free translations from here, and try get it to work on a real page
+
+    if (pApp->m_bIsPrinting && gbCheckInclFreeTransText)
+    //if (pApp->m_bIsPrinting && gbCheckInclFreeTransText && pApp->m_bIsPrintPreviewing)
+    {
+        pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, pApp->GetLayout());
+    }
 #else
+        // Mac and Windows do this - it works fine
 		pView->OnDraw(pDC);
 #endif
 
@@ -506,6 +543,14 @@ bool AIPrintout::OnPrintPage(int page)
         pView->PrintFooter(pDC,paperTopLeft, paperBottomRight, paperDimensions, logicalUnitsFactor, page);
     }
 #endif
+
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout OnPrintPage() line 537 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
+
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 		return TRUE;
     }
@@ -564,9 +609,15 @@ void AIPrintout::OnEndPrinting()
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool AIPrintout::HasPage(int pageNum)
 {
- 	// refactored 6Apr09
-   // See code:#print_flow for the order of calling of HasPage().
 	CAdapt_ItApp* pApp = &wxGetApp();
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout HasPage() line 602 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
+ 	// refactored 6Apr09
+    // See code:#print_flow for the order of calling of HasPage().
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
 
 	if (pageNum >= printDialogData.GetMinPage() && pageNum <= printDialogData.GetMaxPage())
@@ -633,6 +684,13 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 		*selPageTo = printDialogData.GetMaxPage();
 
 	}
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout GetPageInfo() line 677 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -658,8 +716,16 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnPreparePrinting()
 {
- 	//CAdapt_ItApp* pApp = &wxGetApp();
+ 	CAdapt_ItApp* pApp;
+ 	pApp = &wxGetApp();
 	//CAdapt_ItView* pView = pApp->GetView();
+
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 712 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 
 	m_pApp->m_bIsPrintPreviewing = IsPreview(); // BEW added 5Oct11, so I can do kludges which
 			// differ, depending on whether we are print previewing, or printing to paper
@@ -733,6 +799,13 @@ void AIPrintout::OnPreparePrinting()
     // RecalcLayout, etc - things which the wx version does in the AIPrintout's class
     // destructor.
     //wxLogDebug(_T("OnPreparePrint() END"));
+
+#ifdef Print_failure
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 793 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 } // end of OnPreparePrinting()
 
 

@@ -39,6 +39,11 @@
 #include "FreeTrans.h"
 #include "MainFrm.h"
 
+#define Print_failure
+
+extern bool gbCheckInclFreeTransText;
+extern bool gbCheckInclGlossesText;
+
 CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 	CAdapt_ItApp* App,
 	wxPrintPreviewBase *  preview,
@@ -53,10 +58,23 @@ CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 	pApp = App;
 	wxASSERT(pApp != NULL);
 	bHideGlossesOnClose = FALSE;
+	bHideFreeTranslationsOnClose = FALSE;
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintPreviewFrame  createor AIPrintPreviewFrame() line 59 at creation: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d,\n           bHideFreeTranslationsOnClose = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 }
 
 CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 {
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintPreviewFrame  ~AIPrintPreviewFrame() line 62 before SwitchScreenFreeTranslationMode() is called: \n                  gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 	if (bHideGlossesOnClose	 == TRUE)
 		pApp->GetView()->ShowGlosses();
 	if (bHideFreeTranslationsOnClose == TRUE)
@@ -66,6 +84,15 @@ CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 		pApp->GetMainFrame()->Thaw();
 		pApp->m_bFrozenForPrinting = FALSE;
 	}
+    // BEW added 19Nov11
+    gbCheckInclFreeTransText = FALSE; // restore default OFF
+    gbCheckInclGlossesText = FALSE; // restore default OFF
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("AIPrintPreviewFrame  ~AIPrintPreviewFrame() line 80 after SwitchScreenFreeTranslationMode() is called: \n                  gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 }
 
 // Setting this to true will redraw the underlying application view

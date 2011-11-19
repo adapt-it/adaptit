@@ -1156,8 +1156,13 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	}
 	else if (pApp->m_bIsPrinting && gbCheckInclFreeTransText)
 	{
+#if !defined(__WXGTK__)
+        // for Windows and Mac, call it here; but for __WXGTK__ build, do this instead in
+        // the AIPrintout's OnPrintPage() function
 		pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, GetLayout());
+#endif
 	}
+
 }
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;

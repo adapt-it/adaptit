@@ -5,10 +5,10 @@
 /// \date_created	10 Februuary 2010
 /// \date_revised	10 Februuary 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General 
+/// \license		The Common Public License or The GNU Lesser General
 ///                 Public License (see license directory)
-/// \description	This is the implementation file for the CFreeTrans class. 
-/// The CFreeTrans class presents free translation fields to the user. 
+/// \description	This is the implementation file for the CFreeTrans class.
+/// The CFreeTrans class presents free translation fields to the user.
 /// The functionality in the CFreeTrans class was originally contained in
 /// the CAdapt_ItView class.
 /// \derivation		The CFreeTrans class is derived from wxObject.
@@ -33,8 +33,8 @@
 #endif
 
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
-#pragma warning(disable:4428)	// VC 8.0 wrongly issues warning C4428: universal-character-name 
-								// encountered in source for a statement like 
+#pragma warning(disable:4428)	// VC 8.0 wrongly issues warning C4428: universal-character-name
+								// encountered in source for a statement like
 								// ellipsis = _T('\u2026');
 								// which contains a unicode character \u2026 in a string literal.
 								// The MSDN docs for warning C4428 are also misleading!
@@ -59,6 +59,9 @@
 #include "Adapt_ItDoc.h"
 #include "CollectBacktranslations.h"
 
+#define Print_failure
+#define _V6PRINT
+
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
@@ -73,18 +76,18 @@ extern bool gbShowTargetOnly;
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
 /// This flag is used to indicate that the text being processed is unstructured, i.e.,
-/// not containing the standard format markers (such as verse and chapter) that would 
-/// otherwise make the document be structured. This global is used to restore paragraphing 
+/// not containing the standard format markers (such as verse and chapter) that would
+/// otherwise make the document be structured. This global is used to restore paragraphing
 /// in unstructured data, on export of source or target text.
 /// Defined in Adapt_ItView.cpp
-extern bool gbIsUnstructuredData; 
+extern bool gbIsUnstructuredData;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxString	gSpacelessTgtPunctuation; // contents of app's m_punctuation[1] string with spaces removed
 
-/// When TRUE it indicates that the application is in the "See Glosses" mode. In the 
-/// "See Glosses" mode any existing glosses are visible in a separate glossing line in 
-/// the main window, but words and phrases entered into the phrasebox are not entered 
+/// When TRUE it indicates that the application is in the "See Glosses" mode. In the
+/// "See Glosses" mode any existing glosses are visible in a separate glossing line in
+/// the main window, but words and phrases entered into the phrasebox are not entered
 /// into the glossing KB unless gbGlossingVisible is also TRUE.
 /// Defined in Adapt_ItView.cpp
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -92,9 +95,9 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 /// This global is defined in PhraseBox.cpp.
 extern wxString		translation; // translation, for a matched source phrase key
 
-/// This global provides a persistent location during the current session for storage of 
+/// This global provides a persistent location during the current session for storage of
 /// vertical edit information
-extern	EditRecord gEditRecord; // store info pertinent to generalized editing with entry 
+extern	EditRecord gEditRecord; // store info pertinent to generalized editing with entry
 		// point for an Edit Source Text request, in this global structure
 
 /// This global is defined in Adapt_It.cpp.
@@ -103,10 +106,10 @@ extern bool gbFreeTranslationJustRemovedInVFMdialog;
 extern bool gbVerticalEditInProgress;
 
 /// This flag is used to indicate that the text being processed is unstructured, i.e.,
-/// not containing the standard format markers (such as verse and chapter) that would 
-/// otherwise make the document be structured. This global is used to restore paragraphing 
+/// not containing the standard format markers (such as verse and chapter) that would
+/// otherwise make the document be structured. This global is used to restore paragraphing
 /// in unstructured data, on export of source or target text.
-extern bool	gbIsUnstructuredData; 
+extern bool	gbIsUnstructuredData;
 
 extern const wxChar* filterMkr; // defined in the Doc, used here in OnLButtonDown() & free translation code, etc
 extern const wxChar* filterMkrEnd; // defined in the Doc, used in free translation code, etc
@@ -217,7 +220,7 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 		else if (m_pApp->m_bGlossIsDefaultFreeTrans)
 		{
 			// get the text from the glossing line's contents
-			theText = ((CPile*)arr->Item(index))->GetSrcPhrase()->m_gloss; 
+			theText = ((CPile*)arr->Item(index))->GetSrcPhrase()->m_gloss;
 		}
 		str += theText;
 		str += _T(" "); // delimit with a single space
@@ -229,9 +232,9 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             TRUE if the sourcephrase's m_markers member contains a \free 
+/// \return             TRUE if the sourcephrase's m_markers member contains a \free
 ///                     marker FALSE otherwise
-/// \param	pPile	->	pointer to the pile which stores the pSrcPhrase pointer being 
+/// \param	pPile	->	pointer to the pile which stores the pSrcPhrase pointer being
 ///                     examined
 /// \remarks
 /// BEW 22Feb10 changes needed for support of doc version 5. To support empty free translation
@@ -329,7 +332,7 @@ void CFreeTrans::EraseMalformedFreeTransSections(SPArray* pSPArray)
 	int anIndex = wxNOT_FOUND;
 	int nEndsAt = wxNOT_FOUND;
 	int malformedAt = wxNOT_FOUND;
-	int nStartAt = index; 
+	int nStartAt = index;
 	bool bHasFreeTransFlagIsUnset = FALSE;
 	bool bLacksEnd = FALSE;
 	bool bFoundArrayEnd = FALSE;
@@ -398,7 +401,7 @@ void CFreeTrans::EraseMalformedFreeTransSections(SPArray* pSPArray)
 			// free translation section starts, so we've a malformation to deal with, and
 			// the malformation is an old free trans section which has lost it's start.
 			// We now where this malformation starts (at anIndex) and where it ends (at
-			// nStartAt - 1), so we just clear all 3 flags for the instances in this span 
+			// nStartAt - 1), so we just clear all 3 flags for the instances in this span
 			for (index2 = anIndex; index2 < nStartAt; index2++)
 			{
 				pSrcPhrase = pSPArray->Item(index2);
@@ -557,7 +560,7 @@ int CFreeTrans::FindFreeTransSectionLackingStart(SPArray* pSPArray, int startFro
 	int count = pSPArray->GetCount();
 	for (index = startFrom; index < count; index++)
 	{
-		if ((pSPArray->Item(index))->m_bHasFreeTrans && 
+		if ((pSPArray->Item(index))->m_bHasFreeTrans &&
 			!(pSPArray->Item(index))->m_bStartFreeTrans)
 		{
 			return index; // returns a +ve value
@@ -586,7 +589,7 @@ int CFreeTrans::FindFreeTransSectionLackingStart(SPArray* pSPArray, int startFro
 ///                         malformation - that is, the index following endsAt will either
 ///                         be the start of a new free translation section, or the index
 ///                         of the final CSourcePhrase in the array
-/// \param  malformedAt <-  index of the CSourcePhrase at which a malformation commences - 
+/// \param  malformedAt <-  index of the CSourcePhrase at which a malformation commences -
 ///                         typically the location where an instance with expected
 ///                         m_bHasFreeTrans TRUE is found to have the value FALSE for that
 ///                         member
@@ -634,7 +637,7 @@ bool CFreeTrans::CheckFreeTransStructure(SPArray* pSPArray, int startsFrom, int&
 	}
 	int arrayEndIndex = count - 1;
 	// scan forwards so long as the m_bHasFreeTrans flag continues to be TRUE, and the
-	// array end bound is not breached, and neither of the end of the free translation 
+	// array end bound is not breached, and neither of the end of the free translation
 	// (nor the start of a following one is reached)
 	bool bIsFirst = TRUE;
 	while (index < count && !pSrcPhrase->m_bEndFreeTrans && pSrcPhrase->m_bHasFreeTrans)
@@ -747,7 +750,7 @@ bool CFreeTrans::CheckFreeTransStructure(SPArray* pSPArray, int startsFrom, int&
 // then the return value is the index of the instance IMMEDIATELY BEFORE the instance with
 // it's m_bStartFreeTrans member set TRUE. One of the 3 booleans will return TRUE, and the
 // caller will use the returned integer to clear all the flags, m_bHasFreeTrans,
-// m_bStartFreeTrans, and m_bEndFreeTrans, to FALSE up to and including the returned integer 
+// m_bStartFreeTrans, and m_bEndFreeTrans, to FALSE up to and including the returned integer
 // value.
 int CFreeTrans::FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
 										bool& bFoundSectionStart, bool& bFoundArrayEnd)
@@ -802,14 +805,14 @@ int CFreeTrans::FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& b
 ///                                 the free translations corresponding to each of the
 ///                                 wxArrayPtrVoid CPile ptr collections stored in arrPileSets
 /// \remarks
-///  Used in the printing of Free Translations feature, so called in the function 
+///  Used in the printing of Free Translations feature, so called in the function
 ///  DrawFreeTranslationsForPrinting() which is called only when gbIsPrintint is TRUE.
 ///  The pile sets are collected, the first may overlap the boundary between the current
 ///  page and the previous page; the last may overlap the boundard between the end of the
-///  current page and the start of the next page. 
+///  current page and the start of the next page.
 ///  This function is the first of three. After this returns, another function
 ///  will obtain in a similar fashion, an array of arrays, the stored arrays being for
-///  "draw rectangles" for the free translations belonging to the page being printed. 
+///  "draw rectangles" for the free translations belonging to the page being printed.
 ///  After that a third function will do any necessary text segmenting, and draw all the
 ///  free translations, or their apportioned parts, in the various rectangles belonging to
 ///  the current page being printed.
@@ -825,7 +828,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 		return;
 	wxASSERT(pLayout->m_pOffsets != NULL);
 	// first strip to be printed for this page
-	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip; 
+	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip;
 	// last strip to be printed for this page
 	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip;
 
@@ -833,7 +836,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 #ifdef __WXDEBUG__
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("\nGetFreeTransPileSetsForPage(),  nIndexOfFirstStrip = %d  ,  nIndexOfLastStrip = %d"),
-					nIndexOfFirstStrip, nIndexOfLastStrip); 
+					nIndexOfFirstStrip, nIndexOfLastStrip);
 	}
 #endif
 #endif
@@ -841,13 +844,13 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	// various needed scratch variables
 	CPile* pPile;
 	CPile* pAnchorPile;
-	CPile* pPileEndingFTSection; // for a given pAnchorPile, that section's ending pile 
+	CPile* pPileEndingFTSection; // for a given pAnchorPile, that section's ending pile
 								 // is to be stored in pPileEndingFTSection
 	CStrip* pStrip;
-	CSourcePhrase* pSrcPhrase; 
+	CSourcePhrase* pSrcPhrase;
 	int curStripIndex;
 	int laterStripIndex;
-	wxArrayPtrVoid* pPileSetArray = NULL; // we'll create these as needed on the heap 
+	wxArrayPtrVoid* pPileSetArray = NULL; // we'll create these as needed on the heap
                     // & store them in arrPileSets; each one will store the CPile ptrs for
                     // the piles in a single free translation whole section, which may or
                     // may not overlap into the preceding or following page
@@ -945,7 +948,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 #ifdef __WXDEBUG__
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("GetFreeTransPileSetsForPage(),  do loop iter: Piles in section = %d  ,  free translation = %s"),
-			pPileSetArray->GetCount(), strFreeTrans.c_str()); 
+			pPileSetArray->GetCount(), strFreeTrans.c_str());
 	}
 #endif
 #endif
@@ -995,7 +998,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	{ // confine their scope to this conditional block
 		CSourcePhrase* pSP = pPile->GetSrcPhrase();
 		wxLogDebug(_T("GetFreeTransPileSetsForPage(),  looping: next anchor sn = %d  ,  m_key = %s"),
-			pSP->m_nSequNumber, pSP->m_key.c_str()); 
+			pSP->m_nSequNumber, pSP->m_key.c_str());
 	}
 #endif
 #endif
@@ -1021,7 +1024,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 {
 	wxArrayPtrVoid* pFreeTrElementsSet = NULL; // we store these in m_pFreeTransSetsArray
-	
+
 	// create m_pFreeTransSetsArray on heap, ready for receiving pFreeTrElementsSet ptrs
 	m_pFreeTransSetsArray = new wxArrayPtrVoid;
 
@@ -1042,7 +1045,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 	int curPileCount_for_strip;
 	int pileSetCount; // for inner loop
 	int pileIndex; // for inner loop (independent of strip, it indexes over the
-				   // CPile instances in the free trans section - which could be 
+				   // CPile instances in the free trans section - which could be
 				   // less than, the same, or greater than the number of piles in
 				   // the strip which contains the anchor pile)
 	CSourcePhrase* pSrcPhrase;
@@ -1090,11 +1093,11 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 #ifdef __WXDEBUG__
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("\nBuildFreeTransDisplayRects(),  ftSectionsIndex = %d  pileSetCount = %d"),
-			ftSectionsIndex, pileSetCount); 
-		if (ftSectionsIndex == 1)
-		{
-			int break_here = 1;
-		}
+			ftSectionsIndex, pileSetCount);
+		//if (ftSectionsIndex == 1)
+		//{
+		//	int break_here = 1;
+		//}
 	}
 #endif
 #endif
@@ -1108,13 +1111,13 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 		curPileIndex_in_strip = pPile->GetPileIndex();
 		pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
 		pElement->nStripIndex = curStripIndex;
-		rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
+		rect = pStrip->GetFreeTransRect(); // start with the full rectangle,
 										   // and reduce as required below
 		if (gbRTL_Layout)
 		{
 			// source is to be laid out right-to-left, so free translation rectangles will be
 			// altered in location from what would be the case for a LTR layout
-			rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable 
+			rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable
 															// area starts (it extends leftwards)
 			pileIndex = 0;
 			do {
@@ -1123,7 +1126,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 				{
 					// yes, we are dealing with the last pile of the current free
 					// translation section
-					
+
                     // whether we make the left boundary of rect be the left of the pile's
                     // rectangle, or let it be the leftmost remainder of the strip's free
                     // translation rectangle, depends on whether or not this pile is the
@@ -1141,14 +1144,14 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 						rect.SetLeft(pPile->GetPileRect().GetLeft()); // this only moves the
 												// rect, we have to recalc the width as well,
 												// do that next
-						rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() - 
-											pPile->GetPileRect().GetLeft()));																		
+						rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() -
+											pPile->GetPileRect().GetLeft()));
 					}
                     // store in the pElement's subRect member (don't compute the substring
                     // yet, to save time since the rect may not be visible), add the
                     // element to the pointer array
 					pElement->subRect = rect;
-					pElement->horizExtent = rect.GetWidth(); 
+					pElement->horizExtent = rect.GetWidth();
 					pFreeTrElementsSet->Add(pElement);
 					break; // out of inner loop; the call is redundant, but it adds clarity
 				}
@@ -1166,7 +1169,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
                         // current rectangle (accepting all the space that remains) and
                         // store it
 						pElement->subRect = rect;
-						pElement->horizExtent = rect.GetWidth(); 
+						pElement->horizExtent = rect.GetWidth();
 						pFreeTrElementsSet->Add(pElement);
 
                         // we are not yet at the end of the piles for this free
@@ -1203,7 +1206,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 						pSrcPhrase = pPile->GetSrcPhrase();
 						curPileIndex_in_strip = pPile->GetPileIndex();
 					}
-				} // end of else block for test: 
+				} // end of else block for test:
 				  // if (pSrcPhrase->m_bEndFreeTrans || pileIndex == pileCount - 1)
 
 			} while (pileIndex < pileSetCount - 1); // end of do loop
@@ -1215,8 +1218,8 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
             // use abs to make sure that this is the ending pile for the free translation
             // section
 			rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
-			rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() - 
-								pPile->GetPileRect().GetLeft())); 
+			rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() -
+								pPile->GetPileRect().GetLeft()));
 			pileIndex = 0;
 			do {
 				//  is this pile the ending pile for the free translation section?
@@ -1224,14 +1227,14 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 				{
 					// yes, we are dealing with the last pile of the current free
 					// translation section
-					
+
                     // whether we make the right boundary of rect be the end of the pile's
                     // rectangle, or let it be the remainder of the strip's free
                     // translation rectangle, depends on whether or not this pile is the
                     // last in the strip - find out, and set the .right parameter accordingly
 					if (curPileIndex_in_strip == curPileCount_for_strip - 1)
 					{
-						// last pile in the strip, so use the full width (so no change to 
+						// last pile in the strip, so use the full width (so no change to
 						// rect is needed)
 						;
 					}
@@ -1245,14 +1248,14 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
                     // yet, to save time since the rect may not be visible), add the
                     // element to the pointer array
 					pElement->subRect = rect;
-					pElement->horizExtent = rect.GetWidth(); 
+					pElement->horizExtent = rect.GetWidth();
 					pFreeTrElementsSet->Add(pElement);
 #ifdef _V6PRINT
 #ifdef __WXDEBUG__
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("BuildFreeTransDisplayRects(), Last: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
-			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip); 
+			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip);
 	}
 #endif
 #endif
@@ -1280,7 +1283,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("BuildFreeTransDisplayRects(), Closing Strip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
-			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip); 
+			pElement->subRect.GetHeight(), curStripIndex, pElement, curPileCount_for_strip);
 	}
 #endif
 #endif
@@ -1290,7 +1293,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 						wxASSERT(curStripIndex < m_pLayout->GetStripCount() - 1);
 						pileIndex++;
 						pPile = (CPile*)pPileSet->Item(pileIndex);
-						wxASSERT(pPile != NULL); 
+						wxASSERT(pPile != NULL);
 						pSrcPhrase = pPile->GetSrcPhrase();
 
 						// initialize rect to the new strip's free translation rectangle, and
@@ -1302,7 +1305,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 						// get a new element
 						pElement = new FreeTrElement;
 						pElement->nStripIndex = curStripIndex;
-						rect = pStrip->GetFreeTransRect(); // rect.left is already correct, 
+						rect = pStrip->GetFreeTransRect(); // rect.left is already correct,
 														   // since this is pile[0]
 						// this new pile might be the one for the end of the free translation
 						// section, so iterate
@@ -1314,18 +1317,18 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
                         // rectangle
 						pileIndex++;
 						pPile = (CPile*)pPileSet->Item(pileIndex);
-						wxASSERT(pPile != NULL); 
+						wxASSERT(pPile != NULL);
 						pSrcPhrase = pPile->GetSrcPhrase();
 						curPileIndex_in_strip = pPile->GetPileIndex();
 					}
-				} // end of else block for test: 
+				} // end of else block for test:
 				  // if (pSrcPhrase->m_bEndFreeTrans || pileIndex == pileCount - 1)
 
 			} while (pileIndex < pileSetCount); // end of do loop
 
 		} // end LTR layout block
 
-		// rectangle calculations are finished for this free translation section, and stored in 
+		// rectangle calculations are finished for this free translation section, and stored in
 		// FreeTrElement structs in pFreeTrElementsSet array, which is itself stored in the
 		// m_pFreeTransSetsArray (a private member of CFreeTrans class); iterate to process
 		// the next free translation section
@@ -1337,9 +1340,9 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 /// \return                         nothing
 /// \param pDC                  ->  a device context, for drawing and measuring text extents
 /// \param arrFreeTranslations  ->  the ordered array of free translations to be printed,
-///                                 or displayed on virtual Print Preview pages, on the 
+///                                 or displayed on virtual Print Preview pages, on the
 ///                                 current page. Each is the text of a whole free translation,
-///                                 unsegmented (any needed segmenting is done on the fly 
+///                                 unsegmented (any needed segmenting is done on the fly
 ///                                 internally using SegmentFreeTranslation()).
 /// \remarks
 /// Prints the free translations in their display rectangles, doing any needed text
@@ -1348,7 +1351,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 /// points first, to see if truncation can be avoided). The rectanges, and the indices of
 /// the strips to which they belong, come from FreeTrElement structs which are stored in an
 /// array or arrays of the latter, in a private member of the class, m_pFreeTransSetsArray.
-void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout, 
+void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 													wxArrayString& arrFreeTranslations)
 {
 	int ftCount = arrFreeTranslations.GetCount();
@@ -1358,9 +1361,9 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 	wxArrayPtrVoid* pFTElementsSet = NULL; // stores FreeTrElement stuct ptrs
 
 	// first strip to be printed for this page
-	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip; 
+	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip;
 	// last strip to be printed for this page
-	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip; 
+	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip;
 
 	FreeTrElement* pElement;
 	wxSize extent;
@@ -1386,7 +1389,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 	}
 #endif
 
-	// set up a new colour - make it a purple, 
+	// set up a new colour - make it a purple,
 	// hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
@@ -1395,10 +1398,10 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 	wxColour color(m_pApp->m_freeTransTextColor);
 	if (!color.IsOk())
 	{
-		::wxBell(); 
+		::wxBell();
 		wxASSERT(FALSE);
 	}
-	pDC->SetTextForeground(color); 
+	pDC->SetTextForeground(color);
 
 	bool bTextIsTooLong = FALSE;
 	int totalRects = 0;
@@ -1408,7 +1411,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 	// loop starts here
 	for (ftIndex = 0; ftIndex < ftCount; ftIndex++)
 	{
-		// get the next free translation's set of FreeTrElement structs 
+		// get the next free translation's set of FreeTrElement structs
 		pFTElementsSet = (wxArrayPtrVoid*)m_pFreeTransSetsArray->Item(ftIndex);
 
 		// calculate the total horizontal extent of the display rectangles
@@ -1427,7 +1430,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 
 		if (length == 0)
 		{
-			// there is no text to be printed (or displayed in Print Preview) 
+			// there is no text to be printed (or displayed in Print Preview)
 			// so continue with the next free translation section
 			continue;
 		}
@@ -1444,11 +1447,11 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 #ifdef __WXDEBUG__
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("\nDrawFreeTransStringsInDisplayRects(), ftCount %d , ftIndex %d , ftElements (count) %d , nTotalHorizExtent %d  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
-			ftCount, ftIndex, ftElements, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip); 
+			ftCount, ftIndex, ftElements, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip);
 	}
 #endif
 #endif
-		
+
 		// get text's extent (a wxSize object) and compare to the total horizontal extent of
 		// the rectangles. also determine the number of rectangles we are to write this section
 		// into, and initialize other needed data
@@ -1458,7 +1461,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 
 		if (totalRects < 2)
 		{
-			// the easiest case, the whole free translation section is contained within a 
+			// the easiest case, the whole free translation section is contained within a
 			// single strip; get the PageOffsets struct for this single-rect free translation
 			pElement = (FreeTrElement*)pFTElementsSet->Item(0);
 
@@ -1470,7 +1473,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 			{
 				bool bReducedSizeWillFit = FALSE; // assume it won't be enough to make it all fit
 				bool bUsedReducedSize = FALSE; // assume we didn't decrease the font size
-				int newPointSize = 10; // we'll just try 10 point size, 
+				int newPointSize = 10; // we'll just try 10 point size,
 									   // provided the font is not already smaller
 				wxFont curFont = pDC->GetFont();
 				int oldPointSize = curFont.GetPointSize();
@@ -1492,7 +1495,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 						ftStr = TruncateToFit(pDC,ftStr,ellipsis,nTotalHorizExtent);
 					}
 				}
-				
+
 				// clear only the subRect; this effectively allows for the erasing from the display
 				// of any deleted text from the free translation string; even though this clearing
 				// of the subRect is only technically needed before deletion edits, it doesn't hurt
@@ -1508,6 +1511,14 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 				}
 				else
 				{
+#ifdef _V6PRINT
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("\nDrawFreeTransStringsInDisplayRects(), Drawing:    %s   , at TopLeft: [Left = %d , Top = %d]   pDC->IsOk() = %d"),
+                    ftStr.c_str(), pElement->subRect.GetLeft(), pElement->subRect.GetTop(),  (int)pDC->IsOk());
+	}
+#endif
+#endif
 					pDC->DrawText(ftStr, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
 				}
 
@@ -1571,7 +1582,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 					}
 					// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations
 					// because it triggers a paint event which results in a Draw() which results
-					// in DrawFreeTranslations() being reentered... hence a run-on condition 
+					// in DrawFreeTranslations() being reentered... hence a run-on condition
 					// endlessly calling the View's OnDraw.
 				}
 			} // end of loop: for (index = 0; index < totalRects; index++)
@@ -1616,7 +1627,13 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 /// removed.
 void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 {
-	PageOffsets*  pPageOffsetsStruct = pLayout->m_pOffsets; // this is the current one, 
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("FreeTrans.cpp line 1621, at start            *** DrawFreeTranslationsForPrinting entered ***  "));
+#endif
+#endif
+
+	PageOffsets*  pPageOffsetsStruct = pLayout->m_pOffsets; // this is the current one,
                     // OnPrintPage(int page) has set the pLayout m_pOffsets to the current
                     // PageOffsets struct for the page which is current for printing,
                     // already
@@ -1671,6 +1688,11 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 		delete pFreeTrElementsSet;
 	}
 	delete m_pFreeTransSetsArray;
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("FreeTrans.cpp line 1682, at end, m_pFreeTransSetsArray's count: is %d      *** DrawFreeTranslationsForPrinting now exiting ***  "), count);
+#endif
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1678,9 +1700,9 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 ///
 /// Parameters:
 ///	\param pDC		       ->	pointer to the device context used for drawing the view
-///	\param pLayout	       ->	pointer to the CLayout instance, which manages all the 
+///	\param pLayout	       ->	pointer to the CLayout instance, which manages all the
 ///	                            strips, and piles.
-///	\param drawFTCaller    ->   enum value either call_from_ondraw, or call_from_edit - 
+///	\param drawFTCaller    ->   enum value either call_from_ondraw, or call_from_edit -
 ///                             when call_from_ondraw all free translations within the view
 ///                             are drawn; when call_from_edit, only the free translation
 ///                             being edited is redrawn as editing is being done
@@ -1718,7 +1740,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	int curStripIndex;
 	int curPileIndex;
 	int curPileCount;
-	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles 
+	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
                            // which make up the laid out possible writable areas
                            // for the current free trans section
 	wxPoint topLeft;
@@ -1753,7 +1775,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	}
 	#endif
 
-	// set up a new colour - make it a purple, 
+	// set up a new colour - make it a purple,
 	// hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
@@ -1762,7 +1784,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	wxColour color(m_pApp->m_freeTransTextColor);
 	if (!color.IsOk())
 	{
-		::wxBell(); 
+		::wxBell();
 		wxASSERT(FALSE);
 	}
 	pDC->SetTextForeground(color);
@@ -1797,7 +1819,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	pCurrentPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(
 								m_pCurFreeTransSectionPileArray->GetCount()-1);
 	pCurrentPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
-	
+
 	// return if we did not find a free translation section (never expect this) as the
 	// phrase box is at an anchor location
 	if (pPile == NULL)
@@ -1821,14 +1843,14 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	curPileIndex = pPile->GetPileIndex();
 	curPileCount = pStrip->GetPileCount();
 	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
-	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
+	rect = pStrip->GetFreeTransRect(); // start with the full rectangle,
 									   // and reduce as required below
 	nTotalHorizExtent = 0;
 	if (gbRTL_Layout)
 	{
         // source is to be laid out right-to-left, so free translation rectangles will be
         // altered in location from what would be the case for a LTR layout
-		rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable 
+		rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable
 														// area starts
 		while (TRUE)
 		{
@@ -1855,7 +1877,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 					// in RTL we want to use the upper right coord of rect, and transform its
 					// value to the mirrored coordinates of the underlying canvas.
 					rect.SetLeft(pPile->GetPileRect().GetLeft()); // this only moves the rect
-					rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - 
+					rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() -
 														   pPile->GetPileRect().GetLeft()));
 																	// used abs to make sure
 				}
@@ -1863,7 +1885,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// save time since the rect may not be visible), add the element to the pointer
 				// array
 				pElement->subRect = rect;
-				pElement->horizExtent = rect.GetWidth(); 
+				pElement->horizExtent = rect.GetWidth();
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 				pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -1877,10 +1899,10 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// after saving the earlier element
 				if (curPileIndex == curPileCount - 1)
 				{
-					// we are at the end of the strip, so we have to close off the current 
+					// we are at the end of the strip, so we have to close off the current
 					// rectangle and store it
 					pElement->subRect = rect;
-					pElement->horizExtent = rect.GetWidth(); 
+					pElement->horizExtent = rect.GetWidth();
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 					pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -1911,7 +1933,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 						curPileIndex = pPile->GetPileIndex();
 						// get a new element
 						pElement = new FreeTrElement;
-						//rect = pStrip->m_rectFreeTrans; 
+						//rect = pStrip->m_rectFreeTrans;
 						rect = pStrip->GetFreeTransRect(); // rect.right is already correct,
 														   // since this is pile[0]
 						// this new pile might be the one for the end of the free translation
@@ -1943,7 +1965,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
         // displayed because only the upper left coordinates in LTR are significant in
         // DrawText operations below
 		rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
-		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft())); 
+		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft()));
         // used abs to make sure is this pile the ending pile for the free translation
         // section?
 		while (TRUE)
@@ -1956,13 +1978,13 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// found out, and set the .right parameter accordingly
 				if (curPileIndex == curPileCount - 1)
 				{
-					// last pile in the strip, so use the full width (so no change to 
+					// last pile in the strip, so use the full width (so no change to
 					// rect is needed)
 					;
 				}
 				else
 				{
-					// more piles to the right, so terminate the rectangle at the pile's 
+					// more piles to the right, so terminate the rectangle at the pile's
 					// right boundary
 					rect.SetRight(pPile->GetPileRect().GetRight());
 				}
@@ -1970,7 +1992,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// save time since the rect may not be visible), add the element to the pointer
 				// array
 				pElement->subRect = rect;
-				pElement->horizExtent = rect.GetWidth(); 
+				pElement->horizExtent = rect.GetWidth();
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 				pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -1984,7 +2006,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// after saving the earlier element
 				if (curPileIndex == curPileCount - 1)
 				{
-					// we are at the end of the strip, so we have to close off the current 
+					// we are at the end of the strip, so we have to close off the current
 					// rectangle and store it
 					pElement->subRect = rect;
 					pElement->horizExtent = rect.GetWidth();
@@ -2007,7 +2029,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 						// a next pile so get it, and its sourcephrase pointer
 						wxASSERT(curStripIndex < pLayout->GetStripCount() - 1);
 						pPile = m_pView->GetNextPile(pPile);
-						wxASSERT(pPile != NULL); 
+						wxASSERT(pPile != NULL);
 						pSrcPhrase = pPile->GetSrcPhrase();
 
 						// initialize rect to the new strip's free translation rectangle, and
@@ -2018,7 +2040,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 						curPileIndex = pPile->GetPileIndex();
 						// get a new element
 						pElement = new FreeTrElement;
-						rect = pStrip->GetFreeTransRect(); // rect.left is already correct, 
+						rect = pStrip->GetFreeTransRect(); // rect.left is already correct,
 														   // since this is pile[0]
 						// this new pile might be the one for the end of the free translation
 						// section, so check it out
@@ -2029,7 +2051,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				{
 					// there is at least one more pile in this strip, so check it out
 					pPile = m_pView->GetNextPile(pPile);
-					wxASSERT(pPile != NULL); 
+					wxASSERT(pPile != NULL);
 					pSrcPhrase = pPile->GetSrcPhrase();
 					curPileIndex = pPile->GetPileIndex();
 
@@ -2041,7 +2063,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 
 	} // end LTR layout block
 
-	// rectangle calculations are finished, and stored in 
+	// rectangle calculations are finished, and stored in
 	// FreeTrElement structs in m_pFreeTransArray
 
     // the whole or part of this section must be drawn, so do the
@@ -2061,7 +2083,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 
 	if (totalRects < 2)
 	{
-		// the easiest case, the whole free translation section is contained within a 
+		// the easiest case, the whole free translation section is contained within a
 		// single strip
 		pElement = (FreeTrElement*)m_pFreeTransArray->Item(0);
 		if (bTextIsTooLong)
@@ -2070,7 +2092,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 		}
 
 		// next section:   Draw Single Strip Free Translation Text
-		
+
         // clear only the subRect; this effectively allows for the erasing from the display
         // of any deleted text from the free translation string; even though this clearing
         // of the subRect is only technically needed before deletion edits, it doesn't hurt
@@ -2109,7 +2131,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 
 			// draw this substring
 			// this section:  Draw Multiple Strip Free Translation Text
-			
+
             // clear only the subRect; this effectively allows for the erasing from the
             // display of any deleted text from the free translation string; even though
             // this clearing of the subRect is only technically needed before deletion
@@ -2146,7 +2168,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 {
 	// the DrawFTCaller enum had 2 values,  call_from_edit and call_from_ondraw; it was
 	// defined in Adapt_It.h,  but is now deleted
-	
+
 	DestroyElements(m_pFreeTransArray);
 	CPile*  pPile; // a scratch pile pointer
 	CStrip* pStrip; // a scratch strip pointer
@@ -2154,7 +2176,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 	int curStripIndex;
 	int curPileIndex;
 	int curPileCount;
-	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles 
+	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
                            // which make up the laid out possible writable areas
                            // for the current free trans section
 	wxPoint topLeft;
@@ -2208,7 +2230,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 	}
 	#endif
 
-	// set up a new colour - make it a purple, 
+	// set up a new colour - make it a purple,
 	// hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
@@ -2217,17 +2239,17 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 	wxColour color(m_pApp->m_freeTransTextColor);
 	if (!color.IsOk())
 	{
-		::wxBell(); 
+		::wxBell();
 		wxASSERT(FALSE);
 	}
-	pDC->SetTextForeground(color); 
+	pDC->SetTextForeground(color);
 
 	// the logicalViewClientBottom is the scrolled value for the top of the view
 	// window, after the device context has been adjusted; this value is constant for any
 	// one call of DrawFreeTranslations(); we need to use this value in some tests,
 	// because grectViewClient.GetBottom() only gives what we want when the view is
 	// unscrolled
-	// 
+	//
 	// BEW changed 2Feb10, as the LHS value was way too far below the visible strips
 	// (sluggish free translation response reported by Lisbeth Fritzell, late Jan 2010)
 	//int logicalViewClientBottom = (int)pDC->DeviceToLogicalY(grectViewClient.GetBottom());
@@ -2236,7 +2258,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 
 	// use the thumb position to adjust the Y coordinate of testRect, so it has the
 	// correct logical coordinates value given the amount that the view is currently
-	// scrolled 
+	// scrolled
 	int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
 
 
@@ -2304,7 +2326,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 	}
 
     // The a: labeled while loop below is skipped whenever drawFTCaller == call_from_edit
-	// finds the next free translation section, scanning forward 
+	// finds the next free translation section, scanning forward
     // (BEW added additional code on 13Jul09, to prevent scanning beyond the visible extent
     // of the view window - for big documents that wasted huge slabs of time)
 a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
@@ -2351,7 +2373,7 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		{
 			// the strip is below the bottom of the view rectangle, stop searching forward
 			DestroyElements(m_pFreeTransArray); // don't leak memory
-			
+
 			#ifdef _Trace_DrawFreeTrans
 			#ifdef __WXDEBUG__
 			wxLogDebug(_T(" a: RETURNING because OFF WINDOW now;  nStripTop  %d ,  logicalViewClientBottom  %d"),
@@ -2395,10 +2417,10 @@ ed:	if (pPile == NULL)
 	curPileIndex = pPile->GetPileIndex();
 	curPileCount = pStrip->GetPileCount();
 	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
-	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
+	rect = pStrip->GetFreeTransRect(); // start with the full rectangle,
 									   // and reduce as required below
 	nTotalHorizExtent = 0;
-	bSectionIntersects = FALSE; // TRUE when the section being laid out intersects 
+	bSectionIntersects = FALSE; // TRUE when the section being laid out intersects
 								// the window's client area
 	#ifdef _Trace_DrawFreeTrans
 	#ifdef __WXDEBUG__
@@ -2411,7 +2433,7 @@ ed:	if (pPile == NULL)
 	{
         // source is to be laid out right-to-left, so free translation rectangles will be
         // altered in location from what would be the case for a LTR layout
-		rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable 
+		rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable
 														// area starts
         //  is this pile the ending pile for the free translation section?
 e:		if (pSrcPhrase->m_bEndFreeTrans)
@@ -2436,7 +2458,7 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
                 // in RTL we want to use the upper right coord of rect, and transform its
                 // value to the mirrored coordinates of the underlying canvas.
 				rect.SetLeft(pPile->GetPileRect().GetLeft()); // this only moves the rect
-				rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - 
+				rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() -
 								                       pPile->GetPileRect().GetLeft()));
 																// used abs to make sure
 			}
@@ -2444,19 +2466,19 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
             // save time since the rect may not be visible), add the element to the pointer
             // array
 			pElement->subRect = rect;
-			pElement->horizExtent = rect.GetWidth(); 
+			pElement->horizExtent = rect.GetWidth();
 			nTotalHorizExtent += pElement->horizExtent;
 			m_pFreeTransArray->Add(pElement);
 
             // determine whether or not this free translation section is going to have to
             // be written out in whole or part
-			testRect = grectViewClient; // need a scratch testRect, since its values are 
+			testRect = grectViewClient; // need a scratch testRect, since its values are
                             // changed in the following test for intersection, so can't use
-                            // grectViewClient 
+                            // grectViewClient
 			// BEW added 13Jul09 convert the top (ie. y) to logical coords; x, width and
 			// height need no conversion as they are unchanged by scrolling
             testRect.SetY(nThumbPosition_InPixels);
-            
+
 			// The intersection is the largest rectangle contained in both existing
 			// rectangles. Hence, when IntersectRect(&r,&rectTest) returns TRUE, it
 			// indicates that there is some client area to draw on.
@@ -2472,17 +2494,17 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
             // after saving the earlier element
 			if (curPileIndex == curPileCount - 1)
 			{
-				// we are at the end of the strip, so we have to close off the current 
+				// we are at the end of the strip, so we have to close off the current
 				// rectangle and store it
 				pElement->subRect = rect;
-				pElement->horizExtent = rect.GetWidth(); 
+				pElement->horizExtent = rect.GetWidth();
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 
 				// will we have to draw this rectangle's content?
 				testRect = grectViewClient;
 				testRect.SetY(nThumbPosition_InPixels); // correct if scrolled
-				if (testRect.Intersects(rect)) 
+				if (testRect.Intersects(rect))
 					bSectionIntersects = TRUE;
 
                 // are there more strips? (we may have come to the end of the doc) (for
@@ -2511,7 +2533,7 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 					curPileIndex = pPile->GetPileIndex();
 					// get a new element
 					pElement = new FreeTrElement;
-					//rect = pStrip->m_rectFreeTrans; 
+					//rect = pStrip->m_rectFreeTrans;
 					rect = pStrip->GetFreeTransRect(); // rect.right is already correct,
 													   // since this is pile[0]
                     // this new pile might be the one for the end of the free translation
@@ -2540,8 +2562,8 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
         // displayed because only the upper left coordinates in LTR are significant in
         // DrawText operations below
 		rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
-		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - 
-												pPile->GetPileRect().GetLeft())); 
+		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() -
+												pPile->GetPileRect().GetLeft()));
         // used abs to make sure is this pile the ending pile for the free translation
         // section?
 
@@ -2562,13 +2584,13 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
             // found out, and set the .right parameter accordingly
 			if (curPileIndex == curPileCount - 1)
 			{
-				// last pile in the strip, so use the full width (so no change to 
+				// last pile in the strip, so use the full width (so no change to
 				// rect is needed)
 				;
 			}
 			else
 			{
-				// more piles to the right, so terminate the rectangle at the pile's 
+				// more piles to the right, so terminate the rectangle at the pile's
 				// right boundary
 				rect.SetRight(pPile->GetPileRect().GetRight());
 			}
@@ -2576,7 +2598,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
             // save time since the rect may not be visible), add the element to the pointer
             // array
 			pElement->subRect = rect;
-			pElement->horizExtent = rect.GetWidth(); 
+			pElement->horizExtent = rect.GetWidth();
 			nTotalHorizExtent += pElement->horizExtent;
 			m_pFreeTransArray->Add(pElement);
 
@@ -2594,7 +2616,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 
 			if (testRect.Intersects(rect))
 			{
-				bSectionIntersects = TRUE; // we'll have to write out at least this much 
+				bSectionIntersects = TRUE; // we'll have to write out at least this much
 										   // of this section
 			}
 
@@ -2613,7 +2635,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
             // after saving the earlier element
 			if (curPileIndex == curPileCount - 1)
 			{
-				// we are at the end of the strip, so we have to close off the current 
+				// we are at the end of the strip, so we have to close off the current
 				// rectangle and store it
 				pElement->subRect = rect;
 				pElement->horizExtent = rect.GetWidth();
@@ -2641,7 +2663,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
                     // a next pile so get it, and its sourcephrase pointer
 					wxASSERT(curStripIndex < pLayout->GetStripCount() - 1);
 					pPile = m_pView->GetNextPile(pPile);
-					wxASSERT(pPile != NULL); 
+					wxASSERT(pPile != NULL);
 					pSrcPhrase = pPile->GetSrcPhrase();
 
 					// initialize rect to the new strip's free translation rectangle, and
@@ -2652,7 +2674,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 					curPileIndex = pPile->GetPileIndex();
 					// get a new element
 					pElement = new FreeTrElement;
-					rect = pStrip->GetFreeTransRect(); // rect.left is already correct, 
+					rect = pStrip->GetFreeTransRect(); // rect.left is already correct,
 													   // since this is pile[0]
                     // this new pile might be the one for the end of the free translation
                     // section, so check it out
@@ -2663,7 +2685,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 			{
 				// there is at least one more pile in this strip, so check it out
 				pPile = m_pView->GetNextPile(pPile);
-				wxASSERT(pPile != NULL); 
+				wxASSERT(pPile != NULL);
 				pSrcPhrase = pPile->GetSrcPhrase();
 				curPileIndex = pPile->GetPileIndex();
 
@@ -2676,9 +2698,9 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 		}
 	} // end LTR layout block
 
-	// rectangle calculations are finished, and stored in 
+	// rectangle calculations are finished, and stored in
 	// FreeTrElement structs in m_pFreeTransArray
-b:	if (!bSectionIntersects) 
+b:	if (!bSectionIntersects)
 	{
         // nothing in this current section of free translation is visible in the view's
         // client rectangle so if we are not below the bottom of the latter, iterate to
@@ -2692,7 +2714,7 @@ b:	if (!bSectionIntersects)
 #endif
 
 		// for next line... view only, MM_TEXT mode, y-axis positive downwards
-		if (pElement->subRect.GetTop() > logicalViewClientBottom) 
+		if (pElement->subRect.GetTop() > logicalViewClientBottom)
 		{
 			#ifdef _Trace_DrawFreeTrans
 			#ifdef __WXDEBUG__
@@ -2750,7 +2772,7 @@ b:	if (!bSectionIntersects)
 	{
 		if (length == 0)
 		{
-			// there is no text to be written to the screen, 
+			// there is no text to be written to the screen,
 			// so continue with the next free translation section
 			goto c;
 		}
@@ -2773,7 +2795,7 @@ b:	if (!bSectionIntersects)
 
 	if (totalRects == 1)
 	{
-		// the easiest case, the whole free translation section is contained within a 
+		// the easiest case, the whole free translation section is contained within a
 		// single strip
 		pElement = (FreeTrElement*)m_pFreeTransArray->Item(0);
 		if (bTextIsTooLong)
@@ -2782,7 +2804,7 @@ b:	if (!bSectionIntersects)
 		}
 
 		// next section:   Draw Single Strip Free Translation Text
-		
+
         // clear only the subRect; this effectively allows for the erasing from the display
         // of any deleted text from the free translation string; even though this clearing
         // of the subRect is only technically needed before deletion edits, it doesn't hurt
@@ -2847,7 +2869,7 @@ b:	if (!bSectionIntersects)
 
 			// draw this substring
 			// this section:  Draw Multiple Strip Free Translation Text
-			
+
             // clear only the subRect; this effectively allows for the erasing from the
             // display of any deleted text from the free translation string; even though
             // this clearing of the subRect is only technically needed before deletion
@@ -2867,7 +2889,7 @@ b:	if (!bSectionIntersects)
 			}
 			// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations
 			// because it triggers a paint event which results in a Draw() which results
-			// in DrawFreeTranslations() being reentered... hence a run-on condition 
+			// in DrawFreeTranslations() being reentered... hence a run-on condition
 			// endlessly calling the View's OnDraw.
 		}
 
@@ -2914,9 +2936,9 @@ c:	pPile = m_pView->GetNextPile(pPile);
 ///
 /// Parameters:
 ///	\param pDC		       ->	pointer to the device context used for drawing the view
-///	\param pLayout	       ->	pointer to the CLayout instance, which manages all the 
+///	\param pLayout	       ->	pointer to the CLayout instance, which manages all the
 ///	                            strips, and piles.
-///	\param drawFTCaller    ->   enum value either call_from_ondraw, or call_from_edit - 
+///	\param drawFTCaller    ->   enum value either call_from_ondraw, or call_from_edit -
 ///                             when call_from_ondraw all free translations within the view
 ///                             are drawn; when call_from_edit, only the free translation
 ///                             being edited is redrawn as editing is being done
@@ -2940,7 +2962,7 @@ c:	pPile = m_pView->GetNextPile(pPile);
 /// BEW 19Feb10, updated for support of doc version 5 (one change, elimination of
 /// GetExistingMarkerContent() call by making GetFreeTrans() call)
 /// BEW 9July10, no changes needed for support of kbVersion 2
-/// BEW refactored 5Oct11, to remove gotos and simplify structure 
+/// BEW refactored 5Oct11, to remove gotos and simplify structure
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 {
@@ -2951,7 +2973,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	int curStripIndex;
 	int curPileIndex;
 	int curPileCount;
-	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles 
+	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
                            // which make up the laid out possible writable areas
                            // for the current free trans section
 	wxPoint topLeft;
@@ -3005,7 +3027,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	}
 	#endif
 
-	// set up a new colour - make it a purple, 
+	// set up a new colour - make it a purple,
 	// hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
@@ -3014,10 +3036,10 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	wxColour color(m_pApp->m_freeTransTextColor);
 	if (!color.IsOk())
 	{
-		::wxBell(); 
+		::wxBell();
 		wxASSERT(FALSE);
 	}
-	pDC->SetTextForeground(color); 
+	pDC->SetTextForeground(color);
 
     // the logicalViewClientBottom is the scrolled value for the top of the view window,
     // after the device context has been adjusted; this value is constant for any one call
@@ -3031,7 +3053,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 	// use the thumb position to adjust the Y coordinate of testRect, so it has the
 	// correct logical coordinates value given the amount that the view is currently
-	// scrolled 
+	// scrolled
 	int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
 
 #ifdef _Trace_DrawFreeTrans
@@ -3097,7 +3119,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			{
 				// the strip is below the bottom of the view rectangle, stop searching forward
 				DestroyElements(m_pFreeTransArray); // don't leak memory
-			
+
 #ifdef _Trace_DrawFreeTrans
 #ifdef __WXDEBUG__
 				wxLogDebug(_T(" outer loop, RETURNING because pile is OFF-WINDOW;  nStripTop  %d ,  logicalViewClientBottom  %d"),
@@ -3141,10 +3163,10 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		curPileIndex = pPile->GetPileIndex();
 		curPileCount = pStrip->GetPileCount();
 		pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
-		rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
+		rect = pStrip->GetFreeTransRect(); // start with the full rectangle,
 										   // and reduce as required below
 		nTotalHorizExtent = 0;
-		bSectionIntersects = FALSE; // TRUE when the section being laid out intersects 
+		bSectionIntersects = FALSE; // TRUE when the section being laid out intersects
 									// the window's client area
 #ifdef _Trace_DrawFreeTrans
 #ifdef __WXDEBUG__
@@ -3157,12 +3179,12 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		{
 			// source is to be laid out right-to-left, so free translation rectangles will be
 			// altered in location from what would be the case for a LTR layout
-			rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable 
+			rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable
 															// area starts
 			while (TRUE)
 			{
 				// inner loop for RTL layout, scans across piles in a section
-				
+
 				//  is this pile the ending pile for the free translation section?
 				if (pSrcPhrase->m_bEndFreeTrans)
 				{
@@ -3186,7 +3208,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 						// in RTL we want to use the upper right coord of rect, and transform its
 						// value to the mirrored coordinates of the underlying canvas.
 						rect.SetLeft(pPile->GetPileRect().GetLeft()); // this only moves the rect
-						rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - 
+						rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() -
 															   pPile->GetPileRect().GetLeft()));
 																		// used abs to make sure
 					}
@@ -3194,19 +3216,19 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 					// save time since the rect may not be visible), add the element to the pointer
 					// array
 					pElement->subRect = rect;
-					pElement->horizExtent = rect.GetWidth(); 
+					pElement->horizExtent = rect.GetWidth();
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 
 					// determine whether or not this free translation section is going to have to
 					// be written out in whole or part
-					testRect = grectViewClient; // need a scratch testRect, since its values are 
+					testRect = grectViewClient; // need a scratch testRect, since its values are
 									// changed in the following test for intersection, so can't use
-									// grectViewClient 
+									// grectViewClient
 					// BEW added 13Jul09 convert the top (ie. y) to logical coords; x, width and
 					// height need no conversion as they are unchanged by scrolling
 					testRect.SetY(nThumbPosition_InPixels);
-		            
+
 					// The intersection is the largest rectangle contained in both existing
 					// rectangles. Hence, when IntersectRect(&r,&rectTest) returns TRUE, it
 					// indicates that there is some client area to draw on.
@@ -3222,17 +3244,17 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 					// after saving the earlier element
 					if (curPileIndex == curPileCount - 1)
 					{
-						// we are at the end of the strip, so we have to close off the current 
+						// we are at the end of the strip, so we have to close off the current
 						// rectangle and store it
 						pElement->subRect = rect;
-						pElement->horizExtent = rect.GetWidth(); 
+						pElement->horizExtent = rect.GetWidth();
 						nTotalHorizExtent += pElement->horizExtent;
 						m_pFreeTransArray->Add(pElement);
 
 						// will we have to draw this rectangle's content?
 						testRect = grectViewClient;
 						testRect.SetY(nThumbPosition_InPixels); // correct if scrolled
-						if (testRect.Intersects(rect)) 
+						if (testRect.Intersects(rect))
 							bSectionIntersects = TRUE;
 
 						// are there more strips? (we may have come to the end of the doc) (for
@@ -3293,7 +3315,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			// displayed because only the upper left coordinates in LTR are significant in
 			// DrawText operations below
 			rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
-			rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft())); 
+			rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft()));
 			// used abs to make sure is this pile the ending pile for the free translation
 			// section?
 
@@ -3306,7 +3328,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			while (TRUE)
 			{
 				// inner loop for LTR layout, scans across the piles of the section
-				
+
 				if (pSrcPhrase->m_bEndFreeTrans)
 				{
 #ifdef _Trace_DrawFreeTrans
@@ -3320,13 +3342,13 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 					// found out, and set the .right parameter accordingly
 					if (curPileIndex == curPileCount - 1)
 					{
-						// last pile in the strip, so use the full width (so no change to 
+						// last pile in the strip, so use the full width (so no change to
 						// rect is needed)
 						;
 					}
 					else
 					{
-						// more piles to the right, so terminate the rectangle at the pile's 
+						// more piles to the right, so terminate the rectangle at the pile's
 						// right boundary
 						rect.SetRight(pPile->GetPileRect().GetRight());
 					}
@@ -3334,7 +3356,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
                     // yet, to save time since the rect may not be visible), add the
                     // element to the pointer array
 					pElement->subRect = rect;
-					pElement->horizExtent = rect.GetWidth(); 
+					pElement->horizExtent = rect.GetWidth();
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 
@@ -3353,7 +3375,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 #endif
 					if (testRect.Intersects(rect))
 					{
-						bSectionIntersects = TRUE; // we'll have to write out at least 
+						bSectionIntersects = TRUE; // we'll have to write out at least
 												   // this much of this section
 					}
 #ifdef _Trace_DrawFreeTrans
@@ -3374,7 +3396,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
                     // rectangle calculation after saving the earlier element
 					if (curPileIndex == curPileCount - 1)
 					{
-						// we are at the end of the strip, so we have to close off the current 
+						// we are at the end of the strip, so we have to close off the current
 						// rectangle and store it
 						pElement->subRect = rect;
 						pElement->horizExtent = rect.GetWidth();
@@ -3402,7 +3424,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 							// a next pile so get it, and its sourcephrase pointer
 							wxASSERT(curStripIndex < pLayout->GetStripCount() - 1);
 							pPile = m_pView->GetNextPile(pPile);
-							wxASSERT(pPile != NULL); 
+							wxASSERT(pPile != NULL);
 							pSrcPhrase = pPile->GetSrcPhrase();
 
 							// initialize rect to the new strip's free translation rectangle, and
@@ -3413,7 +3435,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 							curPileIndex = pPile->GetPileIndex();
 							// get a new element
 							pElement = new FreeTrElement;
-							rect = pStrip->GetFreeTransRect(); // rect.left is already correct, 
+							rect = pStrip->GetFreeTransRect(); // rect.left is already correct,
 															   // since this is pile[0]
 							// this new pile might be the one for the end of the free translation
 							// section, so iterate inner loop to check it out
@@ -3424,7 +3446,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 					{
 						// there is at least one more pile in this strip, so check it out
 						pPile = m_pView->GetNextPile(pPile);
-						wxASSERT(pPile != NULL); 
+						wxASSERT(pPile != NULL);
 						pSrcPhrase = pPile->GetSrcPhrase();
 						curPileIndex = pPile->GetPileIndex();
 #ifdef _Trace_DrawFreeTrans
@@ -3441,9 +3463,9 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 		} // end LTR layout block
 
-		// rectangle calculations are finished, and stored in 
-		// FreeTrElement structs in m_pFreeTransArray		
-		if (!bSectionIntersects) 
+		// rectangle calculations are finished, and stored in
+		// FreeTrElement structs in m_pFreeTransArray
+		if (!bSectionIntersects)
 		{
 			// nothing in this current section of free translation is visible in the view's
 			// client rectangle so if we are not below the bottom of the latter, iterate to
@@ -3452,7 +3474,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			pElement = (FreeTrElement*)m_pFreeTransArray->Item(0);
 
 			// for next line... view only, MM_TEXT mode, y-axis positive downwards
-			if (pElement->subRect.GetTop() > logicalViewClientBottom) 
+			if (pElement->subRect.GetTop() > logicalViewClientBottom)
 			{
 #ifdef _Trace_DrawFreeTrans
 #ifdef __WXDEBUG__
@@ -3479,7 +3501,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 				wxLogDebug(_T(" At at upper middle next pPile is --  srcphrase %s, sn = %d, iterate outer loop"),
 					pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
 #endif
-#endif			
+#endif
 				continue; // iterate outer loop (scans over free trans sections)
 			}
 		} // end of TRUE block for test:  if (!bSectionIntersects)
@@ -3500,7 +3522,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		// whm changed 24Aug06 when called from OnEnChangedEditBox, we need to be able to allow
 		// user to delete the contents of the edit box, and draw nothing, so we'll not jump out
 		// early here because the new length is zero
-		
+
 		// trim off any leading or trailing spaces
 		if (length > 0)
 		{
@@ -3520,10 +3542,10 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			wxLogDebug(_T(" At middle, next pPile is --  srcphrase %s, sn = %d, iterate outer loop"),
 				pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
 #endif
-#endif			
+#endif
 			continue;
 		}
-		
+
         // get text's extent (a wxSize object) and compare to the total horizontal extent
         // of the rectangles. also determine the number of rectangles we are to write this
         // section into, and initialize other needed data
@@ -3533,7 +3555,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 		if (totalRects < 2)
 		{
-			// the easiest case, the whole free translation section is contained within a 
+			// the easiest case, the whole free translation section is contained within a
 			// single strip
 			pElement = (FreeTrElement*)m_pFreeTransArray->Item(0);
 			if (bTextIsTooLong)
@@ -3542,7 +3564,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			}
 
 			// next section:   Draw Single Strip Free Translation Text
-			
+
 			// clear only the subRect; this effectively allows for the erasing from the display
 			// of any deleted text from the free translation string; even though this clearing
 			// of the subRect is only technically needed before deletion edits, it doesn't hurt
@@ -3557,7 +3579,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 //#ifdef __WXDEBUG__
 //			 wxSize trueSz;
 //			 pDC->GetTextExtent(ftStr,&trueSz.x,&trueSz.y);
-//			 wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d - 
+//			 wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d -
 //			                                     ftStrExt.x=%d, x=%d, y=%d of %s"),
 //				pElement->subRect.GetLeft(),pElement->subRect.GetWidth(),trueSz.x,
 //				pElement->subRect.GetLeft()+pElement->subRect.GetWidth()-trueSz.x,
@@ -3610,7 +3632,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 				// draw this substring
 				// this section:  Draw Multiple Strip Free Translation Text
-				
+
 				// clear only the subRect; this effectively allows for the erasing from the
 				// display of any deleted text from the free translation string; even though
 				// this clearing of the subRect is only technically needed before deletion
@@ -3638,9 +3660,9 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 				}
 				// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations
 				// because it triggers a paint event which results in a Draw() which results
-				// in DrawFreeTranslations() being reentered... hence a run-on condition 
+				// in DrawFreeTranslations() being reentered... hence a run-on condition
 				// endlessly calling the View's OnDraw
-				  
+
 			} // end of loop: for (index = 0; index < totalRects; index++)
 
 			subStrings.Clear(); // clear the array ready for the next iteration
@@ -3702,13 +3724,13 @@ void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             TRUE if the passed in word or phrase has word-final punctuation 
+/// \return             TRUE if the passed in word or phrase has word-final punctuation
 ///                     at its end, else FALSE
 ///
-///	\param pSP		->	pointer to the CSourcePhrase instance which stores the phrase 
+///	\param pSP		->	pointer to the CSourcePhrase instance which stores the phrase
 ///	                    parameter as a member
 ///	\param phrase	->	the word or phrase being considered (actually, pSP->m_targetStr)
-///	\param punctSet ->	reference to a string of target language punctuation characters 
+///	\param punctSet ->	reference to a string of target language punctuation characters
 ///	                    containing no spaces
 /// \remarks
 /// We can't simply search for a non-empty m_follPunct member of pSrcPhrase in order to end
@@ -3727,7 +3749,7 @@ void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 /// BEW 25Oct10, changed to use Trim() - since pSrcPhrase->m_targetStr is typically passed
 /// in, the algorithm needs no change for support of additional members of CSourcePhrase
 /////////////////////////////////////////////////////////////////////////////////
-bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, 
+bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 											wxString& punctSet)
 {
 	// beware, phrase can sometimes have a final space following punctuation - so first
@@ -3744,13 +3766,13 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 	}
 	else
 	{
-		endingPuncts = SpanIncluding(phrase, punctSet); 
+		endingPuncts = SpanIncluding(phrase, punctSet);
 		return !endingPuncts.IsEmpty();
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             TRUE if the 'next' sourcephrase pointed at by the passed in 
+/// \return             TRUE if the 'next' sourcephrase pointed at by the passed in
 ///                     pile pointer contains in its m_markers member a SF marker which
 ///                     should halt forward scanning for determining the end of the current
 ///                     section to be free translated; FALSE otherwise
@@ -3762,10 +3784,10 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 ///	                    may be the instance following pThisPile - see below. (If TRUE
 ///                     is returned, the passed in pile will be excluded from the current
 ///                     free translation section being delimited, and scanning will stop,
-///                     but the halt instance is made the next one when bAtFollowingPile 
+///                     but the halt instance is made the next one when bAtFollowingPile
 ///                     is returned as TRUE, see the description for that param below.)
 /// \param bAtFollowingPile <- FALSE if pThisPile is the one to halt at (ie. it is not in the
-///                            section). But that won't work for \f*, \fe* or \x* storage 
+///                            section). But that won't work for \f*, \fe* or \x* storage
 ///                            locations - for those, return TRUE here, and the caller will
 ///                            know that that pile is to be included in the section, that is,
 ///                            to make the halt location be after the pile storing \f* etc.
@@ -3861,12 +3883,12 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 			bareMkr = bareMkr.Mid(1);
 			pAnalysis = pDoc->LookupSFM(bareMkr);
 			if (pAnalysis == NULL)
-				return TRUE; // halt for an unknown endmarker 
+				return TRUE; // halt for an unknown endmarker
 							 // (never should be such a thing anyway)
 			if (pAnalysis->textType == none)
 				continue; // don't halt free translation scanning for these
 
-			// we don't halt for embedded endmarkers in footnotes or cross references 
+			// we don't halt for embedded endmarkers in footnotes or cross references
 			// (USFM set only) either
 			int nFound = mkr.Find(ftnoteMkr); // if >= 0, \f is contained within mkr
 			if (nFound >= 0 && mkrLen > 2)
@@ -3901,8 +3923,8 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 			return FALSE; // don't halt free translation scanning
 		}
 
-		// we've a marker to deal with, and its not a filtered one 
-		// - so we'll halt now unless the marker is one like \k , or 
+		// we've a marker to deal with, and its not a filtered one
+		// - so we'll halt now unless the marker is one like \k , or
 		// \it , or \sc , or \bd etc - these have TextType none
 		bufLen = markers.Length();
 		pBuff = markers.GetData();
@@ -3937,9 +3959,9 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             TRUE if the sourcephrase's m_bStartFreeTrans BOOL is TRUE, 
+/// \return             TRUE if the sourcephrase's m_bStartFreeTrans BOOL is TRUE,
 ///                     FALSE otherwise
-///	\param pPile	->	pointer to the pile which stores the pSrcPhrase pointer being 
+///	\param pPile	->	pointer to the pile which stores the pSrcPhrase pointer being
 ///	                    examined
 ///	BEW 19Feb10, no change needed for support of doc version 5
 ///	BEW 9July10, no changes needed for support of kbVersion 2
@@ -3972,21 +3994,33 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 		SwitchScreenFreeTranslationMode(ftModeOFF);
 	else
 		SwitchScreenFreeTranslationMode(ftModeON);
-	
+
 
 }
 //*****************
 // klb 9/2011
-//    extracted most of the code from CFreeTrans::OnAdvancedFreeTranslationMode 
+//    extracted most of the code from CFreeTrans::OnAdvancedFreeTranslationMode
 //       and created this call so free translations could be drawn on print preview
 //       in the background when requested (print preview relies on what is on screen
-// whm 10Nov11 added enum freeTransModeSwitch ftModeSwitch parameter, to enable caller 
+// whm 10Nov11 added enum freeTransModeSwitch ftModeSwitch parameter, to enable caller
 // to explicitly turn the mode on or off rather than act like a blind toggle.
 void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch)
 {
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    if (ftModeSwitch == ftModeON)
+    {
+        wxLogDebug(_T("FreeTrans.cpp line 3991                      *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeON"));
+    }
+    else
+    {
+        wxLogDebug(_T("FreeTrans.cpp line 3995                      *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeOFF"));
+    }
+#endif
+#endif
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenuFTMode = 
+	wxMenuItem * pAdvancedMenuFTMode =
 						pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 
 	gbSuppressSetup = FALSE; // setdefault value
@@ -4029,26 +4063,26 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
         // free translation (can't put this after the ComposeBarGuts() call because the
         // latter calls SetupCurrentFreeTransSection(), and it needs
         // gSpacelessTgtPunctuation set up beforehand)
-		gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with 
+		gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with
 														   // delimiting spaces
-		gSpacelessTgtPunctuation.Remove(gSpacelessTgtPunctuation.Find(_T(' ')),1); // get 
+		gSpacelessTgtPunctuation.Remove(gSpacelessTgtPunctuation.Find(_T(' ')),1); // get
 																	// rid of the spaces
 	}
 
 	// restore focus to the targetBox, if free translation mode was just turned off,
 	// else to the CEdit in the Compose Bar because it has just been turned on
 	// -- providing the box or bar is visible and its handle exists
-	// whm modified 10Nov11 to use a parameter in ComposeBarGuts() 
+	// whm modified 10Nov11 to use a parameter in ComposeBarGuts()
 	if (ftModeSwitch == ftModeON)
 	{
-		m_pFrame->ComposeBarGuts(composeBarShow); // Show the Compose Bar -- it does a 
+		m_pFrame->ComposeBarGuts(composeBarShow); // Show the Compose Bar -- it does a
             // RecalcLayout() call, so if turning off free translation mode, the
             // m_pCurFreeTransSectionPileArray array will store hanging pointers,
             // so don't use it below
 	}
 	else
 	{
-		m_pFrame->ComposeBarGuts(composeBarHide); // Hide the Compose Bar -- it does a 
+		m_pFrame->ComposeBarGuts(composeBarHide); // Hide the Compose Bar -- it does a
             // RecalcLayout() call, so if turning off free translation mode, the
             // m_pCurFreeTransSectionPileArray array will store hanging pointers,
             // so don't use it below
@@ -4070,10 +4104,10 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		if (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 		{
 			// save the phrase box text to the KB
-			// left it here -- may need to ensure m_targetPhrase has no punct before 
+			// left it here -- may need to ensure m_targetPhrase has no punct before
 			// passing to StoreTextGoingBack()
 			bool bOK;
-			bOK = pKB->StoreTextGoingBack(pSP,m_pApp->m_targetPhrase); // store, so we can 
+			bOK = pKB->StoreTextGoingBack(pSP,m_pApp->m_targetPhrase); // store, so we can
 																// forget this location
 		}
 		while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
@@ -4127,14 +4161,14 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 				m_pApp->m_targetPhrase = pSP->m_adaption;
 			}
 		}
-		translation = m_pApp->m_targetPhrase; // in case we just unmerged, since a 
+		translation = m_pApp->m_targetPhrase; // in case we just unmerged, since a
                         //PlacePhraseBox() call with selector == 1 or 3 will set
                         //m_targetPhrase to whatever is currently in the global string
                         //translation when it jumps the block of code for removing the new
                         //location's entry from the KB
 		CCell* pCell = pPile->GetCell(1); // need this for the PlacePhraseBox() call
 		m_pView->PlacePhraseBox(pCell,1); // 1 = inhibit saving at old location, as we did it above
-				// instead, and also don't remove the new location's KB entry (as the 
+				// instead, and also don't remove the new location's KB entry (as the
 				// phrase box is disabled)
 
 		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
@@ -4311,7 +4345,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 				if (pSrcPhrase->m_bHasFreeTrans)
 				{
 					// set the flag on the app
-					bFTfound = TRUE; 
+					bFTfound = TRUE;
 					break; // don't need to check further
 				}
 			}
@@ -4319,7 +4353,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	}
 	if (!bFTfound)
 	{
-		// there are no free translations in the document, 
+		// there are no free translations in the document,
 		// so tell the user and return
 		wxMessageBox(_(
 		"The document does not contain any free translations."),
@@ -4338,7 +4372,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		return;
 	}
 
-	// initialize variables needed for the scan over the document's 
+	// initialize variables needed for the scan over the document's
 	// sourcephrase instances
 	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst();
@@ -4367,7 +4401,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu
 ///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -4391,7 +4425,7 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent&
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu
 ///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -4428,20 +4462,20 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 ///	are not handled by this function.
 ///	Note: any call made in this function which results in a RecalcLayout() call
 ///	being done, will recursively cause SetupCurrentFreeTransSection() to be entered
-///	
+///
 ///	BEW 19Feb10, no changes needed for support of doc version 5 (but the function
 ///	IsFreeTranslationEndDueToMarker() called internally has extensive changes for
 ///	doc version 5)
 ///	BEW 9July10, no changes needed for support of kbVersion 2
 ///	BEW 11Oct10, extra changes for doc version 5 required no changes here, but a bug was
 ///	found - the section definition within a footnote span would not include the final
-///	CSourcePhrase on which the \f* was stored. This required a change in 
-///	IsFreeTranslationEndDueToMarker()	
+///	CSourcePhrase on which the \f* was stored. This required a change in
+///	IsFreeTranslationEndDueToMarker()
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
-	gbFreeTranslationJustRemovedInVFMdialog = FALSE; // restore to default 
-           // value, in case a removed was just done in the View Filtered 
+	gbFreeTranslationJustRemovedInVFMdialog = FALSE; // restore to default
+           // value, in case a removed was just done in the View Filtered
            // Material dialog
 
 	if (activeSequNum < 0)
@@ -4458,7 +4492,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
                             // editing operation and want the box text to still be there
 	wxASSERT(m_pFrame->m_pComposeBar != NULL);
 	wxTextCtrl* pEdit = (wxTextCtrl*)
-							m_pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE); 
+							m_pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 	// whm 24Aug06 removed gFreeTranslationStr global here and below
 	wxString tempStr;
 	tempStr = pEdit->GetValue(); // set tempStr to whatever is in the box
@@ -4507,7 +4541,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
                 // section
 				wxASSERT(pNextPile != NULL);
 				pile = pNextPile;
-				wxASSERT(pile->GetSrcPhrase()->m_bHasFreeTrans); // must be TRUE 
+				wxASSERT(pile->GetSrcPhrase()->m_bHasFreeTrans); // must be TRUE
 																 // for a defined section
 				if (pile->GetSrcPhrase()->m_bEndFreeTrans)
 				{
@@ -4527,10 +4561,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 							m_pCurFreeTransSectionPileArray->Item(0))->GetSrcPhrase();
 			CSourcePhrase* pLastSPhr = ((CPile*)
 							m_pCurFreeTransSectionPileArray->Last())->GetSrcPhrase();
-			bool bFreeTransPresent = TRUE;		
-			bool bProbablyVerse = 
+			bool bFreeTransPresent = TRUE;
+			bool bProbablyVerse =
 							m_pView->GetLikelyValueOfFreeTranslationSectioningFlag(pSrcPhrases,
-								pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber, 
+								pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber,
 								bFreeTransPresent);
 			m_pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
 
@@ -4557,7 +4591,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		// so work out the first guess for what the current section is to be
 		pile = m_pView->GetPile(activeSequNum);
 		if (pile == NULL)
-			return; // something's very wrong - how can the phrase box be at 
+			return; // something's very wrong - how can the phrase box be at
 					// a null pile?
 		if (!tempStr.IsEmpty())
 			bEditBoxHasText = TRUE;
@@ -4587,7 +4621,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			// count the pile's words (BEW changed 28Apr06)
 			wordcount += pile->GetSrcPhrase()->m_nSrcWords;
 
-			// test first for a following free translation section 
+			// test first for a following free translation section
 			// - if there is one it must halt scanning immediately
 			pNextPile = m_pView->GetNextPile(pile);
 			if (pNextPile == NULL)
@@ -4598,18 +4632,18 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			else
 			{
 				if (pNextPile->GetSrcPhrase()->m_bStartFreeTrans)
-					break; // halt scanning, we've bumped into a pre-existing 
+					break; // halt scanning, we've bumped into a pre-existing
 						   // free trans section, else continue the battery of tests
 			}
 			// BEW 19Feb10, IsFreeTranslationEndDueToMarker() modified to support
-			// doc version 5 
+			// doc version 5
 			bool bHaltAtFollowingPile = FALSE;
 			bool bIsItThisPile = IsFreeTranslationEndDueToMarker(pNextPile, bHaltAtFollowingPile);
 			if (bIsItThisPile)
 			{
 				if (!bHaltAtFollowingPile)
 				{
-					break; // halt scanning, we've bumped into a SF marker which is 
+					break; // halt scanning, we've bumped into a SF marker which is
 						   // significant enough for us to consider that something quite
                            // different follows, or a filtered section starts at pNextPile
                            // - and that too indicates potential major change in the text
@@ -4625,7 +4659,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 				}
             }
 			// determine if we can start testing for the end of the section
-			// BEW 28Apr06, we are now counting words, so use to MIN_FREE_TRANS_WORDS, 
+			// BEW 28Apr06, we are now counting words, so use to MIN_FREE_TRANS_WORDS,
 			// & still = 5 (See AdaptitConstants.h)
 			if (wordcount >= MIN_FREE_TRANS_WORDS)
 			{
@@ -4652,10 +4686,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
                         // we are at the end of the document
 						break;
 					}
-					else if (pNextPile->GetSrcPhrase()->m_bVerse || 
+					else if (pNextPile->GetSrcPhrase()->m_bVerse ||
 								pNextPile->GetSrcPhrase()->m_bFirstOfType)
 					{
-						// this "next pile" is the start of a new verse, so we must 
+						// this "next pile" is the start of a new verse, so we must
 						// break out here
 						break;
 					}
@@ -4704,21 +4738,21 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return         nothing
 ///
-///	\param     pPileArray	     ->	pointer to the array of piles which comprise the 
+///	\param     pPileArray	     ->	pointer to the array of piles which comprise the
 ///                                 current section which is to have its free translation
 ///                                 stored as a filtered \free ... \free* marker section
 ///                                 within the m_markers member of the pSrcPhrase at the
 ///                                 anchor location (ie. at pFirstPile's sourcephrase)
 ///	\param     pFirstPile	     <-	pointer to the first pile in this free translation
-///	                                section 
-///	\param     pLastPile	     <-	pointer to the last pile in this free translation 
 ///	                                section
-///	\param     editBoxContents   ->	enum value can be remove_editbox_contents or 
-///	                                retain_editbox_contents. When remove_editbox_contents 
+///	\param     pLastPile	     <-	pointer to the last pile in this free translation
+///	                                section
+///	\param     editBoxContents   ->	enum value can be remove_editbox_contents or
+///	                                retain_editbox_contents. When remove_editbox_contents
 ///                                 the source phrase's flags are adjusted and pPileArray
 ///                                 is emptied; otherwise (during mere editing stores) the
 ///                                 flags and pPileArray are not changed.
-///	\param     storeStr		     ->	const ref string containing the free trans string to 
+///	\param     storeStr		     ->	const ref string containing the free trans string to
 ///	                                store in m_markers
 /// \remarks
 ///    Gets the free translation text from the Compose Bar's edit box,
@@ -4745,7 +4779,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 	if (pBar != NULL && pBar->IsShown())
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
-		if (pEdit != 0 && pPileArray->GetCount() > 0) // whm added second condition 
+		if (pEdit != 0 && pPileArray->GetCount() > 0) // whm added second condition
 			// 1Apr09 as wxMac gets here on frame size event and pPileArray has 0 items
 		{
 			pLastPile = NULL; // set null for now, it is given its value at the end
@@ -4781,12 +4815,12 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
                 // if we are at the end of the document, our Adavance will not be fruitful,
                 // so we'll just want to be able to automatically replace the phrase box
                 // here - and beep to alert the user that the Advance failed.
-				pFirstPile = m_pApp->m_pActivePile; // this should remain valid if we are 
+				pFirstPile = m_pApp->m_pActivePile; // this should remain valid if we are
 												  // at doc end already
 				// now handle the rest in the array
 				int lastIndex = 0;
 				pLastPile = pPile; // default
-				int nSize = pPileArray->GetCount(); 
+				int nSize = pPileArray->GetCount();
 
                 // if nSize is now 0, then there was only the one pSrcPhrase in the
                 // section, and so that one has to be given m_bEndFreeTrans = TRUE value
@@ -4852,7 +4886,7 @@ void CFreeTrans::StoreFreeTranslationOnLeaving()
 			// do the save & pointer calculation in the StoreFreeTranslation() call
 			if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
 			{
-				CPile* saveLastPilePtr = 
+				CPile* saveLastPilePtr =
 					(CPile*)m_pCurFreeTransSectionPileArray->Item(
 										m_pCurFreeTransSectionPileArray->GetCount()-1);
 				wxString editedText;
@@ -4869,14 +4903,14 @@ void CFreeTrans::StoreFreeTranslationOnLeaving()
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             a CString which is the truncated text with an ellipsis (...) 
+/// \return             a CString which is the truncated text with an ellipsis (...)
 ///                     at the end
 ///
 ///	\param pDC			->	pointer to the device context used for drawing the view
-///	\param str			->	the string which is to be elided to fit the available drawing 
+///	\param str			->	the string which is to be elided to fit the available drawing
 ///	                        rectangle
 ///	\param ellipsis		->	the ellipsis text (three dots)
-///	\param totalHExtent	->	the total horizontal extent (pixels) available in the drawing 
+///	\param totalHExtent	->	the total horizontal extent (pixels) available in the drawing
 ///                         rectangle to be used for drawing the elided text. It is the
 ///                         caller's responsibility to work out when this function needs
 ///                         to be called.
@@ -4892,11 +4926,11 @@ wxString CFreeTrans::TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 	wxSize extent;
 	wxString text = str;
 	wxString textPlus;
-a:	text.Remove(text.Length() - 1,1); 
+a:	text.Remove(text.Length() - 1,1);
 	textPlus = text + ellipsis;
-	pDC->GetTextExtent(textPlus,&extent.x,&extent.y); 
-	if (extent.x <= totalHExtent) 
-		return textPlus; // return truncated text with ellipsis 
+	pDC->GetTextExtent(textPlus,&extent.x,&extent.y);
+	if (extent.x <= totalHExtent)
+		return textPlus; // return truncated text with ellipsis
 						 // at the end, as soon as it fits
 	else
 	{
@@ -4911,16 +4945,16 @@ a:	text.Remove(text.Length() - 1,1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             a CString which is the segmented input text (integral number of 
+/// \return             a CString which is the segmented input text (integral number of
 ///                     whole words) that will fit within the passed in extent
 ///
 ///	\param pDC				->	pointer to the device context used for drawing the view
-///	\param str				->	the string which is to be segmented to fit the available 
+///	\param str				->	the string which is to be segmented to fit the available
 ///	                            drawing rectangle
 ///	\param ellipsis		    ->	the ellipsis text (three dots)
-///	\param horizRectExtent	->	the horizontal extent (pixels) available in the drawing 
+///	\param horizRectExtent	->	the horizontal extent (pixels) available in the drawing
 ///	                            rectangle to be used for drawing the segmented text
-///	\param fScale			->	scaling factor to be used if the text is smaller than 
+///	\param fScale			->	scaling factor to be used if the text is smaller than
 ///                             the available total space (ie. all rectangles), we use
 ///                             fScale if bUseScale is TRUE, and with it we scale the
 ///                             horizontal extent (horizExtent) to be a lesser number of
@@ -4929,18 +4963,18 @@ a:	text.Remove(text.Length() - 1,1);
 ///                             drawing rectangles. (bUseScale is passed in as FALSE if we
 ///                             know in the caller that the total text is too long for the
 ///                             sum of the available drawing rectangles for it all to fit)
-///	\param offset			<-	pass back to the caller the offset of the first character 
+///	\param offset			<-	pass back to the caller the offset of the first character
 ///                             in str which is not included in the returned CString - the
 ///                             caller will use this offset to do a .Mid(offset) call on
 ///                             the passed in string, to shorten it for the next
 ///                             iteration's call of SegmentToFit()
 ///	\param nIteration		->	the iteration count for this particular rectangle
-///	\param nIterBound		->	the highest value that nIteration can take (equal to the 
+///	\param nIterBound		->	the highest value that nIteration can take (equal to the
 ///                             total number of drawing rectangles for this free
 ///                             translation section, less one)
-///	\param bTryAgain		<->	passing in FALSE allows fScale to be used, passing in TRUE 
+///	\param bTryAgain		<->	passing in FALSE allows fScale to be used, passing in TRUE
 ///	                            prevents it being used
-///	\param bUseScale		->	whether or not to do scaling of the rectangle extents to 
+///	\param bUseScale		->	whether or not to do scaling of the rectangle extents to
 ///                             give a better segmentation results - ie. distributing words
 ///                             more evenly than would be the case if unscaled rectangle
 ///                             extents were used for the calculations
@@ -4972,7 +5006,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 {
 	wxString subStr;
 	wxSize extent;
-	pDC->GetTextExtent(str,&extent.x,&extent.y); 
+	pDC->GetTextExtent(str,&extent.x,&extent.y);
 	int nStrExtent = extent.x; // the passed in substring str's text extent (horiz)
 	int len = str.Length();
 	int nHExtent = horizRectExtent;
@@ -4983,23 +5017,23 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
         // don't use the scaling factor if bTryAgain is TRUE, but if FALSE it can be used
         // provided bUseScale is TRUE (and the latter will be the case if the caller knows
         // the text is shorter than the total rectangle horizontal extents)
-		nHExtent = (int)(horizRectExtent * fScale); // this is a lesser number of pixels 
+		nHExtent = (int)(horizRectExtent * fScale); // this is a lesser number of pixels
                         // than horizRectExtent the scaling effectively gives us shorter
                         // rectangles for our segmenting calculations
 	}
 
-	// work out how much will fit - start at 5 characters, 
+	// work out how much will fit - start at 5 characters,
 	// since we can be sure that much is fittable
 	if (nIteration < nIterBound)
 	{
 		ncount = 5;
 		subStr = str.Left(ncount);
-		pDC->GetTextExtent(subStr,&extent.x,&extent.y); 
-		while (extent.x < nHExtent && ncount < len) 
+		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		while (extent.x < nHExtent && ncount < len)
 		{
 			ncount++;
 			subStr = str.Left(ncount);
-			pDC->GetTextExtent(subStr,&extent.x,&extent.y); 
+			pDC->GetTextExtent(subStr,&extent.x,&extent.y);
 		}
 
 		// did we get to the end of the str and it all fits?
@@ -5009,7 +5043,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 			return subStr;
 		}
 
-		// we didn't get to the str's end, so work backwards 
+		// we didn't get to the str's end, so work backwards
 		// until we come to a space
 		subStr = MakeReverse(subStr);
 		int nFind = (int)subStr.Find(_T(' '));
@@ -5025,9 +5059,9 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 			nShortenBy = nFind;
 			wxASSERT( nShortenBy >= 0);
 			ncount -= nShortenBy;
-			subStr = str.Left(ncount); // this includes a trailing space, 
+			subStr = str.Left(ncount); // this includes a trailing space,
 									   // even if nShortenBy was 0
-			offset = ncount; // return the offset value that ensures the caller's 
+			offset = ncount; // return the offset value that ensures the caller's
                         //.Mid() call will remove the trailing space as well (beware, the
                         //resulting shortened string may still begin with a space, because
                         //the user may have typed more than one space between words, so the
@@ -5045,10 +5079,10 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 		subStr = str;
 		subStr.Trim(FALSE); // trim left end
 		subStr.Trim(TRUE); // trim right end
-		// recalculate, in case lopping off a trailing space 
+		// recalculate, in case lopping off a trailing space
 		// has now made it able to fit
 		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
-		nStrExtent = extent.x; 
+		nStrExtent = extent.x;
 		if (nStrExtent < horizRectExtent)
 		{
 			// it's all gunna fit, so just return it
@@ -5059,7 +5093,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 			// it ain't gunna fit, so truncate
 			subStr = TruncateToFit(pDC,str,ellipsis,horizRectExtent);
 
-			// here is where we can set bTryAgain to force a recalculation 
+			// here is where we can set bTryAgain to force a recalculation
 			// without the scaling factor
 			if (!bTryAgain && bUseScale)
 			{
@@ -5079,7 +5113,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 	{
 		wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 		wxASSERT(pMenuBar != NULL);
-		wxMenuItem * pAdvancedFreeTranslation = 
+		wxMenuItem * pAdvancedFreeTranslation =
 							pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 		//wxASSERT(pAdvancedFreeTranslation != NULL);
 		gbSuppressSetup = FALSE; // setdefault value
@@ -5118,15 +5152,15 @@ void CFreeTrans::ToggleFreeTranslationMode()
             // span of free translation (can't put this after the ComposeBarGuts() call
             // because the latter calls SetupCurrentFreeTransSection(), and it needs
             // gSpacelessTgtPunctuation set up beforehand)
-			gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with 
+			gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with
 															   // delimiting spaces
 			gSpacelessTgtPunctuation.Replace(_T(" "),_T("")); // get rid of the spaces
-		}	
+		}
 
         // restore focus to the targetBox, if free translation mode was just turned off,
         // else to the CEdit in the Compose Bar because it has just been turned on --
         // providing the box or bar is visible and its handle exists
-		// whm modified 10Nov11 to use a parameter in ComposeBarGuts() 
+		// whm modified 10Nov11 to use a parameter in ComposeBarGuts()
 		if (m_pApp->m_bFreeTranslationMode)
 		{
 			m_pFrame->ComposeBarGuts(composeBarShow); // open the Compose Bar
@@ -5208,13 +5242,13 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
         // ENTER keypress, and also return the focus to the compose bar's edit box
 		wxTextCtrl* pEdit;
 		wxASSERT(m_pFrame->m_pComposeBar != NULL);
-		pEdit = (wxTextCtrl*)m_pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE); 
+		pEdit = (wxTextCtrl*)m_pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		wxString str;
 		str = pEdit->GetValue();
 		int len = str.Length();
 		pEdit->SetFocus();
-		pEdit->SetSelection(len,len); 
+		pEdit->SetSelection(len,len);
 		return;
 	}
 
@@ -5229,10 +5263,10 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 	}
 
 	// only do the following code when in Drafting mode
-	gbSuppressSetup = FALSE; // restore default value, in case Shorten 
+	gbSuppressSetup = FALSE; // restore default value, in case Shorten
 							 // or Lengthen buttons were used
 
-	wxPanel* pBar = m_pFrame->m_pComposeBar; 
+	wxPanel* pBar = m_pFrame->m_pComposeBar;
 	if(pBar != NULL && pBar->IsShown())
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
@@ -5241,7 +5275,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			CPile* pOldActivePile = m_pApp->m_pActivePile;
 			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default
 
-			// The current free translation was not just removed so do the 
+			// The current free translation was not just removed so do the
 			// StoreFreeTranslation() call
 			if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
 			{
@@ -5300,7 +5334,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 					if (gbVerticalEditInProgress && pPile != NULL)
 					{
 						int sn = pPile->GetSrcPhrase()->m_nSequNumber;
-						bool bCommandPosted = 
+						bool bCommandPosted =
 							m_pView->VerticalEdit_CheckForEndRequiringTransition(sn, nextStep);
 														// FALSE is bForceTransition
 						if (bCommandPosted)
@@ -5309,7 +5343,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 					if (pPile == NULL)
 					{
 						// we are at the end of the doc
-						if (pLastPile->GetSrcPhrase()->m_nSequNumber == 
+						if (pLastPile->GetSrcPhrase()->m_nSequNumber ==
 							m_pApp->GetMaxIndex())
 						{
 							// at end of doc
@@ -5336,7 +5370,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			if (gbVerticalEditInProgress && pPile != NULL)
 			{
 				int sn = pPile->GetSrcPhrase()->m_nSequNumber;
-				bool bCommandPosted = 
+				bool bCommandPosted =
 					m_pView->VerticalEdit_CheckForEndRequiringTransition(sn, nextStep);
 												// FALSE is bForceTransition
 				if (bCommandPosted)
@@ -5350,7 +5384,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			m_pLayout->MakeAllPilesNonCurrent();
 
 			// place the phrase box at the next anchor location
-			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
+			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's
 											  // line in the strip
 			if (gbIsGlossing)
 			{
@@ -5361,7 +5395,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 				translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 			}
 			int selector = 1; // this selector inhibits both intial and final code
-							  // blocks (ie. no save to KB and no removal from KB 
+							  // blocks (ie. no save to KB and no removal from KB
 							  // at the new location)
 			m_pView->PlacePhraseBox(pCell,selector);
 
@@ -5378,7 +5412,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
-	gbSuppressSetup = FALSE; // restore default value, in case Shorten or 
+	gbSuppressSetup = FALSE; // restore default value, in case Shorten or
 							 // Lengthen buttons were used
 	// for debugging
 	//int ftStartSN = gEditRecord.nFreeTranslationStep_StartingSequNum;
@@ -5393,7 +5427,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			CPile* pOldActivePile = m_pApp->m_pActivePile;
 			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default initialization
 
-			// The current free translation was not just removed so do the 
+			// The current free translation was not just removed so do the
 			// StoreFreeTranslation() call
 			if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
 			{
@@ -5450,7 +5484,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			if (gbVerticalEditInProgress)
 			{
 				int sn = pPile->GetSrcPhrase()->m_nSequNumber;
-				bool bCommandPosted = 
+				bool bCommandPosted =
 					m_pView->VerticalEdit_CheckForEndRequiringTransition(sn, nextStep);
 												// FALSE is bForceTransition
 				if (bCommandPosted)
@@ -5464,7 +5498,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			m_pLayout->MakeAllPilesNonCurrent();
 
 			// place the phrase box at the next anchor location
-			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
+			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's
 											  // line in the strip
 			if (gbIsGlossing)
 			{
@@ -5474,7 +5508,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			{
 				translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 			}
-			int selector = 1; // this selector inhibits both intial and final code blocks 
+			int selector = 1; // this selector inhibits both intial and final code blocks
 						// (ie. no save to KB and no removal from KB at the new location)
 			m_pView->PlacePhraseBox(pCell,selector); // forces RecalcLayout(), which gets
 											// SetupCurrentFreeTransSection() called
@@ -5488,9 +5522,9 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			// if there is text in the pEdit box, put the cursor after it
 			wxString editedText;
 			editedText = pEdit->GetValue();
-			int len = editedText.Length(); 
+			int len = editedText.Length();
 			if (len > 0)
-				pEdit->SetSelection(len,len); 
+				pEdit->SetSelection(len,len);
 			else
 				pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
 		}
@@ -5503,7 +5537,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
-	gbSuppressSetup = FALSE; // restore default value, in case Shorten 
+	gbSuppressSetup = FALSE; // restore default value, in case Shorten
 							 // or Lengthen buttons were used
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
 
@@ -5607,7 +5641,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						{
 							// force transition to next step
 							bool bCommandPosted;
-							bCommandPosted = 
+							bCommandPosted =
 								m_pView->VerticalEdit_CheckForEndRequiringTransition(
 															-1, nextStep, TRUE);
 													// TRUE is bForceTransition
@@ -5626,7 +5660,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						m_pFrame->canvas->ScrollIntoView(pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						m_pView->Invalidate();
 						m_pLayout->PlaceBox();
-						pEdit->SetFocus(); // put focus back into 
+						pEdit->SetFocus(); // put focus back into
 										   // compose bar's edit control
 						return;
 					}
@@ -5663,7 +5697,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						{
 							// force transition to next step
 							bool bCommandPosted;
-							bCommandPosted = 
+							bCommandPosted =
 								m_pView->VerticalEdit_CheckForEndRequiringTransition(
 															-1, nextStep, TRUE);
 													// TRUE is bForceTransition
@@ -5683,33 +5717,33 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						m_pView->Invalidate();
 						m_pLayout->PlaceBox();
-						pEdit->SetFocus(); // put focus back into the 
+						pEdit->SetFocus(); // put focus back into the
 										   // compose bar's edit control
 						return;
 					}
-					// Criteria for halting scanning and establishing the anchor for a 
+					// Criteria for halting scanning and establishing the anchor for a
 					// free translation segment:
                     // (Note: These are the same criteria used by
-                    // SetupCurrentFreeTransSection()) 
+                    // SetupCurrentFreeTransSection())
                     // Unconditionally halt scanning, if we
                     // encounter:
-					//   1. An SF marker significant enough for us to consider that a 
-					//     logical break in content starts at pPrevPile 
-					//     (IsFreeTranslationEndDueToMarker also returns TRUE if a 
+					//   1. An SF marker significant enough for us to consider that a
+					//     logical break in content starts at pPrevPile
+					//     (IsFreeTranslationEndDueToMarker also returns TRUE if a
 					//     filtered section starts there);
-					//   2. If the source phrase at pPile is already the start of a 
+					//   2. If the source phrase at pPile is already the start of a
 					//     free translation (m_bStartFreeTrans).
                     // The additional conditions for halting scanning depend if we
                     // encounter the following halting criteria within a pile already
                     // marked for free translation or not already marked for free
                     // translation.
-					// If we have unstructured data or if m_bDefineFreeTransByPunctuation, 
-					//      halt scanning back if HasWordFinalPunctuation() returns TRUE, 
-					//      unless the pile is within an existing free translation 
+					// If we have unstructured data or if m_bDefineFreeTransByPunctuation,
+					//      halt scanning back if HasWordFinalPunctuation() returns TRUE,
+					//      unless the pile is within an existing free translation
 					//      segment, and that pile is not the first pile of the existing
-					//      free translation (in which case we want to continue scanning 
+					//      free translation (in which case we want to continue scanning
 					//      back until we reach the first pile of the existing segment).
-					// If m_bDefineFreeTransByPunctuation is FALSE, we halt scanning if 
+					// If m_bDefineFreeTransByPunctuation is FALSE, we halt scanning if
                     //     the source phrase at pPrevPile marks the beginning of a new
                     //     verse (m_bVerse), unless the pile is within an existing free
                     //     translation segment, and that pile is not the first pile of the
@@ -5717,7 +5751,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
                     //     scanning back until we reach the first pile of the existing
                     //     segment - this might not happen often but some verses begin in
                     //     strange places!).
-					// or, if the source phrase at pPrevPile marks a change of text type 
+					// or, if the source phrase at pPrevPile marks a change of text type
                     //     (m_bFirstOfType), unless, like the other criteria above, an
                     //     existing free translation somehow managed to span a text type
                     //     boundary, in which case we would continue scanning back until we
@@ -5746,8 +5780,8 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					{
 						break;
 					}
-					// Check if pPile is the (potential) last pile of a previous free 
-					// trans section according to user's choice of verse or punctuation 
+					// Check if pPile is the (potential) last pile of a previous free
+					// trans section according to user's choice of verse or punctuation
 					// criteria.
 					CSourcePhrase* pPrevSrcPhrase = pPile->GetSrcPhrase();
 					wxASSERT(pPrevSrcPhrase != NULL);
@@ -5763,7 +5797,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 							break;
 						}
 					}
-					else if (pPrevPile->GetSrcPhrase()->m_bVerse || 
+					else if (pPrevPile->GetSrcPhrase()->m_bVerse ||
 												pPrevPile->GetSrcPhrase()->m_bFirstOfType)
 					{
 						break;
@@ -5782,7 +5816,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			{
 				// possibly force transition to next step
 				bool bCommandPosted;
-				bCommandPosted = 
+				bCommandPosted =
 					m_pView->VerticalEdit_CheckForEndRequiringTransition(
 												-1, nextStep, TRUE);
 				// TRUE is bForceTransition
@@ -5806,14 +5840,14 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			{
 				translation = pCell->GetPile()->GetSrcPhrase()->m_gloss;
 			}
-			else 
+			else
 			{
 				translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
 			}
 			int selector = 1; // this selector inhibits both intial and final code blocks
                               // (ie. no save to KB and no removal from KB at the new
                               // location)
-			m_pView->PlacePhraseBox(pCell,selector); // forces a a RecalcLayout(), which gets 
+			m_pView->PlacePhraseBox(pCell,selector); // forces a a RecalcLayout(), which gets
 											// SetupCurrentFreeTransSection() called
 			// make sure we can see the phrase box
 			m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -5901,7 +5935,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
             // otherwise would call that function)
 	bool bEditBoxHasText = FALSE; // default
 	// whm 24Aug06 reordered and modified below
-	wxPanel* pBar = m_pFrame->m_pComposeBar; 
+	wxPanel* pBar = m_pFrame->m_pComposeBar;
 	wxASSERT(pBar != NULL);
 
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
@@ -5909,9 +5943,9 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 	wxString tempStr;
 	tempStr = pEdit->GetValue();
 
-	if (!tempStr.IsEmpty()) 
+	if (!tempStr.IsEmpty())
 		bEditBoxHasText = TRUE;
-	// & we can rely on m_nActiveSequNum having being set correctly, 
+	// & we can rely on m_nActiveSequNum having being set correctly,
 	// and also m_pApp->m_pActivePile;
 
 	if(pBar != NULL && pBar->IsShown())
@@ -5920,13 +5954,13 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 		{
 			CPile* pPile;
 			int end = (int)m_pCurFreeTransSectionPileArray->GetCount() - 1;
-			pPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(end); // pile at end 
+			pPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(end); // pile at end
                 // of current section the OnUpdateLengthenButton() handler will have
                 // already disabled the button if there is no next pile in the bundle, so
                 // we can procede with confidence
 			pPile = m_pView->GetNextPile(pPile);
 			wxASSERT(pPile != NULL);
-			pPile->SetIsCurrentFreeTransSection(TRUE); // this will make it's background 
+			pPile->SetIsCurrentFreeTransSection(TRUE); // this will make it's background
 													   // go light pink
 			m_pCurFreeTransSectionPileArray->Add(pPile); // add it to the array
 
@@ -5960,7 +5994,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle
-///                        mechanism 
+///                        mechanism
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the free translation navigation buttons
 /// are visible. The "Shorten" button used in free translation mode is disabled if the
@@ -5997,7 +6031,7 @@ void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 {
-	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from 
+	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from
             // wiping out the action done below at the time that the view is
             // updated (which otherwise would call that function)
 	bool bEditBoxHasText = FALSE; // default
@@ -6021,13 +6055,13 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 		if (pEdit != 0)
 		{
 			int end = (int)m_pCurFreeTransSectionPileArray->GetCount() - 1;
-			if (end >= 1) // BEW changed 06Mar06 to allow user 
+			if (end >= 1) // BEW changed 06Mar06 to allow user
 						  // to shorten to one pile only
 			{
 				// remove the last pile from the array after making sure
 				// it is no longer regarded as within the current section
 				CPile* pPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(end);
-				pPile->SetIsCurrentFreeTransSection(FALSE); // this will mean 
+				pPile->SetIsCurrentFreeTransSection(FALSE); // this will mean
 										// the cell background will go white
                 // whm corrected by addition 20Sep06: When shortening an existing free
                 // trans segment, the cell did not go white, but stayed green, because the
@@ -6036,7 +6070,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
                 // to correct the situation.
 				pPile->GetSrcPhrase()->m_bHasFreeTrans = FALSE;
 				pPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
-				// the pile previous to pPile becomes the new 
+				// the pile previous to pPile becomes the new
 				// end pile of the active segment
 				CPile* pPrevPile = m_pView->GetPrevPile(pPile);
 				if (pPrevPile != NULL)
@@ -6079,7 +6113,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle 
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle
 ///                        mechanism
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the free translation navigation buttons
@@ -6165,7 +6199,7 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 		}
 		else
 		{
-			event.Enable(TRUE); // but we can lengthen provided it is extending the 
+			event.Enable(TRUE); // but we can lengthen provided it is extending the
                             // section into an undefined free translation area and none
                             // of the above end-conditions applies
 		}
@@ -6174,7 +6208,7 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu
 ///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -6228,9 +6262,9 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem* pAdvancedMenuTTextDft = 
+	wxMenuItem* pAdvancedMenuTTextDft =
 							pMenuBar->FindItem(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT);
-	wxMenuItem* pAdvancedMenuGTextDft = 
+	wxMenuItem* pAdvancedMenuGTextDft =
 							pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT);
 	//wxASSERT(pAdvancedMenuTTextDft != NULL);
 	//wxASSERT(pAdvancedMenuGTextDft != NULL);
@@ -6274,7 +6308,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu
 ///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -6305,7 +6339,7 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && 
+	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() &&
 			m_pApp->m_nActiveSequNum >= 0 &&
 			!m_pApp->m_bComposeBarWasAskedForFromViewMenu)
 		event.Enable(TRUE);
@@ -6320,9 +6354,9 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
-	wxMenuItem* pAdvancedMenuTTextDft = 
+	wxMenuItem* pAdvancedMenuTTextDft =
 							pMenuBar->FindItem(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT);
-	wxMenuItem* pAdvancedMenuGTextDft = 
+	wxMenuItem* pAdvancedMenuGTextDft =
 							pMenuBar->FindItem(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT);
 	//wxASSERT(pAdvancedMenuTTextDft != NULL);
 	//wxASSERT(pAdvancedMenuGTextDft != NULL);
@@ -6398,7 +6432,7 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && 
+	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() &&
 			m_pApp->m_nActiveSequNum >= 0 &&
 			!m_pApp->m_bComposeBarWasAskedForFromViewMenu)
 		event.Enable(TRUE);
@@ -6422,12 +6456,12 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 		{
 			// set the radio button's BOOL to be TRUE
 			m_pApp->m_bDefineFreeTransByPunctuation = TRUE;
-						
+
 			// BEW added 1Oct08: to have the butten click remove the
 			// current section and reconstitute it as a Verse-based section
 			gbSuppressSetup = FALSE;
 			wxCommandEvent evt;
-			m_pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and 
+			m_pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and
                 // any Compose bar edit box test;
                 // the OnRemoveFreeTranslationButton() call calls Invalidate()
 
@@ -6462,12 +6496,12 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 		{
 			// set the radio button's BOOL to be TRUE
 			m_pApp->m_bDefineFreeTransByPunctuation = FALSE;
-			
+
 			// BEW added 1Oct08: to have the butten click remove the
 			// current section and reconstitute it as a Verse-based section
 			gbSuppressSetup = FALSE;
 			wxCommandEvent evt;
-			OnRemoveFreeTranslationButton(evt); // remove current section and 
+			OnRemoveFreeTranslationButton(evt); // remove current section and
                 // any Compose bar edit box test;
                 // the OnRemoveFreeTranslationButton() call calls Invalidate()
 
@@ -6490,7 +6524,7 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle
-///                        mechanism 
+///                        mechanism
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation
 /// buttons are visible. The "Next >" button used for navigation in free translation mode
@@ -6516,7 +6550,7 @@ void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle 
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle
 ///                        mechanism
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation buttons
@@ -6550,7 +6584,7 @@ void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return	nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the Update 
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update
 ///                        Idle mechanism
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation buttons
@@ -6599,13 +6633,13 @@ void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray)
 {
-	int nCount = pileArray->GetCount(); 
+	int nCount = pileArray->GetCount();
 	int index;
 	CPile* pile;
 	for (index = 0; index < nCount; index++)
 	{
-		pile = (CPile*)pileArray->Item(index); 
-		wxASSERT(pile); 
+		pile = (CPile*)pileArray->Item(index);
+		wxASSERT(pile);
 		pile->SetIsCurrentFreeTransSection(TRUE);
 	}
     // we now have to bother with clearing this bool member because not every
@@ -6617,14 +6651,14 @@ void CFreeTrans::MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing
 ///
-///	\param pArr	   ->  pointer to the m_pFreeTransArray which contains FreeTrElement 
+///	\param pArr	   ->  pointer to the m_pFreeTransArray which contains FreeTrElement
 ///                    structs - each of which contains the information relevant to
 ///                    writing a subpart of the free translation in a single rectangle
 ///                    under a single strip
 /// Remarks:
 ///    The structures and variables are used over and over while writing out the
 ///    free translation text in the client area, and so we need this function to clear out
-///    the array each time we come to the next section of the free translation. 
+///    the array each time we come to the next section of the free translation.
 ///    Used by DrawFreeTranslations().
 ///    BEW 22Feb10 no changes needed for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
@@ -6647,8 +6681,8 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /// \return             the CPile instance, safely earlier than where we are interested in
 ///                     and where the caller will start scanning ahead from to get the
 ///                     'real' starting location we want
-///	\param activeSequNum	->	index of the current active location where the free 
-///	                            translation's current section commences (ie. the 
+///	\param activeSequNum	->	index of the current active location where the free
+///	                            translation's current section commences (ie. the
 ///	                            anchor CPile instance)
 /// \remarks
 /// Called early in the view's DrawFreeTranslations() function, to return an arbitrary but
@@ -6731,21 +6765,21 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 /// \return             nothing
 ///
 ///	\param pDC				->	pointer to the device context used for drawing the view
-///	\param str				->	the string which is to be segmented to fit the available 
+///	\param str				->	the string which is to be segmented to fit the available
 ///	                            drawing rectangles
 ///	\param ellipsis		    ->	the ellipsis text (three dots)
-///	\param textHExtent		->	horizontal extent of the section's free translation text 
+///	\param textHExtent		->	horizontal extent of the section's free translation text
 ///	                            (unsegmented)
-///	\param totalHExtent	    ->  the total horizontal extent (pixels) available - calculated 
+///	\param totalHExtent	    ->  the total horizontal extent (pixels) available - calculated
 ///                             by summing the horizontal extents of all the drawing
 ///                             rectangles to be used for drawing the subtext strings.
-///	\param pElementsArray	->	array of FreeTrElement structs, one per drawing rectangle 
+///	\param pElementsArray	->	array of FreeTrElement structs, one per drawing rectangle
 ///	                            for this section
-///	\param pSubstrings		<-	array of substrings formed by segmenting str into substrings 
+///	\param pSubstrings		<-	array of substrings formed by segmenting str into substrings
 ///                             which will fit, one per rectangle, in the rectangles stored
 ///                             in pElementsArray (the caller will do the drawing of these
 ///                             substrings in the appropriate rectangles)
-///	\param totalRects		->	the total number of drawing rectangles available for this 
+///	\param totalRects		->	the total number of drawing rectangles available for this
 ///                             section (equals pElementsArray->GetSize() - which is how
 ///                             it was calculated in the caller)
 /// \remarks
@@ -6758,12 +6792,12 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 /// BEW 1Oct11, no need to use goto commands, so I change it to use a while loop
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
-											wxString&		str, 
-											wxString&		ellipsis, 
-											int				textHExtent, 
-											int				totalHExtent, 
-											wxArrayPtrVoid*	pElementsArray, 
-											wxArrayString*	pSubstrings, 
+											wxString&		str,
+											wxString&		ellipsis,
+											int				textHExtent,
+											int				totalHExtent,
+											wxArrayPtrVoid*	pElementsArray,
+											wxArrayString*	pSubstrings,
 											int				totalRects)
 {
 	float fScale = (float)(textHExtent / totalHExtent); // calculate the scale factor
@@ -6790,14 +6824,14 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 		fScale = (float)0.8;
 
 	wxString remainderStr = str; // we shorten this for each iteration
-	wxString subStr; // what we work out as the first part of remainderStr 
+	wxString subStr; // what we work out as the first part of remainderStr
 					 // which will fit the current rect
 	wxASSERT(pSubstrings->GetCount() == 0);
 	FreeTrElement* pElement;
 	int offset;
 	int nIteration;
 	int nIterBound = totalRects - 1;
-	bool bTryAgain = FALSE; // if we use the scaling factor and we get truncation in 
+	bool bTryAgain = FALSE; // if we use the scaling factor and we get truncation in
             // the last rectangle then we'll use a TRUE value for this flag to force a
             // second segmentation which does not use the scaling factor
 
@@ -6817,7 +6851,7 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 				subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
 								fScale,offset,nIteration,nIterBound,bTryAgain,FALSE);
 				pSubstrings->Add(subStr);
-				remainderStr = remainderStr.Mid(offset); // shorten, 
+				remainderStr = remainderStr.Mid(offset); // shorten,
 														 // for next segmentation
 			}
 			break; // we are done
@@ -6862,7 +6896,7 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu
 ///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
@@ -6941,7 +6975,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 				pos = pos->GetNext();
 				if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 				{
-					bBTfound = TRUE; 
+					bBTfound = TRUE;
 					break; // don't need to check further
 				}
 			}
@@ -6967,14 +7001,14 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 		return;
 	}
 
-	// initialize variables needed for the scan over the document's 
+	// initialize variables needed for the scan over the document's
 	// sourcephrase instances
 	SPList* pList = m_pApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->GetFirst(); 
+	SPList::Node* pos = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase;
 	wxString emptyStr = _T("");
 
-	// do the loop, halting to store each collection at appropriate (unfiltered) 
+	// do the loop, halting to store each collection at appropriate (unfiltered)
 	// SF markers
 	while (pos != NULL)
 	{
@@ -7003,7 +7037,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
 ///
-///	\param bUseAdaptationsLine	->	TRUE if m_targetStr is used for the collection, 
+///	\param bUseAdaptationsLine	->	TRUE if m_targetStr is used for the collection,
 ///	                                FALSE if m_gloss is used
 ///
 /// \remarks
@@ -7078,19 +7112,19 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 	}
 	else
 	{
-		// collection over the whole document is wanted, 
+		// collection over the whole document is wanted,
 		// so set pList to the whole list
 		pList = pDocPhrases;
 	}
 
-	// initialize variables needed for the scan over the document's 
+	// initialize variables needed for the scan over the document's
 	// sourcephrase instances
 	wxString strCollect;
-	wxString abit; // BEW added 26Nov05 because from gloss lines we can 
+	wxString abit; // BEW added 26Nov05 because from gloss lines we can
 				   // collect copied ellipses, so exclude these
-	SPList::Node* iteratorPos = pList->GetFirst(); 
+	SPList::Node* iteratorPos = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase;
-	SPList::Node* savePos = iteratorPos; 
+	SPList::Node* savePos = iteratorPos;
 	bool bHalt;
 	CSourcePhrase* pLastSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
 
@@ -7102,7 +7136,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
     // footnote, endnote or cross reference. In the case of a selection, this potentially
     // might not be possible (if the user selects only footnote text for instance), so we
     // must allow for such a possibility.
-	if (pLastSrcPhrase->m_curTextType == footnote || 
+	if (pLastSrcPhrase->m_curTextType == footnote ||
 		pLastSrcPhrase->m_curTextType == crossReference)
 	{
 		// we need to skip this material
@@ -7111,7 +7145,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 			savePos = iteratorPos; // needed for next loop after this one
 			pLastSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
 			iteratorPos = iteratorPos->GetNext();
-			if (pLastSrcPhrase->m_curTextType == footnote || 
+			if (pLastSrcPhrase->m_curTextType == footnote ||
 				pLastSrcPhrase->m_curTextType == crossReference)
 			{
 				pLastSrcPhrase = NULL;
@@ -7136,10 +7170,10 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
     // the start of the next verse if no other marker was encountered beforehand) and store
     // the resulting collection at the starting place for this particular part of the
     // collection (ie. at pLastSrcPhrase instance).
-	// BEW changed 02Jan06 to have the code ignore instances with TextType of footnote or 
+	// BEW changed 02Jan06 to have the code ignore instances with TextType of footnote or
 	// crossReference
 	bHalted_at_bt_mkr = FALSE;
-	iteratorPos = savePos; // restore POSITION for the pLastSrcPhrase instance, 
+	iteratorPos = savePos; // restore POSITION for the pLastSrcPhrase instance,
 						   // which is to start the loop
 	while (iteratorPos != NULL)
 	{
@@ -7147,13 +7181,13 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 		iteratorPos = iteratorPos->GetNext();
 
 		// skip any footnote or cross reference instances
-		if (pSrcPhrase->m_curTextType == footnote || 
+		if (pSrcPhrase->m_curTextType == footnote ||
 			pSrcPhrase->m_curTextType == crossReference)
 			continue;
 
 		if (pSrcPhrase == pLastSrcPhrase)
 		{
-			// we are just starting the next section, so don't try to halt, 
+			// we are just starting the next section, so don't try to halt,
 			// just start collecting
 			abit = bUseAdaptationsLine ? pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 			if (abit == _T("..."))
@@ -7173,7 +7207,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 				// do the collection and then iterate
 				if (strCollect.IsEmpty())
 				{
-					abit = bUseAdaptationsLine ? 
+					abit = bUseAdaptationsLine ?
 									pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 					if (abit == _T("..."))
 						abit.Empty();
@@ -7181,7 +7215,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 				}
 				else
 				{
-					abit = bUseAdaptationsLine ? 
+					abit = bUseAdaptationsLine ?
 									pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 					if (abit == _T("..."))
 					{
@@ -7208,12 +7242,12 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 
                     // collect this one's content before iterating, because
                     // iteratorPos is already pointing at the next POSITION
-					strCollect = bUseAdaptationsLine ? 
+					strCollect = bUseAdaptationsLine ?
 										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 
 					if (bSelectionExists && bHalted_at_bt_mkr)
 					{
-						// we don't collect any further within the selection, 
+						// we don't collect any further within the selection,
 						// even if not at its end
 						goto b;
 					}
@@ -7223,7 +7257,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 					// collect here
 					if (strCollect.IsEmpty())
 					{
-						abit = bUseAdaptationsLine ? 	
+						abit = bUseAdaptationsLine ?
 										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 						if (abit == _T("..."))
 							abit.Empty();
@@ -7231,7 +7265,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 					}
 					else
 					{
-						abit = bUseAdaptationsLine ? 
+						abit = bUseAdaptationsLine ?
 										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
 						if (abit == _T("..."))
 						{
@@ -7272,7 +7306,7 @@ bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 	int nFound = pSrcPhrase->GetFilteredInfo().Find(btMkr);
 	if (nFound >= 0)
 	{
-		// there is a marker in m_filteredInfo which commences with the 
+		// there is a marker in m_filteredInfo which commences with the
 		// 3 characters \bt, so return TRUE
 		return TRUE;
 	}
@@ -7285,11 +7319,11 @@ bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 /// Returns: the full marker (including backslash) which is at the passed in location
 ///
 /// Parameters:
-///	markers		->	the pSrcPhrase->m_markers string being checked for which kind 
+///	markers		->	the pSrcPhrase->m_markers string being checked for which kind
 ///					of backtranslation marker was found by the caller
-///	nAtPos		->	character offset to the backslash at the beginning of the marker, 
-///					the marker might be a standard \bt one, or a derived one like \btv etc; 
-///					but the function will return whatever marker is there - so it is not 
+///	nAtPos		->	character offset to the backslash at the beginning of the marker,
+///					the marker might be a standard \bt one, or a derived one like \btv etc;
+///					but the function will return whatever marker is there - so it is not
 ///                 limited to backtranslation support
 /// Remarks:
 ///	Comments above say it all. The function assumes and relies on there being a space
@@ -7343,11 +7377,11 @@ void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxSt
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \returns        TRUE if ptr scanned back to the backslash of an SF marker, 
+/// \returns        TRUE if ptr scanned back to the backslash of an SF marker,
 ///                 FALSE otherwise
 ///
 ///	\param pBuff		->	pointer to the start of the pSrcPhrase->m_markers buffer
-///	\param ptr			<->	iterator, a reference to a pointer to TCHAR at which scanning 
+///	\param ptr			<->	iterator, a reference to a pointer to TCHAR at which scanning
 ///	                        is to commence, and on exit points either at a space or the
 ///	                        end of the buffer
 ///	\param mkrLen		<-	the length, in characters and including the backslash, of the
@@ -7361,7 +7395,7 @@ void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxSt
 ///    over it and return to the caller with the offset to its backslash, and the length
 ///    (defined by character count up to the next space but not including the space). The
 ///    caller can then extract the marker and use it for testing purposes.
-///    
+///
 ///    BEW 2Mar10, updated for support of doc version 5 (no changes needed) (the legacy
 ///    version of this function was called GetPrevMarker() and it scanned backwards)
 ///    BEW 9July10, no changes needed for support of kbVersion 2
