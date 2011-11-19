@@ -1840,7 +1840,10 @@ public:
 
     /// A pointer to the m_saveList member which serves as a place to save m_pSourcePhrases
     /// when printing a selection or a ch/verse range. It is used in the View's
-    /// SetupRangePrintOp() and in AIPrintout's OnPreparePrinting() and in its destructor.
+    /// SetupRangePrintOp() and in AIPrintout's OnPreparePrinting() and in its destructor,
+    /// and, for the __WXGTK__ build, in the workaround for making a user's page range
+    /// printing choice succeed (wxGnomePrinter fails to support it) - where we use a
+    /// workaround function called SetupPagePrintOp().
 	SPList* m_pSaveList;
 
     /// The m_curOutputFilename member holds the name of a file currently functioning as an

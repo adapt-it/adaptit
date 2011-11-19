@@ -6534,8 +6534,8 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 }
 
 /*
-// whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's 
-// wxScrollingDialog class which (along with scScrollingWizard) is now used throughout 
+// whm 14Nov11 Note: This FitWithScrolling() function is now integrated in Julian Smart's
+// wxScrollingDialog class which (along with scScrollingWizard) is now used throughout
 // Adapt It.
 //
 // The idea for this function was inspired by a blog by Julian Smart, wxWidgets developer
