@@ -59,6 +59,8 @@
 #include "Adapt_ItCanvas.h"
 #include "WaitDlg.h"
 
+#define Print_failure
+
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 // This global is defined in Adapt_ItView.cpp.
@@ -199,6 +201,13 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 205 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 	if (bHideFreeTranslationsOnClose)
 	{
 		pApp->GetFreeTrans()->SwitchScreenFreeTranslationMode(ftModeOFF);
@@ -212,6 +221,17 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 		pApp->GetMainFrame()->Thaw();
 		pApp->m_bFrozenForPrinting = FALSE;
 	}
+	// BEW added 19Nov11
+    gbCheckInclFreeTransText = FALSE; // restore default OFF
+    gbCheckInclGlossesText = FALSE; // restore default OFF
+
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 228 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,7 +353,12 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		//  in OnOK()  -- for the reason, see the comment in the block above
         gbCheckInclGlossesText = FALSE;
 	}
-
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("PrintOptionsDlg  InitDialog() line 356: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 	// Get the logical page dimensions for paginating the document and printing.
     int nPagePrintingWidthLU;
 	int nPagePrintingLengthLU;
@@ -598,7 +623,12 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
     // after the latter has returned
 
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
-
+#if defined(Print_failure)
+#if defined(__WXDEBUG__) && defined(__WXGTK__)
+    wxLogDebug(_T("PrintOptionsDlg  OnOK() line 626 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+#endif
+#endif
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
