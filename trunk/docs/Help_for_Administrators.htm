@@ -289,8 +289,59 @@ href="#Setup_User_Workflow_Profile">Setup a User Workflow Profile</a>
               
       </p>
 <h2><a name="Bibledit_Steps_Start"></a>Bibledit</h2>
-<h4>1. Prepare at least two Bibledit projects for 
-collaboration with Adapt It</h4>
+<h3>Ensure that a recent version of Bibledit-Gtk is 
+installed (4.2 or newer)</h3>
+<p><strong>IMPORTANT</strong>: For Adapt It to collaborate 
+with Bibledit, you need to <strong>install version 4.2 or newer of 
+Bibledit-gtk</strong>.&nbsp;The version of Bibledit that is packaged in 
+the&nbsp;standard Ubuntu repositories (through Onerirc) is not new 
+enough&nbsp;for handling collaboration (typically 4.0 or older).&nbsp;The SIL 
+packages.sil.org repository has a version of Bibledit (4.2.67) for Ubuntu Lucid, 
+Maverick, Natty and Oneiric (each distribution has both i386 and amd64 
+architectures). The sil.packages.org repository is the same repository that 
+mades available the Adapt It packages for Ubuntu Linux. You can check to 
+ensure&nbsp;that the SIL&nbsp;repository is made available for your Ubuntu 
+distribution in your Ubuntu Software Sources settings. To do so, you should do 
+the following:</p>
+<p>a. Start up the Software Sources application. On Unity 
+you can find&nbsp;the Software Sources by clicking on "Ubuntu Software Center" 
+application icon. From the Ubuntu Software Center's Edit menu select "Software 
+Sources..." Alternately you can click on the DashHome icon and start typing 
+"Software Sources" into the search box, then click on the "Software Sources" 
+icon when it appears. In classic Gnome, select the "Ubuntu Software Center" from 
+the "Applications" menu, then select&nbsp;"Software Sources..." from its Edit 
+menu.</p>
+<p>b. In the Software Sources application click on the 
+"Other Software" tab at the top. If there is not a line that contains a 
+reference to packages.sil.org/ubuntu, then click on the "Add..." button at the 
+bottom. Then enter one of the following lines depending on which distribution of 
+Ubuntu Linux is installed on your machine:</p>
+<p>deb http://packages.sil.org/ubuntu lucid main<br>deb 
+http://packages.sil.org/ubuntu maverick main<br>deb 
+http://packages.sil.org/ubuntu&nbsp;natty main<br>deb 
+http://packages.sil.org/ubuntu oneiric main</p>
+<p>c. Start up the Synaptic Package Manager (If using 
+Unity, first install the Synaptic Package Manager - search for "Synaptic" in the 
+Ubuntu Software Center and click on "Install").&nbsp;</p>
+<p>d. Click on "Reload" to insure you have the latest 
+information from the repositories. Click on the "Search" button and type in 
+"bibledit" in the search box. When the bibledit packages appear, look for the 
+package named "bibledit-gtk" and look at the&nbsp;"Latest Version" column. 
+Ensure that the version listed for bibledit-gtk is at least 4.2.67. (if no 
+version of bibledit-gtk is at least 4.2.67 make sure you have&nbsp;set up the 
+http://packages.sil.org/ubuntu line correctly in the Software Sources setup 
+steps above).</p>
+<p>e. Right click on the bibledit-gtk package name and 
+select "Mark for Installation" from the popup menu. Select the "Mark" button in 
+the warning dialog. Then click on the "Apply" button at the top of the Synaptic 
+Package Manager application, and click on the "Apply" button on the Summary 
+dialog. Close Synaptic Package Manager after it completes the installation of 
+bibledit-gtk.</p>
+<p>The Bibledit-Gtk application will be listed in the 
+Office menu (on can be found by searching for bibledit on Unity's DeskHome 
+search bar).</p>
+<p>1. Prepare at least two Bibledit projects for 
+collaboration with Adapt It</p>
 <p><strong>BEFORE</strong> you set up Adapt It to 
 collaborate with Bibledit, you should ensure that Bibledit has at least 
 <strong>TWO</strong> projects set up - one project for obtaining 
