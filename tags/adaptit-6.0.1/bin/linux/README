@@ -1,0 +1,13 @@
+To build a Unicode Release (non-static) version of Adapt It invoke configure with the following options:
+
+  ./configure --with-gtk --enable-unicode --enable-shared --enable-gnomeprint
+
+then invoke
+
+  make
+
+For more information or questions contact:
+
+Bill Martin at:
+   email: bill_martin@sil.org
+   skype: pngbill
