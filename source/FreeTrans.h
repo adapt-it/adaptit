@@ -5,10 +5,10 @@
 /// \date_created	10 Februuary 2010
 /// \date_revised	10 Februuary 2010
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General 
+/// \license		The Common Public License or The GNU Lesser General
 ///                 Public License (see license directory)
-/// \description	This is the header file for the CFreeTrans class. 
-/// The CFreeTrans class presents free translation fields to the user. 
+/// \description	This is the header file for the CFreeTrans class.
+/// The CFreeTrans class presents free translation fields to the user.
 /// The functionality in the CFreeTrans class was originally contained in
 /// the CAdapt_ItView class.
 /// \derivation		The CFreeTrans class is derived from wxObject.
@@ -39,14 +39,14 @@ class SPArray;
 /// horizExtent and subRect.
 /// BEW 2Oct11, added int nStripIndex so as to store the index to the owning strip which
 /// this particular subRect is associated with. DrawFreeTranslations() won't use it,
-/// because that can safely draw outside the view's client area and no mess anything up
+/// because that can safely draw outside the view's client area and not mess anything up
 /// visually, but DrawFreeTranslationsForPrinting() needs it, because if a free
 /// starts in the last strip to be shown on a given page, we don't want free translation
 /// data which should be on the next page being printed at the bottom of the current paper
 /// sheet - so the latter function will use the value to test for when the rectangle
 /// belongs to a strip which should not be printed on the current page; likewise for free
 /// translation material which has it's anchor at the end of the previous page
-struct FreeTrElement 
+struct FreeTrElement
 {
 	int horizExtent;
 	wxRect subRect;
@@ -54,12 +54,12 @@ struct FreeTrElement
 };
 
 // comment out next line to disable the debugging wxLogDebug() calls wrapped by this
-// symbol, for debugging various Print bugs noticed when handling printing of free 
+// symbol, for debugging various Print bugs noticed when handling printing of free
 // translations
 //#define _V6PRINT
 
 //////////////////////////////////////////////////////////////////////////////////
-/// The CFreeTrans class presents free translation fields to the user. 
+/// The CFreeTrans class presents free translation fields to the user.
 /// The functionality in the CFreeTrans class was originally contained in
 /// the CAdapt_ItView class.
 /// \derivation		The CFreeTrans class is derived from wxObject.
@@ -73,7 +73,7 @@ public:
 	CFreeTrans(CAdapt_ItApp* app); // use this one
 
 	virtual ~CFreeTrans();// destructor // whm added always make virtual
-	
+
 	// Public free translation drawing functions
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
@@ -81,12 +81,16 @@ public:
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
+#if defined(__WXGTK__)
+    void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
+                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayString& arrFTSubstringsArrays);
+#endif
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
 	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
-	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
+	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile,
 					enum EditBoxContents editBoxContents, const wxString& mkrStr);
 	void		StoreFreeTranslationOnLeaving();
 	void		ToggleFreeTranslationMode();
@@ -151,16 +155,29 @@ private:
 	void		SetupCurrentFreeTransSection(int activeSequNum);
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
 	// BEW 2Oct11, added more, for better design of drawing free translations when printing
-	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets, 
+	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets,
 											wxArrayString& arrFreeTranslations);
+public:
 	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
+	CPile*		FindPreviousFreeTransSection(CPile* pStartingPile);
+private:
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
 	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);
 	void		DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 											wxArrayString& arrFreeTranslations);
+#if defined(__WXGTK__)
+    // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
+	void		GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtrVoid& arrPileSet, CPile* pAnchorPile);
+	void		BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
+	void		DrawOneFreeTransOnPage(wxDC* pDC, CLayout* pLayout, wxArrayPtrVoid& arrRects, wxString& ftStr); // deprecated
+
+    void        AggregateFreeTranslations_PerStrip(wxDC* pDC, CLayout* pLayout, wxArrayPtrVoid& arrRects,
+                            wxString& ftStr, int nStripsOffset, wxArrayPtrVoid& arrFTElementsArrays,
+                            wxArrayString& arrFTSubstringsArrays);
+#endif
 
 public:
-	/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
+	/// An array of pointers to CPile instances. It is created on the heap in OnInit(),
 	/// and disposed of in OnExit().
 	/// Made public so OnLButtonDown() in CAdapt_ItCanvas can access it.
 	/// TODO: consider moving the free translation related functionality out of canvas' OnLButtonDown.
@@ -180,7 +197,7 @@ private:
 	/// BEW 3Oct11: This member is used by DrawFreeTranslations(), which processses one free
 	/// translation section followed by an immediate Draw() of that section, before
 	/// iterating the loop
-	wxArrayPtrVoid*	m_pFreeTransArray; 
+	wxArrayPtrVoid*	m_pFreeTransArray;
 
     /// BEW 3Oct11: An array of arrays to FreeTrElement structs, each stored array stores
     /// the structs pertaining to one free translation section. This is used for printing

@@ -7,7 +7,7 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public
 ///  License (see license directory)
-/// \description	This is the implementation file for the CCell class. 
+/// \description	This is the implementation file for the CCell class.
 /// The CCell class represents the next smaller division of a CPile, there
 /// potentially being up to five CCells displaying vertically top to bottom
 /// within a CPile. The CCell has the smarts for drawing the text and changing
@@ -21,7 +21,7 @@
 //
 // Unanswered questions: (search for "???")
 // 1.
-// 
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -132,7 +132,7 @@ extern const wxChar* filterMkr;
 extern const wxChar* filteredTextPlaceHolder;
 extern EditRecord gEditRecord;
 
-// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: 
+// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets:
 // (BEW moved here from deprecated CText)
 //    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function
 //    does not have an nFormat parameter like MFC's CDC::DrawText(const CString& str,
@@ -187,10 +187,10 @@ IMPLEMENT_DYNAMIC_CLASS(CCell, wxObject)
 
 CCell::CCell()
 {
-	m_bSelected = FALSE; // changes according to user's or app's 
+	m_bSelected = FALSE; // changes according to user's or app's
 		// selecting/deselecting activity
-		// m_pPhrase = NULL; // it is pointed at a wxString only by 
-		// the Draw function in refactored design, m_pPhrase is not 
+		// m_pPhrase = NULL; // it is pointed at a wxString only by
+		// the Draw function in refactored design, m_pPhrase is not
 		// needed, use GetCellText() instead
 	m_pLayout = NULL; // CreateCell() will set this to m_pLayout
 	m_pOwningPile = NULL; // CreateCell() will set this
@@ -235,7 +235,7 @@ wxFont* CCell::GetFont()
 				return m_pLayout->m_pTgtFont;
 		}
 	}
-	return m_pLayout->m_pTgtFont; // never accessed, it's here just to 
+	return m_pLayout->m_pTgtFont; // never accessed, it's here just to
 								  // avoid a compiler warning
 }
 
@@ -257,7 +257,7 @@ void CCell::SetSelected(bool bValue)
 
 int CCell::GetCellIndex()
 {
-	return m_nCell; // return this cell's index in the pile (values 
+	return m_nCell; // return this cell's index in the pile (values
 					// 0 to 3 inclusive)
 }
 
@@ -388,13 +388,13 @@ int CCell::Top()
 	case 0:
 		if (gbShowTargetOnly)
 		{
-			// the source text line is suppressed, but no harm if we return 
+			// the source text line is suppressed, but no harm if we return
 			// the pile's top
 			top = m_pOwningPile->Top();
 		}
 		else
 		{
-			// source text line is not suppressed, it's top is same as 
+			// source text line is not suppressed, it's top is same as
 			// pile's top
 			top = m_pOwningPile->Top();
 		}
@@ -402,7 +402,7 @@ int CCell::Top()
 	case 1:
 		if (gbShowTargetOnly)
 		{
-			// the target, or gloss text, line is at the top of the pile when 
+			// the target, or gloss text, line is at the top of the pile when
 			// source line is suppressed
 			top = m_pOwningPile->Top();
 		}
@@ -416,7 +416,7 @@ int CCell::Top()
 	case 2:
 		if (gbShowTargetOnly)
 		{
-			// this line is never shown when source line is suppressed, so a nonsense 
+			// this line is never shown when source line is suppressed, so a nonsense
 			// value will do
 			top = -1;
 		}
@@ -471,9 +471,9 @@ void CCell::BottomRight(wxPoint& ptBottomRight)
 void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 {
 	m_nCell = index; // remains this value for the life of the owning pile
-	m_pOwningPile = pOwnerPile; // lets the CCell access the CSourcePhrase the 
+	m_pOwningPile = pOwnerPile; // lets the CCell access the CSourcePhrase the
 								// owning pile points at
-	m_pLayout = pLayout; // where drawing information can be had - eg. font 
+	m_pLayout = pLayout; // where drawing information can be had - eg. font
 						 // pointer, font colour, etc
 
 	// Note: m_pPhrase is set by a SetCellText() call in the Draw functions because
@@ -494,16 +494,16 @@ void CCell::Draw(wxDC* pDC)
 	//pDC->DestroyClippingRegion(); // BEW removed 23Jun09, it was destroying the clip rect
 									// before it could be used for reducing flicker
 
-	pDC->SetBrush(*wxTRANSPARENT_BRUSH); // SetBackgroundMode() requires a valid brush 
+	pDC->SetBrush(*wxTRANSPARENT_BRUSH); // SetBackgroundMode() requires a valid brush
         // on wxGTK ( a transparent brush results in nothing being visible - code below
         // always sets the mode to wxSOLID before doing any drawing that is to be visible,
         // including backgrounds)
 
 	wxColour oldBkColor;
-	wxColour color(GetColor());	// get the default colour to be used for drawing this 
+	wxColour color(GetColor());	// get the default colour to be used for drawing this
         // cell's text (it may be overridden below - eg. to gray, when vertical edit is
         // being done)
-								
+
     // vertical edit: change text colour to gray if it is before or after the editable
     // span; we have to do it also in the m_pText CText member too, and beware because the
     // latter can be NULL for some CCell instances. whm: initialized the following two ints
@@ -511,7 +511,7 @@ void CCell::Draw(wxDC* pDC)
     // be uninitialized when gbVerticalEditInProgress if FALSE (albeit the present code,
     // they are not used anywhere but where gbVerticalEditInProgress tests true.
 	int nStart_Span = 0;
-	int nEnd_Span = 0; 
+	int nEnd_Span = 0;
 	if (gbVerticalEditInProgress && (gEditStep == adaptationsStep) && pRec->bAdaptationStepEntered)
 	{
 		// set up the span bounding indices
@@ -532,16 +532,16 @@ void CCell::Draw(wxDC* pDC)
 		nEnd_Span = pRec->nFreeTranslationStep_EndingSequNum;
 	}
 	// colour gray the appropriate cells' text
-	if (gbVerticalEditInProgress 
-		&& (gEditStep == adaptationsStep || gEditStep == glossesStep || 
+	if (gbVerticalEditInProgress
+		&& (gEditStep == adaptationsStep || gEditStep == glossesStep ||
 			gEditStep == freeTranslationsStep))
 	{
         // the spans to be made available for work can differ in each step, so they are set
         // in the code above first
-		if (m_pOwningPile->m_pSrcPhrase->m_nSequNumber < nStart_Span || 
+		if (m_pOwningPile->m_pSrcPhrase->m_nSequNumber < nStart_Span ||
 			m_pOwningPile->m_pSrcPhrase->m_nSequNumber > nEnd_Span)
 		{
-			// it's either adaptations step, AND, the pile is before or after the 
+			// it's either adaptations step, AND, the pile is before or after the
 			// editable span
 			color = gMidGray;
 		}
@@ -558,7 +558,7 @@ void CCell::Draw(wxDC* pDC)
 	if (m_bSelected)
 	{
 		oldBkColor = pDC->GetTextBackground(); // yellow
-		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is 
+		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is
 																	 // set to wxSOLID
 		pDC->SetTextBackground(wxColour(255,255,0)); // yellow
 	}
@@ -591,22 +591,22 @@ void CCell::Draw(wxDC* pDC)
 		pDC->SetTextBackground(wxColour(255,255,100)); // light yellow
 	}
 
-	// Target Text Highlight 
+	// Target Text Highlight
 	// Check for automatically inserted target text/glosses and highlight them
-	// BEW 12Jul05 add colouring for free translation sections, provided we are not 
+	// BEW 12Jul05 add colouring for free translation sections, provided we are not
 	// currently printing
     // BEW 10Oct05 added a block for colouring the source line (cell index == 0) whenever
     // there is no target (or gloss) text that can be coloured, so that there will always
     // be visual feedback about what is free translated, and what is about to be, and what
     // is not.
-	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting 
-		&& ((!gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_targetStr.IsEmpty()) || 
+	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting
+		&& ((!gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_targetStr.IsEmpty()) ||
 		(gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_gloss.IsEmpty())))
 	{
         // we use pastel pink and green for the current section, and other defined
         // sections, respectively, and white (default) otherwise - ie. no free translation
         // there
-		if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans && 
+		if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans &&
 											!m_pOwningPile->m_bIsCurrentFreeTransSection)
 		{
 			// colour background pastel green
@@ -627,7 +627,7 @@ void CCell::Draw(wxDC* pDC)
             // we use pastel pink and green for the current section, and other defined
             // sections, respectively, and white (default) otherwise - ie. no free
             // translation there
-			if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans && 
+			if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans &&
 										!m_pOwningPile->m_bIsCurrentFreeTransSection)
 			{
 				// colour background pastel green
@@ -646,8 +646,8 @@ void CCell::Draw(wxDC* pDC)
 			// not free translation mode -- this is where the auto-highlighting (in light
 			// purple) of automatically inserted adaptations or glosses is done (the bounding
 			// sequence numbers on which it relies, however, get set elsewhere beforehand)
-			if (	!(m_pLayout->m_pApp->m_bSuppressTargetHighlighting) 
-					&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber >= gnBeginInsertionsSequNum 
+			if (	!(m_pLayout->m_pApp->m_bSuppressTargetHighlighting)
+					&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber >= gnBeginInsertionsSequNum
 					&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber <= gnEndInsertionsSequNum)
 			{
 				//Draw automatically inserted target text with selected background color
@@ -656,7 +656,7 @@ void CCell::Draw(wxDC* pDC)
 				//pDC->SetBkColor(RGB(255,200,255)); // light purple (COLORREF)16763135
 				//pDC->SetBkColor(RGB(200,255,255)); // light blue = (COLORREF)16777160
 				// The user can choose any reasonable color to that he/she finds usable
-				// A light purple background highlight looks pretty good over the 
+				// A light purple background highlight looks pretty good over the
 				// default text colors and most that the user might choose
 				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
 				pDC->SetTextBackground(m_pLayout->m_pApp->m_AutoInsertionsHighlightColor); // light purple
@@ -680,7 +680,7 @@ void CCell::Draw(wxDC* pDC)
 		if (m_pLayout->m_pApp->m_bIsPrinting && m_nCell == 0 && m_pOwningPile->m_pOwningStrip->m_nStrip <= 3)
 		{
             // check where the left and right boundaries are for the piles in first 4
-            // strips			
+            // strips
 			wxLogDebug(_T("CCell::Draw(), Strip[ %d ], Pile[ %d ] (in strip), Left %d Right %d"),
 				m_pOwningPile->m_pOwningStrip->m_nStrip, m_pOwningPile->m_nPile, Left(), Left() + Width());
 		}
@@ -698,7 +698,7 @@ void CCell::Draw(wxDC* pDC)
 			DrawCell(pDC, color);
 		}
 	}
-	// restore the white background for cells -- it is the default for the next call 
+	// restore the white background for cells -- it is the default for the next call
 	// to this function
 	pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // wxSOLID
 	pDC->SetTextBackground(wxColour(255,255,255)); // white
@@ -713,13 +713,13 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
     // Also, the caller must determine the text color, because it can be temporarily
     // changed depending on what the user is currently doing (eg. to gray text when in
     // vertical edit mode)
-    
+
 	// assign to local var thePhrase whichever wxString should be written for this cell
 	wxString* pPhrase = GetCellText();
 	wxRect enclosingRect; // the rect where the text will be drawn
 	GetCellRect(enclosingRect); // set it
 	pDC->SetFont(*GetFont()); // pDC->SetFont(*m_pFont);
-	wxColour oldColor = color; // Note: MFC code does not use oldColor anywhere 
+	wxColour oldColor = color; // Note: MFC code does not use oldColor anywhere
 	if (!color.IsOk())
 	{
 		::wxBell();
@@ -847,6 +847,26 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
+/*
+#if defined(__WXGTK__)
+			// a kludge to see if we can get anything printed below the strip in GTK build when printing free trans
+			// -- Yes, it works; so I can build a function to exploit this...
+			// It's now 22Nov and I've built such a function and called it from CPile::Draw() but it not only doesn't
+			// draw anything on the page (even though correct DrawText() calls are made), it also clobbers the drawn
+			// source and target lines of most of the strips except a little bit at top strip - their area is white too!
+			wxString ftStr;
+			CPile* pPile = GetPile();
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+			ftStr = pSrcPhrase->GetFreeTrans();
+			if (m_pLayout->m_pApp->m_bIsPrinting && !m_pLayout->m_pApp->m_bIsPrintPreviewing
+                && !ftStr.IsEmpty() && this->GetCellIndex() == 1)
+			{
+			    wxColour ftColor(m_pLayout->m_pApp->m_freeTransTextColor);
+                pDC->SetTextForeground(ftColor);
+			    pDC->DrawText(ftStr,enclosingRect.GetLeft(), enclosingRect.GetTop() + m_pLayout->GetTgtTextHeight() + 3);
+			}
+#endif
+*/
 		}
 	}
 }
@@ -855,7 +875,7 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 {
 	// Note: BEW 9Feb09, a copy of this function is also in CAdapt_ItView class - that
 	// copy is used only when drawing RTL text in free translation mode.
-	// 
+	//
 	// This function attempts to alieviate the limitations of wxDC::DrawText() which
 	// does not have an nFormat parameter as does the MFC function CDC::DrawText()
 	// and which currently (as of wxWidgets 2.8.4) has different behaviors on wxMSW,
@@ -876,14 +896,14 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
     // parameters to make the upper right corner of the wxRect more readily available to
     // the function.
 	//
-	// TODO: Since the wxWidgets RTL rendering behaviors are obviously still somewhat in an 
-	// immature state of development (and may change in future library releases to become 
+	// TODO: Since the wxWidgets RTL rendering behaviors are obviously still somewhat in an
+	// immature state of development (and may change in future library releases to become
 	// more uniform across platforms) this issue needs to be visited again upon any anticipated
 	// upgrade to newer versions of wxWidgets beyond version 2.8.4.
 	//
-	// For wxMSW we must transform the coordinates of rect's upper right corner to 
-	// account for the mirroring of the underlying coordinate system on Windows 
-	// (the wxGTK and wxMac do not seem to do the mirroring of the underlying 
+	// For wxMSW we must transform the coordinates of rect's upper right corner to
+	// account for the mirroring of the underlying coordinate system on Windows
+	// (the wxGTK and wxMac do not seem to do the mirroring of the underlying
 	// coordinates).
 	// first get the upper right coords of the drawing rect
 	wxPoint urPt(rect.GetRight(),rect.GetTop());
@@ -904,7 +924,7 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	{
 #ifdef __WXMSW__
 		// wxMSW needs SetLayoutDirection(wxLayout_RightToLeft) to be set; in addition we
-		// need to transform the urPt so it is mirrored from the right edge of 
+		// need to transform the urPt so it is mirrored from the right edge of
 		// grectViewClient.
 		wxASSERT(grectViewClient.GetWidth() >= urPt.x); // ensure grectViewClient is already set
 		pDC->SetLayoutDirection(wxLayout_RightToLeft);
@@ -918,7 +938,7 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	}
 
 #ifdef __WXMSW__
-	// turning off RTL layout of the DC after calling DrawText() would seem to be necessary 
+	// turning off RTL layout of the DC after calling DrawText() would seem to be necessary
 	// to best emulate what MFC's DrawText() does with its nFormat parameter
 	pDC->SetLayoutDirection(wxLayout_LeftToRight); // need this???
 #endif
