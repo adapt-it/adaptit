@@ -85,7 +85,7 @@ COutputFilenameDlg::COutputFilenameDlg(wxWindow* parent)
 	// use wxValidator for simple dialog data transfer
 	pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_FILENAME);
 	wxASSERT(pEdit != NULL);
-	pEdit->SetValidator(wxGenericValidator(&m_strFilename));
+	//pEdit->SetValidator(wxGenericValidator(&m_strFilename));
 
 	pStaticTextInvalidCharacters = (wxStaticText*)FindWindowById(ID_TEXT_INVALID_CHARACTERS);
 	wxASSERT(pStaticTextInvalidCharacters != NULL);
@@ -121,7 +121,9 @@ void COutputFilenameDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 void COutputFilenameDlg::OnOK(wxCommandEvent& event) 
 {
 	//  ensure there are no illegal characters in the filename
-	TransferDataFromWindow(); //UpdateData(TRUE); // transfer data from contols to string variables
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	m_strFilename = pEdit->GetValue(); // whm added 21Nov11
+
 	wxString fn = m_strFilename;
 	wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
 	wxString scanned = SpanExcluding(fn, illegals);
@@ -154,7 +156,9 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 				fn[foundPos] = _T(' ');
 		}
 		m_strFilename = fn;
-		TransferDataFromWindow(); //UpdateData(FALSE);
+		//TransferDataFromWindow(); // whm removed 21Nov11
+		// whm note 21Nov11 the TransferDataFromWindow() call above would defeat the preceding code
+		// that replaces any illegal char with a space, so I've removed it entirely.
 		::wxBell();
 		// if we decide to verbally tell the user what the beep means:
 		//wxString message;

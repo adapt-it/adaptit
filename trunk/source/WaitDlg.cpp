@@ -63,7 +63,7 @@ CWaitDlg::CWaitDlg(wxWindow* parent) // dialog constructor
 
 	pStatic = (wxStaticText*)FindWindowById(IDC_PLEASE_WAIT);
 	// Use wxGenericValidator to transfer WaitMsg string to static text control
-	pStatic->SetValidator(wxGenericValidator(&WaitMsg));
+	//pStatic->SetValidator(wxGenericValidator(&WaitMsg)); // whm removed 21Nov11
 
 	// whm 24Aug11 Note: The following could be used to put an animated
 	// busy image, such as the throbber.gif used in a wxWidgets sample.
@@ -181,7 +181,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		default: // whm 28Aug11 Note: keep as a default message
 			WaitMsg = _("Please wait. This may take a while...");
 	}
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
 	pStatic->SetLabel(WaitMsg); // not needed with validator
 	pWaitDlgSizer->Layout();
 	Refresh();

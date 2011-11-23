@@ -115,27 +115,27 @@ CEarlierTranslationDlg::CEarlierTranslationDlg(wxWindow* parent) // dialog const
 	// Get pointers to controls and set validators
 	m_pSrcTextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_TEXT);
 	wxASSERT(m_pSrcTextBox != NULL);
-	m_pSrcTextBox->SetValidator(wxGenericValidator(&m_srcText));
+	//m_pSrcTextBox->SetValidator(wxGenericValidator(&m_srcText));
 
 	m_pTgtTextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_TEXT);
 	wxASSERT(m_pTgtTextBox != NULL);
-	m_pTgtTextBox->SetValidator(wxGenericValidator(&m_tgtText));
+	//m_pTgtTextBox->SetValidator(wxGenericValidator(&m_tgtText));
 
 	m_pChapterSpinCtrl = (wxSpinCtrl*)FindWindowById(IDC_SPIN_CHAPTER);
 	wxASSERT(m_pChapterSpinCtrl != NULL);
-	m_pChapterSpinCtrl->SetValidator(wxGenericValidator(&m_nChapter));
+	//m_pChapterSpinCtrl->SetValidator(wxGenericValidator(&m_nChapter));
 
 	m_pVerseSpinCtrl = (wxSpinCtrl*)FindWindowById(IDC_SPIN_VERSE);
 	wxASSERT(m_pVerseSpinCtrl != NULL);
-	m_pVerseSpinCtrl->SetValidator(wxGenericValidator(&m_nVerse));
+	//m_pVerseSpinCtrl->SetValidator(wxGenericValidator(&m_nVerse));
 
 	m_pBeginChVerseStaticText = (wxStaticText*)FindWindowById(IDC_STATIC_BEGIN);
 	wxASSERT(m_pBeginChVerseStaticText != NULL);
-	m_pBeginChVerseStaticText->SetValidator(wxGenericValidator(&m_strBeginChVerse));
+	//m_pBeginChVerseStaticText->SetValidator(wxGenericValidator(&m_strBeginChVerse));
 
 	m_pEndChVerseStaticText = (wxStaticText*)FindWindowById(IDC_STATIC_END);
 	wxASSERT(m_pEndChVerseStaticText != NULL);
-	m_pEndChVerseStaticText->SetValidator(wxGenericValidator(&m_strEndChVerse));
+	//m_pEndChVerseStaticText->SetValidator(wxGenericValidator(&m_strEndChVerse));
 }
 
 CEarlierTranslationDlg::~CEarlierTranslationDlg() // destructor
@@ -224,7 +224,14 @@ void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	}
 	m_nExpansionIndex = -1;
 
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+	m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+	m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+	m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+	m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+	m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
+
 
 	// when in vertical edit mode, don't permit jumping because it may jump the user
 	// out of the editable span into the gray text area
@@ -383,7 +390,14 @@ void CEarlierTranslationDlg::EnableJumpButton(bool bEnableFlag)
 
 void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(event)) 
 {
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	m_srcText = m_pSrcTextBox->GetValue(); // whm added 21Nov11
+	m_tgtText = m_pTgtTextBox->GetValue(); // whm added 21Nov11
+	m_nChapter = m_pChapterSpinCtrl->GetValue(); // whm added 21Nov11
+	m_nVerse = m_pVerseSpinCtrl->GetValue(); // whm added 21Nov11
+	m_strBeginChVerse = m_pBeginChVerseStaticText->GetLabel(); // whm added 21Nov11
+	m_strEndChVerse = m_pEndChVerseStaticText->GetLabel(); // whm added 21Nov11
+
 	gnLastEarlierChapter = m_nChapter;
 	gnLastEarlierVerse = m_nVerse;
 
@@ -442,7 +456,14 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 				EnableLessButton(FALSE);
 				EnableMoreButton(TRUE);
 				EnableJumpButton(TRUE);
-				TransferDataToWindow(); // show the text strings in the dialog's edit boxes
+				// show the text strings in the dialog's edit boxes
+				//TransferDataToWindow(); // whm removed 21Nov11
+				m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+				m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+				m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+				m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+				m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+				m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
 				return;
 			}
 		}
@@ -455,7 +476,13 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 		EnableLessButton(FALSE);
 		EnableMoreButton(FALSE);
 		EnableJumpButton(FALSE);
-		TransferDataToWindow();
+		//TransferDataToWindow(); // whm removed 21Nov11
+		m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+		m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+		m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+		m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+		m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+		m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
 		return;
 	}
 	else
@@ -474,7 +501,14 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 				EnableLessButton(FALSE);
 				EnableMoreButton(TRUE);
 				EnableJumpButton(TRUE);
-				TransferDataToWindow(); // show the text strings in the dialog's edit boxes
+				// show the text strings in the dialog's edit boxes
+				//TransferDataToWindow(); // whm removed 21Nov11
+				m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+				m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+				m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+				m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+				m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+				m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
 				return;
 			}
 		}
@@ -508,7 +542,13 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 				EnableLessButton(FALSE);
 				EnableMoreButton(TRUE);
 				EnableJumpButton(TRUE);
-				TransferDataToWindow(); // show the text strings in the dialog's edit boxes
+				//TransferDataToWindow(); // whm removed 21Nov11
+				m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+				m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+				m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+				m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+				m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+				m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
 				m_nCurPrecChapter = chapter;
 				m_nCurPrecVerse = firstVerse;
 				m_nCurFollChapter = chapter;
@@ -755,7 +795,13 @@ b:	m_nExpansionIndex = nIndex; // update its value
 		EnableLessButton(TRUE);
 	if (m_nExpansionIndex >= 9)
 		EnableMoreButton(FALSE);
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+	m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+	m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+	m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+	m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+	m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
 }
 
 void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event) 
@@ -873,7 +919,14 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 	}
 
 	m_nCurLastSequNum = sn;
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pSrcTextBox->ChangeValue(m_srcText); // whm added 21Nov11
+	m_pTgtTextBox->ChangeValue(m_tgtText); // whm added 21Nov11
+	m_pChapterSpinCtrl->SetValue(m_nChapter); // whm added 21Nov11
+	m_pVerseSpinCtrl->SetValue(m_nVerse); // whm added 21Nov11
+	m_pBeginChVerseStaticText->SetLabel(m_strBeginChVerse); // whm added 21Nov11
+	m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
+
 }
 
 

@@ -66,15 +66,15 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	// sample text control initialization below:
 	pCheckUseGuesser = (wxCheckBox*)FindWindowById(ID_CHECK_USE_GUESSER);
 	wxASSERT(pCheckUseGuesser != NULL);
-	pCheckUseGuesser->SetValidator(wxGenericValidator(&bUseAdaptationsGuesser));
+	//pCheckUseGuesser->SetValidator(wxGenericValidator(&bUseAdaptationsGuesser));
 
 	pSlider = (wxSlider*)FindWindowById(ID_SLIDER_GUESSER);
 	wxASSERT(pSlider != NULL);
-	pSlider->SetValidator(wxGenericValidator(&nGuessingLevel));
+	//pSlider->SetValidator(wxGenericValidator(&nGuessingLevel));
 
 	pAllowCCtoOperateOnUnchangedOutput = (wxCheckBox*)FindWindowById(ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT);
 	wxASSERT(pAllowCCtoOperateOnUnchangedOutput != NULL);
-	pAllowCCtoOperateOnUnchangedOutput->SetValidator(wxGenericValidator(&bAllowCConUnchangedGuesserOutput));
+	//pAllowCCtoOperateOnUnchangedOutput->SetValidator(wxGenericValidator(&bAllowCConUnchangedGuesserOutput));
 
 	pStaticTextNumCorInAdaptationsGuesser = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER);
 	wxASSERT(pStaticTextNumCorInAdaptationsGuesser != NULL);

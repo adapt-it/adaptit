@@ -67,7 +67,7 @@ CCCTableNameDlg::CCCTableNameDlg(wxWindow* parent) // dialog constructor
 
 	// use wxValidator for simple dialog data transfer
 	m_pEditTableName = (wxTextCtrl*)FindWindow(IDC_EDIT_TBLNAME);
-	m_pEditTableName->SetValidator(wxGenericValidator(&m_tableName));
+	//m_pEditTableName->SetValidator(wxGenericValidator(&m_tableName));
 
 	m_pEditCtrlAsStatic = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC);
 	wxColour sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);

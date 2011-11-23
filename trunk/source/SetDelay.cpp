@@ -72,7 +72,8 @@ CSetDelay::CSetDelay(wxWindow* parent) // dialog constructor
 
 	m_pDelayBox = (wxTextCtrl*)FindWindowById(IDC_SPIN_DELAY_TICKS);
 	wxASSERT(m_pDelayBox != NULL);
-	m_pDelayBox->SetValidator(wxGenericValidator(&m_nDelay));
+	//m_pDelayBox->SetValidator(wxGenericValidator(&m_nDelay)); // whm 21Nov11 verified working OK in Balsa,
+																// but remove validator anyway
 }
 
 CSetDelay::~CSetDelay() // destructor
@@ -83,13 +84,17 @@ CSetDelay::~CSetDelay() // destructor
 void CSetDelay::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	m_nDelay = gpApp->m_nCurDelay;
+	m_nDelay = gpApp->m_nCurDelay; // whm note: this is also done in the View calling code, so is unnecessary here
 
 	CopyFontBaseProperties(gpApp->m_pNavTextFont,gpApp->m_pDlgSrcFont);
 	gpApp->m_pDlgSrcFont->SetPointSize(11); // 11 point
 	gpApp->m_pDlgSrcFont->SetWeight(wxFONTWEIGHT_NORMAL); // not bold or light font
 		
-	TransferDataToWindow(); 
+	//TransferDataToWindow(); // whm 21Nov11 verified working OK in Balsa, but removed validator anyway
+	wxString delay;
+	delay.Empty();
+	delay << m_nDelay;
+	m_pDelayBox->ChangeValue(delay);
 }
 
 // event handling functions
@@ -101,7 +106,11 @@ void CSetDelay::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 void CSetDelay::OnOK(wxCommandEvent& event) 
 {
 	// update the variable m_nDelay to user-set value
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm 21Nov11 verified working OK in Balsa, but removed validator anyway
+	wxString delay;
+	delay = m_pDelayBox->GetValue();
+	m_nDelay = wxAtoi(delay);
+	// whm note: the App's m_nCurDelay is set in the View caller from the local m_nDelay above
 	
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

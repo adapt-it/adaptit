@@ -110,16 +110,16 @@ CExportInterlinearDlg::CExportInterlinearDlg(wxWindow* parent) // dialog constru
 	m_nToVerse = 1;
 
 	pCheckIncludeNavText = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_NAV_TEXT);
-	pCheckIncludeNavText->SetValidator(wxGenericValidator(&m_bIncludeNavText));
+	//pCheckIncludeNavText->SetValidator(wxGenericValidator(&m_bIncludeNavText));
 
 	pCheckIncludeSrcText = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_SOURCE_TEXT);
-	pCheckIncludeSrcText->SetValidator(wxGenericValidator(&m_bIncludeSourceText));
+	//pCheckIncludeSrcText->SetValidator(wxGenericValidator(&m_bIncludeSourceText));
 
 	pCheckIncludeTgtText = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_TARGET_TEXT);
-	pCheckIncludeTgtText->SetValidator(wxGenericValidator(&m_bIncludeTargetText));
+	//pCheckIncludeTgtText->SetValidator(wxGenericValidator(&m_bIncludeTargetText));
 
 	pCheckIncludeGlsText = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_GLS_TEXT);
-	pCheckIncludeGlsText->SetValidator(wxGenericValidator(&m_bIncludeGlossText));
+	//pCheckIncludeGlsText->SetValidator(wxGenericValidator(&m_bIncludeGlossText));
 
 	pTextCtrlAsStaticExpInterlinear = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXP_INTERLINEAR);
 	wxASSERT(pTextCtrlAsStaticExpInterlinear != NULL);
@@ -127,27 +127,27 @@ CExportInterlinearDlg::CExportInterlinearDlg(wxWindow* parent) // dialog constru
 	pTextCtrlAsStaticExpInterlinear->SetBackgroundColour(backgrndColor);
 
 	pCheckNewTablesForNewLineMarkers = (wxCheckBox*)FindWindowById(ID_CHECK_NEW_TABLES_FOR_NEWLINE_MARKERS);
-	pCheckNewTablesForNewLineMarkers->SetValidator(wxGenericValidator(&m_bNewTableForNewLineMarker));
+	//pCheckNewTablesForNewLineMarkers->SetValidator(wxGenericValidator(&m_bNewTableForNewLineMarker));
 	
 	pCheckCenterTablesForCenteredMarkers = (wxCheckBox*)FindWindowById(ID_CHECK_CENTER_TABLES_FOR_CENTERED_MARKERS);
-	pCheckCenterTablesForCenteredMarkers->SetValidator(wxGenericValidator(&m_bCenterTableForCenteredMarker));
+	//pCheckCenterTablesForCenteredMarkers->SetValidator(wxGenericValidator(&m_bCenterTableForCenteredMarker));
 
 	pRadioUsePortrait = (wxRadioButton*)FindWindowById(IDC_RADIO_PORTRAIT);
-	pRadioUsePortrait->SetValidator(wxGenericValidator(&m_bPortraitOrientation));
+	//pRadioUsePortrait->SetValidator(wxGenericValidator(&m_bPortraitOrientation));
 
 	pRadioUseLandscape = (wxRadioButton*)FindWindowById(IDC_RADIO_LANDSCAPE);
 
 	pEditFromChapter = (wxTextCtrl*)FindWindowById(IDC_EDIT_FROM_CHAPTER);
-	pEditFromChapter->SetValidator(wxGenericValidator(&m_nFromChapter));
+	//pEditFromChapter->SetValidator(wxGenericValidator(&m_nFromChapter));
 
 	pEditFromVerse = (wxTextCtrl*)FindWindowById(IDC_EDIT_FROM_VERSE);
-	pEditFromVerse->SetValidator(wxGenericValidator(&m_nFromVerse));
+	//pEditFromVerse->SetValidator(wxGenericValidator(&m_nFromVerse));
 
 	pEditToChapter = (wxTextCtrl*)FindWindowById(IDC_EDIT_TO_CHAPTER);
-	pEditToChapter->SetValidator(wxGenericValidator(&m_nToChapter));
+	//pEditToChapter->SetValidator(wxGenericValidator(&m_nToChapter));
 
 	pEditToVerse = (wxTextCtrl*)FindWindowById(IDC_EDIT_TO_VERSE);
-	pEditToVerse->SetValidator(wxGenericValidator(&m_nToVerse));
+	//pEditToVerse->SetValidator(wxGenericValidator(&m_nToVerse));
 }
 
 CExportInterlinearDlg::~CExportInterlinearDlg() // destructor
@@ -236,8 +236,28 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 
 	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc();
 
-	TransferDataToWindow(); // needed here to get ch::vs data into edit controls
-
+	//TransferDataToWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 in place of TransferDataToWindow() above:
+	pCheckIncludeNavText->SetValue(m_bIncludeNavText);
+	pCheckIncludeSrcText->SetValue(m_bIncludeSourceText);
+	pCheckIncludeTgtText->SetValue(m_bIncludeTargetText);
+	pCheckIncludeGlsText->SetValue(m_bIncludeGlossText);
+	pCheckNewTablesForNewLineMarkers->SetValue(m_bNewTableForNewLineMarker);
+	pCheckCenterTablesForCenteredMarkers->SetValue(m_bCenterTableForCenteredMarker);
+	pRadioUsePortrait->SetValue(m_bPortraitOrientation);
+	wxString tempStr;
+	tempStr.Empty();
+	tempStr << m_nFromChapter;
+	pEditFromChapter->ChangeValue(tempStr);
+	tempStr.Empty();
+	tempStr << m_nFromVerse;
+	pEditFromVerse->ChangeValue(tempStr);
+	tempStr.Empty();
+	tempStr << m_nToChapter;
+	pEditToChapter->ChangeValue(tempStr);
+	tempStr.Empty();
+	tempStr << m_nToVerse;
+	pEditToVerse->ChangeValue(tempStr);
 }
 
 // event handling functions
@@ -332,7 +352,23 @@ void CExportInterlinearDlg::OnBnClickedCheckIncludeNavText(wxCommandEvent& WXUNU
 // if the dialog is modeless.
 void CExportInterlinearDlg::OnOK(wxCommandEvent& event) 
 {
-	TransferDataFromWindow(); // not needed here, but doesn't hurt
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 in place of TransferDataFromWindow() above:
+	m_bIncludeNavText = pCheckIncludeNavText->GetValue();
+	m_bIncludeSourceText = pCheckIncludeSrcText->GetValue();
+	m_bIncludeTargetText = pCheckIncludeTgtText->GetValue();
+	m_bIncludeGlossText = pCheckIncludeGlsText->GetValue();
+	m_bNewTableForNewLineMarker = pCheckNewTablesForNewLineMarkers->GetValue();
+	m_bCenterTableForCenteredMarker = pCheckCenterTablesForCenteredMarkers->GetValue();
+	wxString tempStr;
+	tempStr = pEditFromChapter->GetValue();
+	m_nFromChapter = wxAtoi(tempStr);
+	tempStr = pEditFromVerse->GetValue();
+	m_nFromVerse = wxAtoi(tempStr);
+	tempStr = pEditToChapter->GetValue();
+	m_nToChapter = wxAtoi(tempStr);
+	tempStr = pEditToVerse->GetValue();
+	m_nToVerse = wxAtoi(tempStr);
 	
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

@@ -76,7 +76,7 @@ CWhichBook::CWhichBook(wxWindow* parent)
 
 	m_pComboChooseBook = (wxComboBox*)FindWindowById(IDC_COMBO_CHOOSE_BOOK);
 	wxASSERT(m_pComboChooseBook != NULL);
-	m_pComboChooseBook->SetValidator(wxGenericValidator(&m_strBookName));
+	//m_pComboChooseBook->SetValidator(wxGenericValidator(&m_strBookName));
 
 	m_pTextAsStatic = (wxTextCtrl*)FindWindowById(ID_TEXT_AS_STATIC);
 	wxASSERT(m_pTextAsStatic != NULL);

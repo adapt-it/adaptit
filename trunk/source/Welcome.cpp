@@ -73,18 +73,17 @@ CWelcome::CWelcome(wxWindow* parent) // dialog constructor
 #endif
 
 	// initially check/uncheck box according to global pApp->m_bSuppressWelcome
-	wxCheckBox* pCheckB;
 	pCheckB = (wxCheckBox*)FindWindowById(IDC_CHECK_NOLONGER_SHOW);
-	pCheckB->SetValue(pApp->m_bSuppressWelcome);
+	wxASSERT(pCheckB != NULL);
 	// use generic validator to transfer between control and local var
-	pCheckB->SetValidator(wxGenericValidator(&m_bSuppressWelcome));
+	//pCheckB->SetValidator(wxGenericValidator(&m_bSuppressWelcome));
 
-	wxTextCtrl* pTextCtrlAsStaticWelcome = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_WELCOME);
+	pTextCtrlAsStaticWelcome = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_WELCOME);
 	wxASSERT(pTextCtrlAsStaticWelcome != NULL);
 	pTextCtrlAsStaticWelcome->SetBackgroundColour(pApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
 	// Set focus to the OK button
-	wxButton* pOKBtn = (wxButton*)FindWindow(wxID_OK); // use FinWindow here to find child window only
+	pOKBtn = (wxButton*)FindWindow(wxID_OK); // use FinWindow here to find child window only
 	wxASSERT(pOKBtn != NULL);
 	pOKBtn->SetFocus();
 
@@ -99,18 +98,17 @@ CWelcome::~CWelcome() // destructor
 void CWelcome::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-
-	//Note: The MFC code set up the font characteristics including
-	// size and color here in InitDialog. However, we are able to
-	// do everything in the wxDesigner dialog resources.
-	// Hence, CRedEdit() and CClolouEdit() are not needed in the wx version.
+	
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp);
+	pCheckB->SetValue(pApp->m_bSuppressWelcome);
 }
 
 // event handling functions
 
 void CWelcome::OnCheckNolongerShow(wxCommandEvent& WXUNUSED(event))
 {
-	m_bSuppressWelcome = m_bSuppressWelcome == TRUE ? FALSE : TRUE;
+	m_bSuppressWelcome = pCheckB->GetValue();
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.

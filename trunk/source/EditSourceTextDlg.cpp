@@ -98,26 +98,32 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	// interfere with each other.
 	// 
 	pSrcTextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_SOURCE);
-	pSrcTextEdit->SetValidator(wxGenericValidator(&m_strNewSourceText)); // needed; OnEditSourceText() initializes this
+	wxASSERT(pSrcTextEdit != NULL);
+	//pSrcTextEdit->SetValidator(wxGenericValidator(&m_strNewSourceText)); // needed; OnEditSourceText() initializes this
 
 	pPreContextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_PRECONTEXT); // read only edit control
-	pPreContextEdit->SetValidator(wxGenericValidator(&m_preContext)); // needed; OnEditSourceText() initializes this
+	wxASSERT(pPreContextEdit != NULL);
+	//pPreContextEdit->SetValidator(wxGenericValidator(&m_preContext)); // needed; OnEditSourceText() initializes this
 	pPreContextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
 	pFollContextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_FOLLCONTEXT); // read only edit control
-	pFollContextEdit->SetValidator(wxGenericValidator(&m_follContext)); // needed; OnEditSourceText() initializes this
+	wxASSERT(pFollContextEdit != NULL);
+	//pFollContextEdit->SetValidator(wxGenericValidator(&m_follContext)); // needed; OnEditSourceText() initializes this
 	pFollContextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
 	pOldSrcTextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_OLD_SOURCE_TEXT); // read only edit control
-	pOldSrcTextEdit->SetValidator(wxGenericValidator(&m_strOldSourceText)); // needed; OnEditSourceText() initializes this
+	wxASSERT(pOldSrcTextEdit != NULL);
+	//pOldSrcTextEdit->SetValidator(wxGenericValidator(&m_strOldSourceText)); // needed; OnEditSourceText() initializes this
 	pOldSrcTextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
 	// The following two are for static text within read-only multi-line wxEditCtrls on the dialog
 	
 	pTextCtrlEditAsStatic1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1); // read only edit control
+	wxASSERT(pTextCtrlEditAsStatic1 != NULL);
 	pTextCtrlEditAsStatic1->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 	
 	pTextCtrlEditAsStatic2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2); // read only edit control
+	wxASSERT(pTextCtrlEditAsStatic2 != NULL);
 	pTextCtrlEditAsStatic2->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 }
 
@@ -136,7 +142,12 @@ void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event
     // calls below.
 	// Call TransferDataFromWindow() which updates the m_stringNewSourceText associated with this
 	// window by the SetValidator(wxGenericValidator(&m_strOldSourceText)) call in the constructor above.
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); whm removed 21Nov11
+	m_strNewSourceText = pSrcTextEdit->GetValue(); // whm added 21Nov11
+	m_preContext = pPreContextEdit->GetValue(); // whm added 21Nov11
+	m_follContext = pFollContextEdit->GetValue(); // whm added 21Nov11
+	m_strOldSourceText = pOldSrcTextEdit->GetValue(); // whm added 21Nov11
+
 	// Call the EndModal(event) handler which automatically closes the dialog
 	EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
 
@@ -175,7 +186,12 @@ void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pTgtEdit, NULL, 
 	//							NULL, NULL, gpApp->m_pDlgTgtFont);
 	//#endif
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	pSrcTextEdit->ChangeValue(m_strNewSourceText);
+	pPreContextEdit->ChangeValue(m_preContext);
+	pFollContextEdit->ChangeValue(m_follContext);
+	pOldSrcTextEdit->ChangeValue(m_strOldSourceText);
+
 
 	// make sure the end of the text is scolled into view
 	pPreContextEdit->SetFocus();

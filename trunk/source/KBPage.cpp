@@ -120,7 +120,7 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	wxASSERT(pRadioGlossBeforeAdapt != NULL);
 
 	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
-	m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
+	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
 	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
 	
 	pTextCtrlAsStaticTextBackupsKB = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE);

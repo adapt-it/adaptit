@@ -60,7 +60,7 @@ CCCTableEditDlg::CCCTableEditDlg(wxWindow* parent) // dialog constructor
 	// use wxValidator for simple dialog data transfer
 	pEditCCTable = (wxTextCtrl*)FindWindowById(IDC_EDIT_CCT);
 	wxASSERT(pEditCCTable != NULL);
-	pEditCCTable->SetValidator(wxGenericValidator(&m_ccTable));
+	//pEditCCTable->SetValidator(wxGenericValidator(&m_ccTable));
 
 }
 
@@ -81,6 +81,9 @@ void CCCTableEditDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pEditCCTable, NULL, 
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	pEditCCTable->ChangeValue(m_ccTable); // whm added 21Nov11
+	// whm 21Nov11 note: the caller CCCTabbedDialog::DoEditor() accesses the m_ccTable value before this 
+	// dialog is destroyed.
 }
 
