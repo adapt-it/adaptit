@@ -5,11 +5,11 @@
 /// \date_created	26 March 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public 
+/// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
-/// \description	This is the implementation file for the CPile class. 
+/// \description	This is the implementation file for the CPile class.
 /// The CPile class represents the next smaller divisions of a CStrip. The CPile
-/// instances are laid out sequentially within a CStrip. Each CPile stores a 
+/// instances are laid out sequentially within a CStrip. Each CPile stores a
 /// stack or "pile" of CCells stacked vertically in the pile. Within a CPile
 /// the top CCell, if used, displays the source word or phrase with punctuation,
 /// the second CCell displays the same minus the punctuation. The third CCell
@@ -19,7 +19,7 @@
 /// \derivation		The CPile class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 
-// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: 
+// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets:
 // (BEW moved here from deprecated CText)
 //    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function
 //    does not have an nFormat parameter like MFC's CDC::DrawText(const CString& str,
@@ -98,6 +98,7 @@
 #include "Adapt_ItView.h"
 #include "Pile.h"
 #include "Layout.h"
+#include "FreeTrans.h"
 #include "Cell.h"
 #include "MainFrm.h"
 
@@ -117,7 +118,7 @@ WX_DEFINE_LIST(PileList);
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
-// these next globals are put here when I moved CreatePile() 
+// these next globals are put here when I moved CreatePile()
 // from the view to the CPile class
 extern bool gbShowTargetOnly;
 extern bool gbGlossingVisible;
@@ -138,10 +139,15 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
 
-extern bool gbCheckInclGlossesText; // klb 9/9/2011 added because we now need to know when 
+extern bool gbCheckInclGlossesText; // klb 9/9/2011 added because we now need to know when
 										  //      to draw glosses for printing, based on checkboxes in PrintOptionsDlg.cpp
 
 extern bool gbRTL_Layout;
+
+#if defined(__WXGTK__)
+extern bool gbCheckInclFreeTransText;
+extern bool gbCheckInclGlossesText;
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -165,7 +171,7 @@ CPile::CPile(CLayout* pLayout)  // use this one, it sets m_pLayout
 {
 	m_pLayout = pLayout;
 	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
-	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for 
+	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for
 										  // free translation support
 	m_pSrcPhrase = (CSourcePhrase*)NULL;
 	m_pLayout = (CLayout*)NULL;
@@ -223,7 +229,7 @@ int CPile::GetPileIndex()
 // these info types when/if we export them or show them in the view filtered material
 // dialog. However, we'll keep the old name unchanged; but if we do someday change it, we
 // should call it HasFilteredInfo())
-// BEW 22Feb10 changes done for support of doc version 5 
+// BEW 22Feb10 changes done for support of doc version 5
 bool CPile::HasFilterMarker()
 {
 	if (
@@ -289,7 +295,7 @@ int CPile::Left()
 		// calculated as: "distance from left of client window to right boundary of strip"
 		// minus "the sum of the distance of the pile from the right boundary of the strip
 		// and the width of the pile"
-		return m_pOwningStrip->Left() + (m_pLayout->m_logicalDocSize).x - 
+		return m_pOwningStrip->Left() + (m_pLayout->m_logicalDocSize).x -
 				(m_pOwningStrip->m_arrPileOffsets[m_nPile] + Width());
 	}
 	else // left-to-right layout
@@ -439,7 +445,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 	int boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
 
     // only do this calculation provided the m_pSrcPhrase pointer is set and the partner
-    // CSourcePhrase instance is the one at the active location, if not so, return 
+    // CSourcePhrase instance is the one at the active location, if not so, return
     // PHRASE_BOX_WIDTH_UNSET which has the value -1
 	if (m_pSrcPhrase != NULL)
 	{
@@ -449,7 +455,7 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
 				aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
-				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
+				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
 			}
 			else // if not glossing, or not using nav text when glossing, it's using the target font
 			{
@@ -457,16 +463,16 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
 			}
 			if (boxExtent.x < 40)
-				boxExtent.x = 40; // in case m_targetPhrase was empty or very small 
+				boxExtent.x = 40; // in case m_targetPhrase was empty or very small
 			wxString aChar = _T('w');
 			wxSize charSize;
-			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
+			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y);
 			boxExtent.x += gnExpandBox*charSize.x; // add a slop factor (gnExpandBox is user settable)
 			if (boxGapWidth < boxExtent.x)
 			{
 				boxGapWidth = boxExtent.x;
 			}
-			
+
             // again adjust the value if the box has just expanded, FixBox() has calculated
             // a new phrase box width already and stored that width in
             // CLayout::m_curBoxWidth, so we must now check, if the box is expanding, to
@@ -591,17 +597,17 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetFont(*pNavTextFont);
 			if (!navColor.IsOk())
 			{
-				::wxBell(); 
+				::wxBell();
 				wxASSERT(FALSE);
 			}
 			pDC->SetTextForeground(navColor);
 
 			rectBounding.Offset(0,-diff);
-			// wx version can only set layout direction directly on the whole pDC. 
+			// wx version can only set layout direction directly on the whole pDC.
 			// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
-			// right-to-left reading of the text, but we need to manually control 
+			// right-to-left reading of the text, but we need to manually control
 			// the right-alignment of text when we have bRTLLayout. The upper-left
-			// x coordinate for RTL drawing of the m_phrase should be 
+			// x coordinate for RTL drawing of the m_phrase should be
 			if (bRTLLayout)
 			{
 				// *** Draw the RTL Retranslation section marks *# or * in Nav Text area ***
@@ -621,11 +627,11 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 		}
 
 		//////////////////// Draw Green Wedge etc ////////////////////////////////
-		
+
         // next stuff is for the green wedge - it should be shown at the left or the right
         // of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively),
         // rather than using the nav text's directionality
-		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter 
+		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter
 			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
 			|| bHasFilterMarker)
 		{
@@ -635,7 +641,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// BEW added, for support of filter wedge icon
 			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
-				xOffset = 7;  // offset any nav text 7 pixels to the right (or to the 
+				xOffset = 7;  // offset any nav text 7 pixels to the right (or to the
 							  // left if RTL rendering) to make room for the wedge
 			}
 
@@ -689,10 +695,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
 					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
 				#endif
-				// get the point where the drawing is to start (from the bottom tip of 
+				// get the point where the drawing is to start (from the bottom tip of
 				// the downwards pointing wedge)
 				ptWedge.x += 1;
-				ptWedge.y -= 2; 
+				ptWedge.y -= 2;
 
                 // whm note: According to wx docs, wxWidgets shows all non-white pens as
                 // black on a monochrome display, i.e., OLPC screen in Black & White mode.
@@ -701,7 +707,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				pDC->SetPen(*wxBLACK_PEN);
 
 				// draw the line to the top left of the wedge
-				pDC->DrawLine(ptWedge.x, ptWedge.y, ptWedge.x - 5, ptWedge.y - 5); // end 
+				pDC->DrawLine(ptWedge.x, ptWedge.y, ptWedge.x - 5, ptWedge.y - 5); // end
 														// points are not part of the line
 
 				// reposition for the vertical stroke up for the left of the short column
@@ -767,7 +773,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				pDC->DrawLine(ptWedge.x - 1, ptWedge.y - 2, ptWedge.x + 2, ptWedge.y - 2);
 				pDC->DrawLine(ptWedge.x , ptWedge.y - 1, ptWedge.x + 1, ptWedge.y - 1);
 
-				pDC->SetPen(wxNullPen); // wxNullPen causes the current pen to be 
+				pDC->SetPen(wxNullPen); // wxNullPen causes the current pen to be
                         // selected out of the device context, and the original pen
                         // restored.
 			}
@@ -784,7 +790,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
                 // Paratext - I've never had this wxString overrun before, and it appears
                 // to be a wx error, not one of ours; the error doesn't happen if the file
                 // is saved and then reloaded - all is drawn properly in that case)
-                
+
 				// the following kludge works, so make it permanent code
 				PileList* pPileList = m_pLayout->GetPileList();
 				PileList::Node* pos = pPileList->GetLast();
@@ -810,7 +816,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 						// period - these are most likely the chars which will be in
 						// bridged verse or part verse if the verse isn't a simple one or
 						// more digits string; anything else, exit the loop
-						while(IsAnsiLetterOrDigit(str[index]) || str[index] == _T('-') || 
+						while(IsAnsiLetterOrDigit(str[index]) || str[index] == _T('-') ||
 							str[index] == _T(',') || str[index] == _T('.'))
 						{
 							firstBit += str[index];
@@ -825,7 +831,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				// the wxString Len() value counts the bogus extra characters if they are
 				// "there", so the wxLogDebug will display the error if the kludge above
 				// is commented out
-				wxLogDebug(_T("Draw Navtext: str set by m_chapterVerse = %s , sn = %d  , str Length: %d"), 
+				wxLogDebug(_T("Draw Navtext: str set by m_chapterVerse = %s , sn = %d  , str Length: %d"),
 					str.c_str(), m_pSrcPhrase->m_nSequNumber, str.Len());
 #endif
 #endif
@@ -864,7 +870,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetFont(*pNavTextFont);
 			if (!navColor.IsOk())
 			{
-				::wxBell(); 
+				::wxBell();
 				wxASSERT(FALSE);
 			}
 			pDC->SetTextForeground(navColor);
@@ -952,9 +958,9 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxSOLID));
 			pDC->SetPen(*wxBLACK_PEN); // black - whm added 20Nov06
 			wxRect insides(ptNote.x,ptNote.y,ptNote.x + 9,ptNote.y + 9);
-			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the 
+			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the
 			// interior using the current brush
-			pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a 
+			pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a
 													   // black border
 			pDC->SetBrush(wxNullBrush); // restore original brush - wxNullBrush causes
                     // the current brush to be selected out of the device context, and the
@@ -985,7 +991,7 @@ bool CPile::IsWrapPile()
 		{
 			if (m_pLayout->m_pView->IsWrapMarker(pSrcPhrase))
 			{
-				return TRUE; // if we need to wrap, discontinue assigning piles to 
+				return TRUE; // if we need to wrap, discontinue assigning piles to
                              // this strip (the nPileIndex_InList value is already correct
                              // for returning to caller)
 			}
@@ -1007,7 +1013,7 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
 			rectBox = pBox->GetRect();
-			width = rectBox.GetWidth(); // these will be old MM_TEXT mode 
+			width = rectBox.GetWidth(); // these will be old MM_TEXT mode
 										// logical coords, but
 			height = rectBox.GetHeight(); // that will not matter
 
@@ -1032,24 +1038,24 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 			SaveFont = pDC->GetFont();
 			pDC->SetFont(TheFont);
 
-			wxColor color = m_pCell[1]->GetColor(); // get the default colour of 
+			wxColor color = m_pCell[1]->GetColor(); // get the default colour of
 													// this cell's text
 			if (!color.IsOk())
 			{
 				::wxBell();
 				wxASSERT(FALSE);
 			}
-			pDC->SetTextForeground(color); // use color for this cell's text to print 
+			pDC->SetTextForeground(color); // use color for this cell's text to print
 										   // the box's text
-			
+
 			// **** Draw the Target Text for the phrasebox ****
-			pDC->DrawText(m_pLayout->m_pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);	
+			pDC->DrawText(m_pLayout->m_pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);
 					// MFC uses TextOut()  // Note: diff param ordering!
 			pDC->SetFont(SaveFont);
 
 			// ***** Draw the Box around the target text ******
 			pDC->SetPen(*wxBLACK_PEN); // whm added 20Nov06
-			
+
             // whm: wx version flips top and bottom when rect coords are negative to
             // maintain true "top" and "bottom". In the DrawLine code below MFC has -height
             // but the wx version has +height.
@@ -1098,9 +1104,9 @@ void CPile::Draw(wxDC* pDC)
 		m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
 	}
 
-	// klb 9/2011 - We need to draw the Gloss to screen if "See Glosses" is checked (gbGlossingVisible=true) OR 
+	// klb 9/2011 - We need to draw the Gloss to screen if "See Glosses" is checked (gbGlossingVisible=true) OR
 	// to printer if "Include Glosses text" (gbCheckInclGlossesText) is checked in PrintOptionsDialog - 9/9/2011
-	if ((gbGlossingVisible && !m_pLayout->m_pApp->m_bIsPrinting) || 
+	if ((gbGlossingVisible && !m_pLayout->m_pApp->m_bIsPrinting) ||
 		(m_pLayout->m_pApp->m_bIsPrinting && gbCheckInclGlossesText))
 	{
 		// when gbGlossingVisible=TRUE, that means the menu item "See Glosses" has been ticked; but we may
@@ -1111,7 +1117,7 @@ void CPile::Draw(wxDC* pDC)
 	}
 
 	// nav text whiteboard drawing for this pile...
-	// whm removed !gbIsPrinting from the following test to include nav text info and 
+	// whm removed !gbIsPrinting from the following test to include nav text info and
 	// icons in print and print preview
 	if (!gbShowTargetOnly) //if (!gbIsPrinting && !gbShowTargetOnly)
 	{
