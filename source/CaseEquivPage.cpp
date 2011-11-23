@@ -136,13 +136,13 @@ void CCaseEquivPageCommon::DoSetDataAndPointers()
 	// I'm not getting wxGenericValidator to work properly so we'll transfer data
 	// to/from controls and string variables manually.
 	m_pEditSrcEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_CASE_EQUIVALENCES);
-	m_pEditSrcEquivalences->SetValidator(wxGenericValidator(&m_strSrcEquivalences));
+	//m_pEditSrcEquivalences->SetValidator(wxGenericValidator(&m_strSrcEquivalences));
 
 	m_pEditTgtEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_CASE_EQUIVALENCES);
-	m_pEditTgtEquivalences->SetValidator(wxGenericValidator(&m_strTgtEquivalences));
+	//m_pEditTgtEquivalences->SetValidator(wxGenericValidator(&m_strTgtEquivalences));
 
 	m_pEditGlossEquivalences = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLOSS_CASE_EQUIVALENCES);
-	m_pEditGlossEquivalences->SetValidator(wxGenericValidator(&m_strGlossEquivalences));
+	//m_pEditGlossEquivalences->SetValidator(wxGenericValidator(&m_strGlossEquivalences));
 }
 
 void CCaseEquivPageCommon::DoInit()
@@ -195,10 +195,10 @@ void CCaseEquivPageCommon::DoInit()
 	// fill the glossing multiline wxTextCtrl
 	BuildListString(gpApp->m_glossLowerCaseChars,gpApp->m_glossUpperCaseChars,m_strGlossEquivalences);
 
-	TransferDataToWindow(); // transfer data from variables to controls
-	m_pEditSrcEquivalences->SetValue(m_strSrcEquivalences);
-	m_pEditTgtEquivalences->SetValue(m_strTgtEquivalences);
-	m_pEditGlossEquivalences->SetValue(m_strGlossEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 
 	// The flag called gbSrcHasUcAndLc stores the user's indication of whether the 
 	// source uses upper and lower case or not. Make the checkbox reflect the
@@ -244,8 +244,10 @@ void CCaseEquivPageCommon::DoInit()
 void CCaseEquivPageCommon::DoBnClickedClearSrcList()
 {
 	m_strSrcEquivalences.Empty();
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditSrcEquivalences->SetValue(m_strSrcEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added below
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 }
 
 void CCaseEquivPageCommon::DoBnClickedSrcSetEnglish()
@@ -261,8 +263,10 @@ void CCaseEquivPageCommon::DoBnClickedSrcSetEnglish()
 	wxString saveGlossUpper = gpApp->m_glossUpperCaseChars;
 	gpApp->SetDefaultCaseEquivalences();
 	BuildListString(gpApp->m_srcLowerCaseChars,gpApp->m_srcUpperCaseChars,m_strSrcEquivalences);
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditSrcEquivalences->SetValue(m_strSrcEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added below
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 	gpApp->m_srcLowerCaseChars = saveSrcLower;
 	gpApp->m_srcUpperCaseChars = saveSrcUpper;
 	gpApp->m_tgtLowerCaseChars = saveTgtLower;
@@ -273,15 +277,15 @@ void CCaseEquivPageCommon::DoBnClickedSrcSetEnglish()
 
 void CCaseEquivPageCommon::DoBnClickedSrcCopyToNext()
 {
-	TransferDataFromWindow(); // transfer data from contols to string variables
+	//TransferDataFromWindow(); // transfer data from contols to string variables
 	m_strSrcEquivalences = m_pEditSrcEquivalences->GetValue();
 	m_strTgtEquivalences = m_pEditTgtEquivalences->GetValue();
 	m_strGlossEquivalences = m_pEditGlossEquivalences->GetValue();
 	m_strTgtEquivalences = m_strSrcEquivalences;
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditSrcEquivalences->SetValue(m_strSrcEquivalences);
-	m_pEditTgtEquivalences->SetValue(m_strTgtEquivalences);
-	m_pEditGlossEquivalences->SetValue(m_strGlossEquivalences);
+	//TransferDataToWindow(); //transfer data from variables to contols
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 	// scroll to the top if not already at the top
 	m_pEditTgtEquivalences->ShowPosition(0); // scroll to top
 	// Note: wxTextCtrl has ShowPosition(long) which "makes the line 
@@ -314,8 +318,10 @@ void CCaseEquivPageCommon::DoBnClickedSrcCopyToGloss()
 void CCaseEquivPageCommon::DoBnClickedClearTgtList()
 {
 	m_strTgtEquivalences.Empty();
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditTgtEquivalences->SetValue(m_strTgtEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added the following
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 }
 
 void CCaseEquivPageCommon::DoBnClickedTgtSetEnglish()
@@ -331,8 +337,10 @@ void CCaseEquivPageCommon::DoBnClickedTgtSetEnglish()
 	wxString saveGlossUpper = gpApp->m_glossUpperCaseChars;
 	gpApp->SetDefaultCaseEquivalences();
 	BuildListString(gpApp->m_tgtLowerCaseChars,gpApp->m_tgtUpperCaseChars,m_strTgtEquivalences);
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditTgtEquivalences->SetValue(m_strTgtEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added the following
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 	gpApp->m_srcLowerCaseChars = saveSrcLower;
 	gpApp->m_srcUpperCaseChars = saveSrcUpper;
 	gpApp->m_tgtLowerCaseChars = saveTgtLower;
@@ -343,15 +351,15 @@ void CCaseEquivPageCommon::DoBnClickedTgtSetEnglish()
 
 void CCaseEquivPageCommon::DoBnClickedTgtCopyToNext()
 {
-	TransferDataFromWindow(); // transfer data from contols to string variables
+	//TransferDataFromWindow(); // whm removed 21Nov11 and added the following
 	m_strSrcEquivalences = m_pEditSrcEquivalences->GetValue();
 	m_strTgtEquivalences = m_pEditTgtEquivalences->GetValue();
 	m_strGlossEquivalences = m_pEditGlossEquivalences->GetValue();
 	m_strGlossEquivalences = m_strTgtEquivalences;
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditSrcEquivalences->SetValue(m_strSrcEquivalences);
-	m_pEditTgtEquivalences->SetValue(m_strTgtEquivalences);
-	m_pEditGlossEquivalences->SetValue(m_strGlossEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added the following
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 	// Note: wxTextCtrl has ShowPosition(long) which "makes the line 
 	// containing the given position visible." TODO: check to see how
 	// this works - does it scroll the line to the top or what???
@@ -365,8 +373,10 @@ void CCaseEquivPageCommon::DoBnClickedTgtCopyToNext()
 void CCaseEquivPageCommon::DoBnClickedClearGlossList()
 {
 	m_strGlossEquivalences.Empty();
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditGlossEquivalences->SetValue(m_strGlossEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added the following
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 }
 
 void CCaseEquivPageCommon::DoBnClickedGlossSetEnglish()
@@ -382,8 +392,10 @@ void CCaseEquivPageCommon::DoBnClickedGlossSetEnglish()
 	wxString saveGlossUpper = gpApp->m_glossUpperCaseChars;
 	gpApp->SetDefaultCaseEquivalences();
 	BuildListString(gpApp->m_glossLowerCaseChars,gpApp->m_glossUpperCaseChars,m_strGlossEquivalences);
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditGlossEquivalences->SetValue(m_strGlossEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11 and added the following
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 	gpApp->m_srcLowerCaseChars = saveSrcLower;
 	gpApp->m_srcUpperCaseChars = saveSrcUpper;
 	gpApp->m_tgtLowerCaseChars = saveTgtLower;
@@ -394,15 +406,15 @@ void CCaseEquivPageCommon::DoBnClickedGlossSetEnglish()
 
 void CCaseEquivPageCommon::DoBnClickedGlossCopyToNext()
 {
-	TransferDataFromWindow(); // transfer data from contols to string variables
+	//TransferDataFromWindow(); // whm removed 21Nov11
 	m_strSrcEquivalences = m_pEditSrcEquivalences->GetValue();
 	m_strTgtEquivalences = m_pEditTgtEquivalences->GetValue();
 	m_strGlossEquivalences = m_pEditGlossEquivalences->GetValue();
 	m_strSrcEquivalences = m_strGlossEquivalences;
-	TransferDataToWindow(); //transfer data from variables to contols
-	m_pEditSrcEquivalences->SetValue(m_strSrcEquivalences);
-	m_pEditTgtEquivalences->SetValue(m_strTgtEquivalences);
-	m_pEditGlossEquivalences->SetValue(m_strGlossEquivalences);
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditSrcEquivalences->ChangeValue(m_strSrcEquivalences);
+	m_pEditTgtEquivalences->ChangeValue(m_strTgtEquivalences);
+	m_pEditGlossEquivalences->ChangeValue(m_strGlossEquivalences);
 	// Note: wxTextCtrl has ShowPosition(long) which "makes the line 
 	// containing the given position visible." TODO: check to see how
 	// this works - does it scroll the line to the top or what???
@@ -793,7 +805,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	if (bMovingForward)
 	{
 		// Next wizard button was selected
-		TransferDataFromWindow(); // transfer data from contols to string variables
+		//TransferDataFromWindow(); // whm removed 21Nov11
 		casePgCommon.m_strSrcEquivalences = casePgCommon.m_pEditSrcEquivalences->GetValue();
 		casePgCommon.m_strTgtEquivalences = casePgCommon.m_pEditTgtEquivalences->GetValue();
 		casePgCommon.m_strGlossEquivalences = casePgCommon.m_pEditGlossEquivalences->GetValue();
@@ -1029,7 +1041,7 @@ void CCaseEquivPagePrefs::OnBnClickedGlossCopyToNext(wxCommandEvent& WXUNUSED(ev
 void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 {
 	// OK button was selected
-	TransferDataFromWindow(); // transfer data from contols to string variables
+	//TransferDataFromWindow(); // whm removed 21Nov11
 	casePgCommon.m_strSrcEquivalences = casePgCommon.m_pEditSrcEquivalences->GetValue();
 	casePgCommon.m_strTgtEquivalences = casePgCommon.m_pEditTgtEquivalences->GetValue();
 	casePgCommon.m_strGlossEquivalences = casePgCommon.m_pEditGlossEquivalences->GetValue();

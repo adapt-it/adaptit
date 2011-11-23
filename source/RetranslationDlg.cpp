@@ -80,16 +80,16 @@ CRetranslationDlg::CRetranslationDlg(wxWindow* parent) // dialog constructor
 
 	// use pointers to dialog's controls and wxValidator for simple dialog data transfer
 	pSrcPrecContextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_PRECONTEXT);
-	pSrcPrecContextBox->SetValidator(wxGenericValidator(&m_preContext));
+	//pSrcPrecContextBox->SetValidator(wxGenericValidator(&m_preContext)); // whm removed 21Nov11
 
 	pSrcTextToTransBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SOURCE_TEXT);
-	pSrcTextToTransBox->SetValidator(wxGenericValidator(&m_sourceText));
+	//pSrcTextToTransBox->SetValidator(wxGenericValidator(&m_sourceText)); // whm removed 21Nov11
 
 	pRetransBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_RETRANSLATION);
-	pRetransBox->SetValidator(wxGenericValidator(&m_retranslation));
+	//pRetransBox->SetValidator(wxGenericValidator(&m_retranslation)); // whm removed 21Nov11
 
 	pSrcFollContextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_FOLLCONTEXT);
-	pSrcFollContextBox->SetValidator(wxGenericValidator(&m_follContext));
+	//pSrcFollContextBox->SetValidator(wxGenericValidator(&m_follContext)); // whm removed 21Nov11
 
 }
 
@@ -111,7 +111,12 @@ void CRetranslationDlg::OnCopyRetranslationToClipboard(wxCommandEvent& WXUNUSED(
 	pRetransBox->SetSelection(-1,-1); // -1,-1 selects all
 	pRetransBox->Copy(); // copy to the clipboard using wxTextCtrl's built in function (CF_TEXT format)
 
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21NOv11
+	m_preContext = pSrcPrecContextBox->GetValue(); // whm added 21Nov11
+	m_follContext = pSrcFollContextBox->GetValue(); // whm added 21Nov11
+	m_retranslation = pRetransBox->GetValue(); // whm added 21Nov11
+	m_sourceText = pSrcTextToTransBox->GetValue(); // whm added 21Nov11
+	
 	int len = m_retranslation.Length();
 	pRetransBox->SetSelection(len,len);
 }
@@ -245,7 +250,11 @@ void CRetranslationDlg::OnButtonToggleContext(wxCommandEvent& WXUNUSED(event))
 		}
 #endif
 	}
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	pSrcPrecContextBox->ChangeValue(m_preContext); // whm added 21Nov11
+	pSrcFollContextBox->ChangeValue(m_follContext); // whm added 21Nov11
+	pRetransBox->ChangeValue(m_retranslation); // whm added 21Nov11
+	pSrcTextToTransBox->ChangeValue(m_sourceText); // whm added 21Nov11
 
 	if (pSrcPrecContextBox != 0)
 	{
@@ -326,12 +335,16 @@ void CRetranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 								NULL, NULL, gpApp->m_pDlgTgtFont);
 	#endif
 
-	TransferDataToWindow(); // make the changes visible
+	//TransferDataToWindow(); // make the changes visible - whm removed 21Nov11
+	pSrcPrecContextBox->ChangeValue(m_preContext); // whm added 21Nov11
+	pSrcFollContextBox->ChangeValue(m_follContext); // whm added 21Nov11
+	pRetransBox->ChangeValue(m_retranslation); // whm added 21Nov11
+	pSrcTextToTransBox->ChangeValue(m_sourceText); // whm added 21Nov11
 
 	pRetransBox->SetFocus();
 	pRetransBox->SetSelection(-1,-1);
 	// when both params of SetSelection above are -1 all text is selected
 	// MFC SetSel() had third param TRUE indicating not to scroll, but not available in wx.
-	TransferDataToWindow(); 
+	//TransferDataToWindow(); // whm removed 21Nov11 redundant call
 	pRetransSizer->Layout(); // redo layout after toggling different button label
 }

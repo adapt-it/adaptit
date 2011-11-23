@@ -32,6 +32,9 @@ public:
 	virtual ~CWelcome(void); // destructor // whm make all destructors virtual
 	// other methods
 	//enum { IDD = IDD_WELCOME };
+	wxCheckBox* pCheckB;
+	wxTextCtrl* pTextCtrlAsStaticWelcome;
+	wxButton* pOKBtn;
 	bool m_bSuppressWelcome;
 	void OnCheckNolongerShow(wxCommandEvent& WXUNUSED(event));
 

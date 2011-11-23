@@ -179,13 +179,13 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// set up pointers to interface objects
 	m_pSrcPhraseBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INFO_SOURCE);
-	m_pSrcPhraseBox->SetValidator(wxGenericValidator(&m_strSourceText));
+	//m_pSrcPhraseBox->SetValidator(wxGenericValidator(&m_strSourceText));
 	m_pNumReferencesBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_INFO_REFS);
-	m_pNumReferencesBox->SetValidator(wxGenericValidator(&m_strNumRefs));
+	//m_pNumReferencesBox->SetValidator(wxGenericValidator(&m_strNumRefs));
 	m_pLocalSearchBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_LOCAL_SEARCH);
-	m_pLocalSearchBox->SetValidator(wxGenericValidator(&m_strLocalSearch));
+	//m_pLocalSearchBox->SetValidator(wxGenericValidator(&m_strLocalSearch));
 	m_pEditBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDITBOX);
-	m_pEditBox->SetValidator(wxGenericValidator(&m_strEditBox));
+	//m_pEditBox->SetValidator(wxGenericValidator(&m_strEditBox));
 
 	m_pUpdateButton = (wxButton*)FindWindowById(ID_BUTTON_UPDATE);
 	wxASSERT(m_pUpdateButton != NULL);

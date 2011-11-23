@@ -188,7 +188,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pNewTranslationBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_TRANSLATION);
 
 	m_pEditReferences = (wxTextCtrl*)FindWindowById(IDC_EDIT_REFERENCES);
-	m_pEditReferences->SetValidator(wxGenericValidator(&m_refCountStr));
+	//m_pEditReferences->SetValidator(wxGenericValidator(&m_refCountStr)); // whm removed 21Nov11
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
 	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
@@ -367,7 +367,8 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	}
 	if (nSel < nOldSel)
 	{
-		TransferDataToWindow();
+		//TransferDataToWindow(); // whm removed 21Nov11
+		m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 		// try repopulating the ListBox to see if it cures the failure to retain the
 		// client data of the moved list item beyond a single Move Up button click...
 		// Yes, it does. See comments in OnButtonMoveDown() for more information about
@@ -553,7 +554,8 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	}
 	if (nSel > nOldSel)
 	{
-		TransferDataToWindow();
+		//TransferDataToWindow(); // whm removed 21Nov11
+		m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 		// try repopulating the ListBox to see if it cures the failure to retain the
 		// client data of the moved list item beyond a single Move Down button click...
 		// Yes, it does. So this is a fix, see the comment above the wxLogDebug() call
@@ -586,7 +588,8 @@ void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED
 	if (str == s)
 		str = _T(""); // restore null string to be shown later in the phrase box
 	m_chosenTranslation = str;
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 }
 
 void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(event)) 
@@ -625,7 +628,8 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 								// gbEmptyAdaptationChosen global used by PlacePhraseBox
 	}
 	m_chosenTranslation = str;
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
     EndModal(wxID_OK); //EndDialog(IDOK);
     // whm Correction 12Jan09 - The zero parameter given previously to EndModal(0) was incorrect. The
     // parameter needs to be the value that gets returned from the ShowModal() being invoked on this
@@ -785,7 +789,8 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pButton != NULL);
 		pButton->Show(TRUE);
 	}
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
     // If the last translation was removed set focus to the New Translation edit box,
     // otherwise to the Translations list box. (requested by Wolfgang Stradner).
@@ -901,7 +906,8 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		pButton->Show(FALSE);
 	}
 	
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 
 	// place the dialog window so as not to obscure things
 	// work out where to place the dialog window

@@ -77,10 +77,10 @@ CPlaceInternalPunct::CPlaceInternalPunct(wxWindow* parent) // dialog constructor
 
 	// use wxValidator for simple dialog data transfer
 	m_psrcPhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC);
-	m_psrcPhraseBox->SetValidator(wxGenericValidator(&m_srcPhrase));
+	//m_psrcPhraseBox->SetValidator(wxGenericValidator(&m_srcPhrase));
 
 	m_ptgtPhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT);
-	m_ptgtPhraseBox->SetValidator(wxGenericValidator(&m_tgtPhrase));
+	//m_ptgtPhraseBox->SetValidator(wxGenericValidator(&m_tgtPhrase));
 
 	m_pListPunctsBox = (wxListBox*)FindWindowById(IDC_LIST_PUNCTS);
 

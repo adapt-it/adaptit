@@ -155,7 +155,7 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 
 	m_pCheckIgnoreCase = (wxCheckBox*)FindWindowById(IDC_CHECK_IGNORE_CASE_FIND);
 	wxASSERT(m_pCheckIgnoreCase != NULL);
-	m_pCheckIgnoreCase->SetValidator(wxGenericValidator(&m_bIgnoreCase)); // use validator
+	//m_pCheckIgnoreCase->SetValidator(wxGenericValidator(&m_bIgnoreCase)); // use validator
 
 	m_pFindNext = (wxButton*)FindWindow(wxID_OK); // just use FindWindow here to limit search to CFindDlg
 	wxASSERT(m_pFindNext != NULL);
@@ -165,25 +165,25 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 
 	m_pEditSrc = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_FIND);
 	wxASSERT(m_pEditSrc != NULL);
-	m_pEditSrc->SetValidator(wxGenericValidator(&m_srcStr)); // use validator
+	//m_pEditSrc->SetValidator(wxGenericValidator(&m_srcStr)); // use validator
 
 	m_pStaticTgtBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_TGT_FIND);
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 
 	m_pEditTgt = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_FIND);
 	wxASSERT(m_pEditTgt != NULL);
-	m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
+	//m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
 
 	m_pButtonSpecialNormal = (wxButton*)FindWindowById(IDC_BUTTON_SPECIAL);
 	wxASSERT(m_pButtonSpecialNormal != NULL);
 
 	m_pCheckIncludePunct = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_PUNCT_FIND);
 	wxASSERT(m_pCheckIncludePunct != NULL);
-	m_pCheckIncludePunct->SetValidator(wxGenericValidator(&m_bIncludePunct)); // use validator
+	//m_pCheckIncludePunct->SetValidator(wxGenericValidator(&m_bIncludePunct)); // use validator
 
 	m_pCheckSpanSrcPhrases = (wxCheckBox*)FindWindowById(IDC_CHECK_SPAN_SRC_PHRASES_FIND);
 	wxASSERT(m_pCheckSpanSrcPhrases != NULL);
-	m_pCheckSpanSrcPhrases->SetValidator(wxGenericValidator(&m_bSpanSrcPhrases)); // use validator
+	//m_pCheckSpanSrcPhrases->SetValidator(wxGenericValidator(&m_bSpanSrcPhrases)); // use validator
 
 	m_pSpecialSearches = (wxStaticText*)FindWindowById(IDC_STATIC_SPECIAL);
 	wxASSERT(m_pSpecialSearches != NULL);
@@ -193,19 +193,19 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 
 	m_pFindRetranslation = (wxRadioButton*)FindWindowById(IDC_RADIO_RETRANSLATION);
 	wxASSERT(m_pFindRetranslation != NULL);
-	m_pFindRetranslation->SetValidator(wxGenericValidator(&m_bFindRetranslation)); // use validator
+	//m_pFindRetranslation->SetValidator(wxGenericValidator(&m_bFindRetranslation)); // use validator
 
 	m_pFindPlaceholder = (wxRadioButton*)FindWindowById(IDC_RADIO_NULL_SRC_PHRASE);
 	wxASSERT(m_pFindPlaceholder != NULL);
-	m_pFindPlaceholder->SetValidator(wxGenericValidator(&m_bFindNullSrcPhrase)); // use validator
+	//m_pFindPlaceholder->SetValidator(wxGenericValidator(&m_bFindNullSrcPhrase)); // use validator
 
 	m_pFindSFM = (wxRadioButton*)FindWindowById(IDC_RADIO_SFM);
 	wxASSERT(m_pFindSFM != NULL);
-	m_pFindSFM->SetValidator(wxGenericValidator(&m_bFindSFM)); // use validator
+	//m_pFindSFM->SetValidator(wxGenericValidator(&m_bFindSFM)); // use validator
 
 	m_pComboSFM = (wxComboBox*)FindWindowById(IDC_COMBO_SFM); 
 	wxASSERT(m_pComboSFM != NULL);
-	m_pComboSFM->SetValidator(wxGenericValidator(&m_marker)); // use validator
+	//m_pComboSFM->SetValidator(wxGenericValidator(&m_marker)); // use validator
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -317,7 +317,12 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	wxString key;
 	wxString cbStr;
 	m_pComboSFM->Clear(); // whm added 26Oct08
-    // wx version: I've modified the m_pComboSFM->Append() routines to only put sensible
+    // whm modified 21Nov11. On Linux, the combobox is not sorted even though the m_pComboSFM
+    // has the wxCB_SORT style flag set. So, I'll put the markers in a wxArrayString first,
+    // sort it, and then load the wxArrayString items into the combobox.
+    wxArrayString comboItemsArray;
+	comboItemsArray.Clear();
+	// wx version: I've modified the m_pComboSFM->Append() routines to only put sensible
     // sfms in the combo box, i.e., none of the _basestyle markers or others that are
     // merely used internally by Adapt It are now included.
 	switch(gpApp->gCurrentSfmSet)
@@ -336,7 +341,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 				cbStr += pSfm->marker;
 				cbStr += _T("  ");
 				cbStr += pSfm->description;
-				m_pComboSFM->Append(cbStr);
+				comboItemsArray.Add(cbStr); //m_pComboSFM->Append(cbStr);
 			}
 			break;
 		}
@@ -354,7 +359,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 				cbStr += pSfm->marker;
 				cbStr += _T("  ");
 				cbStr += pSfm->description;
-				m_pComboSFM->Append(cbStr);
+				comboItemsArray.Add(cbStr); //m_pComboSFM->Append(cbStr);
 			}
 			break;
 		}
@@ -372,7 +377,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 				cbStr += pSfm->marker;
 				cbStr += _T("  ");
 				cbStr += pSfm->description;
-				m_pComboSFM->Append(cbStr);
+				comboItemsArray.Add(cbStr); //m_pComboSFM->Append(cbStr);
 			}
 			break;
 		}
@@ -391,10 +396,13 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 				cbStr += pSfm->marker;
 				cbStr += _T("  ");
 				cbStr += pSfm->description;
-				m_pComboSFM->Append(cbStr);
+				comboItemsArray.Add(cbStr); //m_pComboSFM->Append(cbStr);
 			}
 		}
 	}
+	// now sort the array and add it to the m_pComboSFM combobox
+	comboItemsArray.Sort();
+	m_pComboSFM->Append(comboItemsArray);
 
 	// set the default button to Find Next button explicitly (otherwise, an MFC bug makes it
 	// the Replace All button)
@@ -513,7 +521,17 @@ void CFindDlg::DoFindNext()
 	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 	gpApp->m_pActivePile = pPile;
 
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataFromWindow()
+	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
+	m_srcStr = m_pEditSrc->GetValue();
+	m_tgtStr = m_pEditTgt->GetValue();
+	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
+	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
+	m_bFindRetranslation = m_pFindRetranslation->GetValue();
+	m_bFindNullSrcPhrase = m_pFindPlaceholder->GetValue();
+	m_bFindSFM = m_pFindSFM->GetValue();
+	m_marker = m_pComboSFM->GetSelection();
 
 	int nAtSequNum = gpApp->m_nActiveSequNum;
 	int nCount = 1;
@@ -697,7 +715,18 @@ void CFindDlg::OnSelchangeComboSfm(wxCommandEvent& WXUNUSED(event))
 	if (m_pComboSFM->GetCount() == 0)
 		return;
 
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataFromWindow()
+	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
+	m_srcStr = m_pEditSrc->GetValue();
+	m_tgtStr = m_pEditTgt->GetValue();
+	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
+	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
+	m_bFindRetranslation = m_pFindRetranslation->GetValue();
+	m_bFindNullSrcPhrase = m_pFindPlaceholder->GetValue();
+	m_bFindSFM = m_pFindSFM->GetValue();
+	m_marker = m_pComboSFM->GetSelection();
+
 
 	// get the new value of the combobox & convert to an sfm
 	m_marker = m_pComboSFM->GetSelection();
@@ -883,7 +912,18 @@ void CFindDlg::OnRadioSfm(wxCommandEvent& event)
 
 	// get initial value
 	OnSelchangeComboSfm(event);
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataToWindow()
+	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
+	m_pEditSrc->ChangeValue(m_srcStr);
+	m_pEditTgt->ChangeValue(m_tgtStr);
+	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
+	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
+	m_pFindRetranslation->SetValue(m_bFindRetranslation);
+	m_pFindPlaceholder->SetValue(m_bFindNullSrcPhrase);
+	m_pFindSFM->SetValue(m_bFindSFM);
+	m_pComboSFM->SetSelection(m_marker);
+
 }
 	
 void CFindDlg::OnRadioRetranslation(wxCommandEvent& WXUNUSED(event)) 
@@ -902,7 +942,17 @@ void CFindDlg::OnRadioRetranslation(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(m_pFindSFM != NULL);
 	m_pFindSFM->SetValue(FALSE);
 	m_bFindSFM = FALSE;
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataToWindow()
+	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
+	m_pEditSrc->ChangeValue(m_srcStr);
+	m_pEditTgt->ChangeValue(m_tgtStr);
+	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
+	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
+	m_pFindRetranslation->SetValue(m_bFindRetranslation);
+	m_pFindPlaceholder->SetValue(m_bFindNullSrcPhrase);
+	m_pFindSFM->SetValue(m_bFindSFM);
+	m_pComboSFM->SetSelection(m_marker);
 }
 
 void CFindDlg::OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event)) 
@@ -921,7 +971,17 @@ void CFindDlg::OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(m_pFindSFM != NULL);
 	m_pFindSFM->SetValue(FALSE);
 	m_bFindSFM = FALSE;
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataToWindow()
+	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
+	m_pEditSrc->ChangeValue(m_srcStr);
+	m_pEditTgt->ChangeValue(m_tgtStr);
+	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
+	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
+	m_pFindRetranslation->SetValue(m_bFindRetranslation);
+	m_pFindPlaceholder->SetValue(m_bFindNullSrcPhrase);
+	m_pFindSFM->SetValue(m_bFindSFM);
+	m_pComboSFM->SetSelection(m_marker);
 }
 
 // BEW 3Aug09 removed unneeded FindNextHasLanded() call in OnCancel()
@@ -945,7 +1005,17 @@ void CFindDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	m_bSpecialSearch = FALSE;
 	m_bFindDlg = TRUE;
 
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataToWindow()
+	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
+	m_pEditSrc->ChangeValue(m_srcStr);
+	m_pEditTgt->ChangeValue(m_tgtStr);
+	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
+	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
+	m_pFindRetranslation->SetValue(m_bFindRetranslation);
+	m_pFindPlaceholder->SetValue(m_bFindNullSrcPhrase);
+	m_pFindSFM->SetValue(m_bFindSFM);
+	m_pComboSFM->SetSelection(m_marker);
 	Destroy();
 
 	gbFindIsCurrent = FALSE;
@@ -1067,7 +1137,7 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 
 	m_pCheckIgnoreCase = (wxCheckBox*)FindWindowById(IDC_CHECK_IGNORE_CASE_REPLACE);
 	wxASSERT(m_pCheckIgnoreCase != NULL);
-	m_pCheckIgnoreCase->SetValidator(wxGenericValidator(&m_bIgnoreCase)); // use validator
+	//m_pCheckIgnoreCase->SetValidator(wxGenericValidator(&m_bIgnoreCase)); // use validator
 
 	m_pFindNext = (wxButton*)FindWindow(wxID_OK); // just use FindWindow here to 
 												  // limit search to CReplaceDlg
@@ -1078,14 +1148,14 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 
 	m_pEditSrc = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_REPLACE);
 	wxASSERT(m_pEditSrc != NULL);
-	m_pEditSrc->SetValidator(wxGenericValidator(&m_srcStr)); // use validator
+	//m_pEditSrc->SetValidator(wxGenericValidator(&m_srcStr)); // use validator
 
 	m_pStaticTgtBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_TGT_REPLACE);
 	wxASSERT(m_pStaticTgtBoxLabel != NULL);
 
 	m_pEditTgt = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_REPLACE);
 	wxASSERT(m_pEditTgt != NULL);
-	m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
+	//m_pEditTgt->SetValidator(wxGenericValidator(&m_tgtStr)); // use validator
 
 	m_pButtonReplace = (wxButton*)FindWindowById(IDC_REPLACE);
 	wxASSERT(m_pButtonReplace != NULL);
@@ -1095,15 +1165,15 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	
 	m_pCheckIncludePunct = (wxCheckBox*)FindWindowById(IDC_CHECK_INCLUDE_PUNCT_REPLACE);
 	wxASSERT(m_pCheckIncludePunct != NULL);
-	m_pCheckIncludePunct->SetValidator(wxGenericValidator(&m_bIncludePunct)); // use validator
+	//m_pCheckIncludePunct->SetValidator(wxGenericValidator(&m_bIncludePunct)); // use validator
 
 	m_pCheckSpanSrcPhrases = (wxCheckBox*)FindWindowById(IDC_CHECK_SPAN_SRC_PHRASES_REPLACE);
 	wxASSERT(m_pCheckSpanSrcPhrases != NULL);
-	m_pCheckSpanSrcPhrases->SetValidator(wxGenericValidator(&m_bSpanSrcPhrases)); // use validator
+	//m_pCheckSpanSrcPhrases->SetValidator(wxGenericValidator(&m_bSpanSrcPhrases)); // use validator
 
 	m_pEditReplace = (wxTextCtrl*)FindWindowById(IDC_EDIT_REPLACE);
 	wxASSERT(m_pEditReplace != NULL);
-	m_pEditReplace->SetValidator(wxGenericValidator(&m_replaceStr)); // use validator
+	//m_pEditReplace->SetValidator(wxGenericValidator(&m_replaceStr)); // use validator
 	
 }
 
@@ -1305,7 +1375,16 @@ void CReplaceDlg::DoFindNext()
 	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 	gpApp->m_pActivePile = pPile;
 
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataFromWindow()
+	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
+	m_srcStr = m_pEditSrc->GetValue();
+	m_tgtStr = m_pEditTgt->GetValue();
+	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
+	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
+	m_replaceStr = m_pEditReplace->GetValue();
+
+
 
 	int nAtSequNum = gpApp->m_nActiveSequNum;
 	int nCount = 1;
@@ -1537,7 +1616,14 @@ void CReplaceDlg::DoRadioSrcAndTgt()
 
 void CReplaceDlg::OnReplaceButton(wxCommandEvent& event) 
 {
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataFromWindow()
+	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
+	m_srcStr = m_pEditSrc->GetValue();
+	m_tgtStr = m_pEditTgt->GetValue();
+	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
+	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
+	m_replaceStr = m_pEditReplace->GetValue();
 
 	// do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)
@@ -1609,7 +1695,14 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 
 void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event) 
 {
-	TransferDataFromWindow(); // TODO: check this!!!
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataFromWindow()
+	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
+	m_srcStr = m_pEditSrc->GetValue();
+	m_tgtStr = m_pEditTgt->GetValue();
+	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
+	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
+	m_replaceStr = m_pEditReplace->GetValue();
 
 	// do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)
@@ -1675,7 +1768,14 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 
 	m_bFindDlg = FALSE; // it is TRUE in the CFindDlg
 
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	// whm added below 21Nov11 replacing TransferDataToWindow()
+	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
+	m_pEditSrc->ChangeValue(m_srcStr);
+	m_pEditTgt->ChangeValue(m_tgtStr);
+	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
+	m_pCheckSpanSrcPhrases->SetValue(m_bSpanSrcPhrases);
+	m_pEditReplace->ChangeValue(m_replaceStr);
 	Destroy();
 
 	gbFindIsCurrent = FALSE;

@@ -188,7 +188,7 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 	wxCheckBox* pCheckB;
 	pCheckB = (wxCheckBox*)FindWindowById(IDC_CHECK_FORCE_UTF8);
 	pCheckB->SetValue(FALSE);
-	pCheckB->SetValidator(wxGenericValidator(&m_bForceUTF8));
+	//pCheckB->SetValidator(wxGenericValidator(&m_bForceUTF8));
 #ifndef _UNICODE
 	pCheckB->Hide();
 #endif

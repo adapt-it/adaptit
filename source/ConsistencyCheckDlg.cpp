@@ -137,7 +137,7 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 
 	m_pCheckAutoFix = (wxCheckBox*)FindWindowById(IDC_CHECK_DO_SAME); // whm added 31Aug11
 	wxASSERT(m_pCheckAutoFix != NULL);
-	m_pCheckAutoFix->SetValidator(wxGenericValidator(&m_bDoAutoFix)); // use validator
+	//m_pCheckAutoFix->SetValidator(wxGenericValidator(&m_bDoAutoFix)); // use validator
 
 	// new stuff
 
@@ -172,9 +172,9 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	wxASSERT(pStatBox_DoOneOf != NULL);
 
 	// use wxValidator for simple dialog data transfer
-	m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
-	m_pEditCtrlAdaptation->SetValidator(wxGenericValidator(&m_adaptationStr));
-	m_pEditCtrlKey->SetValidator(wxGenericValidator(&m_keyStr));
+	//m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
+	//m_pEditCtrlAdaptation->SetValidator(wxGenericValidator(&m_adaptationStr));
+	//m_pEditCtrlKey->SetValidator(wxGenericValidator(&m_keyStr));
 
 }
 
@@ -493,7 +493,11 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	// always start with top radio button turned on
 	m_pRadioAcceptHere->SetValue(TRUE);
 
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pCheckAutoFix->SetValue(m_bDoAutoFix); // whm added 21Nov11
+	m_pEditCtrlChVerse->ChangeValue(m_chVerse); // whm added 21Nov11
+	m_pEditCtrlAdaptation->ChangeValue(m_adaptationStr); // whm added 21Nov11
+	m_pEditCtrlKey->ChangeValue(m_keyStr); // whm added 21Nov11
 
 	// get the dialog to resize to the new label string lengths
 	int width = 0;
@@ -674,7 +678,12 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 	gbIgnoreIt = FALSE;
 
 	// update m_adaptationStr from whatever is in the text box now
-	TransferDataFromWindow();
+	//TransferDataFromWindow(); // whm removed 21Nov11
+	m_bDoAutoFix = m_pCheckAutoFix->GetValue(); // whm added 21Nov11
+	m_chVerse = m_pEditCtrlChVerse->GetValue(); // whm added 21Nov11
+	m_adaptationStr = m_pEditCtrlAdaptation->GetValue(); // whm added 21Nov11
+	m_keyStr = m_pEditCtrlKey->GetValue(); // whm added 21Nov11
+
 	if (m_pRadioAcceptHere->GetValue())
 	{
 		// the original meaning is to be re-stored
@@ -711,7 +720,11 @@ void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event))
 	// remove selection in the list
 	m_pListBox->SetSelection(wxNOT_FOUND);
 
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pCheckAutoFix->SetValue(m_bDoAutoFix); // whm added 21Nov11
+	m_pEditCtrlChVerse->ChangeValue(m_chVerse); // whm added 21Nov11
+	m_pEditCtrlAdaptation->ChangeValue(m_adaptationStr); // whm added 21Nov11
+	m_pEditCtrlKey->ChangeValue(m_keyStr); // whm added 21Nov11
 
 	// disable the list and top right text box so it can't be changed from the original
 	// value
@@ -728,7 +741,11 @@ void CConsistencyCheckDlg::OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event))
 
 	EnableAdaptOrGlossBox(TRUE); // turns on both list and top right wxTextCtrl
 	
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pCheckAutoFix->SetValue(m_bDoAutoFix); // whm added 21Nov11
+	m_pEditCtrlChVerse->ChangeValue(m_chVerse); // whm added 21Nov11
+	m_pEditCtrlAdaptation->ChangeValue(m_adaptationStr); // whm added 21Nov11
+	m_pEditCtrlKey->ChangeValue(m_keyStr); // whm added 21Nov11
 
     // BEW added 13Jun09, clicking the radio button should put the input focus in the
     // wxTextCtrl for the "Adaptation text" or "Gloss text"
@@ -770,6 +787,10 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	wxASSERT(m_pRadioChangeInstead != NULL);
 	m_pRadioChangeInstead->SetValue(TRUE);
 
-	TransferDataToWindow();
+	//TransferDataToWindow(); // whm removed 21Nov11
+	m_pCheckAutoFix->SetValue(m_bDoAutoFix); // whm added 21Nov11
+	m_pEditCtrlChVerse->ChangeValue(m_chVerse); // whm added 21Nov11
+	m_pEditCtrlAdaptation->ChangeValue(m_adaptationStr); // whm added 21Nov11
+	m_pEditCtrlKey->ChangeValue(m_keyStr); // whm added 21Nov11
 }
 

@@ -3894,8 +3894,8 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC0, _("Preceding Context:"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Preceding Context:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item2, 0, wxALL, 0 );
 
@@ -3964,8 +3964,8 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC4, _("Following Context:"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("Following Context:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item19->Add( item20, 0, wxALL, 0 );
 
