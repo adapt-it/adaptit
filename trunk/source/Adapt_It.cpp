@@ -17859,6 +17859,7 @@ int ii = 1;
 	CAdapt_ItView* pView = (CAdapt_ItView*) GetView();
 	pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
 
+/* Nah, the "Debugger (debug)" log window collects all the wxLogDebug() returns in CodeBlocks IDE
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
     // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
 	wxFrame* pLogFrame;
@@ -17869,6 +17870,7 @@ int ii = 1;
 	pLogFrame->SetSize( wxRect(0,900,160,200));
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
+*/
 	//klb test
 	//bool a = ParatextIsRunning();
 

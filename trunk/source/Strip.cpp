@@ -137,7 +137,7 @@ void CStrip::Draw(wxDC* pDC)
 	}
 #endif
 
-// declaration of Print_failure commented out at start of Adapt_It.h
+// declaration of Print_failure is at top of file
 #if defined(__WXDEBUG__) && defined(Print_failure)
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{

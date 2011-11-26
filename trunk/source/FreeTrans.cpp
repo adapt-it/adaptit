@@ -801,10 +801,10 @@ int CFreeTrans::FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& b
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
 /// \param  pLayout            ->   pointer to the single CLayout instance created at app
-///                                 initialization time (it contains members we need, such as the pile
-///                                 list, the current PageOffsets struct for the page being
-///                                 printed or print previewed (see m_pOffsets member), and the
-///                                 piles in its m_pileList give access to the partner
+///                                 initialization time -- it contains members we need,
+///                                 such as the pile list, the current PageOffsets struct
+///                                 for the page being printed or print previewed, and
+///                                 the pile in its m_pileList give access to the partner
 ///                                 CSourcePhrase instances which contain the free
 ///                                 translation-related flags we need to test
 /// \param  arrPileSet         <-   reference to a wxArrayPtrVoid storing one or more
@@ -812,23 +812,24 @@ int CFreeTrans::FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& b
 ///                                 free translation section
 /// \param  pAnchorPile        ->   ptr to the CPile instance which is the one which
 ///                                 stores the free translation we are dealing with
+///                                 (this pile may be on the previous page, so we don't
+///                                 test for the anchor being within the current page)
 /// \remarks
 ///  Used in the printing of Free Translations feature, so called in the function
-///  DrawOneFreeTranslationForPrinting() which is called only when gbIsPrinting is TRUE,
+///  AggregateOneFreeTranslationForPrinting() which is called only when gbIsPrinting is TRUE,
 ///  and the app boolean m_bIsPrintPreviewing is FALSE, and the global boolean
-///  gbCheckInclFreeTransText is TRUE, and then, only in the __WXGTK__ build, because the
-///  DrawFreeTranslationsForPage() function in the __WXGTK__ build refuses to draw any
-///  free translations on the page except when print previewing is taking place.
+///  gbCheckInclFreeTransText is TRUE, and then, only in the __WXGTK__ build, and provided
+///  the free translation is not empty.
 ///
 ///  The pile set is collected, and it may overlap the boundary between the current
 ///  page and the previous page; or if the free translation is the last on a page, it may
 ///  overlap the boundary between the end of the current page and the start of the next page.
-///  This function is the first of three. After this returns, another function
+///  This function is the first of several. After this returns, another function
 ///  will obtain in a similar fashion, an array of "draw rectangles" for the free
-///  translation being printed.
-///  After that a third function will do any necessary text segmenting, and draw the free
-///  translation, or its apportioned parts (as many as belong on the current page), in
-///  the various rectangles calculated by the previously mentioned function.
+///  translation to be printed. Another will aggregate data into arrays for what is to be
+///  printed interleaved between strips (adhering to strict top-down drawing, required because
+///  the wxPostScriptDC is ill-behaved if the locus for drawing moves up and down the page).
+///  After that another function will do the drawing after each strip is drawn.
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtrVoid& arrPileSet, CPile* pAnchorPile)
 {
@@ -837,27 +838,10 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
 	PileList* pPileList = pLayout->GetPileList();
 	if (pPileList->GetCount() == 0)
 		return;
-	wxASSERT(pLayout->m_pOffsets != NULL);
-	// first strip to be printed for this page (the free translation we are dealing with will
-    // be on one or more strips in between these limits)
-	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip;
-	// last strip to be printed for this page
-	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip;
-
+	//wxASSERT(pLayout->m_pOffsets != NULL); // <<-- value unused herein, comment out
 	// various needed scratch variables
 	CPile* pPile;
 	CPile* pPileEndingFTSection; // use for the free trans section's ending pile
-	//CSourcePhrase* pSrcPhrase;
-	int curStripIndex;
-	//wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
-    curStripIndex = pAnchorPile->GetStripIndex();
-	// check we are within bounds
-	if (curStripIndex < nIndexOfFirstStrip || curStripIndex > nIndexOfLastStrip)
-	{
-	    // return, the pile is not on this current page
-	    return;
-	}
-
     // The anchor pile for the free translation was passed in, use it to locate
     // the last pile in the free translation section - the CFreeTrans class
     // has a function for just this pupose
@@ -894,10 +878,8 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
 					pPileEndingFTSection->GetStripIndex(), pPileEndingFTSection->GetSrcPhrase()->m_srcPhrase.c_str(), pPileEndingFTSection->Left(), pPileEndingFTSection->Top());
 	}
 #endif
-
 }
-#endif
-
+#endif // for #if defined(__WXGTK__)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
@@ -988,22 +970,58 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	// defined on it. Handle these options now
 	pSrcPhrase = pPile->GetSrcPhrase();
 	pAnchorPile = NULL;
+	bool bFoundAnchor = TRUE;
 	if (pSrcPhrase->m_bStartFreeTrans)
 	{
 		pAnchorPile = pPile;
 	}
 	else if (pSrcPhrase->m_bHasFreeTrans)
 	{
+	    CPile* pKickOffPile = pPile;
 		// pPile is somewhere within a free translation section, so search back for the
-		// anchor - it has to be there somewhere
+		// anchor - it has to be there somewhere -- but beware, if we are in here for
+		// a print of a selection, there's no assurance that a preceding anchor will
+		// be found, because the selection has temporarily become the whole doc, and
+		// in the GTK build, this also applies to the page-range choice as well. In
+		// such a circumstance, GetPrevPile() would return NULL
 		CSourcePhrase* pSPhr;
 		do {
 			pPile = m_pView->GetPrevPile(pPile);
+			if (pPile == NULL)
+			{
+			    bFoundAnchor = FALSE;
+			    break;
+			}
 			pSPhr = pPile->GetSrcPhrase();
 			wxASSERT(pSPhr->m_bHasFreeTrans);
 
 		} while(!pSPhr->m_bStartFreeTrans);
-		pAnchorPile = pPile;
+		if (bFoundAnchor)
+		{
+            pAnchorPile = pPile;
+		}
+		else
+		{
+		    // no anchor was found, so treat this section as if it isn't a free
+		    // translation section - search ahead for the next anchor and start there
+		    pPile = pKickOffPile;
+            pPile = FindNextFreeTransSection(pPile);
+            if (pPile == NULL)
+            {
+                // we couldn't find a free translation section anywhere ahead, so return
+                // without doing anything
+                return;
+            }
+            // pPile is an anchor location, see if it falls within the current page
+            laterStripIndex = pPile->GetStripIndex();
+            if (laterStripIndex > nIndexOfLastStrip)
+            {
+                // this free translation lies beyond the end of the current page for printing,
+                // so ignore it - and return without doing anything
+                return;
+            }
+            pAnchorPile = pPile; // we have an anchor pile on the current page
+		}
 	}
 	else
 	{
@@ -1139,8 +1157,8 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 /// than one display rectangle; each display rectangle, its extent, and the
 /// index of the strip it is associated with are stored in a FreeTrElement struct, and these
 /// structs are stored in a local wxArrayPtrVoid in the caller and passed in by reference.
-/// The FreeTrElement instances we store, are created on the heap. The caller, which is
-/// DrawOneFreeTranslationForPrinting(), will have to delete them before it returns.
+/// The FreeTrElement instances we store, are created on the heap. The caller will have to delete
+/// them before it returns.
 //////////////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans)
 {
@@ -1177,11 +1195,12 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
 	#endif
 
     // The loop iterates over the sequence of CPile instances; this function doesn't
-    // access the free translations themselves (that is done in the next function, which
-    // does the apportioning and drawing), we just deal with the layout and the rectangle
-    // sizes it gives us to work with [- these we compute so as to be ready for the next
-    // function which will get the free trans text, apportion or truncate it, or do
-    // neither, and then draw to them]
+    // access the free translations themselves, we just deal with the layout and the
+    // rectangle sizes it gives us to work with [- these we compute so as to be ready
+    // for the next function which will get the free trans text, apportion or truncate it,
+    // or do neither, and then aggregate drawing rectangle information, and free
+    // translation information, on a per-strip basis in arrays, ready for printing
+    // interleaved between strips.
 
     // get the set of CPile pointers which we are to process for the current free
     // translation section
@@ -1755,38 +1774,47 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
 /// \param pDC                  ->  a device context, for drawing and measuring text extents
-/// \param pLayout              ->  ptr to the one and only CLayout instance (on heap, persists
-///                                 until the app is shut down)
-/// \param arrRects             ->  the ordered array of FreeTrElement structs (they are stored
-///                                 on the heap) which define the drawing rectangle(s), extent(s)
-///                                 and under which strip a given rectangle is located
-/// \param ftStr                ->  the free translation string which is to be displayed
+/// \param currentStrip         ->  the document layout's current strip index for the strip
+///                                 that was just drawn by OnPrintPage()
+/// \param nStripsOffset        ->  index of the first strip on the page; subtract this from
+///                                 currentStrip to get the appropriate index into the two
+///                                 arrays which follow
+/// \param arrFTElementsArrays  ->  ref to the array of arrays of FreeTrElement structs (they
+///                                 are stored on the heap) which define the drawing rectangle(s),
+///                                 extent(s) and under which strip a given rectangle is located
+/// \param arrFTSubstringsArrays -> ref to the array of arryas of free trans substrings, one per
+///                                 FreeTrElement struct instance in arrFTElementsArrays's arrays
 /// \remarks
-/// Prints the free translation, (the whole of it, or if over two or more strips, the subparts,) in
-/// its/their display rectangles, doing any needed text segmenting on the fly if a free translation
-/// spans two or more strips. Truncates when text is too long for a display rectangle (it will try
-/// reducing text point size by two points first, to see if truncation can be avoided).
-/// The rectangles, and the indices of the strips to which they belong, come from FreeTrElement
-/// structs which are stored in an array of the latter, in the caller's local array variable
-void CFreeTrans::DrawOneFreeTransOnPage(wxDC* pDC, CLayout* pLayout, wxArrayPtrVoid& arrRects, wxString& ftStr)
+/// Prints the free translations pertaining to a single strip, in the drawing rectangles for those
+/// free translations, or free translation parts. Segmentation was done by a previous function.
+/// This function is called in OnPrintPage, in a loop, so that after each strip is drawn, this
+/// function is called to draw it's free translations - strips without free translations result
+/// in nothing being drawn.
+//////////////////////////////////////////////////////////////////////////////////////////
+void CFreeTrans::DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
+                    wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays)
 {
-	int nTotalHorizExtent;
+    int itemIndex = currentStrip - nStripsOffset; // calc of index for which stored array to grab
+    int totalPrintableFreeTransLines;
+    totalPrintableFreeTransLines = arrFTElementsArrays.GetCount();
+#if defined(Print_failure) && defined(__WXDEBUG__)
+        wxLogDebug(_T("           DrawFreeTransForOneStrip(): currentStrip = %d   calculated itemIndex = %d    totalPrintableFreeTransLines = %d   "),
+                    currentStrip, itemIndex, totalPrintableFreeTransLines);
 
-	// first strip to be printed for this page
-	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip;
-	// last strip to be printed for this page
-	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip;
-
-	FreeTrElement* pElement;
-	wxSize extent;
-	wxString ellipsis = _T("...");
-#ifdef _UNICODE
-	ellipsis = _T('\u2026'); // use a Unicode ellipsis, exclusively, in Unicode app
 #endif
-	wxArrayString subStrings;
-	wxRect rectBounding;
+    wxASSERT((unsigned int)totalPrintableFreeTransLines == arrFTSubstringsArrays.GetCount());
+
+    // If free translations end at some point on the page before the page ends, there will
+    // not be any empty arrays to match the strips which have no free translations at the
+    // page's end, detect this and exit when we are done printing all there are to print
+    if (itemIndex >= totalPrintableFreeTransLines)
+    {
+        // we are done printing free translations for this page
+        return;
+    }
 
 	bool bRTLLayout = FALSE;
+	// we need to know whether RTL or LTR, because different functions are called for the drawing
 #ifdef _RTL_FLAGS
 	if (m_pApp->m_bTgtRTL)
 	{
@@ -1800,8 +1828,34 @@ void CFreeTrans::DrawOneFreeTransOnPage(wxDC* pDC, CLayout* pLayout, wxArrayPtrV
 	}
 #endif
 
-	// set up a new colour - make it a purple,
-	// hard coded in app as m_freetransTextColor
+    // get the strip's assocated set of FreeTrElement structs and their free translation
+    // (sub)strings, and print them
+    wxArrayPtrVoid* pElementsArray = (wxArrayPtrVoid*)arrFTElementsArrays.Item(itemIndex);
+    wxArrayString* pSubstringsArray = (wxArrayString*)arrFTSubstringsArrays.Item(itemIndex);
+#if defined(Print_failure) && defined(__WXDEBUG__)
+        wxLogDebug(_T("           DrawFreeTransForOneStrip(): WHAT'S IN IT?  "));
+        {
+        int i;
+        int cnt = pSubstringsArray->GetCount();
+        for (i=0; i<cnt; i++)
+        {
+            wxString s = pSubstringsArray->Item(i);
+            wxLogDebug(_T("           DrawFreeTransForOneStrip(): currentStrip = %d   substring index = %d    substring = %s   "),
+                    currentStrip, i, s.c_str());
+        }
+        }
+#endif
+
+    // if there is nothing to draw, return
+    if (pElementsArray->IsEmpty())
+    {
+#if defined(Print_failure) && defined(__WXDEBUG__)
+        wxLogDebug(_T("           DrawFreeTransForOneStrip(): Returning because array is empty, for strip with index = %d  "), currentStrip);
+#endif
+        return;
+    }
+
+	// set up a new colour - make it a purple, hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
 	pSaveFont = pDC->GetFont();
@@ -1814,249 +1868,137 @@ void CFreeTrans::DrawOneFreeTransOnPage(wxDC* pDC, CLayout* pLayout, wxArrayPtrV
 	}
 	pDC->SetTextForeground(color);
 
-	bool bTextIsTooLong = FALSE;
-	int totalRects = 0;
-	int length = 0;
-	int curStripIndex;
+    FreeTrElement* pElement = NULL;
+    wxString ftStr;
+    int aCount = pElementsArray->GetCount();
+    wxASSERT((unsigned int)aCount == pSubstringsArray->GetCount());
+    int anIndex;
 
-    // calculate the total horizontal extent of the display rectangles
-    int i;
-    int ftElementsCount = arrRects.GetCount();
-    nTotalHorizExtent = 0;
-    for (i = 0; i < ftElementsCount; i++)
+    // now draw the free trans data for this strip (works for LTR or RTL without
+    // modification, because reading order was handled by storage done in the
+    // previous function)
+    for (anIndex = 0; anIndex < aCount; anIndex++)
     {
-        nTotalHorizExtent += ((FreeTrElement*)arrRects.Item(i))->horizExtent;
+        pElement = (FreeTrElement*)pElementsArray->Item(anIndex);
+        ftStr = pSubstringsArray->Item(anIndex);
+        // BEW 26Nov11, these were wiping out the pDC -- having them in two called functions
+        // made the strips and free translations drawn already be erased
+        //pDC->DestroyClippingRegion();
+        //pDC->SetClippingRegion(pElement->subRect);
+        //pDC->Clear();
+        //pDC->DestroyClippingRegion();
+        if (bRTLLayout)
+        {
+            m_pView->DrawTextRTL(pDC, ftStr, pElement->subRect);
+        }
+        else
+        {
+            pDC->DrawText(ftStr, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
+#if defined(Print_failure) && defined(__WXDEBUG__)
+            wxLogDebug(_T("           DrawFreeTransForOneStrip(): currentStrip = %d   substring index = %d    DrawText() for =  %s"),
+                    currentStrip, anIndex, ftStr.c_str());
+#endif
+        }
     }
-
-    length = 0;
-    length = ftStr.Len();
-
-    if (length == 0)
-    {
-        // there is no text to be printed so return
-        return;
-    }
-
-    // trim off any leading or trailing spaces
-    ftStr.Trim(FALSE); // trim left end
-    ftStr.Trim(TRUE); // trim right end
-    if (ftStr.IsEmpty())
-    {
-        // nothing to print, so return
-        return;
-    }
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
-	{
-		wxLogDebug(_T("\nDrawOneFreeTransOnPage(), ftElementsCount %d , nTotalHorizExtent %d ,  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
-			ftElementsCount, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip);
-	}
-#endif
-
-		// get text's extent (a wxSize object) and compare to the total horizontal extent of
-		// the rectangles. also determine the number of rectangles we are to write this section
-		// into, and initialize other needed data
-		pDC->GetTextExtent(ftStr, &extent.x, &extent.y);
-		bTextIsTooLong = extent.x > nTotalHorizExtent ? TRUE : FALSE;
-		totalRects = ftElementsCount;
-
-		if (totalRects < 2)
-		{
-			// the easiest case, the whole free translation section is contained within a
-			// single strip; get the PageOffsets struct for this single-rect free translation
-			pElement = (FreeTrElement*)arrRects.Item(0);
-
-			// get the index for the current strip
-			curStripIndex = pElement->nStripIndex;
-
-			// print the text, if it is not out of bounds
-			if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
-			{
-				bool bReducedSizeWillFit = FALSE; // assume it won't be enough to make it all fit
-				bool bUsedReducedSize = FALSE; // assume we didn't decrease the font size
-				int newPointSize = 10; // we'll just try 10 point size,
-									   // provided the font is not already smaller
-				wxFont curFont = pDC->GetFont();
-				int oldPointSize = curFont.GetPointSize();
-				if (bTextIsTooLong)
-				{
-					// first try a font size reduction, it it fits it all, don't truncate
-					if (newPointSize < oldPointSize)
-					{
-						bUsedReducedSize = TRUE;
-						curFont.SetPointSize(newPointSize); // it's now 10 points
-
-						// re-measure the horiz extent
-						wxSize extent2;
-						pDC->GetTextExtent(ftStr, &extent2.x, &extent2.y);
-						bReducedSizeWillFit = extent2.x <= nTotalHorizExtent ? TRUE : FALSE;
-					}
-					if ((bUsedReducedSize && !bReducedSizeWillFit) || !bUsedReducedSize)
-					{
-						ftStr = TruncateToFit(pDC,ftStr,ellipsis,nTotalHorizExtent);
-					}
-				}
-
-				// clear only the subRect; this effectively allows for the erasing from the display
-				// of any deleted text from the free translation string; even though this clearing
-				// of the subRect is only technically needed before deletion edits, it doesn't hurt
-				// to do it before every edit/keystroke. It works for either RTL or LTR text
-				// displays.
-				pDC->DestroyClippingRegion();
-				pDC->SetClippingRegion(pElement->subRect);
-				pDC->Clear();
-				pDC->DestroyClippingRegion();
-				if (bRTLLayout)
-				{
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
-	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing RTL text **  %s"), ftStr.c_str());
-	}
-#endif
-					m_pView->DrawTextRTL(pDC, ftStr, pElement->subRect);
-				}
-				else
-				{
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
-	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing LTR text **  %s"), ftStr.c_str());
-	}
-#endif
-					pDC->DrawText(ftStr, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
-				}
-
-				// restore font size, if we reduced it above
-				if (bUsedReducedSize)
-				{
-					curFont.SetPointSize(oldPointSize); // it's now the original pointsize
-				}
-			}
-		}
-		else
-		{
-			// the free translation is spread over at least 2 strips - so we've more work to do
-			// - call SegmentFreeTranslation() to get a string array returned which has the
-			// passed in frStr cut up into appropriately sized segments (whole words in each
-			// segment), truncating the last segment if not all the ftStr data can be fitted
-			// into the available drawing rectangles
-
-			// Note: in the block above, if the text didn't fit, we try to make it fit by
-			// doing it at 10 pointsize (unless the pointsize is already 10 or lower) -
-			// smaller than that may strain reader's eyes. Doing this squeezes some more
-			// text into the single rectangle for drawing. In the present block, however,
-			// the rectangles are spread over at least 2 strips, and because 80% the
-			// right-hand slop is included in the non-last of multiple strips rectangles,
-			// this gives some extra drawing space anyhow - so I've not bothered to alter
-			// SegmentFreeTranslation to cater for a font pointsize reduction in the
-			// unlikely event that it might be needed.
-			SegmentFreeTranslation(pDC, ftStr, ellipsis, extent.GetWidth(), nTotalHorizExtent,
-									&arrRects, &subStrings, totalRects);
-
-			// draw the substrings in their respective rectangles
-			int index;
-			for (index = 0; index < totalRects; index++)
-			{
-				// get the next element
-				pElement = (FreeTrElement*)arrRects.Item(index);
-
-				// get the substring to be drawn in its rectangle, and its strip index
-				wxString s = subStrings.Item(index);
-				curStripIndex = pElement->nStripIndex;
-
-				// print this substring, if it is not out of bounds
-				if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
-				{
-					// clear only the subRect; this effectively allows for the erasing from the
-					// display of any deleted text from the free translation string; even though
-					// this clearing of the subRect is only technically needed before deletion
-					// edits, it doesn't hurt to do it before every edit/keystroke. It works for
-					// either RTL or LTR text displays.
-					pDC->DestroyClippingRegion();
-					pDC->SetClippingRegion(pElement->subRect);
-					pDC->Clear();
-					pDC->DestroyClippingRegion();
-					if (bRTLLayout)
-					{
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
-	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing RTL text **  %s        > 1 strip"), ftStr.c_str());
-	}
-#endif
-						m_pView->DrawTextRTL(pDC, s, pElement->subRect);
-					}
-					else
-					{
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
-	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing LTR text **  %s        > 1 strip"), ftStr.c_str());
-	}
-#endif
-						pDC->DrawText(s, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
-					}
-					// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations
-					// because it triggers a paint event which results in a Draw() which results
-					// in DrawFreeTranslations() being reentered... hence a run-on condition
-					// endlessly calling the View's OnDraw.
-				}
-			} // end of loop: for (index = 0; index < totalRects; index++)
-
-			subStrings.Clear(); // clear the array ready for the next iteration
-		} // end of else block for test: if (nTotalRects < 2)
-
 }
+#endif
 
-
-
+#if defined(__WXGTK__)
 // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
 /// \param pDC                  ->  a device context, for drawing and measuring text extents
 /// \param pLayout              ->  ptr to the one and only CLayout instance (on heap, persists
 ///                                 until the app is shut down)
-/// \param arrRects             ->  the ordered array of FreeTrElement structs (they are stored
-///                                 on the heap) which define the drawing rectangle(s), extent(s)
-///                                 and under which strip a given rectangle is located
+/// \param arrRectsForOneFreeTrans -> ref to the one or more FreeTrElement struct ptrs defined
+///                                 at the preceding BuildFreeTransDisplayRectsForOneFreeTrans()
+///                                 call -- these will be transferred to one or more arrays
+///                                 stored by arrFTElementsArrays
 /// \param ftStr                ->  the free translation string which is to be displayed
 /// \param nStripsOffset        ->  index, from the CLayout of all strips, of the first strip
 ///                                 in the current page being printed. (Use this to convert a
 ///                                 document strip index into an item index for the strip's
 ///                                 FreeTrElement stucts and substrings stored in the arrays.)
-/// \param arrFTElementsArrays  ->  ref to an array of arrays - each array it stores is an
+/// \param arrFTElementsArrays  <->  ref to an array of arrays - each array it stores is an
 ///                                 aggragate of FreeTrElement struct pointers pertaining to
 ///                                 the draw rectangles which lie below a single strip which
 ///                                 belongs to the page currently to be printed
+/// \param arrFTSubstringsArrays <-> ref to an array of arrays of wxString (free transln parts)
 /// \remarks
-/// Aggregates the FreeTrElement structs and their associated free trans strings or substrings,
-/// storing each such aggregation on a "per strip" basis - so that later on, each strip's free
+/// Takes the single free translation just handled in the caller, and however many rects it
+/// generated, and aggregates the FreeTrElement structs and their associated free trans strings
+/// or substrings, into whatever arrays are appropriate for the strip the rects pertain to.
+/// Hence, storing each such aggregation on a "per strip" basis - so that later on, each's free
 /// translations can be just printed as a single row under the appropriate strip. This function
-/// deals with just one free translation on a single pile, but the aggregation is accomplished
-/// by calling it as many times as there are anchor piles found within a single strip. Because
-/// a free translation may be long and so extend to a later strip, the function will also create
-/// a new aggregation (an array) and store it, populating the first part with the draw rectangle
-/// or rectangles which belong to the next strip -- and when we get to deal with the anchor piles
-/// in the next strip, that material would then be added to from the further free translations,
-/// if any, that occur on that next strip. Also, because we may be printing a page range, we
-/// cannot assume that the first pile on a page will be an anchor pile, and when we detect that
-/// the first pile is within a free translation but the anchor pile for it is not on the page,
-/// we search back and get the anchor pile, work out the drawing rectangles and free translation
-/// substrings, but only store those which belong to strips on the current page.
+/// deals with just one free translation from a single pile, but the aggregation is accomplished
+/// by calling it as many times as there are anchor piles found within the page. Because
+/// a free translation may be long and so extend to a later strip, the last free translation
+/// on the page may end on the next page to be printed - when this is the case, we throw away
+/// the FreeTrElement(s) and free translation subpart(s) which belong to the next page, because
+/// that info will be recreated anew when the next page is processed, we keep just the stuff
+/// which belongs on the current page. Likewise, if the first free translation on the current
+/// page starts on the previous page, we retain on the material pertaining to the current page.
 /// Note: this function is not used for Print Previewing, but only when printing to 'real' pages
 /// or to a PDF file. It's passed in DC is a wxPostScriptDC, and it's errors in the latter which
 /// necessitated having to develop this and some other functions in the first place!
+/// Note 2: FreeTrElement structs and their free translation substrings which lie on the
+/// previous page, or the start of the following page, are not accepted by the code below, and
+/// we must delete both the FreeTrElement and its associated substring here. The others, which
+/// are accepted for printing, are managed by arrFTElementsArrays and arrFTSubstringsArrays,
+/// and so their deletion is delayed until after the strips and free translations are drawn,
+/// and then they are deleted at the end of OnPrintPage().
 //////////////////////////////////////////////////////////////////////////////////////////
-void CFreeTrans::AggregateFreeTranslations_PerStrip(wxDC* pDC, CLayout* pLayout, wxArrayPtrVoid& arrRects,
-                            wxString& ftStr, int nStripsOffset, wxArrayPtrVoid& arrFTElementsArrays,
-                            wxArrayString& arrFTSubstringsArrays)
+void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
+                            wxArrayPtrVoid& arrRectsForOneFreeTrans, wxString& ftStr, int nStripsOffset,
+                            wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays)
 {
-
-// **** TODO ****** modify the code to do the work, currently it's a clone of DrawOneFreeTranslationForPage()
-
-	int nTotalHorizExtent;
-
-	// first strip to be printed for this page
+	// index of first strip to be printed for this page -- anything pertaining to a strip earlier
+	// than this is to be thrown away (the previous page has dealt with that stuff already)
 	int nIndexOfFirstStrip = pLayout->m_pOffsets->nFirstStrip;
-	// last strip to be printed for this page
+	// index of last strip to be printed for this page -- anything pertaining to a strip later
+	// than this is to be thrown away (the next page will deal with that stuff)
 	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip;
+	// create an item index for the array in arrFTElementsArrays and arrFTSubstringsArrays which
+	// pertain to this current page being processed
+	int curItemIndex;
+	int curElementsCount = 0;   // count of arrays in arrFTElementsArrays - this is updated each time
+                                // a new array is added to arrFTElementsArrays (and a parallel one
+                                // is added to arrFTSubstringsArrays when that happens too)
+	int curSubstringsCount = 0; // count of arrays in arrFTSubstringsArrays -- also updated, as above
+	bool bFTElementsExist = FALSE;
+	bool bFTSubstringsExist = FALSE;
+	if (!arrFTElementsArrays.IsEmpty())
+	{
+	    bFTElementsExist = TRUE;
+        curElementsCount = arrFTElementsArrays.GetCount();
+	}
+	if (!arrFTSubstringsArrays.IsEmpty())
+	{
+	    bFTSubstringsExist = TRUE;
+        curSubstringsCount = arrFTSubstringsArrays.GetCount();
+	}
+	wxASSERT(curElementsCount == curSubstringsCount); // they are in parallel, so counts must not differ
 
+     // if there is no data to handle, just return without doing anything
+    if (arrRectsForOneFreeTrans.IsEmpty())
+        return;
+    int rectsIndex; // indexing the FreeTrElement struct ptrs stored in arrRectsForOneFreeTrans
+    int rectsCount; // the count of how many of them are in there
+    rectsCount = arrRectsForOneFreeTrans.GetCount(); // these are the incoming ones we apportion to
+                                                     // strip-associated arrays of FreeTrElement structs
+	bool bTextIsTooLong = FALSE;
+	int length = 0;
+	int curStripIndex; // this is for the strip index in the document layout (subtract
+                       // nStripsOffset to get a curItemIndex value for accessing what's in
+                       // the top-level array pair)
+    // the rectangles already calculated in the caller can't be changed - their extents are
+    // defined by the widths and locations of the piles as laid out for the page; but the
+    // text of the free translation may, or may not, be able to fit in the total available
+    // horizontal space which the one or more rectangles provide. If it can't fit, it will
+    // be truncated and an ellipsis added at the end, and we display that much - though we
+    // do try a text size reduction first. If the free translation extends to a second strip,
+    // then ftStr will need to be cut up into substrings as well. Those tasks are done below.
+	int nTotalHorizExtent;
 	FreeTrElement* pElement;
 	wxSize extent;
 	wxString ellipsis = _T("...");
@@ -2064,7 +2006,6 @@ void CFreeTrans::AggregateFreeTranslations_PerStrip(wxDC* pDC, CLayout* pLayout,
 	ellipsis = _T('\u2026'); // use a Unicode ellipsis, exclusively, in Unicode app
 #endif
 	wxArrayString subStrings;
-	wxRect rectBounding;
 
 	bool bRTLLayout = FALSE;
 #ifdef _RTL_FLAGS
@@ -2080,37 +2021,25 @@ void CFreeTrans::AggregateFreeTranslations_PerStrip(wxDC* pDC, CLayout* pLayout,
 	}
 #endif
 
-	// set up a new colour - make it a purple,
-	// hard coded in app as m_freetransTextColor
+    // to measure text accurately, we have to set up the appropriate font - which
+    // defaults, for free translations, to the target text's current face and size
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
 	pSaveFont = pDC->GetFont();
 	pDC->SetFont(*pFreeTransFont);
-	wxColour color(m_pApp->m_freeTransTextColor);
-	if (!color.IsOk())
-	{
-		::wxBell();
-		wxASSERT(FALSE);
-	}
-	pDC->SetTextForeground(color);
+	// we don't bother to set font colour here, we do that in the drawing function
+	// that is called later
 
-	bool bTextIsTooLong = FALSE;
-	int totalRects = 0;
-	int length = 0;
-	int curStripIndex;
-
-    // calculate the total horizontal extent of the display rectangles
-    int i;
-    int ftElementsCount = arrRects.GetCount();
+    // calculate the total horizontal extent of the display rectangles - this just
+    // requires that we add their pixel extents
     nTotalHorizExtent = 0;
-    for (i = 0; i < ftElementsCount; i++)
+    for (rectsIndex = 0; rectsIndex < rectsCount; rectsIndex++)
     {
-        nTotalHorizExtent += ((FreeTrElement*)arrRects.Item(i))->horizExtent;
+        nTotalHorizExtent += ((FreeTrElement*)arrRectsForOneFreeTrans.Item(rectsIndex))->horizExtent;
     }
-
     length = 0;
     length = ftStr.Len();
-
+    // the function should never be entered if the free translation is empty, but to be safe, we'll test
     if (length == 0)
     {
         // there is no text to be printed so return
@@ -2127,161 +2056,315 @@ void CFreeTrans::AggregateFreeTranslations_PerStrip(wxDC* pDC, CLayout* pLayout,
     }
 #if defined(_V6PRINT) && defined(__WXDEBUG__)
 	{
-		wxLogDebug(_T("\nDrawOneFreeTransOnPage(), ftElementsCount %d , nTotalHorizExtent %d ,  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
-			ftElementsCount, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip);
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() -- BEFORE segmenting, ftElementsCount %d , nTotalHorizExtent %d ,  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
+			rectsCount, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip);
 	}
 #endif
 
-		// get text's extent (a wxSize object) and compare to the total horizontal extent of
-		// the rectangles. also determine the number of rectangles we are to write this section
-		// into, and initialize other needed data
-		pDC->GetTextExtent(ftStr, &extent.x, &extent.y);
-		bTextIsTooLong = extent.x > nTotalHorizExtent ? TRUE : FALSE;
-		totalRects = ftElementsCount;
+    // get text's extent (a wxSize object) and compare to the total horizontal extent of
+    // the rectangles.
+    pDC->GetTextExtent(ftStr, &extent.x, &extent.y);
+    bTextIsTooLong = extent.x > nTotalHorizExtent ? TRUE : FALSE;
+    //totalRects = ftElementsCount;
 
-		if (totalRects < 2)
-		{
-			// the easiest case, the whole free translation section is contained within a
-			// single strip; get the PageOffsets struct for this single-rect free translation
-			pElement = (FreeTrElement*)arrRects.Item(0);
+    if (rectsCount < 2)
+    {
+        // the easiest case, the whole free translation section is contained within a
+        // single strip; get the PageOffsets struct for this single-rect free translation
+        pElement = (FreeTrElement*)arrRectsForOneFreeTrans.Item(0);
 
-			// get the index for the current strip
-			curStripIndex = pElement->nStripIndex;
+        // get the index for the current strip
+        curStripIndex = pElement->nStripIndex;
+        // get the appropriate array index
+        curItemIndex = curStripIndex - nStripsOffset;
 
-			// print the text, if it is not out of bounds
-			if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
-			{
-				bool bReducedSizeWillFit = FALSE; // assume it won't be enough to make it all fit
-				bool bUsedReducedSize = FALSE; // assume we didn't decrease the font size
-				int newPointSize = 10; // we'll just try 10 point size,
-									   // provided the font is not already smaller
-				wxFont curFont = pDC->GetFont();
-				int oldPointSize = curFont.GetPointSize();
-				if (bTextIsTooLong)
-				{
-					// first try a font size reduction, it it fits it all, don't truncate
-					if (newPointSize < oldPointSize)
-					{
-						bUsedReducedSize = TRUE;
-						curFont.SetPointSize(newPointSize); // it's now 10 points
+        if (bTextIsTooLong)
+        {
+            // shorten, & put ellipsis at end
+            ftStr = TruncateToFit(pDC,ftStr,ellipsis,nTotalHorizExtent);
+        }
 
-						// re-measure the horiz extent
-						wxSize extent2;
-						pDC->GetTextExtent(ftStr, &extent2.x, &extent2.y);
-						bReducedSizeWillFit = extent2.x <= nTotalHorizExtent ? TRUE : FALSE;
-					}
-					if ((bUsedReducedSize && !bReducedSizeWillFit) || !bUsedReducedSize)
-					{
-						ftStr = TruncateToFit(pDC,ftStr,ellipsis,nTotalHorizExtent);
-					}
-				}
-
-				// clear only the subRect; this effectively allows for the erasing from the display
-				// of any deleted text from the free translation string; even though this clearing
-				// of the subRect is only technically needed before deletion edits, it doesn't hurt
-				// to do it before every edit/keystroke. It works for either RTL or LTR text
-				// displays.
-				pDC->DestroyClippingRegion();
-				pDC->SetClippingRegion(pElement->subRect);
-				pDC->Clear();
-				pDC->DestroyClippingRegion();
-				if (bRTLLayout)
-				{
+        // work out if the draw rectangle lies on the current page, if it does, store
+        // the relevant information for later printing of this free translation
+        if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
+        {
+            // is there an array already for this material, or do we need to create one
+            if (bFTElementsExist)
+            {
+                // there may be one or more strips mid page which lack free translations, so
+                // for these empty arrays will be needed in order to keep the indexing matching
+                // with the strips - so check and add as many empty arrays as necessary
+                if (curItemIndex - curElementsCount > 0)
+                {
+                    // one or more ptrs to extra empty arrays need to be appended first, to
+                    // fill the gap and so keep the indices tracking with the strips
+                    int numEmptiesToAdd = curItemIndex - curElementsCount;
+                    int i;
+                    for (i = 0; i < numEmptiesToAdd; i++)
+                    {
+                        wxArrayPtrVoid* pEmptyArray = new wxArrayPtrVoid;
+                        arrFTElementsArrays.Add(pEmptyArray);
+                        curElementsCount = arrFTElementsArrays.GetCount();
+                        wxArrayString* pEmptyArray2 = new wxArrayString;
+                        arrFTSubstringsArrays.Add(pEmptyArray2);
+                        bFTElementsExist = TRUE;
+                   }
+                }
+                // now deal with the current free trans and its FreeTrElement struct
+                if (curItemIndex + 1 > curElementsCount)
+                {
+                    // the current strip for this current FreeTrElement is a strip which does
+                    // not yet have an associated array stored in the arrFTElementsArrays array,
+                    // so create one, add it, and store the element in it, and the associated
+                    // free translation in a new wxArrayString* array and add that to the
+                    // arrFTSubstringsArrays array
+                    wxArrayPtrVoid* pElemArr = new wxArrayPtrVoid;
+                    pElemArr->Add(pElement);
+                    arrFTElementsArrays.Add(pElemArr);
+                    curElementsCount = arrFTElementsArrays.GetCount();
+                    wxArrayString* pSubstrArr = new wxArrayString;
+                    pSubstrArr->Add(ftStr);
+                    arrFTSubstringsArrays.Add(pSubstrArr);
+                    bFTElementsExist = TRUE;
 #if defined(_V6PRINT) && defined(__WXDEBUG__)
 	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing RTL text **  %s"), ftStr.c_str());
+		wxLogDebug(_T("AggregateFreeTranslationsByStrip() SINGLE rect ACCEPTED, strip %d , string = [ %s ] ADDED ARRAY, (ft's exist), curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
 	}
 #endif
-					m_pView->DrawTextRTL(pDC, ftStr, pElement->subRect);
-				}
-				else
-				{
+                }
+                else
+                {
+                    // the FreeTrElement (and it's associated free translation) are associated
+                    // with a strip which already has array's stored within arrFTElementsArrays
+                    // and arrFTSubstringsArrays - so add the appropriate data to the last arrays
+                    // in each of these (it can't belong to anything earlier than the last stored
+                    // arrays, because we are processing along the strips and down to new strips)
+                    wxArrayPtrVoid* pElemArr = (wxArrayPtrVoid*)arrFTElementsArrays.Item(curItemIndex);
+                    pElemArr->Add(pElement);
+                    // and store, in parallel, the free translation in the last array in
+                    // arrFTSubstringsArrays
+                    wxArrayString* pSubstrArr = (wxArrayString*)arrFTSubstringsArrays.Item(curItemIndex);
+                    pSubstrArr->Add(ftStr);
 #if defined(_V6PRINT) && defined(__WXDEBUG__)
 	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing LTR text **  %s"), ftStr.c_str());
+		wxLogDebug(_T("AggregateFreeTranslationsByStrip() SINGLE rect ACCEPTED, strip %d , string = [ %s ] ARRAY EXISTS, (ft's exist), curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, ftStr.c_str(),curElementsCount, curItemIndex);
 	}
 #endif
-					pDC->DrawText(ftStr, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
-				}
-
-				// restore font size, if we reduced it above
-				if (bUsedReducedSize)
-				{
-					curFont.SetPointSize(oldPointSize); // it's now the original pointsize
-				}
-			}
-		}
-		else
-		{
-			// the free translation is spread over at least 2 strips - so we've more work to do
-			// - call SegmentFreeTranslation() to get a string array returned which has the
-			// passed in frStr cut up into appropriately sized segments (whole words in each
-			// segment), truncating the last segment if not all the ftStr data can be fitted
-			// into the available drawing rectangles
-
-			// Note: in the block above, if the text didn't fit, we try to make it fit by
-			// doing it at 10 pointsize (unless the pointsize is already 10 or lower) -
-			// smaller than that may strain reader's eyes. Doing this squeezes some more
-			// text into the single rectangle for drawing. In the present block, however,
-			// the rectangles are spread over at least 2 strips, and because 80% the
-			// right-hand slop is included in the non-last of multiple strips rectangles,
-			// this gives some extra drawing space anyhow - so I've not bothered to alter
-			// SegmentFreeTranslation to cater for a font pointsize reduction in the
-			// unlikely event that it might be needed.
-			SegmentFreeTranslation(pDC, ftStr, ellipsis, extent.GetWidth(), nTotalHorizExtent,
-									&arrRects, &subStrings, totalRects);
-
-			// draw the substrings in their respective rectangles
-			int index;
-			for (index = 0; index < totalRects; index++)
-			{
-				// get the next element
-				pElement = (FreeTrElement*)arrRects.Item(index);
-
-				// get the substring to be drawn in its rectangle, and its strip index
-				wxString s = subStrings.Item(index);
-				curStripIndex = pElement->nStripIndex;
-
-				// print this substring, if it is not out of bounds
-				if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
-				{
-					// clear only the subRect; this effectively allows for the erasing from the
-					// display of any deleted text from the free translation string; even though
-					// this clearing of the subRect is only technically needed before deletion
-					// edits, it doesn't hurt to do it before every edit/keystroke. It works for
-					// either RTL or LTR text displays.
-					pDC->DestroyClippingRegion();
-					pDC->SetClippingRegion(pElement->subRect);
-					pDC->Clear();
-					pDC->DestroyClippingRegion();
-					if (bRTLLayout)
-					{
+                }
+            }
+            else
+            {
+                // no arrays stored yet in arrFTElementsArrays array, so create the requisite
+                // number of empty ones (free translations may not start until a later strip
+                // than the first on the page), and then a further one which is to receive
+                // this strip's free trans FreeTrElement struct
+                int numEmptiesNeeded = curItemIndex;
+                int i;
+                // arrFTElementsArrays must contain an array for every strip, so if the early
+                // strips on the page lack free translations, their arrays will be empty; so
+                // for these nothing will get printed later when the printing is done
+                for (i = 0; i < numEmptiesNeeded; i++)
+                {
+                    wxArrayPtrVoid* pEmptyArray = new wxArrayPtrVoid;
+                    arrFTElementsArrays.Add(pEmptyArray);
+                    curElementsCount = arrFTElementsArrays.GetCount();
+                    wxArrayString* pEmptyArray2 = new wxArrayString;
+                    arrFTSubstringsArrays.Add(pEmptyArray2);
+                    bFTElementsExist = TRUE;
+                }
+                // the FreeTrElement struct belongs in an array, and the free translation string
+                // belongs in a parallel one in arrFTSubstringsArrays - do so now
+                wxArrayPtrVoid* pElemArr = new wxArrayPtrVoid;
+                pElemArr->Add(pElement);
+                arrFTElementsArrays.Add(pElemArr);
+                curElementsCount = arrFTElementsArrays.GetCount();
+                wxArrayString* pStrArr = new wxArrayString;
+                pStrArr->Add(ftStr);
+                arrFTSubstringsArrays.Add(pStrArr);
+                bFTElementsExist = TRUE;
 #if defined(_V6PRINT) && defined(__WXDEBUG__)
 	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing RTL text **  %s        > 1 strip"), ftStr.c_str());
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() SINGLE rect ACCEPTED, strip %d , string = [ %s ]  ADDING ARRAY in loop, (no ft's yet), curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
 	}
 #endif
-						m_pView->DrawTextRTL(pDC, s, pElement->subRect);
-					}
-					else
-					{
+            }
+        }
+        else
+        {
+            // it's rejected, so must be deleted now, because otherwise we'll get a memory leak,
+            // because the cleanup code in OnPrintPage() only deletes what is retained within
+            // arrFTElementsArrays and arrFTSubstringsArrays
 #if defined(_V6PRINT) && defined(__WXDEBUG__)
 	{
-		wxLogDebug(_T("DrawOneFreeTransOnPage(), ** drawing LTR text **  %s        > 1 strip"), ftStr.c_str());
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() SINGLE rect REJECTED, strip %d , string = [ %s ]  NOT IN PAGE  curElementsCount %d curItemIndex %d"),
+                        pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
 	}
 #endif
-						pDC->DrawText(s, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
-					}
-					// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations
-					// because it triggers a paint event which results in a Draw() which results
-					// in DrawFreeTranslations() being reentered... hence a run-on condition
-					// endlessly calling the View's OnDraw.
-				}
-			} // end of loop: for (index = 0; index < totalRects; index++)
+            delete pElement;
+            // ftStr was not created on the heap, so it will be automatically destroyed
+        }
+    }
+    else
+    {
+        // the free translation is spread over at least 2 strips - so we've more work to do
+        // - call SegmentFreeTranslation() to get a string array returned which has the
+        // passed in frStr cut up into appropriately sized segments (whole words in each
+        // segment), truncating the last segment if not all the ftStr data can be fitted
+        // into the available drawing rectangles
 
-			subStrings.Clear(); // clear the array ready for the next iteration
-		} // end of else block for test: if (nTotalRects < 2)
+        // Note: in the block above, if the text didn't fit, we try to make it fit by
+        // doing it at 10 pointsize (unless the pointsize is already 10 or lower) -
+        // smaller than that may strain reader's eyes. Doing this squeezes some more
+        // text into the single rectangle for drawing. In the present block, however,
+        // the rectangles are spread over at least 2 strips, and because 80% the
+        // right-hand slop is included in the non-last of multiple strips rectangles,
+        // this gives some extra drawing space anyhow - so I've not bothered to alter
+        // SegmentFreeTranslation to cater for a font pointsize reduction in the
+        // unlikely event that it might be needed.
+        SegmentFreeTranslation(pDC, ftStr, ellipsis, extent.GetWidth(), nTotalHorizExtent,
+                                &arrRectsForOneFreeTrans, &subStrings, rectsCount);
 
+        // create the substrings matched with their respective rectangles & FreeTrElements
+        // struct instances
+        int index;
+        for (index = 0; index < rectsCount; index++)
+        {
+            // get the next element
+            pElement = (FreeTrElement*)arrRectsForOneFreeTrans.Item(index);
+
+            // get the substring to be drawn in its rectangle, and its strip index
+            wxString s = subStrings.Item(index);
+            curStripIndex = pElement->nStripIndex;
+            // get the appropriate array index
+            curItemIndex = curStripIndex - nStripsOffset;
+
+            if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
+            {
+                // is there an array already for this material, or do we need to create one
+                if (bFTElementsExist)
+                {
+                    // there may be one or more strips mid page which lack free translations, so
+                    // for these empty arrays will be needed in order to keep the indexing matching
+                    // with the strips - so check and add as many empty arrays as necessary
+                    if (curItemIndex - curElementsCount > 0)
+                    {
+                        // one or more ptrs to extra empty arrays need to be appended first, to
+                        // fill the gap and so keep the indices tracking with the strips
+                        int numEmptiesToAdd = curItemIndex - curElementsCount;
+                        int i;
+                        for (i = 0; i < numEmptiesToAdd; i++)
+                        {
+                            wxArrayPtrVoid* pEmptyArray = new wxArrayPtrVoid;
+                            arrFTElementsArrays.Add(pEmptyArray);
+                            curElementsCount = arrFTElementsArrays.GetCount();
+                            wxArrayString* pEmptyArray2 = new wxArrayString;
+                            arrFTSubstringsArrays.Add(pEmptyArray2);
+                            bFTElementsExist = TRUE;
+                       }
+                    }
+                    // now deal with the current free trans and its FreeTrElement struct
+                    if (curItemIndex + 1 > curElementsCount)
+                    {
+                        // the current strip for this current FreeTrElement is a strip which does
+                        // not yet have an associated array stored in the arrFTElementsArrays array,
+                        // so create one, add it, and store the element in it, and the associated
+                        // free translation in a new wxArrayString* array and add that to the
+                        // arrFTSubstringsArrays array
+                        wxArrayPtrVoid* pElemArr = new wxArrayPtrVoid;
+                        pElemArr->Add(pElement);
+                        arrFTElementsArrays.Add(pElemArr);
+                        curElementsCount = arrFTElementsArrays.GetCount();
+                        wxArrayString* pSubstrArr = new wxArrayString;
+                        pSubstrArr->Add(s);
+                        arrFTSubstringsArrays.Add(pSubstrArr);
+                        bFTElementsExist = TRUE;
+#if defined(_V6PRINT) && defined(__WXDEBUG__)
+	{
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect ACCEPTED, strip %d , substring = [ %s ] ADDING ARRAY, (ft's exist) curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
+	}
+#endif
+                    }
+                    else
+                    {
+                        // the FreeTrElement (and it's associated free translation) are associated
+                        // with a strip which already has array's stored within arrFTElementsArrays
+                        // and arrFTSubstringsArrays - so add the appropriate data to the last arrays
+                        // in each of these (it can't belong to anything earlier than the last stored
+                        // arrays, because we are processing along the strips and down to new strips)
+                        wxArrayPtrVoid* pElemArr = (wxArrayPtrVoid*)arrFTElementsArrays.Item(curItemIndex);
+                        pElemArr->Add(pElement);
+                        // and store, in parallel, the free translation in the last array in
+                        // arrFTSubstringsArrays
+                        wxArrayString* pSubstrArr = (wxArrayString*)arrFTSubstringsArrays.Item(curItemIndex);
+                        pSubstrArr->Add(s);
+#if defined(_V6PRINT) && defined(__WXDEBUG__)
+	{
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect ACCEPTED, strip %d , substring = [ %s ] ARRAY EXISTS, (ft's exist) curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
+	}
+#endif
+                    }
+                }
+                else
+                {
+                    // no arrays stored yet in arrFTElementsArrays array, so create the requisite
+                    // number of empty ones (free translations may not start until a later strip
+                    // than the first on the page), and then a further one which is to receive
+                    // this strip's free trans FreeTrElement struct
+                    int numEmptiesNeeded = curItemIndex;
+                    int i;
+                    // arrFTElementsArrays must contain an array for every strip, so if the early
+                    // strips on the page lack free translations, their arrays will be empty; so
+                    // for these nothing will get printed later when the printing is done
+                    for (i = 0; i < numEmptiesNeeded; i++)
+                    {
+                        wxArrayPtrVoid* pEmptyArray = new wxArrayPtrVoid;
+                        arrFTElementsArrays.Add(pEmptyArray);
+                        curElementsCount = arrFTElementsArrays.GetCount();
+                        wxArrayString* pEmptyArray2 = new wxArrayString;
+                        arrFTSubstringsArrays.Add(pEmptyArray2);
+                        bFTElementsExist = TRUE;
+                    }
+                    // the FreeTrElement struct belongs in an array, and the free translation string
+                    // belongs in a parallel one in arrFTSubstringsArrays - do so now
+                    wxArrayPtrVoid* pElemArr = new wxArrayPtrVoid;
+                    pElemArr->Add(pElement);
+                    arrFTElementsArrays.Add(pElemArr);
+                    curElementsCount = arrFTElementsArrays.GetCount();
+                    wxArrayString* pStrArr = new wxArrayString;
+                    pStrArr->Add(s);
+                    arrFTSubstringsArrays.Add(pStrArr);
+                    bFTElementsExist = TRUE;
+#if defined(_V6PRINT) && defined(__WXDEBUG__)
+	{
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect ACCEPTED, strip %d , substring = [ %s ] ADDING ARRAY, (no ft's yet) curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
+	}
+#endif
+                }
+            }
+            else
+            {
+                // it's rejected, so must be deleted now, because otherwise we'll get a memory leak,
+                // because the cleanup code in OnPrintPage() only deletes what is retained within
+                // arrFTElementsArrays and arrFTSubstringsArrays
+#if defined(_V6PRINT) && defined(__WXDEBUG__)
+	{
+		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect REJECTED, strip %d , substring = [ %s ]  NOT IN PAGE curElementsCount %d  curItemIndex %d"),
+                        pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
+	}
+#endif
+                delete pElement;
+                // substring s was not created on the heap, so it will be automatically destroyed
+            }
+        } // end of loop: for (index = 0; index < rectsCount; index++)
+
+        subStrings.Clear(); // clear the array ready for the next iteration
+    } // end of else block for test: if (rectsCount < 2)
 }
 #endif
 
@@ -2462,15 +2545,17 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 					}
 				}
 
+                // BEW 26Nov11 removed, the Clear() in the Linux build clobbers the drawn material
 				// clear only the subRect; this effectively allows for the erasing from the display
 				// of any deleted text from the free translation string; even though this clearing
 				// of the subRect is only technically needed before deletion edits, it doesn't hurt
 				// to do it before every edit/keystroke. It works for either RTL or LTR text
 				// displays.
-				pDC->DestroyClippingRegion();
-				pDC->SetClippingRegion(pElement->subRect);
-				pDC->Clear();
-				pDC->DestroyClippingRegion();
+				//pDC->DestroyClippingRegion();
+				//pDC->SetClippingRegion(pElement->subRect);
+				//pDC->Clear();
+				//pDC->DestroyClippingRegion();
+
 				if (bRTLLayout)
 				{
 					m_pView->DrawTextRTL(pDC, ftStr, pElement->subRect);
@@ -2529,15 +2614,12 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 				// print this substring, if it is not out of bounds
 				if (curStripIndex >= nIndexOfFirstStrip && curStripIndex <= nIndexOfLastStrip)
 				{
-					// clear only the subRect; this effectively allows for the erasing from the
-					// display of any deleted text from the free translation string; even though
-					// this clearing of the subRect is only technically needed before deletion
-					// edits, it doesn't hurt to do it before every edit/keystroke. It works for
-					// either RTL or LTR text displays.
-					pDC->DestroyClippingRegion();
-					pDC->SetClippingRegion(pElement->subRect);
-					pDC->Clear();
-					pDC->DestroyClippingRegion();
+				    // BEW 26Nov11, removed, in the Linux build, this destroys already
+				    // drawn material
+					//pDC->DestroyClippingRegion();
+					//pDC->SetClippingRegion(pElement->subRect);
+					//pDC->Clear();
+					//pDC->DestroyClippingRegion();
 					if (bRTLLayout)
 					{
 						m_pView->DrawTextRTL(pDC, s, pElement->subRect);
@@ -2564,72 +2646,65 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 /// \return                 nothing
 /// \param pDC          ->  a device context, for drawing and measuring text extents
 /// \param pLayout      ->  the app's CLayout instance, which contains the m_pileList
-/// \param pCurPile     ->  the current CPile instance being considered (it may not actually
-///                         be an anchor pile for a retranslation)
+/// \param pCurPile     ->  the current CPile instance being considered (it must be
+///                         an anchor pile for a non-empty free translation)
+/// \param arrFTElementsArrays  ->  array of arrays for FreeTrElement struct ptrs
+/// \param arrFTSubstringsArrays -> array of arrays of free translation strings or
+///                                 string parts
+/// \param nStripsOffset -> strip number of the first strip for the current page; use this
+///                         to convert a strip index into an array index for either of the
+///                         two passed in arrays above
+/// \param arrPileSet    -> array of CPile ptrs which comprise the (one) free trans section
+/// \param arrRectsForOneFreeTrans -> array of FreeTrElement structs for drawing the free
+///                         translation; typically there is only one, but if the free
+///                         translation extends to the following strip/strips, then there
+///                         would be more than one
 /// \remarks
-
-///  TODO  fix comments
-
-/// DrawFreeTranslationsForPrinting() works for a __GTK__ build only for Print Preview, it's
-/// use for drawing to a real page (which on nonMac and nonWindows OSes uses a postScriptDC -
-/// and the latter misbehaves - it draws nothing). So the workaround is to embed drawing of
-/// a single free translation in the code for drawing a pile - in fact, the anchor pile.
+/// AggregateOneFreeTranslationForPrinting() works for a __GTK__ build only for Print Preview,
+/// it's used for drawing to a real page (which on nonMac and nonWindows OSes uses a postScriptDC -
+/// and the latter misbehaves - it draws nothing).
 /// However, we test the incoming pile to verify it is an anchor, and if not, return without
 /// doing anything. If it is an anchor, we use code borrowed from DrawFreeTranslationsForPrinting()
-/// to set up the drawing rectangle (or rectangles), and string (or substrings) for drawing the
-/// single free translation stored on the anchor pile. This function is only called (it's in the
-/// function CPile::Draw() ) when ALL the following conditions are met:
+/// to set up the drawing rectangle (or rectangles), and string (or substrings) for later drawing.
+/// This function is only called when ALL the following conditions are met:
 /// a) it's a __WXGTK__ build
 /// b) Print Preview is not current (app's flag, m_bIsPrintPreviewing is FALSE)
 /// c) There are free translations in the document and the user wants them included in the
 /// printout (global boolean, gbCheckInclFreeTransText is TRUE -- it's TRUE by default if
 /// free translations are in the document, but the CPrintOptionsDlg allows the user to turn
-/// the flag off using a checkbox prior to printing)
+/// the flag off using a checkbox prior to printing - in which case this would not get called)
 /// d) the free translation is not empty
+/// Note: all the arrays passed in are created as local variables in OnPrintPage() and must
+/// persist until all printing of that one page is completed (except it doesn't matter whether
+/// or not they are deleted before the footer is printed) and then they must have their
+/// contents deleted there too.
 /// BEW created 21Nov11
 void CFreeTrans::AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
-                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayString& arrFTSubstringsArrays)
+            wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
+            int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans)
+{
+    CSourcePhrase* pSrcPhrase = pCurPile->GetSrcPhrase();
+    wxString ftStr = pSrcPhrase->GetFreeTrans();
+
+    // if there is no free translation on the passed in pile, return (we only have work to do when
+    // the passed in pile is an anchor pile - because the anchor pile stores the free trans string)
+    if (!pSrcPhrase->m_bStartFreeTrans || ftStr.IsEmpty())
     {
-        CSourcePhrase* pSrcPhrase = pCurPile->GetSrcPhrase();
-        wxString ftStr = pSrcPhrase->GetFreeTrans();
-
-        // if there is no free translation on the passed in pile, return (we only have work to do when
-        // the passed in pile is an anchor pile - because the anchor pile stores the free trans string)
-        if (ftStr.IsEmpty())
-        {
-            return;
-        }
-        // we've a free translation stored on pCurPile which we need to print, so setup for it
-         wxASSERT(pSrcPhrase->m_bHasFreeTrans && pSrcPhrase->m_bStartFreeTrans);
-        //PileList* pPileList = pLayout->GetPileList();
-        //PageOffsets*  pPageOffsetsStruct = pLayout->m_pOffsets;
-        //if (pPageOffsetsStruct == NULL)
-        //    return; // because there are no structs to be had yet
-        wxArrayPtrVoid arrPileSet; // store CPile ptr copies here, for the free trans section
-        GetFreeTransPileSetForOneFreeTrans(pLayout, arrPileSet, pCurPile);
-
-        // Build the array of arrays of rectangles, horiz extents & associated strip's indices
-        // (these 3 are members of a FreeTrElement struct) from the arrPileSet calculated above.
-        wxArrayPtrVoid arrRectsForOneFreeTrans;
-        BuildFreeTransDisplayRectsForOneFreeTrans(arrPileSet, arrRectsForOneFreeTrans);
-
-        // draw the free translation in its rectangle, or if split over several rectanges, draw
-        // the substrings in their respective draw rectanges - but any overlapping to the next
-        // page are not drawn
-        DrawOneFreeTransOnPage(pDC, pLayout, arrRectsForOneFreeTrans, ftStr); // <<------ CHANGE ***************************************************
-
-        // clean up; the only heap objects are the FreeTrElement structs we created on the heap -
-        // get rid of them now (in reverse order)
-        int count = arrRectsForOneFreeTrans.GetCount();
-        int index;
-        for (index = count - 1; index >= 0; index--)
-        {
-            FreeTrElement* pElement = (FreeTrElement*)arrRectsForOneFreeTrans.Item(index);
-            delete pElement;
-        }
-        arrRectsForOneFreeTrans.Clear();
-        arrPileSet.Clear();
+        return;
     }
+    // we've a non-empty free translation stored on pCurPile which we need to print,
+    // so setup for it
+    wxASSERT(pSrcPhrase->m_bHasFreeTrans && pSrcPhrase->m_bStartFreeTrans);
+    GetFreeTransPileSetForOneFreeTrans(pLayout, arrPileSet, pCurPile);
+
+    // Build the array of arrays of rectangles, horiz extents & associated strip's indices
+    // (these 3 are members of a FreeTrElement struct) from the arrPileSet calculated above.
+    BuildFreeTransDisplayRectsForOneFreeTrans(arrPileSet, arrRectsForOneFreeTrans);
+
+    // Aggregate the rects and free translation data into strip-associated arrays
+    AggregateFreeTranslationsByStrip(pDC, pLayout, arrRectsForOneFreeTrans, ftStr,
+                        nStripsOffset, arrFTElementsArrays, arrFTSubstringsArrays);
+}
 #endif
 
 
@@ -3131,15 +3206,14 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 
 		// next section:   Draw Single Strip Free Translation Text
 
-        // clear only the subRect; this effectively allows for the erasing from the display
-        // of any deleted text from the free translation string; even though this clearing
-        // of the subRect is only technically needed before deletion edits, it doesn't hurt
-        // to do it before every edit/keystroke. It works for either RTL or LTR text
-        // displays.
-		pDC->DestroyClippingRegion();
-		pDC->SetClippingRegion(pElement->subRect);
-		pDC->Clear();
-		pDC->DestroyClippingRegion();
+        // BEW 26Nov11, removed, in the Linux build these lines destroyed
+        // already drawn material leaving the page blanked
+		//pDC->DestroyClippingRegion();
+		//pDC->SetClippingRegion(pElement->subRect);
+		//pDC->Clear();
+		//pDC->DestroyClippingRegion();
+
+
 		if (bRTLLayout)
 		{
 			m_pView->DrawTextRTL(pDC,ftStr,pElement->subRect);
@@ -3170,15 +3244,15 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 			// draw this substring
 			// this section:  Draw Multiple Strip Free Translation Text
 
-            // clear only the subRect; this effectively allows for the erasing from the
+            // BEW 26Nov11 removed. this effectively allows for the erasing from the
             // display of any deleted text from the free translation string; even though
             // this clearing of the subRect is only technically needed before deletion
             // edits, it doesn't hurt to do it before every edit/keystroke. It works for
             // either RTL or LTR text displays.
-			pDC->DestroyClippingRegion();
-			pDC->SetClippingRegion(pElement->subRect);
-			pDC->Clear();
-			pDC->DestroyClippingRegion();
+			//pDC->DestroyClippingRegion();
+			//pDC->SetClippingRegion(pElement->subRect);
+			//pDC->Clear();
+			//pDC->DestroyClippingRegion();
 			if (bRTLLayout)
 			{
 				m_pView->DrawTextRTL(pDC,s,pElement->subRect);
@@ -3847,11 +3921,11 @@ b:	if (!bSectionIntersects)
         // of any deleted text from the free translation string; even though this clearing
         // of the subRect is only technically needed before deletion edits, it doesn't hurt
         // to do it before every edit/keystroke. It works for either RTL or LTR text
-        // displays.
-		pDC->DestroyClippingRegion();
-		pDC->SetClippingRegion(pElement->subRect);
-		pDC->Clear();
-		pDC->DestroyClippingRegion();
+        // displays.  BEW 26Nov11, removed next lines, they clobber the drawing in Linux build
+		//pDC->DestroyClippingRegion();
+		//pDC->SetClippingRegion(pElement->subRect);
+		//pDC->Clear();
+		//pDC->DestroyClippingRegion();
 		if (bRTLLayout)
 		{
 			m_pView->DrawTextRTL(pDC,ftStr,pElement->subRect);
@@ -3912,11 +3986,11 @@ b:	if (!bSectionIntersects)
             // display of any deleted text from the free translation string; even though
             // this clearing of the subRect is only technically needed before deletion
             // edits, it doesn't hurt to do it before every edit/keystroke. It works for
-            // either RTL or LTR text displays.
-			pDC->DestroyClippingRegion();
-			pDC->SetClippingRegion(pElement->subRect);
-			pDC->Clear();
-			pDC->DestroyClippingRegion();
+            // either RTL or LTR text displays. BEW 26Nov11 removed, these lines clobber drawing in Linux build
+			//pDC->DestroyClippingRegion();
+			//pDC->SetClippingRegion(pElement->subRect);
+			//pDC->Clear();
+			//pDC->DestroyClippingRegion();
 			if (bRTLLayout)
 			{
 				m_pView->DrawTextRTL(pDC,s,pElement->subRect);
@@ -4603,15 +4677,15 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 			// next section:   Draw Single Strip Free Translation Text
 
+            // BEW 26Nov11, removed, next 4 lines clobber drawing in the Linux build
 			// clear only the subRect; this effectively allows for the erasing from the display
 			// of any deleted text from the free translation string; even though this clearing
 			// of the subRect is only technically needed before deletion edits, it doesn't hurt
-			// to do it before every edit/keystroke. It works for either RTL or LTR text
-			// displays.
-			pDC->DestroyClippingRegion();
-			pDC->SetClippingRegion(pElement->subRect);
-			pDC->Clear();
-			pDC->DestroyClippingRegion();
+			// to do it before every edit/keystroke. It works for either RTL or LTR text displays.
+			//pDC->DestroyClippingRegion();
+			//pDC->SetClippingRegion(pElement->subRect);
+			//pDC->Clear();
+			//pDC->DestroyClippingRegion();
 			if (bRTLLayout)
 			{
 //#ifdef __WXDEBUG__
@@ -4671,15 +4745,16 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 				// draw this substring
 				// this section:  Draw Multiple Strip Free Translation Text
 
+                // BEW 26Nov11, removed next 4 lines, they clobber drawing in the Linux build
 				// clear only the subRect; this effectively allows for the erasing from the
 				// display of any deleted text from the free translation string; even though
 				// this clearing of the subRect is only technically needed before deletion
 				// edits, it doesn't hurt to do it before every edit/keystroke. It works for
 				// either RTL or LTR text displays.
-				pDC->DestroyClippingRegion();
-				pDC->SetClippingRegion(pElement->subRect);
-				pDC->Clear();
-				pDC->DestroyClippingRegion();
+				//pDC->DestroyClippingRegion();
+				//pDC->SetClippingRegion(pElement->subRect);
+				//pDC->Clear();
+				//pDC->DestroyClippingRegion();
 				if (bRTLLayout)
 				{
 //#ifdef __WXDEBUG__

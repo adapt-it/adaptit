@@ -238,8 +238,8 @@ bool AIPrintout::OnPrintPage(int page)
 	CAdapt_ItApp* pApp = &wxGetApp();
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-    wxLogDebug(_T("\n\nAIPrintout OnPrintPage() line 240 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+//    wxLogDebug(_T("\n\n************************\nAIPrintout OnPrintPage() line 240 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
 
@@ -263,6 +263,12 @@ bool AIPrintout::OnPrintPage(int page)
 
         wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
         int i;
+        wxString ftStr;
+
+        // pass these in to the aggregation function - they are used early in the composition of
+        // the free translation data for printing
+        wxArrayPtrVoid arrPileSet;
+        wxArrayPtrVoid arrRectsForOneFreeTrans;
 
         // the next two arrays store, respectively, arrays of FreeTrElement structs created on the
         // heap, and arrays of associated free translation strings (or substrings if a free translation
@@ -285,7 +291,7 @@ bool AIPrintout::OnPrintPage(int page)
         // strip on this page, starting from zero
         wxArrayPtrVoid arrFTElementsArrays; // stores arrays of FreeTRElement structs, each array and
             // its structs are created on the heap, and so must be deleted before OnPrintPage() returns
-        wxArrayString arrFTSubstringsArrays; // stores arrays of wxString, a free translation or a part
+        wxArrayPtrVoid arrFTSubstringsArrays; // stores arrays of wxString, a free translation or a part
             // of same, each array is created on the heap, & must be deleted before OnPrintPage() returns
 
 		// The code block below properly scales the text to appear the correct size within both
@@ -347,9 +353,10 @@ bool AIPrintout::OnPrintPage(int page)
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
-        // for the page being printed - Draw() needs this information in order to work out
-        // the strips to be drawn
-		//pLayout->m_pOffsets = pOffsets; // <<-- __WXGTK__ build doesn't use the CLayout's member
+        // for the page being printed
+		pLayout->m_pOffsets = pOffsets; // still needed in the __WXGTK__ build to
+                                        // communicate start and end strip indices
+                                        // to various functions
 
 		this->SetLogicalOrigin(0,0);
 		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
@@ -357,9 +364,11 @@ bool AIPrintout::OnPrintPage(int page)
 #if defined(__WXDEBUG__) && defined(Print_failure)
 		int internalDC_Y;
 		internalDC_Y = pDC->DeviceToLogicalY(0);
-		wxLogDebug(_T("  page = %d , DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
-			pApp->m_nCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
-		wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
+		//wxLogDebug(_T("*****  PAGE = %d   ********   DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
+		//	pApp->m_nCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+		wxLogDebug(_T("\n\n          *****  PAGE = %d   ********   nFirstStrip %d  nLastStrip %d"),
+			pApp->m_nCurPage, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+		//wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
 #endif
 
         // Set the upper left starting point of the drawn page to the point where the upper
@@ -374,8 +383,8 @@ bool AIPrintout::OnPrintPage(int page)
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
-		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
-			fitRect.x, fitRect.y );
+//		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
+//			fitRect.x, fitRect.y );
 #endif
 
         // SetLogicalOrigin is only documented as a method of wxPrintout, but it is also
@@ -386,7 +395,7 @@ bool AIPrintout::OnPrintPage(int page)
 		pDC->SetLogicalOrigin(0,pOffsets->nTop);
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
-		wxLogDebug(_T("pDC->SetLogicalOrigin(),    x %d  y %d   m_bIsPrinting = %d"), 0, pOffsets->nTop, pApp->m_bIsPrinting);
+//		wxLogDebug(_T("pDC->SetLogicalOrigin(),    x %d  y %d   m_bIsPrinting = %d"), 0, pOffsets->nTop, pApp->m_bIsPrinting);
 #endif
 
     // a simple solution to get data printed at the right device offset on pages 2 and higher
@@ -406,7 +415,7 @@ bool AIPrintout::OnPrintPage(int page)
                                           // the latter's left margin setting intact, and so the margin
                                           // setting remains correct
 #if defined(Print_failure) && defined(__WXDEBUG__)
-        wxLogDebug(_T("Linux solution's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d "), 0, Yoffset);
+//        wxLogDebug(_T("Linux solution's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d "), 0, Yoffset);
 #endif
     }
 
@@ -414,15 +423,13 @@ bool AIPrintout::OnPrintPage(int page)
     // strip for each, and storage in appropriate arrays for use in the interleaving
     // of drawing free translations between strips in the second for loop below
     int index;
+    CSourcePhrase* pSrcPhrase = NULL;
     int nFirstStrip = pOffsets->nFirstStrip;
     int nLastStrip = pOffsets->nLastStrip;
-    int nStripsOffset;
-    nStripsOffset = nFirstStrip; // subtracting this from the strip index gives the
-                                 // Item() index for the array stored in either
-                                 // arrFTElementsArrays or arrFTSubstringsArrays
+    int nStripsOffset = 0;
     CStrip* pStrip = NULL;
-    CStrip* pFirstStrip = (CStrip*)(pStripArray->Item(nFirstStrip));
-    CStrip* pLastStrip = (CStrip*)(pStripArray->Item(nLastStrip));
+    CStrip* pFirstStrip = NULL;
+    CStrip* pLastStrip = NULL;
     wxArrayPtrVoid* pPilesArray = NULL; // pile array stored by a given strip
     int nPileCount = 0; // a count of how many piles are in the above pPilesArray
     CPile* pPile = NULL;
@@ -431,62 +438,138 @@ bool AIPrintout::OnPrintPage(int page)
                               // actually be in a strip at or near the end of the
                               // previous page
     CPile* pLastPile = NULL; // last pile of last strip on the page
-    pFirstPile = pFirstStrip->GetPileByIndex(0); // first on page, but it may not
-            // be an anchor pile, so check and if it isn't, search back to the
-            // nearest anchor pile - doesn't matter if it's on previous page, because
-            // we'll eventually only grab as much of it's free translation as lies
-            // on the start of the current page
-    pPile = pFirstPile;
-    if (!pApp->GetFreeTrans()->IsFreeTranslationSrcPhrase(pPile))
+
+    if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
     {
-        pPile = pApp->GetFreeTrans()->FindPreviousFreeTransSection(pPile);
-        if (pPile == NULL)
+        nStripsOffset = nFirstStrip; // subtracting this from the strip index gives the
+                                     // Item() index for the array stored in either
+                                     // arrFTElementsArrays or arrFTSubstringsArrays
+        pFirstStrip = (CStrip*)(pStripArray->Item(nFirstStrip));
+        pLastStrip = (CStrip*)(pStripArray->Item(nLastStrip));
+        pFirstPile = pFirstStrip->GetPileByIndex(0); // first on page, but it may not
+                // be an anchor pile, so check and if it isn't, search back to the
+                // nearest anchor pile - doesn't matter if it's on previous page, because
+                // we'll eventually only grab as much of it's free translation as lies
+                // on the start of the current page -- beware, if processing a selection
+                // or a page-range choice, in the GTK build these both temporarily become
+                // the whole document, and so it's quite possible that there is no
+                // "previous" page, and so possible no previous anchor to be found -- if
+                // this is the case, the GetPrevPile() call would return NULL. Use this
+                // to build some safety-first code below
+        pPile = pFirstPile; // if it's an anchor pile, the next block won't be entered
+        if (!pApp->GetFreeTrans()->IsFreeTranslationSrcPhrase(pPile))
         {
-            // can't proceed, this is unlikely to happen so a message for developer is
-            // enough and then halt
-            wxMessageBox(_T("FindPreviousFreeTransSection() returned a NULL pile pointer, in OnPrintPage() in __WXGTK__ build"));
-            wxASSERT(FALSE);
-            return FALSE;
+            CPile* pKickOffPile = pPile; // in case we need to return to it
+            pPile = pApp->GetFreeTrans()->FindPreviousFreeTransSection(pPile);
+            if (pPile == NULL)
+            {
+                // didn't find one, so instead search ahead for the next anchor
+                pPile = pKickOffPile;
+                pPile = pApp->GetFreeTrans()->FindNextFreeTransSection(pPile);
+                if (pPile == NULL)
+                {
+                    // we couldn't find a free translation section anywhere ahead, set
+                    // pFirstPile to NULL and use it as a flag to skip further processing
+                    pFirstPile = NULL;
+                }
+                // pPile is an anchor location, see if it falls within the current page
+                int aStripIndex = pPile->GetStripIndex();
+                if (aStripIndex > nLastStrip)
+                {
+                    // this free translation lies beyond the end of the current page for printing,
+                    // so ignore it - and skip the free translation stuff for this page
+                    pFirstPile = NULL;
+                }
+                else
+                {
+                    // we have an anchor pile on the current page
+                    pFirstPile = pPile;
+                }
+            }
+            else
+            {
+                // we have an anchor pile - it may or may not be on the current page, but
+                // at minimum it's free translation span extends onto the current page
+                pFirstPile = pPile;
+            }
         }
-        pFirstPile = pPile;
-    }
-    // we have the first anchor pile which has material on the current page,
-    // now find the last pile on the page - whether it's the end of a free
-    // translation section or not
-    pPilesArray = pLastStrip->GetPilesArray();
-    nPileCount = pPilesArray->GetCount();
-    pLastPile = pLastStrip->GetPileByIndex(nPileCount - 1);
-    wxASSERT(pLastPile != NULL);
-
-    // do the aggregation loop
-    pPile = pFirstPile;
-    do {
-
-
-
-
-    } while (pPile != pLastPile);
-
-
-    CPile* aPilePtr = NULL;
-
-    for (index = nFirstStrip; index <= nLastStrip; index++)
-    {
-        pStrip = (CStrip*)(pStripArray->Item(index));
-        pPilesArray = pStrip->GetPilesArray();
+        // we have the first anchor pile which potentially has material on the
+        // current page, now find the last pile on the page - whether it's the
+        // end of a free translation section or not
+        pPilesArray = pLastStrip->GetPilesArray();
         nPileCount = pPilesArray->GetCount();
-        aPilePtr = NULL;
+        pLastPile = pLastStrip->GetPileByIndex(nPileCount - 1);
+        wxASSERT(pLastPile != NULL);
 
- // TODO  function for aggregating, on a per strip basis, and storage in the arrays created above, goes here
+        // do the aggregation loop
+        pPile = pFirstPile;
+        bool bIsFTrAnchor = FALSE;
+        do {
+            bIsFTrAnchor = pApp->GetFreeTrans()->IsFreeTranslationSrcPhrase(pPile);
+            if (bIsFTrAnchor)
+            {
+                // deal with this particular free translation, if it's not empty
+                 if (!pPile->GetSrcPhrase()->GetFreeTrans().IsEmpty())
+                {
+                    // it's a non-empty free translation section, aggregate it
+                    pApp->GetFreeTrans()->AggregateOneFreeTranslationForPrinting(
+                                pDC, pLayout, pPile, arrFTElementsArrays,
+                                arrFTSubstringsArrays, nStripsOffset, arrPileSet,
+                                arrRectsForOneFreeTrans);
+                    // clean up
+                    arrPileSet.Clear(); // empty to be ready for next iteration
+                    arrRectsForOneFreeTrans.Clear(); // ditto
+                }
+                // if it's empty, there's no point in trying to set up for printing this
+                // particular free trans section, so just scan on to the next
+            }
+            pPile = pView->GetNextPile(pPile);
+            if (pPile == NULL)
+            break;
+        } while (pPile != pLastPile);
+        // deal with the last one
+        if (pPile != NULL && pPile == pLastPile)
+        {
+            pSrcPhrase = pPile->GetSrcPhrase();
+            if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+            {
+                // it's a new non-empty free translation section, aggregate it
+                pApp->GetFreeTrans()->AggregateOneFreeTranslationForPrinting(
+                            pDC, pLayout, pPile, arrFTElementsArrays,
+                            arrFTSubstringsArrays, nStripsOffset, arrPileSet,
+                            arrRectsForOneFreeTrans);
+                // clean up
+                arrPileSet.Clear(); // empty to be ready for next iteration
+                arrRectsForOneFreeTrans.Clear(); // ditto
+            }
+        }
+    } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
 
-
-
-
+#if defined(Print_failure) && defined(__WXDEBUG__)
+    {
+    int i;
+    int cnt;
+    cnt = arrFTElementsArrays.GetCount();
+    wxLogDebug(_T("\n\n    OnPrintPage(): ++++++  PAGE = %d  ++++++, arrFTElementsArrays and  arrFTSubstringsArrays "), page);
+    for (i=0; i<cnt; i++)
+    {
+        wxArrayPtrVoid* pAPV = (wxArrayPtrVoid*)arrFTElementsArrays.Item(i);
+        wxArrayString* pAS = (wxArrayString*)arrFTSubstringsArrays.Item(i);
+        int numFTs = pAPV->GetCount();
+        int numStrs = pAS->GetCount();
+        wxString lastStr = pAS->Item(numStrs - 1);
+        wxLogDebug(_T("    OnPrintPage() strip index = %d  ,  num FreeTrElement structs = %d ,  num substrings = %d , last substring = %s"),
+                   i, numFTs, numStrs, lastStr.c_str());
     }
+    }
+#endif
 
-
-    // For the Linux build, we need (for an unknown reason) to draw the piles within
-    // OnPrintPage() rather than from within pView->OnDraw(pDC)
+    // For the Linux build, we needed to draw the piles within OnPrintPage() rather
+    // than from within pView->OnDraw(pDC) -- probably because doing this below I
+    // didn't have bogus pDC->Clear() involved - that was part of the problem. However
+    // although I've removed the clipping calls, that didn't make the legacy code
+    // functional in the Linux build. So this __WXGTK__ block really is needed.
+    CPile* aPilePtr = NULL;
     for (index = nFirstStrip; index <= nLastStrip; index++)
     {
         pStrip = (CStrip*)(pStripArray->Item(index));
@@ -498,32 +581,31 @@ bool AIPrintout::OnPrintPage(int page)
             aPilePtr = (CPile*)pPilesArray->Item(i);
             aPilePtr->Draw(pDC);
         }
+#if defined(Print_failure) && defined(__WXDEBUG__)
+        wxLogDebug(_T("OnPrintPage(): just printed strip  %d  for page  %d  ; nFirstStrip = %d   nLastStrip = %d  "),
+                   index, page , nFirstStrip, nLastStrip);
+#endif
 
         // Test interleaving of the print of the free translations between
         // printing of the strips - this keeps a top-down printing order, which
         // the wxPostScriptDC seems to demand before it will behave... it works!
-         if (pApp->m_bIsPrinting && !pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText)
+         if (!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText)
         {
-            wxString str1 = _T("Some arbitrary ");
-            wxString str2 = _T("fixed free ");
-            wxString str3 = _T("translations text");
-            wxRect ftRect;
-            pStrip->GetFreeTransRect(ftRect);
-            pDC->DrawText(str1, ftRect.GetLeft(), ftRect.GetTop());
-            ftRect.x += 200;
-            pDC->DrawText(str2, ftRect.GetLeft(), ftRect.GetTop());
-            ftRect.x += 200;
-            pDC->DrawText(str3, ftRect.GetLeft(), ftRect.GetTop());
-
+#if defined(Print_failure) && defined(__WXDEBUG__)
+        wxLogDebug(_T("OnPrintPage(): about to draw free translations: passing in currentStrip = %d , nStripsOffset  %d  arrFTElementsArrays count = %d  arrFTSubstringsArrays count = %d"),
+                   index, nStripsOffset, arrFTElementsArrays.GetCount(), arrFTSubstringsArrays.GetCount());
+#endif
+           // draw the free translations for the just-drawn strip in the free translation
+            // rectangle below it
+            pApp->GetFreeTrans()->DrawFreeTransForOneStrip(pDC, index, nStripsOffset,
+                                        arrFTElementsArrays, arrFTSubstringsArrays);
         }
     }
     // Print Previewing (which uses a memoryDC which draws to a bitmap, works fine with
     // the legacy code for drawing of the free translations on preview pages - so we'll
     // continue to use it; for real pages however, this fails to print any free translations
 
-    //if (pApp->m_bIsPrinting && gbCheckInclFreeTransText) // <<-- uncomment this, and comment out
-    // the 3-item test below, to see the result of the legacy print
-    if (pApp->m_bIsPrinting && gbCheckInclFreeTransText && pApp->m_bIsPrintPreviewing) // <<-- 3-item test
+    if (gbCheckInclFreeTransText && pApp->m_bIsPrintPreviewing)
     {
         // this legacy function works only for Print Preview; for print to real pages, the
         // 'interleaving' solution above works instead
@@ -558,13 +640,51 @@ bool AIPrintout::OnPrintPage(int page)
     wxLogDebug(_T("AIPrintout OnPrintPage() line 537 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
+
+        // do here the cleanup of the temporary arrays for printing strips, and free
+        // translation
+        if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
+        {
+            int count = arrFTElementsArrays.GetCount();
+            int index;
+            for (index = 0; index < count; index++)
+            {
+                wxArrayPtrVoid* pAPV = (wxArrayPtrVoid*)arrFTElementsArrays.Item(index);
+                int index2;
+                int count2 = pAPV->GetCount();
+                for (index2 = 0; index2 < count2; index2++)
+                {
+                    FreeTrElement* pElement = (FreeTrElement*)pAPV->Item(index2);
+                    delete pElement;
+                }
+                pAPV->Clear();
+                delete pAPV;
+            }
+            // arrFTElementsArrays is local to the OnPrintPage() function, and will be destroyed
+            // by it's destructor automatically
+
+            // for the following array, the strings can be removed by a Clear() call, but
+            // the contained arrays were created on the heap and so must be deleted here
+            int arraysCount = arrFTSubstringsArrays.GetCount();
+            for (index = 0; index < arraysCount; index++)
+            {
+                wxArrayString* pAS = (wxArrayString*)arrFTSubstringsArrays.Item(index);
+                pAS->Clear();
+                delete pAS;
+            }
+            // arrFTSubstringsArrays is local to the OnPrintPage() function, and will be destroyed
+            // by it's destructor automatically
+        }
+
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
 		return TRUE;
     }
     else
         return FALSE;
     // end of code for the __WXGTK__ build
+
 #else
+
     // start of (legacy) code, which now is only for the Windows and Mac builds
     if (pDC)
     {
@@ -632,8 +752,8 @@ bool AIPrintout::OnPrintPage(int page)
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
 
         // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
-        // for the page being printed - Draw() needs this information in order to work out
-        // the strips to be drawn
+        // for the page being printed - CStrip::Draw() needs this information in order to
+        // work out the strips to be drawn
 		pLayout->m_pOffsets = pOffsets;
 
         // Note: Printing of headers and/or footers needs to be done before we call
@@ -781,8 +901,8 @@ bool AIPrintout::HasPage(int pageNum)
 	CAdapt_ItApp* pApp = &wxGetApp();
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-    wxLogDebug(_T("AIPrintout HasPage() line 602 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+//    wxLogDebug(_T("AIPrintout HasPage() line 602 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
  	// refactored 6Apr09
@@ -855,8 +975,8 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 	}
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-    wxLogDebug(_T("AIPrintout GetPageInfo() line 677 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+//    wxLogDebug(_T("AIPrintout GetPageInfo() line 677 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
 
@@ -891,8 +1011,8 @@ void AIPrintout::OnPreparePrinting()
 
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 712 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+//    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 712 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
 
@@ -971,8 +1091,8 @@ void AIPrintout::OnPreparePrinting()
 
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 793 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+//    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 793 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
 } // end of OnPreparePrinting()
