@@ -87,6 +87,7 @@ public:
                     int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
 	void		DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
                         wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
+    void        DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout);
 #endif
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);

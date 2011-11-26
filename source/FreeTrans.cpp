@@ -62,6 +62,9 @@
 #define Print_failure
 #define _V6PRINT
 
+/// This global is defined in Adapt_ItView.cpp
+extern bool	gbGlossingUsesNavFont;
+
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
@@ -1770,6 +1773,58 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 }
 
 #if defined(__WXGTK__)
+// BEW added 26Nov11, for drawing glosses to 'real' pages in the Linux build, and its
+// also needed for Print Preview in the Linux build
+void CFreeTrans::DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout)
+{
+    wxString aGloss;
+    CSourcePhrase* pSrcPhrase = aPilePtr->GetSrcPhrase();
+    // don't print the gloss at the pile which is the active one
+    CPile* pActivePile = m_pApp->m_pActivePile;
+    if (aPilePtr == pActivePile)
+    {
+        return;
+    }
+    aGloss = pSrcPhrase->m_gloss;
+    wxRect enclosingRect;
+    if (m_pLayout->m_pApp->m_bIsPrinting && gbCheckInclGlossesText && !aGloss.IsEmpty())
+    {
+        int nCellForGlosses;
+        if (gbIsGlossing)
+        {
+            nCellForGlosses = 1;
+        }
+        else{
+            nCellForGlosses = 2;
+        }
+        CCell* pCell = aPilePtr->GetCell(nCellForGlosses);
+        wxASSERT(pCell != NULL);
+        pCell->GetCellRect(enclosingRect);
+        if (gbGlossingUsesNavFont)
+        {
+            pDC->SetFont(*m_pLayout->m_pApp->m_pNavTextFont);
+            wxColour ftColor(m_pLayout->m_pApp->m_navTextColor);
+            pDC->SetTextForeground(ftColor);
+        }
+        else
+        {
+            pDC->SetFont(*m_pLayout->m_pApp->m_pTargetFont);
+            wxColour ftColor(m_pLayout->m_pApp->m_targetColor);
+            pDC->SetTextForeground(ftColor);
+        }
+		if (bRTLLayout)
+		{
+			// ********* Draw RTL Text  ***********
+			m_pView->DrawTextRTL(pDC, aGloss, enclosingRect);
+		}
+		else
+		{
+			// ********* Draw LTR Text  **********
+            pDC->DrawText(aGloss, enclosingRect.GetLeft(), enclosingRect.GetTop());
+		}
+    }
+}
+
 // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
