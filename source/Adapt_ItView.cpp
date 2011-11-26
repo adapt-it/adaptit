@@ -5390,6 +5390,7 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	delete pFont;
 }
 #endif
+
 #if defined(__WXGTK__)
 void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint marginBottomRight, wxPoint paperDimensions,
                 float logicalUnitsFactor, int page)
@@ -5481,30 +5482,6 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 	wxString timeStr;
 	timeStr = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
 
-	/*
-	// The following code captures the logic for doing a centered header if we decide
-	// to print one.
-	wxString headerStr = _T("This is a test header");
-    // scaling has been done and upper left margin intersection is now 0,0, so we can set
-    // coordinates for DrawText based on that reference point in terms of screen
-    // coordinates. See AIPrintout::OnPrintPage() for how logicalUnitsFactor is calculated.
-	int headerXExt,headerYExt;
-	pDC->GetTextExtent(headerStr,&headerXExt,&headerYExt);
-    // Position the header 12.7mm (a half inch) above the top margin (the top of fitRect).
-    // Since the logical origin is at 0,0, we need to add the fitRect.x position
-    // (fitRect.GetLeft()) to xPosHdr. We also calculate in the vertical text extent of the
-    // header so that there is 12.7mm of space between the bottom of the header text and
-    // the printing margin below it.
-	float xPosHdr = (float)(fitRect.GetLeft())+(fitRect.GetWidth()/2.0 - (float)headerXExt/2.0);
-	float yPosHdr = (float)(fitRect.GetTop()-12.8*logicalUnitsFactor-headerYExt);
-    // Draw header a half inch above top margin. This will be a negative y-axis component
-    // because we called SetLogicalOrigin() above on the AIPrintout's DC so that its origin
-    // is at the intersection of the top and left page margins. Above this origin is
-    // negative y-axis coordinates.
-	pDC->DrawText(headerStr, (long)xPosHdr, (long)yPosHdr); // draw header a half inch
-															// above top margin
-	*/
-
     // Calculate the position for the footer. The incoming parameter fitRect represents the
     // rectangular printing area within the margins in logical units. The bottom of fitRect
     // is the effective bottom margin, so we'll place the footer 12.7mm (a half inch) in
@@ -5569,6 +5546,7 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 	delete pFont;
 }
 #endif
+
 
 // wxWidgets Note: This function in the MFC version was called CreateBox, but I've combined
 // its functionality and that of ResizeBox into a single function now called ResizeBox in

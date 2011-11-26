@@ -83,7 +83,10 @@ public:
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 #if defined(__WXGTK__)
     void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
-                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayString& arrFTSubstringsArrays);
+                    wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
+                    int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
+	void		DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
+                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
 #endif
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
@@ -169,11 +172,9 @@ private:
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 	void		GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtrVoid& arrPileSet, CPile* pAnchorPile);
 	void		BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
-	void		DrawOneFreeTransOnPage(wxDC* pDC, CLayout* pLayout, wxArrayPtrVoid& arrRects, wxString& ftStr); // deprecated
-
-    void        AggregateFreeTranslations_PerStrip(wxDC* pDC, CLayout* pLayout, wxArrayPtrVoid& arrRects,
-                            wxString& ftStr, int nStripsOffset, wxArrayPtrVoid& arrFTElementsArrays,
-                            wxArrayString& arrFTSubstringsArrays);
+    void        AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
+                            wxArrayPtrVoid& arrRectsForOneFreeTrans, wxString& ftStr, int nStripsOffset,
+                            wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
 #endif
 
 public:
