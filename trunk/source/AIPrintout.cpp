@@ -75,6 +75,7 @@ extern int gnFooterTextHeight;
 
 extern bool gbCheckInclFreeTransText;
 extern bool gbCheckInclGlossesText;
+extern bool gbIsGlossing;
 
 // This global is defined in Adapt_It.cpp.
 //extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
@@ -264,6 +265,21 @@ bool AIPrintout::OnPrintPage(int page)
         wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
         int i;
         wxString ftStr;
+
+	bool bRTLLayout;
+	bRTLLayout = FALSE; // default, for ANSI build
+#ifdef _RTL_FLAGS
+	if (m_pApp->m_bTgtRTL)
+	{
+		// free translation has to be RTL & aligned RIGHT
+		bRTLLayout = TRUE;
+	}
+	else
+	{
+		// free translation has to be LTR & aligned LEFT
+		bRTLLayout = FALSE;
+	}
+#endif
 
         // pass these in to the aggregation function - they are used early in the composition of
         // the free translation data for printing
@@ -579,7 +595,13 @@ bool AIPrintout::OnPrintPage(int page)
         for (i = 0; i < nPileCount; i++)
         {
             aPilePtr = (CPile*)pPilesArray->Item(i);
-            aPilePtr->Draw(pDC);
+            aPilePtr->Draw(pDC); // this refuses to draw the gloss cell data in print
+                                 // preview and also in a print of real pages, so the
+                                 // direct draw with the next block immediately below
+                                 // is the work-around needed
+            // both real page print and print preview need the following line; it
+            // internally tests for gCheckInclGlossesText TRUE and m_bIsPrinting TRUE
+            pApp->GetFreeTrans()->DrawOneGloss(pDC, aPilePtr, bRTLLayout);
         }
 #if defined(Print_failure) && defined(__WXDEBUG__)
         wxLogDebug(_T("OnPrintPage(): just printed strip  %d  for page  %d  ; nFirstStrip = %d   nLastStrip = %d  "),
