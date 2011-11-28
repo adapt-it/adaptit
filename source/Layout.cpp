@@ -73,6 +73,8 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Layout.h"
 #include "FreeTrans.h"
 
+extern bool gbCheckInclFreeTransText;
+
 /// This global is defined in Adapt_It.cpp. (default is FALSE)
 extern bool gbDoingInitialSetup;
 
@@ -2010,7 +2012,14 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 
 	// if free translation mode is turned on, get the current section
 	// delimited and made visible - but only when not currently printing
-	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bIsPrinting)
+	// 
+	// BEW 28Nov11 added gbCheckInclFreeTrans to the test, because when there is a
+	// free translation in the document, if the CPrintOptionDlg is put up, it's
+	// InitDialog() function temporarily sets m_bIsPrinting to FALSE, and so if
+	// m_pActivePile is invalid (as would be the case for a print range, pring page
+	// range, or print selection choice), then the code below would crash without
+	// the extra protection being added
+	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bIsPrinting && !gbCheckInclFreeTransText)
 	{
 		if (!gbSuppressSetup)
 		{
