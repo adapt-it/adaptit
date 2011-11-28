@@ -12517,6 +12517,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bFrozenForPrinting = FALSE;
 	m_bIsPrinting = FALSE;
 	m_bPrintingRange = FALSE;
+	m_savedSelectionLine = -1; // which cell of the piles has the selection (-1 if none)
+	m_savedSelectionAnchorIndex = -1; // the sequence number for the pile where saved selection starts
+	m_savedSelectionCount = -1; // how many consecutive CCell (or CPile) instances are in the selection
 #if defined(__WXGTK__)
     // BEW added 15Nov11
     m_bPrintingPageRange = FALSE;
@@ -35438,7 +35441,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 			if (m_bPrintingSelection && !m_pSaveList->IsEmpty())
 			{
 				// a selection has been setup for, so we retain the value of
-				// gbPrintSelection unchanged
+				// m_bPrintingSelection unchanged
 				;
 			}
 			else
@@ -35476,9 +35479,9 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 			// but we have no option. Hence the PaginateDoc() call below, also has to be
 			// done the second time - but it's very fast compared to RecalcLayout()
 #ifdef _NEW_LAYOUT
-			m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+            m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
 #else
-			m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+            m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
 #endif
 			m_pActivePile = pView->GetPile(m_nActiveSequNum);
 		}
@@ -35503,18 +35506,29 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 		pCell = pos->GetData();
 		int nEndSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 
-		bool bOK;
-		bOK = pView->GetSublist(m_pSaveList, m_pSourcePhrases, nBeginSN, nEndSN);
-
-        // At this point, the selection has been temporarily made the whole document, so we
-        // must clobber the selection
+        // The selection is about to be temporarily made the whole document, so we
+        // must clobber the selection, since we now have nBeginSN and nEndSN
+        // values defined (do it here, because after the GetSublist() call would
+        // result in a crash because the "doc" would no longer agree with the layout
 		pView->RemoveSelection();
 
+		bool bOK;
+		// BEW on 14Nov changed GetSublist() to make deep copies, an implication of
+		// that is that the PileList constents in CLayout will all be invalid. So
+		// we must do any RecalcLayout() call with the param create_stripes_and_piles
+		bOK = pView->GetSublist(m_pSaveList, m_pSourcePhrases, nBeginSN, nEndSN);
+
         // Recalc the layout with the new width
+//#ifdef _NEW_LAYOUT
+//		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+//#else
+//		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+//#endif
+
 #ifdef _NEW_LAYOUT
-		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+            m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #else
-		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
+            m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #endif
 
 		// Set safe values for a non-active location (but leave m_targetPhrase unchanged).
@@ -40128,5 +40142,94 @@ wxString CAdapt_ItApp::GetStoredFreeTransText_PreEdit()
 	return m_freeTransTextBuffer_PreEdit;
 }
 
+// support for saving and restoring the selection, and clearing saved selection members
+// (the members are 3 ints, m_savedSelectionLine, m_nSavedSelectionAnchorIndex, m_savedSelectionCount)
+// the first two return TRUE if all went well, FALSE if the selection could not be saved, or not restored
+bool CAdapt_ItApp::SaveSelection()
+{
+    if (m_selectionLine == -1)
+        return FALSE; // no valid selection is current
+    m_savedSelectionLine = m_selectionLine;
+    if (m_selection.IsEmpty())
+        return FALSE; // no CCell instances are selected
+    if (m_pAnchor == NULL)
+        return FALSE; // no anchor is defined
+    CPile* pAnchorPile = m_pAnchor->GetPile();
+    CSourcePhrase* pAnchorSrcPhrase = pAnchorPile->GetSrcPhrase();
+    m_savedSelectionAnchorIndex = pAnchorSrcPhrase->m_nSequNumber;
+    m_savedSelectionCount = m_selection.GetCount();
+    return TRUE;
+}
+bool CAdapt_ItApp::RestoreSelection(bool bRestoreCCellsFlagToo)
+{
+    if (m_savedSelectionLine == -1 || m_savedSelectionAnchorIndex == -1 || m_savedSelectionCount == -1)
+    {
+        return FALSE; // cannot restore a valid selection if one of the ints is -1
+    }
+    m_selectionLine = m_savedSelectionLine;
+    int count = 0;
+    CPile* pPile = NULL;
+    CCell* pCell = NULL;
+    CLayout* pLayout = m_pLayout;
+    //PileList* pPileList = pLayout->GetPileList();
+    //PileList::Node* pos = pPileList->Find(m_savedSelectionAnchorIndex); // the position of the anchor pile;
+    //wxASSERT(pos != NULL);
+    //pPile = pos->GetData();
+    pPile = pLayout->GetPile(m_savedSelectionAnchorIndex);
+    pCell = pPile->GetCell(m_savedSelectionLine);
+    m_pAnchor = pCell;
+    if (bRestoreCCellsFlagToo)
+    {
+        m_pAnchor->SetSelected(TRUE);
+    }
+    else
+    {
+        m_pAnchor->SetSelected(FALSE);
+    }
+    m_selection.Clear();
+    m_selection.Append(m_pAnchor);
+    count = 1;
+    int index = m_savedSelectionAnchorIndex + 1;
+    while (count <= m_savedSelectionCount)
+    {
+        //pos = pos->GetNext();
+        //if (pos == NULL)
+        //{
+            // we couldn't finish the restoration, leave what we'd done intact, but return FALSE
+        //    return FALSE;
+        //}
+        //pPile = pos->GetData();
+        pPile = pLayout->GetPile(index);
+
+        pCell = pPile->GetCell(m_savedSelectionLine);
+        count++;
+        index++;
+        if (bRestoreCCellsFlagToo)
+        {
+            pCell->SetSelected(TRUE);
+        }
+        else
+        {
+            pCell->SetSelected(FALSE);
+        }
+        m_selection.Append(pCell);
+    }
+    // the selection is restored, and if the passed in bool is TRUE, then the selected cells
+    // in the view also have their flags set true (a draw of the view would then show these
+    // cells as yellow background -- ie. selected) Probably the thing to do is to force the
+    // refresh if TRUE was passed in (I may change my mind about this later)
+    if (bRestoreCCellsFlagToo)
+    {
+        CAdapt_ItView* pView = GetView();
+        pView->canvas->Refresh();
+    }
+    return TRUE;
+}
+void CAdapt_ItApp::ClearSavedSelection()
+{
+	m_savedSelectionLine = -1;
+	m_savedSelectionAnchorIndex = -1;
+	m_savedSelectionCount = -1;
+} // only makes the above 3 ints have the value -1
 
 
