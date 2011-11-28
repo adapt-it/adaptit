@@ -40190,7 +40190,7 @@ bool CAdapt_ItApp::RestoreSelection(bool bRestoreCCellsFlagToo)
     m_selection.Append(m_pAnchor);
     count = 1;
     int index = m_savedSelectionAnchorIndex + 1;
-    while (count <= m_savedSelectionCount)
+    while (count < m_savedSelectionCount)
     {
         //pos = pos->GetNext();
         //if (pos == NULL)

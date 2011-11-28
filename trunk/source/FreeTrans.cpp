@@ -937,7 +937,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 
 #ifdef _V6PRINT
 #ifdef __WXDEBUG__
-	{ // confine their scope to this conditional block
+	{
 		wxLogDebug(_T("\nGetFreeTransPileSetsForPage(),  nIndexOfFirstStrip = %d  ,  nIndexOfLastStrip = %d"),
 					nIndexOfFirstStrip, nIndexOfLastStrip);
 	}
@@ -1063,6 +1063,22 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	do {
 		pPile = pAnchorPile; // section's first CPile, this one stores the free trans text
 
+		// get the section's ending CPile pointer
+		pPileEndingFTSection = FindFreeTransSectionEnd(pAnchorPile);
+		// BEW 28Nov11, change to add test for NULL returned. Normally every anchor
+		// will have a matching CSourcePhrase instance later with m_bEndFreeTrans TRUE.
+		// However, one circumstance where this may be violated is when the document
+		// is shortened such that the end of a free translation is lost - in that situation
+		// NULL is returned and then without this protection, the code below would fail.
+		// (Such shortening can occur, for example, if the user prints a short selection
+		// of the document.)
+		// wxASSERT(pPileEndingFTSection != NULL);
+		if (pPileEndingFTSection == NULL)
+		{
+			// assume it's due to a shortened document, and just refrain from trying
+			// to print this particular free trans section
+			return;
+		}
 		pPileSetArray = new wxArrayPtrVoid; // for storing the CPile pointers of the section
 											// being delineated
 		pSrcPhrase = pPile->GetSrcPhrase(); // anchor pile's CSourcePhrase instance
@@ -1070,9 +1086,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 		arrFreeTranslations.Add(strFreeTrans); // preserve the free translation text
 		arrPileSets.Add(pPileSetArray); // preserve the wxArrayPtrVoid* which will be
 										// populated with the section's CPile pointers
-		// get the section's ending CPile pointer
-		pPileEndingFTSection = FindFreeTransSectionEnd(pAnchorPile);
-		wxASSERT(pPileEndingFTSection != NULL);
+
 		// inner loop, to collect the piles for this section
 		while (pPile != pPileEndingFTSection)
 		{
@@ -1085,7 +1099,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 
 #ifdef _V6PRINT
 #ifdef __WXDEBUG__
-	{ // confine their scope to this conditional block
+	{
 		wxLogDebug(_T("GetFreeTransPileSetsForPage(),  do loop iter: Piles in section = %d  ,  free translation = %s"),
 			pPileSetArray->GetCount(), strFreeTrans.c_str());
 	}
@@ -5172,6 +5186,10 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 //       in the background when requested (print preview relies on what is on screen
 // whm 10Nov11 added enum freeTransModeSwitch ftModeSwitch parameter, to enable caller
 // to explicitly turn the mode on or off rather than act like a blind toggle.
+// BEW 28Nov11, calling this after printing a selection, where the doc has been saved and
+// the document is temporarily just a small number of CSourcePhrases, can result in
+// m_pActivePile being NULL. To prevent a crash do to accessing this member, we must
+// test for NULL and return before damage can be done. We do so in a couple of places.
 void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch)
 {
 #if defined(Print_failure)
@@ -5384,6 +5402,13 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		int nCountForwards = 0;
 		int nCountBackwards = 0;
 		int nSaveActiveSequNum;
+		// BEW 28Nov11, further protection agains loss of the old active pile (ie.
+		// m_pActivePile has become NULL) Just return, don't try do any layout etc
+		if (m_pApp->m_pActivePile == NULL)
+		{
+			return;
+		}
+		// we have an active pile, so continue restoring the former state
 		if (m_pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// we have to move the box
@@ -6036,8 +6061,16 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 // freeTranslationsStep and so the current free translation needs to be made to 'stick'
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 28Nov11, added protection against loss of valid value for m_pActivePile (eg. NULL
+// because printing a selection from a document which is just few dozen piles which do
+// not include the former full document's active pile)
 void CFreeTrans::StoreFreeTranslationOnLeaving()
 {
+	if (m_pApp->m_pActivePile == NULL)
+	{
+		// BEW 28Nov11, active pile has been lost, so don't try store this free translation
+		return;
+	}
 	if (m_pFrame->m_pComposeBar != NULL)
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)

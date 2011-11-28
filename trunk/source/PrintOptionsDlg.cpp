@@ -1008,7 +1008,7 @@ void CPrintOptionsDlg::OnCheckIncludeFollowingHeading(wxCommandEvent& WXUNUSED(e
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnEditPagesFrom(wxCommandEvent& WXUNUSED(event))
 {
-	// user has chamged a Pages range, so ensure that the Pages radio button is selected if not already
+	// user has changed a Pages range, so ensure that the Pages radio button is selected if not already
 	if (pRadioPages->GetValue() == FALSE)
 	{
 		pRadioAll->SetValue(FALSE);
