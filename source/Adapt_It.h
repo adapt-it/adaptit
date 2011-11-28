@@ -1949,13 +1949,25 @@ public:
 								 // for use in tokenizing retranslations
 	static bool bLookAheadMerge; // TRUE when merging a matched multiword phrase
 	CPile* m_pActivePile;	// where the phrase box is to be located
+	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
+							// pile location
+
+	// for selection (other parameters are also involved besides this one)
+	CCellList	m_selection; // list of selected CCell instances
 	CCell* m_pAnchor;		// anchor element for the selection
 	int m_selectionLine;	// index of line which has the selection (0 to 1, -1
 							// if none) Selections typically have line index 0, the
 							// circumstances where line with index 1 (target text) is
 							// used as the selection are rare, perhaps not in WX version
-	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
-							// pile location
+	// the next 3 for saving a selection so it can be copied, restored and cleared with utility functions
+	// SaveSelection(), RestoreSelection() and ClearSavedSelection() - we save using different
+	// params, which allow a selection to be set up again correctly even after a recalc of the layout
+	// (all 3 have value -1 when no selection is saved)
+	int m_savedSelectionLine; // which cell of the piles has the selection
+	int m_savedSelectionAnchorIndex; // the sequence number for the pile where saved selection starts
+	int m_savedSelectionCount; // how many consecutive CCell (or CPile) instances are in the selection
+
+
 	bool m_bSelectByArrowKey; // TRUE when user is using ALT + arrow key to extend sel'n
                 //next two cannot be removed for refactored layout, because they are needed
                 //for backwards compatibility of the config files; retain them, but make no
@@ -2057,9 +2069,6 @@ public:
 	// window size and position saving & restoring
 	wxPoint		m_ptViewTopLeft; // client area
 	wxSize		m_szView;
-
-	// for selection (other parameters are also involved besides this one)
-	CCellList	m_selection; // list of selected CCell instances
 
 	// BEW added 10Feb09 for refactored view layout support
 	CLayout* m_pLayout;
@@ -3307,6 +3316,12 @@ public:
 
 
 	// end of collaboration declarations
+
+	// support for saving and restoring the selection, and clearing saved selection members
+	// (the members are 3 ints, m_savedSelectionLine, m_nSavedSelectionAnchorIndex, m_savedSelectionCount)
+	bool SaveSelection();
+	bool RestoreSelection(bool bRestoreCCellsFlagToo = FALSE);
+	void ClearSavedSelection(); // only makes the above 3 ints have the value -1
 
 	// for wxProgressDialog support
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);

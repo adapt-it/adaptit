@@ -246,6 +246,24 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//InitDialog() is not virtual, no call needed to a base class
 	//wxLogDebug(_T("InitDialog() START"));
 	CAdapt_ItApp* pApp = &wxGetApp();
+#if defined(__WXDEBUG__) && defined(Print_failure)
+    wxLogDebug(_T("InitDialog() on entry, m_selectionLine = %d , m_bPrintingSelection %d    (at line 250)"),
+               pApp->m_selectionLine, pApp->m_bPrintingSelection);
+#endif
+    bool bSelectionOK = TRUE;
+    bool bEncounteredSelection = FALSE;
+    if (pApp->m_selectionLine != -1 && pApp->m_pAnchor != NULL && !pApp->m_selection.IsEmpty())
+    {
+        bEncounteredSelection = TRUE;
+        bSelectionOK = pApp->SaveSelection();
+        if (!bSelectionOK)
+        {
+            // don't expect a failure, so just alert developer and halt
+            wxMessageBox(_T("CPrintOptionsDlg::InitDialog() failed trying to save the selection. Will halt. Fix me please."));
+            wxASSERT(FALSE);
+            return;
+        }
+    }
 
 	// whm 30Aug11 added for the "Additional text to include in Printouts" section of
 	// the "Special Print Options" dialog.
@@ -371,6 +389,23 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		pApp->m_bIsPrinting = FALSE;
 		return;
 	}
+    if (bEncounteredSelection)
+    {
+        bSelectionOK = pApp->RestoreSelection();
+        if (!bSelectionOK)
+        {
+            // don't expect a failure, so just alert developer and halt
+            wxMessageBox(_T("CPrintOptionsDlg::InitDialog() failed trying to restore the selection before LayoutAndPaginate(). Will halt. Fix me please."));
+            wxASSERT(FALSE);
+            return;
+        }
+        pApp->ClearSavedSelection();
+    }
+
+#if defined(__WXDEBUG__) && defined(Print_failure)
+    wxLogDebug(_T("InitDialog() before LayoutAndPaginate(), m_selectionLine = %d , m_bPrintingSelection %d    (at line 376)"),
+               pApp->m_selectionLine, pApp->m_bPrintingSelection);
+#endif
 
 	// setup the layout for the new pile width, and get the PageOffsets structs list populated
 	// (LayoutAndPaginate() calls view class's PaginateDoc() & the latter does the PageOffsets
@@ -392,6 +427,10 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
 		return;
 	}
+#if defined(__WXDEBUG__) && defined(Print_failure)
+    wxLogDebug(_T("InitDialog() after LayoutAndPaginate(), m_selectionLine = %d , m_bPrintingSelection %d    (at line 401)"),
+               pApp->m_selectionLine, pApp->m_bPrintingSelection);
+#endif
 
 	// Populate the Pages from: and Pages to: edit boxes
 	int nNumPages = (int)gpApp->m_pagesList.GetCount();
@@ -499,7 +538,23 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 			nVsLast = vlast;
 		}
 	}
-
+    /*
+    if (bEncounteredSelection)
+    {
+        bSelectionOK = pApp->RestoreSelection();
+        if (!bSelectionOK)
+        {
+            // don't expect a failure, so just alert developer and halt
+            wxMessageBox(_T("put a message here."));
+            wxASSERT(FALSE);
+            return;
+        }
+    }
+    */
+#if defined(__WXDEBUG__) && defined(Print_failure)
+    wxLogDebug(_T("InitDialog() before setting buttons, m_selectionLine = %d , m_bPrintingSelection %d    (at line 513)"),
+               pApp->m_selectionLine, pApp->m_bPrintingSelection);
+#endif
     // The "Selection" radio button should be disabled if there was no selection existing before
     // invoking the print options dialog.
 	//if (gpApp->m_selectionLine != -1)
@@ -543,6 +598,13 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// has CLayout::Draw() called, tests for gbIsPringing TRUE will give crashes; we want
 	// the flag to be FALSE while the dialog is up
 	pApp->m_bIsPrinting = FALSE;
+
+	/*
+    if (bEncounteredSelection)
+    {
+        pApp->ClearSavedSelection();
+    }
+    */
 
 //	wxLogDebug(_T("InitDialog() END"));
 }
