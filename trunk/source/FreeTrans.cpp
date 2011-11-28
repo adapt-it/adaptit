@@ -849,7 +849,14 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
     // the last pile in the free translation section - the CFreeTrans class
     // has a function for just this pupose
     pPileEndingFTSection = FindFreeTransSectionEnd(pAnchorPile);
-    wxASSERT(pPileEndingFTSection != NULL);
+    // When printing a short selection in which the end of the shortened doc comes
+    // before the free translation is closed off, pPileEndingFTSection will be
+    // returned as NULL. We must test for this and return immediately if so
+    //wxASSERT(pPileEndingFTSection != NULL);
+    if (pPileEndingFTSection == NULL)
+    {
+        return; // abandon this free trans section, it has no defined end
+    }
     // use a loop to store obtain the pile pointers for the free translation
     // section and add them to the passed in arrPileSet array; the view class
     // has a function for traversing CPile instances...Note: there is nothing
@@ -2765,6 +2772,13 @@ void CFreeTrans::AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLay
     // so setup for it
     wxASSERT(pSrcPhrase->m_bHasFreeTrans && pSrcPhrase->m_bStartFreeTrans);
     GetFreeTransPileSetForOneFreeTrans(pLayout, arrPileSet, pCurPile);
+    // it's possible that, for a selection print, there may be no end to the free translation
+    // in which case the above call would return without putting anything in arrPileSet. Check
+    // for this and return immediately if so.
+    if (arrPileSet.IsEmpty())
+    {
+        return;
+    }
 
     // Build the array of arrays of rectangles, horiz extents & associated strip's indices
     // (these 3 are members of a FreeTrElement struct) from the arrPileSet calculated above.
