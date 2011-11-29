@@ -771,6 +771,16 @@ bool AIPrintout::OnPrintPage(int page)
 		float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4));
 
 		POList* pList = &pApp->m_pagesList;
+		// check the m_nCurPage value has not become too big -- this can happen if the user
+		// wants to print to a certain page, but turns off free translation and or glosses
+		// printing (which shortens the number of pages needed to less than what he chose
+		// for the last page) So check and return if such a page isn't available
+		int how_many_pages;
+		how_many_pages = pList->GetCount();
+		if (pApp->m_nCurPage > how_many_pages)
+		{
+			return FALSE;
+		}
 		POList::Node* pos = pList->Item(pApp->m_nCurPage-1);
 		// whm 27Oct11 added test to return FALSE if pos == NULL
 		// This test is needed to prevent crash on Linux because the Draw()
@@ -950,8 +960,23 @@ bool AIPrintout::HasPage(int pageNum)
  	// refactored 6Apr09
     // See code:#print_flow for the order of calling of HasPage().
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
-
-	if (pageNum >= printDialogData.GetMinPage() && pageNum <= printDialogData.GetMaxPage())
+	// for ease of debugging, use some local vars here
+	// BEW changed 29Nov11, because the printing framework in wxWidgets is broken
+	// -- it doesn't get the max page value, and defaults it to 9999. So the 
+	// fix below is needed to avoid the crash described in the next comment.
+	int myMinPage;
+	int myMaxPage;
+	myMinPage = printDialogData.GetMinPage();
+	//myMaxPage = printDialogData.GetMaxPage(); <<-- this is always 9999, even in
+	//the Windows & Mac builds, which is useless for preventing crash when the
+	//page range shortens because the user chose a page range with a high ending
+	//value but disallows printing of free translations and glosses which were used
+	//in the estimation of the total number of pages, and in so doing the number for
+	//the max page becomes greater than the actual numbers of pages available, so try
+	//getting the value from the app's m_pagesList's count, which is always up to 
+	//date at this point
+	myMaxPage = pApp->m_pagesList.GetCount();
+	if (pageNum >= myMinPage && pageNum <= myMaxPage)
 		return TRUE;
 	else
 		return FALSE;
