@@ -241,7 +241,7 @@ public:
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
     bool        DoRangePrintOp(const int nBeginSequNum, const int nEndSequNum,
-                               wxPrintData* pPrintData); // BEW created 14Nov11
+                               wxPrintData* WXUNUSED(pPrintData)); // BEW created 14Nov11
 #if defined(__WXGTK__)
     bool        SetupPageRangePrintOp(const int nFromPage, int nToPage, wxPrintData* pPrintData);
 #endif

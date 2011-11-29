@@ -4342,7 +4342,8 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 /// \return     FALSE if the range op fouled up, otherwise TRUE
 /// \param      nBeginSequNum     -> sequence number for the first CSourcePhrase in the range
 /// \param      nEndSequNum       -> sequence number for the last CSourcePhrase in the range
-/// \param      pPrintData        -> the printer's wxPrintData struct, filled out
+/// \param      pPrintData        -> the printer's wxPrintData struct, filled out <<- unused
+///                                     we get the value directly from the app (see below)
 /// \remarks
 /// Called from: view's DoRangePrintOp(); and in the Linux build only, called from a function
 /// to handle the printing of a range of pages -- because the page range support in wxGnomeprinter
@@ -4355,7 +4356,7 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 /// being lost, and probably a crash
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRangeEndSequNum,
-                                   wxPrintData* pPrintData)
+                                   wxPrintData* WXUNUSED(pPrintData))
 {
     CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
