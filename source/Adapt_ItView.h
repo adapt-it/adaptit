@@ -243,7 +243,7 @@ public:
     bool        DoRangePrintOp(const int nBeginSequNum, const int nEndSequNum,
                                wxPrintData* pPrintData); // BEW created 14Nov11
 #if defined(__WXGTK__)
-    bool        SetupPageRangePrintOp(const int nFromPage, const int nToPage, wxPrintData* pPrintData);
+    bool        SetupPageRangePrintOp(const int nFromPage, int nToPage, wxPrintData* pPrintData);
 #endif
     // BEW 14Nov11, don't know why Bill has WXUNUSED() here, his code uses these params, so I've removed the WXUNUSED()
 	//bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
