@@ -39,7 +39,7 @@
 #include "FreeTrans.h"
 #include "MainFrm.h"
 
-#define Print_failure
+//#define Print_failure
 
 extern bool gbCheckInclFreeTransText;
 extern bool gbCheckInclGlossesText;

@@ -59,7 +59,7 @@
 #include "Adapt_ItCanvas.h"
 #include "WaitDlg.h"
 
-#define Print_failure
+//#define Print_failure
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -668,10 +668,11 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
     // free translations and/or glosses in the document. (Failure to set the flags
     // TRUE when need, in InitDialog(), results in the dialog showing the max page
     // number as lower than what Print Preview shows - and the latter shows the correct
-    // value. Therefore, we will set the flag there, because setting it here in OnOK() is
-    // too late, and for that reason the next two lines are now commented out.
-	//gbCheckInclFreeTransText = pCheckInclFreeTransText->GetValue();
-	//gbCheckInclGlossesText = pCheckInclGlossesText->GetValue();
+    // value. Therefore, we will set the flag there also, because setting it here in OnOK()
+    // only is too late. However we need them here too, because the user may turn one or
+    // both flags off once the dialog is up.
+	gbCheckInclFreeTransText = pCheckInclFreeTransText->GetValue();
+	gbCheckInclGlossesText = pCheckInclGlossesText->GetValue();
 
 	// check about what to do with any section headings, if they precede or follow the range
 	if(!gpApp->m_bPrintingRange)

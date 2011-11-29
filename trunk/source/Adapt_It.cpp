@@ -34832,7 +34832,6 @@ void CAdapt_ItApp::DoPrintCleanup()
 		// clean up
 		//pView->RestoreIndices();
 		pView->ClearPagesList();
-		m_bIsPrinting = FALSE;
 		// wx version: I think the All Pages button gets enabled
 
         // layout again for the screen, get an updated pointer to the active location,
@@ -34848,6 +34847,11 @@ void CAdapt_ItApp::DoPrintCleanup()
 #else
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #endif
+        // BEW 29Nov11, moved this line to be after the RecalcLayout() call, the latter
+        // uses a TRUE value in a block near the end of RecalcLayout() which must not
+        // be entered when the layout has been clobbered, and it's the TRUE value of
+        // this flag which causes that block to be skipped
+        m_bIsPrinting = FALSE;
 
 	} // kluge block ends here so that a call to ScrollIntoView() is done for each
       // time entered, otherwise, the scroll position gets lost for the second entrance,

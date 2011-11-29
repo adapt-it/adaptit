@@ -137,7 +137,8 @@ void CStrip::Draw(wxDC* pDC)
 	}
 #endif
 
-// declaration of Print_failure is at top of file
+// declaration of Print_failure is at top of file (there's another in Adapt_It.h near top
+// which can be used to turn on logging in many files which use that symbol)
 #if defined(__WXDEBUG__) && defined(Print_failure)
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{

@@ -3039,6 +3039,9 @@ public:
     bool    m_bPrintingPageRange;
     int     m_userPageRangePrintStart;
     int     m_userPageRangePrintEnd;
+    // BEW added 29Nov11, so that printing a page range doesn't put into the footers page
+    // numbering starting at 1, but starting from the string page requested
+    int     m_userPageRangeStartPage; // (when printing, add this value less 1 to get the right page number)
 #endif
 
 	// BEW 28Oct11, added (maybe temporarily) for allowing view drawing to proceed when

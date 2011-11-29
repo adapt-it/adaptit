@@ -59,8 +59,8 @@
 #include "Adapt_ItDoc.h"
 #include "CollectBacktranslations.h"
 
-#define Print_failure
-#define _V6PRINT
+//#define Print_failure
+//#define _V6PRINT
 
 /// This global is defined in Adapt_ItView.cpp
 extern bool	gbGlossingUsesNavFont;

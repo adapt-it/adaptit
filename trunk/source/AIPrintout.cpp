@@ -37,7 +37,7 @@
 #include <wx/wx.h>
 #endif
 
-#define Print_failure
+//#define Print_failure
 
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -488,18 +488,21 @@ bool AIPrintout::OnPrintPage(int page)
                     // pFirstPile to NULL and use it as a flag to skip further processing
                     pFirstPile = NULL;
                 }
-                // pPile is an anchor location, see if it falls within the current page
-                int aStripIndex = pPile->GetStripIndex();
-                if (aStripIndex > nLastStrip)
+                if (pFirstPile != NULL)
                 {
-                    // this free translation lies beyond the end of the current page for printing,
-                    // so ignore it - and skip the free translation stuff for this page
-                    pFirstPile = NULL;
-                }
-                else
-                {
-                    // we have an anchor pile on the current page
-                    pFirstPile = pPile;
+                    // pPile is an anchor location, see if it falls within the current page
+                    int aStripIndex = pPile->GetStripIndex();
+                    if (aStripIndex > nLastStrip)
+                    {
+                        // this free translation lies beyond the end of the current page for printing,
+                        // so ignore it - and skip the free translation stuff for this page
+                        pFirstPile = NULL;
+                    }
+                    else
+                    {
+                        // we have an anchor pile on the current page
+                        pFirstPile = pPile;
+                    }
                 }
             }
             else
@@ -509,25 +512,52 @@ bool AIPrintout::OnPrintPage(int page)
                 pFirstPile = pPile;
             }
         }
-        // we have the first anchor pile which potentially has material on the
-        // current page, now find the last pile on the page - whether it's the
-        // end of a free translation section or not
-        pPilesArray = pLastStrip->GetPilesArray();
-        nPileCount = pPilesArray->GetCount();
-        pLastPile = pLastStrip->GetPileByIndex(nPileCount - 1);
-        wxASSERT(pLastPile != NULL);
 
-        // do the aggregation loop
-        pPile = pFirstPile;
-        bool bIsFTrAnchor = FALSE;
-        do {
-            bIsFTrAnchor = pApp->GetFreeTrans()->IsFreeTranslationSrcPhrase(pPile);
-            if (bIsFTrAnchor)
-            {
-                // deal with this particular free translation, if it's not empty
-                 if (!pPile->GetSrcPhrase()->GetFreeTrans().IsEmpty())
+        // if we didn't find an anchor pile, skip looking for the free trans end
+        if (pFirstPile != NULL)
+        {
+            // we have the first anchor pile which potentially has material on the
+            // current page, now find the last pile on the page - whether it's the
+            // end of a free translation section or not
+            pPilesArray = pLastStrip->GetPilesArray();
+            nPileCount = pPilesArray->GetCount();
+            pLastPile = pLastStrip->GetPileByIndex(nPileCount - 1);
+            wxASSERT(pLastPile != NULL);
+
+            // do the aggregation loop, but only if there is at least one free translation
+            // was found on the page, and it's not empty
+            pPile = pFirstPile;
+            bool bIsFTrAnchor = FALSE;
+            do {
+                bIsFTrAnchor = pApp->GetFreeTrans()->IsFreeTranslationSrcPhrase(pPile);
+                if (bIsFTrAnchor)
                 {
-                    // it's a non-empty free translation section, aggregate it
+                    // deal with this particular free translation, if it's not empty
+                     if (!pPile->GetSrcPhrase()->GetFreeTrans().IsEmpty())
+                    {
+                        // it's a non-empty free translation section, aggregate it
+                        pApp->GetFreeTrans()->AggregateOneFreeTranslationForPrinting(
+                                    pDC, pLayout, pPile, arrFTElementsArrays,
+                                    arrFTSubstringsArrays, nStripsOffset, arrPileSet,
+                                    arrRectsForOneFreeTrans);
+                        // clean up
+                        arrPileSet.Clear(); // empty to be ready for next iteration
+                        arrRectsForOneFreeTrans.Clear(); // ditto
+                    }
+                    // if it's empty, there's no point in trying to set up for printing this
+                    // particular free trans section, so just scan on to the next
+                }
+                pPile = pView->GetNextPile(pPile);
+                if (pPile == NULL)
+                break;
+            } while (pPile != pLastPile);
+            // deal with the last one
+            if (pPile != NULL && pPile == pLastPile)
+            {
+                pSrcPhrase = pPile->GetSrcPhrase();
+                if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+                {
+                    // it's a new non-empty free translation section, aggregate it
                     pApp->GetFreeTrans()->AggregateOneFreeTranslationForPrinting(
                                 pDC, pLayout, pPile, arrFTElementsArrays,
                                 arrFTSubstringsArrays, nStripsOffset, arrPileSet,
@@ -536,27 +566,6 @@ bool AIPrintout::OnPrintPage(int page)
                     arrPileSet.Clear(); // empty to be ready for next iteration
                     arrRectsForOneFreeTrans.Clear(); // ditto
                 }
-                // if it's empty, there's no point in trying to set up for printing this
-                // particular free trans section, so just scan on to the next
-            }
-            pPile = pView->GetNextPile(pPile);
-            if (pPile == NULL)
-            break;
-        } while (pPile != pLastPile);
-        // deal with the last one
-        if (pPile != NULL && pPile == pLastPile)
-        {
-            pSrcPhrase = pPile->GetSrcPhrase();
-            if (!pSrcPhrase->GetFreeTrans().IsEmpty())
-            {
-                // it's a new non-empty free translation section, aggregate it
-                pApp->GetFreeTrans()->AggregateOneFreeTranslationForPrinting(
-                            pDC, pLayout, pPile, arrFTElementsArrays,
-                            arrFTSubstringsArrays, nStripsOffset, arrPileSet,
-                            arrRectsForOneFreeTrans);
-                // clean up
-                arrPileSet.Clear(); // empty to be ready for next iteration
-                arrRectsForOneFreeTrans.Clear(); // ditto
             }
         }
     } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
@@ -565,17 +574,24 @@ bool AIPrintout::OnPrintPage(int page)
     {
     int i;
     int cnt;
-    cnt = arrFTElementsArrays.GetCount();
-    wxLogDebug(_T("\n\n    OnPrintPage(): ++++++  PAGE = %d  ++++++, arrFTElementsArrays and  arrFTSubstringsArrays "), page);
-    for (i=0; i<cnt; i++)
+    if (!arrFTElementsArrays.IsEmpty())
     {
-        wxArrayPtrVoid* pAPV = (wxArrayPtrVoid*)arrFTElementsArrays.Item(i);
-        wxArrayString* pAS = (wxArrayString*)arrFTSubstringsArrays.Item(i);
-        int numFTs = pAPV->GetCount();
-        int numStrs = pAS->GetCount();
-        wxString lastStr = pAS->Item(numStrs - 1);
-        wxLogDebug(_T("    OnPrintPage() strip index = %d  ,  num FreeTrElement structs = %d ,  num substrings = %d , last substring = %s"),
-                   i, numFTs, numStrs, lastStr.c_str());
+        cnt = arrFTElementsArrays.GetCount();
+        wxLogDebug(_T("\n\n    OnPrintPage(): ++++++  PAGE = %d  ++++++, arrFTElementsArrays and  arrFTSubstringsArrays "), page);
+        for (i=0; i<cnt; i++)
+        {
+            wxArrayPtrVoid* pAPV = (wxArrayPtrVoid*)arrFTElementsArrays.Item(i);
+            if (pAPV->IsEmpty())
+                break;
+            wxArrayString* pAS = (wxArrayString*)arrFTSubstringsArrays.Item(i);
+            if (pAS)
+                break;
+            int numFTs = pAPV->GetCount();
+            int numStrs = pAS->GetCount();
+            wxString lastStr = pAS->Item(numStrs - 1);
+            wxLogDebug(_T("    OnPrintPage() strip index = %d  ,  num FreeTrElement structs = %d ,  num substrings = %d , last substring = %s"),
+                       i, numFTs, numStrs, lastStr.c_str());
+        }
     }
     }
 #endif
@@ -600,7 +616,8 @@ bool AIPrintout::OnPrintPage(int page)
                                  // direct draw with the next block immediately below
                                  // is the work-around needed
             // both real page print and print preview need the following line; it
-            // internally tests for gCheckInclGlossesText TRUE and m_bIsPrinting TRUE
+            // internally tests for gCheckInclGlossesText TRUE and m_bIsPrinting TRUE,
+            // and draws a gloss only if the pile has one to be drawn
             pApp->GetFreeTrans()->DrawOneGloss(pDC, aPilePtr, bRTLLayout);
         }
 #if defined(Print_failure) && defined(__WXDEBUG__)
@@ -611,7 +628,10 @@ bool AIPrintout::OnPrintPage(int page)
         // Test interleaving of the print of the free translations between
         // printing of the strips - this keeps a top-down printing order, which
         // the wxPostScriptDC seems to demand before it will behave... it works!
-         if (!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText)
+        // But call the function only if not previewing, and the user has requested that
+        // free translations be drawn, and that there actually are some on the page to
+        // be drawn
+         if (!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !arrFTElementsArrays.IsEmpty())
         {
 #if defined(Print_failure) && defined(__WXDEBUG__)
         wxLogDebug(_T("OnPrintPage(): about to draw free translations: passing in currentStrip = %d , nStripsOffset  %d  arrFTElementsArrays count = %d  arrFTSubstringsArrays count = %d"),

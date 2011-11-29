@@ -3325,6 +3325,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     pApp->m_bPrintingPageRange = FALSE;
     pApp->m_userPageRangePrintStart = 1; // 1-base indexing
     pApp->m_userPageRangePrintEnd = 1;   // 1-based indexing
+    pApp->m_userPageRangeStartPage = 1; // we use this to get a correct number into the printed footer
 #endif
 
 
@@ -3372,6 +3373,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
             pApp->m_bPrintingPageRange = TRUE;
             pApp->m_userPageRangePrintStart = nFrom; // 1-base indexing
             pApp->m_userPageRangePrintEnd = nTo; // 1-based indexing
+            pApp->m_userPageRangeStartPage = nFrom; //1-based indexing -- this one for footer
 #endif
 		}
 		else if (poDlg.pRadioSelection->GetValue() == TRUE)
@@ -3400,6 +3402,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
         pApp->m_bPrintingPageRange = FALSE;
         pApp->m_userPageRangePrintStart = 1; // 1-base indexing
         pApp->m_userPageRangePrintEnd = 1; // 1-based indexing
+        pApp->m_userPageRangeStartPage = 1;
 #endif
 		return;
 	}
@@ -4471,7 +4474,7 @@ bool CAdapt_ItView::DoRangePrintOp(const int nRangeStartSequNum, const int nRang
 }
 
 #if defined(__WXGTK__)
-bool CAdapt_ItView::SetupPageRangePrintOp(const int nFromPage, const int nToPage, wxPrintData* pPrintData)
+bool CAdapt_ItView::SetupPageRangePrintOp(const int nFromPage, int nToPage, wxPrintData* pPrintData)
 {
     CAdapt_ItApp* pApp = &wxGetApp();
     POList* pList = &pApp->m_pagesList;
@@ -4498,6 +4501,19 @@ bool CAdapt_ItView::SetupPageRangePrintOp(const int nFromPage, const int nToPage
     wxASSERT(nFromSequNum >= (int)0 && nFromSequNum < (int)pApp->m_pSourcePhrases->GetCount());
     // find the sequence number of the last pile in the last strip in the nToPage
     // PageOffsets struct
+    // BEWARE: pagination for the print options dialog was done on the assumption that if the
+    // document has free translations and/or glosses, they'd be wanted, and they increase the
+    // pages needed for printint the whole doc. If the user selects are range of pages, and also
+    // deselects printing of free translations and/or glosses, we can arrive at a situation where
+    // he gives a final page number which can never be reached, because with no free trans or
+    // glosses the pages needed are fewer, and his choice for the last page may lie beyond the
+    // last actual page. So here we must check how many we've got, and adjust the last value
+    // smaller if necessary.
+    if (nToPage > count)
+    {
+        nToPage = count;
+    }
+
     pos = pList->Item(nToPage - 1);
     pPageOffsets = pos->GetData();
     int nLastStrip = pPageOffsets->nLastStrip;
@@ -5409,6 +5425,11 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	wxString strPageNum;
+	if (pApp->m_bPrintingPageRange)
+	{
+	    // add the page offset, so the page numbers are what the user chose
+	    page += pApp->m_userPageRangeStartPage - 1;
+	}
 	strPageNum = strPageNum.Format(_T("%d"),page);
 	wxString tgtName = pApp->m_pKB->m_targetLanguageName;
 	wxString srcName = pApp->m_pKB->m_sourceLanguageName;
