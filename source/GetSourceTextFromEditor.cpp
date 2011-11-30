@@ -2298,7 +2298,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	
 	
 	// Build the command lines for reading the PT projects using rdwrtp7.exe
-	// and BE projects using bibledit-rdwrt.
+	// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
 	
 	// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the 
 	// commandline, because within GetSourceTextFromEditor() we are using temp variables 
