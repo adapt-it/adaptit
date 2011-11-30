@@ -181,7 +181,7 @@ wxString MakePathToFileInTempFolder_For_Collab(enum DoFor textKind)
 	return path;
 }
 
-// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/bibledit-rdwrt.
+// Build the command lines for reading the PT/BE projects using rdwrtp7.exe/adaptit-bibledit-rdwrt.
 // whm modified 27Jul11 to use _T("0") for whole book retrieval on the command-line
 // BEW 1Aug11, removed code from GetSourceTextFromEditor.h&.cpp to put it here
 // For param 1 pass in 'reading' for a read command line, or writing for a write command
@@ -2289,7 +2289,7 @@ wxString GetPathToRdwrtp7()
 
 wxString GetPathToBeRdwrt()
 {
-	// determine the path and name to bibledit-rdwrt executable utility
+	// determine the path and name to bibledit-rdwrt or adaptit-bibledit-rdwrt executable utility
 	wxString beRdwrtPathAndFileName;
 	beRdwrtPathAndFileName.Empty();
 	// Note: Teus says that builds (either user generated or in distro packages) of Bibledit
@@ -2298,11 +2298,8 @@ wxString GetPathToBeRdwrt()
 	// is likely to get released before that happens, and in case some Bibledit users haven't
 	// upgraded their BE version to a distribution that has bibledit-rdwrt installed along-side
 	// bibledit-gtk, we check for its existence here and use it if it is located in the normal
-	// /usr/bin location. If not present, we use our own copy in a non-standard Linux location
-	// that is not on any likely path, namely in the same location where an AI installation
-	// for Linux would put its AI_USFM.xml, books.xml and AI_UserProfiles.xml files. Typically,
-	// that location is at /usr/share/adaptit which is created by the debian installation
-	// process.
+	// /usr/bin location. If not present, we use our own copy called adaptit-bibledit-rdwrt 
+	// which is also installed into /usr/bin/.
 
 	if (::wxFileExists(gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt")))
 	{
@@ -2313,16 +2310,24 @@ wxString GetPathToBeRdwrt()
 	else
 	{
 		// bibledit-rdwrt does not exist in the Bibledit installation (i.e., the Bibledit version
-		// isn't recent enough), so use our copy in AI's /usr/share/adaptit xml install folder.
-		beRdwrtPathAndFileName = gpApp->m_xmlInstallPath + gpApp->PathSeparator + _T("bibledit-rdwrt");
+		// isn't recent enough), so use our copy in the /usr/bin folder called adaptit-bibledit-rdwrt.
+		// whm 22Nov11 note: previously I tried using the /usr/share/adaptit/ folder and calling the
+		// utility program bibledit-rdwrt, but the debian installer was refusing to allow a file with
+		// executable permissions to be placed there (it would remove the executable permissions on 
+		// installation). So, we will put a prefix on Adapt It's version and call it adaptit-bibledit-rdwrt,
+		// and store it in the normal folder for installed applications /usr/bin/ alongside the main adaptit
+		// executable.
+		beRdwrtPathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("adaptit-bibledit-rdwrt");
 		wxASSERT(::wxFileExists(beRdwrtPathAndFileName));
-		// Note: The beRdwrtPathAndFileName console app does not have any dependencies, but uses the
-		// same Linux dynamic libraries that the main bibledit-gtk program uses.
+		// Note: The beRdwrtPathAndFileName console app does uses the same Linux dynamic libraries that 
+		// the main bibledit-gtk program uses, but the version of Bibledit needs to be at least version 
+		// 4.2.x for our version of adaptit-bibledit-rdwrt to work.
 	}
 	if (!wxFileName::IsFileExecutable(beRdwrtPathAndFileName))
 	{
-		wxString msg = _("Adapt It cannot execute the helper application bibledit-rdwrt at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for bibledit-rdwrt.");
-		msg = msg.Format(msg,beRdwrtPathAndFileName.c_str());
+		wxFileName fn(beRdwrtPathAndFileName);
+		wxString msg = _("Adapt It cannot execute the helper application %s at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for %s.");
+		msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
 		wxMessageBox(msg,_T(""),wxICON_WARNING);
 		gpApp->LogUserAction(msg);
 	}
