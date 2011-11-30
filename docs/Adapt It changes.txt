@@ -4,8 +4,6 @@ Version 6.0.2 release 23 November 2011
 ----------------------------------------------
 Bug fixes and enhancements in 6.0.2
 ----------------------------------------------
-* The problems with the Print routines have been fixed for 
-the Linux version.
 * Adapt It now can run on computers with smaller screen
 resolutions, and on Balsa which reduces the effective
 screen resolution due to its large system font sizes. Now,
@@ -18,7 +16,20 @@ at the bottom of the dialog frame, but the remainder of the
 dialog will be able to scroll (horizontallyi and/or 
 vertically if needed) in order to allow the user to view all 
 the remaining information on the dialog.
-* 
+* The File > Print options now has checkboxes that allow the 
+user to include Free Translations and/or Glosses in physical
+printouts.
+* Printing of page ranges and selections has also been fixed.
+* A number of other Printing problems that existed mainly in 
+the Linux version (using PostScript printer drivers) have 
+also been fixed.
+* The ability to handle the input of texts with certain
+flavors of Unicode (UTF-8, UTF-16be, UTF-16le, etc) has been
+improved, along with the input of non-Unicode texts of 
+various encodings has been improved.
+* LIFT imports of KB data now are more interactive allowing
+the user to specify the fields to use for Adapt It's 
+translation equivalents.
 
 ----------------------------------------------
 Version 6.0.1 release 24 October 2011
