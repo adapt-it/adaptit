@@ -1221,7 +1221,7 @@ const wxString defaultProfileItems[] =
 	// stored in the m_pUserProfiles struct on the heap with those that are used in the
 	// defaultProfileItems string array below. It uses wxLogDebug() calls and even an assert
 	// in some cases to alert the programmer of any significant differences/inconsistencies.
-	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.0.2\":adminModified=\"No\"")
+	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.1.0\":adminModified=\"No\"")
 		_T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
