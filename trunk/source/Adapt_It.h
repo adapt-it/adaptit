@@ -74,11 +74,11 @@ class NavProtectNewDoc; // for user navigation protection feature
 //
 // next version will be 6.0.0, temporarily use 14th August 2011
 #define VERSION_MAJOR_PART 6
-#define VERSION_MINOR_PART 0
-#define VERSION_BUILD_PART 2
+#define VERSION_MINOR_PART 1
+#define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 30
-#define VERSION_DATE_MONTH 11
+#define VERSION_DATE_DAY 10
+#define VERSION_DATE_MONTH 12
 #define VERSION_DATE_YEAR 2011
 
 //#define Print_failure

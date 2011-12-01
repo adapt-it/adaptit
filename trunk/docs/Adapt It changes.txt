@@ -1,8 +1,8 @@
 ----------------------------------------------
-Version 6.0.2 release 23 November 2011
+Version 6.1.0 release 10 December 2011
 ----------------------------------------------
 ----------------------------------------------
-Bug fixes and enhancements in 6.0.2
+Bug fixes and enhancements in 6.1.0
 ----------------------------------------------
 * Adapt It now can run on computers with smaller screen
 resolutions, and on Balsa which reduces the effective
