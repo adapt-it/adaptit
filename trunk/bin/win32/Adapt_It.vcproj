@@ -511,6 +511,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ChooseLanguageCode.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ChooseLanguageDlg.cpp"
 				>
 			</File>
@@ -965,6 +969,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ChooseConsistencyCheckTypeDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ChooseLanguageCode.h"
 				>
 			</File>
 			<File

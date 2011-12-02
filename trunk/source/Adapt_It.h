@@ -2416,6 +2416,13 @@ public:
 	// whm added 10May10 for KB LIFT XML Export support
 	wxString	m_sourceLanguageCode; // 3-letter code for the source language
 	wxString	m_targetLanguageCode; // 3-letter code for the target language
+	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
+	// (these are used for getting a target text entry, if the import is redone in
+	// glossing mode in order to populate the glossing KB, these are wiped out and
+	// reset from the 2nd import of the same LIFT file)
+	wxString	m_LIFT_chosen_lang_code; // user's chosen language (that is, its code)
+	wxString	m_LIFT_subfield_delimiters; // for comma and any other subfield delimiters allowed
+	wxArrayString m_LIFT_multilang_codes; // the codes for each language in entries
 
 	bool		m_bExistingAdaption;
 	bool		m_bKBReady;
