@@ -7855,6 +7855,13 @@ void MakeFixedSpaceTranslation(CSourcePhrase* pWord1SPh, CSourcePhrase* pWord2SP
 }
 
 
+void GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangCode, 
+						  wxArrayString& arrLangCodes)
+{
+
+
+}
+
 
 
 

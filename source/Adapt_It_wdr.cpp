@@ -8908,6 +8908,118 @@ wxSizer *SelectCollabProjectsDialogFunc( wxWindow *parent, bool call_fit, bool s
     return item0;
 }
 
+wxSizer *LiftLangFilterFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_SRC, _("Source text language:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_LANG, wxT(""), wxDefaultPosition, wxSize(40,-1), 0 );
+    item3->SetToolTip( _("Source text language code") );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_NOTCHANGED, _("(This cannot be changed.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(400,-1), wxLI_HORIZONTAL );
+    item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_TGT_CODE, _("Target text language:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+
+    wxString *strs11 = (wxString*) NULL;
+    wxListBox *item11 = new wxListBox( parent, ID_LISTBOX_TGT, wxDefaultPosition, wxSize(80,60), 0, strs11, wxLB_SINGLE );
+    item11->SetToolTip( _("Target text potential language codes") );
+    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item7->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item6->Add( 50, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_GLOSS_CODE, _("Glossing text language:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+
+    wxString *strs16 = (wxString*) NULL;
+    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_GLOSS, wxDefaultPosition, wxSize(80,60), 0, strs16, wxLB_SINGLE );
+    item16->SetToolTip( _("Glossing language potential language codes") );
+    item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item12->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item6->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL_TELL, _("Select one language code from those in whichever list is currently active."), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
+    item17->Add( item18, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG2, _("(To populate the glossing knowledge base from the same LIFT file, turn on glossing mode, then import again - selecting a different language code.)"), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    item19->Add( item20, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item0->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    item21->Add( 150, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item22 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetDefault();
+    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item21->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item23 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item21->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item21, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
