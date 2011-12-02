@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-28 09:53+0100\n"
-"PO-Revision-Date: 2011-10-28 16:41+0100\n"
+"PO-Revision-Date: 2011-11-16 16:36+0100\n"
 "Last-Translator: Kevin Bradford <kevin_bradford@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -4284,7 +4284,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2158
 msgid "Show Administrator Menu (Password protected)"
-msgstr ""
+msgstr "Afficher le menu administrateur (mot de passe protégé)"
 
 #: source/Adapt_It_wdr.cpp:2159
 #: source/Adapt_It_wdr.cpp:8948
@@ -7831,7 +7831,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:8948
 msgid "Show Administrator Menu... (Password protected)"
-msgstr ""
+msgstr "Afficher le menu administrateur (mot de passe protégé)"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8952
