@@ -56,6 +56,7 @@
 #include "AdaptitConstants.h"
 #include "Adapt_ItDoc.h"
 #include "BString.h" // this needs to be included before "XMLErrorDlg.h"
+#include "ChooseLanguageCode.h"
 #include "XMLErrorDlg.h"
 #include "SourcePhrase.h"
 #include "KB.h"
@@ -6683,11 +6684,66 @@ bool ReadKB_XML(wxString& path, CKB* pKB,wxProgressDialog* pProgDlg, wxUint32 nP
 *   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse a LIFT xml file
-*
+* BEW 3Dec11, added support for handling multi-language glosses or definitions when in the
+* LIFT file
 *******************************************************************/
 
 bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 {
+	// Because of the possibility of multilanguage entries in the LIFT file,
+	// preprocessing is necessary - and if there is ambiguity for the choice
+	// of target text (or glossing text if Glossing mode is currently on), then
+	// the user must see a dialog and be able to choose which one to use for
+	// the target text. Disallow the import if the LIFT's src text ethnologue
+	// code is different from the app's m_sourceLanguageCode; and for the
+	// target text, disallow if the user's choice is different from the app's
+	// m_targetLanguageCode value; but if these values as stored on the app are
+	// empty, we let the import go ahead and set them from those in the LIFT 
+	// file. We need to add m_glossesLanguageCode to the app too.
+	bool bGotThemOK;
+	bGotThemOK = GetLIFTlanguageCodes(gpApp, path, gpApp->m_LIFT_src_lang_code, 
+					gpApp->m_LIFT_multilang_codes, gpApp->m_bLIFT_use_gloss_entry);
+	if (!bGotThemOK || gpApp->m_LIFT_multilang_codes.IsEmpty())
+	{
+		// don't expect failure, but if it happened then an English message has been
+		// seen already, so just abort the import
+		return TRUE; // we don't want to force the XML error dialog open, so return TRUE
+	}
+	int numberOfCodes;
+	numberOfCodes = gpApp->m_LIFT_multilang_codes.GetCount();
+	if (numberOfCodes > 1)
+	{
+		// a dialog for user choice has to be shown here
+		ChooseLanguageCode dlg(gpApp->GetMainFrame());
+		if (dlg.ShowModal()== wxID_OK)
+		{
+			// user hit OK button
+			;
+// TODO
+		}
+		else
+		{
+			// user cancelled - this cancels the import too
+			return TRUE; // we don't want to force the XML error dialog open, so return TRUE
+		}
+	}
+	else
+	{
+		// no user choice needed, so set the app variable for the code, and
+		// then proceed to the checks which protect against language mixing
+		gpApp->m_LIFT_chosen_lang_code = gpApp->m_LIFT_multilang_codes.Item(0);
+	}
+
+
+
+// TODO  --- put dialog up if needed, & the implementation of the protocols in comment above
+
+
+
+
+
+
+
 	nLexItemsProcessed = 0;
 	nAdaptationsProcessed = 0;
 	nAdaptationsAdded = 0;
@@ -7854,12 +7910,222 @@ void MakeFixedSpaceTranslation(CSourcePhrase* pWord1SPh, CSourcePhrase* pWord2SP
 	targetStr += convertedPunct;	
 }
 
-
-void GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangCode, 
-						  wxArrayString& arrLangCodes)
+/////////////////////////////////////////////////////////////////////////////
+/// \return                 TRUE if no error, FALSE if something failed
+/// \param pApp         ->  ptr to the application object
+/// \param path         ->  file path to the LIFT file being imported (path assumed valid)
+/// \param srcLangCode  <-  the ethnologue code which is in the first <form> element
+///                         (the caller will pass in pApp->m_LIFT_src_lang_code)
+/// \param arrLangCodes <-  ref to a wxArrayString for storing however many unique 
+///                         ethnologue codes are collected from the <gloss> entries
+///                         in the LIFT file (if there are no <gloss> entries, 
+///                         <definition> entries are searched instead -- eg. WeSay uses
+///                         only the latter) The caller will pass in
+///                         pApp->m_LIFT_multilang_codes)
+/// \remarks
+/// The codes are collected from the <gloss> entries, as <gloss> entries are what are
+/// normally used for LIFT data. We say uses <definition> instead, so for WeSay data
+/// we collect from those entries. If there are both kinds in the file, we collect
+/// only from the <gloss> entries, because these are shorter "meanings" whereas
+/// <definition> entries would contain longer, more verbose text descriptive of the
+/// data rather than being a 'meaning' per se.
+/////////////////////////////////////////////////////////////////////////////
+bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangCode, 
+						  wxArrayString& arrLangCodes, bool& bParseGlossEntries)
 {
+	bParseGlossEntries = TRUE; // default
+	arrLangCodes.Clear();
+	size_t fileLength;
+	wxFile fileIn;
+	bool bUseGlossEntries = FALSE;
+	bool bUseDefinitionEntries = FALSE;
+	int glossEntriesCount = 0;
+	int definitionEntriesCount = 0;
+	int offset = -1; // where the search text was next matched
+	int pos = 0; // where to search forward from
 
+	bool bOpen = fileIn.Open(path, wxFile::read);
+	if (bOpen)
+	{
+		fileLength = fileIn.Length();
+		char* pBuff = new char[fileLength + 1]; // temporary buffer
+		memset(pBuff, 0, fileLength + 1); // +1 for a null byte at the end
+		size_t actualNumBytes;
+		actualNumBytes = fileIn.Read((void*)pBuff, fileLength);
+		// make a CBString with a copy of the buffer contents (however
+		// many we actually got, that is, actualNumBytes worth)
+		CBString xmlStr(pBuff); // xmlStr will now manage the copied byte data
+		delete pBuff; // temp buff is no longer needed
 
+		// first task is to find if we are dealing with <gloss> only, <definition> 
+		// only, or a file which has both those kinds of elements; and how many of
+		// each there are -- we'd want to exclude using one type of entry if it only
+		// occurs a very few times but the other occurs in all or most productions,
+		// but we'll use a simple test -- whichever element type predominates, we
+		// use that, and if the counts are equal, we use <gloss>
+		CBString glossStr = "<gloss";
+		CBString definitionStr = "<definition";
+		offset = xmlStr.Find(glossStr);
+		while (offset != -1)
+		{
+			glossEntriesCount++;
+			pos = offset + 6;
+			offset = xmlStr.Find(glossStr, pos);
+		}
+		offset = xmlStr.Find(definitionStr);
+		while (offset != -1)
+		{
+			definitionEntriesCount++;
+			pos = offset + 11;
+			offset = xmlStr.Find(definitionStr, pos);
+		}
+		if (glossEntriesCount > 0 && definitionEntriesCount == 0)
+		{
+			bUseGlossEntries = TRUE;
+			bParseGlossEntries = TRUE; // tell the app class
+		}
+		else if (definitionEntriesCount > 0 && glossEntriesCount == 0)
+		{
+			bUseDefinitionEntries = TRUE;
+			bParseGlossEntries = FALSE; // tell the app class
+		}
+		else if (definitionEntriesCount > 0 && glossEntriesCount > 0)
+		{
+			// find out which wins
+			if (definitionEntriesCount > glossEntriesCount)
+			{
+				// let the definitions collection win
+				bUseDefinitionEntries = TRUE;
+				bParseGlossEntries = FALSE; // tell the app class
+			}
+			else
+			{
+				// all other circumstances, use <gloss> entries for the collection
+				bUseGlossEntries = TRUE;
+				bParseGlossEntries = TRUE; // tell the app class
+			}
+		}
+		else
+		{
+			// ?? no definitions or glosses - can't happen, 
+			// tell developer (English message will do) & abort the import
+			wxMessageBox(_T("GetLIFTlanguageCodes(), found no <gloss> nor <definition> entries - so aborting the LIFT import"));
+			return FALSE;
+		}
+
+		// find the first "<form" string, then the next "lang" strip will be followed
+		// by "=" and then opening doublequote, after that is the srcLangCode we want
+		// and we only need find it once
+		offset = xmlStr.Find("<form");
+		pos = 0;
+		if (offset != -1)
+		{
+			// found one, now look for the "lang" attribute name
+			pos = offset;
+			offset = xmlStr.Find("lang",pos + 5);
+			if (offset != -1)
+			{
+				// found it, now look for the opening doublequote
+				pos = offset + 4;
+				offset = xmlStr.Find('\"',pos);
+				if (offset != -1)
+				{
+					// add 1 and we are at the start of the src language code
+					int anIndex = offset + 1;
+					CBString sourceLangCode = "";
+					char nextChar = xmlStr.GetAt(anIndex);
+					while (nextChar != '\"')
+					{
+						sourceLangCode += nextChar;
+						anIndex++;
+						nextChar = xmlStr.GetAt(anIndex);
+					}
+					// on exit from the loop we have the src language's ethnologue code
+#ifdef _UNICODE
+					pApp->Convert8to16(sourceLangCode, srcLangCode);
+#else
+					wxString s(sourceLangCode.GetData());
+					srcLangCode = s;
+#endif
+
+				}
+			}
+		}
+
+		// now scan the xmlStr LIFT productions again, collecting from either the <gloss>
+		// elements, or the <definition> elements, according to what was found above
+		CBString searchStr;
+		if (bUseGlossEntries)
+		{
+			searchStr = "<gloss";
+		}
+		else
+		{
+			searchStr = "<definition";
+		}
+		offset = xmlStr.Find(searchStr);
+		int offset2 = -1; // use for secondary inner searches
+		pos = 0;
+		while (offset != -1)
+		{
+			// found the next one, now look for the "lang" attribute name
+			pos = offset + 6; // +6 is safe for both types of search string
+			offset2 = xmlStr.Find("lang", pos);
+			if (offset2 == -1)
+			{
+				// ignore this one
+				offset += 6;
+				offset = xmlStr.Find(searchStr, offset); // find next entry & iterate
+				continue;
+			}
+			else
+			{
+				// found the following lang attribute name, now look for
+				// its doublequote opening char
+				pos = offset2 + 4;
+				offset2 = xmlStr.Find('\"', pos);
+				if (offset2 == -1)
+				{
+					// we don't expect control will ever enter here, if it did
+					// then the LIFT file is malformed, but we'll provide safe
+					// transition over such a place if it happens
+					offset += 6;
+					offset = xmlStr.Find(searchStr, offset); // find next entry & iterate
+					continue;
+				}
+				else
+				{
+					// add 1 to offset2 and we are at the start of a language code
+					int anIndex = offset2 + 1;
+					CBString aLangCode = "";
+					char nextChar = xmlStr.GetAt(anIndex);
+					while (nextChar != '\"')
+					{
+						aLangCode += nextChar;
+						anIndex++;
+						nextChar = xmlStr.GetAt(anIndex);
+					}
+					// on exit from the loop we have a language's ethnologue code
+					wxString codeStr = _T("");
+#ifdef _UNICODE
+					pApp->Convert8to16(aLangCode, codeStr);
+#else
+					wxString s(aLangCode.GetData());
+					codeStr = s;
+#endif
+					AddUniqueString(&arrLangCodes, codeStr);
+
+					// prepare for next iteration
+					offset = offset2 + 3; // +3 is safe
+					offset = xmlStr.Find(searchStr, offset); // find next entry & iterate
+				}
+			} // end of else block for test: if (offset2 == -1)
+		} // end of loop: while (offset != -1)
+
+		fileIn.Close(); // ignore returned boolean
+
+	} // end of TRUE block for test: if (bOpen)
+	return TRUE;
 }
 
 

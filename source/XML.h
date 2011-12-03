@@ -381,9 +381,9 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList);
 void MakeFixedSpaceTranslation(CSourcePhrase* pWord1SPh, CSourcePhrase* pWord2SPh, 
 							   wxString& adaption, wxString& targetStr);
 
-// BEW 2Dec11, for LIFT support
-void GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangCode, 
-						  wxArrayString& arrLengCodes);
+// BEW 2Dec11, for LIFT support; return TRUE if no error, FALSE if fails for some reason
+bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangCode, 
+						  wxArrayString& arrLangCodes, bool& bParseGlossEntries);
 
 #endif // XML_h
 
