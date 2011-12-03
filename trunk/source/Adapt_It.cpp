@@ -12520,6 +12520,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_savedSelectionLine = -1; // which cell of the piles has the selection (-1 if none)
 	m_savedSelectionAnchorIndex = -1; // the sequence number for the pile where saved selection starts
 	m_savedSelectionCount = -1; // how many consecutive CCell (or CPile) instances are in the selection
+
+	// default substring delimiters possibly used within LIFT file <text> elements - we
+	// assume only two, comma and semicolon
+	m_LIFT_subfield_delimiters = _T(",;");
+
 #if defined(__WXGTK__)
     // BEW added 15Nov11
     m_bPrintingPageRange = FALSE;

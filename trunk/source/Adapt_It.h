@@ -2416,13 +2416,20 @@ public:
 	// whm added 10May10 for KB LIFT XML Export support
 	wxString	m_sourceLanguageCode; // 3-letter code for the source language
 	wxString	m_targetLanguageCode; // 3-letter code for the target language
+	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
+
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
 	// (these are used for getting a target text entry, if the import is redone in
 	// glossing mode in order to populate the glossing KB, these are wiped out and
-	// reset from the 2nd import of the same LIFT file)
+	// reset from the 2nd import of the same LIFT file) The first four of the 
+	// following members are set by GetLIFTlanguageCodes() (see XML.cpp), the
+	// fifth defaults to comma and semicolon - and is set in OnInit()
+	bool		m_bLIFT_use_gloss_entry; // TRUE if parsing looks at <gloss> entries, FALSE 
+										 // if parsing looks at <definition> entries
+	wxString	m_LIFT_src_lang_code; // src language ethnologue code obtained from LIFT file
 	wxString	m_LIFT_chosen_lang_code; // user's chosen language (that is, its code)
-	wxString	m_LIFT_subfield_delimiters; // for comma and any other subfield delimiters allowed
 	wxArrayString m_LIFT_multilang_codes; // the codes for each language in entries
+	wxString	m_LIFT_subfield_delimiters; // for comma and any other subfield delimiters allowed
 
 	bool		m_bExistingAdaption;
 	bool		m_bKBReady;
