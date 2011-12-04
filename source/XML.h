@@ -273,8 +273,7 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 // whm added 19May10
 bool AtLIFTTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtLIFTEmptyElemClose(CBString& tag,CStack*& pStack);
-bool AtLIFTAttr(CBString& WXUNUSED(tag),CBString& WXUNUSED(attrName),
-				CBString& WXUNUSED(attrValue),CStack*& WXUNUSED(pStack));
+bool AtLIFTAttr(CBString& tag,CBString& attrName, CBString& attrValue, CStack*& WXUNUSED(pStack));
 bool AtLIFTEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
 
