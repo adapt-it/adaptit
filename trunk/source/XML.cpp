@@ -119,7 +119,7 @@ int gnMapIndex; // 0-based index to the current map
 wxString gKeyStr;// source text key string for the map entry
 int gnRefCount; // reference count for the current CRefString instance
 //bool bKeyDefined = FALSE;
-//extern bool gbIsGlossing;
+extern bool gbIsGlossing;
 
 static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
 						// for a given key, the relevant map contains a CTargetUnit
@@ -5118,6 +5118,9 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else if (tag == xml_sense)
 	{
+		// BEW added 4Dec11, ensure the last-used value for a parsed lang attribute is cleared
+		gpApp->m_LIFT_cur_lang_code.Empty();		
+
 		nAdaptationsProcessed++;
         // Note: we accept only a <text> tag which is in a definition or gloss, either of
         // which is embedded in a sense. But there can be many other <text> elements in a
@@ -5324,10 +5327,43 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 	return TRUE;
 }
 
-bool AtLIFTAttr(CBString& WXUNUSED(tag),CBString& WXUNUSED(attrName),
-				CBString& WXUNUSED(attrValue),CStack*& WXUNUSED(pStack))
+bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack))
 {
-	// there are no attributes in LIFT that we need to process
+#ifdef _UNICODE // Unicode application
+	wxString valueStr;
+	gpApp->Convert8to16(attrValue,valueStr);
+	const wxChar* pValue = valueStr;
+#else // ANSI application
+	char* pValue = (char*)attrValue;
+#endif 
+	if (tag == xml_gloss)
+	{
+		if (attrName == xml_lang)
+		{
+			// we may want this one
+			gpApp->m_LIFT_cur_lang_code = pValue;
+		}
+		else
+		{
+			// don't care about others, return TRUE to keep parsing going
+			gpApp->m_LIFT_cur_lang_code.Empty();
+			return TRUE;
+		}
+	}
+	else if (tag == xml_definition)
+	{
+		if (attrName == xml_lang)
+		{
+			// we may want this one
+			gpApp->m_LIFT_cur_lang_code = pValue;
+		}
+		else
+		{
+			// don't care about others, return TRUE to keep parsing going
+			gpApp->m_LIFT_cur_lang_code.Empty();
+			return TRUE;
+		}
+	}
 	return TRUE; // no error
 }
 
@@ -5604,8 +5640,10 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 #endif
 				}
 			}
-		}
-	}
+		} // end of TRUE block for test:
+		// else if (pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense) ||
+		//		 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry) )
+	} // end of TRUE block for test: if (tag == xml_text)
 	return TRUE;
 }
 
@@ -6709,6 +6747,19 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 		// seen already, so just abort the import
 		return TRUE; // we don't want to force the XML error dialog open, so return TRUE
 	}
+
+	// disallow the import if the ethnologue code in the <form> element does not 
+	// match the app's m_sourceLanguageCode -- we don't allow languages to be mixed
+	if (!gpApp->m_sourceLanguageCode.IsEmpty() &&
+		(gpApp->m_sourceLanguageCode != gpApp->m_LIFT_src_lang_code))
+	{
+		wxString msg;
+		msg = msg.Format(_T("The source language already has the code %s which does not match the code %s in the LIFT file for the source text language.\nImporting this LIFT file would mix two different languages in the one knowledge base, which is not allowed.\nThis LIFT import attempt will not be done."),
+			gpApp->m_sourceLanguageCode.c_str(), gpApp->m_LIFT_src_lang_code.c_str());
+		wxMessageBox(msg, _T("Different source languages, not allowed"));
+		return TRUE; // returning TRUE prevents the xml error dialog from being triggered
+	}
+
 	int numberOfCodes;
 	numberOfCodes = gpApp->m_LIFT_multilang_codes.GetCount();
 	if (numberOfCodes > 1)
@@ -6717,9 +6768,8 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 		ChooseLanguageCode dlg(gpApp->GetMainFrame());
 		if (dlg.ShowModal()== wxID_OK)
 		{
-			// user hit OK button
+			// user hit OK button, the button's handler does all that's needed
 			;
-// TODO
 		}
 		else
 		{
@@ -6734,16 +6784,7 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 		gpApp->m_LIFT_chosen_lang_code = gpApp->m_LIFT_multilang_codes.Item(0);
 	}
 
-
-
-// TODO  --- put dialog up if needed, & the implementation of the protocols in comment above
-
-
-
-
-
-
-
+	// if control gets to here, we go ahead with the import
 	nLexItemsProcessed = 0;
 	nAdaptationsProcessed = 0;
 	nAdaptationsAdded = 0;

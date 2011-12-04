@@ -127,7 +127,7 @@ bool CStack::Contains(const Item item)
 //         <text>somePCDATA</text>
 // Then the "current" top item on the stack is the one which we presumably are processing
 // using, say, an AtLIFTPCDATA() or similar callback, the first parent will be <definition>
-// and the second parent will be <sense> -- so we need to test only fot two parents here, 
+// and the second parent will be <sense> -- so we need to test only for two parents here, 
 // though there may well be other tags higher up which we don't test for.
 // Any arguments unused for testing in the function should have emptyStr as their parameter,
 // as defined above..
