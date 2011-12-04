@@ -9,6 +9,13 @@ noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 # of the other Makefile.am variables
 bin_PROGRAMS = adaptit
 
+# Install either the x86-64 or x86 binary build of bibledit-rdwrt
+# Detect the architecture based on /bin/ls. If the architecture is not
+# x86-64 or x86 than error.
+be_arch_name = $(shell file /bin/ls | sed 's/.* \(\w*86-*\w*\).*/\1/')
+be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter x86,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
+bin_SCRIPTS = ../adaptit-bibledit-rdwrt/lucid-$(be_arch_dir)/adaptit-bibledit-rdwrt
+
 # Localization data
 SUBDIRS = po
 ACLOCAL_AMFLAGS = -I m4
@@ -26,8 +33,7 @@ xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
 	../../xml/books.xml
 miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
-        ../../docs/curl-ca-bundle.crt \
-	bibledit-rdwrt/lucid-$(host_cpu)/bibledit-rdwrt
+        ../../docs/curl-ca-bundle.crt
 
 # HTML help data
 htmlmaindir = $(pkgdatadir)/help
