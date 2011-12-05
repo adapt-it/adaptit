@@ -2,7 +2,31 @@
 Version 6.1.0 release 10 December 2011
 ----------------------------------------------
 ----------------------------------------------
-Bug fixes and enhancements in 6.1.0
+Feature changes and new features in 6.1.0
+----------------------------------------------
+* LIFT imports to the KB files have enhanced functionality.
+They now support LIFT files with multilanguage glosses, or 
+definitions. The choice of extracting data from the <gloss> 
+entries, versus the <definition> entries is now automatically
+made - whichever type predominates is the one that the import
+will use. If there is only one language choice, no dialog is
+shown to the user. If two or more languages are used for
+meanings, then the ethnologue code for each is shown in a
+dialog at the start of the import process - choose the one
+to populate which KB type is current. (You can populate the
+GlossingKB simply by switching to glossing mode, and then
+choosing a different listed ethnologue code than the one you
+chose for adapting mode.)
+* The list of ethnologue language codes now include all of
+the 2-letter codes (from the iso639-1 standard) as well as
+the 3-letter codes (from the iso639-3 standard). These 
+codes are used in LIFT imports and exports.
+* Edit boxes for the Gloss language name and gloss language
+ethnologue code have been added to the Backups and Misc tab 
+of Preferences, as well as the dialog for the lookup and 
+selection of language codes.
+----------------------------------------------
+Bug fixes in 6.1.0
 ----------------------------------------------
 * Adapt It now can run on computers with smaller screen
 resolutions, and on Balsa which reduces the effective
@@ -26,10 +50,7 @@ also been fixed.
 * The ability to handle the input of texts with certain
 flavors of Unicode (UTF-8, UTF-16be, UTF-16le, etc) has been
 improved, along with the input of non-Unicode texts of 
-various encodings has been improved.
-* LIFT imports of KB data now are more interactive allowing
-the user to specify the fields to use for Adapt It's 
-translation equivalents.
+various encodings.
 
 ----------------------------------------------
 Version 6.0.1 release 24 October 2011
