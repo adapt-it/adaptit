@@ -495,7 +495,7 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
         // Mostly a low-byte follows a high-byte
         return "windows-1252";
     }
-    return NULL;
+    return "unknown";	// GDLC 16Nov11 Was return NULL but this caused a crash in the caller
 }
 
 const char* tellenc(const char* const buffer, const size_t len)

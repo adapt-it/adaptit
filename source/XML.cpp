@@ -5507,12 +5507,12 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			if (gbIsGlossing)
 			{
 				wxLogDebug(_T("AtLIFTPCDATA() from gloss entries: doing %d , lang code = %s , src = %s , adaptit_gloss = %s"),
-					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code, gKeyStr, textStr);
+					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code.c_str(), gKeyStr.c_str(), textStr.c_str());
 			}
 			else
 			{
 				wxLogDebug(_T("AtLIFTPCDATA() from gloss entries: doing %d , lang code = %s , src = %s , tgt = %s"),
-					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code, gKeyStr, textStr);
+					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code.c_str(), gKeyStr.c_str(), textStr.c_str());
 			}
 #endif
 //#endif

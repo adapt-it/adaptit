@@ -807,7 +807,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// get the code by advancing over the white space after the \id marker, and then taking
 					// the next 3 characters as the code
 					const wxChar* pStr = gpApp->m_pBuffer->GetData();
-					wxChar* ptr = (wxChar*)pStr;
+					wxChar* ptr = (wxChar*) pStr;
 					ptr += pos;
 					ptr += 4; // advance beyond \id and whatever white space character is next
 					while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))

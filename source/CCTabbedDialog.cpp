@@ -983,9 +983,11 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 
 	// do the converting and transfer the converted data to editor's wxString member for the table,
 	// (which then persists while table editor lives)
-	gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff, gpApp->m_srcEncoding);
-// GDLC 16Sep11 Last parameter no longer needed
-//	gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	// GDLC 16Sep11 Last parameter no longer needed
+	// gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	wxString* pTemp;
+	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding);
+	editor.m_ccTable = *pTemp;
 
 	// free the original read in (const) char data's chunk
 	free((void*)pbyteBuff);

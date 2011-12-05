@@ -30042,34 +30042,45 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// \return     nothing
 /// \param      pBuf       <- the buffer which receives the converted text
 /// \param      pbyteBuff  -> the byte buffer containing the text to be converted
+/// \param      eEncoding  -> the encoding to use if there is no BOM in the input
+/// \param      byteBufLen -> the length of the byte buffer to be converted
 /// \remarks
 /// Called from: the Doc's GetNewFile() and CCCTabbedDialog::DoEditor().
 /// Converts a UTF-8 or UTF-16 input text to the required UTF-16 for internal use in
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
-/// GDLC 8Sep11 Modified to use wxConvAuto_AI
-/// GDLC 9Sep11 Removed params eEncoding and bHasBOM
-/// GDLC 16Sep11 Put eEncoding back in for wxConvAuto_AI default encoding
-/// Note: This function now needs the wxConvAuto_AI from wxWidgets 2.9.1
+/// Because TokeniseText() and other related functions in Adapt It rely on the presence of
+/// a wchar_t NUL at the end of their input wxStrings, the byte buffer pbyteBuff should
+/// have a terminating NUL byte and its specified length byteBufLen should include this NUL.
+///
+///	Note: This function now needs the wxConvAuto_AI from wxWidgets 2.9.1
+//
+//	GDLC 8Sep11 Modified to use wxConvAuto_AI
+//	GDLC 9Sep11 Removed params eEncoding and bHasBOM
+//	GDLC 16Sep11 Put eEncoding back in for wxConvAuto_AI default encoding
+//	GSLC 25Nov11 Added length parameter to constructor for dstStr
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff,
-									 wxFontEncoding eEncoding)
+void CAdapt_ItApp::DoInputConversion(wxString*& pBuf, const char* pbyteBuff,
+									 wxFontEncoding eEncoding, size_t byteBufLen)
 {
 	wxConvAuto_AI conv(eEncoding);
-	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff);
+	// GDLC 26Nov11 Because the pbyteBuff could be UTF16 which has numerous NUL bytes,
+	// we specify the length of the input buffer rather than allow wxConvAuto to stop
+	// when it finds a NUL.
+	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff, byteBufLen);
 	if ( dstLen == wxCONV_FAILED )
 	{
 		::wxBell();
 		wxASSERT(FALSE);
 		return;
 	}
-	wchar_t *dst = new wchar_t[dstLen];
-	if ( conv.ToWChar(dst, dstLen, pbyteBuff) == wxCONV_FAILED )
+	wxChar *dst = new wxChar[dstLen];
+	if ( conv.ToWChar(dst, dstLen, pbyteBuff, byteBufLen) == wxCONV_FAILED )
 	{
 		::wxBell();
 		wxASSERT(FALSE);
 		return;
 	}
-	wxString dstStr(dst);
+	wxString* dstStr = new wxString(dst, dstLen);
 	delete dst;
 	pBuf = dstStr;
 }

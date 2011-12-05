@@ -336,7 +336,12 @@ wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
 // next two use tellenc.cpp
 bool IsLoadableFile(wxString& absPathToFile);
 // determine endian value for theText, from how the bytes are ordered
-bool IsLittleEndian(wxString& theText);
+// bool IsLittleEndian(wxString& theText);
+//	GDLC Nov11 There is no need to supply IsLittleEndian() with a wxString because it calls
+//	tellenc2() which takes a const unsigned char* const buffer which is what reading the file
+//	gives us anyway - char * to wxString to char * is useless conversion! But we do need a
+//	parameter for the length of the buffer.
+bool IsLittleEndian(const unsigned char* const pCharBuf, unsigned int size_in_bytes);
 
 /* unused, but perfect good
 bool PopulateTextCtrlByLines(wxTextCtrl* pText, wxString* pPath, int numLines = -1);
