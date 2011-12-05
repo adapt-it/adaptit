@@ -79,10 +79,11 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	Cell.$(OBJEXT) ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) CollabUtilities.$(OBJEXT) \
 	conschk_exists_notu_dlg.$(OBJEXT) \
-	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
-	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
-	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
-	convauto.$(OBJEXT) CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
+	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseLanguageCode.$(OBJEXT) \
+	ChooseTranslation.$(OBJEXT) CollectBacktranslations.$(OBJEXT) \
+	ComposeBarEditBox.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
+	ConsistentChanger.$(OBJEXT) convauto.$(OBJEXT) \
+	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
 	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
 	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
 	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
@@ -408,7 +409,7 @@ adaptit_SOURCES = \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
-	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
+	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
@@ -592,6 +593,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CaseEquivPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Cell.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseConsistencyCheckTypeDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageCode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseTranslation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabUtilities.Po@am__quote@
@@ -1041,6 +1043,20 @@ ConsChk_Empty_noTU_Dlg.obj: ../../source/ConsChk_Empty_noTU_Dlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ConsChk_Empty_noTU_Dlg.cpp' object='ConsChk_Empty_noTU_Dlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ConsChk_Empty_noTU_Dlg.obj `if test -f '../../source/ConsChk_Empty_noTU_Dlg.cpp'; then $(CYGPATH_W) '../../source/ConsChk_Empty_noTU_Dlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ConsChk_Empty_noTU_Dlg.cpp'; fi`
+
+ChooseLanguageCode.o: ../../source/ChooseLanguageCode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseLanguageCode.o -MD -MP -MF $(DEPDIR)/ChooseLanguageCode.Tpo -c -o ChooseLanguageCode.o `test -f '../../source/ChooseLanguageCode.cpp' || echo '$(srcdir)/'`../../source/ChooseLanguageCode.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ChooseLanguageCode.Tpo $(DEPDIR)/ChooseLanguageCode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ChooseLanguageCode.cpp' object='ChooseLanguageCode.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseLanguageCode.o `test -f '../../source/ChooseLanguageCode.cpp' || echo '$(srcdir)/'`../../source/ChooseLanguageCode.cpp
+
+ChooseLanguageCode.obj: ../../source/ChooseLanguageCode.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseLanguageCode.obj -MD -MP -MF $(DEPDIR)/ChooseLanguageCode.Tpo -c -o ChooseLanguageCode.obj `if test -f '../../source/ChooseLanguageCode.cpp'; then $(CYGPATH_W) '../../source/ChooseLanguageCode.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseLanguageCode.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ChooseLanguageCode.Tpo $(DEPDIR)/ChooseLanguageCode.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ChooseLanguageCode.cpp' object='ChooseLanguageCode.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseLanguageCode.obj `if test -f '../../source/ChooseLanguageCode.cpp'; then $(CYGPATH_W) '../../source/ChooseLanguageCode.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseLanguageCode.cpp'; fi`
 
 ChooseTranslation.o: ../../source/ChooseTranslation.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseTranslation.o -MD -MP -MF $(DEPDIR)/ChooseTranslation.Tpo -c -o ChooseTranslation.o `test -f '../../source/ChooseTranslation.cpp' || echo '$(srcdir)/'`../../source/ChooseTranslation.cpp

@@ -72,7 +72,7 @@ adaptit_SOURCES = \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
-	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp \
+	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
 	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
