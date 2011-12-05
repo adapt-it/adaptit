@@ -9,11 +9,11 @@ noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 # of the other Makefile.am variables
 bin_PROGRAMS = adaptit
 
-# Install either the x86-64 or x86 binary build of bibledit-rdwrt
+# Install either the x86-64 or x86 (80386) binary build of bibledit-rdwrt
 # Detect the architecture based on /bin/ls. If the architecture is not
-# x86-64 or x86 than error.
+# x86-64 or 80386 then error.
 be_arch_name = $(shell file /bin/ls | sed 's/.* \(\w*86-*\w*\).*/\1/')
-be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter x86,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
+be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter 80386,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
 bin_SCRIPTS = ../adaptit-bibledit-rdwrt/lucid-$(be_arch_dir)/adaptit-bibledit-rdwrt
 
 # Localization data
@@ -58,7 +58,6 @@ docFile_DATA = ../../docs/Localization_Readme.txt
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp
 	 (cd $<; zip -qr - . -x \*.svn\* ) > $@
-
 
 #
 # the application source, library search path, and link libraries
