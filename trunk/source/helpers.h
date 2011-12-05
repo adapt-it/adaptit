@@ -406,6 +406,18 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
 									int XPos, int YPos, int& myTopCoord, int& myLeftCoord);
 
+/* it's currently useless, because 2-letter codes are not supported in the is639 standard
+   // so comment out this function, and it's use in InitDialog() of ChooseLanguageCode.cpp
+   
+// Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name string,
+// and inverted name string (internally, calls GetNewFile() on the path to the file
+// "iso639-3codes.txt", and looks up the code, and parses the required strings from the
+// rest of that line, and returns them in params 2 and 3. Return TRUE if no error, FALSE if
+// something went wrong and one or other of the returned strings isn't defined (if that was
+// the case, the errant string would be returned as empty)
+bool GetLanguageCodeDetails(wxString& code, wxString& printName, wxString& invertedName);
+*/ 
+
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
 // m_pSrcPhrase and m_pOwningPile, and so not being properly in sync with the doc list;
