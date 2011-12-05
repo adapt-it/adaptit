@@ -40,11 +40,7 @@ public:
 	// or definition language, then the dialog is displayed for the user to choose
 	// which he wants; but if there is only one, no dialog is displayed and the single
 	// existing one is used automatically
-
-	
-
-
-
+	bool m_bUserCanceled;
 
 protected:
 	wxListBox* m_pListTgtCodes;

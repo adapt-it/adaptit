@@ -29,6 +29,8 @@
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
+#include <wx/msgdlg.h>
+
 #endif
 
 // other includes
@@ -92,6 +94,30 @@ void ChooseLanguageCode::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		// populate both lists, but only one will be shown enabled
 		wxString aCode = m_pApp->m_LIFT_multilang_codes.Item(index);
+		/* can't use at the moment....
+		// if we someday get 2-letter codes supported, then resurrect this code;
+		// but at present it returns garbage names, since the iso639 list only
+		// has 3-letter codes, and so en, hi, ur, give wrong matches
+		int length = aCode.Len();
+		bool bIsEven = (length/2)*2 == length;
+		wxString printName;
+		wxString invertedName; // we get it, but don't use it
+		bool bOK = GetLanguageCodeDetails(aCode, printName, invertedName);
+		if (bOK || ( !bOK && !printName.IsEmpty() ))
+		{
+			// add the name in parentheses
+			if (bIsEven)
+			{
+				aCode += _T("   ("); // 3 spaces
+			}
+			else
+			{
+				aCode += _T("  ("); // 3-letter code, so 2 spaces
+			}
+			aCode += printName;
+			aCode += _T(")");
+		}
+		*/
 		m_pListTgtCodes->Append(aCode);
 		m_pListGlossCodes->Append(aCode);
 	}
@@ -124,6 +150,7 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 {
 	// get the chosen language code, and store it on the app member for
 	// that purpose
+	m_bUserCanceled = FALSE;
 	int nSel;
 	wxString s;
 	if (gbIsGlossing)
@@ -140,6 +167,37 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 			// set the glossing language's ethnologue code, other than this
 			// way - via a LIFT import -- this is a bit dangerous, as it 
 			// could mix languages)
+			
+			// protect from choosing the target language's code
+			if (m_pApp->m_targetLanguageCode == s)
+			{
+				// warn the user
+				wxString msg;
+				int style = wxYES_NO | wxCANCEL;
+				msg = msg.Format(_T("The target language already has the code %s. But your chosen code for the glossing language, %s, is the same language. \nThis is allowable, but chose No if you don't want the target and glossing languages to be the same, and then select a different language or Cancel.\nDo you want the languages to be the same?"),
+					m_pApp->m_targetLanguageCode.c_str(), s.c_str());
+				int answer = wxMessageBox(msg, _T("Beware: same languages"), style);
+				if (answer == wxYES)
+				{
+					// go ahead, allow the choice
+					;
+				}
+				else if (answer == wxCANCEL)
+				{
+					// user wants to cancel the import
+					m_bUserCanceled = TRUE;
+					event.Skip();
+					return;
+				}
+				else
+				{
+					// user gave a No answer, so return to the dialog
+					m_bUserCanceled = FALSE;
+					m_pApp->m_LIFT_chosen_lang_code.Empty();
+					return; // keep the dialog open 
+				}
+			}
+			m_bUserCanceled = FALSE;
 			m_pApp->m_glossesLanguageCode = s;
 			m_pApp->m_LIFT_chosen_lang_code = s;
 		}
@@ -160,14 +218,15 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 					m_pApp->m_glossesLanguageCode.c_str(), s.c_str());
 				wxMessageBox(msg, _T("Not the same language"));
 				m_pApp->m_LIFT_chosen_lang_code.Empty();
-
+				m_bUserCanceled = FALSE;
 				// keep the dialog open for another try
 				return;
 			}
 		}
 	}
-	else
+	else // we are dealing with adaptation mode, populating the target text KB
 	{
+		m_bUserCanceled = FALSE;
 		nSel = m_pListTgtCodes->GetSelection();
 		s = m_pListTgtCodes->GetString(nSel);
 		// check that we are not mixing languages
@@ -202,7 +261,6 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 			}
 		}
 	}
-	 
 	event.Skip();
 }
 
@@ -210,8 +268,6 @@ void ChooseLanguageCode::OnCancel(wxCommandEvent& event)
 {
 	// A cancel click is a choice to abort all that follows -- such as the
 	// particular import being attempted
-
+	m_bUserCanceled = TRUE;
 	event.Skip();
-
-	// TODO
 }

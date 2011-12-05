@@ -6184,6 +6184,66 @@ bool IsEthnologueCodeValid(wxString& code)
 	return TRUE;
 }
 
+/* it's currently useless, because 2-letter codes are not supported in the is639 standard
+   // so comment out this function, and it's use in InitDialog() of ChooseLanguageCode.cpp
+
+// Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name string,
+// and inverted name string (internally, calls GetNewFile() on the path to the file
+// "iso639-3codes.txt", and looks up the code, and parses the required strings from the
+// rest of that line, and returns them in params 2 and 3. Return TRUE if no error, FALSE if
+// something went wrong and one or other of the returned strings isn't defined (if that was
+// the case, the errant string would be returned as empty) -- code is pillaged from Bill's
+// LanguageCodesDlg::InitDialog() function
+bool GetLanguageCodeDetails(wxString& code, wxString& printName, wxString& invertedName)
+{
+	printName.Empty();
+	invertedName.Empty();
+	wxString iso639_3CodesFileName = _T("iso639-3codes.txt");
+	wxString pathToLangCodesFile;
+	pathToLangCodesFile = gpApp->GetDefaultPathForXMLControlFiles();
+	pathToLangCodesFile += gpApp->PathSeparator;
+	pathToLangCodesFile += iso639_3CodesFileName;
+
+	wxString* pTempStr;
+	pTempStr = new wxString;
+	wxUint32 nLength = 0;
+	// 0 in the next call means "get all the file's contents"
+	enum getNewFileState state = GetNewFile(pTempStr, nLength, pathToLangCodesFile, 0);
+	if (state != getNewFile_success)
+	{
+		return FALSE;
+	}
+	wxString searchStr = code + _T("\t"); // add tab, to ensure we don't get a spurious match
+	int offset;
+	offset = pTempStr->Find(searchStr);
+	if (offset == wxNOT_FOUND)
+	{
+		return FALSE;
+	}
+	int len2 = searchStr.Len();
+	offset += len2; // offset now points at the start of printName
+	int pos = offset;
+	wxString aTab = _T("\t");
+	offset = FindFromPos(*pTempStr, aTab, pos + 1);
+	wxASSERT(offset != wxNOT_FOUND && offset > pos);
+	// the printName is the text between locations pos to offset
+	wxString s(*pTempStr, pos, offset - pos);
+	printName = s;
+	// now get the inverted name string
+	pos = pos + 1; // advance over the tab
+	// search to m_eolStr, the platform-specific end-of-line string
+	offset = FindFromPos(*pTempStr, gpApp->m_eolStr, pos);
+	if (offset == wxNOT_FOUND)
+	{
+		return FALSE; // even though FALSE, printName should be okay, so caller can test that
+	}
+	wxString invs(*pTempStr, pos, offset - pos);
+	invertedName = invs;
+	delete pTempStr;
+	return TRUE;
+}
+*/
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		void
 /// \param		pTemp		<-> a wxString whose line endings must be converted to just LF
@@ -6776,26 +6836,23 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 //	nLength = nNumRead + sizeof(wxChar);
 
 	// BEW added 16Aug11, determine the endian value for the string we have just read in
-<<<<<<< .mine
-// GDLC Nov11 Conversion to a wxString is no longer necessary and this did not do it anyway.
-//	wxString theBuf = wxString((wxChar*)pbyteBuff);
-//	GDLC 2Dec11 Don't give tellenc the NUL that we added at the end of the buffer
-	bIsLittleEndian = IsLittleEndian((const unsigned char*) pbyteBuff, nNumRead);
-=======
+	// GDLC Nov11 Conversion to a wxString is no longer necessary and this did not do it anyway.
+	// wxString theBuf = wxString((wxChar*)pbyteBuff);
 	// BEW 5Dec11, this fails for a short text which is "\id JHN xxxxx" where xxxxx is the
 	// utf8 characters for an exotic script language (Kangri, in India). Casting doesn't
 	// do the required conversions, I'll comment it out and replace with what I know works
 	// and leave it to Graeme to change later if necessary
 	//wxString theBuf = wxString((wxChar*)pbyteBuff);
 	wxString theBuf;
-#if defined(_UNICODE)
-	CBString cbs(pbyteBuff);
-	theBuf = gpApp->Convert8to16(cbs);
-#else
-	theBuf = pbyteBuff;
-#endif
-	bIsLittleEndian = IsLittleEndian(theBuf);
->>>>>>> .r2078
+//#if defined(_UNICODE)
+//	CBString cbs(pbyteBuff);
+//	theBuf = gpApp->Convert8to16(cbs);
+//#else
+//	theBuf = pbyteBuff;
+//#endif
+//	bIsLittleEndian = IsLittleEndian(theBuf);
+//	GDLC 2Dec11 Don't give tellenc the NUL that we added at the end of the buffer
+	bIsLittleEndian = IsLittleEndian((const unsigned char*) pbyteBuff, nNumRead);
 
 	if (bShorten)
 	{

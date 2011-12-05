@@ -297,7 +297,7 @@ static int numUSFMMarkersOutput = 0;
 // helper, for repetitive writing of elements to an arbitrary length FILE, utf-8, in TEXT mode
 void DoWrite(wxFile& file, CBString& str)
 {
-	//wxLogNull logNo; // avoid spurious messages from the system
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	Int32 len = str.GetLength();
 	char* pstr = (char*)str;
@@ -947,7 +947,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 
 	bool bOpenOK;
 	{ // a restricted scope block for wxLogNull
-		//wxLogNull logNo; // eliminated spurious messages from the system (we already have error message)
+		wxLogNull logNo; // eliminated spurious messages from the system (we already have error message)
 
 		bOpenOK = file.Open(path,wxFile::read);
 	}
@@ -5467,12 +5467,11 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 #else
 			aKeyStr = pcdata.GetBuffer();
 #endif
+#if defined(_debugLIFT_) && defined(__WXDEBUG__)
 			// temporary, for debugging
-//#if defined(_debugLIFT_)
-#if defined(__WXDEBUG__)
 			gKeyStr = aKeyStr; // so the wxLogDebug() call below can grab the untokenized string
 #endif
-//#endif
+
 			// set up the array of substrings; last param is default TRUE meaning "store
 			// in the array any substring which is empty" - we allow building of a KB
 			// record with a zero adaptation or gloss - it does no harm and the user can
@@ -5502,8 +5501,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			long count_str;
 			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, textStr,
 										gpApp->m_LIFT_glossesArray);
-//#if defined(_debugLIFT_)
-#if defined(__WXDEBUG__)
+#if defined(_debugLIFT_) && defined(__WXDEBUG__)
 			if (gbIsGlossing)
 			{
 				wxLogDebug(_T("AtLIFTPCDATA() from gloss entries: doing %d , lang code = %s , src = %s , adaptit_gloss = %s"),
@@ -5515,7 +5513,6 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code.c_str(), gKeyStr.c_str(), textStr.c_str());
 			}
 #endif
-//#endif
 			ProcessLIFT_PCDATA(gpApp->m_LIFT_formsArray, gpApp->m_LIFT_glossesArray);
 		}
 		else if (!gpApp->m_bLIFT_use_gloss_entry &&
@@ -5566,9 +5563,8 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 	// all ten maps
 	int numWords;
 	int formsCount = arrForms.GetCount();
-	wxASSERT(formsCount >= 1);
-	int meaningsCount = arrMeanings.GetCount();
-	wxASSERT(meaningsCount >= 1);
+	wxASSERT(formsCount >= 1); // must be at least one
+	int meaningsCount = arrMeanings.GetCount(); // can be zero
 
 	wxString textStr;
 	int formsIndex;
@@ -5610,8 +5606,14 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 		for (meaningsIndex = 0; meaningsIndex < meaningsCount; meaningsIndex++)
 		{
 			// set textStr to the currently-to-be-stored adaptation, or gloss
-			textStr = arrMeanings.Item(meaningsIndex);
-
+			if (meaningsCount == 0)
+			{
+				textStr.Empty();
+			}
+			else
+			{
+				textStr = arrMeanings.Item(meaningsIndex);
+			}
 			// lookup the CKB to see if there is an appropriate CTargetUnit there,
 			// get it if so, else return NULL
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
@@ -6907,8 +6909,13 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 		ChooseLanguageCode dlg(gpApp->GetMainFrame());
 		if (dlg.ShowModal()== wxID_OK)
 		{
-			// user hit OK button, the button's handler does all that's needed
-			;
+			// user hit OK button, the button's handler does all that's needed,
+			// except that it is possible to request an import cancel from within
+			// a message box shown to the user from the OK button handler - so check
+			if (dlg.m_bUserCanceled)
+			{
+				return TRUE; // we don't want to force the XML error dialog open, so return TRUE
+			}
 		}
 		else
 		{
