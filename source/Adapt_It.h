@@ -2431,12 +2431,12 @@ public:
 	wxArrayString m_LIFT_multilang_codes; // the codes for each language in entries
 	wxString	m_LIFT_subfield_delimiters; // for comma and any other subfield delimiters allowed
 	wxString	m_LIFT_cur_lang_code; // set to "value" every time a new lang="value" attr is parsed
-	wxArrayString m_LIFT_forms; // one or more PCDATA strings from <text> in <form> element
+	wxArrayString m_LIFT_formsArray; // one or more PCDATA strings from <text> in <form> element
 	// of the next two, only one is used per LIFT import, chosen by m_LIST_use_gloss_entry
-	// value - if the latter is TRUE, m_LIFT_glosses is used, if FALSE, m_LIFT_definitions
+	// value - if the latter is TRUE, m_LIFT_glossesArray is used, if FALSE, m_LIFT_definitionsArray
 	// is used
-	wxArrayString m_LIFT_glosses; // one or more PCDATA strings from <text> in <gloss> element
-	wxArrayString m_LIFT_definitions; // one or more PCDATA strings from <text> in <definition> element
+	wxArrayString m_LIFT_glossesArray; // one or more PCDATA strings from <text> in <gloss> element
+	wxArrayString m_LIFT_definitionsArray; // one or more PCDATA strings from <text> in <definition> element
 
 	bool		m_bExistingAdaption;
 	bool		m_bKBReady;
