@@ -90,7 +90,7 @@ extern bool	gbAutoCaps;
 #define nU16BOMLen 2
 
 #ifdef _UNICODE
-
+/* Used only in the old form of GetNewFile()
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
 /// this BOM.
@@ -100,7 +100,7 @@ static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
 /// in UTF-16 encoding, reverse order if big-endian
 static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE};
 static wxUint8 szU16BOM_BigEndian[nU16BOMLen] = {0xFE, 0xFF};
-
+*/
 #endif
 
 
@@ -5855,26 +5855,28 @@ bool IsLoadableFile(wxString& absPathToFile)
 	}
 	//size_t len = GetFileSize_t(absPathToFile); // not needed
 	size_t len = f.Length(); // it's legal to assign to size_t
-	wxMemoryBuffer* pBuffer = new wxMemoryBuffer(len);	//+ 2 removed because NULs are not needed
-	// Create acceptable pointers for calls below
-	char* ptr = (char*)pBuffer->GetData();
-	const unsigned char* const saved_ptr = (const unsigned char* const)ptr;
-//	*(ptr + len) = '\0';	GDLC The NULs are not needed
+//	GDLC 26Nov11 tellenc merely wants a char buffer
+//	wxMemoryBuffer* pBuffer = new wxMemoryBuffer(len);	// GDLC + 2 removed because NULs are not needed
+	char* pbyteBuff = (char*)malloc(len);	
+//	// Create acceptable pointers for calls below
+//	char* ptr = (char*)pBuffer->GetData();
+//	const unsigned char* const saved_ptr = (const unsigned char* const)pbyteBuff;
+//	*(ptr + len) = '\0';	GDLC The NULs are not needed for tellenc
 //	*(ptr + len + 1) = '\0';
 	// get the file opened and read it into a memory buffer
-	size_t numRead = f.Read(ptr,len);
+	size_t numRead = f.Read(pbyteBuff,len);
 	if (numRead < len)
 	{
 		// don't expect this error, so use English message
 		wxMessageBox(_T("IsLoadableFile() read in less then all of the file. File will be treated as non-loadable."),
 			_T("Error"),wxICON_WARNING);
-		delete pBuffer;
+		delete pbyteBuff;
 		f.Close();
 		return FALSE;
 	}
 	// now find out what the file's data is
 	CBString resultStr;
-	resultStr.Empty();
+//	resultStr.Empty(); GDLC We don't need this Empty operation
 	// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 	// whm 20Sep11 Note: Since Bruce calls tellenc2() here with len, tellenc does not
 	// include the two null bytes at the end of the buffer, and so the two added null bytes
@@ -5882,7 +5884,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	// include the null chars in its check, otherwise tellenc would return a result of
 	// "binary" even for a non-binary file.
 	// 
-	resultStr = tellenc2(saved_ptr, len); // xml files are returned as "binary" too
+	resultStr = tellenc2((const unsigned char *)pbyteBuff, len); // xml files are returned as "binary" too
 										  // so hopefull html files without an extension
 										  // will likewise be "binary" & so be rejected
 
@@ -5890,17 +5892,17 @@ bool IsLoadableFile(wxString& absPathToFile)
 	// check it's not xml
 	bool bIsXML = FALSE;
 	char cstr[6] = {'\0','\0','\0','\0','\0','\0'};
-	cstr[0] = *(ptr + 0);
-	cstr[1] = *(ptr + 1);
-	cstr[2] = *(ptr + 2);
-	cstr[3] = *(ptr + 3);
-	cstr[4] = *(ptr + 4);
+	cstr[0] = *(pbyteBuff + 0);
+	cstr[1] = *(pbyteBuff + 1);
+	cstr[2] = *(pbyteBuff + 2);
+	cstr[3] = *(pbyteBuff + 3);
+	cstr[4] = *(pbyteBuff + 4);
 	CBString aStr = cstr;
 	if (aStr == "<?xml")
 	{
 		bIsXML = TRUE;
 	}
-	delete pBuffer;
+	delete pbyteBuff;
 
 //	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
 // GDLC I agree with Bill that we can allow ucs-4 and usc4-le
@@ -5913,6 +5915,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	return TRUE;
 }
 
+/* 
 bool IsLittleEndian(wxString& theText)
 {
 	// wchar_t is 2 bytes in Windows, 4 in Unix; we support non-Unicode app only for
@@ -5926,7 +5929,7 @@ bool IsLittleEndian(wxString& theText)
 	char* ptr = (char*)pUtf16Buf;
 	const unsigned char* const pCharBuf = (const unsigned char* const)ptr;
 	CBString resultStr;
-	resultStr.Empty();
+//	resultStr.Empty(); GDLC We don't need this Empty operation
 	resultStr = tellenc2(pCharBuf, size_in_bytes);
 	if (resultStr == "utf-16" || resultStr == "ucs-4")
 	{
@@ -5936,8 +5939,25 @@ bool IsLittleEndian(wxString& theText)
 #endif
 	return bIsLittleEndian;
 }
+*/
 
-
+bool IsLittleEndian(const unsigned char* const pCharBuf, unsigned int size_in_bytes)
+{
+	// wxChar is 2 bytes in Windows, 4 in Mac & Linux; we support non-Unicode app only for
+	// Windows, which is low-endian 
+	bool bIsLittleEndian = TRUE;
+#ifdef _UNICODE
+	CBString resultStr;
+//	resultStr.Empty(); GDLC We don't need this Empty() operation.
+	resultStr =tellenc2(pCharBuf, size_in_bytes);
+	if (resultStr == "utf-16" || resultStr == "ucs-4")
+	{
+		// theText is big-endian
+		bIsLittleEndian = FALSE;
+	}
+#endif
+	return bIsLittleEndian;
+}
 
 /* works, but should only be used for small files
 // returns TRUE if it succeeds, else FALSE, pText is a multiline text control (best if it
@@ -6164,7 +6184,233 @@ bool IsEthnologueCodeValid(wxString& code)
 	return TRUE;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		void
+/// \param		pTemp		<-> a wxString whose line endings must be converted to just LF
+/// \remarks
+/// Called only from: GetNewFile().
+/// Converts CR or CR-LF line endings into just LF
+///////////////////////////////////////////////////////////////////////////////
+static void ConvertLineEndingsForGetNewFile(wxString*& pTemp)
+{
+	// Get a buffer in which to build the converted string
+	wxUint32 len = pTemp->length();
+	wxChar *dst = new wxChar[len];
+	
+	// Scan the string converting line endings as necessary
+#define	CR	'\r'
+#define LF	'\n'
+#define NUL	'\0'
+	wxChar c;
+	wxUint32 i, j;
+	for (i=0, j=0; i<len; i++)
+	{
+		c = pTemp->GetChar(i);
+		if (c == CR)
+		{
+			// Replace the CR by an LF
+			dst[j++] = LF;
+			// Check whether there is an LF to consume
+			c = pTemp->GetChar(i + 1);
+			if (c == LF) ++i;
+		}
+		else if (c == NUL)
+		{
+			dst[j++] = c;
+			break;
+		}
+		else dst[j++] = c;
+	}
+	
+	// Return the modified string
+	wxString* pLFString = new wxString(dst, j);
+	pTemp = pLFString;
+}
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		void
+/// \param		pTemp		<-> a wxString to be truncated to numwxChars
+///	\param		numwxChars	->	the number of wxChars to be left in the string
+/// \remarks
+/// Called only from: GetNewFile().
+/// Truncates the pTemp to numwxChars and then NUL terminates it.
+///////////////////////////////////////////////////////////////////////////////
+static void ShortenStringForGetNewFile(wxString*& pTemp, wxUint32 numwxChars)
+{
+#define NUL	'\0'
+	// If pTemp is longer than the desired number of wxChars then truncate it
+	// and ensure that it is NUL terminated.
+	if (pTemp->Len() > numwxChars)
+	{
+		pTemp->Truncate(numwxChars+1);	// Allow for the NUL we will add
+		pTemp->SetChar(numwxChars, NUL);
+	} else
+	{
+		// If there is no need to truncate pTemp then do nothing, assuming that the
+		// conversion process in GetNewFile() has generated a NUL terminated wxString.
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		enum getNewFileState indicating success or error state when reading the
+///             file.
+/// \param		pstrBuffer	<- a wxString which receives the text file once loaded
+/// \param		nLength		<- the length of the returned wxString in wxChars (not needed
+///								and will be removed as other parts of the app are adjusted)
+/// \param		pathName	-> path and name of the file to read into pstrBuffer
+/// \param      numKBOnly   -> default is 0 The number of kilobytes that are wanted.
+///                            This can be safely greater than the file's size.)
+/// \remarks
+/// Called from: the Doc's OnNewDocument(), and helper.cpp's PopulateTextCtrlWithChunk().
+/// Opens and reads a standard format input file into a wxString pstrBuffer which
+/// is used by the caller to tokenize and build the in-memory data structures used by the
+/// View to present the data to the user. Note: the pstrBuffer wxString is null-terminated.
+///
+/// BEW 19July10, added 4th param, numKBOnly, with default value 0. If this param has the
+/// value zero, the whole file is read in. If it has a non-zero value (number of kilobytes),
+/// then extra code switches in as follows:
+/// (a) the returned string will be limited to a number of wxChars roughly matching the
+/// number of kB requested. If the whole file is shorter than the requested amount,
+/// the whole file is shown,
+/// (b) the returned string will have had all line terminators changed to wxChar LF
+/// characters. (This guarantee of Unix line termination is what wxTextCtrl, for
+/// multiline style, wants.) These manipulations are done after the text file (in
+/// whatever coding it exists) has been converted to wxChars.
+/// GDLC 2Dec11 Function completely rewritten using wxConvAuto
+///////////////////////////////////////////////////////////////////////////////
+enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
+								wxString pathName, int numKBOnly)
+{
+// GDLC TESTING ONLY - REMOVE FROM RELEASE APP
+//	numKBOnly = 1;
+	
+	// get a CFile and check length of file
+	wxFile file;
+	if (!file.Open(pathName, wxFile::read))
+	{
+		return getNewFile_error_at_open;
+	}
+	
+	// file is now open, so find its logical length (always in bytes)
+	wxUint32 numBytesInFile = file.Length();
+	
+	// GDLC Calc and keep the actual length of the byte buffer (which is NOT
+	// necessarily the same as the length of the resulting wxString)
+	// But at this stage we don't know whether the file is ASCII, ANSI, UTF8,
+	// UTF16 or UTF32, so we will put a 4 byte NUL after the last byte of the file.
+    wxUint32 nBuffLen = numBytesInFile + 4;
+	
+	// Get a byte buffer and read the file's data into it then close the file.
+	char* pbyteBuff = (char*)malloc(nBuffLen);
+	wxUint32 nNumRead = (wxUint32)file.Read(pbyteBuff, numBytesInFile);
+	file.Close();
+
+	// GDLC 2Dec11 Null terminate the byte buffer to ensure that wxConvAuto
+	// produces a null terminated wxString.
+	pbyteBuff[nNumRead] = '\0';
+	pbyteBuff[nNumRead+1] = '\0';
+	pbyteBuff[nNumRead+2] = '\0';
+	pbyteBuff[nNumRead+3] = '\0';
+
+	// Use tellenc() to find the encoding of the text file. Give tellenc the
+	// number of bytes read not including the terminating NUL because tellenc()
+	// does not want that.
+	init_utf8_char_table();
+	const char* enc = tellenc(pbyteBuff, numBytesInFile);
+	if (!(enc) || strcmp(enc, "unknown") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+	}
+	else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+	}
+	else if (strcmp(enc, "windows-1252") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
+	}
+	else if (strcmp(enc, "ascii") == 0)
+	{
+		// File was all pure ASCII characters, so assume same as Latin1
+		gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+	}
+	else if (strcmp(enc, "utf-8") == 0) // Only valid UTF-8 sequences
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
+	}
+	else if (strcmp(enc, "utf-16") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF16BE;
+	}
+	else if (strcmp(enc, "utf-16le") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE;
+	}
+	else if (strcmp(enc, "ucs-4") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF32BE;
+	}
+	else if (strcmp(enc, "ucs-4le") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE;
+	}
+	else if (strcmp(enc, "binary") == 0)
+	{
+		// free the original read in (const) char data's chunk
+		free((void*)pbyteBuff);
+		return getNewFile_error_opening_binary;
+	}
+	else if (strcmp(enc, "gb2312") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
+	}
+	else if (strcmp(enc, "cp437") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
+	}
+	else if (strcmp(enc, "big5") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
+	}
+
+	// Use wxConvAuto to convert the text file from its encoding into a wxString
+	wxString*	pTemp;
+	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding, nBuffLen);
+
+	// Free the byte buffer read from the file
+	free((void*)pbyteBuff);
+
+	// Convert CR and CRLF line terminations to just LF
+	ConvertLineEndingsForGetNewFile(pTemp);
+	
+	// Limit the size of the wxString if numKBOnly is non-zero
+	if (numKBOnly > 0)
+	{
+		// Calculate the target number of wxChars that should be returned in the wxString
+		// Target number of file KB * 1024 multiplied by the ratio of
+		// number of wxChars in the wxString to the number of bytes in the original file
+		//
+		// The number of wxChars resulting from converting the file will vary from 1 wxChar
+		// per byte for ASCII files down to about 1 wxChar per 4 bytes for UTF32 files.
+		//
+		// Note: we are talking about the number of wxChars, NOT the number of bytes in
+		// the wxString (which will vary with the build - 1 ANSI, 2 Win, 4 Mac/Lin).
+		//
+		// Note: by processing all three multiplicands before dividing by numBytesInFile we can
+		// avoid conversions to and from floating point to cope with the less than 1.0 ratio.
+		wxUint32 numwxChars = (numKBOnly * 1024 * pTemp->Len())/numBytesInFile;
+
+		// Truncate the wxString to the desired number of wxChars
+		ShortenStringForGetNewFile(pTemp, numwxChars);
+	}
+
+	// Return the wxString and its length to the caller.
+	pstrBuffer = pTemp;
+	nLength = pTemp->Len();
+	return getNewFile_success;
+}
+
+/*
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		enum getNewFileState indicating success or error state when reading the
 ///             file.
@@ -6276,7 +6522,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	}
 
 	// file is now open, so find its logical length (always in bytes)
-	nLength = file.Length();
+	wxUint32 numBytesInFile = file.Length();
+	nLength = numBytesInFile;	// confused thinking retained because of the ANSI section
 
     // BEW 19July10, if 4th input param numKBOnly is non-zero, we have to take only a max
     // of byteCount bytes, so we shorten to that much & then take of the end until we come
@@ -6320,15 +6567,14 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 
 	// create the required buffer and then read in the file (no conversions needed)
 	// BEW changed 8Apr06; use malloc to remove the limitation of the finite stack size
-	char* pBuf = (wxChar*)malloc(nLength + 1); // allow for terminating null byte
+	char* pBuf = malloc(nLength + 1); // allow for terminating null byte
 	char* pBegin_COPY = NULL;
-	memset(pBuf,0,nLength + 1);
+	memset(pBuf,0,nLength + 1);	// zero the extra byte for the NUL as well
 	wxUint32 numRead = file.Read(pBuf,(wxUint32)nLength);
-	pBuf[numRead] = '\0'; // add terminating null
 	nLength = numRead; // in case we didn't get all of it, use what we got
-	originalBuffLen = nLength + sizeof(wxChar); // save it in case we need it below
+//	GDLC Nov11
+	originalBuffLen = nLength + 1; // save it in case we need it below
 	nLength += sizeof(wxChar); // allow for terminating null (sets m_nInputFileLength in the caller)
-
 	if (bShorten)
 	{
 		// find out if CR and /or LF is within the data (can use strchr() for this)
@@ -6449,7 +6695,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
 
 	init_utf8_char_table();
-	const char* enc = tellenc(pBuf, numRead - 1); // don't include null char at buffer end
+//	GDLC Nov11
+	const char* enc = tellenc(pBuf, numRead); // don't include null char at buffer end
 	if (!(enc) || strcmp(enc, "unknown") == 0)
 	{
 		gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
@@ -6493,10 +6740,13 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	{
 		gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
 	}
-
-	*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
+//	GDLC Nov11
+	if (pstrBuffer != NULL) delete pstrBuffer;	// Avoid memory leaks
+	pstrBuffer = new wxString(pBuf, nLength);	// GDLC 2Nov11 Modified to ensure safe return of the wxString
+//	wxString* pwxBuf = new wxString(pBuf, nLength);	// GDLC 2Nov11 Modified to ensure safe return of the wxString
+//	*pstrBuffer = pwxBuf;
+//	*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
 						// buffer is destroyed
-
 	free((void*)pBuf);
 
 #else	// Unicode version supports ASCII, ANSI (but may not be rendered right
@@ -6510,17 +6760,28 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	wxUint32 nNumRead;
 	bool bHasBOM = FALSE;
 
-    wxUint32 nBuffLen = nLength + sizeof(wxChar); // sizeof(wxChar) is for null bytes
+// GDLC Calc and keep the actual length of the byte buffer (which is NOT the same as the
+// length of the resulting wxString)
+    wxUint32 nBuffLen = numBytesInFile + 1; // allow for the NUL byte we will add
 
 	// get a byte buffer, initialize it to all null bytes, then read the file's data into it
 	char* pbyteBuff = (char*)malloc(nBuffLen);
 	char* pBegin_COPY = NULL;
-	memset(pbyteBuff,0,nBuffLen); // fill with nulls
+//	GDLC Nov11 We shouldn't need to initialise it to NUL bytes, just put a NUL at its end
+//	memset(pbyteBuff, 0, nBuffLen); // fill with nulls
 	originalBuffLen = nBuffLen; // save it in case we need it below
-	nNumRead = (wxUint32)file.Read(pbyteBuff,nLength);
-	nLength = nNumRead + sizeof(wxChar);
+	nNumRead = (wxUint32)file.Read(pbyteBuff, numBytesInFile);
+	pbyteBuff[nNumRead] = '\0';
+//	GDLC Nov11 No need to add NUL bytes
+//	nLength = nNumRead + sizeof(wxChar);
 
 	// BEW added 16Aug11, determine the endian value for the string we have just read in
+<<<<<<< .mine
+// GDLC Nov11 Conversion to a wxString is no longer necessary and this did not do it anyway.
+//	wxString theBuf = wxString((wxChar*)pbyteBuff);
+//	GDLC 2Dec11 Don't give tellenc the NUL that we added at the end of the buffer
+	bIsLittleEndian = IsLittleEndian((const unsigned char*) pbyteBuff, nNumRead);
+=======
 	// BEW 5Dec11, this fails for a short text which is "\id JHN xxxxx" where xxxxx is the
 	// utf8 characters for an exotic script language (Kangri, in India). Casting doesn't
 	// do the required conversions, I'll comment it out and replace with what I know works
@@ -6534,6 +6795,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	theBuf = pbyteBuff;
 #endif
 	bIsLittleEndian = IsLittleEndian(theBuf);
+>>>>>>> .r2078
 
 	if (bShorten)
 	{
@@ -7127,7 +7389,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 
 
 	// now we have to find out what kind of encoding the data is in, and set the
-	// encoding and we convert to UTF-16 in the DoInputConversion() function
+	// encoding and we convert to wxChar in the DoInputConversion() function
 	if (nNumRead <= 0)
 	{
 		// free the original read in (const) char data's chunk
@@ -7142,13 +7404,17 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	if (bIsLittleEndian && !memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
 	{
 		// it's UTF-16 - little-endian
-		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+//	GDLC Nov11 Use explicit LE because any system can have files in either type of encoding
+//		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE;
 		bHasBOM = TRUE;
 	}
 	else if (!bIsLittleEndian && !memcmp(pbyteBuff,szU16BOM_BigEndian,nU16BOMLen))
 	{
 		// it's UTF-16 - big-endian
-		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+//	GDLC Nov11 Use explicit BE because any system can have files in either type of encoding
+//		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF16BE;
 		bHasBOM = TRUE;
 	}
 	else
@@ -7192,7 +7458,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				// still return utf-16 (ie. big-endian) or utf-16le (little-endian) here,
 				// since we've not handled the BOM-less case above
 				init_utf8_char_table();
-				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
+// GDLC 2Dec11 Give tellenc the number of bytes read and do not include the terminating NUL
+				const char* enc = tellenc(pbyteBuff, nNumRead);
 				if (!(enc) || strcmp(enc, "unknown") == 0)
 				{
 					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
@@ -7216,10 +7483,11 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 				}
 				else if (strcmp(enc, "utf-16") == 0)
 				{
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+					gpApp->m_srcEncoding = wxFONTENCODING_UTF16BE;
 				}
 				else if (strcmp(enc, "utf-16le") == 0)
 				{
+					// GDLC Nov11 I think the commentary on the next two lines is wrong.
 					// UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
 					gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // == same as wxFONTENCODING_UTF16
 				}
@@ -7253,17 +7521,26 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		}
 	}
 
+	// GDLC Nov11 The following earlier commentary about UTF-16 may have been correct when this
+	// was first developed on Windows, but on Mac and Linux the UTF16 chars read from the disk file
+	// get converted into UTF32LE. DoInputConversion now does the whole job of input conversion and
+	// removal of a BOM if the input has one.
 	// do the converting and transfer the converted data to pstrBuffer (which then
 	// persists while doc lives) -- if m_srcEndoding is wxFONTENCODING_UTF16, then
 	// conversion is skipped and the text (minus the BOM if present) is returned 'as is'
-	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff, gpApp->m_srcEncoding);
-// GDLC 16Sep11 Last parameter bHasBOM no longer needed
-//	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	// GDLC 16Sep11 Last parameter bHasBOM no longer needed
+	//	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	wxString*	pTemp;
+	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding, nNumRead + 1);
+	pstrBuffer = pTemp;
 
-	// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
-	// the count)
-	nLength = pstrBuffer->Len() + 1; // # of UTF16 characters + null character
-											// (2 bytes)
+// GDLC Nov11 No, we don't need to update the length of the text file that was read, and
+// why would the caller need to know anyway? - because it has been converted into a wxString
+// which has its own length and from now on AI only needs to know about the length of the
+// wxString - the length of the text file in whatever encoding it was in has become irrelevant!
+// In fact we are now going to delete the byte buffer containing a copy of what was in the file!
+//	nLength = pstrBuffer->Len() + 1; // # of UTF16 characters + null character
+// (2 bytes)
 	// free the original read in (const) char data's chunk
 	free((void*)pbyteBuff);
 
@@ -7271,6 +7548,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	file.Close();
 	return getNewFile_success;
 }
+*/
 
 // BEW created July2010. Used only in OnBnClickedMove() handler from AdminMoveOrCopy.cpp.
 // Tests if the folder(s) selected by the user include the "__SOURCE_INPUTS" folder -- the

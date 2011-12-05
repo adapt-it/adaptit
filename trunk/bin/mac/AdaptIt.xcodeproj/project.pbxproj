@@ -49,6 +49,7 @@
 		C80E02C91222483C00ECCA6A /* ai_32.ico in Resources */ = {isa = PBXBuildFile; fileRef = C80E02C31222483C00ECCA6A /* ai_32.ico */; };
 		C80E02CA1222483C00ECCA6A /* ai_16.ico in Resources */ = {isa = PBXBuildFile; fileRef = C80E02C41222483C00ECCA6A /* ai_16.ico */; };
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
+		C81470B6148C3B0800F405D9 /* ChooseLanguageCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C81470B5148C3B0800F405D9 /* ChooseLanguageCode.cpp */; };
 		C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
 		C837D1BD13E265570008C2BF /* CollabUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C837D1BC13E265570008C2BF /* CollabUtilities.cpp */; };
@@ -59,6 +60,7 @@
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
+		C8D8C0AE147FA06200221E85 /* TextImportChanges.txt in Resources */ = {isa = PBXBuildFile; fileRef = C8D8C0AD147FA06200221E85 /* TextImportChanges.txt */; };
 		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
 		C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */; };
@@ -220,6 +222,8 @@
 		C80E02C41222483C00ECCA6A /* ai_16.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; name = ai_16.ico; path = ../../res/ai_16.ico; sourceTree = SOURCE_ROOT; };
 		C8141435112256EF006764C6 /* FreeTrans.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTrans.h; path = ../../source/FreeTrans.h; sourceTree = SOURCE_ROOT; };
 		C8141436112256EF006764C6 /* FreeTrans.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTrans.cpp; path = ../../source/FreeTrans.cpp; sourceTree = SOURCE_ROOT; };
+		C81470B4148C3B0800F405D9 /* ChooseLanguageCode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChooseLanguageCode.h; path = ../../source/ChooseLanguageCode.h; sourceTree = SOURCE_ROOT; };
+		C81470B5148C3B0800F405D9 /* ChooseLanguageCode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChooseLanguageCode.cpp; path = ../../source/ChooseLanguageCode.cpp; sourceTree = SOURCE_ROOT; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
 		C837D1BB13E265570008C2BF /* CollabUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CollabUtilities.h; path = ../../source/CollabUtilities.h; sourceTree = SOURCE_ROOT; };
 		C837D1BC13E265570008C2BF /* CollabUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CollabUtilities.cpp; path = ../../source/CollabUtilities.cpp; sourceTree = SOURCE_ROOT; };
@@ -234,6 +238,7 @@
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
+		C8D8C0AD147FA06200221E85 /* TextImportChanges.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TextImportChanges.txt; path = ../../../AI_GDLC_Docs/TextImportChanges.txt; sourceTree = SOURCE_ROOT; };
 		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
 		C8DE45661323679C0030EC9B /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = ../../source/base64.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_Resources.h; path = ../../source/Adapt_It_Resources.h; sourceTree = SOURCE_ROOT; };
@@ -443,6 +448,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C8D8C0AD147FA06200221E85 /* TextImportChanges.txt */,
 				7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */,
 				7D4EEBBE1471932C003B4CC2 /* scrollingdialog.h */,
 				7D4EEBBF1471932C003B4CC2 /* scrollingwizard.cpp */,
@@ -661,6 +667,8 @@
 				C8F82E550F3F9CAB007579B8 /* WhichFilesDlg.cpp */,
 				C8F82E560F3F9CAB007579B8 /* WhichFilesDlg.h */,
 				C8F82E570F3F9CAB007579B8 /* XML.cpp */,
+				C81470B4148C3B0800F405D9 /* ChooseLanguageCode.h */,
+				C81470B5148C3B0800F405D9 /* ChooseLanguageCode.cpp */,
 				C8F82E580F3F9CAB007579B8 /* XML.h */,
 				C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */,
 				C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */,
@@ -813,6 +821,7 @@
 				C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */,
 				7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */,
 				C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */,
+				C8D8C0AE147FA06200221E85 /* TextImportChanges.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -950,6 +959,7 @@
 				7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */,
 				7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */,
 				7D4EEBC21471932C003B4CC2 /* scrollingwizard.cpp in Sources */,
+				C81470B6148C3B0800F405D9 /* ChooseLanguageCode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
