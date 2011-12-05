@@ -297,7 +297,7 @@ static int numUSFMMarkersOutput = 0;
 // helper, for repetitive writing of elements to an arbitrary length FILE, utf-8, in TEXT mode
 void DoWrite(wxFile& file, CBString& str)
 {
-	wxLogNull logNo; // avoid spurious messages from the system
+	//wxLogNull logNo; // avoid spurious messages from the system
 
 	Int32 len = str.GetLength();
 	char* pstr = (char*)str;
@@ -947,7 +947,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 
 	bool bOpenOK;
 	{ // a restricted scope block for wxLogNull
-		wxLogNull logNo; // eliminated spurious messages from the system (we already have error message)
+		//wxLogNull logNo; // eliminated spurious messages from the system (we already have error message)
 
 		bOpenOK = file.Open(path,wxFile::read);
 	}
@@ -5157,6 +5157,12 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 }
 
 // BEW 17Jul11, bug fix for duplicate entries when an entry has m_deleted flag TRUE
+// BEW 5Dec11, revisiting this function, I have lost track of why I wrote it. I suspect
+// that it was in case a LIFT file had an empty element, <sense/> -- which by definition
+// could contain no adaptation or gloss information, and in such a case, I thought a
+// KB "empty" string adaptation or gloss should be constructed. I suppose that is still
+// a reasonable assumption, so I'll leave it here. But I suspect it's never been called
+// and would be unlikely to be.
 bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 {
 	if (tag == xml_sense)
@@ -5327,6 +5333,9 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 	return TRUE;
 }
 
+// BEW 5Dec11, modified significantly to support multi-language glossing (based on a
+// request from Bob Eaton, where his Kangri data is glossed in english, hindi and urdu) -
+// the earlier version did nothing except just return TRUE
 bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack))
 {
 #ifdef _UNICODE // Unicode application
@@ -5336,31 +5345,29 @@ bool AtLIFTAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WX
 #else // ANSI application
 	char* pValue = (char*)attrValue;
 #endif 
-	if (tag == xml_gloss)
+	if (tag == xml_gloss && gpApp->m_bLIFT_use_gloss_entry)
 	{
 		if (attrName == xml_lang)
 		{
-			// we may want this one
+			// we want this one
 			gpApp->m_LIFT_cur_lang_code = pValue;
 		}
 		else
 		{
 			// don't care about others, return TRUE to keep parsing going
-			gpApp->m_LIFT_cur_lang_code.Empty();
 			return TRUE;
 		}
 	}
-	else if (tag == xml_definition)
+	else if (tag == xml_definition && !gpApp->m_bLIFT_use_gloss_entry)
 	{
 		if (attrName == xml_lang)
 		{
-			// we may want this one
+			// we want this one only when the flag m_bLIFT_use_gloss_entry is FALSE
 			gpApp->m_LIFT_cur_lang_code = pValue;
 		}
 		else
 		{
 			// don't care about others, return TRUE to keep parsing going
-			gpApp->m_LIFT_cur_lang_code.Empty();
 			return TRUE;
 		}
 	}
@@ -5371,6 +5378,10 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
 	if (tag == xml_sense)
 	{
+		// clear these two, ready for the next <sense>
+		gpApp->m_LIFT_glossesArray.Clear();
+		gpApp->m_LIFT_definitionsArray.Clear();
+
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
 		void* refstrPtr = (void*)gpRefStr;
@@ -5387,6 +5398,9 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else if (tag == xml_entry)
 	{
+		// clear this, ready for the next <entry>
+		gpApp->m_LIFT_formsArray.Clear();
+
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
 		void* refstrPtr = (void*)gpRefStr;
@@ -5419,6 +5433,8 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	return TRUE;
 }
 
+// BEW 5Dec11, modified significantly to support multi-language glossing (based on a
+// request from Bob Eaton, where his Kangri data is glossed in english, hindi and urdu)
 bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 {
 	// we use PCDATA in LIFT imports for the content delimited by <text>...</text> tags
@@ -5427,70 +5443,49 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 	{
 		if (pStack->MyParentsAre(3, xml_form, xml_lexical_unit, xml_entry) )
 		{
-			nLexItemsProcessed++;
+			// BEW NOTE 5Dec11: the <form> element allows for there to be different scripts
+			// representing the form, eg. practical orthography, and a phonetic or phonemic
+			// representation, or a different writing system -- each having a <text> element
+			// and therefore a different lang attribute value. This present XML parser for
+			// LIFT does not support this. What it does is simply this, the preprocessor
+			// looks at the LIFT file to find the very first <text> element in the first 
+			// <form> element, and shows to the user the lang attribute value from that one.
+			// The assumption we are making here is that the practical orthography will be
+			// listed first, and variants will be listed after that -- and if this is a
+			// valid assumption, then our LIFT parsing should generate the wanted results.
+			// If not, the GetLanguageCode dialog would need to list all the <form>'s various
+			// lang attribute values in the child <text> elements for the user to choose the
+			// one he wants
+
+			nLexItemsProcessed++; // static
 			// this is tag stores a lexeme, which to Adapt It will become a KB adaptation or
 			// gloss, depending on whether we are importing an adaptingKB or a glossingKB
 			ReplaceEntities(pcdata);
+			wxString aKeyStr;
 #ifdef _UNICODE
-			gKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
+			aKeyStr = gpApp->Convert8to16(pcdata); // key string for the map hashing to use
 #else
-			gKeyStr = pcdata.GetBuffer();
+			aKeyStr = pcdata.GetBuffer();
 #endif
-			// set up the map pointer - this depends on how many words there are in the source
-			// text -- at Bob Eaton's request, both glossing and adapting KBs potentially utilize
-			// all ten maps
-			int numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
-			if (gpKB->IsThisAGlossingKB())
-			{
-				gpMap = gpApp->m_pGlossingKB->m_pMap[numWords - 1];
-			}
-			else
-			{
-				
-				gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
-			}
-#ifdef _debugLIFT_
-#ifdef __WXDEBUG__
-			void* refstrPtr = (void*)gpRefStr;
-			void* tuPtr = (void*)gpTU;
-			if (gpKB->IsThisAGlossingKB())
-				wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] GLOSSING_KB"),
-						gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
-			else
-				wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] ADAPTING_KB"),
-						gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
+			// temporary, for debugging
+//#if defined(_debugLIFT_)
+#if defined(__WXDEBUG__)
+			gKeyStr = aKeyStr; // so the wxLogDebug() call below can grab the untokenized string
 #endif
-#endif
+//#endif
+			// set up the array of substrings; last param is default TRUE meaning "store
+			// in the array any substring which is empty" - we allow building of a KB
+			// record with a zero adaptation or gloss - it does no harm and the user can
+			// later manually remove it from the KB if it is not wanted; in the meantime
+			// it will look to Adapt It like a <no adaptation>, or <no gloss>, KB entry
+			long count_str;
+			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, aKeyStr,
+										gpApp->m_LIFT_formsArray);
 		}
-		else if (pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense) ||
-				 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry) )
+		else if (gpApp->m_bLIFT_use_gloss_entry && 
+			     gpApp->m_LIFT_cur_lang_code == gpApp->m_LIFT_chosen_lang_code &&
+				 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry))
 		{
-			// The lookup of the KB has to be done here, each time we come to a <text>,
-			// because there could be more than one <sense> in an <entry>, and so while
-			// the first <sense> might lead to a new pTU being stored in the map, if we
-			// looked up the map only in the <lexical-unit> part of the LIFT file, we'd
-			// miss doing lookups for second or later <sense>s of the same gKeyStr - and
-			// so not find the pTU we'd already stored in the map so as to add new
-			// CRefString instances to its m_pTranslations list. So we do it here instead.
-			// gpMap has already been set in the <lexical-unit> block above...
-			// Find out if there is CTargetUnit in this map already, for this key; the
-			// following call returns NULL if there is no CTargetUnit for the key yet in the
-			// map, otherwise it returns the map's CTargetUnit instance
-			int numWords = TrimAndCountWordsInString(gKeyStr);
-			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
-#ifdef _debugLIFT_
-#ifdef __WXDEBUG__
-			wxLogDebug(_T("within <sense> AtLIFTPCDATA numWords= %d , gKeyStr= %s , gpTU_From_Map= %x"),
-							numWords, gKeyStr.c_str(), gpTU_From_Map);
-#endif
-#endif
-			// If gpTU_From_Map is non-NULL, then each <definition> tag, or <gloss> tag, will
-			// yield a potential adaptation (or gloss if the KB is a glossingKB) which will
-			// either belong to this CTargetUnit already, or it won't - in which case we'll
-			// have to add it. We can't do this test until we've re-entered AtLiftPCDATA() in
-			// order to process PCDATA from the <text> tag within either a <definition> tag or
-			// a <gloss> tag 
-			
 			ReplaceEntities(pcdata);
 			wxASSERT(gpRefStr != NULL);
 			wxString textStr;
@@ -5499,6 +5494,140 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 #else
 			textStr = pcdata.GetBuffer();
 #endif
+			// set up the array of substrings; last param is default TRUE meaning "store
+			// in the array any substring which is empty" - we allow building of a KB
+			// record with a zero adaptation or gloss - it does no harm and the user can
+			// later manually remove it from the KB if it is not wanted; in the meantime
+			// it will look to Adapt It like a <no adaptation>, or <no gloss>, KB entry
+			long count_str;
+			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, textStr,
+										gpApp->m_LIFT_glossesArray);
+//#if defined(_debugLIFT_)
+#if defined(__WXDEBUG__)
+			if (gbIsGlossing)
+			{
+				wxLogDebug(_T("AtLIFTPCDATA() from gloss entries: doing %d , lang code = %s , src = %s , adaptit_gloss = %s"),
+					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code, gKeyStr, textStr);
+			}
+			else
+			{
+				wxLogDebug(_T("AtLIFTPCDATA() from gloss entries: doing %d , lang code = %s , src = %s , tgt = %s"),
+					nLexItemsProcessed, gpApp->m_LIFT_cur_lang_code, gKeyStr, textStr);
+			}
+#endif
+//#endif
+			ProcessLIFT_PCDATA(gpApp->m_LIFT_formsArray, gpApp->m_LIFT_glossesArray);
+		}
+		else if (!gpApp->m_bLIFT_use_gloss_entry &&
+			     gpApp->m_LIFT_cur_lang_code == gpApp->m_LIFT_chosen_lang_code &&
+			     pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense))
+		{
+			ReplaceEntities(pcdata);
+			wxASSERT(gpRefStr != NULL);
+			wxString textStr;
+#ifdef _UNICODE
+			textStr = gpApp->Convert8to16(pcdata);
+#else
+			textStr = pcdata.GetBuffer();
+#endif
+			// set up the array of substrings; FALSE means
+			// "don't store in the array any substring which is empty"
+			long count_str;
+			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, textStr,
+										gpApp->m_LIFT_definitionsArray, FALSE);
+			ProcessLIFT_PCDATA(gpApp->m_LIFT_formsArray, gpApp->m_LIFT_definitionsArray);
+		}
+
+	} // end of TRUE block for test: if (tag == xml_text)
+	return TRUE;
+}
+
+// Returns nothing, does the work of creating and storing the KB entry, for a single parsed
+// adaptation, or glossing, depending on whether gpKB points at the adapting KB or the
+// glossing KB. Note: arrMeanings might contain just an empty string, and if so, we construct
+// a <no adaptation>, or <no gloss>, KB entry (depending on the mode) - by storing the
+// empty string in a CRefString if one doesn't already exist which has m_translation empty
+void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
+{
+	// The lookup of the KB has to be done here, each time we come to a <text>,
+	// because there could be more than one <sense> in an <entry>, and so while
+	// the first <sense> might lead to a new pTU being stored in the map, if we
+	// looked up the map only in the <lexical-unit> part of the LIFT file, we'd
+	// miss doing lookups for second or later <sense>s of the same gKeyStr - and
+	// so not find the pTU we'd already stored in the map so as to add new
+	// CRefString instances to its m_pTranslations list. So we do it here instead.
+	// gpMap has already been set in the <lexical-unit> block above...
+	// Find out if there is CTargetUnit in this map already, for this key; the
+	// following call returns NULL if there is no CTargetUnit for the key yet in the
+	// map, otherwise it returns the map's CTargetUnit instance
+	
+	// set up the map pointer - this depends on how many words there are in the source
+	// text -- at Bob Eaton's request, both glossing and adapting KBs potentially utilize
+	// all ten maps
+	int numWords;
+	int formsCount = arrForms.GetCount();
+	wxASSERT(formsCount >= 1);
+	int meaningsCount = arrMeanings.GetCount();
+	wxASSERT(meaningsCount >= 1);
+
+	wxString textStr;
+	int formsIndex;
+	int meaningsIndex;
+	for (formsIndex = 0; formsIndex < formsCount; formsIndex++)
+	{	
+		gKeyStr = arrForms.Item(formsIndex); // note: gKeyStr might be a phrase	
+		numWords = TrimAndCountWordsInString(gKeyStr); // strips off any leading and following whitespace
+		// set the map pointer
+		gpMap = gpKB->m_pMap[numWords - 1];
+		//if (gpKB->IsThisAGlossingKB())
+		//{
+		//	gpMap = gpApp->m_pGlossingKB->m_pMap[numWords - 1];
+		//}
+		//else
+		//{				
+		//	gpMap = gpApp->m_pKB->m_pMap[numWords - 1];
+		//}
+
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+		void* refstrPtr = (void*)gpRefStr;
+		void* tuPtr = (void*)gpTU;
+		if (gpKB->IsThisAGlossingKB())
+			wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] GLOSSING_KB"),
+					gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
+		else
+			wxLogDebug(_T("within <lexical-unit> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x , map[ %d ] ADAPTING_KB"),
+					gKeyStr.c_str(),refstrPtr,tuPtr,numWords - 1);
+#endif
+#endif
+
+        // *** legacy code **** -- BEW 5Dec11, this now has to be in a loop, 
+        // because there might have been comma-delimited, or semicolon-delimited
+        // substrings in the <text> element, and we need to create a separate KB
+        // CRefString instance from each such substring (most of the time, there 
+        // are no substrings, and so the full string would then be the only string
+        // - & in either situation the substring(s) might be phrases)
+		for (meaningsIndex = 0; meaningsIndex < meaningsCount; meaningsIndex++)
+		{
+			// set textStr to the currently-to-be-stored adaptation, or gloss
+			textStr = arrMeanings.Item(meaningsIndex);
+
+			// lookup the CKB to see if there is an appropriate CTargetUnit there,
+			// get it if so, else return NULL
+			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
+#ifdef _debugLIFT_
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("within <sense> AtLIFTPCDATA numWords= %d , gKeyStr= %s , gpTU_From_Map= %x"),
+						numWords, gKeyStr.c_str(), gpTU_From_Map);
+#endif
+#endif
+			// If gpTU_From_Map is non-NULL, then each <definition> tag, or <gloss> tag, will
+			// yield a potential adaptation (or gloss if the KB is a glossingKB) which will
+			// either belong to this CTargetUnit already, or it won't - in which case we'll
+			// have to add it. We can't do this test until we've re-entered AtLiftPCDATA() in
+			// order to process PCDATA from the <text> tag within either a <definition> tag or
+			// a <gloss> tag
+
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
 			void* refstrPtr = (void*)gpRefStr;
@@ -5570,8 +5699,9 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					// instance, so put it in there and have the map manage the CRefString
 					// instance's pointer, but the gpTU instance we created earlier in the
 					// callbacks is not then needed once all the <sense> elements relevant to 
-					// it have been processed, and so it will have to be removed from the heap
-					// eventually (at AtLIFTEndTag() callback)
+					// the one we got from the lookup have been processed, and the newly created
+					// one will have to be removed from the heap eventually (at the 
+					// AtLIFTEndTag() callback)
 					gpRefStr->m_refCount = 1;
 					gpRefStr->m_translation = textStr;
 					gpRefStr->m_pTgtUnit = gpTU_From_Map;
@@ -5622,16 +5752,27 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 					pRefStr_In_TU->GetRefStringMetadata()->SetWhoCreated(SetWho());
 					pRefStr_In_TU->GetRefStringMetadata()->SetModifiedDateTime(_T(""));
 					pRefStr_In_TU->GetRefStringMetadata()->SetDeletedDateTime(_T(""));
+
+                    // gpRefStr is on the heap, but we didn't use it, so leave it there for
+                    // another iteration, or for it to be deleted at the LIFT end-tag
+                    // callback
 				}
 				else
 				{
-					// this particular adaptation or gloss is in the map's CTargetUnit pointer
-					// already, so we can ignore it. We must delete both the gpRefStr (and
-					// its owned CRefStringMetadata instance), and also delete the gpTU we
-					// created, so there is nothing more to do here (i.e. *DON'T* set gpTU and
-					// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
+                    // this particular adaptation or gloss is in the map's CTargetUnit
+                    // pointer already, so we can ignore it. We must delete both the
+                    // gpRefStr (and its owned CRefStringMetadata instance), and also
+                    // delete the gpTU we created, so there is nothing more to do here
+                    // (i.e. *DON'T* delete here and set gpTU and gpRefStr to NULL) as the
+                    // deletions will be done in AtLIFTEndTag() -- and we must always
+                    // return from ProcessLIFT_PCDATA with a gpTU and a gpRefStr on the
+                    // heap, and unused (see what we do above, every time we use one or
+                    // both of these so it/they become managed by the KB, we create anew a
+                    // new one which is unused at the time control is past this code block
+                    // - hence each loop will commence with a gpTU and gpRefStr 'ready to
+                    // go' if needed; and any unused when the function exits are cleaned
+                    // up by a later callback as above
 					nAdaptationsUnchanged++;
-;
 #ifdef _debugLIFT_
 #ifdef __WXDEBUG__
 					wxLogDebug(_T("Block 3"));
@@ -5640,11 +5781,9 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 #endif
 				}
 			}
-		} // end of TRUE block for test:
-		// else if (pStack->MyParentsAre(3,xml_form, xml_definition, xml_sense) ||
-		//		 pStack->MyParentsAre(3,xml_gloss, xml_sense, xml_entry) )
-	} // end of TRUE block for test: if (tag == xml_text)
-	return TRUE;
+		} // end of loop: for (meaningsIndex = 0; meaningsIndex < meaningsCount; meaningsIndex++)
+
+	} // end of loop: for (formsIndex = 0; formsIndex < formsCount; formsIndex++)
 }
 
 /********************************************************************************

@@ -276,6 +276,13 @@ bool AtLIFTEmptyElemClose(CBString& tag,CStack*& pStack);
 bool AtLIFTAttr(CBString& tag,CBString& attrName, CBString& attrValue, CStack*& WXUNUSED(pStack));
 bool AtLIFTEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtLIFTPCDATA(CBString& tag,CBString& pcdata,CStack*& pStack);
+// BEW added 5Dec11, to simplify the code of its caller; arrForms has one or more
+// substrings from the pcdata from the lexical-unit's <form>, and arrMeanings has
+// one or more substrings from the pcdata from a <sense>'s chosen language's text
+// (typically there is but one in each, but if the <text> string has comma or
+// semicolon delimited substrings, we have to generate multiple KB entries rather
+// than a single one; and both src and tgt or gloss ones can have such substrings)
+void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings); 
 
 // the read and parse functions;
 bool ReadBooks_XML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax);

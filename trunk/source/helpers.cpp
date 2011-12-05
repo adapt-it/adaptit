@@ -2377,7 +2377,7 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 // bStoreEmptyStringsToo allows us to control whether empty strings get appended to array
 // or not, default is to append them. Returns the count of the strings stored in array.
 //
-// Note: it internally trim spaces from the end tokenized strings, and really I've made
+// Note: it internally trims spaces from the end tokenized strings, and really I've made
 // this function for getting logical lines from a multiline wxTextCtrl, so don't make space
 // or tab one of the delimiters if what you want is logical lines - otherwise it will
 // return an array of words rather than an array of lines
@@ -6521,7 +6521,18 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	nLength = nNumRead + sizeof(wxChar);
 
 	// BEW added 16Aug11, determine the endian value for the string we have just read in
-	wxString theBuf = wxString((wxChar*)pbyteBuff);
+	// BEW 5Dec11, this fails for a short text which is "\id JHN xxxxx" where xxxxx is the
+	// utf8 characters for an exotic script language (Kangri, in India). Casting doesn't
+	// do the required conversions, I'll comment it out and replace with what I know works
+	// and leave it to Graeme to change later if necessary
+	//wxString theBuf = wxString((wxChar*)pbyteBuff);
+	wxString theBuf;
+#if defined(_UNICODE)
+	CBString cbs(pbyteBuff);
+	theBuf = gpApp->Convert8to16(cbs);
+#else
+	theBuf = pbyteBuff;
+#endif
 	bIsLittleEndian = IsLittleEndian(theBuf);
 
 	if (bShorten)
