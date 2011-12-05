@@ -1952,74 +1952,80 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+    wxFlexGridSizer *item11 = new wxFlexGridSizer( 2, 0, 10 );
+    item11->AddGrowableCol( 0 );
+    item11->AddGrowableRow( 1 );
+    item11->AddGrowableRow( 3 );
+    item11->AddGrowableRow( 5 );
 
-    wxStaticBox *item13 = new wxStaticBox( parent, -1, _("Source Language Name:") );
-    wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Source Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_NAME, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Source Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item14->SetToolTip( _("This is the source language name") );
-    item12->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item11->Add( item12, 0, wxGROW|wxALL, 5 );
+    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_EDIT_SOURCE_LANG_CODE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("This is the 3-letter source language code") );
+    item11->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Source Language Code:") );
-    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Target Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_EDIT_SOURCE_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(120,40), 0 );
-    item17->SetToolTip( _("This is the 3-letter source language code") );
-    item15->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Target Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item11->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_TGT_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("This is the target language name") );
+    item11->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_EDIT_TARGET_LANG_CODE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("This is the 3-letter target language code") );
+    item11->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Gloss Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item20 = new wxStaticBox( parent, -1, _("Target Language Name:") );
-    wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxVERTICAL );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("Gloss Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, IDC_EDIT_TGT_NAME, wxT(""), wxDefaultPosition, wxSize(200,40), 0 );
-    item21->SetToolTip( _("This is the target language name") );
-    item19->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item22 = new wxTextCtrl( parent, IDC_EDIT_GLS_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("This is the target language name") );
+    item11->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item18->Add( item19, 0, wxGROW|wxALL, 5 );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_EDIT_GLOSS_LANG_CODE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("This is the 3-letter target language code") );
+    item11->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticBox *item23 = new wxStaticBox( parent, -1, _("Target Language Code:") );
-    wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
+    item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_EDIT_TARGET_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(120,40), 0 );
-    item24->SetToolTip( _("This is the 3-letter target language code") );
-    item22->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add( item10, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item18->Add( item22, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxButton *item24 = new wxButton( parent, ID_BUTTON_LOOKUP_CODES, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Press this button to get a list of 3-letter language codes") );
+    item9->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item10->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    item2->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticBox *item26 = new wxStaticBox( parent, -1, _("Set Order of Adaptations and Glosses for Vertical Editing Steps") );
+    wxStaticBoxSizer *item25 = new wxStaticBoxSizer( item26, wxVERTICAL );
 
-    wxButton *item25 = new wxButton( parent, ID_BUTTON_LOOKUP_CODES, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Press this button to get a list of 3-letter language codes") );
-    item9->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item27 = new wxRadioButton( parent, IDC_RADIO_ADAPT_BEFORE_GLOSS, _("Do adaptations updating before glosses updating"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item27->SetValue( TRUE );
+    item25->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxRadioButton *item28 = new wxRadioButton( parent, IDC_RADIO_GLOSS_BEFORE_ADAPT, _("Do glosses updating before adaptations updating"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item27 = new wxStaticBox( parent, -1, _("Set Order of Adaptations and Glosses for Vertical Editing Steps") );
-    wxStaticBoxSizer *item26 = new wxStaticBoxSizer( item27, wxVERTICAL );
+    item2->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item28 = new wxRadioButton( parent, IDC_RADIO_ADAPT_BEFORE_GLOSS, _("Do adaptations updating before glosses updating"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item28->SetValue( TRUE );
-    item26->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item29 = new wxRadioButton( parent, IDC_RADIO_GLOSS_BEFORE_ADAPT, _("Do glosses updating before adaptations updating"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item2->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxCheckBox *item30 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item0->Add( item2, 0, wxGROW|wxALL, 5 );
+    item0->Add( item2, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -7052,96 +7058,110 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_STATICTEXT_SCROLL_LIST, _("Scroll &list and highlight language or search for language below"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LIST_LANGUAGE_CODES_NAMES, wxDefaultPosition, wxSize(400,220), 0, strs6, wxLB_SINGLE );
-    item6->SetToolTip( _("This is a list of languages and their 3-letter codes") );
-    item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("(The 2-letter codes are listed first followed by the 3-letter codes)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxString *strs7 = (wxString*) NULL;
+    wxListBox *item7 = new wxListBox( parent, ID_LIST_LANGUAGE_CODES_NAMES, wxDefaultPosition, wxSize(400,220), 0, strs7, wxLB_SINGLE );
+    item7->SetToolTip( _("This is a list of languages and their 3-letter codes") );
+    item4->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_STATICTEXT_SEARCH_FOR_LANG_NAME, _("Search for Language (&type code or Name):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_STATICTEXT_SEARCH_FOR_LANG_NAME, _("Search for Language (&type code or Name):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH_LANG_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
-    item10->SetToolTip( _("Enter a language name, or part of a name here") );
-    item8->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH_LANG_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
+    item11->SetToolTip( _("Enter a language name, or part of a name here") );
+    item9->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item9->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item11 = new wxButton( parent, ID_BUTTON_FIND_NEXT, _("&Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("Use this button to find the next occurrence in list if it exists") );
-    item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item12 = new wxButton( parent, ID_BUTTON_FIND_NEXT, _("&Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Use this button to find the next occurrence in list if it exists") );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item13 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_SRC, _("Use selected code for Sourc&e Language"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Source Language Code box below") );
-    item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item14 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_SRC, _("Use selected code for Sourc&e Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Source Language Code box below") );
+    item13->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item12->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item13->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item14 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_TGT, _("Use selected code for T&arget Language"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Target Language Code box below") );
-    item12->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item15 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_TGT, _("Use selected code for T&arget Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Target Language Code box below") );
+    item13->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item7->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item8->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item2->Add( item7, 0, wxGROW|wxALL, 0 );
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item17 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_GLS, _("Use selected code for Gloss Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item2->Add( item8, 0, wxGROW|wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Enter 3-letter language codes for source and target languages:") );
-    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
+    wxStaticBox *item19 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item18 = new wxStaticBoxSizer( item19, wxVERTICAL );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("If you know the 3-letter codes enter them directly below or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Enter 2-letter or 3-letter language codes for source, target and gloss languages:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("If you know the 2-letter or 3-letter codes enter them directly below or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+    wxFlexGridSizer *item22 = new wxFlexGridSizer( 3, 0, 10 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_SRC_LANGUAGE_CODE, _("&Source Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item20, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_SRC_LANGUAGE_CODE, _("&Source Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item21->SetToolTip( _("The 3-letter code for the Source Language goes here") );
-    item19->Add( item21, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_TGT_LANGUAGE_CODE, _("&Target Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item24, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    item18->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_GLS_LANGUAGE_CODE, _("&Gloss Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item25, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item26->SetToolTip( _("The 3-letter code for the Source Language goes here") );
+    item22->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TGT_LANGUAGE_CODE, _("&Target Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item27 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item27->SetToolTip( _("The 3-letter code for the Target Language goes here") );
+    item22->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item24->SetToolTip( _("The 3-letter code for the Target Language goes here") );
-    item22->Add( item24, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_GLS_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item28->SetToolTip( _("The 3-letter code for the Target Language goes here") );
+    item22->Add( item28, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item18->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item15->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item30 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetDefault();
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item26 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetDefault();
-    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    item29->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item31 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item29, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
