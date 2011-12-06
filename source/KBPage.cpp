@@ -58,6 +58,12 @@ extern bool gbAdaptBeforeGloss;
 extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
 									// the project config file establishes the FALSE value instead)
 
+/// This global is defined in Adapt_ItView.cpp.
+extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
+
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbGlossingUsesNavFont;
+
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp*	gpApp; // if we want to access it fast
 
@@ -88,8 +94,10 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	tempNotLegacySourceTextCopy = FALSE;
 	tempSrcName = _T("");
 	tempTgtName = _T("");
+	tempGlsName = _T("");
 	tempSrcLangCode = _T("");
 	tempTgtLangCode = _T("");
+	tempGlsLangCode = _T("");
 
 	// use wxGenericValidator for simple dialog data transfer
 	m_pEditSrcName = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_NAME);
@@ -97,6 +105,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 
 	m_pEditTgtName = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_NAME);
 	wxASSERT(m_pEditTgtName != NULL);
+
+	m_pEditGlsName = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLS_NAME);
+	wxASSERT(m_pEditGlsName != NULL);
 
 	m_pCheckDisableAutoBkups = (wxCheckBox*)FindWindowById(IDC_CHECK_KB_BACKUP);
 	wxASSERT(m_pCheckDisableAutoBkups != NULL);
@@ -109,6 +120,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 
 	pTgtLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE); // whm added 10May10
 	wxASSERT(pTgtLangCodeBox != NULL);
+
+	pGlsLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_GLOSS_LANG_CODE); // whm added 5Dec11
+	wxASSERT(pGlsLangCodeBox != NULL);
 
 	pButtonLookupCodes = (wxButton*)FindWindowById(ID_BUTTON_LOOKUP_CODES); // whm added 10May10
 	wxASSERT(pButtonLookupCodes != NULL);
@@ -197,8 +211,10 @@ void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10M
 	// Lookup Codes button).
 	tempSrcLangCode = pSrcLangCodeBox->GetValue();
 	tempTgtLangCode = pTgtLangCodeBox->GetValue();
+	tempGlsLangCode = pGlsLangCodeBox->GetValue();
 	lcDlg.m_sourceLangCode = tempSrcLangCode;
 	lcDlg.m_targetLangCode = tempTgtLangCode;
+	lcDlg.m_glossLangCode = tempGlsLangCode;
 	int returnValue = lcDlg.ShowModal();
 	if (returnValue == wxID_CANCEL)
 	{
@@ -208,9 +224,11 @@ void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10M
 	// user pressed OK so update the temp variables and the edit boxes
 	tempSrcLangCode = lcDlg.m_sourceLangCode;
 	tempTgtLangCode = lcDlg.m_targetLangCode;
+	tempGlsLangCode = lcDlg.m_glossLangCode;
 	// update the language code edit boxes
 	pSrcLangCodeBox->SetValue(tempSrcLangCode);
 	pTgtLangCodeBox->SetValue(tempTgtLangCode);
+	pGlsLangCodeBox->SetValue(tempGlsLangCode);
 }
 
 
@@ -255,9 +273,11 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// get any final edits of lang codes from edit boxes
 	tempSrcLangCode = pSrcLangCodeBox->GetValue();
 	tempTgtLangCode = pTgtLangCodeBox->GetValue();
+	tempGlsLangCode = pGlsLangCodeBox->GetValue();
 	// update the lang codes values held on the App
 	pApp->m_sourceLanguageCode = tempSrcLangCode;
 	pApp->m_targetLanguageCode = tempTgtLangCode;
+	pApp->m_glossesLanguageCode = tempGlsLangCode;
 }
 
 void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -273,8 +293,10 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
 	tempSrcName = pApp->m_sourceName;
 	tempTgtName = pApp->m_targetName;
+	//tempGlsName = pApp->m_glossName; // the App does not have a m_glossName
 	tempSrcLangCode = pApp->m_sourceLanguageCode;
 	tempTgtLangCode = pApp->m_targetLanguageCode;
+	tempGlsLangCode = pApp->m_glossesLanguageCode;
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
@@ -292,12 +314,15 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	m_pCheckLegacySourceTextCopy->SetValue(tempNotLegacySourceTextCopy);
 	m_pEditSrcName->SetValue(tempSrcName);
 	m_pEditTgtName->SetValue(tempTgtName);
+	m_pEditGlsName->SetValue(tempGlsName);
 	pSrcLangCodeBox->SetValue(tempSrcLangCode);
 	pTgtLangCodeBox->SetValue(tempTgtLangCode);
+	pGlsLangCodeBox->SetValue(tempGlsLangCode);
 
 	// save names to check for any changes made by user
 	strSaveSrcName = pApp->m_sourceName;
 	strSaveTgtName = pApp->m_targetName;
+	//strSaveGlsName = pApp->m_glossName; // doesn't exist on the App
 
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.
@@ -310,6 +335,20 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);	
 	pApp->m_pDlgTgtFont->SetPointSize(pApp->m_dialogFontSize);
 	m_pEditTgtName->SetFont(*pApp->m_pDlgTgtFont);
+
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgGlossFont);	
+		pApp->m_pDlgGlossFont->SetPointSize(pApp->m_dialogFontSize);
+		m_pEditGlsName->SetFont(*pApp->m_pDlgGlossFont);
+	}
+	else
+	{
+		CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgGlossFont);	
+		pApp->m_pDlgGlossFont->SetPointSize(pApp->m_dialogFontSize);
+		m_pEditGlsName->SetFont(*pApp->m_pDlgGlossFont);
+	}
+
 	
 #ifdef _RTL_FLAGS
 	if (pApp->m_bSrcRTL)

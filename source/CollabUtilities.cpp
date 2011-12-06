@@ -2301,6 +2301,9 @@ wxString GetPathToBeRdwrt()
 	// /usr/bin location. If not present, we use our own copy called adaptit-bibledit-rdwrt 
 	// which is also installed into /usr/bin/.
 
+	// TODO: Revise to search for bibledit-rdwrt and adaptit-bibledit-rdwrt on the PATH environment
+	// variable. 
+	// Try: wxStandardPaths::GetInstallPrefix(), or 
 	if (::wxFileExists(gpApp->m_BibleditInstallDirPath + gpApp->PathSeparator + _T("bibledit-rdwrt")))
 	{
 		// bibledit-rdwrt exists in the Bibledit installation so use it.

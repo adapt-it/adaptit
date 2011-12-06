@@ -52,11 +52,13 @@ public:
 	wxCheckBox* m_pCheckLegacySourceTextCopy;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
+	wxTextCtrl* m_pEditGlsName;
 	wxTextCtrl* pTextCtrlAsStaticTextBackupsKB;
 	
 	// whm added 10May10
 	wxTextCtrl*	pSrcLangCodeBox;
 	wxTextCtrl*	pTgtLangCodeBox;
+	wxTextCtrl* pGlsLangCodeBox;
 	wxButton* pButtonLookupCodes;
 
 	wxRadioButton* pRadioAdaptBeforeGloss;
@@ -67,10 +69,13 @@ public:
 	bool		tempBackupDocument;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
-	wxString strSaveSrcName;
-	wxString strSaveTgtName;
+	wxString	tempGlsName;
+	wxString	strSaveSrcName;
+	wxString	strSaveTgtName;
+	wxString	strSaveGlsName;
 	wxString	tempSrcLangCode;
 	wxString	tempTgtLangCode;
+	wxString	tempGlsLangCode;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& WXUNUSED(event)); 
