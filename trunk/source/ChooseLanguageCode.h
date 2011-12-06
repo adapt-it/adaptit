@@ -41,6 +41,8 @@ public:
 	// which he wants; but if there is only one, no dialog is displayed and the single
 	// existing one is used automatically
 	bool m_bUserCanceled;
+	//wxArrayString m_arrTargetLangNames; <<--- NO! Must not use this
+	wxArrayString m_arrGlossesLangNames;
 
 protected:
 	wxListBox* m_pListTgtCodes;
@@ -55,6 +57,8 @@ protected:
 
 private:
 	CAdapt_ItApp* m_pApp;
+	wxArrayString m_arrTargetCodes;
+	wxArrayString m_arrGlossesCodes;
 
 	DECLARE_EVENT_TABLE()
 };

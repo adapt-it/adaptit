@@ -94,32 +94,33 @@ void ChooseLanguageCode::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		// populate both lists, but only one will be shown enabled
 		wxString aCode = m_pApp->m_LIFT_multilang_codes.Item(index);
-		/* can't use at the moment....
-		// if we someday get 2-letter codes supported, then resurrect this code;
-		// but at present it returns garbage names, since the iso639 list only
-		// has 3-letter codes, and so en, hi, ur, give wrong matches
+		m_arrTargetCodes.Add(aCode); // preserve the actual code
+		m_arrGlossesCodes.Add(aCode); // preserve the actual code
+		// set up the display lines which the user will see
 		int length = aCode.Len();
 		bool bIsEven = (length/2)*2 == length;
 		wxString printName;
-		wxString invertedName; // we get it, but don't use it
-		bool bOK = GetLanguageCodeDetails(aCode, printName, invertedName);
+		wxString displayLineStr = aCode;
+		bool bOK = GetLanguageCodePrintName(aCode, printName);
+		//m_arrTargetLangNames.Add(printName); <<-- NO! must not use
+		m_arrGlossesLangNames.Add(printName); // preserve for OK button handler
 		if (bOK || ( !bOK && !printName.IsEmpty() ))
 		{
 			// add the name in parentheses
 			if (bIsEven)
 			{
-				aCode += _T("   ("); // 3 spaces
+				displayLineStr += _T("   ( "); // 3 spaces
 			}
 			else
 			{
-				aCode += _T("  ("); // 3-letter code, so 2 spaces
+				displayLineStr += _T("  ( "); // 3-letter code, so 2 spaces
 			}
-			aCode += printName;
-			aCode += _T(")");
+			displayLineStr += printName;
+			displayLineStr += _T(" )");
 		}
-		*/
-		m_pListTgtCodes->Append(aCode);
-		m_pListGlossCodes->Append(aCode);
+		
+		m_pListTgtCodes->Append(displayLineStr);
+		m_pListGlossCodes->Append(displayLineStr);
 	}
 	m_pTextCtrlSrcCode->ChangeValue(m_pApp->m_LIFT_src_lang_code);
 
@@ -140,10 +141,6 @@ void ChooseLanguageCode::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 	m_pTextCtrlSrcCode->SetSelection(0L,0L);
 	m_pTextCtrlSrcCode->Enable(FALSE);
-
-	// TODO....
-	// BE SURE TO CHECK that the tgt code chosen is diff from any gloss code chosen & warn
-	// & force fix before accepting	
 }
 
 void ChooseLanguageCode::OnOK(wxCommandEvent& event) 
@@ -156,7 +153,7 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 	if (gbIsGlossing)
 	{
 		nSel = m_pListGlossCodes->GetSelection();
-		s = m_pListGlossCodes->GetString(nSel);
+		s = m_arrGlossesCodes.Item(nSel);
 		// check that we are not mixing languages
 		if (m_pApp->m_glossesLanguageCode.IsEmpty())
 		{
@@ -199,6 +196,7 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 			}
 			m_bUserCanceled = FALSE;
 			m_pApp->m_glossesLanguageCode = s;
+			m_pApp->m_glossesName = m_arrGlossesLangNames.Item(nSel); // KBPage of prefs will display it
 			m_pApp->m_LIFT_chosen_lang_code = s;
 		}
 		else
@@ -209,6 +207,13 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 			{
 				// the codes match, so accept the LIFT data for import
 				m_pApp->m_LIFT_chosen_lang_code = s;
+				// this next line will change the glossing language name 
+				// (which may have been manually set by the user in the KBPage
+				// of the Preferences (ie. Backups and Misc page) to a different
+				// name) to whatever comes from the ISO639-1 or -3 standard;
+				// but nothing hangs on this as far as the app's operation is
+				// concerned so we'll allow it
+				m_pApp->m_glossesName = m_arrGlossesLangNames.Item(nSel);
 			}
 			else
 			{
@@ -228,7 +233,7 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 	{
 		m_bUserCanceled = FALSE;
 		nSel = m_pListTgtCodes->GetSelection();
-		s = m_pListTgtCodes->GetString(nSel);
+		s = m_arrTargetCodes.Item(nSel);
 		// check that we are not mixing languages
 		if (m_pApp->m_targetLanguageCode.IsEmpty())
 		{
@@ -246,6 +251,16 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 			{
 				// the codes match, so accept the LIFT data for import
 				m_pApp->m_LIFT_chosen_lang_code = s;
+                // We MUST NOT enable the commented out line below. It's there deliberately
+                // and deliberately commented out, to document the fact that we don't
+                // override the target language name, and that it is not an oversight that
+                // we don't do so!!! Whatever tgt name happens to be in a LIFT import file
+                // from a who-knows-where source could be different from what we currently
+                // have. The application's paths are set from the user's manually entered
+                // source and target language names, so we can't let anything we don't
+                // control go and change the target name willy-nilly. Functionalities would
+                // break all over the place!
+				// **** NO! **** -->> m_pApp->m_targetName = m_arrTargetLangNames.Item(nSel); <<--- **** NO! ****
 			}
 			else
 			{

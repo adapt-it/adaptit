@@ -405,18 +405,15 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 // ConsistencyCheckDlg for an example of use
 void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
 									int XPos, int YPos, int& myTopCoord, int& myLeftCoord);
-
-/* it's currently useless, because 2-letter codes are not supported in the is639 standard
-   // so comment out this function, and it's use in InitDialog() of ChooseLanguageCode.cpp
    
-// Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name string,
-// and inverted name string (internally, calls GetNewFile() on the path to the file
-// "iso639-3codes.txt", and looks up the code, and parses the required strings from the
-// rest of that line, and returns them in params 2 and 3. Return TRUE if no error, FALSE if
-// something went wrong and one or other of the returned strings isn't defined (if that was
-// the case, the errant string would be returned as empty)
-bool GetLanguageCodeDetails(wxString& code, wxString& printName, wxString& invertedName);
-*/ 
+// Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name
+// string, and inverted name string (internally, gets the file "iso639-3codes.txt" into a
+// wxString buffer (the file has the 2-letter codes listed first, then the 3-letter ones,
+// and looks up the code, and parses the required string from the rest of that line, and
+// returns it in param 2. Return TRUE if no error, FALSE if something went wrong and the
+// returned string isn't defined.
+bool GetLanguageCodePrintName(wxString code, wxString& printName);
+ 
 
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially

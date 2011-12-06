@@ -5545,6 +5545,12 @@ wxString szSourceLanguageName = _T("SourceLanguageName"); // stored in the App's
 /// the App's m_targetName member variable.
 wxString szTargetLanguageName = _T("TargetLanguageName");
 
+/// The label that identifies the following string as the project's "GlossesLanguageName".
+/// This value is written in the "Settings" part of the basic configuration file and in the
+/// "ProjectSettings" part of the project configuration file. Adapt It stores this path in
+/// the App's m_glossesName member variable.
+wxString szGlossesLanguageName = _T("GlossesLanguageName");
+
 // whm added following 10May10 for KB LIFT XML Export support
 /// The label that identifies the following string as the project's "SourceLanguageCode".
 /// This value is written in the "ProjectSettings" part of the project configuration file.
@@ -24267,6 +24273,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szGlossesLanguageName << tab << m_glossesName;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szSourceLanguageCode << tab << m_sourceLanguageCode;
 	pf->AddLine(data);
 
@@ -25388,6 +25398,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTargetLanguageName)
 		{
 			m_targetName = strValue;
+		}
+		else if (name == szGlossesLanguageName)
+		{
+			m_glossesName = strValue;
 		}
 		else if (name == szSourceLanguageCode)
 		{
@@ -27160,6 +27174,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szGlossesLanguageName << tab << m_glossesName;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szSourceLanguageCode << tab << m_sourceLanguageCode;
 	pf->AddLine(data);
 
@@ -27562,6 +27580,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTargetLanguageName)
 		{
 			m_targetName = strValue;
+		}
+		else if (name == szGlossesLanguageName)
+		{
+			m_glossesName = strValue;
 		}
 		else if (name == szSourceLanguageCode)
 		{

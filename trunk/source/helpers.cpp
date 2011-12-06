@@ -6189,40 +6189,57 @@ bool IsEthnologueCodeValid(wxString& code)
 	return TRUE;
 }
 
-/* it's currently useless, because 2-letter codes are not supported in the is639 standard
-   // so comment out this function, and it's use in InitDialog() of ChooseLanguageCode.cpp
-
-// Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name string,
-// and inverted name string (internally, calls GetNewFile() on the path to the file
-// "iso639-3codes.txt", and looks up the code, and parses the required strings from the
-// rest of that line, and returns them in params 2 and 3. Return TRUE if no error, FALSE if
-// something went wrong and one or other of the returned strings isn't defined (if that was
-// the case, the errant string would be returned as empty) -- code is pillaged from Bill's
-// LanguageCodesDlg::InitDialog() function
-bool GetLanguageCodeDetails(wxString& code, wxString& printName, wxString& invertedName)
+// Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name
+// string, and inverted name string (internally, gets the file "iso639-3codes.txt" into a
+// wxString buffer (the file has the 2-letter codes listed first, then the 3-letter ones,
+// and looks up the code, and parses the required string from the rest of that line, and
+// returns it in param 2. Return TRUE if no error, FALSE if something went wrong and the
+// returned string isn't defined
+bool GetLanguageCodePrintName(wxString code, wxString& printName)
 {
 	printName.Empty();
-	invertedName.Empty();
 	wxString iso639_3CodesFileName = _T("iso639-3codes.txt");
 	wxString pathToLangCodesFile;
 	pathToLangCodesFile = gpApp->GetDefaultPathForXMLControlFiles();
 	pathToLangCodesFile += gpApp->PathSeparator;
 	pathToLangCodesFile += iso639_3CodesFileName;
 
-	wxString* pTempStr;
-	pTempStr = new wxString;
-	wxUint32 nLength = 0;
-	// 0 in the next call means "get all the file's contents"
-	enum getNewFileState state = GetNewFile(pTempStr, nLength, pathToLangCodesFile, 0);
-	if (state != getNewFile_success)
+	wxFFile f(pathToLangCodesFile); // default mode is "r" or read
+	if (!(f.IsOpened() && f.Length() > 0))
 	{
+		// if not found, return FALSE and don't bother further
 		return FALSE;
 	}
-	wxString searchStr = code + _T("\t"); // add tab, to ensure we don't get a spurious match
+	wxString* pTempStr;
+	pTempStr = new wxString;
+	bool bSuccessfulRead;
+	bSuccessfulRead = f.ReadAll(pTempStr); // ReadAll doesn't require the file's Length
+	if(!bSuccessfulRead)
+	{
+		// if error on reading data, return FALSE and don't bother further
+		delete pTempStr;
+		return FALSE;
+	}
+	// whm Note: regardless of the platform, when reading a text file from disk into a
+	// wxString, wxWidgets converts the line endings to a single \n char
+	wxString searchStr = _T('\n'); // start with the \n character
+	searchStr += code + _T("\t"); // add the code followed by tab, to ensure 
+								  // we don't get a spurious match
+	searchStr.LowerCase();
+	int dataLen;
+	dataLen = pTempStr->Len(); // for a debug check only, offset should match at < dataLen
 	int offset;
 	offset = pTempStr->Find(searchStr);
+
+	// temp for debugging, what's here at offset?
+	//wxChar chars[100];
+	//for (int ii = 0; ii < 100; ii++)
+	//{
+	//	chars[ii] = pTempStr->GetChar(offset + ii);
+	//}
 	if (offset == wxNOT_FOUND)
 	{
+		delete pTempStr;
 		return FALSE;
 	}
 	int len2 = searchStr.Len();
@@ -6234,20 +6251,10 @@ bool GetLanguageCodeDetails(wxString& code, wxString& printName, wxString& inver
 	// the printName is the text between locations pos to offset
 	wxString s(*pTempStr, pos, offset - pos);
 	printName = s;
-	// now get the inverted name string
-	pos = pos + 1; // advance over the tab
-	// search to m_eolStr, the platform-specific end-of-line string
-	offset = FindFromPos(*pTempStr, gpApp->m_eolStr, pos);
-	if (offset == wxNOT_FOUND)
-	{
-		return FALSE; // even though FALSE, printName should be okay, so caller can test that
-	}
-	wxString invs(*pTempStr, pos, offset - pos);
-	invertedName = invs;
 	delete pTempStr;
 	return TRUE;
 }
-*/
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		void
