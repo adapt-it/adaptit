@@ -293,7 +293,7 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
 	tempSrcName = pApp->m_sourceName;
 	tempTgtName = pApp->m_targetName;
-	//tempGlsName = pApp->m_glossName; // the App does not have a m_glossName
+	tempGlsName = pApp->m_glossesName; // Bill & I added 6Dec11
 	tempSrcLangCode = pApp->m_sourceLanguageCode;
 	tempTgtLangCode = pApp->m_targetLanguageCode;
 	tempGlsLangCode = pApp->m_glossesLanguageCode;
@@ -322,7 +322,7 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	// save names to check for any changes made by user
 	strSaveSrcName = pApp->m_sourceName;
 	strSaveTgtName = pApp->m_targetName;
-	//strSaveGlsName = pApp->m_glossName; // doesn't exist on the App
+	strSaveGlsName = pApp->m_glossesName;
 
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.

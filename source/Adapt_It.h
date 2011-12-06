@@ -2412,6 +2412,8 @@ public:
 	// project-defining attibutes
 	wxString	m_sourceName; // name of the source language
 	wxString	m_targetName; // name of the target language
+	wxString	m_glossesName; // name of the glossing language (usually set by a LIFT import)
+							   // but the user can do it in KBPage of the Preferences... dlg
 
 	// whm added 10May10 for KB LIFT XML Export support
 	wxString	m_sourceLanguageCode; // 3-letter code for the source language
