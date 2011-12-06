@@ -5955,6 +5955,11 @@ bool IsLittleEndian(const unsigned char* const pCharBuf, unsigned int size_in_by
 		// theText is big-endian
 		bIsLittleEndian = FALSE;
 	}
+#else
+		size_in_bytes = size_in_bytes; // avoid compiler warning
+		// do a little bit of garbage work (can't assign, as it is const)
+		char ch[] = {'\0'};
+		ch[0] = *pCharBuf; //avoids compiler warning
 #endif
 	return bIsLittleEndian;
 }
@@ -6434,9 +6439,21 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	}
 
 	// Use wxConvAuto to convert the text file from its encoding into a wxString
-	wxString*	pTemp;
+	wxString* pTemp = new wxString;
+#if defined(_UNICODE)
+	pTemp->Alloc(nBuffLen*2);
 	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding, nBuffLen);
-
+#else
+	char* pch_start = pbyteBuff;
+	char* p = pch_start;
+	while (*p != 0)
+	{
+		p++;
+	}
+	CBString byteStr;
+	MakeStrFromPtrs(pch_start, p, byteStr);
+	*pTemp = byteStr;
+#endif
 	// Free the byte buffer read from the file
 	free((void*)pbyteBuff);
 
@@ -6467,6 +6484,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	// Return the wxString and its length to the caller.
 	pstrBuffer = pTemp;
 	nLength = pTemp->Len();
+	delete pTemp; // don't leak memory
 	return getNewFile_success;
 }
 

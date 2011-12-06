@@ -8231,7 +8231,8 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 #ifdef _UNICODE
 					pApp->Convert8to16(sourceLangCode, srcLangCode);
 #else
-					wxString s(sourceLangCode.GetData());
+					pApp = pApp; // to avoid a compiler warning in the ANSI build, re unused pApp
+					wxString s(sourceLangCode.GetBuffer());
 					srcLangCode = s;
 #endif
 
@@ -8297,7 +8298,7 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 #ifdef _UNICODE
 					pApp->Convert8to16(aLangCode, codeStr);
 #else
-					wxString s(aLangCode.GetData());
+					wxString s(aLangCode.GetBuffer());
 					codeStr = s;
 #endif
 					AddUniqueString(&arrLangCodes, codeStr);
