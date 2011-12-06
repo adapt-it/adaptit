@@ -53,9 +53,11 @@ extern LangInfo langsKnownToWX[];
 BEGIN_EVENT_TABLE(CLanguageCodesDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CLanguageCodesDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CLanguageCodesDlg::OnOK)
-	EVT_BUTTON(ID_BUTTON_FIND_NEXT, CLanguageCodesDlg::OnFindNext)
+	EVT_BUTTON(ID_BUTTON_FIND_CODE, CLanguageCodesDlg::OnFindCode)
+	EVT_BUTTON(ID_BUTTON_FIND_LANGUAGE, CLanguageCodesDlg::OnFindLanguage)
 	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_SRC, CLanguageCodesDlg::OnUseSelectedCodeForSrcLanguage)
 	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_TGT, CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage)
+	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_GLS, CLanguageCodesDlg::OnUseSelectedCodeForGlsLanguage)
 	EVT_LISTBOX(ID_LIST_LANGUAGE_CODES_NAMES, CLanguageCodesDlg::OnSelchangeListboxLanguageCodes)
 	EVT_TEXT_ENTER(ID_TEXTCTRL_SEARCH_LANG_NAME, CLanguageCodesDlg::OnEnterInSearchBox)
 END_EVENT_TABLE()
@@ -86,8 +88,14 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 	pEditTargetLangCode = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_CODE);
 	wxASSERT(pEditTargetLangCode != NULL);
 
-	pBtnFindNext = (wxButton*)FindWindowById(ID_BUTTON_FIND_NEXT);
-	wxASSERT(pBtnFindNext != NULL);
+	pEditGlossLangCode = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_GLS_LANG_CODE);
+	wxASSERT(pEditGlossLangCode != NULL);
+
+	pBtnFindCode = (wxButton*)FindWindowById(ID_BUTTON_FIND_CODE);
+	wxASSERT(pBtnFindCode != NULL);
+
+	pBtnFindLanguage = (wxButton*)FindWindowById(ID_BUTTON_FIND_LANGUAGE);
+	wxASSERT(pBtnFindLanguage != NULL);
 
 	pBtnUseSelectionAsSource = (wxButton*)FindWindowById(ID_BUTTON_USE_SEL_AS_SRC);
 	wxASSERT(pBtnUseSelectionAsSource != NULL);
@@ -112,7 +120,12 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 	//InitDialog() is not virtual, no call needed to a base class
 	m_bISO639ListFileFound = TRUE;
 
-	// Adapt It uses the 3-letter language codes that can be downloaded from SIL's
+	// Adapt It uses both the 2-letter iso639-1 codes and the 3-letter iso639-3 
+	// language codes concatenated together in a single UTF-8 plain text file
+	// called iso639-3codes.txt. There are 184 2-letter codes and they are placed
+	// first in the iso639-3codes.txt file. The 2-letter codes were reformatted
+	// from the table at: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+	// The 3-letter codes were downloaded from SIL's site at:
 	// http://www.sil.org/iso639-3/download.asp#LNIndex
 	// under the section called "Language Names Index" using the "Download ISO 639-3 
 	// code set UTF-8" link.
@@ -146,7 +159,8 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 		pListBox->Disable(); // disable the list box window
 		// also disable other dialog controls that cannot be used when no list is available
 		pEditSearchForLangName->Disable();
-		pBtnFindNext->Disable();
+		pBtnFindCode->Disable();
+		pBtnFindLanguage->Disable();
 		pBtnUseSelectionAsSource->Disable();
 		pBtnUseSelectionAsTarget->Disable();
 		pStaticScrollList->Disable();
@@ -237,18 +251,26 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 		if (pListBox->GetCount() > 0)
 			pListBox->SetSelection(m_curSel,TRUE);
 		// if the user had previously designated a source language code and/or a
-		// target language code, enter those into the appropriate edit boxes as
-		// initial/default values
+		// target language code, and/or a gloss language code, enter those into 
+		// the appropriate edit boxes as initial/default values
 		if (!m_sourceLangCode.IsEmpty())
 			pEditSourceLangCode->ChangeValue(m_sourceLangCode);
 		if (!m_targetLangCode.IsEmpty())
 			pEditTargetLangCode->ChangeValue(m_targetLangCode);
+		if (!m_glossLangCode.IsEmpty())
+			pEditGlossLangCode->ChangeValue(m_glossLangCode);
 	}
 }
 
 // event handling functions
 	
-void CLanguageCodesDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
+// whm revised 5Dec11 changed name of handler and modified to only search within the
+// code part of the list strings (up to the 5 spaces). This routine does a brute 
+// force linear search through the list. On a fast machine if the search
+// string is near the end of the list it can take 7 or 8 seconds, longer on a slower
+// machine, but this function is likely to be used only rarely when the code for
+// a new language is being determined.
+void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 {
 	unsigned int count = pListBox->GetCount();
 	// get the text in the edit control
@@ -262,6 +284,7 @@ void CLanguageCodesDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
 	m_searchString.LowerCase();
 
 	// for an ordinary search start at the first list position
+	// m_curSel is set to 0 in InitDialog()
 	int nCurSel = m_curSel;
 	nCurSel++; // start search with following item
 	unsigned int index;
@@ -279,7 +302,12 @@ void CLanguageCodesDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
 		// matched item selected; but if not matched, continue to iterate thru the list
 		strLabel = pListBox->GetString(index);
 		strLabel.LowerCase();
-		int offset = strLabel.Find(m_searchString);
+		// whm modified 5Dec11 to only search for codes in the first column (before the 5 spaces)
+		const wxString tab5sp = _T("     "); // the tab was replaced by 5 spaces in InitDialog()
+		int offset = strLabel.Find(tab5sp);
+		wxASSERT(offset != wxNOT_FOUND); // there should be 5 spaces in the string
+		strLabel = strLabel.Mid(0,offset); // get substring up to but not including the 5 spaces
+		offset = strLabel.Find(m_searchString);
 		if (offset == wxNOT_FOUND)
 			continue;
 		else
@@ -297,7 +325,73 @@ void CLanguageCodesDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
 #ifdef __WXDEBUG__
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("Find Next executed in %s ms"), 
+		wxLogDebug(_T("Find Code executed in %s ms"), 
+			(dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+}
+
+// whm revised 5Dec11 changed name of handler and modified to only search within the
+// language part of the list strings (following the 5 spaces). This routine does
+// a brute force linear search through the list. On a fast machine if the search
+// string is near the end of the list it can take 7 or 8 seconds, longer on a slower
+// machine, but this function is likely to be used only rarely when the code for
+// a new language is being determined.
+void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
+{
+	unsigned int count = pListBox->GetCount();
+	// get the text in the edit control
+	m_searchString = pEditSearchForLangName->GetValue();
+	if (m_searchString.IsEmpty() || count < 2)
+	{
+		::wxBell();
+		return;
+	}
+
+	m_searchString.LowerCase();
+
+	// for an ordinary search start at the first list position
+	// m_curSel is set to 0 in InitDialog()
+	int nCurSel = m_curSel;
+	nCurSel++; // start search with following item
+	unsigned int index;
+	bool bFound = FALSE;
+	wxString strLabel = _T("");
+	// do a little benchmark test of search times in __WXDEBUG__
+#ifdef __WXDEBUG__
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
+	for (index = nCurSel; index < count; index++)
+	{
+		//wxCursor(wxCURSOR_WAIT);
+		// get the list's label string at index & check for a match; return with the
+		// matched item selected; but if not matched, continue to iterate thru the list
+		strLabel = pListBox->GetString(index);
+		strLabel.LowerCase();
+		// whm modified 5Dec11 to only search for codes in the first column (before the 5 spaces)
+		const wxString tab5sp = _T("     "); // the tab was replaced by 5 spaces in InitDialog()
+		int offset = strLabel.Find(tab5sp);
+		wxASSERT(offset != wxNOT_FOUND); // there should be 5 spaces in the string
+		strLabel = strLabel.Mid(offset+tab5sp.Length()); // get substring up to but not including the tab
+		offset = strLabel.Find(m_searchString);
+		if (offset == wxNOT_FOUND)
+			continue;
+		else
+		{
+			pListBox->SetSelection(index,TRUE);
+			m_curSel = index;
+			bFound = TRUE;
+			break;
+		}
+	} // end of search loop
+	//wxCursor(wxNullCursor);
+	if (!bFound)
+		::wxBell();
+
+#ifdef __WXDEBUG__
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("Find Language executed in %s ms"), 
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 }
@@ -385,6 +479,11 @@ void CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage(wxCommandEvent& WXUNUSED
 	pEditTargetLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
 }
 
+void CLanguageCodesDlg::OnUseSelectedCodeForGlsLanguage(wxCommandEvent& WXUNUSED(event))
+{
+	pEditGlossLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+}
+
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -393,6 +492,7 @@ void CLanguageCodesDlg::OnOK(wxCommandEvent& event)
 {
 	m_sourceLangCode = pEditSourceLangCode->GetValue();
 	m_targetLangCode = pEditTargetLangCode->GetValue();
+	m_glossLangCode = pEditGlossLangCode->GetValue();
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

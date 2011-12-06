@@ -29,6 +29,7 @@ public:
 	// other methods
 	wxString m_sourceLangCode;
 	wxString m_targetLangCode;
+	wxString m_glossLangCode;
 	wxString m_searchString;
 	int m_curSel;
 	bool m_bISO639ListFileFound;
@@ -37,9 +38,12 @@ public:
 	wxTextCtrl* pEditSearchForLangName;
 	wxTextCtrl* pEditSourceLangCode;
 	wxTextCtrl* pEditTargetLangCode;
-	wxButton* pBtnFindNext;
+	wxTextCtrl* pEditGlossLangCode;
+	wxButton* pBtnFindCode;
+	wxButton* pBtnFindLanguage;
 	wxButton* pBtnUseSelectionAsSource;
 	wxButton* pBtnUseSelectionAsTarget;
+	wxButton* pBtnUseSelectionAsGloss;
 	wxStaticText* pStaticScrollList;
 	wxStaticText* pStaticSearchForLangName;
 
@@ -47,9 +51,11 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	
-	void OnFindNext(wxCommandEvent& WXUNUSED(event));
+	void OnFindCode(wxCommandEvent& WXUNUSED(event));
+	void OnFindLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnUseSelectedCodeForSrcLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnUseSelectedCodeForTgtLanguage(wxCommandEvent& WXUNUSED(event));
+	void OnUseSelectedCodeForGlsLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListboxLanguageCodes(wxCommandEvent& WXUNUSED(event));
 	void OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event));
 	wxString Get3LetterCodeFromLBItem(); // helper function
