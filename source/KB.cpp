@@ -1847,7 +1847,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				// the code edit boxes
 				lcDlg.m_sourceLangCode = m_pApp->m_sourceLanguageCode;
 				lcDlg.m_targetLangCode = m_pApp->m_targetLanguageCode;
-				int returnValue = lcDlg.ShowModal(); // MFC has DoModal()
+				int returnValue = lcDlg.ShowModal();
 				if (returnValue == wxID_CANCEL)
 				{
 					// user cancelled

@@ -5554,8 +5554,14 @@ wxString szSourceLanguageCode = _T("SourceLanguageCode"); // stored in the App's
 // whm added following 10May10 for KB LIFT XML Export support
 /// The label that identifies the following string as the project's "TargetLanguageCode".
 /// This value is written in the "ProjectSettings" part of the project configuration file.
-/// Adapt It stores this path in the App's m_targetLanguageCode member variable.
+/// Adapt It stores this string in the App's m_targetLanguageCode member variable.
 wxString szTargetLanguageCode = _T("TargetLanguageCode");
+
+// whm added following 10May10 for KB LIFT XML Export support
+/// The label that identifies the following string as the project's "GlossesLanguageCode".
+/// This value is written in the "ProjectSettings" part of the project configuration file.
+/// Adapt It stores this string in the App's m_glossesLanguageCode member variable.
+wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
@@ -24269,6 +24275,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szGlossesLanguageCode << tab << m_glossesLanguageCode;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
 
@@ -25386,6 +25396,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTargetLanguageCode)
 		{
 			m_targetLanguageCode = strValue;
+		}
+		else if (name == szGlossesLanguageCode)
+		{
+			m_glossesLanguageCode = strValue;
 		}
 		else if (name == szAdaptitPath)
 		{
@@ -27153,6 +27167,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szTargetLanguageCode << tab << m_targetLanguageCode;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szGlossesLanguageCode << tab << m_glossesLanguageCode;
+	pf->AddLine(data);
+
 	// m_last...Path values below
 	data.Empty();
 	data << szLastDocPath << tab << m_lastDocPath; // whm 6Aug 11 moved here from basic config file
@@ -27552,6 +27570,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTargetLanguageCode)
 		{
 			m_targetLanguageCode = strValue;
+		}
+		else if (name == szGlossesLanguageCode)
+		{
+			m_glossesLanguageCode = strValue;
 		}
 		// m_last...Path values below
 		else if (name == szDefaultTablePath)
