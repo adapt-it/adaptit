@@ -233,6 +233,8 @@
 		<Unit filename="../../source/Cell.h" />
 		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.cpp" />
 		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.h" />
+		<Unit filename="../../source/ChooseLanguageCode.cpp" />
+		<Unit filename="../../source/ChooseLanguageCode.h" />
 		<Unit filename="../../source/ChooseLanguageDlg.cpp" />
 		<Unit filename="../../source/ChooseLanguageDlg.h" />
 		<Unit filename="../../source/ChooseTranslation.cpp" />
