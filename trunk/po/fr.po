@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-28 09:53+0100\n"
-"PO-Revision-Date: 2011-11-16 16:36+0100\n"
+"PO-Revision-Date: 2011-12-06 09:23+0100\n"
 "Last-Translator: Kevin Bradford <kevin_bradford@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -3057,7 +3057,7 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:288
 #: source/Adapt_It_wdr.cpp:6590
 msgid "Press this button to store an \"empty translation\" for this particular word or phrase in the KB"
-msgstr ""
+msgstr "Appuyez sur ce bouton pour enregistrer une \"traduction vide \" pour ce mot ou phrase dans la KB"
 
 # Priority 1
 # This refers to a short time delay that the user can set to slow down automatic insertions in the phrase box.
