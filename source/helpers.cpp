@@ -2282,7 +2282,8 @@ wxString GetAdaptItInstallPrefixForLinux()
     wxString wholePath;
 	wholePath = fn.GetPath(); // The wxFileName::GetPath() doesn't have a terminating path separator on the returned string
 #ifdef __WXGTK__
-	stdPathsPrefix = wxStandardPaths::GetInstallPrefix();
+	wxStandardPaths stdPaths;
+	stdPathsPrefix = stdPaths.GetInstallPrefix();
 	// TODO: Decide which to use: the stdPathsPrefix or the first part of wholePath
 	// determined by searching the PATH.
 	// 
