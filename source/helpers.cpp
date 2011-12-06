@@ -32,6 +32,7 @@
 #include <wx/colour.h>
 #include <wx/dir.h>
 #include <wx/textfile.h>
+#include <wx/stdpaths.h>
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -2221,6 +2222,77 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	
 	return destString;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the absolute path of appName if found
+///             by searching the system's PATH environment variable; otherwise
+///             an empty string
+/// \param		appName		-> the name of the program we are searching for
+/// \remarks
+/// Called from: the GetAdaptItInstallPrefixForLinux() function in helpers.
+/// Searches for the program appName at locations specified in the system's
+/// PATH environment variable. The first path on which appName is found is
+/// returned. If appName is not found on any paths specified in the system's
+/// PATH environment variable, an empty string is returned. This function is
+/// used to find 
+///////////////////////////////////////////////////////////////////////////////
+wxString GetProgramLocationFromSystemPATH(wxString appName)
+{
+	// whm added 6Dec11. Patterned after Julian Smart's code in wxWidgets
+	// docs re "Writing installers for wxWidgets applications".
+    // The passed in appName string might be for example, _T("bibledit-rdwrt"), 
+    // or _T("bibledit-gkt") or _T("adaptit") or _T("adaptit-bibledit-rdwrt"), 
+    // or any program executable that might be found by searching the system's 
+    // PATH environment variable.
+    wxString str;
+    wxPathList pathList;
+    pathList.AddEnvList(wxT("PATH"));
+    str = pathList.FindAbsoluteValidPath(appName);
+    if (!str.IsEmpty())
+        return wxPathOnly(str);
+    else
+        return wxEmptyString;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString representing the absolute path of appName if found
+///             by searching the system's PATH environment variable; otherwise
+///             an empty string
+/// \param		appName		-> the name of the program we are searching for
+/// \remarks
+/// Called from: the GetAdaptItInstallPrefixForLinux() function in helpers.
+/// Searches for the program appName at locations specified in the system's
+/// PATH environment variable. The first path on which appName is found is
+/// returned. If appName is not found on any paths specified in the system's
+/// PATH environment variable, an empty string is returned. This function is
+/// used to find 
+///////////////////////////////////////////////////////////////////////////////
+wxString GetAdaptItInstallPrefixForLinux()
+{
+    // Note: wxWidgets defines argc and argv as uninitialized public variables in App.h
+    //       The system's argv[0] parameter (to Main) is a string containing the runninig
+    //       app's name.
+	wxString prefix;
+	prefix.Empty();
+	wxString stdPathsPrefix;
+	stdPathsPrefix.Empty();
+    wxString str;
+    str = GetProgramLocationFromSystemPATH(gpApp->argv[0]);
+    wxFileName fn(str);
+    wxString wholePath;
+	wholePath = fn.GetPath(); // The wxFileName::GetPath() doesn't have a terminating path separator on the returned string
+#ifdef __WXGTK__
+	stdPathsPrefix = wxStandardPaths::GetInstallPrefix();
+	// TODO: Decide which to use: the stdPathsPrefix or the first part of wholePath
+	// determined by searching the PATH.
+	// 
+	prefix = stdPathsPrefix;
+#else
+	stdPathsPrefix = wxEmptyString;
+#endif
+	return prefix;
+}
+
 
 int	sortCompareFunc(const wxString& first, const wxString& second)
 {
