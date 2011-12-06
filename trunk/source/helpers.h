@@ -199,6 +199,9 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 
 wxString RemoveMultipleSpaces(wxString& rString);
 
+// whm added 6Dec11
+wxString GetProgramLocationFromSystemPATH(wxString appName);
+wxString GetAdaptItInstallPrefixForLinux();
 
 // end of whm's additions
  

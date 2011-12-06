@@ -13894,6 +13894,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 #endif // #if wxCHECK_VERSION(2, 7, 0)
 
+	// whm added 6Dec11
+	// Get the prefix for Linux installed files needed by the App. The m_PathPrefix will
+	// be an empty string for platforms other than Linux/GTK
+	m_PathPrefix = GetAdaptItInstallPrefixForLinux();
+
 	m_setupFolder = FindAppPath(argv[0], wxGetCwd(), _T(""));
 	m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
 	wxLogDebug(_T("The m_appInstallPathOnly = %s"),m_appInstallPathOnly.c_str());
@@ -13909,8 +13914,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // installed on the given platform.
 	// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// On wxGTK: "/usr/share/adaptit/"     [adaptit here is the name of a directory]
-	// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ???
-	//             TODO: check this location
+	// On wxMac: "AdaptIt.app/Contents/Resources"
 	m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
 	wxLogDebug(_T("The m_xmlInstallPath = %s"),m_xmlInstallPath.c_str());
 

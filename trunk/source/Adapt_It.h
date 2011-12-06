@@ -2637,10 +2637,22 @@ public:
 	/// On wxMac: "/Users/wmartin/.Adapt_It_WX"
 	wxString m_wxFileConfigPathAndName;
 
+	/// m_PathPrefix stores the path prefix for Linux installations as returned by
+	/// GetAdaptItInstallPrefixForLinux() in helpers. For other platforms
+	/// m_PathPrefix is an empty string. When the Linux version is installed from a 
+	/// debian package, this prefix is generally /usr/. When Linux is installed using 
+	/// 'sudo make install' by a developer or user building the application from source 
+	/// on their local machine, m_PathPrefix would generally be /usr/local/. I think 
+	/// there are probably ways a user could also manually determine the prefix by use 
+	/// of a -prefix switch during a build, so we need to be flexible enough to have the 
+	/// m_PathPrefix be whatever is currently in use via whatever install options are used.
+	wxString m_PathPrefix; // whm added 6Dec11
+
 	/// m_appInstallPathOnly stores the path (only the path, not path and name) where the
-    /// executable application file is installed on the given platform.
+    /// executable application file is installed on the given platform. The value of this
+	/// variable is determined by calling FindAppPath().
     /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
-    /// On wxGTK: "/usr/bin/"
+    /// On wxGTK: "/usr/bin/" or "/usr/local/bin/" depending on m_PathPrefix
     /// On wxMac: "/Programs/"
 	wxString m_appInstallPathOnly;
 
@@ -2648,8 +2660,8 @@ public:
     /// is installed on the given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\Adapt_It.exe or
 	///             C:\Program Files\Adapt It WX Unicode\Adapt_It_Unicode.exe"
-	/// On wxGTK:   "/usr/bin/adaptit"      [adaptit is the name of the executable,
-	///             not a directory]
+	/// On wxGTK:   "/usr/bin/adaptit" or "/usr/local/bin/adaptit" depending on m_PathPrefix
+	///             [adaptit is the name of the executable, not a directory]
 	/// On wxMac: "/Programs/AdaptIt.app"
 	wxString m_appInstallPathAndName;
 
@@ -2657,11 +2669,11 @@ public:
     /// installed on the given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or
 	///             C:\Program Files\Adapt It WX Unicode\"
-	/// On wxGTK:   "/usr/share/adaptit/"  [adaptit here is the name of a directory]
-	/// On wxMac:   "AdaptIt.app/Contents/Resources"  [bundle subdirectory] ???
-	///             TODO: check this location
-	wxString m_xmlInstallPath; // whm added for path where the AI_USFM.xml and
-				// books.xml files are installed
+	/// On wxGTK:   "/usr/share/adaptit/" or "/usr/local/share/adaptit" depending on m_PathPrefix
+	///             [adaptit here is the name of a directory]
+	/// On wxMac:   "AdaptIt.app/Contents/Resources"
+	wxString m_xmlInstallPath;	// whm added for path where the AI_USFM.xml, AI_UserProfiles.xml
+								// and books.xml files are installed
 
     /// m_localizationInstallPath stores the path where the <lang> localization files are
     /// installed on the given platform.
