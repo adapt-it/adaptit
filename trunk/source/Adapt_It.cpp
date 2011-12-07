@@ -30084,11 +30084,10 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 }
 #endif
 
-#ifdef _UNICODE
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pBuf       <- the buffer which receives the converted text
+/// \param      pBuf       <- the wxChar buffer which receives the converted text
+///	\param		bufLen	   <- the length of the wxChar buffer
 /// \param      pbyteBuff  -> the byte buffer containing the text to be converted
 /// \param      eEncoding  -> the encoding to use if there is no BOM in the input
 /// \param      byteBufLen -> the length of the byte buffer to be converted
@@ -30105,11 +30104,14 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 //	GDLC 8Sep11 Modified to use wxConvAuto_AI
 //	GDLC 9Sep11 Removed params eEncoding and bHasBOM
 //	GDLC 16Sep11 Put eEncoding back in for wxConvAuto_AI default encoding
-//	GSLC 25Nov11 Added length parameter to constructor for dstStr
+//	GDLC 25Nov11 Added length parameter to constructor for dstStr
+//	GDLC 7Dec11 Changed to returning a wxChar buffer. NOTE: callers need to free the
+//				wxChar buffer when they have finished with it.
 ////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoInputConversion(wxString*& pBuf, const char* pbyteBuff,
+void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char* pbyteBuff,
 									 wxFontEncoding eEncoding, size_t byteBufLen)
 {
+#ifdef _UNICODE
 	wxConvAuto_AI conv(eEncoding);
 	// GDLC 26Nov11 Because the pbyteBuff could be UTF16 which has numerous NUL bytes,
 	// we specify the length of the input buffer rather than allow wxConvAuto to stop
@@ -30128,11 +30130,21 @@ void CAdapt_ItApp::DoInputConversion(wxString*& pBuf, const char* pbyteBuff,
 		wxASSERT(FALSE);
 		return;
 	}
-	wxString* dstStr = new wxString(dst, dstLen);
-	delete dst;
-	pBuf = dstStr;
-}
+	pBuf = dst;
+	bufLen = dstLen;
+#else
+	// ANSI code goes in here
+	// wxChar is one byte only
+	wxChar *dst = new wxChar[byteBufLen + 1];	// Allow for a 1 byte NUL to be appended
+	char* p = pbyteBuf;
+	wxChar* q = dst;
+	size_t n = 0;
+	while ((*q++ = *p++) != 0) n++;
+	*q = '\0';
+	pBuf = dst;
+	bufLen = n + 1;
 #endif
+}
 
 // whm Note: The ConvertAndWrite() function might not actually be needed within the WX version because
 // the wxTextFile class in wxWidgets automatically takes care of UNICODE and non-Unicode conversions.

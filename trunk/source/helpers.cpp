@@ -6124,6 +6124,7 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 		}
 		f.Close(); // GetNewFile() will Open it again internally
 		wxString eolStr = _T("\n");
+// GDLC Do we really want this wxString str???
 		wxString str;
 		wxString* pStr = &str;
 		wxUint32 nLength; // returns length of data plus 1 (for the null char)
@@ -6331,45 +6332,41 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		void
-/// \param		pTemp		<-> a wxString whose line endings must be converted to just LF
+/// \param		pBuf		<-> a wxChar buffer whose line endings must be converted to just LF
+///	\param		bufLen		 -> length of the wxChar buffer
 /// \remarks
 /// Called only from: GetNewFile().
 /// Converts CR or CR-LF line endings into just LF
 ///////////////////////////////////////////////////////////////////////////////
-static void ConvertLineEndingsForGetNewFile(wxString*& pTemp)
+static void ConvertLineEndingsForGetNewFile(wxChar* pBuf, wxUint32& bufLen)
 {
-	// Get a buffer in which to build the converted string
-	wxUint32 len = pTemp->length();
-	wxChar *dst = new wxChar[len];
-	
 	// Scan the string converting line endings as necessary
 #define	CR	'\r'
 #define LF	'\n'
 #define NUL	'\0'
 	wxChar c;
 	wxUint32 i, j;
-	for (i=0, j=0; i<len; i++)
+	for (i=0, j=0; i<bufLen; i++)
 	{
-		c = pTemp->GetChar(i);
+		c = pBuf[i];
 		if (c == CR)
 		{
 			// Replace the CR by an LF
-			dst[j++] = LF;
+			pBuf[j++] = LF;
 			// Check whether there is an LF to consume
-			c = pTemp->GetChar(i + 1);
+			c = pBuf[i + 1];
 			if (c == LF) ++i;
 		}
 		else if (c == NUL)
 		{
-			dst[j++] = c;
+			pBuf[j++] = c;
 			break;
 		}
-		else dst[j++] = c;
+		else pBuf[j++] = c;
 	}
 	
-	// Return the modified string
-	wxString* pLFString = new wxString(dst, j);
-	pTemp = pLFString;
+	// Return the reduced buffer length
+	bufLen = j;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -6380,19 +6377,20 @@ static void ConvertLineEndingsForGetNewFile(wxString*& pTemp)
 /// Called only from: GetNewFile().
 /// Truncates the pTemp to numwxChars and then NUL terminates it.
 ///////////////////////////////////////////////////////////////////////////////
-static void ShortenStringForGetNewFile(wxString*& pTemp, wxUint32 numwxChars)
+static void ShortenStringForGetNewFile(wxChar* pBuf, wxUint32& bufLen, wxUint32 numwxChars)
 {
 #define NUL	'\0'
-	// If pTemp is longer than the desired number of wxChars then truncate it
+	// If pBuf is longer than the desired number of wxChars then truncate it
 	// and ensure that it is NUL terminated.
-	if (pTemp->Len() > numwxChars)
+	if (bufLen > numwxChars)
 	{
-		pTemp->Truncate(numwxChars+1);	// Allow for the NUL we will add
-		pTemp->SetChar(numwxChars, NUL);
+		bufLen = numwxChars+1;	// Allow for the NUL we will add
+		pBuf[numwxChars] = NUL;
 	} else
 	{
-		// If there is no need to truncate pTemp then do nothing, assuming that the
-		// conversion process in GetNewFile() has generated a NUL terminated wxString.
+		// If there is no need to truncate pTemp then do nothing, assuming that
+		// the conversion process in DoInputConversion() has generated a NUL
+		// terminated buffer of wxChars.
 	}
 }
 
@@ -6428,7 +6426,6 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 {
 // GDLC TESTING ONLY - REMOVE FROM RELEASE APP
 //	numKBOnly = 1;
-	
 	// get a CFile and check length of file
 	wxFile file;
 	if (!file.Open(pathName, wxFile::read))
@@ -6450,13 +6447,16 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	wxUint32 nNumRead = (wxUint32)file.Read(pbyteBuff, numBytesInFile);
 	file.Close();
 
-	// GDLC 2Dec11 Null terminate the byte buffer to ensure that wxConvAuto
+	// GDLC 2Dec11 Null terminate the byte buffer to ensure that DoInputConversion()
 	// produces a null terminated wxString.
 	pbyteBuff[nNumRead] = '\0';
 	pbyteBuff[nNumRead+1] = '\0';
 	pbyteBuff[nNumRead+2] = '\0';
 	pbyteBuff[nNumRead+3] = '\0';
 
+	if (gbForceUTF8) gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
+	else
+	{
 	// Use tellenc() to find the encoding of the text file. Give tellenc the
 	// number of bytes read not including the terminating NUL because tellenc()
 	// does not want that.
@@ -6517,28 +6517,18 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	{
 		gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
 	}
-
-	// Use wxConvAuto to convert the text file from its encoding into a wxString
-	wxString* pTemp = new wxString;
-#if defined(_UNICODE)
-	pTemp->Alloc(nBuffLen*2);
-	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding, nBuffLen);
-#else
-	char* pch_start = pbyteBuff;
-	char* p = pch_start;
-	while (*p != 0)
-	{
-		p++;
 	}
-	CBString byteStr;
-	MakeStrFromPtrs(pch_start, p, byteStr);
-	*pTemp = byteStr;
-#endif
+
+	// Use DoInputConversion() to convert the text file from its encoding into a wxChar buffer
+	wxChar* pBuf;		// DoInputConversion() will allocate the buffer after it calculates
+	wxUint32 bufLen;	// the needed size which depends on the encoding of the text file.
+	gpApp->DoInputConversion(pBuf, bufLen, pbyteBuff, gpApp->m_srcEncoding, nBuffLen);
+
 	// Free the byte buffer read from the file
 	free((void*)pbyteBuff);
 
 	// Convert CR and CRLF line terminations to just LF
-	ConvertLineEndingsForGetNewFile(pTemp);
+	ConvertLineEndingsForGetNewFile(pBuf, bufLen);
 	
 	// Limit the size of the wxString if numKBOnly is non-zero
 	if (numKBOnly > 0)
@@ -6555,16 +6545,16 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		//
 		// Note: by processing all three multiplicands before dividing by numBytesInFile we can
 		// avoid conversions to and from floating point to cope with the less than 1.0 ratio.
-		wxUint32 numwxChars = (numKBOnly * 1024 * pTemp->Len())/numBytesInFile;
+		wxUint32 numwxChars = (numKBOnly * 1024 * bufLen)/numBytesInFile;
 
 		// Truncate the wxString to the desired number of wxChars
-		ShortenStringForGetNewFile(pTemp, numwxChars);
+		ShortenStringForGetNewFile(pBuf, bufLen, numwxChars);
 	}
 
 	// Return the wxString and its length to the caller.
-	pstrBuffer = pTemp;
-	nLength = pTemp->Len();
-	delete pTemp; // don't leak memory
+	*pstrBuffer = wxString(pBuf, bufLen);
+	nLength = bufLen;
+	delete pBuf; // don't leak memory
 	return getNewFile_success;
 }
 

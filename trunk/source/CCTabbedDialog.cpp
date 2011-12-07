@@ -985,9 +985,16 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	// (which then persists while table editor lives)
 	// GDLC 16Sep11 Last parameter no longer needed
 	// gpApp->DoInputConversion(editor.m_ccTable,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
-	wxString* pTemp;
-	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding);
-	editor.m_ccTable = *pTemp;
+	// GDLC 7Dec11 Changed for revised return parameters of DoInputConversion
+//	wxString* pTemp;
+//	gpApp->DoInputConversion(pTemp, pbyteBuff, gpApp->m_srcEncoding);
+//	editor.m_ccTable = *pTemp;
+	wxChar* pTemp;		// DoInputConversion() creates the wxChar buffer
+	wxUint32 lenTemp;
+	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, gpApp->m_srcEncoding);
+	editor.m_ccTable = *(new wxString(pTemp, lenTemp));
+//	GDLC 7Dec11 Free the temporary wxChar buffer created by DoInputConversion()
+	free((void*)pTemp);
 
 	// free the original read in (const) char data's chunk
 	free((void*)pbyteBuff);
