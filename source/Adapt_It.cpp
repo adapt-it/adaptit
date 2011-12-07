@@ -30097,7 +30097,8 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 /// Adapt It, removing any BOM that may be present before storing the text in pBuf.
 /// Because TokeniseText() and other related functions in Adapt It rely on the presence of
 /// a wchar_t NUL at the end of their input wxStrings, the byte buffer pbyteBuff should
-/// have a terminating NUL byte and its specified length byteBufLen should include this NUL.
+/// have a terminating NUL (4 bytes in the UNICODE build) and its specified length
+/// byteBufLen should include this NUL.
 ///
 ///	Note: This function now needs the wxConvAuto_AI from wxWidgets 2.9.1
 //
@@ -30111,10 +30112,11 @@ wxString CAdapt_ItApp::Convert8to16(CBString& bstr)
 void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char* pbyteBuff,
 									 wxFontEncoding eEncoding, size_t byteBufLen)
 {
+#define NUL	'\0'
 #ifdef _UNICODE
 	wxConvAuto_AI conv(eEncoding);
 	// GDLC 26Nov11 Because the pbyteBuff could be UTF16 which has numerous NUL bytes,
-	// we specify the length of the input buffer rather than allow wxConvAuto to stop
+	// we specify the length of the input buffer rather than allow ToWChar to stop
 	// when it finds a NUL.
 	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff, byteBufLen);
 	if ( dstLen == wxCONV_FAILED )
@@ -30123,6 +30125,8 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 		wxASSERT(FALSE);
 		return;
 	}
+	// Create a wxChar buffer in which to guild the converted string of wxChars
+	// The caller will have to dispose of this when it is no longer needed
 	wxChar *dst = new wxChar[dstLen];
 	if ( conv.ToWChar(dst, dstLen, pbyteBuff, byteBufLen) == wxCONV_FAILED )
 	{
@@ -30133,16 +30137,20 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 	pBuf = dst;
 	bufLen = dstLen;
 #else
-	// ANSI code goes in here
-	// wxChar is one byte only
-	wxChar *dst = new wxChar[byteBufLen + 1];	// Allow for a 1 byte NUL to be appended
-	char* p = pbyteBuf;
+	// ANSI code goes in here. A wxChar is one byte only.
+	// Create a wxChar buffer in which to guild the converted string of wxChars
+	// The caller will have to dispose of this when it is no longer needed
+	wxChar* dst = new wxChar[byteBufLen];
+	char* p = pbyteBuff;
 	wxChar* q = dst;
 	size_t n = 0;
-	while ((*q++ = *p++) != 0) n++;
-	*q = '\0';
+	// Copy characters until byteBufLen or a NUL
+	for (size_t i=0; i<byteBufLen; i++, n++)
+	{
+		if ((*q++ = *p++) == NUL) break;
+	}
 	pBuf = dst;
-	bufLen = n + 1;
+	bufLen = n;
 #endif
 }
 
