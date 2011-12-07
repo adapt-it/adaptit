@@ -30140,8 +30140,9 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 	// ANSI code goes in here. A wxChar is one byte only.
 	// Create a wxChar buffer in which to guild the converted string of wxChars
 	// The caller will have to dispose of this when it is no longer needed
+	eEncoding = eEncoding; // prevent a compiler warning
 	wxChar* dst = new wxChar[byteBufLen];
-	char* p = pbyteBuff;
+	char* p = const_cast<char*>(pbyteBuff);
 	wxChar* q = dst;
 	size_t n = 0;
 	// Copy characters until byteBufLen or a NUL
