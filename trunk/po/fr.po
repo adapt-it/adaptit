@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-10-28 09:53+0100\n"
-"PO-Revision-Date: 2011-12-06 09:23+0100\n"
+"PO-Revision-Date: 2011-12-07 16:34+0100\n"
 "Last-Translator: Kevin Bradford <kevin_bradford@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -679,7 +679,7 @@ msgstr ""
 #: source/Adapt_It.cpp:4889
 #, c-format
 msgid "(Use system default language) [%s]"
-msgstr ""
+msgstr "(Utiliser la langue par défaut du système) [%s]"
 
 # Priority 1
 # Meaning: display glosses, if they exist (in a separate line)
@@ -730,22 +730,22 @@ msgstr "<Nouveau projet>"
 #: source/Adapt_It.cpp:8601
 #: source/Adapt_It.cpp:8620
 msgid "(Get Source Text From Paratext)"
-msgstr ""
+msgstr "(Obtenir le texte source du Paratext)"
 
 #: source/Adapt_It.cpp:8606
 #: source/Adapt_It.cpp:8621
 msgid "(Get Source Text From Bibledit)"
-msgstr ""
+msgstr "(Obtenir le texte source du Bibledit)"
 
 #: source/Adapt_It.cpp:8653
 #: source/Adapt_It.cpp:8672
 msgid "(Transfer Translation Draft To Paratext)"
-msgstr ""
+msgstr "(Envoyer le brouillon de traduction à Paratext)"
 
 #: source/Adapt_It.cpp:8658
 #: source/Adapt_It.cpp:8673
 msgid "(Transfer Translation Draft To Bibledit)"
-msgstr ""
+msgstr "(Envoyer le brouillon de traduction à Bibledit)"
 
 # Priority 1
 #: source/Adapt_It.cpp:8767
@@ -780,7 +780,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It.cpp:8842
 msgid "Find and Replace...\tCtrl-Shift-F"
-msgstr ""
+msgstr "Rechercher et remplacer...\tCtrl-Shift-F"
 
 # Priority 1
 #: source/Adapt_It.cpp:8855
@@ -851,7 +851,7 @@ msgstr "&?"
 #: source/Adapt_It.cpp:10487
 #: source/Adapt_It_wdr.cpp:9043
 msgid "Ad&ministrator"
-msgstr ""
+msgstr "Ad&ministrateur"
 
 # Priority 1
 #: source/Adapt_It.cpp:12374
@@ -906,7 +906,7 @@ msgstr "adaptations"
 # Meaning: display glosses, if they exist (in a separate line)
 #: source/Adapt_It.cpp:12533
 msgid "glosses"
-msgstr ""
+msgstr "gloses"
 
 #: source/Adapt_It.cpp:12534
 msgid "An adaptation exists. A knowledge base entry is expected, but is absent"
@@ -925,7 +925,7 @@ msgstr ""
 # Do not translate.
 #: source/Adapt_It.cpp:12866
 msgid "Unicode "
-msgstr ""
+msgstr "Unicode "
 
 # "Adapt It" here is used as follows:
 # 1. In the main window Title Bar at top.
@@ -936,7 +936,7 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:76
 #: source/Adapt_It_wdr.cpp:1267
 msgid "Adapt It"
-msgstr ""
+msgstr "Adapt It"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
 #: source/Adapt_It.cpp:12896
@@ -1258,7 +1258,7 @@ msgstr ""
 
 #: source/Adapt_It.cpp:21774
 msgid "Bad path in config file"
-msgstr ""
+msgstr "Chemin d'accès incorrect dans le fichier de configuration."
 
 # Priority 1
 #: source/Adapt_It.cpp:22178
@@ -1275,7 +1275,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It.cpp:22180
 msgid "Critical Error"
-msgstr ""
+msgstr "Erreur critique"
 
 #: source/Adapt_It.cpp:22420
 #: source/Adapt_It.cpp:22432
@@ -1331,7 +1331,7 @@ msgstr ""
 #: source/Adapt_ItDoc.cpp:2485
 #, c-format
 msgid "Saving File %s  - %d of %d Total words and phrases"
-msgstr ""
+msgstr "Enregistrant le fichier %s  - %d de %d mots et phrases au total"
 
 # Priority 1
 #: source/Adapt_It.cpp:23005
@@ -1339,7 +1339,7 @@ msgstr ""
 #: source/Adapt_ItDoc.cpp:2489
 #: source/Adapt_ItDoc.cpp:4083
 msgid "Saving File"
-msgstr ""
+msgstr "Enregistrant le fichier"
 
 #: source/Adapt_It.cpp:23014
 msgid ""
@@ -1728,7 +1728,7 @@ msgstr ""
 
 #: source/Adapt_It.cpp:35708
 msgid "Help for Administrators"
-msgstr ""
+msgstr "Aide pour les administrateurs"
 
 # Priority 1
 #: source/Adapt_It.cpp:35749
@@ -2224,7 +2224,7 @@ msgstr ""
 #: source/Adapt_ItDoc.cpp:4079
 #, c-format
 msgid "Saving file %s - %d of %d Total words and phrases"
-msgstr ""
+msgstr "Enregistrant le fichier %s  - %d de %d mots et phrases au total"
 
 #: source/Adapt_ItDoc.cpp:4355
 msgid "Opening the Document"
@@ -3125,7 +3125,7 @@ msgstr "Supprimer"
 
 #: source/Adapt_It_wdr.cpp:372
 msgid "Remove free translation"
-msgstr ""
+msgstr "Supprimer la traduction libre"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:377
@@ -3980,7 +3980,7 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:8740
 #: source/Adapt_It_wdr.cpp:8823
 msgid "&OK"
-msgstr "&ÐžÐš"
+msgstr "&OK"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1688
@@ -5159,7 +5159,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3496
 msgid "&Remove Back Translation"
-msgstr "Supprimer la retraduction pour vérification"
+msgstr "Supprimer la &Retraduction pour vérification"
 
 #: source/Adapt_It_wdr.cpp:3497
 msgid "Click this button to remove the selected filtered material marker and its associated text from this document"
@@ -7589,7 +7589,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8904
 msgid "&Print...\tCtrl-P"
-msgstr ""
+msgstr "Im&primer...\tCtrl-P"
 
 #: source/Adapt_It_wdr.cpp:8904
 #: source/Adapt_It_wdr.cpp:9065
@@ -7617,7 +7617,7 @@ msgstr "Modifie les paramètres de mise en page"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8908
 msgid "Start &Working...\tCtrl-W"
-msgstr ""
+msgstr "Commencez à travailler...\tCtrl-W"
 
 #: source/Adapt_It_wdr.cpp:8908
 msgid "Show the sequence of dialog windows used for accessing a project and working on documents"
@@ -7657,7 +7657,7 @@ msgstr "Effectue immédiatement une nouvelle sauvegarde de la base de connaissan
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8914
 msgid "&Restore Knowledge Base..."
-msgstr "&Rétablir la base de connaissances..."
+msgstr "&Restaurer la base de connaissances..."
 
 #: source/Adapt_It_wdr.cpp:8914
 msgid "Use all the saved documents to rebuild the knowledge base file"
@@ -7714,7 +7714,7 @@ msgstr "Insère le contenu du presse-papier"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8927
 msgid "&Go To...\tCtrl-G"
-msgstr ""
+msgstr "Aller à...\tCtrl-G"
 
 #: source/Adapt_It_wdr.cpp:8927
 msgid "Go to a specific chapter and verse"
@@ -7823,7 +7823,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8946
 msgid "Change Interface Language..."
-msgstr ""
+msgstr "Changer la langue de l'interface..."
 
 #: source/Adapt_It_wdr.cpp:8946
 msgid "Change the language of the program interface. You may need to restart Adapt It for the change to take effect"
@@ -7836,7 +7836,7 @@ msgstr "Afficher le menu administrateur (mot de passe protégé)"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8952
 msgid "&Find...\tCtrl-F"
-msgstr ""
+msgstr "Rechercher...\tCtrl-F"
 
 #: source/Adapt_It_wdr.cpp:8952
 msgid "Find text in source or target or both, or special search"
@@ -7845,7 +7845,7 @@ msgstr "Rechercher un texte dans la langue source et/ou cible, ou faire une rech
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8953
 msgid "Find and &Replace...\tCtrl-H"
-msgstr ""
+msgstr "Rechercher et &Remplacer...\tCtrl-H"
 
 #: source/Adapt_It_wdr.cpp:8953
 msgid "Replace in target text"
@@ -7964,7 +7964,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8975
 msgid "Export &Source Text..."
-msgstr ""
+msgstr "Exporter le texte &Source..."
 
 #: source/Adapt_It_wdr.cpp:8975
 msgid "Export the source language text as a *.txt file type"
@@ -7973,7 +7973,7 @@ msgstr "Exporter le texte de la langue source en fichier type *.txt"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8976
 msgid "&Export Translation Text..."
-msgstr ""
+msgstr "&Exporter le texte de la traduction"
 
 #: source/Adapt_It_wdr.cpp:8976
 msgid "Export the target language translation as a *.txt file type"
@@ -7982,7 +7982,7 @@ msgstr "Exporter la traduction dans la langue cible vers un fichier de type *.tx
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8977
 msgid "Export Interlinear &Text..."
-msgstr ""
+msgstr "Exporter le &Text interlinéaire..."
 
 #: source/Adapt_It_wdr.cpp:8977
 msgid "Export the Source and Target languages in interlinear form as an *.rtf file type"
@@ -7991,7 +7991,7 @@ msgstr "Exporter les langues source et cible sous forme interlinéaire en fichie
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8978
 msgid "Export &Glosses As Text..."
-msgstr ""
+msgstr "Exporter les &Gloses comme texte..."
 
 #: source/Adapt_It_wdr.cpp:8978
 msgid "Export the glossing lines' contents as text"
@@ -8000,7 +8000,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8979
 msgid "Export Free Translation..."
-msgstr ""
+msgstr "Exporter la traduction libre..."
 
 #: source/Adapt_It_wdr.cpp:8979
 msgid "Collect all the free translation sections' contents, adding standard format markers, and export"
@@ -8009,7 +8009,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8981
 msgid "Export Knowledge &Base..."
-msgstr ""
+msgstr "Exporter la &Base de Connaissances"
 
 #: source/Adapt_It_wdr.cpp:8981
 msgid "Export knowledge base in standard format or LIFT format"
@@ -8103,7 +8103,7 @@ msgstr "Active ou désactive l'édition d'une traduction libre automatique à  p
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8999
 msgid "Remove Free Translations"
-msgstr ""
+msgstr "Supprimer les traductions libres"
 
 #: source/Adapt_It_wdr.cpp:8999
 msgid "Removes all the filtered free translations in the document"
@@ -8121,7 +8121,7 @@ msgstr "Rassemble les adaptations ou les gloses, et les stocke avec une balise d
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9002
 msgid "Remove Back Translations"
-msgstr ""
+msgstr "Supprimer les retraductions"
 
 #: source/Adapt_It_wdr.cpp:9002
 msgid "Deletes all the filtered back translations in the document"
@@ -8180,7 +8180,7 @@ msgstr "Liste les rubriques d'aide"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9018
 msgid "Report a problem..."
-msgstr ""
+msgstr "Signaler un problème..."
 
 #: source/Adapt_It_wdr.cpp:9018
 msgid "Send a bug or problem report to the Adapt It developers"
@@ -8189,7 +8189,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9019
 msgid "Give feedback..."
-msgstr ""
+msgstr "Envoyer vos commentaires"
 
 #: source/Adapt_It_wdr.cpp:9019
 msgid "Give the developers feedback on your use of Adapt It"
@@ -8198,7 +8198,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9021
 msgid "Use Tooltips"
-msgstr ""
+msgstr "Utiliser les info-bulles"
 
 #: source/Adapt_It_wdr.cpp:9021
 msgid "Select this item to turn on or turn off tooltip help messages"
@@ -8215,7 +8215,7 @@ msgstr "Affiche des informations sur le programme, son numéro de version et son
 
 #: source/Adapt_It_wdr.cpp:9027
 msgid "&Help for Administrators (HTML)"
-msgstr ""
+msgstr "Aide pour les administrateurs(HTML)"
 
 #: source/Adapt_It_wdr.cpp:9027
 msgid "Step-by-step procedures to help administrators set up Adapt It to use the features on this menu."
@@ -8234,7 +8234,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9031
 msgid "User &Workflow Profiles..."
-msgstr ""
+msgstr "Profils de flux de production d’utilisateur"
 
 #: source/Adapt_It_wdr.cpp:9031
 msgid "Choose which menu items the user can access"
@@ -8242,7 +8242,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:9033
 msgid "&Assign Locations For Inputs and Outputs..."
-msgstr ""
+msgstr "&Assigner les emplacements pour les entrées/sorties"
 
 #: source/Adapt_It_wdr.cpp:9033
 msgid "Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system"
@@ -8251,7 +8251,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9035
 msgid "&Move Or Copy Folders Or Files...\tShift-Ctrl-M"
-msgstr ""
+msgstr "Déplacer ou copier les fichiers ou les dossiers...\tShift-Ctrl-M"
 
 #: source/Adapt_It_wdr.cpp:9035
 msgid "Dialog for moving folders or files, or copying them, into a destination folder"
@@ -8260,7 +8260,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9037
 msgid "Set &Password..."
-msgstr ""
+msgstr "Créer un mot de &Passe"
 
 #: source/Adapt_It_wdr.cpp:9037
 msgid "Set a password, it will be stored in the clear in the basic configuration file"
@@ -8269,7 +8269,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9039
 msgid "&Custom Work Folder Location..."
-msgstr ""
+msgstr "Emplacement du dossier personnalisé"
 
 #: source/Adapt_It_wdr.cpp:9039
 msgid "Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere"
@@ -8279,7 +8279,7 @@ msgstr ""
 # Lock in the sense that ordinary users cannot change the custom work folder location
 #: source/Adapt_It_wdr.cpp:9040
 msgid "&Lock Custom Location"
-msgstr ""
+msgstr "Verrouiller l'emplacement personnalisé"
 
 #: source/Adapt_It_wdr.cpp:9040
 msgid "Make the custom work folder location permanent until explicitly changed"
@@ -8289,7 +8289,7 @@ msgstr ""
 # Unlock in the sense of allowing a user to change the location of the custom work folder
 #: source/Adapt_It_wdr.cpp:9041
 msgid "&Unlock Custom Location"
-msgstr ""
+msgstr "Déverrouiller l'emplacement personnalisé"
 
 #: source/Adapt_It_wdr.cpp:9041
 msgid "Make the custom work folder location persist only until the end of the session"
@@ -8298,7 +8298,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9042
 msgid "&Restore Default Work Folder Location"
-msgstr ""
+msgstr "&Restaurer l’emplacement du dossier par défaut"
 
 #: source/Adapt_It_wdr.cpp:9042
 msgid "Point at the local machine's default work folder"
@@ -8564,7 +8564,7 @@ msgstr ""
 # Title of dialog
 #: source/AdminEditMenuProfile.cpp:84
 msgid "User Workflow Profiles"
-msgstr ""
+msgstr "Profils de flux de production d’utilisateur"
 
 #: source/AdminEditMenuProfile.cpp:408
 msgid ""
@@ -8679,7 +8679,7 @@ msgstr ""
 # Title of a dialog
 #: source/AdminMoveOrCopy.cpp:102
 msgid "Move Or Copy Folders Or Files"
-msgstr ""
+msgstr "Déplacer ou copier les fichiers ou les dossiers"
 
 # Priority 1
 #: source/AdminMoveOrCopy.cpp:270
@@ -8901,7 +8901,7 @@ msgstr ""
 
 #: source/AssignLocationsForInputsAndOutputs.cpp:70
 msgid "Assign Locations For Inputs and Outputs"
-msgstr ""
+msgstr "Assigner les emplacements pour les entrées/sorties"
 
 #: source/AssignLocationsForInputsAndOutputs.cpp:163
 #: source/AssignLocationsForInputsAndOutputs.cpp:166
@@ -9404,7 +9404,7 @@ msgstr ""
 # Priority 1
 #: source/EmailReportDlg.cpp:244
 msgid "Report a problem"
-msgstr ""
+msgstr "Signaler un problème"
 
 #: source/EmailReportDlg.cpp:246
 msgid "Please provide a description of the problem (for body of Email)"
@@ -9587,12 +9587,12 @@ msgstr ""
 # Priority 1
 #: source/ExportFunctions.cpp:410
 msgid "Export Glosses As Text"
-msgstr ""
+msgstr "Exporter les gloses comme texte"
 
 # Priority 1
 #: source/ExportFunctions.cpp:422
 msgid "Export Free Translation Text"
-msgstr ""
+msgstr "Exporter le texte de la traduction libre"
 
 # Priority 1
 #: source/ExportFunctions.cpp:441
@@ -10077,7 +10077,7 @@ msgstr ""
 # Priority 1
 #: source/GoToDlg.cpp:58
 msgid "Go To"
-msgstr ""
+msgstr "Aller à"
 
 # Priority 1
 #: source/GuesserSettingsDlg.cpp:64
@@ -10979,7 +10979,7 @@ msgstr ""
 #: source/SetupEditorCollaboration.cpp:77
 #, c-format
 msgid "Set Up %s Collaboration"
-msgstr ""
+msgstr "Configuration de la collaboration avec %s"
 
 # Priority 1
 #: source/SetupEditorCollaboration.cpp:229
