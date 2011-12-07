@@ -3518,13 +3518,16 @@ public:
 				// (it's more useful this way)
 	CBString	Convert16to8(const wxString& str); // BEW added 10Aug05, for XML output
 				// in Unicode version
+#endif
 // GDLC 16Sep11 DoInputConversion no longer needs bHasBOM
 //	void	DoInputConversion(wxString& pBuf,const char* pbyteBuff,
 //				wxFontEncoding eEncoding/*,bool WXUNUSED(bHasBOM = FALSE)*/); // for unicode conversions
 // GDLC 19Nov11 Added fourth parameter for byte buffer length
-	void	DoInputConversion(wxString*& pBuf,const char* pbyteBuff,
+// GDLC 7Dec11 Changed from returning a wxString to returning a wxChar buffer
+//	void	DoInputConversion(wxString*& pBuf,const char* pbyteBuff,
+	void	DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char* pbyteBuff,
 				wxFontEncoding eEncoding, size_t byteBufLen=wxNO_LEN); // for unicode conversions
-#endif
+//#endif
 	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, ConfigFileType configType);
 	void	GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, wxString& srcName,
 				wxString& tgtName);

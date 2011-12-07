@@ -20308,6 +20308,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	int nSpanLimit = SPAN_LIMIT;
 
 	// get an input buffer for the new source text
+// GDLC Do we really need this wxString buffer???
 	wxString buffer;
 	wxString* pBuffer = &buffer;
 
