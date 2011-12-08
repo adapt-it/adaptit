@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-12-07 16:57+0100\n"
-"PO-Revision-Date: 2011-12-07 16:58+0100\n"
+"PO-Revision-Date: 2011-12-08 16:23+0100\n"
 "Last-Translator: Kevin Bradford <kevin_bradford@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -668,12 +668,12 @@ msgstr ""
 
 #: source/Adapt_It.cpp:4229
 msgid "Unable to remove existing AI_UserProfiles.xml file"
-msgstr ""
+msgstr "Impossible à supprimer le fichier actuel appelé « AI_UserProfiles.xml »"
 
 #: source/Adapt_It.cpp:4255
 #: source/Adapt_It.cpp:4265
 msgid "Unable to create a new AI_UserProfiles.xml file"
-msgstr ""
+msgstr "Impossible à créer le fichier actuel appelé « AI_UserProfiles.xml »"
 
 # Priority 1
 #: source/Adapt_It.cpp:4890
@@ -770,12 +770,12 @@ msgstr "Editer texte source"
 # Priority 1
 #: source/Adapt_It.cpp:8838
 msgid "Move Note Backward\tCtrl-Shift-2"
-msgstr ""
+msgstr "Déplacer la note vers l'arrière\tCtrl-Shift-2"
 
 # Priority 1
 #: source/Adapt_It.cpp:8847
 msgid "Move Note Forward\tCtrl-Shift-3"
-msgstr ""
+msgstr "Déplacer la note vers l'avant\tCtrl-Shift-3"
 
 # Priority 1
 #: source/Adapt_It.cpp:8860
@@ -3515,7 +3515,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:983
 msgid "Select an unwanted file. Press the \"X\" button to move the file from the left list to the right."
-msgstr ""
+msgstr "Sélectionner un fichier indésirable. Appuyer sur le bouton « X » pour déplacer le fichier dans la liste de gauche à droite."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:994
@@ -3531,25 +3531,25 @@ msgstr "A retenir"
 #: source/Adapt_It_wdr.cpp:1011
 #: source/Adapt_It_wdr.cpp:4441
 msgid "Move to the unused list"
-msgstr ""
+msgstr "Placer dans la liste inutilisée"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1017
 #: source/Adapt_It_wdr.cpp:4447
 msgid "Move to the used list"
-msgstr ""
+msgstr "Placer dans la liste utilisée"
 
 # Priority 1
 # Refers to moving all the list items from a list on the left to a list on the right
 #: source/Adapt_It_wdr.cpp:1022
 msgid "Move All Right >>"
-msgstr ""
+msgstr "Déplacer tout à droite >>"
 
 # Priority 1
 # Refers to moving all the list items from a list on the right to a list on the left
 #: source/Adapt_It_wdr.cpp:1027
 msgid "<< Move All Left"
-msgstr ""
+msgstr "<< Déplacer tout à gauche"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1036
@@ -3937,7 +3937,7 @@ msgstr "Monter"
 
 #: source/Adapt_It_wdr.cpp:1653
 msgid "Move the selected translation up in the list"
-msgstr ""
+msgstr "Déplacer la traduction sélectionnée haut dans la liste"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1656
@@ -3948,7 +3948,7 @@ msgstr "Descendre"
 
 #: source/Adapt_It_wdr.cpp:1657
 msgid "Move a selected translation down in the list"
-msgstr ""
+msgstr "Déplacer une traduction sélectionnée plus bas dans la liste"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1660
@@ -4537,7 +4537,7 @@ msgstr "Chercher le chapitre suivant"
 
 #: source/Adapt_It_wdr.cpp:2645
 msgid "Click this button to move the phrase box to the next chapter"
-msgstr ""
+msgstr "Cliquez sur ce bouton pour déplacer la boîte de phrase au chapitre suivant"
 
 # Priority 1
 # Label of a button to split the document into assigned parts
@@ -5492,7 +5492,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:4108
 msgid "Move the existing translation up in the list"
-msgstr ""
+msgstr "Déplacer la traduction existante plus haut dans la liste"
 
 #: source/Adapt_It_wdr.cpp:4112
 msgid "Remove the existing translation selected above"
@@ -5509,7 +5509,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:4120
 msgid "Move the existing translation down in the list"
-msgstr ""
+msgstr "Déplacer la traduction existante plus bas dans la liste"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4123
@@ -5561,13 +5561,13 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4182
 msgid "&Search for:"
-msgstr ""
+msgstr "Rechercher : "
 
 # Priority 1
 # This is the label of a button to initiate a search in the KB editor.
 #: source/Adapt_It_wdr.cpp:4190
 msgid "Go"
-msgstr ""
+msgstr "Aller"
 
 # Priority 1
 # This is the label of a button that removes all text lines from a text box of search strings (in the KB Editor).
@@ -5606,60 +5606,60 @@ msgstr "1 mot"
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4258
 msgid "2 Words"
-msgstr ""
+msgstr "2 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4262
 msgid "3 Words"
-msgstr ""
+msgstr "3 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4266
 msgid "4 Words"
-msgstr ""
+msgstr "4 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4270
 msgid "5 Words"
-msgstr ""
+msgstr "5 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4274
 msgid "6 Words"
-msgstr ""
+msgstr "6 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4278
 msgid "7 Words"
-msgstr ""
+msgstr "7 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4282
 msgid "8 Words"
-msgstr ""
+msgstr "8 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4286
 msgid "9 Words"
-msgstr ""
+msgstr "9 mots"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
 #: source/Adapt_It_wdr.cpp:4290
 msgid "10 Words"
-msgstr ""
+msgstr "10 mots"
 
 #: source/Adapt_It_wdr.cpp:4336
 #: source/Adapt_It_wdr.cpp:4562
 msgid "Select the document in this list that you want to move"
-msgstr ""
+msgstr "Sélectionnez le document dans cette liste que vous souhaitez déplacer"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4343
@@ -5676,7 +5676,7 @@ msgstr "du dossier Adaptations vers le dossier séparéÂ ? en cours"
 # The word "Adaptations" should remain in English.
 #: source/Adapt_It_wdr.cpp:4350
 msgid "Click this button to move the document from the Adaptations folder to the current book folder"
-msgstr ""
+msgstr "Cliquez sur ce bouton pour déplacer le document du dossier d’adaptations au dossier du livre actuel"
 
 # Priority 1
 # The word "Adaptations" should remain in English.
@@ -5688,7 +5688,7 @@ msgstr "du dossier séparéÂ ? en cours vers le dossier Adaptations"
 # The word "Adaptations" should remain in English.
 #: source/Adapt_It_wdr.cpp:4354
 msgid "Click this button to move the document from the current book folder to the Adaptations folder"
-msgstr ""
+msgstr "Cliquez sur ce bouton pour déplacer le document du dossier du livre actuel au dossier d’adaptations"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4365
@@ -5715,12 +5715,12 @@ msgstr "Démarrer"
 
 #: source/Adapt_It_wdr.cpp:4380
 msgid "Click this button when you are ready to move the document"
-msgstr ""
+msgstr "Cliquez sur ce bouton lorsque vous êtes prêt à déplacer le document."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4418
 msgid "Select an unwanted file and then press the \"X\" button to move the file from the left list to the right. The Tick button can be used to move documents back to the left list."
-msgstr ""
+msgstr "Sélectionnez un fichier indésirable, puis appuyez sur le bouton « X » pour déplacer le fichier dans la liste de gauche à droite. Le bouton « Tick » peut être utilisé pour retourner les documents à la liste de gauche."
 
 #: source/Adapt_It_wdr.cpp:4433
 msgid "Document files listed here will be appended to the open document starting from the top and working down"
@@ -6487,11 +6487,11 @@ msgstr ""
 # Label of a button that can be clicked to move selected files or folders
 #: source/Adapt_It_wdr.cpp:6738
 msgid "&Move"
-msgstr ""
+msgstr "Déplacer"
 
 #: source/Adapt_It_wdr.cpp:6739
 msgid "Move selected files and / or folders to the folder open in the other pane"
-msgstr ""
+msgstr "Déplacer les fichiers et/ou dossiers sélectionnés au dossier ouvert dans l'autre volet"
 
 # Priority 1
 # Label of a button that can be clicked to copy selected files or folders
@@ -6549,7 +6549,7 @@ msgstr ""
 # Label of a radio button giving an option for dealing with a conflict when copying or moving a file
 #: source/Adapt_It_wdr.cpp:6852
 msgid "Move, or copy; and replace"
-msgstr ""
+msgstr "Déplacer, ou copier, et remplacer"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:6856
@@ -6560,18 +6560,18 @@ msgstr ""
 # Label of a radio button giving an option for dealing with a conflict when copying or moving a file
 #: source/Adapt_It_wdr.cpp:6863
 msgid "Do not move, or copy"
-msgstr ""
+msgstr "ne pas déplacer, ou copier"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:6866
 msgid "No move, nor copy, will be done. Leave the destination folder's file unchanged."
-msgstr ""
+msgstr "Rien ne sera déplacé, rien ne sera copié. Le dossier de destination sera inchangé."
 
 # Priority 1
 # Label of a radio button giving an option for dealing with a conflict when copying or moving a file
 #: source/Adapt_It_wdr.cpp:6873
 msgid "Move, or copy, giving it a modified filename"
-msgstr ""
+msgstr "Déplacer, ou copier, et renommer"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:6876
@@ -7512,12 +7512,12 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:8731
 msgid "Move back"
-msgstr ""
+msgstr "Retourner"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8735
 msgid "Move forward"
-msgstr ""
+msgstr "Déplacer vers l'avant"
 
 #: source/Adapt_It_wdr.cpp:8738
 msgid "Open HTML file..."
@@ -8033,7 +8033,7 @@ msgstr "&Déplacer le document..."
 # The word "Adaptations" should remain in English.
 #: source/Adapt_It_wdr.cpp:9138
 msgid "Move documents between the Adaptations folder and a book folder location"
-msgstr ""
+msgstr "Déplacer des documents entre le dossier d’adaptations et le dossier des livres"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9142
