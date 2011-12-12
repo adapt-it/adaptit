@@ -69,7 +69,7 @@ CKBExportImportOptionsDlg::CKBExportImportOptionsDlg(wxWindow* parent) // dialog
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pKBExportImportOptionsDlgSizer = KBExportImportOptionsFunc(this, false, TRUE); // first param FALSE enables resize
+	pKBExportImportOptionsDlgSizer = KBExportImportOptionsFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	// use wxValidator for simple dialog data transfer

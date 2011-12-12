@@ -38681,6 +38681,16 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	tempStr = tempStr.Format(tempStr,actionTypeStr.c_str());
 	dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
 
+	// Note: OnFileExportKb() here and OnFileExportKb() in the App use the same dialog.
+	// Since the View's OnImportToKb() required that the call of 
+	// the second parameter of KBExportImportOptionsFunc(this, false, TRUE) 
+	// be false in KBExportImportOptionsDlg's constructor, we need to either:
+	// (1) manually fit the dialog's size to its contents in this instance here
+	// in the App, or (2) pass a parameter when constructing the dialog to make
+	// the constructor use true or false as required. I've chosed to do (1) here.
+	dlg.pKBExportImportOptionsDlgSizer->Layout();
+	dlg.m_computedDlgSize = dlg.pKBExportImportOptionsDlgSizer->ComputeFittingWindowSize(&dlg);
+	dlg.SetSize(dlg.m_computedDlgSize);
 	if (dlg.ShowModal() == wxID_CANCEL)
 	{
 		// user canceled
