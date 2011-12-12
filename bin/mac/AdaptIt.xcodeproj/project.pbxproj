@@ -19,6 +19,7 @@
 		7D4EEBC21471932C003B4CC2 /* scrollingwizard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBF1471932C003B4CC2 /* scrollingwizard.cpp */; };
 		7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7D527D45124308E30077F9FE /* AI_UserProfiles.xml */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
+		7D6612D31495C70C007A2C30 /* KBExportImportOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */; };
 		7D7335181423F70B00316F83 /* HtmlFileViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */; };
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
 		7D8A045113ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D8A044F13ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp */; };
@@ -174,6 +175,8 @@
 		7D527D45124308E30077F9FE /* AI_UserProfiles.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_UserProfiles.xml; path = ../../xml/AI_UserProfiles.xml; sourceTree = SOURCE_ROOT; };
 		7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Layout.cpp; path = ../../source/Layout.cpp; sourceTree = SOURCE_ROOT; };
 		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
+		7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBExportImportOptionsDlg.cpp; path = ../../source/KBExportImportOptionsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7D6612D21495C70C007A2C30 /* KBExportImportOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBExportImportOptionsDlg.h; path = ../../source/KBExportImportOptionsDlg.h; sourceTree = SOURCE_ROOT; };
 		7D7335161423F70B00316F83 /* HtmlFileViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HtmlFileViewer.cpp; path = ../../source/HtmlFileViewer.cpp; sourceTree = SOURCE_ROOT; };
 		7D7335171423F70B00316F83 /* HtmlFileViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HtmlFileViewer.h; path = ../../source/HtmlFileViewer.h; sourceTree = SOURCE_ROOT; };
 		7D820F871110B941005EDDC9 /* KBEditSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBEditSearch.cpp; path = ../../source/KBEditSearch.cpp; sourceTree = SOURCE_ROOT; };
@@ -446,6 +449,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */,
+				7D6612D21495C70C007A2C30 /* KBExportImportOptionsDlg.h */,
 				7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */,
 				7D4EEBBE1471932C003B4CC2 /* scrollingdialog.h */,
 				7D4EEBBF1471932C003B4CC2 /* scrollingwizard.cpp */,
@@ -956,6 +961,7 @@
 				7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */,
 				7D4EEBC21471932C003B4CC2 /* scrollingwizard.cpp in Sources */,
 				C81470B6148C3B0800F405D9 /* ChooseLanguageCode.cpp in Sources */,
+				7D6612D31495C70C007A2C30 /* KBExportImportOptionsDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
