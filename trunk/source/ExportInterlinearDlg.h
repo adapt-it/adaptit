@@ -49,6 +49,8 @@ public:
 	wxTextCtrl* pEditToChapter;
 	wxTextCtrl* pEditToVerse;
 	wxTextCtrl* pTextCtrlAsStaticExpInterlinear;
+	wxCheckBox* pCheckUsePrefixExportTypeOnFilename;
+	wxCheckBox* pCheckUseSuffixExportDateTimeStamp;
 
 	bool m_bIncludeNavText;
 	bool m_bIncludeSourceText;

@@ -178,6 +178,7 @@
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
 #include "convauto.h"
+#include "KBExportImportOptionsDlg.h"
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -5909,6 +5910,18 @@ wxString szTwoPunctPairsTgt = _T("PunctuationTwoCharacterPairsTargetSet(ditto)")
 wxString szSuppressWelcome = _T("SuppressWelcome");
 
 /// The label that identifies the following string encoded number as the application's
+/// "UsePrefixExportTypeOnFilename". This value is written in the "Settings" part of
+/// the basic configuration file. Adapt It stores this value as a boolean TRUE or
+/// FALSE in the App's m_bUsePrefixExportTypeOnFilename member variable.
+wxString szUsePrefixExportTypeOnFilename = _T("UsePrefixExportTypeOnFilename");
+
+/// The label that identifies the following string encoded number as the application's
+/// "UseSuffixExportDateTimeOnFilename". This value is written in the "Settings" part of
+/// the basic configuration file. Adapt It stores this value as a boolean TRUE or
+/// FALSE in the App's m_bUseSuffixExportDateTimeOnFilename member variable.
+wxString szUseSuffixExportDateTimeOnFilename = _T("UseSuffixExportDateTimeOnFilename");
+
+/// The label that identifies the following string encoded number as the application's
 /// "SuppressTargetHighlighting". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this path in the App's
 /// m_bSuppressTargetHighlighting member variable.
@@ -6759,7 +6772,8 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// There does not appear to be a wxStandardPaths method which gives us the path for locating the
 	// <lang> localization subdirectories so we'll just hard code it for Ubuntu Linux.
 	// Note: The actual full path and name for a given <lang> is "/usr/share/locale/<lang>/LC_MESSAGES/adaptit.mo"
-	localizationFilePath = _T("/usr/share/locale"); // the path separator is added by the caller
+	// or "/usr/local/share/locale/<lang>/LC_MESSAGES/adaptit.mo" depending on the value of m_PathPrefix
+	localizationFilePath = m_PathPrefix + _T("/share/locale");
 	pathToLocalizationFolders = localizationFilePath;
 #endif //__WXGTK__
 
@@ -6786,8 +6800,9 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 ///             control files AI_USFM.xml and books.xml
 /// \remarks
 /// Called from: the App's OnInit();
-/// Gets the path where we expect to find the AI_USFM.xml and books.xml files. Adapt It
-/// reads and parses these xml files at startup.
+/// Gets the path where we expect to find the AI_USFM.xml, AI_UserProfiles.xml, books.xml,
+/// curl-ca-bundle.ctr, and iso639-1codes.txt files. Adapt It reads and parses the xml 
+/// files at startup and accessed the other files for certain features in the app.
 /// If the directory cannot be determined an empty string is returned.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
@@ -6798,8 +6813,8 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 	// For Windows these XML files will be installed together with the executable program at:
 	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// and Adapt It on the Windows port will look there.
-	// - On Unix, the XML control files are installed in "/usr/share/adaptit" so Adapt It
-	// on Linux looks for them there.
+	// On Linux: "/usr/share/adaptit/" or "/usr/local/share/adaptit/" depending on the
+	//           value of m_PathPrefix [adaptit here is the name of a directory]
 	// - On Mac OS X, localization files are installed in the "<appname>.app/Contents/Resources"
 	// bundle subdirectory, so Adapt It on the Mac looks for them there.
 	//
@@ -6821,7 +6836,7 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 #ifdef __WXGTK__
 	// On Linux appName is "adaptit"
 	// Set a suitable default path for the xml files on Ubuntu Linux.
-	pathToXMLFolders = _T("/usr/share/adaptit"); // the path separator is added by the caller
+	pathToXMLFolders = m_PathPrefix + _T("/share/adaptit");
 #endif //__WXGTK__
 
 #ifdef __WXMSW__
@@ -6851,8 +6866,9 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// and Adapt It on the Windows port will look there.
 	//
-	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" which in turn
-	// may contain a "common/" subdirectory with .gif and .css files (pointed to by the help files).
+	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" 
+	// or "/usr/local/share/adaptit/help/" which in turn may contain a "common/" 
+	// subdirectory with .gif and .css files (pointed to by the help files).
 	// The .../help/ subdirectory may also contain one or more <lang>/ folders which contain the
 	// .html .hhp .hhc help files for Adapt It.
 	//
@@ -6898,7 +6914,7 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 #ifdef __WXGTK__
 	// On Linux appName is "adaptit"
 	// Set a suitable default path for the Html Help files on Ubuntu Linux.
-	pathToHtmlHelpFiles = _T("/usr/share/adaptit/help"); // the path separator is added by the caller
+	pathToHtmlHelpFiles = m_PathPrefix + _T("/share/adaptit/help"); // the path separator is added by the caller
 #endif //__WXGTK__
 
 #ifdef __WXMSW__
@@ -7049,9 +7065,8 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 /// \param      dirPath         -> the path to look for the <lang> localization subfolder
 /// \param      subFolderName = -> the name of a specific subfolder to contain <appName>.mo
 /// \remarks
-/// Called from: the App's LocalizationFilesExist() and
-/// CChooseLanguageDlg::OnBrowseForPath(). Determines if dirPath has one or more child or
-/// grandchild subfolders which contain an
+/// Called from: the App's LocalizationFilesExist()
+/// Determines if dirPath has one or more child or grandchild subfolders which contain an
 /// <appName>.mo file.
 /// The incoming dirPath would normally be the a path pointing to the "Languages" directory
 /// (on Windows); or the /usr/share/locale/ directory on Linux; or
@@ -7181,6 +7196,7 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 {
+	// whm 8Dec11 revised to no longer store the ui_language_path_unicode or ui_language_path
 	// This function uses the data currently in the global struct currLocalizationInfo
 
 	wxLogNull logNo; // avoid spurious messages from the system
@@ -7192,19 +7208,19 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 	m_pConfig->Write(_T("ui_language"), (long)currLocalizationInfo.curr_UI_Language);
     m_pConfig->Write(_T("ui_language_code"), currLocalizationInfo.curr_shortName);
     m_pConfig->Write(_T("ui_language_name"), currLocalizationInfo.curr_fullName);
-#ifdef _UNICODE
-    m_pConfig->Write(_T("ui_language_path_unicode"), currLocalizationInfo.curr_localizationPath);
-#else
-    m_pConfig->Write(_T("ui_language_path"), currLocalizationInfo.curr_localizationPath);
-#endif
+//#ifdef _UNICODE
+//    m_pConfig->Write(_T("ui_language_path_unicode"), currLocalizationInfo.curr_localizationPath);
+//#else
+//    m_pConfig->Write(_T("ui_language_path"), currLocalizationInfo.curr_localizationPath);
+//#endif
 
 #ifdef __WXDEBUG__
 	wxLogDebug(_T(
-"Writing to m_pConfig:\n   curr_UI_Language = %d\n   curr_shortName = %s\n   curr_fullName = %s\n   curr_localizationPath = %s"),
+"Writing to m_pConfig:\n   curr_UI_Language = %d\n   curr_shortName = %s\n   curr_fullName = %s"), //\n   curr_localizationPath = %s"),
 		currLocalizationInfo.curr_UI_Language,
 		currLocalizationInfo.curr_shortName.c_str(),
-		currLocalizationInfo.curr_fullName.c_str(),
-		currLocalizationInfo.curr_localizationPath.c_str());
+		currLocalizationInfo.curr_fullName.c_str()); //,
+		//currLocalizationInfo.curr_localizationPath.c_str());
 #endif
 	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
@@ -7224,8 +7240,7 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 /// this way, using keys with names such as user_defined_language_0,
 /// user_defined_language_1, and so on up through user_defined_language_8. This function
 /// first checks to see if the incoming user defined language was previously saved in one
-/// of the user_defined_language_n keys. If so, only any updated path is saved there since
-/// the short and full language names will be unchanged. If the incoming language is not
+/// of the user_defined_language_n keys. If the incoming language is not
 /// already stored, the first available key that has not yet been assigned a string is
 /// used. If all keys are currently filled with user defined language info, the oldest
 /// string is replaced by the new language composite string.
@@ -7234,10 +7249,8 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		const wxString shortName, const wxString fullName, const wxString localizationPath)
 {
 	// A composite unix string for a user defined language such as Tok Pisin might look like
-	// this: 231:tpi:Tok Pisin:C:\Program Files\Adapt It\Languages
-	// The first 3 fields of the unix string are parsed using the : delimiter. The 4th field
-	// contains all the remaining characters of the string (including any colon chars that
-	// may exist in the path (i.e., the : after the volume C).
+	// this: 231:tpi:Tok Pisin
+	// The 3 fields of the unix string are parsed using the : delimiter. 
 
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
@@ -7386,7 +7399,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		// Make a composite unix-like string from the parameters
 		wxString compositeStr;
 		compositeStr << wxLangCode << _T(':') << shortName << _T(':') << fullName
-					<< _T(':') << localizationPath;
+					<< _T(':'); // << localizationPath; whm 8Dec11 removed the path part
 
 		// Assign compositeStr to the first empty array element in keyArray[].
 		bool bAssigned = FALSE;
@@ -11316,9 +11329,10 @@ wxString CAdapt_ItApp::GetBibleditInstallDirPath()
 	// By inspection of my Ubuntu 10.04 system with Bibledit on it, it appears that
 	// it gets installed at /usr/bin/bibledit-gtk where the InstallDirPath() is /usr/bin
 	// and the app name is bibledit-gtk.
-	dirPath = _T("/usr/bin");
-	// TODO: Find a more comprehensive/official way of determining the installed path
-	// of the bibledit binary
+    dirPath = GetProgramLocationFromSystemPATH(_T("bibledit-gtk"));
+
+	// dirPath should normally be _T("/usr/bin") for a package installed version of
+	// Bibledit, or possibly _T("/usr/local/bin") for a locally installed version.
 
 	return dirPath;
 }
@@ -11821,11 +11835,11 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 	m_pConfig->Read(_T("ui_language"), &currLocInfo.curr_UI_Language);
 	m_pConfig->Read(_T("ui_language_code"),&currLocInfo.curr_shortName);
 	m_pConfig->Read(_T("ui_language_name"),&currLocInfo.curr_fullName);
-#ifdef _UNICODE
-	m_pConfig->Read(_T("ui_language_path_unicode"),&currLocInfo.curr_localizationPath);
-#else
-	m_pConfig->Read(_T("ui_language_path"),&currLocInfo.curr_localizationPath);
-#endif
+//#ifdef _UNICODE
+//	m_pConfig->Read(_T("ui_language_path_unicode"),&currLocInfo.curr_localizationPath);
+//#else
+//	m_pConfig->Read(_T("ui_language_path"),&currLocInfo.curr_localizationPath);
+//#endif
 
 	// Next, retrieve any user defined language data from the user_defined_language_n keys.
 	int ct;
@@ -11938,7 +11952,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
                         // being stored in the registry/hidden settings file.
 						wxString compositeStr;
 						compositeStr << code << _T(':') << tempShortName << _T(':')
-										<< tempFullName << _T(':') << tempPath;
+										<< tempFullName << _T(':'); // << tempPath; // whm 8Dec11 removed storage of the path part
 						m_pConfig->Write(str, compositeStr);
 					}
 				}
@@ -11962,12 +11976,10 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 
 					// Now write the key
                     // Make a composite unix-like string from the data stored in the
-                    // registry/hidden settings file, but use the
-                    // currLocInfo.curr_localizationPath in case the path that was stored
-                    // was not up to date.
+                    // registry/hidden settings file
 					wxString compositeStr;
 					compositeStr << nCodeToAssign << _T(':') << tempShortName << _T(':')
-						<< tempFullName << _T(':') << currLocInfo.curr_localizationPath; //tempPath;
+						<< tempFullName << _T(':'); // << currLocInfo.curr_localizationPath; // whm 8Dec11 removed the path part
 					m_pConfig->Write(str, compositeStr);
                     // If our compositeStr represents the current interface language to be
                     // used, we should check to see if the wxLanguage value stored in the
@@ -12191,7 +12203,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 			currLocalizationInfo.curr_shortName = currLocInfo.curr_shortName;
 			currLocalizationInfo.curr_fullName = currLocInfo.curr_fullName;
 			currLocalizationInfo.curr_localizationPath = currLocInfo.curr_localizationPath;
-			m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
+			//m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 		}
 	}
 	else
@@ -12222,7 +12234,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 			currLocalizationInfo.curr_fullName.Empty();
 		}
 		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
-		m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
+		//m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 	}
     // the CurrLocalizationInfo struct's members are now filled appropriately, so save the
     // data in the m_pConfig configuration.
@@ -13050,11 +13062,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_marginRight = 1000;	// 25mm / 0.0250mm/in (result truncated to whole int) in thousandths of an inch = 1000; // one inch
 	m_marginRightMM = (int)(m_marginRight * config_only_thousandthsInchToMillimetres); // 25mm right margin in mm
 
-	// whm 30Aug11 added:
-	m_bIncludeFreeTransInPrintouts = TRUE; // the default is to include free translations when any exist
-	m_bIncludeGlossesInPrintouts = TRUE; // the default is to include glosses whan any exist
-
-
 	m_bEarlierProjectChosen = FALSE;
 	m_bEarlierDocChosen = FALSE;
 	nLastActiveSequNum = 0; // config file will set this
@@ -13198,6 +13205,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
 	m_bProtectCCTableInputsAndOutputsFolder = FALSE;
 	m_bProtectReportsOutputsFolder = FALSE;
+
+	m_bUsePrefixExportTypeOnFilename = FALSE; // whm added 9Dec11 Bruce wants this to default to FALSE
+	m_bUseSuffixExportDateTimeOnFilename = FALSE; // whm added 9Dec11
 
 	m_aiDeveloperEmailAddresses = _T("developers@adapt-it.org (bruce_waters@sil.org,bill_martin@sil.org,...)"); // email addresses of developers (separated by commas) used in EmailReportDlg.cpp
 
@@ -13896,11 +13906,58 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm added 6Dec11
 	// Get the prefix for Linux installed files needed by the App. The m_PathPrefix will
-	// be an empty string for platforms other than Linux/GTK
+	// be an empty string for platforms other than Linux/GTK. On Linux the m_PathPrefix
+	// will be "/usr" for debian package installs, "/usr/local" for "sudo make install"
+	// instances, and an empty string when running adaptit from non installed locations.
+	// The m_PathPrefix is used as a prefix on the path of the following files used by 
+	// adaptit:
+	// 1. adaptit   the main executable program at /usr/bin/adaptit or /usr/local/bin/adaptit 
+	//    depending on the value of m_PathPrefix.
+	//    path variable: m_appInstallPathOnly
+	//    relevant function: FindAppPath()
+	// 2. bibledit-rdwrt   the Bibledit supplied utility program at /usr/bin/bibledit-rdwrt (or 
+	//    where found on the systme PATH).  m_BibleditInstallDirPath already has a prefix on it
+	//    because it calls the GetProgramLocationFromSystemPATH() function directly.
+	//    path variable: m_BibleditInstallDirPath
+	//    relevant functions: GetBibleditInstallDirPath() and GetProgramLocationFromSystemPATH().
+	// 3. adaptit-bibledit-rdwrt   the Adapt It supplied Bibledit utility program at 
+	//    /usr/bin/adaptit-bibledit-rdwrt or /usr/local/bin/adaptit-bibledit-rdwrt depending
+	//    on the value of m_PathPrefix.
+	//    path variable: m_appInstallPathOnly
+	//    relevant function: FindAppPath()
+	// 4. AI_USFM.xml, AI_UserProfiles.xml and books.xml, curl-ca-bundle.ctr, iso639-3codes.txt
+	//    the Adapt It xml control files, CA authority file, ethnologue codes
+	//    at "/usr/share/adaptit/" or "/usr/local/share/adaptit/" depending on the value
+	//    of m_PathPrefix.
+	//    path variable: m_xmlInstallPath
+	//    relevant function: GetDefaultPathForXMLControlFiles()
+	// 5. The localization files named adaptit.mo for each language <lang> that get installed at 
+	//    "/usr/share/locale/<lang>/LC_MESSAGES/" or "/usr/local/share/locale/<lang>/LC_MESSAGES/"
+	//    for each <lang> localization depending on the value of m_PathPrefix.
+	//    path variable: m_localizationInstallPath
+	//    relevant function: GetDefaultPathForLocalizationSubDirectories()
+	// 6. The help documents adaptit.htb, Adapt_It_Quick_Start.htm, Help_for_Administrators.htm,
+	//    and the supporting images files .../Images/Admin_help/* and .../Images/Adapt_It_Quick_Start/*
+	//    at "/usr/share/adaptit/help/..." or "/usr/local/share/adaptit/help/..." depending on the
+	//    value of m_PathPrefix.
+	//    path variable: m_helpInstallPath
+	//    relevant function: GetDefaultPathForHelpFiles()
 	m_PathPrefix = GetAdaptItInstallPrefixForLinux();
+	// Note: The m_PathPrefix will be an empty string unless the app is actually installed
+	// and currently running on Linux.
 
 	m_setupFolder = FindAppPath(argv[0], wxGetCwd(), _T(""));
+#ifdef __WXGTK__
+	// on Linux, first try getting the m_appInstallPathOnly from the actual system PATH
+	m_appInstallPathOnly = GetProgramLocationFromSystemPATH(GetAppName());
+	// if it is not on the system PATH, then get the path of the running executable
+	if (m_appInstallPathOnly.IsEmpty())
+	{
+		m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
+	}
+#else
 	m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
+#endif
 	wxLogDebug(_T("The m_appInstallPathOnly = %s"),m_appInstallPathOnly.c_str());
 	// On Windows the m_appInstallPathOnly will be something like (if installed to
 	// default location):
@@ -13910,10 +13967,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On the Mac the m_setupFolder will be something like:
 	// "/Applications"
 
-    // The m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are
-    // installed on the given platform.
+    // The m_xmlInstallPath stores the path where the AI_USFM.xml, AI_UserProfiles.xml,
+    // books.xml, curl-ca-bundle.crt, and iso639-3codes.txt files are installed on the 
+    // given platform.
 	// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
-	// On wxGTK: "/usr/share/adaptit/"     [adaptit here is the name of a directory]
+	// On wxGTK: "/usr/share/adaptit/" or "/usr/local/share/adaptit/" depending on the
+	//           value of m_PathPrefix [adaptit here is the name of a directory]
 	// On wxMac: "AdaptIt.app/Contents/Resources"
 	m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
 	wxLogDebug(_T("The m_xmlInstallPath = %s"),m_xmlInstallPath.c_str());
@@ -13922,7 +13981,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // are installed on the given platform.
 	// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or
 	//             C:\Program Files\Adapt It WX Unicode\Languages\"
-	// On wxGTK:   "/usr/share/locale/"    which then contains multiple
+	// On wxGTK:   "/usr/share/locale/" or "/usr/local/share/locale/"   which then contains multiple
 	//                                   "<lang>/LC_MESSAGES/adaptit.mo"
 	// On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this
 				// is where Poedit puts its localization files.
@@ -13933,10 +13992,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the given platform.
 	// On wxMSW:   "C:\Program Files\Adapt It WX\ or
 	//             C:\Program Files\Adapt It WX Unicode\"
-	// On wxGTK:   "/usr/share/adaptit/help/"  containing: common/.gif and .css
-	//             containing: <lang>/  .html .hhp .hhc etc
-	// On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ???
-	//             TODO: check this location
+	// On wxGTK:   "/usr/share/adaptit/help/" or "/usr/local/share/adaptit/help/"
+	//             depending on the value of m_PathPrefix.
+	// On wxMac:   AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]
 	m_helpInstallPath = GetDefaultPathForHelpFiles();
 	wxLogDebug(_T("The m_helpInstallPath = %s"),m_helpInstallPath.c_str());
 	// Note: The m_htbHelpFileName is also determined in
@@ -14403,8 +14461,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// constructor).
 		// The currLocalizationInfo struct was initialized with the interface language of
 		// choice above, so now we can create the wxLocale object
+		
+		// whm 8Dec11 modified below to use the App's m_localizationInstallPath
+		//if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName,
+		//	currLocalizationInfo.curr_fullName, currLocalizationInfo.curr_localizationPath))
 		if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName,
-			currLocalizationInfo.curr_fullName, currLocalizationInfo.curr_localizationPath))
+			currLocalizationInfo.curr_fullName, m_localizationInstallPath))
 		{
 			// Loading of localization catalog failed. This means that either
 			// m_pLocale->AddCatalog(GetAppName()) or m_pLocale->IsLoaded(GetAppName()) failed
@@ -24798,6 +24860,22 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szSuppressTargetHighlighting << tab << number;
 	pf->AddLine(data);
+
+	if (m_bUsePrefixExportTypeOnFilename)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szUsePrefixExportTypeOnFilename << tab << number;
+	pf->AddLine(data);
+
+	if (m_bUseSuffixExportDateTimeOnFilename)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szUseSuffixExportDateTimeOnFilename << tab << number;
+	pf->AddLine(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -26391,6 +26469,26 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				m_bSuppressTargetHighlighting = TRUE;
 			else
 				m_bSuppressTargetHighlighting = FALSE;
+		}
+		else if (name == szUsePrefixExportTypeOnFilename) // whm added 9Dec11
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0; // don't suppress it
+			if (num == 1)
+				m_bUsePrefixExportTypeOnFilename = TRUE;
+			else
+				m_bUsePrefixExportTypeOnFilename = FALSE;
+		}
+		else if (name == szUseSuffixExportDateTimeOnFilename) // whm added 9Dec11
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0; // don't suppress it
+			if (num == 1)
+				m_bUseSuffixExportDateTimeOnFilename = TRUE;
+			else
+				m_bUseSuffixExportDateTimeOnFilename = FALSE;
 		}
 		else if (name == szAutoInsertionsHighlightColor) // whm 6Aug11 moved to project config file
 		{
@@ -38560,8 +38658,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	// would occur at the time the user gets the wxFileDialog and accesses the
 	// "File Type" drop-down list of options. However, with navigation protection we
 	// don't provide a standard wxFileDialog where a user can make that selection.
-	// Therefore, I think the better way of handling the choice between SFM and LIFT
-	// KB exports is to get that decision earlier via a wxSingleChoice dialog, and
+	// Therefore, we get that decision earlier via KBExportImportOptionsDlg, and
 	// not from the wxFileDialog - even when no protection is in effect. Doing so, I
 	// think will simplify the file naming process too.
 
@@ -38570,24 +38667,34 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
 	// filterIndex according to the user's response.
 	KBExportSaveAsType kbExportType = KBExportSaveAsSFM_TXT;
-	wxString choices[2];
-	choices[0] = _("1. Export the Knowledge Base in Standard Format (\\x and \\ge).");
-	choices[1] = _("2. Export the Knowledge Base in LIFT Format.");
-	wxString message = _("Choose Type of Knowledge Base Export (select 1 or 2), or Cancel (to abort the export)");
-	wxString myCaption = _("Export the Knowledge Base as SFM or LIFT dictionary records");
-	int returnValue = wxGetSingleChoiceIndex(
-		message,myCaption,2,choices,GetMainFrame(),-1,-1,TRUE,350,80);
-	if (returnValue == -1)
+	CKBExportImportOptionsDlg dlg(GetMainFrame());
+	dlg.Center();
+	
+	wxString actionTypeStr = _("Export");
+	// set dialog's title
+	wxString dlgTitle = dlg.GetTitle();
+	dlgTitle = dlgTitle.Format(dlgTitle,actionTypeStr.c_str());
+	dlg.SetTitle(dlgTitle);
+	// set the %s substitution strings in the dialog's controls
+	wxString tempStr;
+	tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
+	tempStr = tempStr.Format(tempStr,actionTypeStr.c_str());
+	dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
+
+	if (dlg.ShowModal() == wxID_CANCEL)
 	{
+		// user canceled
 		gpApp->LogUserAction(_T("Cancelled from OnFileExportKb()"));
-		return; // user pressed Cancel
-	}
-	else
-	{
-		kbExportType = (KBExportSaveAsType)returnValue; // cast int to KBExportSaveAsType enum
-		wxASSERT(kbExportType == KBExportSaveAsSFM_TXT || kbExportType == KBExportSaveAsLIFT_XML);
+		return;
 	}
 
+	// if we get here user has clicked OK to proceed
+	int nRadioBoxSel;
+	nRadioBoxSel = dlg.pRadioBoxSfmOrLIFT->GetSelection();
+	wxASSERT(nRadioBoxSel == 0 || nRadioBoxSel == 1);
+	kbExportType = (KBExportSaveAsType)nRadioBoxSel; // cast int to KBExportSaveAsType enum
+	wxASSERT(kbExportType == KBExportSaveAsSFM_TXT || kbExportType == KBExportSaveAsLIFT_XML);
+	
 	// Calculate the appropriate KB export's dictFilename and defaultDir.
     // Note: In the App's SetupDirectories() function the m_curProjectName is
     // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"),
@@ -38700,6 +38807,18 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
+	// Prepare a unique filename and path from the exportFilename. This unique filename 
+	// and path is used when the export is nav protected or when the user has ticked the
+	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
+	// is to be suffixed to the export filename, which ensures that any existing exports
+	// are not overwritten.
+	uniqueFilenameAndPath = GetUniqueIncrementedFileName(dictFilename,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+	if (gpApp->m_bUseSuffixExportDateTimeOnFilename)
+	{
+		// Use the unique path for exportPath
+		dictFilename = uniqueFilenameAndPath;
+	}
+	
 	// Allow the wxFileDialog only when the export is not protected from navigation
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
@@ -38762,12 +38881,6 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 			// determine exportPath to the _LIFT_INPUTS_OUTPUTS folder using the dictFilename
 			exportPath = gpApp->m_liftInputsAndOutputsFolderPath + gpApp->PathSeparator + dictFilename;
 		}
-
-		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
-		// appropriate outputs folder.
-		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
-		// Use the unique path for exportPath
-		exportPath = uniqueFilenameAndPath;
 	}
 
 	wxFile f;

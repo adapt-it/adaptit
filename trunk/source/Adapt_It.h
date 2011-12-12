@@ -715,6 +715,8 @@ struct CurrLocalizationInfo
 	wxString curr_shortName;		// the ISO 639 name of the form xx or xx_XX
 									// where xx is the 2-letter language code
 	wxString curr_fullName;			// the common descriptive name for the language
+	// whm 8Dec11 note: The curr_localizationPath is stored in the struct, but is
+	// no longer saved in the external Adapt_It_WX.ini file
 	wxString curr_localizationPath;	// the path where the above CurrLocalizationInfo
 					// folder (curr_shortName) is located (which contains <appName>.mo)
 };
@@ -2113,10 +2115,6 @@ public:
 	int		m_paperSizeCode;	// keep as MFC paper size code enum (internally
 								// we convert to wxPaperSize)
 
-	// whm 30Aug11 added for printing support of free translations and glosses text
-	bool m_bIncludeFreeTransInPrintouts;
-	bool m_bIncludeGlossesInPrintouts;
-
     // although a more exact conversion is 2.54, because of rounding in the dialogs, the
     // values below work better than their more precise values
 	float	config_only_thousandthsInchToMillimetres;
@@ -2665,7 +2663,36 @@ public:
 	/// On wxMac: "/Programs/AdaptIt.app"
 	wxString m_appInstallPathAndName;
 
-    /// m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are
+	/// m_ParatextInstallDirPath stores the path to the Paratext installation
+	/// directory, usually "c:\Program Files\Paratext 7".
+	/// This variable is determined by calling the GetParatextInstallDirPath()
+	/// function.
+	wxString m_ParatextInstallDirPath;
+	
+	/// m_BibleditInstallDirPath stores the path to the Bibledit installation
+	/// directory, usually "/usr/bin", but it could be different if Bibledit
+	/// if found at a different location/path by searching for bibledit-gtk
+	/// on the system's PATH environment variable.
+	/// This variable is determined by calling the GetBibleditInstallDirPath()
+	/// function.
+	wxString m_BibleditInstallDirPath;
+	
+	/// m_ParatextProjectsDirPath stores the path to the Paratext user's
+	/// project directory. The default location where Paratext creates the
+	/// user's projects is at c:\My Paratext Projects".
+	/// This variable is determined by calling the GetParatextInstallDirPath()
+	/// function.
+	wxString m_ParatextProjectsDirPath;
+	
+	/// m_BibleditProjectsDirPath stores the path to the Bibledit user's
+	/// project directory. Bibledit installs a .bibledit hidden folder upon
+	/// installation at this location which is normally the user's home 
+	/// directory ~/ which would be something like /home/wmartin 
+	/// This variable is determined by calling the GetBibleditProjectsDirPath()
+	/// function.
+	wxString m_BibleditProjectsDirPath;
+	
+	/// m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are
     /// installed on the given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or
 	///             C:\Program Files\Adapt It WX Unicode\"
@@ -3287,10 +3314,6 @@ public:
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
 
-	wxString m_ParatextInstallDirPath;
-	wxString m_BibleditInstallDirPath;
-	wxString m_ParatextProjectsDirPath;
-	wxString m_BibleditProjectsDirPath;
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 
 	// whm 17Oct11 removed
@@ -3674,6 +3697,12 @@ public:
     // included, the TRUE value should be on when that export commences. Turn it off when
     // the exported oxes file is saved to disk.
 	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES
+
+	bool m_bUsePrefixExportTypeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
+										   // export type (i.e., _target_text_) on export file names
+	bool m_bUseSuffixExportDateTimeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
+										       // export type (i.e., _target_text_) on export file names
+
 };
 
 DECLARE_APP(CAdapt_ItApp);

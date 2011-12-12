@@ -75,6 +75,7 @@ bool bExportToRTF;
 // event handler table
 BEGIN_EVENT_TABLE(CExportSaveAsDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CExportSaveAsDlg::InitDialog)
+	EVT_BUTTON(wxID_OK, CExportSaveAsDlg::OnOK)
 	EVT_RADIOBUTTON(IDC_RADIO_EXPORT_AS_SFM, CExportSaveAsDlg::OnBnClickedRadioExportAsSfm)
 	EVT_RADIOBUTTON(IDC_RADIO_EXPORT_AS_RTF, CExportSaveAsDlg::OnBnClickedRadioExportAsRtf)
 	EVT_BUTTON(IDC_BUTTON_EXPORT_FILTER_OPTIONS, CExportSaveAsDlg::OnBnClickedButtonExportFilterOptions)
@@ -94,8 +95,40 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	
+	pExportAsSfm = (wxRadioButton*)FindWindowById(IDC_RADIO_EXPORT_AS_SFM);
+	wxASSERT(pExportAsSfm != NULL);
+	pExportAsSfm->SetValue(TRUE);
+	
+	pExportAsRTF = (wxRadioButton*)FindWindowById(IDC_RADIO_EXPORT_AS_RTF);
+	wxASSERT(pExportAsRTF != NULL);
+	pExportAsRTF->SetValue(FALSE);
 
-	//m_StaticTitle = _T("");
+	pTextCtrlAsStaticExpSaveAs1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_1);
+	wxASSERT(pTextCtrlAsStaticExpSaveAs1 != NULL);
+	wxColor backgrndColor = this->GetBackgroundColour();
+	pTextCtrlAsStaticExpSaveAs1->SetBackgroundColour(backgrndColor);
+
+	pTextCtrlAsStaticExpSaveAs2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_2);
+	wxASSERT(pTextCtrlAsStaticExpSaveAs2 != NULL);
+	pTextCtrlAsStaticExpSaveAs2->SetBackgroundColour(backgrndColor);
+
+	pTextCtrlAsStaticExpSaveAs3 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_3);
+	wxASSERT(pTextCtrlAsStaticExpSaveAs3 != NULL);
+	pTextCtrlAsStaticExpSaveAs3->SetBackgroundColour(backgrndColor);
+
+	pStaticTitle = (wxStaticText*)FindWindowById(IDC_STATIC_TITLE);
+	wxASSERT(pStaticTitle != NULL);
+
+	// whm added 9Dec11
+	pCheckUsePrefixExportTypeOnFilename = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PREFIX_EXPORT_TYPE);
+	wxASSERT(pCheckUsePrefixExportTypeOnFilename != NULL);
+	
+	pCheckUseSuffixExportDateTimeStamp = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SUFFIX_EXPORT_DATETIME_STAMP);
+	wxASSERT(pCheckUseSuffixExportDateTimeStamp != NULL);
+	// whm Note: The substitution of export type and state of the checkbox and enabling is done in
+	// the DoExportSfmText() caller.
+
 	m_ExportToRTF = FALSE;
 }
 
@@ -107,28 +140,12 @@ CExportSaveAsDlg::~CExportSaveAsDlg() // destructor
 void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	wxRadioButton* pExportAsSfm = (wxRadioButton*)FindWindowById(IDC_RADIO_EXPORT_AS_SFM);
-	pExportAsSfm->SetValue(TRUE);
-	wxRadioButton* pExportAsRTF = (wxRadioButton*)FindWindowById(IDC_RADIO_EXPORT_AS_RTF);
-	pExportAsRTF->SetValue(FALSE);
-
-	wxTextCtrl* pTextCtrlAsStaticExpSaveAs1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_1);
-	wxASSERT(pTextCtrlAsStaticExpSaveAs1 != NULL);
-	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticExpSaveAs1->SetBackgroundColour(backgrndColor);
-
-	wxTextCtrl* pTextCtrlAsStaticExpSaveAs2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_2);
-	wxASSERT(pTextCtrlAsStaticExpSaveAs2 != NULL);
-	pTextCtrlAsStaticExpSaveAs2->SetBackgroundColour(backgrndColor);
-
-	wxTextCtrl* pTextCtrlAsStaticExpSaveAs3 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_3);
-	wxASSERT(pTextCtrlAsStaticExpSaveAs3 != NULL);
-	pTextCtrlAsStaticExpSaveAs3->SetBackgroundColour(backgrndColor);
-
-	pStaticTitle = (wxStaticText*)FindWindowById(IDC_STATIC_TITLE);
-	wxASSERT(pStaticTitle != NULL);
-	pStaticTitle->SetLabel(m_StaticTitle);
-
+	
+	// whm 9Dec11 moved the code for initializing the pointers to controls 
+	// to the constructor because the caller needs to access one or more of
+	// them, after instantiating the CExportSaveAsDlg - and simply instantiating
+	// the dialog does not call this InitDialog().
+	
 	// Ensure that the arrays used as extern variables are empty before export
 	// operations.
 	m_exportBareMarkers.Clear();
@@ -167,6 +184,12 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//{
 	//	m_exportFilterFlags.Add(m_exportFilterFlagsBeforeEdit.Item(ct));
 	//}
+	
+	// initialize the values of the checkboxes from the App's values
+	pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
+	pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
+	// Note: the caller DoExportSfmText() accesses the above two checkbox values and may
+	// enable or disable the checkboxes as appropriate to the exporting context there.
 
 	pExportSaveAsSizer->Layout();
 }
@@ -226,6 +249,10 @@ void CExportSaveAsDlg::OnBnClickedButtonExportFilterOptions(wxCommandEvent& WXUN
 // if the dialog is modeless.
 void CExportSaveAsDlg::OnOK(wxCommandEvent& event) 
 {
+	// save the values to the flags on the App for saving in the basic config file
+	gpApp->m_bUsePrefixExportTypeOnFilename = pCheckUsePrefixExportTypeOnFilename->GetValue();
+	gpApp->m_bUseSuffixExportDateTimeOnFilename = pCheckUseSuffixExportDateTimeStamp->GetValue();
+	
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

@@ -2381,52 +2381,62 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	if (resultSrc != 0 || resultTgt != 0)
 	{
-		// not likely to happen so an English warning will suffice
-		if (m_pApp->m_bCollaboratingWithParatext)
-			wxMessageBox(_("Could not read data from the Paratext projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-			wxMessageBox(_("Could not read data from the Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),_T(""),wxICON_WARNING);
-
-		wxString temp;
-		if (m_pApp->m_bCollaboratingWithParatext)
-			temp = temp.Format(_T("PT Collaboration wxExecute returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-			temp = temp.Format(_T("BE Collaboration operation returned error. resultSrc = %d resultTgt = %d"),resultSrc,resultTgt);
-		m_pApp->LogUserAction(temp);
-		wxLogDebug(temp);
+		// get the console output and error output, format into a string and 
+		// include it with the message to user
+		wxString outputStr,errorsStr;
+		outputStr.Empty();
+		errorsStr.Empty();
 		int ct;
 		if (resultSrc != 0)
 		{
-			temp.Empty();
 			for (ct = 0; ct < (int)outputSrc.GetCount(); ct++)
 			{
-				temp += outputSrc.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
+				if (!outputStr.IsEmpty())
+					outputStr += _T(' ');
+				outputStr += outputSrc.Item(ct);
 			}
 			for (ct = 0; ct < (int)errorsSrc.GetCount(); ct++)
 			{
-				temp += errorsSrc.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
+				if (!errorsStr.IsEmpty())
+					errorsStr += _T(' ');
+				errorsStr += errorsSrc.Item(ct);
 			}
 		}
 		if (resultTgt != 0)
 		{
-			temp.Empty();
 			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
 			{
-				temp += outputTgt.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
+				if (!outputStr.IsEmpty())
+					outputStr += _T(' ');
+				outputStr += outputTgt.Item(ct);
 			}
 			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
 			{
-				temp += errorsTgt.Item(ct);
-				m_pApp->LogUserAction(temp);
-				wxLogDebug(temp);
+				if (!errorsStr.IsEmpty())
+					errorsStr += _T(' ');
+				errorsStr += errorsTgt.Item(ct);
 			}
 		}
+
+		wxString msg;
+		wxString concatMsgs;
+		if (!outputStr.IsEmpty())
+			concatMsgs = outputStr;
+		if (!errorsStr.IsEmpty())
+			concatMsgs += errorsStr;
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+		}
+		msg = msg.Format(msg,concatMsgs.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		m_pApp->LogUserAction(msg);
+		wxLogDebug(msg);
+
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
