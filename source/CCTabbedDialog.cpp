@@ -631,7 +631,6 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 	// navigation.
 	wxString ccTableFilename = _("ccTable");
 	wxString tablePath;
-	wxString uniqueFilenameAndPath;
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
 		wxString filter;

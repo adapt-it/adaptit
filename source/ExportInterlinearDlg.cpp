@@ -72,6 +72,7 @@ extern bool bExportToRTF;
 // event handler table
 BEGIN_EVENT_TABLE(CExportInterlinearDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CExportInterlinearDlg::InitDialog)
+	EVT_BUTTON(wxID_OK, CExportInterlinearDlg::OnOK)
 	EVT_RADIOBUTTON(IDC_RADIO_OUTPUT_ALL, CExportInterlinearDlg::OnRadioOutputAll)
 	EVT_RADIOBUTTON(IDC_RADIO_OUTPUT_CHAPTER_VERSE_RANGE, CExportInterlinearDlg::OnRadioOutputChapterVerseRange)
 	EVT_RADIOBUTTON(IDC_RADIO_OUTPUT_PRELIM, CExportInterlinearDlg::OnRadioOutputPrelim)
@@ -148,6 +149,15 @@ CExportInterlinearDlg::CExportInterlinearDlg(wxWindow* parent) // dialog constru
 
 	pEditToVerse = (wxTextCtrl*)FindWindowById(IDC_EDIT_TO_VERSE);
 	//pEditToVerse->SetValidator(wxGenericValidator(&m_nToVerse));
+	
+	// whm added 9Dec11
+	pCheckUsePrefixExportTypeOnFilename = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PREFIX_EXPORT_TYPE);
+	wxASSERT(pCheckUsePrefixExportTypeOnFilename != NULL);
+	
+	pCheckUseSuffixExportDateTimeStamp = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SUFFIX_EXPORT_DATETIME_STAMP);
+	wxASSERT(pCheckUseSuffixExportDateTimeStamp != NULL);
+	// whm Note: The substitution of export type and state of the checkbox and enabling is done in
+	// the DoExportInterlinearRTF() caller.
 }
 
 CExportInterlinearDlg::~CExportInterlinearDlg() // destructor
@@ -258,6 +268,13 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	tempStr.Empty();
 	tempStr << m_nToVerse;
 	pEditToVerse->ChangeValue(tempStr);
+	
+	// initialize the values of the checkboxes from the App's values
+	pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
+	pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
+	// Note: the caller DoExportInterlinearRTF() accesses the above two checkbox values and may
+	// enable or disable the checkboxes as appropriate to the exporting context there.
+
 }
 
 // event handling functions
@@ -369,6 +386,10 @@ void CExportInterlinearDlg::OnOK(wxCommandEvent& event)
 	m_nToChapter = wxAtoi(tempStr);
 	tempStr = pEditToVerse->GetValue();
 	m_nToVerse = wxAtoi(tempStr);
+	
+	// save the values to the flags on the App for saving in the basic config file
+	gpApp->m_bUsePrefixExportTypeOnFilename = pCheckUsePrefixExportTypeOnFilename->GetValue();
+	gpApp->m_bUseSuffixExportDateTimeOnFilename = pCheckUseSuffixExportDateTimeStamp->GetValue();
 	
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

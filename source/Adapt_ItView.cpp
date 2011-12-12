@@ -125,6 +125,7 @@
 #include "Placeholder.h"
 #include "GuesserSettingsDlg.h"
 #include "MergeUpdatedSrc.h"
+#include "KBExportImportOptionsDlg.h"
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -20061,8 +20062,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	// would occur at the time the user gets the wxFileDialog and accesses the
 	// "File Type" drop-down list of options. However, with navigation protection we
 	// don't provide a standard wxFileDialog where a user can make that selection.
-	// Therefore, I think the better way of handling the choice between SFM and LIFT
-	// KB exports is to get that decision earlier via a wxSingleChoice dialog, and
+	// Therefore, we get that decision earlier via a KBExportImportOptionsDlg, and
 	// not from the wxFileDialog - even when no protection is in effect. Doing so, I
 	// think will simplify the file naming process too.
 
@@ -20070,27 +20070,43 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	// Open File of Type dropdown box is an option. So, we have to ask the user directly
 	// whether s/he wants LIFT or SFM (\lx \ge) format of KB export. We'll set the
 	// kbImportType according to the user's response.
-
 	KBImportFileOfType kbImportType = KBImportFileOfSFM_TXT;
-	wxString choices[2];
-	choices[0] = _("1. Import standard format records (\\x and \\ge) into the Knowledge Base.");
-	choices[1] = _("2. Import LIFT records into the Knowledge Base.");
-	wxString myCaption = _("Extend the knowledge base by importing SFM or LIFT dictionary records");
-	wxString message;
-	message = _("Choose Type of Knowledge Base Import (select 1 or 2), or Cancel (to abort the import)");
-	int returnValue = wxGetSingleChoiceIndex(
-		message,myCaption,2,choices,pApp->GetMainFrame(),-1,-1,TRUE,350,80);
-	if (returnValue == -1)
+	CKBExportImportOptionsDlg dlg(pApp->GetMainFrame());
+	dlg.Center();
+
+	wxString actionTypeStr = _("Import");
+	// set dialog's title
+	wxString dlgTitle = dlg.GetTitle();
+	dlgTitle = dlgTitle.Format(dlgTitle,actionTypeStr.c_str());
+	dlg.SetTitle(dlgTitle);
+	// set the %s substitution strings in the dialog's controls
+	wxString tempStr;
+	tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
+	tempStr = tempStr.Format(tempStr,actionTypeStr.c_str());
+	dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
+
+	// for Import to KB, we hide the Filename options in the dialog, and resize the dialog
+	// Note: this requires that the first parameter of the call of
+	// KBExportImportOptionsFunc(this, false, TRUE) in KBExportImportOptionsDlg's 
+	// constructor be false
+	dlg.pKBExportImportOptionsDlgSizer->Hide(pKBExpImpCheckBoxesSizer,TRUE);
+	dlg.pKBExportImportOptionsDlgSizer->Layout();
+	dlg.m_computedDlgSize = dlg.pKBExportImportOptionsDlgSizer->ComputeFittingWindowSize(&dlg);
+	dlg.SetSize(dlg.m_computedDlgSize);
+
+	if (dlg.ShowModal() == wxID_CANCEL)
 	{
-		pApp->LogUserAction(_T("Cancelled OnImportToKb()"));
-		return; // user pressed Cancel
+		// user canceled
+		pApp->LogUserAction(_T("Cancelled from OnFileExportKb()"));
+		return;
 	}
-	else
-	{
-		kbImportType = (KBImportFileOfType)returnValue; // cast int to KBImportFileOfType enum
-		wxASSERT(kbImportType == KBImportFileOfSFM_TXT || kbImportType == KBImportFileOfLIFT_XML);
-	}
-	//bool bOK;
+
+	// if we get here user has clicked OK to proceed
+	int nRadioBoxSel;
+	nRadioBoxSel = dlg.pRadioBoxSfmOrLIFT->GetSelection();
+	wxASSERT(nRadioBoxSel == 0 || nRadioBoxSel == 1);
+	kbImportType = (KBImportFileOfType)nRadioBoxSel; // cast int to KBExportSaveAsType enum
+	wxASSERT(kbImportType == KBImportFileOfSFM_TXT || kbImportType == KBImportFileOfLIFT_XML);
 
 	wxString defaultDir;
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
@@ -20168,8 +20184,6 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 
 	// whm modified 7Jul11 to bypass the wxFileDialog when the import is protected from
 	// navigation.
-	//wxString exportPath;
-	wxString uniqueFilenameAndPath;
 	wxString inputPath;
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
@@ -20216,6 +20230,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		// the user can choose from a monocline list via a wxGetSingleChoiceIndex()
 		// dialog.
 		wxString extStr;
+		wxString myCaption;
 		if (kbImportType == KBImportFileOfSFM_TXT)
 		{
 			// determine exportPath to the _KB_INPUTS_OUTPUTS folder using the dictFilename
@@ -20252,7 +20267,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		// whm 6Aug11 Note: We could use a ::wxGetMultipleChoices() call here which
 		// would enable a user to import multiple files into the KB (but would require
 		// changing the logic below to loop over each selected file).
-		returnValue = wxGetSingleChoiceIndex(message,myCaption,
+		int returnValue = wxGetSingleChoiceIndex(message,myCaption,
 			kbImportFilesNamesOnly,(wxWindow*)pApp->GetMainFrame(),-1,-1,true,250,100);
 		if (returnValue == -1)
 		{

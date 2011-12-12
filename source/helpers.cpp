@@ -2248,6 +2248,8 @@ wxString GetProgramLocationFromSystemPATH(wxString appName)
     wxPathList pathList;
     pathList.AddEnvList(wxT("PATH"));
     str = pathList.FindAbsoluteValidPath(appName);
+	// The value for str here would normally be "/usr/local/bin" for non-packaged 
+	// builds or "/usr/bin" for packaged builds.
     if (!str.IsEmpty())
         return wxPathOnly(str);
     else
@@ -2264,8 +2266,7 @@ wxString GetProgramLocationFromSystemPATH(wxString appName)
 /// Searches for the program appName at locations specified in the system's
 /// PATH environment variable. The first path on which appName is found is
 /// returned. If appName is not found on any paths specified in the system's
-/// PATH environment variable, an empty string is returned. This function is
-/// used to find 
+/// PATH environment variable, an empty string is returned.
 ///////////////////////////////////////////////////////////////////////////////
 wxString GetAdaptItInstallPrefixForLinux()
 {
@@ -2274,22 +2275,48 @@ wxString GetAdaptItInstallPrefixForLinux()
     //       app's name.
 	wxString prefix;
 	prefix.Empty();
-	wxString stdPathsPrefix;
-	stdPathsPrefix.Empty();
     wxString str;
     str = GetProgramLocationFromSystemPATH(gpApp->argv[0]);
-    wxFileName fn(str);
-    wxString wholePath;
-	wholePath = fn.GetPath(); // The wxFileName::GetPath() doesn't have a terminating path separator on the returned string
+	// If str is empty it means that adaptit has not been installed from a
+	// package or by invoking 'sudo make install' from a local build. At least
+	// it is not on the system PATH. In such cases it must have been invoked 
+	// after a local make process probably from some location like: 
+	// /home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug
+	// and no command was invoked to install the program after make was 
+	// called. When no install has been done, we just return an empty string 
+	// for the install prefix.
+	// 
+    // When str is not empty the value of str will be the path to the installed 
+    // adaptit executable file, without a terminating path separator, normally 
+    // /usr/local/bin or /usr/bin.
+	// Since /bin is the usual/standard directory regardless of what type
+	// of install (package or local make install), the prefix is the first
+	// part of the path preceding the /bin part, i.e., /usr/local or /usr.
+	int offset;
+	offset = str.Find(_T("/bin"));
+	if (offset != wxNOT_FOUND)
+	{
+		prefix = str.Mid(0,offset);
+	}
+
 #ifdef __WXGTK__
 	wxStandardPaths stdPaths;
+	wxString stdPathsPrefix;
+	stdPathsPrefix.Empty();
 	stdPathsPrefix = stdPaths.GetInstallPrefix();
-	// TODO: Decide which to use: the stdPathsPrefix or the first part of wholePath
-	// determined by searching the PATH.
-	// 
-	prefix = stdPathsPrefix;
-#else
-	stdPathsPrefix = wxEmptyString;
+	// When no install has been done GetInstallPrefix() seems to return 
+	// something like /home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug
+	// or /home/bruce/subversion/adaptit/bin/linux/bin/Debug (note the 
+	// two /bin/ folders in the path - as reported by Bruce)
+	// which is the directory the executable is currently being run from.
+	// If as part of the make process we were doing the equivalent of our 
+	// post-build that get called in Visual Studio, this value for a 
+	// prefix would be OK. But, for now we will just return set a prefix
+	// string value when the app was found on the system PATH (above).
+	// Uncomment the next line if/when we do such post-build copying of
+	// adaptit's auxiliary files to the build folder.
+	//prefix = stdPathsPrefix;
+	wxLogDebug(_T("The stdPathsPrefix is: %s"),stdPathsPrefix.c_str());
 #endif
 	return prefix;
 }

@@ -42,13 +42,13 @@ public:
 	wxTextCtrl* pEditLocalizationPath;
 	wxTextCtrl* pEditAsStaticShortName;
 	wxTextCtrl* pEditAsStaticLongName;
-	wxButton* pBtnBrowse;
+	//wxButton* pBtnBrowse;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	
-	void OnBrowseForPath(wxCommandEvent& WXUNUSED(event));
+	//void OnBrowseForPath(wxCommandEvent& WXUNUSED(event)); // whm removed 8Dec11
 	void OnSelchangeListboxLanguages(wxCommandEvent& WXUNUSED(event));
 
 private:

@@ -35,7 +35,16 @@ public:
 	bool m_ExportToRTF;
 	wxString m_StaticTitle;
 	wxStaticText* pStaticTitle;
+	wxCheckBox* pCheckUsePrefixExportTypeOnFilename;
+	wxCheckBox* pCheckUseSuffixExportDateTimeStamp;
+	wxRadioButton* pExportAsSfm;
+	wxRadioButton* pExportAsRTF;
+	wxTextCtrl* pTextCtrlAsStaticExpSaveAs1;
+	wxTextCtrl* pTextCtrlAsStaticExpSaveAs2;
+	wxTextCtrl* pTextCtrlAsStaticExpSaveAs3;
+
 	wxSizer* pExportSaveAsSizer;
+	ExportType exportType;
 
 	void OnBnClickedRadioExportAsSfm(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioExportAsRtf(wxCommandEvent& WXUNUSED(event));

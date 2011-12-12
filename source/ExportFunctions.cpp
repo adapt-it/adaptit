@@ -367,95 +367,117 @@ wxString RemoveCollectedBacktranslations(wxString& str)
 
 // BEW modified 10Aug09, to support exporting of glosses or free translations as well
 // whm 6Aug11 revised for support for protecting inputs/outputs folder navigation
+// whm 9Dec11 revised for support of export filename prefix and/or suffix and adjusted
+// behaviors related to the prefixes/suffixes
 void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 {
 	bForceUTF8Conversion = bForceUTF8Conversion; // to avoid unreferenced formal 
 												 // parameter warning
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename;
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	int len = 0;
 	CExportSaveAsDlg sadlg(gpApp->GetMainFrame());
+	sadlg.exportType = exportType; // whm added 9Dec11
 	sadlg.Centre();
 	wxString s;
 	bool bRTFOutput = FALSE;	// local var - assume SFM output for Source, Target
 								// Glosses or Free Translation text
-
-	wxString defaultDir;
-	exportFilename = gpApp->m_curOutputFilename;
 	
-	// tidy up file names and set the CExportSaveAsDlg dialog title
+	wxString expTypePrefixStr; // an string prefix identifying the type of export
+								// it is optionally added depending on value of the App's 
+								// m_bUsePrefixExportTypeOnFilename member
+	
+	// Set export type prefixes in case we need them, log the user action
+	// and set dialog static title.
 	switch (exportType)
 	{
 	case sourceTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Source Text"));
-		// we are exporting the source text, get a default filename, set directory
-		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
-			exportFilename.Replace(_T("_Collab"),_T("_Source_Text"));
-		else
-			exportFilename = _T("_new_source_text_") + exportFilename;
-		len = exportFilename.Length();
-		s = _("Export Source Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Source Text"
-		break;
-	case glossesTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
-		// we are exporting the glosses text, get a default filename, set directory
-		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
-			exportFilename.Replace(_T("_Collab"),_T("_Glosses_Text"));
-		else
-			exportFilename = _T("_glosses_text_") + exportFilename;
-		len = exportFilename.Length();
-		s = _("Export Glosses As Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
-									// "Export Glosses As Text"
-		break;
-	case freeTransTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
-		// we are exporting the free translation text, get a default filename, set directory
-		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
-			exportFilename.Replace(_T("_Collab"),_T("_FreeTrans_Text"));
-		else
-			exportFilename = _T("_freetrans_text_") + exportFilename;
-		len = exportFilename.Length();
-		s = _("Export Free Translation Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to 
-									// "Export Glosses As Text"
-		break;
-	default:
+		{
+			expTypePrefixStr = _("_new_source_text_");
+			gpApp->LogUserAction(_T("Initiated Export Source Text"));
+			s = _("Export Source Text");
+			sadlg.m_StaticTitle = s;
+			break;
+		}
 	case targetTextExport:
-		gpApp->LogUserAction(_T("Initiated Export Target Text"));
-		// We are exporting the target text, get a default file name, set directory
-		// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
-		// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
-		// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
-		// produced exports within the _TARGET_OUTPUTS folder from those generated automatically
-		// by our collaboration code, we adjust the exportFilename having a "_Collab..." prefix
-		// so that it will have "_Target_Text" prefix instead.
-		if (exportFilename.Find(_T("_Collab")) != wxNOT_FOUND)
-			exportFilename.Replace(_T("_Collab"),_T("_Target_Text"));
-		else
-			exportFilename = _T("_target_text_") + exportFilename;
-		len = exportFilename.Length();
-		s = _("Export Translation (Target) Text");
-		sadlg.m_StaticTitle = s;	// Sets dialog static Title text to "Export Translation (Target) Text"
-		break;
+		{
+			expTypePrefixStr = _("_target_text_");
+			gpApp->LogUserAction(_T("Initiated Export Target Text"));
+			s = _("Export Translation (Target) Text");
+			sadlg.m_StaticTitle = s;
+			break;
+		}
+	case glossesTextExport:
+		{
+			expTypePrefixStr = _("_glosses_text_");
+			gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
+			s = _("Export Glosses As Text");
+			sadlg.m_StaticTitle = s;
+			break;
+		}
+	case freeTransTextExport:
+		{
+			expTypePrefixStr = _("_freetrans_text_");
+			gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
+			s = _("Export Free Translation Text");
+			sadlg.m_StaticTitle = s;
+			break;
+		}
 	}
 
+	// update the dialog's checkboxes with current App values (redundant: it's done there too)
+	sadlg.pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
+	sadlg.pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
+
+	// substitute the actual export type string into the %s placeholder
+	wxString typeExp;
+	typeExp = sadlg.pCheckUsePrefixExportTypeOnFilename->GetLabel();
+	typeExp = typeExp.Format(typeExp, expTypePrefixStr.c_str());
+	sadlg.pCheckUsePrefixExportTypeOnFilename->SetLabel(typeExp);
+
+	// Use the App's m_curOutputFilename as the base filename for exports
+	wxString defaultDir;
+	exportFilename = gpApp->m_curOutputFilename;
+	
+	// Set the static title at top of dialog
+	sadlg.pStaticTitle->SetLabel(sadlg.m_StaticTitle);
+
 	sadlg.m_ExportToRTF = FALSE;	// set default to SFM output
+	
+	// Show the dialog
 	if (sadlg.ShowModal() != wxID_OK)
 	{
 		return; // user cancelled
 	}
 
-	// Note: Export filter is implemented below via calls to ApplyOutputFilterToText()
+	// Any change in the checkbox values are now stored in the App's 
+	// m_bUseSuffixExportDateTimeOnFilename and m_bUsePrefixExportTypeOnFilename 
+	// members.
+
+	// Make adjustments to the exportFilename based on the user's preference for 
+	// exportFilename prefix and suffix.
+	// 
+	// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing sfm/rtf 
+	// export operations, the exportFilename as obtained from m_curOutputFilename 
+	// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
+	// produced exports within the _TARGET_OUTPUTS or _TARGET_RTF_OUTPUTS folder from 
+	// those generated automatically by the collaboration process, we remove the
+	// "_Collab_" prefix. We then add an exportType prefix if the user ticked
+	// the checkbox for using export type prefixes in the ExportSaveAsDlg.
+	wxString collabPrefix = _T("_Collab_"); // include the following _ here for removal
+	int pos_Collab_;
+	pos_Collab_ = exportFilename.Find(collabPrefix);
+	if (pos_Collab_ != wxNOT_FOUND)
+		exportFilename.Remove(pos_Collab_,collabPrefix.Length());
+	if (gpApp->m_bUsePrefixExportTypeOnFilename)
+		exportFilename = expTypePrefixStr + exportFilename;
+	len = exportFilename.Length();
 
 	// Adjust the export file's extension, the wxFileDialg's filter, and
 	// navigation protection settings according to the user's selection 
 	// of SFM or RTF.
 	wxString filter;
-	wxString DefaultExt;
 	if (!sadlg.m_ExportToRTF)
 	{
 		// Export to SFM
@@ -463,7 +485,6 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		exportFilename.Remove(len-3,3); // remove the extension
 		exportFilename += _T("txt"); // make it a *.txt file type
 		// get a file Save As dialog for Source Text Output
-		DefaultExt = _T("txt");
 		filter = _("All Files (*.*)|*.*|Exported Adapt It Documents (*.txt)|*.txt||"); 
 					// I changed the above to allow *.txt and *.*, with the
                     // *.* one first (shows all) so it comes up as default This has the
@@ -623,7 +644,6 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// make a suitable default output filename for the export function
 		exportFilename.Remove(len-3,3); // remove the extension
 		exportFilename += _T("rtf"); // make it an *.rtf file type
-		DefaultExt = _T("rtf");
 		filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
 		bRTFOutput = TRUE;
 		// Set up for Navigation Protection and determine the defaultDir for the
@@ -774,10 +794,22 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 	}
 
-	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
-	// navigation.
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
+	// Prepare a unique filename and path from the exportFilename. This unique filename 
+	// and path is used when the export is nav protected or when the user has ticked the
+	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
+	// is to be suffixed to the export filename, which ensures that any existing exports
+	// are not overwritten.
+	uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportFilename,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+	if (gpApp->m_bUseSuffixExportDateTimeOnFilename)
+	{
+		// Use the unique path for exportPath
+		exportFilename = uniqueFilenameAndPath;
+	}
+	
+	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
+	// navigation.
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
 		wxFileDialog fileDlg(
@@ -827,13 +859,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 				exportPath = gpApp->m_targetRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 			break;
 		}
-		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
-		// appropriate outputs folder.
-		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
-		// Use the unique path for exportPath
-		exportPath = uniqueFilenameAndPath;
 	}
-
+	
 	wxLogNull logNo; // avoid spurious messages from the system
 
 	// whm 7Jul11 note: We'll allow the saving of the m_last... Paths even when navigation
@@ -1034,23 +1061,21 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	}
 	if (bRTFOutput)
 	{
-		if (bBypassFileDialog_ProtectedNavigation)
-		{
-			// whm 7Jul11 Note:
-			// For protected navigation situations AI determines the actual
-			// filename that is used for the export, and the export itself is
-			// automatically saved in the appropriate outputs folder. Since the
-			// user has no opportunity to provide a file name nor navigate to
-			// a random path, we should inform the user at this point of the 
-			// successful completion of the export, and indicate the file name 
-			// that was used and its outputs folder name and location.
-			wxFileName fn(uniqueFilenameAndPath);
-			wxString fileNameAndExtOnly = fn.GetFullName();
+		// whm 7Jul11 Note:
+		// For protected navigation situations AI determines the actual
+		// filename that is used for the export, and the export itself is
+		// automatically saved in the appropriate outputs folder. Since the
+		// user has no opportunity to provide a file name nor navigate to
+		// a random path, we should inform the user at this point of the 
+		// successful completion of the export, and indicate the file name 
+		// that was used and its outputs folder name and location.
+		wxFileName fn(exportFilename);
+		wxString fileNameAndExtOnly = fn.GetFullName();
 
-			wxString msg;
-			msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
-			wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
-		}
+		wxString msg;
+		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
+		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+
 		return; // this ends RTF output
 	}
 
@@ -1190,24 +1215,21 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	}
 	#endif // for _UNICODE
 	
-	if (bBypassFileDialog_ProtectedNavigation)
-	{
-		// whm 7Jul11 Note:
-		// For protected navigation situations AI determines the actual
-		// filename that is used for the export, and the export itself is
-		// automatically saved in the appropriate outputs folder. Since the
-		// user has no opportunity to provide a file name nor navigate to
-		// a random path, we should inform the user at this point of the 
-		// successful completion of the export, and indicate the file name 
-		// that was used and its outputs folder name and location.
-		wxFileName fn(uniqueFilenameAndPath);
-		wxString fileNameAndExtOnly = fn.GetFullName();
+	// whm 7Jul11 Note:
+	// For protected navigation situations AI determines the actual
+	// filename that is used for the export, and the export itself is
+	// automatically saved in the appropriate outputs folder. Since the
+	// user has no opportunity to provide a file name nor navigate to
+	// a random path, we should inform the user at this point of the 
+	// successful completion of the export, and indicate the file name 
+	// that was used and its outputs folder name and location.
+	wxFileName fn(exportFilename);
+	wxString fileNameAndExtOnly = fn.GetFullName();
 
-		wxString msg;
-		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
-		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
-		gpApp->LogUserAction(_T("Export operation successful"));
-	}
+	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
+	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	gpApp->LogUserAction(_T("Export operation successful"));
 
 	f.Close();
 }
@@ -1370,6 +1392,8 @@ bool IsNoteInDoc(CSourcePhrase* pSrcPhrase)
 // BEW 10Apr10, updated for support of doc version 5 (changes were needed)
 // whm revised July 2011 to improve formatting for OpenOffice/LibreOffice, 
 // while maintaining compatible with MS Word.
+// whm revised 9Dec11 to better handle export filename prefix/suffix consistent
+// with other exports.
 void DoExportInterlinearRTF()
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -1587,6 +1611,18 @@ void DoExportInterlinearRTF()
 	// the App's m_bIsPortraitOrientation.
 	exdlg.m_bPortraitOrientation = gpApp->m_bIsPortraitOrientation;
 
+	// update the dialog's checkboxes with current App values (redundant: it's done there too)
+	exdlg.pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
+	exdlg.pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
+
+	// substitute the actual export type string into the %s placeholder
+	wxString typeExp;
+	wxString expTypePrefixStr = _T("_interlinear_");
+	typeExp = exdlg.pCheckUsePrefixExportTypeOnFilename->GetLabel();
+	typeExp = typeExp.Format(typeExp, expTypePrefixStr.c_str());
+	exdlg.pCheckUsePrefixExportTypeOnFilename->SetLabel(typeExp);
+
+
 	// show the ExportInterlinear dialog
 	if (exdlg.ShowModal() == wxID_OK)
 	{
@@ -1624,30 +1660,45 @@ void DoExportInterlinearRTF()
 		return; // user cancelled
 	}
 
-	// make a suitable default output filename for the export function
-	int len = exportFilename.Length();
-	exportFilename.Remove(len-4,4); // remove the .adt or .xml extension (including the .)
-	// We are exporting interlinear rtf, get a default file name, set directory
+	// Make adjustments to the exportFilename based on the user's preference for 
+	// exportFilename prefix and suffix.
+	// 
 	// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
 	// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
 	// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
 	// produced exports within the _INTERLINEAR_RTF_OUTPUTS folder from those generated 
-	// automatically by our collaboration code, we adjust the exportFilename having a 
-	// "_Collab..." prefix so that it will have "_Interlinear" prefix instead.
-	if (exportFilename.Find(_T("_Collab")) == 0)
-	{
-		exportFilename.Replace(_T("_Collab"),_T("_Interlinear"));
-	}
-	else
-	{
-		exportFilename = _T("_interlinear_") + exportFilename;
-	}
-	exportFilename += _T(".rtf"); // make it a *.rtf file type
+	// automatically by our collaboration code, we remove the "_Collab..." prefix. We
+	// then add an exportType prefix "_Interlinear" if the user ticked the checkbox for
+	// using export type prefixes in the ExportInterlinearDlg.
+	wxString collabPrefix = _T("_Collab_"); // include the following _ here for removal
+	int pos_Collab_;
+	pos_Collab_ = exportFilename.Find(collabPrefix);
+	if (pos_Collab_ != wxNOT_FOUND)
+		exportFilename.Remove(pos_Collab_,collabPrefix.Length());
+	if (gpApp->m_bUsePrefixExportTypeOnFilename)
+		exportFilename = expTypePrefixStr + exportFilename;
+
+	// make a suitable default output filename for the export function
+	int len = exportFilename.Length();
+	exportFilename.Remove(len-3,3); // remove the .adt or .xml extension
+	exportFilename += _T("rtf"); // make it a *.rtf file type
 
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
 	// navigation.
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
+	// Prepare a unique filename and path from the exportFilename. This unique filename 
+	// and path is used when the export is nav protected or when the user has ticked the
+	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
+	// is to be suffixed to the export filename, which ensures that any existing exports
+	// are not overwritten.
+	uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportFilename,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
+	if (gpApp->m_bUseSuffixExportDateTimeOnFilename)
+	{
+		// Use the unique path for exportPath
+		exportFilename = uniqueFilenameAndPath;
+	}
+	
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
 		// get a file dialog
@@ -1666,7 +1717,6 @@ void DoExportInterlinearRTF()
 
 		if (fileDlg.ShowModal() != wxID_OK)
 		{
-			//bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 			gpApp->LogUserAction(_T("Cancelled DoExportInterlinearRTF() from wxFileDialog()"));
 			return; // user cancelled
 		}
@@ -1675,11 +1725,6 @@ void DoExportInterlinearRTF()
 	else
 	{
 		exportPath = gpApp->m_interlinearRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
-		// Ensure that exportPath is unique so we don't overwrite any existing ones in the
-		// appropriate outputs folder.
-		uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportPath,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
-		// Use the unique path for exportPath
-		exportPath = uniqueFilenameAndPath;
 	}
 
 	// whm Note: We set the App's m_lastInterlinearRTFOutputPath variable with the 
@@ -6514,23 +6559,22 @@ b:						// b: is exit point to write the last columns of data
 	// on Linux when navigation protection is ON for _INTERLINEAR_RTF_OUTPUTS. For now
 	// I've conditionally compiled the code to omit this informational prompt on the
 	// wxGTK port.
-	if (bBypassFileDialog_ProtectedNavigation)
-	{
-		// whm 7Jul11 Note:
-		// For protected navigation situations AI determines the actual
-		// filename that is used for the export, and the export itself is
-		// automatically saved in the appropriate outputs folder. Since the
-		// user has no opportunity to provide a file name nor navigate to
-		// a random path, we should inform the user at this point of the 
-		// successful completion of the export, and indicate the file name 
-		// that was used and its outputs folder name and location.
-		wxFileName fn(uniqueFilenameAndPath);
-		wxString fileNameAndExtOnly = fn.GetFullName();
 
-		wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
-		msg = msg.Format(msg,fileNameAndExtOnly.c_str(),uniqueFilenameAndPath.c_str());
-		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
-	}
+	// whm 7Jul11 Note:
+	// For protected navigation situations AI determines the actual
+	// filename that is used for the export, and the export itself is
+	// automatically saved in the appropriate outputs folder. Since the
+	// user has no opportunity to provide a file name nor navigate to
+	// a random path, we should inform the user at this point of the 
+	// successful completion of the export, and indicate the file name 
+	// that was used and its outputs folder name and location.
+	wxFileName fn2(exportFilename);
+	wxString fileNameAndExtOnly = fn2.GetFullName();
+
+	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
+	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+
 #endif
 	gpApp->LogUserAction(_T("Export operation successful"));
 

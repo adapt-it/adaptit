@@ -29,7 +29,7 @@ class CCCTableEditDlg;
 /// the phrase box. The contents of the tab pages come from instances of the CCCTablePageFunc, a resource
 /// (created by wxDesigner) which has controls that enable the user to browse, select, create and/or edit 
 /// consistent change (.cct) tables.
-/// \derivation		The CCCTabbedDialog class is derived from wxPropertySheetDialog.
+/// \derivation		The CCCTabbedDialog class is derived from AIModalDialog.
 class CCCTabbedDialog : public AIModalDialog
 {
 public:
