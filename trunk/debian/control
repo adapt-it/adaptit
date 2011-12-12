@@ -7,7 +7,7 @@ Standards-Version: 3.7.2
 
 Package: adaptit
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends},libsqlite3-0
 Description: Adapt It
  Adapt It gives you tools for translating text from one language which you know, to another related language known to you or a co-worker.
  Adapt It translates or adapts source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages.
