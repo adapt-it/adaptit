@@ -62,7 +62,7 @@ BEGIN_EVENT_TABLE(CKBExportImportOptionsDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 CKBExportImportOptionsDlg::CKBExportImportOptionsDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("%s Knowledge Base"),
+	: AIModalDialog(parent, -1, wxEmptyString,
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
