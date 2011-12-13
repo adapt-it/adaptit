@@ -20074,11 +20074,9 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	CKBExportImportOptionsDlg dlg(pApp->GetMainFrame());
 	dlg.Center();
 
-	wxString actionTypeStr = _("Import");
+	wxString actionTypeStr = _("Import to Knowledge Base");
 	// set dialog's title
-	wxString dlgTitle = dlg.GetTitle();
-	dlgTitle = dlgTitle.Format(dlgTitle,actionTypeStr.c_str());
-	dlg.SetTitle(dlgTitle);
+	dlg.SetTitle(actionTypeStr);
 	// set the %s substitution strings in the dialog's controls
 	wxString tempStr;
 	tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();

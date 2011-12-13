@@ -38670,11 +38670,9 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	CKBExportImportOptionsDlg dlg(GetMainFrame());
 	dlg.Center();
 	
-	wxString actionTypeStr = _("Export");
+	wxString actionTypeStr = _("Export Knowledge Base");
 	// set dialog's title
-	wxString dlgTitle = dlg.GetTitle();
-	dlgTitle = dlgTitle.Format(dlgTitle,actionTypeStr.c_str());
-	dlg.SetTitle(dlgTitle);
+	dlg.SetTitle(actionTypeStr);
 	// set the %s substitution strings in the dialog's controls
 	wxString tempStr;
 	tempStr = dlg.pRadioBoxSfmOrLIFT->GetLabel();
