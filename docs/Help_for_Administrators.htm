@@ -234,9 +234,9 @@ button labeled "Collaboration ON"</strong> and click on the <strong>OK</strong>
    button. This activates the collaboration&nbsp;between Adapt It 
 and&nbsp;Paratext. In a few seconds you should see the&nbsp;following 
 main&nbsp;dialog the user will normally see during collaboration:</p>
-<p><img border="0" hspace="0" 
+<p align="center"><img border="0" hspace="0" 
 src="Images/Admin_help/GetSourceTextFromEditorNoOptions.gif" width=500 
-height=260></p>
+height=259></p>
 <p>     From this simple dialog the user can select a 
 Scripture book and chapter for collaboration. When OK is clicked, Adapt It 
 will automatically fetch the source text and any existing target text from Paratext, and 
@@ -709,7 +709,8 @@ activated, Adapt It will not ask the user for a file name nor allow the user to
 navigate to a different folder, but will automatically assign a file name to the 
 input or output file, and read it from or store it to 
 the indicated location.</p>
-<p>Whe Adapt It assigns names to files, it composes the 
+<p>When navigation protection is activated for a given 
+input/output type, Adapt It automatically assigns names to files, it composes the 
 name based on the type of the file's contents and adds a date-time "stamp" at 
 the end of the name, and affixes the appropriate extension. This results in some 
 long file names, but that is of no concern to the user, because when "Protect 
@@ -723,6 +724,11 @@ the presence of the date-time stamp within the file name, there is never going
 to be a danger of files overwriting one another because all exported files will 
 have unique, easily discernable&nbsp;names, and files with similar content will sort together 
 in chronological order.</p>
+<p>Note: The assignment of text type prefixes and/or date-time stamp suffixes on 
+file names is not automatically done when navigation protection is OFF for a 
+given input/output type, but it text type prefixes and date-time stamp suffixes 
+can be used if desired at import/export time by ticking the appropriate check 
+boxes on the dialog that appears.</p>
 <p>We suggest that you use the Assign Locations For Inputs 
 and Outputs dialog to help keep your user's data organized into predictable 
 locations and its files consistently named - so that they are easily identified as to 
@@ -836,7 +842,8 @@ as shown above has Adapt It version 5.2.4. You will need Adapt It version
 program administrators, and especially working in collaboration with the Balsa Scripture editor Bibledit. The icon for 
 Adapt It version 6 looks like this:</p>
 <p align="center"><img border="0" hspace="0" 
-src="Images/Admin_help/ai_new_icon.gif" width=107 height=118>           
+src="Images/Admin_help/ai_new_icon.gif" width=107 height=118> <br><font 
+face=Arial><strong>Adapt It</strong></font>           
              
                
               
@@ -846,18 +853,25 @@ src="Images/Admin_help/ai_new_icon.gif" width=107 height=118>
                 
       </p>
 <p>When the Balsa system boots up it shows two accounts: 
-<strong>Advisor</strong> and <strong>Balsa User</strong>. You as an 
-administrator need to log in first as Advisor to update Adapt It to its latest 
+<strong>Advisor</strong> and <strong>Balsa User</strong>. <strong>You as an administrator need to log in first as 
+Advisor</strong>    
+        to update Adapt It to its latest 
 version 6 update which has many new features designed to assist you as an 
 administrator. Then, once you have upgraded Adapt It to version 6, you should 
 <strong>log off as Advisor</strong> and <strong>log back in as the</strong> 
 <strong>Balsa User</strong>          
                
                
-       to complete the setup of Adapt It 
-for that given user. Except for upgrading Adapt It to the latest version 6.x.x, all remaining setup 
-of Adapt It should be done using the Balsa User account. The steps for doing these 
-things are listed below:</p>
+              
+  to complete the setup of Adapt It for that given user. Except for upgrading Adapt 
+It to the latest version 6.x.x, all remaining setup of Adapt It should be done using 
+the Balsa User account.</p>
+<p><strong>Note: any data you create while logged into the Advisor account in 
+Balsa will NOT appear within Adapt It when Balsa is logged into the Balsa User 
+account, and likewise any data&nbsp;the user&nbsp;creates within Adapt It under 
+the Balsa User account will not appear when logged into the Advisor 
+account.</strong></p>
+<p>The steps for doing these things are listed below:</p>
 <h3>Logging on to the Advisor account and upgrading Adapt It 
 to version 6 (if needed)</h3>
 <p>1. Log onto the <strong>Advisor</strong>     account in the Balsa 
@@ -926,27 +940,51 @@ for training Adapt It users</h2>
 Preparations for Collaboration Work (with Paratext or Bibledit)</h3>
 <p>* <strong>Prepare the Paratext/Bibledit 
 projects.</strong> You as Administrator should prepare the Paratext/Bibledit 
-projects BEFORE setting up Adapt It collaboration. You should make sure that <a 
+projects <strong>BEFORE</strong>        
+  setting up Adapt It collaboration. You should make sure that <a 
 href="#Paratext_Steps_Start">Paratext</a> or <a 
-href="#Bibledit_Steps_Start">Bibledit</a> has at least TWO projects: 1. A 
-project that contains the source language texts from which Adapt It will obtain 
-its source texts for adaptation work. Preferably this Paratext/Bibledit project 
-should contain all the available source texts that will be used in 
-collaboration. 2. You also should make sure that Paratext or Bibledit has a 
-different project created which will receive the adapted translation drafts 
-produced by Adapt It. If your user will be preparing free translations, you 
-should also create a third project in Paratext/Bibledit to receive free 
-translations. The books you create in the Paratext/Bibledit projects for 
-receiving the target text&nbsp;and free translations can be empty but 
-they&nbsp;should be created with (empty) chapter and verse numbers. Ensure that the (empty) books created correspond to the 
-books that exist in the source language project.</p>
+href="#Bibledit_Steps_Start">Bibledit</a> has <strong>at least TWO 
+projects</strong>        
+             
+          
+            
+             
+          
+             
+           
+          
+          
+                  
+       :</p>
+<p>1. A project that contains the source language texts from which Adapt It will 
+obtain its source texts for adaptation work. Preferably this Paratext/Bibledit 
+project should contain all the available source texts that will be used in 
+collaboration. </p>
+<p>2. You also should make sure that Paratext or Bibledit has a 
+<strong>different</strong> project created which will receive the adapted 
+translation drafts produced by Adapt It. </p>
+<p>If your user will be preparing free translations, you should also create a 
+third project in Paratext/Bibledit to receive free translations. The books you 
+create in the Paratext/Bibledit projects for receiving the target text&nbsp;and 
+free translations can be empty but they&nbsp;should be created with (empty) 
+chapter and verse numbers. Ensure that the (empty) books created correspond to 
+the books that exist in the source language project.</p>
 <p>* <strong>Setup Paratext/Bibledit 
 Collaboration.</strong> You as Administrator should setup collaboration using 
 the "Setup Paratext/Bibledit Collaboration..." menu item on the Adapt It 
 Administrator menu.&nbsp;Using that Adapt It dialog, designate the 
 Paratext/Bibledit project that are to be used, and turn ON collaboration. This 
-ensures that the user will not have to do any setup, but can simply start working by 
-choosomg the book and chapter to work on.</p>
+ensures that the user will not have to do any setup, but can simply start 
+working by choosomg the book and chapter to work on. After enabling 
+collaboration, you should ensure that things are working correctly by selecting 
+a scripture book and a chapter from the "Get Source Text from Paratext/Bibledit 
+Project dialog". If you get any errors, see the <a 
+href="#trouble_shooting_collaboration">Trouble Shooting</a>        
+          
+        
+            
+                 
+       topic.</p>
 <p>* <strong>Setup a user workflow profile.</strong> You as 
 Administrator should carefully consider the skill and experience of&nbsp;the 
 user, and determine if one of Adapt It's pre-configured <a 
@@ -1035,10 +1073,18 @@ any case, the user should not change between collaborating by Chapter Only and
 Whole Book for a given book. If adapting chapter-by-chapter, the user should continue 
 working chapter-by-chapter until the whole book is finished.</p>
 <p>* <strong>Reporting Problems and Giving 
-Feedback</strong>. Adapt It is provided free of charge under an open source 
-license. The developers are quick to respond to email reports of problems and 
-requests. They depend on the reports of any problems as well as feedback from 
-field users to improve Adapt It. Adapt It version 6 now has an easy to use email 
+Feedback</strong>. Adapt It is provided free of charge under an open 
+source license. The developers are quick to respond to email reports of problems 
+and requests. They depend on the reports of any problems as well as feedback 
+from field users to improve Adapt It. Before reporting problems to the 
+developers, please have a look at the <a 
+href="#trouble_shooting_collaboration">Trouble Shooting</a> topic below. If that 
+does not help you resolve the problem, feel free to contact the developers either via email or via the "Report a Problem..." 
+selection in Adapt It's help menu (see below).</p>
+<p>            
+             
+              
+      Adapt It version 6 now has an easy to use email 
 reporting feature - located on the Adapt It Help menu. Just click on the Help 
 menu item labeled "<strong>Report a Problem...</strong>" and Adapt It will display the following dialog - 
 with much of the information already filled in:</p>
@@ -1065,24 +1111,133 @@ text in the box as a guide.</p>
 using secured SSL encryption directly from the Adapt It program, so email 
 communications are done safely. The user's computer does not have to have an 
 email client installed to send these reports.</p>
+<h2><a name="trouble_shooting_collaboration"></a>Trouble Shooting          
+            
+             
+    Collaboration (with Bibledit)</h2>
+<p>          
+            
+             
+      Adapt It relies on a separate utility program that it 
+uses to exchange data between Adapt It and Paratext or Bibledit. There are 
+different utility programs for Paratext and Bibledit as well as different 
+versions for different computer architectures (32-bit, 64-bit, etc). Adapt 
+It&nbsp;installs a utility program called <strong>rdwrtp7.exe</strong>&nbsp;that 
+it&nbsp;attempts to execute&nbsp;when collaborating with Paratext on Windows 
+systems, and in Linux installations it supplies a&nbsp;utility which it calls 
+named <strong>adaptit-bibledit-rdwrt</strong>&nbsp;for collaboration with 
+Bibledit on Linux systems. Ordinarily you need not worry about these utility 
+programs. However, we have not been able to test these utility programs on all 
+possible computer system configurations, and especially on different Linux 
+distributions/architectures. So, if you get errors when attempting to&nbsp;setup 
+collaboration&nbsp;between Adapt It and Paratext or Bibledit, it is lilkely that 
+the problem could be a compatibility problem&nbsp;that we have not yet had to 
+account for between your computer system and the version of the utility program 
+installed by Adapt          
+            
+             
+      It.</p>
+<p>          
+            
+             
+      When&nbsp;the Paratext development team releases a new 
+version of Paratext, you should insure that Adapt It can still collaborate with 
+that version. If&nbsp;you encounter a problem with Adapt It - Paratext 
+collaboration after updating your Paratext installation, please let us know so 
+we can provide an Adapt It update that will correct the problem. Such problems 
+are not very likely to happen between Adapt It and Paratext, but if they do 
+happen it is most likely they would happen after a fairly major update of either 
+Paratext or Adapt It. Please write down the text of any error messages that 
+appear, and include those with any reports problem reports you send us. If you 
+have Internet acces you can try submitting a report directly from Adapt It (see 
+the "Report a Problem..." selection from Adapt It's Help menu), or send us a 
+report via regular email (our email addresses are shown on Adapt It's "About 
+Adapt It..." selection on the Help          
+            
+             
+      menu.</p>
+<p>          
+            
+             
+      Until a bibledit-gtk version of Bibledit becomes readily 
+available in the Ubuntu distributions that is <strong>at least version 
+4.2.93</strong> or later (which comes with its own bibledit-rdwrt 
+utility),&nbsp;users may encounter&nbsp;situations where Adapt It's version of 
+the utility (called adaptit-bibledit-rdwrt to distinguish it from the one to be 
+supplied by future version of Bibledit) is not compatible with the&nbsp;user's 
+system configuration - i.e., needs a version of a Linux dynamic library that is 
+not&nbsp;available or is incorrect, for example.&nbsp;If&nbsp;an error in Adapt 
+It for Linux appears like          
+            
+             
+      this:</p>
+<p align="center"><img border="0" hspace="0" 
+src="Images/Admin_help/CollabErrorLinux2.gif" width=455 height=231>          
+            
+             
+      </p>
+<p>&nbsp;it means that Adapt It has located the 
+adaptit-bibledit-rdwrt utility but it cannot execute the&nbsp;utility program. 
+This error indicates that the permissions are not correctly assigned to the 
+utility program at the location indicated in the error message.&nbsp;You could 
+try changing the utility program's permissions by typing the following command 
+from within a Linux terminal          
+            
+             
+      session:</p>
+<p><font face="Courier"><strong>sudo chmod a+x 
+/usr/local/bin/adaptit-bibledit-rdwrt</strong></font>          
+            
+             
+      </p>
+<p>          
+            
+             
+      and that should correct the          
+            
+             
+      error.</p>
+<p>          
+            
+             
+      If an error in Adapt It for Linux appears like          
+            
+             
+      this:</p>
+<p align="center"><img border="0" hspace="0" 
+src="Images/Admin_help/CollabErrorLinux1.gif" width=474 height=248>          
+            
+             
+      </p>
+<p>          
+            
+             
+      It means that there is a library mismatch problem in 
+the&nbsp;version of Adapt It's adaptit-bibledit-rdwrt utility&nbsp;that it 
+installed on the user's system. This problem probably cannot be corrected 
+without informing the developers about the problem, so we can make a corrected 
+version and make it available in an update at packages.sil.org for your 
+distribution and architecture of Ubuntu. If you get&nbsp;one or more of 
+these&nbsp;errors please write down the text of any error messages that appear, 
+and include those with any reports problem reports you send us. If you have 
+Internet acces you can try submitting a report directly from Adapt It (see the 
+"Report a Problem..." selection from Adapt It's Help menu), or send us a report 
+via regular email (our email addresses are shown on Adapt It's "About Adapt 
+It..." selection on the Help menu. Please include&nbsp;what distribution of 
+Ubuntu you&nbsp;are running&nbsp;and whether it is a 32-bit (i386) or 64-bit 
+(amd64) system, plus any other details you think might help us to provide a 
+fix.&nbsp;Detailed information about your system&nbsp;should be 
+available&nbsp;by accessing&nbsp;your System Info (via System &gt;Administration 
+&gt; System Monitor, or System Settings &gt; System Info on          
+            
+             
+      Unity).&nbsp;</p>
 <p>We hope you enjoy using Adapt It and find it to be a 
 useful and effective tool in your work and ministry!</p>
 <p><img border="0" hspace="0" 
 src="Images/Admin_help/ai_new_icon.gif" width=107 height=118>The Adapt It 
 Team</p>
 <p align="right"><a href="#Top_of_doc">Back to Top</a></p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
 <p>&nbsp;</p>
 <p align="center"><font size="1">This Web Page Created with PageBreeze </font><a 
 href="http://www.pagebreeze.com" target="_blank"><font size="1">Free HTML 
