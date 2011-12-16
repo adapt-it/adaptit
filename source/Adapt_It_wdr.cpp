@@ -8120,11 +8120,11 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxString *strs15 = (wxString*) NULL;
     wxListBox *item15 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,120), 0, strs15, wxLB_SINGLE );
     item15->SetToolTip( _("List of books available in this project") );
-    item12->Add( item15, 1, wxGROW|wxALL, 5 );
+    item12->Add( item15, 1, wxFIXED_MINSIZE|wxGROW|wxALL, 5 );
 
     wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,120), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
     item16->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
-    item12->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item12->Add( item16, 1, wxGROW|wxALL, 5 );
 
     item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
