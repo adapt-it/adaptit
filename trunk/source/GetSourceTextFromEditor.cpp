@@ -585,13 +585,13 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pBtnChangeProjects = (wxButton*)FindWindowById(ID_BUTTON_CHANGE_PROJECTS);
 	wxASSERT(pBtnChangeProjects != NULL);
 	
-	pSrcProj = (wxStaticText*)FindWindowById(ID_TEXT_SRC_PROJ);
+	pSrcProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SRC_PROJ);
 	wxASSERT(pSrcProj != NULL);
 	
-	pTgtProj = (wxStaticText*)FindWindowById(ID_TEXT_TGT_PROJ);
+	pTgtProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_TGT_PROJ);
 	wxASSERT(pTgtProj != NULL);
 	
-	pFreeTransProj = (wxStaticText*)FindWindowById(ID_TEXT_FREETRANS_PROJ);
+	pFreeTransProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_FREETRANS_PROJ);
 	wxASSERT(pFreeTransProj != NULL);
 	
 	bool bOK;
