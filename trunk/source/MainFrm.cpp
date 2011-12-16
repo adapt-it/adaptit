@@ -1776,6 +1776,17 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		// On wxMSW: English_United States.1252
 		// On Ubuntu: en_US.UTF-8
 		// On Mac OS X: C
+		
+		// On Linux Natty i386 version GetSysName() returns a long garbage string which 
+		// distorts the dialog, so we'll test for a long string (> 20 chars) and if detected
+		// we'll just put '[Unknown]'
+		if (tempStr.Length() > 20)
+		{
+			tempStr = _T("[Unknown]");
+		}
+#ifdef __WXGTK__
+#endif
+
 #ifdef __WXMAC__
 		// GetSysName() on wxMac always returns "C", so we'll unilaterally change this to "MacOSX"
 		tempStr = pApp->m_pLocale->GetCanonicalName() + _T(".") + _T("MacOSX");
