@@ -8069,7 +8069,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
     wxString strs3[] = 
     {
@@ -8080,89 +8080,89 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     item3->SetToolTip( _("Select amount of text to adapt") );
     item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+    wxFlexGridSizer *item4 = new wxFlexGridSizer( 3, 0, 5 );
 
-    wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
-    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_SRC_PROJ, _("Src Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_TGT_PROJ, _("Tgt Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_SRC_PROJ, _("Src Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_FREETRANS_PROJ, _("FreeTrans Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_STATIC_TEXT_SRC_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_TGT_PROJ, _("Tgt Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_STATIC_TEXT_TGT_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_FREETRANS_PROJ, _("FreeTrans Proj: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_STATIC_TEXT_FREETRANS_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
-    wxFlexGridSizer *item10 = new wxFlexGridSizer( 2, 0, 0 );
-    item10->AddGrowableCol( 0 );
-    item10->AddGrowableCol( 1 );
-    item10->AddGrowableRow( 1 );
+    wxFlexGridSizer *item12 = new wxFlexGridSizer( 2, 0, 0 );
+    item12->AddGrowableCol( 0 );
+    item12->AddGrowableCol( 1 );
+    item12->AddGrowableRow( 1 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Select a &book:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Select a &book:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_SELECT_A_CHAPTER, _("Select a &chapter:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,120), 0, strs13, wxLB_SINGLE );
-    item13->SetToolTip( _("List of books available in this project") );
-    item10->Add( item13, 1, wxGROW|wxALL, 5 );
+    wxString *strs15 = (wxString*) NULL;
+    wxListBox *item15 = new wxListBox( parent, ID_LISTBOX_BOOK_NAMES, wxDefaultPosition, wxSize(150,120), 0, strs15, wxLB_SINGLE );
+    item15->SetToolTip( _("List of books available in this project") );
+    item12->Add( item15, 1, wxGROW|wxALL, 5 );
 
-    wxListCtrl *item14 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,120), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
-    item14->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
-    item10->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,120), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
+    item16->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
+    item12->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item9->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
-    item16->SetToolTip( _("More information about the status of a selected chapter or book") );
-    item15->Add( item16, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    item18->SetToolTip( _("More information about the status of a selected chapter or book") );
+    item17->Add( item18, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticLine *item17 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item19 = new wxButton( parent, ID_BUTTON_CHANGE_PROJECTS, _("Change %s Projects"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item18->Add( 140, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticLine *item19 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item1->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_CHANGE_PROJECTS, _("Change %s Projects"), wxDefaultPosition, wxDefaultSize, 0 );
     item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item20->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item20->Add( 140, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item22 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    item20->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item23 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item18->Add( item20, 1, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item24 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item20->Add( item22, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item20, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
