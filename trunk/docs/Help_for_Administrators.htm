@@ -1093,12 +1093,14 @@ src="Images/Admin_help/Report_a_problemDlg.gif" width=400 height=396>
        </p>
 <p>Just fill in your email address, the email 
 subject/summary, your name and a brief description of the steps to reproduce the 
-problem, using the text in the edit box as a guide for your comments. If a 
-document is open that illustrates the problem, just click on the "Attach the 
-document (packed)" button to include a copy of the packed document along with 
-the report. If you have access to the Internet, you can click on the "Send Now" 
-button to send your report. Adapt It also saves a copy of your report in the 
-_LOGS_EMAIL_REPORTS folder located in its "Adapt It (Unicode) Work" folder.</p>
+problem, using the text in the edit box as a guide for your comments. If a document is open that illustrates the 
+problem, just click on the "Attach the document (packed)" button to include a 
+copy of the packed document along with the report. If you have access to the Internet, 
+you can click on the "Send Now" button to send your report. Adapt 
+It also saves a copy of your report in the _LOGS_EMAIL_REPORTS folder located 
+in its "Adapt It (Unicode) Work" folder. The usage log is automatically included in the email 
+report (unless you untick the check box). It would likely provide information and possible error messages 
+that would help us understand the cause of any problem.</p>
 <p>There is also a Help menu item called "<strong>Give 
 Feedback...</strong>". The form looks similar to the form for reporting a 
 problem, but is provided to make giving feedback easier to do via email:</p>
@@ -1111,27 +1113,29 @@ text in the box as a guide.</p>
 using secured SSL encryption directly from the Adapt It program, so email 
 communications are done safely. The user's computer does not have to have an 
 email client installed to send these reports.</p>
-<h2><a name="trouble_shooting_collaboration"></a>Trouble Shooting          
+<h2><a name="trouble_shooting_collaboration"></a>           
             
              
-    Collaboration (with Bibledit)</h2>
+     Trouble Shooting</h2>
+<h3>Problems in          
+            
+             
+    Collaboration with Paratext</h3>
 <p>          
             
              
-      Adapt It relies on a separate utility program that it 
-uses to exchange data between Adapt It and Paratext or Bibledit. There are 
-different utility programs for Paratext and Bibledit as well as different 
-versions for different computer architectures (32-bit, 64-bit, etc). Adapt 
-It&nbsp;installs a utility program called <strong>rdwrtp7.exe</strong>&nbsp;that 
-it&nbsp;attempts to execute&nbsp;when collaborating with Paratext on Windows 
-systems, and in Linux installations it supplies a&nbsp;utility which it calls 
-named <strong>adaptit-bibledit-rdwrt</strong>&nbsp;for collaboration with 
-Bibledit on Linux systems. Ordinarily you need not worry about these utility 
-programs. However, we have not been able to test these utility programs on all 
-possible computer system configurations, and especially on different Linux 
-distributions/architectures. So, if you get errors when attempting to&nbsp;setup 
-collaboration&nbsp;between Adapt It and Paratext or Bibledit, it is lilkely that 
-the problem could be a compatibility problem&nbsp;that we have not yet had to 
+                
+            Adapt 
+It relies on a separate utility program that it uses to 
+exchange data between Adapt It and Paratext. Adapt It 
+installs a utility program called <strong>rdwrtp7.exe</strong> that it 
+attempts to execute 
+when collaborating with Paratext on Windows systems. Ordinarily you need not worry 
+about these utility programs. However, we have not been able to test these utility 
+programs on all possible computer system configurations and architectures. 
+So, if you get errors when attempting to setup 
+collaboration between Adapt It and Paratext, it is lilkely that the 
+problem could be a compatibility problem that we have not yet had to 
 account for between your computer system and the version of the utility program 
 installed by Adapt          
             
@@ -1140,9 +1144,12 @@ installed by Adapt
 <p>          
             
              
-      When&nbsp;the Paratext development team releases a new 
-version of Paratext, you should insure that Adapt It can still collaborate with 
-that version. If&nbsp;you encounter a problem with Adapt It - Paratext 
+      When the          
+            
+             
+      Paratext development team releases a new version 
+of Paratext, you should insure that Adapt It can still collaborate with that 
+version. If you encounter a problem with Adapt It - Paratext 
 collaboration after updating your Paratext installation, please let us know so 
 we can provide an Adapt It update that will correct the problem. Such problems 
 are not very likely to happen between Adapt It and Paratext, but if they do 
@@ -1156,7 +1163,35 @@ Adapt It..." selection on the Help
             
              
       menu.</p>
+<h3>Problems in          
+            
+             
+    Collaboration with Bibledit</h3>
 <p>          
+            
+             
+      Adapt It relies on a separate utility program that it 
+uses to exchange data between Adapt It and Bibledit. There are 
+different utility programs for different computer architectures (32-bit, 
+64-bit, etc) and Ubuntu distributions. Adapt It installs a utility program 
+called <strong>adaptit-bibledit-rdwrt</strong> for collaboration with Bibledit 
+on Linux systems. Ordinarily you need not worry about these utility programs. 
+However, we have not been able to test these utility programs on all possible 
+computer system configurations, and especially on different Linux distributions/architectures. 
+So, if you get errors when attempting to setup 
+collaboration between Adapt It and Bibledit, it is lilkely that the 
+problem could be a compatibility problem that we have not yet had to 
+account for between your computer system and the version of the utility program 
+installed by Adapt          
+            
+             
+      It.</p>
+<p>          
+            
+             
+      The Bibledit develoopment team has provided an official 
+collaboration utility (called bibledit-rdwrt) that became available in Bibledit 
+version 4.2.93 or newer.          
             
              
       Until a bibledit-gtk version of Bibledit becomes readily 
@@ -1176,11 +1211,11 @@ src="Images/Admin_help/CollabErrorLinux2.gif" width=455 height=231>
             
              
       </p>
-<p>&nbsp;it means that Adapt It has located the 
-adaptit-bibledit-rdwrt utility but it cannot execute the&nbsp;utility program. 
-This error indicates that the permissions are not correctly assigned to the 
-utility program at the location indicated in the error message.&nbsp;You could 
-try changing the utility program's permissions by typing the following command 
+<p>it means that Adapt It has located the adaptit-bibledit-rdwrt utility but it cannot execute 
+the&nbsp;utility program. This error indicates that the permissions 
+are not correctly assigned to the utility program at the location indicated 
+in the error message.&nbsp;You should be able to resolve this issue 
+by changing the utility program's permissions by typing the following command 
 from within a Linux terminal          
             
              
@@ -1212,14 +1247,247 @@ src="Images/Admin_help/CollabErrorLinux1.gif" width=474 height=248>
 <p>          
             
              
-      It means that there is a library mismatch problem in 
-the&nbsp;version of Adapt It's adaptit-bibledit-rdwrt utility&nbsp;that it 
-installed on the user's system. This problem probably cannot be corrected 
-without informing the developers about the problem, so we can make a corrected 
-version and make it available in an update at packages.sil.org for your 
-distribution and architecture of Ubuntu. If you get&nbsp;one or more of 
-these&nbsp;errors please write down the text of any error messages that appear, 
-and include those with any reports problem reports you send us. If you have 
+                
+       
+           
+             
+            
+           
+            
+              
+   It means that there is a library mismatch problem in the&nbsp;version 
+of Adapt It's adaptit-bibledit-rdwrt utility&nbsp;that it installed on the user's system. On the Adapt 
+It website we have posted versions of the adaptit-bibledit-rdwrt utility program for i386 
+(32-bit) and amd64 (64-bit) architectures for the Lucid, Maverick, Natty, 
+and Oneiric Ubuntu distributions. If you have Internet access, you&nbsp;should also 
+be able to resolve this issue, by downloading a version of adaptit-bibledit-rdwrt that is 
+appropriate for your computer system and 
+ensuring that it is located in the 
+correct system directory and has executable permissions. Here are the          
+            
+             
+      steps:</p>
+<p>          
+            
+             
+      1. First, ensure that you have upgraded your version of 
+Adapt It to at least version 6.1.0 from the packages.sil.org/ubuntu repository. 
+Look at the "About Adapt It..." selection on the Help menu to verify your 
+installed version of Adapt It is at least 6.1.0.<br><br>          
+            
+             
+                
+       
+           
+             
+            
+           
+            
+              
+              
+              
+             
+          
+           
+              
+2.&nbsp;Click on one of the following 
+links, or enter the appropriate&nbsp;URL into the 
+address bar of your browser&nbsp;(depending on your architecture and Ubuntu          
+            
+             
+      distribution):</p>
+<p align="left">
+<table border="0" cellspacing="0" cellpadding="3" align="center">
+  
+  <tr>
+    <td>
+      <p align="left"><strong>Ubuntu Distribution</strong></p></td>
+    <td>
+      <p align="left"><strong>Architecture</strong></p></td>
+    <td>
+      <p align="left"><strong>Download Link</strong></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Lucid and BALSA</p></td>
+    <td>
+      <p align="left">i386 (32-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/lucid-i386/adaptit-bibledit-rdwrt">http://adapt-it.org/lucid-i386/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Lucid</p></td>
+    <td>
+      <p align="left">amd64 (64-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/lucid-amd64/adaptit-bibledit-rdwrt">http://adapt-it.org/lucid-amd64/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Maverick</p></td>
+    <td>
+      <p align="left">i386 (32-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/maverick-i386/adaptit-bibledit-rdwrt">http://adapt-it.org/maverick-i386/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Maverick</p></td>
+    <td>
+      <p align="left">amd64 (64-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/maverick-amd64/adaptit-bibledit-rdwrt">http://adapt-it.org/maverick-amd64/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Natty</p></td>
+    <td>
+      <p align="left">i386 (32-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/natty-i386/adaptit-bibledit-rdwrt">http://adapt-it.org/natty-i386/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Natty</p></td>
+    <td>
+      <p align="left">amd64 (64-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/natty-amd64/adaptit-bibledit-rdwrt">http://adapt-it.org/natty-amd64/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Oneiric</p></td>
+    <td>
+      <p align="left">i386 (32-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/oneiric-i386/adaptit-bibledit-rdwrt">http://adapt-it.org/oneiric-i386/adaptit-bibledit-rdwrt</a></p></td></tr>
+  <tr>
+    <td>
+      <p align="left">Oneiric</p></td>
+    <td>
+      <p align="left">amd64 (64-bit)</p></td>
+    <td>
+      <p align="left"><a 
+      href="http://adapt-it.org/oneiric-amd64/adaptit-bibledit-rdwrt">http://adapt-it.org/oneiric-amd64/adaptit-bibledit-rdwrt</a></p></td></tr></table>          
+            
+             
+                
+       
+           
+             
+            
+           
+            
+              
+              
+              
+             
+          
+           
+              
+      
+       
+                   
+            
+             
+      </p>
+<p>          
+            
+             
+      Your browser should then download the 
+adaptit-bibledit-rdwrt utility file. Note the location where your browser 
+downloads the file. <br>          
+            
+             
+                
+       
+           
+             
+            
+           
+            
+              
+              
+              
+             
+          
+       Note: If you are 
+using&nbsp;Balsa&nbsp;the download of the adaptit-bibledit-rdwrt utility will probably go into the Downloads folder on 
+advisor@Balsa. That copy of the adaptit-bibledit-rdwrt 
+utility is built specifically for Ubuntu Lucid 
+i386, so it should work on your Lucid based Balsa          
+            
+             
+      installation.</p>
+<p>          
+            
+             
+      3.&nbsp;Verify&nbsp;where Adapt It&nbsp;is installed on 
+your system. It would normally be installed to either 
+the&nbsp;<strong>/usr/bin/</strong> directory or 
+the&nbsp;<strong>/usr/local/bin/</strong> directory:<br>&nbsp;&nbsp;&nbsp; <font 
+face=Courier><strong>ls -l /usr/bin/adaptit*</strong></font>&nbsp;&nbsp;&nbsp; 
+or&nbsp;&nbsp;&nbsp; <font face="Courier"><strong>ls -l 
+/usr/local/bin/adaptit*<br></strong></font><br>Note the location of the adaptit 
+it executable file for the copy destination in the next step. In most cases that 
+location would be <strong>/usr/bin/</strong>          
+            
+             
+                
+       
+           
+             
+            
+           
+            
+              
+              
+              
+             
+          
+           
+              
+      
+       
+                   
+            
+             
+      .</p>
+<p>          
+            
+             
+      4. Start a Terminal session and, as super user from the 
+command-line,&nbsp;copy the adaptit-bibledit-rdwrt file to 
+the&nbsp;<strong>/usr/bin</strong> directory (or 
+<strong>/usr/local/bin/</strong> if the above step locates it 
+there):<br>&nbsp;&nbsp;&nbsp; <font face="Courier"><strong>sudo cp 
+Downloads/adaptit-bibledit-rdwrt /usr/bin<br></strong></font><br>5. Check the 
+permissions on the adaptit-bibledit-rdwrt file at the location you copied it to 
+in the step above:<br>&nbsp;&nbsp;&nbsp; <font face="Courier"><strong>ls -l 
+/usr/bin/adaptit-bibledit-rdwrt</strong></font><br><br>6. If it does not have 
+executable permissions (-rwxr-xr-x) on the file, invoke chmod to make&nbsp;the 
+adaptit-bibledit-rdwrt file&nbsp;executable:<br>&nbsp;&nbsp;&nbsp;<font 
+face=Courier><strong> sudo chmod a+x 
+/usr/bin/adaptit-bibledit-rdwrt<br></strong></font><br>You should then be able 
+to set up Adapt It 6.1.0 to successfully collaborate with Bibledit. Detailed 
+instructions for that setup are found in the Help_for_Administrators.htm file 
+located in the installation at:<br>&nbsp;&nbsp;&nbsp; <font 
+face=Courier><strong>/usr/share/adaptit/help/Help_for_Administrators.htm</strong></font><br><br>That 
+Help_for_Administrators.html file&nbsp;can also be loaded into the default 
+browser while running Adapt It by selecting the <strong>Help for Administrators 
+(HTML)</strong> menu item from Adapt It's <strong>Administrator</strong> 
+menu.<br><br>          
+            
+             
+                
+If you still find that collaboration with 
+Bibledit is failing after trying the above, please inform&nbsp;the Adapt It 
+developers about the problem, so we can find a solution and possibly make 
+a corrected version available in a future&nbsp;update at packages.sil.org. If you continue 
+to&nbsp;get&nbsp;one or more of the above&nbsp;errors or some other error during 
+collaboration, please write down the text of any error messages that appear, 
+and include that information&nbsp;with any reports problem reports you send us. If you have 
 Internet acces you can try submitting a report directly from Adapt It (see the 
 "Report a Problem..." selection from Adapt It's Help menu), or send us a report 
 via regular email (our email addresses are shown on Adapt It's "About Adapt 
