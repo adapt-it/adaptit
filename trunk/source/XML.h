@@ -14,6 +14,8 @@
 
 #include "Adapt_It.h"
 
+// whm NOTE: TODO: Fix the auto-generating Unix-style usfm string routine. Modifications to
+// the routines in XML.cpp have broked this auto-generating Unix-style strings.
 //#define Output_Default_Style_Strings	// uncomment to output default Unix-style usfm strings
 										// to books.txt and AI_USFM_full.txt. For this to work
 										// properly, the up-to-date AI_USFM_full.xml file should 

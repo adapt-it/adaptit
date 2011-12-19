@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	22 July 2011, by Bill Martin
-USFM version:	2.301 as published in usfm.sty by UBS 30 August, 2010
+Last Updated:	19 December 2011, by Bill Martin
+USFM version:	2.304 as published in usfm.sty by UBS 2 November 2011
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -22,7 +22,7 @@ Description:	This file contains the style definitions and
 ***********************************************************************
 Notes:
 		1. Many of the attributes below resemble those used in the
-			Paratext 7.1 usfm.sty style sheet, but some have different
+			Paratext 7.2 usfm.sty style sheet, but some have different
 			values and some may not act quite the same in Adapt It.
 		2. All attribute values must be enclosed within double
 			quote marks.
@@ -2787,7 +2787,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="addl material"
 	textType="noType" wrap="0"
 	styleName="add...add* - Special Text - Translational Addition"
-	styleType="character" fontSize="12" color="2263842"
+	styleType="character" fontSize="12" color="0"
 	italic="1" bold="1" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
@@ -2909,7 +2909,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="0" navigationText=""
 	textType="none" wrap="0"
 	styleName="pro...pro* - Special Text - CJK Pronunciation"
-	styleType="character" fontSize="10" color="128"
+	styleType="character" fontSize="10" color="0"
 	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
@@ -4059,8 +4059,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="0" navigationText=""
 	textType="none" wrap="0"
 	styleName="w...w* - Peripheral Ref - Wordlist Entry"
-	styleType="character" fontSize="12" color="16711935"
-	italic="1" bold="1" underline="0"
+	styleType="character" fontSize="12" color="0"
+	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
@@ -4091,8 +4091,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="0" navigationText=""
 	textType="none" wrap="0"
 	styleName="wh...wh* - Peripheral Ref - Hebrew Wordlist Entry"
-	styleType="character" fontSize="12" color="16711935"
-	italic="1" bold="1" underline="0"
+	styleType="character" fontSize="12" color="0"
+	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
@@ -4107,8 +4107,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="0" navigationText=""
 	textType="none" wrap="0"
 	styleName="wg...wg* - Peripheral Ref - Greek Wordlist Entry"
-	styleType="character" fontSize="12" color="16711935"
-	italic="1" bold="1" underline="0"
+	styleType="character" fontSize="12" color="0"
+	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
@@ -4123,8 +4123,8 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="0" navigationText=""
 	textType="none" wrap="0"
 	styleName="ndx...ndx* - Peripheral Ref - Subject Index Entry"
-	styleType="character" fontSize="12" color="16711935"
-	italic="1" bold="1" underline="0"
+	styleType="character" fontSize="12" color="0"
+	italic="0" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
@@ -4706,7 +4706,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="0" navigationText=""
 	textType="verse" wrap="0"
 	styleName="(addpn...addpn*) - Special Text for Chinese"
-	styleType="character" fontSize="12" color="2263842"
+	styleType="character" fontSize="12" color="0"
 	italic="1" bold="1" underline="1"
 	smallCaps="0" superScript="0" justification="justified"
 	spaceAbove="0" spaceBelow="0"
