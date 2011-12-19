@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	22 July 2011, by Bill Martin
-USFM version:	2.301 as published in usfm.sty by UBS 30 August, 2010
+Last Updated:	19 December 2011, by Bill Martin
+USFM version:	2.304 as published in usfm.sty by UBS 2 November 2011
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -22,7 +22,7 @@ Description:	This file contains the style definitions and
 ***********************************************************************
 Notes:
 		1. Many of the attributes below resemble those used in the
-			Paratext 7.1 usfm.sty style sheet, but some have different
+			Paratext 7.2 usfm.sty style sheet, but some have different
 			values and some may not act quite the same in Adapt It.
 		2. All attribute values must be enclosed within double
 			quote marks.
@@ -47,7 +47,7 @@ contained in this xml file:
 			marker x. Under the USFM standard, an endMarker attribute 
 			should always be suffixed with * (asterisk). 
 			Note: Markers with end markers should never be listed
-			as "paragraph" styleType, but only as "character" 
+			as "paragraph" styleType, but only as "character"
 			styleType.
 	description:
 		="Description of Standard Format Marker" a brief description
@@ -85,7 +85,7 @@ contained in this xml file:
 			set to ="1" will appear with check boxes in the Adapt It
 			Preferences dialog's "Filtering" tab.
 		="0" (default value when absent) the marker will not be shown, or 
-			will be disabled when shown in the list box of the "Filtering" 
+			will be disabled when shown in the list box of the "Filtering"
 			tab of the Edit-Preferences dialog. The user CANNOT designate 
 			from within Adapt It a value for the userCanSetFilter 
 			attribute.
@@ -99,7 +99,7 @@ contained in this xml file:
 			their attribute within the text, however, the endMarker 
 			forms associated with "content" markers found embedded 
 			within footnotes, endnotes, and cross-references, may be 
-			optional. Most of the inLine markers are of "character" 
+			optional. Most of the inLine markers are of "character"
 			styleType. A few markers (notably \f ... \f*,
 			\fe ... \fe* and \x ... \x*) are inLine because they are
 			embedded within the standard formatted text, but are of
@@ -326,57 +326,45 @@ Other notes on individual SFM markers are interspersed among the
 marker attribute definitions below.  -->
 <!-- FILE IDENTIFICATION and RUNNING HEADERS
 	NOTE: By default all are filtered except for \id -->
-<SFM marker="id" 
+<SFM marker="id"
 	description="File identification (BOOKID, FILENAME, EDITOR, MODIFICATION DATE)"
 	usfm="1" png="1"
-	
-	special="1" 
+	special="1"
 	inform="1" navigationText="id"
-	textType="identification" 
+	textType="identification"
 	styleName="id - File - Identification"
 	fontSize="1" color="65535"
-	
-	
-	
-	
 	basedOn="__normal" nextStyle="id"
-	keepWithNext="1">
+	keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: In RTF exports, the text associated with \id is 
 	formatted in very small 1 point type and uses a yellow color
 	to make it virtually invisible in printouts  -->
-<SFM marker="ide" 
+<SFM marker="ide"
 	description="File encoding information"
-	usfm="1" 
-	filter="1" 
+	usfm="1"
+	filter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="ide - File - Encoding"
 	fontSize="1" color="65535"
-	
-	
-	
-	
 	basedOn="__normal" nextStyle="ide"
-	keepWithNext="1">
+	keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: In RTF exports, the text associated with \ide is 
 	formatted in very small 1 point type and uses a yellow color
 	to make it virtually invisible in printouts  -->
-<SFM marker="h" 
+<SFM marker="h"
 	description="Running header text for a book (basic)"
 	usfm="1" png="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="hdr"
-	textType="header" 
+	textType="header"
 	styleName="h - File - Header"
-	fontSize="9" 
-	
-	
-	
-	
+	fontSize="9"
 	basedOn="_vernacular_base" nextStyle="h"
 	>
 </SFM>
@@ -400,19 +388,16 @@ marker attribute definitions below.  -->
 	The font attributes of the header line in RTF exports is not
 	determined by the attributes used here, but by those used in
 	the "_header" style defined toward the end of this file.  -->
-<SFM marker="h1" 
+<SFM marker="h1"
 	description="Running header text"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="hdr"
-	textType="header" 
+	textType="header"
 	styleName="h1 - File - Header"
-	fontSize="9" 
-	
+	fontSize="9"
 	justification="center"
-	
-	
 	basedOn="h" nextStyle="h1"
 	>
 </SFM>
@@ -422,19 +407,16 @@ marker attribute definitions below.  -->
 	The font attributes of the header line in RTF exports are
 	not determined by the attributes specified here for \h1, but by those 
 	used in the "_header" style defined toward the end of this file.  -->
-<SFM marker="h2" 
+<SFM marker="h2"
 	description="Running header text, left side of page"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="hdr-left"
-	textType="header" 
+	textType="header"
 	styleName="h2 - File - Left Header"
-	fontSize="9" 
-	
+	fontSize="9"
 	justification="leading"
-	
-	
 	basedOn="h1" nextStyle="h2"
 	>
 </SFM>
@@ -444,19 +426,16 @@ marker attribute definitions below.  -->
 	The font attributes of the header line in RTF exports are
 	not determined by the attributes specified here for \h2, but by those 
 	used in the "_header" style defined toward the end of this file.  -->
-<SFM marker="h3" 
+<SFM marker="h3"
 	description="Running header text, right side of page"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="hdr-rght"
-	textType="header" 
+	textType="header"
 	styleName="h3 - File - Right Header"
-	fontSize="9" 
-	
+	fontSize="9"
 	justification="following"
-	
-	
 	basedOn="h1" nextStyle="h3"
 	>
 </SFM>
@@ -468,101 +447,82 @@ marker attribute definitions below.  -->
 	used in the "_header" style defined toward the end of this file.  -->
 <!-- REMARKS NOTES and COMMENTS
 	Note: All remarks and comments are filtered by default -->
-<SFM marker="rem" 
+<SFM marker="rem"
 	description="Comments and remarks"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="comment"
-	textType="note" 
+	textType="note"
 	styleName="rem - File - Remark"
 	fontSize="9" color="16711680"
-	
 	justification="leading"
-	
-	
 	basedOn="_notes_base" nextStyle="rem"
 	>
 </SFM>
-<SFM marker="sts" 
+<SFM marker="sts"
 	description="Status of this file"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="comment"
-	textType="note" 
+	textType="note"
 	styleName="rem - File - Status"
 	fontSize="9" color="16711680"
-	
 	justification="leading"
-	
-	
 	basedOn="_notes_base" nextStyle="sts"
 	>
 </SFM>
-<SFM marker="restore" 
+<SFM marker="restore"
 	description="Project restore information"
-	usfm="1" 
-	filter="1" 
+	usfm="1"
+	filter="1"
 	bdryOnLast="1"
-	
-	textType="note" 
+	textType="note"
 	styleName="restore - File - Restore Information"
 	color="16711680"
-	
-	
-	
-	
 	basedOn="__normal" nextStyle="restore"
 	>
 </SFM>
-<SFM marker="lit" 
+<SFM marker="lit"
 	description="For a comment or note inserted for liturgical use"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="lit-note"
-	textType="note" 
+	textType="note"
 	styleName="lit - Special Text - Liturgical note"
-	
-	bold="1" 
+	bold="1"
 	justification="following"
-	
-	
 	basedOn="p" nextStyle="lit"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- For example, a guide which tells the reader/worshipper that
 	he should recite a prayer or recitation, etc. -->
-<SFM marker="nt" 
+<SFM marker="nt"
 	description="Note"
 	png="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="note"
-	textType="note" 
+	textType="note"
 	styleName="nt - Note"
 	fontSize="9" color="16711680"
-	
 	justification="leading"
-	
-	
 	basedOn="_notes_base" nextStyle="nt"
 	>
 </SFM>
-<SFM marker="nc" 
+<SFM marker="nc"
 	description="Note centered"
 	png="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="note"
-	textType="note" 
+	textType="note"
 	styleName="nc - Note centered"
 	fontSize="9" color="16711680"
-	
 	justification="center"
-	
-	
 	basedOn="nt" nextStyle="nc"
 	>
 </SFM>
@@ -571,58 +531,49 @@ marker attribute definitions below.  -->
 <!-- CHAPTERS and VERSES
 	NOTE: By default all of these except for \c \v \cd \vn and \vt are
 	filtered. -->
-<SFM marker="c" 
+<SFM marker="c"
 	description="Chapter number (basic)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
-	inform="1" 
+	inform="1"
 	wrap="1"
 	styleName="c - Chapter Number"
-	fontSize="18" 
-	bold="1" 
+	fontSize="18"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- Adapt It automatically formats the navigation text for
 	chapter (c) and verse (v) as c:v -->
 <SFM marker="ca" endMarker="ca*"
 	description="Second (alternate) chapter number (for coding dual versification; useful for places where different traditions of chapter breaks need to be supported in the same translation)"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	
 	styleName="ca...ca* - Chapter Number - Alternate"
 	styleType="character" fontSize="16" color="2263842"
-	bold="1" 
-	
-	
-	
-	
+	bold="1"
 	>
 </SFM>
 	<!-- \ca is for coding dual versification; useful for places where
 	different traditions of chapter breaks need to be supported
 	in the same translation. Revised to character style in usfm 2.1 -->
-<SFM marker="cl" 
+<SFM marker="cl"
 	description="Chapter label used for translations that add a word such as 'Chapter' before chapter numbers (e.g. Psalms). The subsequent text is the chapter label."
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	
 	styleName="cl - Chapter - Publishing Label"
-	fontSize="18" 
-	bold="1" 
+	fontSize="18"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: \cl Chapter label is used for translations that add a word
 	such as "Chapter" before chapter numbers, and for example Psalms. 
@@ -633,95 +584,74 @@ marker attribute definitions below.  -->
 	text to be used for the display of that current chapter heading (usually
 	done if numbers are being presented as words, not numerals as, for 
 	example, "Chapter One"). -->
-<SFM marker="cp" 
+<SFM marker="cp"
 	description="Published chapter number (this is a chapter marking that would be used in the published text)"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	
 	styleName="cp - Chapter Number - Publishing Alternate"
 	fontSize="18" color="16711680"
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \cp Published chapter number is a chapter marking that would
 	be used in the published text where the published marker is
 	different than the \c # used within the translation editor. -->
-<SFM marker="cd" 
+<SFM marker="cd"
 	description="Chapter Description (Publishing option D, e.g. in Russian Bibles)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
 	inform="1" navigationText="chapter descr"
-	
 	styleName="cd - Chapter - Description"
-	fontSize="11" 
-	
-	
+	fontSize="11"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \cd Brief Chapter Description, e.g. in Russian Bibles
 	Note: \cd text comes between the chapter number and
 	the first verse of the chapter. -->
-<SFM marker="v" 
+<SFM marker="v"
 	description="A verse number (basic)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
-	inform="1" 
-	
+	inform="1"
 	styleName="v - Verse Number"
 	styleType="character" fontSize="10" color="16711935"
-	bold="1" 
-	superScript="1" 
-	
-	
-	
+	bold="1"
+	superScript="1"
 	>
 </SFM>
 	<!-- Adapt It automatically formats the navigation text for
 	chapter (c) and verse (v) as c:v -->
-<SFM marker="vt" 
+<SFM marker="vt"
 	description="Verse text"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
-	inform="1" 
-	
+	inform="1"
 	styleName="vt - Verse text vt"
-	styleType="character" 
-	
-	superScript="1" 
-	
-	
-	
+	styleType="character"
+	superScript="1"
 	>
 </SFM>
 	<!-- Some users mark verse text with \vt.
 	Adapt It automatically formats the navigation text for
 	chapter (c) and verse (v) as c:v -->
-<SFM marker="vn" 
+<SFM marker="vn"
 	description="Verse number"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
-	inform="1" 
-	
+	inform="1"
 	styleName="vn - Verse number vn"
 	styleType="character" fontSize="10" color="16711935"
-	bold="1" 
-	superScript="1" 
-	
-	
-	
+	bold="1"
+	superScript="1"
 	>
 </SFM>
 	<!-- Some users mark verse numbers with \vn.
@@ -729,18 +659,13 @@ marker attribute definitions below.  -->
 	chapter (c) and verse (v) as c:v -->
 <SFM marker="va" endMarker="va*"
 	description="Second (alternate) verse number (for coding dual numeration in Psalms; see also NRSV Exo 22.1-4)"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
-	inLine="1" 
-	
-	
+	inLine="1"
 	styleName="va...va* - Verse Number - Alternate"
 	styleType="character" fontSize="10" color="2263842"
-	bold="1" 
-	superScript="1" 
-	
-	
-	
+	bold="1"
+	superScript="1"
 	>
 </SFM>
 	<!-- Alternate verse number for coding dual numeration in
@@ -749,18 +674,13 @@ marker attribute definitions below.  -->
 	does not track its locations nor goto commands with this number. -->
 <SFM marker="vp" endMarker="vp*"
 	description="Published verse marker - this is a verse marking that would be used in the published text"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
-	inLine="1" 
-	
-	
+	inLine="1"
 	styleName="vp...vp* - Verse Number - Publishing Alternate"
 	styleType="character" fontSize="10" color="16711680"
-	bold="1" 
-	superScript="1" 
-	
-	
-	
+	bold="1"
+	superScript="1"
 	>
 </SFM>
 	<!-- This is a verse marking that would be used in the
@@ -769,7 +689,7 @@ marker attribute definitions below.  -->
 Note: Generally, Titles and Headings should have a point value
 specified in its spaceAbove and spaceBelow attributes, and its
 keepTogether and keepWithNext attributes should be set to "1". -->
-<SFM marker="mt" 
+<SFM marker="mt"
 	description="The main title of the book (if single level)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -777,83 +697,81 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="main title"
 	textType="mainTitle" wrap="1"
 	styleName="mt - Title - Major Title Level 1"
-	fontSize="20" 
-	bold="1" 
+	fontSize="20"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="c"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="mt1" 
+<SFM marker="mt1"
 	description="The main title of the book (if multiple levels) (basic)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="main title L1"
 	textType="mainTitle" wrap="1"
 	styleName="mt1 - Title - Major Title Level 1"
-	fontSize="20" 
-	bold="1" 
+	fontSize="20"
+	bold="1"
 	justification="center"
 	spaceAbove="2" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="c"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="mt2" 
+<SFM marker="mt2"
 	description="A secondary title usually occurring before the main title (basic)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="secondary title L2"
 	textType="secondaryTitle" wrap="1"
 	styleName="mt2 - Title - Major Title Level 2"
-	fontSize="16" 
-	italic="1" 
+	fontSize="16"
+	italic="1"
 	justification="center"
 	spaceBelow="2"
-	
 	basedOn="_heading_base" nextStyle="mt"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \mt2 usually occurs before the main title \mt1 -->
-<SFM marker="mt3" 
+<SFM marker="mt3"
 	description="A secondary title occurring after the main title"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="secondary title L3"
 	textType="secondaryTitle" wrap="1"
 	styleName="mt3 - Title - Major Title Level 3"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceAbove="2" spaceBelow="2"
-	
 	basedOn="_heading_base" nextStyle="c"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \mt3 usually occurs after the main title \mt1 -->
-<SFM marker="mt4" 
+<SFM marker="mt4"
 	description="A small secondary title sometimes occuring within parentheses"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="secondary title L4"
 	textType="secondaryTitle" wrap="1"
 	styleName="mt4 - Title - Major Title level 4"
-	
-	
 	justification="center"
 	spaceAbove="2" spaceBelow="2"
-	
 	basedOn="_heading_base" nextStyle="c"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \mt4 is for a small secondary title sometimes occuring
 	within parentheses -->
-<SFM marker="st" 
+<SFM marker="st"
 	description="Secondary title"
 	png="1"
 	userCanSetFilter="1"
@@ -861,66 +779,66 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="secondary title"
 	textType="secondaryTitle" wrap="1"
 	styleName="st - Secondary title"
-	fontSize="16" 
-	bold="1" 
+	fontSize="16"
+	bold="1"
 	justification="center"
 	spaceBelow="2"
-	
 	basedOn="_heading_base" nextStyle="mt"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="mte" 
+<SFM marker="mte"
 	description="The main title of the book repeated at the end of the book (if single level)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="main title at end"
 	textType="mainTitle" wrap="1"
 	styleName="mte - Title - [Uncommon] Major Title Ending Level 1"
-	fontSize="20" 
-	bold="1" 
+	fontSize="20"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
-	basedOn="_heading_base" 
-	keepTogether="1" >
+	basedOn="_heading_base"
+	keepTogether="1"
+	>
 </SFM>
 	<!-- \mte is Uncommon -->
-<SFM marker="mte1" 
+<SFM marker="mte1"
 	description="The main title of the book repeated at the end of the book (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="main title at end L1"
 	textType="mainTitle" wrap="1"
 	styleName="mte1 - Title - [Uncommon] Major Title Ending Level 1"
-	fontSize="20" 
-	bold="1" 
+	fontSize="20"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
-	basedOn="_heading_base" 
-	keepTogether="1" >
+	basedOn="_heading_base"
+	keepTogether="1"
+	>
 </SFM>
 	<!-- \mte1 is Uncommon -->
-<SFM marker="mte2" 
+<SFM marker="mte2"
 	description="A secondary title occurring before or after the 'ending' main title"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="secondary title at end L2"
 	textType="secondaryTitle" wrap="1"
 	styleName="mte2 - Title - [Uncommon] Major Title Ending Level 2"
-	fontSize="16" 
-	italic="1" 
+	fontSize="16"
+	italic="1"
 	justification="center"
 	spaceBelow="2"
-	
-	basedOn="_heading_base" 
-	keepTogether="1" >
+	basedOn="_heading_base"
+	keepTogether="1"
+	>
 </SFM>
 	<!-- \mte2 is Uncommon -->
-<SFM marker="div" 
+<SFM marker="div"
 	description="Division heading"
 	png="1"
 	userCanSetFilter="1"
@@ -928,16 +846,16 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="division head"
 	textType="sectionHead" wrap="1"
 	styleName="div - Division heading"
-	fontSize="16" 
-	bold="1" 
+	fontSize="16"
+	bold="1"
 	justification="center"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="s" nextStyle="dvrf"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \div is probably same as usfm \ms Major Section Heading -->
-<SFM marker="bn" 
+<SFM marker="bn"
 	description="Psalms book number"
 	png="1"
 	userCanSetFilter="1"
@@ -945,80 +863,80 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="Psalm book number"
 	textType="noType" wrap="1"
 	styleName="bn - Psalms book number"
-	fontSize="11" 
-	bold="1" 
+	fontSize="11"
+	bold="1"
 	justification="center"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="s" nextStyle="br"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \bn is similar to usfm \ms or png's \div -->
-<SFM marker="ms" 
+<SFM marker="ms"
 	description="A major section division heading, level 1 (if single level) (basic)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="major sect head"
 	textType="sectionHead" wrap="1"
 	styleName="ms - Heading - Major Section Level 1"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceAbove="16" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="mr"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="ms1" 
+<SFM marker="ms1"
 	description="A major section division heading, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="major sect head L1"
 	textType="sectionHead" wrap="1"
 	styleName="ms1 - Heading - Major Section Level 1"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceAbove="16" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="mr"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="ms2" 
+<SFM marker="ms2"
 	description="A major section division heading, level 2"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="major sect head L2"
 	textType="sectionHead" wrap="1"
 	styleName="ms2 - Heading - Major Section Level 2"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceAbove="16" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="mr"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="ms3" 
+<SFM marker="ms3"
 	description="A major section division heading, level 3"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="major sect head L3"
 	textType="sectionHead" wrap="1"
 	styleName="ms3 - Heading - Major Section Level 3"
-	fontSize="14" 
-	italic="1" 
+	fontSize="14"
+	italic="1"
 	justification="center"
 	spaceAbove="16" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="mr"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="s" 
+<SFM marker="s"
 	description="A section heading, level 1 (if single level) (basic)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -1026,97 +944,91 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="sect head"
 	textType="sectionHead" wrap="1"
 	styleName="s - Heading - Section Level 1"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="s1" 
+<SFM marker="s1"
 	description="A section heading, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="sect head L1"
 	textType="sectionHead" wrap="1"
 	styleName="s1 - Heading - Section Level 1"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="s2" 
+<SFM marker="s2"
 	description="A section heading, level 2 (e.g. Proverbs 22-24)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="sect head L2"
 	textType="sectionHead" wrap="1"
 	styleName="s2 - Heading - Section Level 2"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- e.g. Proverbs 22-24 -->
-<SFM marker="s3" 
+<SFM marker="s3"
 	description="A section heading, level 3 (e.g. Genesis 'The First Day')"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="sect head L3"
 	textType="sectionHead" wrap="1"
 	styleName="s3 - Heading - Section Level 3"
-	
-	italic="1" 
+	italic="1"
 	justification="leading"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- e.g. Genesis "The First Day" -->
-<SFM marker="s4" 
+<SFM marker="s4"
 	description="A section heading, level 4"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="sect head L4"
 	textType="sectionHead" wrap="1"
 	styleName="s4 - Heading - Section Level 4"
-	
-	italic="1" 
+	italic="1"
 	justification="leading"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="sr" 
+<SFM marker="sr"
 	description="A section division references range heading"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="sect head range refs"
 	textType="sectionHead" wrap="1"
 	styleName="sr - Heading - Section Range References"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="sx" 
+<SFM marker="sx"
 	description="Extra heading 1"
 	png="1"
 	userCanSetFilter="1"
@@ -1124,15 +1036,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="sect head extra 1"
 	textType="sectionHead" wrap="1"
 	styleName="sx - Extra heading 1"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="sz" 
+<SFM marker="sz"
 	description="Extra heading 2"
 	png="1"
 	userCanSetFilter="1"
@@ -1140,15 +1051,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="sect head extra 2"
 	textType="sectionHead" wrap="1"
 	styleName="sz - Extra heading 2"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="sp" 
+<SFM marker="sp"
 	description="A heading, to identify the speaker (e.g. Job) (basic)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -1156,32 +1066,30 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="speaker"
 	textType="noType" wrap="1"
 	styleName="sp - Heading - Speaker"
-	
-	italic="1" 
+	italic="1"
 	justification="leading"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="q"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="d" 
+<SFM marker="d"
 	description="A Hebrew text heading, to provide description (e.g. Psalms)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="descr title"
 	wrap="1"
 	styleName="d - Heading - Descriptive Title - Hebrew Subtitle"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceAbove="4" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="q"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- Used in Psalms for Choir Directions -->
-<SFM marker="di" 
+<SFM marker="di"
 	description="Descriptive title (Hebrew subtitle)"
 	png="1"
 	userCanSetFilter="1"
@@ -1189,30 +1097,26 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="descr title"
 	wrap="1"
 	styleName="di - Descr title or Heb subtitle di"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceAbove="4" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="q"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- Used in Psalms for Choir Directions -->
-<SFM marker="hl" 
+<SFM marker="hl"
 	description="Hebrew letter"
 	png="1"
 	filter="1" userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="hl - Hebrew letter"
-	
-	
 	justification="center"
 	spaceAbove="4" spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="q"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- possibly same as usfm \d Descriptive Title (Hebrew
 	Subtitle) -->
@@ -1221,70 +1125,66 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	desires to include references for adaptation, the marker should be 
 	checked as "Include for Adapting" in the "Filtering" tab of 
 	Edit Preferences.  -->
-<SFM marker="r" 
+<SFM marker="r"
 	description="Parallel reference(s) (basic)"
 	usfm="1" png="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="ref"
-	textType="crossReference" 
+	textType="crossReference"
 	styleName="r - Heading - Parallel References"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceBelow="4"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="dvrf" 
+<SFM marker="dvrf"
 	description="Division reference"
 	png="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="div-ref"
-	textType="noType" 
+	textType="noType"
 	styleName="dvrf - Division ref"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceBelow="3"
-	
 	basedOn="_heading_base" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- probably same as usfm \mr Major Section Reference -->
-<SFM marker="mr" 
+<SFM marker="mr"
 	description="A major section division references range heading (basic)"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="mjr-sect-refs"
-	textType="noType" 
+	textType="noType"
 	styleName="mr - Heading - Major Section Range References"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceBelow="4"
-	
 	basedOn="ms" nextStyle="p"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="br" 
+<SFM marker="br"
 	description="Psalms book reference"
 	png="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="Ps-bk-ref"
-	textType="noType" 
+	textType="noType"
 	styleName="br - Psalms book ref"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceBelow="4"
-	
 	basedOn="r" nextStyle="c"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \br is similar to usfm \mr Major section range reference -->
 <!-- CROSS-REFERENCES By default cross reference codes are not
@@ -1301,17 +1201,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	Edit Preferences.  -->
 <SFM marker="x" endMarker="x*"
 	description="A list of cross references (basic)"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="x-refs"
-	textType="crossReference" 
+	textType="crossReference"
 	styleName="x...x* - Cross Reference"
-	styleType="footnote_text" fontSize="10" 
-	
+	styleType="footnote_text" fontSize="10"
 	justification="leading"
-	
-	
 	basedOn="_notes_base" nextStyle="x"
 	>
 </SFM>
@@ -1327,18 +1224,13 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	doing the typesetting.) -->
 <SFM marker="xo" endMarker="xo*"
 	description="The cross reference origin reference (basic)"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xo - Cross Reference - Origin Reference"
-	styleType="character" fontSize="10" 
-	bold="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	bold="1"
 	>
 </SFM>
 	<!-- Note: The \xo and \xo* markers are embedded content
@@ -1349,18 +1241,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xo. -->
 <SFM marker="xt" endMarker="xt*"
 	description="The cross reference target reference(s), protocanon only (basic)"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xt - Cross Reference - Target References"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The \xt and \xt* markers are embedded content
@@ -1371,18 +1257,13 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xt. -->
 <SFM marker="xk" endMarker="xk*"
 	description="A cross reference keyword"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xk - Cross Reference - Keyword"
-	styleType="character" fontSize="10" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	italic="1"
 	>
 </SFM>
 	<!-- Note: The \xk and \xk* markers are embedded content
@@ -1393,18 +1274,13 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xk. -->
 <SFM marker="xq" endMarker="xq*"
 	description="A cross-reference quotation from the scripture text"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xq - Cross Reference - Quotation"
-	styleType="character" fontSize="10" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	italic="1"
 	>
 </SFM>
 	<!-- Note: The \xq and \xq* markers are embedded content
@@ -1415,68 +1291,48 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	even though inLine="1" is the default for \xq. -->
 <SFM marker="xot" endMarker="xot*"
 	description="Cross-reference target reference(s), Old Testament only"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xot...xot* - Cross Reference - OT Target Refs (optional)"
-	styleType="character" 
-	
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <SFM marker="xnt" endMarker="xnt*"
 	description="Cross-reference target reference(s), New Testament only"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xnt...xnt* - Cross Reference - NT Target Refs (optional)"
-	styleType="character" 
-	
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <SFM marker="xdc" endMarker="xdc*"
 	description="Cross-reference target reference(s), Deuterocanon only"
-	usfm="1" 
-	filter="1" 
-	inLine="1" special="1" 
-	
-	textType="crossReference" 
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
 	styleName="xdc...xdc* - Cross Reference - DC Target Refs"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The \xdc and \xdc* markers are embedded content
 	markers for use only within the \x ... \x* cross reference
 	markers.  -->
-<SFM marker="rr" 
+<SFM marker="rr"
 	description="Right margin reference"
 	png="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="rt-marg-ref"
-	textType="rightMarginReference" 
+	textType="rightMarginReference"
 	styleName="rr - Right margin ref"
-	fontSize="9" 
-	italic="1" 
+	fontSize="9"
+	italic="1"
 	justification="following"
-	
-	
 	basedOn="qr" nextStyle="rr"
 	>
 </SFM>
@@ -1491,18 +1347,15 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	following the quote. -->
 <SFM marker="rq" endMarker="rq*"
 	description="A cross-reference indicating the source text for the preceding quotation"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="x-ref to source"
-	textType="rightMarginReference" 
+	textType="rightMarginReference"
 	styleName="rq...rq* - Cross Reference - Inline Quotation References"
-	styleType="character" fontSize="10" 
-	italic="1" 
+	styleType="character" fontSize="10"
+	italic="1"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
 	<!-- Added in USFM 2.05; changed to character style in USFM 2.1
@@ -1514,38 +1367,29 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	enough space at the end of the last line of the OT quote, 
 	the OT reference is placed lower on the following line, still 
 	aligned with the margin following the quote. -->
-<SFM marker="@" 
+<SFM marker="@"
 	description="Cross reference, origin reference"
 	png="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="x-refs orig"
-	textType="crossReference" 
+	textType="crossReference"
 	styleName="@ - Cross ref origin ref"
-	styleType="character" fontSize="10" 
-	bold="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	bold="1"
 	>
 </SFM>
 	<!-- similar to usfm \xo, used in conjunction with \xr as
 	i.e., \@ 1:6 \xr Jn 17:5 \xr Rev 19:13 -->
-<SFM marker="xr" 
+<SFM marker="xr"
 	description="Cross reference target references"
 	png="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
+	special="1"
 	inform="1" navigationText="x-refs tgt"
-	textType="crossReference" 
+	textType="crossReference"
 	styleName="xr - Cross ref target ref"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- similar to usfm \xt, the \@ is the bold ch:vs reference,
@@ -1554,242 +1398,171 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	NOTE: By default no paragraph markers are filtered and all
 	wrap on screen at end of the text associated with the
 	marker -->
-<SFM marker="p" 
+<SFM marker="p"
 	description="Paragraph text, with first line indent (basic)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="paragraph"
 	wrap="1"
 	styleName="p - Paragraph - Normal - First Line Indent"
-	
-	
-	
-	
 	firstLineIndent=".125"
 	basedOn="_body_text" nextStyle="p"
 	>
 </SFM>
-<SFM marker="pi" 
+<SFM marker="pi"
 	description="Paragraph text, level 1 indent (if sinlge level), with first line indent; often used for discourse (basic)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="para indented"
 	wrap="1"
 	styleName="pi - Paragraph - Indented - Level 1 - First Line Indent"
-	
-	
-	
-	
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="p" nextStyle="pi"
 	>
 </SFM>
-<SFM marker="pi1" 
+<SFM marker="pi1"
 	description="Paragraph text, level 1 indent (if multiple levels), with first line indent; often used for discourse"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented L1"
 	wrap="1"
 	styleName="pi1 - Paragraph - Indented - Level 1 - First Line Indent"
-	
-	
-	
-	
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="pi" nextStyle="pi1"
 	>
 </SFM>
 	<!-- 1/8 inch first line indent -->
-<SFM marker="pi2" 
+<SFM marker="pi2"
 	description="Paragraph text, level 2 indent, with first line indent; often used for discourse"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented L2"
 	wrap="1"
 	styleName="pi2 - Paragraph - Indented - Level 2 - First Line Indent"
-	
-	
-	
-	
 	leadingMargin=".5" followingMargin=".25" firstLineIndent=".125"
 	basedOn="pi1" nextStyle="pi2"
 	>
 </SFM>
 	<!-- 1/8 inch first line indent. Often used for discourse -->
-<SFM marker="pi3" 
+<SFM marker="pi3"
 	description="Paragraph text, level 3 indent, with first line indent; often used for discourse"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented L3"
 	wrap="1"
 	styleName="pi3 - Paragraph - Indented - Level 3 - First Line Indent"
-	
-	
-	
-	
 	leadingMargin=".75" followingMargin=".25" firstLineIndent=".125"
 	basedOn="pi2" nextStyle="pi3"
 	>
 </SFM>
 	<!-- 1/8 inch first line indent. Often used for discourse -->
-<SFM marker="pgi" 
+<SFM marker="pgi"
 	description="Indented paragraph"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="para indented"
 	wrap="1"
 	styleName="pgi - Indented paragraph"
-	
-	
-	
-	
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="p" nextStyle="pgi"
 	>
 </SFM>
 	<!-- Not officially part of PNG specification but some used
 	\pgi in place of \pi -->
-<SFM marker="ph" 
+<SFM marker="ph"
 	description="Paragraph text, with level 1 hanging indent (if single level)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent"
 	wrap="1"
 	styleName="DEPRECATED ph - Paragraph - Hanging Indent - Level 1"
-	
-	
-	
-	
 	leadingMargin=".5" firstLineIndent="-.25"
 	basedOn="_body_text" nextStyle="ph"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1/2 inch wrap USFM 2.0 lists the \ph marker as DEPRECATED -->
-<SFM marker="ph1" 
+<SFM marker="ph1"
 	description="Paragraph text, with level 1 hanging indent (if multiple levels)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent L1"
 	wrap="1"
 	styleName="DEPRECATED ph1 - Paragraph - Hanging Indent - Level 1"
-	
-	
-	
-	
 	leadingMargin=".5" firstLineIndent="-.25"
 	basedOn="ph" nextStyle="ph1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1/2 inch wrap USFM 2.0 lists the \ph1 marker as DEPRECATED -->
-<SFM marker="ph2" 
+<SFM marker="ph2"
 	description="Paragraph text, with level 2 hanging indent"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent L2"
 	wrap="1"
 	styleName="DEPRECATED ph2 - Paragraph - Hanging Indent - Level 2"
-	
-	
-	
-	
 	leadingMargin=".75" firstLineIndent="-.25"
 	basedOn="ph1" nextStyle="ph2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 3/4 inch wrap USFM 2.0 lists the \ph2 marker as DEPRECATED -->
-<SFM marker="ph3" 
+<SFM marker="ph3"
 	description="Paragraph text, with level 3 hanging indent"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para hang indent L3"
 	wrap="1"
 	styleName="DEPRECATED ph3 - Paragraph - Hanging Indent - Level 3"
-	
-	
-	
-	
 	leadingMargin="1" firstLineIndent="-.25"
 	basedOn="ph2" nextStyle="ph3"
 	>
 </SFM>
 	<!-- 3/4 inch indent, 1 inch wrap USFM 2.0 lists the \ph3 marker as DEPRECATED -->
-<SFM marker="phi" 
+<SFM marker="phi"
 	description="Paragraph text, indented with hanging indent"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indent hang indent"
 	wrap="1"
 	styleName="DEPRECATED phi - Paragraph - Indented - Hanging Indent"
-	
-	
-	
-	
-	leadingMargin="1" 
+	leadingMargin="1"
 	basedOn="_body_text" nextStyle="phi"
 	>
 </SFM>
 	<!-- USFM 2.0 lists the \phi marker as DEPRECATED -->
-<SFM marker="m" 
+<SFM marker="m"
 	description="Paragraph text, with no first line indent (may occur after poetry) (basic)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="paragraph margin"
 	wrap="1"
 	styleName="m - Paragraph - Margin - No First Line Indent"
-	
-	
-	
-	
-	
 	basedOn="p" nextStyle="m"
 	>
 </SFM>
-<SFM marker="pmo" 
+<SFM marker="pmo"
 	description="Embedded text opening"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para embedded text opening"
 	wrap="1"
 	styleName="pmo - Paragraph - Embedded Text Opening"
-	
-	
-	
-	
-	leadingMargin=".25" followingMargin=".25" 
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="pm" nextStyle="pm"
 	>
 </SFM>
-<SFM marker="mi" 
+<SFM marker="mi"
 	description="Paragraph text, indented, with no first line indent; often used for discourse"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="para indent no 1st line indent"
 	wrap="1"
 	styleName="mi - Paragraph - Indented - No First Line Indent"
-	
-	
-	
-	
-	leadingMargin=".25" followingMargin=".25" 
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="pi" nextStyle="mi"
 	>
 </SFM>
 	<!-- \mi is often used for discourse -->
-<SFM marker="pc" 
+<SFM marker="pc"
 	description="Paragraph spanning chapters"
 	png="1"
 	userCanSetFilter="1"
@@ -1797,50 +1570,35 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="para spans chapters"
 	wrap="1"
 	styleName="pc - Paragraph spanning chapters"
-	
-	
-	
-	
-	
 	basedOn="m" nextStyle="pc"
 	>
 </SFM>
 	<!-- Note: conflicts with usfm \pc Centered Paragraph -->
-<SFM marker="pc" 
+<SFM marker="pc"
 	description="Paragraph text, centered (for Inscription)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para centered inscription"
 	wrap="1"
 	styleName="pc - Paragraph - Centered (for Inscription)"
-	
-	
 	justification="center"
-	
-	
 	basedOn="_body_text" nextStyle="pc"
 	>
 </SFM>
 	<!-- Note: conflicts with png \pc Paragraph Spanning Chapters -->
-<SFM marker="pr" 
+<SFM marker="pr"
 	description="Paragraph text, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para right aligned"
 	wrap="1"
 	styleName="DEPRECATED pr - Paragraph - Right Aligned"
-	
-	
 	justification="following"
-	
-	
 	basedOn="p" nextStyle="pr"
 	>
 </SFM>
 	<!-- Note: USFM 2.0 lists \pr as DEPRECATED -->
-<SFM marker="pt" 
+<SFM marker="pt"
 	description="Preface title"
 	png="1"
 	userCanSetFilter="1"
@@ -1848,15 +1606,15 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="preface title"
 	textType="noType" wrap="1"
 	styleName="pt - Preface title"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceBelow="6"
-	
 	basedOn="_heading_base" nextStyle="pp"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="ps" 
+<SFM marker="ps"
 	description="Preface section heading"
 	png="1"
 	userCanSetFilter="1"
@@ -1864,50 +1622,39 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="preface sect head"
 	textType="noType" wrap="1"
 	styleName="ps - Preface sect heading"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="4" spaceBelow="2"
-	
 	basedOn="s" nextStyle="pp"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- PNG \ps conflicts with USFM \ps (obsolete) -->
-<SFM marker="ps" 
+<SFM marker="ps"
 	description="Paragraph text, no break with next paragraph text at chapter boundary"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para spans chapters"
 	wrap="1"
 	styleName="OBSOLETE ps - Paragraph - No Break with Next Paragraph"
-	
-	
-	
-	
-	
 	basedOn="m" nextStyle="ps"
 	>
 </SFM>
 	<!-- USFM \ps (obsolete) conflicts with PNG \ps similar to PNG \pc -->
-<SFM marker="psi" 
+<SFM marker="psi"
 	description="Paragraph text, indented, with no break with next paragraph text (at chapter boundary)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para spans chapters indent"
 	wrap="1"
 	styleName="OBSOLETE psi - Paragraph - Indented - No Break with Next"
-	
-	
-	
-	
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="pi" nextStyle="pi"
 	>
 </SFM>
 	<!-- Note: USFM 2.0 lists \psi as OBSOLETE -->
-<SFM marker="pp" 
+<SFM marker="pp"
 	description="Preface paragraph"
 	png="1"
 	userCanSetFilter="1"
@@ -1915,15 +1662,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="preface paragraph"
 	textType="noType" wrap="1"
 	styleName="pp - Preface paragraph"
-	fontSize="10" 
-	
-	
-	
+	fontSize="10"
 	firstLineIndent=".125"
 	basedOn="p" nextStyle="pp"
 	>
 </SFM>
-<SFM marker="pq" 
+<SFM marker="pq"
 	description="Preface poetry"
 	png="1"
 	userCanSetFilter="1"
@@ -1931,15 +1675,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="preface poetry"
 	textType="noType" wrap="1"
 	styleName="pq - Preface poetry"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin=".5" 
+	fontSize="10"
+	leadingMargin=".5"
 	basedOn="q" nextStyle="pq"
 	>
 </SFM>
-<SFM marker="pm" 
+<SFM marker="pm"
 	description="Preface continue at margin"
 	png="1"
 	userCanSetFilter="1"
@@ -1947,346 +1688,242 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="preface at margin"
 	textType="noType" wrap="1"
 	styleName="pm - Preface continue at margin"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="m" nextStyle="pm"
 	>
 </SFM>
 	<!-- Note: This png marker conflicts with the usfm \pm marker -->
-<SFM marker="pm" 
+<SFM marker="pm"
 	description="Embedded text paragraph"
-	usfm="1" 
-	
+	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="paragraph embedded text"
 	wrap="1"
 	styleName="pm - Paragraph - Embedded Text"
-	
-	
-	
-	
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="p" nextStyle="pm"
 	>
 </SFM>
 	<!-- Note: This usfm \pm marker conflicts with the png \pm marker -->
-<SFM marker="pmc" 
+<SFM marker="pmc"
 	description="Embedded text closing"
-	usfm="1" 
-	
+	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="para embedded text closing"
 	wrap="1"
 	styleName="pmc - Paragraph - Embedded Text Closing"
-	
-	
-	
-	
-	leadingMargin=".25" followingMargin=".25" 
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="pm" nextStyle="pmc"
 	>
 </SFM>
-<SFM marker="pmr" 
+<SFM marker="pmr"
 	description="Embedded text refrain (e.g. Then all the people shall say, 'Amen!')"
-	usfm="1" 
-	
+	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="para embedded text refrain"
 	wrap="1"
 	styleName="pmr - Paragraph - Embedded Text Refrain"
-	
-	
 	justification="following"
-	
-	leadingMargin=".25" followingMargin=".25" 
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="pm" nextStyle="p"
 	>
 </SFM>
 	<!-- For example, Then all the people shall say, "Amen'" -->
-<SFM marker="nb" 
+<SFM marker="nb"
 	description="Paragraph text, with no break from previous paragraph text (at chapter boundary) (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para no break"
 	wrap="1"
 	styleName="nb - Paragraph - No Break with Previous Paragraph"
-	
-	
-	
-	
-	
 	basedOn="m" nextStyle="p"
 	>
 </SFM>
 	<!-- \nb may be used at chapter boundary -->
-<SFM marker="cls" 
+<SFM marker="cls"
 	description="Closure of an Epistle"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="Epistle close"
-	
 	styleName="cls - Paragraph - Closure of an Epistle"
-	
-	
 	justification="following"
-	
-	
 	basedOn="p" nextStyle="cls"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 <!-- POETRY ELEMENTS -->
-<SFM marker="q" 
+<SFM marker="q"
 	description="Poetry text, level 1 indent (if single level)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry"
 	textType="poetry" wrap="1"
 	styleName="q - Poetry - Indent Level 1 - Single Level Only"
-	
-	
-	
-	
 	leadingMargin="1.25" firstLineIndent="-1"
 	basedOn="_body_text" nextStyle="q"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1 1/4 inch wrap -->
-<SFM marker="q1" 
+<SFM marker="q1"
 	description="Poetry text, level 1 indent (if multiple levels) (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L1"
 	textType="poetry" wrap="1"
 	styleName="q1 - Poetry - Indent Level 1"
-	
-	
-	
-	
 	leadingMargin="1.25" firstLineIndent="-1"
 	basedOn="q" nextStyle="q1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1 1/4 inch wrap -->
-<SFM marker="q2" 
+<SFM marker="q2"
 	description="Poetry text, level 2 indent (basic)"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L2"
 	textType="poetry" wrap="1"
 	styleName="q2 - Poetry - Indent Level 2"
-	
-	
-	
-	
 	leadingMargin="1.25" firstLineIndent="-.75"
 	basedOn="q" nextStyle="q2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 1 1/4 inch wrap -->
-<SFM marker="q3" 
+<SFM marker="q3"
 	description="Poetry text, level 3 indent"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L3"
 	textType="poetry" wrap="1"
 	styleName="q3 - Poetry - Indent Level 3"
-	
-	
-	
-	
 	leadingMargin="1.25" firstLineIndent="-.5"
 	basedOn="q2" nextStyle="q3"
 	>
 </SFM>
 	<!-- 3/4 inch indent, 1 1/4 inch wrap -->
-<SFM marker="q4" 
+<SFM marker="q4"
 	description="Poetry text, level 4 indent"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry L3"
 	textType="poetry" wrap="1"
 	styleName="q4 - Poetry - Indent Level 4"
-	
-	
-	
-	
 	leadingMargin="1.25" firstLineIndent="-.25"
 	basedOn="q3" nextStyle="q4"
 	>
 </SFM>
 	<!-- 1 inch indent, 1 1/4 inch wrap -->
-<SFM marker="qc" 
+<SFM marker="qc"
 	description="Poetry text, centered"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry centered"
 	textType="poetry" wrap="1"
 	styleName="qc - Poetry - Centered"
-	
-	
 	justification="center"
-	
-	
 	basedOn="q" nextStyle="qc"
 	>
 </SFM>
-<SFM marker="qr" 
+<SFM marker="qr"
 	description="Poetry text, Right Aligned"
 	usfm="1" png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry right margin"
 	textType="poetry" wrap="1"
 	styleName="qr - Poetry - Right Aligned"
-	
-	
 	justification="following"
-	
-	
 	basedOn="q" nextStyle="qr"
 	>
 </SFM>
-<SFM marker="qa" 
+<SFM marker="qa"
 	description="Poetry text, Acrostic marker/heading"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
 	inform="1" navigationText="acrostic hdg"
 	textType="poetry" wrap="1"
 	styleName="qa - Poetry - Acrostic Heading/Marker"
-	
-	italic="1" 
-	
-	
-	
+	italic="1"
 	basedOn="_heading_base" nextStyle="q"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- \qa is similar to PNG \hl  -->
 <SFM marker="qac" endMarker="qac*"
 	description="Poetry text, Acrostic markup of the first character of a line of acrostic poetry"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="poetry" 
+	textType="poetry"
 	styleName="qac...qac* - Poetry Text - Acrostic Letter"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="qs" endMarker="qs*"
 	description="Poetry text, Selah"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="none" 
+	textType="none"
 	styleName="qs...qs* - Poetry Text - Selah"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
-<SFM marker="qm" 
+<SFM marker="qm"
 	description="Poetry, left margin"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry margin"
 	textType="poetry" wrap="1"
 	styleName="qm - Poetry left margin"
-	
-	
-	
-	
-	
 	basedOn="q" nextStyle="qm"
 	>
 </SFM>
 	<!-- Note: PNG sfms use this for Greetings as in Romans 16. -->
-<SFM marker="qm" 
+<SFM marker="qm"
 	description="Poetry text, embedded, level 1 indent (if single level)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed"
 	textType="poetry" wrap="1"
 	styleName="qm - Poetry - Embedded Text - Indent Level 1 - Single Level Only"
-	
-	
-	
-	
 	leadingMargin="1" firstLineIndent="-.75"
 	basedOn="q" nextStyle="qm"
 	>
 </SFM>
 	<!-- Note: Conflicts with png \qm Poetry, Left Margin (Greeting)
 	1/4 inch indent, 1 inch wrap -->
-<SFM marker="qm1" 
+<SFM marker="qm1"
 	description="Poetry text, embedded, level 1 indent (if multiple levels)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed L1"
 	textType="poetry" wrap="1"
 	styleName="qm1 - Poetry - Embedded Text - Indent Level 1"
-	
-	
-	
-	
 	leadingMargin="1" firstLineIndent="-.75"
 	basedOn="qm" nextStyle="qm1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1 inch wrap -->
-<SFM marker="qm2" 
+<SFM marker="qm2"
 	description="Poetry text, embedded, level 2 indent"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed L2"
 	textType="poetry" wrap="1"
 	styleName="qm2 - Poetry - Embedded Text - Indent Level 2"
-	
-	
-	
-	
 	leadingMargin="1" firstLineIndent="-.5"
 	basedOn="qm1" nextStyle="qm2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 1 inch wrap -->
-<SFM marker="qm3" 
+<SFM marker="qm3"
 	description="Poetry text, embedded, level 3 indent"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="poetry embed L3"
 	textType="poetry" wrap="1"
 	styleName="qm3 - Poetry - Embedded Text - Indent Level 3"
-	
-	
-	
-	
 	leadingMargin="1" firstLineIndent="-.25"
 	basedOn="qm2" nextStyle="qm3"
 	>
@@ -2327,13 +1964,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="footnote"
-	textType="footnote" 
+	textType="footnote"
 	styleName="f...f* - Footnote"
-	styleType="footnote_text" fontSize="10" 
-	
+	styleType="footnote_text" fontSize="10"
 	justification="leading"
-	
-	
 	basedOn="_notes_base" nextStyle="f"
 	>
 </SFM>
@@ -2341,20 +1975,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	\fk, \fq, \fqa, \ft, \fdc, \fv, and \fm can be used to
 	identify various kinds of content within footnotes, and
 	must only be used between the \f...\f* markers. -->
-<SFM marker="fe" 
+<SFM marker="fe"
 	description="Footnote (end)"
 	png="1"
-	
 	bdryOnLast="1"
-	
-	
 	styleName="fe - Footnote end PNG"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: This png \fe marker conflicts with usfm \fe endnote marker.
@@ -2362,17 +1988,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	filtered. -->
 <SFM marker="fe" endMarker="fe*"
 	description="An Endnote text item"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="endnote"
-	textType="footnote" 
+	textType="footnote"
 	styleName="fe...fe* - Endnote"
-	styleType="footnote_text" fontSize="10" 
-	
+	styleType="footnote_text" fontSize="10"
 	justification="leading"
-	
-	
 	basedOn="_notes_base" nextStyle="fe"
 	>
 </SFM>
@@ -2381,90 +2004,59 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	just as \f...\f* and \x...\x* are. -->
 <SFM marker="fr" endMarker="fr*"
 	description="The origin reference for the footnote (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fr - Footnote - Reference"
-	styleType="character" fontSize="10" 
-	bold="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	bold="1"
 	>
 </SFM>
 	<!-- Note: The \fr and \fr* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fk" endMarker="fk*"
 	description="A footnote keyword (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fk - Footnote - Keyword"
-	styleType="character" fontSize="10" 
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	italic="1" bold="1"
 	>
 </SFM>
 	<!-- Note: The \fk and \fk* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fq" endMarker="fq*"
 	description="A footnote scripture quote or alternate rendering (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fq - Footnote - Quotation or Alternate Rendering"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The \fq and \fq* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fqa" endMarker="fqa*"
 	description="A footnote alternate rendering for a portion of scripture text"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fqa - Footnote - Alternate Translation Rendering"
-	styleType="character" fontSize="10" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	italic="1"
 	>
 </SFM>
 	<!-- Note: The \fqa and \fqa* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers. -->
 <SFM marker="fl" endMarker="fl*"
 	description="A footnote label text item, for marking or 'labelling' the type or alternate translation being provided in the note."
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fl - Footnote - Label Text"
-	styleType="character" fontSize="10" 
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character" fontSize="10"
+	italic="1" bold="1"
 	>
 </SFM>
 	<!-- Note: The \fl and \fl* markers are embedded content markers for 
@@ -2475,18 +2067,11 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	an alternate translation note, "Others", "Heb.", "LXX" etc.  -->
 <SFM marker="fp" endMarker="fp*"
 	description="A Footnote additional paragraph marker"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fp - Footnote Paragraph Mark"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The \fp and \fp* markers are embedded content markers for 
@@ -2497,18 +2082,11 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	a new footnote paragraph, add a soft-return before the \fp marker. -->
 <SFM marker="ft" endMarker="ft*"
 	description="Footnote text, Protocanon (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="ft - Footnote - Text"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The \ft and \ft* markers are embedded content markers for 
@@ -2522,74 +2100,48 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	of \ft is demonstrated. -->
 <SFM marker="fdc" endMarker="fdc*"
 	description="Footnote text, applies to Deuterocanon only"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
-	
-	textType="footnote" 
+	textType="footnote"
 	styleName="fdc...fdc* - Footnote - DC text"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The \fdc and \fdc* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers.  -->
 <SFM marker="fv" endMarker="fv*"
 	description="A verse number within the footnote text"
-	usfm="1" 
-	
-	inLine="1" special="1" 
-	
-	textType="footnote" 
+	usfm="1"
+	inLine="1" special="1"
+	textType="footnote"
 	styleName="fv...fv* - Footnote - Embedded Verse Number"
-	styleType="character" fontSize="10" 
-	bold="1" 
-	superScript="1" 
-	
-	
-	
+	styleType="character" fontSize="10"
+	bold="1"
+	superScript="1"
 	>
 </SFM>
 	<!-- Note: The \fv and \fv* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers.  -->
 <SFM marker="fm" endMarker="fm*"
 	description="An additional footnote marker location for a previous footnote"
-	usfm="1" 
-	
-	inLine="1" special="1" 
-	
-	textType="footnote" 
+	usfm="1"
+	inLine="1" special="1"
+	textType="footnote"
 	styleName="fm - Footnote - Additional Caller to Previous Note"
-	styleType="character" fontSize="10" 
-	
-	superScript="1" 
-	
-	
-	
+	styleType="character" fontSize="10"
+	superScript="1"
 	>
 </SFM>
 	<!-- Note: The \fm and \fm* markers are embedded content markers for 
 	use only within the \f ... \f* footnote or \fe ... \fe* endnote markers.
 	The \fm ... \fm* markers are not to be used in Scripture authoring, 
 	only during publishing. -->
-<SFM marker="F" 
+<SFM marker="F"
 	description="Footnote (end)"
 	png="1"
-	
 	bdryOnLast="1"
-	
-	
 	styleName="F - Footnote end PNG"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- \F is not officially in PNG the specification but some 
@@ -2600,163 +2152,100 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	hard coding of character styles -->
 <SFM marker="qt" endMarker="qt*"
 	description="For Old Testament quoted text appearing in the New Testament (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
 	inform="1" navigationText="Quotation"
-	
 	styleName="qt...qt* - Special Text - Quoted Text - OT in NT"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 	<!-- Use to mark OT quotes in NT, or any other quoted text -->
 <SFM marker="nd" endMarker="nd*"
 	description="For name of deity (basic)"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="nd...nd* - Special Text - Name of Deity"
-	styleType="character" 
+	styleType="character"
 	underline="1"
-	
-	
-	
-	
 	>
 </SFM>
 <SFM marker="tl" endMarker="tl*"
 	description="For transliterated words"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="tl...tl* - Special Text - Transliterated Word"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="dc" endMarker="dc*"
 	description="Deuterocanonical/LXX additions or insertions in the Protocanonical text"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="dc...dc* - Special Text - Deuterocanonical/LXX Additions"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="bk" endMarker="bk*"
 	description="For the quoted name of a book"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="bk...bk* - Special Text - Quoted book title"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="sig" endMarker="sig*"
 	description="For the signature of the author of an Epistle"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="sig...sig* - Special Text - Author's Signature (Epistles)"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="pn" endMarker="pn*"
 	description="For a proper name"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="pn...pn* - Special Text - Proper Name"
-	styleType="character" 
+	styleType="character"
 	bold="1" underline="1"
-	
-	
-	
-	
 	>
 </SFM>
 <SFM marker="wj" endMarker="wj*"
 	description="For marking the words of Jesus"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	
+	usfm="1"
+	inLine="1"
 	styleName="wj...wj* - Special Text - Words of Jesus"
 	styleType="character" color="255"
-	
-	
-	
-	
-	
 	>
 </SFM>
 <SFM marker="k" endMarker="k*"
 	description="For a keyword"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="k...k* - Special Text - Keyword"
-	styleType="character" 
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1" bold="1"
 	>
 </SFM>
 <SFM marker="sls" endMarker="sls*"
 	description="To represent where the original text is in a secondary language or from an alternate text source"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	
+	usfm="1"
+	inLine="1"
 	styleName="sls...sls* - Special Text - Secondary Language or Text Source"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 	<!-- May be used in large sections of text in EZR and DAN
@@ -2764,35 +2253,24 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	Hebrew -->
 <SFM marker="ord" endMarker="ord*"
 	description="For the text portion of an ordinal number"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="ord...ord* - Special Text - Ordinal number text portion"
-	styleType="character" 
-	
-	superScript="1" 
-	
-	
-	
+	styleType="character"
+	superScript="1"
 	>
 </SFM>
 	<!-- i.e., 1st, e.g., 1\ord st\ord* -->
 <SFM marker="add" endMarker="add*"
 	description="For a translational addition to the text"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" special="1" bdryOnLast="1"
 	inform="1" navigationText="addl material"
-	textType="noType" 
+	textType="noType"
 	styleName="add...add* - Special Text - Translational Addition"
-	styleType="character" color="2263842"
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1" bold="1"
 	>
 </SFM>
 	<!-- For example, a translator's explanation; words added
@@ -2804,98 +2282,60 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	formatting -->
 <SFM marker="no" endMarker="no*"
 	description="A character style, use normal text"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	
+	usfm="1"
+	inLine="1"
 	styleName="no...no* - Character - Normal Text"
-	styleType="character" 
-	
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <SFM marker="bd" endMarker="bd*"
 	description="A character style, use bold text"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="bd...bd* - Character - Bold Text"
-	styleType="character" 
-	bold="1" 
-	
-	
-	
-	
+	styleType="character"
+	bold="1"
 	>
 </SFM>
 <SFM marker="it" endMarker="it*"
 	description="A character style, use italic text"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="it...it* - Character - Italic Text"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="bdit" endMarker="bdit*"
 	description="A character style, use bold + italic text"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="bdit...bdit* - Character - BoldItalic Text"
-	styleType="character" 
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1" bold="1"
 	>
 </SFM>
 <SFM marker="em" endMarker="em*"
 	description="A character style, use emphasized text style"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="em...em* - Character - Emphasized Text"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="sc" endMarker="sc*"
 	description="A character style, for small capitalization text"
-	usfm="1" 
-	
-	inLine="1" 
-	
-	textType="none" 
+	usfm="1"
+	inLine="1"
+	textType="none"
 	styleName="sc...sc* - Character - Small Caps"
-	styleType="character" 
-	
-	smallCaps="1" 
-	
-	
-	
+	styleType="character"
+	smallCaps="1"
 	>
 </SFM>
 	<!-- UBS does not have an attribute marker for small caps
@@ -2903,150 +2343,139 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	have RTF tag \scaps, so we'll allow for it. -->
 <SFM marker="pro" endMarker="pro*"
 	description="For indicating pronunciation in CJK texts"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
-	inLine="1" 
-	
-	textType="none" 
+	inLine="1"
+	textType="none"
 	styleName="pro...pro* - Special Text - CJK Pronunciation"
-	styleType="character" fontSize="10" color="128"
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 <!-- INTRODUCTION ELEMENTS -->
-<SFM marker="imt" 
+<SFM marker="imt"
 	description="Introduction main title, level 1 (if single level) (basic)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro main title"
 	textType="noType" wrap="1"
 	styleName="imt - Introduction - Major Title Level 1"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="_intro_base" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="imt1" 
+<SFM marker="imt1"
 	description="Introduction major title, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title L1"
 	textType="noType" wrap="1"
 	styleName="imt1 - Introduction - Major Title Level 1"
-	fontSize="14" 
-	bold="1" 
+	fontSize="14"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="imt" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="imt2" 
+<SFM marker="imt2"
 	description="Introduction major title, level 2"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title L2"
 	textType="noType" wrap="1"
 	styleName="imt2 - Introduction - Major Title Level 2"
-	fontSize="13" 
-	italic="1" 
+	fontSize="13"
+	italic="1"
 	justification="center"
 	spaceAbove="6" spaceBelow="3"
-	
 	basedOn="imt1" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="imt3" 
+<SFM marker="imt3"
 	description="Introduction major title, level 3"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title L3"
 	textType="noType" wrap="1"
 	styleName="imt3 - Introduction - Major Title Level 3"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="2" spaceBelow="2"
-	
 	basedOn="imt2" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="imt4" 
+<SFM marker="imt4"
 	description="Introduction major title, level 4 (usually within parenthesis)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title L4"
 	textType="noType" wrap="1"
 	styleName="imt4 - Introduction - Major Title Level 4"
-	
-	italic="1" 
+	italic="1"
 	justification="center"
 	spaceAbove="2" spaceBelow="2"
-	
 	basedOn="imt3" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="imte" 
+<SFM marker="imte"
 	description="Introduction major title at introduction end, level 1 (if single level)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
 	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 1"
-	fontSize="20" 
-	bold="1" 
+	fontSize="20"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="imt" nextStyle="ie"
 	>
 </SFM>
-<SFM marker="imte1" 
+<SFM marker="imte1"
 	description="Introduction major title at introduction end, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
 	styleName="imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1"
-	fontSize="20" 
-	bold="1" 
+	fontSize="20"
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="imt" nextStyle="ie"
 	>
 </SFM>
-<SFM marker="imte2" 
+<SFM marker="imte2"
 	description="Introduction major title at introduction end, level 2"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
 	styleName="imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2"
-	fontSize="16" 
-	italic="1" 
+	fontSize="16"
+	italic="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="imt" nextStyle="ie"
 	>
 </SFM>
-<SFM marker="is" 
+<SFM marker="is"
 	description="Introduction section heading, level 1 (if single level) (basic)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3054,47 +2483,44 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro sect head"
 	textType="noType" wrap="1"
 	styleName="is - Introduction - Section Heading Level 1"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="s" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="is1" 
+<SFM marker="is1"
 	description="Introduction section heading, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro sect head L1"
 	textType="noType" wrap="1"
 	styleName="is1 - Introduction - Section Heading Level 1"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="is" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="is2" 
+<SFM marker="is2"
 	description="Introduction section heading, level 2"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro sect head L2"
 	textType="noType" wrap="1"
 	styleName="is2 - Introduction - Section Heading Level 2"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="is1" nextStyle="ip"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="ip" 
+<SFM marker="ip"
 	description="Introduction prose paragraph (basic)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3102,15 +2528,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro paragraph"
 	textType="noType" wrap="1"
 	styleName="ip - Introduction - Paragraph"
-	fontSize="10" 
-	
-	
-	
+	fontSize="10"
 	firstLineIndent=".125"
 	basedOn="_intro_base" nextStyle="ip"
 	>
 </SFM>
-<SFM marker="ipi" 
+<SFM marker="ipi"
 	description="Introduction prose paragraph, indented, with first line indent"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3118,47 +2541,41 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro paragraph indented"
 	textType="noType" wrap="1"
 	styleName="ipi - Introduction - Indented Para - first line indent"
-	fontSize="10" 
-	
-	
-	
+	fontSize="10"
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="ip" nextStyle="ipi"
 	>
 </SFM>
-<SFM marker="ipq" 
+<SFM marker="ipq"
 	description="Introduction prose paragraph, quote from the body text"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro para quote"
 	textType="noType" wrap="1"
 	styleName="ipq - Introduction - Paragraph - quote from text"
-	fontSize="10" 
-	italic="1" 
-	
-	
+	fontSize="10"
+	italic="1"
 	leadingMargin=".25" followingMargin=".25" firstLineIndent=".125"
 	basedOn="ip" nextStyle="ipq"
 	>
 </SFM>
-<SFM marker="ipr" 
+<SFM marker="ipr"
 	description="Introduction prose paragraph, right aligned"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro para right align"
 	textType="noType" wrap="1"
 	styleName="ipr - Introduction - Paragraph - right aligned"
-	fontSize="10" 
-	italic="1" 
+	fontSize="10"
+	italic="1"
 	justification="following"
-	
-	leadingMargin=".25" followingMargin=".25" 
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="ip" nextStyle="ipr"
 	>
 </SFM>
-<SFM marker="iq" 
+<SFM marker="iq"
 	description="Introduction poetry text, level 1 (if single level)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3166,33 +2583,28 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro poetry"
 	textType="noType" wrap="1"
 	styleName="iq - Introduction - Poetry Level 1"
-	fontSize="10" 
-	italic="1" 
-	
-	
+	fontSize="10"
+	italic="1"
 	leadingMargin="1" firstLineIndent="-.75"
 	basedOn="ip" nextStyle="iq"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1 inch wrap -->
-<SFM marker="iq1" 
+<SFM marker="iq1"
 	description="Introduction poetry text, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro poetry L1"
 	textType="noType" wrap="1"
 	styleName="iq1 - Introduction - Poetry Level 1"
-	fontSize="10" 
-	
-	
-	
+	fontSize="10"
 	leadingMargin="1" firstLineIndent="-.75"
 	basedOn="iq" nextStyle="iq1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1 inch wrap -->
-<SFM marker="iq2" 
+<SFM marker="iq2"
 	description="Introduction poetry text, level 2"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3200,33 +2612,27 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro poetry L2"
 	textType="noType" wrap="1"
 	styleName="iq2 - Introduction - Poetry Level 2"
-	fontSize="10" 
-	
-	
-	
+	fontSize="10"
 	leadingMargin="1" firstLineIndent="-.5"
 	basedOn="iq" nextStyle="iq2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 1 inch wrap -->
-<SFM marker="iq3" 
+<SFM marker="iq3"
 	description="Introduction poetry text, level 3"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro poetry L3"
 	textType="noType" wrap="1"
 	styleName="iq3 - Introduction - Poetry Level 3"
-	fontSize="10" 
-	
-	
-	
+	fontSize="10"
 	leadingMargin="1" firstLineIndent="-.25"
 	basedOn="iq" nextStyle="iq3"
 	>
 </SFM>
 	<!-- 3/4 inch indent, 1 inch wrap -->
-<SFM marker="im" 
+<SFM marker="im"
 	description="Introduction prose paragraph, with no first line indent (may occur after poetry)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3234,16 +2640,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro para no indent"
 	textType="noType" wrap="1"
 	styleName="im - Introduction - Paragraph - no first line indent"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="ip" nextStyle="im"
 	>
 </SFM>
 	<!-- may occur after poetry -->
-<SFM marker="imi" 
+<SFM marker="imi"
 	description="Introduction prose paragraph text, indented, with no first line indent"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3251,114 +2653,90 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro para no indent"
 	textType="noType" wrap="1"
 	styleName="imi - Introduction - Indented Para - no first line indent"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin=".25" followingMargin=".25" 
+	fontSize="10"
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="ipi" nextStyle="imi"
 	>
 </SFM>
-<SFM marker="ili" 
+<SFM marker="ili"
 	description="A list entry, level 1 (if single level)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro list L1"
 	textType="noType" wrap="1"
 	styleName="ili - Introduction - List Entry - Level 1"
-	
-	
-	
-	
 	leadingMargin=".625" firstLineIndent="-.375"
 	basedOn="_list_base" nextStyle="ili"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 5/8 inch wrap -->
-<SFM marker="ili1" 
+<SFM marker="ili1"
 	description="A list entry, level 1 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro list L1"
 	textType="noType" wrap="1"
 	styleName="ili1 - Introduction - List Entry - Level 1"
-	
-	
-	
-	
 	leadingMargin=".5" firstLineIndent="-.25"
 	basedOn="ili" nextStyle="ili1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1/2 inch wrap -->
-<SFM marker="ili2" 
+<SFM marker="ili2"
 	description="A list entry, level 2"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro list L2"
 	textType="noType" wrap="1"
 	styleName="ili2 - Introduction - List Entry - Level 2"
-	
-	
-	
-	
 	leadingMargin=".75" firstLineIndent="-.25"
 	basedOn="ili1" nextStyle="ili2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 3/4 inch wrap -->
-<SFM marker="imq" 
+<SFM marker="imq"
 	description="Introduction prose paragraph, quote from the body text, with no first line indent"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro para quote no indent"
 	textType="noType" wrap="1"
 	styleName="imq - Introduction - Paragraph - quote from text - no first line indent"
-	fontSize="10" 
-	italic="1" 
-	
-	
-	leadingMargin=".25" followingMargin=".25" 
+	fontSize="10"
+	italic="1"
+	leadingMargin=".25" followingMargin=".25"
 	basedOn="imi" nextStyle="imq"
 	>
 </SFM>
-<SFM marker="ib" 
+<SFM marker="ib"
 	description="Introduction blank line"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
-	special="1" 
-	
+	special="1"
 	textType="noType" wrap="1"
 	styleName="ib - Introduction - Blank Line"
-	
-	
-	
-	
-	
 	basedOn="_intro_base" nextStyle="ib"
 	>
 </SFM>
-<SFM marker="iot" 
+<SFM marker="iot"
 	description="Introduction outline title (basic)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro outline title"
 	textType="noType" wrap="1"
 	styleName="iot - Introduction - Outline Title"
-	
-	bold="1" 
+	bold="1"
 	justification="center"
 	spaceAbove="8" spaceBelow="4"
-	
 	basedOn="imt" nextStyle="io1"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
-<SFM marker="io" 
+<SFM marker="io"
 	description="Introduction outline text, level 1 (if single level)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3366,17 +2744,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro outline"
 	textType="noType" wrap="1"
 	styleName="io - Introduction - Outline Level 1"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin=".5" 
+	fontSize="10"
+	leadingMargin=".5"
 	basedOn="_intro_base" nextStyle="io"
 	>
 </SFM>
 	<!-- The \io marker was added in USFM 2.0.4 It is also added to PNG set 
 	for basedOn compatibility -->
-<SFM marker="io1" 
+<SFM marker="io1"
 	description="Introduction outline text, level 1 (if multiple levels) (basic)"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3384,15 +2759,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro outline L1"
 	textType="noType" wrap="1"
 	styleName="io1 - Introduction - Outline Level 1"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin=".5" 
+	fontSize="10"
+	leadingMargin=".5"
 	basedOn="io" nextStyle="io1"
 	>
 </SFM>
-<SFM marker="io2" 
+<SFM marker="io2"
 	description="Introduction outline text, level 2"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3400,15 +2772,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro outline L2"
 	textType="noType" wrap="1"
 	styleName="io2 - Introduction - Outline Level 2"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin=".75" 
+	fontSize="10"
+	leadingMargin=".75"
 	basedOn="io1" nextStyle="io2"
 	>
 </SFM>
-<SFM marker="io3" 
+<SFM marker="io3"
 	description="Introduction outline text, level 3"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3416,15 +2785,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro outline L3"
 	textType="noType" wrap="1"
 	styleName="io3 - Introduction - Outline Level 3"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin="1" 
+	fontSize="10"
+	leadingMargin="1"
 	basedOn="io2" nextStyle="io3"
 	>
 </SFM>
-<SFM marker="io4" 
+<SFM marker="io4"
 	description="Introduction outline text, level 4"
 	usfm="1" png="1"
 	userCanSetFilter="1"
@@ -3432,43 +2798,32 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="intro outline L4"
 	textType="noType" wrap="1"
 	styleName="io4 - Introduction - Outline Level 4"
-	fontSize="10" 
-	
-	
-	
-	leadingMargin="1.25" 
+	fontSize="10"
+	leadingMargin="1.25"
 	basedOn="io3" nextStyle="io4"
 	>
 </SFM>
 <SFM marker="ior" endMarker="ior*"
 	description="Introduction references range for outline entry; for marking references separately"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
-	inLine="1" special="1" 
-	
-	textType="none" 
+	inLine="1" special="1"
+	textType="none"
 	styleName="ior...ior* - Introduction - Outline References Range"
-	styleType="character" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="character" fontSize="10"
 	>
 </SFM>
 	<!-- Introduction references range for outline entry; for
 	marking references separately -->
-<SFM marker="iex" 
+<SFM marker="iex"
 	description="Introduction explanatory or bridge text (e.g. explanation of missing book in Short Old Testament)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro explain text"
 	textType="noType" wrap="1"
 	styleName="iex - Introduction - Explanatory or Bridge Text"
-	fontSize="10" 
-	
-	
+	fontSize="10"
 	spaceAbove="4" spaceBelow="4"
 	firstLineIndent=".125"
 	basedOn="ip" nextStyle="iex"
@@ -3478,451 +2833,303 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	Testament -->
 <SFM marker="iqt" endMarker="iqt*"
 	description="For quoted scripture text appearing in the introduction"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
-	inLine="1" special="1" 
-	
-	textType="none" 
+	inLine="1" special="1"
+	textType="none"
 	styleName="iqt...iqt* - Special Text - Quoted Scripture Text in Introduction"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
-<SFM marker="ie" 
+<SFM marker="ie"
 	description="Introduction ending marker"
-	usfm="1" 
-	filter="1" 
+	usfm="1"
+	filter="1"
 	special="1" bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="ie - Introduction - End Marker"
-	styleType="horiz_rule" 
-	
-	
+	styleType="horiz_rule"
 	spaceAbove="12" spaceBelow="4"
-	leadingMargin="1.5" followingMargin="1.5" 
+	leadingMargin="1.5" followingMargin="1.5"
 	basedOn="_intro_base" nextStyle="ie"
 	>
 </SFM>
 	<!-- \ie functions as a horizontal rule like the PNG marker \hr
 	but \ie should only be used at the end of introductory material.  -->
 <!-- LISTS -->
-<SFM marker="li" 
+<SFM marker="li"
 	description="A list entry, level 1 (if single level)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item"
 	wrap="1"
 	styleName="li - List Entry - Level 1"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".625" firstLineIndent="-.375"
 	basedOn="_list_base" nextStyle="li"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 5/8 inch wrap -->
-<SFM marker="li1" 
+<SFM marker="li1"
 	description="A list entry, level 1 (if multiple levels)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L1"
 	wrap="1"
 	styleName="li1 - List Entry - Level 1"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".5" firstLineIndent="-.25"
 	basedOn="li" nextStyle="li1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1/2 inch wrap -->
-<SFM marker="li2" 
+<SFM marker="li2"
 	description="A list entry, level 2"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L2"
 	wrap="1"
 	styleName="li2 - List Entry - Level 2"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".75" firstLineIndent="-.25"
 	basedOn="li1" nextStyle="li2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 3/4 inch wrap -->
-<SFM marker="li3" 
+<SFM marker="li3"
 	description="A list entry, level 3"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L3"
 	wrap="1"
 	styleName="li3 - List Entry - Level 3"
-	
-	
 	justification="leading"
-	
 	leadingMargin="1" firstLineIndent="-.25"
 	basedOn="li2" nextStyle="li3"
 	>
 </SFM>
 	<!-- 3/4 inch indent 1 inch wrap -->
-<SFM marker="li4" 
+<SFM marker="li4"
 	description="A list entry, level 4"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="list item L4"
 	wrap="1"
 	styleName="li4 - List Entry - Level 4"
-	
-	
 	justification="leading"
-	
 	leadingMargin="1.25" firstLineIndent="-.25"
 	basedOn="li3" nextStyle="li4"
 	>
 </SFM>
 	<!-- 1 inch indent, 1 1/4 inch wrap -->
-<SFM marker="qh" 
+<SFM marker="qh"
 	description="List or Genealogy"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="list item"
 	wrap="1"
 	styleName="qh - List or Genealogy"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".625" firstLineIndent="-.375"
 	basedOn="q" nextStyle="qh"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 5/8 inch wrap -->
 <!-- TABLES -->
-<SFM marker="tr" 
+<SFM marker="tr"
 	description="A new table row"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="table row"
 	wrap="1"
 	styleName="tr - Table - Row"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".5" firstLineIndent="-.25"
 	basedOn="_body_text" nextStyle="tr"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1/2 inch wrap Marks a new table row -->
-<SFM marker="tr1" 
+<SFM marker="tr1"
 	description="A table Row"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="table row L1"
 	wrap="1"
 	styleName="OBSOLETE tr1 - Table - Row - Level 1"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".5" firstLineIndent="-.25"
 	basedOn="tr" nextStyle="tr1"
 	>
 </SFM>
 	<!-- 1/4 inch indent, 1/2 inch wrap Note: USFM 2.0 lists \tr1 as OBSOLETE. -->
-<SFM marker="tr2" 
+<SFM marker="tr2"
 	description="A table Row"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="table row L2"
 	wrap="1"
 	styleName="OBSOLETE tr2 - Table - Row - Level 2"
-	
-	
 	justification="leading"
-	
 	leadingMargin=".75" firstLineIndent="-.25"
 	basedOn="tr1" nextStyle="tr2"
 	>
 </SFM>
 	<!-- 1/2 inch indent, 3/4 inch wrap Note: USFM 2.0 lists \tr1 as OBSOLETE. -->
-<SFM marker="th1" 
+<SFM marker="th1"
 	description="A table heading, column 1"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="th1 - Table - Column 1 Heading"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="th2" 
+<SFM marker="th2"
 	description="A table heading, column 2"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="th2 - Table - Column 2 Heading"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="th3" 
+<SFM marker="th3"
 	description="A table heading, column 3"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="th3 - Table - Column 3 Heading"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="th4" 
+<SFM marker="th4"
 	description="A table heading, column 4"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="th4 - Table - Column 4 Heading"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="thr1" 
+<SFM marker="thr1"
 	description="A table heading, column 1, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="thr1 - Table - Column 1 Heading - Right Aligned"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="thr2" 
+<SFM marker="thr2"
 	description="A table heading, column 2, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="thr2 - Table - Column 2 Heading - Right Aligned"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="thr3" 
+<SFM marker="thr3"
 	description="A table heading, column 3, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="thr3 - Table - Column 3 Heading - Right Aligned"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="thr4" 
+<SFM marker="thr4"
 	description="A table heading, column 4, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="thr4 - Table - Column 4 Heading - Right Aligned"
-	styleType="character" 
-	italic="1" 
+	styleType="character"
+	italic="1"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tc1" 
+<SFM marker="tc1"
 	description="A table cell item, column 1"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tc1 - Table - Column 1 Cell"
-	styleType="character" 
-	
+	styleType="character"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tc2" 
+<SFM marker="tc2"
 	description="A table cell item, column 2"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tc2 - Table - Column 2 Cell"
-	styleType="character" 
-	
+	styleType="character"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tc3" 
+<SFM marker="tc3"
 	description="A table cell item, column 3"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tc3 - Table - Column 3 Cell"
-	styleType="character" 
-	
+	styleType="character"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tc4" 
+<SFM marker="tc4"
 	description="A table cell item, column 4"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tc4 - Table - Column 4 Cell"
-	styleType="character" 
-	
+	styleType="character"
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tcr1" 
+<SFM marker="tcr1"
 	description="A table cell item, column 1, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tcr1 - Table - Column 1 Cell - Right Aligned"
-	styleType="character" 
-	
+	styleType="character"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tcr2" 
+<SFM marker="tcr2"
 	description="A table cell item, column 2, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tcr2 - Table - Column 2 Cell - Right Aligned"
-	styleType="character" 
-	
+	styleType="character"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tcr3" 
+<SFM marker="tcr3"
 	description="A table cell item, column 3, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tcr3 - Table - Column 3 Cell - Right Aligned"
-	styleType="character" 
-	
+	styleType="character"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
-<SFM marker="tcr4" 
+<SFM marker="tcr4"
 	description="A table cell item, column 4, right aligned"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
-	
-	
 	styleName="tcr4 - Table - Column 4 Cell - Right Aligned"
-	styleType="character" 
-	
+	styleType="character"
 	justification="following"
-	
-	
-	
 	>
 </SFM>
 <!-- GLOSSARY and TOPICAL INDEX -->
-<SFM marker="gm" 
+<SFM marker="gm"
 	description="Glossary main entry"
 	png="1"
 	userCanSetFilter="1"
@@ -3930,15 +3137,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="glossary main entry"
 	textType="noType" wrap="1"
 	styleName="gm - Glossary main entry"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="gp"
 	>
 </SFM>
-<SFM marker="gs" 
+<SFM marker="gs"
 	description="Glossary subentry"
 	png="1"
 	userCanSetFilter="1"
@@ -3946,15 +3148,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="glossary subentry"
 	textType="noType" wrap="1"
 	styleName="gs - Glossary subentry"
-	
-	
-	
-	
-	
 	basedOn="gm" nextStyle="gp"
 	>
 </SFM>
-<SFM marker="gd" 
+<SFM marker="gd"
 	description="Glossary definition"
 	png="1"
 	userCanSetFilter="1"
@@ -3962,15 +3159,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="glossary definition"
 	textType="noType" wrap="1"
 	styleName="gd - Glossary definition"
-	styleType="character" 
-	
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
-<SFM marker="gp" 
+<SFM marker="gp"
 	description="Glossary paragraph"
 	png="1"
 	userCanSetFilter="1"
@@ -3978,15 +3170,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="glossary paragraph"
 	textType="noType" wrap="1"
 	styleName="gp - Glossary paragraph"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="gp"
 	>
 </SFM>
-<SFM marker="tis" 
+<SFM marker="tis"
 	description="Topical index heading (level 1)"
 	png="1"
 	userCanSetFilter="1"
@@ -3994,15 +3181,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="topical index L1"
 	textType="noType" wrap="1"
 	styleName="tis - Topical index heading L1"
-	
-	
-	
-	
-	
 	basedOn="_heading_base" nextStyle="tpi"
 	>
 </SFM>
-<SFM marker="tpi" 
+<SFM marker="tpi"
 	description="Topical index heading (level 2)"
 	png="1"
 	userCanSetFilter="1"
@@ -4010,15 +3192,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="topical index L2"
 	textType="noType" wrap="1"
 	styleName="tpi - Topical index heading L2"
-	
-	
-	
-	
-	
 	basedOn="tis" nextStyle="tps"
 	>
 </SFM>
-<SFM marker="tps" 
+<SFM marker="tps"
 	description="Topical index heading (level 3)"
 	png="1"
 	userCanSetFilter="1"
@@ -4026,15 +3203,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="topical index L3"
 	textType="noType" wrap="1"
 	styleName="tps - Topical index heading L3"
-	
-	
-	
-	
-	
 	basedOn="tpi" nextStyle="tir"
 	>
 </SFM>
-<SFM marker="tir" 
+<SFM marker="tir"
 	description="Topical index reference"
 	png="1"
 	userCanSetFilter="1"
@@ -4042,474 +3214,324 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inform="1" navigationText="topical index reference"
 	textType="noType" wrap="1"
 	styleName="tir - Topical index ref"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="tir"
 	>
 </SFM>
 <!-- PERIPHERAL REFERENCES -->
 <SFM marker="w" endMarker="w*"
 	description="A wordlist text item"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="none" 
+	textType="none"
 	styleName="w...w* - Peripheral Ref - Wordlist Entry"
-	styleType="character" color="16711935"
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <SFM marker="wr" endMarker="wr*"
 	description="A Wordlist text item"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="none" 
+	textType="none"
 	styleName="OBSOLETE wr...wr* - Auxiliary - Wordlist/Glossary Reference"
-	styleType="character" 
-	italic="1" 
-	
-	
-	
-	
+	styleType="character"
+	italic="1"
 	>
 </SFM>
 <SFM marker="wh" endMarker="wh*"
 	description="A Hebrew wordlist text item"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="none" 
+	textType="none"
 	styleName="wh...wh* - Peripheral Ref - Hebrew Wordlist Entry"
-	styleType="character" color="16711935"
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <SFM marker="wg" endMarker="wg*"
 	description="A Greek Wordlist text item"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="none" 
+	textType="none"
 	styleName="wg...wg* - Peripheral Ref - Greek Wordlist Entry"
-	styleType="character" color="16711935"
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <SFM marker="ndx" endMarker="ndx*"
 	description="A subject index text item"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="none" 
+	textType="none"
 	styleName="ndx...ndx* - Peripheral Ref - Subject Index Entry"
-	styleType="character" color="16711935"
-	italic="1" bold="1" 
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <!-- PERIPHERAL MATERIALS -->
 <!-- CONTENT DIVISION MARKER -->
-<SFM marker="periph" 
+<SFM marker="periph"
 	description="Periheral content division marker which should be followed by an additional division argument/title."
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
 	inform="1" navigationText="Periph matter div"
-	textType="noType" 
+	textType="noType"
 	styleName="periph - Peripherals - Content Division Marker"
 	fontSize="14" color="33023"
-	bold="1" 
-	
+	bold="1"
 	spaceAbove="16" spaceBelow="4"
-	
 	basedOn="_peripherals_base" nextStyle="periph"
 	>
 </SFM>
 <!-- ADDITIONAL PERIPHERAL MATERIAL EXTENSIONS TO EXISTING USFM MARKUP -->
-<SFM marker="p1" 
+<SFM marker="p1"
 	description="Front or back matter text paragraph, level 1 (if multiple levels)"
-	usfm="1" 
-	
+	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="Periph matter para L1"
 	textType="noType" wrap="1"
 	styleName="p1 - Periph - Front/Back Matter Paragraph Level 1"
-	
-	
-	
-	
 	firstLineIndent=".125"
 	basedOn="_peripherals_base" nextStyle="p1"
 	>
 </SFM>
 <!-- 1/8 inch first line indent -->
-<SFM marker="p2" 
+<SFM marker="p2"
 	description="Front or back matter text paragraph, level 2 (if multiple levels)"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="Periph matter para L2"
 	textType="noType" wrap="1"
 	styleName="p2 - Periph - Front/Back Matter Paragraph Level 2"
-	
-	
-	
-	
 	leadingMargin=".125" firstLineIndent=".125"
 	basedOn="_peripherals_base" nextStyle="p2"
 	>
 </SFM>
 <!-- 1/4 inch first line indent -->
-<SFM marker="k1" 
+<SFM marker="k1"
 	description="Concordance main entry text or keyword, level 1"
-	usfm="1" 
-	
+	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="conc main entry/keyword L1"
 	textType="noType" wrap="1"
 	styleName="k1 - Periph - Concordance Keyword Level 1"
-	
-	
-	
-	
-	
 	basedOn="_peripherals_base" nextStyle="k1"
 	>
 </SFM>
-<SFM marker="k2" 
+<SFM marker="k2"
 	description="Concordance main entry text or keyword, level 2"
-	usfm="1" 
-	
+	usfm="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="conc main entry/keyword L2"
 	textType="noType" wrap="1"
 	styleName="k2 - Periph - Concordance Keyword Level 2"
-	
-	
-	
-	
-	
 	basedOn="_peripherals_base" nextStyle="k2"
 	>
 </SFM>
 <SFM marker="xtSee" endMarker="xtSee*"
 	description="Concordance and Names Index markup for an alternate entry target reference."
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="xtSee - Concordance and Names Index - Alternate Entry Target Reference"
 	styleType="character" color="16711680"
-	italic="1" 
-	
-	
-	
-	
+	italic="1"
 	>
 </SFM>
 <SFM marker="xtSeeAlso" endMarker="xtSeeAlso*"
 	description="Concordance and Names Index markup for an additional entry target reference."
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="xtSeeAlso - Concordance and Names Index - Additional Entry Target Reference"
 	styleType="character" color="16711680"
-	italic="1" 
-	
-	
-	
-	
+	italic="1"
 	>
 </SFM>
 <!-- 2.0x peripheral markup (replaced with \periph + Content Division Title/Argument) -->
-<SFM marker="pub" 
+<SFM marker="pub"
 	description="Front matter publication data"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE pub Peripherals - Front Matter Publication Data"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="pub"
 	>
 </SFM>
-<SFM marker="toc" 
+<SFM marker="toc"
 	description="Front matter table of contents"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE toc Peripherals - Front Matter Table of Contents"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="toc"
 	>
 </SFM>
-<SFM marker="toc1" 
+<SFM marker="toc1"
 	description="Long table of contents text"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="toc1 - File - Long Table of Contents Text"
 	color="16384"
-	italic="1" bold="1" 
-	
-	
-	
+	italic="1" bold="1"
 	basedOn="_peripherals_base" nextStyle="toc1"
 	>
 </SFM>
 	<!-- The \toc1 marker was added in USFM 2.0.4  -->
-<SFM marker="toc2" 
+<SFM marker="toc2"
 	description="Short table of contents text"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="toc2 - File - Short Table of Contents Text"
 	color="16384"
-	italic="1" 
-	
-	
-	
+	italic="1"
 	basedOn="_peripherals_base" nextStyle="toc2"
 	>
 </SFM>
 	<!-- The \toc2 marker was added in USFM 2.0.4  -->
-<SFM marker="toc3" 
+<SFM marker="toc3"
 	description="Book Abbreviation"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="toc3 - File - Book Abbreviation"
 	color="128"
-	italic="1" bold="1" 
-	
-	
-	
+	italic="1" bold="1"
 	basedOn="_peripherals_base" nextStyle="toc3"
 	>
 </SFM>
 	<!-- The \toc3 marker was added in USFM 2.0.4  -->
-<SFM marker="pref" 
+<SFM marker="pref"
 	description="Front matter preface"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE pref Peripherals - Front Matter Preface"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="pref"
 	>
 </SFM>
-<SFM marker="intro" 
+<SFM marker="intro"
 	description="Front matter introduction"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE intro Peripherals - Front Matter Introduction"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="intro"
 	>
 </SFM>
-<SFM marker="conc" 
+<SFM marker="conc"
 	description="Back matter concordance"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE conc Peripherals - Back Matter Concordance"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="conc"
 	>
 </SFM>
-<SFM marker="glo" 
+<SFM marker="glo"
 	description="Back matter glossary"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE glo Peripherals - Back Matter Glossary"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="glo"
 	>
 </SFM>
-<SFM marker="idx" 
+<SFM marker="idx"
 	description="Back matter index"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE idx Peripherals - Back Matter Index"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="idx"
 	>
 </SFM>
-<SFM marker="maps" 
+<SFM marker="maps"
 	description="Back matter map index"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE maps Peripherals - Back Matter Map Index"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="maps"
 	>
 </SFM>
-<SFM marker="cov" 
+<SFM marker="cov"
 	description="Other peripheral materials - cover"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE cov Peripherals - Other - Cover"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="cov"
 	>
 </SFM>
-<SFM marker="spine" 
+<SFM marker="spine"
 	description="Other peripheral materials - spine"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE spine Peripherals - Other - Spine"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_peripherals_base" nextStyle="spine"
 	>
 </SFM>
-<SFM marker="pubinfo" 
+<SFM marker="pubinfo"
 	description="Publication information - Lang,Credit,Version,Copies,Publisher,Id,Logo"
-	usfm="1" 
+	usfm="1"
 	userCanSetFilter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="OBSOLETE pubinfo - Publication - Information"
 	color="16711680"
-	
-	
-	
-	
 	basedOn="__normal" nextStyle="pubinfo"
 	>
 </SFM>
 	<!-- \pubinfo should have Language, Credit, Version, Copies,
 	Publisher, Id, and Logo -->
 <!-- SPECIAL SPACING and FORMATTING -->
-<SFM marker="pb" 
+<SFM marker="pb"
 	description="Page Break used for new reader portions and children's bibles where content is controlled by the page"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="new page"
 	textType="noType" wrap="1"
 	styleName="pb - Break - Page Break"
-	
-	
-	
-	
-	
 	basedOn="p" nextStyle="p"
 	>
 </SFM>
 	<!-- Used in new reader portions and children's bibles
 	where content is controlled by the page. -->
-<SFM marker="b" 
+<SFM marker="b"
 	description="Poetry text stanza break (e.g. stanza break) (basic)"
-	usfm="1" 
-	
+	usfm="1"
 	bdryOnLast="1"
 	inform="1" navigationText="stanza break"
-	textType="poetry" 
+	textType="poetry"
 	styleName="b - Poetry - Stanza Break (Blank Line)"
-	
-	
 	justification="leading"
-	
-	
 	basedOn="_body_text" nextStyle="b"
 	>
 </SFM>
@@ -4517,19 +3539,15 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	exports. It should only be used for stanza breaks in poetry, or between
 	poetry and prose. No text should be associated with this marker, and it
 	should not be used before or after titles.  -->
-<SFM marker="hr" 
+<SFM marker="hr"
 	description="Horizontal rule"
 	png="1"
-	filter="1" 
+	filter="1"
 	special="1" bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="hr - Horizontal rule"
-	styleType="horiz_rule" 
-	
-	
+	styleType="horiz_rule"
 	spaceAbove="4" spaceBelow="4"
-	
 	basedOn="_body_text" nextStyle="hr"
 	>
 </SFM>
@@ -4545,207 +3563,136 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <!-- ILLUSTRATION AND PICTURE FORMATTING -->
 <SFM marker="fig" endMarker="fig*"
 	description="Illustration [Columns to span, height, filename, caption text]"
-	usfm="1" 
+	usfm="1"
 	filter="1" userCanSetFilter="1"
 	inLine="1" bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="fig...fig* - Auxiliary - Figure/Illustration/Map"
-	styleType="character" 
-	
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
-<SFM marker="loc" 
+<SFM marker="loc"
 	description="Picture location"
 	png="1"
-	filter="1" 
+	filter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="loc - Picture location"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="loc"
 	>
 </SFM>
 	<!-- Fiddling with location information should be done in 
 	Paratext -->
-<SFM marker="cap" 
+<SFM marker="cap"
 	description="Picture caption"
 	png="1"
 	filter="1" userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="picture caption"
-	textType="noType" 
+	textType="noType"
 	styleName="cap - Picture caption"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="cap"
 	>
 </SFM>
 	<!-- similar to usfm special features parameter within a
 	figure \fig |Cap| \fig*; but simple enough to allow optional
 	filtering (but not so for USFM) -->
-<SFM marker="cat" 
+<SFM marker="cat"
 	description="Picture catalog number"
 	png="1"
-	filter="1" 
+	filter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="cat - Picture catalog number"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="cat"
 	>
 </SFM>
 	<!-- similar to usfm special features parameter within a
 	figure \fig |Cat| \fig* -->
-<SFM marker="des" 
+<SFM marker="des"
 	description="Picture description"
 	png="1"
-	filter="1" 
+	filter="1"
 	bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="des - Picture description"
-	
-	
-	
-	
-	
 	basedOn="_body_text" nextStyle="des"
 	>
 </SFM>
 	<!-- similar to usfm special features parameter within a
 	figure \fig |Des| \fig* -->
 <!-- LEGACY SF MARKERS NOT IN THE SECTIONS ABOVE -->
-<SFM marker="px" 
+<SFM marker="px"
 	description="Paragraph extra 1"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="para extra 1"
 	wrap="1"
 	styleName="px - Paragraph extra 1"
-	
-	
-	
-	
-	
 	basedOn="p" nextStyle="px"
 	>
 </SFM>
-<SFM marker="pz" 
+<SFM marker="pz"
 	description="Paragraph extra 2"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="para extra 2"
 	wrap="1"
 	styleName="pz - Paragraph extra 2"
-	
-	
-	
-	
-	
 	basedOn="p" nextStyle="pz"
 	>
 </SFM>
-<SFM marker="qx" 
+<SFM marker="qx"
 	description="Poetry extra 1"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry extra 1"
 	textType="poetry" wrap="1"
 	styleName="qx - Poetry extra 1"
-	
-	
-	
-	
-	
 	basedOn="q" nextStyle="qx"
 	>
 </SFM>
-<SFM marker="qz" 
+<SFM marker="qz"
 	description="Poetry extra 2"
 	png="1"
-	
 	bdryOnLast="1"
 	inform="1" navigationText="poetry extra 2"
 	textType="poetry" wrap="1"
 	styleName="qz - Poetry extra 2"
-	
-	
-	
-	
-	
 	basedOn="q" nextStyle="qz"
 	>
 </SFM>
 <!-- The following markers were added in USFM 2.04 revision October 2005  -->
 <SFM marker="addpn" endMarker="addpn*"
 	description="For chinese words to be dot underline and underline"
-	usfm="1" 
-	
+	usfm="1"
 	inLine="1" bdryOnLast="1"
-	
-	
 	styleName="(addpn...addpn*) - Special Text for Chinese"
-	styleType="character" color="2263842"
+	styleType="character"
 	italic="1" bold="1" underline="1"
-	
-	
-	
-	
 	>
 </SFM>
 	<!-- Will UBS remove parentheses from (addpn...addpn*) to make it
 	consistent with all other style names?  -->
 <SFM marker="efm" endMarker="efm*"
 	description="ID or Caller for an extended (study) note. Used within a source project duplicte (target) text when autoring study material."
-	usfm="1" 
-	filter="1" 
+	usfm="1"
+	filter="1"
 	special="1" bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="efm - Study Note - ID/Caller"
 	styleType="character" fontSize="10" color="255"
-	bold="1" 
-	
-	
-	
-	
+	bold="1"
 	>
 </SFM>
 <SFM marker="ef" endMarker="ef*"
 	description="A Study Note text item"
-	usfm="1" 
-	filter="1" 
+	usfm="1"
+	filter="1"
 	special="1" bdryOnLast="1"
-	
-	textType="noType" 
+	textType="noType"
 	styleName="ef...ef* - Study Note"
-	styleType="character" 
-	
-	
-	
-	
-	
+	styleType="character"
 	>
 </SFM>
 <!-- ADDITIONAL (NON-STANDARD) ADAPT IT - SPECIFIC MARKERS
@@ -4757,20 +3704,15 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	being interpretted as a backtranslation marker. It is STRONGLY 
 	recommended that you do not change the filter="1" and the 
 	userCanFilter="0" attribute settings for these markers. -->
-<SFM marker="bt" 
+<SFM marker="bt"
 	description="Back-translation (and all \bt... initial forms)"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
+	filter="1"
+	special="1"
 	inform="1" navigationText="back-trans"
-	textType="noType" 
+	textType="noType"
 	styleName="bt - Back-translation"
 	styleType="character" fontSize="11" color="16711680"
-	
-	
-	
-	
-	
 	>
 </SFM>
 	<!-- Note: Adapt It uses the attributes for the \bt marker above to 
@@ -4782,17 +3724,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <SFM marker="free" endMarker="free*"
 	description="Free translation"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
+	filter="1"
+	special="1"
 	inform="1" navigationText="free-trans"
-	textType="noType" 
+	textType="noType"
 	styleName="free - Free translation"
 	styleType="character" fontSize="11" color="4194500"
-	
-	
-	
-	
-	
 	>
 </SFM>
 	<!-- Note: In RTF exports, text associated with \free can (optionally) 
@@ -4800,17 +3737,12 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 <SFM marker="note" endMarker="note*"
 	description="Adapt It note"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
+	filter="1"
+	special="1"
 	inform="1" navigationText="note"
-	textType="noType" 
+	textType="noType"
 	styleName="note - Adapt It note"
 	styleType="character" fontSize="10" color="16711680"
-	
-	
-	
-	
-	
 	>
 </SFM>
 	<!-- Note: In RTF exports, text associated with \note can (optionally) 
@@ -4822,40 +3754,30 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	sheets to form the basis for the construction of other styles. As such
 	they should not be used directly in any Adapt It input text. All the
 	base styles are available in the PNG and USFM sets. -->
-<SFM marker="__normal" 
+<SFM marker="__normal"
 	description="Normal"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Normal"
-	fontSize="11" 
-	
-	
-	
-	
+	fontSize="11"
 	nextStyle="__normal"
 	>
 </SFM>
 	<!-- Note: The __normal marker name must be preceeded with two underscore
 	characters. This forces the "__normal" style to appear first in the stylesheet 
 	in RTF headers. -->
-<SFM marker="_src_lang_interlinear" 
+<SFM marker="_src_lang_interlinear"
 	description="Source Language Interlinear Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Source Language"
-	fontSize="11" 
-	
+	fontSize="11"
 	justification="leading"
-	
-	
 	basedOn="__normal" nextStyle="_src_lang_interlinear"
-	keepWithNext="1">
+	keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _src_lang_interlinear marker above. These attributes
@@ -4863,21 +3785,17 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The _src_lang_interlinear marker name must be preceeded with one underscore
 	character. This forces the "Src Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_tgt_lang_interlinear" 
+<SFM marker="_tgt_lang_interlinear"
 	description="Target Language Interlinear Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Target Language"
-	fontSize="11" 
-	
+	fontSize="11"
 	justification="leading"
-	
-	
 	basedOn="__normal" nextStyle="_tgt_lang_interlinear"
-	keepWithNext="1">
+	keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _tgt_lang_interlinear marker above. These attributes
@@ -4885,21 +3803,17 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The _tgt_lang_interlinear marker name must be preceeded with one underscore
 	character. This forces the "Tgt Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_gls_lang_interlinear" 
+<SFM marker="_gls_lang_interlinear"
 	description="Gloss Language Interlinear Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Gloss Language"
-	fontSize="11" 
-	
+	fontSize="11"
 	justification="leading"
-	
-	
 	basedOn="__normal" nextStyle="_gls_lang_interlinear"
-	keepWithNext="1">
+	keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _gls_lang_interlinear marker above. These attributes
@@ -4907,21 +3821,17 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The _gls_lang_interlinear marker name must be preceeded with one underscore
 	character. This forces the "Gls Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_nav_lang_interlinear" 
+<SFM marker="_nav_lang_interlinear"
 	description="Navigation Language Interlinear Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Navigation Language"
-	fontSize="11" 
-	
+	fontSize="11"
 	justification="leading"
-	
-	
 	basedOn="__normal" nextStyle="_nav_lang_interlinear"
-	keepWithNext="1">
+	keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: Control font size, color and other characteristics in Interlinear
 	exports by adjusting the _nav_lang_interlinear marker above. These attributes
@@ -4929,19 +3839,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The _nav_lang_interlinear marker name must be preceeded with one underscore
 	character. This forces the "Nav Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_hdr_ftr_interlinear" 
+<SFM marker="_hdr_ftr_interlinear"
 	description="Header-Footer Interlinear Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Hdr-Ftr Interlinear"
-	styleType="headerSty" fontSize="9" 
-	
+	styleType="headerSty" fontSize="9"
 	justification="leading"
-	
-	
 	basedOn="__normal" nextStyle="_hdr_ftr_interlinear"
 	>
 </SFM>
@@ -4951,19 +3856,13 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The _hdr_ftr_interlinear marker name must be preceeded with one underscore
 	character. This forces the "Nav Lang" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_small_para_break" 
+<SFM marker="_small_para_break"
 	description="Small Paragraph Break"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Small Para Break"
-	fontSize="4" 
-	
-	
-	
-	
+	fontSize="4"
 	basedOn="__normal" nextStyle="_small_para_break"
 	>
 </SFM>
@@ -4974,153 +3873,114 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	character. This forces the "Small Paragraph Break" style to appear in 
 	sorted order directly after the "__normal" style, and before the other 
 	non-base styles. -->
-<SFM marker="_body_text" 
+<SFM marker="_body_text"
 	description="Body Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="_BodyText_Base"
-	fontSize="11" 
-	
-	
-	
-	
+	fontSize="11"
 	basedOn="_vernacular_base" nextStyle="_body_text"
 	>
 </SFM>
 	<!-- Note: The _body_text marker name must be preceeded with one underscore
 	character. This forces the "Body text" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_heading_base" 
+<SFM marker="_heading_base"
 	description="Heading Base"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
-	
-	textType="noType" 
+	filter="1"
+	special="1"
+	textType="noType"
 	styleName="_Heading_Base"
-	
-	
 	justification="center"
-	spaceAbove="6" 
-	leadingMargin=".1" followingMargin=".1" 
+	spaceAbove="6"
+	leadingMargin=".1" followingMargin=".1"
 	basedOn="_vernacular_base" nextStyle="_heading_base"
-	keepTogether="1" keepWithNext="1">
+	keepTogether="1" keepWithNext="1"
+	>
 </SFM>
 	<!-- Note: The _heading_base marker name must be preceeded with one underscore
 	character. This forces the "Heading base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_intro_base" 
+<SFM marker="_intro_base"
 	description="Intro Base"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
-	
-	textType="noType" 
+	filter="1"
+	special="1"
+	textType="noType"
 	styleName="_Intro_Base"
-	fontSize="11" 
-	italic="1" 
-	
-	
-	
+	fontSize="11"
+	italic="1"
 	basedOn="_vernacular_base" nextStyle="_intro_base"
 	>
 </SFM>
 	<!-- Note: The _intro_base marker name must be preceeded with one underscore
 	character. This forces the "Intro base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_list_base" 
+<SFM marker="_list_base"
 	description="List Base"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
-	
-	textType="noType" 
+	filter="1"
+	special="1"
+	textType="noType"
 	styleName="_List_Base"
-	
-	
-	
-	
-	
 	basedOn="_vernacular_base" nextStyle="_list_base"
 	>
 </SFM>
 	<!-- Note: The _list_base marker name must be preceeded with one underscore
 	character. This forces the "List base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_notes_base" 
+<SFM marker="_notes_base"
 	description="Notes Base"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
-	
-	textType="noType" 
+	filter="1"
+	special="1"
+	textType="noType"
 	styleName="_Notes_Base"
-	fontSize="9" 
-	
+	fontSize="9"
 	justification="leading"
-	
-	
 	basedOn="_vernacular_base" nextStyle="_notes_base"
 	>
 </SFM>
 	<!-- Note: The _notes_base marker name must be preceeded with one underscore
 	character. This forces the "Notes base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_peripherals_base" 
+<SFM marker="_peripherals_base"
 	description="Peripherals Base"
 	usfm="1" png="1"
-	filter="1" 
-	special="1" 
-	
-	textType="noType" 
+	filter="1"
+	special="1"
+	textType="noType"
 	styleName="_Peripherals_Base"
-	fontSize="10" 
-	
-	
-	
-	
+	fontSize="10"
 	basedOn="_vernacular_base" nextStyle="_peripherals_base"
 	>
 </SFM>
 	<!-- Note: The _peripherals_base marker name must be preceeded with one underscore
 	character. This forces the "Peripherals base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_vernacular_base" 
+<SFM marker="_vernacular_base"
 	description="Vernacular Base"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="_Vernacular_Base"
-	fontSize="11" 
-	
-	
-	
-	
+	fontSize="11"
 	basedOn="__normal" nextStyle="_vernacular_base"
 	>
 </SFM>
 	<!-- Note: The _vernacular_base marker name must be preceeded with one underscore
 	character. This forces the "Vernacular base" style to appear in sorted order
 	directly after the "__normal" style, and before the other non-base styles. -->
-<SFM marker="_annotation_ref" 
+<SFM marker="_annotation_ref"
 	description="Annotation Reference"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="_annotation_reference"
 	styleType="character" fontSize="10" color="4210943"
-	
 	superScript="1" justification="leading"
-	
-	
-	
 	>
 </SFM>
 	<!-- Note: The _annotation_ref character style is used to format
@@ -5129,19 +3989,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	underscore character. This forces the "_Annotation Reference" style to 
 	appear in sorted order directly after the "__normal" style, and before the
 	other non-base styles. -->
-<SFM marker="_annotation_text" 
+<SFM marker="_annotation_text"
 	description="Annotation Text"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="_annotation_text"
-	fontSize="10" 
-	
+	fontSize="10"
 	justification="leading"
-	
-	
 	basedOn="__normal" nextStyle="_annotation_text"
 	>
 </SFM>
@@ -5151,20 +4006,13 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	underscore character. This forces the "_Annotation Text" style to 
 	appear in sorted order directly after the "__normal" style, and before the
 	other non-base styles. -->
-<SFM marker="_dft_para_font" 
+<SFM marker="_dft_para_font"
 	description="Default Paragraph Font"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Default Paragraph Font"
-	styleType="default_para_font" fontSize="10" 
-	
-	
-	
-	
-	
+	styleType="default_para_font" fontSize="10"
 	>
 </SFM>
 	<!-- Note: The font related attributes for the _dft_para_font
@@ -5175,20 +4023,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	underscore character. This forces the "Default Paragraph Font" style to 
 	appear in sorted order directly after the "__normal" style, and before the
 	other non-base styles. -->
-<SFM marker="_footnote_caller" 
+<SFM marker="_footnote_caller"
 	description="Footnote Caller"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Footnote Caller"
 	styleType="footnote_caller" fontSize="10" color="16711680"
-	
-	superScript="1" 
-	
-	
-	
+	superScript="1"
 	>
 </SFM>
 	<!-- The _footnote_caller style defines the style for the caller of the
@@ -5199,19 +4041,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	be preceeded with one underscore character. This forces the "Footnote 
 	Caller" style to appear in sorted order directly after the __normal style 
 	and before the other non-base styles. -->
-<SFM marker="_normal_table" 
+<SFM marker="_normal_table"
 	description="Normal Table"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Normal Table"
-	styleType="table" fontSize="10" 
-	
+	styleType="table" fontSize="10"
 	justification="leading"
-	
-	
 	nextStyle="_normal_table"
 	>
 </SFM>
@@ -5219,19 +4056,14 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	underscore character. This forces the "Normal Table" style to
 	appear in sorted order directly after the __normal style and before the
 	other non-base styles. -->
-<SFM marker="_table_grid" 
+<SFM marker="_table_grid"
 	description="Table Grid"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Table Grid"
-	styleType="table" fontSize="10" 
-	
+	styleType="table" fontSize="10"
 	justification="leading"
-	
-	
 	basedOn="_normal_table" nextStyle="_table_grid"
 	>
 </SFM>
@@ -5239,144 +4071,102 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	underscore character. This forces the "Table Grid" style to
 	appear in sorted order directly after the __normal style and before the
 	other non-base styles. -->
-<SFM marker="_footer" 
+<SFM marker="_footer"
 	description="Footer"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="footer"
-	styleType="footerSty" fontSize="10" 
-	
+	styleType="footerSty" fontSize="10"
 	justification="leading"
-	
-	
 	basedOn="_body_text" nextStyle="_footer"
 	>
 </SFM>
-<SFM marker="_header" 
+<SFM marker="_header"
 	description="Header"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="header"
-	styleType="headerSty" fontSize="9" 
-	
+	styleType="headerSty" fontSize="9"
 	justification="leading"
-	
-	
 	basedOn="_body_text" nextStyle="_header"
 	>
 </SFM>
 	<!-- Note: The _header style and its attributes are used to format the 
 	entire header in source and target RTF exports. The font attributes 
 	defined in \h, \h1, \h2, and \h3 are ignored in formatting the header.  -->
-<SFM marker="_horiz_rule" 
+<SFM marker="_horiz_rule"
 	description="Horizontal Rule"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Horizontal rule"
-	styleType="horiz_rule" fontSize="10" 
-	
-	
-	
-	
+	styleType="horiz_rule" fontSize="10"
 	nextStyle="_horiz_rule"
 	>
 </SFM>
-<SFM marker="_single_boxed_para" 
+<SFM marker="_single_boxed_para"
 	description="Single Boxed Paragraph"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Single Boxed Paragraph"
-	styleType="boxed_para" fontSize="10" 
-	
-	
-	
-	
+	styleType="boxed_para" fontSize="10"
 	basedOn="__normal" nextStyle="_single_boxed_para"
 	>
 </SFM>
 	<!-- Note: the _single_boxed_para style is applied to back 
 	translation \bt... text when it is (optionally) placed within
 	boxed paragraphs within the text of RTF exports. -->
-<SFM marker="_double_boxed_para" 
+<SFM marker="_double_boxed_para"
 	description="Double Boxed Paragraph"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Double Boxed Paragraph"
-	styleType="boxed_para" fontSize="10" 
-	
-	
-	
-	
+	styleType="boxed_para" fontSize="10"
 	basedOn="__normal" nextStyle="_double_boxed_para"
 	>
 </SFM>
 	<!-- Note: the _double_boxed_para style is applied to free 
 	translation \free text when it is placed within boxed paragraphs 
 	within the text of RTF exports. -->
-<SFM marker="_unknown_para_style" 
+<SFM marker="_unknown_para_style"
 	description="Unknown Paragraph Style Marker"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Unknown Para Style Marker"
 	color="255"
-	
 	justification="leading"
-	
-	
 	basedOn="_body_text" nextStyle="_unknown_para_style"
 	>
 </SFM>
 	<!-- The _unknown_para_style is applied to the text associated with
 	paragraph markers that Adapt It does not recognize when exporting to RTF.  -->
-<SFM marker="_unknown_char_style" 
+<SFM marker="_unknown_char_style"
 	description="Unknown Character Style Marker"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Unknown Char Style Marker"
 	styleType="character" color="255"
-	
 	justification="leading"
-	
-	
-	
 	>
 </SFM>
 	<!-- The _unknown_char_style is applied to the text associated with
 	character formatting markers that Adapt It does not recognize when exporting 
 	to RTF.  -->
-<SFM marker="_hidden_note" 
+<SFM marker="_hidden_note"
 	description="Hidden Note"
 	usfm="1" png="1"
-	filter="1" 
-	
-	
-	textType="noType" 
+	filter="1"
+	textType="noType"
 	styleName="Hidden Note"
 	styleType="hidden_note" fontSize="10" color="8388608"
-	italic="1" 
-	
-	spaceAbove="2" 
+	italic="1"
+	spaceAbove="2"
 	firstLineIndent=".3"
 	basedOn="p" nextStyle="_hidden_note"
 	>
