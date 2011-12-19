@@ -11182,7 +11182,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 	pathToExecutable.Empty();
 #ifdef __WXGTK__
 	pathToExecutable = GetBibleditInstallDirPath();
-	if (::wxFileExists(pathToExecutable)
+	if (::wxFileExists(pathToExecutable))
 		bBEInstalled = TRUE;
 	
 	// TODO: write code to determine the version of bibledit-gtk that is
