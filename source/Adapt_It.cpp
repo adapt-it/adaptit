@@ -11181,7 +11181,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 	wxString pathToExecutable;
 	pathToExecutable.Empty();
 #ifdef __WXGTK__
-	pathToExecutable = GetBibleditInstallDirPath();
+	pathToExecutable = GetBibleditInstallDirPath() + PathSeparator + _T("bibledit-rdwrt");
 	if (::wxFileExists(pathToExecutable))
 		bBEInstalled = TRUE;
 	
@@ -11190,7 +11190,7 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
 #ifdef __WXMAC__
-	pathToExecutable = GetBibleditInstallDirPath();
+	pathToExecutable = GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt");
 	
 	// If the above call doesn't find it then try /opt/local/bin/
 	// According to the Bibledit wesite's instructions for installing Bibledit 
