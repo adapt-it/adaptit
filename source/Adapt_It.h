@@ -77,8 +77,8 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_MINOR_PART 1
 #define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 10
-#define VERSION_DATE_MONTH 15
+#define VERSION_DATE_DAY 20
+#define VERSION_DATE_MONTH 12
 #define VERSION_DATE_YEAR 2011
 
 //#define Print_failure
@@ -3349,6 +3349,7 @@ public:
 	wxString GetBibleditProjectsDirPath();
 	wxString GetParatextInstallDirPath(); // whm added 9Feb11
 	wxString GetBibleditInstallDirPath(); // whm added 13Jun11
+	wxString GetAdaptit_Bibledit_rdwrtInstallDirPath(); // whm added 18Dec11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);

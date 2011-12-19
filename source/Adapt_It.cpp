@@ -11178,34 +11178,29 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 {
 	bool bBEInstalled;
 	bBEInstalled = FALSE;
-	wxString pathToExecutable1, pathToExecutable2, pathToExecutable3,pathToExecutable4;
-	pathToExecutable1.Empty();
-	pathToExecutable2.Empty();
-	pathToExecutable3.Empty();
-	pathToExecutable4.Empty();
+	wxString pathToExecutable;
+	pathToExecutable.Empty();
 #ifdef __WXGTK__
-	pathToExecutable1 = _T("/usr/bin/bibledit");
-	pathToExecutable2 = _T("/usr/bin/bibledit-gtk");
-	pathToExecutable3 = _T("/usr/bin/bibleditgui");
-	pathToExecutable4 = _T("/usr/bin/bibledit-bin");
-	if (::wxFileExists(pathToExecutable1) || ::wxFileExists(pathToExecutable2)
-		|| ::wxFileExists(pathToExecutable3) || ::wxFileExists(pathToExecutable4))
+	pathToExecutable = GetBibleditInstallDirPath();
+	if (::wxFileExists(pathToExecutable)
 		bBEInstalled = TRUE;
+	
 	// TODO: write code to determine the version of bibledit-gtk that is
 	// installed on Linux. It must be at least version 4.2.93 to respond
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
 #ifdef __WXMAC__
-	pathToExecutable1 = _T("/opt/local/bin/bibledit-gtk");
-	if (::wxFileExists(pathToExecutable1))
+	pathToExecutable = GetBibleditInstallDirPath();
+	
+	// If the above call doesn't find it then try /opt/local/bin/
+	// According to the Bibledit wesite's instructions for installing Bibledit 
+	// on the Mac it should install to _T("/opt/local/bin/bibledit-gtk")
+	// so if the above doesn't find it on the PATH, then try the hard coded Path
+	if (::wxFileExists(pathToExecutable))
 		bBEInstalled = TRUE;
-	if (!bBEInstalled)
-	{
-		// try alternate name on Mac
-		pathToExecutable1 = _T("/opt/local/bin/bibledit");
-		if (::wxFileExists(pathToExecutable1))
-			bBEInstalled = TRUE;
-	}
+	else if (::wxFileExists(_T("/opt/local/bin/bibledit")))
+		bBEInstalled = TRUE;
+
 	// TODO: write code to determine the version of bibledit-gtk that is
 	// installed on the Mac. It must be at least version 4.2.93 to respond
 	// to the command-line usage implemented by Teus as of version 4.2.93.
@@ -11333,6 +11328,24 @@ wxString CAdapt_ItApp::GetBibleditInstallDirPath()
 
 	// dirPath should normally be _T("/usr/bin") for a package installed version of
 	// Bibledit, or possibly _T("/usr/local/bin") for a locally installed version.
+
+	return dirPath;
+}
+
+wxString CAdapt_ItApp::GetAdaptit_Bibledit_rdwrtInstallDirPath()
+{
+	wxString dirPath;
+	// The interim Bibledit utility is called adaptit-bibledit-rdwrt and
+	// is installed by Adapt It, not by Bibledit. It will only be used if
+	// Bibledit-gtk is installed, but is earlier than version 4.2.67 (the SIL
+	// package at packages.sil.org/ubuntu that Neil packaged there earlier
+	// in 2011. Once Balsa and the commonly-used Bibledit that is packaged
+	// with Ubuntu distributions has a Bibledit version > 4.2.93 this
+	// function and adaptit-bibledit-rdwrt will no longer be necessary.
+    dirPath = GetProgramLocationFromSystemPATH(_T("adaptit-bibledit-rdwrt"));
+
+	// dirPath should normally be _T("/usr/bin") for a package installed version of
+	// Adapt It, or possibly _T("/usr/local/bin") for a locally installed version.
 
 	return dirPath;
 }
