@@ -94,7 +94,10 @@ below):</p>
   <li>
 <div><a href="#Guidelines_for_training_users">Guidelines 
   for training Adapt It users</a>        
-  .</div></li></ul>
+  .</div>
+  <li>
+  <div><a href="#trouble_shooting_collaboration">Trouble 
+Shooting</a></div></li></ul>
 <h2><a 
 name=Automatically_exchange_Scripture_files></a>Automatically exchange Scripture files with Paratext or 
 Bibledit</h2>
@@ -105,7 +108,21 @@ href="http://#Bibledit_Steps_Start">Bibledit</a>
         . Here are the 
 steps:</p>
 <h2><a name="Paratext_Steps_Start"></a>Paratext</h2>
-<h3>1. Prepare at least two&nbsp;Paratext projects for 
+<h3>
+<h3>1. Ensure that the necessary versions of Adapt It (6.1.0) and Paratext (7.1 
+or newer) are installed</h3>       
+   </h3>
+<p><strong>IMPORTANT</strong>: For Adapt It to collaborate 
+with Paratext, you need to <strong>install version 7.1 or 
+newer of Paratext and version 6.1.0 or newer of Adapt 
+It</strong>. The Windows 
+version of Adapt It that is&nbsp;available at&nbsp;<a 
+href="http://adapt-it.org">http://adapt-it.org</a>&nbsp;(as of 20 December 2011) 
+is new enough. If your version of Adapt It is not at least 6.1.0 or newer, you 
+will need to download and install the latest version from <a 
+href="http://adapt-it.org">http://adapt-it.org</a>&nbsp;before you can setup Adapt It to automatically exchange 
+Scripture files with Paratext.</p>
+<h3>2. Prepare at least two&nbsp;Paratext projects for 
 collaboration with Adapt It</h3>
 <p><strong>BEFORE</strong> you set up Adapt It to 
 collaborate with Paratext, you should ensure that Paratext has at least 
@@ -147,7 +164,7 @@ It project that&nbsp;already exists by that name, or if an&nbsp;Adapt It project
 that name does not already exist,&nbsp;it will create a new one by that name in 
 its own work folder ("Adapt It Unicode Work" in the Unicode version, or "Adapt 
 It Work" in the non-Unicode version).</p>
-<h3>2. Setup Adapt It - Paratext Collaboration</h3>
+<h3>3. Setup Adapt It - Paratext Collaboration</h3>
 <p align="center">&nbsp;<img border="0" hspace="0" 
 src="Images/Admin_help/AdminMenuSetupPTCollab.gif" width=300 height=240>  </p>
 <p align="left">When you selecte "Setup Paratext Collaboration..." the following 
@@ -266,7 +283,7 @@ Paratext projects. The "Select a chapter" list shows each chapter that is
 available for collaboration work. The chapter list also indicates the "Chapter 
 status" for each chapter. The text box under the lists also gives more details 
 about the status of a selected chapter.</p>
-<h3>3. Adapt It - Paratext collaboration remains in effect until switched off</h3>
+<h3>4. Adapt It - Paratext collaboration remains in effect until switched off</h3>
 <p>The settings you make in the Administrator menu remain 
 in effect indefinitely or until such time as you change them. You can switch OFF 
 collaboration with Paratext if you want to do so by using the same Setup 
@@ -289,59 +306,84 @@ href="#Setup_User_Workflow_Profile">Setup a User Workflow Profile</a>
               
       </p>
 <h2><a name="Bibledit_Steps_Start"></a>Bibledit</h2>
-<h3>Ensure that a recent version of Bibledit-Gtk is 
-installed (4.2 or newer)</h3>
+<h3>1. Ensure that the necessary versions of Adapt It (6.1.0) and Bibledit-Gtk&nbsp;(4.3 
+or newer) are installed</h3>
 <p><strong>IMPORTANT</strong>: For Adapt It to collaborate 
-with Bibledit, you need to <strong>install version 4.2 or newer of 
-Bibledit-gtk</strong>.&nbsp;The version of Bibledit that is packaged in 
-the&nbsp;standard Ubuntu repositories (through Onerirc) is not new 
-enough&nbsp;for handling collaboration (typically 4.0 or older).&nbsp;The SIL 
-packages.sil.org repository has a version of Bibledit (4.2.67) for Ubuntu Lucid, 
-Maverick, Natty and Oneiric (each distribution has both i386 and amd64 
-architectures). The sil.packages.org repository is the same repository that 
-mades available the Adapt It packages for Ubuntu Linux. You can check to 
-ensure&nbsp;that the SIL&nbsp;repository is made available for your Ubuntu 
-distribution in your Ubuntu Software Sources settings. To do so, you should do 
-the following:</p>
-<p>a. Start up the Software Sources application. On Unity 
-you can find&nbsp;the Software Sources by clicking on "Ubuntu Software Center" 
-application icon. From the Ubuntu Software Center's Edit menu select "Software 
-Sources..." Alternately you can click on the DashHome icon and start typing 
-"Software Sources" into the search box, then click on the "Software Sources" 
-icon when it appears. In classic Gnome, select the "Ubuntu Software Center" from 
-the "Applications" menu, then select&nbsp;"Software Sources..." from its Edit 
-menu.</p>
-<p>b. In the Software Sources application click on the 
-"Other Software" tab at the top. If there is not a line that contains a 
-reference to packages.sil.org/ubuntu, then click on the "Add..." button at the 
-bottom. Then enter one of the following lines depending on which distribution of 
+with Bibledit, you need to <strong>install version 4.3 or newer of Bibledit-gtk and version 6.1.0 or newer of Adapt 
+It</strong>.&nbsp;The version of Adapt It that is 
+packaged in the SIL repositories (as of 20 December 2011) is new enough. The 
+Bibledit that is packaged in the&nbsp;standard Ubuntu repositories (through 
+Onerirc), however,&nbsp;is not new enough&nbsp;for handling collaboration 
+(typically they have version 4.0 or older).&nbsp;The SIL packages.sil.org repository has a 
+version of Bibledit (4.2.67) for Ubuntu Lucid, Maverick, 
+Natty and Oneiric but that version&nbsp;is not new 
+enough to support collaboration with Adapt It.&nbsp;Until the official Ubuntu repositories 
+get a newer version of Bibledit, the Bibledit team has made 
+newer versions of Bibledit available in the CrossWire repository. 
+Therefore, in order to be able to get Adapt It and Bibledit to 
+collaborate together,&nbsp;you will need to ensure that your Software 
+Sources have the necessary repositories listed in their "Other Software" settings. Do the 
+following steps:</p>
+<p>a. Start up&nbsp;<strong>Synaptic Package Manager. 
+</strong>         
+          It 
+should be located in the System&nbsp;&gt; Administration menu (If it is 
+not there or you are using Unity which doesn't install it by 
+default,&nbsp;you can find&nbsp;the Synaptic Package Manager by clicking on "Ubuntu Software Center".&nbsp;In 
+the Ubuntu Software Center's Search box type "Synaptic", then click on the "Synaptic 
+Package Manager" item when it appears and click on 
+"Install").</p>
+<p>b. In the Synaptic Package Manager application click on 
+the <strong>Settings &gt; Repositories</strong>. Click on the "<strong>Other 
+Software</strong>" tab. Examine the list of software repositories. If there is 
+not already a line that contains a reference to 
+<strong>http://packages.sil.org/ubuntu&nbsp;...</strong>, then click on the 
+"Add..." button at the bottom. Then enter <strong>one</strong>         
+               
+           
+    of the following lines depending on which distribution of 
 Ubuntu Linux is installed on your machine:</p>
-<p>deb http://packages.sil.org/ubuntu lucid main<br>deb 
+<p><font face="Courier"><strong>deb http://packages.sil.org/ubuntu lucid main<br>deb 
 http://packages.sil.org/ubuntu maverick main<br>deb 
 http://packages.sil.org/ubuntu&nbsp;natty main<br>deb 
-http://packages.sil.org/ubuntu oneiric main</p>
-<p>c. Start up the Synaptic Package Manager (If using 
-Unity, first install the Synaptic Package Manager - search for "Synaptic" in the 
-Ubuntu Software Center and click on "Install").&nbsp;</p>
-<p>d. Click on "Reload" to insure you have the latest 
-information from the repositories. Click on the "Search" button and type in 
-"bibledit" in the search box. When the bibledit packages appear, look for the 
-package named "bibledit-gtk" and look at the&nbsp;"Latest Version" column. 
-Ensure that the version listed for bibledit-gtk is at least 4.2.67. (if no 
-version of bibledit-gtk is at least 4.2.67 make sure you have&nbsp;set up the 
-http://packages.sil.org/ubuntu line correctly in the Software Sources setup 
-steps above).</p>
-<p>e. Right click on the bibledit-gtk package name and 
-select "Mark for Installation" from the popup menu. Select the "Mark" button in 
-the warning dialog. Then click on the "Apply" button at the top of the Synaptic 
-Package Manager application, and click on the "Apply" button on the Summary 
-dialog. Close Synaptic Package Manager after it completes the installation of 
-bibledit-gtk.</p>
-<p>The Bibledit-Gtk application will be listed in the 
-Office menu (on can be found by searching for bibledit on Unity's DeskHome 
-search bar).</p>
-<p>1. Prepare at least two Bibledit projects for 
-collaboration with Adapt It</p>
+http://packages.sil.org/ubuntu oneiric main</strong></font> 
+  </p>
+<p>c. Close the Software Sources, and back in Synaptic 
+Package Manager, click on "Reload" to insure you have the latest information from the repositories. 
+If you get an error, check that you have entered the correct line 
+into your Other Software (step b above).</p>
+<p>d. Click on the "Search" button and type 
+<strong>adaptit</strong> in the search box. When the&nbsp;adaptit packages 
+appear, look&nbsp;at the "Installed Version" and "Latest Version" columns. 
+Ensure that the version listed for adaptit is <strong>at least 6.1.0</strong>. 
+If the "Latest Version" (if no version of adaptit is at least 6.1.0 make sure 
+you have set up the http://packages.sil.org/ubuntu line correctly in the 
+Synaptic Package Manager's Software Sources setup in step b above). If no 
+version is listed in the "Installed Version", or if the "Latest Version" is 
+newer than&nbsp;the "Installed Version" listed you should mark the adaptit is entries for installation or 
+upgrade. To mark the adaptit and adaptit-docs packages, right click on them 
+and select "Mark for Installation" or "Mark for Upgrade" from the popup menu. 
+Select the "Mark" button in the warning dialog. Then 
+click on the "Apply" button at the top of the Synaptic Package Manager 
+application, and click on the "Apply" button on the Summary dialog. Close Synaptic 
+Package Manager after it completes the installation of 
+Adapt It.</p>
+<p>e. Close the Synaptic Package Manager and open a 
+Terminal. In the terminal type the following&nbsp;commands (respond with 'y' and 
+Enter to have it continue if it asks "Install these 
+packages without verification?").</p>
+<p><font face="Courier New"><strong>sudo add-apt-repository 
+ppa:gwibber-daily/ppa<br>sudo apt-key adv --keyserver keyserver.ubuntu.com 
+--recv-keys DF7691D7</strong><br><strong>sudo apt-get update<br>sudo apt-get 
+install bibledit-gtk</strong></font> 
+  </p>
+<p>After their installation, both Adapt It 
+and&nbsp;Bibledit-Gtk should be listed in the Office menu (or can be found by 
+searching for adaptit or bibledit on Unity's DeskHome search bar). The next step 
+is to ensure that you have your Bibledit projects (at least two) setup 
+within Bibledit.</p>
+<h3>2. Prepare at least two Bibledit projects for 
+collaboration with Adapt It</h3>
 <p><strong>BEFORE</strong> you set up Adapt It to 
 collaborate with Bibledit, you should ensure that Bibledit has at least 
 <strong>TWO</strong> projects set up - one project for obtaining 
@@ -374,7 +416,7 @@ list, Adapt It will not make use of&nbsp;the "Language" setting here in the
 Bibledit Project's&nbsp;properties 
 dialog. Instead Adapt It&nbsp;will ask you in step 2 below for the 
 language names it will use&nbsp;for the Bibledit projects participating in&nbsp;the collaboration process.</p>
-<h3>2. Set Up Adapt It - Bibledit Collaboration</h3>
+<h3>3. Set Up Adapt It - Bibledit Collaboration</h3>
 <p align="center"><img border="0" hspace="0" 
 src="Images/Admin_help/AdminMenuSetupBECollab.gif" width=300 height=240>       </p>
 <p align="left">When you selecte "Setup Bibledit Collaboration..." the following 
@@ -545,7 +587,7 @@ Bibledit projects. The "Select a chapter" list shows each chapter that is
 available for collaboration work. The chapter list also indicates the "Chapter 
 status" for each chapter. The text box under the lists also gives more details 
 about the status of a selected chapter.</p>
-<h3>3. Adapt It - Bibledit collaboration remains in effect until switched off</h3>
+<h3>4. Adapt It - Bibledit collaboration remains in effect until switched off</h3>
 <p>The settings you make in the Administrator menu remain 
 in effect indefinitely or until such time as you change them. You can switch OFF 
 collaboration with Bibledit if you want to do so by using the same Setup 
@@ -1144,12 +1186,16 @@ installed by Adapt
 <p>          
             
              
-      When the          
+      When the Paratext development team releases a new 
+version of          
             
              
-      Paratext development team releases a new version 
-of Paratext, you should insure that Adapt It can still collaborate with that 
-version. If you encounter a problem with Adapt It - Paratext 
+      Paratext, and          
+            
+             
+      you have upgraded to the newer version, 
+you should insure that Adapt It can still collaborate with the newer&nbsp;version of 
+Paratext. If you encounter a problem with Adapt It - Paratext 
 collaboration after updating your Paratext installation, please let us know so 
 we can provide an Adapt It update that will correct the problem. Such problems 
 are not very likely to happen between Adapt It and Paratext, but if they do 
@@ -1167,6 +1213,15 @@ Adapt It..." selection on the Help
             
              
     Collaboration with Bibledit</h3>
+<p>Note: Most problems in collaboration between Adapt It 
+and Bibledit can be solved by ensuring that your version of Adapt It is at least 
+version 6.1.0 and your version of Bibledit is at least 4.3. See the <a 
+href="#Bibledit_Steps_Start">Step 1 of the Bibledit setup process</a>. If you 
+have done all the setup steps for Bibledit, but are still having problems, the 
+information below may be          
+            
+             
+    of some help.</p>
 <p>          
             
              
@@ -1189,7 +1244,7 @@ installed by Adapt
 <p>          
             
              
-      The Bibledit develoopment team has provided an official 
+      The Bibledit development team has provided an official 
 collaboration utility (called bibledit-rdwrt) that became available in Bibledit 
 version 4.2.93 or newer.          
             
