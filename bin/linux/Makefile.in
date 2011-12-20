@@ -17,7 +17,6 @@
 
 
 
-
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -60,11 +59,10 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" \
-	"$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" \
-	"$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" \
-	"$(DESTDIR)$(xmldir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" \
+	"$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" \
+	"$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" \
+	"$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	AIPrintPreviewFrame.$(OBJEXT) Adapt_It.$(OBJEXT) \
@@ -128,28 +126,6 @@ adaptit_LDADD = $(LDADD)
 adaptit_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(adaptit_LDFLAGS) $(LDFLAGS) -o $@
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
-am__install_max = 40
-am__nobase_strip_setup = \
-  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
-am__nobase_strip = \
-  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
-am__nobase_list = $(am__nobase_strip_setup); \
-  for p in $$list; do echo "$$p $$p"; done | \
-  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
-  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
-    if (++n[$$2] == $(am__install_max)) \
-      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
-    END { for (dir in files) print dir, files[dir] }'
-am__base_list = \
-  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
-  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-SCRIPTS = $(bin_SCRIPTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -172,6 +148,27 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	install-pdf-recursive install-ps-recursive install-recursive \
 	installcheck-recursive installdirs-recursive pdf-recursive \
 	ps-recursive uninstall-recursive
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
+am__install_max = 40
+am__nobase_strip_setup = \
+  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
+am__nobase_strip = \
+  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
+am__nobase_list = $(am__nobase_strip_setup); \
+  for p in $$list; do echo "$$p $$p"; done | \
+  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
+  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
+    if (++n[$$2] == $(am__install_max)) \
+      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
+    END { for (dir in files) print dir, files[dir] }'
+am__base_list = \
+  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
+  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 DATA = $(docAdmin_DATA) $(docFile_DATA) $(docStart_DATA) \
 	$(htmlhelp_DATA) $(htmlmain_DATA) $(misc_DATA) $(xml_DATA)
 HEADERS = $(noinst_HEADERS)
@@ -361,9 +358,9 @@ noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 # Install either the x86-64 or x86 (80386) binary build of bibledit-rdwrt
 # Detect the architecture based on /bin/ls. If the architecture is not
 # x86-64 or 80386 then error.
-be_arch_name = $(shell file /bin/ls | sed 's/.* \(\w*86-*\w*\).*/\1/')
-be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter 80386,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
-bin_SCRIPTS = ../adaptit-bibledit-rdwrt/lucid-$(be_arch_dir)/adaptit-bibledit-rdwrt
+#be_arch_name = $(shell file /bin/ls | sed 's/.* \(\w*86-*\w*\).*/\1/')
+#be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter 80386,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
+#bin_SCRIPTS = ../adaptit-bibledit-rdwrt/lucid-$(be_arch_dir)/adaptit-bibledit-rdwrt
 
 # Localization data
 SUBDIRS = po
@@ -534,40 +531,6 @@ clean-binPROGRAMS:
 adaptit$(EXEEXT): $(adaptit_OBJECTS) $(adaptit_DEPENDENCIES) 
 	@rm -f adaptit$(EXEEXT)
 	$(adaptit_LINK) $(adaptit_OBJECTS) $(adaptit_LDADD) $(LIBS)
-install-binSCRIPTS: $(bin_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
-	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n' \
-	    -e 'h;s|.*|.|' \
-	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
-	      if (++n[d] == $(am__install_max)) { \
-		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
-	    else { print "f", d "/" $$4, $$1 } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	     test -z "$$files" || { \
-	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
-	     } \
-	; done
-
-uninstall-binSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(bindir)" && rm -f $$files
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -2753,10 +2716,10 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(PROGRAMS) $(SCRIPTS) $(DATA) $(HEADERS)
+all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(docAdmindir)" "$(DESTDIR)$(docFiledir)" "$(DESTDIR)$(docStartdir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(htmlmaindir)" "$(DESTDIR)$(miscdir)" "$(DESTDIR)$(xmldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -2815,7 +2778,7 @@ install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS install-binSCRIPTS
+install-exec-am: install-binPROGRAMS
 
 install-html: install-html-recursive
 
@@ -2857,10 +2820,10 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-binSCRIPTS \
-	uninstall-docAdminDATA uninstall-docFileDATA \
-	uninstall-docStartDATA uninstall-htmlhelpDATA \
-	uninstall-htmlmainDATA uninstall-miscDATA uninstall-xmlDATA
+uninstall-am: uninstall-binPROGRAMS uninstall-docAdminDATA \
+	uninstall-docFileDATA uninstall-docStartDATA \
+	uninstall-htmlhelpDATA uninstall-htmlmainDATA \
+	uninstall-miscDATA uninstall-xmlDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-strip tags-recursive
@@ -2873,21 +2836,21 @@ uninstall-am: uninstall-binPROGRAMS uninstall-binSCRIPTS \
 	distclean-generic distclean-libtool distclean-tags \
 	distcleancheck distdir distuninstallcheck dvi dvi-am html \
 	html-am info info-am install install-am install-binPROGRAMS \
-	install-binSCRIPTS install-data install-data-am \
-	install-docAdminDATA install-docFileDATA install-docStartDATA \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-htmlhelpDATA \
-	install-htmlmainDATA install-info install-info-am install-man \
-	install-miscDATA install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip install-xmlDATA installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
+	install-data install-data-am install-docAdminDATA \
+	install-docFileDATA install-docStartDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-htmlhelpDATA install-htmlmainDATA \
+	install-info install-info-am install-man install-miscDATA \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip install-xmlDATA installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-binSCRIPTS \
-	uninstall-docAdminDATA uninstall-docFileDATA \
-	uninstall-docStartDATA uninstall-htmlhelpDATA \
-	uninstall-htmlmainDATA uninstall-miscDATA uninstall-xmlDATA
+	uninstall-binPROGRAMS uninstall-docAdminDATA \
+	uninstall-docFileDATA uninstall-docStartDATA \
+	uninstall-htmlhelpDATA uninstall-htmlmainDATA \
+	uninstall-miscDATA uninstall-xmlDATA
 
 
 #

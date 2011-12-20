@@ -12,9 +12,9 @@ bin_PROGRAMS = adaptit
 # Install either the x86-64 or x86 (80386) binary build of bibledit-rdwrt
 # Detect the architecture based on /bin/ls. If the architecture is not
 # x86-64 or 80386 then error.
-be_arch_name = $(shell file /bin/ls | sed 's/.* \(\w*86-*\w*\).*/\1/')
-be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter 80386,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
-bin_SCRIPTS = ../adaptit-bibledit-rdwrt/lucid-$(be_arch_dir)/adaptit-bibledit-rdwrt
+#be_arch_name = $(shell file /bin/ls | sed 's/.* \(\w*86-*\w*\).*/\1/')
+#be_arch_dir = $(if $(filter x86-64,$(be_arch_name)),x86_64,$(if $(filter 80386,$(be_arch_name)),x86,$(error Unknown architecture for adaptit-bibledit-rdwrt)))
+#bin_SCRIPTS = ../adaptit-bibledit-rdwrt/lucid-$(be_arch_dir)/adaptit-bibledit-rdwrt
 
 # Localization data
 SUBDIRS = po
