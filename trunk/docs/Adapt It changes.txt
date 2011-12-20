@@ -1,9 +1,14 @@
 ----------------------------------------------
-Version 6.1.0 release 10 December 2011
+Version 6.1.0 release 20 December 2011
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.1.0
 ----------------------------------------------
+* Collaboration with Bibledit in the Linux version
+including Lucid-Balsa requires that Bibledit be upgraded
+to Bibledit version 4.3 or newer. Instructions for doing 
+the upgrade are now found in the Help for 
+Administrators.htm document.
 * LIFT imports to the KB files have enhanced functionality.
 They now support LIFT files with multilanguage glosses, or 
 definitions. The choice of extracting data from the <gloss> 
