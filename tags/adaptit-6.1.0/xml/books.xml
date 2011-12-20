@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- filename is books.xml -->
+<BOOKS defaultBook="40">
+<DIV title="History books"/>
+	<NAMEPAIR folder="Genesis" view="Genesis" code="GEN"/>
+	<NAMEPAIR folder="Exodus" view="Exodus" code="EXO"/>
+	<NAMEPAIR folder="Leviticus" view="Leviticus" code="LEV"/>
+	<NAMEPAIR folder="Numbers" view="Numbers" code="NUM"/>
+	<NAMEPAIR folder="Deuteronomy" view="Deuteronomy" code="DEU"/>
+	<NAMEPAIR folder="Joshua" view="Joshua" code="JOS"/>
+	<NAMEPAIR folder="Judges" view="Judges" code="JDG"/>
+	<NAMEPAIR folder="Ruth" view="Ruth" code="RUT"/>
+	<NAMEPAIR folder="1 Samuel" view="1 Samuel" code="1SA"/>
+	<NAMEPAIR folder="2 Samuel" view="2 Samuel" code="2SA"/>
+	<NAMEPAIR folder="1 Kings" view="1 Kings" code="1KI"/>
+	<NAMEPAIR folder="2 Kings" view="2 Kings" code="2KI"/>
+	<NAMEPAIR folder="1 Chronicles" view="1 Chronicles" code="1CH"/>
+	<NAMEPAIR folder="2 Chronicles" view="2 Chronicles" code="2CH"/>
+	<NAMEPAIR folder="Ezra" view="Ezra" code="EZR"/>
+	<NAMEPAIR folder="Nehemiah" view="Nehemiah" code="NEH"/>
+	<NAMEPAIR folder="Esther" view="Esther" code="EST"/>
+<DIV title="Wisdom books"/>
+	<NAMEPAIR folder="Job" view="Job" code="JOB"/>
+	<NAMEPAIR folder="Psalms" view="Psalms" code="PSA"/>
+	<NAMEPAIR folder="Proverbs" view="Proverbs" code="PRO"/>
+	<NAMEPAIR folder="Ecclesiastes" view="Ecclesiastes" code="ECC"/>
+	<NAMEPAIR folder="Song of Songs" view="Song of Songs" code="SNG"/>
+<DIV title="Prophecy books"/>
+	<NAMEPAIR folder="Isaiah" view="Isaiah" code="ISA"/>
+	<NAMEPAIR folder="Jeremiah" view="Jeremiah" code="JER"/>
+	<NAMEPAIR folder="Lamentations" view="Lamentations" code="LAM"/>
+	<NAMEPAIR folder="Ezekiel" view="Ezekiel" code="EZK"/>
+	<NAMEPAIR folder="Daniel" view="Daniel" code="DAN"/>
+	<NAMEPAIR folder="Hosea" view="Hosea" code="HOS"/>
+	<NAMEPAIR folder="Joel" view="Joel" code="JOL"/>
+	<NAMEPAIR folder="Amos" view="Amos" code="AMO"/>
+	<NAMEPAIR folder="Obadiah" view="Obadiah" code="OBA"/>
+	<NAMEPAIR folder="Jonah" view="Jonah" code="JON"/>
+	<NAMEPAIR folder="Micah" view="Micah" code="MIC"/>
+	<NAMEPAIR folder="Nahum" view="Nahum" code="NAM"/>
+	<NAMEPAIR folder="Habakkuk" view="Habakkuk" code="HAB"/>
+	<NAMEPAIR folder="Zephaniah" view="Zephaniah" code="ZEP"/>
+	<NAMEPAIR folder="Haggai" view="Haggai" code="HAG"/>
+	<NAMEPAIR folder="Zechariah" view="Zechariah" code="ZEC"/>
+	<NAMEPAIR folder="Malachi" view="Malachi" code="MAL"/>
+<DIV title="New Testament books"/>
+	<NAMEPAIR folder="Matthew" view="Matthew" code="MAT"/>
+	<NAMEPAIR folder="Mark" view="Mark" code="MRK"/>
+	<NAMEPAIR folder="Luke" view="Luke" code="LUK"/>
+	<NAMEPAIR folder="John" view="John" code="JHN"/>
+	<NAMEPAIR folder="Acts" view="Acts" code="ACT"/>
+	<NAMEPAIR folder="Romans" view="Romans" code="ROM"/>
+	<NAMEPAIR folder="1 Corinthians" view="1 Corinthians" code="1CO"/>
+	<NAMEPAIR folder="2 Corinthians" view="2 Corinthians" code="2CO"/>
+	<NAMEPAIR folder="Galatians" view="Galatians" code="GAL"/>
+	<NAMEPAIR folder="Ephesians" view="Ephesians" code="EPH"/>
+	<NAMEPAIR folder="Philippians" view="Philippians" code="PHP"/>
+	<NAMEPAIR folder="Colossians" view="Colossians" code="COL"/>
+	<NAMEPAIR folder="1 Thessalonians" view="1 Thessalonians" code="1TH"/>
+	<NAMEPAIR folder="2 Thessalonians" view="2 Thessalonians" code="2TH"/>
+	<NAMEPAIR folder="1 Timothy" view="1 Timothy" code="1TI"/>
+	<NAMEPAIR folder="2 Timothy" view="2 Timothy" code="2TI"/>
+	<NAMEPAIR folder="Titus" view="Titus" code="TIT"/>
+	<NAMEPAIR folder="Philemon" view="Philemon" code="PHM"/>
+	<NAMEPAIR folder="Hebrews" view="Hebrews" code="HEB"/>
+	<NAMEPAIR folder="James" view="James" code="JAS"/>
+	<NAMEPAIR folder="1 Peter" view="1 Peter" code="1PE"/>
+	<NAMEPAIR folder="2 Peter" view="2 Peter" code="2PE"/>
+	<NAMEPAIR folder="1 John" view="1 John" code="1JN"/>
+	<NAMEPAIR folder="2 John" view="2 John" code="2JN"/>
+	<NAMEPAIR folder="3 John" view="3 John" code="3JN"/>
+	<NAMEPAIR folder="Jude" view="Jude" code="JUD"/>
+	<NAMEPAIR folder="Revelation" view="Revelation" code="REV"/>
+<DIV title="Other Texts"/>
+	<NAMEPAIR folder="Other Texts" view="Other Texts" code="OTX"/>
+</BOOKS>
+
+
