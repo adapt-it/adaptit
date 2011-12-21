@@ -193,6 +193,12 @@ class CMainFrame : public wxDocParentFrame
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
+	
+	// support Mike's TEST_CHORUS menu item
+#if defined(TEST_CHORUS)
+	void OnTestChorus(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateTestChorus(wxUpdateUIEvent& event);
+#endif
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
 	void OnClose(wxCloseEvent& event);

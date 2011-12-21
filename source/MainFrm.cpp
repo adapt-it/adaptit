@@ -289,6 +289,12 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
 	EVT_UPDATE_UI(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUpdateUseToolTips)
 
+	// support Mike's TEST_CHORUS menu item
+#if defined(TEST_CHORUS)
+	EVT_MENU(ID_MENU_CHORUS_TESTS, CMainFrame::OnTestChorus)
+	EVT_UPDATE_UI(ID_MENU_CHORUS_TESTS, CMainFrame::OnUpdateUseToolTips)
+#endif
+
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
 	// disables tooltips
 	//EVT_MENU(ID_HELP_SET_TOOLTIP_DELAY,CMainFrame::OnSetToolTipDelayTime)
@@ -2189,6 +2195,29 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 	// restore the oldPath back to "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(oldPath);
 }
+
+// Support Mike's testing of the Chorus port
+#if defined(TEST_CHORUS)
+
+void CMainFrame::OnUpdateTestChorus(wxUpdateUIEvent& event)
+{
+	// always available
+	event.Enable(TRUE);
+}
+
+void CMainFrame::OnTestChorus(wxCommandEvent& WXUNUSED(event))
+{
+
+
+
+	wxMessageBox(_T("You're ready to fly -- see line 2207 of MainFrm.cpp"));
+
+
+
+
+
+}
+#endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out 
 // why SetDelay() disables tooltips
