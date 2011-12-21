@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.0.1"
+#define MyAppVersion "6.1.0"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -22,21 +22,21 @@ DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
 LicenseFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\LICENSING.txt
 InfoBeforeFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Readme_Unicode_Version.txt
-OutputBaseFilename=Adapt_It_WX_6_0_1_Unicode_Minimal
+OutputBaseFilename=Adapt_It_WX_6_1_0_Unicode_Minimal
 SetupIconFile=C:\C++ Programming\Adapt It\adaptit\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir=C:\Users\Bill Martin\Desktop\AIWX Installers
 VersionInfoCopyright=2011 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.0.1
+VersionInfoProductVersion=6.1.0
 WizardImageFile="C:\C++ Programming\Adapt It\adaptit\res\AIWX.bmp"
 WizardSmallImageFile="C:\C++ Programming\Adapt It\adaptit\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2011 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.0.1
+VersionInfoVersion=6.1.0
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
