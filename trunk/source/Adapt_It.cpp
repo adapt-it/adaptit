@@ -17970,6 +17970,17 @@ int ii = 1;
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
 */
+	// support Mike's testing of Chorus port (TEST_CHORUS is #defined at line 25 of Adapt_It.h)
+#if defined(TEST_CHORUS)
+	wxMenuBar* pAIMenuBar = NULL;
+	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
+	int nIndexOfHelpMenu = pAIMenuBar->FindMenu(_T("Help"));
+	wxASSERT(nIndexOfHelpMenu != wxNOT_FOUND);
+	wxMenu* pHelpMenu = pAIMenuBar->GetMenu(nIndexOfHelpMenu);
+	wxMenuItem* pTestChorusItem = pHelpMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test Chorus")); // defaults for final 2 params
+#endif
+	// end of code for supporting Mike's testing of Chorus port
+	
 	//klb test
 	//bool a = ParatextIsRunning();
 

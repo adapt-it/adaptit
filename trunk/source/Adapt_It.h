@@ -21,6 +21,11 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
+// a temporary #define for Mike to use when working on Chorus
+#define TEST_CHORUS
+// a symbolic menuID for the commands Mike will use (menu item appended to bottom of Help menu)
+const int ID_MENU_CHORUS_TESTS = 999;
+
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
 // his version 5 parsing of xml documents - so Bruce will wrap his code changes in a
