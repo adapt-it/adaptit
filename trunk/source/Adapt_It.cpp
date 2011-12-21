@@ -13927,17 +13927,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// 1. adaptit   the main executable program at /usr/bin/adaptit or /usr/local/bin/adaptit 
 	//    depending on the value of m_PathPrefix.
 	//    path variable: m_appInstallPathOnly
-	//    relevant function: FindAppPath()
+	//    relevant function: FindAppPath() or GetProgramLocationFromSystemPATH(GetAppName()
 	// 2. bibledit-rdwrt   the Bibledit supplied utility program at /usr/bin/bibledit-rdwrt (or 
 	//    where found on the systme PATH).  m_BibleditInstallDirPath already has a prefix on it
 	//    because it calls the GetProgramLocationFromSystemPATH() function directly.
 	//    path variable: m_BibleditInstallDirPath
-	//    relevant functions: GetBibleditInstallDirPath() and GetProgramLocationFromSystemPATH().
+	//    relevant functions: GetBibleditInstallDirPath() calls GetProgramLocationFromSystemPATH(_T("bibledit-rdwrt")).
 	// 3. adaptit-bibledit-rdwrt   the Adapt It supplied Bibledit utility program at 
 	//    /usr/bin/adaptit-bibledit-rdwrt or /usr/local/bin/adaptit-bibledit-rdwrt depending
 	//    on the value of m_PathPrefix.
-	//    path variable: m_appInstallPathOnly
-	//    relevant function: FindAppPath()
+	//    path variable: beRdwrtPathAndFileName (in CollabUtilities.cpp's GetPathToBeRdwrt())
+	//    relevant function: GetAdaptit_Bibledit_rdwrtInstallDirPath() calls GetProgramLocationFromSystemPATH(_T("adaptit-bibledit-rdwrt"))
 	// 4. AI_USFM.xml, AI_UserProfiles.xml and books.xml, curl-ca-bundle.ctr, iso639-3codes.txt
 	//    the Adapt It xml control files, CA authority file, ethnologue codes
 	//    at "/usr/share/adaptit/" or "/usr/local/share/adaptit/" depending on the value
