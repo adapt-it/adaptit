@@ -253,6 +253,8 @@
 		<Unit filename="../../source/ConsistentChanger.h" />
 		<Unit filename="../../source/CorGuess.cpp" />
 		<Unit filename="../../source/CorGuess.h" />
+		<Unit filename="../../source/DVCS.cpp" />
+		<Unit filename="../../source/DVCS.h" />
 		<Unit filename="../../source/DocPage.cpp" />
 		<Unit filename="../../source/DocPage.h" />
 		<Unit filename="../../source/EarlierTranslationDlg.cpp" />
