@@ -84,10 +84,10 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
 	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
 	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
-	ExportFunctions.$(OBJEXT) ExportInterlinearDlg.$(OBJEXT) \
-	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
-	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
-	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	DVCS.$(OBJEXT) ExportFunctions.$(OBJEXT) \
+	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
+	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
+	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
 	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
@@ -413,6 +413,7 @@ adaptit_SOURCES = \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
+	../../source/DVCS.cpp \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
@@ -567,6 +568,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistencyCheckDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistentChanger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CorGuess.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DVCS.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DocPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EarlierTranslationDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EditPreferencesDlg.Po@am__quote@
@@ -1190,6 +1192,20 @@ EmailReportDlg.obj: ../../source/EmailReportDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/EmailReportDlg.cpp' object='EmailReportDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o EmailReportDlg.obj `if test -f '../../source/EmailReportDlg.cpp'; then $(CYGPATH_W) '../../source/EmailReportDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/EmailReportDlg.cpp'; fi`
+
+DVCS.o: ../../source/DVCS.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT DVCS.o -MD -MP -MF $(DEPDIR)/DVCS.Tpo -c -o DVCS.o `test -f '../../source/DVCS.cpp' || echo '$(srcdir)/'`../../source/DVCS.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/DVCS.Tpo $(DEPDIR)/DVCS.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/DVCS.cpp' object='DVCS.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o DVCS.o `test -f '../../source/DVCS.cpp' || echo '$(srcdir)/'`../../source/DVCS.cpp
+
+DVCS.obj: ../../source/DVCS.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT DVCS.obj -MD -MP -MF $(DEPDIR)/DVCS.Tpo -c -o DVCS.obj `if test -f '../../source/DVCS.cpp'; then $(CYGPATH_W) '../../source/DVCS.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/DVCS.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/DVCS.Tpo $(DEPDIR)/DVCS.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/DVCS.cpp' object='DVCS.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o DVCS.obj `if test -f '../../source/DVCS.cpp'; then $(CYGPATH_W) '../../source/DVCS.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/DVCS.cpp'; fi`
 
 ExportFunctions.o: ../../source/ExportFunctions.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExportFunctions.o -MD -MP -MF $(DEPDIR)/ExportFunctions.Tpo -c -o ExportFunctions.o `test -f '../../source/ExportFunctions.cpp' || echo '$(srcdir)/'`../../source/ExportFunctions.cpp
