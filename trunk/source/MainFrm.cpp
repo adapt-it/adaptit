@@ -8,9 +8,9 @@
 /// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
 /// \description	This is the implementation for the CMainFrame class.
-/// The CMainFrame class defines Adapt It's basic interface, including its menu bar, 
-/// tool bar, control bar, compose bar, and status bar. 
-/// \derivation		The CMainFrame class is derived from wxDocParentFrame and inherits 
+/// The CMainFrame class defines Adapt It's basic interface, including its menu bar,
+/// tool bar, control bar, compose bar, and status bar.
+/// \derivation		The CMainFrame class is derived from wxDocParentFrame and inherits
 /// its support for the document/view framework.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -56,8 +56,8 @@
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
 #endif // wxUSE_WXHTML_HELP
 
-// wx docs say: "By default, the DDE implementation is used under Windows. DDE works within one computer only. 
-// If you want to use IPC between different workstations you should define wxUSE_DDE_FOR_IPC as 0 before 
+// wx docs say: "By default, the DDE implementation is used under Windows. DDE works within one computer only.
+// If you want to use IPC between different workstations you should define wxUSE_DDE_FOR_IPC as 0 before
 // including this header [<wx/ipc.h>]-- this will force using TCP/IP implementation even under Windows."
 #ifdef useTCPbasedIPC
 #define wxUSE_DDE_FOR_IPC 0
@@ -85,6 +85,7 @@
 #include "StartWorkingWizard.h"
 #include "EmailReportDlg.h"
 #include "HtmlFileViewer.h"
+#include "DVCS.h"
 // includes above
 
 /// This global is defined in Adapt_It.cpp
@@ -93,19 +94,19 @@ extern CStartWorkingWizard* pStartWorkingWizard;
 extern bool gbRTL_Layout; // temporary for debugging only
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
-extern bool gbVerticalEditInProgress; 
+extern bool gbVerticalEditInProgress;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbEditingSourceAndDocNotYetChanged; // the View sets it to TRUE but programmatically cleared to FALSE when doc is changed
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
-extern EditRecord gEditRecord; 
+extern EditRecord gEditRecord;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern EntryPoint gEntryPoint;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
-extern bool gbAdaptBeforeGloss; 
+extern bool gbAdaptBeforeGloss;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern EditStep gEditStep;
@@ -181,7 +182,7 @@ extern	bool	bUserCancelled;
 extern	bool	gbSuppressSetup;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool		gbTryingMRUOpen; 
+extern bool		gbTryingMRUOpen;
 
 /// This global is defined in Adapt_It.cpp.
 extern	bool	gbViaMostRecentFileList;
@@ -308,11 +309,11 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_CLOSE(CMainFrame::OnClose)
 	EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CMainFrame::OnMRUFile)
 #ifdef __WXMSW__
-	// wx version doesn't use an event handling macro for handling broadcast Windows messages; 
-	// instead we first override the MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) 
-	// virtual method of our wxWindow-based class (which in our case is CMainFrame); 
+	// wx version doesn't use an event handling macro for handling broadcast Windows messages;
+	// instead we first override the MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+	// virtual method of our wxWindow-based class (which in our case is CMainFrame);
 	// We then test if the nMsg parameter is the message we need to process (WM_SANTA_FE_FOCUS)
-	// and perform the necessary action if it is, or call the base class method 
+	// and perform the necessary action if it is, or call the base class method
 	// (wxDocParentFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam))
 	// otherwise.
 	// The following was for MFC only:
@@ -332,18 +333,18 @@ END_EVENT_TABLE()
 const int ScriptureReferenceFocus = 1;
 
 /// This global boolean is used to toggle the appropriate menu selections having to do with
-/// sending and receiving of sync scrolling messages, and informs functions involved in the 
+/// sending and receiving of sync scrolling messages, and informs functions involved in the
 /// SantaFeFocus message of the state of those sync scrolling settings.
 bool	gbIgnoreScriptureReference_Receive = TRUE;
 
 /// This global boolean is used to toggle the appropriate menu selections having to do with
-/// sending and receiving of sync scrolling messages, and informs functions involved in the 
+/// sending and receiving of sync scrolling messages, and informs functions involved in the
 /// SantaFeFocus message of the state of those sync scrolling settings.
 bool	gbIgnoreScriptureReference_Send = TRUE;
 int		gnMatchedSequNumber = -1; // set to the sequence number when a matching ch:verse is found
 
 /// A temporary store for parsed in AI document's list of CSourcePhrase pointers.
-SPList* gpDocList = NULL; 
+SPList* gpDocList = NULL;
 
 /*******************************
 *	ExtractScriptureReferenceParticulars
@@ -360,13 +361,13 @@ SPList* gpDocList = NULL;
 *	Decomposes the input message string into its parts and presents them in
 *	forms relevant to possible calling functions
 ********************************/
-void ExtractScriptureReferenceParticulars(wxString& strSantaFeMsg, wxString& str3LetterCode, 
+void ExtractScriptureReferenceParticulars(wxString& strSantaFeMsg, wxString& str3LetterCode,
 								 wxString& strChapVerse, int& nChapter, int& nVerse)
 {
 	str3LetterCode = strSantaFeMsg.Left(3);
 	str3LetterCode.MakeUpper(); // ensure it is upper case throughout, as that's what Adapt It wants
 	strChapVerse = strSantaFeMsg.Mid(4);
-	int index = strChapVerse.Find(_T(':'),TRUE); // TRUE finds from end 
+	int index = strChapVerse.Find(_T(':'),TRUE); // TRUE finds from end
 	if (index != -1)
 	{
 		wxString strChapter(strChapVerse[0],index);
@@ -462,7 +463,7 @@ wxString MakeChapVerseStrForSynchronizedScroll(wxString& chapVerseStr)
 			str.SetChar(0,_T('1'));
 
 		}
-		wxString firstPart = str.Left(nColonIndex + 1); // everything up to and including the colon 
+		wxString firstPart = str.Left(nColonIndex + 1); // everything up to and including the colon
 		wxString theRest(str,nColonIndex + 1); // everything from the character after the colon
 		int offset = FindOneOf(theRest,_T(",-"));
 		if (offset == -1)
@@ -534,7 +535,7 @@ void SyncScrollSend(const wxString& strThreeLetterBook, const wxString& strChapV
 			// whm note: the first parameter of SetValue() below must be _T("") to set the value to strMsg
 			if( keyScriptureRef.SetValue(_T(""),strMsg) )
 			{
-				// before sending the message to the 'other applications', turn off receiving the messages 
+				// before sending the message to the 'other applications', turn off receiving the messages
 				// so we don't end up responding to our own message
 				bool bOriginal = gbIgnoreScriptureReference_Receive;
 				gbIgnoreScriptureReference_Receive = TRUE;
@@ -588,7 +589,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	if (pFreeTrans == NULL) bGotPointersSuccessfully = FALSE;
-	
+
 	CNotes* pNotes = gpApp->GetNotes();
 	if (pNotes == NULL) bGotPointersSuccessfully = FALSE;
 
@@ -618,7 +619,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					// in the passed in synch scroll message
 					if (strBookCode != strThreeLetterBook)
 					{
-						bNeedMultiDocScan = TRUE; //goto scan; // try a multi-document scan, because the open Adapt It document does 
+						bNeedMultiDocScan = TRUE; //goto scan; // try a multi-document scan, because the open Adapt It document does
 								   // not contain data from the sending application's open Bible book
 					}
 					else
@@ -657,12 +658,12 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					} // end block for trying to find a matching scripture reference in the open document
 				} // end block for checking out the open document's 3-letter book code
 			} // end block for testing an open AI document
-			
+
 			if (bNeedMultiDocScan)
 			{
 				// no document is open at present, or a document is open but we failed to match either
 				// the book, or chapter;verse reference within it in the above code block, so we will
-				// have to scan for the book before we can attempt to find the relevant chapter:verse 
+				// have to scan for the book before we can attempt to find the relevant chapter:verse
 				// location (note: there could be several document files having the same 3-letter book code);
 				// and if a doc is open while we are doing this we leave it open until the very last possible
 				// minute, when we have a matched book and scripture reference to go to, and then we would
@@ -717,7 +718,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 				}
 
 				// whm revised 26May11 to use fast functions that find the xml document containing the sync
-				// scroll reference without calling ReadDoc_XML() and fully opening each possible document 
+				// scroll reference without calling ReadDoc_XML() and fully opening each possible document
 				// file while searching for the one with the desired reference.
 				wxString docExtToSearch = _T(".xml");
 				wxString foundDocWithReferenceFilePathAndName;
@@ -791,7 +792,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					}
 					pDoc->SetFilename(foundDocWithReferenceFilePathAndName,TRUE);
 					bOK = ::wxSetWorkingDirectory(strFolderPath); // set the active folder to the path
-					
+
 					// copy & tweak code from DocPage.cpp for getting the document open and view set up
 					// with the phrase box at the wanted sequence number
 					bOK = pDoc->OnOpenDocument(foundDocWithReferenceFilePathAndName);
@@ -847,7 +848,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					gpApp->RefreshStatusBarInfo();
 					return TRUE; // don't continue in the loop any longer
 				}
-				
+
 			} // end of else block for doing a scan of all doc files
 		}
 	}
@@ -910,7 +911,7 @@ int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxSt
 				int curPos = refStr.Find(_T(':'));
 				if (curPos == -1) continue; // no colon: bogus ch:verse ref in CSourcePhrase, so iterate
 				wxString aChapterNumberStr(refStr,curPos);
-				int aChapterNumber = wxAtoi(aChapterNumberStr); 
+				int aChapterNumber = wxAtoi(aChapterNumberStr);
 				if (nChap != aChapterNumber && nChap != 1) continue; // no match of the non-1 chapter
 				if (nChap == 1 && (aChapterNumber != 1 || aChapterNumber != 0)) continue; // no match
 					// of chapter 1 with a 1 or 0 in the m_chapterVerse member's chapter number
@@ -1007,7 +1008,7 @@ void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
 				pSrcPhrase = pos->GetData();
 				pos = pos->GetNext();
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // ignore partner piles
-					// because this function works only on a temporary list of 
+					// because this function works only on a temporary list of
 					// CSourcePhrase instances and so there never are any partner piles
 			}
 			pList->Clear();
@@ -1039,7 +1040,7 @@ bool CMainFrame::DoSantaFeFocus(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam))
                 wxString strVerse(&lpValue[nIndex + 1]);
                 int nChap = _ttoi(strChapter);
                 int nVerse = _ttoi(strVerse);
-                SyncScrollReceive(strThreeLetterBook, nChap, nVerse);                
+                SyncScrollReceive(strThreeLetterBook, nChap, nVerse);
             }
 			*/
 			wxString strThreeLetterBook;
@@ -1047,7 +1048,7 @@ bool CMainFrame::DoSantaFeFocus(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam))
 			int nChapter;
 			int nVerse;
 			ExtractScriptureReferenceParticulars(strValue,strThreeLetterBook,strChapVerse,nChapter,nVerse);
-			wxASSERT(gpApp->m_pBibleBooks != NULL); 
+			wxASSERT(gpApp->m_pBibleBooks != NULL);
 			bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, strThreeLetterBook);
 			if (bMatchedBookCode)
 			{
@@ -1068,7 +1069,7 @@ bool CMainFrame::DoSantaFeFocus(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam))
 // and perform the necessary action if it is, or call the base class method otherwise.
 // TODO: Implement a wx system for doing IPC on Linux and Mac (Checkout Bibledit's use
 // of its Bibledit Windows Outpost, a separate app that functions as a communication
-// interface using a TCP/IP interface listening on port 51515, to enable Linux and Windows 
+// interface using a TCP/IP interface listening on port 51515, to enable Linux and Windows
 // programs to be able to exchange info, do sync scrolling etc.)
 WXLRESULT CMainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
@@ -1083,7 +1084,7 @@ WXLRESULT CMainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
 
     if ( !processed )
         rc = wxDocParentFrame::MSWWindowProc(nMsg, wParam, lParam);
-    
+
 	return rc;
 }
 #endif
@@ -1122,7 +1123,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	//m_bUsingHighResDPIScreen = FALSE;
 
-	// these dummy ID values are placeholders for unused entries in the accelerator below 
+	// these dummy ID values are placeholders for unused entries in the accelerator below
 	// that are not implemented in the wx version
 	int dummyID1 = -1;
 	int dummyID2 = -1;
@@ -1135,7 +1136,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// ASSIGN THE ACCELERATOR HOT KEYS REQUIRED FOR THE DIFFERENT PLATFORMS
 	// See also the the App's OnInit() where menu adjustments are made to
 	// coordinate with these accelerator/hot key assignments.
-	// 
+	//
 	// Note: The wx docs say, "On Windows, menu or button commands are supported, on GTK (Linux)
 	// only menu commands are supported. Therefore, for those below which are accelerators for
 	// toolbar buttons, probably won't work on Linux. There would probably need to be a (hidden?)
@@ -1147,7 +1148,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// off accelerators when the item associated with them is disabled. The wx behavior mandates
 	// that we put code within the handlers (similar to what is already in the Update UI handlers)
 	// to prevent them from executing if the user types the accelerator key combination.
-	// 
+	//
 	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
 #ifdef __WXMAC__
     wxAcceleratorEntry entries[37];
@@ -1241,7 +1242,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm Note: On Mac both Command-Shift-/ is the usual hot key for getting app help
     entries[36].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '/', wxID_HELP);
 #endif
-    
+
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
     //entries[36].Set(wxACCEL_ALT, (int) 'L', IDC_BUTTON_LENGTHEN); // added to get compose bar button to work
     //entries[37].Set(wxACCEL_ALT, (int) 'R', IDC_BUTTON_REMOVE); // added to get compose bar button to work
@@ -1256,8 +1257,8 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// NOTE: This CMainFrame constructor is executed BEFORE CAdapt_ItApp::OnInit().
 	// Therefore, do NOT attempt to call or manipulate anything here before it
 	// is constructed there. For example, removing a menu from
-	// the main frame cannot be done here because the main frame menu itself is 
-	// not loaded and constructed until the SetMenuBar call in CAdapt_ItApp::OnInit() 
+	// the main frame cannot be done here because the main frame menu itself is
+	// not loaded and constructed until the SetMenuBar call in CAdapt_ItApp::OnInit()
 	// is executed with: m_pMainFrame->SetMenuBar(AIMenuBarFunc());
 	// Ditto for accessing any fonts.
 
@@ -1284,15 +1285,15 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	// following moved here from App's OnInit()
 	m_pMenuBar = AIMenuBarFunc(); // Designer's code creates the menuBar
-    SetMenuBar(m_pMenuBar); // Associates the menuBar with the Main Frame; tells the frame 
+    SetMenuBar(m_pMenuBar); // Associates the menuBar with the Main Frame; tells the frame
 							// to show the given menu bar.
-	// Notes on SetMenuBar(): WX Docs say, 
-	// "If the frame is destroyed, the menu bar and its menus will be destroyed also, 
-	// so do not delete the menu bar explicitly (except by resetting the frame's menu 
+	// Notes on SetMenuBar(): WX Docs say,
+	// "If the frame is destroyed, the menu bar and its menus will be destroyed also,
+	// so do not delete the menu bar explicitly (except by resetting the frame's menu
 	// bar to another frame or NULL).
-	// Under Windows, a size event is generated, so be sure to initialize data members 
+	// Under Windows, a size event is generated, so be sure to initialize data members
 	// properly before calling SetMenuBar.
-	// Note that on some platforms, it is not possible to call this function twice for 
+	// Note that on some platforms, it is not possible to call this function twice for
 	// the same frame object."
 
 	// Create the main ToolBar for the app
@@ -1300,7 +1301,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// The original design for the wx toolbar was based on the toolbar sample, which
 	// created and deleted the toolbar each time it was viewed/hidden. Rather than
 	// doing that, we just hide the toolbar when not being viewed (via View menu).
-	// We can also manage the toolbar in our mainsizer. along with the controlbar, 
+	// We can also manage the toolbar in our mainsizer. along with the controlbar,
 	// composebar and canvas.
     long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
 	AIToolBar* toolBar = new AIToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
@@ -1338,7 +1339,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//displaySizeInInches.x = displaySizeInMM.x / 25.4;
 	//displaySizeInInches.y = displaySizeInMM.y / 25.4;
 	//float screenDPI;
-	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
+	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y))
 	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
 
 	if (gpApp->m_bExecutingOnXO)
@@ -1352,12 +1353,12 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	}
 	SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
-	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
-	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage 
-	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect 
-	// the available space for application windows. Under Pocket PC, you should always use this 
-	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use 
-	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar 
+	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with
+	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage
+	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect
+	// the available space for application windows. Under Pocket PC, you should always use this
+	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use
+	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar
 	// as usual."
 
 	m_pToolBar = GetToolBar();
@@ -1371,7 +1372,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 												// presence when calculating the client size
 												// with pMainFrame->GetClientSize()
 
-	// MFC version also has 3 lines here to EnableDocking() of toolBar. We won't use docking in 
+	// MFC version also has 3 lines here to EnableDocking() of toolBar. We won't use docking in
 	// the wx version, although the wxGTK version enables docking by default (we turn it off).
 
 	// Create the control bar using a wxPanel
@@ -1379,15 +1380,15 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxPanel *controlBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
 	wxASSERT(controlBar != NULL);
 	m_pControlBar = controlBar;
-	
-	// The ControlBarFunc() function is located in Adapt_It_wdr.cpp. 
+
+	// The ControlBarFunc() function is located in Adapt_It_wdr.cpp.
 	// To populate the controlBar panel we've used wxBoxSizers. The outer
 	// most sizer is a vertical box sizer which has a horizontal line in
-	// the upper part of the box (for the line between the toolbar and 
-	// controlbar), and the row of controls laid out in wxHORIZONTAL 
+	// the upper part of the box (for the line between the toolbar and
+	// controlbar), and the row of controls laid out in wxHORIZONTAL
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
-	
+
 	if (gpApp->m_bExecutingOnXO) //if (m_bUsingHighResDPIScreen)
 	{
 		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
@@ -1435,7 +1436,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_composeBarHeight = composeBarSize.GetHeight();
 	m_pComposeBarEditBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(m_pComposeBarEditBox != NULL);
-	
+
 	// set the font used in the compose bar to the font & size as currently for the target text
 	m_pComposeBarEditBox->SetFont(*pApp->m_pTargetFont);
 	// The initial state of the composeBar, however is hidden. The OnViewComposeBar()
@@ -1463,9 +1464,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	// MFC: BEW added 11July08 set the font & size used in the combobox in the removals bar to
 	// the font as currently for the target text
-	// whm: 
+	// whm:
 	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);
-	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show in the proper dialog font size.
 	pApp->m_pDlgTgtFont->SetPointSize(10);
 	m_pRemovalsBarComboBox->SetFont(*pApp->m_pDlgTgtFont);
@@ -1477,13 +1478,13 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 		m_pRemovalsBarComboBox->SetLayoutDirection(wxLayout_LeftToRight);
 	#endif
 	// whm Note: At this point the MFC code attempts to "set up the list size - make it fit whatever
-	// is the client rectangle height for the frame wnd". I don't think this is necessary in the wx 
+	// is the client rectangle height for the frame wnd". I don't think this is necessary in the wx
 	// version which controls the bar and its contents with sizers.
     // The initial state of the removalsBar, however is hidden. The m_pRemovalsBar is dynamically hidden
     // or shown depending on the state of any source text/vertical editing process. OnSize()insures the
     // client window is adjusted accordingly and the screen redrawn as needed
 	m_pRemovalsBar->Hide();
-	
+
 	// Create the vertEditBar using a wxPanel
 	wxPanel *vertEditBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
 	wxASSERT(vertEditBar != NULL);
@@ -1501,13 +1502,13 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_vertEditBarHeight = vertEditBarSize.GetHeight();
 	m_pVertEditMsgBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_MSG_TEXT);
 	wxASSERT(m_pVertEditMsgBox != NULL);
-	
+
 	// MFC: BEW added 23July08 set the font & size used in the read-only CEdit in the vertical edit bar to
 	// the font as currently for the navigation text -- we have our own font specifically for this bar
 	// whm Note: We're not using the same font here as we did above in the removals bar; here we use
 	// the dedicated m_pVertEditFont for the m_pVertEditMsgBox.
 	CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pVertEditFont);
-	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// The CopyFontBaseProperties function above doesn't copy the point size, so
 	// make the dialog font show in the proper dialog font size.
 	pApp->m_pVertEditFont->SetPointSize(10);
 	m_pVertEditMsgBox->SetFont(*pApp->m_pVertEditFont);
@@ -1520,7 +1521,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	#endif
 
 	// whm Note: At this point the MFC code attempts to "set up the CEdit's width - make it fit whatever
-	// is the client rectangle height for the frame wnd". I don't think this is necessary in the wx 
+	// is the client rectangle height for the frame wnd". I don't think this is necessary in the wx
 	// version which controls the bar and its contents with sizers.
 	// The initial state of the vertEditBar, however is hidden. The m_pVertEditBar is dynamically hidden
     // or shown depending on the state of any source text/vertical editing process. OnSize()insures the
@@ -1544,7 +1545,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 #ifdef _USE_SPLITTER_WINDOW
 	// the wxSplitterWindow is the parent of the canvas
- 	this->canvas = CreateCanvas(splitter); 
+ 	this->canvas = CreateCanvas(splitter);
 #else
 	this->canvas = CreateCanvas(this);
 #endif
@@ -1559,7 +1560,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// Now create a mainFrameSizer and add our two non-standard "bars" and our canvas to it
 	// Notes: canvas has its own canvasSizer and its own SetAutoLayout() and SetSizer()
 	// see: the body of CMainFrame::CreateCanvas().
-	// We do not include m_pMenuBar nor m_pToolBar under mainFrameSizer's control because 
+	// We do not include m_pMenuBar nor m_pToolBar under mainFrameSizer's control because
 	// these interface elements are controlled by CMainFrame : wxDocParentFrame via
 	// the SetMenuBar() and SetToolBar() calls above.
 	//wxBoxSizer* mainFrameSizer = new wxBoxSizer(wxVERTICAL);
@@ -1569,32 +1570,32 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	//SetAutoLayout(TRUE);
 	// WX Notes on SetAutoLayout():
-	// "SetAutoLayout() Determines whether the wxWindow::Layout function will be called 
-	// automatically when the window is resized. Please note that this only happens for 
-	// the windows usually used to contain children, namely wxPanel and wxTopLevelWindow 
-	// (and the classes deriving from them). This method is called implicitly by 
-	// wxWindow::SetSizer but if you use wxWindow::SetConstraints you should call it 
-	// manually or otherwise the window layout won't be correctly updated when its size 
+	// "SetAutoLayout() Determines whether the wxWindow::Layout function will be called
+	// automatically when the window is resized. Please note that this only happens for
+	// the windows usually used to contain children, namely wxPanel and wxTopLevelWindow
+	// (and the classes deriving from them). This method is called implicitly by
+	// wxWindow::SetSizer but if you use wxWindow::SetConstraints you should call it
+	// manually or otherwise the window layout won't be correctly updated when its size
 	// changes."
 	//SetSizer(mainFrameSizer);
 	// WX Notes on SetSizer():
-	// "Sets the window to have the given layout sizer. The window will then own the object, 
-	// and will take care of its deletion. If an existing layout constraints object is 
+	// "Sets the window to have the given layout sizer. The window will then own the object,
+	// and will take care of its deletion. If an existing layout constraints object is
 	// already owned by the window, it will be deleted if the deleteOld parameter is true.
-	// Note that this function will also call SetAutoLayout implicitly with true parameter 
+	// Note that this function will also call SetAutoLayout implicitly with true parameter
 	// if the sizer is non-NULL and false otherwise.
-	// SetSizer now enables and disables Layout automatically, but prior to wxWidgets 2.3.3 
+	// SetSizer now enables and disables Layout automatically, but prior to wxWidgets 2.3.3
 	// the following applied:
-	// You must call wxWindow::SetAutoLayout to tell a window to use the sizer automatically 
-	// in OnSize; otherwise, you must override OnSize and call Layout() explicitly. When 
+	// You must call wxWindow::SetAutoLayout to tell a window to use the sizer automatically
+	// in OnSize; otherwise, you must override OnSize and call Layout() explicitly. When
 	// setting both a wxSizer and a wxLayoutConstraints, only the sizer will have effect."
-	
+
 	//mainSizer->FitInside(canvas);
 
 	// FIXME: On wxX11, we need the MDI frame to process this
     // event, but on other platforms this should not
     // be done.
-#ifdef __WXUNIVERSAL__   
+#ifdef __WXUNIVERSAL__
     event.Skip();
 #endif
 
@@ -1640,7 +1641,7 @@ public:
 // Implement the AboutDlg class
 AboutDlg::AboutDlg(wxWindow *parent)
              : AIModalDialog(parent, -1, wxString(_T("About Adapt It")),
-                        wxDefaultPosition, 
+                        wxDefaultPosition,
 						wxDefaultSize,
                         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -1669,7 +1670,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	//	wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_DATE);
 	//	pStatic->SetLabel(appModDate);
 	//}
-	
+
 	// A better approach is to set the date from constants (since the Linux packages also need to
 	// specify a package date.
 	// Get date from string constants at beginning of Adapt_It.h.
@@ -1682,12 +1683,12 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionDateStr << VERSION_DATE_DAY;
 	wxStaticText* pStaticVersDate = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_DATE);
 	pStaticVersDate->SetLabel(versionDateStr);
-	
+
 
 	// Create the version number from the defines in Adapt_It.h:
 	wxString strVersionNumber;
 	strVersionNumber.Empty();
-	strVersionNumber << VERSION_MAJOR_PART; 
+	strVersionNumber << VERSION_MAJOR_PART;
 	strVersionNumber += _T(".");
 	strVersionNumber << VERSION_MINOR_PART;
 	strVersionNumber += _T(".");
@@ -1744,7 +1745,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionStr << _T(".");
 	versionStr << wxRELEASE_NUMBER;
 	pStaticWxVersionUsed->SetLabel(versionStr);
-	
+
 	wxString strUILanguage;
 	// Fetch the UI language info from the global currLocalizationInfo struct
 	strUILanguage = gpApp->currLocalizationInfo.curr_fullName;
@@ -1782,8 +1783,8 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		// On wxMSW: English_United States.1252
 		// On Ubuntu: en_US.UTF-8
 		// On Mac OS X: C
-		
-		// On Linux Natty i386 version GetSysName() returns a long garbage string which 
+
+		// On Linux Natty i386 version GetSysName() returns a long garbage string which
 		// distorts the dialog, so we'll test for a long string (> 20 chars) and if detected
 		// we'll just put '[Unknown]'
 		if (tempStr.Length() > 20)
@@ -1809,7 +1810,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		//  Ubuntu: m_systemEncodingName = "UTF-8"
 		//     Mac: m_systemEncodingName = "MacRoman" [See App's OnInit() where GetSystemEncodingName()
 		//             is called. There we set this value to a Mac... encoding value]
-		// Note: On Mac OS X, the default encoding depends on your chosen primary language 
+		// Note: On Mac OS X, the default encoding depends on your chosen primary language
 		// (System Preferences, International pane, Languages tab, list of languages).
 		// On a typical Western-European language Mac OS X config, the default encoding will be MacRoman.
 
@@ -1867,7 +1868,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 void CMainFrame::OnAppAbout(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->LogUserAction(_T("Initiated OnAppAbout()"));
-	// To Change version number, date, etc., use wxDesigner to change the AboutDlgFunc() in the 
+	// To Change version number, date, etc., use wxDesigner to change the AboutDlgFunc() in the
 	// Adapt_It_wdr.cpp file
     AboutDlg dlg(this);
 	dlg.Centre();
@@ -1886,7 +1887,7 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 	{
 		// don't allow opening any recent document file in the MRU list
 		// until the vertical edit is finished
-		::wxBell(); 
+		::wxBell();
 		return;
 	}
 	gbTryingMRUOpen = TRUE; // TRUE only while this function's stack frame exists
@@ -1927,8 +1928,8 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 	CLayout* pLayout = gpApp->m_pLayout;
 
 	// WX Docs show the following example for its OnMRUFile handler:
-	// TODO: need to tweak this to also to ensure that things are set up properly to 
-	// load a document from MRU when it is located in a different project; also it must 
+	// TODO: need to tweak this to also to ensure that things are set up properly to
+	// load a document from MRU when it is located in a different project; also it must
 	// work when book folder mode was on in one project and off in the other, or vise versa;
 	// also that it toggles the required booleans and sets up the correct paths to the
 	// book folder or Adaptations folder as the case may be.
@@ -1946,7 +1947,7 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 			pDoc->Modify(FALSE);
 
 			// BEW 3Aug09, brought here from after OnOpenDoc file, otherwise,
-			// m_bRTL_Layout value of OnOpenDocument() gets reset to earlier 
+			// m_bRTL_Layout value of OnOpenDocument() gets reset to earlier
 			// project's value in OnInitialUpdate()
 			pDoc->SetFilename(fileFromMRU,TRUE);
 
@@ -2037,18 +2038,18 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	gpApp->LogUserAction(_T("Initiated OnQuickStartHelp()"));
 	// Note: The option to load the help file into the user's default browser
 	// a better option for this reason: When we use AI's own CHtmlWindow class,
-	// although it is shown as a modeless dialog, it cannot be accessed 
+	// although it is shown as a modeless dialog, it cannot be accessed
 	// (to scroll, click on links, etc.) while other Adapt It dialogs (such
 	// as the Setup Paratext Collaboration dialog) are being shown modal.
-	// Therefore, the CHtmlWindow dialog is limited in what can be shown if 
-	// the administrator wants to follow its setup instructions during 
+	// Therefore, the CHtmlWindow dialog is limited in what can be shown if
+	// the administrator wants to follow its setup instructions during
 	// the setup of the user's Adapt It settings. Loading the html help file
 	// into the user's default browser has the advantage in that it can be
 	// accessed at the same time the administrator is doing his setup using
 	// modal dialogs within Adapt It. He might need to switch back and forth
 	// between AI and the browser, of course, depending on how much screen
 	// disktop is available to work with.
-	// 
+	//
 	// The "Adapt_It_Quick_Start.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
@@ -2060,7 +2061,7 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	// for normal execution of the app
 	bool bSuccess = TRUE;
 #endif
-	
+
 	if (bSuccess)
 	{
 		wxLogNull nogNo;
@@ -2106,9 +2107,9 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 }
 */
 
-// whm 5Nov10 removed the Adapt It Forum... Help menu item because the Adapt It Talk forum 
+// whm 5Nov10 removed the Adapt It Forum... Help menu item because the Adapt It Talk forum
 // was never well utilized its functionality was soon to be removed by Google at the end
-// of 2010. 
+// of 2010.
 //void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
 //{
 //	const wxString userForumURL = _T("http://groups.google.com/group/AdaptIt-Talk");
@@ -2125,8 +2126,8 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 //}
 
 // Provide a direct way to report a problem. This is a menu item that can be used
-// to compose a report and sent it from Adapt It either indirectly, going first 
-// to the user's email program, or directly via MAPI email protocols (On Window 
+// to compose a report and sent it from Adapt It either indirectly, going first
+// to the user's email program, or directly via MAPI email protocols (On Window
 // systems) or SendMail protocols (on Unix - Linux & Mac systems).
 void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 {
@@ -2141,9 +2142,9 @@ void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-// Provide a direct way to give user feedback. This is a menu item that can be 
-// used to compose a report and sent it from Adapt It either indirectly, going 
-// first to the user's email program, or directly via MAPI email protocols (On 
+// Provide a direct way to give user feedback. This is a menu item that can be
+// used to compose a report and sent it from Adapt It either indirectly, going
+// first to the user's email program, or directly via MAPI email protocols (On
 // Window systems) or SendMail protocols (on Unix - Linux & Mac systems).
 void CMainFrame::OnHelpGiveFeedback(wxCommandEvent& WXUNUSED(event))
 {
@@ -2169,7 +2170,7 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 	//wxASSERT(pMenuBar != NULL);
 	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
 	//wxASSERT(pUseToolTips != NULL);
-		
+
 	wxLogNull logNo; // avoid spurious messages from the system
 
 	if (gpApp->m_bUseToolTips)
@@ -2184,13 +2185,13 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,TRUE); //pUseToolTips->Check(TRUE);
 		gpApp->m_bUseToolTips = TRUE;
 	}
-	
+
 	// save current state of m_bUseToolTips in registry/hidden settings file
 	wxString oldPath = gpApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(_T("/Settings"));
-    
+
 	gpApp->m_pConfig->Write(_T("use_tooltips"), gpApp->m_bUseToolTips);
-	
+
 	gpApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(oldPath);
@@ -2207,19 +2208,11 @@ void CMainFrame::OnUpdateTestChorus(wxUpdateUIEvent& event)
 
 void CMainFrame::OnTestChorus(wxCommandEvent& WXUNUSED(event))
 {
-
-
-
-	wxMessageBox(_T("You're ready to fly -- see line 2207 of MainFrm.cpp"));
-
-
-
-
-
+    CallHg();
 }
 #endif
 
-// TODO: uncomment EVT_MENU event handler for this function after figure out 
+// TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event))
@@ -2244,19 +2237,19 @@ _("The current tooltip display time is %d milliseconds which is %d seconds.\nEnt
 		gpApp->m_nTooltipDelay = msTime;
 		wxToolTip::SetDelay(msTime);
 	}
-	
+
 	// save current state of m_bUseToolTips in registry/hidden settings file
 	wxString oldPath = gpApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(_T("/Settings"));
-    
+
 	gpApp->m_pConfig->Write(_T("time_tooltips_displayed_ms"), gpApp->m_nTooltipDelay);
-	
+
 	gpApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
 	gpApp->m_pConfig->SetPath(oldPath);
 }
-	
-// TODO: uncomment EVT_MENU event handler for this function after figure out 
+
+// TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event)
@@ -2415,8 +2408,8 @@ void CMainFrame::OnClose(wxCloseEvent& event)
 	// if the user selects File | Exit, clicks on the x button in the title bar, or clicks on
 	// "Close" on the system-menu of the main frame.
 	// Sometimes the OnIdle() handler was still processing during the shut down process, which
-	// was causing intermittent crashes. To prevent the OnIdle() handler from processing 
-	// during the shutdown process, I'm turning off the idle processes as soon as the main 
+	// was causing intermittent crashes. To prevent the OnIdle() handler from processing
+	// during the shutdown process, I'm turning off the idle processes as soon as the main
 	// frame begins to close.
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
@@ -2437,11 +2430,11 @@ CAdapt_ItCanvas *CMainFrame::CreateCanvas(CMainFrame *parent)
 
 	// Create a canvas for the Adapt It main window
 	CAdapt_ItCanvas* canvas = new CAdapt_ItCanvas(
-		//view, 
-		parent, 
-		wxPoint(0, 0), 
+		//view,
+		parent,
+		wxPoint(0, 0),
 		wxSize(width, height),  // arbitrary initial size set same as main frame's client size; adjusted in OnSize
-		wxVSCROLL ); //0 ); 
+		wxVSCROLL ); //0 );
 	wxASSERT(canvas != NULL);
 	//canvas->SetCursor(wxCursor(wxCURSOR_PENCIL));
 
@@ -2451,9 +2444,9 @@ CAdapt_ItCanvas *CMainFrame::CreateCanvas(CMainFrame *parent)
 	// otherwise the canvas will appear without scrollbars when a document is opened. The third and
 	// fourth parameters (number of scroll units) is arbitrary and will be set to the proper values
 	// once the virtual size of the canvas/doc is determined in RecalcLayout().
-	
+
 	canvas->SetScrollRate(20,20); // testing !!!
-	
+
 	//canvas->EnableScrolling(FALSE,TRUE); // testing !!!
 
 	//canvas->SetClientSize(wxSize(800,600)); // NO!!! (see note below)
@@ -2467,7 +2460,7 @@ CAdapt_ItCanvas *CMainFrame::CreateCanvas(CMainFrame *parent)
 
 	// Set the background of the canvas to white
 	canvas->SetBackgroundColour(*wxWHITE);
-    
+
 	canvas->ClearBackground();
 
 	return canvas; // return pointer to new canvas to caller
@@ -2606,12 +2599,12 @@ void CMainFrame::OnUpdateViewStatusBar(wxUpdateUIEvent& event)
 
 // whm added 20Jul11 to provide easier access to the Administrator menu
 // by having a "Show Administrator Menu... (Password protected)" menu
-// item also located in the top level "View" menu (this is now in 
+// item also located in the top level "View" menu (this is now in
 // addition to a checkbox of the same label in the Edit | Preferences...
 // | View tab page.
 // Note: The Administrator menu is not subject to being made visible or
-// invisible within the user profiles mecahnism. It strictly is made 
-// visible or invisible according to the Administrator's password 
+// invisible within the user profiles mecahnism. It strictly is made
+// visible or invisible according to the Administrator's password
 // protected actions.
 void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
@@ -2637,8 +2630,8 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 		wxString message = _("Access to Administrator privileges requires that you type a password");
 		wxString caption = _("Type Administrator Password");
 		wxString default_value = _T("");
-		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this); 
-		if (password == _T("admin") || 
+		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
+		if (password == _T("admin") ||
 			(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
 		{
 			// a valid password was typed
@@ -2651,7 +2644,7 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 			::wxBell();
 			pApp->LogUserAction(_T("Invalid password entered"));
 			// whm Note: The "Show Administrator Menu... (Password protected)" menu
-			// item is a toggle menu item. Its toggle state does not need to be 
+			// item is a toggle menu item. Its toggle state does not need to be
 			// explicitly changed here.
 		}
 	}
@@ -2677,11 +2670,11 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // dialogs. CMainFrame knows about some of the windows attached to its frame, but
     // not others. It knows about the menu bar, tool bar and status bar. For those it
     // can adjust the value returned by GetClientSize to reflect the remaining size
-    // available to application windows. But there are other windows that can appear in 
-    // the main frame and we must account for those. These are the m_pControlBar, the 
-    // m_pComposeBar, m_pRemovalsBar, m_pVertEditBar, and the actual canvas which the 
+    // available to application windows. But there are other windows that can appear in
+    // the main frame and we must account for those. These are the m_pControlBar, the
+    // m_pComposeBar, m_pRemovalsBar, m_pVertEditBar, and the actual canvas which the
     // user knows as Adapt It's "main window."
-    // 
+    //
     // These windows are managed here in OnSize, which dynamically adjusts the size of
     // mainFrameClientSize depending on which of these window elements are visible on the
     // main frame at any given time. OnSize insures that they fill their appropriate places
@@ -2701,25 +2694,25 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // made to appear by menu command or by the vertical process (may also be done custom
     // event handlers).
 
-	// We would do the following if we were going to control the main window's layout 
+	// We would do the following if we were going to control the main window's layout
 	// with sizers:
 	//Layout();	// causes the layout of controlBar, composeBar (if shown) and the canvas
 				// within mainSizer to be adjusted according to the new size of the main
 				// frame.
 
 	// OnSize() is called the first time before the Main Frame constructor is finished and
-	// before the controlBar, composeBar, and canvas are created, so check if any of these 
+	// before the controlBar, composeBar, and canvas are created, so check if any of these
 	// are null and return from OnSize() if they do not exist yet.
-	if (m_pControlBar == NULL || m_pComposeBar == NULL 
+	if (m_pControlBar == NULL || m_pComposeBar == NULL
 		|| m_pRemovalsBar == NULL || m_pVertEditBar == NULL  // these added for vertical edit process
 		|| canvas == NULL)
 		return;
 
-	// Notes: 
+	// Notes:
 	// 1. OnSize is called three times on application start, and once each time
 	// the user does an actual mainframe resize
-	// 2. The toolBar is managed by the doc/view framework, which also seems to 
-	// usually take care of redrawing the frame and client window when the 
+	// 2. The toolBar is managed by the doc/view framework, which also seems to
+	// usually take care of redrawing the frame and client window when the
 	// toolbar is toggled on and off.
 	// 3. Under wxGTK calling GetClientSize on the canvas rather than on the main frame
 	// produces quite different results than doing so on wxMSW (in the wxMSW case the
@@ -2731,7 +2724,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	// probably work OK to manage the extra "bar" elements, and the canvas within the main
 	// frame, especially once GetClientSize() is obtained from the main frame rather than
 	// from the canvas itself, I've opted to place those windows within the main frame
-	// manually (apart from using mainFrameSizer) so as to be able to better determine 
+	// manually (apart from using mainFrameSizer) so as to be able to better determine
 	// the source of other scrolling problems.
 
     // First, set the position of the m_pControlBar in the main frame's client area. Note:
@@ -2744,7 +2737,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // Note: SetSize() uses upper left coordinates in pixels x and y, plus a width and
     // height also in pixels. Its signature is SetSize(int x, int y, int width, int
     // height).
-	m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight); 
+	m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight);
 					// width is mainFrameClientSize.x, height is m_controlBarHeight
 	m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
 
@@ -2760,20 +2753,20 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // The FinalHeightOfCanvas that we end up placing starts with the available height of
     // the mainFrameClientSize as determined by the GetClientSize() call above, now reduced
     // by the height of our always visible controlBar.
-	int finalHeightOfCanvas = mainFrameClientSize.y - m_controlBarHeight; 
+	int finalHeightOfCanvas = mainFrameClientSize.y - m_controlBarHeight;
 
     // Next, set the size and placement for each of the visible "bars" that appear at the
     // top of the client area (under the controlBar. We increment the value of
     // VertDisplacementFromReportedMainFrameClientSize for each one that is visible (so
     // we'll know where to size/place the canvas after all other elements are sized/placed.
-	
+
 	// Adjust the composeBar's position in the main frame (if composeBar is visible).
 	if (m_pComposeBar->IsShown())
 	{
         // The composeBar is showing, so set its position (with existing size) just below
         // the controlBar. The upper left y coord now is represented by
         // VertDisplacementFromReportedMainFrameClientSize.
-		m_pComposeBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, 
+		m_pComposeBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
 								mainFrameClientSize.x, m_composeBarHeight);
 		m_pComposeBar->Refresh();
 
@@ -2789,7 +2782,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
         // The removalsBar is showing, so set its position (with existing size) just below
         // the last placed element.
         // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
-		m_pRemovalsBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, 
+		m_pRemovalsBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
 									mainFrameClientSize.x, m_removalsBarHeight);
 		pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 
@@ -2805,7 +2798,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
         // The verteditBar is showing, so set its position (with existing size) just below
         // the last placed element.
         // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
-		m_pVertEditBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, 
+		m_pVertEditBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
 									mainFrameClientSize.x, m_vertEditBarHeight);
 		pVertEditBarSizer->Layout(); //m_pVertEditBar->Refresh();
 
@@ -2813,7 +2806,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		VertDisplacementFromReportedMainFrameClientSize += m_vertEditBarHeight;
 		finalHeightOfCanvas -= m_vertEditBarHeight;
 	}
-	
+
 #ifdef _USE_SPLITTER_WINDOW
     // whm Note: If the splitter window IsSplit, we have two versions of the canvas, one in
     // the top splitter window and one in the bottom splitter window. To size things
@@ -2842,9 +2835,9 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		// arguments: top left x and y coords of canvas within client area, then
 		// width and height of canvas
 		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
-						mainFrameClientSize.x, finalHeightOfCanvas); 
+						mainFrameClientSize.x, finalHeightOfCanvas);
 #endif
-	
+
     // whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine BEW
     // added 05Mar06: Bill Martin reported (email 3 March) that if user is in free
     // translation mode, and uses either the Shorten of Lengthen buttons (these set
@@ -2879,7 +2872,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // FIXME?: On wxX11, we need the MDI frame to process this
     // event, but on other platforms this should not
     // be done.
-#ifdef __WXUNIVERSAL__   
+#ifdef __WXUNIVERSAL__
     event.Skip();
 #endif
 
@@ -2903,9 +2896,9 @@ void CMainFrame::RecreateToolBar()
 
     long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
 
-    // We do not use CreateToolBar() now in the wx version. It is a method of 
-    // the Frame class and can be used to inform the doc/view of the existence 
-    // of the toolbar so the client window can allow space for it, but we manage 
+    // We do not use CreateToolBar() now in the wx version. It is a method of
+    // the Frame class and can be used to inform the doc/view of the existence
+    // of the toolbar so the client window can allow space for it, but we manage
     // the calculations for the size of the client window on our own.
 	//toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
 	toolBar = new AIToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
@@ -2926,13 +2919,13 @@ void CMainFrame::RecreateToolBar()
 		pApp->RemoveToolBarItemsFromToolBar(toolBar);
 	}
 	SetToolBar(toolBar);
-	
+
 	m_pToolBar = GetToolBar();
 	wxASSERT(m_pToolBar == toolBar);
 
 	wxSize toolBarSize;
 	toolBarSize = m_pToolBar->GetSize();
-	m_toolBarHeight = toolBarSize.GetHeight();	
+	m_toolBarHeight = toolBarSize.GetHeight();
 }
 
 // this overrides the wxFrame::GetToolBar() method which returns a wxToolBar*
@@ -2963,16 +2956,16 @@ void CMainFrame::DoCreateStatusBar()
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the update idle mechanism
 /// \remarks
-/// Called from: The wxUpdateUIEvent mechanism during idle time processing. 
-/// This update handler insures that the "Automatic" checkbox is checked when the App's 
+/// Called from: The wxUpdateUIEvent mechanism during idle time processing.
+/// This update handler insures that the "Automatic" checkbox is checked when the App's
 /// m_bSingleStep flag is FALSE, and unchecked when the flag is TRUE.
 /// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateCheckSingleStep(wxUpdateUIEvent& event)
 {
 	// This checkbox control was renamed to have "Automatic" as its label.
-	// Note: OnUpdateCheckSingleStep() only is used here in CMainFrame. In the MFC 
-	// code UpdateCheckSingleStep() is not used in CMainFrame, only in CAdapt_ItView. 
+	// Note: OnUpdateCheckSingleStep() only is used here in CMainFrame. In the MFC
+	// code UpdateCheckSingleStep() is not used in CMainFrame, only in CAdapt_ItView.
 	// the flags we want are on the view, so get the view
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2988,8 +2981,8 @@ void CMainFrame::OnUpdateCheckSingleStep(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the update idle mechanism
 /// \remarks
-/// Called from: The wxUpdateUIEvent mechanism during idle time processing. 
-/// This update handler insures that the "Save To Knowledge Base" checkbox is checked when the 
+/// Called from: The wxUpdateUIEvent mechanism during idle time processing.
+/// This update handler insures that the "Save To Knowledge Base" checkbox is checked when the
 /// App's m_bSaveToKB flag is TRUE, and unchecked when the flag is FALSE.
 /// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -3010,8 +3003,8 @@ void CMainFrame::OnUpdateCheckKBSave(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the update idle mechanism
 /// \remarks
-/// Called from: The wxUpdateUIEvent mechanism during idle time processing. 
-/// This update handler insures that the "Force Choice For This Item" checkbox is checked when the 
+/// Called from: The wxUpdateUIEvent mechanism during idle time processing.
+/// This update handler insures that the "Force Choice For This Item" checkbox is checked when the
 /// App's m_bForceAsk flag is TRUE, and unchecked when the flag is FALSE.
 /// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -3048,7 +3041,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 	// the flags we want are on the view, so get the view
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
-	CAdapt_ItView* pAppView; 
+	CAdapt_ItView* pAppView;
 	CAdapt_ItDoc* pDoc;
 	CPhraseBox* pBox;
 	pApp->GetBasePointers(pDoc,pAppView,pBox);
@@ -3169,7 +3162,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
             // the setting, which by default will be based on m_pTargetFont, but when
             // glossing it could be the navText's font instead
 			wxTextCtrl* pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
-			
+
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
 				CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pComposeFont);
@@ -3180,7 +3173,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			}
 			pApp->m_pComposeFont->SetPointSize(12);
 			pEdit->SetFont(*pApp->m_pComposeFont);
-			
+
 			if (gpApp->m_bFreeTranslationMode)
 			{
 				// when commencing free translation mode, show any pre-existing content selected
@@ -3191,7 +3184,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			{
                 // BEW added 18Oct06, since focus doesn't get automatically put into
                 // compose bar's edit box when the bar was first opened...
-				// when not Free Translation mode, set the focus to the edit box and 
+				// when not Free Translation mode, set the focus to the edit box and
 				// show all selected
 				pEdit->SetSelection(-1,-1); // -1,-1 selects all
 			}
@@ -3207,12 +3200,12 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// This handler insures that the "Compose Bar" item on the View menu is enabled and checked when 
+/// This handler insures that the "Compose Bar" item on the View menu is enabled and checked when
 /// the App's m_bComposeWndVisible flag is TRUE, and unchecked when m_bComposeWndVisible is FALSE.
 /// The "Compose Bar" menu item will be disabled if the application is in free translation mode.
 /// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event) 
+void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
 	{
@@ -3224,7 +3217,7 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		// free translation mode is in effect
@@ -3246,7 +3239,7 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 // NOTE: wxFrame::OnActivate() is MS Windows only. It is not a virtual function
 // under wxWidgets, and takes a single wxActivateEvent& event parameter.
 // BEW 26Mar10, no changes needed for support of doc version 5
-void CMainFrame::OnActivate(wxActivateEvent& event) 
+void CMainFrame::OnActivate(wxActivateEvent& event)
 {
 	// NOTE: Setting a breakpoint in this type of function will be problematic
 	// because the breakpoint will itself trigger the OnActivate() event!
@@ -3274,7 +3267,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 		}
 		// restore focus to the targetBox, if it is visible
 		if (pApp->m_pTargetBox != NULL)
-			if (pApp->m_pTargetBox->IsShown()) 
+			if (pApp->m_pTargetBox->IsShown())
 				pApp->m_pTargetBox->SetFocus();
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
@@ -3286,7 +3279,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 // the File | Exit and App x cancel commands to not be responsive there
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnIdle(wxIdleEvent& event)
-{	
+{
 	idleCount++; // unused, may want to use this later
 
 	// from exec sample below
@@ -3395,7 +3388,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		if (dataChanged)
 		{
-			SetStatusText(wxString::Format(_T("vStart = %dy, pgsz = %d, scrpos = %d, scrmax = %d,") 
+			SetStatusText(wxString::Format(_T("vStart = %dy, pgsz = %d, scrpos = %d, scrmax = %d,")
 				_T("pixpu = %d, clSzcan: %d,%d, clSzfr %d,%d virtSz:%dw%dh"),
 										//vStartx,
 										(int)vStarty,
@@ -3458,7 +3451,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
 	if (gbReplaceAllIsCurrent && pView != NULL && pApp->m_pReplaceDlg != NULL )
-	{			
+	{
 		bool bSucceeded = pApp->m_pReplaceDlg->OnePassReplace();
 		if (bSucceeded)
 		{
@@ -3479,7 +3472,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		// next block is an brute force kludge to get around the fact that if we
 		// have used the wizard to get a file on the screen, the phrase box won't
-		// have the text selected when user first sees the doc, so this way I can get 
+		// have the text selected when user first sees the doc, so this way I can get
 		// it selected as if the File... New... route was taken, rather than the wiz.
 		if (pApp->m_bStartViaWizard && pApp->m_pTargetBox != NULL)
 		{
@@ -3530,7 +3523,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version was repeatedly calling wxMessageBox causing crash
 		// IDS_AT_END
 		wxMessageBox(
-		_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."), 
+		_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 		_T(""), wxICON_INFORMATION);
 	}
 
@@ -3546,7 +3539,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		bool bSuccessfulInsertAndMove = pBox->OnePass(pView); // whm note: This is the only place OnePass() is called
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
 		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
-		// of OnePass, then again near the end of OnePass - twice in the normal course of 
+		// of OnePass, then again near the end of OnePass - twice in the normal course of
 		// auto-insert adaptations.
 		pApp->m_bIsGuess = FALSE;
 		if (bSuccessfulInsertAndMove)
@@ -3564,10 +3557,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 }
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
-// 
+//
 // The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
 // event table macro EVT_ADAPTATIONS_EDIT.
-// The wxEVT_Adaptations_Edit event is sent to the window event loop by a 
+// The wxEVT_Adaptations_Edit event is sent to the window event loop by a
 // wxPostEvent() call in OnEditSourceText().
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
@@ -3620,8 +3613,8 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 					// the mode in effect when the Edit Source Text dialog was visible may not
 					// have been adaptations mode, it may have been glossing mode, so we need to
-					// check and, if necessary, switch to adaptations mode; moreover, if there were 
-					// glosses in the active section, it would be helpful to make them visible in 
+					// check and, if necessary, switch to adaptations mode; moreover, if there were
+					// glosses in the active section, it would be helpful to make them visible in
 					// the surrounding context (more info might help the user), but if there were
 					// no glosses shown, don't unless the original mode had "See Glosses" turned ON
 					if (gbIsGlossing)
@@ -3684,7 +3677,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						// same test for nNewSpanCount being 0 and likewise cause progression
 						// immediately rather than make that next progression happen from here)
 						// Note, we have not changed from adaptationsStep, hence the handler for
-						// this message will become active with gEditStep still set to 
+						// this message will become active with gEditStep still set to
 						// adaptationsStep - this is how we inform the next step what the previous
 						// step was, and so the handler for the next step will finish off this
 						// current step before setting up for the commencement of the glossesStep
@@ -3710,7 +3703,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						// deep copy the initial editable span, before user has a chance to do
 						// mergers, retranslations, placeholder insertions, etc.  This deep copy
 						// must only be done once
-						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nAdaptationStep_StartingSequNum, 
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nAdaptationStep_StartingSequNum,
 							pRec->nAdaptationStep_EndingSequNum, &pRec->adaptationStep_SrcPhraseList);
 						if (!bAllWasOK)
 						{
@@ -3831,9 +3824,9 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
 					bool bWasOK;
 					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-						pRec->nAdaptationStep_StartingSequNum, 
+						pRec->nAdaptationStep_StartingSequNum,
 						nHowMany, // defines how many to remove to make the gap for the insertions
-						&pRec->adaptationStep_SrcPhraseList, 
+						&pRec->adaptationStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nAdaptationStep_OldSpanCount);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -3853,7 +3846,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					// place the phrase box at the start of the span, and update the layout etc
 					int activeSequNum = pRec->nAdaptationStep_StartingSequNum;
 					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
-					
+
 					// populate the combobox with the required removals data for adaptationsStep
 					bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
 
@@ -3883,7 +3876,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					pRec->bAdaptationStepEntered = TRUE;
 
 					// initiate a redraw of the frame and the client area
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 
 					// place the phrase box at the start of the span, and update the layout etc
@@ -3972,7 +3965,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						// deep copy the initial editable span, before user has a chance to do
 						// mergers, retranslations, placeholder insertions, etc.  This deep copy
 						// must only be done once
-						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nAdaptationStep_StartingSequNum, 
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nAdaptationStep_StartingSequNum,
 							pRec->nAdaptationStep_EndingSequNum, &pRec->adaptationStep_SrcPhraseList);
 						if (!bAllWasOK)
 						{
@@ -4020,8 +4013,8 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						}
 						m_pVertEditBar->Show(TRUE);
 
-						// initiate a redraw of the frame and the client area 
-						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+						// initiate a redraw of the frame and the client area
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 										 // do the needed redraw
 
                         // BEW 13Jan09 added next 3 lines to fix bug reported by Roland
@@ -4073,7 +4066,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 							pEdit->ChangeValue(_T("")); // clear the box
 						}
 					}
-					// now restore the free translation span to what it was at last entry 
+					// now restore the free translation span to what it was at last entry
 					// to freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
 						pRec->nFreeTrans_EndingSequNum != -1)
@@ -4088,9 +4081,9 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						wxASSERT(pRec->freeTranslationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nFreeTranslationStep_StartingSequNum, 
+							pRec->nFreeTranslationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->freeTranslationStep_SrcPhraseList, 
+							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -4102,7 +4095,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						pRec->nFreeTranslationStep_EndingSequNum = -1;
 						pRec->nFreeTranslationStep_SpanCount = -1;
 						pRec->nFreeTranslationStep_StartingSequNum = -1;
-						// don't alter bVerseBasedSection because it is set only once 
+						// don't alter bVerseBasedSection because it is set only once
 						// per vertical edit
 					}
                     // we know we are coming from free translations mode being currently
@@ -4117,7 +4110,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
                     // adaptations to the Removed combobox list
 					if (gbIsGlossing)
 					{
-						// user must have manually switched to glossing mode, 
+						// user must have manually switched to glossing mode,
 						// so turn it back off
 						pView->ToggleGlossingMode();
 					}
@@ -4156,9 +4149,9 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
 					bool bWasOK;
 					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-						pRec->nAdaptationStep_StartingSequNum, 
+						pRec->nAdaptationStep_StartingSequNum,
 						nHowMany, // defines how many to remove to make the gap for the insertions
-						&pRec->adaptationStep_SrcPhraseList, 
+						&pRec->adaptationStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nAdaptationStep_OldSpanCount);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -4178,7 +4171,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					// place the phrase box at the start of the span, and update the layout etc
 					int activeSequNum = pRec->nAdaptationStep_StartingSequNum;
 					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
-					
+
 					// populate the combobox with the required removals data for adaptationsStep
 					// (this has been done already, maybe twice in fact, so once more won't hurt)
 					bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
@@ -4209,8 +4202,8 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
                     // set up (it is done once only, see above)
 					pRec->bAdaptationStepEntered = TRUE;
 
-					// initiate a redraw of the frame and the client area 
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+					// initiate a redraw of the frame and the client area
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 
 					// place the phrase box at the start of the span, and update the layout etc
@@ -4269,7 +4262,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
-	
+
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxASSERT(pView != NULL);
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
@@ -4337,7 +4330,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 						pRec->nGlossStep_EndingSequNum = -1;
 
 						gEditStep = glossesStep;
-						pRec->bGlossStepEntered = TRUE; // prevent reinitialization 
+						pRec->bGlossStepEntered = TRUE; // prevent reinitialization
 														// if user returns here
 
                         // post event for progressing to free translation mode. Note, we
@@ -4379,9 +4372,9 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                         // the user does editing which changes the span length; so deep
                         // copy the initial editable span, before user has a chance to do
                         // do any editing. This deep copy must only be done once
-						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, 
-										pRec->nGlossStep_StartingSequNum, 
-										pRec->nGlossStep_EndingSequNum, 
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases,
+										pRec->nGlossStep_StartingSequNum,
+										pRec->nGlossStep_EndingSequNum,
 										&pRec->glossStep_SrcPhraseList);
 						if (!bAllWasOK)
 						{
@@ -4424,11 +4417,11 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 						}
 						m_pVertEditBar->Show(TRUE);
 
-						// initiate a redraw of the frame and the client area 
+						// initiate a redraw of the frame and the client area
                         // whm Note: Client area is changing size so send a size event to
                         // get the layout to change since the doc/view framework won't do
                         // it for us.
-						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 										 // do the needed redraw
 
 						// place the phrase box at the start of the span, and update the layout etc
@@ -4497,9 +4490,9 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 						wxASSERT(pRec->freeTranslationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nFreeTranslationStep_StartingSequNum, 
+							pRec->nFreeTranslationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->freeTranslationStep_SrcPhraseList, 
+							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -4570,9 +4563,9 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
 					bool bWasOK;
 					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-						pRec->nGlossStep_StartingSequNum, 
+						pRec->nGlossStep_StartingSequNum,
 						nHowMany, // defines how many to remove to make the gap for the insertions
-						&pRec->glossStep_SrcPhraseList, 
+						&pRec->glossStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nGlossStep_SpanCount);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -4592,7 +4585,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 //ShowSPandPile(393, 4);
 //ShowSPandPile(394, 4);
 //ShowInvalidStripRange();
-//#endif					
+//#endif
 					// populate the combobox with the required removals data for adaptationsStep
 					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 
@@ -4626,7 +4619,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
                     // set up (it is done once only, see above)
 					pRec->bGlossStepEntered = TRUE;
 
-					// initiate a redraw of the frame and the client area 
+					// initiate a redraw of the frame and the client area
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 
 				} // end block for result TRUE for test (gEditStep == freeTranslationsStep)
@@ -4699,7 +4692,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 
 					if (!pRec->bGlossStepEntered)
 					{
-						// put the values in the edit record, where the CCell drawing 
+						// put the values in the edit record, where the CCell drawing
 						// function can get them
 						bool bAllWasOK;
 						pRec->nGlossStep_StartingSequNum = pRec->nStartingSequNum;
@@ -4708,9 +4701,9 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 
 						// deep copy the initial editable span.  This deep copy
 						// must only be done once
-						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, 
-											pRec->nGlossStep_StartingSequNum, 
-											pRec->nGlossStep_EndingSequNum, 
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases,
+											pRec->nGlossStep_StartingSequNum,
+											pRec->nGlossStep_EndingSequNum,
 											&pRec->glossStep_SrcPhraseList);
 						if (!bAllWasOK)
 						{
@@ -4751,8 +4744,8 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 						}
 						m_pVertEditBar->Show(TRUE);
 
-						// initiate a redraw of the frame and the client area 
-						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+						// initiate a redraw of the frame and the client area
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 						                 // do the needed redraw
 
 						// place the phrase box at the start of the span, and update the layout etc
@@ -4823,9 +4816,9 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
 					bool bWasOK;
 					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-						pRec->nGlossStep_StartingSequNum, 
+						pRec->nGlossStep_StartingSequNum,
 						nHowMany, // defines how many to remove to make the gap for the insertions
-						&pRec->glossStep_SrcPhraseList, 
+						&pRec->glossStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nGlossStep_SpanCount);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -4843,7 +4836,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					// place the phrase box at the start of the span, and update the layout etc
 					int activeSequNum = pRec->nGlossStep_StartingSequNum;
 					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
-					
+
 					// populate the combobox with the required removals data for glossesStep
 					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 
@@ -4865,7 +4858,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					}
 					m_pVertEditBar->Show(TRUE);
 
-					// ensure gEditStep remains set to adaptationsStep here, 
+					// ensure gEditStep remains set to adaptationsStep here,
 					// before returning
 					gEditStep = glossesStep;
 
@@ -4873,8 +4866,8 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
                     // set up (it is done once only, see above)
 					pRec->bGlossStepEntered = TRUE;
 
-					// initiate a redraw of the frame and the client area 
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+					// initiate a redraw of the frame and the client area
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 					                 // do the needed redraw
 				} // end block for result TRUE for test (gEditStep == glossesStep)
 				else
@@ -4917,7 +4910,7 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	// of the frame window class
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
-	
+
 	CAdapt_ItView* pView = gpApp->GetView();
 
 	if (m_pVertEditBar == NULL)
@@ -4933,7 +4926,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
     // determine what setup is required: control is coming from either adaptationsStep or
     // glossesStep, the former when the order is adaptations before glosses; but if the
     // order is glosses before adaptations, then the latter. These variations require
-    // separate initialization blocks. 
+    // separate initialization blocks.
     EditRecord* pRec = &gEditRecord;
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	bool bAllsWell = TRUE;
@@ -4983,15 +4976,15 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                     // removed and there is nothing for the user to do; but if it is larger
                     // than the editable span, then the user must be shown the GUI as he
                     // has some editing of free translations to do.
-					bool bShowGUI = FALSE; // default is that there were no free translations 
-										   // impinging on the editable span, so no need to 
+					bool bShowGUI = FALSE; // default is that there were no free translations
+										   // impinging on the editable span, so no need to
 										   // show the GUI in this step
 					if (pRec->bEditSpanHasFreeTranslations)
 					{
 						// the GUI may need to be shown, check further
 						if (pRec->nNewSpanCount > 0)
 						{
-							// the user did not remove everything, so some free translating 
+							// the user did not remove everything, so some free translating
 							// needs to be done
 							bShowGUI = TRUE;
 						}
@@ -5008,7 +5001,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                             // meanings modified. That is, if the source words and the free
                             // translations of them where together removed, what is in the
                             // context can be assumed to be correct.
-                            
+
                             // NOTE: The above assumption is not linguistically defensible,
                             // as typically conjunctions need to be tweaked, but we will
                             // let the user do such tweaks in a manual read-through later
@@ -5020,7 +5013,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                             // readability can be done. I'm assuming that the frequency of
                             // this ever being an issue is so small as to not be worth the
                             // time coding for it.)
-							int nOverlapCount = pRec->nFreeTrans_EndingSequNum - 
+							int nOverlapCount = pRec->nFreeTrans_EndingSequNum -
 								pRec->nFreeTrans_StartingSequNum + 1 - pRec->nOldSpanCount;
 							if (nOverlapCount > 0)
 							{
@@ -5057,7 +5050,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 
 						gEditStep = freeTranslationsStep;
 						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization
-								// if user returns to here,  -- though I don't think I'm going 
+								// if user returns to here,  -- though I don't think I'm going
 								// to make that possible once this block has been entered
 
 						// post event for progressing to (re-collecting) back translations step.
@@ -5118,9 +5111,9 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                         // progression, but invaluable for rollback, as it ensures the free
                         // translation flags are cleared in the context of the editable
                         // span when the earlier step is set up again
-						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, 
-											pRec->nFreeTranslationStep_StartingSequNum, 
-											pRec->nFreeTranslationStep_EndingSequNum, 
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases,
+											pRec->nFreeTranslationStep_StartingSequNum,
+											pRec->nFreeTranslationStep_EndingSequNum,
 											&pRec->freeTranslationStep_SrcPhraseList);
 						if (!bAllWasOK)
 						{
@@ -5140,7 +5133,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 
 					if (bShowGUI)
 					{
-						// populate the combobox with the required removals data for 
+						// populate the combobox with the required removals data for
 						// freeTranslationsStep
 						bAllsWell = pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
 
@@ -5165,10 +5158,10 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						}
 						m_pVertEditBar->Show(TRUE);
 
-						// initiate a redraw of the frame and the client area 
-						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+						// initiate a redraw of the frame and the client area
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 										 // do the needed redraw
-						
+
                         // BEW added 16Jul09, removing a document final word where a free
                         // translation ends carries into limbo with it the m_bEndFreeTrans
                         // = TRUE value, so we have to check if m_bHasFreeTrans is TRUE on
@@ -5181,7 +5174,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 							pFinalSrcPhrase->m_bEndFreeTrans = TRUE;
 						}
 
-						// place the phrase box at the start of the span, and update the 
+						// place the phrase box at the start of the span, and update the
 						// layout etc
 						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
 						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
@@ -5249,16 +5242,16 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                     // removed and there is nothing for the user to do; but if it is larger
                     // than the editable span, then the user must be shown the GUI as he
                     // has some editing of free translations to do.
-					bool bShowGUI = FALSE; // default is that there were no 
+					bool bShowGUI = FALSE; // default is that there were no
 										   // free translations impinging on the
-										   // editable span, so no need to show 
+										   // editable span, so no need to show
 										   // the GUI in this step
 					if (pRec->bEditSpanHasFreeTranslations)
 					{
 						// the GUI may need to be shown, check further
 						if (pRec->nNewSpanCount > 0)
 						{
-							// the user did not remove everything, so some free translating 
+							// the user did not remove everything, so some free translating
 							// needs to be done
 							bShowGUI = TRUE;
 						}
@@ -5275,7 +5268,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                             // meanings modified. That is, if the source words and the free
                             // translations of them where together removed, what is in the
                             // context can be assumed to be correct.
-							
+
                             // NOTE: The above assumption is not linguistically defensible,
                             // as typically conjunctions need to be tweaked, but we will
                             // let the user do such tweaks in a manual read-through later
@@ -5287,7 +5280,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                             // readability can be done. I'm assuming that the frequency of
                             // this ever being an issue is so small as to not be worth the
                             // time coding for it.)
-							int nOverlapCount = pRec->nFreeTrans_EndingSequNum - 
+							int nOverlapCount = pRec->nFreeTrans_EndingSequNum -
 								pRec->nFreeTrans_StartingSequNum + 1 - pRec->nOldSpanCount;
 							if (nOverlapCount > 0)
 							{
@@ -5323,7 +5316,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						}
 
 						gEditStep = freeTranslationsStep;
-						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization 
+						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization
 								// if user returns to here,  -- though I don't think I'm going
 								// to make that possible once this block has been entered
 
@@ -5384,9 +5377,9 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                         // rollback to the start of the free translations step once control
                         // has moved on, this copy is superfluous, but I'll do it so that
                         // if I change my mind everything has nevertheless been set up right
-						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, 
-										pRec->nFreeTranslationStep_StartingSequNum, 
-										pRec->nFreeTranslationStep_EndingSequNum, 
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases,
+										pRec->nFreeTranslationStep_StartingSequNum,
+										pRec->nFreeTranslationStep_EndingSequNum,
 										&pRec->freeTranslationStep_SrcPhraseList);
 						if (!bAllWasOK)
 						{
@@ -5397,7 +5390,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						}
 					}
 
-					// ensure gEditStep remains set to freeTranslationsStep here, 
+					// ensure gEditStep remains set to freeTranslationsStep here,
 					// before returning
 					gEditStep = freeTranslationsStep;
 
@@ -5407,7 +5400,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 
 					if (bShowGUI)
 					{
-						// populate the combobox with the required removals data for 
+						// populate the combobox with the required removals data for
 						// freeTranslationsStep
 						bAllsWell = pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
 
@@ -5433,13 +5426,13 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						}
 						m_pVertEditBar->Show(TRUE);
 
-						// initiate a redraw of the frame and the client area 
+						// initiate a redraw of the frame and the client area
                         // whm Note: Client area is changing size so send a size event to
                         // get the layout to change since the doc/view framework won't do
                         // it for us.
-						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 										 // do the needed redraw
-						
+
                         // BEW added 16Jul09, removing a document final word where a free
                         // translation ends carries into limbo with it the m_bEndFreeTrans
                         // = TRUE value, so we have to check if m_bHasFreeTrans is TRUE on
@@ -5551,7 +5544,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	CLayout* pLayout = gpApp->m_pLayout;
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
-	
+
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
 
@@ -5598,10 +5591,10 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
         // adapting) is currently still in effect
 		pView->DoConditionalStore(); // parameter defaults TRUE, FALSE, are in effect
 
-		// restore the original mode, 
+		// restore the original mode,
 		pView->RestoreMode(gbGlossingVisible, gbIsGlossing, &gEditRecord);
 		gEditStep = noEditStep; // no need to pretend any longer that vertical edit is in a step
-		
+
 		// put the phrase box at a suitable and safe location in the document
 		pView->RestoreBoxOnFinishVerticalMode();
 
@@ -5626,7 +5619,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 							   // if the window is not embedded
 		SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 
-		// clear by initializing (but the gEditRecord's removed data lists, which are maintained 
+		// clear by initializing (but the gEditRecord's removed data lists, which are maintained
 		// within the gEditRecord global struct, are left intact while the Adapt It session is alive)
 		pView->InitializeEditRecord(gEditRecord); // clears gbVerticalEditInProgress as well
 		gEntryPoint = noEntryPoint;
@@ -5637,7 +5630,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		// even if we have scrolled and the active strip won't be drawn (needed because in
 		// some situations after a vertical edit, the pile locations aren't updated correctly)
 		int nActiveStripIndex = (pView->GetPile(gpApp->m_nActiveSequNum))->GetStripIndex();
-		pLayout->RelayoutActiveStrip(pView->GetPile(gpApp->m_nActiveSequNum), nActiveStripIndex, 
+		pLayout->RelayoutActiveStrip(pView->GetPile(gpApp->m_nActiveSequNum), nActiveStripIndex,
 			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
 
 		pView->Invalidate(); // get the layout drawn
@@ -5669,7 +5662,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	wxASSERT(pSrcPhrases != NULL);
 	EditRecord* pRec = &gEditRecord;
 	// whm: we are in CMainFrame, so just assert that the member's pointers to the bars are valid
-	wxASSERT(m_pVertEditBar != NULL); 
+	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pComposeBar != NULL);
 	wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(pEdit != NULL);
@@ -5717,7 +5710,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
                     // doesn't generate the wxEVT_COMMAND_TEXT_UPDATED event, which now
                     // deprecated SetValue() generates.
 					pEdit->ChangeValue(_T("")); // clear the box
-					// now restore the free translation span to what it was at last entry to 
+					// now restore the free translation span to what it was at last entry to
 					// freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
 						pRec->nFreeTrans_EndingSequNum != -1)
@@ -5727,9 +5720,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxASSERT(pRec->freeTranslationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nFreeTranslationStep_StartingSequNum, 
+							pRec->nFreeTranslationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->freeTranslationStep_SrcPhraseList, 
+							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -5770,16 +5763,16 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nGlossStep_StartingSequNum, 
+							pRec->nGlossStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->glossStep_SrcPhraseList, 
+							&pRec->glossStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nGlossStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do 
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 					pView->ToggleGlossingMode(); // turn off glossing mode
 				} // fall through
@@ -5801,21 +5794,21 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					gEditStep = adaptationsStep;
 					if (pRec->nNewSpanCount > 0)
 					{
-						// restore the editable span to what it was when adaptationsStep 
+						// restore the editable span to what it was when adaptationsStep
 						// was started
 						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nAdaptationStep_StartingSequNum, 
+							pRec->nAdaptationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->adaptationStep_SrcPhraseList, 
+							&pRec->adaptationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nAdaptationStep_OldSpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 				} // fall through
 			case sourceTextStep:
@@ -5851,9 +5844,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
                             // replacement later on)
 							bool bWasOK;
 							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-								pRec->nStartingSequNum + pRec->nNewSpanCount, 
+								pRec->nStartingSequNum + pRec->nNewSpanCount,
 								0, // no deletions wanted
-								&pRec->cancelSpan_SrcPhraseList, 
+								&pRec->cancelSpan_SrcPhraseList,
 								0, // start at index 0, ie. insert whole of deep copied list
 								nHowMany);
 						}
@@ -5861,9 +5854,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						{
 							bool bWasOK;
 							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-								pRec->nStartingSequNum + pRec->nOldSpanCount, 
+								pRec->nStartingSequNum + pRec->nOldSpanCount,
 								nHowMany, // defines how many to delete
-								&pRec->cancelSpan_SrcPhraseList, 
+								&pRec->cancelSpan_SrcPhraseList,
 								0, // need an index, but we don't use cancelSpan_SrcPhraseList
 								0);
 						}
@@ -5874,28 +5867,28 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
                     // perhaps if the propagation span sticks out past the end of the
                     // cancel span) - we do these copies in the sourceTextStp case below.
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
-					
+
 					// handle the user edits done in the Edit Source Text dialog
 					nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
 					wxASSERT(nHowMany != 0);
 					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-						pRec->nCancelSpan_StartingSequNum, 
+						pRec->nCancelSpan_StartingSequNum,
 						nHowMany, // defines how many to remove to make the gap for the insertions
-						&pRec->cancelSpan_SrcPhraseList, 
+						&pRec->cancelSpan_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						nHowMany);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
-					
-					// if the end of the propagation span is beyond end of cancel span, restore 
+
+					// if the end of the propagation span is beyond end of cancel span, restore
 					// those extras too
 					if (pRec->nPropagationSpan_EndingSequNum > pRec->nCancelSpan_EndingSequNum)
 					{
 						nHowMany = pRec->nPropagationSpan_EndingSequNum - pRec->nCancelSpan_EndingSequNum;
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nPropagationSpan_StartingSequNum, 
+							pRec->nPropagationSpan_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->propagationSpan_SrcPhraseList, 
+							&pRec->propagationSpan_SrcPhraseList,
 							0, // index into propSpan list for start
 							pRec->propagationSpan_SrcPhraseList.GetCount());
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -5906,7 +5899,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		} // end of TRUE block for test (gbAdaptBeforeGloss)
 		else
 		{
-			// glosses step entered before adaptations step (an unusual order, selectable 
+			// glosses step entered before adaptations step (an unusual order, selectable
 			// in Preferences...)
 			switch (gEditStep)
 			{
@@ -5934,10 +5927,10 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep;
 					pEdit->ChangeValue(_T("")); // clear the box
-					
+
 					// now restore the free translation span to what it was at last entry to
 					// freeTranslationsStep ie. as it was at the end of adaptationsStep
-					if (pRec->bFreeTranslationStepEntered && 
+					if (pRec->bFreeTranslationStepEntered &&
 						pRec->nFreeTranslationStep_SpanCount > 0 &&
 						pRec->nFreeTrans_EndingSequNum != -1)
 					{
@@ -5946,9 +5939,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxASSERT(pRec->freeTranslationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nFreeTranslationStep_StartingSequNum, 
+							pRec->nFreeTranslationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->freeTranslationStep_SrcPhraseList, 
+							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -5990,16 +5983,16 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nAdaptationStep_StartingSequNum, 
+							pRec->nAdaptationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->adaptationStep_SrcPhraseList, 
+							&pRec->adaptationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nAdaptationStep_OldSpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do 
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 				} // fall through
 			case glossesStep:
@@ -6034,16 +6027,16 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nGlossStep_StartingSequNum, 
+							pRec->nGlossStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->glossStep_SrcPhraseList, 
+							&pRec->glossStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nGlossStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 					pView->ToggleGlossingMode(); // turn glossing mode back off
 				} // fall through
@@ -6058,7 +6051,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					int nHowMany = 0;
 					bool bNewIsShorter = FALSE;
 					bool bOldIsShorter = FALSE;
-					
+
 					if (pRec->nOldSpanCount > pRec->nNewSpanCount)
 					{
 						bNewIsShorter = TRUE;
@@ -6080,9 +6073,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
                             // replacement later on)
 							bool bWasOK;
 							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-								pRec->nStartingSequNum + pRec->nNewSpanCount, 
+								pRec->nStartingSequNum + pRec->nNewSpanCount,
 								0, // no deletions wanted
-								&pRec->cancelSpan_SrcPhraseList, 
+								&pRec->cancelSpan_SrcPhraseList,
 								0, // start at index 0, ie. insert whole of deep copied list
 								nHowMany);
 						}
@@ -6090,9 +6083,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						{
 							bool bWasOK;
 							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-								pRec->nStartingSequNum + pRec->nOldSpanCount, 
+								pRec->nStartingSequNum + pRec->nOldSpanCount,
 								nHowMany, // defines how many to delete
-								&pRec->cancelSpan_SrcPhraseList, 
+								&pRec->cancelSpan_SrcPhraseList,
 								0, // need an index, but we don't use cancelSpan_SrcPhraseList
 								0);
 						}
@@ -6110,9 +6103,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					wxASSERT(nHowMany != 0);
 					bool bWasOK;
 					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-						pRec->nCancelSpan_StartingSequNum, 
+						pRec->nCancelSpan_StartingSequNum,
 						nHowMany, // defines how many to remove to make the gap for the insertions
-						&pRec->cancelSpan_SrcPhraseList, 
+						&pRec->cancelSpan_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						nHowMany);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -6123,9 +6116,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						nHowMany = pRec->nPropagationSpan_EndingSequNum - pRec->nCancelSpan_EndingSequNum;
 						bool bWasOK;
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nPropagationSpan_StartingSequNum, 
+							pRec->nPropagationSpan_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->propagationSpan_SrcPhraseList, 
+							&pRec->propagationSpan_SrcPhraseList,
 							0, // index into propSpan list for start
 							pRec->propagationSpan_SrcPhraseList.GetCount());
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
@@ -6141,7 +6134,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		// whm Note: This event also calls the code which hides any of the
 		// vertical edit tool bars so they are not seen from the main window.
 	} // end of TRUE block for test (gbVerticalEditInProgress)
-	
+
 	// whm addition:
     // When vertical editing is canceled we should hide the m_pRemovalsBar, and
     // m_pVertEditBar, - any and all that are visible.
@@ -6153,7 +6146,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	{
 		m_pRemovalsBar->Hide();
 	}
-	SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and 
+	SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 					 // do the needed redraw;
 	return;
 }
@@ -6162,7 +6155,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 // string direct to the phrase box which is rebuilt, and with focus put there and cursor
 // following the last character; but it doesn't handle a click on the already visible item
 // in the combobox window - there isn't a way to make that work as far as I can tell
-// 
+//
 // (whm note: Bruce tried using a OnRemovalsComboSetFocus() handler, which worked, but
 // blocked dropping down the list) so apparently the user will have to drop the list down
 // manually rather than be able to just click on the text in the combo box window).
@@ -6185,10 +6178,10 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
     // store the active srcPhrase's m_nSrcWords member's value for use in the test in
     // OnUpdateButtonUndoLastCopy() and other "state-recording" information, for use by the
     // same update handler
-	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords; // the 
+	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords; // the
 														// merge state at active location
 	gbWasGlossingMode = gbIsGlossing; // whether glossing or adapting when the copy is done
-	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free 
+	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free
 													// translation mode is on at that time
 	gnWasSequNum = pApp->m_nActiveSequNum;
 
@@ -6221,19 +6214,19 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
         // SetSelection() to do so.
 		pEdit->WriteText(theText); //pEdit->SetValue(theText);
 		pEdit->SetFocus();
-		
+
 		return;
 	}
 
 	// if control gets here then the copy must therefore be going to the phrase box; so
 	// store a copy of phrase box text here in case Undo Last Copy button is used later
-	gOldEditBoxTextStr = pApp->m_pTargetBox->GetValue(); 
+	gOldEditBoxTextStr = pApp->m_pTargetBox->GetValue();
 
 	// if auto capitalization is on, determine the source text's case propertiess
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key); 
+		bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 																// bIsSrcText is TRUE
 		if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 		{
@@ -6274,7 +6267,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
-	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text 
+	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text
         // could be different length than what was there before, and hence move piles about
         // or even cause the following strips to have different pile content. But to avoid
         // flicker we need to make use of clipping region soon. BEW)
