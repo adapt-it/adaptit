@@ -17974,10 +17974,11 @@ int ii = 1;
 #if defined(TEST_CHORUS)
 	wxMenuBar* pAIMenuBar = NULL;
 	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
-	int nIndexOfHelpMenu = pAIMenuBar->FindMenu(_T("Help"));
-	wxASSERT(nIndexOfHelpMenu != wxNOT_FOUND);
-	wxMenu* pHelpMenu = pAIMenuBar->GetMenu(nIndexOfHelpMenu);
-	wxMenuItem* pTestChorusItem = pHelpMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test Chorus")); // defaults for final 2 params
+	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
+	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
+	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
+	pEditMenu->AppendSeparator();
+	wxMenuItem* pTestChorusItem = pEditMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test Chorus")); // defaults for final 2 params
 #endif
 	// end of code for supporting Mike's testing of Chorus port
 	
@@ -30247,7 +30248,7 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 		wxASSERT(FALSE);
 		return;
 	}
-	// Create a wxChar buffer in which to guild the converted string of wxChars
+	// Create a wxChar buffer in which to build the converted string of wxChars
 	// The caller will have to dispose of this when it is no longer needed
 	wxChar *dst = new wxChar[dstLen];
 	if ( conv.ToWChar(dst, dstLen, pbyteBuff, byteBufLen) == wxCONV_FAILED )
@@ -30260,7 +30261,7 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 	bufLen = dstLen;
 #else
 	// ANSI code goes in here. A wxChar is one byte only.
-	// Create a wxChar buffer in which to guild the converted string of wxChars
+	// Create a wxChar buffer in which to build the converted string of wxChars
 	// The caller will have to dispose of this when it is no longer needed
 	eEncoding = eEncoding; // prevent a compiler warning
 	wxChar* dst = new wxChar[byteBufLen];
