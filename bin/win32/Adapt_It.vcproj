@@ -563,6 +563,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\DVCS.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\DVCS.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\EarlierTranslationDlg.cpp"
 				>
 			</File>
