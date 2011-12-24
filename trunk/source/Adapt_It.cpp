@@ -17970,17 +17970,17 @@ int ii = 1;
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
 */
-	// support Mike's testing of Chorus port (TEST_CHORUS is #defined at line 25 of Adapt_It.h)
-#if defined(TEST_CHORUS)
+	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_CHORUS is #defined at line 25 of Adapt_It.h)
+#if defined(TEST_CHORUS) && defined(__WXDEBUG__)
 	wxMenuBar* pAIMenuBar = NULL;
 	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
 	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
 	pEditMenu->AppendSeparator();
-	wxMenuItem* pTestChorusItem = pEditMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test Chorus")); // defaults for final 2 params
+	wxMenuItem* pTestChorusItem = pEditMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test DVCS")); // defaults for final 2 params
 #endif
-	// end of code for supporting Mike's testing of Chorus port
+	// end of code for supporting Mike's DVCS work
 	
 	//klb test
 	//bool a = ParatextIsRunning();
