@@ -4087,7 +4087,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		bOK = textFile.Open(fullFilePath);
 		BuildUserProfileXMLFile(&textFile);
 		// Write the modified wxText file back out to disk
-		// no need to do anything special for Unicode
+		bOK = textFile.Write(); // no need to do anything special for Unicode
 		if (!bOK)
 		{
 			// TODO:: error msg
