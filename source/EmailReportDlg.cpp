@@ -363,6 +363,7 @@ void CEmailReportDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	//OSMinorVersion = platInfo.GetOSMinorVersion();
 	wxOperatingSystemId sysID;
 	sysID = ::wxGetOsVersion(&OSMajorVersion,&OSMinorVersion);
+	sysID = sysID; // avoid warning
 	osVersionStr = archName;
 	osVersionStr += _T(' ') + OSSystemID;
 	osVersionStr += _T(' ');
@@ -807,7 +808,7 @@ void CEmailReportDlg::OnBtnSaveReportAsXmlFile(wxCommandEvent& WXUNUSED(event))
 	wxString nameSuffix = _T("");
 	wxString nameUsed = _T("");
 	bSavedOK = DoSaveReportAsXmlFile(bPromptForMissingData,nameSuffix,nameUsed);
-	
+	bSavedOK = bSavedOK; // avoid warning TODO: test for failure?
 }
 
 bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString nameSuffix, wxString& nameUsed)
@@ -973,10 +974,10 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 	wxSingleChoiceDialog ChooseEmailReportToLoad(this,msg,_T("Saved email reports located in your work folder"),reportsArray);
 	if (ChooseEmailReportToLoad.ShowModal() == wxID_OK)
 	{
-		int userSelectionInt;
+		//int userSelectionInt; // TODO: whm: write code to implement at some future date
 		wxString userSelectionStr;
 		userSelectionStr = ChooseEmailReportToLoad.GetStringSelection();
-		userSelectionInt = ChooseEmailReportToLoad.GetSelection();
+		//userSelectionInt = ChooseEmailReportToLoad.GetSelection();
 		bool bReadOK;
 		wxString pathAndName = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + userSelectionStr;
 		bReadOK = ReadEMAIL_REPORT_XML(pathAndName,NULL,0);
@@ -1006,6 +1007,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 					pdMsg1 += pdMsg3;
 					int response;
 					response = wxMessageBox(pdMsg1,_("Could not find the packed document in your work folder"),wxYES_NO | wxICON_WARNING);
+					response = response; // avoid warning TODO: whm: add code to handle the user's response
 					pApp->LogUserAction(pdMsg1);
 				}
 			
@@ -1504,6 +1506,7 @@ wxString CEmailReportDlg::FormatSysInfoIntoString()
 	//OSMinorVersion = platInfo.GetOSMinorVersion();
 	wxOperatingSystemId sysID;
 	sysID = ::wxGetOsVersion(&OSMajorVersion,&OSMinorVersion);
+	sysID = sysID; // avoid warning
 	osVersionStr = archName;
 	osVersionStr += _T(' ') + OSSystemID;
 	osVersionStr += _T(' ');

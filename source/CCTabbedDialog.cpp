@@ -114,7 +114,7 @@ CCCTabbedDialog::CCCTabbedDialog(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 	

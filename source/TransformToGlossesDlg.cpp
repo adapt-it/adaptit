@@ -66,7 +66,7 @@ CTransformToGlossesDlg::CTransformToGlossesDlg(wxWindow* parent) // dialog const
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// dialog needs size hints, otherwise it is too tall and too narrow. The following sets the
 	// initial height of whole dialog (incl border and title) to 340 pixels heigh (the max height)
 	// and 400 pixels wide (the minimum width). There should be plenty of room for localized text

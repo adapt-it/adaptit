@@ -582,12 +582,13 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 	wxString dataFolder = _T("data");
 	pathToBookFolder = projectPath + gpApp->PathSeparator + dataFolder + gpApp->PathSeparator + bookName;
 	wxString dataBuffer = _T("");
-	bool bDoWholeBook = FALSE;
-	if (chapterNumber == -1)
-	{
-		// get the whole book
-		bDoWholeBook = TRUE;
-	}
+	chapterNumber = chapterNumber; // avoid warning
+	//bool bDoWholeBook = FALSE;
+	//if (chapterNumber == -1)
+	//{
+	//	// get the whole book
+	//	bDoWholeBook = TRUE;
+	//}
 	// We need to ensure it exists otherwise we've nothing to do.
 	if (!::wxFileExists(tempFilePathName))
 	{
@@ -677,6 +678,7 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 			// no error  when opening
 			ff.Write(tempChStr, wxConvUTF8);
 			bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
+			bOK = bOK; // avoid warning
 		}
 		else
 		{
@@ -1138,6 +1140,7 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 		// no error  when opening
 		ff.Write(theText, wxConvUTF8);
 		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
+		bOK = bOK; // avoid warning
 	}
 	else
 	{
@@ -1186,6 +1189,7 @@ bool MoveTextToTempFolderAndSave(enum DoFor textKind, wxString& theText, bool bA
 		// no error  when opening
 		ff.Write(theText, wxConvUTF8);
 		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
+		bOK = bOK; // avoid warning
 	}
 	else
 	{
@@ -2129,7 +2133,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 	wxString booksPresentFlags = _T("");
 	Collab_Project_Info_Struct* pArrayItem;
 	pArrayItem = (Collab_Project_Info_Struct*)NULL;
-	bool bFoundProjStruct = FALSE;
+	//bool bFoundProjStruct = FALSE;
 	for (ct = 0; ct < tot; ct++)
 	{
 		pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
@@ -2137,7 +2141,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 		if (pArrayItem != NULL && pArrayItem->shortName == collabProjShortName)
 		{
 			booksPresentFlags = pArrayItem->booksPresentFlags;
-			bFoundProjStruct = TRUE;
+			//bFoundProjStruct = TRUE;
 			break;
 		}
 	}
@@ -2720,6 +2724,7 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 		utf16BomLen = 0;
 	wxLogDebug(_T("Total Count = %d [charCount (%d) + eolCount (%d) + charCountMarkersOnly (%d)] Compare to nBufLen = %d"),
 		charCount+eolCount+charCountMarkersOnly,charCount,eolCount,charCountMarkersOnly,nBufLen - utf16BomLen);
+	utf16BomLen = utf16BomLen; // avoid warning
 	return UsfmStructureAndExtentArray;
 }
 
@@ -3541,6 +3546,7 @@ bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, siz
 	count = md5Array.GetCount();
 	wxASSERT(count > 0); // it's not an empty array
 	wxASSERT( lineIndex < count); // no bounds error
+	count = count; // avoid warning
 	wxString lineStr = md5Array.Item(lineIndex);
 	// test we really do have a line beginning with a verse marker
 	wxString mkr = GetStrictUsfmMarkerFromStructExtentString(lineStr);
@@ -3577,6 +3583,7 @@ bool IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex)
 	size_t count;
 	count = md5Arr.GetCount();
 	wxASSERT(lineIndex < count);
+	count = count; // avoid warning
 	VerseAnalysis vAnal;
 	if (IsVerseLine(md5Arr, lineIndex))
 	{
@@ -4296,6 +4303,7 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	int textLen = 0;
 	textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
 	// set \note, \bt, and \free as to be programmatically excluded from the export
+	textLen = textLen; // avoid warning
 	ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
 	// cause the markers set for exclusion, plus their contents, to be actually removed
 	// from the exported text
@@ -4320,6 +4328,7 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 	int textLen = 0;
 	textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
+	textLen = textLen; // avoid warning
 	FormatMarkerBufferForOutput(text, freeTransTextExport);
 	text = RemoveMultipleSpaces(text);
 	return text;
@@ -4932,6 +4941,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();					
 	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count && 
 			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
+	preEditMd5Arr_Count = preEditMd5Arr_Count; // avoid warning
+	fromEditorMd5Arr_Count = fromEditorMd5Arr_Count; // avoid warning
 	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
 	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
 	wxString preEditMd5Line;
@@ -5128,6 +5139,7 @@ wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFin
 	size_t count;
 	count = arr.GetCount();
 	wxASSERT(nFinish < count && nFinish >= nStart);
+	count = count; // avoid warning
 	if (nStart == nFinish)
 	{
 		return newArray; // return the empty array
@@ -5186,8 +5198,8 @@ wxString GetUpdatedText_UsfmsChanged(
 	// each text variant's MD5 structure&extents array has exactly the same USFMs, but
 	// only for preEdit and postEdit varieties; the fromEditor variant will be different
 	// otherwise this function won't be entered
-	size_t preEditMd5Arr_Count;
-	preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
+	//size_t preEditMd5Arr_Count;
+	//preEditMd5Arr_Count = preEditMd5Arr.GetCount();					
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();					
 	size_t fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
 	// in debug build verify our assumptions are correct -- commented out, it can be
@@ -5210,7 +5222,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxChar* pPreEditEnd;
 	pPreEditEnd = pPreEditStart + nPreEditBufLen;
 	wxASSERT(*pPreEditEnd == '\0');
-
+	pPreEditEnd = pPreEditEnd; // avoid warning
 	const wxChar* pPostEditBuffer = postEditText.GetData();
 	int nPostEditBufLen = postEditText.Len();
 	wxChar* pPostEditStart = (wxChar*)pPostEditBuffer;

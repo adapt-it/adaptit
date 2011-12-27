@@ -185,6 +185,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		bool bOK;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
+		bOK = bOK; // avoid warning
 		gbInhibitMakeTargetStringCall = FALSE;
 	}
 	
@@ -278,6 +279,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		gbInhibitMakeTargetStringCall = TRUE;
 		bool bOK;
 		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		bOK = bOK; // avoid warning
 		gbInhibitMakeTargetStringCall = FALSE;
 	}
 	
@@ -307,7 +309,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		pDummySrcPhrase->m_nSequNumber = m_pApp->GetMaxIndex() + 1;
 		SPList::Node* posTail;
 		posTail = pSrcPhrases->Append(pDummySrcPhrase);
-		
+		posTail = posTail; // avoid warning
 		// create a partner pile for this dummy CSourcePhrase instance
 		pDoc->CreatePartnerPile(pDummySrcPhrase);
 		
@@ -408,7 +410,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 	// inserted ellipsis, in a retranslation we have to check this one for an 
 	// m_bEndFreeTrans being TRUE flag and move that BOOL value to the end of the
 	// insertions, and so forth...
-	CPile* pPrevPile;
+	//CPile* pPrevPile; // set but not used
 	CPile* pPile = pInsertLocPile;
 	int nStartingSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 	// whm 2Aug06 added following test to prevent insertion of placeholder 
@@ -714,7 +716,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 		else
 		{
 			// make sure these pointers are null if we are inserting at the doc beginning
-			pPrevPile = NULL;
+			//pPrevPile = NULL;
 			pPrevSrcPhrase = NULL;
 		}
 		// now check the following source phrase for any preceding punct or a marker in
@@ -2149,8 +2151,8 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 		// we have a selection, the pile we want is that of the selection list's first element
 		CCellList* pCellList = &m_pApp->m_selection;
 		CCellList::Node* cpos = pCellList->GetFirst();
-		CCell* pCell;
-		pCell = cpos->GetData();
+		//CCell* pCell; // set but not used
+		//pCell = cpos->GetData();
 		pRemoveLocPile = cpos->GetData()->GetPile();
 		wxASSERT(pRemoveLocPile != NULL);
 		if (pRemoveLocPile->GetSrcPhrase()->m_bNullSourcePhrase != TRUE)
@@ -2390,6 +2392,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			bool bOK;
 			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 											m_pApp->m_targetPhrase);
+			bOK = bOK; // avoid warning
 			gbInhibitMakeTargetStringCall = FALSE;
 		}
 		
@@ -2419,7 +2422,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			pDummySrcPhrase->m_nSequNumber = m_pApp->GetMaxIndex() + 1;
 			SPList::Node* posTail;
 			posTail = pSrcPhrases->Append(pDummySrcPhrase);
-			
+			posTail = posTail; // avoid warning
 			// now we need to add a partner pile for it in CLayout::m_pileList
 			pDoc->CreatePartnerPile(pDummySrcPhrase);
 			
@@ -2465,6 +2468,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			bool deleteOK;
 			deleteOK = pSrcPhrases->DeleteNode(pSrcPhrases->GetLast());
 			wxASSERT(deleteOK);
+			deleteOK = deleteOK; // avoid warning TODO: check for failures?
 			delete pDummySrcPhrase;
 			
 			// get another valid layout
@@ -2571,6 +2575,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			bool bOK;
 			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 											m_pApp->m_targetPhrase);
+			bOK = bOK; // avoid warning
 			gbInhibitMakeTargetStringCall = FALSE;
 		}
 		

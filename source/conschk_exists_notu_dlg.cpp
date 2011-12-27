@@ -73,7 +73,7 @@ conschk_exists_notu_dlg::conschk_exists_notu_dlg(
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_bShowItCentered = bShowCentered;
 	m_sourcePhrase = *srcPhrase;
 	m_targetPhrase = *adaptation;

@@ -64,7 +64,7 @@ CCCTableNameDlg::CCCTableNameDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// use wxValidator for simple dialog data transfer
 	m_pEditTableName = (wxTextCtrl*)FindWindow(IDC_EDIT_TBLNAME);
 	//m_pEditTableName->SetValidator(wxGenericValidator(&m_tableName));

@@ -69,7 +69,7 @@ CGoToDlg::CGoToDlg(wxWindow* parent) // dialog constructor
 	// The declaration is: GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	
+	bOK = bOK; // avoid warning
 	m_pSpinCtrlChapter = (wxSpinCtrl*)FindWindowById(IDC_EDIT_CHAPTER);
 	m_pSpinCtrlVerse = (wxSpinCtrl*)FindWindowById(IDC_EDIT_VERSE);
 }

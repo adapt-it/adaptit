@@ -262,7 +262,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	iconIndex = pIconImages->Add(folderIcon);
 	iconIndex = pIconImages->Add(fileIcon);
 	iconIndex = pIconImages->Add(emptyIcon);
-
+	iconIndex = iconIndex; // avoid warning
 	// set up the wxListCtrl instances, for each set a column for an icon followed by text
 	pLeftList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
 	pRightList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
@@ -348,10 +348,10 @@ void AdminMoveOrCopy::EnableRenameButton(bool bEnableFlag)
 void AdminMoveOrCopy::DeselectSelectedItems(enum whichSide side)
 {
 	long index = 0;
-	long limit;
+	//long limit; // set but unused
 	if (side == leftSide)
 	{
-		limit = pLeftList->GetItemCount(); // index of last file is (limit - 1)
+		//limit = pLeftList->GetItemCount(); // index of last file is (limit - 1)
 		if (leftFilesCount == 0 || pLeftList->GetSelectedItemCount() == 0)
 		{
 			return; // nothing to do
@@ -375,7 +375,7 @@ void AdminMoveOrCopy::DeselectSelectedItems(enum whichSide side)
 	}
 	else
 	{
-		limit = pRightList->GetItemCount(); // index of last file is (limit - 1)
+		//limit = pRightList->GetItemCount(); // index of last file is (limit - 1)
 		if (rightFilesCount == 0 || pRightList->GetSelectedItemCount() == 0)
 		{
 			return; // nothing to do
@@ -512,6 +512,7 @@ void AdminMoveOrCopy::SetupLeftList(wxString& folderPath)
 			{
 				aFolder = leftFoldersArray.Item(index);
 				rv = pLeftList->InsertItem(index,aFolder,indxFolderIcon);
+				rv = rv; // avoid warning
 			}
 		}
 		leftFilesCount = leftFilesArray.GetCount();
@@ -523,6 +524,7 @@ void AdminMoveOrCopy::SetupLeftList(wxString& folderPath)
 			{
 				aFile = leftFilesArray.Item(index);
 				rv = pLeftList->InsertItem(leftFoldersCount + index,aFile,indxFileIcon);
+				rv = rv; // avoid warning
 			}
 		}
 		// Disable the move and copy buttons at the bottom
@@ -536,6 +538,7 @@ void AdminMoveOrCopy::SetupLeftList(wxString& folderPath)
 		// that is the folder icon - which would be confusing, as it would suggest a
 		// folder was found with the name "The folder is empty".
 		rv = pLeftList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
+		rv = rv; // avoid warning
 		leftFoldersCount = 0;
 		leftFilesCount = 0;
 
@@ -570,6 +573,7 @@ void AdminMoveOrCopy::SetupRightList(wxString& folderPath)
 			{
 				aFolder = rightFoldersArray.Item(index);
 				rv = pRightList->InsertItem(index,aFolder,indxFolderIcon);
+				rv = rv; // avoid warning
 			}
 		}
 		rightFilesCount = rightFilesArray.GetCount();
@@ -581,6 +585,7 @@ void AdminMoveOrCopy::SetupRightList(wxString& folderPath)
 			{
 				aFile = rightFilesArray.Item(index);
 				rv = pRightList->InsertItem(rightFoldersCount + index,aFile,indxFileIcon);
+				rv = rv; // avoid warning
 			}
 		}
 	}
@@ -591,6 +596,7 @@ void AdminMoveOrCopy::SetupRightList(wxString& folderPath)
         // index = 0 gets shown, and that is the folder icon - which would be confusing, as
         // it would suggest a folder was found with the name "The folder is empty".
 		rv = pRightList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
+		rv = rv; // avoid warning
 		rightFoldersCount = 0;
 		rightFilesCount = 0;
 	}
@@ -789,11 +795,11 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 	wxString newFilename = _T("");
 	wxFileName fn(m_strRightFolderPath,*pFilename);
 	wxString extn = _T("");
-	bool bHasExtension = FALSE;
+	//bool bHasExtension = FALSE; // set but unused
 	if (fn.HasExt())
 	{
 		extn = fn.GetExt();
-		bHasExtension = TRUE; // to handle when only the . of an extension is present
+		//bHasExtension = TRUE; // to handle when only the . of an extension is present
 	}
 	wxString name = fn.GetName();
 	wxString reversed = MakeReverse(name); // our utility from helpers.cpp
@@ -1138,11 +1144,13 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 				{
 					// it's a directory
 					itsIndex = leftSelectedFoldersArray.Add(itemName);
+					itsIndex = itsIndex; // avoid warning
 				}
 				else
 				{
 					// it'a a file
 					itsIndex = leftSelectedFilesArray.Add(itemName);
+					itsIndex = itsIndex; // avoid warning
 				}
 				isSelected = 0;
 			}
@@ -1187,11 +1195,13 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 				{
 					// it's a directory
 					itsIndex = rightSelectedFoldersArray.Add(itemName);
+					itsIndex = itsIndex; // avoid warning
 				}
 				else
 				{
 					// it'a a file
 					itsIndex = rightSelectedFilesArray.Add(itemName);
+					itsIndex = itsIndex; // avoid warning
 				}
 				isSelected = 0;
 			}
@@ -2200,6 +2210,7 @@ _("Failed to create the copy directory  %s  for the Copy or Move operation.\nThe
 					// which means the conflicting file remains in the left directory. We
 					// don't want to have an annoying message put up for each such 'failure'
 					// so just ignore the return value bOK
+					bOK = bOK; // avoid warning
 					/* // uncomment out if message and/or debug logging is wanted
 					if (!bOK)
 					{

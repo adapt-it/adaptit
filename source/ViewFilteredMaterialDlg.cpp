@@ -91,7 +91,7 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// get pointers for dialog's controls
 	pMarkers = (wxListBox*)FindWindowById(IDC_LIST_MARKER);
 	wxASSERT(pMarkers != NULL);
@@ -316,14 +316,14 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		bHasFilteredInfo = pSrcPhrase->GetFilteredInfoAsArrays(&arrMkrs, 
 							&arrEndMkrs, &arrTextContent, TRUE);
 	}
-	bool bHasFreeTrOrNoteOrBackTr = FALSE;
+	//bool bHasFreeTrOrNoteOrBackTr = FALSE; set but not used
 	wxString strMkr;
 	wxString strEndMkr;
 	wxString strContent;
 	if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
 	{
 		// empty free translation sections are permitted, so the string might be empty
-		bHasFreeTrOrNoteOrBackTr = TRUE;
+		//bHasFreeTrOrNoteOrBackTr = TRUE;
 		strMkr = _T("\\free");
 		strEndMkr = strMkr + _T("*");
 		strContent = pSrcPhrase->GetFreeTrans();
@@ -345,7 +345,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	// if we later permit empty notes to be created
 	if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 	{
-		bHasFreeTrOrNoteOrBackTr = TRUE;
+		//bHasFreeTrOrNoteOrBackTr = TRUE;
 		strMkr = _T("\\note");
 		strEndMkr = strMkr + _T("*");
 		strContent = pSrcPhrase->GetNote();
@@ -365,7 +365,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	// a space for the 'endmarker' - so that there is white space in the slot in the dialog
 	if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 	{
-		bHasFreeTrOrNoteOrBackTr = TRUE;
+		//bHasFreeTrOrNoteOrBackTr = TRUE;
 		strMkr = _T("\\bt");
 		strEndMkr = _T(" ");
 		strContent = pSrcPhrase->GetCollectedBackTrans();

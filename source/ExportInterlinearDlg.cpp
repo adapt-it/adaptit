@@ -96,7 +96,7 @@ CExportInterlinearDlg::CExportInterlinearDlg(wxWindow* parent) // dialog constru
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_bIncludeNavText = TRUE;
 	m_bIncludeSourceText = TRUE;
 	m_bIncludeTargetText = TRUE;

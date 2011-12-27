@@ -976,7 +976,7 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		// it's pile has the old sourcephrase
 		bool bOK;
 		bOK = m_pView->StoreBeforeProceeding(m_pApp->m_pActivePile->GetSrcPhrase());
-		
+		bOK = bOK; // avoid warning TODO: check for failures?
         // Otherwise, we have found one, so it can be opened. However, we have to exercise
         // care with the phrase box - if the note is in a retranslation while adaptation
         // mode is turned on, then we can't place the phrase box at the note location -
@@ -1179,7 +1179,7 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		// pile has the old sourcephrase
 		bool bOK;
 		bOK = m_pView->StoreBeforeProceeding(m_pApp->m_pActivePile->GetSrcPhrase());
-		
+		bOK = bOK; // avoid warning TODO: Check for failures?
         // Otherwise, we have found one, so it can be opened. However, we have to exercise
         // care with the phrase box - if the note is in a retranslation while adaptation
         // mode is turned on, then we can't place the phrase box at the note location - the
@@ -2125,6 +2125,7 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 		aSequNum = locationsArr[anArrayIndex];
 		bShiftedOK = ShiftANoteRightwardsOnce(pSrcPhrases, aSequNum);
 		wxASSERT(bShiftedOK); // this should not have failed
+		bShiftedOK = bShiftedOK; // avoid warning
 	}
 	// success, the passed in nFirstNoteSN location is not a 'gap' as far
 	// as stored Notes are concerned

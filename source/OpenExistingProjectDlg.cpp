@@ -86,7 +86,7 @@ COpenExistingProjectDlg::COpenExistingProjectDlg(wxWindow* parent)
 	// The declaration is: OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_projectName.Empty();
 }
 

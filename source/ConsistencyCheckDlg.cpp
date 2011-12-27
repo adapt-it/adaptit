@@ -95,7 +95,7 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	
+	bOK = bOK; // avoid warning
 	m_keyStr = _T("");
 	m_adaptationStr = _T("");
 	m_bDoAutoFix = FALSE;

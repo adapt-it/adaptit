@@ -483,7 +483,8 @@ void CSourcePhrase::DeepCopy(void)
 		deletedOK = m_pSavedWords->DeleteNode(nextPos);
 		//delete pSPtoDelete;
 		wxASSERT(deletedOK != FALSE);
- 	}
+ 		deletedOK = deletedOK; // avoid warning TODO: Check for failures?
+	}
 }
 
 void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)
@@ -2102,7 +2103,7 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
         // only when filtering out something where punctuation is both sides of \f* or \fe*
         // or \x*, and how often will that happen?!) So, the next bit of code is a kludge
         // to make the data safe for the call lower down.
-		bool bCheckFurther = FALSE;
+		//bool bCheckFurther = FALSE; // set but not used
 		int fullLen = 0;
 		int lastMkrLen = 0;
 		wxString firstMkr;
@@ -2121,7 +2122,7 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 		else
 		{
 			// there is at least one marker beyond the first
-			 bCheckFurther = TRUE;
+			 //bCheckFurther = TRUE;
 			 lastMkrLen = lastMkr.Len();
 			if (gpApp->gCurrentSfmSet == PngOnly)
 			{
@@ -2505,4 +2506,5 @@ void CSourcePhrase::SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray)
 	// placed by the user if asked (i.e. he's shown the Place Internal Markers dialog)
 	// (param 3, bool bExcludeDuplicates is default FALSE)
 	bAddedSomething = AddNewStringsToArray(pMedialsArray, &oldsArray);
+	bAddedSomething = bAddedSomething; // avoid warning TODO: Check for failures?
 }

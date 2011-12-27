@@ -73,7 +73,7 @@ CWhichBook::CWhichBook(wxWindow* parent)
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_pComboChooseBook = (wxComboBox*)FindWindowById(IDC_COMBO_CHOOSE_BOOK);
 	wxASSERT(m_pComboChooseBook != NULL);
 	//m_pComboChooseBook->SetValidator(wxGenericValidator(&m_strBookName));

@@ -1248,6 +1248,7 @@ t:	if (pCell == NULL)
 									nCurPile++; // index of next pile
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
+									pCurSrcPhrase = pCurSrcPhrase; // avoid warning TODO: need test below?
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
 
@@ -1645,6 +1646,7 @@ t:	if (pCell == NULL)
 				
 				CPile* pPile;
 				pPile = pView->GetPile(pApp->m_nActiveSequNum);
+				pPile = pPile; // avoid warning in release build
 				wxASSERT(pApp->m_nActiveSequNum == pPile->GetSrcPhrase()->m_nSequNumber);
 
 				// refresh status info at the bottom of the main window
@@ -2017,8 +2019,8 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	{
 		CAdapt_ItView* pView = pApp->GetView();
 		CPile* pPile = pView->GetPile(nSequNum);
-		CStrip* pStrip = pPile->GetStrip();
-		wxRect rectStrip = pStrip->GetStripRect();
+		//CStrip* pStrip = pPile->GetStrip(); // unused
+		//wxRect rectStrip = pStrip->GetStripRect(); // unused
 
 		// get the visible rectangle's coordinates
 		wxRect visRect; // wxRect rectClient;

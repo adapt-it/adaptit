@@ -77,7 +77,7 @@ CChooseLanguageDlg::CChooseLanguageDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	wxColor backgrndColor = this->GetBackgroundColour();
 	
 	pListBox = (wxListBox*)FindWindowById(ID_LIST_UI_LANGUAGES);
@@ -324,6 +324,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 					memset(pBuff,0,fileLen + 1);
 					int nReadBytes;
 					nReadBytes = f.Read(pBuff,fileLen);
+					nReadBytes = nReadBytes; // avoid warning
 					// we were able to open the file, so now read through the file until we have read successive
 					// bytes that together read "X-Poedit-Language: "
 					char strToFind[] = "X-Poedit-Language: "; // length is 19 bytes plus null char = 20

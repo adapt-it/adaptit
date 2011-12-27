@@ -79,7 +79,7 @@ COutputFilenameDlg::COutputFilenameDlg(wxWindow* parent)
 	// initialize attributes
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_strFilename = _T("");
 
 	// use wxValidator for simple dialog data transfer

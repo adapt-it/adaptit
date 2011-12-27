@@ -88,6 +88,7 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	CAdapt_ItApp* pApp = &wxGetApp();
 	bool bOK;
 	bOK = pApp->ReverseOkCancelButtonsForMac(this);
+	bOK = bOK; // avoid warning
 	// other attribute initializations
 }
 

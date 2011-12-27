@@ -347,10 +347,10 @@ void CLayout::Draw(wxDC* pDC)
  	int i;
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
-	int nActiveSequNum = -1;
+	//int nActiveSequNum = -1; // set but unused
 
 	// work out the range of visible strips based on the phrase box location
-	nActiveSequNum = m_pApp->m_nActiveSequNum;
+	//nActiveSequNum = m_pApp->m_nActiveSequNum;
 
 	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
 	// BEW added 10Jul09, GetVisibleStripsRange() assumes drawing is being done to the

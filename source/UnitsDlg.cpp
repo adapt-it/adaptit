@@ -68,7 +68,7 @@ CUnitsDlg::CUnitsDlg(wxWindow* parent) // dialog constructor
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	tempUseInches = FALSE; // in wx version page setup only has mm for margins, so we only use Metric for now
 	m_pRadioUseInches = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);
 	m_pRadioUseCentimeters = (wxRadioButton*)FindWindowById(IDC_RADIO_CM);

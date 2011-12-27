@@ -1217,6 +1217,7 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
 		bRTLLayout = FALSE;
 	}
 	#endif
+	bRTLLayout = bRTLLayout; // avoid warning
 
     // The loop iterates over the sequence of CPile instances; this function doesn't
     // access the free translations themselves, we just deal with the layout and the
@@ -1523,6 +1524,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 		bRTLLayout = FALSE;
 	}
 	#endif
+	bRTLLayout = bRTLLayout; // avoid warning
 
     // The outer loop iterates over the sequence of CPile sets; this function doesn't
     // access the free translations themselves (that is done in the next function, which
@@ -2042,7 +2044,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                                 // is added to arrFTSubstringsArrays when that happens too)
 	int curSubstringsCount = 0; // count of arrays in arrFTSubstringsArrays -- also updated, as above
 	bool bFTElementsExist = FALSE;
-	bool bFTSubstringsExist = FALSE;
+	//bool bFTSubstringsExist = FALSE;
 	if (!arrFTElementsArrays.IsEmpty())
 	{
 	    bFTElementsExist = TRUE;
@@ -2050,11 +2052,11 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
 	}
 	if (!arrFTSubstringsArrays.IsEmpty())
 	{
-	    bFTSubstringsExist = TRUE;
+	    //bFTSubstringsExist = TRUE;
         curSubstringsCount = arrFTSubstringsArrays.GetCount();
 	}
 	wxASSERT(curElementsCount == curSubstringsCount); // they are in parallel, so counts must not differ
-
+	curSubstringsCount = curSubstringsCount; // avoid warning
      // if there is no data to handle, just return without doing anything
     if (arrRectsForOneFreeTrans.IsEmpty())
         return;
@@ -2096,6 +2098,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
 		bRTLLayout = FALSE; //nFormat = gnLTRFormat;
 	}
 #endif
+	bRTLLayout = bRTLLayout; // avoid warning
 
     // to measure text accurately, we have to set up the appropriate font - which
     // defaults, for free translations, to the target text's current face and size
@@ -2987,8 +2990,8 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 
 	bool bTextIsTooLong = FALSE;
 	int totalRects = 0;
-	int offset = 0;
-	int length = 0;
+	//int offset = 0;
+	//int length = 0;
 	pPile = m_pApp->m_pActivePile; // go straight there
 
     // when DrawFreeTranslations is called from the composebar's editbox, there should
@@ -3265,10 +3268,10 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // the whole or part of this section must be drawn, so do the
     // calculations now; first, get the free translation text
 	pSrcPhrase = m_pFirstPile->GetSrcPhrase();
-	offset = 0;
-	length = 0;
+	//offset = 0;
+	//length = 0;
 	ftStr = pSrcPhrase->GetFreeTrans();
-	length = ftStr.Len();
+	//length = ftStr.Len();
 
     // get text's extent (a wxSize object) and compare to the total horizontal extent of
     // the rectangles. also determine the number of rectangles we are to write this section
@@ -4261,7 +4264,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	// from way below to avoid compiler warnings:
 	bool bTextIsTooLong = FALSE;
 	int totalRects = 0;
-	int offset = 0;
+	//int offset = 0;
 	int length = 0;
 
  	// THE LOOP FOR ITERATING OVER ALL FREE TRANSLATION SECTIONS IN THE DOC,
@@ -4704,7 +4707,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		// the whole or part of this section must be drawn, so do the
 		// calculations now; first, get the free translation text
 		pSrcPhrase = m_pFirstPile->GetSrcPhrase();
-		offset = 0;
+		//offset = 0;
 		length = 0;
 		ftStr = pSrcPhrase->GetFreeTrans();
 		length = ftStr.Len();
@@ -5128,6 +5131,7 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 		wxChar* pEnd;
 		pEnd = pBufStart + bufLen; // whm added
 		wxASSERT(*pEnd == _T('\0')); // whm added
+		pEnd = pEnd; // avoid warning
 		ptr = pBufStart + curPos;
 		bareMkr = pDoc->GetBareMarkerForLookup(ptr);
 		pAnalysis = pDoc->LookupSFM(bareMkr);
@@ -5309,6 +5313,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			bool bOK;
 			bOK = pKB->StoreTextGoingBack(pSP,m_pApp->m_targetPhrase); // store, so we can
 																// forget this location
+			bOK = bOK; // avoid warning
 		}
 		while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 		{
@@ -5405,6 +5410,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		// get any removed free translations in gEditRecord into the GUI list
 		bool bAllsWell;
 		bAllsWell = m_pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
+		bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
 	}
 	else
 	{
@@ -5495,6 +5501,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			bool bOK;
 			bOK = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 											m_pApp->m_nActiveSequNum,numSrcPhrases);
+			bOK = bOK; // avoid warning TODO: check for failures?
 		}
 
 		translation.Empty(); // don't preserve anything from a former adaptation state
@@ -5514,7 +5521,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			bAllsWell = m_pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 		else
 			bAllsWell = m_pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-
+		bAllsWell = bAllsWell; // avoid warning
         // BEW added 10Jun09; do a recalc of the layout, set active pile pointer, and
         // scroll into view - otherwise these are not done and box can be off-window
 		m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases,keep_strips_keep_piles);
@@ -6418,6 +6425,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 			// get any removed free translations in gEditRecord into the GUI list
 			bool bAllsWell;
 			bAllsWell = m_pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
+			bAllsWell = bAllsWell; // avoid warning
 		}
 		else
 		{
@@ -6438,6 +6446,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 				bAllsWell = m_pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 			else
 				bAllsWell = m_pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
+			bAllsWell = bAllsWell; // avoid warning
 		}
 	}
 }
@@ -6531,6 +6540,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 						bool bCommandPosted;
 						bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(
 																	-1, nextStep, TRUE);
+						bCommandPosted = bCommandPosted; // avoid warning
 						// TRUE is bForceTransition
 					}
 					// make it 'stick' before returning
@@ -6569,6 +6579,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 								bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(
 																		-1, nextStep, TRUE);
 																// TRUE is bForceTransition
+								bCommandPosted = bCommandPosted; // avoid warning
 							}
 							// make it 'stick' before returning
 							StoreFreeTranslationOnLeaving();
@@ -6688,6 +6699,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 						bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(
 																	-1, nextStep, TRUE);
 															// TRUE is bForceTransition
+						bCommandPosted = bCommandPosted; // avoid warning					
 						return;
 					}
 					// make it 'stick' before returning

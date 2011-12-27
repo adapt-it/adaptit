@@ -77,7 +77,7 @@ CRetranslationDlg::CRetranslationDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// use pointers to dialog's controls and wxValidator for simple dialog data transfer
 	pSrcPrecContextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_PRECONTEXT);
 	//pSrcPrecContextBox->SetValidator(wxGenericValidator(&m_preContext)); // whm removed 21Nov11
