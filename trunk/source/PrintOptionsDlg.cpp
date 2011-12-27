@@ -130,7 +130,7 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_pView = gpApp->GetView();
 
 	//m_pPrintout = pPrintout; // initialize pointer to the AIPrintout of the caller (OnPrint in the View)
@@ -511,8 +511,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		// services of the View's AnalyseReference().
 		int nChFirst = 0;	// start chapter of range
 		int nChLast = 0;	// ending chapter of range
-		int nVsFirst = 0;	// start verse of range
-		int nVsLast = 0;	// ending verse of range
+		// int nVsFirst = 0;	// start verse of range // set but not used
+		//int nVsLast = 0;	// ending verse of range // set but not used
 		int vfirst, vlast;
 		CAdapt_ItView* pView = gpApp->GetView();
 		// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on Bill's code here
@@ -524,7 +524,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 			strVsFrom << vfirst;
 			pEditChFrom->SetValue(strChFrom);
 			pEditVsFrom->SetValue(strVsFrom);
-			nVsFirst = vfirst;
+			//nVsFirst = vfirst;
 		}
 		// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on Bill's code here
 		if (pView->AnalyseReference(ChVsLast,nChLast,vfirst,vlast,1))
@@ -535,7 +535,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 			strVsTo << vlast;
 			pEditChTo->SetValue(strChTo);
 			pEditVsTo->SetValue(strVsTo);
-			nVsLast = vlast;
+			//nVsLast = vlast;
 		}
 	}
     /*

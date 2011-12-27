@@ -4087,7 +4087,11 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		bOK = textFile.Open(fullFilePath);
 		BuildUserProfileXMLFile(&textFile);
 		// Write the modified wxText file back out to disk
-		textFile.Write(); // no need to do anything special for Unicode
+		// no need to do anything special for Unicode
+		if (!bOK)
+		{
+			// TODO:: error msg
+		} 
 	}
 	else
 	{
@@ -4235,7 +4239,9 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 			}
 			bool bCreatedOK, bOpenedOK;
 			bCreatedOK = newTextFile.Create(m_userProfileFileWorkFolderPath);
+			bCreatedOK = bCreatedOK; // suppress warning. TODO: add test and error message
 			bOpenedOK = newTextFile.Open();
+			bOpenedOK = bOpenedOK; // suppress warning. TODO: add test and error message
 			if (newTextFile.IsOpened())
 			{
 				// now copy the lines from textFile to newTextFile
@@ -7263,7 +7269,6 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 	keyArray.Alloc(9);
 	wxArrayString foundCodesArray;
 	bool bKeysPresent = FALSE;
-	bool bKeyMissing = FALSE;
 	bool bAllKeysAssigned = FALSE;
 	for (ct = 0; ct < nKeys; ct++)
 	{
@@ -7295,7 +7300,6 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		}
 		if (!valReadOK)
 		{
-			bKeyMissing = TRUE;
 			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any
 										// keyArray element for which there is no key
 		}
@@ -7402,14 +7406,12 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 					<< _T(':'); // << localizationPath; whm 8Dec11 removed the path part
 
 		// Assign compositeStr to the first empty array element in keyArray[].
-		bool bAssigned = FALSE;
 		for (ct = 0; ct < nKeys; ct++)
 		{
 			// if key is unassigned put the compositeStr there
 			if (keyArray[ct] == _T("[UNASSIGNED]"))
 			{
 				keyArray[ct] = compositeStr;
-				bAssigned = TRUE;
 				break;
 			}
 		}
@@ -7472,8 +7474,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	const int nKeys = 9;
 	wxArrayString keyArray;
 	bool bKeysPresent = FALSE;
-	bool bKeyMissing = FALSE;
-	bool bAllKeysAssigned = FALSE;
+	//bool bAllKeysAssigned = FALSE;
 	for (ct = 0; ct < nKeys; ct++)
 	{
 		wxLogNull logNo; // eliminates spurious message from the system:
@@ -7489,17 +7490,16 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		wxString tempStr;
 		valReadOK = m_pConfig->Read(str, &tempStr);
 		keyArray.Add(tempStr);
-		if (valReadOK && keyArray[ct] == _T("[UNASSIGNED]"))
-		{
-			bAllKeysAssigned = FALSE;
-		}
+		//if (valReadOK && keyArray[ct] == _T("[UNASSIGNED]"))
+		//{
+		//	bAllKeysAssigned = FALSE;
+		//}
 		if (valReadOK && keyArray[ct] != _T("[UNASSIGNED]"))
 		{
 			bKeysPresent = TRUE;
 		}
 		if (!valReadOK)
 		{
-			bKeyMissing = TRUE;
 			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any
 										// keyArray element for which there is no key
 		}
@@ -7525,18 +7525,14 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		wxString subStr;
 		subStr << _T(':') << shortName << _T(':') << fullName << _T(':'); // for Tok
 											// Pisin this would be ":tpi:Tok Pisin:"
-		bool bFound = FALSE;
 		for (ct = 0; ct < nKeys; ct++)
 		{
 			if (keyArray[ct].Find(subStr) != -1)
 			{
-				bFound = TRUE;
 				keyArray[ct] = _T("[UNASSIGNED]");
 				break;
 			}
 		}
-
-		wxASSERT(bFound);
 
         // Note: At the next running of the app, OnInit() calls
         // ProcessUILanguageInfoFromConfig() function which reads all the registry/hidden
@@ -7863,14 +7859,14 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 	int nMainMenuItems = (int)m_pAI_MenuStructure->aiMainMenuItems.GetCount();
 	for (ct = 0; ct < nMainMenuItems; ct++)
 	{
-		bool bProcessingFileMenu = FALSE;
+		//bool bProcessingFileMenu = FALSE;
 		mmNode = m_pAI_MenuStructure->aiMainMenuItems.Item(ct);
 		pMainMenuItem_DefaultStructure = mmNode->GetData();
 		mainMenuLabel_DefaultStructure = pMainMenuItem_DefaultStructure->mainMenuLabel;
-		if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(fileMenu)) // fileMenu resolves to _("&File")
-		{
-			bProcessingFileMenu = TRUE;
-		}
+		//if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(fileMenu)) // fileMenu resolves to _("&File")
+		//{
+		//	bProcessingFileMenu = TRUE;
+		//}
 		// skip processing of the Help and Administrator menus
 		if (mainMenuLabel_DefaultStructure == GetTopLevelMenuName(helpMenu) // helpMenu resolves to _("&Help")
 			|| mainMenuLabel_DefaultStructure == GetTopLevelMenuName(administratorMenu)) // administratorMenu resolves to _("Ad&ministrator")
@@ -8743,6 +8739,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			bool bAppendedOK;
 			bAppendedOK = pMenuBar->Append(m_pRemovedAdminMenu,m_adminMenuTitle);
 			wxASSERT(bAppendedOK);
+			bAppendedOK = bAppendedOK; // avoid warning TODO: add error message?
 			m_pRemovedAdminMenu = NULL;
 			m_bAdminMenuRemoved = FALSE;
 		}
@@ -10121,8 +10118,8 @@ wxString CAdapt_ItApp::RemoveMenuLabelDecorations(wxString menuLabel)
 {
 	wxString tempStr = menuLabel;
 	tempStr.Replace(_T("&"),_T(""));
-	int nTest;
-	nTest = tempStr.Find(_T("\\t"));
+	//int nTest;
+	//nTest = tempStr.Find(_T("\\t"));
 	if (tempStr.Find(_T("\\t")) != wxNOT_FOUND) // must use "\\t" since it is a string representation only
 	{
 		// there is a tab char in the menu label, so remove from that point to remainder of string
@@ -11591,6 +11588,7 @@ bool CAdapt_ItApp::ParatextIsRunning()
 bool CAdapt_ItApp::BibleditIsRunning()
 {
 	bool bIsRunning = FALSE;
+	bIsRunning = bIsRunning; // avoid warning
 
 #ifndef __WXMSW__ // for the non-Windows systems, i.e., Linux and Mac
 
@@ -11604,6 +11602,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// Use the wxExecute() override that takes the two wxStringArray parameters. This
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+	result = result; // avoid warning
 #ifdef __WXDEBUG__
 	int testCt;
 	for (testCt = 0; testCt < (int)outputMsg.GetCount(); testCt++)
@@ -11860,8 +11859,8 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 	wxArrayString keyArray;
 	keyArray.Alloc(9);
 	bool bKeysPresent = FALSE;
-	bool bKeyMissing = FALSE;
-	bool bAllKeysAssigned = FALSE;
+	//bool bKeyMissing = FALSE;
+	//bool bAllKeysAssigned = FALSE;
 
 	for (ct = 0; ct < nKeys; ct++)
 	{
@@ -11875,17 +11874,17 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 		wxString tempStr;
 		valReadOK = m_pConfig->Read(str, &tempStr);
 		keyArray.Add(tempStr);
-		if (valReadOK && keyArray[ct] == _T("[UNASSIGNED]"))
-		{
-			bAllKeysAssigned = FALSE;
-		}
+		//if (valReadOK && keyArray[ct] == _T("[UNASSIGNED]"))
+		//{
+		//	bAllKeysAssigned = FALSE;
+		//}
 		if (valReadOK && keyArray[ct] != _T("[UNASSIGNED]"))
 		{
 			bKeysPresent = TRUE;
 		}
 		if (!valReadOK)
 		{
-			bKeyMissing = TRUE;
+			//bKeyMissing = TRUE;
 			keyArray[ct] = _T("[UNASSIGNED]");	// assign null string to any keyArray element
 												// for which there is no key
 		}
@@ -12440,7 +12439,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 {
 	int ct;
 	wxArrayString codeStrArray;
-	int tempCode;
+	//int tempCode;
 	int codeToReturn = -1;
 	const int nKeys = 9; // the max number of keys we allow in the registry/hidden
 						 // settings file
@@ -12458,8 +12457,8 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 		{
 			tempStr = keyArray[ct];
 			tempStr = tempStr.Mid(0,tempStr.Find(_T(':')));
-			tempCode = wxAtoi(tempStr);
-			wxASSERT(tempCode > 230 && tempCode < (wxLANGUAGE_USER_DEFINED + 1 + nKeys));
+			//tempCode = wxAtoi(tempStr);
+			//wxASSERT(tempCode > 230 && tempCode < (wxLANGUAGE_USER_DEFINED + 1 + nKeys));
 			codeStrArray.Add(tempStr);
 		}
 		else
@@ -14505,6 +14504,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);
 												// Windows: fontAvail = true
 												//  Ubuntu: fontAvail = true
+	if (!fontAvail)
+	{
+		// TODO: error message?
+		;
+	}
 	//wxFontEncoding altFontEnc;
 	//wxString facename = _T("");
 	//bool gotAltFont;
@@ -14551,6 +14555,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                     CLASSINFO(CAdapt_ItDoc),
                     CLASSINFO(CAdapt_ItView));
 	// pDocTemplate above will be destroyed when m_pDocManager is deleted in OnExit()
+	pDocTemplate = pDocTemplate; // avoid warning
 	wxASSERT(pDocTemplate != NULL);
     // Note: We could have another wxDocTemplate instance for plain text documents if we
     // wanted them to be managed by the doc/view framework.
@@ -17216,6 +17221,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_CollabChapterSelected);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_src_lang_name"), m_CollabSourceLangName);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_lang_name"), m_CollabTargetLangName);
+			if (!bWriteOK)
+			{
+				;
+				// TODO: error message
+			}
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
@@ -17282,6 +17292,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("be_collab_chapter_selected"), m_CollabChapterSelected);
 			bWriteOK = m_pConfig->Write(_T("be_collab_src_lang_name"), m_CollabSourceLangName);
 			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_lang_name"), m_CollabTargetLangName);
+			if (!bWriteOK)
+			{
+				;
+				// TODO: error message
+			}
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
@@ -17979,6 +17994,7 @@ int ii = 1;
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
 	pEditMenu->AppendSeparator();
 	wxMenuItem* pTestChorusItem = pEditMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test DVCS")); // defaults for final 2 params
+	pTestChorusItem = pTestChorusItem; // supress warning // TODO: remove this if pTestChorusItem is used
 #endif
 	// end of code for supporting Mike's DVCS work
 	
@@ -18010,10 +18026,20 @@ void CAdapt_ItApp::Terminate()
 			bOK = WriteConfigurationFile(szBasicConfiguration, m_customWorkFolderPath,basicConfigFile);
 		else
 			bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_workFolderPath,basicConfigFile);
+		if (!bOK)
+		{
+			// TODO: error message?
+			;
+		}
 	}
 	else
 	{
 		bOK = WriteConfigurationFile(szBasicConfiguration, m_workFolderPath,basicConfigFile);
+		if (!bOK)
+		{
+			// TODO: error message?
+			;
+		}
 	}
 }
 
@@ -18116,6 +18142,7 @@ int CAdapt_ItApp::OnExit(void)
 		{
 			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
 		}
+		bOK = bOK; // avoid warning
 		// below is original
 		//if (::wxDirExists(m_curProjectPath))
 		//{
@@ -19019,6 +19046,7 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3
 	// and later, so we use it here.
 	bool bReturn = FALSE;
+	bReturn = bReturn; // avoid warning
 	if (!wxGetKeyState(WXK_SHIFT)) // if (keyState != WXK_SHIFT)
 	{
 		// Shift key is not down, so load the config file data for fonts & other settings.
@@ -19082,6 +19110,7 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	// (the values set as defaults when the basic config file was bypassed will remain in
 	// effect)
 	bool bReturn = FALSE;
+	bReturn = bReturn; // avoid warning
 	if (!wxGetKeyState(WXK_SHIFT))
 	{
 		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
@@ -19170,6 +19199,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 	// this is where we have to start setting up the directory structures
 	bool bWorkExists = FALSE;
+	bWorkExists = bWorkExists; // avoid warning
 	if (::wxFileExists(workOrCustomFolderPath) || ::wxDirExists(workOrCustomFolderPath))
     // The Docs say ::wxFileExists() "returns TRUE if the file exists. It also returns
     // TRUE if the file is a directory", however, I've found that the second statement
@@ -19234,6 +19264,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 	// check to see if this folder already exists
 	bool bLangWorkFolderExists = FALSE;
+	bLangWorkFolderExists = bLangWorkFolderExists; // avoid warning
 	if (::wxFileExists(m_curProjectPath) || ::wxDirExists(m_curProjectPath))
 	{
 		if (::wxDirExists(m_curProjectPath))
@@ -19333,6 +19364,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 	// check to see if this folder already exists
 	bool bAdaptionsFolderExists = FALSE;
+	bAdaptionsFolderExists = bAdaptionsFolderExists; // avoid warning
 	if (::wxFileExists(m_curAdaptionsPath) || ::wxDirExists(m_curAdaptionsPath))
 	{
 		if (::wxDirExists(m_curAdaptionsPath))
@@ -19868,6 +19900,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 			// set up some safe indices, since the counts could be quite different
 			// than before
 			difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
+			difference = difference; // avoid warning TODO: test this for error?
 
             // for refactored layout code, the following suffices because
 			// m_nActiveSequNum remains unchanged within the document; we defer the
@@ -20041,6 +20074,11 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 	int countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
 	int countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
+	
+	// TODO: error message if countBeforeEdit != countAfterEdit ???
+	countBeforeEdit = countBeforeEdit; // avoid warning
+	countAfterEdit = countAfterEdit; // avoid warning
+
 	int numFlags = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
     // The usfm filter page's m_SfmMarkerAndDescriptionsDoc wxStringArray and the parallel
     // m_filterFlagsDoc CUIntArray contain data for both known and unknown markers. The
@@ -20150,6 +20188,8 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 				// depending on what user may choose to alter
 				pView->RemoveSelection();
 			}
+
+			activeSequNum = activeSequNum; // avoid warning. TODO: test this value for error?
 
             // as in DoPunctuationChanges, we need to be sure we can recreate the phrase
             // box safely so changes will be needed here; however, this is done at a lower
@@ -23023,6 +23063,11 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 	//bOkay = GetDocument()->DoFileSave(FALSE);
 	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	bOkay = GetDocument()->DoFileSave_Protected(FALSE,pProgDlg); // FALSE - don't show wait/progress dialog
+	if (!bOkay)
+	{
+		;
+		// TODO: error message or other action???
+	}
 
 	// update the time it was last saved
 	wxDateTime time = wxDateTime::Now();
@@ -25471,7 +25516,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 	int		mins;
 	int		secs;
 	int		num; // for the string converted to a number
-	bool	bAdjusted = FALSE;
+	//bool	bAdjusted = FALSE;
 
 	wxString data = _T("");
 	wxString name;
@@ -26275,7 +26320,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // adjusted for any extended desktop support over dual monitors.
 			if (num < -6 || num > wndBotRight.x - 5) // -4 is maximized window's x value
 			{
-				bAdjusted = TRUE; // it's too far left or right
+				//bAdjusted = TRUE; // it's too far left or right
 				num = 5;
 			}
 			m_ptViewTopLeft.x = num;
@@ -26288,7 +26333,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // adjusted for any extended desktop support over dual monitors.
 			if (num < -6 || num > wndBotRight.y - 5) // -4 is maximized window's y value
 			{
-				bAdjusted = TRUE; // it's too far up or down
+				//bAdjusted = TRUE; // it's too far up or down
 				num = 5;
 			}
 			m_ptViewTopLeft.y = num;
@@ -26301,7 +26346,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // adjusted for any extended desktop support over dual monitors.
 			if (num < 200 || num > wndBotRight.x - wndTopLeft.x)
 			{
-				bAdjusted = TRUE; // it's too narrow or too wide
+				//bAdjusted = TRUE; // it's too narrow or too wide
 				num = wndBotRight.x - wndTopLeft.x -100;
 			}
 			m_szView.x = num;
@@ -26314,7 +26359,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
             // adjusted for any extended desktop support over dual monitors.
 			if (num < 200 || num > wndBotRight.y - wndTopLeft.y)
 			{
-				bAdjusted = TRUE; // it's too short or too long
+				//bAdjusted = TRUE; // it's too short or too long
 				num = wndBotRight.y - wndTopLeft.y - 100;
 			}
 			m_szView.y = num;
@@ -26973,6 +27018,9 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		wxString strRenamedFile = strOriginalFile + _T("_"); // append an underscore
 		bool bOK = ::wxCopyFile(strOriginalFile,strRenamedFile,TRUE); // TRUE = overwrite
 						// if it exists already; ignore returned bool, we assume it will work
+		
+		bOK = bOK; // avoid warnings TODO: test bOK below for error messages
+
 		wxTextFile f;
 		bool bOpenedOK = f.Open(aPath);
 		// should open ok, if not, tell the developer & abort
@@ -27060,6 +27108,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					wxString strOriginalFile = aPath;
 					wxString strRenamedFile = strOriginalFile + _T("_"); // append an underscore
 					bool bOK = ::wxCopyFile(strOriginalFile,strRenamedFile,TRUE); // TRUE = overwrite
+					bOK = bOK; // avoid warning TODO: need any error msg below?
 					wxTextFile f;
 					bool bOpenedOK = f.Open(aPath);
 					// should open ok, if not, tell the user & abort
@@ -29037,6 +29086,8 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(destinationFolder);
 
+	bOK = bOK; // avoid warning TODO: test and give error message???
+
 	// open the config file for writing
     // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
     // Note: Need to check if file exists, otherwise if Open fails wxWidgets' wxTextFile
@@ -30050,6 +30101,7 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 
 		wxPaperSize pSize,pSizepd;
 		pSize = pPgSetupDlgData->GetPaperId();
+		pSize = pSize; // avoid warning
 		pSizepd = pPrintData->GetPaperId();
 		m_paperSizeCode = MapWXtoMFCPaperSizeCode(pSizepd);
 
@@ -30479,6 +30531,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 
 		bool bOK;
 		bOK = AccessOtherAdaptionProject(); // see the list and choose one
+		bOK = bOK; // avoid warning TODO: test for error?
 
 		// restore the flag to its default value
 		gbExcludeCurrentProject = FALSE;
@@ -30740,6 +30793,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to m_curAdaptionsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			bOK = bOK; // avoid warning TEST for error message?
 			return FALSE;
 		}
 
@@ -30784,6 +30838,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to m_curAdaptionsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			bOK = bOK; // avoid warning TODO: Test for error message?
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
 			return FALSE; // abandon the command, the adaptations KB couldn't be opened
@@ -30948,6 +31003,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			bOK = bOK; // avoid warning
 			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
 			_T(""), wxICON_WARNING);
 			LogUserAction(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."));
@@ -30969,6 +31025,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+			bOK = bOK; // avoid warning
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
 			return FALSE;
@@ -31013,6 +31070,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
                 // current working directory to strOtherAdaptationsPath.
 				bool bOK;
 				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				bOK = bOK; // avoid warning
 				if (pProgDlg != NULL)
 					pProgDlg->Destroy();
 				return FALSE;
@@ -31092,6 +31150,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 							bTransformedOK = DoTransformationsToGlosses(targetProjectDocsList,
 														pDoc,otherFolderPath,str,TRUE);
 							// note, the function clears targetProjectDocsList before returning
+							bTransformedOK = bTransformedOK; // avoid warnings - TODO: test for errors?
 						}
 						else
 						{
@@ -31118,6 +31177,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		bool bSuccessful = TRUE;
 		m_pGlossingKB->DoKBImport(glossesKBExportPath, KBImportFileOfSFM_TXT);
 		bSuccessful = ::wxRemoveFile(glossesKBExportPath);
+		bSuccessful = bSuccessful; // avoid warning TODO: test for error message?
 		wxASSERT(bSuccessful);
 
 		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
@@ -31131,6 +31191,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 	// to what it was on entry
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	bOK = bOK; // avoid warning
 	return bSuccess;
 }
 
@@ -31315,6 +31376,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 
 			bool bSavedOK;
 			bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
+			bSavedOK = bSavedOK; // avoid warning - test for error message?
 
 			pView->ClobberDocument();
 
@@ -34644,7 +34706,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
     // in case; if searchStrLenType is subString, it will return the index of the first
     // item with a matching substring.
 	int ct;
-	bool bFound = FALSE;
+	//bool bFound = FALSE;
 	wxString caseKeyStr = searchStr;
 	if (searchCaseType == caseInsensitive)
 		caseKeyStr.UpperCase();
@@ -34662,7 +34724,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 			if (srcStr.Find(caseKeyStr) == 0)
 			{
 				// we found an item whose beginning chars match
-				bFound = TRUE;
+				//bFound = TRUE;
 				return ct;
 			}
 		}
@@ -34672,7 +34734,7 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 			if (srcStr == caseKeyStr)
 			{
 				// we found an item whose chars match exactly
-				bFound = TRUE;
+				//bFound = TRUE;
 				return ct;
 			}
 		}
@@ -35083,8 +35145,8 @@ void CAdapt_ItApp::DoPrintCleanup()
 
 	pView->Invalidate();
 	m_pLayout->PlaceBox();
-	wxWindow* pWnd;
-	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set
+	//wxWindow* pWnd; // unused
+	//pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set
             // by the above code, so unfortunately the cursor will have to be manually put
             // back in the box
 
@@ -35622,7 +35684,8 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
        int aStripCount = m_pLayout->GetStripArray()->GetCount();
         bool bIsOK;
         bIsOK = pView->PaginateDoc(aStripCount, nPagePrintingLengthLU);
-        // app's m_pagesList is now populated
+        bIsOK = bIsOK; // avoid warning - test for error?
+		// app's m_pagesList is now populated
 	    bool bSetupOK = pView->SetupPageRangePrintOp(m_userPageRangePrintStart, m_userPageRangePrintEnd, pPrintData);
 		if(!bSetupOK)
 		{
@@ -35729,6 +35792,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 		// that is that the PileList constents in CLayout will all be invalid. So
 		// we must do any RecalcLayout() call with the param create_stripes_and_piles
 		bOK = pView->GetSublist(m_pSaveList, m_pSourcePhrases, nBeginSN, nEndSN);
+		bOK = bOK; // avoid warning - TODO: Test for error?
 
         // Recalc the layout with the new width
 //#ifdef _NEW_LAYOUT
@@ -35775,6 +35839,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 	}
 	int nPageCount; // for debugging purposes only, but leave it enabled
 	nPageCount = m_pagesList.GetCount();
+	nPageCount = nPageCount; // avoid warning
 
 	return TRUE;
 }
@@ -36985,6 +37050,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurLanguagesPath + tab + localPath + subFoldersPath; // the fix
@@ -37006,6 +37072,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurAdaptionsPath + tab + localPath + subFoldersPath;
@@ -37027,6 +37094,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurKBPath + tab + localPath + subFoldersPath;
@@ -37048,6 +37116,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurKBBackupPath + tab + localPath + subFoldersPath;
@@ -37089,6 +37158,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath)) // ensure Linux etc are handled too
@@ -37124,6 +37194,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37159,6 +37230,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37194,6 +37266,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37229,6 +37302,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					NumReplacements = NumReplacements; // avoid warning
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37942,6 +38016,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			{
 				if (::wxFileExists(configPath))
 					bRemoved = ::wxRemoveFile(configPath);
+				bRemoved = bRemoved; // avoid warning
 				// we don't care if the removal didn't happen, so ignore a FALSE value
 				// returned (we don't expect to ever get FALSE returned here)
 			}
@@ -38383,6 +38458,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			{
 				if (::wxFileExists(configPath))
 					bRemoved = ::wxRemoveFile(configPath);
+				bRemoved = bRemoved; // avoid warning
 				// we don't care if the removal didn't happen, so ignore a FALSE value
 				// returned (we don't expect to ever get FALSE returned here)
 			}
@@ -38573,6 +38649,7 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 				// instance's settings
 				bool bOK;
 				bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
+				bOK = bOK; // avoid warning TODO: test for error?
 				// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
 				#ifndef _UNICODE
 				// ANSI
@@ -39138,7 +39215,7 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 				wxString leftToRight = _T("T");
 				wxString encoding = _T("65001");
 				bool bProjectIsNotResource = TRUE;
-				bool bProjectIsEditable = TRUE;
+				//bool bProjectIsEditable = TRUE;
 
 				wxString lineStr;
 				// scan through all lines of file setting field values as we go
@@ -39279,12 +39356,12 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 						temp = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
 						if (temp == _T("T"))
 						{
-							bProjectIsEditable = TRUE;
+							//bProjectIsEditable = TRUE;
 							pPTInfo->bProjectIsEditable = TRUE;
 						}
 						else if (temp == _T("F"))
 						{
-							bProjectIsEditable = FALSE;
+							//bProjectIsEditable = FALSE;
 							pPTInfo->bProjectIsEditable = FALSE;
 						}
 					}
@@ -39782,6 +39859,7 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 			int posValueBeginTag;
 			posValueBeginTag = valueLine.Find(valueBeginTag);
 			int posValueEndTag = valueLine.Find(valueEndTag);
+			posValueBeginTag = posValueBeginTag; // avoid warning
 			wxASSERT(posValueBeginTag != wxNOT_FOUND && posValueEndTag != wxNOT_FOUND && posValueEndTag > posValueBeginTag);
 			tempStr = valueLine.Mid(valueBeginTag.Length(), posValueEndTag - valueBeginTag.Length());
 		}
@@ -39883,6 +39961,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 		if (f.Open(pathAndName,wxFile::read))
 		{
 			nRead = f.Read(pBuff, nFourKB);
+			nRead = nRead; // avoid warning - test for errir?
 			wxASSERT(*pEnd == '\0');
 			if (*ptr != '\\' && *(ptr+1) != 'i' && *(ptr+2) != 'd' && *(ptr+3) != ' ')
 			{

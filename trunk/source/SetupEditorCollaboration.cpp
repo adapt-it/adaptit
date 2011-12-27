@@ -176,6 +176,7 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	bOK = bOK; // avoid warning
 	// other attribute initializations
 }
 
@@ -323,7 +324,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	// check for the existence of the aiProjectFolder project. Select it if it is in the
 	// list.
 	wxArrayString aiProjectNamesArray;
-	bool bAiProjectFound = FALSE;
+	//bool bAiProjectFound = FALSE; // set but not used
 	int indexOfFoundProject = wxNOT_FOUND;
 	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
 	aiProjectNamesArray.Sort();
@@ -352,7 +353,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 		{
 			// workFolder exists as an AI project folder
 			indexOfFoundProject = ct;
-			bAiProjectFound = TRUE;
+			//bAiProjectFound = TRUE;
 		}
 	}
 	if (indexOfFoundProject != wxNOT_FOUND)
@@ -399,13 +400,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		// choose the preselected project
 		ChooseProjectForSourceTextInputs.SetSelection(nPreselectedProjIndex);
 	}
-	int userSelectionInt;
+	//int userSelectionInt;
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
 	if (ChooseProjectForSourceTextInputs.ShowModal() == wxID_OK)
 	{
 		userSelectionStr = ChooseProjectForSourceTextInputs.GetStringSelection();
-		userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
+		//userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
 		if (userSelectionStr != _("[No Project Selected]"))
 		{
 			m_projectSelectionMade = TRUE;
@@ -520,7 +521,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// Locate and select the aiProjectFolder
 	pComboAiProjects->Clear();
 	int indexOfFoundProject = wxNOT_FOUND;
-	bool bAiProjectFound = FALSE;
+	//bool bAiProjectFound = FALSE; // set but not used
 	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
 	{
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
@@ -528,7 +529,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		{
 			// workFolder exists as an AI project folder name
 			indexOfFoundProject = ct;
-			bAiProjectFound = TRUE;
+			//bAiProjectFound = TRUE;
 		}
 	}
 	if (indexOfFoundProject != wxNOT_FOUND)
@@ -577,13 +578,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	{
 		ChooseProjectForTargetTextExports.SetSelection(nPreselectedProjIndex);
 	}
-	int userSelectionInt;
+	//int userSelectionInt; // set but not used
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
 	if (ChooseProjectForTargetTextExports.ShowModal() == wxID_OK)
 	{
 		userSelectionStr = ChooseProjectForTargetTextExports.GetStringSelection();
-		userSelectionInt = ChooseProjectForTargetTextExports.GetSelection();
+		//userSelectionInt = ChooseProjectForTargetTextExports.GetSelection();
 		if (userSelectionStr != _("[No Project Selected]"))
 		{
 			m_projectSelectionMade = TRUE;
@@ -697,7 +698,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// Locate and select the aiProjectFolder
 	pComboAiProjects->Clear();
 	int indexOfFoundProject = wxNOT_FOUND;
-	bool bAiProjectFound = FALSE;
+	//bool bAiProjectFound = FALSE; // set but not used
 	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
 	{
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
@@ -705,7 +706,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		{
 			// workFolder exists as an AI project folder name
 			indexOfFoundProject = ct;
-			bAiProjectFound = TRUE;
+			//bAiProjectFound = TRUE;
 		}
 	}
 	if (indexOfFoundProject != wxNOT_FOUND)
@@ -754,13 +755,13 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	{
 		ChooseProjectForFreeTransTextInputs.SetSelection(nPreselectedProjIndex);
 	}
-	int userSelectionInt;
+	//int userSelectionInt; // set but not used
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
 	if (ChooseProjectForFreeTransTextInputs.ShowModal() == wxID_OK)
 	{
 		userSelectionStr = ChooseProjectForFreeTransTextInputs.GetStringSelection();
-		userSelectionInt = ChooseProjectForFreeTransTextInputs.GetSelection();
+		//userSelectionInt = ChooseProjectForFreeTransTextInputs.GetSelection();
 		if (userSelectionStr != _("[No Project Selected]"))
 		{
 			m_projectSelectionMade = TRUE;
@@ -1250,6 +1251,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			{ // block for wxLogNull
 				wxLogNull logNo; // eliminates spurious message from the system
 				bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
+				bWriteOK = bWriteOK; // avoid warning
 				m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			}
 			// restore the oldPath back to "/Recent_File_List"
@@ -1287,7 +1289,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_lang_name"), m_pApp->m_CollabSourceLangName);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_lang_name"), m_pApp->m_CollabTargetLangName);
-		
+		bWriteOK = bWriteOK; // avoid warning
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// update the values related to BE collaboration in the Adapt_It_WX.ini file
@@ -1304,6 +1306,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_lang_name"), m_pApp->m_CollabSourceLangName);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_lang_name"), m_pApp->m_CollabTargetLangName);
+		bWriteOK = bWriteOK; // avoid warning
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// restore the oldPath back to "/Recent_File_List"

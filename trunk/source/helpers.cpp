@@ -1022,7 +1022,7 @@ wxString GetConvertedPunct(const wxString& rStr)
 	wxChar doubleCh[2];
 	int len = rStr.Length();
 	int l;
-	bool bFoundDouble;
+	//bool bFoundDouble; // set but not used
 	int k;
 	int i;
 	bool bFound;
@@ -1038,7 +1038,7 @@ wxString GetConvertedPunct(const wxString& rStr)
 			goto a; // no room for a 2-char match
 		doubleCh[0] = rStr.GetChar(j);
 		doubleCh[1] = rStr.GetChar(k);
-		bFoundDouble = FALSE;
+		//bFoundDouble = FALSE;
 		for (l = 0; l < MAXTWOPUNCTPAIRS; l++)
 		{
 			wxChar srcChar[2];
@@ -3647,10 +3647,11 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	SPList::Node* posLast;
 	posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
+	posLast = posLast; // avoid warning TODO: Check for failures?
 	bool bHasInternalMarkers = pMergedSrcPhrase->m_bHasInternalMarkers;
 	bool bFirst = TRUE;
 	bool bNonFinalEndmarkers = FALSE;
-	bool bHasFilteredMaterial = FALSE;
+	//bool bHasFilteredMaterial = FALSE; // set but not used
 	wxString tempStr;
 
 	// store here any string of filtered information stored on pMergedSrcPhrase (in
@@ -3658,7 +3659,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	wxString Sstr; Sstr.Empty();
 	wxString markersPrefix; markersPrefix.Empty();
 	wxString Gstr = pMergedSrcPhrase->m_gloss; // could be empty
-	bHasFilteredMaterial = HasFilteredInfo(pMergedSrcPhrase);
+	//bHasFilteredMaterial = HasFilteredInfo(pMergedSrcPhrase);
 
 	// markers needed, since doc version 5 may store some filtered stuff without using them
 	wxString freeMkr(_T("\\free"));
@@ -6327,8 +6328,8 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 	searchStr += code + _T("\t"); // add the code followed by tab, to ensure 
 								  // we don't get a spurious match
 	searchStr.LowerCase();
-	int dataLen;
-	dataLen = pTempStr->Len(); // for a debug check only, offset should match at < dataLen
+	//int dataLen;
+	//dataLen = pTempStr->Len(); // for a debug check only, offset should match at < dataLen
 	int offset;
 	offset = pTempStr->Find(searchStr);
 
@@ -7913,6 +7914,7 @@ void ChangeParatextPrivatesToCustomMarkers(wxString& buffer)
 	int count = buffer.Replace(oldFree,newFree);
 	count = buffer.Replace(oldNote,newNote);
 	count = buffer.Replace(oldBt,newBt);
+	count = count; // avoid warning
 }
 
 // BEW 11Oct10, get arrays containing src & tgt puncts added, and another two for puncts removed

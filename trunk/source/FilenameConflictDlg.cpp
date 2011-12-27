@@ -84,7 +84,7 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
 	wxASSERT(pApp != NULL);
 	bool bOK;
 	bOK = pApp->ReverseOkCancelButtonsForMac(this);
-	
+	bOK = bOK; // avoid warning
 	
 	m_pAdminMoveOrCopy = (AdminMoveOrCopy*)parent; // establish link to parent dialog
 	wxASSERT(m_pAdminMoveOrCopy != NULL);

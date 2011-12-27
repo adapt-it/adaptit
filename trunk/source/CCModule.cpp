@@ -3189,8 +3189,8 @@ WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
 	
 	bool bOpenOK;
 	bOpenOK = FALSE;
-	bool bFileAlreadyExists;
-	bFileAlreadyExists = FALSE;
+	//bool bFileAlreadyExists;
+	//bFileAlreadyExists = FALSE;
 	bOpenOK = stream->hfFile->Open(strFileName, wxmode);
 	if (!bOpenOK)
 	{
@@ -3203,6 +3203,7 @@ WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
     if (wxmode == wxFile::write_append)
     {
 		dist = stream->hfFile->Seek(0, wxFromEnd);
+		dist = dist; // avoid "set but not used" warning 
     }
 
     if (wxmode == wxFile::write)

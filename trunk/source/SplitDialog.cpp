@@ -502,11 +502,11 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	// for a non-empty m_chapterVerse and when it finds the first such, extract the chapter number
 	// and set the Number member of Chapter() at that time.
 	bool bCountedChapter = TRUE;
-	SPList::Node* save_pos = NULL;
+	//SPList::Node* save_pos = NULL; // set but not used
 	p = SourcePhrases->GetFirst();
 	while (p) {
 		sp = (CSourcePhrase*)p->GetData();
-		save_pos = p; // for use in the MoveFinalEndmarkersToEndOfLastChapter() call
+		//save_pos = p; // for use in the MoveFinalEndmarkersToEndOfLastChapter() call
 		p = p->GetNext();
 		if (sp->GetStartsNewChapter()) 
 		{
@@ -686,11 +686,11 @@ bool CSplitDialog::CurrentDocSpansMoreThanOneChapter()
 	int cChapters = 0;
 
 	SPList::Node* p;
-	CAdapt_ItDoc *d;
+	//CAdapt_ItDoc *d;
 	SPList *ol;
 	CSourcePhrase *sp;
 
-	d = gpApp->GetDocument();
+	//d = gpApp->GetDocument();
 	ol = gpApp->m_pSourcePhrases;
 	p = ol->GetFirst();
 	while (p) {

@@ -324,7 +324,7 @@ Therefore, in order to be able to get Adapt It and Bibledit to
 collaborate together,&nbsp;you will need to ensure that your Software 
 Sources have the necessary repositories listed in their "Other Software" settings. Do the 
 following steps:</p>
-<p>a. Start up&nbsp;<strong>Synaptic Package Manager. 
+<p><strong>a.</strong> Start up&nbsp;<strong>Synaptic Package Manager. 
 </strong>         
           It 
 should be located in the System&nbsp;&gt; Administration menu (If it is 
@@ -333,7 +333,7 @@ default,&nbsp;you can find&nbsp;the Synaptic Package Manager by clicking on "Ubu
 the Ubuntu Software Center's Search box type "Synaptic", then click on the "Synaptic 
 Package Manager" item when it appears and click on 
 "Install").</p>
-<p>b. In the Synaptic Package Manager application click on 
+<p><strong>b.</strong> In the Synaptic Package Manager application click on 
 the <strong>Settings &gt; Repositories</strong>. Click on the "<strong>Other 
 Software</strong>" tab. Examine the list of software repositories. If there is 
 not already a line that contains a reference to 
@@ -348,11 +348,12 @@ http://packages.sil.org/ubuntu maverick main<br>deb
 http://packages.sil.org/ubuntu&nbsp;natty main<br>deb 
 http://packages.sil.org/ubuntu oneiric main</strong></font> 
   </p>
-<p>c. Close the Software Sources, and back in Synaptic 
-Package Manager, click on "Reload" to insure you have the latest information from the repositories. 
+<p><strong>c.</strong> Close the Software Sources, and back 
+in Synaptic Package Manager, <strong>click on "Reload"</strong>         
+     to insure you have the latest information from the repositories. 
 If you get an error, check that you have entered the correct line 
 into your Other Software (step b above).</p>
-<p>d. Click on the "Search" button and type 
+<p><strong>d.</strong> Click on the "Search" button and type 
 <strong>adaptit</strong> in the search box. When the&nbsp;adaptit packages 
 appear, look&nbsp;at the "Installed Version" and "Latest Version" columns. 
 Ensure that the version listed for adaptit is <strong>at least 6.1.0</strong>. 
@@ -368,20 +369,14 @@ click on the "Apply" button at the top of the Synaptic Package Manager
 application, and click on the "Apply" button on the Summary dialog. Close Synaptic 
 Package Manager after it completes the installation of 
 Adapt It.</p>
-<p>e. Close the Synaptic Package Manager and open a 
-Terminal. In the terminal type the following&nbsp;commands (respond with 'y' and 
-Enter to have it continue if it asks "Install these 
-packages without verification?").</p>
-<h4>For Lucid&nbsp;and BALSA (Lucid based) systems only:</h4>
+<p><strong>e.</strong> <strong>Close the Synaptic Package 
+Manager</strong>         
+           
+   and open a Terminal. In the terminal 
+type the following&nbsp;commands:</p>
 <p><font face="Courier New"><strong>sudo add-apt-repository 
-ppa:pkgcrosswire/developer-testing<br></strong><strong>sudo apt-get 
+ppa:pkgcrosswire/ppa/ubuntu<br></strong><strong>sudo apt-get 
 update<br>sudo apt-get install bibledit-gtk</strong></font> </p>
-<h4>For Maverick, Natty, or Oneiric systems:</h4>
-<p><font face="Courier New"><strong>sudo add-apt-repository 
-ppa:gwibber-daily/ppa<br>sudo apt-key adv --keyserver keyserver.ubuntu.com 
---recv-keys DF7691D7</strong><br><strong>sudo apt-get update<br>sudo apt-get 
-install bibledit-gtk</strong></font> 
-  </p>
 <p>After their installation, both Adapt It 
 and&nbsp;Bibledit-Gtk should be listed in the Office menu (or can be found by 
 searching for adaptit or bibledit on Unity's DeskHome search bar). The next step 

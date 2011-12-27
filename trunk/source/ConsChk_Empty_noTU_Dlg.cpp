@@ -79,6 +79,7 @@ ConsChk_Empty_noTU_Dlg::ConsChk_Empty_noTU_Dlg(
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	bOK = bOK; // avoid warning
 	m_bShowItCentered = bShowCentered;
 	m_sourcePhrase = *srcPhrase;
 	m_modeWord = *modeWord;

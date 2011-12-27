@@ -276,8 +276,8 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 			return;
 		}
 
-		int nSel;
-		nSel = m_pListBox->GetSelection(); //nSel = m_listBox.GetCurSel();
+		//int nSel;
+		//nSel = m_pListBox->GetSelection(); //nSel = m_listBox.GetCurSel();
 		// wx note: All items in the Linux/GTK listbox can be deselected by the user
 		// by a single click on the already selected item. So we do the same here as
 		// we did in the projectPage's OnWizardPageChanging handler - we check to see
@@ -560,9 +560,9 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 	bChangeFixedSpaceToRegularSpace = gpApp->m_bChangeFixedSpaceToRegularSpace;
 	pChangeFixedSpaceToRegular->SetValue(bChangeFixedSpaceToRegularSpace);
 
-	int nSel;
+	//int nSel;
 	wxString tempStr;
-	nSel = m_pListBox->GetSelection();
+	//nSel = m_pListBox->GetSelection();
 	tempStr = m_pListBox->GetStringSelection();
 	if (tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
 									   // produce a different text); this is how we tell
@@ -1018,7 +1018,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			CPile* pPile;
 			pPile = pView->GetPile(pApp->nLastActiveSequNum);
 			wxASSERT(pPile != NULL);
-
+			pPile = pPile; // avoid warning
             // this could turn out to be a retranslation pile (if user removed a
             // retranslation just before exiting the application without saving the
             // document, it would be), so check & if necessary move beyond the
@@ -1028,7 +1028,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
-            // BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
+            bSetSafely = bSetSafely; // avoid warning
+			
+			// BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
             // above call, and so the ones below should be redundant (and if
             // ChooseTranslation was called in the earlier Jump() it would then get called
             // again, which is confusing - so we need to not have this second call)

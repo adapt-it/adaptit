@@ -541,6 +541,8 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			// preparation for displaying and laying out a View (that is not needed here). 
 			bool bOK;
 			bOK = pDoc->OnOpenDocument(newName);
+			bOK = bOK; // avoid warning TODO: Check for failures?
+			
 			pDoc->SetFilename(newName,TRUE);
 			
 			int nTotal = m_pApp->m_pSourcePhrases->GetCount();
@@ -1184,7 +1186,7 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 			pDummySrcPhrase->m_nSequNumber = nEndIndex;
 			SPList::Node* posTail;
 			posTail = pSrcPhrases->Append(pDummySrcPhrase); 
-			
+			posTail = posTail; // avoid warning
 			// we need a valid layout which includes the new dummy element on its own pile
 			m_pApp->m_nActiveSequNum = nEndIndex; // temporary location only
 #ifdef _NEW_LAYOUT
@@ -2232,6 +2234,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			bool bSetSafely;
 			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,
 							nSaveActiveSequNum, m_pApp->m_nActiveSequNum,nFinish);
+			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures?
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
@@ -2328,6 +2331,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(-1, nextStep, TRUE);
 		// no Invalidate() call made in this block, because a later point in the process
 		// should draw the layout anew (I'm guessing, but I think it's a safe guess)
+		bCommandPosted = bCommandPosted; // avoid warning
 	}
 	else
 	{
@@ -2720,8 +2724,8 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 #endif
 	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	
-	bool bConstType;
-	bConstType = IsConstantType(pList); // need this only in case m_bInsertingWithinFootnote
+	//bool bConstType;
+	//bConstType = IsConstantType(pList); // need this only in case m_bInsertingWithinFootnote
 	// needs to be set
 	
 	// put up the CRetranslationDlg dialog
@@ -2868,6 +2872,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			bool bSetSafely;
 			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 													m_pApp->m_nActiveSequNum,nFinish);
+			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures?
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
@@ -3003,6 +3008,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(-1, nextStep, TRUE);
 		// no Invalidate() call made in this block, because a later point in the process
 		// should draw the layout anew (I'm guessing, but I think it's a safe guess)
+		bCommandPosted = bCommandPosted; // avoid warning
 	}
 	else
 	{
@@ -3945,6 +3951,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,
 					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
+				bOK = bOK; // avoid warning TODO: Check for failures?
 			}
 			m_pApp->m_bRetransReportInProgress = FALSE;
 			m_pApp->GetMainFrame()->canvas->Thaw();

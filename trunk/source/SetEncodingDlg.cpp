@@ -99,7 +99,7 @@ CSetEncodingDlg::CSetEncodingDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	pStaticCurrEncodingIs = (wxStaticText*)FindWindowById(ID_STATIC_CURR_ENCODING_IS);
 	wxASSERT(pStaticCurrEncodingIs != NULL);
 	
@@ -306,6 +306,7 @@ void CSetEncodingDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 		bool bSuccess;
 		bSuccess = pPossibleEncodings->SetStringSelection(thisFontsEncodingNameAndDescription);
 		wxASSERT(bSuccess == TRUE);
+		bSuccess = bSuccess; // avoid warning TODO: Check for failures?
 		wxString EncStrInList = thisFontsEncodingNameAndDescription;
 		// if above asserts pass, it is safe to assume listbox index of current encoding is 0
 		nCurrListSelEncoding = pPossibleEncodings->GetSelection();

@@ -422,8 +422,8 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	wxASSERT(pNotebook != NULL);
 
 	// set the fontPage as the tab showing
-	int curSelPg;
-	curSelPg = pNotebook->ChangeSelection(0); // disregard returned previous selection int
+	//int curSelPg;
+	//curSelPg = pNotebook->ChangeSelection(0); // disregard returned previous selection int
 	// See the AddPage() calls in the CreateControls() method above - fontPage should be
 	// the selected tab.
 	// whm 5Oct10 modified to accommodate user profiles in which one or more tabs were not added

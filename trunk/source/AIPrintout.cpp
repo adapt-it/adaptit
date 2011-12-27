@@ -1072,8 +1072,8 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnPreparePrinting()
 {
- 	CAdapt_ItApp* pApp;
- 	pApp = &wxGetApp();
+ 	//CAdapt_ItApp* pApp;
+ 	//pApp = &wxGetApp();
 	//CAdapt_ItView* pView = pApp->GetView();
 
 #ifdef Print_failure
@@ -1159,7 +1159,7 @@ void AIPrintout::OnPreparePrinting()
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
 //    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 793 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
-//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
+//               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)m_pApp->m_bFreeTranslationMode);
 #endif
 #endif
 } // end of OnPreparePrinting()

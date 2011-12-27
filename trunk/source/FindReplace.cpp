@@ -133,7 +133,7 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_marker = -1;
 	m_srcStr = _T("");
 	m_replaceStr = _T("");
@@ -470,6 +470,7 @@ void CFindDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 					}
 					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = bOK; // avoid warning
 				}
 				else
 				{
@@ -481,6 +482,7 @@ void CFindDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					}
 					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = bOK; // avoid warning
 				}
 			}
 		}
@@ -1117,7 +1119,7 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	//m_marker = -1;
 	m_srcStr = _T("");
 	m_replaceStr = _T("");
@@ -1324,6 +1326,7 @@ void CReplaceDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 					}
 					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = bOK; // avoid warning
 				}
 				else
 				{
@@ -1335,6 +1338,7 @@ void CReplaceDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					}
 					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(), gpApp->m_targetPhrase);
+					bOK = bOK; // avoid warning
 				}
 			}
 		}

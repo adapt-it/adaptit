@@ -1100,6 +1100,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		{
 			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB,pProgDlg,nTotal);
 		}
+		bReadOK = bReadOK; // avoid warning TODO: check for failures
 		f.Close();
 		// remove the progress dialog
 		if (pProgDlg != NULL)
@@ -2407,7 +2408,7 @@ void CKB::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 		// as a flag
 		bool bOK;
 		bOK = StoreText(pSrcPhrase,strNotInKB);
-
+		bOK = bOK; // avoid warning
 		// make the flags the correct values & save them on the source phrase
 		// BEW 14Sep11, next 2 lines are redundant, StoreText() now gets it right
 		pSrcPhrase->m_bNotInKB = TRUE;
@@ -3474,6 +3475,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			else
 				bRemoved = pMap->erase(unchangedkey); // remove the unchanged one from the map
 			wxASSERT(bRemoved == 1);
+			bRemoved = bRemoved; // avoid warning
 			m_pApp->m_bSaveToKB = TRUE; // ensure its back on (if here from a choice not 
 				// save to KB, this will be cleared by OnCheckKBSave, preserving user choice)
 			gbMatchedKB_UCentry = FALSE;
@@ -4501,6 +4503,7 @@ void CKB::Fix_NotInKB_WronglyEditedOut(CPile* pCurPile)
         // since the phrase passed in is the non-punctuated one
 		bool bOK;
 		bOK = StoreText(pSP, str);
+		bOK = bOK; // avoid warning
 		// set the flags to ensure the asterisk shows above the pile, etc.
 		pSP->m_bHasKBEntry = FALSE;
 		pSP->m_bNotInKB = TRUE; 
@@ -4747,7 +4750,9 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 
 		bool bOK;
 		bOK = pDoc->OnOpenDocument(newName);
-        // The docview sample has a routine called SetFileName() that it uses to override
+        bOK = bOK; // avoid warning TODO: check for failures?
+		
+		// The docview sample has a routine called SetFileName() that it uses to override
         // the automatic associations of file name/path of a doc with a view. The
         // wxDocument member that holds the file name/path is m_documentFile. I've put the
         // SetFileName() routine in the Doc so we can do this like MFC has it.
@@ -4845,7 +4850,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		// Write out errors to external log file.
 		bool bOK;
 		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath);
-        // Note: Since we want a text file output, we'll use wxTextOutputStream which
+        bOK = bOK; // avoid warning
+		// Note: Since we want a text file output, we'll use wxTextOutputStream which
         // writes text files as a stream on DOS, Windows, Macintosh and Unix in their
         // native formats (concerning their line endings)
 		wxFileOutputStream output(logName);

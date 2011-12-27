@@ -2394,7 +2394,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 											  // retranslation, i.e. there is only one in it
 			CSourcePhrase* pKickOffSP = pSP; // don't check for a m_bEndRetranslation on an instance
 											 // where pKickOffSP and pSP are the same CSourcePhrase!
-			SPList::Node* posStart = posLocal;
+			//SPList::Node* posStart = posLocal;
 			int last = pMergedList->IndexOf(pSP);
 			while ( posLocal != NULL  && (pSP->m_bRetranslation && !pSP->m_bBeginRetranslation)
 				 && pSP->m_bRetranslation 
@@ -2407,7 +2407,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
                 // different retranslation CSourcePhrase instance than the initial kickoff
                 // one - and that different one is the end of a previous (valid)
                 // retranslation which immediately precedes the one we are removing
-				posStart = posLocal;
+				//posStart = posLocal;
 				posAfter = posLocal; // preserve a value "after" position, in case the it
 									 // happens to be the start of the pMergedList, so we
 									 // don't lose that location
@@ -6332,7 +6332,7 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			int nNewTempIndex;
 			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex, 
 						 pSubspan, nOldTempIndex, nNewTempIndex);
-
+			bDidItOk = bDidItOk; // avoid warning TODO: check for failures?
 			// get the updated copy of pFollSrcPhrase
 			pFollSrcPhrase = arrOld.Item(oldFollIndex);
 
@@ -7222,9 +7222,10 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                 pParent = tuple[tupleIndex];
 				type = pParent->spanType;
 				wxASSERT(type == commonSpan);
+				type = type; // avoid warning
 				bIsClosedEnd = TRUE;
 				wxASSERT(bIsClosedEnd == pParent->bClosedEnd);
-
+				bIsClosedEnd = bIsClosedEnd; // avoid warning
 #ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 					//SubspanType type = pParent->spanType;
@@ -8847,9 +8848,9 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 	// Failure to get the first, the second is tried, failure to get the second, the third
 	// is tried (and must succeed); iterate the loop, after consuming each successfully
 	// delineated subspan, until no more data is available
-	bool bHasChapterPlusVerseChunk;
-	bool bHasSubheadingPlusVerseChunk;
-	bool bHasVerseChunk;
+	//bool bHasChapterPlusVerseChunk; // set but unused
+	//bool bHasSubheadingPlusVerseChunk; // set but unused
+	//bool bHasVerseChunk; // set but unused
 
     // this loop must consume the rest of the material to be analysed, so the
     // lastSuccessfulEndsAt local variable enables an appropriate starting value to be
@@ -8864,9 +8865,9 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 		// first, try for a ChapterPlusVerse chunk; if that fails, try instead for a
 		// SubheadingPlusVerse chunk; if it succeeds, advance the starting location using
 		// the lastSuccessfulEndsAt value, and iterate the loop
-		bHasChapterPlusVerseChunk = FALSE;
-		bHasSubheadingPlusVerseChunk = FALSE;
-		bHasVerseChunk = FALSE;
+		//bHasChapterPlusVerseChunk = FALSE;
+		//bHasSubheadingPlusVerseChunk = FALSE;
+		//bHasVerseChunk = FALSE;
 		if (lastSuccessfulEndsAt != wxNOT_FOUND)
 		{
 			nStartsAt = lastSuccessfulEndsAt + 1;

@@ -483,8 +483,8 @@ void CUsfmFilterPageCommon::LoadListBoxFromArrays(wxArrayString* pSfmMarkerAndDe
 			{
 				// the string is in the listbox
 				// testing only !!!
-				bool btest;
-				btest = (pFilterFlags->Item(index) == TRUE);
+				//bool btest;
+				//btest = (pFilterFlags->Item(index) == TRUE);
 				// testing only !!!
 
 				pListBox->Check(listBoxIndex,pFilterFlags->Item(index) == TRUE); //pListBox->SetCheck(listBoxIndex,pFilterFlags->GetAt(index) == TRUE);
@@ -845,16 +845,16 @@ wxString CUsfmFilterPageCommon::GetSetNameStr(enum SfmSet set)
 wxString CUsfmFilterPageCommon::GetFilterMkrStrFromFilterArrays(wxArrayString* pSfmMarkerAndDescr, wxArrayInt* pFilterFlags)
 {
 	wxString wholeMkr, tempStr, testStr;
-	bool testFlag = FALSE;
+	//bool testFlag = FALSE;
 	wholeMkr.Empty();
 	tempStr.Empty();
-	testStr.Empty();
+	//testStr.Empty();
 	int markerCt = pFilterFlags->GetCount();
 	wxASSERT(markerCt == (int)pSfmMarkerAndDescr->GetCount());
 	for (int ct = 0; ct < markerCt; ct++)
 	{
-		testStr = pSfmMarkerAndDescr->Item(ct); // for inspection only
-		testFlag = pFilterFlags->Item(ct) == 1; // for inspection only
+		//testStr = pSfmMarkerAndDescr->Item(ct); // for inspection only
+		//testFlag = pFilterFlags->Item(ct) == 1; // for inspection only
 		if (pFilterFlags->Item(ct) == TRUE)
 		{
 			// the marker is a filter marker, so parse it out and accumulate it in tempStr

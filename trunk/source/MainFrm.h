@@ -182,7 +182,7 @@ class CMainFrame : public wxDocParentFrame
 	void OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event));
 	
 	//void OnHelp(wxHelpEvent& WXUNUSED(event));
-	void OnAdvancedHtmlHelp(wxCommandEvent& event);
+	void OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event));
 	void OnQuickStartHelp(wxCommandEvent& WXUNUSED(event));
 	//void OnOnlineHelp(wxCommandEvent& WXUNUSED(event));
 	//void OnUserForum(wxCommandEvent& WXUNUSED(event));

@@ -4170,14 +4170,14 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	wxASSERT(pApp != NULL);
 
 	CLayout* pLayout = GetLayout();
-	CSourcePhrase* pOldActiveSrcPhrase = NULL;
+	//CSourcePhrase* pOldActiveSrcPhrase = NULL; // set but not used
 	int nActiveSequNum= pApp->m_nActiveSequNum;
 	if (nActiveSequNum < 0)
 		return FALSE;
-	else
-	{
-		pOldActiveSrcPhrase = (pView->GetPile(nActiveSequNum))->GetSrcPhrase();
-	}
+	//else
+	//{
+	//	pOldActiveSrcPhrase = (pView->GetPile(nActiveSequNum))->GetSrcPhrase();
+	//}
 	// save old sequ number in case required for toolbar's Back button
 	gnOldSequNum = nActiveSequNum;
 	gbByCopyOnly = FALSE; // restore default setting
@@ -5023,12 +5023,12 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	CAdapt_ItView *pView = pApp->GetView(); // <<-- BEWARE if we later have multiple views/panes
 	CLayout* pLayout = pApp->m_pLayout;
 	wxString strNot = _T("<Not In KB>");
-	int	nNewSequNum;
-	nNewSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber; // sequ number at the new location
+	//int	nNewSequNum; // set but not used
+	//nNewSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber; // sequ number at the new location
 	wxString	phrases[1]; // store built phrases here, for testing 
 							// against KB stored source phrases
-	int	numPhrases;
-	numPhrases = 1;  // how many phrases were built in any one call of this function
+	//int	numPhrases; // set but not used
+	//numPhrases = 1;  // how many phrases were built in any one call of this function
 	translation.Empty(); // clear the static variable, ready for a new translation
 						 // if one can be found
 	nWordsInPhrase = 0;	  // assume no match

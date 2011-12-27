@@ -255,7 +255,7 @@ void CSelectCollabProjectsDialog::OnComboBoxSelectSourceProject(wxCommandEvent& 
 	// Locate and select the aiProjectFolder
 	pComboAiProjects->Clear();
 	int indexOfFoundProject = wxNOT_FOUND;
-	bool bAiProjectFound = FALSE;
+	//bool bAiProjectFound = FALSE;
 	int ct;
 	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
 	{
@@ -264,7 +264,7 @@ void CSelectCollabProjectsDialog::OnComboBoxSelectSourceProject(wxCommandEvent& 
 		{
 			// workFolder exists as an AI project folder name
 			indexOfFoundProject = ct;
-			bAiProjectFound = TRUE;
+			//bAiProjectFound = TRUE;
 		}
 	}
 	if (indexOfFoundProject != wxNOT_FOUND)
@@ -341,7 +341,7 @@ void CSelectCollabProjectsDialog::OnComboBoxSelectTargetProject(wxCommandEvent& 
 	// Locate and select the aiProjectFolder
 	pComboAiProjects->Clear();
 	int indexOfFoundProject = wxNOT_FOUND;
-	bool bAiProjectFound = FALSE;
+	//bool bAiProjectFound = FALSE;
 	int ct;
 	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
 	{
@@ -350,7 +350,7 @@ void CSelectCollabProjectsDialog::OnComboBoxSelectTargetProject(wxCommandEvent& 
 		{
 			// workFolder exists as an AI project folder name
 			indexOfFoundProject = ct;
-			bAiProjectFound = TRUE;
+			//bAiProjectFound = TRUE;
 		}
 	}
 	if (indexOfFoundProject != wxNOT_FOUND)
@@ -596,6 +596,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	bOK = bOK; // avoid warning
 	// other attribute initializations
 }
 
@@ -743,18 +744,18 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		}
 	}
 
-	bool bFreeTransProjFound = FALSE;
+	//bool bFreeTransProjFound = FALSE;
 	if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
 	{
 		nIndex = m_pSelectCollabProjDlg->pComboFreeTransProjectName->FindString(m_TempCollabProjectForFreeTransExports);
 		if (nIndex == wxNOT_FOUND)
 		{
 			// did not find the PT project for target exports that was stored in the config file
-			bFreeTransProjFound = FALSE;
+			//bFreeTransProjFound = FALSE;
 		}
 		else
 		{
-			bFreeTransProjFound = TRUE;
+			//bFreeTransProjFound = TRUE;
 			m_pSelectCollabProjDlg->pComboFreeTransProjectName->SetSelection(nIndex);
 			// whm added 7Oct11 at Bruce's request
 			wxString ftProj = pFreeTransProj->GetLabel();
@@ -793,7 +794,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// Locate and select the aiProjectFolder
 	m_pSelectCollabProjDlg->pComboAiProjects->Clear();
 	int indexOfFoundProject = wxNOT_FOUND;
-	bool bAiProjectFound = FALSE;
+	//bool bAiProjectFound = FALSE;
 	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
 	{
 		m_pSelectCollabProjDlg->pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
@@ -801,7 +802,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		{
 			// workFolder exists as an AI project folder
 			indexOfFoundProject = ct;
-			bAiProjectFound = TRUE;
+			//bAiProjectFound = TRUE;
 		}
 	}
 	if (indexOfFoundProject != wxNOT_FOUND)
@@ -1676,6 +1677,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceWholeBookBuffer, 
 												bDoMerger, bDoLayout, bCopySourceWanted);
 				}
+				bOpenedOK = bOpenedOK; // avoid warning TODO: check for failures?
 
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
 				m_pApp->maxProgDialogValue = 2147483647; //MAXINT; // temporary hack while calling OpenDocWithMerger() above
@@ -2781,6 +2783,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		//    other methods that no chapter is selected
 		int itemCt;
 		itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+		itemCt = itemCt; // avoid warning
 		long nSelTemp = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 		if (nSelTemp != wxNOT_FOUND)
 		{
@@ -2813,6 +2816,7 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 	int itemCt;
 	itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
 	wxASSERT(itemCt <= 1);
+	itemCt = itemCt; // avoid warning
 	long nSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (nSel != wxNOT_FOUND)
 	{
@@ -3222,14 +3226,15 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 				int posChMkr;
 				posChMkr = tempStr.Find(chMkr); // \c
 				wxASSERT(posChMkr == 0);
+				posChMkr = posChMkr; // avoid warning
 				int posAfterSp = tempStr.Find(_T(' '));
 				wxASSERT(posAfterSp > 0);
 				posAfterSp ++; // to point past space
 				tempStr = tempStr.Mid(posAfterSp);
 				tempStr.Trim(FALSE);
 				tempStr.Trim(TRUE);
-				int chNum;
-				chNum = wxAtoi(tempStr);
+				//int chNum;
+				//chNum = wxAtoi(tempStr);
 
 				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
 				wxString listItemStatusSuffix,listItem;
@@ -3741,8 +3746,8 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 		//    informative (see TODO: below)
 		// 5. Empty the m_TempCollabChapterSelected variable to signal to
 		//    other methods that no chapter is selected
-		int itemCt;
-		itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
+		//int itemCt;
+		//itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
 		long nSelTemp = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 		if (nSelTemp != wxNOT_FOUND)
 		{

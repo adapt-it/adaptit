@@ -125,9 +125,9 @@ void CJoinDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	wxASSERT(pTextCtrlAsStaticJoin4 != NULL);
 	pTextCtrlAsStaticJoin4->SetBackgroundColour(backgrndColor);
 
-	CAdapt_ItApp* pApp;
-	pApp = (CAdapt_ItApp*)&wxGetApp();
-	wxASSERT(pApp != NULL);
+	//CAdapt_ItApp* pApp;
+	//pApp = (CAdapt_ItApp*)&wxGetApp();
+	//wxASSERT(pApp != NULL);
 
 	this->pJoiningWait->Show(FALSE);
 
@@ -572,6 +572,7 @@ void CJoinDialog::OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	int count;
 	count = pAcceptedFiles->GetCount();
 	wxASSERT(nSel < count);
+	count = count; // avoid warning
 	if (nSel > 0)
 	{
 		nSel--;

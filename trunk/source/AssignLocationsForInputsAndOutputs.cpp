@@ -280,7 +280,7 @@ void CAssignLocationsForInputsAndOutputs::OnPreLoadSourceTexts(wxCommandEvent& W
 		bDirExists = ::wxMkdir(m_pApp->m_sourceInputsFolderPath,0777);
 	}
 	wxASSERT(bDirExists);
-
+	bDirExists = bDirExists; // avoid warning
 	wxCommandEvent dummyEvent;
 	m_pApp->OnMoveOrCopyFoldersOrFiles(dummyEvent);
 }
@@ -351,6 +351,7 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	{ // block for wxLogNull
 		wxLogNull logNo; // eliminates spurious message from the system
 		bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
+		bWriteOK = bWriteOK; // avoid warning
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// restore the oldPath back to "/Recent_File_List"

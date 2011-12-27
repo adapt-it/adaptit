@@ -171,7 +171,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	m_refCount = 0;
 	m_refCountStr.Empty();
 	m_refCountStr << m_refCount;
@@ -279,6 +279,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances(); // the visible ones
 	wxASSERT(count == numNotDeleted);
 	wxASSERT(nSel < count);
+	count = count; // avoid warning
 	numNotDeleted = numNotDeleted; // prevent compiler warning in Release build
 
 	if (nSel > 0)

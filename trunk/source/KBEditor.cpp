@@ -163,7 +163,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
     
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 
@@ -339,8 +339,8 @@ void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(eve
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
 
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//int nSel;
+	//nSel = m_pListBoxExistingTranslations->GetSelection();
 
 	wxString str;
 	str = m_pListBoxExistingTranslations->GetStringSelection();
@@ -545,8 +545,8 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		return;
 	}
 
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//int nSel;
+	//nSel = m_pListBoxExistingTranslations->GetSelection();
 
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
@@ -616,8 +616,8 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		return;
 	}
 	bool bOK = TRUE;
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//int nSel;
+	//nSel = m_pListBoxExistingTranslations->GetSelection();
 
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
@@ -1053,6 +1053,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		int keysCount;
 		keysCount = m_pListBoxKeys->GetCount();
 		wxASSERT(nNewKeySel < keysCount);
+		keysCount = keysCount; // avoid warning
 		m_pListBoxKeys->Delete(nNewKeySel);
 		// set nNewKeySel to be the previous item in listbox unless it already 
 		// is the first item
@@ -1093,6 +1094,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	int count;
 	count = m_pListBoxExistingTranslations->GetCount();
 	wxASSERT(nSel < count);
+	count = count; // avoid warning
 	if (nSel > 0)
 	{
 		nSel--;
@@ -1563,6 +1565,7 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
                 // list box's list, so their positions need to match
 				bool bOK = TRUE;
 				bOK = pTargetUnit->m_pTranslations->DeleteNode(savePos);
+				bOK = bOK; // avoid warning TODO: check for failures?
 				savePos = pTargetUnit->m_pTranslations->Append(pRefStr);
 				return TRUE;
 			}
@@ -1595,11 +1598,11 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 {
 	if (bKBEntryTemporarilyAddedForLookup)
 	{
-		int nWords;
+		//int nWords;
         // RemoveRefString below will internally calc nWords - 1 to get map page so we must
         // increment the zero based page index here, for it to come out right within
         // RemoveRefString.
-		nWords = m_pKBEditorNotebook->GetSelection() + 1;
+		//nWords = m_pKBEditorNotebook->GetSelection() + 1;
 		wxString emptyStr = _T("");
 		if (gbIsGlossing)
 			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
@@ -1625,11 +1628,11 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	if (bKBEntryTemporarilyAddedForLookup)
 	{
-		int nWords;
+		//int nWords;
         // RemoveRefString below will internally calc nWords - 1 to get map page so we must
         // increment the zero based page index here, for it to come out right within
         // RemoveRefString.
-		nWords = m_pKBEditorNotebook->GetSelection() + 1;
+		//nWords = m_pKBEditorNotebook->GetSelection() + 1;
 		wxString emptyStr = _T("");
 		if (gbIsGlossing)
 			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
@@ -1842,6 +1845,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				// there is at least one non-deleted element, so put this one in the list
 				// box
 				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
+				index = index; // avoid warning TODO: check for failures?
 			}
 		}
 	}
@@ -1960,6 +1964,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	{
 		int countNonDeleted;
 		countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
+		countNonDeleted = countNonDeleted; // avoid warning
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
 		int nMatchedRefString = -1; // whm added 24Jan09

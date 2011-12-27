@@ -88,6 +88,7 @@ NavProtectNewDoc::NavProtectNewDoc(wxWindow* parent) // dialog constructor
 
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	bOK = bOK; // avoid warning
 }
 
 NavProtectNewDoc::~NavProtectNewDoc() // destructor

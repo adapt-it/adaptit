@@ -103,7 +103,7 @@ CExportOptionsDlg::CExportOptionsDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	// get pointers to our controls
 	pRadioExportAll = (wxRadioButton*)FindWindowById(IDC_RADIO_EXPORT_ALL);
 	wxASSERT(pRadioExportAll != NULL);

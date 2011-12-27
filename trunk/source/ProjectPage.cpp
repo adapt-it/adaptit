@@ -388,7 +388,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
-	int nSel;
+	//int nSel;
 	
 	bool bMovingForward = event.GetDirection(); 
 	wxASSERT(bMovingForward == TRUE); // we can only move forward from the projectPage
@@ -400,7 +400,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 		return;
 	}
 
-	nSel = m_pListBox->GetSelection();
+	//nSel = m_pListBox->GetSelection();
 
 	// whm: With the use of ListBoxPassesSanityCheck() above the following code block is no longer
 	// necessary. 

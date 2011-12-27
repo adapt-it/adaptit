@@ -85,7 +85,7 @@ CSilConverterSelectDlg::CSilConverterSelectDlg(
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	pEditSILConverterName = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_NAME);
 	wxASSERT(pEditSILConverterName != NULL);
 	pEditSILConverterInfo = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_INFO); // (read only)
@@ -202,6 +202,7 @@ void CSilConverterSelectDlg::OnBnClickedBtnSelectSilconverter(wxCommandEvent& ev
 #else
 	int id;
 	id = event.GetId(); // to avoid warning "unreferenced formal parameter"
+	id = id; // avoid warning
 #endif	// end of if USE_SIL_CONVERTERS
 }
 

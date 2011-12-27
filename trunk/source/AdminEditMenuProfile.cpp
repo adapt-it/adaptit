@@ -106,7 +106,7 @@ CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constru
 	
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	pNotebook = (wxNotebook*)FindWindowById(ID_MENU_EDITOR_NOTEBOOK);
 	wxASSERT(pNotebook != NULL);
 	pButtonResetToFactory = (wxButton*)FindWindowById(ID_BUTTON_RESET_TO_FACTORY);
@@ -1048,7 +1048,7 @@ bool CAdminEditMenuProfile::SubMenuIsInCurrentAIMenuBar(wxString itemText)
 	{
 		mainMenuText = pMenuBar->GetMenuLabel(ct); // includes accelerator chars
 		menuIndex = pMenuBar->FindMenuItem(mainMenuText,itemText);
-		if (!wxNOT_FOUND)
+		if (menuIndex != wxNOT_FOUND)
 		{
 			return TRUE;
 		}
@@ -1329,6 +1329,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
 			// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 		bWriteOK = m_pApp->m_pConfig->Write(_T("work_flow_profile"), m_pApp->m_nWorkflowProfile);
+		bWriteOK = bWriteOK; // avoid warning
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 		// restore the oldPath back to "/Recent_File_List"
 		m_pApp->m_pConfig->SetPath(oldPath);
@@ -1533,6 +1534,7 @@ wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileValue(int tempWorkflo
 		int totNames;
 		totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
 		wxASSERT(profileIndex >= 0 && profileIndex < totNames);
+		totNames = totNames; // avoid warning
 		str = tempUserProfiles->definedProfileNames.Item(profileIndex);
 	}
 	return str;
@@ -1549,6 +1551,7 @@ wxString CAdminEditMenuProfile::GetNameOfProfileFromProfileIndex(int profileInde
 		int totNames;
 		totNames = (int)tempUserProfiles->definedProfileNames.GetCount();
 		wxASSERT(profileIndex >= 0 && profileIndex < totNames);
+		totNames = totNames; // avoid warning
 		str = tempUserProfiles->definedProfileNames.Item(profileIndex);
 	}
 	return str;
@@ -1651,6 +1654,7 @@ void CAdminEditMenuProfile::CopyProfileVisibilityValues(int sourceProfileIndex, 
 			tot = (int)pUserProfileItem->usedVisibilityValues.GetCount();
 			wxASSERT(tot == (int)pUserProfileItem->usedFactoryValues.GetCount());
 			// copy the sourceProfileIndex values to the destinationProfileIndex values
+			tot = tot; // avoid warning
 			wxString destName;
 			destName = pUserProfileItem->usedProfileNames[destinationProfileIndex];
 			wxString srcName;

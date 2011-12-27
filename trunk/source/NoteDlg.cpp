@@ -90,7 +90,7 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	pEditNote = (wxTextCtrl*)FindWindowById(IDC_EDIT_NOTE); // whm moved here to constructor
 	wxASSERT(pEditNote != NULL);
 
@@ -103,6 +103,7 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	wxButton* pOKButton;
 	pOKButton = (wxButton*)FindWindow(wxID_OK);
 	wxASSERT(pOKButton != NULL);
+	pOKButton = pOKButton; // avoid warning
 
 	m_strNote = _T("");
 	m_searchStr = _T("");
@@ -192,7 +193,7 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	pEditNote = (wxTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_NOTE); // whm moved to constructor
 	pEditSearch = (wxTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_FIND_TEXT); // whm added
 
-	wxWindow* pOldFocusWnd = NULL; // BEW 5Mar08 added
+	//wxWindow* pOldFocusWnd = NULL; // BEW 5Mar08 added // set but unused
 
 	// set up the nav text font in user's desired point size
 	#ifdef _RTL_FLAGS
@@ -308,7 +309,7 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		// the following commented out MFC code line won't work:
 		//pOldFocusWnd = pSearchBox->SetFocus();
 		// instead we call FindFocus first the call SetFocus
-		pOldFocusWnd = FindFocus();
+		//pOldFocusWnd = FindFocus();
 		pEditSearch->SetFocus();
 
 		// also make the cursor be after the search text
@@ -316,7 +317,7 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	}
 	else
 	{
-		pOldFocusWnd = FindFocus();
+		//pOldFocusWnd = FindFocus();
 		pEditNote->SetFocus();
 	}
 }

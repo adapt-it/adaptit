@@ -75,7 +75,7 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
+	bOK = bOK; // avoid warning
 	pListBox = (wxListBox*)FindWindowById(ID_LIST_LANGUAGE_CODES_NAMES);
 	wxASSERT(pListBox != NULL);
 

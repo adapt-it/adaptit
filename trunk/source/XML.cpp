@@ -989,6 +989,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 			// books.xml is 3,426 bytes so it doesn't require 
 			// more than one chunk to be read
 			nRead = file.Read(pBuff,fileSize);
+			nRead = nRead; // avoid warning
 			bReadAll = TRUE;
 			nInputLeft = 0;
 			nInputCount = fileSize;
@@ -998,6 +999,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 			// AI_USFM.xml is approx 80-90 Kbytes so it would
 			// require at least 5 chunks to be read
 			nRead = file.Read(pBuff,(Int32)TwentyKB);
+			nRead = nRead; // avoid warning
 			nInputCount = (Int32)TwentyKB;
 			nInputLeft -= (Int32)TwentyKB;
 		}
@@ -1262,6 +1264,7 @@ r:		comp = strncmp(pPos,comment,4);
 			{
 				//nRead = file.Read(pBuff,nInputLeft); // doesn't work
 				nRead = file.Read(pEnd,nInputLeft); // works
+				nRead = nRead; // avoid warning
 				pEnd = pBuff + unprocessed + nInputLeft;
 				nInputLeft = 0;
 				nInputCount = fileSize;
@@ -1270,6 +1273,7 @@ r:		comp = strncmp(pPos,comment,4);
 			{
 				//nRead = file.Read(pBuff,(Int32)TwentyKB); // doesn't work
 				nRead = file.Read(pEnd,(Int32)TwentyKB); // works
+				nRead = nRead; // avoid warning
 				pEnd = pBuff + unprocessed + (Int32)TwentyKB;
 				nInputLeft -= (Int32)TwentyKB;
 				nInputCount += (Int32)TwentyKB;
@@ -3044,6 +3048,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else if (attrName == xml_specialcolor)
 				{
 					num = atoi(attrValue);
+					num = num; // avoid warning
 					//gpApp->specialTextColor = num; // no longer used in WX version
 					// The special text color stored in the xml doc file
 					// The special text color stored in the doc's xml file is ignored in the wx version
@@ -3053,6 +3058,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else if (attrName == xml_retranscolor)
 				{
 					num = atoi(attrValue);
+					num = num; // avoid warning
 					//gpApp->reTranslnTextColor = num; // no longer used in WX version
 					// The retranslation text color stored in the xml doc file
 					// The retranslation text color stored in the doc's xml file is ignored in the wx version
@@ -3062,6 +3068,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else if (attrName == xml_navcolor)
 				{
 					num = atoi(attrValue);
+					num = num; // avoid warning
 					// gpApp->navTextColor = num; // no longer used in WX version
 					// The nav text color stored in the xml doc file
 					// The nav text color stored in the doc's xml file is ignored in the wx version
@@ -5086,8 +5093,8 @@ CBString MakeFlags(CSourcePhrase* pSP)
 						// through 30 leaving binValue[31] as hex zero (as set by
 						// memset below) to terminate the c-string 
 	memset(binValue,0,sizeof(binValue));
-	short sigDigits;
-	sigDigits = DecimalToBinary(n, binValue);
+	//short sigDigits; // set but not used
+	//sigDigits = DecimalToBinary(n, binValue);
 	flagsStr = binValue;
 	flagsStr = flagsStr.Mid(0,22); // Adapt It's source phrase currently uses only first 22 flags
 	flagsStr.MakeReverse();
@@ -5480,6 +5487,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			long count_str;
 			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, aKeyStr,
 										gpApp->m_LIFT_formsArray);
+			count_str = count_str; // avoid warning
 		}
 		else if (gpApp->m_bLIFT_use_gloss_entry && 
 			     gpApp->m_LIFT_cur_lang_code == gpApp->m_LIFT_chosen_lang_code &&
@@ -5501,6 +5509,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			long count_str;
 			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, textStr,
 										gpApp->m_LIFT_glossesArray);
+			count_str = count_str; // avoid warning
 #if defined(_debugLIFT_) && defined(__WXDEBUG__)
 			if (gbIsGlossing)
 			{
@@ -5532,6 +5541,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			long count_str;
 			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, textStr,
 										gpApp->m_LIFT_definitionsArray, FALSE);
+			count_str = count_str; // avoid warning
 			ProcessLIFT_PCDATA(gpApp->m_LIFT_formsArray, gpApp->m_LIFT_definitionsArray);
 		}
 
@@ -8125,7 +8135,7 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 	size_t fileLength;
 	wxFile fileIn;
 	bool bUseGlossEntries = FALSE;
-	bool bUseDefinitionEntries = FALSE;
+	//bool bUseDefinitionEntries = FALSE; // set but not used
 	int glossEntriesCount = 0;
 	int definitionEntriesCount = 0;
 	int offset = -1; // where the search text was next matched
@@ -8139,6 +8149,7 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		memset(pBuff, 0, fileLength + 1); // +1 for a null byte at the end
 		size_t actualNumBytes;
 		actualNumBytes = fileIn.Read((void*)pBuff, fileLength);
+		actualNumBytes = actualNumBytes; // avoid warning
 		// make a CBString with a copy of the buffer contents (however
 		// many we actually got, that is, actualNumBytes worth)
 		CBString xmlStr(pBuff); // xmlStr will now manage the copied byte data
@@ -8173,7 +8184,7 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		}
 		else if (definitionEntriesCount > 0 && glossEntriesCount == 0)
 		{
-			bUseDefinitionEntries = TRUE;
+			//bUseDefinitionEntries = TRUE;
 			bParseGlossEntries = FALSE; // tell the app class
 		}
 		else if (definitionEntriesCount > 0 && glossEntriesCount > 0)
@@ -8182,7 +8193,7 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 			if (definitionEntriesCount > glossEntriesCount)
 			{
 				// let the definitions collection win
-				bUseDefinitionEntries = TRUE;
+				//bUseDefinitionEntries = TRUE;
 				bParseGlossEntries = FALSE; // tell the app class
 			}
 			else

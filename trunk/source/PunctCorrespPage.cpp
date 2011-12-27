@@ -213,16 +213,16 @@ void CPunctCorrespPageCommon::DoInit()
 	m_punctuationBeforeEdit[1] = pApp->m_punctuation[1]; //BEW 4Mar11, added, but may not
 								// actually be needed, but it should not be left unset
 
-	int activeSequNum;
+	//int activeSequNum; // set but not used
 	if (pApp->m_nActiveSequNum < 0)
 	{
 		// must not have data yet, or we are at EOF and so no pile is currently active
-		activeSequNum = -1;
+		; //activeSequNum = -1;
 	}
 	else
 	{
 		// we are somewhere in the midst of the data, so a pile will be active
-		activeSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		//activeSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 		//pApp->m_curIndex = activeSequNum;
 
 		// remove any current selection, as we can't be sure of any pointers

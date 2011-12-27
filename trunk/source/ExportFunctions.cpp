@@ -943,6 +943,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	{
 	case sourceTextExport:
 		nTextLength = RebuildSourceText(source);
+		nTextLength = nTextLength; // avoid warning TODO: test for failures?
 		// Apply output filter to the source text
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
@@ -1501,11 +1502,11 @@ void DoExportInterlinearRTF()
 	bool bDocHasFreeTrans = FALSE;	// assume no free translation unless found in while loop below
 	bool bDocHasBackTrans = FALSE;	// assume no back translation unless found in while loop below
 	bool bDocHasAINotes = FALSE;	// assume no AI notes unless found in while loop below
-	bool bBeforeInitialChVs = TRUE;	// flag to tell we are in text before 1st ch/vs
+	//bool bBeforeInitialChVs = TRUE;	// flag to tell we are in text before 1st ch/vs
 	wxString Mkr;
 
 	CSourcePhrase* pSrcPhrase = NULL;
-	SPList::Node* savePos = NULL; //POSITION savePos = NULL;
+	//SPList::Node* savePos = NULL; //POSITION savePos = NULL;
 
 	// Scan the SrcPhrase structure to get certain information that we need upfront, before 
     // putting up the export interlinear dialog, or before constructing the RTF header items:
@@ -1569,7 +1570,7 @@ void DoExportInterlinearRTF()
 			{
 				ChVsFirst = pSrcPhrase->m_chapterVerse;		// get the first m_ChapterVerse
 				bFirst = FALSE;
-				bBeforeInitialChVs = FALSE;					// turn this off now that we've encountered 1st ch:vs
+				//bBeforeInitialChVs = FALSE;					// turn this off now that we've encountered 1st ch:vs
 			}
 			ChVsLast = pSrcPhrase->m_chapterVerse;			// get the last m_ChapterVerse
 		}
@@ -2068,8 +2069,8 @@ void DoExportInterlinearRTF()
 	/////////////////////FONTS//////////////////////////////
 	// To compose the Sdef forms we need to get the current pSfmMap in order to look up the
 	// appropriate USFMAnalysis struct pSfm and retrieve font properties.
-	MapSfmToUSFMAnalysisStruct* pSfmMap; //CMapStringToOb* pSfmMap;
-	pSfmMap = gpApp->GetCurSfmMap(gpApp->gCurrentSfmSet);
+	//MapSfmToUSFMAnalysisStruct* pSfmMap; //CMapStringToOb* pSfmMap;
+	//pSfmMap = gpApp->GetCurSfmMap(gpApp->gCurrentSfmSet);
 
 	// the following USFMAnalaysis pointers are used for getting font metrics for the interlinear
 	// fonts defined in AI_USFM.xml. These pointers are used immediately below for building the
@@ -4012,7 +4013,7 @@ void DoExportInterlinearRTF()
 			//::wxSafeYield();
 		}
 
-		savePos = pos;
+		//savePos = pos;
 
 		// reset
 		SrcStr.Empty();
@@ -4375,7 +4376,7 @@ void DoExportInterlinearRTF()
 			// they are encountered.
 			//
 			// CODE BELOW FUNCTIONS AS OUTPUT FILTER FOR INTERLINEAR EXPORT
-			bool bHitMkr = FALSE;
+			//bool bHitMkr = FALSE;
 			while (pOld < pEnd && *pOld != (wxChar)0)
 			{
 				if (IsMarkerRTF(pOld,pBuffStart))
@@ -4483,7 +4484,7 @@ void DoExportInterlinearRTF()
 							mkrLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += mkrLen;
 							// omit marker itself from pNew
-							bHitMkr = TRUE;
+							//bHitMkr = TRUE;
 							if (pOld >= pEnd)
 								break;
 						}
@@ -4501,7 +4502,7 @@ void DoExportInterlinearRTF()
 							mkrLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += mkrLen;
 							// omit marker itself from pNew
-							bHitMkr = TRUE;
+							//bHitMkr = TRUE;
 							if (pOld >= pEnd)
 								break;
 						}
@@ -4522,7 +4523,7 @@ void DoExportInterlinearRTF()
 							mkrLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += mkrLen;
 							// omit marker itself from pNew
-							bHitMkr = TRUE;
+							//bHitMkr = TRUE;
 							if (pOld >= pEnd)
 								break;
 						}
@@ -4623,7 +4624,7 @@ void DoExportInterlinearRTF()
 							mkrLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += mkrLen;
 							// omit marker itself from pNew
-							bHitMkr = TRUE;
+							//bHitMkr = TRUE;
 							if (pOld >= pEnd)
 								break;
 						}
@@ -4635,7 +4636,7 @@ void DoExportInterlinearRTF()
 							mkrLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += mkrLen;
 							// omit marker itself from pNew
-							bHitMkr = TRUE;
+							//bHitMkr = TRUE;
 							if (pOld >= pEnd)
 								break;
 						}
@@ -5049,6 +5050,7 @@ void DoExportInterlinearRTF()
 			dC.SetFont(*pRtfFreeFnt);
 			dC.GetTextExtent(assocFreeMarkerText,&FreeTransextent.x,&FreeTransextent.y);
 			WidthFreeTrans = (int)((float)(FreeTransextent.GetWidth())*14.4) + (ngaphNum*2) + RTFCellGapFudgeFactor; // convert 100ths to twips + gap*2
+			WidthFreeTrans = WidthFreeTrans; // avoid warning 
 			// construct numerically sequenced caller
 			freeRefNumInt++; // increment the free N to free 1, free 2, free 3, etc.
 			freeRefNumStr = bareFreeMarker + _T(' ');
@@ -5108,6 +5110,7 @@ void DoExportInterlinearRTF()
 			dC.SetFont(*pRtfBtFnt);
 			dC.GetTextExtent(assocBTMarkerText,&BackTransextent.x,&BackTransextent.y);
 			WidthBackTrans = (int)((float)(BackTransextent.GetWidth())*14.4) + (ngaphNum*2) + RTFCellGapFudgeFactor; // convert 100ths to twips + gap*2
+			WidthBackTrans = WidthBackTrans; // avoid warning
 			// construct numerically sequenced caller
 			btRefNumInt++; // increment the bt N to bt 1, bt 2, bt 3, etc.
 			btRefNumStr = bareBTMarker + _T(' '); // _T("bt ") or "bt... "
@@ -5966,6 +5969,7 @@ a:
 				int freeTransListCount;
 				freeTransListCount = freeTransList.GetCount();
 				wxASSERT(cellxNListCount == freeTransListCount);
+				freeTransListCount = freeTransListCount; // avoid warining 
 				for (int count=0; count < cellxNListCount; count++)
 				{
 					wxString numAtFree = cellxNListFree.Item(count);
@@ -6130,6 +6134,7 @@ a:
 				int backTransListCount;
 				backTransListCount = backTransList.GetCount();
 				wxASSERT(cellxNListCount == backTransListCount);
+				backTransListCount = backTransListCount; // avoid warning
 				for (int count=0; count < cellxNListCount; count++)
 				{
 					wxString numAtBT = cellxNListBT.Item(count);
@@ -7464,6 +7469,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	wxString workbuff;				// a small working buffer in which to build a string - unused
 	int strLen;
 	strLen = ClearBuffer();		// clear the View's working buffer & set length of its string to zero
+	strLen = strLen; // avoid warning
 	wxString LastStyle = _T("");
 	wxString LastParaStyle = _T("");
 	wxString LastCharacterStyle = _T("");
@@ -7492,7 +7498,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	bool bProcessingEndlessCharMarker = FALSE;
 	bool bProcessingCharacterStyle = FALSE;
 	//wxString lastCharacterStyleTags = _T("");
-	bool bHitMarker = FALSE;
+	//bool bHitMarker = FALSE;
 	bool bHitBTHaltingMkr = FALSE;
 	bool bHitFreeHaltingMkr = FALSE;
 	bool bHasFreeTransToAddToFootnoteBody = FALSE;
@@ -7570,7 +7576,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 			//::wxSafeYield();
 		}
 
-		bHitMarker = FALSE;
+		//bHitMarker = FALSE;
 		if (pDoc->IsWhiteSpace(ptr))
 		{
 			itemLen = pDoc->ParseWhiteSpace(ptr);
@@ -7622,7 +7628,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 		}
 		else if (IsMarkerRTF(ptr,pBufStart))
 		{
-			bHitMarker = TRUE;
+			//bHitMarker = TRUE;
 			int nMkrLen = 0;
 			// it's a marker of some kind
 
@@ -11537,11 +11543,11 @@ bool MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup)
 	}
 	if (bFound)
 	{
-		bool testFlag;
-		if (m_exportFilterFlags.Item(count) == 0)
-			testFlag = FALSE;
-		else
-			testFlag = TRUE;
+		//bool testFlag; // set but unused
+		//if (m_exportFilterFlags.Item(count) == 0)
+		//	testFlag = FALSE;
+		//else
+		//	testFlag = TRUE;
 		if (m_exportFilterFlags.GetCount() > 0 && m_exportFilterFlags.Item(count) == TRUE)
 		{
 			return TRUE;
@@ -11921,7 +11927,7 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 	wxChar* pEnd;
 	pEnd = pBufStart + nTheLen;// bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
-
+	pEnd = pEnd; // avoid warning
 	// Setup copy-to buffer textStr2. It needs to be twice the size of input buffer since
 	// we will be adding a backslash for every control char we find
 	wxString textStr2;
@@ -12280,14 +12286,14 @@ void BuildRTFTagsMap(wxArrayString& StyleDefStrArray, wxArrayString& StyleInDocS
 	// and the standard/regular in-document tag strings to InDocTagsArray
 	wxString fullMkr;
 	pSfmMap = gpApp->GetCurSfmMap(gpApp->gCurrentSfmSet);
-	bool colorFound = FALSE;
+	//bool colorFound = FALSE; // set but unused
 	MapSfmToUSFMAnalysisStruct::iterator iter;
 	for (iter = pSfmMap->begin(); iter != pSfmMap->end(); ++iter)
 	{
 		// Retrieve each USFMAnalysis struct from the map
 		pSfm = iter->second;
 		fullMkr = gSFescapechar + pSfm->marker;
-		colorFound = FALSE;
+		//colorFound = FALSE;
 		MapMkrToColorStr::iterator citer;
 		citer = colorMap.find(pSfm->marker); // assigns cMapAssocStr
 		if (citer != colorMap.end())
@@ -12684,8 +12690,8 @@ wxString BuildColorTableFromUSFMColorAttributes(MapMkrToColorStr& colorMap)
 	// go through the pSfmMap again and build the whole colorMap by associating the 
 	// colorIndexStr (\cfN) with the pSfmMap markers that require colors.
 	wxString colorIndexStr = _T("\\cf");
-	int cIndex; 
-	cIndex = 0;
+	//int cIndex; 
+	//cIndex = 0;
 	for( iter = pSfmMap->begin(); iter != pSfmMap->end(); ++iter )
 	{
 		pSfm = iter->second;
@@ -12708,13 +12714,13 @@ wxString BuildColorTableFromUSFMColorAttributes(MapMkrToColorStr& colorMap)
 		{
 			int ct;
 			int colorIndex = 0;
-			bool exists = FALSE;
+			//bool exists = FALSE;
 			for(ct = 0; ct < (int)colorTbl.GetCount(); ct++)
 			{
 				colorIndex = ct;
 				if (colorTbl[ct] == rgbColorTblStr)
 				{
-					exists = TRUE;
+					//exists = TRUE;
 					break;
 				}
 			}
@@ -15341,7 +15347,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
     // until the first non-placeholder CSourcePhrase instance has been dealt with, because
     // that is the CSourcePhrase instance on to which they are to be moved.
 
-	bool bHasFilteredMaterial = FALSE;
+	//bool bHasFilteredMaterial = FALSE;
 	while (pos != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -15352,7 +15358,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 
 		// BEW added to following block 16Jan09, for handling relocated markers on
 		// placeholders 
-		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
+		//bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
             // markers placement from a preceding placeholder may be pending but there may
@@ -15997,9 +16003,9 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 	wxString text2;
 	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it
 	wxChar* pBuff2 = text2.GetWriteBuf(len + 1);
-	wxChar* pBufStart2 = pBuff2;
-	wxChar* pEnd2;
-	pEnd2 = pBufStart2 + len;
+	//wxChar* pBufStart2 = pBuff2;
+	//wxChar* pEnd2;
+	//pEnd2 = pBufStart2 + len;
 	wxChar* pNew = pBuff2;
 
 	wxString wholeMkr;
@@ -16389,6 +16395,7 @@ void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
 	int count = buffer.Replace(oldFree,newFree);
 	count = buffer.Replace(oldNote,newNote);
 	count = buffer.Replace(oldBt,newBt);
+	count = count; // avoid warnings
 }
 
 
@@ -16925,9 +16932,9 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	wxString text2;
 	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it
 	wxChar* pBuff2 = text2.GetWriteBuf(len*2 + 1);
-	wxChar* pBufStart2 = pBuff2;
-	wxChar* pEnd2;
-	pEnd2 = pBufStart2 + len*2;
+	//wxChar* pBufStart2 = pBuff2;
+	//wxChar* pEnd2;
+	//pEnd2 = pBufStart2 + len*2;
 	wxChar* pOld = pBufStart;
 	wxChar* pNew = pBuff2;
 
@@ -16955,7 +16962,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	}
 	int lenEolStr = wxStrlen_(gpApp->m_eolStr);
 	bool bDetachedNonquotePunctuationFollows = FALSE;
-	bool IsWrapMarker = FALSE;
+	//bool IsWrapMarker = FALSE;
 	bool IsInLineMarker = FALSE;
 	int itemLen; // gets length of parsed item
 	int ctmkr;   // used to count item chars while copying from pOld to pNew
@@ -17032,22 +17039,22 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 				{
 					// determine if the marker is an inline marker
 					wholeMkr = MakeReverse(wholeMkr);
-					IsWrapMarker = FALSE;
+					//IsWrapMarker = FALSE;
 					IsInLineMarker = FALSE;
 					switch(gpApp->gCurrentSfmSet)
 					{
 					case UsfmOnly:
 						{
-							if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsWrapMarker = TRUE;
+							//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+							//	IsWrapMarker = TRUE;
 							if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 								IsInLineMarker = TRUE;
 							break;
 						}
 					case PngOnly:
 						{
-							if (gpApp->PngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsWrapMarker = TRUE;
+							//if (gpApp->PngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+							//	IsWrapMarker = TRUE;
                             // whm ammended 23Nov07 to consider PngOnly footnote end
                             // markers \fe and \F as inline markers (even if they are not
                             // marked so in AI_USFM.xml), so they won't get a new line
@@ -17060,16 +17067,16 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 						}
 					case UsfmAndPng:
 						{
-							if (gpApp->UsfmAndPngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsWrapMarker = TRUE;
+							//if (gpApp->UsfmAndPngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+							//	IsWrapMarker = TRUE;
 							if (gpApp->UsfmAndPngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 								IsInLineMarker = TRUE;
 							break;
 						}
 					default:
 						{
-							if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsWrapMarker = TRUE;
+							//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+							//	IsWrapMarker = TRUE;
 							if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
 								IsInLineMarker = TRUE;
 						}
@@ -17212,8 +17219,8 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 	wxString text2;
 	wxChar* pBuff2 = text2.GetWriteBuf(nTextLength + 1); // pBuff2 must be writeable
 	wxChar* pBuffStart2 = pBuff2;
-	wxChar* pEnd2;
-	pEnd2 = pBuffStart2 + nTextLength; // copy-to buffer can be same size
+	//wxChar* pEnd2;
+	//pEnd2 = pBuffStart2 + nTextLength; // copy-to buffer can be same size
 
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
@@ -18299,6 +18306,7 @@ bool DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, wxChar* pPos
 	wxChar* pEnd2;
 	pEnd2 = pBufStart2 + remainderLen; // whm added
 	wxASSERT(*pEnd2 == _T('\0'));
+	pEnd2 = pEnd2; // avoid warning
 	bool bIsWhite = pDoc->IsWhiteSpace(pBufStart2 + spannedLen) || (pBufStart2 + spannedLen >= pBufStart2 + remainderLen);
 
 	if (!bIsWhite)
