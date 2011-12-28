@@ -9,27 +9,20 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-
-
-
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	# Add here commands to configure the package.
 	mkdir -p bin/linux/Unicode
 	cd bin/linux/Unicode && ../configure --prefix=/usr
 
 	touch configure-stamp
 
-
-build: build-stamp
-
+build: build-arch build-indep
+build-arch: build-stamp
+build-indep: build-stamp
 build-stamp: configure-stamp 
 	dh_testdir
-
-	# Add here commands to compile the package.
 	$(MAKE) -C bin/linux/Unicode
-	#docbook-to-man debian/adaptit.sgml > adaptit.1
 
 	touch $@
 
@@ -38,7 +31,6 @@ clean:
 	dh_testroot
 	rm -f build-stamp configure-stamp
 
-	# Add here commands to clean up after the build process.
 	-[ -e bin/linux/Unicode ] && $(MAKE) -C bin/linux/Unicode clean || true
 
 	dh_clean 
@@ -49,22 +41,17 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	# Add commands here to install into the package adaptit
 	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit \
 		install-exec install-adaptit-data
 	$(MAKE) -C bin/linux/Unicode/po DESTDIR=$(CURDIR)/debian/adaptit \
 		install
 
-	# Add commands here to install into the package adaptit-docs
 	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit-docs \
 		install-adaptit-docs-data
 
-
-# Build architecture-independent files here.
 binary-indep: build install
 # We have nothing to do by default.
 
-# Build architecture-dependent files here.
 binary-arch: build install
 	dh_testdir
 	dh_testroot
@@ -74,24 +61,11 @@ binary-arch: build install
 	dh_install debian/adaptit.desktop usr/share/applications
 	dh_install res/32x32/adaptit.png usr/share/icons/hicolor/32x32/apps
 	dh_install res/48x48/adaptit.png usr/share/icons/hicolor/48x48/apps
-#	dh_install
-#	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_python
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
 	dh_installman
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
-#	dh_perl
-#	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
