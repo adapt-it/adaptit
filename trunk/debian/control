@@ -9,7 +9,7 @@ Standards-Version: 3.7.2
 
 Package: adaptit
 Architecture: any
-Depends: ${shlibs:Depends},libsqlite3-0, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: bibledit-gtk (>= 4.2.93)
 Description: helps in translating between related languages
  Adapt It gives you tools for translating text from one language which
