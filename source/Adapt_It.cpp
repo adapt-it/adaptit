@@ -4085,13 +4085,11 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		// Note textFile is empty at this point
 		bool bOK;
 		bOK = textFile.Open(fullFilePath);
+		wxCHECK_MSG(bOK, FALSE, _T("SaveUserProfilesMergingDataToXMLFile() didn't open textFile in !bUserProfilesFileExists block"));
 		BuildUserProfileXMLFile(&textFile);
 		// Write the modified wxText file back out to disk
 		bOK = textFile.Write(); // no need to do anything special for Unicode
-		if (!bOK)
-		{
-			// TODO:: error msg
-		} 
+		wxCHECK_MSG(bOK, FALSE, _T("SaveUserProfilesMergingDataToXMLFile() textFile.Write() failed in !bUserProfilesFileExists block"));
 	}
 	else
 	{
