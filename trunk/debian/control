@@ -5,6 +5,7 @@ Maintainer: Bill Martin <bill_martin@sil.org>
 Uploaders: Bruce Waters <bruce_waters@sil.org>,
  Jonathan Marsden <jmarsden@fastmail.fm>
 Build-Depends: debhelper (>= 5), libwxgtk2.8-dev, zip, uuid-dev, libcurl3-gnutls-dev
+HomePage: http://adapt-it.org
 Standards-Version: 3.7.2
 
 Package: adaptit
