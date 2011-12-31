@@ -4237,9 +4237,9 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 			}
 			bool bCreatedOK, bOpenedOK;
 			bCreatedOK = newTextFile.Create(m_userProfileFileWorkFolderPath);
-			bCreatedOK = bCreatedOK; // suppress warning. TODO: add test and error message
+			wxCHECK_MSG(bCreatedOK, FALSE, _T("SaveUserProfilesMergingDataToXMLFile() newTextFile.Create() failed in bThisIsAnUpgradeOfProfileFile block"));
 			bOpenedOK = newTextFile.Open();
-			bOpenedOK = bOpenedOK; // suppress warning. TODO: add test and error message
+			wxCHECK_MSG(bOpenedOK, FALSE, _T("SaveUserProfilesMergingDataToXMLFile() newTextFile.Open() failed in bThisIsAnUpgradeOfProfileFile block"));
 			if (newTextFile.IsOpened())
 			{
 				// now copy the lines from textFile to newTextFile
@@ -7472,7 +7472,6 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	const int nKeys = 9;
 	wxArrayString keyArray;
 	bool bKeysPresent = FALSE;
-	//bool bAllKeysAssigned = FALSE;
 	for (ct = 0; ct < nKeys; ct++)
 	{
 		wxLogNull logNo; // eliminates spurious message from the system:
@@ -7488,10 +7487,6 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		wxString tempStr;
 		valReadOK = m_pConfig->Read(str, &tempStr);
 		keyArray.Add(tempStr);
-		//if (valReadOK && keyArray[ct] == _T("[UNASSIGNED]"))
-		//{
-		//	bAllKeysAssigned = FALSE;
-		//}
 		if (valReadOK && keyArray[ct] != _T("[UNASSIGNED]"))
 		{
 			bKeysPresent = TRUE;
@@ -8737,7 +8732,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 			bool bAppendedOK;
 			bAppendedOK = pMenuBar->Append(m_pRemovedAdminMenu,m_adminMenuTitle);
 			wxASSERT(bAppendedOK);
-			bAppendedOK = bAppendedOK; // avoid warning TODO: add error message?
+			wxCHECK_RET(bAppendedOK, _T("MakeMenuInitializationsAndPlatformAdjustments() failed in m_bAdminMenuRemoved == TRUE block"));
 			m_pRemovedAdminMenu = NULL;
 			m_bAdminMenuRemoved = FALSE;
 		}
@@ -11586,7 +11581,7 @@ bool CAdapt_ItApp::ParatextIsRunning()
 bool CAdapt_ItApp::BibleditIsRunning()
 {
 	bool bIsRunning = FALSE;
-	bIsRunning = bIsRunning; // avoid warning
+	bIsRunning = bIsRunning; // avoid warning (BEW - no choice but to do the identity assignment trick here)
 
 #ifndef __WXMSW__ // for the non-Windows systems, i.e., Linux and Mac
 
@@ -11600,7 +11595,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// Use the wxExecute() override that takes the two wxStringArray parameters. This
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
-	result = result; // avoid warning
+	wxCHECK_MSG(result != -1, FALSE, _T("BibleditIsRunning() returned -1 (failure) for ::wxExecute() call, line 11598"));
 #ifdef __WXDEBUG__
 	int testCt;
 	for (testCt = 0; testCt < (int)outputMsg.GetCount(); testCt++)
@@ -11636,6 +11631,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// Use the wxExecute() override that takes the two wxStringArray parameters. This
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+	wxCHECK_MSG(result != -1, FALSE, _T("BibleditIsRunning() returned -1 (failure) for ::wxExecute() call, line 11634"));
 	if (outputMsg.GetCount() > 0)
 	{
 		wxString str = outputMsg.Item(0);
@@ -11657,6 +11653,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// Use the wxExecute() override that takes the two wxStringArray parameters. This
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+	wxCHECK_MSG(result != -1, FALSE, _T("BibleditIsRunning() returned -1 (failure) for ::wxExecute() call, line 11655"));
 	if (outputMsg.GetCount() > 0)
 	{
 		wxString str = outputMsg.Item(0);
@@ -11678,6 +11675,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// Use the wxExecute() override that takes the two wxStringArray parameters. This
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
+	wxCHECK_MSG(result != -1, FALSE, _T("BibleditIsRunning() returned -1 (failure) for ::wxExecute() call, line 11677"));
 	if (outputMsg.GetCount() > 0)
 	{
 		wxString str = outputMsg.Item(0);
@@ -12535,7 +12533,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
+/// \return     TRUE if all goes well, FALSE if there was something that causes premature exit
 /// \remarks
 /// Called once when the application is first executed. OnInit() is the main place where
 /// all application level variables are to be initialized in a wxWidgets based application.
@@ -14502,11 +14500,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	fontAvail = wxFontMapper::Get()->IsEncodingAvailable(fontenc);
 												// Windows: fontAvail = true
 												//  Ubuntu: fontAvail = true
-	if (!fontAvail)
-	{
-		// TODO: error message?
-		;
-	}
+	wxCHECK_MSG(fontAvail, FALSE, _T("OnInit() wxFontMapper returned FALSE (no font available) line 14500"));
 	//wxFontEncoding altFontEnc;
 	//wxString facename = _T("");
 	//bool gotAltFont;
@@ -14553,8 +14547,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
                     CLASSINFO(CAdapt_ItDoc),
                     CLASSINFO(CAdapt_ItView));
 	// pDocTemplate above will be destroyed when m_pDocManager is deleted in OnExit()
-	pDocTemplate = pDocTemplate; // avoid warning
-	wxASSERT(pDocTemplate != NULL);
+	wxCHECK_MSG(pDocTemplate != NULL, FALSE, _T("OnInit() new wxDocTemplate returned NULL ptr, line 14544"));
     // Note: We could have another wxDocTemplate instance for plain text documents if we
     // wanted them to be managed by the doc/view framework.
 
@@ -17219,11 +17212,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("pt_collab_chapter_selected"), m_CollabChapterSelected);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_src_lang_name"), m_CollabSourceLangName);
 			bWriteOK = m_pConfig->Write(_T("pt_collab_tgt_lang_name"), m_CollabTargetLangName);
-			if (!bWriteOK)
-			{
-				;
-				// TODO: error message
-			}
+			wxCHECK_MSG(bWriteOK, FALSE, _T("OnInit() one of the m_pConfig->Write() calls returned FALSE, lines 17,203-17,214"));
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
@@ -17290,11 +17279,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			bWriteOK = m_pConfig->Write(_T("be_collab_chapter_selected"), m_CollabChapterSelected);
 			bWriteOK = m_pConfig->Write(_T("be_collab_src_lang_name"), m_CollabSourceLangName);
 			bWriteOK = m_pConfig->Write(_T("be_collab_tgt_lang_name"), m_CollabTargetLangName);
-			if (!bWriteOK)
-			{
-				;
-				// TODO: error message
-			}
+			wxCHECK_MSG(bWriteOK, FALSE, _T("OnInit() one of the m_pConfig->Write() calls returned FALSE, lines 17,270-17,281"));
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			// restore the oldPath back to "/Recent_File_List"
 			m_pConfig->SetPath(oldPath);
@@ -17992,7 +17977,7 @@ int ii = 1;
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
 	pEditMenu->AppendSeparator();
 	wxMenuItem* pTestChorusItem = pEditMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test DVCS")); // defaults for final 2 params
-	pTestChorusItem = pTestChorusItem; // supress warning // TODO: remove this if pTestChorusItem is used
+	pTestChorusItem = pTestChorusItem; // supress warning // TODO: remove this if pTestChorusItem gets to be used here
 #endif
 	// end of code for supporting Mike's DVCS work
 	
@@ -18024,20 +18009,12 @@ void CAdapt_ItApp::Terminate()
 			bOK = WriteConfigurationFile(szBasicConfiguration, m_customWorkFolderPath,basicConfigFile);
 		else
 			bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_workFolderPath,basicConfigFile);
-		if (!bOK)
-		{
-			// TODO: error message?
-			;
-		}
+		wxCHECK_RET(bOK, _T("Terminate(): WriteConfigurationFile() returned FALSE, line 18,009 or 18011"));
 	}
 	else
 	{
 		bOK = WriteConfigurationFile(szBasicConfiguration, m_workFolderPath,basicConfigFile);
-		if (!bOK)
-		{
-			// TODO: error message?
-			;
-		}
+		wxCHECK_RET(bOK, _T("Terminate(): WriteConfigurationFile() returned FALSE, line 18,016"));
 	}
 }
 
