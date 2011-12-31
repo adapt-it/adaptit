@@ -18117,7 +18117,7 @@ int CAdapt_ItApp::OnExit(void)
 		{
 			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
 		}
-		bOK = bOK; // avoid warning
+		wxCHECK_MSG(bOK, 0, _T("Terminate(): WriteConfigurationFile() returned FALSE, line 18,112,or 114, or 118"));
 		// below is original
 		//if (::wxDirExists(m_curProjectPath))
 		//{
@@ -19021,7 +19021,6 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3
 	// and later, so we use it here.
 	bool bReturn = FALSE;
-	bReturn = bReturn; // avoid warning
 	if (!wxGetKeyState(WXK_SHIFT)) // if (keyState != WXK_SHIFT)
 	{
 		// Shift key is not down, so load the config file data for fonts & other settings.
@@ -19085,7 +19084,6 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	// (the values set as defaults when the basic config file was bypassed will remain in
 	// effect)
 	bool bReturn = FALSE;
-	bReturn = bReturn; // avoid warning
 	if (!wxGetKeyState(WXK_SHIFT))
 	{
 		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
