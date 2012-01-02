@@ -52,10 +52,27 @@ public:
 	wxButton* pBtnNoFreeTrans;
 	wxButton* pBtnCancel;
 	wxButton* pBtnOK;
+	
+	// The following m_Temp... variables are used while the dialog is active until
+	// the user clicks on OK. In the OnOK() handler the Apps persistent values are
+	// assigned according to these m_Temp... variables. Hence, if the "Cancel" button
+	// is clicked, no changes are made to the App's persistent values.
+	wxString m_TempCollabProjectForSourceInputs;
+	wxString m_TempCollabProjectForTargetExports;
+	wxString m_TempCollabProjectForFreeTransExports;
+	wxString m_TempCollabAIProjectName;
+	wxString m_TempCollabSourceProjLangName;
+	wxString m_TempCollabTargetProjLangName;
+	wxString m_TempCollabBookSelected;
+	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
+	wxString m_TempCollabChapterSelected;
+	wxString m_bareChapterSelected;
+	bool m_bTempCollaborationExpectsFreeTrans; // whm added 6Jul11
+	wxArrayString projList;
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnOK(wxCommandEvent& WXUNUSED(event));
-	void OnCancel(wxCommandEvent& WXUNUSED(event));
+	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectTargetProject(wxCommandEvent& WXUNUSED(event));

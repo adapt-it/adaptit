@@ -849,7 +849,6 @@ const int ID_TEXTCTRL_HTML_FILE_PATH = 654;
 const int ID_HTML_WINDOW = 655;
 wxSizer *HtmlFileViewerDlgFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
-extern wxSizer *pProjectSelectionControlsSizer;
 const int ID_TEXT_DO_NOT_CHANGE_NOTE = 656;
 const int ID_COMBO_SOURCE_PROJECT_NAME = 657;
 const int ID_COMBO_DESTINATION_PROJECT_NAME = 658;
