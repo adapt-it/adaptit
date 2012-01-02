@@ -12549,7 +12549,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
     // the Start Working wizard shrink the wizard to an unusable size in which nothing
     // can be seen and the only response possible is to hit the Esc key to close the wizard.
-    // Hence, if the screen size is below 549h x 640w we notify the user and shut down the
+    // Hence, if the screen size is below 480h x 640w we notify the user and shut down the
     // application.
     bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with
 			// PT or BE; set when setting up a doc in collab mode, used to suppress the
@@ -12561,7 +12561,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
 	::wxDisplaySize(&nDisplayWidthInPixels,&nDisplayHeightInPixels);
-	if (nDisplayWidthInPixels < 640 || nDisplayHeightInPixels < 549)
+	if (nDisplayWidthInPixels < 640 || nDisplayHeightInPixels < 480)
 	{
 		wxString msg;
 		// a message in English will do, since this message is likely only to appear
