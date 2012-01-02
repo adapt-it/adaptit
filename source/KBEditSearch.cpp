@@ -103,7 +103,7 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	wxASSERT(pApp != NULL);
 	bool bOK;
 	bOK = pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+	bOK = bOK; // avoid warning (keep this line as is)
 	pKBEditorDlg = (CKBEditor*)parent;
 	m_pKB = NULL;
 	//m_pTUList = NULL; // removed BEW 28May10

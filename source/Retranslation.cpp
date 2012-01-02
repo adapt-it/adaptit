@@ -541,7 +541,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			// preparation for displaying and laying out a View (that is not needed here). 
 			bool bOK;
 			bOK = pDoc->OnOpenDocument(newName);
-			bOK = bOK; // avoid warning TODO: Check for failures?
+			wxCHECK_RET(bOK, _T("DoRetranslationReport(): OnOpenDocument() failed, line 544 in Retranslation.cpp"));
 			
 			pDoc->SetFilename(newName,TRUE);
 			
@@ -2234,7 +2234,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			bool bSetSafely;
 			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,
 							nSaveActiveSequNum, m_pApp->m_nActiveSequNum,nFinish);
-			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures?
+			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures? (BEW 2Jan12, No,
+									 // we want processing to continue, at worst the
+									 // phrase box would open within the retranslation
+									 // which is something the app can tolerate okay
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
@@ -2331,7 +2334,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(-1, nextStep, TRUE);
 		// no Invalidate() call made in this block, because a later point in the process
 		// should draw the layout anew (I'm guessing, but I think it's a safe guess)
-		bCommandPosted = bCommandPosted; // avoid warning
+		bCommandPosted = bCommandPosted; // avoid warning (continue processing regardless of outcome)
 	}
 	else
 	{
@@ -2872,7 +2875,8 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			bool bSetSafely;
 			bSetSafely = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 													m_pApp->m_nActiveSequNum,nFinish);
-			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures?
+			bSetSafely = bSetSafely; // avoid warning TODO: Check for failures? (No, processing
+									 // must continue regardless BEW 2Jan12)
 			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
@@ -3008,7 +3012,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		bCommandPosted = m_pView->VerticalEdit_CheckForEndRequiringTransition(-1, nextStep, TRUE);
 		// no Invalidate() call made in this block, because a later point in the process
 		// should draw the layout anew (I'm guessing, but I think it's a safe guess)
-		bCommandPosted = bCommandPosted; // avoid warning
+		bCommandPosted = bCommandPosted; // avoid warning (& keep truckin')
 	}
 	else
 	{
@@ -3951,7 +3955,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,
 					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
-				bOK = bOK; // avoid warning TODO: Check for failures?
+				bOK = bOK; // avoid warning TODO: Check for failures? (BEW 2Jan12, No, let the
+						   // user act on the message above - & so permit him to continue)
 			}
 			m_pApp->m_bRetransReportInProgress = FALSE;
 			m_pApp->GetMainFrame()->canvas->Thaw();
