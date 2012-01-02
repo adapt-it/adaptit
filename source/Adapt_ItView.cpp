@@ -6268,7 +6268,8 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
 /// Disables the "Open..." item on the File menu if Vertical Editing is in progress.
-/// Enables the item if the KB pointers are not NULL, and if the app's strip count is
+/// Enables the item if collaborating with Paratext/Bibledit. Enables the item if 
+/// the KB pointers are not NULL, and if the app's strip count is
 /// zero, otherwise it disables the menu item.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
@@ -6281,10 +6282,10 @@ void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 		return;
 	}
 
-	// whm added 25May11 When collaborating with Paratext we make the Open... command
+	// whm added 25May11 When collaborating with Paratext or Bibledit we make the Open... command
 	// always available just as we do for the Start Working Wizard in
 	// OnUpdateFileStartupWizard().
-	if (pApp->m_bCollaboratingWithParatext)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(TRUE);
 		return;

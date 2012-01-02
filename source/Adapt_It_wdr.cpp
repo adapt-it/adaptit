@@ -8576,14 +8576,12 @@ wxSizer *HtmlFileViewerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     return item0;
 }
 
-wxSizer *pProjectSelectionControlsSizer;
 wxSizer *pNewNamesSizer;
 wxSizer *SelectCollabProjectsDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-    pProjectSelectionControlsSizer = item1;
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
@@ -8732,10 +8730,13 @@ wxSizer *SelectCollabProjectsDialogFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item37 = new wxBoxSizer( wxHORIZONTAL );
 
-    item37->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item38 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->Add( item38, 0, wxALIGN_CENTER|wxALL, 0 );
+    item37->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item39 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->Add( item39, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item37->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 

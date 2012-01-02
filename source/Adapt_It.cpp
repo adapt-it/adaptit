@@ -8600,111 +8600,66 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
 		// the new label, otherwise everything that comes after the tab will be displaced to the right side
 		// of the File menu (right aligned).
-		wxString label,beforeTab,afterTab;
-		wxString parentheticalText;
-
-		int posTabOpen;
+		wxString label;
+		wxString defaultMenuLabel;
+		wxString labelFromPT;
+		wxString labelFromBE;
+		// For wxID_OPEN add parenthetical infor during collaboration
 		label = pFileMenu->GetLabel(wxID_OPEN);
 		// whm added 28Jul11. Remove any initial underscore characters that seem
 		// to creep in in the Linux implementation of GetLabel()
-		while (label.Find(_T('_')) == 0)
+		//while (label.Find(_T('_')) == 0)
+		//{
+		//	label.Remove(0,1);
+		//}
+		// whm revised 30Dec11. On Linux the label for wxID_OPEN doesn't have the tab and shortcut
+		// key indicated. Therefore, I'm going to handle the entire label string when doing
+		// adjustments for indicating the Paratext/Bibledit parenthetical material for Open and
+		// Save.
+		defaultMenuLabel = _("&Open...\tCtrl-O"); // must be same as in wxDesigner resource
+		labelFromPT = _("&Open... (Get Source Text From Paratext)\tCtrl-O");
+		labelFromBE = _("&Open... (Get Source Text From Bibledit)\tCtrl-O");
+		if (m_bCollaboratingWithParatext)
 		{
-			label.Remove(0,1);
+			label = labelFromPT;
 		}
-		posTabOpen = label.Find(_T('\t'));
-		if (posTabOpen != wxNOT_FOUND)
+		else if (m_bCollaboratingWithBibledit)
 		{
-			parentheticalText.Empty();
-			if (m_bCollaboratingWithParatext)
-			{
-				parentheticalText = _T(' ');
-				parentheticalText += _("(Get Source Text From Paratext)");
-			}
-			else if (m_bCollaboratingWithBibledit)
-			{
-				parentheticalText = _T(' ');
-				parentheticalText += _("(Get Source Text From Bibledit)");
-			}
-			beforeTab = label.BeforeFirst(_T('\t'));
-			afterTab = label.AfterFirst(_T('\t'));
-			label = beforeTab;
-			if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-			{
-				label += parentheticalText;
-			}
-			else
-			{
-				// No collaboration in effect, so remove any parenthetical text from menu
-				int posParentheticalText1 = 0;
-				int posParentheticalText2 = 0;
-				posParentheticalText1 = label.Find(_("(Get Source Text From Paratext)"));
-				posParentheticalText2 = label.Find(_("(Get Source Text From Bibledit)"));
-				if (posParentheticalText1 != wxNOT_FOUND)
-				{
-					label.Remove(posParentheticalText1);
-				}
-				if (posParentheticalText2 != wxNOT_FOUND)
-				{
-					label.Remove(posParentheticalText2);
-				}
-			}
-			label.Trim(TRUE);
-			label.Trim(FALSE);
-			label += _T('\t');
-			label += afterTab;
+			label = labelFromBE;
 		}
+		else
+		{
+			label = defaultMenuLabel;
+		}
+		label.Trim(TRUE);
+		label.Trim(FALSE);
 		pFileMenu->SetLabel(wxID_OPEN,label);
 
-		int posTabSave;
+		// For wxID_SAVE add parenthetical infor during collaboration
 		label = pFileMenu->GetLabel(wxID_SAVE);
 		// whm added 28Jul11. Remove any initial underscore characters that seem
 		// to creep in in the Linux implementation of GetLabel()
-		while (label.Find(_T('_')) == 0)
+		//while (label.Find(_T('_')) == 0)
+		//{
+		//	label.Remove(0,1);
+		//}
+		defaultMenuLabel = _("&Save\tCtrl-S"); // must be same as in wxDesigner resource
+		labelFromPT = _("&Save (Transfer Translation Draft To Paratext)\tCtrl-S");
+		labelFromBE = _("&Save (Transfer Translation Draft To Bibledit)\tCtrl-S");
+		if (m_bCollaboratingWithParatext)
 		{
-			label.Remove(0,1);
+			label = labelFromPT;
 		}
-		posTabSave = label.Find(_T('\t'));
-		if (posTabSave != wxNOT_FOUND)
+		else if (m_bCollaboratingWithBibledit)
 		{
-			parentheticalText.Empty();
-			if (m_bCollaboratingWithParatext)
-			{
-				parentheticalText = _T(' ');
-				parentheticalText += _("(Transfer Translation Draft To Paratext)");
-			}
-			else if (m_bCollaboratingWithBibledit)
-			{
-				parentheticalText = _T(' ');
-				parentheticalText += _("(Transfer Translation Draft To Bibledit)");
-			}
-			beforeTab = label.BeforeFirst(_T('\t'));
-			afterTab = label.AfterFirst(_T('\t'));
-			label = beforeTab;
-			if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-			{
-				label += parentheticalText;
-			}
-			else
-			{
-				// No collaboration in effect, so remove any parenthetical text from menu
-				int posParentheticalText1 = 0;
-				int posParentheticalText2 = 0;
-				posParentheticalText1 = label.Find(_("(Transfer Translation Draft To Paratext)"));
-				posParentheticalText2 = label.Find(_("(Transfer Translation Draft To Bibledit)"));
-				if (posParentheticalText1 != wxNOT_FOUND)
-				{
-					label.Remove(posParentheticalText1);
-				}
-				if (posParentheticalText2 != wxNOT_FOUND)
-				{
-					label.Remove(posParentheticalText2);
-				}
-			}
-			label.Trim(TRUE);
-			label.Trim(FALSE);
-			label += _T('\t');
-			label += afterTab;
+			label = labelFromBE;
 		}
+		else
+		{
+			label = defaultMenuLabel;
+		}
+		label.Trim(TRUE);
+		label.Trim(FALSE);
 		pFileMenu->SetLabel(wxID_SAVE, label);
 	}
 
