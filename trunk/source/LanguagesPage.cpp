@@ -365,7 +365,8 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		*/
 		bool bDirectoriesOK;
 		bDirectoriesOK = gpApp->SetupDirectories();  // also sets KB paths and loads KBs & Guesser
-		bDirectoriesOK = bDirectoriesOK; // avoid warning TODO: check for failures?
+		// needs to succeed, so wxCHECK_RET() call should be used here
+		wxCHECK_RET(bDirectoriesOK, _T("OnWizardPageChanging(): SetupDirectories() failed, line 367 in LanguagesPage.cpp, processing will continue & app may be in an unstable state. Save and shutdown would be wise."));
 		// SetupDirectories does not set the CWD but does set m_curAdaptionsPath
 		
 		// have the name for the new project into the projectPage's listBox

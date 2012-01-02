@@ -671,7 +671,8 @@ void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 					// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
 					bOK = m_pView->AnalyseReference(
 						pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
-					bOK = bOK; // avoid warning TODO: test for failures?
+					bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
+							   // processing to continue even when FALSE returned)
 					m_nCurPrecChapter = chapter;
 					m_nCurPrecVerse = firstVerse; // need this in case we get to chapter 1 verse 1
 				}
@@ -721,7 +722,8 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on Bill's code here 
 			bOK = m_pView->AnalyseReference(
 				pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
-			bOK = bOK; // avoid warning TODO: test for failures?
+			bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
+					   // processing to continue even when FALSE returned)
 			m_nCurFollChapter = chapter;
 			m_nCurFollVerse = lastVerse; // we don't need this stuff, but no harm to compute it
 		}
@@ -876,7 +878,8 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 				// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
 				bOK = m_pView->AnalyseReference(
 					pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
-				bOK = bOK; // avoid warning TODO: test for failures?
+				bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
+						   // processing to continue even when FALSE returned)
 				m_nCurPrecChapter = chapter;
 				m_nCurPrecVerse = firstVerse;
 			}
@@ -891,7 +894,8 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 				// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
 				bOK = m_pView->AnalyseReference(
 					pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
-				bOK = bOK; // avoid warning TODO: test for failures?
+				bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
+						   // processing to continue even when FALSE returned)
 				m_nCurFollChapter = chapter;
 				m_nCurFollVerse = lastVerse;
 			}
@@ -901,7 +905,8 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
 			bOK = m_pView->AnalyseReference(
 				pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
-			bOK = bOK; // avoid warning TODO: test for failures?
+			bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
+					   // processing to continue even when FALSE returned)
 			m_nCurFollChapter = chapter;
 			m_nCurFollVerse = lastVerse; // we don't need this stuff, but no harm to compute it
 		}

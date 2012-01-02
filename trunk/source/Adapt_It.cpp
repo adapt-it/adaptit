@@ -23008,8 +23008,6 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 	bOkay = GetDocument()->DoFileSave_Protected(FALSE,pProgDlg); // FALSE - don't show wait/progress dialog
 	wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,053 in Adapt_It.cpp"));
 
-	// wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,003 in Adapt_It.cpp"));
-
 	// update the time it was last saved
 	wxDateTime time = wxDateTime::Now();
 	m_timeSettings.m_tLastDocSave = time;

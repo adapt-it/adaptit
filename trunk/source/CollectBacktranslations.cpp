@@ -67,7 +67,7 @@ CCollectBacktranslations::CCollectBacktranslations(wxWindow* parent) // dialog c
 	
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+	bOK = bOK; // avoid warning (retain this line unchanged)
 	m_bUseAdaptations = FALSE;
 	m_bUseGlosses = FALSE;
 

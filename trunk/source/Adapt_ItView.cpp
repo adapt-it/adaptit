@@ -14503,7 +14503,8 @@ b:		if (gbIsGlossing)
 	}
 }
 
-// BEW 10Apr10, no changes for support of doc version 5
+// BEW 10Apr10, no changes for support of doc version 5;
+// returns FALSE only if there is no : in the chapter:verse string passed in string
 bool CAdapt_ItView::AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,
 									 int& vLast,int nWantedVerse)
 {

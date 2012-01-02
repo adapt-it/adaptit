@@ -133,7 +133,7 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
+	bOK = bOK; // avoid warning (BEW 2Jan12, retain this)
 	m_marker = -1;
 	m_srcStr = _T("");
 	m_replaceStr = _T("");
