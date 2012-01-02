@@ -29029,10 +29029,8 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	wxTextFile f;
 	// make the working directory the "Adapt It Work" one
 	// bool bOK = ::SetCurrentDirectory(destinationFolder); // ignore failures
-	bool bOK;
-	bOK = ::wxSetWorkingDirectory(destinationFolder);
-
-	bOK = bOK; // avoid warning TODO: test and give error message???
+	bIsOK = ::wxSetWorkingDirectory(destinationFolder);
+	wxCHECK_MSG(bIsOK, FALSE, _T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed, line 29,032 in Adapt_It.cpp"));
 
 	// open the config file for writing
     // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
@@ -29116,7 +29114,8 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 
 	// BEW added 04Jan07 to restore the former current working directory
 	// to what it was for document accesses
-	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	bIsOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+	wxCHECK_MSG(bIsOK, FALSE, _T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed, line 29,117 in Adapt_It.cpp"));
 
 	return bIsOK;
 }
@@ -30047,7 +30046,7 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 
 		wxPaperSize pSize,pSizepd;
 		pSize = pPgSetupDlgData->GetPaperId();
-		pSize = pSize; // avoid warning
+		wxCHECK_RET(pSize != NULL, _T("OnFilePageSetup(): pSize is NULL returned from GetPaperId(), line 30,048 in Adapt_It.cpp"));
 		pSizepd = pPrintData->GetPaperId();
 		m_paperSizeCode = MapWXtoMFCPaperSizeCode(pSizepd);
 
@@ -30477,7 +30476,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 
 		bool bOK;
 		bOK = AccessOtherAdaptionProject(); // see the list and choose one
-		bOK = bOK; // avoid warning TODO: test for error?
+		wxCHECK_RET(bOK, _T("OnAdvancedTransformAdaptationsIntoGlosses(): AcessOtherAdaptionProject() returned FALSE, line 30,478 in Adapt_It.cpp"));
 
 		// restore the flag to its default value
 		gbExcludeCurrentProject = FALSE;
@@ -30739,7 +30738,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to m_curAdaptionsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			bOK = bOK; // avoid warning TEST for error message?
+			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,740 in Adapt_It.cpp"));
 			return FALSE;
 		}
 
@@ -30784,7 +30783,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to m_curAdaptionsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			bOK = bOK; // avoid warning TODO: Test for error message?
+			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,785 in Adapt_It.cpp"));
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
 			return FALSE; // abandon the command, the adaptations KB couldn't be opened
@@ -30949,7 +30948,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			bOK = bOK; // avoid warning
+			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,950 in Adapt_It.cpp"));
 			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
 			_T(""), wxICON_WARNING);
 			LogUserAction(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."));
@@ -30971,7 +30970,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // working directory to strOtherAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			bOK = bOK; // avoid warning
+			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,972 in Adapt_It.cpp"));
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
 			return FALSE;
@@ -31014,9 +31013,9 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
                 // directory to what it was on entry. The
                 // wxSetWorkingDirectory(strOtherAdaptationsPath) call above changes the
                 // current working directory to strOtherAdaptationsPath.
-				bool bOK;
-				bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-				bOK = bOK; // avoid warning
+				bool bOK2;
+				bOK2 = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
+				wxCHECK_MSG(bOK2, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 31,017 in Adapt_It.cpp"));
 				if (pProgDlg != NULL)
 					pProgDlg->Destroy();
 				return FALSE;
@@ -31096,7 +31095,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 							bTransformedOK = DoTransformationsToGlosses(targetProjectDocsList,
 														pDoc,otherFolderPath,str,TRUE);
 							// note, the function clears targetProjectDocsList before returning
-							bTransformedOK = bTransformedOK; // avoid warnings - TODO: test for errors?
+							wxCHECK_MSG(bTransformedOK, FALSE, _T("AccessOtherAdaptionProject(): DoTransformationsToGlosses() failed, line 31,095 in Adapt_It.cpp"));
 						}
 						else
 						{
@@ -31123,12 +31122,11 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		bool bSuccessful = TRUE;
 		m_pGlossingKB->DoKBImport(glossesKBExportPath, KBImportFileOfSFM_TXT);
 		bSuccessful = ::wxRemoveFile(glossesKBExportPath);
-		bSuccessful = bSuccessful; // avoid warning TODO: test for error message?
-		wxASSERT(bSuccessful);
+		wxCHECK_MSG(bSuccessful, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
 
 		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
 		bSuccessful = ::wxRemoveFile(adaptionsKBExportPath);
-		wxASSERT(bSuccessful);
+		wxCHECK_MSG(bSuccessful, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,128 in Adapt_It.cpp"));
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
 	} // end of if(dlg.ShowModal() == wxID_OK)
@@ -31137,7 +31135,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 	// to what it was on entry
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-	bOK = bOK; // avoid warning
+	wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 31,138 in Adapt_It.cpp"));
 	return bSuccess;
 }
 
@@ -31322,7 +31320,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 
 			bool bSavedOK;
 			bSavedOK = pDoc->DoTransformedDocFileSave(curOutputPath);
-			bSavedOK = bSavedOK; // avoid warning - test for error message?
+			wxCHECK_MSG(bSavedOK, TRUE, _T("DoTransformationsToGlosses(): DoTransformedDocFileSave() failed, line 31,322 in Adapt_It.cpp"));
 
 			pView->ClobberDocument();
 
@@ -35630,7 +35628,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
        int aStripCount = m_pLayout->GetStripArray()->GetCount();
         bool bIsOK;
         bIsOK = pView->PaginateDoc(aStripCount, nPagePrintingLengthLU);
-        bIsOK = bIsOK; // avoid warning - test for error?
+        wxCHECK_MSG(bIsOK, FALSE, _T("LayoutAndPaginate(): PaginateDoc() failed, line 35,631 in Adapt_It.cpp"));
 		// app's m_pagesList is now populated
 	    bool bSetupOK = pView->SetupPageRangePrintOp(m_userPageRangePrintStart, m_userPageRangePrintEnd, pPrintData);
 		if(!bSetupOK)
@@ -35738,15 +35736,9 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 		// that is that the PileList constents in CLayout will all be invalid. So
 		// we must do any RecalcLayout() call with the param create_stripes_and_piles
 		bOK = pView->GetSublist(m_pSaveList, m_pSourcePhrases, nBeginSN, nEndSN);
-		bOK = bOK; // avoid warning - TODO: Test for error?
+		wxCHECK_MSG(bOK, FALSE, _T("LayoutAndPaginate(): GetSublist() failed, line 35,738 in Adapt_It.cpp"));
 
         // Recalc the layout with the new width
-//#ifdef _NEW_LAYOUT
-//		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
-//#else
-//		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_keep_piles);
-//#endif
-
 #ifdef _NEW_LAYOUT
             m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #else
@@ -35754,13 +35746,8 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 #endif
 
 		// Set safe values for a non-active location (but leave m_targetPhrase unchanged).
-		//pApp->m_pActivePile = NULL;
-		//pApp->m_nActiveSequNum = -1;
 		m_pActivePile = NULL;
 		m_nActiveSequNum = -1;
-        // whm: The MFC version destroyed the phrasebox at this point, but, in the wx
-        // version we don't destroy the phrasebox - we could hide it if necessary but I'll
-        // leave it showing for now.
 	}
 
 	// do pagination
@@ -35783,9 +35770,9 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
         // is done in the AIPrintout destructor.
 		return FALSE;
 	}
-	int nPageCount; // for debugging purposes only, but leave it enabled
-	nPageCount = m_pagesList.GetCount();
-	nPageCount = nPageCount; // avoid warning
+	//int nPageCount; // for debugging purposes only
+	//nPageCount = m_pagesList.GetCount();
+	//nPageCount = nPageCount; // avoid compiler warning
 
 	return TRUE;
 }
@@ -36996,7 +36983,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurLanguagesPath + tab + localPath + subFoldersPath; // the fix
@@ -37018,7 +37005,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurAdaptionsPath + tab + localPath + subFoldersPath;
@@ -37040,7 +37027,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurKBPath + tab + localPath + subFoldersPath;
@@ -37062,7 +37049,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// behavior of the wxString::Replace method is to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// build the required administrator's config file path for this line
 				fileLine = szCurKBBackupPath + tab + localPath + subFoldersPath;
@@ -37104,7 +37091,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath)) // ensure Linux etc are handled too
@@ -37140,7 +37127,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37176,7 +37163,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37212,7 +37199,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37248,7 +37235,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					// to replace all.
 					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
 					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-					NumReplacements = NumReplacements; // avoid warning
+					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// Compare the imported localPathPrefix with that of our local machine
 				if (!foreignFilePath.StartsWith(basePath))
@@ -37962,7 +37949,8 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			{
 				if (::wxFileExists(configPath))
 					bRemoved = ::wxRemoveFile(configPath);
-				bRemoved = bRemoved; // avoid warning
+				bRemoved = bRemoved; // avoid warning (BEW 2Jan12, keep this, since we 
+									 // treat it as a non-error)
 				// we don't care if the removal didn't happen, so ignore a FALSE value
 				// returned (we don't expect to ever get FALSE returned here)
 			}
@@ -38404,7 +38392,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			{
 				if (::wxFileExists(configPath))
 					bRemoved = ::wxRemoveFile(configPath);
-				bRemoved = bRemoved; // avoid warning
+				bRemoved = bRemoved; // avoid warning (BEW 2Jan12, keep <- this unchanged)
 				// we don't care if the removal didn't happen, so ignore a FALSE value
 				// returned (we don't expect to ever get FALSE returned here)
 			}
@@ -38595,7 +38583,7 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 				// instance's settings
 				bool bOK;
 				bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
-				bOK = bOK; // avoid warning TODO: test for error?
+				wxCHECK_RET(bOK, _T("MakeForeignProjectConfigFileSafe(): WriteConfigurationFile() failed, line 38,585 in Adapt_It.cpp"));
 				// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
 				#ifndef _UNICODE
 				// ANSI
@@ -39760,9 +39748,10 @@ Collab_Project_Info_Struct* CAdapt_ItApp::GetCollab_Project_Struct(wxString proj
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the string value between beginTag and
-///             an endTag of within an xml-formatted line of text (lineStr).
+///             an endTag of within an xml-formatted line of text (lineStr). Or
+///             an empty string is there was an error.
 /// \param      lineStr -> the string containing the beginTag and possible endTag
-/// \param      beginTag -> the xml tag after which we copy non-tag the text
+/// \param      beginTag -> the xml tag after which we copy non-tag text
 /// \param      endTag -> the xml tag before which we stop copying non-tag text
 /// \remarks
 /// Called from: GetListOfPTProjects() and GetListOfBEProjects().
@@ -39805,9 +39794,12 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 			int posValueBeginTag;
 			posValueBeginTag = valueLine.Find(valueBeginTag);
 			int posValueEndTag = valueLine.Find(valueEndTag);
-			posValueBeginTag = posValueBeginTag; // avoid warning
-			wxASSERT(posValueBeginTag != wxNOT_FOUND && posValueEndTag != wxNOT_FOUND && posValueEndTag > posValueBeginTag);
-			tempStr = valueLine.Mid(valueBeginTag.Length(), posValueEndTag - valueBeginTag.Length());
+			// BEW 2Jan12, turned the wxASSERT() here into an if test, which also prevents
+			// a compile warning that posValueBeginTag wasn't used
+			if(posValueBeginTag != wxNOT_FOUND && posValueEndTag != wxNOT_FOUND && posValueEndTag > posValueBeginTag)
+			{
+				tempStr = valueLine.Mid(valueBeginTag.Length(), posValueEndTag - valueBeginTag.Length());
+			}
 		}
 		else
 		{
@@ -39866,7 +39858,8 @@ int CAdapt_ItApp::GetBookFlagIndexFromFullBookName(wxString fullBookName)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the 3-letter USFM book code from the beginning
-///             part of the input file at pathAndName
+///             part of the input file at pathAndName; or an empty string if there
+///             was an error
 /// \param      pathAndName -> the full path and name of the file being examined
 /// \remarks
 /// Called from:
@@ -39907,7 +39900,10 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 		if (f.Open(pathAndName,wxFile::read))
 		{
 			nRead = f.Read(pBuff, nFourKB);
-			nRead = nRead; // avoid warning - test for errir?
+			if (nRead == wxInvalidOffset)
+			{
+				return bookCode; // it's still an empty string
+			}
 			wxASSERT(*pEnd == '\0');
 			if (*ptr != '\\' && *(ptr+1) != 'i' && *(ptr+2) != 'd' && *(ptr+3) != ' ')
 			{
@@ -40156,7 +40152,8 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 				wxASSERT(!fileNameToCheck.IsEmpty());
 				wxString tempFileAndPath = folderPath + PathSeparator + fileNameToCheck;
 				wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
-				if (bookCode == bookStr) // normalize case ???
+				bookCode.MakeUpper(); // ensure it is upper case throughout, as that's what Adapt It wants
+				if (bookCode == bookStr)
 				{
 					// the book code matches, so now verify that the book has the chapter and verse reference
 					bool bRefFound = FALSE;
@@ -40181,7 +40178,8 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 					wxASSERT(!tempFileName.IsEmpty());
 					wxString tempFileAndPath = folderPath + PathSeparator + tempFileName;
 					wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
-					if (bookCode == bookStr) // normalize case ???
+					bookCode.MakeUpper(); // ensure it is upper case throughout, as that's what Adapt It wants
+					if (bookCode == bookStr)
 					{
 						// the book code matches, so now verify that the book has the chapter and verse reference
 						bool bRefFound = FALSE;
@@ -40210,7 +40208,8 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 				wxASSERT(!tempFileName.IsEmpty());
 				wxString tempFileAndPath = folderPath + PathSeparator + tempFileName;
 				wxString bookCode = GetBookCodeFastFromDiskFile(tempFileAndPath);
-				if (bookCode == bookStr) // normalize case ???
+				bookCode.MakeUpper(); // ensure it is upper case throughout, as that's what Adapt It wants
+				if (bookCode == bookStr)
 				{
 					// the book code matches, so now verify that the book has the chapter and verse reference
 					bool bRefFound = FALSE;
