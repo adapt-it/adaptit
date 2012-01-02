@@ -18976,6 +18976,9 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3
 	// and later, so we use it here.
 	bool bReturn = FALSE;
+	bReturn = bReturn; // avoid compiler warning (appropriate here, else block doesn't use
+					   // this boolean, and we don't want to use wxCHECK_MSG() in this
+					   // function either)
 	if (!wxGetKeyState(WXK_SHIFT)) // if (keyState != WXK_SHIFT)
 	{
 		// Shift key is not down, so load the config file data for fonts & other settings.
@@ -19039,6 +19042,7 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	// (the values set as defaults when the basic config file was bypassed will remain in
 	// effect)
 	bool bReturn = FALSE;
+	bReturn = bReturn; // avoid compiler warning
 	if (!wxGetKeyState(WXK_SHIFT))
 	{
 		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
@@ -19069,6 +19073,11 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 		{
 			// We are NOT using a custom work folder path.
 			bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
+		}
+		if (!bReturn)
+		{
+			// failure to get it, so use the built-in defaults instead
+			SetDefaultCaseEquivalences();
 		}
 	}
 	else
@@ -19127,7 +19136,9 @@ bool CAdapt_ItApp::SetupDirectories()
 
 	// this is where we have to start setting up the directory structures
 	bool bWorkExists = FALSE;
-	bWorkExists = bWorkExists; // avoid warning
+	bWorkExists = bWorkExists; // avoid compiler warning (easiest way to do it for 
+							   // this complex function)
+
 	if (::wxFileExists(workOrCustomFolderPath) || ::wxDirExists(workOrCustomFolderPath))
     // The Docs say ::wxFileExists() "returns TRUE if the file exists. It also returns
     // TRUE if the file is a directory", however, I've found that the second statement
@@ -19820,7 +19831,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
             // the doc when punctuation was changed, or when filtering settings were
             // changed, or both, will progressively update the view's m_nActiveSequNum
             // value as necessary so that the stored phrase box contents and the final
-            // active location remain in synch.
+            // active location remain in sync.
 			int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
 														FALSE,	// bFilterChange FALSE = no filter changes here
 														FALSE);	// bSfmSetChange FALSE = no sfm set change here
@@ -19828,7 +19839,11 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 			// set up some safe indices, since the counts could be quite different
 			// than before
 			difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
-			difference = difference; // avoid warning TODO: test this for error?
+			// difference should not be negative; it is expected to be 0 or, in very rare
+			// circumstances where an extra CSourcePhrase might get generated (which we
+			// try hard in TokenizeText() and so in RetokenizeText() which calls it, to avoid
+			// doing) so we need to test for difference being negative
+			wxCHECK_MSG(!(difference < 0), TRUE, _T("DoPunctuationChanges(): fewer CSourcePhrases produced, line 19,880 Adapt_It.cpp"));
 
             // for refactored layout code, the following suffices because
 			// m_nActiveSequNum remains unchanged within the document; we defer the
@@ -20003,7 +20018,9 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 	int countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
 	
-	// TODO: error message if countBeforeEdit != countAfterEdit ???
+	// While we don't make use of their variable, there is no reason why countBeforeEdit
+	// should not differ from countAfterEdit, so just do identity assignments here in
+	// order to avoid a compiler warning (BEW 2Jan12)
 	countBeforeEdit = countBeforeEdit; // avoid warning
 	countAfterEdit = countAfterEdit; // avoid warning
 
@@ -20100,24 +20117,22 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 		if (reparseDoc == DoReparse)
 		{
 			// Reparse the Document
-			int activeSequNum;
 			if (gpApp->m_nActiveSequNum < 0)
 			{
                 // must not have data yet, or we are at EOF and so no pile is currently
                 // active
-				activeSequNum = -1;
+				gpApp->m_nActiveSequNum = -1; // was activeSequNum = -1;
 			}
 			else
 			{
 				// we are somewhere in the midst of the data, so a pile will be active
-				activeSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-
-				// remove any current selection, as we can't be sure of any pointers
-				// depending on what user may choose to alter
-				pView->RemoveSelection();
+				if (gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber >= 0)
+				{
+					// remove any current selection, as we can't be sure of any pointers
+					// depending on what user may choose to alter
+					pView->RemoveSelection();
+				}
 			}
-
-			activeSequNum = activeSequNum; // avoid warning. TODO: test this value for error?
 
             // as in DoPunctuationChanges, we need to be sure we can recreate the phrase
             // box safely so changes will be needed here; however, this is done at a lower
@@ -22991,11 +23006,9 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 	//bOkay = GetDocument()->DoFileSave(FALSE);
 	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	bOkay = GetDocument()->DoFileSave_Protected(FALSE,pProgDlg); // FALSE - don't show wait/progress dialog
-	if (!bOkay)
-	{
-		;
-		// TODO: error message or other action???
-	}
+	wxCHECK_RET(bOkay, _T("DoAutoSaveDoc(): DoFileSave_Protected() failed, line 23,053 in Adapt_It.cpp"));
+
+	// wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,003 in Adapt_It.cpp"));
 
 	// update the time it was last saved
 	wxDateTime time = wxDateTime::Now();
@@ -26946,8 +26959,10 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		wxString strRenamedFile = strOriginalFile + _T("_"); // append an underscore
 		bool bOK = ::wxCopyFile(strOriginalFile,strRenamedFile,TRUE); // TRUE = overwrite
 						// if it exists already; ignore returned bool, we assume it will work
-		
-		bOK = bOK; // avoid warnings TODO: test bOK below for error messages
+		// if the copy fails, no big deal, we can leave the file spec there & the administrator
+		// can take manual corrective steps to set it up again properly - unlikely to
+		// happen though (note: the return of FALSE causes abort() to be called)
+		wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,003 in Adapt_It.cpp"));
 
 		wxTextFile f;
 		bool bOpenedOK = f.Open(aPath);
@@ -26970,6 +26985,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 "DealWithThePossibilityOfACustomWorkFolderLocation(): Failed to open the CustomWorkFolderLocation file at default work folder location, and that file is neither locked nor empty. Aborting..."),
 			_T("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
 			LogUserAction(_T("Error of file named CustomWorkFolderLocation - failed to open at default work folder location"));
+			wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxRenameFile() failed, line 27,026 in Adapt_It.cpp"));
 			return FALSE; // forces caller to call abort()
 		}
 		// get the first line (path is to be in first line, if there is any text in
@@ -27036,13 +27052,14 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					wxString strOriginalFile = aPath;
 					wxString strRenamedFile = strOriginalFile + _T("_"); // append an underscore
 					bool bOK = ::wxCopyFile(strOriginalFile,strRenamedFile,TRUE); // TRUE = overwrite
-					bOK = bOK; // avoid warning TODO: need any error msg below?
+					wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,099 in Adapt_It.cpp"));
 					wxTextFile f;
 					bool bOpenedOK = f.Open(aPath);
 					// should open ok, if not, tell the user & abort
 					if (bOpenedOK)
 					{
 						bOK = ::wxRemoveFile(strRenamedFile);
+					wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxCopyFile() failed, line 27,099 in Adapt_It.cpp"));
 						m_customWorkFolderPath = f.GetFirstLine();
 						f.Close(); // don't bother with the returned boolean
 					}
@@ -27054,6 +27071,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."),
 						_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
 						LogUserAction(_T("Error of file named CustomWorkFolderLocation - file still oper or incorrect path"));
+						wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxRenameFile() failed, line 27,114 in Adapt_It.cpp"));
 						return FALSE; // forces caller to call abort()
 					}
 					// now check if the stored folder path string yields a valid directory
