@@ -1100,7 +1100,15 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		{
 			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB,pProgDlg,nTotal);
 		}
-		bReadOK = bReadOK; // avoid warning TODO: check for failures
+		if (!bReadOK)
+		{
+			f.Close();
+			if (pProgDlg != NULL)
+			{
+				pProgDlg->Destroy();
+			}
+		}
+		wxCHECK_RET(bReadOK, _T("DoKBImport(): ReadLIFT_XML() returned FALSE, line 10,97 or 1101 in KB.cpp, KB LIFT import was not done"));
 		f.Close();
 		// remove the progress dialog
 		if (pProgDlg != NULL)
@@ -3475,7 +3483,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			else
 				bRemoved = pMap->erase(unchangedkey); // remove the unchanged one from the map
 			wxASSERT(bRemoved == 1);
-			bRemoved = bRemoved; // avoid warning
+			bRemoved = bRemoved; // avoid warning (BEW 3Jan12, retain unchanged)
 			m_pApp->m_bSaveToKB = TRUE; // ensure its back on (if here from a choice not 
 				// save to KB, this will be cleared by OnCheckKBSave, preserving user choice)
 			gbMatchedKB_UCentry = FALSE;
@@ -4750,7 +4758,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 
 		bool bOK;
 		bOK = pDoc->OnOpenDocument(newName);
-        bOK = bOK; // avoid warning TODO: check for failures?
+		wxCHECK_RET(bOK, _T("DoKBRestore(): OnOpenDocument() failed, line 4760 in KB.cpp, the KB restoration was abandoned"));
 		
 		// The docview sample has a routine called SetFileName() that it uses to override
         // the automatic associations of file name/path of a doc with a view. The
@@ -4850,7 +4858,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		// Write out errors to external log file.
 		bool bOK;
 		bOK = ::wxSetWorkingDirectory(m_pApp->m_curProjectPath);
-        bOK = bOK; // avoid warning
+		wxASSERT(bOK);
+        bOK = bOK; // avoid warning (we don't expect this function to fail)
 		// Note: Since we want a text file output, we'll use wxTextOutputStream which
         // writes text files as a stream on DOS, Windows, Macintosh and Unix in their
         // native formats (concerning their line endings)

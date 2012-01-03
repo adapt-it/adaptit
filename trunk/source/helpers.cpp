@@ -3647,7 +3647,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	SPList::Node* posLast;
 	posLast = pSrcPhraseSublist->GetLast();
 	wxASSERT(posLast != 0);
-	posLast = posLast; // avoid warning TODO: Check for failures?
+	posLast = posLast; // avoid warning
 	bool bHasInternalMarkers = pMergedSrcPhrase->m_bHasInternalMarkers;
 	bool bFirst = TRUE;
 	bool bNonFinalEndmarkers = FALSE;

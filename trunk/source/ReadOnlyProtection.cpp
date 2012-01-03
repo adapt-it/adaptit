@@ -1008,6 +1008,7 @@ _("Someone has your project folder open already, so you have READ-ONLY access.")
 		wxLogNull nolog; // avoid spurious messages from the system during Open() below
 		bool bOpenOK; // whm added 4Feb10
 		bOpenOK = m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
+		wxCHECK_MSG(bOpenOK, FALSE, _T("SetReadOnlyProtection(): m_pROPwxFile->Open() returned FALSE, line 1,010 in ReadOnlyProtection.cpp, my own process is not protected, perhaps shut down and re-launch would be wise"));
 		bOpenOK = bOpenOK; // avoid warning TODO: Check for failures?
 #ifdef __WXDEBUG__ // whm added 4Feb10
 		wxLogDebug(_T("m_pROPwxFile Open(readOnlyProtectionFilePath,wxFile::write_excl) was %u where 1=true and 0=false"),bOpenOK);

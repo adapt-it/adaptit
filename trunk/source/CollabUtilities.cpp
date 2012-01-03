@@ -571,7 +571,9 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 	return TRUE;
 }
 
-bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName, int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
+// return TRUE if all was well, FALSE if an error forced premature exit
+bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookName,
+				int chapterNumber, wxString tempFilePathName, wxArrayString& errors)
 {
 	// The objective is to split up the returning whole-book text 
 	// into chapters 0, 1, 2, 3, etc and copy them back to the 
@@ -580,7 +582,8 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 	// construct the path to the Bibledit chapter data files
 	wxString pathToBookFolder;
 	wxString dataFolder = _T("data");
-	pathToBookFolder = projectPath + gpApp->PathSeparator + dataFolder + gpApp->PathSeparator + bookName;
+	pathToBookFolder =  projectPath + gpApp->PathSeparator + dataFolder 
+						+ gpApp->PathSeparator + bookName;
 	wxString dataBuffer = _T("");
 	chapterNumber = chapterNumber; // avoid warning
 	//bool bDoWholeBook = FALSE;
@@ -678,7 +681,8 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 			// no error  when opening
 			ff.Write(tempChStr, wxConvUTF8);
 			bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
-			bOK = bOK; // avoid warning
+			// inform developer or user, but continue processing (i.e. return TRUE)
+			wxCHECK_MSG(bOK, TRUE, _T("CopyTextFromTempFolderToBibleditData(): ff.Close() failed, line 684 in CollabUtilities.cpp, but processing continues... so it would be wise to save, shut down and then reopen the application"));
 		}
 		else
 		{
@@ -1140,7 +1144,7 @@ bool MoveTextToFolderAndSave(CAdapt_ItApp* pApp, wxString& folderPath,
 		// no error  when opening
 		ff.Write(theText, wxConvUTF8);
 		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
-		bOK = bOK; // avoid warning
+		wxCHECK_MSG(bOK, TRUE, _T("MoveTextToFolderAndSave(): ff.Close() failed, line 1147 in CollabUtilities.cpp, but processing continues... so it would be wise to save, shut down and then reopen the application"));
 	}
 	else
 	{
@@ -1189,7 +1193,7 @@ bool MoveTextToTempFolderAndSave(enum DoFor textKind, wxString& theText, bool bA
 		// no error  when opening
 		ff.Write(theText, wxConvUTF8);
 		bOK = ff.Close(); // ignore bOK, we don't expect any error for such a basic function
-		bOK = bOK; // avoid warning
+		wxCHECK_MSG(bOK, TRUE, _T("MoveTextToFolderAndSave(): ff.Close() failed, line 1194 in CollabUtilities.cpp, but processing continues... so it would be wise to save, shut down and then reopen the application"));
 	}
 	else
 	{

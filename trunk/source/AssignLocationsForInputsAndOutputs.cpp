@@ -351,7 +351,10 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	{ // block for wxLogNull
 		wxLogNull logNo; // eliminates spurious message from the system
 		bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
-		bWriteOK = bWriteOK; // avoid warning
+		if (!bWriteOK)
+		{
+			wxMessageBox(_T("AssignLocationsForInputsAndOutputs.cpp, OnOK() m_pConfig->Write() returned FALSE at line 353, processing will continue, but save, shutdown and restart would be wise"));
+		}
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// restore the oldPath back to "/Recent_File_List"

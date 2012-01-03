@@ -1661,7 +1661,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					bOpenedOK = OpenDocWithMerger(m_pApp, docPath, sourceWholeBookBuffer, 
 												bDoMerger, bDoLayout, bCopySourceWanted);
 				}
-				bOpenedOK = bOpenedOK; // avoid warning TODO: check for failures?
+				bOpenedOK = bOpenedOK; // the function always returns TRUE (even if there was
+									   // an error) because otherwise it messes with the doc/view
+									   // framework badly; so protect from the compiler warning
+									   // in the identity assignment way
 
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
 				m_pApp->maxProgDialogValue = 2147483647; //MAXINT; // temporary hack while calling OpenDocWithMerger() above
