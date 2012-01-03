@@ -6332,7 +6332,9 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			int nNewTempIndex;
 			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex, 
 						 pSubspan, nOldTempIndex, nNewTempIndex);
-			bDidItOk = bDidItOk; // avoid warning TODO: check for failures?
+			// it's unlikely that the return value will be FALSE
+			gpApp->LogUserAction(_T("TransferToManualPlaceholder(): did not transfer - might be a bounds error, line 6333 in MergeUpdatedSrc.cpp"));
+			wxCHECK_MSG(bDidItOk, FALSE, _T("TransferToManualPlaceholder(): did not transfer - probably a bounds error, line 6333 in MergeUpdatedSrc.cpp, processing will continue..."));
 			// get the updated copy of pFollSrcPhrase
 			pFollSrcPhrase = arrOld.Item(oldFollIndex);
 

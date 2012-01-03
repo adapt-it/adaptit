@@ -1565,7 +1565,11 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
                 // list box's list, so their positions need to match
 				bool bOK = TRUE;
 				bOK = pTargetUnit->m_pTranslations->DeleteNode(savePos);
-				bOK = bOK; // avoid warning TODO: check for failures?
+				if (!bOK)
+				{
+					// unlikely to happen, use an English warning
+					wxMessageBox(_T("KBEditor.cpp, AddRefString() did not repostion the undeleted element to the end of the list - probably you should save, shut down and relaunch the application"));
+				}
 				savePos = pTargetUnit->m_pTranslations->Append(pRefStr);
 				return TRUE;
 			}
@@ -1845,7 +1849,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				// there is at least one non-deleted element, so put this one in the list
 				// box
 				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
-				index = index; // avoid warning TODO: check for failures?
+				index = index; // avoid warning (retain, as is)
 			}
 		}
 	}

@@ -1028,7 +1028,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
-            bSetSafely = bSetSafely; // avoid warning
+            bSetSafely = bSetSafely; // avoid warning (retain, we can continue safely
+									 // even if FALSE was returned)
 			
 			// BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
             // above call, and so the ones below should be redundant (and if

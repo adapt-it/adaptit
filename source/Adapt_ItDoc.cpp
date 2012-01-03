@@ -1060,7 +1060,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 			// calculate the layout in the view
 			int srcCount;
-			srcCount = pApp->m_pSourcePhrases->GetCount(); srcCount = srcCount; // unused
+			srcCount = pApp->m_pSourcePhrases->GetCount(); 
+			srcCount = srcCount; // unused  (retain to avoid compiler warning)
 			if (pApp->m_pSourcePhrases->IsEmpty())
 			{
 				// IDS_NO_SOURCE_DATA
@@ -1275,9 +1276,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
 			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
 		}
-		bOK = bOK; // avoid warning TODO: warn for write failure?
-		// below is original
-		//bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,projectConfigFile);
+		// we don't expect a write error, but tell the developer or user if the write
+		// fails, and keep on processing
+		if (!bOK)
+		{
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnNewDocument() at lines 1271-77"));
+		}
 	}
 
 	// Note: On initial program startup OnNewDocument() is executed from OnInit()
@@ -1466,7 +1470,14 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 			//	updatedText = updatedText.Mid(idLineLen); // retains the rest of the string after the idLineLen
 			//}
 			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
-			bMovedTextOK = bMovedTextOK; // avoid warning - TODO: test for failure?
+			// we don't expect an error, but tell the developer or user if there was one
+			// and keep on processing
+			if (!bMovedTextOK)
+			{
+				wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSave()'s call of MoveTextToTempFolderAndSave() failed, at line 1472. Processing continues, but you should immediately shut down WITHOUT saving, and then relaunch the application"));
+				pProgDlg->Destroy();
+				return;
+			}
 			resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
 			TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
 											outputTgt, errorsTgt, resultTgt);
@@ -1701,8 +1712,12 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 		{
 			// remove the temporary backup, the original was saved successfully
 			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
-			bRemovedSuccessfully = bRemovedSuccessfully; // avoid warning TODO: test for failure?
-			wxASSERT(bRemovedSuccessfully);
+			if (!bRemovedSuccessfully)
+			{
+				// tell developer or user, if the removal failed
+				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1714. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				return TRUE;
+			}
 		}
 		return TRUE;
 	}
@@ -1737,8 +1752,12 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 						wxASSERT(bRemovedSuccessfully);
 						bool bRenamedSuccessfully;
 						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
-						bRenamedSuccessfully = bRenamedSuccessfully; // avoid warning TODO: test for failure?
-						wxASSERT(bRenamedSuccessfully);
+						if (!bRenamedSuccessfully)
+						{
+							// tell developer or user, if the rename failed
+							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRenameFile() failed, at line 1754. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the truncated old file, and then relaunch the application"));
+							return TRUE;
+						}
 					}
 				}
 				wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION);
@@ -1763,7 +1782,12 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 						// we are out of luck, the original is truncated
 						bOutOfLuck = TRUE;
 						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
-						wxASSERT(bRemovedSuccessfully);
+						if (!bRemovedSuccessfully)
+						{
+							// tell developer or user, if the removal failed
+							wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1784. Processing continues, but you should immediately attempt a re-save of the document, shut down Adapt It, and then relaunch"));
+							return TRUE;
+						}
 					}
 				}
 				if (bOutOfLuck || !bSomethingOfThatNameExists)
@@ -2500,8 +2524,12 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 		{
 			// remove the temporary backup, the original was saved successfully
 			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
-			wxASSERT(bRemovedSuccessfully);
-			bRemovedSuccessfully = bRemovedSuccessfully; // avoid warning - TODO: test for failure?
+			if (!bRemovedSuccessfully)
+			{
+				// tell developer or user, if the removal failed
+				wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSaveAs()'s call of ::wxRemoveFile() failed, at line 2526. Processing continues, but you should immediately shut down Adapt It, manually remove the unremoved temporary backup copy of the document file, and then relaunch"));
+				return;
+			}
 		}
 
 		// we do the rename only provided the save was successful (there won't be a
@@ -2573,15 +2601,17 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 						bool bRenamedSuccessfully;
 						bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
 						wxASSERT(bRenamedSuccessfully); // and it is moved at the same time
-						bRenamedSuccessfully = bRenamedSuccessfully; // avoid warning - TODO: Test for failure?
-						// I'm not sure if it leaves the renamed file in the project
-						// folder?, probably not, but just in case... I'll test for it and
-						// if it is there, have it deleted
-						if (::wxFileExists(newFileAbsPath))
+						if (!bRenamedSuccessfully)
 						{
-							// it's still in the project folder, so get rid of it (ignore
-							// returned boolean)
-							::wxRemoveFile(newFileAbsPath);
+							// I'm not sure if it left the renamed file in the project
+							// folder?, perhaps so, hence I'll test for it and
+							// if it is there, have it deleted
+							if (::wxFileExists(newFileAbsPath))
+							{
+								// it's still in the project folder, so get rid of it (ignore
+								// returned boolean)
+								::wxRemoveFile(newFileAbsPath);
+							}
 						}
 					}
 				}
@@ -4039,9 +4069,12 @@ bool CAdapt_ItDoc::OnSaveModified()
 		{
 			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
 		}
-		bOK = bOK; // avoid warning TODO: test for failures?
-		// original code below
-		//bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,projectConfigFile);
+		// we don't expect a write error, but tell the developer or user if the write
+		// fails, and keep on processing
+		if (!bOK)
+		{
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnSaveModified() at lines 4064-70"));
+		}
 	}
 
 	bool bIsModified = IsModified();
@@ -4645,7 +4678,12 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		{
 			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
 		}
-		bOK = bOK; // avoid warning - TODO: test for failures?
+		// we don't expect a write error, but tell the developer or user if the write
+		// fails, and keep on processing
+		if (!bOK)
+		{
+			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnOpenDocument() at lines 4673-79"));
+		}
 	}
 
 	// wx version addition:
@@ -6375,7 +6413,7 @@ h:						bool bIsInitial = TRUE;
                                     // renumber the whole list later on after the
                                     // insertions are done
 									wxASSERT(count > 0);
-									count = count; // avoid warning - TODO: test for error?
+									count = count; // avoid warning (retain, as is)
 									CSourcePhrase* pSP2;
 									SPList::Node* posX = pSublist2->GetFirst();
 									pSP2 = (CSourcePhrase*)posX->GetData();
@@ -15586,9 +15624,14 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// due to a processing error.
 	if (!gpApp->m_bReadOnlyAccess)
 	{
-		//bSavedOK = DoFileSave(TRUE);
 		bSavedOK = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog
-		bSavedOK = bSavedOK; // avoid warning TODO: test for failure?
+		// English error message will have been seen in the call, so just prevent the pack
+		// from proceeding further; but we don't expect a failure in DoFileSave_Protected()
+		if (!bSavedOK)
+		{
+			gpApp->LogUserAction(_T("DoFileSave_Protected() return FALSE in DoPackDocument() at line 15,627"));
+			wxCHECK_MSG(bSavedOK, FALSE, _T("DoPackDocument(): DoFileSave_Protected() failed, so packing was not done"));
+		}
 	}
 
 	// construct the absolute path to the document as it currently is on disk; if the
@@ -17068,9 +17111,18 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 			wxFile fout;
 			bool bOK;
 			bOK = fout.Open( path, wxFile::write );
-			bOK = bOK; // avoid warning TODO: test for failure?
-			fout.Write(fixesStr,len);
-			fout.Close();
+			if (!bOK)
+			{
+				// the data for the user to visually inspect can't be written out
+				// so tell this to the user - an English message will do as we don't
+				// ever expect this to happen
+				wxMessageBox(_T("The data for visual inspection of fixes needed when updating the document could not be written out. You should check that the document is as you expect it to be."));
+			}
+			else
+			{
+				fout.Write(fixesStr,len);
+				fout.Close();
+			}
 		}
 
         // prepare a possibly shorter message - if there are not many bad locations it may
@@ -21199,7 +21251,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
-		bOK = bOK; // avoid warning TODO: test for failures?
+		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 21,250 in Adapt_itDoc.cpp, so check was aborted"));
 		SetFilename(newName,TRUE);
 		nTotal = pApp->m_pSourcePhrases->GetCount();
 		if (nTotal == 0)
@@ -21321,6 +21373,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bIsInKB = pKBCopy->IsAlreadyInKB(nWords, key, adaption, pTU, pRefStr, bDeleted);
 			bIsInKB_OnOrig = pKB->IsAlreadyInKB(nWords, key, adaption, pTU_OnOrig, pRefStr_OnOrig, bDeleted_OnOrig);
 			bIsInKB_OnOrig = bIsInKB_OnOrig; // avoid warning
+
 			// While <Not In KB> entries are expected to be rare or absent, if present
 			// they are dominant - that is, if a given source text word or phrase is
 			// declared to never have a KB presence, then everywhere in every document
@@ -22897,7 +22950,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
-		bOK = bOK; // avoid warning TODO: test for failure?
+		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheckG(), its OnOpenDocument() call failed, line 22,949 in Adapt_ItDoc.cpp, so check was aborted"));
 		SetFilename(newName,TRUE);
 		nTotal = pApp->m_pSourcePhrases->GetCount();
 		if (nTotal == 0)

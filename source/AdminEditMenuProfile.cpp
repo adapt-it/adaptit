@@ -1329,7 +1329,10 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
 			// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
 		bWriteOK = m_pApp->m_pConfig->Write(_T("work_flow_profile"), m_pApp->m_nWorkflowProfile);
-		bWriteOK = bWriteOK; // avoid warning
+		if (!bWriteOK)
+		{
+			wxMessageBox(_T("AdminEditMenuProfile.cpp, OnUpdateButtonOK() m_pConfig->Write() returned FALSE at line 1331, processing will continue, but save, shutdown and restart would be wise"));
+		}
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 		// restore the oldPath back to "/Recent_File_List"
 		m_pApp->m_pConfig->SetPath(oldPath);

@@ -2468,7 +2468,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			bool deleteOK;
 			deleteOK = pSrcPhrases->DeleteNode(pSrcPhrases->GetLast());
 			wxASSERT(deleteOK);
-			deleteOK = deleteOK; // avoid warning TODO: check for failures?
+			deleteOK = deleteOK; // avoid warning (BEW 3Jan12, leave it as is, a leak is unlikely)
 			delete pDummySrcPhrase;
 			
 			// get another valid layout

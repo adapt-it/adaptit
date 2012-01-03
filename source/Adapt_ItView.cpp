@@ -3817,7 +3817,8 @@ bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBe
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return     always TRUE
+/// \return     TRUE, but FALSE if there was a printer error or failure to restore the
+///             original list of CSourcePhrase instances
 /// \param      pSaveList      -> the (full) list of source phrase items to be moved to
 ///                                pOriginalList
 /// \param      pOriginalList  <- the existing sublist which is to be abandoned and
@@ -3880,7 +3881,7 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 	// deep copy the saved list back to the original list (i.e. to m_pSourcePhrases list)
 	int countOriginals = pSaveList->GetCount();
 	bOK = DeepCopySourcePhraseSublist(pSaveList, 0, countOriginals - 1, pOriginalList);
-	bOK = bOK; // avoid warning TODO: Test for failure?
+	wxCHECK_MSG(bOK, FALSE, _T("RestoreOriginalList(): DeepCopySourcePhraseSublist() failed, line 3883 in Adapt_ItView.cpp, so the document won't have been restored to its original pre-print state. Shut down WITHOUT saving, and relaunch"));
 	// restore the former active sequ number; CSourcePhrase m_nSequNumber values are
 	// already correct
 	pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum;
@@ -6945,7 +6946,7 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 			wxASSERT(pDeepCopiedSrcPhrase != NULL);
 			// add each deep copy to the end of the master list
 			pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
-			pos2 = pos2; // avoid waring
+			pos2 = pos2; // avoid warning
 			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
 		}
 		return TRUE;
@@ -10548,7 +10549,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pFirstSrcPhrase->m_nSrcWords == 1 ||
 		pFirstSrcPhrase->m_nSrcWords == 0); // no phrases allowed
 	wxASSERT(posSP != NULL);
-	pFirstSrcPhrase = pFirstSrcPhrase; // avoid warning TODO: Test for failures?
+	pFirstSrcPhrase = pFirstSrcPhrase; // avoid warning (nope, extra stuff for debugging)
 	// ensure a correct active sequ num when done
 	pApp->m_nActiveSequNum = nSaveSequNum;
 
@@ -27558,7 +27559,8 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning TODO: Test if all isn't well?
+				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
 		else
@@ -27571,7 +27573,8 @@ void CAdapt_ItView::ToggleGlossingMode()
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning TODO: Test if all isn't well?
+				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
 
@@ -27696,7 +27699,8 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning TODO: Test if all isn't well?
+				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
 		else
@@ -27739,7 +27743,8 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 			if (!pApp->m_bFreeTranslationMode)
 			{
 				bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-				bAllsWell = bAllsWell; // avoid warning TODO: Test if all isn't well?
+				bAllsWell = bAllsWell; // avoid warning (it can return FALSE, in which
+									   // case the Combobox is empty - we can tolerate that)
 			}
 		}
 	}

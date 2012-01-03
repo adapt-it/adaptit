@@ -1251,7 +1251,10 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			{ // block for wxLogNull
 				wxLogNull logNo; // eliminates spurious message from the system
 				bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
-				bWriteOK = bWriteOK; // avoid warning
+				if (!bWriteOK)
+				{
+					wxMessageBox(_T("SetupEditorCollaboration.cpp, OnOK() handler, m_pConfig->Write() returned FALSE at line 1253, processing will continue, but save, shutdown and restart would be wise"));
+				}
 				m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 			}
 			// restore the oldPath back to "/Recent_File_List"
@@ -1289,7 +1292,10 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_lang_name"), m_pApp->m_CollabSourceLangName);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_lang_name"), m_pApp->m_CollabTargetLangName);
-		bWriteOK = bWriteOK; // avoid warning
+		if (!bWriteOK)
+		{
+			wxMessageBox(_T("SetupEditorCollaboration.cpp, OnOK() handler, one of the m_pConfig->Write() calls returned FALSE at lines 1285-94, processing will continue, but save, shutdown and restart would be wise"));
+		}
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// update the values related to BE collaboration in the Adapt_It_WX.ini file
@@ -1306,7 +1312,10 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_lang_name"), m_pApp->m_CollabSourceLangName);
 		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_lang_name"), m_pApp->m_CollabTargetLangName);
-		bWriteOK = bWriteOK; // avoid warning
+		if (!bWriteOK)
+		{
+			wxMessageBox(_T("SetupEditorCollaboration.cpp, OnOK() handler, one of the m_pConfig->Write() calls returned FALSE at lines 1305-14, processing will continue, but save, shutdown and restart would be wise"));
+		}
 		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	}
 	// restore the oldPath back to "/Recent_File_List"

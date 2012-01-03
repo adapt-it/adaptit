@@ -808,7 +808,7 @@ void CEmailReportDlg::OnBtnSaveReportAsXmlFile(wxCommandEvent& WXUNUSED(event))
 	wxString nameSuffix = _T("");
 	wxString nameUsed = _T("");
 	bSavedOK = DoSaveReportAsXmlFile(bPromptForMissingData,nameSuffix,nameUsed);
-	bSavedOK = bSavedOK; // avoid warning TODO: test for failure?
+	wxCHECK_RET(bSavedOK, _T("OnBtnSaveReportAsXmlFile(): DoSaveReportAsXmlFile() returned FALSE, line 810 in EmailReportDlg.cpp, the report may not have been saved"));
 }
 
 bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString nameSuffix, wxString& nameUsed)

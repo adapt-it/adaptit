@@ -483,7 +483,7 @@ void CSourcePhrase::DeepCopy(void)
 		deletedOK = m_pSavedWords->DeleteNode(nextPos);
 		//delete pSPtoDelete;
 		wxASSERT(deletedOK != FALSE);
- 		deletedOK = deletedOK; // avoid warning TODO: Check for failures?
+ 		deletedOK = deletedOK; // avoid warning (retain as is)
 	}
 }
 
@@ -2506,5 +2506,5 @@ void CSourcePhrase::SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray)
 	// placed by the user if asked (i.e. he's shown the Place Internal Markers dialog)
 	// (param 3, bool bExcludeDuplicates is default FALSE)
 	bAddedSomething = AddNewStringsToArray(pMedialsArray, &oldsArray);
-	bAddedSomething = bAddedSomething; // avoid warning TODO: Check for failures?
+	bAddedSomething = bAddedSomething; // avoid warning (retain, as is)
 }

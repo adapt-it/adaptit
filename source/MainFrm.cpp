@@ -644,7 +644,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 							bool bSetSafely;
 							bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
 												gnMatchedSequNumber,gpApp->m_nActiveSequNum,nFinish);
-							bSetSafely = bSetSafely; // avoid warning TODO: Check for failures?
+							bSetSafely = bSetSafely; // avoid warning (retain, as is; app can tolerate this failure)
 							CPile* pPile = pView->GetPile(gnMatchedSequNumber);
 							gpApp->m_pActivePile = pPile;
 							CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
@@ -730,7 +730,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					// no document with the reference was found
 					bool bOK;
 					bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
-					bOK = bOK; // avoid warning
+					// we don't expect this call to have failed
+					gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 734 in MainFrm.cpp"));
+					wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 734 in MainFrm.cpp"));
 					return FALSE;
 				}
 				else
@@ -794,6 +796,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					}
 					pDoc->SetFilename(foundDocWithReferenceFilePathAndName,TRUE);
 					bOK = ::wxSetWorkingDirectory(strFolderPath); // set the active folder to the path
+					// we don't expect this call to have failed
+					gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 797 in MainFrm.cpp"));
+					wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 797 in MainFrm.cpp"));
 
 					// copy & tweak code from DocPage.cpp for getting the document open and view set up
 					// with the phrase box at the wanted sequence number
@@ -806,7 +811,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						_T(""), wxICON_ERROR);
 						bool bOK;
 						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
-						bOK = bOK; // avoid warning
+						// we don't expect this call to have failed
+						gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 813 in MainFrm.cpp"));
+						wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 813 in MainFrm.cpp"));
 						return FALSE;
 					}
 					if (gpApp->nLastActiveSequNum >= (int)gpApp->m_pSourcePhrases->GetCount())
@@ -820,7 +827,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						wxASSERT(FALSE);
 						bool bOK;
 						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
-						bOK = bOK; // avoid warning
+						// we don't expect this call to have failed
+						gpApp->LogUserAction(_T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 829 in MainFrm.cpp"));
+						wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 829 in MainFrm.cpp"));
 						return FALSE;
 					}
 
@@ -3737,7 +3746,8 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 					{
 						// populate the combobox with the required removals data for adaptationsStep
 						bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-						bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+						bAllsWell = bAllsWell; // avoid warning (keep processing, even if the combobox
+											   // was not populated)
 						// put the adaptations step's message in the multi-line read-only edit box
 						// IDS_VERT_EDIT_ADAPTATIONS_MSG
 						pView->SetVerticalEditModeMessage(
@@ -3835,7 +3845,14 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						&pRec->adaptationStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nAdaptationStep_OldSpanCount);
-					bWasOK = bWasOK; // avoid warning TODO: Check for failures?
+					if (!bWasOK)
+					{
+                        // tell the user there was a problem, but keep processing even if
+                        // FALSE was returned (English message will suffice, the error is
+                        // unlikely
+						wxMessageBox(_T("OnCustomEvenAdaptationsEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 3842 in MainFrm.cpp; processing will continue however"));
+						gpApp->LogUserAction(_T("OnCustomEvenAdaptationsEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 3842 in MainFrm.cpp; processing continues"));
+					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
 					// restore original counts to pre-extras values
@@ -3856,7 +3873,8 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 
 					// populate the combobox with the required removals data for adaptationsStep
 					bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-					bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+					bAllsWell = bAllsWell; // avoid warning (keep processing, even if the combobox
+										   // was not populated)
 					// put the adaptations step's message in the multi-line read-only CEdit box
 					pView->SetVerticalEditModeMessage(
 _("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
@@ -4001,7 +4019,8 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					{
 						// populate the combobox with the required removals data for adaptationsStep
 						bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-						bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+						bAllsWell = bAllsWell; // avoid warning (keep processing, even if the combobox
+											   // was not populated)
 						// put the adaptations step's message in the multi-line read-only CEdit box
 						pView->SetVerticalEditModeMessage(
 _("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
@@ -4093,7 +4112,14 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
-						bWasOK = bWasOK; // avoid warning
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEvenAdaptationsEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4109 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEvenAdaptationsEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4109 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
                         // now make the free translation part of the gEditRecord think that
@@ -4162,7 +4188,15 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						&pRec->adaptationStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nAdaptationStep_OldSpanCount);
-					bWasOK = bWasOK; // avoid warning
+
+					if (!bWasOK)
+					{
+						// tell the user there was a problem, but keep processing even if
+						// FALSE was returned (English message will suffice, the error is
+						// unlikely
+						wxMessageBox(_T("OnCustomEvenAdaptationsEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4185 in MainFrm.cpp; processing will continue however"));
+						gpApp->LogUserAction(_T("OnCustomEvenAdaptationsEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4185 in MainFrm.cpp; processing continues"));
+					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
 					// restore original counts to pre-user-edited values
@@ -4184,7 +4218,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 					// populate the combobox with the required removals data for adaptationsStep
 					// (this has been done already, maybe twice in fact, so once more won't hurt)
 					bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
-					bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+					bAllsWell = bAllsWell; // avoid warning (continue, even if the combobox was not populated)
 					// put the adaptations step's message in the multi-line read-only CEdit box
 					pView->SetVerticalEditModeMessage(
 _("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
@@ -4405,7 +4439,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 					{
 						// populate the combobox with the required removals data for glossesStep
 						bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-						bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+						bAllsWell = bAllsWell; // avoid warning (continue, even if not populated)
 						// put the glosses step's message in the multi-line read-only CEdit box
 						pView->SetVerticalEditModeMessage(
 _("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
@@ -4504,7 +4538,14 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEvenGlossesEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4535 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEvenGlossesEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4535 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 //#ifdef _debugLayout
 //ShowSPandPile(393, 2);
@@ -4578,7 +4619,14 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 						&pRec->glossStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nGlossStep_SpanCount);
-					bWasOK = bWasOK; // avoid warning
+					if (!bWasOK)
+					{
+						// tell the user there was a problem, but keep processing even if
+						// FALSE was returned (English message will suffice, the error is
+						// unlikely
+						wxMessageBox(_T("OnCustomEvenGlossesEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4616 in MainFrm.cpp; processing will continue however"));
+						gpApp->LogUserAction(_T("OnCustomEvenGlossesEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4616 in MainFrm.cpp; processing continues"));
+					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 //#ifdef _debugLayout
 //ShowSPandPile(393, 3);
@@ -4599,7 +4647,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 //#endif
 					// populate the combobox with the required removals data for adaptationsStep
 					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-					bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+					bAllsWell = bAllsWell; // avoid warning (continue, even if not populated)
 					// put the adaptations step's message in the multi-line read-only CEdit box
 					pView->SetVerticalEditModeMessage(
 _("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
@@ -4736,7 +4784,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 					{
 						// populate the combobox with the required removals data for glossesStep
 						bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-						bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+						bAllsWell = bAllsWell; // avoid warning (continue, even if not populated)
 						// put the adaptations step's message in the multi-line read-only CEdit box
 						pView->SetVerticalEditModeMessage(
 _("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
@@ -4832,7 +4880,14 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 						&pRec->glossStep_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						pRec->nGlossStep_SpanCount);
-					bWasOK = bWasOK; // avoid warning
+					if (!bWasOK)
+					{
+						// tell the user there was a problem, but keep processing even if
+						// FALSE was returned (English message will suffice, the error is
+						// unlikely
+						wxMessageBox(_T("OnCustomEvenGlossesEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4877 in MainFrm.cpp; processing will continue however"));
+						gpApp->LogUserAction(_T("OnCustomEvenGlossesEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 4877 in MainFrm.cpp; processing continues"));
+					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
 					// restore original adaptationsStep counts to pre-extras values
@@ -4851,7 +4906,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 
 					// populate the combobox with the required removals data for glossesStep
 					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
-					bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+					bAllsWell = bAllsWell; // avoid warning (continue, even if not populated)
 					// put the glosses step's message in the multi-line read-only CEdit box
 					pView->SetVerticalEditModeMessage(
 _("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
@@ -5148,7 +5203,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 						// populate the combobox with the required removals data for
 						// freeTranslationsStep
 						bAllsWell = pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
-						bAllsWell = bAllsWell; // avoid warning
+						bAllsWell = bAllsWell; // avoid warning (continue even if not populated)
 						// put the glosses step's message in the multi-line read-only CEdit box
 						pView->SetVerticalEditModeMessage(
 _("Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
@@ -5617,14 +5672,14 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			// when the user first entered the vertical edit state, glossing mode was ON, so
 			// populate the combobox with the list of removed glosses as it currently stands
 			bFilledListOK = pView->PopulateRemovalsComboBox(glossesStep, pRec);
-			bFilledListOK = bFilledListOK; // avoid warning TODO: check for failures?
+			bFilledListOK = bFilledListOK; // avoid warning (continue even if not filled)
 		}
 		else
 		{
 			// when the user first entered the vertical edit state, glossing mode was OFF, so
 			// populate the combobox with the list of removed adaptations as it currently stands
 			bFilledListOK = pView->PopulateRemovalsComboBox(adaptationsStep, pRec);
-			bFilledListOK = bFilledListOK; // avoid warning TODO: check for failures?
+			bFilledListOK = bFilledListOK; // avoid warning (continue even if not filled)
 		}
 
 		// initiate a redraw of the frame and the client area (Note, this is MFC's CFrameWnd
@@ -5739,7 +5794,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
-						bWasOK = bWasOK; // avoid warning
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5791 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5791 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 					pFreeTrans->ToggleFreeTranslationMode(); // turn off free translation mode
@@ -5783,7 +5845,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->glossStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nGlossStep_SpanCount);
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5842 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5842 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
@@ -5822,7 +5891,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->adaptationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nAdaptationStep_OldSpanCount);
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5888 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5888 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
@@ -5866,7 +5942,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 								&pRec->cancelSpan_SrcPhraseList,
 								0, // start at index 0, ie. insert whole of deep copied list
 								nHowMany);
-							bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5939 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5939 in MainFrm.cpp; processing continues"));
+						}
 						}
 						if (bOldIsShorter)
 						{
@@ -5877,7 +5960,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 								&pRec->cancelSpan_SrcPhraseList,
 								0, // need an index, but we don't use cancelSpan_SrcPhraseList
 								0);
-							bWasOK = bWasOK; // avoid warning TODO: check for failures?
+							if (!bWasOK)
+							{
+								// tell the user there was a problem, but keep processing even if
+								// FALSE was returned (English message will suffice, the error is
+								// unlikely
+								wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5957 in MainFrm.cpp; processing will continue however"));
+								gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5957 in MainFrm.cpp; processing continues"));
+							}
 						}
 					}
                     // some of the instances in the span above are wrong, but the span is
@@ -5896,7 +5986,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						&pRec->cancelSpan_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						nHowMany);
-					bWasOK = bWasOK; // avoid warning TODO: check for failures?
+					if (!bWasOK)
+					{
+						// tell the user there was a problem, but keep processing even if
+						// FALSE was returned (English message will suffice, the error is
+						// unlikely
+						wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5983 in MainFrm.cpp; processing will continue however"));
+						gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5983 in MainFrm.cpp; processing continues"));
+					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
 					// if the end of the propagation span is beyond end of cancel span, restore
@@ -5911,7 +6008,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->propagationSpan_SrcPhraseList,
 							0, // index into propSpan list for start
 							pRec->propagationSpan_SrcPhraseList.GetCount());
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6005 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6005 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 				}
@@ -5965,7 +6069,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->freeTranslationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nFreeTranslationStep_SpanCount);
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6066 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6066 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 					pFreeTrans->ToggleFreeTranslationMode(); // turn off free translation mode
@@ -6010,7 +6121,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->adaptationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nAdaptationStep_OldSpanCount);
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6118 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6118 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
@@ -6055,7 +6173,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->glossStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
 							pRec->nGlossStep_SpanCount);
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6170 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6170 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
@@ -6102,7 +6227,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 								&pRec->cancelSpan_SrcPhraseList,
 								0, // start at index 0, ie. insert whole of deep copied list
 								nHowMany);
-							bWasOK = bWasOK; // avoid warning TODO: check for failures?
+							if (!bWasOK)
+							{
+								// tell the user there was a problem, but keep processing even if
+								// FALSE was returned (English message will suffice, the error is
+								// unlikely
+								wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6224 in MainFrm.cpp; processing will continue however"));
+								gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6224 in MainFrm.cpp; processing continues"));
+							}
 						}
 						if (bOldIsShorter)
 						{
@@ -6113,7 +6245,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 								&pRec->cancelSpan_SrcPhraseList,
 								0, // need an index, but we don't use cancelSpan_SrcPhraseList
 								0);
-							bWasOK = bWasOK; // avoid warning TODO: check for failures?
+							if (!bWasOK)
+							{
+								// tell the user there was a problem, but keep processing even if
+								// FALSE was returned (English message will suffice, the error is
+								// unlikely
+								wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6242 in MainFrm.cpp; processing will continue however"));
+								gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6242 in MainFrm.cpp; processing continues"));
+							}
 						}
 					}
                     // some of the instances in the span above are wrong, but the span is
@@ -6134,7 +6273,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						&pRec->cancelSpan_SrcPhraseList,
 						0, // start at index 0, ie. insert whole of deep copied list
 						nHowMany);
-					bWasOK = bWasOK; // avoid warning TODO: check for failures?
+					if (!bWasOK)
+					{
+						// tell the user there was a problem, but keep processing even if
+						// FALSE was returned (English message will suffice, the error is
+						// unlikely
+						wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6270 in MainFrm.cpp; processing will continue however"));
+						gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6270 in MainFrm.cpp; processing continues"));
+					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
 					// if the end of the propagation span is beyond end of cancel span, restore those extras too
@@ -6148,8 +6294,15 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							&pRec->propagationSpan_SrcPhraseList,
 							0, // index into propSpan list for start
 							pRec->propagationSpan_SrcPhraseList.GetCount());
+						if (!bWasOK)
+						{
+							// tell the user there was a problem, but keep processing even if
+							// FALSE was returned (English message will suffice, the error is
+							// unlikely
+							wxMessageBox(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6291 in MainFrm.cpp; processing will continue however"));
+							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 6291 in MainFrm.cpp; processing continues"));
+						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
-						bWasOK = bWasOK; // avoid warning TODO: check for failures?
 					}
 				}
 				break;

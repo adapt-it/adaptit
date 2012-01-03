@@ -5410,7 +5410,8 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		// get any removed free translations in gEditRecord into the GUI list
 		bool bAllsWell;
 		bAllsWell = m_pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
-		bAllsWell = bAllsWell; // avoid warning TODO: check for failures?
+		bAllsWell = bAllsWell; // avoid warning TODO: check for failures? (BEW 3Jan12, No
+							   // we want processing to continue regardless)
 	}
 	else
 	{
@@ -5501,7 +5502,8 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			bool bOK;
 			bOK = m_pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
 											m_pApp->m_nActiveSequNum,numSrcPhrases);
-			bOK = bOK; // avoid warning TODO: check for failures?
+			bOK = bOK; // avoid warning TODO: check for failures?  (BEW 3Jan12, No
+					   // we want processing to continue regardless)
 		}
 
 		translation.Empty(); // don't preserve anything from a former adaptation state

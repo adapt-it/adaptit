@@ -943,7 +943,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	{
 	case sourceTextExport:
 		nTextLength = RebuildSourceText(source);
-		nTextLength = nTextLength; // avoid warning TODO: test for failures?
+		nTextLength = nTextLength; // avoid warning TODO: test for failures? (BEW
+								   // 3Jan12, No, allow length to be zero)
 		// Apply output filter to the source text
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
@@ -11927,7 +11928,7 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 	wxChar* pEnd;
 	pEnd = pBufStart + nTheLen;// bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null at end of Buffer
-	pEnd = pEnd; // avoid warning
+	pEnd = pEnd; // avoid compiler warning
 	// Setup copy-to buffer textStr2. It needs to be twice the size of input buffer since
 	// we will be adding a backslash for every control char we find
 	wxString textStr2;
@@ -15397,7 +15398,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 						// while I've provided for storing any endmarkers on the placeholder,
 						// the only circumstance I can think of where this may be relevant is
 						// endmarkers earlier transferred to the end of a long retranslation
-						// which was padded with final placeholders; so I guess the think to
+						// which was padded with final placeholders; so I guess the thing to
 						// do is to 'place' any non-zero content in this string at the end of
 						// the source string, once a non-placeholder is encountered, and then
 						// clear the strPlaceholderEndMarkers string -- we'd have to do this
@@ -16395,9 +16396,8 @@ void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
 	int count = buffer.Replace(oldFree,newFree);
 	count = buffer.Replace(oldNote,newNote);
 	count = buffer.Replace(oldBt,newBt);
-	count = count; // avoid warnings
+	count = count; // avoid compiler warnings
 }
-
 
 // ApplyOutputFilterToText takes an input string textStr, scans through its string buffer
 // and builds a new wxString minus the markers and associated text whose flags are set to
