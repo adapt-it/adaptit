@@ -30043,8 +30043,9 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 		m_marginBottom = (int)(pt.y*config_only_millimetresToThousandthsInch);
 
 		wxPaperSize pSize,pSizepd;
+		// pSize for debugging only
 		pSize = pPgSetupDlgData->GetPaperId();
-		wxCHECK_RET(pSize != NULL, _T("OnFilePageSetup(): pSize is NULL returned from GetPaperId(), line 30,048 in Adapt_It.cpp"));
+		pSize = pSize; // for debugging only. whm note: pSize is a wxPaperSize enum instance, not a pointer
 		pSizepd = pPrintData->GetPaperId();
 		m_paperSizeCode = MapWXtoMFCPaperSizeCode(pSizepd);
 
