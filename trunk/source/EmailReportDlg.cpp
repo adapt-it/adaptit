@@ -1007,10 +1007,14 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 					pdMsg1 += pdMsg3;
 					int response;
 					response = wxMessageBox(pdMsg1,_("Could not find the packed document in your work folder"),wxYES_NO | wxICON_WARNING);
-					response = response; // avoid warning TODO: whm: add code to handle the user's response
 					pApp->LogUserAction(pdMsg1);
+					if (response == wxYES)
+					{
+						// attach any open doc as packed doc
+						wxCommandEvent evt;
+						OnBtnAttachPackedDoc(evt);
+					}
 				}
-			
 			}
 			wxString userLogPathAndName;
 			userLogPathAndName = pApp->m_pEmailReportData->usageLogFilePathName;
