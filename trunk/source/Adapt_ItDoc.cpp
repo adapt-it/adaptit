@@ -9170,6 +9170,10 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// distinguish between punctuation and word-building characters -- halt location is
 /// determined solely by ~ or [ or ] or certain SF markers.
 /// BEW 11Oct10, (actually created 25Jan11)
+/// BEW 4Jan2012, altered FindParseHaltLocation() so that it does not halt at a ] (closing
+/// bracket) when ] is not included in the list of punctuation characters. (Data which
+/// revealed the problem: adapt a word with the adaptation "voice [lit:neck]"  -- the ParseWord()
+/// function hung at the [ character.) 
 //////////////////////////////////////////////////////////////////////////////////
 wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 											bool* pbFoundInlineBindingEndMarker,
@@ -9196,7 +9200,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 	// end-of-buffer
 	while (p < pEnd)
 	{
-		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpaceOrBracket(p))
+		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpace(p) && !(*p == _T(']') 
+			&& !IsClosingBracketWordBuilding(gpApp->m_punctuation[1])))
 		{
 			// if none of those, then it's part of the word, or part of punctuation which
 			// follows it, so keep scanning
@@ -9211,7 +9216,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 				*pbFoundFixedSpaceMarker = TRUE;
 				break;
 			}
-			else if (*p == _T(']') || *p == _T('['))
+			else if (*p == _T(']') && !IsClosingBracketWordBuilding(gpApp->m_punctuation[1]))
 			{
 				*pbFoundClosingBracket = TRUE;
 				break;

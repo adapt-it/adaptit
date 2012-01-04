@@ -3940,6 +3940,27 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	return appendHere;
 }
 
+// a handy check for whether or not the wxChar which ptr points at is ~ 
+// BEW created 25Jan11, used in FindParseHaltLocation() of doc class
+bool IsFixedSpace(wxChar* ptr)
+{
+	if (*ptr == _T('~') )
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+// return TRUE if the ] (closing bracket) character is within the passed in string of
+// punctuation characters (use the target punctuation character set), FALSE if absent
+// Used in IsFixedSpaceAhead(), and the returned boolean is passed in to
+// FindParseHaltLocation(); both are functions used by ParseWord()
+bool IsClosingBracketWordBuilding(wxString& strPunctuationCharSet)
+{
+	int offset = strPunctuationCharSet.Find(_T(']'));
+	return offset == wxNOT_FOUND;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return                     the reconstituted source text (excluding some, see below)
 /// \param  pMergedSrcPhrase -> a merger, which may have non-empty m_pMedialMarkers member
@@ -8112,17 +8133,6 @@ bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 	// so check for these
 	if ( (*(pCh - 1) == _T('v') && *(pCh - 2) == _T('\\')) || 
 		 (*(pCh - 1) == _T('n') && *(pCh - 2) == _T('v') && *(pCh - 3) == _T('\\')))
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
-
-// a handy check for whether or not the wxChar which ptr points at is ~ or [ or ]
-// BEW created 25Jan11, used in FindParseHaltLocation() of doc class
-bool IsFixedSpaceOrBracket(wxChar* ptr)
-{
-	if (*ptr == _T('~') || *ptr == _T(']') || *ptr == _T('['))
 	{
 		return TRUE;
 	}
