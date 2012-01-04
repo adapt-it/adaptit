@@ -54,18 +54,6 @@ rem   ..\hlp\Adapt_It.htb  is the name of the archive to create in the hlp dir
 rem   *             a single asterisk tells 7za to include all dirs and files
 "C:\Program Files\7-Zip\7za" a -tzip -x!*.htb ..\hlp\Adapt_It.htb *
 
-rem Copy the zip archive created above to the hlp folder.
-rem copy Adapt_It.zip ..\hlp
-rem Change back to the hlp folder
-cd ..\hlp
-
-rem Delete any previously existing Adapt_It.htb file so we can rename the
-rem Adapt_It.zip to Adapt_It.htb.
-rem IF EXIST Adapt_It.htb (del Adapt_It.htb /Q)
-
-rem Rename Adapt_It.zip to Adapt_It.htb.
-rem ren Adapt_It.zip Adapt_It.htb
-
 rem If we're doing this on a machine that doesn't have Bill's directories
 rem for Setup Generator, just end now.
 IF EXIST "..\setup Regular\LICENSING.txt" GOTO SETUPGEN
