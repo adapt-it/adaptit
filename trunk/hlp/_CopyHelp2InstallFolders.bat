@@ -53,6 +53,7 @@ rem   -x!*.htb      means to exclude any *.htb file from going into the archive
 rem   ..\hlp\Adapt_It.htb  is the name of the archive to create in the hlp dir
 rem   *             a single asterisk tells 7za to include all dirs and files
 "C:\Program Files\7-Zip\7za" a -tzip -x!*.htb ..\hlp\Adapt_It.htb *
+cd ..\hlp
 
 rem If we're doing this on a machine that doesn't have Bill's directories
 rem for Setup Generator, just end now.
