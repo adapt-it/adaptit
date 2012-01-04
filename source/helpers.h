@@ -182,6 +182,8 @@ int FindOneOf(wxString inputStr, wxString charSet);
 
 wxString InsertInString(wxString targetStr, int ipos, wxString insertStr);
 
+bool IsClosingBracketWordBuilding(wxString& strPunctuationCharSet);
+
 wxRect NormalizeRect(const wxRect rect);
 
 void CopyFontBaseProperties(const wxFont* pCopyFromFont, wxFont*& pCopyToFont);
@@ -293,7 +295,7 @@ bool	 IsRetranslationInSelection(SPList* pList);
 bool	 IsFixedSpaceSymbolInSelection(SPList* pList);
 bool	 IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
 bool	 IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
-bool	 IsFixedSpaceOrBracket(wxChar* ptr); // quick way to detect ~ or ] or [ at ptr
+bool	 IsFixedSpace(wxChar* ptr); // quick way to detect ~ or ] or [ at ptr
 bool	 IsSubstringWithin(wxString& testStr, wxString& strItems); // tests if one of strings in
 											// testStr is a match for any string in strItems
 void	 SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& othersFilteredStr);
