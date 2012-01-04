@@ -31,6 +31,7 @@ pause
 rem The next line deletes any existing temporary help folder named hlp_temp
 rem along with any sub-folders and files it contains.
 IF EXIST ..\hlp_temp (rmdir ..\hlp_temp\ /S /Q)
+IF EXIST ..\hlp\Adapt_It.htb (del ..\hlp\Adapt_It.htb)
 
 rem The next line uses xcopy to create a temporary hlp_temp directory that
 rem is at the same level as the current hlp directory and copy all folders
@@ -48,21 +49,22 @@ rem Windows installation (where the full version of 7-Zip gets installed.
 rem The syntax is:
 rem   a             add fi les to the archive
 rem   -tzip         means to create a standard zip archive
-rem   Adapt_It.zip  is the name of the archive to create
+rem   -x!*.htb      means to exclude any *.htb file from going into the archive
+rem   ..\hlp\Adapt_It.htb  is the name of the archive to create in the hlp dir
 rem   *             a single asterisk tells 7za to include all dirs and files
-"C:\Program Files\7-Zip\7za" a -tzip Adapt_It.zip *
+"C:\Program Files\7-Zip\7za" a -tzip -x!*.htb ..\hlp\Adapt_It.htb *
 
 rem Copy the zip archive created above to the hlp folder.
-copy Adapt_It.zip ..\hlp
+rem copy Adapt_It.zip ..\hlp
 rem Change back to the hlp folder
 cd ..\hlp
 
 rem Delete any previously existing Adapt_It.htb file so we can rename the
 rem Adapt_It.zip to Adapt_It.htb.
-IF EXIST Adapt_It.htb (del Adapt_It.htb /Q)
+rem IF EXIST Adapt_It.htb (del Adapt_It.htb /Q)
 
 rem Rename Adapt_It.zip to Adapt_It.htb.
-ren Adapt_It.zip Adapt_It.htb
+rem ren Adapt_It.zip Adapt_It.htb
 
 rem If we're doing this on a machine that doesn't have Bill's directories
 rem for Setup Generator, just end now.
