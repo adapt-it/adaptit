@@ -77,14 +77,26 @@ class NavProtectNewDoc; // for user navigation protection feature
 // Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
 // Adapt_It.rc file after sensing that it was changed by the external program.
 //
-// next version will be 6.0.0, temporarily use 14th August 2011
+// whm 6Jan12 Note: When changing these version numbers we also need to change the version number
+// in the following:
+// 1. The appVerStr const defined below (about line 99).
+// 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
+// 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
+// 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
+// 5. The Mac's Info.plist file in adaptit/bin/mac/.
+// 6. The Linux's ChangeLog (done automatically by batch file if the version number in 
+//    "Adapt It changes.txt" doc file is updated.
+// 7. The Linux's changelog file in the debian folder
+// 8. Various docs folder files including: Adapt It changes.txt, Readme.txt, 
+//    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 0
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_BUILD_PART 1
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 20
-#define VERSION_DATE_MONTH 12
-#define VERSION_DATE_YEAR 2011
+#define VERSION_DATE_MONTH 1
+#define VERSION_DATE_YEAR 2012
+const wxString appVerStr(_T("6.1.1"));
 
 //#define Print_failure
 

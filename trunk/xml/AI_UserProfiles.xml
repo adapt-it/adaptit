@@ -3,7 +3,7 @@
 Filename:	AI_UserProfiles.xml
 Author: 	Bill Martin
 Date Created:	27 August 2010
-Last Updated:	24 October 2011, by Bill Martin
+Last Updated:	6 January 2012, by Bill Martin
 Description:	This file contains the user profile definitions and
 		attributes for Adapt It's interface menus and settings.
 		Adapt It reads and parses this AI_UserProfiles.xml file
@@ -24,7 +24,7 @@ Description:	This file contains the user profile definitions and
   -->
 <UserProfilesSupport
 	profileVersion="1.0"
-	applicationCompatibility="6.1.0"
+	applicationCompatibility="6.1.1"
 	adminModified="No"
 	definedProfile1="Novice"
 	descriptionProfile1="The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator."
