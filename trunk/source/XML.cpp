@@ -5093,8 +5093,9 @@ CBString MakeFlags(CSourcePhrase* pSP)
 						// through 30 leaving binValue[31] as hex zero (as set by
 						// memset below) to terminate the c-string 
 	memset(binValue,0,sizeof(binValue));
-	//short sigDigits; // set but not used
-	//sigDigits = DecimalToBinary(n, binValue);
+	short sigDigits; // set but not used
+	sigDigits = DecimalToBinary(n, binValue);
+	sigDigits = sigDigits; // avoid "set but not used" warning for sigDigits
 	flagsStr = binValue;
 	flagsStr = flagsStr.Mid(0,22); // Adapt It's source phrase currently uses only first 22 flags
 	flagsStr.MakeReverse();
