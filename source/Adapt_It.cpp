@@ -1222,7 +1222,10 @@ const wxString defaultProfileItems[] =
 	// stored in the m_pUserProfiles struct on the heap with those that are used in the
 	// defaultProfileItems string array below. It uses wxLogDebug() calls and even an assert
 	// in some cases to alert the programmer of any significant differences/inconsistencies.
-	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"6.1.0\":adminModified=\"No\"")
+	// 
+	// whm 6Jan12 Note: Changed the version number in the first string of the defaultProfileItems[]
+	// array below to use the appVerStr constant defined near the beginning of the Adapt_It.h file.
+	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"") + appVerStr + _T("\":adminModified=\"No\"")
 		_T(":definedProfile1=\"Novice\":descriptionProfile1=\"The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile2=\"Experienced\":descriptionProfile2=\"The Experienced profile hides a number of menu items, but makes visible consistency checking, restoring the KB, packing/unpacking of documents and all export possibilities. The default Experienced profile can be further customized to suit the preferences of the administrator.\"")
 		_T(":definedProfile3=\"Skilled\":descriptionProfile3=\"The Skilled profile hides a few menu items, but makes visible all the Experienced user items plus free translation mode, glossing mode, editing of the source text, and all the Preferences tab pages. The default Skilled profile can be further customized to suit the preferences of the administrator.\"")
@@ -40013,6 +40016,7 @@ wxString CAdapt_ItApp::FindBookFileContainingThisReference(wxString folderPath, 
 	bookStr = tempRefStr.Mid(0,posnSpace);
 	bookStr.Trim(FALSE);
 	bookStr.Trim(TRUE);
+	bookStr = bookStr.MakeUpper(); // whm added 5Jan12
 	chapterStr = tempRefStr.Mid(posnSpace);
 	chapterStr.Trim(FALSE);
 	chapterStr.Trim(TRUE);
@@ -40232,10 +40236,7 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 {
 	bool bRefFound = FALSE;
 	wxString fileBuffer;
-	// now read the file into a buffer in preparation for analyzing their chapter and
-	// verse status info (1:1:nnnn) using GetUsfmStructureAndExtent().
-	// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
-	// UNICODE BOM of ef bb bf
+	// now read the file into a buffer in preparation for scanning for chapters and verses
 	wxFile f(fileAndPath,wxFile::read);
 	wxFileOffset fileLen;
 	fileLen = f.Length();
@@ -40245,10 +40246,122 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 	f.Read(pByteBuf,fileLen);
 	wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
 	f.Close();
+	// convert to wxString so we can use wxChar based parsing of usfm
 	fileBuffer = wxString(pByteBuf,wxConvUTF8,fileLen);
 	free((void*)pByteBuf);
+	// get a read-only buffer pointer
+	const wxChar* pBuff = fileBuffer.GetData();
+	int len = fileBuffer.Length();
+	wxChar* pEnd = (wxChar*)pBuff + len;
+	wxASSERT(*pEnd == _T('\0')); 
+	wxChar* ptr = (wxChar*)pBuff;
+	int itemLen = 0;
+	wxString lastChNumStr = _T("");
+	wxString lastVsNumStr = _T("");
+	// scan through buffer looking for chapter and verse markers
+	while (ptr < pEnd)
+	{
+		int nMkrLen = 0;
+		if (Is_ChapterMarker(ptr))
+		{
+			// its a chapter marker
+			ptr += 2; // point past the \c marker
 
+			itemLen = Parse_NonEol_WhiteSpace(ptr);
+													   // to buffer
+			ptr += itemLen; // point at chapter number
+			itemLen = Parse_Number(ptr,pEnd);
+			lastChNumStr = GetStringFromBuffer(ptr,itemLen); // get the chapter number
+			// Are we looking for introductory material and have found chapter 1?
+			if (verseStr == _T("0") && chapterStr == _T("1") && lastChNumStr == _T("1"))
+			{
+				// When the incoming chapter reference is "1" and the incoming verse reference 
+				// is "0" it means that the reference for sync scrolling points to introductory
+				// material before chapter 1. If those are the parameters we are searching for
+				// and we've just encountered a chapter 1 in this document, we know that the
+				// current document would be the one containing introductory material, at least
+				// for Paratext supplied documents, so return TRUE.
+				// Note: Bibledit only includes introductory material if we've retrieved a 
+				// whole book file. So, I've limited the test above to Paratex. This function
+				// is a supporting function for the sync scrolling routines. But, the Linux
+				// version of Adapt It doesn't yet support sync scrolling. If it ever does this
+				// should also work for Bibledit supplied texts.
+				return TRUE;
+
+			}
+			// Is the desired chapter number greater than the reference we are looking for?
+			if (wxAtoi(lastChNumStr) > wxAtoi(chapterStr)) // comparison of strings won't work because "2" > "11"
+			{
+				// We assume chapters are in numerical order so if we encounter a chapter
+				// number higher than the one we are looking for there is no point continuing
+				// to search - return FALSE.
+				return FALSE;
+			}
+			
+			ptr += itemLen; // point past chapter number
+
+			itemLen = Parse_NonEol_WhiteSpace(ptr); // parse white space following
+											// the number
+			ptr += itemLen; // point past it
+		} // end of if (Is_ChapterMarker())
+		else if (Is_VerseMarker(ptr,nMkrLen))
+		{
+			if (nMkrLen == 2)
+			{
+				// its a verse marker
+				ptr += 2; // point past the \v marker
+			}
+			else
+			{
+				// its an Indonesia branch verse marker \vn
+				ptr += 3; // point past the \vn marker
+			}
+
+			itemLen = Parse_NonEol_WhiteSpace(ptr);
+													   // space to buffer
+			ptr += itemLen; // point at verse number
+
+			itemLen = Parse_Number(ptr,pEnd);
+			lastVsNumStr = GetStringFromBuffer(ptr,itemLen); // get the verse number
+			// If the last chapter encountered matches the chapterStr reference and
+			// the last verse encountered matches the verseStr reference we are looking
+			// for, we have found the sync scroll reference in this document, so 
+			// return TRUE.
+			if (lastChNumStr == chapterStr && lastVsNumStr == verseStr)
+			{
+				// we found the reference so return TRUE
+				return TRUE;
+			}
+
+			ptr += itemLen; // point past verse number
+
+			itemLen = Parse_NonEol_WhiteSpace(ptr); // past white space which is
+											// after the marker
+			ptr += itemLen; // point past the white space
+		} // end of if (Is_VerseMarker())
+		else
+		{
+			ptr++;
+		}
+	} // end of loop: while (ptrSrc < pEnd)
+	
+	/*
 	// get the usfm structure of the buffer
+	// whm 5Jan12 TODO: items
+	// 1. This BookHasChapterAndVerseReference() function could be made faster
+	// by examining the fileBuffer directly for verse and chapter numbers, rather than
+	// calling GetUsfmStructureAndExtent() to produce structure and extent arrays for
+	// the whole book in Adapt It's xml document format. In most cases examining the 
+	// fileBuffer directly would find out whether a given chapter:verse reference 
+	// exists long before producing the whole array and examining it.
+	// 2. Note also that a Paratext chapter file retrieved during collaboration
+	// for chapter 1 will issue a sync scrolling reference of 1:0 for when Paratext
+	// is pointing to introductory material before verse 1 (Bibledit has intro 
+	// material in chapter 0 on disk). In order for sync scrolling to be able to
+	// find intro material we need to also account for an incoming reference of 1:0
+	// which should be tested for in any revision done for the above TODO.
+	// 3. Use the PT defined markers for chapter and verse markers if different 
+	// from the default \c and \v. Make such changes elsewhere too!
 	wxArrayString usfmStructureArray;
 	usfmStructureArray = GetUsfmStructureAndExtent(fileBuffer);
 
@@ -40272,9 +40385,9 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 				// see if there is a verse reference for this chapter
 				int newCt = ct+1;
 				arrayLine = usfmStructureArray.Item(newCt);
-				while (newCt < tot && arrayLine.Find(_T("\\c ")) == wxNOT_FOUND) // TODO: use the PT defined \v
+				while (newCt < tot && arrayLine.Find(_T("\\c ")) == wxNOT_FOUND) // TODO: use the PT defined \c
 				{
-					if (arrayLine.Find(_T("\\v ")) != wxNOT_FOUND)
+					if (arrayLine.Find(_T("\\v ")) != wxNOT_FOUND) // TODO: use the PT defined \v
 					{
 						if (GetNumberFromChapterOrVerseStr(arrayLine) == verseStr)
 						{
@@ -40293,6 +40406,7 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 		}
 		ct++;
 	} // end of while (ct < tot && !bRefFound)
+	*/
 	return bRefFound;
 }
 
