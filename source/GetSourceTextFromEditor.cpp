@@ -959,8 +959,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			// TODO: Continue asking until the projects are selected or user aborts
 		}
 	} while (bSourceProjRequiredButNotFound || bTargetProjRequiredButNotFound || bFreeTransProjRequiredButNotFound);
-	//else
-	//{
+
 	LoadBookNamesIntoList();
 
 	pTheFirstColumn->SetText(_("Chapter"));
@@ -1014,6 +1013,10 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// will also be populated and, if any previously selected chaper will now again be 
 	// selected (from actions done within the OnLBBookSelected handler called above).
 	
+	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
+	// info within its status bar message
+	m_pApp->RefreshStatusBarInfo();
+	/*
 	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
@@ -1022,7 +1025,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		message = message.Format(message,m_pApp->m_collaborationEditor.c_str());
 		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
-	//}
+	*/
+
 	pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
  }
 
@@ -1399,6 +1403,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	shortProjNameTgt = GetShortNameFromProjectName(m_pApp->m_CollabProjectForTargetExports);
 
 	// update status bar
+	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
+	// info within its status bar message
+	m_pApp->RefreshStatusBarInfo();
+	/*
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar();
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
 	{
@@ -1406,7 +1414,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		message += m_pApp->m_collaborationEditor;
 		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
-	
+	*/
+
     // Now, determine if the PT source and PT target projects exist together as an existing
     // AI project. If so we access that project and, if determine if an existing source
 	// text exists as an AI chapter or book document, as the case may be.
@@ -2799,6 +2808,7 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 	pStaticTextCtrlNote->ChangeValue(_T(""));
 
+	// whm 7Jan12 can leave this status message as is
 	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)

@@ -1367,6 +1367,11 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	// Wizard will appear.
 	m_pApp->m_bJustLaunched = TRUE;
 
+	// update status bar
+	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
+	// info within its status bar message
+	m_pApp->RefreshStatusBarInfo();
+	/*
 	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
 	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
 	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
@@ -1375,6 +1380,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		message += m_pApp->m_collaborationEditor;
 		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
+	*/
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

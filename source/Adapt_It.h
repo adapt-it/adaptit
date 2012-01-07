@@ -2097,6 +2097,12 @@ public:
 	// Set by the return value from CFreeTrans creator
 	CFreeTrans*	m_pFreeTrans;
 
+	// whm added 6Jan12
+	bool m_bStatusBarVisible;
+	bool m_bToolBarVisible;
+	bool m_bModeBarVisible;
+
+
 //private: // <- BEW removed 1Mar10, because for unknown reason compiler fails to 'see' it otherwise
 	CNotes* m_pNotes;
 	CNotes* GetNotes();
