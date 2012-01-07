@@ -1,4 +1,34 @@
 ----------------------------------------------
+Version 6.1.1 release 20 January 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.1.1
+----------------------------------------------
+* The Mode bar in the Adapt It main window can now be 
+shown or hidden using the View > Mode Bar menu item. 
+Whether hidden or shown, this new Mode Bar setting will be 
+remembered from session to session.
+* The state of the Tool bar and the Status bar (shown or
+hidden) is also remembered from session to session.
+* Adapt It now has a "man page" for Linux users.
+----------------------------------------------
+Bug fixes in 6.1.1
+----------------------------------------------
+* The fix that allows Adapt It to now can run on computers 
+with screen resolutions as small as 640 x 480 pixels was
+inadvertently left out of the last updat, but is included in
+this 6.1.1 update.
+* In the Linux version (Balsa) the "Change Bibledit Projects"
+dialog could become unresponsive. That has now been fixed.
+* When collaborating with Bibledit on Linux the Open... and
+Save menu items were not being relabeled to indicate that
+Adapt It would get its source texts from Bibledit and 
+transfer its target texts to Bibledit. This is now fixed.
+* Fixed a parsing problem when [ and ] are not punctuation 
+characters and an adaptation includes a bracketed substring
+[sometext] -- the parser hung. This is now fixed.
+
+----------------------------------------------
 Version 6.1.0 release 20 December 2011
 ----------------------------------------------
 ----------------------------------------------
