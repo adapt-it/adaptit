@@ -305,6 +305,33 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
+<MENU itemID="ID_VIEW_MODE_BAR"
+	itemType="subMenu"
+	itemText="&amp;Mode Bar"
+	itemDescr="View menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+</MENU>
 <MENU itemID="ID_VIEW_STATUS_BAR"
 	itemType="subMenu"
 	itemText="&amp;Status Bar"

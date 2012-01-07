@@ -1330,6 +1330,16 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_VIEW_MODE_BAR\":itemType=\"subMenu\":itemText=\"&Mode Bar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_VIEW_STATUS_BAR\":itemType=\"subMenu\":itemText=\"&Status Bar\":itemDescr=\"View menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
@@ -5911,6 +5921,24 @@ wxString szTwoPunctPairsTgt = _T("PunctuationTwoCharacterPairsTargetSet(ditto)")
 #endif
 
 /// The label that identifies the following string encoded number as the application's
+/// "StatusBarIsVisible". This value is written in the "Settings" part of the basic
+/// configuration file. Adapt It stores this path in the App's m_bStatusBarVisible member
+/// variable.
+wxString szStatusBarIsVisible = _T("StatusBarIsVisible");
+
+/// The label that identifies the following string encoded number as the application's
+/// "ToolBarIsVisible". This value is written in the "Settings" part of the basic
+/// configuration file. Adapt It stores this path in the App's m_bToolBarVisible member
+/// variable.
+wxString szToolBarIsVisible = _T("ToolBarIsVisible");
+
+/// The label that identifies the following string encoded number as the application's
+/// "ModeBarIsVisible". This value is written in the "Settings" part of the basic
+/// configuration file. Adapt It stores this path in the App's m_bModeBarVisible member
+/// variable.
+wxString szModeBarIsVisible = _T("ModeBarIsVisible");
+
+/// The label that identifies the following string encoded number as the application's
 /// "SuppressWelcome". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this path in the App's m_bSuppressWelcome member
 /// variable.
@@ -7798,6 +7826,14 @@ void CAdapt_ItApp::ConfigureInterfaceForUserProfile()
 	// Next, configure visibility of itemType == wizardListItem element
 	ConfigureWizardForUserProfile();
 
+	// whm added 7Jan12 There is no "ConfigureStatusBarForUserProfile" but its
+	// visibility according to the App's m_bStatusBarVisible needs to be ensured
+	// with all the other Configure...ForUserProfile() calls above.
+	if (m_bStatusBarVisible)
+		m_pMainFrame->m_pStatusBar->Show();
+	else
+		m_pMainFrame->m_pStatusBar->Hide();
+
 	// Finally, configure visibility of itemType == dialogControl elements
 	// AI_UserProfiles.xml currently does not include any dialogControl
 	// elements.
@@ -8232,6 +8268,17 @@ void CAdapt_ItApp::ConfigureModeBarForUserProfile()
 		}
 	}
 
+	// whm added 7Jan12 set controlBar visibility according to basic config
+	// file setting - as stored in the App's m_bModeBarVisible member
+	if (gpApp->m_bModeBarVisible)
+	{
+		gpApp->GetMainFrame()->m_pControlBar->Show();
+	}
+	else
+	{
+		gpApp->GetMainFrame()->m_pControlBar->Hide();
+	}
+
 	// lastly update the CMainFrame's m_controlBarHeight member with the newly populated
 	// mode bar
 	wxSize controlBarSize;
@@ -8383,6 +8430,17 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 	// as usual."
 	pMainFrame->m_pToolBar = pMainFrame->GetToolBar();
 	wxASSERT(pMainFrame->m_pToolBar == toolBar);
+
+	// whm added 7Jan12 set toolBar visibility according to basic config
+	// file setting - as stored in the App's m_bToolBarVisible member
+	if (gpApp->m_bToolBarVisible)
+	{
+		gpApp->GetMainFrame()->m_pToolBar->Show();
+	}
+	else
+	{
+		gpApp->GetMainFrame()->m_pToolBar->Hide();
+	}
 
 	wxSize toolBarSize;
 	toolBarSize = pMainFrame->m_pToolBar->GetSize();
@@ -8917,27 +8975,29 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
     // but to values that reflect the current state of the GUI elements they
     // describe.
     if (pMenuBar->FindItem(ID_VIEW_TOOLBAR) != NULL)
-		pMenuBar->Check(ID_VIEW_TOOLBAR, pMainFrame->m_pToolBar != NULL); //pMenuBar->Check(ID_VIEW_TOOLBAR, TRUE);
+		pMenuBar->Check(ID_VIEW_TOOLBAR, m_bToolBarVisible); // whm modified 6Jan12
     if (pMenuBar->FindItem(ID_VIEW_STATUS_BAR) != NULL)
-		pMenuBar->Check(ID_VIEW_STATUS_BAR, pMainFrame->GetStatusBar() != NULL); //pMenuBar->Check(ID_VIEW_STATUS_BAR, TRUE);
+		pMenuBar->Check(ID_VIEW_STATUS_BAR, m_bStatusBarVisible); // whm modified 6Jan12
     if (pMenuBar->FindItem(ID_VIEW_COMPOSE_BAR) != NULL)
-		pMenuBar->Check(ID_VIEW_COMPOSE_BAR, pMainFrame->m_pComposeBar != NULL); //pMenuBar->Check(ID_VIEW_COMPOSE_BAR, FALSE);
+		pMenuBar->Check(ID_VIEW_COMPOSE_BAR, pMainFrame->m_pComposeBar != NULL);
+    if (pMenuBar->FindItem(ID_VIEW_MODE_BAR) != NULL)
+		pMenuBar->Check(ID_VIEW_MODE_BAR, this->m_bModeBarVisible); // whm added 6Jan12
     if (pMenuBar->FindItem(ID_COPY_SOURCE) != NULL)
-		pMenuBar->Check(ID_COPY_SOURCE, m_bCopySource); //pMenuBar->Check(ID_COPY_SOURCE, TRUE);
+		pMenuBar->Check(ID_COPY_SOURCE, m_bCopySource);
     if (pMenuBar->FindItem(ID_MARKER_WRAPS_STRIP) != NULL)
-		pMenuBar->Check(ID_MARKER_WRAPS_STRIP, m_bMarkerWrapsStrip); //pMenuBar->Check(ID_MARKER_WRAPS_STRIP, TRUE);
+		pMenuBar->Check(ID_MARKER_WRAPS_STRIP, m_bMarkerWrapsStrip);
     if (pMenuBar->FindItem(ID_USE_CC) != NULL)
-		pMenuBar->Check(ID_USE_CC, m_bUseConsistentChanges); //pMenuBar->Check(ID_USE_CC, FALSE);
+		pMenuBar->Check(ID_USE_CC, m_bUseConsistentChanges);
 	if (pMenuBar->FindItem(ID_ACCEPT_CHANGES) != NULL)
-		pMenuBar->Check(ID_ACCEPT_CHANGES, m_bAcceptDefaults); //pMenuBar->Check(ID_ACCEPT_CHANGES, FALSE);
+		pMenuBar->Check(ID_ACCEPT_CHANGES, m_bAcceptDefaults);
 	if (pMenuBar->FindItem(ID_USE_SILCONVERTER) != NULL) // whm added 28Jul11
 		pMenuBar->Check(ID_USE_SILCONVERTER, m_bUseSilConverter);
 	if (pMenuBar->FindItem(ID_TOOLS_AUTO_CAPITALIZATION) != NULL) // whm added 28Jul11
 		pMenuBar->Check(ID_TOOLS_AUTO_CAPITALIZATION, gbAutoCaps);
 	if (pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES) != NULL)
-		pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, gbGlossingVisible); //pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
+		pMenuBar->Check(ID_ADVANCED_SEE_GLOSSES, gbGlossingVisible);
 	if (pMenuBar->FindItem(ID_ADVANCED_GLOSSING_USES_NAV_FONT) != NULL)
-		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, gbGlossingUsesNavFont); //pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
+		pMenuBar->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, gbGlossingUsesNavFont);
 	if (pMenuBar->FindItem(ID_ADVANCED_BOOKMODE) != NULL) // whm added 28Jul11
 		pMenuBar->Check(ID_ADVANCED_BOOKMODE, m_bBookMode);
 	if (pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE) != NULL) // whm added 28Jul11
@@ -12511,6 +12571,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_savedSelectionAnchorIndex = -1; // the sequence number for the pile where saved selection starts
 	m_savedSelectionCount = -1; // how many consecutive CCell (or CPile) instances are in the selection
 
+	m_bStatusBarVisible = TRUE; // Status Bar is visible unless changed by value in basic config file
+	m_bToolBarVisible = TRUE; // Tool Bar is visible unless changed by value in basic config file
+	m_bModeBarVisible = TRUE; // Control/Mode Bar is visible unless changed by value in basic config file
+
 	// default substring delimiters possibly used within LIFT file <text> elements - we
 	// assume only two, comma and semicolon
 	m_LIFT_subfield_delimiters = _T(",;");
@@ -13380,6 +13444,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bAcceptDefaults = FALSE;
 	m_bRestorePunct = FALSE;
 	m_bComposeWndVisible = FALSE; // initially, don't show it (keep interface looking simple)
+	m_bModeBarVisible = TRUE; // initially, show it TODO: make persistent via basic config file setting
 	m_bUseConsistentChanges = FALSE;
 	m_bUseSilConverter = FALSE;
 	m_bSaveToKB = TRUE;
@@ -16053,6 +16118,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// it would fail. The app's next shut down will write a correct basic config file
 		// at the custom location (provided the user or admin doesn't change the location
 		// using the Administrator menu).
+		// !!!!!!!!!!!!!!!! BASIC CONFIG FILE IS READ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration
 														 // detects SHIFT-DOWN
 	}
@@ -16222,6 +16288,30 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_SEE_GLOSSES, FALSE);
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
 	*/
+
+	// whm added 6Jan12. Show or Hide the toolbar, modeBar and/or statusBar according
+	// to the user preferences. The Basic Config file was read in above, so the user's
+	// preferences are stored in the App's members m_bStatusBarVisible, m_bToolBarVisible,
+	// and m_bModeBarVisible. These main window bars, are shown or hidden irrespective
+	// of whether the View menu has the items shown or hidden in the current profile.
+	// Hence, if the administrator sets the visibility of a View menu item that controls
+	// the visibility of these to be hidden from the menu, after having made the bar
+	// element hidden, that element will stay hidden and the user won't be able to change
+	// that element's visibility. The 
+	if (m_bToolBarVisible)
+		m_pMainFrame->m_pToolBar->Show();
+	else
+		m_pMainFrame->m_pToolBar->Hide();
+
+	if (m_bModeBarVisible)
+		m_pMainFrame->m_pControlBar->Show();
+	else
+		m_pMainFrame->m_pControlBar->Hide();
+
+	if (m_bStatusBarVisible)
+		m_pMainFrame->m_pStatusBar->Show();
+	else
+		m_pMainFrame->m_pStatusBar->Hide();
 
 	// The following code for setting the composebar font and RTL was moved here
 	// to the App from the CMainFraim constructor where it was in the MFC version
@@ -24672,6 +24762,30 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	//data << szHidePunctuation << tab << number;
 	//pf->AddLine(data);
 
+	if (m_bStatusBarVisible)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szStatusBarIsVisible << tab << number;
+	pf->AddLine(data);
+
+	if (m_bToolBarVisible)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szToolBarIsVisible << tab << number;
+	pf->AddLine(data);
+
+	if (m_bModeBarVisible)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szModeBarIsVisible << tab << number;
+	pf->AddLine(data);
+
 	if (m_bSuppressWelcome)
 		number = _T("1");
 	else
@@ -26114,6 +26228,36 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			//		m_bHidePunctuation = FALSE;
 			//	else
 			//		m_bHidePunctuation = TRUE;
+		}
+		else if (name == szStatusBarIsVisible) // whm added 6Jan12
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1; // make it visible
+			if (num == 1)
+				m_bStatusBarVisible = TRUE;
+			else
+				m_bStatusBarVisible = FALSE;
+		}
+		else if (name == szToolBarIsVisible) // whm added 6Jan12
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1; // make it visible
+			if (num == 1)
+				m_bToolBarVisible = TRUE;
+			else
+				m_bToolBarVisible = FALSE;
+		}
+		else if (name == szModeBarIsVisible) // whm added 6Jan12
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1; // make it visible
+			if (num == 1)
+				m_bModeBarVisible = TRUE;
+			else
+				m_bModeBarVisible = FALSE;
 		}
 		else if (name == szSuppressWelcome)
 		{
@@ -33144,7 +33288,18 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	else
 	{
 		// the default, or -wf switch-specified, location is in effect
-		rscStr = _("[Default Work Folder Location]  Current Project: %s");
+		// whm modified 7Jan12 replace "Default Work Folder Location" info with "Collaborating
+		// with Paratext/Bibledit" info in status bar
+		if (gpApp->m_bCollaboratingWithBibledit || gpApp->m_bCollaboratingWithParatext)
+		{
+			wxString message = _("Collaborating with ");
+			message += gpApp->m_collaborationEditor;
+			rscStr = _("[") + message + _("]  Current Project: %s");
+		}
+		else
+		{
+			rscStr = _("[Default Work Folder Location]  Current Project: %s");
+		}
 	}
 	wxString message;
 	message = message.Format(rscStr,gpApp->m_curProjectName.c_str());

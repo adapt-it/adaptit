@@ -8961,6 +8961,7 @@ wxMenuBar *AIMenuBarFunc()
     item3->Append( ID_VIEW_TOOLBAR, _("&Toolbar"), _("Show or hide the toolbar"), wxITEM_CHECK );
     item3->Append( ID_VIEW_STATUS_BAR, _("&Status Bar"), _("Show or hide the status bar"), wxITEM_CHECK );
     item3->Append( ID_VIEW_COMPOSE_BAR, _("&Compose Bar"), _("Show or hide the bar for composing text"), wxITEM_CHECK );
+    item3->Append( ID_VIEW_MODE_BAR, _("&Mode Bar"), _("Show or hide the mode bar"), wxITEM_CHECK );
     item3->AppendSeparator();
     item3->Append( ID_COPY_SOURCE, _("Copy Sourc&e"), _("Copy source text to phrase box as default translation"), wxITEM_CHECK );
     item3->Append( ID_MARKER_WRAPS_STRIP, _("&Wrap At Standard Format Markers"), _("Start a new strip whenever a standard format marker is encountered"), wxITEM_CHECK );

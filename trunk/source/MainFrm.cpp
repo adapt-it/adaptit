@@ -276,6 +276,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_UPDATE_UI(ID_VIEW_STATUS_BAR, CMainFrame::OnUpdateViewStatusBar)
 	EVT_MENU(ID_VIEW_COMPOSE_BAR, CMainFrame::OnViewComposeBar)
 	EVT_UPDATE_UI(ID_VIEW_COMPOSE_BAR, CMainFrame::OnUpdateViewComposeBar)
+	EVT_MENU(ID_VIEW_MODE_BAR, CMainFrame::OnViewModeBar)
+	EVT_UPDATE_UI(ID_VIEW_MODE_BAR, CMainFrame::OnUpdateViewModeBar)
 	EVT_MENU(ID_VIEW_SHOW_ADMIN_MENU, CMainFrame::OnViewAdminMenu)
 	EVT_UPDATE_UI(ID_VIEW_SHOW_ADMIN_MENU, CMainFrame::OnUpdateViewAdminMenu)
 	EVT_UPDATE_UI(IDC_CHECK_KB_SAVE, CMainFrame::OnUpdateCheckKBSave)
@@ -1387,6 +1389,21 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 												// presence when calculating the client size
 												// with pMainFrame->GetClientSize()
 
+	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
+	// OnInit() function. At this point the basic config file has not been 
+	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on 
+	// their normal defaults - all visible. The changes of visibility according to the
+	// user's preferences are done later in OnInit() when the 
+	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
+	//if (gpApp->m_bToolBarVisible)
+	//{
+	//	m_pToolBar->Show();
+	//}
+	//else
+	//{
+	//	m_pToolBar->Hide();
+	//}
+
 	// MFC version also has 3 lines here to EnableDocking() of toolBar. We won't use docking in
 	// the wx version, although the wxGTK version enables docking by default (we turn it off).
 
@@ -1417,13 +1434,32 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	// Note: We are creating a controlBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the controlBar's
-	// layout within the Main Frame. The controlBar is always visible.
+	// layout within the Main Frame. The controlBar is visible by default on
+	// the first run of the app. As of version 6.1.1 the control bar can
+	// be made visible or hidden by menu choice and its state remains visible
+	// or hidden until explicitly changed - subject to its view menu item
+	// visibility in the current profile.
 	// Here and in the OnSize() method, we calculate the canvas' client
-	// size, which must exclude the height of the controlBar.
+	// size, which must exclude the height of the controlBar (if shown).
 	// Get and save the native height of our controlBar.
 	wxSize controlBarSize;
 	controlBarSize = m_pControlBar->GetSize();
 	m_controlBarHeight = controlBarSize.GetHeight();
+
+	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
+	// OnInit() function. At this point the basic config file has not been 
+	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on 
+	// their normal defaults - all visible. The changes of visibility according to the
+	// user's preferences are done later in OnInit() when the 
+	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
+	//if (gpApp->m_bModeBarVisible)
+	//{
+	//	m_pControlBar->Show();
+	//}
+	//else
+	//{
+	//	m_pControlBar->Hide();
+	//}
 
 	// set the background color of the Delay edit control to button face
 	CAdapt_ItApp* pApp = &wxGetApp(); // needed here!
@@ -1431,7 +1467,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxTextCtrl* pDelayBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_DELAY);
 	wxASSERT(pDelayBox != NULL);
 	pDelayBox->SetBackgroundColour(pApp->sysColorBtnFace);
-
 
 	// Create the compose bar using a wxPanel
 	wxPanel *composeBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
@@ -1442,7 +1477,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// nothing about. The mainFrameSizer below takes care of the composeBar's
 	// layout within the Main Frame. The composeBar is not visible by default
 	// but can be toggled on from the view menu or when it takes on the form
-	// of the Free Translation compose bar in Free Translation mode.
+	// of the Free Translation compose bar in Free Translation mode. As of 
+	// version 6.1.1 the compose bar's state remains visible or hidden until
+	// explicitly changed.
 	// Here and in the OnSize() method, we calculate the canvas' client
 	// size, which also must exclude the height of the composeBar (if shown).
 	// Get and save the native height of our composeBar.
@@ -1637,6 +1674,21 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxSize statusBarSize;
 	statusBarSize = m_pStatusBar->GetSize();
 	m_statusBarHeight = statusBarSize.GetHeight();
+
+	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
+	// OnInit() function. At this point the basic config file has not been 
+	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on 
+	// their normal defaults - all visible. The changes of visibility according to the
+	// user's preferences are done later in OnInit() when the 
+	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
+	//if (gpApp->m_bStatusBarVisible)
+	//{
+	//	m_pStatusBar->Show();
+	//}
+	//else
+	//{
+	//	m_pStatusBar->Hide();
+	//}
 
 	// set the font used in the compose bar to the font & size for the target font
 	// Unlike the MFC version, the fonts haven't been created yet at this point,
@@ -2525,30 +2577,41 @@ wxSize CMainFrame::GetCanvasClientSize()
 
 // BEW 26Mar10, no changes needed for support of doc version 5
 // whm 12Oct10 modified for user profiles support
+// whm 7Jan12 modified for better viewing and hiding of tool bar
 void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (m_pToolBar == NULL)
+	if (m_pToolBar != NULL)
+	{
+		if (gpApp->m_bToolBarVisible)
+		{
+			// Hide the tool bar
+			m_pToolBar->Hide();
+			GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
+			gpApp->LogUserAction(_T("Hide Tool bar"));
+			gpApp->m_bToolBarVisible = FALSE;
+			SendSizeEvent(); // needed to force redraw
+		}
+		else
+		{
+			// Show the tool bar
+			m_pToolBar->Show(TRUE);
+			GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
+			gpApp->LogUserAction(_T("Show Tool bar"));
+			gpApp->m_bToolBarVisible = TRUE;
+			SendSizeEvent(); // needed to force redraw
+		}
+	}
+	else if (!gpApp->m_bToolBarVisible)
 	{
         RecreateToolBar(); // whm 12Oct10 modified RecreateToolBar() for user profile compatibility
 		wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
 		if (pMenuItem == NULL)
 			return;
 		GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
-		pApp->LogUserAction(_T("View Toolbar"));
+		gpApp->m_bToolBarVisible = TRUE; // whm added 6Jan12
+		gpApp->LogUserAction(_T("View Toolbar"));
 		SendSizeEvent();
 	}
-	else
-	{
-        delete m_pToolBar;
-		m_pToolBar = (AIToolBar*)NULL;
-		SetToolBar(NULL);
-		wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
-		if (pMenuItem == NULL)
-			return;
-		GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
-		pApp->LogUserAction(_T("Hide Toolbar"));
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2568,8 +2631,40 @@ void CMainFrame::OnUpdateViewToolBar(wxUpdateUIEvent& event)
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
+// whm 7Jan12 modified for better viewing and hiding of status bar
 void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_pStatusBar != NULL)
+	{
+		if (gpApp->m_bStatusBarVisible)
+		{
+			// Hide the status bar
+			m_pStatusBar->Hide();
+			GetMenuBar()->Check(ID_VIEW_STATUS_BAR, FALSE);
+			gpApp->LogUserAction(_T("Hide Tool bar"));
+			gpApp->m_bStatusBarVisible = FALSE;
+			SendSizeEvent(); // needed to force redraw
+		}
+		else
+		{
+			// Show the status bar
+			m_pStatusBar->Show(TRUE);
+			GetMenuBar()->Check(ID_VIEW_STATUS_BAR, TRUE);
+			gpApp->LogUserAction(_T("Show Tool bar"));
+			gpApp->m_bStatusBarVisible = TRUE;
+			SendSizeEvent(); // needed to force redraw
+		}
+	}
+	else if (!gpApp->m_bStatusBarVisible)
+	{
+        DoCreateStatusBar();
+		GetMenuBar()->Check(ID_VIEW_STATUS_BAR, TRUE);
+		gpApp->m_bStatusBarVisible = TRUE; // whm added 6Jan12
+		gpApp->LogUserAction(_T("View Statusbar"));
+	}
+	// update the status bar info
+	gpApp->RefreshStatusBarInfo();
+	/*
 	CAdapt_ItApp* pApp = &wxGetApp();
     wxStatusBar *statbarOld = GetStatusBar();
     if ( statbarOld )
@@ -2577,12 +2672,14 @@ void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
         statbarOld->Hide();
         SetStatusBar(0);
 		GetMenuBar()->Check(ID_VIEW_STATUS_BAR, FALSE);
+		pApp->m_bStatusBarVisible = FALSE; // whm added 6Jan12
 		pApp->LogUserAction(_T("Hide Statusbar"));
     }
     else
     {
         DoCreateStatusBar();
 		GetMenuBar()->Check(ID_VIEW_STATUS_BAR, TRUE);
+		pApp->m_bStatusBarVisible = TRUE; // whm added 6Jan12
 		pApp->LogUserAction(_T("View Statusbar"));
     }
 	// Need to call SendSizeEvent() for the frame to redraw itself after the
@@ -2594,6 +2691,7 @@ void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
     // authors) while we look for a proper fix..
     SendSizeEvent();
 #endif
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2746,29 +2844,38 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // the m_pControlBar is never hidden, but always visible on the main frame.
 	wxSize mainFrameClientSize;
 	mainFrameClientSize = GetClientSize(); // determine the size of the main frame's client window
-    // The upper left position of the main frame's client area is always 0,0 so we position
-    // the controlBar there and use the main frame's client size width and maintain the
-    // existing controlBar's height (note: SetSize sets both the position and the size).
-    // Note: SetSize() uses upper left coordinates in pixels x and y, plus a width and
-    // height also in pixels. Its signature is SetSize(int x, int y, int width, int
-    // height).
-	m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight);
-					// width is mainFrameClientSize.x, height is m_controlBarHeight
-	m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
-
+   
     // The VertDisplacementFromReportedMainFrameClientSize value is used to keep track of
     // the screen coord y displacement from the original GetClientSize() call above on this
     // main window frame. It represents the how far down inside the main frame's client
     // area we need to go to place any of the potentially visible "bars" in the main
     // window, and ultimately also the placement of the upper left corner of the canvas
-    // itself (which fills the remainder of the client area. Since the control bar is
-    // always visible, we start with the displacement represented by the m_controlBarHeight
-    // assigned to VertDisplacementFromReportedMainFrameClientSize.
-	int VertDisplacementFromReportedMainFrameClientSize = m_controlBarHeight;
+    // itself (which fills the remainder of the client area. We start with the displacement 
+    // represented by the m_controlBarHeight if visible, and proceed with the other visible
+    // elements.
+	int VertDisplacementFromReportedMainFrameClientSize = 0;
     // The FinalHeightOfCanvas that we end up placing starts with the available height of
     // the mainFrameClientSize as determined by the GetClientSize() call above, now reduced
     // by the height of our always visible controlBar.
-	int finalHeightOfCanvas = mainFrameClientSize.y - m_controlBarHeight;
+	int finalHeightOfCanvas = mainFrameClientSize.y;
+	// The upper left position of the main frame's client area is always 0,0 so we position
+    // the controlBar there if it is visible.
+    // Note: SetSize sets both the position and the size. 
+    // SetSize() uses upper left coordinates in pixels x and y, plus a width and
+    // height also in pixels. Its signature is SetSize(int x, int y, int width, int
+    // height).
+	
+	// Adjust the Mode Bar's position in the main frame (if controlBar is visible).
+	if (m_pControlBar->IsShown())
+	{
+		m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight);
+						// width is mainFrameClientSize.x, height is m_controlBarHeight
+		m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
+		
+		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
+		VertDisplacementFromReportedMainFrameClientSize += m_controlBarHeight;
+		finalHeightOfCanvas -= m_controlBarHeight;
+	}
 
     // Next, set the size and placement for each of the visible "bars" that appear at the
     // top of the client area (under the controlBar. We increment the value of
@@ -3046,6 +3153,44 @@ void CMainFrame::OnViewComposeBar(wxCommandEvent& WXUNUSED(event))
 		ComposeBarGuts(composeBarShow);
 }
 
+void CMainFrame::OnViewModeBar(wxCommandEvent& WXUNUSED(event))
+{
+	//wxMessageBox(_T("Not yet implemented!"),_T("Mode Bar"),wxICON_INFORMATION);
+	wxView* pView = gpApp->GetView();
+	if (pView != NULL)
+	{
+		wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+		// toggle the mode bar's flag and its visibility
+		if (gpApp->m_bModeBarVisible)
+		{
+			// Hide it
+			m_pControlBar->Hide();
+			GetMenuBar()->Check(ID_VIEW_MODE_BAR, FALSE);
+			gpApp->LogUserAction(_T("Hide Mode bar"));
+			gpApp->m_bModeBarVisible = FALSE; // used in OnUpdateViewModeeBar() handler
+			SendSizeEvent(); // needed to force redraw
+		}
+		else
+		{
+			// Show the composeBar
+			m_pControlBar->Show(TRUE);
+			GetMenuBar()->Check(ID_VIEW_MODE_BAR, TRUE);
+			gpApp->LogUserAction(_T("Show Mode bar"));
+			gpApp->m_bModeBarVisible = TRUE; // used in OnUpdateViewComposeBar() handler
+			SendSizeEvent(); // needed to force redraw
+		}
+
+		if (!m_pControlBar->IsShown())
+		{
+			// the bar has just been made invisible
+			// restore focus to the targetBox, if it is visible
+			if (gpApp->m_pTargetBox != NULL)
+				if (gpApp->m_pTargetBox->IsShown())
+					gpApp->m_pTargetBox->SetFocus();
+		}
+	}
+}
+
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
@@ -3142,7 +3287,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			m_pComposeBar->Hide();
 			GetMenuBar()->Check(ID_VIEW_COMPOSE_BAR, FALSE);
 			gpApp->LogUserAction(_T("Hide Composebar"));
-			gpApp->m_bComposeWndVisible = FALSE; // needed???
+			gpApp->m_bComposeWndVisible = FALSE; // used in OnUpdateViewComposeBar() handler
 			gpApp->m_bComposeBarWasAskedForFromViewMenu = FALSE; // needed for free translation mode
 			SendSizeEvent(); // needed to force redraw
 		}
@@ -3152,7 +3297,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			m_pComposeBar->Show(TRUE);
 			GetMenuBar()->Check(ID_VIEW_COMPOSE_BAR, TRUE);
 			gpApp->LogUserAction(_T("Show Composebar"));
-			gpApp->m_bComposeWndVisible = TRUE; // needed???
+			gpApp->m_bComposeWndVisible = TRUE; // used in OnUpdateViewComposeBar() handler
 			SendSizeEvent(); // needed to force redraw
 		}
 		m_pComposeBar->GetSizer()->Layout(); // make compose bar resize for different buttons being shown
@@ -3247,6 +3392,37 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 			event.Enable(TRUE);
 			event.Check(pApp->m_bComposeWndVisible);
 		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// This handler insures that the "Mode Bar" item on the View menu is enabled and checked when
+/// the App's m_bModeBarVisible flag is TRUE, and unchecked when m_bModeBarVisible is FALSE.
+/// The "Mode Bar" menu item will be disabled if the application is in free translation mode.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CMainFrame::OnUpdateViewModeBar(wxUpdateUIEvent& event)
+{
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// the flags we want are on the view, so get the view
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
+	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+
+	if (pView != NULL) //if (pView == pAppView)
+	{
+		event.Enable(TRUE);
+		event.Check(pApp->m_bModeBarVisible);
 	}
 }
 
