@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.1.0"
+#define MyAppVersion "6.1.1"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -22,21 +22,21 @@ DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
 LicenseFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\LICENSING.txt
 InfoBeforeFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Readme_Unicode_Version.txt
-OutputBaseFilename=Adapt_It_WX_6_1_0_Unicode_No_HTML_HELP
+OutputBaseFilename=Adapt_It_WX_6_1_1_Unicode_No_HTML_HELP
 SetupIconFile=C:\C++ Programming\Adapt It\adaptit\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir=C:\Users\Bill Martin\Desktop\AIWX Installers
-VersionInfoCopyright=2011 by Bruce Waters, Bill Martin, SIL International
+VersionInfoCopyright=2012 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.1.0
+VersionInfoProductVersion=6.1.1
 WizardImageFile="C:\C++ Programming\Adapt It\adaptit\res\AIWX.bmp"
 WizardSmallImageFile="C:\C++ Programming\Adapt It\adaptit\res\AILogo32x32.bmp"
 WizardImageStretch=false
-AppCopyright=2011 Bruce Waters, Bill Martin, SIL International
+AppCopyright=2012 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.1.0
+VersionInfoVersion=6.1.1
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
@@ -84,52 +84,8 @@ Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Readme
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Tok Pisin fragment 1John.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\AdminMenuSetupBECollab.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\AdminMenuSetupPTCollab.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\ai_new_icon.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Assign_locations_dlg_nothing_ticked.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Assign_locations_for_inputs_outputs_all_checked.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\BalsaOpeningScreen.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\BENewProject.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Enter_src_lang_name_dlgBE.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Enter_tgt_lang_name_dlgBE.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Get_src_text_from_BE_proj_no_options_showing.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\GetSourceTextFromEditorNoOptions.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\GetSourceTextFromEditorOptionsNoLangNameCtrls.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\GetSourceTextFromEditorOptionsWithLangNameCtrls.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Give_Feedback.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\GuesserSettingsTBtn.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Move_or_Copy_Folders_or_Files.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\PT-BE_no_books_found_msg.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\PT-BE_no_chapters_and_verses_found_msg.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\PTNewProject.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Reminder_to_setup_PT_first_before_assigning_locations.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\Report_a_problemDlg.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\SetUpBibleditCollaboration.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\SetUpBibleditCollaborationWithLangNamesCtrls.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\SetupPTCollabNoLangNamesCtrls.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\SetupPTCollabWithLangNamesCtrls.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\SetupPTCollabWithoutLangNamesCtrls.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\User_workflow_profiles.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\back_button.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image2.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image3.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image4.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image5.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image6.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image7.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image8.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image9.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image10.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image11.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image12.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image13.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image14.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image15.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image16.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image17.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image19.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\Image20.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Admin_help\*.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
+Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\*.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Languages\az\Adapt_It_Unicode.mo"; DestDir: "{app}\Languages\az"; Flags: IgnoreVersion; 
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Languages\az\az.po"; DestDir: "{app}\Languages\az"; Flags: IgnoreVersion; 
 Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Languages\es\Adapt_It_Unicode.mo"; DestDir: "{app}\Languages\es"; Flags: IgnoreVersion; 
