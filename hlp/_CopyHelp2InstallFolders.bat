@@ -30,19 +30,19 @@ pause
 
 rem The next line deletes any existing temporary help folder named hlp_temp
 rem along with any sub-folders and files it contains.
-IF EXIST ..\hlp_temp (rmdir ..\hlp_temp\ /S /Q)
-IF EXIST ..\hlp\Adapt_It.htb (del ..\hlp\Adapt_It.htb)
+
+IF EXIST Adapt_It.htb (del Adapt_It.htb)
 
 rem The next line uses xcopy to create a temporary hlp_temp directory that
 rem is at the same level as the current hlp directory and copy all folders
 rem and files from the hlp directory to the hlp_temp directory, but 
 rem the copy process excludes folders and files with extensions contained
 rem in the Exclude.txt file. 
-xcopy *.* "..\hlp_temp\*.*" /r /k /y /e /c /EXCLUDE:Exclude.txt
+rem xcopy *.* "..\hlp_temp\*.*" /r /k /y /e /c /EXCLUDE:Exclude.txt
 
 rem Change to the hlp_temp directory so 7-zip will not include the hlp_temp
 rem folder in the archive.
-cd ..\hlp_temp
+rem cd ..\hlp_temp
 
 rem The next line invokes the command line version of 7-Zip from its
 rem Windows installation (where the full version of 7-Zip gets installed.
@@ -52,8 +52,7 @@ rem   -tzip         means to create a standard zip archive
 rem   -x!*.htb      means to exclude any *.htb file from going into the archive
 rem   ..\hlp\Adapt_It.htb  is the name of the archive to create in the hlp dir
 rem   *             a single asterisk tells 7za to include all dirs and files
-"C:\Program Files\7-Zip\7za" a -tzip -x!*.htb ..\hlp\Adapt_It.htb *
-cd ..\hlp
+"C:\Program Files\7-Zip\7za" a -tzip Adapt_It.htb * -xr!.svn -xr!*.bat -xr!*.chm -xr!*.zip -xr!mac_excl.lst -xr!_errorlog.txt -xr!Adapt_It.htb 
 
 rem If we're doing this on a machine that doesn't have Bill's directories
 rem for Setup Generator, just end now.
