@@ -1,3 +1,26 @@
+adaptit (6.1.1-1) unstable; urgency=low
+
+  * debian/copyright:
+    - Corrected Bruce Waters email address.
+    - Updated download URL.
+    - Updated year ranges in copyright lines.
+    - Specified version 2.1 of LGPL or later for packaging.
+    - Removed unwanted dh-make boilerplate comments.
+    - Reformatted to meet DEP5 standard.
+  * debian/control:
+    - Added Recommends: bibledit-gtk (>= 4.2.93) to ensure
+      and appropriately recent version of bibledit-gtk is used.
+    - Added ${Misc:Depends} to each package Depends: line.
+    - Re-wrapped extended description text.
+    - Added Section: docs for adaptit-docs package, since it is
+      documentation.
+    - Added Uploaders: including Bruce Waters and Jonathan Marsden.
+  * debian/rules:
+    - Removed useless generic comments added by dh-make.
+    - Added recommended build-arch and build-indep targets.
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 8 Jan 2012 18:00:00 -0600
+
 adaptit (6.1.0-1) unstable; urgency=low
 
   * Pull in updates
