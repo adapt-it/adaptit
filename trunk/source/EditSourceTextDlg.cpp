@@ -66,10 +66,19 @@ extern EditRecord gEditRecord; // store info pertinent to generalized editing in
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
+// BEW 10Jan12, added handlers for OK and Cancel buttons - the legacy code was relying
+// on validators having been set, in order to get the user's edits transferred from the
+// controls to the storage variables, but Bill's recent removal of the validators killed
+// that mechanism, and doing it manually didn't work either because the OnOK() and
+// OnCancel() members didn't get called as they weren't attached to the event mechanism - so I'm
+// doing that now
+//
 // event handler table
 BEGIN_EVENT_TABLE(CEditSourceTextDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEditSourceTextDlg::InitDialog)
 	EVT_TEXT_ENTER(IDC_EDIT_NEW_SOURCE,CEditSourceTextDlg::ReinterpretEnterKeyPress)
+	EVT_BUTTON(wxID_OK, CEditSourceTextDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CEditSourceTextDlg::OnCancel)
 END_EVENT_TABLE()
 
 CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
@@ -208,16 +217,18 @@ void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
+// BEW 10Jan12, Bug Fix: recently Bill removed dependence on validators - and so when
+// OnOK() returns, there is no validator set and so the user's change to a new source text
+// is not transferred from pSrcTextEdit, resulting in the dialog returning the old source
+// text value. The fix is to put an explicit GetValue() call in the OnOK() handler
 void CEditSourceTextDlg::OnOK(wxCommandEvent& event) 
 {
-	
+	m_strNewSourceText = pSrcTextEdit->GetValue();
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
 void CEditSourceTextDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
-
-	//
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 }
 

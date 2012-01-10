@@ -24131,15 +24131,29 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	}
 
 	// we now have the nSequNum at which we want to restore the box, so do it
+	// BEW 10Jan12, bug fix needed here - use GetSrcPhrase() and gbIsGlossing
+	// to find the appropriate text for the box, don't use the translation (wxString)
+	// global variable's value - it isn't guaranteed to contain the wanted string
 	bool bOldIsOK = TRUE;
 	if (nSequNum == pRec->nSaveActiveSequNum)
 	{
-		// the old location is still good, use it
-		translation = pRec->oldPhraseBoxText;
-		pApp->m_targetPhrase = translation;
+		// the old location is still good, use it -- grab whatever is the
+		// appropriate text in the CSourcePhrase instance at that location
+		CSourcePhrase* spPtr = GetSrcPhrase(nSequNum);
+		wxASSERT(spPtr != NULL);
+		if (gbIsGlossing)
+		{
+			pApp->m_targetPhrase = spPtr->m_gloss;
+		}
+		else
+		{
+			pApp->m_targetPhrase = spPtr->m_adaption;
+		}
+		translation.Empty();
 	}
 	else
 	{
+		// clear, and do a lookup below instead
 		translation.Empty();
 		pApp->m_targetPhrase.Empty();
 		bOldIsOK = FALSE;
@@ -25740,13 +25754,13 @@ bailout:	pAdaptList->Clear();
             // date, TextType values which are set or changed at the wrong places and now
             // inappropriately propagated in the light of the edited SFM change(s) now in
             // effect, and likewise m_bSpecialText will in many places be wrong, or changed
-            // when it shouldn't be, shouldn't be. To fix all this stuff we will scan
-            // across the whole document with the DoMarkerHousekeeping() function, which
-            // duplicates some of TokenizeText()'s code, to get the TextType,
-            // m_bSpecialText, and m_inform members of pSrcPhrase correct at each location
-            // (doing it over the whole doc is, of course, overkill, but it will catch
-            // anything wrong from other operations and fix them too, so worth doing & it
-            // is quick/unnoticed)
+            // when it shouldn't be. To fix all this stuff we will scan across the whole
+            // document with the DoMarkerHousekeeping() function, which duplicates some of
+            // TokenizeText()'s code, to get the TextType, m_bSpecialText, and m_inform
+            // members of pSrcPhrase correct at each location (doing it over the whole doc
+            // is, of course, overkill, but it will catch anything wrong from other
+            // operations and fix them too, so worth doing & it is quick/unnoticed)
+            
 			//int activeSequNum = pApp->m_nActiveSequNum; // set but not used
 			if (pApp->m_nActiveSequNum < 0)
 			{
@@ -26383,6 +26397,9 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 // use the following when placing the phrase box in vertical editing moode's steps
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 10Jan12, fixed bug in which the unqualified nSequNum == pRec->nSaveActiveSequNum
+// test overwrites a found value from the lookup with the original phrasebox text if
+// the source text for editing was just a single word
 void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -26397,7 +26414,7 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 									   // done internally will have box placement
 									   // skipped if we get here and it is -1
 	pApp->m_pActivePile = GetPile(nSequNum);
-	bool bFoundSomething;
+	bool bFoundSomething = FALSE;
 	if (gbIsGlossing)
 	{
 		translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
@@ -26411,7 +26428,6 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 		// this call sets translation to something, or leaves it empty if the lookup
 		// found nothing
 		bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
-		bFoundSomething = bFoundSomething; // avoid warning
 	}
 	pApp->m_targetPhrase = translation; // global CString  translation is set
         // by whatever is adaptation or gloss if user switched modes, and if there is no
@@ -26420,8 +26436,8 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* pRec, int nSequNu
 
 	// BEW added 16Nov10, one final thing we can do is test if the saved initial active
 	// sequ number is the same as that passed in, if so, then reset the phrase box to the
-	// stored string in pRec
-	if (nSequNum == pRec->nSaveActiveSequNum)
+	// stored string in pRec, provided nothing was found above
+	if (!bFoundSomething && nSequNum == pRec->nSaveActiveSequNum)
 	{
 		translation = pRec->oldPhraseBoxText;
 		pApp->m_targetPhrase = translation;
