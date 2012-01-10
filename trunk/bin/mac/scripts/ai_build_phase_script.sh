@@ -107,12 +107,12 @@ imagesQSDir="${sharedSuppDir}/images/Adapt_It_Quick_Start"
 imagesQSDirSrc="${docsDir}/images/Adapt_It_Quick_Start"
 mkdir -p "$imagesQSDir"
 cp "$docsDir/Adapt_It_Quick_Start.htm" "$sharedSuppDir"
-cp "$imagesQSDirSrc/*.gif" "$imagesQSDir"
+cp $imagesQSDirSrc/*.gif "$imagesQSDir"
 
 # Set up variables for copying of Help for Admin help files and images to Shared Support
 imagesHADir="${sharedSuppDir}/images/Admin_help"
 imagesHADirSrc="${docsDir}/images/Admin_help"
 mkdir -p "$imagesHADir"
 cp "$docsDir/Help_for_Administrators.htm" "$sharedSuppDir"
-cp "$imagesHADirSrc/*.gif" "$imagesHADir"
+cp $imagesHADirSrc/*.gif "$imagesHADir"
 
