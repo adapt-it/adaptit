@@ -5778,11 +5778,19 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			CSourcePhrase* pLastSPhr = ((CPile*)
 							m_pCurFreeTransSectionPileArray->Last())->GetSrcPhrase();
 			bool bFreeTransPresent = TRUE;
-			bool bProbablyVerse =
-							m_pView->GetLikelyValueOfFreeTranslationSectioningFlag(pSrcPhrases,
-								pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber,
-								bFreeTransPresent);
-			m_pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
+            // BEW 12Jan12 -- wrapped the call of GetLikely...Flag() with a test so that
+            // m_bDefineFreeTransByPunctuation value is not potentially reset to an
+            // unwanted value whenever the user in free trans mode clicks elsewhere in the
+            // document. (But in vertical edit, where the previous setting used for the
+            // section being updated has lost, it is appropriate to do the guess)
+			if (gbVerticalEditInProgress)
+			{
+				bool bProbablyVerse =
+								m_pView->GetLikelyValueOfFreeTranslationSectioningFlag(pSrcPhrases,
+									pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber,
+									bFreeTransPresent);
+				m_pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
+			}
 
 			// now set the radio buttons
 			wxRadioButton* pRadioButton = (wxRadioButton*)
