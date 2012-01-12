@@ -70,11 +70,15 @@ CSetDelay::CSetDelay(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
-	m_nDelay = 0;
+	
+	//BEW fixed 12Jan12, the return value in the call was wrongly cast to wxTextCtrl*, but
+	//the pointer returned is to the SpinCtrl (and the underlying wxTextCtrl is not
+	//accessible from that), so I changed it to a wxSpinCtrl*, which means that the OnOK()
+	//handler returns the int value which is all we need. No need to mess with wxString
+	//and convert, etc as in the (now deleted) legacy code
+	m_pSpinCtrl = (wxSpinCtrl*)FindWindowById(IDC_SPIN_DELAY_TICKS);
+	wxASSERT(m_pSpinCtrl != NULL);
 
-	m_pDelayBox = (wxTextCtrl*)FindWindowById(IDC_SPIN_DELAY_TICKS);
-	wxASSERT(m_pDelayBox != NULL);
-	m_pDelayBox->ChangeValue(_T("0"));
 	//m_pDelayBox->SetValidator(wxGenericValidator(&m_nDelay)); // whm 21Nov11 verified working OK in Balsa,
 																// but remove validator anyway
 }
@@ -87,17 +91,11 @@ CSetDelay::~CSetDelay() // destructor
 void CSetDelay::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	m_nDelay = gpApp->m_nCurDelay; // whm note: this is also done in the View calling code, so is unnecessary here
-
 	CopyFontBaseProperties(gpApp->m_pNavTextFont,gpApp->m_pDlgSrcFont);
 	gpApp->m_pDlgSrcFont->SetPointSize(11); // 11 point
 	gpApp->m_pDlgSrcFont->SetWeight(wxFONTWEIGHT_NORMAL); // not bold or light font
-		
-	//TransferDataToWindow(); // whm 21Nov11 verified working OK in Balsa, but removed validator anyway
-	wxString delay;
-	delay.Empty();
-	delay << m_nDelay;
-	m_pDelayBox->ChangeValue(delay);
+	// show in the dialog the currently set value (in milliseconds)	
+	m_pSpinCtrl->SetValue(gpApp->m_nCurDelay);
 }
 
 // event handling functions
@@ -110,9 +108,12 @@ void CSetDelay::OnOK(wxCommandEvent& event)
 {
 	// update the variable m_nDelay to user-set value
 	//TransferDataFromWindow(); // whm 21Nov11 verified working OK in Balsa, but removed validator anyway
-	wxString delay;
-	delay = m_pDelayBox->GetValue();
-	m_nDelay = wxAtoi(delay);
+	
+	// BEW fixed 12Jan12 - there was confusion here, GetValue() was being called as if it
+	// returned wxString (as it does for wxTextCtrl) but here the pointer is to a
+	// wxSpinCtrl, and GetValue() for that returns int -- so changing to agree with that
+	// removed the null ptr crash
+	m_nDelay = m_pSpinCtrl->GetValue();
 	// whm note: the App's m_nCurDelay is set in the View caller from the local m_nDelay above
 	
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
