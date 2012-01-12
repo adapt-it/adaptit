@@ -38799,7 +38799,7 @@ void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& event)
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
-		LogUserAction(_T("Cancelled OnMoveOrCopyFoldersOrFiles()"));
+		LogUserAction(_T("Closed OnMoveOrCopyFoldersOrFiles()"));
 	}
 }
 

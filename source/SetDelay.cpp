@@ -51,6 +51,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 // event handler table
 BEGIN_EVENT_TABLE(CSetDelay, AIModalDialog)
 	EVT_INIT_DIALOG(CSetDelay::InitDialog)
+	EVT_BUTTON(wxID_OK, CSetDelay::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CSetDelay::OnCancel)
 END_EVENT_TABLE()
 
 
@@ -72,6 +74,7 @@ CSetDelay::CSetDelay(wxWindow* parent) // dialog constructor
 
 	m_pDelayBox = (wxTextCtrl*)FindWindowById(IDC_SPIN_DELAY_TICKS);
 	wxASSERT(m_pDelayBox != NULL);
+	m_pDelayBox->ChangeValue(_T("0"));
 	//m_pDelayBox->SetValidator(wxGenericValidator(&m_nDelay)); // whm 21Nov11 verified working OK in Balsa,
 																// but remove validator anyway
 }
@@ -115,6 +118,10 @@ void CSetDelay::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
+void CSetDelay::OnCancel(wxCommandEvent& event) 
+{	
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
 
 // other class methods
 
