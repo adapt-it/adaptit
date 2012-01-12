@@ -34,6 +34,7 @@ public:
 	//enum { IDD = IDD_DELAY_DLG };
 
 	wxTextCtrl* m_pDelayBox;
+	wxSpinCtrl* m_pSpinCtrl;
 	int m_nDelay;
 
 protected:
