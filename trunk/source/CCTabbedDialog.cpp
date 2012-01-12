@@ -583,16 +583,17 @@ bool CCCTabbedDialog::IsSelectedInCurrentTable(wxString cctFile)
 
 void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event)) 
 {
-	// whm 14Jul11 modified. If this CCCTabbedDialog is summoned without 
+	// whm 11Jan12 modified. If this CCCTabbedDialog is summoned without 
 	// a project being open (as can happen if Cancel is pressed at the 
 	// wizard/collab dialog), browsing will be directed depending on any
 	// whether a project is open and whether nav protection in effect 
 	// for the App's m_ccTableInputsAndOutputsFolderPath. If nav protection 
 	// is ON for _CCTABLE_INPUTS_OUTPUTS, that folder is the one that any 
 	// contained cc tables are shown for selection. Otherwise we look for
-	// cc table files located in m_curProjectPath when a project is open,
-	// or we look in either the m_workFolderPath or m_customWorkFolderPath
-	// as appropriate.
+	// cc table files located in the App's m_lastCcTablePath if it has a
+	// valid/existing path, or in m_curProjectPath when a project is open,
+	// or when no project is open we look in either the m_workFolderPath 
+	// or m_customWorkFolderPath as appropriate.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	
 	// whm revised 6Aug11 in support of protecting inputs/outputs folder navigation
@@ -653,11 +654,16 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		}
 		else // must be wxID_OK
 		{
+			// whm revision 11Jan12 Note: We set the App's m_lastCcTablePath variable 
+			// with the path part of the selected path. We do this even when navigation 
+			// protection is on (see below), so that the special folders would be the 
+			// initial path suggested if the administrator were to switch Navigation 
+			// Protection OFF.
+			wxString path, fname, ext;
+			// whm Note: wxFileDialog::GetPath() returns the full path (directory and filename)
+			wxFileName::SplitPath(fileDlg.GetPath(), &path, &fname, &ext);
 			m_tblName[m_nCurPage] = fileDlg.GetFilename(); // this has just the file name
-			m_folderPath[m_nCurPage] = fileDlg.GetPath(); // GetPath() returns the path part 
-														  // without name or extension. 
-														  // The default is to get the path 
-														  // without a separator at the end.
+			m_folderPath[m_nCurPage] = path; // has just the path part 
 			
 			// update the app's m_lastCcTablePath variable
 			pApp->m_lastCcTablePath = m_folderPath[m_nCurPage];
@@ -799,8 +805,36 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		m_tblName[m_nCurPage] = nameDlg.m_tableName;
 		m_tblName[m_nCurPage] += _T(".cct"); // append .cct extension
 
-		// Always use the special _CCTABLE_INPUTS_AND_OUTPUTS folder.
-		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath; // this is where we will create it
+		bool bBypassFileDialog_ProtectedNavigation = FALSE;
+		// Determine the value for m_folderPath[m_nCurPage]
+		if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
+		{
+			// Navigation protection is ON, so set the flag to bypass the wxFileDialog
+			// and force the use of the special protected folder for the export.
+			bBypassFileDialog_ProtectedNavigation = TRUE;
+			m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
+		}
+		else if (gpApp->m_lastCcTablePath.IsEmpty()
+			|| (!gpApp->m_lastCcTablePath.IsEmpty() && !::wxDirExists(gpApp->m_lastCcTablePath)))
+		{
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+			// to appear. But the m_lastKbOutputPath is either empty or, if not empty, 
+			// it points to an invalid path, so we initialize the defaultDir to point to 
+			// the special protected folder, even though Navigation protection is not ON. 
+			// In this case, the user could point the export path elsewhere using the 
+			// wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
+		}
+		else
+		{
+			// Navigation protection is OFF and we have a valid path in m_lastKbOutputPath,
+			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
+			// location of the export. The user could still point the export path elsewhere 
+			// in the wxFileDialog that will appear.
+			bBypassFileDialog_ProtectedNavigation = FALSE;
+			m_folderPath[m_nCurPage] = gpApp->m_lastCcTablePath;
+		}
 
 		// go with the full path specification
 		gpApp->m_lastCcTablePath = m_folderPath[m_nCurPage]; // set the default Table path to the same place too

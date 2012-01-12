@@ -49,6 +49,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 // event handler table
 BEGIN_EVENT_TABLE(CCCTableNameDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CCCTableNameDlg::InitDialog)
+	EVT_BUTTON(wxID_OK, CCCTableNameDlg::OnOK)
 END_EVENT_TABLE()
 
 CCCTableNameDlg::CCCTableNameDlg(wxWindow* parent) // dialog constructor
@@ -112,3 +113,10 @@ void CCCTableNameDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	m_pEditTableName->SetFocus();
 }
 
+// whm 11Jan12 added OK handler which is needed to set value of m_tableName after having
+// removed the SetValidator() call in the constructor.
+void CCCTableNameDlg::OnOK(wxCommandEvent& event) 
+{
+	m_tableName = m_pEditTableName->GetValue();
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
