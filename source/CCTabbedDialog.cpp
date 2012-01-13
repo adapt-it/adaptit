@@ -1024,7 +1024,11 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 //	editor.m_ccTable = *pTemp;
 	wxChar* pTemp;		// DoInputConversion() creates the wxChar buffer
 	wxUint32 lenTemp;
-	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, gpApp->m_srcEncoding);
+	//	GDLC 13Jan12 Use UTF8 as the fallback default font encoding without changing the app's
+	// record of the source text encoding; also provide DoInputConversion() with the correct
+	// bte buffer length
+	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, wxFONTENCODING_UTF8, nLogLen);
+	//	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, gpApp->m_srcEncoding);
 	editor.m_ccTable = *(new wxString(pTemp, lenTemp));
 //	GDLC 7Dec11 Free the temporary wxChar buffer created by DoInputConversion()
 	free((void*)pTemp);
