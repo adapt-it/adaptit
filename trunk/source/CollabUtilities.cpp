@@ -73,7 +73,7 @@ const int filterMkrEndLen = 9;
 
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
-extern bool gbForceUTF8;
+//extern bool gbForceUTF8; // not used within CollabUtilities.cpp
 extern int  gnOldSequNum;
 extern int  gnBeginInsertionsSequNum;
 extern int  gnEndInsertionsSequNum;
