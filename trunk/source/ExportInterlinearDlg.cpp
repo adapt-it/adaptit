@@ -379,6 +379,7 @@ void CExportInterlinearDlg::OnOK(wxCommandEvent& event)
 	m_bIncludeGlossText = pCheckIncludeGlsText->GetValue();
 	m_bNewTableForNewLineMarker = pCheckNewTablesForNewLineMarkers->GetValue();
 	m_bCenterTableForCenteredMarker = pCheckCenterTablesForCenteredMarkers->GetValue();
+	m_bPortraitOrientation = pRadioUsePortrait->GetValue();
 	wxString tempStr;
 	tempStr = pEditFromChapter->GetValue();
 	m_nFromChapter = wxAtoi(tempStr);
