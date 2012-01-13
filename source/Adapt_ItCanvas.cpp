@@ -59,6 +59,8 @@
 #include "ViewFilteredMaterialDlg.h"
 #include "FreeTrans.h"
 
+#define _FT_ADJUST
+
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
 
@@ -2064,6 +2066,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
         // auto inserting stops (so that more of any auto inserted & hilighted adapatations
         // will be visible to the user without scrolling)
         int numTopHalfStrips = nVisStrips / 2;
+#if defined(_FT_ADJUST) && defined(__WXDEBUG__)
+		if (pApp->m_bFreeTranslationMode)
+		{
+//			numTopHalfStrips = nVisStrips / 3;
+		}
+#endif
 
 		// for debugging purposes
 #ifdef DEBUG_ScrollIntoView
@@ -2083,6 +2091,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		// includes the leading; the value calculated here is the default, it may
 		// may be changed by the code a little further below where auto-insertions
 		// are taken into account when the box has halted
+#if defined(_FT_ADJUST) && defined(__WXDEBUG__)
+		if (pApp->m_bFreeTranslationMode)
+		{
+//			nBoundForPrecedingContextStrips = nVisStrips - 2;
+		}
+#endif
 
         // Get the required y-coord of the top of the phrase box's strip where the "strip"
         // includes its preceding leading -- that is, the distance from the start of the
@@ -2205,7 +2219,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 							// get the phrase box's strip shown the necessary amount lower
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is FALSE  &  NOT ALL strips are visible -- adjust now"));
-#endif
+#endif		
 							numExtras_Max = nBoundForPrecedingContextStrips - nAutoInsertedStripsCount;
 							numExtrasToShow = nAutoInsertedStripsCount - numTopHalfStrips;
 							if (numExtrasToShow > numExtras_Max)

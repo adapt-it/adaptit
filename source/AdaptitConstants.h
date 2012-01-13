@@ -93,7 +93,10 @@
 #define MIN_DLG_FONT_SIZE	11
 
 // for free translation support - added BEW on 24Jun05, changed to ..._WORDS on 28Apr06
-#define MIN_FREE_TRANS_WORDS	5
+//#define MIN_FREE_TRANS_WORDS	5
+// BEW 13Jan12, try skipping no words before halt location for free trans is looked for
+// (Kim finds it annoying, as did Bill)
+#define MIN_FREE_TRANS_WORDS	0
 
 // for changing punctuation characters on the fly, the parser needs to be able to find if
 // there is an inline binding marker a few characters ahead of one or more characters
