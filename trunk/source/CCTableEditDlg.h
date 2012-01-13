@@ -35,7 +35,7 @@ public:
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	//void OnOK(wxCommandEvent& event);
+	void OnOK(wxCommandEvent& event);
 
 private:
 	// class attributes
