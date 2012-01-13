@@ -654,6 +654,14 @@ void KBEditSearch::EnableRemoveUpdateButton(bool bEnableFlag)
 // if the dialog is modeless.
 void KBEditSearch::OnOK(wxCommandEvent& event) 
 {
+	// whm added 13Jan11 the equivalent of TransferDataFromWindow() here to
+	// aleviate any consequences that might happen due to commenting out the
+	// SetValidator() calls in the class constructor.
+	m_strSourceText = m_pSrcPhraseBox->GetValue();
+	m_strNumRefs = m_pNumReferencesBox->GetValue();
+	m_strLocalSearch = m_pLocalSearchBox->GetValue();
+	m_strEditBox = m_pEditBox->GetValue();
+
 	pKBEditorDlg->m_bRemindUserToDoAConsistencyCheck = FALSE; // start off with default value
 	if (m_bMatchesExist)
 	{
