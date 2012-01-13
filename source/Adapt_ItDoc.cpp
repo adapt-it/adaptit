@@ -194,8 +194,8 @@ extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox function
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
 
-/// This global is defined in DocPage.cpp.
-extern bool  gbForceUTF8; // defined in CDocPage
+// This global is defined in DocPage.cpp.
+//extern bool  gbForceUTF8; // defined in CDocPage // not used within Adapt_ItDoc.cpp
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
