@@ -53,6 +53,7 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnCopyRetranslationToClipboard(wxCommandEvent& WXUNUSED(event));
 	void OnButtonToggleContext(wxCommandEvent& WXUNUSED(event));
+	void OnOK(wxCommandEvent& event);
 
 private:
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
