@@ -117,6 +117,11 @@ void CWelcome::OnCheckNolongerShow(wxCommandEvent& WXUNUSED(event))
 // if the dialog is modeless.
 void CWelcome::OnOK(wxCommandEvent& event) 
 {
+	// whm 13Jan12 Note: The View gets the m_bSuppressWelcome value directly (which is
+	// set above in the OnCheckNolongerShow() handler above, therefore we technically
+	// do not need to assign the m_bSuppressWelcom value from the control window, but
+	// it won't hurt to do so
+	m_bSuppressWelcome = pCheckB->GetValue();
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
