@@ -53,6 +53,7 @@ BEGIN_EVENT_TABLE(CRetranslationDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CRetranslationDlg::InitDialog)
 	EVT_BUTTON(IDC_COPY_RETRANSLATION_TO_CLIPBOARD, CRetranslationDlg::OnCopyRetranslationToClipboard)
 	EVT_BUTTON(IDC_BUTTON_TOGGLE, CRetranslationDlg::OnButtonToggleContext)
+	EVT_BUTTON(wxID_OK, CRetranslationDlg::OnOK)
 END_EVENT_TABLE()
 
 
@@ -347,4 +348,15 @@ void CRetranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 	// MFC SetSel() had third param TRUE indicating not to scroll, but not available in wx.
 	//TransferDataToWindow(); // whm removed 21Nov11 redundant call
 	pRetransSizer->Layout(); // redo layout after toggling different button label
+}
+
+// whm added this OnOK() handler 13Jan12 to compensate for commenting out the SetValidator()
+// calls in the class constructor
+void CRetranslationDlg::OnOK(wxCommandEvent& event) 
+{
+	m_preContext = pSrcPrecContextBox->GetValue(); // whm added 13Jan12
+	m_follContext = pSrcFollContextBox->GetValue(); // whm added 13Jan12
+	m_retranslation = pRetransBox->GetValue(); // whm added 13Jan12
+	m_sourceText = pSrcTextToTransBox->GetValue(); // whm added 13Jan12
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
