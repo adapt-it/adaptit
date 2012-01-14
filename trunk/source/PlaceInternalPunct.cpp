@@ -55,6 +55,7 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 BEGIN_EVENT_TABLE(CPlaceInternalPunct, AIModalDialog)
 	EVT_INIT_DIALOG(CPlaceInternalPunct::InitDialog)
 	EVT_BUTTON(IDC_BUTTON_PLACE, CPlaceInternalPunct::OnButtonPlace)
+	EVT_BUTTON(wxID_OK, CPlaceInternalPunct::OnOK)
 END_EVENT_TABLE()
 
 
@@ -203,6 +204,7 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 		// get the selected string
 		wxString str;
 		str = m_pListPunctsBox->GetStringSelection(); // the list box punctuation at wherever selection is
+		
 		wxString target = m_tgtPhrase; // copy of the box's string
 		m_pListPunctsBox->Delete(nSel); 
 		if (m_pListPunctsBox->GetCount() > 0)
@@ -218,3 +220,12 @@ a:	m_ptgtPhraseBox->SetValue(m_tgtPhrase); // keep the box contents agreeing wit
 	m_ptgtPhraseBox->SetFocus();
 	m_ptgtPhraseBox->SetSelection(nEnd+strLen,nEnd+strLen); 
 }
+
+// whm added 13Jan12 to compensate for commenting out the SetValidator() calls in the constructor
+void CPlaceInternalPunct::OnOK(wxCommandEvent& event)
+{
+	m_srcPhrase = m_psrcPhraseBox->GetValue();
+	m_tgtPhrase = m_ptgtPhraseBox->GetValue();
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
+
