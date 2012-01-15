@@ -184,8 +184,11 @@ CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
 
 // event handling functions
 
+static int reentercount = 0;
+
 void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
+	
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		// make the background be an insipid red colour
@@ -203,6 +206,52 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// double buffering is being done by the system's graphics primitives, and avoids
 	// adding another buffered layer. Using it here did not affect wxMac's problem
 	// of failure to paint properly after scrolling.
+
+#if defined(__WXDEBUG__)
+	if (gpApp->m_bFreeTranslationMode && !gpApp->m_bIsPrinting)
+	{
+		CLayout* pLayout = gpApp->m_pLayout;
+		wxSize canvasSize;
+		wxRect visRect;
+		canvasSize = gpApp->GetMainFrame()->GetCanvasClientSize();
+		visRect.width = canvasSize.GetWidth();
+		visRect.height = canvasSize.GetHeight();
+
+
+		int xx; int yy;
+		CalcUnscrolledPosition(0, 0, &xx, &yy); // (xx,yy) is window (left,top) in logical coords
+
+		wxRect clientRect;
+		wxRect boundingRect;
+		wxRegion region;
+		region = GetUpdateRegion();
+		region.GetBox(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+		// make boundingRect be in logical coords
+		boundingRect.y += yy;
+
+		// next 4 in window coords
+		clientRect.y = 0;
+		clientRect.x = 0;
+		clientRect.width = visRect.width;
+		clientRect.height = visRect.height;
+		// now in logical coords
+		clientRect.y += yy;
+
+		int nWindowDepth = visRect.GetHeight();
+		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
+		if (gpApp->m_bFreeTranslationMode)
+		{
+			nStripHeight += 3 + pLayout->GetTgtTextHeight();
+		}
+		int nVisStrips = nWindowDepth / nStripHeight;
+		if (nWindowDepth % nStripHeight > 0)
+			nVisStrips++;
+		wxLogDebug(_T("*** (logical coords): ClientWnd.Top  %d  damagedTop  %d  (width %d, height %d, wnd_depth %d, vis strips %d"),
+			clientRect.y, boundingRect.y, clientRect.width, clientRect.height, nWindowDepth, nVisStrips);
+
+	}
+#endif
+
 
 	// whm modified conditional test below to include && !__WXGTK__ after finding that
 	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
@@ -2523,8 +2572,8 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 // end of the free translation supporting else block
 }
 
+// Returns positive y-distance for the scroll down (whm: return value is never used)
 int CAdapt_ItCanvas::ScrollDown(int nStrips)
-// returns positive y-distance for the scroll down (whm: return value is never used)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2626,8 +2675,8 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	}
 }
 
+// Returns positive y-distance for the scroll up (whm: return value is never used)
 int CAdapt_ItCanvas::ScrollUp(int nStrips)
-// returns positive y-distance for the scroll up (whm: return value is never used)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2698,7 +2747,6 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
         // left point of the client viewing area; then convert to scroll units in Scroll().
         // whm note: wxScrolledWindow::Scroll() scrolls the window so the view start is at
         // the given point (expressed in scroll units)
-		Scroll(0,posn);
 		Refresh();
 		return yDist;
 	}

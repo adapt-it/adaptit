@@ -32,6 +32,8 @@
 #include <wx/wx.h>
 #endif
 
+#define _Trace_DrawFreeTrans
+
 #if defined(__VISUALC__) && __VISUALC__ >= 1400
 #pragma warning(disable:4428)	// VC 8.0 wrongly issues warning C4428: universal-character-name
 								// encountered in source for a statement like
