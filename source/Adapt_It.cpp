@@ -1222,7 +1222,7 @@ const wxString defaultProfileItems[] =
 	// stored in the m_pUserProfiles struct on the heap with those that are used in the
 	// defaultProfileItems string array below. It uses wxLogDebug() calls and even an assert
 	// in some cases to alert the programmer of any significant differences/inconsistencies.
-	// 
+	//
 	// whm 6Jan12 Note: Changed the version number in the first string of the defaultProfileItems[]
 	// array below to use the appVerStr constant defined near the beginning of the Adapt_It.h file.
 	_T("UserProfilesSupport:profileVersion=\"1.0\":applicationCompatibility=\"") + appVerStr + _T("\":adminModified=\"No\"")
@@ -6836,7 +6836,7 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 /// \remarks
 /// Called from: the App's OnInit();
 /// Gets the path where we expect to find the AI_USFM.xml, AI_UserProfiles.xml, books.xml,
-/// curl-ca-bundle.ctr, and iso639-1codes.txt files. Adapt It reads and parses the xml 
+/// curl-ca-bundle.ctr, and iso639-1codes.txt files. Adapt It reads and parses the xml
 /// files at startup and accessed the other files for certain features in the app.
 /// If the directory cannot be determined an empty string is returned.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -6901,8 +6901,8 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// and Adapt It on the Windows port will look there.
 	//
-	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" 
-	// or "/usr/local/share/adaptit/help/" which in turn may contain a "common/" 
+	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/"
+	// or "/usr/local/share/adaptit/help/" which in turn may contain a "common/"
 	// subdirectory with .gif and .css files (pointed to by the help files).
 	// The .../help/ subdirectory may also contain one or more <lang>/ folders which contain the
 	// .html .hhp .hhc help files for Adapt It.
@@ -7285,7 +7285,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 {
 	// A composite unix string for a user defined language such as Tok Pisin might look like
 	// this: 231:tpi:Tok Pisin
-	// The 3 fields of the unix string are parsed using the : delimiter. 
+	// The 3 fields of the unix string are parsed using the : delimiter.
 
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
@@ -11192,16 +11192,16 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 	pathToExecutable = GetBibleditInstallDirPath() + PathSeparator + _T("bibledit-rdwrt");
 	if (::wxFileExists(pathToExecutable))
 		bBEInstalled = TRUE;
-	
+
 	// TODO: write code to determine the version of bibledit-gtk that is
 	// installed on Linux. It must be at least version 4.2.93 to respond
 	// to the command-line usage implemented by Teus as of version 4.2.93.
 #endif
 #ifdef __WXMAC__
 	pathToExecutable = GetBibleditInstallDirPath() + gpApp->PathSeparator + _T("bibledit-rdwrt");
-	
+
 	// If the above call doesn't find it then try /opt/local/bin/
-	// According to the Bibledit wesite's instructions for installing Bibledit 
+	// According to the Bibledit wesite's instructions for installing Bibledit
 	// on the Mac it should install to _T("/opt/local/bin/bibledit-gtk")
 	// so if the above doesn't find it on the PATH, then try the hard coded Path
 	if (::wxFileExists(pathToExecutable))
@@ -13940,18 +13940,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// be an empty string for platforms other than Linux/GTK. On Linux the m_PathPrefix
 	// will be "/usr" for debian package installs, "/usr/local" for "sudo make install"
 	// instances, and an empty string when running adaptit from non installed locations.
-	// The m_PathPrefix is used as a prefix on the path of the following files used by 
+	// The m_PathPrefix is used as a prefix on the path of the following files used by
 	// adaptit:
-	// 1. adaptit   the main executable program at /usr/bin/adaptit or /usr/local/bin/adaptit 
+	// 1. adaptit   the main executable program at /usr/bin/adaptit or /usr/local/bin/adaptit
 	//    depending on the value of m_PathPrefix.
 	//    path variable: m_appInstallPathOnly
 	//    relevant function: FindAppPath() or GetProgramLocationFromSystemPATH(GetAppName()
-	// 2. bibledit-rdwrt   the Bibledit supplied utility program at /usr/bin/bibledit-rdwrt (or 
+	// 2. bibledit-rdwrt   the Bibledit supplied utility program at /usr/bin/bibledit-rdwrt (or
 	//    where found on the systme PATH).  m_BibleditInstallDirPath already has a prefix on it
 	//    because it calls the GetProgramLocationFromSystemPATH() function directly.
 	//    path variable: m_BibleditInstallDirPath
 	//    relevant functions: GetBibleditInstallDirPath() calls GetProgramLocationFromSystemPATH(_T("bibledit-rdwrt")).
-	// 3. adaptit-bibledit-rdwrt   the Adapt It supplied Bibledit utility program at 
+	// 3. adaptit-bibledit-rdwrt   the Adapt It supplied Bibledit utility program at
 	//    /usr/bin/adaptit-bibledit-rdwrt or /usr/local/bin/adaptit-bibledit-rdwrt depending
 	//    on the value of m_PathPrefix.
 	//    path variable: beRdwrtPathAndFileName (in CollabUtilities.cpp's GetPathToBeRdwrt())
@@ -13962,7 +13962,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//    of m_PathPrefix.
 	//    path variable: m_xmlInstallPath
 	//    relevant function: GetDefaultPathForXMLControlFiles()
-	// 5. The localization files named adaptit.mo for each language <lang> that get installed at 
+	// 5. The localization files named adaptit.mo for each language <lang> that get installed at
 	//    "/usr/share/locale/<lang>/LC_MESSAGES/" or "/usr/local/share/locale/<lang>/LC_MESSAGES/"
 	//    for each <lang> localization depending on the value of m_PathPrefix.
 	//    path variable: m_localizationInstallPath
@@ -13999,7 +13999,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// "/Applications"
 
     // The m_xmlInstallPath stores the path where the AI_USFM.xml, AI_UserProfiles.xml,
-    // books.xml, curl-ca-bundle.crt, and iso639-3codes.txt files are installed on the 
+    // books.xml, curl-ca-bundle.crt, and iso639-3codes.txt files are installed on the
     // given platform.
 	// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
 	// On wxGTK: "/usr/share/adaptit/" or "/usr/local/share/adaptit/" depending on the
@@ -14492,7 +14492,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// constructor).
 		// The currLocalizationInfo struct was initialized with the interface language of
 		// choice above, so now we can create the wxLocale object
-		
+
 		// whm 8Dec11 modified below to use the App's m_localizationInstallPath
 		//if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName,
 		//	currLocalizationInfo.curr_fullName, currLocalizationInfo.curr_localizationPath))
@@ -16297,7 +16297,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Hence, if the administrator sets the visibility of a View menu item that controls
 	// the visibility of these to be hidden from the menu, after having made the bar
 	// element hidden, that element will stay hidden and the user won't be able to change
-	// that element's visibility. The 
+	// that element's visibility. The
 	if (m_bToolBarVisible)
 		m_pMainFrame->m_pToolBar->Show();
 	else
@@ -18028,7 +18028,7 @@ int ii = 1;
 	pTestChorusItem = pTestChorusItem; // supress warning // TODO: remove this if pTestChorusItem gets to be used here
 #endif
 	// end of code for supporting Mike's DVCS work
-	
+
 	//klb test
 	//bool a = ParatextIsRunning();
 
@@ -19229,7 +19229,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 	// this is where we have to start setting up the directory structures
 	bool bWorkExists = FALSE;
-	bWorkExists = bWorkExists; // avoid compiler warning (easiest way to do it for 
+	bWorkExists = bWorkExists; // avoid compiler warning (easiest way to do it for
 							   // this complex function)
 
 	if (::wxFileExists(workOrCustomFolderPath) || ::wxDirExists(workOrCustomFolderPath))
@@ -20110,7 +20110,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CUsfmFilterPageCommon* pUsfmFilterPageCom
 	int countBeforeEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDocBeforeEdit.GetCount();
 	int countAfterEdit = (int)pUsfmFilterPageCommon->m_filterFlagsDoc.GetCount();
 	wxASSERT(countBeforeEdit == countAfterEdit);
-	
+
 	// While we don't make use of their variable, there is no reason why countBeforeEdit
 	// should not differ from countAfterEdit, so just do identity assignments here in
 	// order to avoid a compiler warning (BEW 2Jan12)
@@ -38106,7 +38106,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			{
 				if (::wxFileExists(configPath))
 					bRemoved = ::wxRemoveFile(configPath);
-				bRemoved = bRemoved; // avoid warning (BEW 2Jan12, keep this, since we 
+				bRemoved = bRemoved; // avoid warning (BEW 2Jan12, keep this, since we
 									 // treat it as a non-error)
 				// we don't care if the removal didn't happen, so ignore a FALSE value
 				// returned (we don't expect to ever get FALSE returned here)
@@ -38862,7 +38862,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	KBExportSaveAsType kbExportType = KBExportSaveAsSFM_TXT;
 	CKBExportImportOptionsDlg dlg(GetMainFrame());
 	dlg.Center();
-	
+
 	wxString actionTypeStr = _("Export Knowledge Base");
 	// set dialog's title
 	dlg.SetTitle(actionTypeStr);
@@ -38873,8 +38873,8 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	dlg.pRadioBoxSfmOrLIFT->SetLabel(tempStr);
 
 	// Note: OnFileExportKb() here and OnFileExportKb() in the App use the same dialog.
-	// Since the View's OnImportToKb() required that the call of 
-	// the second parameter of KBExportImportOptionsFunc(this, false, TRUE) 
+	// Since the View's OnImportToKb() required that the call of
+	// the second parameter of KBExportImportOptionsFunc(this, false, TRUE)
 	// be false in KBExportImportOptionsDlg's constructor, we need to either:
 	// (1) manually fit the dialog's size to its contents in this instance here
 	// in the App, or (2) pass a parameter when constructing the dialog to make
@@ -38895,7 +38895,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(nRadioBoxSel == 0 || nRadioBoxSel == 1);
 	kbExportType = (KBExportSaveAsType)nRadioBoxSel; // cast int to KBExportSaveAsType enum
 	wxASSERT(kbExportType == KBExportSaveAsSFM_TXT || kbExportType == KBExportSaveAsLIFT_XML);
-	
+
 	// Calculate the appropriate KB export's dictFilename and defaultDir.
     // Note: In the App's SetupDirectories() function the m_curProjectName is
     // constructed as: m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"),
@@ -39008,7 +39008,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
-	// Prepare a unique filename and path from the exportFilename. This unique filename 
+	// Prepare a unique filename and path from the exportFilename. This unique filename
 	// and path is used when the export is nav protected or when the user has ticked the
 	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
 	// is to be suffixed to the export filename, which ensures that any existing exports
@@ -39019,7 +39019,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		// Use the unique path for exportPath
 		dictFilename = uniqueFilenameAndPath;
 	}
-	
+
 	// Allow the wxFileDialog only when the export is not protected from navigation
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
@@ -40057,7 +40057,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 		if (f.Open(pathAndName,wxFile::read))
 		{
 			nRead = f.Read(pBuff, nFourKB);
-			if (nRead == wxInvalidOffset)
+			if (nRead == (wxUint32)wxInvalidOffset)
 			{
 				return bookCode; // it's still an empty string
 			}
@@ -40408,7 +40408,7 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 	const wxChar* pBuff = fileBuffer.GetData();
 	int len = fileBuffer.Length();
 	wxChar* pEnd = (wxChar*)pBuff + len;
-	wxASSERT(*pEnd == _T('\0')); 
+	wxASSERT(*pEnd == _T('\0'));
 	wxChar* ptr = (wxChar*)pBuff;
 	int itemLen = 0;
 	wxString lastChNumStr = _T("");
@@ -40430,13 +40430,13 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 			// Are we looking for introductory material and have found chapter 1?
 			if (verseStr == _T("0") && chapterStr == _T("1") && lastChNumStr == _T("1"))
 			{
-				// When the incoming chapter reference is "1" and the incoming verse reference 
+				// When the incoming chapter reference is "1" and the incoming verse reference
 				// is "0" it means that the reference for sync scrolling points to introductory
 				// material before chapter 1. If those are the parameters we are searching for
 				// and we've just encountered a chapter 1 in this document, we know that the
 				// current document would be the one containing introductory material, at least
 				// for Paratext supplied documents, so return TRUE.
-				// Note: Bibledit only includes introductory material if we've retrieved a 
+				// Note: Bibledit only includes introductory material if we've retrieved a
 				// whole book file. So, I've limited the test above to Paratex. This function
 				// is a supporting function for the sync scrolling routines. But, the Linux
 				// version of Adapt It doesn't yet support sync scrolling. If it ever does this
@@ -40452,7 +40452,7 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 				// to search - return FALSE.
 				return FALSE;
 			}
-			
+
 			ptr += itemLen; // point past chapter number
 
 			itemLen = Parse_NonEol_WhiteSpace(ptr); // parse white space following
@@ -40480,7 +40480,7 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 			lastVsNumStr = GetStringFromBuffer(ptr,itemLen); // get the verse number
 			// If the last chapter encountered matches the chapterStr reference and
 			// the last verse encountered matches the verseStr reference we are looking
-			// for, we have found the sync scroll reference in this document, so 
+			// for, we have found the sync scroll reference in this document, so
 			// return TRUE.
 			if (lastChNumStr == chapterStr && lastVsNumStr == verseStr)
 			{
@@ -40499,23 +40499,23 @@ bool CAdapt_ItApp::BookHasChapterAndVerseReference(wxString fileAndPath, wxStrin
 			ptr++;
 		}
 	} // end of loop: while (ptrSrc < pEnd)
-	
+
 	/*
 	// get the usfm structure of the buffer
 	// whm 5Jan12 TODO: items
 	// 1. This BookHasChapterAndVerseReference() function could be made faster
 	// by examining the fileBuffer directly for verse and chapter numbers, rather than
 	// calling GetUsfmStructureAndExtent() to produce structure and extent arrays for
-	// the whole book in Adapt It's xml document format. In most cases examining the 
-	// fileBuffer directly would find out whether a given chapter:verse reference 
+	// the whole book in Adapt It's xml document format. In most cases examining the
+	// fileBuffer directly would find out whether a given chapter:verse reference
 	// exists long before producing the whole array and examining it.
 	// 2. Note also that a Paratext chapter file retrieved during collaboration
 	// for chapter 1 will issue a sync scrolling reference of 1:0 for when Paratext
-	// is pointing to introductory material before verse 1 (Bibledit has intro 
+	// is pointing to introductory material before verse 1 (Bibledit has intro
 	// material in chapter 0 on disk). In order for sync scrolling to be able to
 	// find intro material we need to also account for an incoming reference of 1:0
 	// which should be tested for in any revision done for the above TODO.
-	// 3. Use the PT defined markers for chapter and verse markers if different 
+	// 3. Use the PT defined markers for chapter and verse markers if different
 	// from the default \c and \v. Make such changes elsewhere too!
 	wxArrayString usfmStructureArray;
 	usfmStructureArray = GetUsfmStructureAndExtent(fileBuffer);
