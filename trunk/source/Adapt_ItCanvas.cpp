@@ -5,9 +5,9 @@
 /// \date_created	05 January 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public 
+/// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
-/// \description	This is the implementation file for the CAdapt_ItCanvas class. 
+/// \description	This is the implementation file for the CAdapt_ItCanvas class.
 /// The CAdapt_ItCanvas class implements the main Adapt It window based on
 /// wxScrolledWindow. This is required because wxWidgets' doc/view framework
 /// does not have an equivalent for the CScrolledView in MFC.
@@ -81,7 +81,7 @@ extern int gnBeginInsertionsSequNum;
 extern int gnEndInsertionsSequNum;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbIsGlossing; 
+extern bool	gbIsGlossing;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern int gnOldSequNum;
@@ -152,7 +152,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItCanvas, wxScrolledWindow)
 	// wx Note: wxScrollEvent only appears to intercept scroll events for scroll bars manually
 	// placed in wxWindow based windows. In order to handle scroll events for windows like
 	// wxScrolledWindow, we must use wxScrollWinEvent in the functions and EVT_SCROLLWIN macro
-	// here. 
+	// here.
     EVT_SCROLLWIN(CAdapt_ItCanvas::OnScroll)
 	EVT_LEFT_DOWN(CAdapt_ItCanvas::OnLButtonDown)
 	EVT_LEFT_UP(CAdapt_ItCanvas::OnLButtonUp)
@@ -164,16 +164,16 @@ CAdapt_ItCanvas::CAdapt_ItCanvas()
 }
 
 #ifdef _USE_SPLITTER_WINDOW
-CAdapt_ItCanvas::CAdapt_ItCanvas(wxSplitterWindow *splitter, 
+CAdapt_ItCanvas::CAdapt_ItCanvas(wxSplitterWindow *splitter,
 	const wxPoint& pos, const wxSize& size, const long style)
 	: wxScrolledWindow(splitter, wxID_ANY, pos, size, style)
 #else
-CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame, 
+CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame,
 	const wxPoint& pos, const wxSize& size, const long style)
 	: wxScrolledWindow(frame, wxID_ANY, pos, size, style)
 #endif
 {
-	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' 
+	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas'
 				  // view pointer point to incoming view pointer
 	pFrame = NULL; // pFrame is set in CMainFrame's creator
 }
@@ -184,11 +184,9 @@ CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
 
 // event handling functions
 
-static int reentercount = 0;
-
 void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
-	
+
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		// make the background be an insipid red colour
@@ -207,60 +205,6 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// adding another buffered layer. Using it here did not affect wxMac's problem
 	// of failure to paint properly after scrolling.
 
-#if defined(__WXDEBUG__)
-	if (gpApp->m_bFreeTranslationMode && !gpApp->m_bIsPrinting)
-	{
-		CLayout* pLayout = gpApp->m_pLayout;
-		wxSize canvasSize;
-		wxRect visRect;
-		canvasSize = gpApp->GetMainFrame()->GetCanvasClientSize();
-		visRect.width = canvasSize.GetWidth();
-		visRect.height = canvasSize.GetHeight();
-		visRect.x = 0;
-		visRect.y = 0;
-
-		// try this next wxWindow call: it's to be called in a paint event handler to
-		// optimize redrawing by only redrawing those areas which have been exposed; so
-		// see if this gets all the free translations redrawn under a scroll drag of the
-		// thumb
-		bool bIsExposed = IsExposed(0,0,visRect.width, visRect.height);
-		if (bIsExposed)
-		{
-			wxLogDebug(_T("\n\n\n ******* IsExposed returned TRUE *******"));
-		}
-
-		int xx; int yy;
-		CalcUnscrolledPosition(0, 0, &xx, &yy); // (xx,yy) is window (left,top) in logical coords
-		wxLogDebug(_T(" SCROLL CAR IS HERE: (logical coords) yy = %d "), yy);
-
-		wxRect clientRect;
-		wxRect boundingRect;
-		wxRegion region;
-		region = GetUpdateRegion();
-		region.GetBox(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
-
-		// next 4 in window coords
-		clientRect.y = 0;
-		clientRect.x = 0;
-		clientRect.width = visRect.width;
-		clientRect.height = visRect.height;
-
-		int nWindowDepth = visRect.GetHeight();
-		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
-		if (gpApp->m_bFreeTranslationMode)
-		{
-			nStripHeight += 3 + pLayout->GetTgtTextHeight();
-		}
-		int nVisStrips = nWindowDepth / nStripHeight;
-		if (nWindowDepth % nStripHeight > 0)
-			nVisStrips++;
-		wxLogDebug(_T("*** (client coords): damagedTop  %d  (width %d, height %d, wnd_depth %d, vis strips %d, strip height %d"),
-			boundingRect.y, clientRect.width, clientRect.height, nWindowDepth, nVisStrips, nStripHeight);
-
-	}
-#endif
-
-
 	// whm modified conditional test below to include && !__WXGTK__ after finding that
 	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
 	// link errors for "undefined reference wxGCDC::...
@@ -275,7 +219,7 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 		wxLogDebug(_T("canvas OnPaint() reports dc is not Ok!"));
 	}
     DoPrepareDC(paintDC); // PrepareDC() now calls DoPrepareDC()
-	
+
 	if (pView)
 	{
 		pView->OnDraw(& paintDC);
@@ -284,29 +228,29 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 
 
 // whm Notes on DoPrepareDC():
-// DoPrepareDC() is declared within the class WXDLLEXPORT wxScrollHelper in the scrolwin.h 
-// header file in the ...\include\wx folder. The signature is: 
+// DoPrepareDC() is declared within the class WXDLLEXPORT wxScrollHelper in the scrolwin.h
+// header file in the ...\include\wx folder. The signature is:
 // virtual void DoPrepareDC(wxDC& dc);
 // Since DoPrepareDC() is a virtual function, it would seem necessary to call its base class
 // wxScrolledWindow::DoPrepareDC(dc); at the beginning of the CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // override.
-// The implementation of DoPrepareDC() in the scrlwing.cpp file in the ...\src\generic folder. 
+// The implementation of DoPrepareDC() in the scrlwing.cpp file in the ...\src\generic folder.
 // See the implementation code below.
-// According to the internal comment, the #ifdef directive should probably be 
-// removed and the wxLayout_RightToLeft flag taken into consideration for all ports, 
+// According to the internal comment, the #ifdef directive should probably be
+// removed and the wxLayout_RightToLeft flag taken into consideration for all ports,
 // not just wxGTK.
 // the wxWidgets docs say, "DoPrepareDC is called automatically within the default
-// wxScrolledWindow::OnPaint event handler, so your wxScrolledWindow::OnDraw override 
-// will be passed a 'pre-scrolled' device context. However, if you wish to draw from 
-// outside of OnDraw (via OnPaint), or you wish to implement OnPaint yourself, you must 
+// wxScrolledWindow::OnPaint event handler, so your wxScrolledWindow::OnDraw override
+// will be passed a 'pre-scrolled' device context. However, if you wish to draw from
+// outside of OnDraw (via OnPaint), or you wish to implement OnPaint yourself, you must
 // call this function yourself."
 //
-// The MFC docs say of CView::OnPrepareDC(), "Called by the framework before the OnDraw 
-// member function is called for screen display and before the OnPrint member function is 
-// called for each page during printing or print preview....The default implementation 
-// of this function does nothing if the function is called for screen display. However, 
-// this function is overridden in derived classes, such as CScrollView, to adjust 
-// attributes of the device context; consequently, you should always call the base class 
+// The MFC docs say of CView::OnPrepareDC(), "Called by the framework before the OnDraw
+// member function is called for screen display and before the OnPrint member function is
+// called for each page during printing or print preview....The default implementation
+// of this function does nothing if the function is called for screen display. However,
+// this function is overridden in derived classes, such as CScrollView, to adjust
+// attributes of the device context; consequently, you should always call the base class
 // implementation at the beginning of your override."
 
 //
@@ -388,7 +332,7 @@ void CScrollView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 	CView::OnPrepareDC(pDC, pInfo);     // For default Printing behavior
 }
 
-In addition, the base class' CView::OnPrepareDC(pDC, pInfo) code (from viewcore.cpp) doesn't really do 
+In addition, the base class' CView::OnPrepareDC(pDC, pInfo) code (from viewcore.cpp) doesn't really do
 anything much but looks like this:
 
 void CView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
@@ -409,7 +353,7 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 {
     // See notes above comparing MFC's OnPrepareDC and wxWidgets' DoPrepareDC. Here are more notes on
     // MFC's usage of OnPrepareDC. The MFC's OnPrepareDC() is called in the following situations:
-	
+
     //    OnPrepareDC() is called TWICE at the beginning of each page during printing and print
     //    previewing in the following calling sequence (from MFC's viewprnt.cpp library source file):
     //      OnPrepareDC(&dcPrint, &printInfo);
@@ -417,7 +361,7 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
     //      OnPrepareDC(&dcPrint, &printInfo); [called again because StartPage resets the device attributes]
     //    In contrast, in the wx printing framework, its version of OnPrepareDC called DoPrepareDC() is
     //    not called explicitly at all anywhere that I can find in its print routines.
-	
+
 	//    The View's OnDraw(CDC* pDC) in the following calling sequence:
 	//		CClientDC viewDC((CWnd*)m_pBundle->m_pView);
 	//		m_pBundle->m_pView->OnPrepareDC(&viewDC);
@@ -425,7 +369,7 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 	//		viewDC.DPtoLP(&grectViewClient); // get the point converted to logical coords
 	//		// draw the layout
 	//		m_pBundle->Draw(pDC);
-	
+
 	//    The View's CreateBox(...) in the following calling sequence:
 	//		// convert to device coords
 	//		CClientDC aDC(this);
@@ -530,9 +474,9 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 }
 
 
-// wx Note: The wxScrollEvent only appears to intercept scroll events for scroll bars 
+// wx Note: The wxScrollEvent only appears to intercept scroll events for scroll bars
 // manually placed in wxWindow based windows. In order to handle scroll events for windows like
-// wxScrolledWindow (that have built-in scrollbars like our canvas), we must use wxScrollWinEvent 
+// wxScrolledWindow (that have built-in scrollbars like our canvas), we must use wxScrollWinEvent
 // in the functions and the EVT_SCROLLWIN macro in the event table.
 // We don't actually use this since our base wxScrolledWindow handles scroll events in response
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
@@ -575,7 +519,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					// left corner of the window
 					// Note: wxMouseEvent also has GetLogicalPosition() that automaticall translates to logical
 					// position for the DC.
-	point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left 
+	point = event.GetPosition();	// GetPosition() gets the point on the view port relative to upper-left
 									// corner of the window.
 	gptLastClick = point;	// used by AdjustDialogByClick; needs to be device coords (not logical coords) there
 							// so we'll calculate logical coords for point below
@@ -591,7 +535,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	{
 		// a note dialog is open, so check for a click outside it's rectangle
 		// whm note: since the MFC app's OnLButtonDown is in the View, It would seem the
-		// following call to GetWindowRect() would wrongly assign the dimensions of the View's 
+		// following call to GetWindowRect() would wrongly assign the dimensions of the View's
 		// window rather than the m_pNoteDlg's window to dlgRect. Wouldn't the correct MFC call be
 		// m_pNoteDlg->GetWindowRect(&dlgRect)? The MFC version seems to react correctly, however,
 		// so there must be something I'm not seeing correctly about the following call to GetWindowRect.
@@ -612,7 +556,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// get the point into logical coordinates
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
-	
+
 	// we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
 	// provides logical coordinates for the clicked point; wxPoint in device coords was needed
 	// above to set the gptLastClick (used in AdjustDialogByClick), so we'll get the logical
@@ -634,9 +578,9 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
     // false to cause this to happen; ditto for Replace All if it is in progress
 	pApp->m_bAutoInsert = FALSE;
 	gbReplaceAllIsCurrent = FALSE; // turn off Replace All
-	
+
 	CMainFrame *pFrame = pApp->GetMainFrame();
-	pFrame = pFrame; // suppresses "local variable is initialized but not referenced" warning 
+	pFrame = pFrame; // suppresses "local variable is initialized but not referenced" warning
 	wxASSERT(pFrame != NULL);
 	wxASSERT(pFrame->m_pComposeBar != NULL);
 	wxTextCtrl* pEditCompose = (wxTextCtrl*)
@@ -649,7 +593,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
     // the location and dimensions of the wedge to be treated as a valid click within the
     // wedge icon itself; updated 02Aug05 to handle RTL rendering in the Unicode version as
     // well (green wedge is at the pile's right for RTL layout)
-	// Updated 07Sept05 to handle clicking in the peach coloured Note icon's rectangle to 
+	// Updated 07Sept05 to handle clicking in the peach coloured Note icon's rectangle to
 	// open a note window.
 	CStrip* pClickedStrip = pView->GetNearestStrip(&point);
 
@@ -673,17 +617,17 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 		ptNoteBotRight = ptNoteTopLeft;
 		int numPiles;
 
-		// first check for and handle green wedge clicks, then check for and handle 
+		// first check for and handle green wedge clicks, then check for and handle
 		// note clicks
-		ptWedgeBotRight.y -= 2; // this will set y coord for bottom of the wedge's rect 
+		ptWedgeBotRight.y -= 2; // this will set y coord for bottom of the wedge's rect
                                 // - one pixel lower than the tip of the wedge, but still
                                 // not in the cell below it
-		ptWedgeTopLeft.y -= 7; // this gets the y coordinate set correctly for the top of 
+		ptWedgeTopLeft.y -= 7; // this gets the y coordinate set correctly for the top of
                                // the wedge's rect, the x-coord of topleft of cells will
                                // give us the x coords we need, and we can assume the right
                                // boundaries are 9 pixels to the right of those for
                                // notes...
-		ptNoteTopLeft.y -= 9; // sets the y coord for top of the note icon's rectangle, 
+		ptNoteTopLeft.y -= 9; // sets the y coord for top of the note icon's rectangle,
                               // ptNoteBotRight.y is already correct
 
 		// get the number of piles in the clicked strip
@@ -705,7 +649,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                 // fails too, then just continue the loop
 				if (HasFilteredInfo(pPile->GetSrcPhrase()))
 				{
-					// there is some filtered material stored on this 
+					// there is some filtered material stored on this
 					// CSourcePhrase instance
 					int xLeft;
 					int xRight;
@@ -726,12 +670,12 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					// wx note: The following is wxRect ok, since adjustments are made to the
 					// upper left and lower right points to form a new wedgeRect
 					xLeft -= 4;
-					ptWedgeTopLeft.y -= 2; // BEW changed 18Nov05 to accomodate solid down 
+					ptWedgeTopLeft.y -= 2; // BEW changed 18Nov05 to accomodate solid down
 										   // arrow design, was -= 1
 					xRight = xLeft + 11;
 					ptWedgeBotRight.y += 1;
-					ptWedgeTopLeft.x = xLeft ; 
-					ptWedgeBotRight.x = xRight;									
+					ptWedgeTopLeft.x = xLeft ;
+					ptWedgeBotRight.x = xRight;
 					wxRect wedgeRect(ptWedgeTopLeft, ptWedgeBotRight);
 
 					// we have the required rectangle where the click would need to occur,
@@ -773,7 +717,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 						}
 						if (pApp->m_pViewFilteredMaterialDlg == NULL)
 						{
-							pApp->m_pViewFilteredMaterialDlg = new 
+							pApp->m_pViewFilteredMaterialDlg = new
 												CViewFilteredMaterialDlg(pApp->GetMainFrame());
 							// wx version: we don't need to call Create() for modeless dialog below:
 							pView->AdjustDialogPositionByClick(pApp->m_pViewFilteredMaterialDlg,
@@ -788,7 +732,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					else
 					{
 						// no click in this wedge, so continue check for a note icon click
-						goto u; 
+						goto u;
 					}
 				} // end block for a pile with filtered material
 				else
@@ -799,7 +743,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                     // note info stored yet
 u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 					{
-						// this pile has a note, so check if the click was in the note 
+						// this pile has a note, so check if the click was in the note
 						// icon's rectangle
 						int xLeft;
 						int xRight;
@@ -817,10 +761,10 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 						#else
 							xLeft -= 13;
 						#endif
-						xRight = xLeft + 10; // at least 9,  but an extra one to make it 
+						xRight = xLeft + 10; // at least 9,  but an extra one to make it
 											 // easier to hit
-						ptNoteTopLeft.x = xLeft ; 
-						ptNoteBotRight.x = xRight;									
+						ptNoteTopLeft.x = xLeft ;
+						ptNoteBotRight.x = xRight;
                         // wx note: The following is wxRect ok, since adjustments are made
                         // to the upper left and lower right points to form a new wedgeRect
 						wxRect noteRect(ptNoteTopLeft, ptNoteBotRight);
@@ -830,7 +774,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 						{
 							// user clicked in the note icon - so open the note window
 							if (pApp->m_pViewFilteredMaterialDlg != NULL)
-								return; // if the green wedge dialog is open, prevent a 
+								return; // if the green wedge dialog is open, prevent a
 										// Note icon click from opening the Note dialog
 
                             // BEW added 6Mar06 to cause return without any change if the
@@ -902,7 +846,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 							if (pApp->m_pNoteDlg == NULL)
 							{
 								pApp->m_pNoteDlg = new CNoteDlg(this);
-								// As with the ViewFilteredMaterialDlg, the modeless NoteDlg 
+								// As with the ViewFilteredMaterialDlg, the modeless NoteDlg
 								// doesn't need a Create() call.
 								pView->AdjustDialogPositionByClick(pApp->m_pNoteDlg,
 													gptLastClick); // avoid click location
@@ -922,7 +866,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 			} // end of loop for checking each pile of the strip
 		}
 	}
-	
+
     // a left click in the view when the "View Earlier Translation" modeless dialog is the
     // active window, must make the view window the active one
 	bool bMadeViewActive = FALSE;
@@ -939,7 +883,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				bMadeViewActive = TRUE;
 
 				if (pApp->m_pTargetBox == NULL)
-					goto y; // check, just in case, and do the longer cleanup if the box 
+					goto y; // check, just in case, and do the longer cleanup if the box
 							// is not there
 				// restore focus to the targetBox
 				if (pApp->m_pTargetBox != NULL)
@@ -967,7 +911,7 @@ y:				; // I may put some code here later
 			return;
 		if (pApp->m_pFindDlg != NULL || pApp->m_pReplaceDlg != NULL)
 		{
-			if ((pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown()) || 
+			if ((pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown()) ||
 				(pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->IsShown()))
 			{
 				if (pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown())
@@ -987,7 +931,7 @@ y:				; // I may put some code here later
                     // box to exist and be visible, so we only have to do a little tidying
                     // up before we return
 					if (pApp->m_pTargetBox == NULL)
-						goto x; // check, just in case, and do the longer cleanup if the 
+						goto x; // check, just in case, and do the longer cleanup if the
                                 // box is not there
 					// restore focus to the targetBox
 					if (pApp->m_pTargetBox != NULL)
@@ -1024,7 +968,7 @@ x:					CCell* pCell = 0;
 						int nCurSequNum = pApp->m_nActiveSequNum;
 						if (nCurSequNum == -1)
 						{
-							nCurSequNum = pApp->GetMaxIndex(); // make active loc the last 
+							nCurSequNum = pApp->GetMaxIndex(); // make active loc the last
 															// src phrase in the doc
 							pApp->m_nActiveSequNum = nCurSequNum;
 						}
@@ -1097,9 +1041,9 @@ x:					CCell* pCell = 0;
 					}
 					gbHaltedAtBoundary = FALSE;
 
-					return; // otherwise, we would go on to process the click, which we don't 
+					return; // otherwise, we would go on to process the click, which we don't
 							// want to do
-				} // end block for a click after a FindNext (which means phrase box will have 
+				} // end block for a click after a FindNext (which means phrase box will have
 				  // been destroyed)
 			} // end block for FindReplace visible
 		} // end block for FindReplace dialog not null when user clicked
@@ -1110,13 +1054,13 @@ x:					CCell* pCell = 0;
 	if (pApp->m_pLayout == NULL) return;
 	if (pApp->m_pLayout->GetStripCount() == 0) return;
 
-	CCell* pAnchor = pApp->m_pAnchor; // anchor cell, for use when extending 
+	CCell* pAnchor = pApp->m_pAnchor; // anchor cell, for use when extending
                                       // selection (null if no selection current)
-	int    nAnchorSequNum = -1; // if no anchor defined, set value -1; we can test 
+	int    nAnchorSequNum = -1; // if no anchor defined, set value -1; we can test
                                 //for this value later
 	if (pAnchor != NULL)
 	{
-		nAnchorSequNum = pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber; // there 
+		nAnchorSequNum = pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber; // there
 			// is a pre-existing selection or at least the anchor click to make one
 		wxASSERT(nAnchorSequNum >= 0);
 	}
@@ -1125,7 +1069,7 @@ x:					CCell* pCell = 0;
 	int sequNum;
 
 	// find which cell the click was in
-	CCell* pCell = pView->GetClickedCell(&point); // returns NULL if click was 
+	CCell* pCell = pView->GetClickedCell(&point); // returns NULL if click was
 												  // not in a cell
     // BEW added 03Aug08: disallow a click in the gray text area (preceding or following
     // context) during vertical editing mode; I'll code this block as if I was supporting
@@ -1164,7 +1108,7 @@ x:					CCell* pCell = 0;
 				return;
 			}
 		}
-		else if (gEditStep == freeTranslationsStep && 
+		else if (gEditStep == freeTranslationsStep &&
 					gEditRecord.bFreeTranslationStepEntered)
 		{
 			if (nClickedSequNum < gEditRecord.nFreeTranslationStep_StartingSequNum ||
@@ -1195,8 +1139,8 @@ x:					CCell* pCell = 0;
 
 		// prepare for drag
 		pApp->m_mouse = point;
-		CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse() 
-						// and DoCaptureMouse() in wxWidget sources wincmn.cpp 
+		CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse()
+						// and DoCaptureMouse() in wxWidget sources wincmn.cpp
 						// and window.cpp
 		wxLogDebug(_T("CaptureMouse."));
 	}
@@ -1206,14 +1150,14 @@ t:	if (pCell == NULL)
 		// click was not in a cell, so just remove any existing selection
 		pView->RemoveSelection();
 
-		// click was not in a cell, so allow removal of the automatically 
+		// click was not in a cell, so allow removal of the automatically
 		// inserted highlighting on target/glosses. This is effected
 		// by clearing the following two globals to -1 values.
 		gnBeginInsertionsSequNum = -1;
 		gnEndInsertionsSequNum = -1;
 
 		pApp->m_bSelectByArrowKey = FALSE;
-		Refresh(); // must force a redraw, or else the selection 
+		Refresh(); // must force a redraw, or else the selection
                    // stays on the screen (UpdateWindow() doesn't work here)
 
         // can't initiate a drag selection unless we click on a cell, so clear drag support
@@ -1229,7 +1173,7 @@ t:	if (pCell == NULL)
 			pApp->m_bSelectByArrowKey = FALSE;
 			if (pApp->m_selectionLine == -1)
 			{
-				// no current selection, so treat the SHIFT+click as an ordinary 
+				// no current selection, so treat the SHIFT+click as an ordinary
 				// unshifted click
 				goto a;
 			}
@@ -1302,7 +1246,7 @@ t:	if (pCell == NULL)
 								// get the next pile
 								if (nCurPile < nCurPileCount-1)
 								{
-									// there is at least one more pile in this strip, 
+									// there is at least one more pile in this strip,
 									// so access it
 									nCurPile++; // index of next pile
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
@@ -1311,7 +1255,7 @@ t:	if (pCell == NULL)
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
 
-									// if it is already selected, continue to next one, 
+									// if it is already selected, continue to next one,
 									// else select it
 									if (!pCurCell->IsSelected())
 									{
@@ -1324,7 +1268,7 @@ t:	if (pCell == NULL)
 										pApp->m_selection.Append(pCurCell);
 									}
 
-									// if we have reached a boundary, then break out, 
+									// if we have reached a boundary, then break out,
 									// otherwise continue
 									if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
 									{
@@ -1341,11 +1285,11 @@ t:	if (pCell == NULL)
 									pCurStrip = pLayout->GetStripByIndex(nCurStrip);
 									// get the pointer to its first pile
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
-									nCurPileCount = pCurStrip->GetPileCount(); // update 
+									nCurPileCount = pCurStrip->GetPileCount(); // update
 											// so test above remains correct for the strip
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
-									// get the required cell if it is already selected, 
+									// get the required cell if it is already selected,
 									// & continue to next one, else select it
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine);
 									if (!pCurCell->IsSelected())
@@ -1359,7 +1303,7 @@ t:	if (pCell == NULL)
 										pApp->m_selection.Append(pCurCell);
 									}
 
-									// if we have reached a boundary, then break out, 
+									// if we have reached a boundary, then break out,
 									// otherwise continue
 									if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
 									{
@@ -1379,9 +1323,9 @@ t:	if (pCell == NULL)
 							// second or third line, a shift click here does nothing as yet.
 							;
 						}
-					} // end of block for extending to higher sequence numbers 
+					} // end of block for extending to higher sequence numbers
 					  // (ie. visibly right for LTR layout, but visibly left for RTL layout)
-					  
+
 					// else extend to lower sequence numbers...
 					else
 					{
@@ -1411,8 +1355,8 @@ t:	if (pCell == NULL)
 									return;
 								}
 							}
-							  
-							// first if there are any cells selected beyond 
+
+							// first if there are any cells selected beyond
 							// the anchor cell, then get rid of them
 							pView->RemoveFollowingAnchor(&aDC, pAnchor);
 
@@ -1424,7 +1368,7 @@ t:	if (pCell == NULL)
 								// get the previous pile
 								if (nCurPile > 0)
 								{
-									// there is at least one previous pile in this strip, 
+									// there is at least one previous pile in this strip,
 									// so access it
 									nCurPile--; // index of previous pile
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
@@ -1432,7 +1376,7 @@ t:	if (pCell == NULL)
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
 
-									// if it is a boundary then we must break out 
+									// if it is a boundary then we must break out
 									// of the loop
 									if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
 									{
@@ -1440,7 +1384,7 @@ t:	if (pCell == NULL)
 											break;
 									}
 
-									// if it is already selected, continue to next prev one, 
+									// if it is already selected, continue to next prev one,
 									// else select it
 									if (!pCurCell->IsSelected())
 									{
@@ -1458,11 +1402,11 @@ t:	if (pCell == NULL)
                                     // we have reached the start of the strip, so go to end
                                     // of previous strip
 									nCurStrip--; // the previous strip's index
-									pCurStrip = pLayout->GetStripByIndex(nCurStrip); // prev strip 
-									nCurPileCount = pCurStrip->GetPileCount(); // update this so 
+									pCurStrip = pLayout->GetStripByIndex(nCurStrip); // prev strip
+									nCurPileCount = pCurStrip->GetPileCount(); // update this so
 													//test above remains correct for the strip
 									nCurPile = nCurPileCount-1; // last in this strip
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile);  // pointer 
+									pCurPile = pCurStrip->GetPileByIndex(nCurPile);  // pointer
 																			 // to its last pile
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
@@ -1476,7 +1420,7 @@ t:	if (pCell == NULL)
 											break;
 									}
 
-									// if it is already selected, continue to next prev one, 
+									// if it is already selected, continue to next prev one,
 									// else select it
 									if (!pCurCell->IsSelected())
 									{
@@ -1503,9 +1447,9 @@ t:	if (pCell == NULL)
                             // determined probably just ignore the click
 							;
 						}
-					} // end of block for extending to lower sequence numbers 
+					} // end of block for extending to lower sequence numbers
 					  // (ie. visibly left for LTR layout but visibly right for RTL layout)
-				} // end block for a "same line" click which means extension of selection can 
+				} // end block for a "same line" click which means extension of selection can
 				  // be done
 			} // end block for extending a selection
 #ifdef __WXMAC__
@@ -1530,8 +1474,8 @@ t:	if (pCell == NULL)
                     // make any single pile within a retranslation (other than a click in
                     // line 0 which causes a selection) inaccessible - user should
                     // treat a retranslation as a whole, & access it via toolbar buttons
-					if (!pApp->m_bFreeTranslationMode) // BEW added 8Jul05 to allow making 
-											// a retranslation pile the anchor location for 
+					if (!pApp->m_bFreeTranslationMode) // BEW added 8Jul05 to allow making
+											// a retranslation pile the anchor location for
 											// a free translation by a click
 					{
 						// IDS_NO_ACCESS_TO_RETRANS
@@ -1552,7 +1496,7 @@ t:	if (pCell == NULL)
                 // resetting the globals to -1. The highlighting should be retained if user
                 // clicks in a cell within a stretch of highlighted text since the user is
                 // probably correcting one or more cells that were not good translations
-				if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum 
+				if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum
 					|| pApp->m_nActiveSequNum > gnEndInsertionsSequNum)
 				{
 					gnBeginInsertionsSequNum = -1;
@@ -1596,11 +1540,11 @@ t:	if (pCell == NULL)
                             // doc-initial partial free trans section with no beginning?
                             // Assume it can for now...) So, fix the srcPhrase & leave
                             // phrase box here & return
-							gbSuppressSetup = TRUE; // don't permit reentry at 
+							gbSuppressSetup = TRUE; // don't permit reentry at
 													// RecalcLayout() call
 							pApp->m_nActiveSequNum = 0;
 							CSourcePhrase* pOldSrcPhrase = pOldPile->GetSrcPhrase();
-							pOldSrcPhrase->m_bStartFreeTrans = TRUE; // it didn't have it 
+							pOldSrcPhrase->m_bStartFreeTrans = TRUE; // it didn't have it
 																	 // set, so do it
 #ifdef _NEW_LAYOUT
 							pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
@@ -1608,7 +1552,7 @@ t:	if (pCell == NULL)
 							pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 							pApp->m_pActivePile = pView->GetPile(0);
-							wxASSERT(pApp->m_pActivePile != NULL);							
+							wxASSERT(pApp->m_pActivePile != NULL);
 
 							// now we've located the phrase box, permit setup again
 							gbSuppressSetup = FALSE; // allow reentry again
@@ -1702,7 +1646,7 @@ t:	if (pCell == NULL)
 				// restore default button image, and m_bCopySourcePunctuation to TRUE
 				wxCommandEvent event;
 				pApp->GetView()->OnButtonEnablePunctCopy(event);
-				
+
 				CPile* pPile;
 				pPile = pView->GetPile(pApp->m_nActiveSequNum);
 				pPile = pPile; // avoid warning in release build
@@ -1725,7 +1669,7 @@ t:	if (pCell == NULL)
 							// whm modified 24Aug06
 							wxString tempStr;
 							tempStr = pEditCompose->GetValue();
-							int len = tempStr.Length(); 
+							int len = tempStr.Length();
 							pEditCompose->SetSelection(len,len);
 						}
 						else
@@ -1736,7 +1680,7 @@ t:	if (pCell == NULL)
 
 					// mark the current section
 					pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
-					if (pApp->m_nActiveSequNum >= 0 && 
+					if (pApp->m_nActiveSequNum >= 0 &&
 											pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 					{
 						ScrollIntoView(pApp->m_nActiveSequNum);
@@ -1750,7 +1694,7 @@ t:	if (pCell == NULL)
 				return; // prevent clicks in bottom line of piles selecting or doing anything
 			}
 
-			// if it's none of the above things, then just a plain old click for making a 
+			// if it's none of the above things, then just a plain old click for making a
 			// selection... so clear the old selection, then make a new one
 			if (pCell->GetCellIndex() == 0)
 			{
@@ -1786,7 +1730,7 @@ a:				pApp->m_bSelectByArrowKey = FALSE;
 			} //end of block for test: pCell->GetCellIndex() == 0
 
 		} // end of else block for test: event.ShiftDown() == TRUE
-	} // end of else block for test: pCell == NULL, i.e. pCell not null 
+	} // end of else block for test: pCell == NULL, i.e. pCell not null
 
 	event.Skip();
 }
@@ -1812,7 +1756,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 	wxASSERT(pView != NULL);
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted - this only has significance if gbIsPrinting - needed?
-	
+
 	//wxPoint point = event.GetPosition();
     // we don't need to call CalcUnscrolledPosition() here because GetLogicalPosition
     // already provides the logical position of the clicked point
@@ -1821,7 +1765,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 	// can do a selection only if we have a non zero anchor pointer
 	if (pApp->m_pAnchor != NULL)
 	{
-		// find which cell the cursor was over when the mouse was released (not a well-named 
+		// find which cell the cursor was over when the mouse was released (not a well-named
 		// function but it does what we want)
 		CPile* pCurPile = NULL;
 		CCell* pCell = pView->GetClickedCell(&point); // returns NULL if point was not in a cell
@@ -1844,7 +1788,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
             // oops, we missed a cell, or are in wrong line, so we have to clobber any
             // existing selection
 			pView->RemoveSelection();
-			Refresh(); 
+			Refresh();
 			goto a;
 		}
 
@@ -1867,7 +1811,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
         // numbers is "rightwards" and to lower sequence number is "leftwards"; for an LTR
         // layout, logical order and visible mouse movement coincide, but for RTL layout,
         // the mouse moves in the opposite direction to logical direction)
-		if (pApp->m_pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber <= 
+		if (pApp->m_pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber <=
 											pCell->GetPile()->GetSrcPhrase()->m_nSequNumber)
 		{
 				pApp->m_curDirection = right;
@@ -1911,7 +1855,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 				}
 				else
 				{
-					// whm Note: wxList::Insert(pCell) inserts the pCell at the 
+					// whm Note: wxList::Insert(pCell) inserts the pCell at the
 					// front of the list by default
 					pApp->m_selection.Insert(pCell);
 				}
@@ -1923,7 +1867,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
     // In wx, it is an error to call ReleaseMouse() if the canvas did not previously call
     // CaptureMouse() so we'll check first to make sure canvas has captured the mouse
-	if (HasCapture()) // whm added if (HasCapture()) because wx asserts if ReleaseMouse 
+	if (HasCapture()) // whm added if (HasCapture()) because wx asserts if ReleaseMouse
 	{				  // is called without capture
 #ifdef __WXMAC__
 		pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
@@ -1931,7 +1875,7 @@ a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
 		ReleaseMouse(); // assume no failure
 	}
 	gbHaltedAtBoundary = FALSE; // ensure it is cleared
-	
+
 	event.Skip(); //CScrollView::OnLButtonUp(nFlags, point);
 }
 
@@ -1954,7 +1898,7 @@ void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted
-	
+
     // whm note: The wx docs seem to indicate that, once DoPrepareDC is called,
     // event.GetPosition() should return a point that is already converted to logical
     // coords, but testing shows that's not the case. GetPosition() always returns
@@ -1967,9 +1911,9 @@ void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 		// do the following only provided the button is down
 		if (pApp->m_mouse.x != point.x || pApp->m_mouse.y != point.y)
 		{
-			// there has been movement, so check if more selection is 
+			// there has been movement, so check if more selection is
 			// required & act accordingly
-			CCell* pCell = pView->GetClickedCell(&point); // returns NULL 
+			CCell* pCell = pView->GetClickedCell(&point); // returns NULL
 											// if the point was not in a cell
 			if (pCell == NULL)
 			{
@@ -1977,22 +1921,22 @@ void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 			}
 			else
 			{
-				pView->SelectDragRange(pApp->m_pAnchor,pCell); // internally sets 
+				pView->SelectDragRange(pApp->m_pAnchor,pCell); // internally sets
 											// m_curDirection to left or right
 			}
 		}
 	}
 }
 
-/* 
-// A code snippit from the wxWidgets doodling program. 
-// It illustrates how to capture and process stuff while 
+/*
+// A code snippit from the wxWidgets doodling program.
+// It illustrates how to capture and process stuff while
 // dragging the mouse with the left button.
 void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
 {
   if (!view)
     return;
-    
+
   static DoodleSegment *currentSegment = (DoodleSegment *) NULL;
 
   wxClientDC dc(this);
@@ -2015,26 +1959,26 @@ void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
 	  CAdapt_ItDoc* pDoc = (CAdapt_ItDoc *)view->GetDocument();
 	  wxASSERT(pDoc != NULL);
 
-      pDoc->GetCommandProcessor()->Submit(new DrawingCommand(_T("Add Segment"), 
+      pDoc->GetCommandProcessor()->Submit(new DrawingCommand(_T("Add Segment"),
 											DOODLE_ADD, pDoc, currentSegment));
 
       view->GetDocument()->Modify(TRUE);
       currentSegment = (DoodleSegment *) NULL;
     }
   }
-  
+
   if (xpos > -1 && ypos > -1 && event.Dragging())
   {
     if (!currentSegment)
       currentSegment = new DoodleSegment;
 
     DoodleLine *newLine = new DoodleLine;
-    newLine->x1 = (long)xpos; 
+    newLine->x1 = (long)xpos;
     newLine->y1 = (long)ypos;
-    newLine->x2 = pt.x; 
+    newLine->x2 = pt.x;
     newLine->y2 = pt.y;
     currentSegment->lines.Append(newLine);
-    
+
     dc.DrawLine( (long)xpos, (long)ypos, pt.x, pt.y);
   }
   xpos = pt.x;
@@ -2123,7 +2067,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		int nVisStrips = nWindowDepth / nStripHeight;
 		if (nWindowDepth % nStripHeight > 0) // modulo
 			nVisStrips++; // add 1 if a part strip fits as well
-		
+
 		// get the current horizontal and vertical pixels currently scrolled
 		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
 		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
@@ -2141,13 +2085,13 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 #ifdef DEBUG_ScrollIntoView
 		int midstripPixelDist = numTopHalfStrips * nStripHeight;
 			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxLogDebug(_T("\nScollIntoView: m_srcPhrase %s  , numTopHalfStrips %d ,  midstripPixelDist  %d , nVisStrips %d"), 
+			wxLogDebug(_T("\nScollIntoView: m_srcPhrase %s  , numTopHalfStrips %d ,  midstripPixelDist  %d , nVisStrips %d"),
 						pSrcPhrase->m_srcPhrase, numTopHalfStrips, midstripPixelDist, nVisStrips);
 			if (pApp->m_bAutoInsert)
-				wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is TRUE"), 
+				wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is TRUE"),
 						nStripHeight, nWindowDepth);
 			else
-				wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is FALSE"), 
+				wxLogDebug(_T("nStripHeight %d ,  nWindowDepth  %d , pApp->m_bAutoInsert is FALSE"),
 						nStripHeight, nWindowDepth);
 #endif
 		int nBoundForPrecedingContextStrips = nVisStrips - 3;
@@ -2160,10 +2104,10 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
         // includes its preceding leading -- that is, the distance from the start of the
         // document to the beginning of the leading for the active strip (the new value was
         // determined by a prior call to RecalcLayout)
-		int yDistFromDocStartToStripTopLeading = 
-										pPile->GetPileRect().GetTop() - pApp->m_curLeading;	
+		int yDistFromDocStartToStripTopLeading =
+										pPile->GetPileRect().GetTop() - pApp->m_curLeading;
 #ifdef DEBUG_ScrollIntoView
-			wxLogDebug(_T("Pixels to top of active strip %d  , nBoundForPrecedingContextStrips %d strips, Default nPrecedingContextDepth %d pixels"), 
+			wxLogDebug(_T("Pixels to top of active strip %d  , nBoundForPrecedingContextStrips %d strips, Default nPrecedingContextDepth %d pixels"),
 						yDistFromDocStartToStripTopLeading, nBoundForPrecedingContextStrips, nPrecedingContextDepth);
 #endif
        // wx version design considerations 14Sep06: Most of the MFC ScrollIntoView code is
@@ -2187,10 +2131,10 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 #ifdef DEBUG_ScrollIntoView
 		if (bAutoInsertionsExist)
-			wxLogDebug(_T("bAutoInsertionsExist is TRUE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"), 
+			wxLogDebug(_T("bAutoInsertionsExist is TRUE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"),
 						bAutoInsertionsExist, nAutoInsertedStripsCount, (int)bPhraseBoxIsInLastAutoInsertedStrip);
 		else
-			wxLogDebug(_T("bAutoInsertionsExist is FALSE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"), 
+			wxLogDebug(_T("bAutoInsertionsExist is FALSE , nAutoInsertedStripsCount %d strips, bPhraseBoxIsInLastAutoInsertedStrip bool is %d"),
 						bAutoInsertionsExist, nAutoInsertedStripsCount, (int)bPhraseBoxIsInLastAutoInsertedStrip);
 		wxLogDebug(_T("nPrecedingContextDepth_Max (the bound) is  %d  pixels"), nPrecedingContextDepth_Max);
 #endif
@@ -2277,7 +2221,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 							// get the phrase box's strip shown the necessary amount lower
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("bPhraseBoxIsInLastAutoInsertedStrip is FALSE  &  NOT ALL strips are visible -- adjust now"));
-#endif		
+#endif
 							numExtras_Max = nBoundForPrecedingContextStrips - nAutoInsertedStripsCount;
 							numExtrasToShow = nAutoInsertedStripsCount - numTopHalfStrips;
 							if (numExtrasToShow > numExtras_Max)
@@ -2311,7 +2255,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Review mode, or it's single step mode, so -- NO ADJUSTMENT required (phrase box should be mid window)"));
 #endif
-			//	nPrecedingContextDepth = nVisStrips / 2 * nStripHeight + 1; // mid window, 
+			//	nPrecedingContextDepth = nVisStrips / 2 * nStripHeight + 1; // mid window,
 			//													// or a little below that
 			}
 		}
@@ -2329,13 +2273,13 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		// make a sanity check on the above value
 		if (desiredViewTop < 0)
 		{
-			desiredViewTop = 0; 
+			desiredViewTop = 0;
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Final desiredViewTop = 0 (reset because was negative)"));
 #endif
 		}
 		//-------------------- now the desiredViewBottom calculations ---------------
-		
+
         // Determine the desired bottom position in the document of the content we wish to
         // view. We do this by adding the window depth to the desiredViewTop value. When
         // the active strip gets close to the end of the logical document, this could
@@ -2368,7 +2312,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		if (nWindowDepth >= virtDocSize.y)
 		{
 			// it's a short document that fits in the current view window's vertical
-			// dimensions 
+			// dimensions
 			Scroll(0,0); // Scroll takes scroll units not pixels
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Short doc, scroll car must be at 0"));
@@ -2399,7 +2343,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 #ifdef Do_Clipping
 // 				wxLogDebug(_T("allow clipping flag is %s, old_desiredTop  %d, desiredViewTop  %d  Test is %s , Clipped? %s"),
 //				pLayout->GetAllowClippingFlag() ? _T("TRUE") : _T("FALSE"),
-//				old_desiredTop,desiredViewTop, 
+//				old_desiredTop,desiredViewTop,
 //				old_desiredTop == desiredViewTop ? _T("TRUE") : _T("FALSE"),
 //				pLayout->GetAllowClippingFlag() && !pLayout->GetScrollingFlag() != TRUE ? _T("YES") : _T("NO"));
 				if (old_desiredTop == desiredViewTop)
@@ -2414,7 +2358,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		wxLogDebug(_T("Typical scroll, scroll car set to yDist of  %d pixels"),desiredViewTop);
 		int newXPos,current_yDistFromDocStartToViewTop;
 		CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
-		wxLogDebug(_T("Scroll Distance =  %d logical units; +ve value means Scrolled DOWN, -ve means Scrolled UP , old car position = %d logical units"), 
+		wxLogDebug(_T("Scroll Distance =  %d logical units; +ve value means Scrolled DOWN, -ve means Scrolled UP , old car position = %d logical units"),
 			(desiredViewTop/yPixelsPerUnit - current_yDistFromDocStartToViewTop/yPixelsPerUnit), current_yDistFromDocStartToViewTop/yPixelsPerUnit);
 #endif
 			}
@@ -2471,7 +2415,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		int nVisStrips = nWindowDepth / nStripHeight;
 		if (nWindowDepth % nStripHeight > 0) // modulo
 			nVisStrips++; // add 1 if a part strip fits as well
-		
+
 		// get the current horizontal and vertical pixel scale factors for scroll units
 		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
 		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
@@ -2486,8 +2430,8 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 			numTopHalfStrips = 2;
 
 		//int nBoundForPrecedingContextStrips = nVisStrips - 3;
-		
-		int nPrecedingContextDepth = numTopHalfStrips * nStripHeight; 	
+
+		int nPrecedingContextDepth = numTopHalfStrips * nStripHeight;
         // nStripHeight calculated above includes the leading
 
         // Get the required y-coord of the top of the phrase box's strip where the "strip"
@@ -2506,10 +2450,10 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		// make a sanity check on the above value
 		if (desiredViewTop < 0)
 		{
-			desiredViewTop = 0; 
+			desiredViewTop = 0;
 		}
 		//-------------------- now the desiredViewBottom calculations ---------------
-		
+
         // Determine the desired bottom position in the document of the content we wish to
         // view. We do this by adding the window depth to the desiredViewTop value. When
         // the active strip gets close to the end of the logical document, this could
@@ -2537,7 +2481,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		if (nWindowDepth >= virtDocSize.y)
 		{
 			// it's a short document that fits in the current view window's vertical
-			// dimensions 
+			// dimensions
 			Scroll(0,0); // Scroll takes scroll units not pixels
 		}
 		else
@@ -2592,7 +2536,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 #ifdef Do_Clipping
 	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif
-	
+
 	CalcUnscrolledPosition(0,0,&scrollPos.x,&scrollPos.y);
 
 	wxRect visRect; // wxRect rectClient;
@@ -2609,7 +2553,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	int nCurrentPileHeight = pLayout->GetPileHeight();
 	if (pApp->m_bFreeTranslationMode)
 	{
-		// the legacy app included the 3 pixels and tgt text height in the 
+		// the legacy app included the 3 pixels and tgt text height in the
 		// calculation
 		nCurrentPileHeight += 3 + pLayout->GetTgtTextHeight();
 	}
@@ -2632,7 +2576,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	int scrollUnitsPerPage = GetScrollThumb(wxVERTICAL);
 	int unitsBeyondLastFullScrolledPage = nLimit % scrollUnitsPerPage;
 	// reduce the nLimit by the unitsBeyondLastFullScrolledPage.
-	nLimit -= unitsBeyondLastFullScrolledPage; // to make wxWindow::GetScrollRange == 
+	nLimit -= unitsBeyondLastFullScrolledPage; // to make wxWindow::GetScrollRange ==
 											   // CWnd::GetScrollLimit
 	nLimit *= yPixelsPerUnit; // convert scroll units to pixels
 	int nMaxDist = nLimit - scrollPos.y;
@@ -2689,13 +2633,13 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CLayout* pLayout = pApp->m_pLayout;
-	wxPoint scrollPos; 
+	wxPoint scrollPos;
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 #ifdef Do_Clipping
 	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif
-	
+
 	CalcUnscrolledPosition(0,0,&scrollPos.x,&scrollPos.y);
 
 	int yDist;
@@ -2706,7 +2650,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	int nCurrentPileHeight = pLayout->GetPileHeight();
 	if (pApp->m_bFreeTranslationMode)
 	{
-		// the legacy app included the 3 pixels and tgt text height in the 
+		// the legacy app included the 3 pixels and tgt text height in the
 		// calculation
 		nCurrentPileHeight += 3 + pLayout->GetTgtTextHeight();
 	}
