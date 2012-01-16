@@ -216,26 +216,34 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 		canvasSize = gpApp->GetMainFrame()->GetCanvasClientSize();
 		visRect.width = canvasSize.GetWidth();
 		visRect.height = canvasSize.GetHeight();
+		visRect.x = 0;
+		visRect.y = 0;
 
+		// try this next wxWindow call: it's to be called in a paint event handler to
+		// optimize redrawing by only redrawing those areas which have been exposed; so
+		// see if this gets all the free translations redrawn under a scroll drag of the
+		// thumb
+		bool bIsExposed = IsExposed(0,0,visRect.width, visRect.height);
+		if (bIsExposed)
+		{
+			wxLogDebug(_T("\n\n\n ******* IsExposed returned TRUE *******"));
+		}
 
 		int xx; int yy;
 		CalcUnscrolledPosition(0, 0, &xx, &yy); // (xx,yy) is window (left,top) in logical coords
+		wxLogDebug(_T(" SCROLL CAR IS HERE: (logical coords) yy = %d "), yy);
 
 		wxRect clientRect;
 		wxRect boundingRect;
 		wxRegion region;
 		region = GetUpdateRegion();
 		region.GetBox(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
-		// make boundingRect be in logical coords
-		boundingRect.y += yy;
 
 		// next 4 in window coords
 		clientRect.y = 0;
 		clientRect.x = 0;
 		clientRect.width = visRect.width;
 		clientRect.height = visRect.height;
-		// now in logical coords
-		clientRect.y += yy;
 
 		int nWindowDepth = visRect.GetHeight();
 		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
@@ -246,8 +254,8 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 		int nVisStrips = nWindowDepth / nStripHeight;
 		if (nWindowDepth % nStripHeight > 0)
 			nVisStrips++;
-		wxLogDebug(_T("*** (logical coords): ClientWnd.Top  %d  damagedTop  %d  (width %d, height %d, wnd_depth %d, vis strips %d"),
-			clientRect.y, boundingRect.y, clientRect.width, clientRect.height, nWindowDepth, nVisStrips);
+		wxLogDebug(_T("*** (client coords): damagedTop  %d  (width %d, height %d, wnd_depth %d, vis strips %d, strip height %d"),
+			boundingRect.y, clientRect.width, clientRect.height, nWindowDepth, nVisStrips, nStripHeight);
 
 	}
 #endif
