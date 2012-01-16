@@ -6,9 +6,9 @@
 /// \date_revised	2 August 2011
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CCCTabbedDialog class. 
+/// \description	This is the implementation file for the CCCTabbedDialog class.
 /// The CCCTabbedDialog class provides a dialog with tabbed pages in which the user can load up to four
-/// consistent changes tables for use in Adapt It. Each tabbed page has controls that enable the user to 
+/// consistent changes tables for use in Adapt It. Each tabbed page has controls that enable the user to
 /// browse, select, create and/or edit consistent change (.cct) tables.
 /// \derivation		The CCCTabbedDialog class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ CCCTabbedDialog::CCCTabbedDialog(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Get One Or More Consistent Change Tables"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	
+
 	// wx Note: Since InsertPage also calls SetSelection (which in turn activates our OnTabSelChange
 	// handler, we need to initialize some variables before CCTabbedNotebookFunc is called below.
 	// Specifically m_nCurPage and pKB needs to be initialized - so no harm in putting all vars
@@ -108,17 +108,17 @@ CCCTabbedDialog::CCCTabbedDialog(wxWindow* parent) // dialog constructor
 	usedInTableMarker[1] = _(" - [USED in Table 2]");
 	usedInTableMarker[2] = _(" - [USED in Table 3]");
 	usedInTableMarker[3] = _(" - [USED in Table 4]");
-	
+
 	CCTabbedNotebookFunc(this, TRUE, TRUE);
 	// The declaration is: CCTabbedNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
-	
-	// the following pointer to the CC wxNotebook control is a single instance; 
+
+	// the following pointer to the CC wxNotebook control is a single instance;
 	// it can only be associated with a pointer after the CCTabbedNotebookFunc above call
 	m_pCCTabbedNotebook = (wxNotebook*)FindWindowById(ID_CC_TABBED_NOTEBOOK);
 	wxASSERT(m_pCCTabbedNotebook != NULL);
@@ -143,11 +143,11 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	// page (nbPage) in our wxNotebook. We need to associate the pointers with the correct
 	// controls here within LoadDataForPage() which is called initially and for each
 	// tab page selected. The pointers to controls will differ for each page, hence
-	// they need to be reassociated for each page. Note the nbPage-> pefix on 
+	// they need to be reassociated for each page. Note the nbPage-> pefix on
 	// FindWindow(). I've chosen not to use Validators here because of the complications
 	// of having pointers to controls differ on each page of the notebook; instead we
 	// manually transfer data between dialog controls and their variables.
-	
+
 	// set the page selection and get pointer to the page in wxNotebook
 	m_pCCTabbedNotebook->SetSelection(pageNumSel);
 	wxNotebookPage* nbPage = m_pCCTabbedNotebook->GetPage(pageNumSel);
@@ -174,21 +174,21 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	wxASSERT(m_pBtnEditCct != NULL);
 	m_pBtnSelectNone = (wxButton*)nbPage->FindWindow(IDC_BUTTON_SELECT_NONE);
 	wxASSERT(m_pBtnSelectNone != NULL);
-	
+
 	// make the fonts show user's desired point size in the dialog
-	// 
+	//
 	// whm Note: Why do we set a special font for the m_pEditFolderPath's edit box? It results in a
 	// larger than normal (12 point) font size which generally makes it extend beyond the right end of the
-	// edit box often hiding the actual name of the cct table file. The result is that the user has 
-	// to use the supplied horizontal scroll bar to see the name of the most important part of the path. 
+	// edit box often hiding the actual name of the cct table file. The result is that the user has
+	// to use the supplied horizontal scroll bar to see the name of the most important part of the path.
 	// whm 11Jul11 commented out the following calls, so the m_pEditfolderPath, m_pListBox, and
-	// m_pEditSelectedTableName will use the 9 point default dialog font. Previously the font was too 
+	// m_pEditSelectedTableName will use the 9 point default dialog font. Previously the font was too
 	// big to fit in the multiline edit control. Paths and file names don't need special font treatment.
 	//#ifdef _RTL_FLAGS
 	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL,
 	//							NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
 	//#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL, 
+	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditFolderPath, NULL,
 	//							NULL, NULL, gpApp->m_pDlgTgtFont);
 	//#endif
 
@@ -196,10 +196,10 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSelectedTableName, NULL,
 	//							m_pListBox, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bNavTextRTL);
 	//#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSelectedTableName, NULL, 
+	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pEditSelectedTableName, NULL,
 	//							m_pListBox, NULL, gpApp->m_pDlgSrcFont);
 	//#endif
-	
+
 	// The following App globals have local equivalents here in CCTabbedDialog:
 	//         App Globals:                         CCTabbedDialog Equivalents:
 	// ------------------------------------------------------------------------
@@ -215,7 +215,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
     // previously, then that table's folder path would be better than the initial one supplied on launch
     // of the property sheet (and will be obtainable from the app's m_lastCcTablePath variable which is
     // updated in each Browse... button handler).
-    // 
+    //
     // whm Note: On subsequent invocations of the property sheet MFC's OnInitDialog() always sets the
     // current local m_folderPath to the m_lastCcTablePath on the App. That is OK if the user only ever
     // uses one .cct table on one path. But, I don't think this is desirable if the user loads two or
@@ -223,38 +223,38 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
     // For an initial invocation of the property sheet the "Folder path" edit box will show any
     // different paths used for the given .cct tables, but on subsequent invocations (while CC is
     // active) the edit box will only show the last browsed to path.
-    // 
+    //
     // In redesigning for clarity, I think we want subsequent invocations to accurately show the data on
     // the tab pages (including folder path) so it is consistent with what was previously loaded. In
     // particular, we want the "Folder Path" editbox to show the actual path for any .cct file loaded in
     // a given Table tab page.
-    // 
+    //
     // whm revised 6Aug11.
-	// Check whether navigation protection is in effect for _CCTABLE_INPUTS_OUTPUTS, 
-	// and whether the App's m_lastCcTablePath is empty or has a valid path, 
+	// Check whether navigation protection is in effect for _CCTABLE_INPUTS_OUTPUTS,
+	// and whether the App's m_lastCcTablePath is empty or has a valid path,
 	// and set the appropriate m_folderPath[] for the CC table accordingly.
 	if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
 	{
-		// Navigation protection is ON, so force the use of the special protected 
+		// Navigation protection is ON, so force the use of the special protected
 		// folder.
 		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
 	}
 	else if (gpApp->m_lastCcTablePath.IsEmpty()
 		|| (!gpApp->m_lastCcTablePath.IsEmpty() && !::wxDirExists(gpApp->m_lastCcTablePath)))
 	{
-		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-		// to appear. But the m_lastCcTablePath is either empty or, if not empty, 
-		// it points to an invalid path, so we initialize the defaultDir to point to 
-		// the special protected folder _CCTABLE_INPUTS_OUTPUTS, even though Navigation 
-		// protection is not ON. In this case, the user could point the export path 
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog
+		// to appear. But the m_lastCcTablePath is either empty or, if not empty,
+		// it points to an invalid path, so we initialize the defaultDir to point to
+		// the special protected folder _CCTABLE_INPUTS_OUTPUTS, even though Navigation
+		// protection is not ON. In this case, the user could point the export path
 		// elsewhere using the wxFileDialog that will appear.
 		m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
 	}
 	else
 	{
 		// Navigation protection is OFF and we have a valid path in m_lastCcTablePath,
-		// so we initialize the defaultDir to point to the m_lastCcTablePath for the 
-		// location of the export. The user could still point the export path elsewhere 
+		// so we initialize the defaultDir to point to the m_lastCcTablePath for the
+		// location of the export. The user could still point the export path elsewhere
 		// in the wxFileDialog that will appear.
 		m_folderPath[m_nCurPage] = gpApp->m_lastCcTablePath; // this is where we will create it
 	}
@@ -275,7 +275,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 
         // MFC Note: hilight the current one if possible, but if none is current then highlight the
         // first in the list
-        // 
+        //
         // whm modified 10Apr08 from MFC version behavior. I think the MFC version behavior is confusing
         // because when the property page comes up and there is more than one .cct table file in the
         // folder path, all four "Table n" tab pages in the dialog have the first .cct table in the list
@@ -290,7 +290,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
         // he only wants to use the one .cct table he selected for Table 1 (likely the most common
         // situation). The MFC version seems to lead the user to choose the same .cct table for two,
         // three or all four of the Table tabs, which is not appropriate.
-        // 
+        //
         // Here is how I think the "Get One Or More Consistent Change Tables" dialog should work:
         // 1. If the remembered (default) folder path has only one .cct table in that folder, and
         // m_tblName is empty, then I think it is appropriate for Adapt It to automatically select that
@@ -310,7 +310,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
         // wishes to find a different path for Table 2 he can then click on the Browse button and do so.
         // The list box should behave the same for that Table tab as I've described above for the Table
         // 1 tab.
-        // 
+        //
         // 2. If the remembered folder path (or any path browsed to) contains more than one .cct table,
         // and if m_tblName is empty, then I think it is inappropriate for Adapt It to automatically
         // enter the first .cct file into "The CC Table you have chosen is:" edit box. If a given .cct
@@ -322,7 +322,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
         // so once one .cct table is chosen in Table 1, then it would be more likely that the remaining
         // table (that is not grayed out) would be the one the user would select for Table 2, and so on
         // for any Table 3 or Table 4.
-		
+
         // We are loading the list box of .cct table files from OnInitDialog() or the
         // OnTabPageChanging() handler. The OnInitDialog() handler will be called each time the user
         // invokes the "Load Consistent Changes..." item from the Tools menu, even when "Use Consistent
@@ -336,7 +336,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
         // (which might be the case if we're returning to this tab after looking at other tabs), we want
         // to both mark it as "[USED]", and also automatically highlight it because it IS the .cct item
         // the user previously selected on the current page.
-        // 
+        //
         // Note: At this point in LoadDataForPage, the listbox only contains .cct files - none of which
         // would have any " - [USED...]" suffixes. Later such suffixes will be added to any appropriate
 		// listbox items when ShowUsageOfListBoxItems() is called. All list items are also only found
@@ -383,7 +383,7 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	}
 	if (!m_tblName[m_nCurPage].IsEmpty())
 	{
-		m_pEditSelectedTableName->SetValue(m_tblName[m_nCurPage]); 
+		m_pEditSelectedTableName->SetValue(m_tblName[m_nCurPage]);
 	}
 	m_pEditFolderPath->SetValue(m_folderPath[m_nCurPage]);
 }
@@ -392,10 +392,10 @@ void CCCTabbedDialog::UpdateButtons()
 {
     // The enabled state of the buttons could be set with an update UI idle handler, but we'll
     // enable/disable the buttons manually by calling UpdateButtons() from the appropriate handlers.
-    // 
+    //
     // Note: The "Browse to Find CC Table..." button and the "Create CC Table..." button stay enabled at
     // all times.
-    //     
+    //
     // The "Edit CC Table..." button should only be enabled when there is an active selection of a .cct
     // file in the listbox.
 	if (m_pListBox->GetSelection() != -1)
@@ -408,7 +408,7 @@ void CCCTabbedDialog::UpdateButtons()
 	}
 
     // The "Select None..." button should be enabled only when a path + file name is displayed in the
-    // ...chosen edit box above the buttons. 
+    // ...chosen edit box above the buttons.
 	if (m_pEditSelectedTableName->GetValue() != _T(""))
 	{
 		m_pBtnSelectNone->Enable(TRUE);
@@ -418,7 +418,7 @@ void CCCTabbedDialog::UpdateButtons()
 		m_pBtnSelectNone->Enable(FALSE);
 	}
 }
-	
+
 wxString CCCTabbedDialog::GetListItemWithoutUsedString(wxString inStr)
 {
 	if (inStr.Find(_T(" - [")) != -1)
@@ -428,7 +428,7 @@ wxString CCCTabbedDialog::GetListItemWithoutUsedString(wxString inStr)
 	return inStr;
 }
 
-void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event)) 
+void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event))
 {
     // wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a
     // call to Clear() so we must check to see if the listbox contains no items and if so
@@ -475,7 +475,7 @@ void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event))
 	tempStr = GetListItemWithoutUsedString(tempStr);
 	m_tblName[m_nCurPage] = tempStr;
 	m_bTableLoaded[m_nCurPage] = TRUE; // set our local copy (global is only set in OnOK()
-	m_pEditSelectedTableName->SetValue(m_tblName[m_nCurPage]); 
+	m_pEditSelectedTableName->SetValue(m_tblName[m_nCurPage]);
 	m_pEditFolderPath->SetValue(m_folderPath[m_nCurPage]);
 	ShowUsageOfListBoxItems();
 	UpdateButtons();
@@ -484,7 +484,7 @@ void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event))
 
 void CCCTabbedDialog::OnTabPageChanging(wxNotebookEvent& event)
 {
-	// OnTabPageChanging is called whenever any Table tab is selected ("Table 1", "Table 2", 
+	// OnTabPageChanging is called whenever any Table tab is selected ("Table 1", "Table 2",
 	// "Table 3", or "Table 4").
 	int pageNumSelected = event.GetSelection();
 	if (pageNumSelected == m_nCurPage)
@@ -500,7 +500,7 @@ void CCCTabbedDialog::OnTabPageChanging(wxNotebookEvent& event)
 	m_nPrevSelection = -1;
 
 	// Each Table tab is capable of having a different Folder Path, so before loading the new tab
-	// page's data and displaying it, we need to 
+	// page's data and displaying it, we need to
 
 	//Set up new page data by populating list boxes and controls
 	LoadDataForPage(pageNumSelected); // start with first item selected for new tab page - calls UpdateButtons
@@ -508,7 +508,7 @@ void CCCTabbedDialog::OnTabPageChanging(wxNotebookEvent& event)
 	UpdateButtons();
 	m_pListBox->SetFocus();
 }
-	
+
 void CCCTabbedDialog::ShowUsageOfListBoxItems()
 {
     // For each <file>.cct item in the current list box, that has already been associated with a Table
@@ -526,7 +526,7 @@ void CCCTabbedDialog::ShowUsageOfListBoxItems()
 		wxString listBoxStr;
 		listBoxStr = m_pListBox->GetString(listBoxItemIndex);
 		listBoxStr = GetListItemWithoutUsedString(listBoxStr);
-		int nTableNum = -1; // a suitable default indication 
+		int nTableNum = -1; // a suitable default indication
 		if (IsSelectedInAnyTable(listBoxStr,nTableNum))
 		{
 			// Add the " - [USED ...]" suffix to the existing string item and set the suffixed
@@ -581,21 +581,21 @@ bool CCCTabbedDialog::IsSelectedInCurrentTable(wxString cctFile)
 	return bSelected;
 }
 
-void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event)) 
+void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 {
-	// whm 11Jan12 modified. If this CCCTabbedDialog is summoned without 
-	// a project being open (as can happen if Cancel is pressed at the 
+	// whm 11Jan12 modified. If this CCCTabbedDialog is summoned without
+	// a project being open (as can happen if Cancel is pressed at the
 	// wizard/collab dialog), browsing will be directed depending on any
-	// whether a project is open and whether nav protection in effect 
-	// for the App's m_ccTableInputsAndOutputsFolderPath. If nav protection 
-	// is ON for _CCTABLE_INPUTS_OUTPUTS, that folder is the one that any 
+	// whether a project is open and whether nav protection in effect
+	// for the App's m_ccTableInputsAndOutputsFolderPath. If nav protection
+	// is ON for _CCTABLE_INPUTS_OUTPUTS, that folder is the one that any
 	// contained cc tables are shown for selection. Otherwise we look for
 	// cc table files located in the App's m_lastCcTablePath if it has a
 	// valid/existing path, or in m_curProjectPath when a project is open,
-	// or when no project is open we look in either the m_workFolderPath 
+	// or when no project is open we look in either the m_workFolderPath
 	// or m_customWorkFolderPath as appropriate.
 	CAdapt_ItApp* pApp = &wxGetApp();
-	
+
 	// whm revised 6Aug11 in support of protecting inputs/outputs folder navigation
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
 	wxString defaultDir;
@@ -609,11 +609,11 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 	else if (gpApp->m_lastCcTablePath.IsEmpty()
 		|| (!gpApp->m_lastCcTablePath.IsEmpty() && !::wxDirExists(gpApp->m_lastCcTablePath)))
 	{
-		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-		// to appear. But the m_lastCcTablePath is either empty or, if not empty, 
-		// it points to an invalid path, so we initialize the defaultDir to point to 
-		// the special protected folder (_CCTABLE_INPUTS_OUTPUTS), even though 
-		// Navigation protection is not ON. In this case, the user could point the 
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog
+		// to appear. But the m_lastCcTablePath is either empty or, if not empty,
+		// it points to an invalid path, so we initialize the defaultDir to point to
+		// the special protected folder (_CCTABLE_INPUTS_OUTPUTS), even though
+		// Navigation protection is not ON. In this case, the user could point the
 		// export path elsewhere using the wxFileDialog that will appear.
 		bBypassFileDialog_ProtectedNavigation = FALSE;
 		defaultDir = gpApp->m_ccTableInputsAndOutputsFolderPath;
@@ -621,8 +621,8 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// Navigation protection is OFF and we have a valid path in m_lastCcTablePath,
-		// so we initialize the defaultDir to point to the m_lastCcTablePath for the 
-		// location of the export. The user could still point the export path elsewhere 
+		// so we initialize the defaultDir to point to the m_lastCcTablePath for the
+		// location of the export. The user could still point the export path elsewhere
 		// in the wxFileDialog that will appear.
 		bBypassFileDialog_ProtectedNavigation = FALSE;
 		defaultDir = gpApp->m_lastCcTablePath;
@@ -654,17 +654,17 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		}
 		else // must be wxID_OK
 		{
-			// whm revision 11Jan12 Note: We set the App's m_lastCcTablePath variable 
-			// with the path part of the selected path. We do this even when navigation 
-			// protection is on (see below), so that the special folders would be the 
-			// initial path suggested if the administrator were to switch Navigation 
+			// whm revision 11Jan12 Note: We set the App's m_lastCcTablePath variable
+			// with the path part of the selected path. We do this even when navigation
+			// protection is on (see below), so that the special folders would be the
+			// initial path suggested if the administrator were to switch Navigation
 			// Protection OFF.
 			wxString path, fname, ext;
 			// whm Note: wxFileDialog::GetPath() returns the full path (directory and filename)
 			wxFileName::SplitPath(fileDlg.GetPath(), &path, &fname, &ext);
 			m_tblName[m_nCurPage] = fileDlg.GetFilename(); // this has just the file name
-			m_folderPath[m_nCurPage] = path; // has just the path part 
-			
+			m_folderPath[m_nCurPage] = path; // has just the path part
+
 			// update the app's m_lastCcTablePath variable
 			pApp->m_lastCcTablePath = m_folderPath[m_nCurPage];
 
@@ -675,7 +675,7 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	else
-	{	
+	{
 		// CC table folder (_CCTABLE_INPUTS_OUTPUTS) is protected
 		wxArrayString ccTableFilesIncludingPaths,ccTableFilesNamesOnly;
 		// get an array list of .cct files
@@ -702,7 +702,7 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 
 		m_tblName[m_nCurPage] = ccTableFilesNamesOnly.Item(returnValue); // this has just the file name
 		m_folderPath[m_nCurPage] = tablePath;
-		
+
 		// update the app's m_lastCcTablePath variable
 		pApp->m_lastCcTablePath = m_folderPath[m_nCurPage];
 
@@ -714,7 +714,7 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 }
 
 
-void CCCTabbedDialog::OnDblclkListCctables(wxCommandEvent& WXUNUSED(event)) 
+void CCCTabbedDialog::OnDblclkListCctables(wxCommandEvent& WXUNUSED(event))
 {
 	// whm note: A double click also activates the OnSelchangeListCctables() event handler so I've
 	// commented out the code from this handler
@@ -730,7 +730,7 @@ void CCCTabbedDialog::OnDblclkListCctables(wxCommandEvent& WXUNUSED(event))
 	}
 	m_tblName[m_nCurPage] = m_pListBox->GetString(nSel);
 	m_bTableLoaded[m_nCurPage] = TRUE;
-	m_pEditSelectedTableName->SetValue(m_tblName[m_nCurPage]); 
+	m_pEditSelectedTableName->SetValue(m_tblName[m_nCurPage]);
 	m_pEditFolderPath->SetValue(m_folderPath[m_nCurPage]); //TransferDataToWindow();
 	OnSelchangeListCctables(event);
 	*/
@@ -753,7 +753,7 @@ void CCCTabbedDialog::GetPossibleCCTables(wxArrayString* pList)
 	{
 		// Must call wxDir::Open() before calling GetFirst() - see above
 		wxString str = _T("");
-		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		bool bWorking = finder.GetFirst(&str,wxEmptyString,wxDIR_FILES);
 		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
 		// second parameter wxEmptyString iterates all files, of any or no extension
 		while (bWorking)
@@ -768,7 +768,7 @@ void CCCTabbedDialog::GetPossibleCCTables(wxArrayString* pList)
 	}
 }
 
-void CCCTabbedDialog::OnButtonEditCct(wxCommandEvent& WXUNUSED(event)) 
+void CCCTabbedDialog::OnButtonEditCct(wxCommandEvent& WXUNUSED(event))
 {
 	CCCTableEditDlg editor((wxWindow*)gpApp->GetMainFrame());
 
@@ -779,14 +779,14 @@ void CCCTabbedDialog::OnButtonEditCct(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// make the file's path
-	wxString path = m_folderPath[m_nCurPage] + gpApp->PathSeparator + m_tblName[m_nCurPage]; 
+	wxString path = m_folderPath[m_nCurPage] + gpApp->PathSeparator + m_tblName[m_nCurPage];
 	wxASSERT(!path.IsEmpty());
 
 	DoEditor(editor,path);
 	m_pListBox->SetFocus();
 }
 
-void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event)) 
+void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 {
 	// whm 14Jul11 modified. The creation of a cc table is somewhat of a
 	// technical task and not likely to be done by novice users. Moreover
@@ -794,9 +794,9 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 	// the CCCTableNameDlg instead for getting the name of a cc table file
 	// to create. Hence whenever nav protection is in force for cc table
 	// storage, this routine utilizes the _CCTABLE_INPUTS_OUTPUTS which is
-	// a child folder of the m_workFolderPath or m_customWorkFolderPath as 
-	// appropriate. The folder is located there because the CCCTabbedDialog 
-	// can be summoned without a project being open (as can happen of Cancel 
+	// a child folder of the m_workFolderPath or m_customWorkFolderPath as
+	// appropriate. The folder is located there because the CCCTabbedDialog
+	// can be summoned without a project being open (as can happen of Cancel
 	// is pressed at the wizard/collab dialog).
 	CCCTableNameDlg nameDlg((wxWindow*)gpApp->GetMainFrame());
 	if (nameDlg.ShowModal() == wxID_OK)
@@ -806,6 +806,7 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		m_tblName[m_nCurPage] += _T(".cct"); // append .cct extension
 
 		bool bBypassFileDialog_ProtectedNavigation = FALSE;
+		bBypassFileDialog_ProtectedNavigation = bBypassFileDialog_ProtectedNavigation; // avoid compiler warning
 		// Determine the value for m_folderPath[m_nCurPage]
 		if (gpApp->m_bProtectCCTableInputsAndOutputsFolder)
 		{
@@ -817,11 +818,11 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		else if (gpApp->m_lastCcTablePath.IsEmpty()
 			|| (!gpApp->m_lastCcTablePath.IsEmpty() && !::wxDirExists(gpApp->m_lastCcTablePath)))
 		{
-			// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-			// to appear. But the m_lastKbOutputPath is either empty or, if not empty, 
-			// it points to an invalid path, so we initialize the defaultDir to point to 
-			// the special protected folder, even though Navigation protection is not ON. 
-			// In this case, the user could point the export path elsewhere using the 
+			// Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			// to appear. But the m_lastKbOutputPath is either empty or, if not empty,
+			// it points to an invalid path, so we initialize the defaultDir to point to
+			// the special protected folder, even though Navigation protection is not ON.
+			// In this case, the user could point the export path elsewhere using the
 			// wxFileDialog that will appear.
 			bBypassFileDialog_ProtectedNavigation = FALSE;
 			m_folderPath[m_nCurPage] = gpApp->m_ccTableInputsAndOutputsFolderPath;
@@ -829,8 +830,8 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			// Navigation protection is OFF and we have a valid path in m_lastKbOutputPath,
-			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the 
-			// location of the export. The user could still point the export path elsewhere 
+			// so we initialize the defaultDir to point to the m_lastKbOutputPath for the
+			// location of the export. The user could still point the export path elsewhere
 			// in the wxFileDialog that will appear.
 			bBypassFileDialog_ProtectedNavigation = FALSE;
 			m_folderPath[m_nCurPage] = gpApp->m_lastCcTablePath;
@@ -869,11 +870,11 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		ShowUsageOfListBoxItems();
 		UpdateButtons();
 		m_pListBox->SetFocus();
-		
+
 		/*
 		// on dismissal of the editor, make the list box show the tables available, and the new one hilited
 		// whm: but do we automatically use the edited table? probably not, just highlight it.
-		
+
 		// remove any existing filenames in the list
 		m_pListBox->Clear();
 
@@ -961,12 +962,12 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 
 	//this is where unicode support is required; we'll allow the table to be encoded in UTF-16, not just the
 	// expected UTF-8, to give a bit more flexibility
-#ifndef _UNICODE // ANSI version, no unicode support 
+#ifndef _UNICODE // ANSI version, no unicode support
 
 	// create the required buffer and then read in the file (no conversions needed)
 	// whm note: I'm borrowing the routines from GetNewFile() in the Doc which use malloc
 	// rather than alloca; it won't hurt to allocate memory from the heap rather than the stack frame
-	wxChar* pBuf = (wxChar*)malloc(nLogLen + 1); // allow for terminating null byte 
+	wxChar* pBuf = (wxChar*)malloc(nLogLen + 1); // allow for terminating null byte
 	memset(pBuf,0,nLogLen + 1); // set all to zero
 	wxUint32 numRead = f.Read(pBuf,(wxUint32)nLogLen);
 	pBuf[numRead] = '\0'; // add terminating null
@@ -978,12 +979,12 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	wxUint32 nNumRead;
 //	bool bHasBOM = FALSE;
 	wxUint32 nBuffLen = (wxUint32)nLogLen + sizeof(wxChar);
-	char* pbyteBuff = (char*)malloc(nBuffLen); 
+	char* pbyteBuff = (char*)malloc(nBuffLen);
 	memset(pbyteBuff,0,nBuffLen);
 	nNumRead = f.Read(pbyteBuff,nLogLen);
 	nLogLen = nNumRead + sizeof(wxChar);
 
-	// now we have to find out what kind of encoding the data is in, and set the encoding 
+	// now we have to find out what kind of encoding the data is in, and set the encoding
 	// and we convert to UTF-16 in the DoInputConversion() function
 	// check for UTF-16 first; we allow it, but don't expect it (and we assume it would have a BOM)
 //	if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
@@ -1039,7 +1040,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 #endif // for _UNICODE
 
 	f.Close();
-	
+
 	if (editor.ShowModal() == wxID_OK)
 	{
 		if (!f.Open(path, wxFile::write))
@@ -1079,7 +1080,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	}
 }
 
-void CCCTabbedDialog::OnButtonSelectNone(wxCommandEvent& WXUNUSED(event)) 
+void CCCTabbedDialog::OnButtonSelectNone(wxCommandEvent& WXUNUSED(event))
 {
 	m_pListBox->SetSelection(-1); // remove selections (returns LB_ERR too) same in wx
 	m_nPrevSelection = -1;
