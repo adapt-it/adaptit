@@ -469,15 +469,15 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return                   the extracted substring
-/// \param pBufStart      ->  the start of the buffer containing the total string from which to 
+/// \param pBufStart      ->  the start of the buffer containing the total string from which to
 ///                           extract a substring
-/// \param pBufEnd        ->  the end of the buffer containing the total string from which to 
+/// \param pBufEnd        ->  the end of the buffer containing the total string from which to
 ///                           extract a substring (points  at null wxChar terminating the string)
 /// \param first          ->  index to the wxChar which is first to be extracted
 /// \param firstAfter     ->  index to the wxChar which is one wxChar past the last to be
 ///                           extracted (at the end, obtaining the last substring to extract,
 ///                           firstAfter would point at pBufEnd)
-/// \remarks   
+/// \remarks
 /// The only tests we make are that first <= last, and last <= pBufEnd
 /// Used in GetUpdatedText_UsfmsUnchanged() of CollabUtilities.cpp
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -506,7 +506,7 @@ wxString ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t
 /// \param str      ->  the string from which to extract a substring
 /// \param first    ->  index to the wxChar which is first to be extracted
 /// \param last     ->  index to the wxChar which is last to be extracted
-/// \remarks   
+/// \remarks
 /// If str is empty, an empty string is returned
 /// If last < first, an assert trips in the debug build, empty string returned in release build
 /// If first > (length - 1), an assert trips in the debug build, empty string returned in release build
@@ -645,7 +645,7 @@ bool FileExists(wxString Path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// \return TRUE if fileAndPathTrueIfNewer has a more recent mod time than fileAndPathFalseIfNewer, 
+/// \return TRUE if fileAndPathTrueIfNewer has a more recent mod time than fileAndPathFalseIfNewer,
 ///             otherwise returns FALSE if fileAndPathFalseIfNewer is same date or newer
 /// \param	fileAndPathTrueIfNewer  -> the file being compared, TRUE if this one is newer mod date
 /// \param	fileAndPathFalseIfNewer  -> the file being compared, FALSE if this one is newer mod date
@@ -1029,7 +1029,7 @@ wxString GetConvertedPunct(const wxString& rStr)
 
 	for (int j = 0; j < len; j++)
 	{
-		// first try two-character source punctuation, if no match, 
+		// first try two-character source punctuation, if no match,
 		// then try single-char matching
 		bool bMatchedTwo = FALSE;
 		k = j;
@@ -1127,11 +1127,11 @@ b:		if (bMatchedTwo)
 }
 
 // functions added by whm
-// whm Note: the following group of functions share a lot of code with 
-// their counterparts in the Doc class. However, these functions are all 
-// used on buffers that might be in existence when the actual Doc does 
-// not exist. Hence I've put underscores in their function names so they 
-// won't be confused with the similarly named functions in the 
+// whm Note: the following group of functions share a lot of code with
+// their counterparts in the Doc class. However, these functions are all
+// used on buffers that might be in existence when the actual Doc does
+// not exist. Hence I've put underscores in their function names so they
+// won't be confused with the similarly named functions in the
 // CAdapt_ItDoc class.
 bool Is_AnsiLetter(wxChar c)
 {
@@ -1188,10 +1188,10 @@ int Parse_Number(wxChar *pChar, wxChar *pEnd) // whm 10Aug11 added wxChar *pEnd 
 {
 	wxChar* ptr = pChar;
 	int length = 0;
-	// whm 10Aug11 added ptr < pEnd test in while loop below because a 
-	// number can be at the end of a string followed by a null character. If the 
-	// ptr < pEnd test is not included the Is_NonEol_WhiteSpace() call would 
-	// return a FALSE result and the while loop would iterate one too many times 
+	// whm 10Aug11 added ptr < pEnd test in while loop below because a
+	// number can be at the end of a string followed by a null character. If the
+	// ptr < pEnd test is not included the Is_NonEol_WhiteSpace() call would
+	// return a FALSE result and the while loop would iterate one too many times
 	// returning a bad length
 	// whm added 4Sep11 test to halt parsing if a backslash is encountered
 	while (ptr < pEnd && !Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r') && *ptr != _T('\\'))
@@ -1201,17 +1201,17 @@ int Parse_Number(wxChar *pChar, wxChar *pEnd) // whm 10Aug11 added wxChar *pEnd 
 	}
 	return length;
 }
-/* 
-// BEW removed 4Aug11, it is not used anywhere yet, but I've also updated it 
+/*
+// BEW removed 4Aug11, it is not used anywhere yet, but I've also updated it
 // to support the special spaces and joiners recommended by Dennis Drescher
 bool Is_WhiteSpace(wxChar *pChar, bool& IsEOLchar)
 {
-	// The standard white-space characters are the following: space 0x20, tab 0x09, 
+	// The standard white-space characters are the following: space 0x20, tab 0x09,
 	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
 	// returns true if pChar points to a standard white-space character.
 	// We also let the caller know if it is an eol char by returning TRUE in the
 	// isEOLchar reference param, or FALSE if it is not an eol char.
-	if (*pChar == _T('\r')) // 0x0D CR 
+	if (*pChar == _T('\r')) // 0x0D CR
 	{
 		// this is an eol char so we let the caller know
 		IsEOLchar = TRUE;
@@ -1273,7 +1273,7 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 	if (*pChar == ZWSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ)
 		return TRUE;
 #endif
-	// The standard white-space characters are the following: space 0x20, tab 0x09, 
+	// The standard white-space characters are the following: space 0x20, tab 0x09,
 	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
 	// returns true if pChar points to a non EOL white-space character, but FALSE
 	// if pChar points to an EOL char or any other character.
@@ -1301,7 +1301,7 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 */
 bool Is_NonEol_WhiteSpace(wxChar *pChar)
 {
-	// The standard white-space characters are the following: space 0x20, tab 0x09, 
+	// The standard white-space characters are the following: space 0x20, tab 0x09,
 	// carriage-return 0x0D, newline 0x0A, vertical tab 0x0B, and form-feed 0x0C.
 	// returns true if pChar points to a non EOL white-space character, but FALSE
 	// if pChar points to an EOL char or any other character.
@@ -1374,8 +1374,8 @@ int Parse_Marker(wxChar *pChar, wxChar *pEnd)
 	wxChar* pBegin = ptr;
 	while (ptr < pEnd && !Is_NonEol_WhiteSpace(ptr) && *ptr != _T('\n') && *ptr != _T('\r') && *ptr != _T('\0') && gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 	{
-		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']'))) 
-			break; 
+		if (ptr != pBegin && (*ptr == gSFescapechar || *ptr == _T(']')))
+			break;
 		ptr++;
 		len++;
 		if (*(ptr -1) == _T('*')) // whm ammended 17May06 to halt after asterisk (end marker)
@@ -1388,10 +1388,10 @@ bool Is_Marker(wxChar *pChar, wxChar *pEnd)
 {
 	// whm modified 2May11 from the IsMarker function in the Doc to add checks for pEnd
 	// to prevent it from accessing memory beyond the buffer. The Doc's version should
-	// also have this check, otherwise a spurious '\' at or near the end of the buffer 
+	// also have this check, otherwise a spurious '\' at or near the end of the buffer
 	// would result in trying to access a char in memory beyond the actual end of the
 	// buffer.
-	// 
+	//
     // also use bool IsAnsiLetter(wxChar c) for checking character after backslash is an
     // alphabetic one; and in response to issues Bill raised in an email on Jan 31st about
     // spurious marker match positives, make the test smarter so that more which is not a
@@ -1548,7 +1548,7 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 // it constructs the word and returns it to the caller - throwing away any other info
 // gained except that returned in the 3rd param, wordBuildingForPostWordLoc. This param
 // will have one or more characters in it only if the following is true:
-// (1) each such character was, when the document was first created, a word-building 
+// (1) each such character was, when the document was first created, a word-building
 // character.
 // (2) at some previous time, the user changed the punctuation settings so that that
 // character / those characters became punctuation characters, AND
@@ -1578,7 +1578,7 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 // automatically add a space to charSet, so it is safe to pass in spacelessPuncts string.
 // BEW created 28Jan11, the code is adapted from the second half of doc class's
 // FinishOffConjoinedWordsParse() function
-wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, 
+wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 								 wxString& wordBuildingForPostWordLoc, wxString charSet)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -1593,10 +1593,10 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 	bool bFoundHaltingWhitespace = FALSE;
 	int nFixedSpaceOffset = -1;
 	int nEndMarkerCount = 0;
-	pHaltLoc = pDoc->FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker, 
-					&bFoundFixedSpaceMarker, &bFoundClosingBracket, 
+	pHaltLoc = pDoc->FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
+					&bFoundFixedSpaceMarker, &bFoundClosingBracket,
 					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
-	wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a 
+	wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a
 								  // whitespace or a beginmarker
 	// now parse backwards to extract the span's info
 	wxString wordProper; // emptied at start of ParseSpanBackwards() call below
@@ -1604,8 +1604,8 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 	wxString inlineBindingEndMarkers; // ditto
 	wxString secondFollPuncts; // ditto
 	wxString ignoredWhiteSpaces; // ditto
-	pDoc->ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount, 
-						inlineBindingEndMarkers, secondFollPuncts, 
+	pDoc->ParseSpanBackwards( aSpan, wordProper, firstFollPuncts, nEndMarkerCount,
+						inlineBindingEndMarkers, secondFollPuncts,
 						ignoredWhiteSpaces, wordBuildingForPostWordLoc, charSet);
 	return wordProper;
 }
@@ -2077,7 +2077,7 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a filename based on the name in the first param but incremented with a possible
-///             suffix and a unique ascending set of digits, i.e., fileName001.txt, fileName002.txt, 
+///             suffix and a unique ascending set of digits, i.e., fileName001.txt, fileName002.txt,
 ///             fileName003.txt etc.
 /// \param      baseFilePathAndName  -> path and file name of the base file to "increment" such
 ///                                     as fileName.txt
@@ -2091,11 +2091,11 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 /// \remarks
 /// A helper function for generating a file name using the file name given in baseFilePathAndName.
 /// If the file name at baseFilePathAndName does not exist, this function returns the
-/// baseFilePathAndName with any suffix suffixed to the file title. If the input baseFilePathAndName 
-/// exists, the function increments the name only part of baseFilePathAndName, so that it is unique 
-/// from the base file name and any other previously incremented file names created by this function 
-/// at the same path. The file name returned preserves any extension that was on the baseFilePathAndName. 
-/// If suffix is not a null string, the function adds the suffix to the end of the name followed by an 
+/// baseFilePathAndName with any suffix suffixed to the file title. If the input baseFilePathAndName
+/// exists, the function increments the name only part of baseFilePathAndName, so that it is unique
+/// from the base file name and any other previously incremented file names created by this function
+/// at the same path. The file name returned preserves any extension that was on the baseFilePathAndName.
+/// If suffix is not a null string, the function adds the suffix to the end of the name followed by an
 /// ascending set of digits at the end of the name before retaining any existing extension.
 ////////////////////////////////////////////////////////////////////////////////////////////
 wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueFileIncrementMethod,
@@ -2132,7 +2132,7 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 				strLen = incStr.Length();
 			}
 			uniqueName = folderPathOnly + PathSeparator + fileTitleOnly + suffix + incStr + _T(".") + fileExtensionOnly;
-			
+
 			while (::wxFileExists(uniqueName))
 			{
 				inc++;
@@ -2162,13 +2162,13 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 /// \param		rString		-> the string we are reading characters from
 /// \remarks
 /// Called from: the Doc's OnOpenDocument(); ExportTargetText_For_Collab(),
-/// ExportFreeTransText_For_Collab(), DoExportSfmText() and 
+/// ExportFreeTransText_For_Collab(), DoExportSfmText() and
 /// RebuildText_For_Collaboration().
 /// Cleans up rString by reducing multiple spaces to single spaces.
-/// whm 11Aug11 revised this function to do its work much faster using both a 
-/// read buffer and a write buffer instead of reading each character from the 
-/// source buffer and concatenating the character onto a wxString - a process 
-/// which can be rather slow and inefficient for lengthy strings. Also I'm 
+/// whm 11Aug11 revised this function to do its work much faster using both a
+/// read buffer and a write buffer instead of reading each character from the
+/// source buffer and concatenating the character onto a wxString - a process
+/// which can be rather slow and inefficient for lengthy strings. Also I'm
 /// using an algorithm that eliminates the unconditional jump the original
 /// function had.
 ///////////////////////////////////////////////////////////////////////////////
@@ -2176,11 +2176,11 @@ wxString RemoveMultipleSpaces(wxString& rString)
 {
 	// We are building a destination buffer which will eventually contain a string
 	// that is the same size or smaller than the string in the source buffer,
-	// i.e., smaller by the number of any multiple spaces that get reduced to single 
+	// i.e., smaller by the number of any multiple spaces that get reduced to single
 	// spaces.
 	int nLen = rString.Length();
 	wxASSERT(nLen >= 0);
-	
+
 	// Set up a write buffer for atemp which is the same size as rString.
 	// Then copy characters using pointers from the rString buffer to the atemp buffer (not
 	// advancing the pointer for where multiple spaces are adjacent to each other).
@@ -2204,7 +2204,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 			if (pNextSource < pEndSourceBuff && *pNextSource == _T(' '))
 			{
 				// Advance only the pSourceBuffChar pointer and continue which
-				// will bypass writing this space into the destination buffer 
+				// will bypass writing this space into the destination buffer
 				// because the next character in the source buffer is a space.
 				pSourceBuffChar++;
 				continue; // skip this space because another one follows this one
@@ -2219,7 +2219,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	wxASSERT(pDestBuffChar <= pEndDestBuff);
 	*pDestBuffChar = _T('\0'); // terminate the dest buffer string with null char
 	destString.UngetWriteBuf();
-	
+
 	return destString;
 }
 
@@ -2234,21 +2234,21 @@ wxString RemoveMultipleSpaces(wxString& rString)
 /// PATH environment variable. The first path on which appName is found is
 /// returned. If appName is not found on any paths specified in the system's
 /// PATH environment variable, an empty string is returned. This function is
-/// used to find 
+/// used to find
 ///////////////////////////////////////////////////////////////////////////////
 wxString GetProgramLocationFromSystemPATH(wxString appName)
 {
 	// whm added 6Dec11. Patterned after Julian Smart's code in wxWidgets
 	// docs re "Writing installers for wxWidgets applications".
-    // The passed in appName string might be for example, _T("bibledit-rdwrt"), 
-    // or _T("bibledit-gkt") or _T("adaptit") or _T("adaptit-bibledit-rdwrt"), 
-    // or any program executable that might be found by searching the system's 
+    // The passed in appName string might be for example, _T("bibledit-rdwrt"),
+    // or _T("bibledit-gkt") or _T("adaptit") or _T("adaptit-bibledit-rdwrt"),
+    // or any program executable that might be found by searching the system's
     // PATH environment variable.
     wxString str;
     wxPathList pathList;
     pathList.AddEnvList(wxT("PATH"));
     str = pathList.FindAbsoluteValidPath(appName);
-	// The value for str here would normally be "/usr/local/bin" for non-packaged 
+	// The value for str here would normally be "/usr/local/bin" for non-packaged
 	// builds or "/usr/bin" for packaged builds.
     if (!str.IsEmpty())
         return wxPathOnly(str);
@@ -2279,15 +2279,15 @@ wxString GetAdaptItInstallPrefixForLinux()
     str = GetProgramLocationFromSystemPATH(gpApp->argv[0]);
 	// If str is empty it means that adaptit has not been installed from a
 	// package or by invoking 'sudo make install' from a local build. At least
-	// it is not on the system PATH. In such cases it must have been invoked 
-	// after a local make process probably from some location like: 
+	// it is not on the system PATH. In such cases it must have been invoked
+	// after a local make process probably from some location like:
 	// /home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug
-	// and no command was invoked to install the program after make was 
-	// called. When no install has been done, we just return an empty string 
+	// and no command was invoked to install the program after make was
+	// called. When no install has been done, we just return an empty string
 	// for the install prefix.
-	// 
-    // When str is not empty the value of str will be the path to the installed 
-    // adaptit executable file, without a terminating path separator, normally 
+	//
+    // When str is not empty the value of str will be the path to the installed
+    // adaptit executable file, without a terminating path separator, normally
     // /usr/local/bin or /usr/bin.
 	// Since /bin is the usual/standard directory regardless of what type
 	// of install (package or local make install), the prefix is the first
@@ -2304,13 +2304,13 @@ wxString GetAdaptItInstallPrefixForLinux()
 	wxString stdPathsPrefix;
 	stdPathsPrefix.Empty();
 	stdPathsPrefix = stdPaths.GetInstallPrefix();
-	// When no install has been done GetInstallPrefix() seems to return 
+	// When no install has been done GetInstallPrefix() seems to return
 	// something like /home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug
-	// or /home/bruce/subversion/adaptit/bin/linux/bin/Debug (note the 
+	// or /home/bruce/subversion/adaptit/bin/linux/bin/Debug (note the
 	// two /bin/ folders in the path - as reported by Bruce)
 	// which is the directory the executable is currently being run from.
-	// If as part of the make process we were doing the equivalent of our 
-	// post-build that get called in Visual Studio, this value for a 
+	// If as part of the make process we were doing the equivalent of our
+	// post-build that get called in Visual Studio, this value for a
 	// prefix would be OK. But, for now we will just return set a prefix
 	// string value when the app was found on the system PATH (above).
 	// Uncomment the next line if/when we do such post-build copying of
@@ -2509,7 +2509,7 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 // BEW created 11Oct10, this utility parses strToParse, extracting in sequence each SF
 // marker and ignoring any other non-marker substrings. It works whether or not there is a
 // space between markers. Returns TRUE if at least one was added to arr, otherwise returns
-// FALSE. The passed in string array, arr, is cleared on entry. 
+// FALSE. The passed in string array, arr, is cleared on entry.
 // A typical use for this utility is to get an array of endmarkers, which using
 // AddNewStringsToArray(), can be added to m_pMedialMarkers member of a merged
 // CSourcePhrase. (SmartTokenize() above won't work when there are no delimiters between
@@ -2737,7 +2737,7 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 /// but the location where input is a placeholder, we don't want a note handled. So I've
 /// added a further boolean param, bool bIncludeNote = TRUE in the prototype.
 //////////////////////////////////////////////////////////////////////////////////////////
-wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
+wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount,
 									  bool bCountInTargetText, bool bIncludeNote)
 {
 	wxString str; str.Empty();
@@ -2937,7 +2937,7 @@ void EmptyMarkersAndFilteredStrings(
 /// later function which the caller calls we join the brackets to the text which they
 /// bracket and so they don't contribute to the word count)
 /////////////////////////////////////////////////////////////////////////////////////////
-wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount, 
+wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount,
 							bool bCountInTargetText)
 {
 	// to support [ and ] brackets which, if they occur, are the only content, bleed this
@@ -2988,9 +2988,9 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		// visible content stored on this merged CSourcePhrase
 	Sstr.Empty(); // clear it out
 
-	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final 
+	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final
 													 // m_endMarkers content here
-	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content 
+	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content
 								   // to be added at loop end
 	wxString aSpace = _T(" ");
 	wxString markersStr;
@@ -3021,7 +3021,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 
 		// separate out any crossReference info (plus marker & endmarker) if within this
 		// filtered information
-		SeparateOutCrossRefInfo(filteredInfoStr, xrefStr, otherFiltered);		
+		SeparateOutCrossRefInfo(filteredInfoStr, xrefStr, otherFiltered);
 	}
 
     // for the first CSourcePhrase, we store any filtered info within the prefix
@@ -3081,7 +3081,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		Sstr += iNBMkrs;
 		strInitialStuff += iNBMkrs;
 	}
-	
+
 	// There may be an inline binding beginmarker. We'll require the user to place it
 	// using the dialog, because it may need to be inserted following preceding
 	// punctuation already on the passed in m_targetStr (which is now Tstr).
@@ -3093,7 +3093,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	if (!pMergedSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 	{
 		iBMkrs = pMergedSrcPhrase->GetInlineBindingMarkers();
-		// there should always be a final space in m_inlineBindingMarkers, 
+		// there should always be a final space in m_inlineBindingMarkers,
 		// and we'll ensure it
 		iBMkrs.Trim(FALSE);
 		iBMkrs.Trim();
@@ -3142,8 +3142,8 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
     // GetMarkersAndFilteredStrings() call)
 	if (!endMarkersStr.IsEmpty())
 	{
-		// we've endmarkers from m_endMarkers pf pMergedSrcPhrase that we have to 
-		// deal with 
+		// we've endmarkers from m_endMarkers pf pMergedSrcPhrase that we have to
+		// deal with
 		markersAtVeryEndArray.Add(endMarkersStr);
 		bHasInternalMarkers = TRUE;
 
@@ -3170,7 +3170,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		// for Tstr, placement via dlg
 		markersAtVeryEndArray.Add(nBEMkrs);
 		bHasInternalMarkers = TRUE;
-		
+
 		// for Sstr, placement below by our code
 		bFinalEndmarkers = TRUE; // use this below to do the final append
 								 // of any nBEMkrs content
@@ -3215,7 +3215,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		if (!bFirst)
 		{
 			// empty the scratch strings
-			EmptyMarkersAndFilteredStrings(markersStr_forLoop, endMarkersStr_forLoop, 
+			EmptyMarkersAndFilteredStrings(markersStr_forLoop, endMarkersStr_forLoop,
 						freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
             // get the other string information we want, putting it in the scratch strings;
             // in these original stored CSourcePhrase instances, there won't be any
@@ -3224,7 +3224,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
             // markersStr_forLoop and endMarkersStr_forLoop we want from this call; and
             // further below, any inline markers and endmarkers stores as a result of
             // 11Oct10 docV5 changes
-			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr_forLoop, 
+			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr_forLoop,
 						endMarkersStr_forLoop, freeTransStr, noteStr, collBackTransStr,
 						filteredInfoStr);
 			// for the non-first pSrcPhrase instances, we'll use markersStr and
@@ -3244,7 +3244,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 			// members, and since we've already saved and are holding over those values
 			// and will place them after the loop finishes, we only have to deal in this
 			// block with m_precPunct and beginmarkers on this pSrcPhrase
-			
+
 			// BEW 11Oct10, we have to rebuild the core of the source string starting with
 			// m_key so start doing that now, & continue in the blocks below
 			strCore = pSrcPhrase->m_key;
@@ -3404,7 +3404,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		{
 			// this block is for m_markers and m_endMarkers stuff only, and accumulation
 			// for Sstr (no filtered info can be in the remaining CSourcePhrase instances)
-			
+
 			// BEW 11Oct10, we have to rebuild the core of the source string starting with
 			// m_key so start doing that now, & continue in the blocks below
 			strCore = pSrcPhrase->m_key;
@@ -3521,7 +3521,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	} // end of while loop
 
 	// Finally, add any final endmarkers from pMergedSrcPhrase held over till now; for
-	// Tstr, they are in the a second array, markersAtVeryEndArray, - so copy the items 
+	// Tstr, they are in the a second array, markersAtVeryEndArray, - so copy the items
 	// across to the array for placement instead using the placement dialog. For Sstr we
 	// have them stored already in strings and can finish off Sstr in the block below.
 	// (for the call on next line, we are not interested in the returned boolean, and
@@ -3915,7 +3915,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 // filtered info and m_markers as well. GetSrcPhraseBeginningInfo() is used in
 // FromMergerMakeSstr() and I may use it in others too
 // BEW created 11Oct10 for helping with doc version 5 additions to CSourcePhrase
-wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
+wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
 					 bool& bAddedSomething)
 {
     bAddedSomething = FALSE;
@@ -4053,7 +4053,7 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
             // parameter, it uses pMergedSrcPhrase to collect endmarker and following
             // punctuation information from the merged sourcephrase rather than from the
             // saved original (non-merged) last pSrcPhrase we are currently looking at
-			beforeStr.Empty(); 
+			beforeStr.Empty();
 			bAddedSomething = FALSE;
 			// bIncludeNote is TRUE, bDoCountForFreeTrans is TRUE, bCountInTargetTextLine
 			// is FALSE, for last 3 params
@@ -4103,7 +4103,7 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 			// like the bFirst block, but the first function call is different, since it
 			// needs to check for m_markers info on the saved original (non-merged)
 			// pSrcPhrase we are currently looking at
-			beforeStr.Empty(); 
+			beforeStr.Empty();
 			bAddedSomething = FALSE;
 			// bIncludeNote is TRUE, bDoCountForFreeTrans is TRUE, bCountInTargetTextLine
 			// is FALSE, for last 3 params
@@ -4163,7 +4163,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 		offset = str.Find(backslash);
 		if (offset == wxNOT_FOUND)
 		{
-			// the whole string is a collected back translation 
+			// the whole string is a collected back translation
 			str.Empty();
 			return str;
 		}
@@ -4176,7 +4176,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 	{
 		str = startStr + str;
 	}
-	// collected back translation info has been removed, next remove any free 
+	// collected back translation info has been removed, next remove any free
 	// translation info
 	startStr.Empty();
 	offset = str.Find(_T("\\free"));
@@ -4273,7 +4273,7 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// later function which the caller calls we join the brackets to the text which they
 /// bracket and so they don't contribute to the word count)
 /////////////////////////////////////////////////////////////////////////////////////////
-wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount, 
+wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount,
 							bool bCountInTargetText)
 {
 	// to support [ and ] brackets which, if they occur, are the only content, bleed this
@@ -4386,9 +4386,9 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	// the one below to GetUnfilteredCrossRefsAndMMarkers()
 	markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
 							pSrcPhrases, otherFiltered, collBackTransStr,
-							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers 
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
-	
+
 	// BEW 11Oct10, the initial stuff is now more complex, so we can no longer insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
 	// string, strInitialStuff in which to build the stuff which precedes m_targetStr and
@@ -4404,11 +4404,11 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	markersPrefix.Trim();
 	markersPrefix << aSpace;
 
-	// The task now, whether for conjoined pairs or a normal single target text word, is to 
+	// The task now, whether for conjoined pairs or a normal single target text word, is to
 	// remove preceding and following punctuation into storage strings temporarily. This
 	// works the same whether USFM fixes space conjoins or not, provided there are no
 	// inline binding begin or end markers when there is conjoining - but if there is, we
-	// must use the rebuilt Tstr from the call above instead. 
+	// must use the rebuilt Tstr from the call above instead.
     // Then we can add markers and, if necessary, call the placement dialog to handle
     // endmarker insertion where there may be ambiguity as to the correct endmarker
     // location.
@@ -4526,7 +4526,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		Tstr = pSP->GetInlineNonbindingMarkers() + Tstr;
 	}
 
-	// add any m_markers content and unfiltered xref material if present, preceding what 
+	// add any m_markers content and unfiltered xref material if present, preceding what
 	// we have so far
 	if (!strInitialStuff.IsEmpty())
 	{
@@ -4597,7 +4597,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	return Tstr;
 }
 
-// BEW created 11Oct10, for support of improved doc version 5 functionality. 
+// BEW created 11Oct10, for support of improved doc version 5 functionality.
 // Used in the FromSingleMakeTstr() function, when there are inline binding markes within
 // the conjoining with USFM fixed space marker ~ joining a pair of words.
 wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
@@ -4630,14 +4630,14 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	int length = tgtStr.Len();
 	wxChar* pEnd = ptr + length;
 	// use target language punctuation characters in the extraction tests
-	word1PrecPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]); 
+	word1PrecPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]);
 	length = word1PrecPunct.Len();
 	ptr += length;
 	// next, get word1
-	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use 
+	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use
 	// ParseWordInwardsFromEnd() instead
 	wxString wordBuildersForPostWordLoc;
-	word1 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc, 
+	word1 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc,
 									gpApp->m_punctuation[1]);
 	if (!wordBuildersForPostWordLoc.IsEmpty())
 	{
@@ -4650,17 +4650,17 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	length = word1.Len();
 	ptr += length;
 	// next, get following puncts from word1
-	word1FollPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]); 
+	word1FollPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]);
 	length = word1FollPunct.Len();
 	ptr += length;
 	wxASSERT(*ptr == _T('~'));
 	ptr += 1; // jump ~
 	// next, get preceding puncts from word2
-	word2PrecPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]); 
+	word2PrecPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]);
 	length = word2PrecPunct.Len();
 	ptr += length;
 	// next, get word2
-	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use 
+	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use
 	// ParseWordInwardsFromEnd() instead
 	word2 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc,
 									gpApp->m_punctuation[1]);
@@ -4674,7 +4674,7 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	length = word2.Len();
 	ptr += length;
 	// next, get following puncts from word2
-	word2FollPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]); 
+	word2FollPunct = SpanIncluding(ptr, pEnd, gpApp->m_punctuation[1]);
 	length = word2FollPunct.Len();
 	ptr += length;
 	// we have the decomposition finished, now rebuild with the inline binding markers in
@@ -4780,7 +4780,7 @@ bool IsUsfmDocument(SPList* pList, bool* pbIsEither)
 		*pbIsEither = FALSE;
 		return FALSE;
 	}
-	// if we've not returned yet, then USFM is the winner	
+	// if we've not returned yet, then USFM is the winner
 	*pbIsEither = FALSE;
 	return TRUE;
 }
@@ -4790,13 +4790,13 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 {
 	size_t count = 0;
 	// These arrays are cleared each time passed in to GetSFMarkersAsArray()
-	wxArrayString endMkrsArray; endMkrsArray.Clear(); 
+	wxArrayString endMkrsArray; endMkrsArray.Clear();
 	wxArrayString beginMkrsArray; beginMkrsArray.Clear();
 	bool bNoProblems = TRUE;
 	wxString aSpace = _T(" ");
 	wxString str; // a scratch string in which to store string returned from an access function
 	wxString mkr;
-	wxString mkrPlusSpace; // use this for testing the fast access strings defined on 
+	wxString mkrPlusSpace; // use this for testing the fast access strings defined on
 						   // the app (see start of OnInit())
 	size_t index;
 	size_t arrayCount;
@@ -4946,7 +4946,7 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 				wxArrayString filteredMarkers;		filteredMarkers.Clear();
 				wxArrayString filteredEndMarkers;	filteredEndMarkers.Clear();
 				wxArrayString filteredContent;		filteredContent.Clear();
-				bool bIsOkay = pSrcPhrase->GetFilteredInfoAsArrays(&filteredMarkers, 
+				bool bIsOkay = pSrcPhrase->GetFilteredInfoAsArrays(&filteredMarkers,
 											&filteredEndMarkers, &filteredContent);
 				if (bIsOkay)
 				{
@@ -5011,7 +5011,7 @@ size_t EvaluateMarkerSetForIndicatorCount(CSourcePhrase* pSrcPhrase, enum SfmSet
 }
 
 // returns nothing
-// param   inStr       ->  a string of extracted filtered information (with \!FILTER and 
+// param   inStr       ->  a string of extracted filtered information (with \!FILTER and
 //                         \~FILTER* filter bracketing markers all removed)
 // param   xrefStr     <-  reference to a string in which to return \x.....to....\x* inclusive
 //                         or empty string if there is no cross reference info in inStr
@@ -5133,9 +5133,9 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 		// is other filtered info, it precedes m_markers info; remove LHS whitespace when done
 		markersPrefix = GetUnfilteredInfoMinusMMarkersAndCrossRefs(pSingleSrcPhrase,
 							pSrcPhrases, filteredInfoStr, collBackTransStr,
-							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers 
+							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr are handled in a separate function, later below
-		 
+
 	} // end of TRUE block for test: if (bAttachFilteredInfo)
 	else
 	{
@@ -5155,7 +5155,7 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
     // complement of punctuation and markers also, and we'll allow an inline binding marker
     // / endmarker provided that the first word has a beginmarker, and the second word has
     // an endmarker (but not necessarily a matching pair).
-	// The task now, whether for conjoined pairs or a normal single source text word, is to 
+	// The task now, whether for conjoined pairs or a normal single source text word, is to
 	// build up a srcStr which has (1) punctuation (2) inline binding mrk & endmkr if
 	// present, and the key (the building is more complex for a conjoined pair, but is
 	// still determinate so no user help is needed in this step). After we have srcStr, we
@@ -5370,7 +5370,7 @@ int ParseMarker(const wxChar *pChar)
 	// break immediately after an asterisk; we don't want the latter because this function
 	// will be used to parse over a reversed string, and a reversed endmarker will have an
 	// initial asterisk and we don't want to halt the loop there
-	
+
     // BEW 8Dec10, it just isn't safe to assume that if the unreversed input didn't have a
     // * at the end of the string buffer, then it must be an unreversed string that was
     // input and that backslash starts it. If the SFM set is PngOnly, there could be a
@@ -5388,7 +5388,7 @@ int ParseMarker(const wxChar *pChar)
 	if (*ptr == _T('*'))
 	{
 		// assume it is a reversed endmarker
-		while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && 
+		while (!IsWhiteSpace(ptr) && *ptr != _T('\0') &&
 				gpApp->m_forbiddenInMarkers.Find(*ptr) == wxNOT_FOUND)
 		{
 			if (ptr != pBegin && *ptr == gSFescapechar)
@@ -5450,7 +5450,7 @@ int ParseMarker(const wxChar *pChar)
 			{
 				if (*(pBegin + 1) == _T('F') && *(pBegin + 2) == gSFescapechar)
 					return 3; // include the delimiting space in the marker string
-				if (*(pBegin + 1) == _T('e') && *(pBegin + 2) == _T('f') && *(pBegin + 3) == gSFescapechar) 
+				if (*(pBegin + 1) == _T('e') && *(pBegin + 2) == _T('f') && *(pBegin + 3) == gSFescapechar)
 					return 4;
 			}
 			// if not a reversed "\fe " or reversed "\F ", what else might we be dealing
@@ -5466,7 +5466,7 @@ int ParseMarker(const wxChar *pChar)
 // wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
 // contents won't be used if another layout_selector enum valus is in effect, as
 // RecalcLayout() would recreate the strips and repopulate the partner piles in such
-// situations 
+// situations
 void AddUniqueInt(wxArrayInt* pArrayInt, int nInt)
 {
 	int count = pArrayInt->GetCount();
@@ -5490,7 +5490,7 @@ void AddUniqueInt(wxArrayInt* pArrayInt, int nInt)
 	}
 }
 
-// BEW created 11Sep11, to avoid adding duplicates of string already within 
+// BEW created 11Sep11, to avoid adding duplicates of string already within
 void AddUniqueString(wxArrayString* pArrayStr, wxString& str)
 {
 	int count = pArrayStr->GetCount();
@@ -5504,13 +5504,13 @@ void AddUniqueString(wxArrayString* pArrayStr, wxString& str)
 		if (gbAutoCaps)
 		{
 			// case insensitive compare
-			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a 
-						// are the same character (wxWidgets comparison used)			
+			index = pArrayStr->Index(str, FALSE); // bCase is FALSE, so A and a
+						// are the same character (wxWidgets comparison used)
 		}
 		else
 		{
 			//case sensitive (ie. case differentiates)
-			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a 
+			index = pArrayStr->Index(str); // bCase is default TRUE, so A and a
 						// are different characters (wxWidgets comparison used)
 		}
 		if (index == wxNOT_FOUND)
@@ -5554,7 +5554,7 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 			// accept all comers
 			pBaseStrArray->Add(aString);
 			bAddedSomething = TRUE;
-		}	
+		}
 	}
 	return bAddedSomething;
 }
@@ -5761,8 +5761,8 @@ wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 	if (dt == adaptItDT || dt == paratextDT)
 	{
 		// param noDST is default false, so it does daylight savings time adjustment too
-		theDateTime = theDateTime.ToUTC(); 
-	}									   
+		theDateTime = theDateTime.ToUTC();
+	}
 	wxString dateTimeStr;
 	// each app or standard wants something a bit different
 	switch (dt)
@@ -5979,7 +5979,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	size_t len = f.Length(); // it's legal to assign to size_t
 //	GDLC 26Nov11 tellenc merely wants a char buffer
 //	wxMemoryBuffer* pBuffer = new wxMemoryBuffer(len);	// GDLC + 2 removed because NULs are not needed
-	char* pbyteBuff = (char*)malloc(len);	
+	char* pbyteBuff = (char*)malloc(len);
 //	// Create acceptable pointers for calls below
 //	char* ptr = (char*)pBuffer->GetData();
 //	const unsigned char* const saved_ptr = (const unsigned char* const)pbyteBuff;
@@ -6005,7 +6005,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	// serve no purpose. But, more importantly, it is fortunate that tellenc does not
 	// include the null chars in its check, otherwise tellenc would return a result of
 	// "binary" even for a non-binary file.
-	// 
+	//
 	resultStr = tellenc2((const unsigned char *)pbyteBuff, len); // xml files are returned as "binary" too
 										  // so hopefull html files without an extension
 										  // will likewise be "binary" & so be rejected
@@ -6037,11 +6037,11 @@ bool IsLoadableFile(wxString& absPathToFile)
 	return TRUE;
 }
 
-/* 
+/*
 bool IsLittleEndian(wxString& theText)
 {
 	// wchar_t is 2 bytes in Windows, 4 in Unix; we support non-Unicode app only for
-	// Windows, which is low-endian 
+	// Windows, which is low-endian
 	bool bIsLittleEndian = TRUE;
 	unsigned int len;
 	len = theText.Len();
@@ -6066,7 +6066,7 @@ bool IsLittleEndian(wxString& theText)
 bool IsLittleEndian(const unsigned char* const pCharBuf, unsigned int size_in_bytes)
 {
 	// wxChar is 2 bytes in Windows, 4 in Mac & Linux; we support non-Unicode app only for
-	// Windows, which is low-endian 
+	// Windows, which is low-endian
 	bool bIsLittleEndian = TRUE;
 #ifdef _UNICODE
 	CBString resultStr;
@@ -6346,7 +6346,7 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 	// whm Note: regardless of the platform, when reading a text file from disk into a
 	// wxString, wxWidgets converts the line endings to a single \n char
 	wxString searchStr = _T('\n'); // start with the \n character
-	searchStr += code + _T("\t"); // add the code followed by tab, to ensure 
+	searchStr += code + _T("\t"); // add the code followed by tab, to ensure
 								  // we don't get a spurious match
 	searchStr.LowerCase();
 	//int dataLen;
@@ -6413,7 +6413,7 @@ static void ConvertLineEndingsForGetNewFile(wxChar* pBuf, wxUint32& bufLen)
 		}
 		else pBuf[j++] = c;
 	}
-	
+
 	// Return the reduced buffer length
 	bufLen = j;
 }
@@ -6481,16 +6481,16 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	{
 		return getNewFile_error_at_open;
 	}
-	
+
 	// file is now open, so find its logical length (always in bytes)
 	wxUint32 numBytesInFile = file.Length();
-	
+
 	// GDLC Calc and keep the actual length of the byte buffer (which is NOT
 	// necessarily the same as the length of the resulting wxString)
 	// But at this stage we don't know whether the file is ASCII, ANSI, UTF8,
 	// UTF16 or UTF32, so we will put a 4 byte NUL after the last byte of the file.
     wxUint32 nBuffLen = numBytesInFile + 4;
-	
+
 	// Get a byte buffer and read the file's data into it then close the file.
 	char* pbyteBuff = (char*)malloc(nBuffLen);
 	wxUint32 nNumRead = (wxUint32)file.Read(pbyteBuff, numBytesInFile);
@@ -6578,7 +6578,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 
 	// Convert CR and CRLF line terminations to just LF
 	ConvertLineEndingsForGetNewFile(pBuf, bufLen);
-	
+
 	// Limit the size of the wxString if numKBOnly is non-zero
 	if (numKBOnly > 0)
 	{
@@ -6758,7 +6758,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	// converted into a string of wxChars - it looks like it would be a lot simpler.
 
 	bool bIsLittleEndian;
-	bIsLittleEndian = TRUE; // this is valid for ANSI build, on non-Win platforms 
+	bIsLittleEndian = TRUE; // this is valid for ANSI build, on non-Win platforms
 								 // we only support Unicode
 #ifndef _UNICODE // ANSI version, no unicode support
 
@@ -7045,14 +7045,14 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 					{
 						// it's utf-8, so back up 1 byte
 						--ptr;
-						counter++; 
+						counter++;
 					}
 					else if (*(ptr - 2) == CR && *(ptr -1) == NIX)
 					{
 						// it's utf-16, so back up 2 bytes, and we are at the WORD
 						// boundary too
 						ptr -= 2;
-						counter += 2; 
+						counter += 2;
 					}
 				}
 				if (nLength - counter == 0)
@@ -7284,7 +7284,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 		else
 		{
 			// it's a big-endian string....
-			
+
 			// find out if CR is within the data (can't use strchr() because it may be null
 			// byte extended ascii now in the form UTF-16, so the null bytes will terminate
 			// the search prematurely, so have to scan over the data in a loop
@@ -7334,7 +7334,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 					{
 						// it's utf-8, so back up 1 byte
 						--ptr;
-						counter++; 
+						counter++;
 					}
 					else if (*(ptr - 2) == CR && *(ptr -1) == NIX)
 					{
@@ -7647,7 +7647,7 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
                 // Permissions and Restrictions.
 
 				// GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
-				
+
 				// BEW 16Aug11 -- Note, tellenc() calls tellenc2(), and tellenc() may
 				// still return utf-16 (ie. big-endian) or utf-16le (little-endian) here,
 				// since we've not handled the BOM-less case above
@@ -7772,7 +7772,7 @@ bool SelectedFoldersContainSourceDataFolder(wxArrayString* pFolders)
 // the inventory of names in the first param any which are also in the second param's
 // inventory. It also removes any names in the array of originals which are empty strings;
 // but any empty strings in the unwanteds array are not removed from the unwanteds array.
-// 
+//
 // The function has general application. However it was specifically created for the
 // situation where the originals (the first param's array) are filenames from the Source
 // Data folder, and the unwanteds (the second param's array) are document filenames from the
@@ -7913,7 +7913,7 @@ void RemoveNameDuplicatesFromArray(wxArrayString& originals, wxArrayString& unwa
 // and the location where it will be called is after the return from the dialog in the
 // document member function OnNewDocument(). These replacements are done before the (U)SFM
 // parser gets to see the filed in source text data, and so the parser can be left to
-// respond to \bt, \free and \note as was the case earlier. 
+// respond to \bt, \free and \note as was the case earlier.
 // Note: we retain the use of \bt, \free, and \note internally. The \z-forms only appear
 // in our SFM exports; and not in LIFT, OXES, or RTF exports, as in all of these markers
 // are replaced by other formatting protocols. This function undoes what
@@ -8037,7 +8037,7 @@ bool IsSubstringWithin(wxString& testStr, wxString& strItems)
 		str = arr.Item((size_t)index);
 		if (offset == wxNOT_FOUND)
 		{
-			// no endmarkers, so assume that if they are markers, they are 
+			// no endmarkers, so assume that if they are markers, they are
 			// beginmarkers
 			str += aSpace; // include the following space in the search string
 		}
@@ -8051,7 +8051,7 @@ bool IsSubstringWithin(wxString& testStr, wxString& strItems)
 
 
 /* unused so far
-SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase, 
+SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase,
 	CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal, bool bDeletePartnerPileToo)
 {
 	SPList::Node* pos = pList->Find(pOriginalSrcPhrase);
@@ -8073,7 +8073,7 @@ SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhra
 	}
 	else
 	{
-		// insert before nextPos 
+		// insert before nextPos
 		pos = pList->Insert(nextPos,pNewSrcPhrase);
 	}
 	pNewSrcPhrase->m_nSequNumber = sequNum;
@@ -8131,7 +8131,7 @@ bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 	// if control reaches here, we must be pointing at a found space
 	// we succeed if the previous two chars are \v or previous 3 are \vn
 	// so check for these
-	if ( (*(pCh - 1) == _T('v') && *(pCh - 2) == _T('\\')) || 
+	if ( (*(pCh - 1) == _T('v') && *(pCh - 2) == _T('\\')) ||
 		 (*(pCh - 1) == _T('n') && *(pCh - 2) == _T('v') && *(pCh - 3) == _T('\\')))
 	{
 		return TRUE;
@@ -8172,7 +8172,7 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 }
 
 // Moved the code in this function from DoFileSave() to here
-void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore, 
+void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 									bool bSuppressWarningOnStoreKBFailure)
 {
 //#ifdef __WXDEBUG__
@@ -8250,7 +8250,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 			gbInhibitMakeTargetStringCall = FALSE;
 			if (!bOK)
 			{
-				// something is wrong if the store did not work, but we can tolerate the error 
+				// something is wrong if the store did not work, but we can tolerate the error
 				// & continue
 				if (!bSuppressWarningOnStoreKBFailure)
 				{
@@ -8332,10 +8332,10 @@ bool HasParagraphMkr(wxString& str)
 
 // BEW created 16Sep11, for putting in InitDialog() so as to move it towards a corner of
 // screen away from where phrase box currently is when the dialog is put up
-void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
+void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h,
 				int XPos, int YPos, int& myTopCoord, int& myLeftCoord)
 {
-	// work out where to place the dialog window	
+	// work out where to place the dialog window
 	CLayout* pLayout = pApp->GetLayout();
 	int m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
@@ -8378,7 +8378,7 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 	}
 	else
 	{
-		if (YPos + stripheight + dlgHeight < rectScreen.GetBottom()) 
+		if (YPos + stripheight + dlgHeight < rectScreen.GetBottom())
 			myTopCoord = YPos + stripheight;
 		else
 		{
@@ -8492,15 +8492,15 @@ wxMemorySize MacGetFreeMemory()
 	mach_msg_type_number_t	host_size = sizeof(vm_statistics_data_t) / sizeof(integer_t);
 	vm_size_t				pagesize;
 	vm_statistics_data_t	vm_stat;
-	
+
 	host_page_size(host_port, &pagesize);
-	
+
 	if (host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vm_stat, &host_size) != KERN_SUCCESS) return -1LL;
-	
+
 	//	natural_t   mem_used = (vm_stat.active_count + vm_stat.inactive_count + vm_stat.wire_count) * pagesize;
 	natural_t   mem_free = vm_stat.free_count * pagesize;
 	//	natural_t   mem_total = mem_used + mem_free;
-	
+
 	return static_cast <wxMemorySize> (mem_free);
 }
 
