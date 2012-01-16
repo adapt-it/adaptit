@@ -7950,6 +7950,12 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /// BEW 17Jan11, fails if there is only one strip (or less than numVisibleStrips) because
 /// the code assumes a document longer than a single screen's worth, so changes needed and
 /// made
+/// BEW changed 15Jan12 so that GetStartingPileForScan() no longer anchors the update
+/// region to a screen's worth in the viscinity of the phrase box - which was quite
+/// unhelpful if the user grabbed the scroll thumb and went more than a screen's distance
+/// in either direction - the free translations didn't get drawn in the newly exposed parts
+/// of the document. Now it's done by anchoring the update region to where the scroll car
+/// is - there & a screen's worth below that gets drawn.
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 {
@@ -7977,6 +7983,34 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 	}
 	else
 	{
+		// BEW 16Jan12, this is the new code, which anchors the update region to just
+		// before the part of the document which the scroll car indicates
+		int nStripHeight = m_pLayout->GetPileHeight() + m_pLayout->GetCurLeading();
+		if (m_pApp->m_bFreeTranslationMode)
+		{
+			nStripHeight += 3 + m_pLayout->GetTgtTextHeight();
+		}
+		int nStripCount = m_pLayout->GetStripCount();
+		CAdapt_ItCanvas* canvas = m_pLayout->GetCanvas();
+		int xx, yy; 
+		canvas->CalcUnscrolledPosition(0,0,&xx,&yy);
+		xx = xx; // avoid compiler warning
+		int nTopVisibleStripIndex = yy / nStripHeight - 1; // this could be negative
+		// do a sanity check, and use 0 for the index when scroll car nears zero
+		if (nTopVisibleStripIndex < 0)
+		{
+			nTopVisibleStripIndex = 0;
+		}
+        // protect also, at doc end - ensure we start drawing before whatever is visible in
+        // the client area
+		if (nTopVisibleStripIndex > nStripCount - (numVisibleStrips + 1))
+			nTopVisibleStripIndex = nStripCount - (numVisibleStrips + 1);
+
+		// now get the strip pointer and find it's first pile to return to the caller
+		CStrip* pStrip = (CStrip*)m_pLayout->GetStripArray()->Item(nTopVisibleStripIndex);
+		pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+
+		/* this is the legacy code, anchoring updates to where the phrase box is
 		if (numVisibleStrips < 1)
 			numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
 		int nCurStripIndex = pStartPile->GetStripIndex();
@@ -7995,6 +8029,7 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 		// now get the strip pointer and find it's first pile to return to the caller
 		CStrip* pStrip = (CStrip*)m_pLayout->GetStripArray()->Item(nCurStripIndex);
 		pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+		*/
 	}
 	wxASSERT(pStartPile);
 	return pStartPile;
