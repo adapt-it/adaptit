@@ -44,6 +44,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItCanvas.h"
+#include "Adapt_ItDoc.h"
 #include "FreeTrans.h"
 #include "ComposeBarEditBox.h"
 
@@ -102,6 +103,15 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 		{
 			CAdapt_ItView* pView = gpApp->GetView();
 			wxASSERT(pView != NULL);
+
+			// whm added 17Jan12 the AI Doc should be set to modified here to fix a bug in
+			// which free translations were not being saved in collab mode.
+			CAdapt_ItDoc* pDoc = pView->GetDocument();
+			if (pDoc != NULL)
+			{
+				pDoc->Modify(TRUE);
+			}
+
 			wxClientDC dc((wxWindow*)gpApp->GetMainFrame()->canvas);
 			pView->canvas->DoPrepareDC(dc); // need to call this because we are drawing outside OnDraw()
 			CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
