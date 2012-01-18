@@ -3907,6 +3907,15 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 						// ends of each array be the matchup point & return here
 						postEditEnd = postEditArrCount;
 						fromEditorEnd = fromEditorArrCount;
+						
+						// whm added 17Jan12. The two DeleteAllVerseInfStructs() calls below 
+						// get called at the end of DelineateComplexChunksAssociation() when
+						// the function completes normally. To avoid memory leaks, they should
+						// also get called here before the premature return statement executes
+						// below.
+						DeleteAllVerseInfStructs(postEditVerseArr); // don't leak memory
+						DeleteAllVerseInfStructs(fromEditorVerseArr); // ditto
+						
 						return;
 					}
 				}

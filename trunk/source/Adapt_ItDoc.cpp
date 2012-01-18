@@ -1387,248 +1387,17 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
-        // For testing purposes, assume it's target text, and a single-chapter
-        // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
-        // internals that predisposes towards a single chapter doc or a whole book doc - it
-        // is deliberately written so as to be agnostic about which is the case, it just
-        // knows there is a doc containing information to extract and send to PT or BE,
-        // with possibly some automated conflict resolution to be done when doing so.
-
-        // we want the phrase box's contents put into the document, so that the export of
-        // the pre-user-editing-happens adaptation text will have the box contents in it -
-        // so get it done here, but don't bother about the save to KB because the
-        // DoFileSave_Protected(TRUE) call later below will get that job done
-		bool bAttemptStoreToKB = FALSE;
-		bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
-		bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't try
-													  // the store operation anyway here)
-		bool bMovedTextOK = TRUE;
-		long resultTgt = -1; // reset to 0 if all goes well
-		long resultFreeTrans = -1; // ditto
-		wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
-		wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
-
-		UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
-
-		wxString postEditText;
-		wxString updatedText;
-		updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
-										makeTargetText, postEditText);
-		// comment out the #define when a wxLogDebug listing of the updated text is not wanted
-//#define _HAVE_A_LOOK
-#ifdef _HAVE_A_LOOK
-#ifdef __WXDEBUG__
-		// have a look at what we got
-		wxLogDebug(_T("\n *** OnFileSave(): updatedText to transfer to PT or BE when collaborating ***\n"));
-		// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
-		// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
-		// characters, so wxLogDebug happily outputs 1but 12,000, maybe more, but perhaps
-		// it is limited to a 32 Kb buffer.
-		//wxLogDebug(_T("%s\n"), updatedText.c_str());
-		int count = updatedText.Len();
-		int abit = count / 3;
-		wxString acopy = updatedText;
-		wxString first = acopy.Left(abit);
-		acopy = acopy.Mid(abit);
-		wxString second = acopy.Left(abit);
-		acopy = acopy.Mid(abit);
-		wxLogDebug(_T("%s\n"), first.c_str());
-		wxLogDebug(_T("%s\n"), second.c_str());
-		wxLogDebug(_T("%s\n"), acopy.c_str());
-
-#endif
-#endif
-		if (!updatedText.IsEmpty())
-		{
-            // Get the updatedText to a file of the required name (overwriting the older
-            // one already there) in the .temp folder; then make the command line for
-            // target text and transfer the text to the external editor -- the following
-            // calls internally make all the decisions necessary, such as whether a whole
-            // book or just a chapter is to be sent, its filename, whether to Bibledit or
-            // Paratext, and so forth, using member variables stored in the application
-            // class  (don't add a BOM)
-			if (gpApp->m_bCollaboratingWithParatext)
-			{
-				msgDisplayed = _("Please wait while the translation is sent to Paratext...");
-			}
-			else if (gpApp->m_bCollaboratingWithBibledit)
-			{
-				msgDisplayed = _("Please wait while the translation is sent to Bibledit...");
-			}
-			//::wxSafeYield();
-			pProgDlg->Pulse(msgDisplayed);
-
-			// whm 21Sep11 modified. For chapter sized transfers back to the external editor
-			// we need to remove the \id XXX line from the updatedText string.
-			// BEW 8Oct11, it needs to be earlier and also done on a free trans text too, so now
-			// it's in MakeUpdatedTextForExternalEditor(), with the call RemoveIDMarkerAndCode()
-			//if (gpApp->m_bCollabByChapterOnly && updatedText.Find(_T("\\id")) != wxNOT_FOUND)
-			//{
-				// the \id XXX line should be of the form:
-			//	wxString idLine = _T("\\id XXX") + gpApp->m_eolStr;
-			//	int idLineLen = idLine.Length();
-			//	updatedText = updatedText.Mid(idLineLen); // retains the rest of the string after the idLineLen
-			//}
-			bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
-			// we don't expect an error, but tell the developer or user if there was one
-			// and keep on processing
-			if (!bMovedTextOK)
-			{
-				wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSave()'s call of MoveTextToTempFolderAndSave() failed, at line 1472. Processing continues, but you should immediately shut down WITHOUT saving, and then relaunch the application"));
-				pProgDlg->Destroy();
-				return;
-			}
-			resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
-			TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
-											outputTgt, errorsTgt, resultTgt);
-
-			// error handling
-			if (resultTgt != 0)
-			{
-				// Not likely to happen, but it is possible if there are no books created for the PT/BE
-				// project, or the files are locked/access denied.
-				wxString msg;
-				msg = _(
-"Error when trying to write target text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
-				msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
-				wxMessageBox(msg,_T(""),wxICON_WARNING);
-				wxString temp;
-				temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d"),resultTgt);
-				gpApp->LogUserAction(temp);
-				wxLogDebug(temp);
-				int ct;
-				temp.Empty();
-				for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
-				{
-					temp += outputTgt.Item(ct);
-					gpApp->LogUserAction(temp);
-					wxLogDebug(temp);
-				}
-				for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
-				{
-					temp += errorsTgt.Item(ct);
-					gpApp->LogUserAction(temp);
-					wxLogDebug(temp);
-				}
-				pProgDlg->Destroy();
-				return;
-			} // end of TRUE block for test: if (resultTgt != 0)
-
-			// The returned postEditText (as exported from the AI document at the time the
-			// File / Save was invoked) now has to replace the saved preEditText in the
-			// private app member for that purpose, becoming the new preEditTargetText
-			gpApp->StoreTargetText_PreEdit(postEditText);
-
-			if (gpApp->m_bCollaborationExpectsFreeTrans)
-			{
-                // make a second call of MakeUpdatedTextForExternalEditor(), this time with
-                // param2 set to makeFreeTransText, param1 and param3 are the same, and
-                // when it returns, postEditFreeTransText is the free translation which has
-                // to be saved in the app member for that purpose, becoming the new
-                // preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
-				wxString postEditFreeTransText;
-				wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
-												makeFreeTransText, postEditFreeTransText);
-#ifdef _HAVE_A_LOOK
-#ifdef __WXDEBUG__
-				// have a look at what we got
-				wxLogDebug(_T("\n *** OnFileSave(): updatedFreeTransText to transfer to PT or BE when collaborating ***\n"));
-				//wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
-				// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
-				// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
-				// characters, so wxLogDebug happily outputs about 12,000, maybe more, but perhaps
-				// it is limited to a 32 Kb buffer.
-				int count = updatedFreeTransText.Len();
-				int abit = count / 3;
-				wxString acopy = updatedFreeTransText;
-				wxString first = acopy.Left(abit);
-				acopy = acopy.Mid(abit);
-				wxString second = acopy.Left(abit);
-				acopy = acopy.Mid(abit);
-				wxLogDebug(_T("%s\n"), first.c_str());
-				wxLogDebug(_T("%s\n"), second.c_str());
-				wxLogDebug(_T("%s\n"), acopy.c_str());
-#endif
-#endif
-				if (!updatedFreeTransText.IsEmpty())
-				{
-                    // Get the updatedFreeTransText to a file of the required name
-                    // (overwriting the older one already there) in the .temp folder; then
-                    // make the command line for free translation text and transfer the
-                    // text to the external editor -- the following calls internally make
-                    // all the decisions necessary, such as whether a whole book or just a
-                    // chapter is to be sent, its filename, whether to Bibledit or
-                    // Paratext, and so forth, using member variables stored in the
-                    // application class (don't add a BOM)
-					if (gpApp->m_bCollaboratingWithParatext)
-					{
-						msgDisplayed = _("Please wait while the free translation is sent to Paratext...");
-					}
-					else if (gpApp->m_bCollaboratingWithBibledit)
-					{
-						msgDisplayed = _("Please wait while the free translation is sent to Bibledit...");
-					}
-					//::wxSafeYield();
-					pProgDlg->Pulse(msgDisplayed);
-
-					bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
-					resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
-					TransferTextBetweenAdaptItAndExternalEditor(writing, collab_freeTrans_text,
-										outputFreeTrans, errorsFreeTrans, resultFreeTrans);
-					// error handling
-					if (resultFreeTrans != 0)
-					{
-						// Not likely to happen, but it is possible if there are no books created for the PT/BE
-						// project, or the files are locked/access denied.
-						wxString msg;
-						msg = _(
-		"Error when trying to write free translation text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
-						msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
-						wxMessageBox(msg,_T(""),wxICON_WARNING);
-						wxString temp;
-						temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d"),resultFreeTrans);
-						gpApp->LogUserAction(temp);
-						wxLogDebug(temp);
-						int ct;
-						temp.Empty();
-						for (ct = 0; ct < (int)outputFreeTrans.GetCount(); ct++)
-						{
-							temp += outputFreeTrans.Item(ct);
-							gpApp->LogUserAction(temp);
-							wxLogDebug(temp);
-						}
-						for (ct = 0; ct < (int)errorsFreeTrans.GetCount(); ct++)
-						{
-							temp += errorsFreeTrans.Item(ct);
-							gpApp->LogUserAction(temp);
-							wxLogDebug(temp);
-						}
-						pProgDlg->Destroy();
-						return;
-					} // end of TRUE block for test: if (resultFreeTrans != 0)
-
-                    // the returned postEditFreeTransText (as exported from the AI document
-                    // at the time the File / Save was invoked) now has to replace the
-                    // saved preEditFreeTransText in the private app member for that
-                    // purpose, becoming the new preEditFreeTransText
-					gpApp->StoreFreeTransText_PreEdit(postEditFreeTransText);
-				}
-			}
-
-			// and then also do a local normal protected save to AI's native storage;
-			DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
-		}
-		else
-		{
-            // returned an empty string, this indicates some kind error or unsafe situation
-            // - which should have been seen already -- this is unlikely to ever happen so
-            // just beep but still do the protected local save - the word done should never
-            // be lost
-			wxBell();
-			DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
-			pProgDlg->Destroy();
-			return;
-		}
+		// whm modified 17Jan12 consolidated the code for collab mode file saves
+		// in a DoCollabFileSave() function as it needs to also be called from
+		// OnSaveModified(), otherwise saves can be lost if user closes the main
+		// frame window - which triggers OnSaveModified() but not OnFileSave().
+		// Notes: 
+		// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected() 
+		// and DoFileSave(), but they (and hence DoCollabFileSave() too) make 
+		// no use of the bool value that is returned - although the code probably 
+		// should.
+		// 2. DoCollabFilesave() also calls DoFileSave_Protected(TRUE,pProgDlg)
+		DoCollabFileSave(pProgDlg,msgDisplayed);
 	}
 	else
 	{
@@ -1819,6 +1588,254 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 	}
 	return FALSE;
 }
+
+bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDisplayed) // whm added 17Jan12
+{
+    // For testing purposes, assume it's target text, and a single-chapter
+    // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
+    // internals that predisposes towards a single chapter doc or a whole book doc - it
+    // is deliberately written so as to be agnostic about which is the case, it just
+    // knows there is a doc containing information to extract and send to PT or BE,
+    // with possibly some automated conflict resolution to be done when doing so.
+
+    // we want the phrase box's contents put into the document, so that the export of
+    // the pre-user-editing-happens adaptation text will have the box contents in it -
+    // so get it done here, but don't bother about the save to KB because the
+    // DoFileSave_Protected(TRUE) call later below will get that job done
+	bool bAttemptStoreToKB = FALSE;
+	bool bNoStore = FALSE; // default, it's initialized to FALSE internally anyway
+	bool bSuppressWarningOnStoreKBFailure = TRUE; // we don't want a warning (we won't try
+												  // the store operation anyway here)
+	bool bMovedTextOK = TRUE;
+	long resultTgt = -1; // reset to 0 if all goes well
+	long resultFreeTrans = -1; // ditto
+	wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
+	wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
+
+	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
+
+	wxString postEditText;
+	wxString updatedText;
+	updatedText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
+									makeTargetText, postEditText);
+	// comment out the #define when a wxLogDebug listing of the updated text is not wanted
+//#define _HAVE_A_LOOK
+#ifdef _HAVE_A_LOOK
+#ifdef __WXDEBUG__
+	// have a look at what we got
+	wxLogDebug(_T("\n *** OnFileSave(): updatedText to transfer to PT or BE when collaborating ***\n"));
+	// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
+	// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
+	// characters, so wxLogDebug happily outputs 1but 12,000, maybe more, but perhaps
+	// it is limited to a 32 Kb buffer.
+	//wxLogDebug(_T("%s\n"), updatedText.c_str());
+	int count = updatedText.Len();
+	int abit = count / 3;
+	wxString acopy = updatedText;
+	wxString first = acopy.Left(abit);
+	acopy = acopy.Mid(abit);
+	wxString second = acopy.Left(abit);
+	acopy = acopy.Mid(abit);
+	wxLogDebug(_T("%s\n"), first.c_str());
+	wxLogDebug(_T("%s\n"), second.c_str());
+	wxLogDebug(_T("%s\n"), acopy.c_str());
+
+#endif
+#endif
+	if (!updatedText.IsEmpty())
+	{
+        // Get the updatedText to a file of the required name (overwriting the older
+        // one already there) in the .temp folder; then make the command line for
+        // target text and transfer the text to the external editor -- the following
+        // calls internally make all the decisions necessary, such as whether a whole
+        // book or just a chapter is to be sent, its filename, whether to Bibledit or
+        // Paratext, and so forth, using member variables stored in the application
+        // class  (don't add a BOM)
+		if (gpApp->m_bCollaboratingWithParatext)
+		{
+			msgDisplayed = _("Please wait while the translation is sent to Paratext...");
+		}
+		else if (gpApp->m_bCollaboratingWithBibledit)
+		{
+			msgDisplayed = _("Please wait while the translation is sent to Bibledit...");
+		}
+		//::wxSafeYield();
+		pProgDlg->Pulse(msgDisplayed);
+
+		// whm 21Sep11 modified. For chapter sized transfers back to the external editor
+		// we need to remove the \id XXX line from the updatedText string.
+		// BEW 8Oct11, it needs to be earlier and also done on a free trans text too, so now
+		// it's in MakeUpdatedTextForExternalEditor(), with the call RemoveIDMarkerAndCode()
+		//if (gpApp->m_bCollabByChapterOnly && updatedText.Find(_T("\\id")) != wxNOT_FOUND)
+		//{
+			// the \id XXX line should be of the form:
+		//	wxString idLine = _T("\\id XXX") + gpApp->m_eolStr;
+		//	int idLineLen = idLine.Length();
+		//	updatedText = updatedText.Mid(idLineLen); // retains the rest of the string after the idLineLen
+		//}
+		bMovedTextOK = MoveTextToTempFolderAndSave(collab_target_text, updatedText);
+		// we don't expect an error, but tell the developer or user if there was one
+		// and keep on processing
+		if (!bMovedTextOK)
+		{
+			wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSave()'s call of MoveTextToTempFolderAndSave() failed, at line 1472. Processing continues, but you should immediately shut down WITHOUT saving, and then relaunch the application"));
+			pProgDlg->Destroy();
+			return FALSE;
+		}
+		resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
+		TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
+										outputTgt, errorsTgt, resultTgt);
+
+		// error handling
+		if (resultTgt != 0)
+		{
+			// Not likely to happen, but it is possible if there are no books created for the PT/BE
+			// project, or the files are locked/access denied.
+			wxString msg;
+			msg = _(
+"Error when trying to write target text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
+			msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxString temp;
+			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d"),resultTgt);
+			gpApp->LogUserAction(temp);
+			wxLogDebug(temp);
+			int ct;
+			temp.Empty();
+			for (ct = 0; ct < (int)outputTgt.GetCount(); ct++)
+			{
+				temp += outputTgt.Item(ct);
+				gpApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			for (ct = 0; ct < (int)errorsTgt.GetCount(); ct++)
+			{
+				temp += errorsTgt.Item(ct);
+				gpApp->LogUserAction(temp);
+				wxLogDebug(temp);
+			}
+			pProgDlg->Destroy();
+			return FALSE;
+		} // end of TRUE block for test: if (resultTgt != 0)
+
+		// The returned postEditText (as exported from the AI document at the time the
+		// File / Save was invoked) now has to replace the saved preEditText in the
+		// private app member for that purpose, becoming the new preEditTargetText
+		gpApp->StoreTargetText_PreEdit(postEditText);
+
+		if (gpApp->m_bCollaborationExpectsFreeTrans)
+		{
+            // make a second call of MakeUpdatedTextForExternalEditor(), this time with
+            // param2 set to makeFreeTransText, param1 and param3 are the same, and
+            // when it returns, postEditFreeTransText is the free translation which has
+            // to be saved in the app member for that purpose, becoming the new
+            // preEditFreeTransText -- use StoreFreeTransText_PreEdit() to do that
+			wxString postEditFreeTransText;
+			wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
+											makeFreeTransText, postEditFreeTransText);
+#ifdef _HAVE_A_LOOK
+#ifdef __WXDEBUG__
+			// have a look at what we got
+			wxLogDebug(_T("\n *** OnFileSave(): updatedFreeTransText to transfer to PT or BE when collaborating ***\n"));
+			//wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
+			// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
+			// cutting it up into 3 pieces first -- yes, that works, the text was about 35,000
+			// characters, so wxLogDebug happily outputs about 12,000, maybe more, but perhaps
+			// it is limited to a 32 Kb buffer.
+			int count = updatedFreeTransText.Len();
+			int abit = count / 3;
+			wxString acopy = updatedFreeTransText;
+			wxString first = acopy.Left(abit);
+			acopy = acopy.Mid(abit);
+			wxString second = acopy.Left(abit);
+			acopy = acopy.Mid(abit);
+			wxLogDebug(_T("%s\n"), first.c_str());
+			wxLogDebug(_T("%s\n"), second.c_str());
+			wxLogDebug(_T("%s\n"), acopy.c_str());
+#endif
+#endif
+			if (!updatedFreeTransText.IsEmpty())
+			{
+                // Get the updatedFreeTransText to a file of the required name
+                // (overwriting the older one already there) in the .temp folder; then
+                // make the command line for free translation text and transfer the
+                // text to the external editor -- the following calls internally make
+                // all the decisions necessary, such as whether a whole book or just a
+                // chapter is to be sent, its filename, whether to Bibledit or
+                // Paratext, and so forth, using member variables stored in the
+                // application class (don't add a BOM)
+				if (gpApp->m_bCollaboratingWithParatext)
+				{
+					msgDisplayed = _("Please wait while the free translation is sent to Paratext...");
+				}
+				else if (gpApp->m_bCollaboratingWithBibledit)
+				{
+					msgDisplayed = _("Please wait while the free translation is sent to Bibledit...");
+				}
+				//::wxSafeYield();
+				pProgDlg->Pulse(msgDisplayed);
+
+				bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
+				resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
+				TransferTextBetweenAdaptItAndExternalEditor(writing, collab_freeTrans_text,
+									outputFreeTrans, errorsFreeTrans, resultFreeTrans);
+				// error handling
+				if (resultFreeTrans != 0)
+				{
+					// Not likely to happen, but it is possible if there are no books created for the PT/BE
+					// project, or the files are locked/access denied.
+					wxString msg;
+					msg = _(
+	"Error when trying to write free translation text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
+					msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+					wxMessageBox(msg,_T(""),wxICON_WARNING);
+					wxString temp;
+					temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d"),resultFreeTrans);
+					gpApp->LogUserAction(temp);
+					wxLogDebug(temp);
+					int ct;
+					temp.Empty();
+					for (ct = 0; ct < (int)outputFreeTrans.GetCount(); ct++)
+					{
+						temp += outputFreeTrans.Item(ct);
+						gpApp->LogUserAction(temp);
+						wxLogDebug(temp);
+					}
+					for (ct = 0; ct < (int)errorsFreeTrans.GetCount(); ct++)
+					{
+						temp += errorsFreeTrans.Item(ct);
+						gpApp->LogUserAction(temp);
+						wxLogDebug(temp);
+					}
+					pProgDlg->Destroy();
+					return FALSE;
+				} // end of TRUE block for test: if (resultFreeTrans != 0)
+
+                // the returned postEditFreeTransText (as exported from the AI document
+                // at the time the File / Save was invoked) now has to replace the
+                // saved preEditFreeTransText in the private app member for that
+                // purpose, becoming the new preEditFreeTransText
+				gpApp->StoreFreeTransText_PreEdit(postEditFreeTransText);
+			}
+		}
+
+		// and then also do a local normal protected save to AI's native storage;
+		DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
+	}
+	else
+	{
+        // returned an empty string, this indicates some kind error or unsafe situation
+        // - which should have been seen already -- this is unlikely to ever happen so
+        // just beep but still do the protected local save - the word done should never
+        // be lost
+		wxBell();
+		DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
+		pProgDlg->Destroy();
+		return FALSE;
+	}
+	return TRUE;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if file was successfully saved; FALSE otherwise ( the return value
@@ -4123,7 +4140,27 @@ bool CAdapt_ItDoc::OnSaveModified()
 		wxProgressDialog* pProgDlg;
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
 
-		bUserSavedDoc = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog
+		// whm added 17Jan12 code block below which is parallel to OnFileSave() to
+		// save the collab files and do the DoFileSave_Protected() call too for AI's
+		// own files.
+		if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+		{
+			// Collaboration is ON
+			// whm modified 17Jan12 consolidated the code for collab mode file saves
+			// in a DoCollabFileSave() function as it needs to also be called from
+			// OnSaveModified(), otherwise saves can be lost if user closes the main
+			// frame window - which triggers OnSaveModified() but not OnFileSave().
+			// Notes: 
+			// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected() 
+			// and DoFileSave().
+			// 2. DoCollabFilesave() also calls DoFileSave_Protected(TRUE,pProgDlg)
+			bUserSavedDoc = DoCollabFileSave(pProgDlg,msgDisplayed);
+		}
+		else
+		{
+			// Collaboration is OFF
+			bUserSavedDoc = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog
+		}
 		if (!bUserSavedDoc)
 		{
 			wxMessageBox(_("Warning: document save failed for some reason.\n"),
