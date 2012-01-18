@@ -275,6 +275,7 @@ public:
 	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* pRenamedFilename,
 								bool& bUserCancelled, // BEW added bUserCancelled 20Aaug10
 								wxProgressDialog* pProgDlg); // whm added pProgDlg 24Aug11
+	bool			DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDisplayed); // whm added 17Jan12
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog = TRUE);

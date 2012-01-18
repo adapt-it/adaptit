@@ -967,7 +967,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pTheFirstColumn->SetAlign(wxLIST_FORMAT_CENTRE);
 	pListCtrlChapterNumberAndStatus->InsertColumn(0, *pTheFirstColumn);
 
-	pTheSecondColumn->SetText(_("Translation Status"));
+	pTheSecondColumn->SetText(_("Target Text Status"));
 	pTheSecondColumn->SetImage(-1);
 	pListCtrlChapterNumberAndStatus->InsertColumn(1, *pTheSecondColumn);
 
