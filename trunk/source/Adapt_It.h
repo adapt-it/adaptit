@@ -90,13 +90,13 @@ class NavProtectNewDoc; // for user navigation protection feature
 // 8. Various docs folder files including: Adapt It changes.txt, Readme.txt, 
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
-#define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 1
+#define VERSION_MINOR_PART 2
+#define VERSION_BUILD_PART 0
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 20
+#define VERSION_DATE_DAY 22
 #define VERSION_DATE_MONTH 1
 #define VERSION_DATE_YEAR 2012
-const wxString appVerStr(_T("6.1.1"));
+const wxString appVerStr(_T("6.2.0"));
 
 //#define Print_failure
 
@@ -2063,6 +2063,12 @@ public:
                 // disappearing if m_bUseToolTips is TRUE the default time is 20000 (20
                 // seconds)
 	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
+
+	bool m_bForceCollabModeON; // whm added 17Jan12
+	bool m_bForceCollabModeOFF; // whm added 17Jan12
+	int m_nSavedPTCollabSetting; // whm added 17Jan12
+	int m_nSavedBECollabSetting; // whm added 17Jan12
+	wxString m_ForceProjectNameWhenCollabOff; // whm added 17Jan12
 
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
