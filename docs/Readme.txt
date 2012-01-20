@@ -1,11 +1,11 @@
 IMPORTANT NOTES: (1) YOU MUST HAVE ADMINISTRATOR OR POWERUSER 
 PRIVILEGES TO INSTALL THIS SOFTWARE ON WINDOWS 7, WINDOWS 
 VISTA AND WINDOWS XP; (2) YOU SHOULD UNINSTALL ANY VERSION
-5.X.X OF ADAPT IT BEFORE INSTALLING VERSION 6.1.1.
+5.X.X OF ADAPT IT BEFORE INSTALLING VERSION 6.2.0.
 ---------------------------------------------------------------------
 Adapt It WX
 ---------------------------------------------------------------------
-Version 6.1.1
+Version 6.2.0
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -213,17 +213,22 @@ Documentation:
 ---------------------------------------------------------------------
 The following documentation files are installed (with links to them 
 in the Adapt It Start Menu group on Windows installations):
-   1. Adapt It Quick Start.htm has basic startup information in an 
+   1. Adapt_It_Quick_Start.htm has basic startup information in an 
       html file; this file also includes "how to" instructions for 
-      about a score of common Adapt It procedures.
-   2. Adapt It Tutorial.doc has a tutorial. The tutorial takes you 
+      about a score of common Adapt It procedures. Also accessible
+      from Adapt It's Help Menu.
+   2. Help_for_Administrators.htm has information for administrators
+      detailing how to set up Adapt It to collaborate with Paratext
+      or Bibledit, as well as other administrative functions. Also
+      accessible from Adapt It's Administrator Menu.
+   3. Adapt It Tutorial.doc has a tutorial. The tutorial takes you 
       through the initial launch operation, and then through the 
       common operating procedures for doing an adaptation. The data 
       used in the tutorial is in a file called "Tok Pisin fragment 
       1John.txt" included with this package. It is ANSI data, but 
       uses only characters which are also correct UTF-8, so it can 
       be used also as a source text with Adapt It Unicode.
-   3. Adapt It Reference. It is a MS Word/Open Office *.doc file 
+   4. Adapt It Reference. It is a MS Word/Open Office *.doc file 
       If your word processor cannot open it, contact Bill Martin 
       (bill_martin@sil.org) or Bruce Waters (bruce_waters@sil.org) 
       who can supply the file in .PDF or .RTF format instead. 
@@ -231,7 +236,7 @@ in the Adapt It Start Menu group on Windows installations):
       is approximately the same size as the Word document from 
       which it is made (about 2.3 MB). The RTF file is significantly 
       larger (4MB).
-   4. Localization_Readme.txt describes how the localization system 
+   5. Localization_Readme.txt describes how the localization system 
       works in Adapt It WX and Adapt It WX Unicode. It also tells 
       how anyone can modify an existing interface translation, or 
       prepare a new language interface for Adapt It using Adapt It's
@@ -240,9 +245,9 @@ in the Adapt It Start Menu group on Windows installations):
       Another way to contribute to Adapt It's localization needs
       is to use the Poedit program which is freely available from 
       the Internet (see the Localization_Readme.txt file). 
-   5. Adapt It changes.txt describes the changes from previous 
+   6. Adapt It changes.txt describes the changes from previous 
       versions of Adapt It WX (starting with version 4.0.0).
-   6. Known Issues and Limitations.txt lists issues and/or 
+   7. Known Issues and Limitations.txt lists issues and/or 
       limitations that were recognized but unresolved at the time 
       of the current release.
 
