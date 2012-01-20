@@ -1,0 +1,84 @@
+c UsfmXml.cct - by Bill Martin 25 February 2005 revised 25 November 2005
+c Usage: Use AI_USFM_full.xml as the input file for this changes table
+c        and temp.xml as the output file.
+c        Then use temp.xml as the input file to the UsfmXmlTidy.cct 
+c        changes table and AI_USFM.xml as the final output file
+c        for distribution with Adapt It version 3.
+
+c skip comments
+'<!-- '	> dup set(comment)
+' -->'	> dup clear(comment)
+'<?xml'	> dup set(comment)
+'?>'	> dup clear(comment)
+
+c remove default attributes
+
+c the following markers should never be removed when generating the AI_USFM.xml file:
+c   marker
+c   description
+
+'endMarker="" '			> if(comment) dup else '' endif
+'endMarker=""'			> if(comment) dup else '' endif
+'usfm="0" '			> if(comment) dup else '' endif
+'usfm="0"'			> if(comment) dup else '' endif
+'png="0" '			> if(comment) dup else '' endif
+'png="0"'			> if(comment) dup else '' endif
+'filter="0" '			> if(comment) dup else '' endif
+'filter="0"'			> if(comment) dup else '' endif
+'userCanSetFilter="0" '		> if(comment) dup else '' endif
+'userCanSetFilter="0"'		> if(comment) dup else '' endif
+'inLine="0" '			> if(comment) dup else '' endif
+'inLine="0"'			> if(comment) dup else '' endif
+'special="0" '			> if(comment) dup else '' endif
+'special="0"'			> if(comment) dup else '' endif
+'bdryOnLast="0" '		> if(comment) dup else '' endif
+'bdryOnLast="0"'		> if(comment) dup else '' endif
+'inform="0" '			> if(comment) dup else '' endif
+'inform="0"'			> if(comment) dup else '' endif
+'navigationText="" '		> if(comment) dup else '' endif
+'navigationText=""'		> if(comment) dup else '' endif
+'textType="verse" '		> if(comment) dup else '' endif
+'textType="verse"'		> if(comment) dup else '' endif
+'wrap="0" '			> if(comment) dup else '' endif
+'wrap="0"'			> if(comment) dup else '' endif
+'styleName="" '			> if(comment) dup else '' endif
+'styleName=""'			> if(comment) dup else '' endif
+'styleType="paragraph" '	> if(comment) dup else '' endif
+'styleType="paragraph"'		> if(comment) dup else '' endif
+'fontSize="12" '		> if(comment) dup else '' endif
+'fontSize="12"'			> if(comment) dup else '' endif
+'color="0" '			> if(comment) dup else '' endif
+'color="0"'			> if(comment) dup else '' endif
+'italic="0" '			> if(comment) dup else '' endif
+'italic="0"'			> if(comment) dup else '' endif
+'bold="0" '			> if(comment) dup else '' endif
+'bold="0"'			> if(comment) dup else '' endif
+'underline="0" '		> if(comment) dup else '' endif
+'underline="0"'			> if(comment) dup else '' endif
+'smallCaps="0" '		> if(comment) dup else '' endif
+'smallCaps="0"'			> if(comment) dup else '' endif
+'superScript="0" '		> if(comment) dup else '' endif
+'superScript="0"'		> if(comment) dup else '' endif
+'justification="justified" '	> if(comment) dup else '' endif
+'justification="justified"'	> if(comment) dup else '' endif
+'spaceAbove="0" '		> if(comment) dup else '' endif
+'spaceAbove="0"'		> if(comment) dup else '' endif
+'spaceBelow="0" '		> if(comment) dup else '' endif
+'spaceBelow="0"'		> if(comment) dup else '' endif
+'leadingMargin="0" '		> if(comment) dup else '' endif
+'leadingMargin="0"'		> if(comment) dup else '' endif
+'followingMargin="0" '		> if(comment) dup else '' endif
+'followingMargin="0"'		> if(comment) dup else '' endif
+'firstLineIndent="0" '		> if(comment) dup else '' endif
+'firstLineIndent="0"'		> if(comment) dup else '' endif
+'basedOn="" '			> if(comment) dup else '' endif
+'basedOn=""'			> if(comment) dup else '' endif
+'nextStyle="" '			> if(comment) dup else '' endif
+'nextStyle=""'			> if(comment) dup else '' endif
+'keepTogether="0" '		> if(comment) dup else '' endif
+'keepTogether="0"'		> if(comment) dup else '' endif
+'keepWithNext="0" '		> if(comment) dup else '' endif
+'keepWithNext="0"'		> if(comment) dup else '' endif
+
+c Use UsfmXmlTidy.cct on the output of this changes file to tidy up 
+c the whitespace and spatial format of the final AI_USFM.xml output file.
