@@ -956,17 +956,25 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 			return;
 		}
 	}
-
+	
 	// file is now open, so find its logical length
 	wxUint32 nLogLen = f.Length(); // finds length in bytes
-
+	
+	if (nLogLen == 0)
+	{
+		// Special case of a zero length file
+		editor.m_ccTable = *(new wxString());
+	}
+	else
+	{
+	// Start of normal case of file with some contents
 	//this is where unicode support is required; we'll allow the table to be encoded in UTF-16, not just the
 	// expected UTF-8, to give a bit more flexibility
 #ifndef _UNICODE // ANSI version, no unicode support
-
 	// create the required buffer and then read in the file (no conversions needed)
 	// whm note: I'm borrowing the routines from GetNewFile() in the Doc which use malloc
 	// rather than alloca; it won't hurt to allocate memory from the heap rather than the stack frame
+	// GDLC 21Jan12 TODO: Need to check whether the ANSI code needs to add the NUL
 	wxChar* pBuf = (wxChar*)malloc(nLogLen + 1); // allow for terminating null byte
 	memset(pBuf,0,nLogLen + 1); // set all to zero
 	wxUint32 numRead = f.Read(pBuf,(wxUint32)nLogLen);
@@ -976,13 +984,14 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 							// buffer is destroyed
 	free((void*)pBuf);
 #else
-	wxUint32 nNumRead;
-//	bool bHasBOM = FALSE;
-	wxUint32 nBuffLen = (wxUint32)nLogLen + sizeof(wxChar);
-	char* pbyteBuff = (char*)malloc(nBuffLen);
-	memset(pbyteBuff,0,nBuffLen);
-	nNumRead = f.Read(pbyteBuff,nLogLen);
-	nLogLen = nNumRead + sizeof(wxChar);
+	// GDLC 21Jan12 Do not add a NUL; just tell DoInputConversion() the number of bytes and it
+	// will ensure NUL termination
+	char* pbyteBuff = (char*)malloc(nLogLen);
+	// GDLC 21Jan12 no need to zero out the buffer
+//	memset(pbyteBuff,0,nLogLen);
+	wxUint32 nNumRead = f.Read(pbyteBuff,nLogLen);
+	nLogLen = nNumRead;
+//	nLogLen = nNumRead + sizeof(wxChar);
 
 	// now we have to find out what kind of encoding the data is in, and set the encoding
 	// and we convert to UTF-16 in the DoInputConversion() function
@@ -1027,10 +1036,13 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	wxUint32 lenTemp;
 	//	GDLC 13Jan12 Use UTF8 as the fallback default font encoding without changing the app's
 	// record of the source text encoding; also provide DoInputConversion() with the correct
-	// bte buffer length
+	// byte buffer length
 	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, wxFONTENCODING_UTF8, nLogLen);
 	//	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, gpApp->m_srcEncoding);
-	editor.m_ccTable = *(new wxString(pTemp, lenTemp));
+	// GDLC 21Jan12 DoInputConversion provides NUL termination so the length param is not needed
+	editor.m_ccTable = *(new wxString(pTemp));
+//	editor.m_ccTable = *(new wxString(pTemp, lenTemp));
+
 //	GDLC 7Dec11 Free the temporary wxChar buffer created by DoInputConversion()
 	free((void*)pTemp);
 
@@ -1039,6 +1051,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 
 #endif // for _UNICODE
 
+	}	// End of normal case of file with some contents
 	f.Close();
 
 	if (editor.ShowModal() == wxID_OK)
