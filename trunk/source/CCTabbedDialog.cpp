@@ -963,7 +963,8 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	if (nLogLen == 0)
 	{
 		// Special case of a zero length file
-		editor.m_ccTable = *(new wxString());
+		editor.m_ccTable = wxString();
+//		editor.m_ccTable = *(new wxString());
 	}
 	else
 	{
@@ -1040,7 +1041,8 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, wxFONTENCODING_UTF8, nLogLen);
 	//	gpApp->DoInputConversion(pTemp, lenTemp, pbyteBuff, gpApp->m_srcEncoding);
 	// GDLC 21Jan12 DoInputConversion provides NUL termination so the length param is not needed
-	editor.m_ccTable = *(new wxString(pTemp));
+		editor.m_ccTable = wxString(pTemp);
+//		editor.m_ccTable = *(new wxString(pTemp));
 //	editor.m_ccTable = *(new wxString(pTemp, lenTemp));
 
 //	GDLC 7Dec11 Free the temporary wxChar buffer created by DoInputConversion()
