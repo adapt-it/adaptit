@@ -18016,16 +18016,16 @@ int ii = 1;
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
 */
-	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_CHORUS is #defined at line 25 of Adapt_It.h)
-#if defined(TEST_CHORUS) && defined(__WXDEBUG__)
+	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_DVCS is #defined at line 25 of Adapt_It.h)
+#if defined(TEST_DVCS) && defined(__WXDEBUG__)
 	wxMenuBar* pAIMenuBar = NULL;
 	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
 	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
 	pEditMenu->AppendSeparator();
-	wxMenuItem* pTestChorusItem = pEditMenu->Append(ID_MENU_CHORUS_TESTS,_T("Test DVCS")); // defaults for final 2 params
-	pTestChorusItem = pTestChorusItem; // supress warning // TODO: remove this if pTestChorusItem gets to be used here
+	wxMenuItem* pTestDVCSItem = pEditMenu->Append(ID_MENU_DVCS_TESTS,_T("Test DVCS")); // defaults for final 2 params
+	pTestDVCSItem = pTestDVCSItem; // supress warning // TODO: remove this if pTestDVCSItem gets to be used here
 #endif
 	// end of code for supporting Mike's DVCS work
 

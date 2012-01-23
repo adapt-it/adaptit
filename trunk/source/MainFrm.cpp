@@ -292,10 +292,10 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
 	EVT_UPDATE_UI(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUpdateUseToolTips)
 
-	// support Mike's TEST_CHORUS menu item
-#if defined(TEST_CHORUS)
-	EVT_MENU(ID_MENU_CHORUS_TESTS, CMainFrame::OnTestChorus)
-	EVT_UPDATE_UI(ID_MENU_CHORUS_TESTS, CMainFrame::OnUpdateUseToolTips)
+	// support Mike's TEST_DVCS menu item
+#if defined(TEST_DVCS)
+	EVT_MENU(ID_MENU_DVCS_TESTS, CMainFrame::OnTestDVCS)
+	EVT_UPDATE_UI(ID_MENU_DVCS_TESTS, CMainFrame::OnUpdateUseToolTips)
 #endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
@@ -1390,10 +1390,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 												// with pMainFrame->GetClientSize()
 
 	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
-	// OnInit() function. At this point the basic config file has not been 
-	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on 
+	// OnInit() function. At this point the basic config file has not been
+	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on
 	// their normal defaults - all visible. The changes of visibility according to the
-	// user's preferences are done later in OnInit() when the 
+	// user's preferences are done later in OnInit() when the
 	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
 	//if (gpApp->m_bToolBarVisible)
 	//{
@@ -1447,10 +1447,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_controlBarHeight = controlBarSize.GetHeight();
 
 	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
-	// OnInit() function. At this point the basic config file has not been 
-	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on 
+	// OnInit() function. At this point the basic config file has not been
+	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on
 	// their normal defaults - all visible. The changes of visibility according to the
-	// user's preferences are done later in OnInit() when the 
+	// user's preferences are done later in OnInit() when the
 	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
 	//if (gpApp->m_bModeBarVisible)
 	//{
@@ -1477,7 +1477,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// nothing about. The mainFrameSizer below takes care of the composeBar's
 	// layout within the Main Frame. The composeBar is not visible by default
 	// but can be toggled on from the view menu or when it takes on the form
-	// of the Free Translation compose bar in Free Translation mode. As of 
+	// of the Free Translation compose bar in Free Translation mode. As of
 	// version 6.1.1 the compose bar's state remains visible or hidden until
 	// explicitly changed.
 	// Here and in the OnSize() method, we calculate the canvas' client
@@ -1676,10 +1676,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_statusBarHeight = statusBarSize.GetHeight();
 
 	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
-	// OnInit() function. At this point the basic config file has not been 
-	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on 
+	// OnInit() function. At this point the basic config file has not been
+	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on
 	// their normal defaults - all visible. The changes of visibility according to the
-	// user's preferences are done later in OnInit() when the 
+	// user's preferences are done later in OnInit() when the
 	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
 	//if (gpApp->m_bStatusBarVisible)
 	//{
@@ -2265,17 +2265,17 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 }
 
 // Support Mike's testing of the Chorus port
-#if defined(TEST_CHORUS)
+#if defined(TEST_DVCS)
 
-void CMainFrame::OnUpdateTestChorus(wxUpdateUIEvent& event)
+void CMainFrame::OnUpdateTestDVCS(wxUpdateUIEvent& event)
 {
 	// always available
 	event.Enable(TRUE);
 }
 
-void CMainFrame::OnTestChorus(wxCommandEvent& WXUNUSED(event))
+void CMainFrame::OnTestDVCS(wxCommandEvent& WXUNUSED(event))
 {
-    CallHg();
+    CallDVCS (DVCS_CHECK);
 }
 #endif
 
@@ -2844,13 +2844,13 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // the m_pControlBar is never hidden, but always visible on the main frame.
 	wxSize mainFrameClientSize;
 	mainFrameClientSize = GetClientSize(); // determine the size of the main frame's client window
-   
+
     // The VertDisplacementFromReportedMainFrameClientSize value is used to keep track of
     // the screen coord y displacement from the original GetClientSize() call above on this
     // main window frame. It represents the how far down inside the main frame's client
     // area we need to go to place any of the potentially visible "bars" in the main
     // window, and ultimately also the placement of the upper left corner of the canvas
-    // itself (which fills the remainder of the client area. We start with the displacement 
+    // itself (which fills the remainder of the client area. We start with the displacement
     // represented by the m_controlBarHeight if visible, and proceed with the other visible
     // elements.
 	int VertDisplacementFromReportedMainFrameClientSize = 0;
@@ -2860,18 +2860,18 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	int finalHeightOfCanvas = mainFrameClientSize.y;
 	// The upper left position of the main frame's client area is always 0,0 so we position
     // the controlBar there if it is visible.
-    // Note: SetSize sets both the position and the size. 
+    // Note: SetSize sets both the position and the size.
     // SetSize() uses upper left coordinates in pixels x and y, plus a width and
     // height also in pixels. Its signature is SetSize(int x, int y, int width, int
     // height).
-	
+
 	// Adjust the Mode Bar's position in the main frame (if controlBar is visible).
 	if (m_pControlBar->IsShown())
 	{
 		m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight);
 						// width is mainFrameClientSize.x, height is m_controlBarHeight
 		m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
-		
+
 		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
 		VertDisplacementFromReportedMainFrameClientSize += m_controlBarHeight;
 		finalHeightOfCanvas -= m_controlBarHeight;

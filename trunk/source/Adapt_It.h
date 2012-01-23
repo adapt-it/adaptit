@@ -21,10 +21,15 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-// a temporary #define for Mike to use when working on Chorus
-#define TEST_CHORUS
+// a temporary #define for Mike to use when working on DVCS:
+#define TEST_DVCS
 // a symbolic menuID for the commands Mike will use (menu item appended to bottom of Help menu)
-const int ID_MENU_CHORUS_TESTS = 999;
+const int ID_MENU_DVCS_TESTS = 999;
+
+// Action codes for calling the DVCS:
+
+enum{ DVCS_CHECK };     // More to be added as they come up
+
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
@@ -84,10 +89,10 @@ class NavProtectNewDoc; // for user navigation protection feature
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
-// 6. The Linux's ChangeLog (done automatically by batch file if the version number in 
+// 6. The Linux's ChangeLog (done automatically by batch file if the version number in
 //    "Adapt It changes.txt" doc file is updated.
 // 7. The Linux's changelog file in the debian folder
-// 8. Various docs folder files including: Adapt It changes.txt, Readme.txt, 
+// 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 2
@@ -2450,10 +2455,10 @@ public:
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
 	// (these are used for getting a target text entry, if the import is redone in
 	// glossing mode in order to populate the glossing KB, these are wiped out and
-	// reset from the 2nd import of the same LIFT file) The first four of the 
+	// reset from the 2nd import of the same LIFT file) The first four of the
 	// following members are set by GetLIFTlanguageCodes() (see XML.cpp), the
 	// fifth defaults to comma and semicolon - and is set in OnInit()
-	bool		m_bLIFT_use_gloss_entry; // TRUE if parsing looks at <gloss> entries, FALSE 
+	bool		m_bLIFT_use_gloss_entry; // TRUE if parsing looks at <gloss> entries, FALSE
 										 // if parsing looks at <definition> entries
 	wxString	m_LIFT_src_lang_code; // src language ethnologue code obtained from LIFT file
 	wxString	m_LIFT_chosen_lang_code; // user's chosen language (that is, its code)
@@ -2666,12 +2671,12 @@ public:
 
 	/// m_PathPrefix stores the path prefix for Linux installations as returned by
 	/// GetAdaptItInstallPrefixForLinux() in helpers. For other platforms
-	/// m_PathPrefix is an empty string. When the Linux version is installed from a 
-	/// debian package, this prefix is generally /usr/. When Linux is installed using 
-	/// 'sudo make install' by a developer or user building the application from source 
-	/// on their local machine, m_PathPrefix would generally be /usr/local/. I think 
-	/// there are probably ways a user could also manually determine the prefix by use 
-	/// of a -prefix switch during a build, so we need to be flexible enough to have the 
+	/// m_PathPrefix is an empty string. When the Linux version is installed from a
+	/// debian package, this prefix is generally /usr/. When Linux is installed using
+	/// 'sudo make install' by a developer or user building the application from source
+	/// on their local machine, m_PathPrefix would generally be /usr/local/. I think
+	/// there are probably ways a user could also manually determine the prefix by use
+	/// of a -prefix switch during a build, so we need to be flexible enough to have the
 	/// m_PathPrefix be whatever is currently in use via whatever install options are used.
 	wxString m_PathPrefix; // whm added 6Dec11
 
@@ -2697,7 +2702,7 @@ public:
 	/// This variable is determined by calling the GetParatextInstallDirPath()
 	/// function.
 	wxString m_ParatextInstallDirPath;
-	
+
 	/// m_BibleditInstallDirPath stores the path to the Bibledit installation
 	/// directory, usually "/usr/bin", but it could be different if Bibledit
 	/// if found at a different location/path by searching for bibledit-gtk
@@ -2705,22 +2710,22 @@ public:
 	/// This variable is determined by calling the GetBibleditInstallDirPath()
 	/// function.
 	wxString m_BibleditInstallDirPath;
-	
+
 	/// m_ParatextProjectsDirPath stores the path to the Paratext user's
 	/// project directory. The default location where Paratext creates the
 	/// user's projects is at c:\My Paratext Projects".
 	/// This variable is determined by calling the GetParatextInstallDirPath()
 	/// function.
 	wxString m_ParatextProjectsDirPath;
-	
+
 	/// m_BibleditProjectsDirPath stores the path to the Bibledit user's
 	/// project directory. Bibledit installs a .bibledit hidden folder upon
-	/// installation at this location which is normally the user's home 
-	/// directory ~/ which would be something like /home/wmartin 
+	/// installation at this location which is normally the user's home
+	/// directory ~/ which would be something like /home/wmartin
 	/// This variable is determined by calling the GetBibleditProjectsDirPath()
 	/// function.
 	wxString m_BibleditProjectsDirPath;
-	
+
 	/// m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are
     /// installed on the given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or

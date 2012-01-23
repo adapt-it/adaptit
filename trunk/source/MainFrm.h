@@ -7,9 +7,9 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This header file defines the wxWidgets
-/// The CMainFrame class defines Adapt It's basic interface, including its menu bar, 
-/// tool bar, control bar, compose bar, and status bar. 
-/// \derivation		The CMainFrame class is derived from wxDocParentFrame and inherits 
+/// The CMainFrame class defines Adapt It's basic interface, including its menu bar,
+/// tool bar, control bar, compose bar, and status bar.
+/// \derivation		The CMainFrame class is derived from wxDocParentFrame and inherits
 /// its support for the document/view framework.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -43,7 +43,7 @@ class CSourcePhrase;
 //UINT CUSTOM_EVENT_ADAPTATIONS_EDIT = RegisterWindowMessage(_T("CustomEventAdaptationsEdit"));
 //UINT CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT = RegisterWindowMessage(_T("CustomEventFreeTranslationsEdit"));
 //UINT CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT = RegisterWindowMessage(_T("CustomEventBackTranslationsEdit"));
-//UINT CUSTOM_EVENT_COLLECTED_BACK_TRANSLATIONS_EDIT 
+//UINT CUSTOM_EVENT_COLLECTED_BACK_TRANSLATIONS_EDIT
 //							= RegisterWindowMessage(_T("CustomEventVCollectedBackTranslationsEdit")); // unused
 //UINT CUSTOM_EVENT_END_VERTICAL_EDIT = RegisterWindowMessage(_T("CustomEventEndVerticalEdit"));
 //UINT CUSTOM_EVENT_CANCEL_VERTICAL_EDIT = RegisterWindowMessage(_T("CustomEventCancelVerticalEdit"));
@@ -65,7 +65,7 @@ void SyncScrollSend(const wxString& strThreeLetterBook, const wxString& strChapV
 bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse, const wxString& strChapVerse);
 void FormatScriptureReference(const wxString& strThreeLetterBook, int nChap, int nVerse, wxString& strMsg);
 void FormatScriptureReference(const wxString& strThreeLetterBook, const wxString& strChapVerse, wxString& strMsg);
-void ExtractScriptureReferenceParticulars(wxString& strSantaFeMsg, wxString& str3LetterCode, 
+void ExtractScriptureReferenceParticulars(wxString& strSantaFeMsg, wxString& str3LetterCode,
 										  wxString& strChapVerse, int& nChapter, int& nVerse);
 bool CheckBibleBookCode(wxArrayPtrVoid* pBooksArray, wxString& str3LetterCode);
 bool Get3LetterCode(SPList* pList, wxString& strBookCode);
@@ -76,22 +76,22 @@ void Code2BookFolderName(wxArrayPtrVoid* pBooksArray, const wxString& strBookCod
 //void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList); // whm 27May11 removed
 																					//no longer needed
 
-/// The CMainFrame class defines Adapt It's basic interface, including its menu bar, 
-/// tool bar, control bar, compose bar, and status bar. 
-/// \derivation		The CMainFrame class is derived from wxDocParentFrame and inherits 
+/// The CMainFrame class defines Adapt It's basic interface, including its menu bar,
+/// tool bar, control bar, compose bar, and status bar.
+/// \derivation		The CMainFrame class is derived from wxDocParentFrame and inherits
 /// its support for the document/view framework.
 class CMainFrame : public wxDocParentFrame
 {
 	// MFC version MainFrame constructor has two virtual functions OnCreateClient()
 	// and PreCreateWindow(). OnCreateClient() is used to create a m_wndSplitter window
-	// wxWidgets has wxSplitterWindow. After some tinkering around, I still don't see 
+	// wxWidgets has wxSplitterWindow. After some tinkering around, I still don't see
 	// how to implement a wxSplitterWindow in the doc/view framework, since the window
 	// associated with the view need to have m_wndSplitter as its parent, whereas in
 	// the doc/view framework the canvas has MDIChildWindow as its parent. The splitter
-	// window functionality is probably not something commonly used, so I won't 
+	// window functionality is probably not something commonly used, so I won't
 	// implement it in the wxWidgets version at this point
 	////protected:
-	//wxSplitterWindow* m_wndSplitter; 
+	//wxSplitterWindow* m_wndSplitter;
 	public:
 
 #ifdef _USE_SPLITTER_WINDOW
@@ -103,14 +103,14 @@ class CMainFrame : public wxDocParentFrame
 			const wxPoint& pos, const wxSize& size, const long type);
 	~CMainFrame(); // an explicit destructor, so the removed administrator menu can
 				   // be restored before destruction of the frame
-    
+
 	// MFC Overrides
 	// MFC ClassWizard generated virtual function overrides below
 	//public:
 	//virtual bool OnCreateClient(); // MFC uses this to create the splitter window
-	//virtual bool PreCreateWindow(CREATESTRUCT& cs); 
+	//virtual bool PreCreateWindow(CREATESTRUCT& cs);
 	// The MFC version overrides this PreCreateWindow() virtual function in both
-	// CMainFrame and CAdapt_ItView, but the overrides don't extend/change anything, 
+	// CMainFrame and CAdapt_ItView, but the overrides don't extend/change anything,
 	// rather they just call their base class constructors, so we don't need to
 	// worry about it in the wxWidgets version
 	//virtual void AssertValid() const;
@@ -143,7 +143,7 @@ class CMainFrame : public wxDocParentFrame
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	//int m_vertEditStepTransBarHeight;
-      
+
 	//wxHtmlHelpController m_help;
 
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
@@ -156,13 +156,13 @@ class CMainFrame : public wxDocParentFrame
 
 	void OnIdle(wxIdleEvent& event); // MFC is virtual and returns BOOL
 
-	
+
 	CAdapt_ItCanvas *canvas;	// The MainFrame holds the main pointer to our canvas
 								// Note: The View also holds its own pointer to this canvas
-	
+
 	// whm: See font.cpp sample for example of creating a wxSplitterWindow
 #ifdef _USE_SPLITTER_WINDOW
-	CAdapt_ItCanvas *CreateCanvas(wxSplitterWindow *parent); 
+	CAdapt_ItCanvas *CreateCanvas(wxSplitterWindow *parent);
 #else
 	CAdapt_ItCanvas *CreateCanvas(CMainFrame *parent);
 #endif
@@ -179,10 +179,10 @@ class CMainFrame : public wxDocParentFrame
 	void ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility);
 	void OnUpdateViewComposeBar(wxUpdateUIEvent& event);
 	void OnUpdateViewModeBar(wxUpdateUIEvent& event);
-	void OnActivate(wxActivateEvent& event); 
+	void OnActivate(wxActivateEvent& event);
 	void OnSize(wxSizeEvent& WXUNUSED(event));
 	void OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event));
-	
+
 	//void OnHelp(wxHelpEvent& WXUNUSED(event));
 	void OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event));
 	void OnQuickStartHelp(wxCommandEvent& WXUNUSED(event));
@@ -195,11 +195,11 @@ class CMainFrame : public wxDocParentFrame
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-	
-	// support Mike's TEST_CHORUS menu item
-#if defined(TEST_CHORUS)
-	void OnTestChorus(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateTestChorus(wxUpdateUIEvent& event);
+
+	// support Mike's TEST_DVCS menu item
+#if defined(TEST_DVCS)
+	void OnTestDVCS(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateTestDVCS(wxUpdateUIEvent& event);
 #endif
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
@@ -230,14 +230,14 @@ class CMainFrame : public wxDocParentFrame
 	//wxHelpController		m_help;
 
    DECLARE_CLASS(CMainFrame);
-	// Used inside a class declaration to declare that the class should 
-	// be made known to the class hierarchy, but objects of this class 
+	// Used inside a class declaration to declare that the class should
+	// be made known to the class hierarchy, but objects of this class
 	// cannot be created dynamically. The same as DECLARE_ABSTRACT_CLASS.
 	// In the MFC version MainFrm.h uses DECLARE_DYNCREATE() which is
 	// normally equivalent to the wxWidgets' DECLARE_DYNAMIC_CLASS() macro.
 	// The MDI sample I modeled this after uses the non-dynamic macro.
 	// Should we actually use the DECLARE_DYNAMIC_CLASS() macro here?
-	// Probably not, since only a single object of the CMainFrame class 
+	// Probably not, since only a single object of the CMainFrame class
 	// is created at the beginning of the program and we never need to
 	// dynamically create any more objects of that class. The MFC version
     // probably didn't need the dynamic class-creation macro either.
