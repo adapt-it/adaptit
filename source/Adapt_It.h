@@ -22,7 +22,7 @@
 #define Adapt_It_h
 
 // a temporary #define for Mike to use when working on DVCS:
-#define TEST_DVCS
+//#define TEST_DVCS
 // a symbolic menuID for the commands Mike will use (menu item appended to bottom of Help menu)
 const int ID_MENU_DVCS_TESTS = 999;
 

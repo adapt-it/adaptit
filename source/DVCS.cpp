@@ -123,7 +123,7 @@ void  CallDVCS ( int action )
     fflush (NULL);
 
 // Here we fire up hg as a subprocess, open stream as a pipe to its stdout, and wait for it to finish:
-    stream = popen ("hg version", "r");
+    stream = popen ("/usr/local/bin/hg version", "r");
 
 // Read hg's output:
     while (!feof(stream))
