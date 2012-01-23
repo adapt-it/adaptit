@@ -54,7 +54,6 @@
 #include "helpers.h"
 
 #include "errno.h"
-#include "unistd.h"
 
 #if defined(TEST_DVCS)
 
