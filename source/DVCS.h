@@ -19,6 +19,6 @@
     #pragma interface "DocPage.h"
 #endif
 
-void  CallHg();
+void  CallDVCS ( int action );
 
 #endif /* DVCS_h */
