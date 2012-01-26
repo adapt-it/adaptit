@@ -553,7 +553,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 				wxMessageBox(str,_T(""),wxICON_WARNING);
 				// whm Note: Even though this error should not happen but rarely, it 
 				// shouldn't result in the entire application stopping!
-				return; //wxExit(); //AfxAbort();
+				return;
 			}
 			
 			// get a local pointer to the list of source phrases

@@ -321,6 +321,57 @@ wxString GetLanguageNameFromProjectName(wxString projName)
 	return collabProjLangName;
 }
 
+// whm added 21Jan12 parses an Adapt It project name in the form of "Lang A to Lang B adaptations"
+// into its language parts "Lang A" and "Lang B" returning them in the reference parameters sourceLangName
+// and targetLangName. If aiProjectName is empty or if it does not contain " to " or " adaptations" in the
+// name a notification message is issued and the function returns empty strings in the sourceLangName and
+// targetLangName parameters.
+void GetAILangNamesFromAIProjectNames(const wxString aiProjectName, wxString& sourceLangName, wxString& targetLangName)
+{
+	wxString name = aiProjectName; // this is the Adapt It project (folder) name
+	if (name.IsEmpty())
+	{
+		// if the aiProjectName is an empty string just return empty strings 
+		// for sourceLangName and targeLangName
+		sourceLangName.Empty();
+		targetLangName.Empty();
+		wxCHECK_RET(name.IsEmpty(), _T("GetAILangNamesFromAIProjectNames() incoming aiProjName is empty string."));
+		return;
+	}
+	int index;
+    // whm: For localization purposes the " to " and " adaptations" strings should
+    // not be translated, otherwise other localizations would not be able to handle
+    // the unpacking of files created on different localizations.
+	index = name.Find(_T(" to ")); // find "to" between spaces
+	if (index == wxNOT_FOUND)
+	{
+		sourceLangName.Empty();
+		targetLangName.Empty();
+		wxCHECK_RET(index == wxNOT_FOUND, _T("GetAILangNamesFromAIProjectNames() incoming aiProjName lacks \"to\" in name."));
+		return;
+	}
+	else
+	{
+		sourceLangName = name.Left(index); // get the source name, can contain
+										 // multiple words
+		index += 4;
+		name = name.Mid(index); // name has target name plus "adaptations"
+		index = name.Find(_T(" adaptations"));
+		if (index == wxNOT_FOUND)
+		{
+			sourceLangName.Empty();
+			targetLangName.Empty();
+			wxCHECK_RET(index == wxNOT_FOUND, _T("GetAILangNamesFromAIProjectNames() incoming aiProjName lacks \"adaptations\" in name."));
+			return;
+		}
+		else
+		{
+			targetLangName = name.Left(index);
+		}
+	}
+}
+
+
 // whm modified 27Jul11 to handle whole book filename creation (which does not
 // have the _CHnn chapter part in it.
 // BEW 1Aug11 moved the code from OnOK() in GetSourceTextFromEditor.cpp to here
@@ -3020,6 +3071,79 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 		return FALSE;
 	}
 }
+
+void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& composedProjStr)
+{
+	int nProjCount;
+	nProjCount = (int)projList.GetCount();
+	int ct;
+	bool bProjFound = FALSE;
+	wxString tmpShortName = _T("");
+	wxString tmpFullName = _T("");
+	wxString tmpLangName = _T("");
+	wxString tmpEthnologueCode = _T("");
+	wxString tmpIncomingProjName = projName;
+	wxString tmpProjComposedName = _T("");
+	for (ct = 0; ct < nProjCount; ct++)
+	{
+		tmpShortName.Empty();
+		tmpFullName.Empty();
+		tmpLangName.Empty();
+		tmpEthnologueCode.Empty();
+		wxString tempProjStr = projList.Item(ct);
+		int tokCt = 1;
+		if (gpApp->m_bCollaboratingWithParatext)
+		{
+			wxStringTokenizer tkz(tempProjStr,_T(":"));
+			while (tkz.HasMoreTokens())
+			{
+				// Get the third token in tempProjStr and compare it with
+				// the tmpSourceLangName and tmpTargetLangName for matches
+				wxString tokenStr = tkz.GetNextToken();
+				tokenStr.Trim(FALSE);
+				tokenStr.Trim(TRUE);
+				switch (tokCt)
+				{
+				case 1: tmpShortName = tokenStr;
+					break;
+				case 2: tmpFullName = tokenStr;
+					break;
+				case 3: tmpLangName = tokenStr; // the languageName is the 3rd token
+					if (tokenStr == tmpIncomingProjName)
+						bProjFound = TRUE;
+					break;
+				case 4: tmpEthnologueCode = tokenStr;
+					break;
+				default: tmpShortName = tokenStr;
+				}
+				tokCt++;
+			}
+			if (tmpProjComposedName.IsEmpty() && bProjFound)
+			{
+				tmpProjComposedName = tmpShortName;
+				if (!tmpFullName.IsEmpty())
+					tmpProjComposedName += _T(" : ") + tmpFullName;
+				if (!tmpLangName.IsEmpty())
+					tmpProjComposedName += _T(" : ") + tmpLangName;
+				if (!tmpEthnologueCode.IsEmpty())
+					tmpProjComposedName += _T(" : ") + tmpEthnologueCode;
+			}
+		}
+		else if (gpApp->m_bCollaboratingWithBibledit)
+		{
+			if (tempProjStr == tmpIncomingProjName)
+			{
+				bProjFound = TRUE;
+				tmpProjComposedName = tempProjStr;
+			}
+		}
+	}
+	if (bProjFound)
+	{
+		composedProjStr = tmpProjComposedName;
+	}
+}
+
 
 // Advances index until usfmText array at that index points to a \v n line.
 // If there are no more \v n lines, then the function returns FALSE. The

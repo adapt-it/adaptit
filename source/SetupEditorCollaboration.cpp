@@ -1129,6 +1129,23 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 
+	// Since the administrator clicked OK, we don't want to use any of the
+	// m_...Saved values, but ensure that the above values get stored in the
+	// basic config file. We can do that by resetting all the m_...Saved values
+	// to their OnInit() defaults
+	m_pApp->m_nSavedPTCollabSetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
+	m_pApp->m_nSavedBECollabSetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
+	m_pApp->m_SavedAIProjName = _T("");
+	m_pApp->m_SavedCollabProjectForSourceInputs = _T(""); // whm added 23Jan12
+	m_pApp->m_SavedCollabProjectForTargetExports = _T(""); // whm added 23Jan12
+	m_pApp->m_SavedCollabProjectForFreeTransExports = _T(""); // whm added 23Jan12
+	m_pApp->m_SavedCollabSourceLangName = _T(""); // whm added 23Jan12
+	m_pApp->m_SavedCollabTargetLangName = _T(""); // whm added 23Jan12
+	m_pApp->m_nSavedCollaborationExpectsFreeTrans = -1; // whm added 23Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
+	m_pApp->m_SavedCurProjectName = _T(""); // whm added 26Jan12
+	m_pApp->m_SavedCurProjectPath = _T(""); // whm added 26Jan12
+
+
 	m_pApp->LogUserAction(m_pApp->m_collaborationEditor);
 	if (m_pApp->m_bCollabByChapterOnly)
 		m_pApp->LogUserAction(_T("Collab Type: Chapter Only"));

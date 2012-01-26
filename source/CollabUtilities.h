@@ -172,6 +172,7 @@ class CSourcePhrase;
 	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, 
 							wxString* pProjectFolderPath);
 	bool			IsEthnologueCodeValid(wxString& code);
+	void			ValidateCollabProject(wxString projName, wxArrayString projList,wxString& composedProjStr);
 	bool			KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar); //BEW added 13Jun11
 	// a module for doing the layout and getting the view ready for the user to start
 	// adapting;; it is not limited to being used in a Collaboration scenario
@@ -208,6 +209,7 @@ class CSourcePhrase;
 	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 	wxString		GetShortNameFromProjectName(wxString projName);
 	wxString		GetLanguageNameFromProjectName(wxString projName);
+	void			GetAILangNamesFromAIProjectNames(const wxString aiProjectName, wxString& sourceLang, wxString& targetLang);
 	// The next three are the meaty ones, which together get the updated text back to the
 	// external editor, via the .temp folder (child of the work folder) as an
 	// intermediatory location for storage of the file holding the data being transferred
