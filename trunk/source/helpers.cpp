@@ -8049,7 +8049,6 @@ bool IsSubstringWithin(wxString& testStr, wxString& strItems)
 }
 
 
-
 /* unused so far
 SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhrase,
 	CSourcePhrase* pNewSrcPhrase, bool bDeleteOriginal, bool bDeletePartnerPileToo)

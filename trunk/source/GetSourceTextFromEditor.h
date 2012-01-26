@@ -152,12 +152,13 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
-	void OnBtnChangeProjects(wxCommandEvent& WXUNUSED(event));
+	void OnBtnChangeProjects(wxCommandEvent& WXUNUSED(event)); // calls DoChangProjects()
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
+	bool DoChangeProjects();
 	bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
 								wxString LanguageNameTgt, wxString& aiProjectFolderName,
 								wxString& aiProjectFolderPath);

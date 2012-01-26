@@ -10004,7 +10004,9 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 _("Adapt It does not recognise this marker: %s which is in the input file.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
 					wholeMkr2.c_str());
 					wxMessageBox(msgStr, _T(""), wxICON_ERROR);
-					abort();
+					gpApp->LogUserAction(msgStr);
+					// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
+					wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
 					return 0;
 				}
 				bareMkr = emptyStr;
@@ -10019,7 +10021,9 @@ _("Adapt It does not recognise this marker: %s which is in the input file.\nEdit
 _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not one of the USFM Special Text and Character Styles markers.\nEdit the input file in a word processor, save, and then retry creating the document.\nAdapt It will now abort."),
 					wholeMkr.c_str());
 					wxMessageBox(msgStr, _T(""), wxICON_ERROR);
-					abort();
+					gpApp->LogUserAction(msgStr);
+					// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
+					wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
 					return 0;
 				}
 				itemLen = wholeMkr.Len();

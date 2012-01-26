@@ -184,12 +184,6 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 	}
 	int nSel;
 	nSel = pListBox->GetSelection();
-	//if (nSel == -1) // MFC LB_ERR is #define -1
-	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
-	//	wxASSERT(FALSE);
-	//	//wxExit();//AfxAbort();
-	//}
 	m_projectName = pListBox->GetString(nSel);
 
 	// set m_curProjectPath so we can load the Project configuration file, we need to

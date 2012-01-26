@@ -2071,9 +2071,19 @@ public:
 
 	bool m_bForceCollabModeON; // whm added 17Jan12
 	bool m_bForceCollabModeOFF; // whm added 17Jan12
+	wxString m_ForceAIProjectName; // whm added 17Jan12
+	wxString m_ForceCollabProjectNames; // whm added 22Jan12
 	int m_nSavedPTCollabSetting; // whm added 17Jan12
 	int m_nSavedBECollabSetting; // whm added 17Jan12
-	wxString m_ForceProjectNameWhenCollabOff; // whm added 17Jan12
+	wxString m_SavedCollabProjectForSourceInputs; // whm added 23Jan12
+	wxString m_SavedCollabProjectForTargetExports; // whm added 23Jan12
+	wxString m_SavedCollabProjectForFreeTransExports; // whm added 23Jan12
+	wxString m_SavedAIProjName; // whm added 17Jan12
+	wxString m_SavedCollabSourceLangName; // whm added 23Jan12
+	wxString m_SavedCollabTargetLangName; // whm added 23Jan12
+	int m_nSavedCollaborationExpectsFreeTrans; // whm added 23Jan12
+	wxString m_SavedCurProjectName; // whm added 26Jan12
+	wxString m_SavedCurProjectPath; // whm added 26Jan12
 
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
