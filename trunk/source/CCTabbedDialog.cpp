@@ -964,7 +964,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	{
 		// Special case of a zero length file
 		editor.m_ccTable = wxString();
-//		editor.m_ccTable = *(new wxString());
+		editor.m_ccTable = *(new wxString());
 	}
 	else
 	{
