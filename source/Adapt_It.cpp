@@ -30387,8 +30387,11 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 	size_t dstLen = conv.ToWChar(NULL, 0, pbyteBuff, byteBufLen);
 	if ( dstLen == wxCONV_FAILED )
 	{
-		::wxBell();
-		wxASSERT(FALSE);
+		LogUserAction(_T("conv.ToWChar() could not understand the input byte buffer"));
+		// GDLC 26Jan12 Return an empty wxChar buffer
+		wxChar *dst = new wxChar[1];
+		pBuf = dst;
+		bufLen = 0;
 		return;
 	}
 	// Create a wxChar buffer in which to build the converted string of wxChars
@@ -30396,8 +30399,11 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 	wxChar *dst = new wxChar[dstLen];
 	if ( conv.ToWChar(dst, dstLen, pbyteBuff, byteBufLen) == wxCONV_FAILED )
 	{
-		::wxBell();
-		wxASSERT(FALSE);
+		LogUserAction(_T("conv.ToWChar() could not complete the conversion of the input byte buffer"));
+		// GDLC 26Jan12 Return an empty wxChar buffer
+		wxChar *dst = new wxChar[1];
+		pBuf = dst;
+		bufLen = 0;
 		return;
 	}
 	pBuf = dst;
