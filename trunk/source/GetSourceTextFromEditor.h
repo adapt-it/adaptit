@@ -95,7 +95,7 @@ public:
 	virtual ~CGetSourceTextFromEditorDlg(void); // destructor
 	
 	// other methods
-	wxRadioBox* pRadioBoxChapterOrBook;
+	//wxRadioBox* pRadioBoxChapterOrBook; // whm removed 28Jan12
 	wxListBox* pListBoxBookNames;
 	wxListView* pListCtrlChapterNumberAndStatus; // wxListBox* pListCtrlChapterNumberAndStatus;
 	wxListItem* pTheFirstColumn; // has to be on heap
@@ -105,6 +105,8 @@ public:
 	wxStaticText* pSrcProj;
 	wxStaticText* pTgtProj;
 	wxStaticText* pFreeTransProj;
+	wxStaticBox* pStaticBoxUsingTheseProjects;
+	wxStaticText* pUsingAIProjectName;
 	wxButton* pBtnChangeProjects;
 	wxButton* pBtnCancel;
 	wxButton* pBtnOK;
@@ -156,7 +158,7 @@ protected:
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
-	void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
+	//void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
 	bool DoChangeProjects();
 	bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 

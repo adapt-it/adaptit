@@ -41,6 +41,7 @@ public:
 	wxString m_TempCollabAIProjectName;
 	wxString m_TempCollabSourceProjLangName;
 	wxString m_TempCollabTargetProjLangName;
+	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
@@ -55,6 +56,9 @@ protected:
 	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
 	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
+	void OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event));
+	void OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event));
+
 private:
 
 	wxArrayString* pListOfPTProjects; // local pointer to list on App
@@ -84,6 +88,8 @@ private:
 	wxButton* pBtnSelectFmListTargetProj;
 	wxButton* pBtnSelectFmListFreeTransProj;
 	wxButton* pBtnNoFreeTrans;
+	wxRadioButton* pRadioBtnByChapterOnly;
+	wxRadioButton* pRadioBtnByWholeBook;
 	wxButton* pBtnOK;
 	bool m_bCollabSettingSave;
 	bool m_bCollabChangedThisDlgSession;
