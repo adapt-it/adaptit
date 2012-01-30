@@ -61,11 +61,12 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj)
 	EVT_BUTTON(wxID_OK, CSetupEditorCollaboration::OnOK)
 	EVT_BUTTON(ID_BUTTON_NO_FREE_TRANS, CSetupEditorCollaboration::OnNoFreeTrans)
+	EVT_RADIOBUTTON(ID_RADIO_BY_CHAPTER_ONLY, CSetupEditorCollaboration::OnRadioBtnByChapterOnly)
+	EVT_RADIOBUTTON(ID_RADIO_BY_WHOLE_BOOK, CSetupEditorCollaboration::OnRadioBtnByWholeBook)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnDoSomething)
 	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnUpdateDoSomething)
 	//EVT_BUTTON(ID_SOME_BUTTON, CSetupEditorCollaboration::OnDoSomething)
 	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CSetupEditorCollaboration::OnDoSomething)
-	//EVT_RADIOBUTTON(ID_SOME_RADIOBUTTON, CSetupEditorCollaboration::DoSomething)
 	//EVT_LISTBOX(ID_SOME_LISTBOX, CSetupEditorCollaboration::DoSomething)
 	EVT_COMBOBOX(ID_COMBO_AI_PROJECTS, CSetupEditorCollaboration::OnComboBoxSelectAiProject)
 	EVT_TEXT(ID_TEXTCTRL_SRC_LANG_NAME, CSetupEditorCollaboration::OnEnChangeSrcLangName)
@@ -170,6 +171,12 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	
 	pBtnNoFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_NO_FREE_TRANS);
 	wxASSERT(pBtnNoFreeTrans != NULL);
+
+	pRadioBtnByChapterOnly = (wxRadioButton*)FindWindowById(ID_RADIO_BY_CHAPTER_ONLY);
+	wxASSERT(pRadioBtnByChapterOnly != NULL);
+	
+	pRadioBtnByWholeBook = (wxRadioButton*)FindWindowById(ID_RADIO_BY_WHOLE_BOOK);
+	wxASSERT(pRadioBtnByWholeBook != NULL);
 	
 	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
 	wxASSERT(pBtnOK != NULL);
@@ -202,6 +209,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
 	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName; // whm added 4Sep11
 	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName; // whm added 4Sep11
+	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // whm added 28Jan12
 
 	m_projectSelectionMade = FALSE;
 
@@ -267,6 +275,19 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	pStaticTextNewAIProjName->Hide();
 	pStaticTextSrcLangName->Hide();
 	pStaticTextTgtLangName->Hide();
+
+	// whm added 28Jan12 after moving the "Get by Chapter Only" and "Get by Whole Book" 
+	// radio buttons here from the GetSourceTextFromEditor dialog
+	if (m_bTempCollabByChapterOnly)
+	{
+		pRadioBtnByChapterOnly->SetValue(TRUE);
+		pRadioBtnByWholeBook->SetValue(FALSE);
+	}
+	else
+	{
+		pRadioBtnByChapterOnly->SetValue(FALSE);
+		pRadioBtnByWholeBook->SetValue(TRUE);
+	}
 
 	if (m_bTempCollaboratingWithParatext || m_bTempCollaboratingWithBibledit)
 		pRadioBoxCollabOnOrOff->SetSelection(0);
@@ -915,6 +936,21 @@ void CSetupEditorCollaboration::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(e
 	pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
 }
 
+void CSetupEditorCollaboration::OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event))
+{
+    // Clicked "Get by Chapter Only" radio button
+	m_bTempCollabByChapterOnly = TRUE;
+	pRadioBtnByChapterOnly->SetValue(TRUE);
+	pRadioBtnByWholeBook->SetValue(FALSE);
+}
+
+void CSetupEditorCollaboration::OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event))
+{
+    // Clicked "Get by Whole Book" radio button
+	m_bTempCollabByChapterOnly = FALSE;
+	pRadioBtnByChapterOnly->SetValue(FALSE);
+	pRadioBtnByWholeBook->SetValue(TRUE);
+}
 
 //CSetupEditorCollaboration::OnUpdateDoSomething(wxUpdateUIEvent& event)
 //{
@@ -1128,6 +1164,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // whm added 28Jan12
 
 	// Since the administrator clicked OK, we don't want to use any of the
 	// m_...Saved values, but ensure that the above values get stored in the

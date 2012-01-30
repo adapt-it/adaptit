@@ -686,7 +686,7 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
-	EVT_RADIOBOX(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, CGetSourceTextFromEditorDlg::OnRadioBoxSelected)
+	//EVT_RADIOBOX(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, CGetSourceTextFromEditorDlg::OnRadioBoxSelected)
 END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
@@ -715,8 +715,8 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 	
-	pRadioBoxChapterOrBook = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
-	wxASSERT(pRadioBoxChapterOrBook != NULL);
+	//pRadioBoxChapterOrBook = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
+	//wxASSERT(pRadioBoxChapterOrBook != NULL);
 
 	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
 	wxASSERT(pListBoxBookNames != NULL);
@@ -748,6 +748,16 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	
 	pFreeTransProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_FREETRANS_PROJ);
 	wxASSERT(pFreeTransProj != NULL);
+
+	// Note: STATIC_TEXT_DESCRIPTION is a pointer to a wxStaticBoxSizer which wxDesigner casts back
+	// to the more generic wxSizer*, so we'll use a wxDynamicCast() to cast it back to its original
+	// object class. Then we can call wxStaticBoxSizer::GetStaticBox() in it.
+	wxStaticBoxSizer* psbSizer = wxDynamicCast(STATIC_TEXT_PTorBE_PROJECTS,wxStaticBoxSizer); // use dynamic case because wxDesigner cast it to wxSizer*
+	pStaticBoxUsingTheseProjects = (wxStaticBox*)psbSizer->GetStaticBox();
+	wxASSERT(pStaticBoxUsingTheseProjects != NULL);
+
+	pUsingAIProjectName = (wxStaticText*)FindWindowById(ID_TEXT_AI_PROJ);
+	wxASSERT(pUsingAIProjectName != NULL);
 	
 	bool bOK;
 	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
@@ -778,6 +788,11 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxString text  = pBtnChangeProjects->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pBtnChangeProjects->SetLabel(text);
+
+	// Substitute "Paratext" or "Bibledit" in "Using these %s projects:"
+	wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
+	usingTheseProj = usingTheseProj.Format(usingTheseProj,m_pApp->m_collaborationEditor.c_str());
+	pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
 
 	// whm Note 21Jan12: If the user has forced the use of a particular
 	// AI project via the -ai_proj "Lang A to Lang B adaptations" command-line
@@ -856,10 +871,10 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 		// Allow selecting texts by whole book, or chapter, depending on the
 		// value of m_bTempCollabByChapterOnly as set by the basic config file
-		if (m_bTempCollabByChapterOnly)
-			pRadioBoxChapterOrBook->SetSelection(0);
-		else
-			pRadioBoxChapterOrBook->SetSelection(1);
+		//if (m_bTempCollabByChapterOnly)
+		//	pRadioBoxChapterOrBook->SetSelection(0);
+		//else
+		//	pRadioBoxChapterOrBook->SetSelection(1);
 
 		// whm added 7Oct11 at Bruce's request
 		// whm modified 21Jan12 to parse the language names from the ai project name
@@ -880,6 +895,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			ftProj = GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports);
 		}
 		pFreeTransProj->SetLabel(ftProj);
+		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
 
 		// Confirm that we can find the active source and target projects as stored in the 
 		// config file and now stored in our projList.
@@ -1040,9 +1056,9 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			OnLBBookSelected(evt);
 			// whm added 29Jul11. If "Get Whole Book" is ON, we can set the focus
 			// on the OK button
-			if (pRadioBoxChapterOrBook->GetSelection() == 1)
+			if (!m_bTempCollabByChapterOnly)
 			{
-				// Get Whole Book is selected, so set focus on OK button
+				// Get Whole Book is ON, so set focus on OK button
 				pBtnOK->SetFocus();
 			}
 		}
@@ -3010,6 +3026,8 @@ bool CGetSourceTextFromEditorDlg::DoChangeProjects()
 		
 		projList = scpDlg.projList;
 		// whm added 7Oct11 at Bruce's request
+		// whm modified 28Jan12 to update the "Using these Paratext/Bibledit projects:"
+		// edit boxes for "Source Project:", "Target Project:", and "Free Translation Project:".
 		pSrcProj->SetLabel(m_TempCollabSourceProjLangName);
 		pTgtProj->SetLabel(m_TempCollabTargetProjLangName);
 		wxString ftProj;
@@ -3018,6 +3036,9 @@ bool CGetSourceTextFromEditorDlg::DoChangeProjects()
 		else
 			ftProj = GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports);
 		pFreeTransProj->SetLabel(ftProj);
+		
+		// whm added 28Jan12 update the Using this Adapt It project static text
+		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
 		
 		// when the projects change we need to reload the "Select a book" list.
 		LoadBookNamesIntoList();
@@ -3041,9 +3062,9 @@ bool CGetSourceTextFromEditorDlg::DoChangeProjects()
 				OnLBBookSelected(evt);
 				// whm added 29Jul11. If "Get Whole Book" is ON, we can set the focus
 				// on the OK button
-				if (pRadioBoxChapterOrBook->GetSelection() == 1)
+				if (!m_bTempCollabByChapterOnly)
 				{
-					// Get Whole Book is selected, so set focus on OK button
+					// Get Whole Book is ON, so set focus on OK button
 					pBtnOK->SetFocus();
 				}
 			}
@@ -3883,6 +3904,7 @@ wxString CGetSourceTextFromEditorDlg::AbbreviateColonSeparatedVerses(const wxStr
 	return tempStr;
 }
 
+/* moved to two radio buttons in the CSetupEditorCollaboration class
 void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event))
 {
     // clicking "Get Chapter Only" button return nSel = 0; "Get Whole Book" button returns
@@ -3943,6 +3965,7 @@ void CGetSourceTextFromEditorDlg::OnRadioBoxSelected(wxCommandEvent& WXUNUSED(ev
 		m_TempCollabChapterSelected.Empty();
 	}
 }
+*/
 
 
 wxString CGetSourceTextFromEditorDlg::GetBareChFromLBChSelection(wxString lbChapterSelected)
