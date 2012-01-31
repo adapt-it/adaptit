@@ -78,10 +78,10 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) CollabUtilities.$(OBJEXT) \
 	conschk_exists_notu_dlg.$(OBJEXT) \
 	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseLanguageCode.$(OBJEXT) \
-	ChooseTranslation.$(OBJEXT) CollectBacktranslations.$(OBJEXT) \
-	ComposeBarEditBox.$(OBJEXT) ConsistencyCheckDlg.$(OBJEXT) \
-	ConsistentChanger.$(OBJEXT) convauto.$(OBJEXT) \
-	CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
+	ChooseTranslation.$(OBJEXT) ClientServerConnection.$(OBJEXT) \
+	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
+	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
+	convauto.$(OBJEXT) CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
 	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
 	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
 	DVCS.$(OBJEXT) ExportFunctions.$(OBJEXT) \
@@ -408,7 +408,7 @@ adaptit_SOURCES = \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
-	../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
+	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
@@ -561,6 +561,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageCode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseTranslation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientServerConnection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollabUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CollectBacktranslations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ComposeBarEditBox.Po@am__quote@
@@ -1038,6 +1039,20 @@ ChooseTranslation.obj: ../../source/ChooseTranslation.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ChooseTranslation.cpp' object='ChooseTranslation.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseTranslation.obj `if test -f '../../source/ChooseTranslation.cpp'; then $(CYGPATH_W) '../../source/ChooseTranslation.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseTranslation.cpp'; fi`
+
+ClientServerConnection.o: ../../source/ClientServerConnection.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ClientServerConnection.o -MD -MP -MF $(DEPDIR)/ClientServerConnection.Tpo -c -o ClientServerConnection.o `test -f '../../source/ClientServerConnection.cpp' || echo '$(srcdir)/'`../../source/ClientServerConnection.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ClientServerConnection.Tpo $(DEPDIR)/ClientServerConnection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ClientServerConnection.cpp' object='ClientServerConnection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ClientServerConnection.o `test -f '../../source/ClientServerConnection.cpp' || echo '$(srcdir)/'`../../source/ClientServerConnection.cpp
+
+ClientServerConnection.obj: ../../source/ClientServerConnection.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ClientServerConnection.obj -MD -MP -MF $(DEPDIR)/ClientServerConnection.Tpo -c -o ClientServerConnection.obj `if test -f '../../source/ClientServerConnection.cpp'; then $(CYGPATH_W) '../../source/ClientServerConnection.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ClientServerConnection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ClientServerConnection.Tpo $(DEPDIR)/ClientServerConnection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ClientServerConnection.cpp' object='ClientServerConnection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ClientServerConnection.obj `if test -f '../../source/ClientServerConnection.cpp'; then $(CYGPATH_W) '../../source/ClientServerConnection.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ClientServerConnection.cpp'; fi`
 
 CollectBacktranslations.o: ../../source/CollectBacktranslations.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CollectBacktranslations.o -MD -MP -MF $(DEPDIR)/CollectBacktranslations.Tpo -c -o CollectBacktranslations.o `test -f '../../source/CollectBacktranslations.cpp' || echo '$(srcdir)/'`../../source/CollectBacktranslations.cpp
