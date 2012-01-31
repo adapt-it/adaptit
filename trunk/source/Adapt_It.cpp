@@ -179,6 +179,16 @@
 #include "HtmlFileViewer.h"
 #include "convauto.h"
 #include "KBExportImportOptionsDlg.h"
+#include "ClientServerConnection.h"
+
+// wx docs say: "By default, the DDE implementation is used under Windows. DDE works within one computer only.
+// If you want to use IPC between different workstations you should define wxUSE_DDE_FOR_IPC as 0 before
+// including this header [<wx/ipc.h>]-- this will force using TCP/IP implementation even under Windows."
+#ifdef useTCPbasedIPC
+#define wxUSE_DDE_FOR_IPC 0
+#endif
+#include <wx/ipc.h> // for wxServer, wxClient and wxConnection
+
 
 // Added for win32 API calls required to determine if Paratext is running on a windows host - KLB
 #ifdef __WXMSW__
@@ -13864,25 +13874,68 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pChecker = (wxSingleInstanceChecker*)NULL;
 
+	m_pServer = (aiServer*)NULL;
+
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
 	{ // begin block for wxLogNull()
+		wxString cmdLine;
+		cmdLine = wxEmptyString; // Passing empty string to connection->Execute(cmdLine) will just cause
+								 // the other running instance to raise its window.
+
 		wxLogNull logNo; // eliminates spurious "Deleted stale lock file
 		                 // '/home/user/Adapt_ItApp-wmartin' on Linux
 		m_pChecker = new wxSingleInstanceChecker(name); // must delete m_checker in OnExit()
 		wxASSERT(m_pChecker != NULL);
-		if ( m_pChecker->IsAnotherRunning() )
-		{
-			wxString msg = _("Adapt It is already running for the current user. Aborting attempt to run a second instance of Adapt It...");
-			wxMessageBox(msg,_T("Attempt to start up a second Adapt It session detected"),wxICON_INFORMATION);
-			LogUserAction(msg);
-			// If only a single instance is to be allowed, we return FALSE here
-			// from OnInit()
 
-			// TODO: In lieu of the message above I think it would be a good idea to 
-			// communicate with the first instance via IPC and ask it to raise it's 
-			// main window to be visible, if covered by another window. 
-			// See wxWidgets book pages 506-510 on how to do this.
+		wxString nameLower;
+		nameLower = name.Lower();
+		// Some of the code below is taken from the wxWidgets book pages 506-510.
+		if (!m_pChecker->IsAnotherRunning())
+		{
+			// There is no other instance running currently so create a new server
+			m_pServer = new aiServer;
+			if (!m_pServer->Create(nameLower))
+			{
+				wxLogDebug(_T("Failed to create an IPC service in OnInit()."));
+			}
+		}
+		else
+		{
+			// Another instance is currently running so make a connection to it
+			// and cause its window to raise
+			wxLogNull logNull;
+			aiClient* pClient = new aiClient;
+
+			// Ignored under DDE, host name in TCP/IP based classes
+			wxString hostName = _T("localhost");
+
+			// Create the connection
+			// TODO: whm 31Jan12 Determine why the following MakeConnection() call fails on Windows
+			// Even though it fails, this second instance will terminate quietly - it just doesn't
+			// raise the other instance's main frame.
+			wxConnectionBase* pConnection = pClient->MakeConnection(hostName,nameLower,name); // calls new aiConnection
+			if (pConnection)
+			{
+				// Ask the other instance to raise itself
+				pConnection->Execute(cmdLine); // cmdLine is always wxEmptyString in our case
+				pConnection->Disconnect();
+				delete pConnection;
+				pConnection = (wxConnectionBase*)NULL;
+			}
+			else
+			{
+				wxLogDebug(_T("The existing instance may be too busy to respond. Close any open dialogs and retry."));
+			}
+			wxString msg = _("Adapt It is already running for the current user. Aborting attempt to run a second instance of Adapt It...");
+			LogUserAction(msg);
+			// If only a single instance is to be allowed, we will return FALSE here
+			// from OnInit() after deallocating some memory items below.
+			// First deallocate the client
+			delete pClient;
+			
+			if (pConnection != NULL)
+				delete pConnection;
 			
 			// To avoid memory leaks at shutdown we should deallocate the things 
 			// created in OnInit() up to this point - before returning FALSE from 
@@ -13938,6 +13991,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			if (m_pChecker)
 			{
 				delete m_pChecker;
+			}
+			if (m_pServer)
+			{
+				delete m_pServer;
 			}
 			delete m_pROP; // delete the ReadOnlyProtection class's only instance
 			delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
@@ -14360,8 +14417,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// regardless of the values for collaboration being used in the current 
 			// session as a result of the command-line switches. 
 			m_bForceCollabModeON = TRUE;
-			m_bCollaboratingWithParatext = TRUE;
-			m_bCollaboratingWithBibledit = TRUE;
+			// whm modified 31Jan12 we should only activate collab with PT or BE depending
+			// on which editor is appropriate
+			if (m_collaborationEditor == _T("Paratext"))
+			{
+				m_bCollaboratingWithParatext = TRUE;
+			}
+			else if (m_collaborationEditor == _T("Bibledit"))
+			{
+				m_bCollaboratingWithBibledit = TRUE;
+			}
 		}
 
 		if (m_pParser->Found(_T("collab_off")))
@@ -14369,8 +14434,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// The -collab_off command-line parameter forces collab mode OFF (if a collab
 			// project has been previously setup and would otherwise be ON).
 			m_bForceCollabModeOFF = TRUE;
-			m_bCollaboratingWithParatext = FALSE;
-			m_bCollaboratingWithBibledit = FALSE;
+			// whm modified 31Jan12 we should only deactivate collab with PT or BE depending
+			// on which editor is appropriate
+			if (m_collaborationEditor == _T("Paratext"))
+			{
+				m_bCollaboratingWithParatext = FALSE;
+			}
+			else if (m_collaborationEditor == _T("Bibledit"))
+			{
+				m_bCollaboratingWithBibledit = FALSE;
+			}
 		}
 
 		wxString collabProjNames;
@@ -18380,7 +18453,12 @@ int CAdapt_ItApp::OnExit(void)
 
 	m_pDocManager->FileHistorySave(* m_pConfig);
 
-	bool bOK; // we won't care whether it succeeds or not, since the later
+	// whm 31Jan12 initialized bOK to TRUE and added else if test for content in 
+	// m_curProjectPath. If on first run of the app, user cancels out of wizard and
+	// immediately exits the app, there will not be any m_curProjectPath established.
+	// Without these modifications the wxCHECK_MSG would trip and give a cryptic
+	// message to the user.
+	bool bOK = TRUE; // we won't care whether it succeeds or not, since the later
 			  // Get... can use defaults
 	// WriteConfigurationFile projectConfigFile forces write of project config info
 	if (!m_bAutoExport)
@@ -18397,7 +18475,7 @@ int CAdapt_ItApp::OnExit(void)
 			else
 				bOK = WriteConfigurationFile(szAdminProjectConfiguration, m_curProjectPath,projectConfigFile);
 		}
-		else
+		else if (!m_curProjectPath.IsEmpty()) // whm added 31Jan12 test for empty m_curProjectPath
 		{
 			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
 		}
@@ -18436,6 +18514,11 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		delete m_pChecker;
 		m_pChecker = (wxSingleInstanceChecker*)NULL;
+	}
+	if (m_pServer)
+	{
+		delete m_pServer;
+		m_pServer = (aiServer*)NULL;
 	}
 
 	delete m_pParser;
@@ -27398,57 +27481,60 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	wxString tempCollabSourceLangName = _T("");
 	wxString tempCollabTargetLangName = _T("");
 	wxString tempCollabAIProjectName = _T("");
-	{ // begin wxLogNull block
-	wxLogNull logNo; // eliminates spurious message from the system
-	bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
-	bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
-	bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
-	bReadOK4 = m_pConfig->Read(_T("pt_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
-	bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
-	bReadOK6 = m_pConfig->Read(_T("pt_collab_by_chapter_only"), &bTempCollabByChapterOnly);
-	bReadOK7 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
-	bReadOK8 = m_pConfig->Read(_T("pt_collab_src_lang_name"), &tempCollabSourceLangName);
-	bReadOK9 = m_pConfig->Read(_T("pt_collab_tgt_lang_name"), &tempCollabTargetLangName);
-	bReadOK10 = m_pConfig->Read(_T("pt_collab_ai_proj_name"), &tempCollabAIProjectName);
-	} // end wxLogNull block
-	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
+	if (m_collaborationEditor == _T("Paratext"))
 	{
-		m_bCollaboratingWithParatext = bTempCollabFlag;
-		if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
+		{ // begin wxLogNull block
+		wxLogNull logNo; // eliminates spurious message from the system
+		bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
+		bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
+		bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
+		bReadOK4 = m_pConfig->Read(_T("pt_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
+		bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
+		bReadOK6 = m_pConfig->Read(_T("pt_collab_by_chapter_only"), &bTempCollabByChapterOnly);
+		bReadOK7 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
+		bReadOK8 = m_pConfig->Read(_T("pt_collab_src_lang_name"), &tempCollabSourceLangName);
+		bReadOK9 = m_pConfig->Read(_T("pt_collab_tgt_lang_name"), &tempCollabTargetLangName);
+		bReadOK10 = m_pConfig->Read(_T("pt_collab_ai_proj_name"), &tempCollabAIProjectName);
+		} // end wxLogNull block
+		if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
 		{
-			m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
-		}
-		if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
-		{
-			m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
-		}
-		if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
-		{
-			m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
-		}
-		if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
-		{
-			m_CollabBookSelected = tempCollabBookSelected;
-		}
-		if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
-		{
-			m_bCollabByChapterOnly = bTempCollabByChapterOnly;
-		}
-		if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
-		{
-			m_CollabChapterSelected = tempCollabChapterSelected;
-		}
-		if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
-		{
-			m_CollabSourceLangName = tempCollabSourceLangName;
-		}
-		if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
-		{
-			m_CollabTargetLangName = tempCollabTargetLangName;
-		}
-		if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
-		{
-			m_CollabAIProjectName = tempCollabAIProjectName;
+			m_bCollaboratingWithParatext = bTempCollabFlag;
+			if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
+			{
+				m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
+			}
+			if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
+			{
+				m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
+			}
+			if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
+			{
+				m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
+			}
+			if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
+			{
+				m_CollabBookSelected = tempCollabBookSelected;
+			}
+			if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
+			{
+				m_bCollabByChapterOnly = bTempCollabByChapterOnly;
+			}
+			if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
+			{
+				m_CollabChapterSelected = tempCollabChapterSelected;
+			}
+			if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
+			{
+				m_CollabSourceLangName = tempCollabSourceLangName;
+			}
+			if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
+			{
+				m_CollabTargetLangName = tempCollabTargetLangName;
+			}
+			if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
+			{
+				m_CollabAIProjectName = tempCollabAIProjectName;
+			}
 		}
 	}
 
@@ -27464,57 +27550,60 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	tempCollabSourceLangName = _T("");
 	tempCollabTargetLangName = _T("");
 	tempCollabAIProjectName = _T("");
-	{ // begin wxLogNull block
-	wxLogNull logNo; // eliminates spurious message from the system
-	bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
-	bReadOK2 = m_pConfig->Read(_T("be_collab_src_proj"), &tempCollabProjForSrcInputs);
-	bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
-	bReadOK4 = m_pConfig->Read(_T("be_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
-	bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
-	bReadOK6 = m_pConfig->Read(_T("be_collab_by_chapter_only"), &bTempCollabByChapterOnly);
-	bReadOK7 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
-	bReadOK8 = m_pConfig->Read(_T("be_collab_src_lang_name"), &tempCollabSourceLangName);
-	bReadOK9 = m_pConfig->Read(_T("be_collab_tgt_lang_name"), &tempCollabTargetLangName);
-	bReadOK10 = m_pConfig->Read(_T("be_collab_ai_proj_name"), &tempCollabAIProjectName);
-	} // end wxLogNull block
-	if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
+	if (m_collaborationEditor == _T("Bibledit"))
 	{
-		m_bCollaboratingWithBibledit = bTempCollabFlag;
-		if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
+		{ // begin wxLogNull block
+		wxLogNull logNo; // eliminates spurious message from the system
+		bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
+		bReadOK2 = m_pConfig->Read(_T("be_collab_src_proj"), &tempCollabProjForSrcInputs);
+		bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
+		bReadOK4 = m_pConfig->Read(_T("be_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
+		bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
+		bReadOK6 = m_pConfig->Read(_T("be_collab_by_chapter_only"), &bTempCollabByChapterOnly);
+		bReadOK7 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
+		bReadOK8 = m_pConfig->Read(_T("be_collab_src_lang_name"), &tempCollabSourceLangName);
+		bReadOK9 = m_pConfig->Read(_T("be_collab_tgt_lang_name"), &tempCollabTargetLangName);
+		bReadOK10 = m_pConfig->Read(_T("be_collab_ai_proj_name"), &tempCollabAIProjectName);
+		} // end wxLogNull block
+		if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
 		{
-			m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
-		}
-		if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
-		{
-			m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
-		}
-		if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
-		{
-			m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
-		}
-		if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
-		{
-			m_CollabBookSelected = tempCollabBookSelected;
-		}
-		if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
-		{
-			m_bCollabByChapterOnly = bTempCollabByChapterOnly;
-		}
-		if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
-		{
-			m_CollabChapterSelected = tempCollabChapterSelected;
-		}
-		if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
-		{
-			m_CollabSourceLangName = tempCollabSourceLangName;
-		}
-		if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
-		{
-			m_CollabTargetLangName = tempCollabTargetLangName;
-		}
-		if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
-		{
-			m_CollabAIProjectName = tempCollabAIProjectName;
+			m_bCollaboratingWithBibledit = bTempCollabFlag;
+			if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
+			{
+				m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
+			}
+			if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
+			{
+				m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
+			}
+			if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
+			{
+				m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
+			}
+			if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
+			{
+				m_CollabBookSelected = tempCollabBookSelected;
+			}
+			if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
+			{
+				m_bCollabByChapterOnly = bTempCollabByChapterOnly;
+			}
+			if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
+			{
+				m_CollabChapterSelected = tempCollabChapterSelected;
+			}
+			if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
+			{
+				m_CollabSourceLangName = tempCollabSourceLangName;
+			}
+			if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
+			{
+				m_CollabTargetLangName = tempCollabTargetLangName;
+			}
+			if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
+			{
+				m_CollabAIProjectName = tempCollabAIProjectName;
+			}
 		}
 	}
 
@@ -29778,7 +29867,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 /// whm 24Feb10 modified to move the font mismatch checking to FixConfigFileFonts().
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString sourceFolder,
-										ConfigFileType configType)
+										ConfigFileType configFType)
 {
 	wxString fname;
 	fname.Empty();
@@ -29826,9 +29915,15 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	if (!bSuccessful)
 	{
 		wxString configType,msg;
-		if (configType == basicConfigFile)
+		// whm Note 30Jan12. The wxString configType declaration in the line above was conflicting with the
+		// enum 'ConfigFileType configType' parameter declaration in the GetConfigurationFile() function's 
+		// signature (see above). It has been this way for a long time. This had the effect that the local 
+		// configType string creation would make override and turn the parameter into an empty string and 
+		// thus skip the "if...else if" test below entirely. To fix it I changed the parameter name to 
+		// configFType and modified it accordingly in the comparisons used in this function.
+		if (configFType == basicConfigFile)
 			configType = _("basic");
-		else if (configType == projectConfigFile)
+		else if (configFType == projectConfigFile)
 			configType = _("project");
 		msg = msg.Format(_(
 "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"),
@@ -29880,7 +29975,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
     // color is also assigned there using wxFontData::SetColour(). If GetFontConfiguration
     // fails here the default values will be used
 	wxString configFileType,errMsg,msg;
-	if (configType == basicConfigFile)
+	if (configFType == basicConfigFile)
 		configFileType = _("basic");
 	else
 		configFileType = _("project");
@@ -29928,7 +30023,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	// now get the rest of the settings parameters from the config file
 	// wx note: The wxTextFile remains open during the following calls which
 	// simply continue reading the configuration data from memory
-	if (configType == basicConfigFile) // app level
+	if (configFType == basicConfigFile) // app level
 	{
 		GetBasicSettingsConfiguration(&f);
 		// At this point the basic settings have been read into their App member 
@@ -29957,7 +30052,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			{
 				m_bCollaboratingWithParatext = TRUE;
 			}
-			else
+			else if (m_collaborationEditor == _T("Bibledit"))
 			{
 				m_bCollaboratingWithBibledit = TRUE;
 			}
@@ -29969,7 +30064,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			{
 				m_bCollaboratingWithParatext = FALSE;
 			}
-			else
+			else if (m_collaborationEditor == _T("Bibledit"))
 			{
 				m_bCollaboratingWithBibledit = FALSE;
 			}

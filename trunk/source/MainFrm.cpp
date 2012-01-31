@@ -56,17 +56,18 @@
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
 #endif // wxUSE_WXHTML_HELP
 
+
+#include "Adapt_It.h"
+#include "Adapt_It_Resources.h"
+#include "Adapt_ItCanvas.h"
+
 // wx docs say: "By default, the DDE implementation is used under Windows. DDE works within one computer only.
 // If you want to use IPC between different workstations you should define wxUSE_DDE_FOR_IPC as 0 before
 // including this header [<wx/ipc.h>]-- this will force using TCP/IP implementation even under Windows."
 #ifdef useTCPbasedIPC
 #define wxUSE_DDE_FOR_IPC 0
-#include <wx/ipc.h> // for wxServer, wxClient and wxConnection
 #endif
-
-#include "Adapt_It.h"
-#include "Adapt_It_Resources.h"
-#include "Adapt_ItCanvas.h"
+#include <wx/ipc.h> // for wxServer, wxClient and wxConnection
 
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"

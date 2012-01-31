@@ -105,6 +105,10 @@ const wxString appVerStr(_T("6.2.0"));
 
 //#define Print_failure
 
+// whm added 30Jan12 to force all platforms to use TCP based IPC - even on the Windows
+// platform rather that its usual DDE.
+//#define useTCPbasedIPC
+
 // whm added 20Oct10 for user profiles support
 #define PROFILE_VERSION_MAJOR_PART 1
 #define PROFILE_VERSION_MINOR_PART 0
@@ -1694,6 +1698,7 @@ private:
 // enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class wxDynamicLibrary;
+class aiServer;
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -1814,6 +1819,12 @@ private:
 
 // MFC version code below
 public:
+
+	// If the current instance of AI is the first running instance m_pServer is created.
+	// Then m_pServer will listen for other AI instances that may be started. Any other
+	// instance that starts up will just ask the current instance (through a connection
+	// with m_pServer) to just raise the current instance's main frame.
+	aiServer* m_pServer;
 
     /// This holds the platform specific end-of-line character string for external text
     /// files. On Windows this is \r\n; on Linux it is \n; on Macintosh it is \r. The
