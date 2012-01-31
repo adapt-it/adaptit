@@ -52,102 +52,56 @@
 #include "Layout.h"
 #include "WhichBook.h"
 #include "helpers.h"
-
 #include "errno.h"
 
-#if defined(TEST_DVCS)
 
-int     count = 0;
-
-int spawn (char* program, char** arg_list)
-{
-    pid_t   child_pid;
-
-    child_pid = fork();
-
-    if (child_pid != 0)
-    {           // This is the parent process continuing.  We just return the child pid.
-        return (child_pid);
-    }
-    else
-    {           // This is the child.  We execute the given program, passing the arg list.
-        execvp (program, arg_list);
-    // we get here only on an error:
-        return (-1);        // -1 can't be a pid
-
-    }
-}
-
+//#if defined(TEST_DVCS)	// Initially for commits I'll uncomment this so bugs in my code don't clobber everyone.
 
 void  CallDVCS ( int action )
 {
-#ifdef blogggs  -- old stuff but we might need something like this on Windows...
+	wxString		str, str1, hg_command;
+	wxArrayString	output, errors;
+	char			command[1024];
+    long			result;
+	int				count, i;
 
-    char        hg_loc[]    = "hg";
-    char*       hg_args[]   =
-    {
-        "hg",
-        "version",
-        NULL
-    };
+	switch (action)
+	{
+		case DVCS_CHECK:
+			hg_command = _T("version");
+			break;
+		default:
+			hg_command = _T("illegal");
+	}
 
-    pid_t       child_pid;
-
-    int         returnvalue;
-    wxString    msg;
-    int         child_status;
-
-
-    child_pid = spawn (hg_loc, hg_args);
-    if (child_pid == -1)
-    {
-        wxMessageBox (_T("Wheels off!!"));
-        return;
-    }
-
-// To clean up properly, we now wait till hg has finished:
-    child_pid = waitpid (child_pid, &child_status, 0);
-    msg = msg.Format (_T("main prog continues - child pid - %d"), child_pid);
-
+#ifdef	__WXMAC__
+	str = _T("/usr/local/bin/hg ");
+#else
+	str = _T("hg ");
 #endif
 
+	str = str + hg_command;
+	strcpy ( command, (const char*) str.mb_str(wxConvUTF8) );		// convert s to ASCII char string in buf
+	
+	result = wxExecute ( str, output, errors, 0 );
 
-
-    FILE*     stream;
-
-    char      buf[BUFSIZ+1];
-    wxString  s, tmpStr;
-    int       cnt;
-    int       result;
-
-    fflush (NULL);
-
-// Here we fire up hg as a subprocess, open stream as a pipe to its stdout, and wait for it to finish:
-    stream = popen ("/usr/local/bin/hg version", "r");
-
-// Read hg's output:
-    while (!feof(stream))
-    {
-        cnt = fread (buf, sizeof(char), BUFSIZ, stream);
-        if (cnt > 0)
-        {
-            tmpStr = wxString (buf, wxConvUTF8, cnt);
-            s += tmpStr;
-        }
-    }
-
-    fflush (NULL);
-    result = pclose (stream);
-
-// The only indication we get that something went wrong, is a nonzero result:
-    if (result)
-    {               // An error occurred -- probably hg isn't where it should be
+	// The only indication we get that something went wrong, is a nonzero result.  This may mean that
+	// hg wasn't found, or it could be an illegal hg command.  Eventually we should suss this out a bit
+	// more.
+	
+    if (result)		// An error occurred
         wxMessageBox (_T("We couldn't find Mercurial.  Please check that it's installed properly."));
-    }
     else
-        wxMessageBox (s);
+	{				// hg's stdout will land in our output wxArrayString.  There can be a number of strings.
+					// Just concatenating them with a space between looks OK so far.
+		count = output.GetCount();
+		for (i=0; i<count; i++)  
+		{	str1 = str1 + output.Item(i);
+			str1.Append (wxString(" ", wxConvUTF8));
+		}
+        wxMessageBox (str1);
+	}
+}	
 
 
-}
-
-#endif
+//#endif
