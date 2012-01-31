@@ -523,6 +523,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ClientServerConnection.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\CollabUtilities.cpp"
 				>
 			</File>
@@ -564,10 +568,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\DVCS.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\DVCS.h"
 				>
 			</File>
 			<File
@@ -996,6 +996,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ClientServerConnection.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\CollabUtilities.h"
 				>
 			</File>
@@ -1033,6 +1037,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\DocPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\DVCS.h"
 				>
 			</File>
 			<File

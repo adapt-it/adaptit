@@ -351,6 +351,8 @@
 		<Unit filename="..\..\source\ChooseLanguageDlg.h" />
 		<Unit filename="..\..\source\ChooseTranslation.cpp" />
 		<Unit filename="..\..\source\ChooseTranslation.h" />
+		<Unit filename="..\..\source\ClientServerConnection.cpp" />
+		<Unit filename="..\..\source\ClientServerConnection.h" />
 		<Unit filename="..\..\source\CollabUtilities.cpp" />
 		<Unit filename="..\..\source\CollabUtilities.h" />
 		<Unit filename="..\..\source\CollectBacktranslations.cpp" />

@@ -524,6 +524,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ClientServerConnection.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\CollabUtilities.cpp"
 				>
 			</File>
@@ -986,6 +990,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ChooseTranslation.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ClientServerConnection.h"
 				>
 			</File>
 			<File
