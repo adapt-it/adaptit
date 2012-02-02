@@ -13873,29 +13873,29 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// on my Linux machine name = "Adapt_ItApp-wmartin"
 
 	m_pChecker = (wxSingleInstanceChecker*)NULL;
-
-	m_pServer = (aiServer*)NULL;
+	m_pServer = (AI_Server*)NULL;
 
     // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It
     // is running by the same user on the same local machine.
 	{ // begin block for wxLogNull()
 		wxString cmdLine;
-		cmdLine = wxEmptyString; // Passing empty string to connection->Execute(cmdLine) will just cause
-								 // the other running instance to raise its window.
+		cmdLine = _T("[Raise]"); // Passing "[Raise]" as cmdLine to connection->Execute(cmdLine) 
+								 // will just cause the other running instance to raise its window.
 
 		wxLogNull logNo; // eliminates spurious "Deleted stale lock file
 		                 // '/home/user/Adapt_ItApp-wmartin' on Linux
 		m_pChecker = new wxSingleInstanceChecker(name); // must delete m_checker in OnExit()
 		wxASSERT(m_pChecker != NULL);
 
-		wxString nameLower;
-		nameLower = name.Lower();
+		wxString serverName;
+		serverName = name.Lower();
+		wxString topic = _T("bring_to_front"); // an arbitrary topic name - can be anything as long as it is not an empty string
 		// Some of the code below is taken from the wxWidgets book pages 506-510.
 		if (!m_pChecker->IsAnotherRunning())
 		{
 			// There is no other instance running currently so create a new server
-			m_pServer = new aiServer;
-			if (!m_pServer->Create(nameLower))
+			m_pServer = new AI_Server;
+			if (!m_pServer->Create(serverName))
 			{
 				wxLogDebug(_T("Failed to create an IPC service in OnInit()."));
 			}
@@ -13905,20 +13905,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// Another instance is currently running so make a connection to it
 			// and cause its window to raise
 			wxLogNull logNull;
-			aiClient* pClient = new aiClient;
+			AI_Client* pClient = new AI_Client;
 
 			// Ignored under DDE, host name in TCP/IP based classes
 			wxString hostName = _T("localhost");
 
 			// Create the connection
-			// TODO: whm 31Jan12 Determine why the following MakeConnection() call fails on Windows
-			// Even though it fails, this second instance will terminate quietly - it just doesn't
-			// raise the other instance's main frame.
-			wxConnectionBase* pConnection = pClient->MakeConnection(hostName,nameLower,name); // calls new aiConnection
+			// Note: the MakeConnection() call below invokes AI_Server::OnAcceptConnection() method which returns
+			// a new AI_Connection. The topic can be anything as long as it is not an empty string.
+			wxConnectionBase* pConnection = pClient->MakeConnection(hostName,serverName,topic);
 			if (pConnection)
 			{
 				// Ask the other instance to raise itself
-				pConnection->Execute(cmdLine); // cmdLine is always wxEmptyString in our case
+				pConnection->Execute(cmdLine); // cmdLine is "[Raise]" in our case
 				pConnection->Disconnect();
 				delete pConnection;
 				pConnection = (wxConnectionBase*)NULL;
@@ -18518,7 +18517,7 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pServer)
 	{
 		delete m_pServer;
-		m_pServer = (aiServer*)NULL;
+		m_pServer = (AI_Server*)NULL;
 	}
 
 	delete m_pParser;

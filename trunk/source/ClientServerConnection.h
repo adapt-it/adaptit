@@ -6,12 +6,12 @@
 /// \date_revised	30 January 2012
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the aiServer, aiClient and aiConnection classes. 
-/// The aiServer class is used for listening to connection requests. The aiClient class allows Adapt It
-/// to connect to another instance of Adapt It. The aiConnection class has the code allowing multiple
+/// \description	This is the header file for the AI_Server, AI_Client and AI_Connection classes. 
+/// The AI_Server class is used for listening to connection requests. The AI_Client class allows Adapt It
+/// to connect to another instance of Adapt It. The AI_Connection class has the code allowing multiple
 /// instances of Adapt It to communicate with each other.
-/// \derivation		The aiServer class is derived from wxServer; the aiClient class is derived from wxClient
-/// and the aiConnection class is derived from wxConnection.
+/// \derivation		The AI_Server class is derived from wxServer; the AI_Client class is derived from wxClient
+/// and the AI_Connection class is derived from wxConnection.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef ClientServerConnection_h
@@ -30,28 +30,43 @@
     #pragma interface "ClientServerConnection.h"
 #endif
 
-class aiServer : public wxServer
+class AI_Connection;
+
+class AI_Server : public wxServer
 {
 public:
-	aiServer(void); // constructor
-	virtual ~aiServer(void); // destructor
+	AI_Server(void); // constructor
+	virtual ~AI_Server(void); // destructor
+    void Advise();
+    bool CanAdvise();
+	void Disconnect();
+	bool IsConnected();
+	AI_Connection* GetConnection();
 	wxConnectionBase* OnAcceptConnection(const wxString& topic);
+protected:
+	AI_Connection* m_pConnection;
 };
 
-class aiClient : public wxClient
+class AI_Client : public wxClient
 {
 public:
-	aiClient(void); // constructor
-	virtual ~aiClient(void); // destructor
+	AI_Client(void); // constructor
+	virtual ~AI_Client(void); // destructor
 	wxConnectionBase* OnMakeConnection();
 };
 
-class aiConnection : public wxConnection
+class AI_Connection : public wxConnection
 {
 public:
-	aiConnection(void); // constructor
-	virtual ~aiConnection(void); // destructor
-	bool OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format);
+	AI_Connection(void); // constructor
+	virtual ~AI_Connection(void); // destructor
+	virtual wxChar* OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format);
+	virtual bool OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format);
+    virtual bool Advise(const wxString& item, wxChar* data, int size = -1, wxIPCFormat format = wxIPC_TEXT);
+    wxString m_strAdvise;
+protected:
+    wxString m_strRequestDate;
+    char m_arrayRequestBytes[3];
 };
 
 #endif /* ClientServerConnection_h */

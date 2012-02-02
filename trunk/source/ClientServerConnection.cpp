@@ -6,12 +6,12 @@
 /// \date_revised	30 January 2012
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the aiServer class. 
-/// The aiServer class is used for listening to connection requests. The aiClient class allows Adapt It
-/// to connect to another instance of Adapt It. The aiConnection class has the code allowing multiple
+/// \description	This is the implementation file for the AI_Server class. 
+/// The AI_Server class is used for listening to connection requests. The AI_Client class allows Adapt It
+/// to connect to another instance of Adapt It. The AI_Connection class has the code allowing multiple
 /// instances of Adapt It to communicate with each other.
-/// \derivation		The aiServer class is derived from wxServer; the aiClient class is derived from wxClient
-/// and the aiConnection class is derived from wxConnection.
+/// \derivation		The AI_Server class is derived from wxServer; the AI_Client class is derived from wxClient
+/// and the AI_Connection class is derived from wxConnection.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in ClientServerConnection.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -53,21 +53,41 @@
 #endif
 #include <wx/ipc.h> // for wxServer, wxClient and wxConnection
 
-class aiConnection;
+class AI_Connection;
 
-aiServer::aiServer() // constructor
+AI_Server::AI_Server() // constructor
 {
+	m_pConnection = NULL;
 }
 
-aiServer::~aiServer() // destructor
+AI_Server::~AI_Server() // destructor
 {
+	Disconnect();
 }
 
-wxConnectionBase* aiServer::OnAcceptConnection(const wxString& topic)
+void AI_Server::Advise()
+{
+    if (CanAdvise())
+    {
+        wxString s = wxDateTime::Now().Format();
+        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)s.c_str());
+        s = wxDateTime::Now().FormatTime() + _T(" ") + wxDateTime::Now().FormatDate();
+        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)s.c_str(), (s.Length() + 1) * sizeof(wxChar));
+        char bytes[3];
+        bytes[0] = '1'; bytes[1] = '2'; bytes[2] = '3';
+        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)bytes, 3, wxIPC_TEXT); // or wxIPC_PRIVATE);
+    }
+}
+
+bool AI_Server::CanAdvise()
+{
+	return m_pConnection != NULL && !m_pConnection->m_strAdvise.IsEmpty(); 
+}
+
+wxConnectionBase* AI_Server::OnAcceptConnection(const wxString& topic)
 {
 	const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
-	name.Lower();
-	if (topic.Lower() == name)
+	if (!topic.IsEmpty())
 	{
 		// Check that there are no modal dialogs active
 		wxWindowList::Node* node = wxTopLevelWindows.GetFirst();
@@ -80,49 +100,132 @@ wxConnectionBase* aiServer::OnAcceptConnection(const wxString& topic)
 			}
 			node = node->GetNext();
 		}
-		return new aiConnection();
+		return new AI_Connection();
 	}
 	else
 		return NULL;
 }
 
-aiClient::aiClient() // constructor
+AI_Connection* AI_Server::GetConnection()
 {
+	return m_pConnection;
 }
 
-aiClient::~aiClient() // destructor
+void AI_Server::Disconnect()
 {
-}
-
-wxConnectionBase* aiClient::OnMakeConnection()
-{
-	return new aiConnection;
-}
-
-
-aiConnection::aiConnection() // constructor
-{
-}
-
-aiConnection::~aiConnection() // destructor
-{
-}
-
-bool aiConnection::OnExecute(const wxString& WXUNUSED(topic), wxChar* data, int WXUNUSED(size), wxIPCFormat WXUNUSED(format))
-{
-	CMainFrame* frame = wxDynamicCast(wxGetApp().GetTopWindow(),CMainFrame);
-	wxString filename(data);
-	// whm Note: In Adapt It we don't pass a filename from the other instance so filename
-	// will always be an empty string, but I will leave the code here as an example of how
-	// a program would use OnExecute() and pass a filename string to cause the other instance
-	// to handle/open that file.
-	if (filename.IsEmpty())
+	if (m_pConnection)
 	{
-		// raise the main window
-		if (frame)
-			frame->Raise();
+		m_pConnection->Disconnect();
+		delete m_pConnection;
+		m_pConnection = (AI_Connection*)NULL;
 	}
-	return TRUE;
+}
+
+bool AI_Server::IsConnected()
+{
+	return m_pConnection != NULL;
+}
+
+AI_Client::AI_Client() // constructor
+{
+}
+
+AI_Client::~AI_Client() // destructor
+{
+}
+
+wxConnectionBase* AI_Client::OnMakeConnection()
+{
+	return new AI_Connection;
+}
+
+
+AI_Connection::AI_Connection() // constructor
+{
+}
+
+AI_Connection::~AI_Connection() // destructor
+{
+}
+
+bool AI_Connection::OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format)
+{
+	CMainFrame* m_pFrame = wxDynamicCast(wxGetApp().GetTopWindow(),CMainFrame);
+	wxString dataStr(data);
+	if (dataStr.StartsWith(_T("[Raise]")))
+    {
+        if (m_pFrame)
+        {
+			wxString str;
+			if (format == wxIPC_TEXT)
+				str = _T("wxIPC_TEXT");
+			else if (format == wxIPC_UNICODETEXT)
+				str = _T("wxIPC_UNICODETEXT");
+			wxLogDebug(_T("Main Frame Raised: topic = %s data = %s size = %d format = %s"), topic.c_str(), data, size, str.c_str());
+            m_pFrame->Raise();
+        }
+        return TRUE;
+    }
+	// whm Note: Other else if () tests could go here for other actions to execute.
+	// We don't invoke Adapt It and pass it a filename to load via the "data" invocation.
+	// If we did, we could handle that execution here by parsing out of the data string the
+	// passed-in filename along with its execute info, i.e., in which the incoming data is
+	// something like "[Open][filename]".
+	
+	wxString str;
+	if (format == wxIPC_TEXT)
+		str = _T("wxIPC_TEXT");
+	else if (format == wxIPC_UNICODETEXT)
+		str = _T("wxIPC_UNICODETEXT");
+	wxLogDebug(_T("OnRequest: topic = %s data = %s size = %d format = %s"), topic.c_str(), data, size, str.c_str());
+	return FALSE;
+}
+	
+wxChar* AI_Connection::OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format)
+{
+    wxChar *data;
+    if (item == _T("Date"))
+    {
+        m_strRequestDate = wxDateTime::Now().Format();
+        data = (wxChar *)m_strRequestDate.c_str();
+        *size = -1;
+    }    
+    else if (item == _T("Date+len"))
+    {
+        m_strRequestDate = wxDateTime::Now().FormatTime() + _T(" ") + wxDateTime::Now().FormatDate();
+        data = (wxChar *)m_strRequestDate.c_str();
+        *size = (m_strRequestDate.Length() + 1) * sizeof(wxChar);
+    }    
+    else if (item == _T("bytes[3]"))
+    {
+        data = (wxChar *)m_arrayRequestBytes;
+        m_arrayRequestBytes[0] = '1'; m_arrayRequestBytes[1] = '2'; m_arrayRequestBytes[2] = '3';
+        *size = 3;
+    }
+    else
+    {
+        data = NULL;
+        *size = 0;
+    }
+	wxString str;
+	if (format == wxIPC_TEXT)
+		str = _T("wxIPC_TEXT");
+	else if (format == wxIPC_UNICODETEXT)
+		str = _T("wxIPC_UNICODETEXT");
+	wxLogDebug(_T("OnRequest: topic = %s item = %s data = %s size = %d format = %s"), topic.c_str(), item.c_str(), data, *size, str.c_str());
+	return data;
+}
+
+bool AI_Connection::Advise(const wxString& item, wxChar* data, int size, wxIPCFormat format)
+{
+	wxString str;
+	if (format == wxIPC_TEXT)
+		str = _T("wxIPC_TEXT");
+	else if (format == wxIPC_UNICODETEXT)
+		str = _T("wxIPC_UNICODETEXT");
+	wxLogDebug(_T("Advise: item = %s data = %s size = %d format = %s"), item.c_str(), data, size, str.c_str());
+    return wxConnection::Advise(item, data, size, format);
+
 }
 
 // other class methods

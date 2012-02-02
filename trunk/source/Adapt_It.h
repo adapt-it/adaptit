@@ -1698,7 +1698,7 @@ private:
 // enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class wxDynamicLibrary;
-class aiServer;
+class AI_Server;
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -1824,7 +1824,7 @@ public:
 	// Then m_pServer will listen for other AI instances that may be started. Any other
 	// instance that starts up will just ask the current instance (through a connection
 	// with m_pServer) to just raise the current instance's main frame.
-	aiServer* m_pServer;
+	AI_Server* m_pServer;
 
     /// This holds the platform specific end-of-line character string for external text
     /// files. On Windows this is \r\n; on Linux it is \n; on Macintosh it is \r. The
