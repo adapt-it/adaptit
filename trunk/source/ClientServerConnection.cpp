@@ -67,15 +67,14 @@ AI_Server::~AI_Server() // destructor
 
 void AI_Server::Advise()
 {
+	// whm 2Feb12 Note: The following data is not currently used in Adapt It. This is only
+	// some sample data that shows how AI_Server::Advise() could be used.
     if (CanAdvise())
     {
-        wxString s = wxDateTime::Now().Format();
-        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)s.c_str());
-        s = wxDateTime::Now().FormatTime() + _T(" ") + wxDateTime::Now().FormatDate();
-        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)s.c_str(), (s.Length() + 1) * sizeof(wxChar));
-        char bytes[3];
-        bytes[0] = '1'; bytes[1] = '2'; bytes[2] = '3';
-        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)bytes, 3, wxIPC_TEXT); // or wxIPC_PRIVATE);
+        wxString testStr = wxDateTime::Now().Format();
+        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)testStr.c_str());
+        testStr = wxDateTime::Now().FormatTime() + _T(" ") + wxDateTime::Now().FormatDate();
+        m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)testStr.c_str(), (testStr.Length() + 1) * sizeof(wxChar));
     }
 }
 
@@ -183,6 +182,8 @@ bool AI_Connection::OnExecute(const wxString& topic, wxChar* data, int size, wxI
 	
 wxChar* AI_Connection::OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format)
 {
+	// whm 2Feb12 Note: The following data is not currently used in Adapt It. This is only
+	// some sample data that shows how OnRequest() could be used.
     wxChar *data;
     if (item == _T("Date"))
     {
@@ -196,12 +197,6 @@ wxChar* AI_Connection::OnRequest(const wxString& topic, const wxString& item, in
         data = (wxChar *)m_strRequestDate.c_str();
         *size = (m_strRequestDate.Length() + 1) * sizeof(wxChar);
     }    
-    else if (item == _T("bytes[3]"))
-    {
-        data = (wxChar *)m_arrayRequestBytes;
-        m_arrayRequestBytes[0] = '1'; m_arrayRequestBytes[1] = '2'; m_arrayRequestBytes[2] = '3';
-        *size = 3;
-    }
     else
     {
         data = NULL;
@@ -218,6 +213,8 @@ wxChar* AI_Connection::OnRequest(const wxString& topic, const wxString& item, in
 
 bool AI_Connection::Advise(const wxString& item, wxChar* data, int size, wxIPCFormat format)
 {
+	// whm 2Feb12 Note: The following data is not currently used in Adapt It. This is only
+	// some sample data that shows how AI_Connection::Advise() could be used.
 	wxString str;
 	if (format == wxIPC_TEXT)
 		str = _T("wxIPC_TEXT");
