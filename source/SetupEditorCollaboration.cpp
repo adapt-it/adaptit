@@ -63,10 +63,11 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_NO_FREE_TRANS, CSetupEditorCollaboration::OnNoFreeTrans)
 	EVT_RADIOBUTTON(ID_RADIO_BY_CHAPTER_ONLY, CSetupEditorCollaboration::OnRadioBtnByChapterOnly)
 	EVT_RADIOBUTTON(ID_RADIO_BY_WHOLE_BOOK, CSetupEditorCollaboration::OnRadioBtnByWholeBook)
+	EVT_CHECKBOX(ID_CHECKBOX_PASSWORD_PROTECT_COLLAB_SWITCHING, CSetupEditorCollaboration::OnPwdProtectCollabSwitching)
+	EVT_BUTTON(ID_BUTTON_SET_PASSWORD_FOR_COLLAB_SWITCHING, CSetupEditorCollaboration::OnBtnSetPwdForCollabSwitching)
 	//EVT_MENU(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnDoSomething)
 	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnUpdateDoSomething)
 	//EVT_BUTTON(ID_SOME_BUTTON, CSetupEditorCollaboration::OnDoSomething)
-	//EVT_CHECKBOX(ID_SOME_CHECKBOX, CSetupEditorCollaboration::OnDoSomething)
 	//EVT_LISTBOX(ID_SOME_LISTBOX, CSetupEditorCollaboration::DoSomething)
 	EVT_COMBOBOX(ID_COMBO_AI_PROJECTS, CSetupEditorCollaboration::OnComboBoxSelectAiProject)
 	EVT_TEXT(ID_TEXTCTRL_SRC_LANG_NAME, CSetupEditorCollaboration::OnEnChangeSrcLangName)
@@ -148,8 +149,8 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pStaticTextFtTextxToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TO_THIS_FT_PROJECT);
 	wxASSERT(pStaticTextFtTextxToThisProj != NULL);
 
-	pStaticTextSelectThirdProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_THIRD_PROJECT);
-	wxASSERT(pStaticTextSelectThirdProj != NULL);
+	//pStaticTextSelectThirdProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_THIRD_PROJECT);
+	//wxASSERT(pStaticTextSelectThirdProj != NULL);
 
 	pListOfProjects = (wxListBox*)FindWindowById(IDC_LIST_OF_COLLAB_PROJECTS);
 	wxASSERT(pListOfProjects != NULL);
@@ -177,6 +178,12 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	
 	pRadioBtnByWholeBook = (wxRadioButton*)FindWindowById(ID_RADIO_BY_WHOLE_BOOK);
 	wxASSERT(pRadioBtnByWholeBook != NULL);
+
+	pCheckPwdProtectCollabSwitching = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PASSWORD_PROTECT_COLLAB_SWITCHING);
+	wxASSERT(pCheckPwdProtectCollabSwitching != NULL);
+
+	pBtnSetPwdForCollabSwitching = (wxButton*)FindWindowById(ID_BUTTON_SET_PASSWORD_FOR_COLLAB_SWITCHING);
+	wxASSERT(pBtnSetPwdForCollabSwitching != NULL);
 	
 	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
 	wxASSERT(pBtnOK != NULL);
@@ -210,6 +217,9 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName; // whm added 4Sep11
 	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName; // whm added 4Sep11
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // whm added 28Jan12
+	m_bTempPwdProtectCollabSwitching = m_pApp->m_bPwdProtectCollabSwitching; // whm added 2Feb12
+	m_TempCollabSwitchingPassword = m_pApp->m_collabSwitchingPassword; // whm added 2Feb12
+
 
 	m_projectSelectionMade = FALSE;
 
@@ -262,9 +272,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pStaticTextFtTextxToThisProj->SetLabel(text);
 
-	text = pStaticTextSelectThirdProj->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pStaticTextSelectThirdProj->SetLabel(text);
+	//text = pStaticTextSelectThirdProj->GetLabel();
+	//text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	//pStaticTextSelectThirdProj->SetLabel(text);
+
+	pCheckPwdProtectCollabSwitching->SetValue(m_bTempPwdProtectCollabSwitching);
 
 	// start with 3a items hidden
 	pTextCtrlAsStaticNewAIProjName->Hide();
@@ -1165,6 +1177,8 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // whm added 28Jan12
+	m_pApp->m_bPwdProtectCollabSwitching = m_bTempPwdProtectCollabSwitching; // whm added 2Feb12
+	m_pApp->m_collabSwitchingPassword = m_TempCollabSwitchingPassword;
 
 	// Since the administrator clicked OK, we don't want to use any of the
 	// m_...Saved values, but ensure that the above values get stored in the
@@ -1436,6 +1450,63 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	}
 	*/
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
+
+void CSetupEditorCollaboration::OnPwdProtectCollabSwitching(wxCommandEvent& WXUNUSED(event))
+{
+	m_bTempPwdProtectCollabSwitching = pCheckPwdProtectCollabSwitching->IsChecked();
+	// Note: If the administrator ticked the check box but does not subsequently
+	// set a custom password using the "Set password for collaboration switching..." 
+	// button, only the "switch" default password will be accepted whevever the user
+	// clicks on the "Change Paratext/Bibledit Projects" button of the "Get Source Text
+	// from Paratext/Bibledit Project" dialog.
+	// If the administrator unticked the check box, any previously set custom password
+	// will still be stored, but not required whenever the "Change Paratext/Bibledit Projects"
+	// button is clicked on the "Get Source Text from Paratext/Bibledit Project" dialog.
+}
+
+void CSetupEditorCollaboration::OnBtnSetPwdForCollabSwitching(wxCommandEvent& WXUNUSED(event))
+{
+	m_pApp->LogUserAction(_T("Initiated setting password for collaboration switching"));
+	wxString caption = _("Type A Password");
+	wxString message = _(
+"The password can be a mix of letters, numbers and punctuation. Less than five characters will not be accepted.\nEmptying the text box erases the previously set password, leaving no password set.\nTyping a different password replaces the current one.");
+	wxString default_value = m_TempCollabSwitchingPassword;
+	wxString password = ::wxGetTextFromUser(message,caption,default_value,this);
+	int length = password.Len();
+	if (length == 0)
+	{
+		// administrator wants to lock out anyone who does not know the "switch" secret password
+		m_TempCollabSwitchingPassword = _T("");
+		m_pApp->LogUserAction(_T("Admin removed password for collaboration switching"));
+		// password was removed, so go ahead and ensure that
+		// the check box is also unticked and m_bTempPwdProtectCollabSwitching
+		// flag is set FALSE
+		m_bTempPwdProtectCollabSwitching = FALSE;
+		pCheckPwdProtectCollabSwitching->SetValue(m_bTempPwdProtectCollabSwitching);
+		// NOTE: The App's values for storing any newly entered password and its
+		// associated flag are not stored until the OnOK() button is clicked.
+		return;
+	}
+	if (length <= 4)
+	{
+		::wxBell();
+		wxMessageBox(_("Too short."),_T(""),wxICON_WARNING);
+		m_pApp->LogUserAction(_T("Password too short"));
+	}
+	else
+	{
+		m_pApp->LogUserAction(_T("Password accepted"));
+		// accept the password
+		m_TempCollabSwitchingPassword = password;
+		// A valid password was entered, so go ahead and ensure that
+		// the check box is also ticked and m_bTempPwdProtectCollabSwitching
+		// flag is set
+		m_bTempPwdProtectCollabSwitching = TRUE;
+		pCheckPwdProtectCollabSwitching->SetValue(m_bTempPwdProtectCollabSwitching);
+		// NOTE: The App's values for storing any newly entered password and its
+		// associated flag are not stored until the OnOK() button is clicked.
+	}
 }
 
 

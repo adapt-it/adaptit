@@ -5367,6 +5367,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs)
 	EVT_MENU(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnSetupEditorCollaboration)
 	EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
+	//EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
+	//EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
 	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
@@ -6434,6 +6436,18 @@ wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");
 /// the Administrator menu become visible at the end of the menu bar. (A checkbox in the
 /// View tab of Preferences is where an administrator can request the menu be shown or hid)
 wxString szAdministratorPassword = _T("AdministratorPassword");
+
+/// The label that identifies the following string as an int, either 0 or 1 storing the flag
+/// value which indicates whether the "Change Paratext/Bibledit Projects" button is password 
+/// protected in the "Setup Paratext/Bibledit Collaboration" dialog.
+wxString szCollabSwitchingPasswordProtected = _T("CollabSwitchingPasswordProtected");
+
+/// The label that identifies the following string as a password which can be used to 
+/// control access to the "Change Paratext/Bibledit Projects" button in the Get Source Text
+/// from Paratext/Bibledit Project" dialog. An administrator can set this password via
+/// the "Set password for collaboration switching..." button in the "Setup Paratext/Bibledit
+/// Collaboration" dialog.
+wxString szCollabSwitchingPassword = _T("CollabSwitchingPassword");
 
 /// The label that identifies the following string encoded number as the application's
 /// "UseAdaptationsGuesser". Adapt It stores this value in the App's m_bUseAdaptationsGuesser
@@ -9025,6 +9039,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// whm added 20Jul11 to initialize the View menu's "Show Administrator Menu... (Password protected)" item
 	if (pMenuBar->FindItem(ID_VIEW_SHOW_ADMIN_MENU) != NULL)
 		pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,m_bShowAdministratorMenu);
+	//if (pMenuBar->FindItem(ID_PASSWORD_PROTECT_COLLAB_SWITCHING) != NULL) // whm added 2Feb12
+	//	pMenuBar->Check(ID_PASSWORD_PROTECT_COLLAB_SWITCHING,m_bPwdProtectCollabSwitching);
     // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
     // according to the current value of m_bUseToolTips
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
@@ -12872,6 +12888,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_adminPassword = _T(""); // nothing initially, basic config file can store one
 							  // and "admin" will always work, but not be stored in basic
 							  // config file ever
+	m_bPwdProtectCollabSwitching = TRUE; // whm added 2Feb12
+	m_collabSwitchingPassword = _T(""); // nothing initially, basic config file stores on
+										// and "switch" will always work, but isn't stored in
+										// the basic config file
+	
 	// wxWidgets NOTES:
     // 1. Do NOT attempt to call or manipulate anything from within the CMainFrame
     // constructor (see MainFrm.cpp) before a CMainFrame object is constructed here (see
@@ -25265,6 +25286,18 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szCollabChapterSelected << tab << m_CollabChapterSelected;
 	pf->AddLine(data);
 
+	if (m_bPwdProtectCollabSwitching)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szCollabSwitchingPasswordProtected << tab << number; // whm added 2Feb12
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szCollabSwitchingPassword << tab << m_collabSwitchingPassword; // whm added 2Feb12
+	pf->AddLine(data);
+
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
 	// because it we do that, the user could get confused if next time his document
 	// doesn't show and punctuation and he didn't realize he shut down with this setting
@@ -26787,6 +26820,20 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// can be overridden by the use of command-line switches.
 			m_CollabTargetLangName = strValue;
 			m_SavedCollabTargetLangName = strValue;
+		}
+		else if (name == szCollabSwitchingPasswordProtected) // shm added 2Feb12
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0;
+			if (num == 0)
+				m_bPwdProtectCollabSwitching = FALSE;
+			else
+				m_bPwdProtectCollabSwitching = TRUE;
+		}
+		else if (name == szCollabSwitchingPassword) // whm added 2Feb12
+		{
+			m_collabSwitchingPassword = strValue;
 		}
 		else if (name == szHidePunctuation)
 		{
@@ -36966,6 +37013,24 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 	}
 
 }
+
+//void CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event)
+//{
+//	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+//	{
+//		event.Enable(TRUE);
+//	}
+//	else
+//	{
+//		// Not collaborating with PT nor BE so disable the menu item
+//		event.Enable(FALSE);
+//	}
+//}
+//
+//void CAdapt_ItApp::OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event))
+//{
+//	// TODO:
+//}
 
 void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 {
