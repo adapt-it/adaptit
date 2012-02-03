@@ -4,20 +4,72 @@ Version 6.2.0 release 22 January 2012
 ----------------------------------------------
 Feature changes and new features in 6.2.0
 ----------------------------------------------
+* For collaboration work with Paratext or Bibledit, the "Get
+Chapter Only" and "Get Whole Book" radio button selections
+have been moved from the "Get Source Text from Paratext/
+Bibledit Project" dialog to the Administrator menu's "Setup 
+Paratext/Bibledit Collaboration" dialog, thus making the 
+chapter vs. whole book selection an administrator choice 
+rather than a user choice.
+* The "Get Source Text from Paratext/Bibledit Project" dialog
+now displays more clearly to the user which Paratext/Bibledit
+projects and which Adapt It project are involved when
+collaboration mode is turned ON. 
+* For collaboration work the "Change Paratext/Bibledit 
+Projects" button is now password protected by default. An
+administrator can set a custom password for the function, or
+remove password protection via settings on the "Setup
+Paratext/Bibledit Collaboration" dialog (on the Administrator
+menu).
 * The Collaboration with Paratext or Bibledit can now be
 turned ON or OFF for certain projects by adding command-line
 switches to Adapt It when it is launched. The Adapt It project 
 to be used at launch can also be provided in a command-line
 switch. This makes it possible to have desktop launch icons 
 for Adapt It that launch Adapt It and load a given project 
-with collaboration either ON or OFF for that project.
+with collaboration either ON or OFF for that project. These
+new command-line switches and how to use them are documented
+in the Help_for_Administrators.htm file (accessible from the
+Administrator menu).
+* Previously, when Define Sections By "Punctuation" the 
+automatic segmenting of text during Free Translation Mode, 
+would ignore punctuation if the punctuation resulted in text 
+segments less than 5 words long. Now there is no minimum 
+length and automatic text segmentation by punctuation (other
+than a comma) may result in text segments as small as a
+single word. The "Lengthen" button can be used in such cases 
+if the short segments result in free translations being 
+elided with "..." in the display.
+* If multiple instances of Adapt It are accidentally started
+by the same user, only the first instance is now allowed to 
+run. If a user accidentally starts up a second instance of
+Adapt It (for example, due to a double-click on a launcher
+icon that expects only a single click to start Adapt It) the
+second instance now automatically aborts, and the first
+instance of Adapt It comes to the front of any other desktop 
+windows. Previously second instances of Adapt It would revert
+to read-only mode to prevent two Adapt It instances from 
+trying to write to the same data files simultaneously. Some 
+users however, reported that they were unable to save their
+data at times because they were unwittingly working in a 
+second instance of Adapt It and were unaware that another 
+instance was already running but hidden under other desktop 
+windows. This feature change should eliminate any confusion
+by disallowing second instances of Adapt It from being run
+by the same user. 
 * The Mode bar in the Adapt It main window can now be 
 shown or hidden using the View > Mode Bar menu item. 
 Whether hidden or shown, this new Mode Bar setting will be 
 remembered from session to session.
 * The state of the Tool bar and the Status bar (shown or
-hidden) is also remembered from session to session.
+hidden) is also remembered from session to session. By hiding
+the Tool bar, Status bar, and/or Mode bar, more text 
+information can be made visible on small screens.
 * Adapt It now has a "man page" for Linux users.
+* The Linux Debian packages for Adapt It now recommend that
+the user also install a version of Bibledit-gtk that is 
+greater than or equal to version 4.2.94 in order for Adapt
+It to be able to work in collaboration with Bibledit.
 ----------------------------------------------
 Bug fixes in 6.2.0
 ----------------------------------------------
@@ -26,6 +78,20 @@ Bibledit project if the user made no other changes to the
 Adapt It document, and then exited the application using
 the X icon in the application's title bar. This has been
 fixed.
+* In Free Translation mode, the free translations were not
+showing on the screen properly when scrolling more than a
+screen full away from the current free translation segment.
+The free translations were there, but were not being 
+displayed when scrolling and not moving the active location's
+phrase box. The problem is now fixed.
+* Automatic scrolling in free translation mode should now
+work better on small/narrow screens.
+* In Free Translation Mode, and when Define Sections By 
+"Verse", in some situations, the setting could switch to
+defining sections by "Punctuation" and vice versa. This has
+now been fixed.
+* In Edit Source Text mode, some edits were not being saved.
+This issue has been fixed.
 * The fix that allows Adapt It to now can run on computers 
 with screen resolutions as small as 640 x 480 pixels was
 inadvertently left out of the last updat, but is included in
@@ -39,6 +105,15 @@ transfer its target texts to Bibledit. This is now fixed.
 * Fixed a parsing problem when [ and ] are not punctuation 
 characters and an adaptation includes a bracketed substring
 [sometext] -- the parser hung. This is now fixed.
+* The selection of a cct table or creating a new cct table
+from the "Load Consistent Changes..." menu item on the Tools 
+menu was not working properly in earlier 6.x.x versions. It
+is now fixed.
+* The Portrait versus Landscape setting in Interlinear
+Text Exports was being ignored resulting in all such exports
+being produced in portrait. It is now possible to export
+Interlinear documents in Landscape orientation. 
+documents are now possible.
 
 ----------------------------------------------
 Version 6.1.0 release 20 December 2011
