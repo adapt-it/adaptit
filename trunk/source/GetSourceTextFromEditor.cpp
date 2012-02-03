@@ -2886,91 +2886,41 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 	event.Skip();
 }
 
+// whm added 2Feb12 to get password for changing projects
 void CGetSourceTextFromEditorDlg::OnBtnChangeProjects(wxCommandEvent& WXUNUSED(event))
 {
-	// DoChangeProjects() returns a bool but we can ignore its returned value here
-	DoChangeProjects();
-
-	// whm 24Jan12 moved code below to a separate DoChangeProjects() function.
-	/* 
-	// whm 28Dec11 revised to create the secondary dialog rather than show it
-	CSelectCollabProjectsDialog scpDlg(this);
-	// Initialize the scpDlg's temp variables to be the same as this dialog's temp variables
-	scpDlg.m_TempCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
-	scpDlg.m_TempCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
-	scpDlg.m_TempCollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
-	scpDlg.m_TempCollabAIProjectName = m_TempCollabAIProjectName;
-	scpDlg.m_TempCollabSourceProjLangName = m_TempCollabSourceProjLangName;
-	scpDlg.m_TempCollabTargetProjLangName = m_TempCollabTargetProjLangName;
-	scpDlg.m_TempCollabBookSelected = m_TempCollabBookSelected;
-	scpDlg.m_bTempCollabByChapterOnly = m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
-	scpDlg.m_TempCollabChapterSelected = m_TempCollabChapterSelected;
-	scpDlg.m_bareChapterSelected = m_bareChapterSelected;
-	scpDlg.m_bTempCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
-	scpDlg.projList = projList;
-	
-	if (scpDlg.ShowModal() == wxID_OK)
+	// Someone wants to change the PT/BE collaboration projects. If the App's 
+	// m_bPwdProtectCollabSwitching flag is TRUE it requires a password.
+	// We always accept the secret default "admin" and "switch" passwords.
+	// Note: Although we won't document the fact, anyone can type an arbitrary password
+	// string in the relevant line of the basic configuration file, and the code below
+	// will accept it when next that config file is read in - ie. at next launch.
+	bool bAllowChangeProjects = TRUE;
+	if (m_pApp->m_bPwdProtectCollabSwitching)
 	{
-		// user clicked OK
-		// Initialize the scpDlg's temp variables to be the same as this dialog's temp variables
-		m_TempCollabProjectForSourceInputs = scpDlg.m_TempCollabProjectForSourceInputs;
-		m_TempCollabProjectForTargetExports = scpDlg.m_TempCollabProjectForTargetExports;
-		m_TempCollabProjectForFreeTransExports = scpDlg.m_TempCollabProjectForFreeTransExports;
-		m_TempCollabAIProjectName = scpDlg.m_TempCollabAIProjectName;
-		m_TempCollabSourceProjLangName = scpDlg.m_TempCollabSourceProjLangName;
-		m_TempCollabTargetProjLangName = scpDlg.m_TempCollabTargetProjLangName;
-		m_TempCollabBookSelected = scpDlg.m_TempCollabBookSelected;
-		m_bTempCollabByChapterOnly = scpDlg.m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
-		m_TempCollabChapterSelected = scpDlg.m_TempCollabChapterSelected;
-		m_bareChapterSelected = scpDlg.m_bareChapterSelected;
-		m_bTempCollaborationExpectsFreeTrans = scpDlg.m_bTempCollaborationExpectsFreeTrans;
-		projList = scpDlg.projList;
-		// whm added 7Oct11 at Bruce's request
-		pSrcProj->SetLabel(m_TempCollabSourceProjLangName);
-		pTgtProj->SetLabel(m_TempCollabTargetProjLangName);
-		wxString ftProj;
-		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-			ftProj = m_TempCollabProjectForFreeTransExports;
-		else
-			ftProj = GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports);
-		pFreeTransProj->SetLabel(ftProj);
-		
-		// when the projects change we need to reload the "Select a book" list.
-		LoadBookNamesIntoList();
-
-		// Note: We already called the wxListCtrl routines to set up columns, their
-		// headers and calculate optimum widths, so we don't need to do that again
-		// here.
-
-		// Compare the source and target project's books again, which we do by 
-		// calling the OnLBBookSelected() handler explicitly here.
-		if (!m_TempCollabBookSelected.IsEmpty())
+		wxString message = _("Access to change %s projects for collaboration requires that you type a password");
+		message = message.Format(message, m_pApp->m_collaborationEditor.c_str());
+		wxString caption = _("Type Password to Change Projects");
+		wxString default_value = _T("");
+		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
+		if (password == _T("admin") || password == _T("switch") ||
+			(password == m_pApp->m_collabSwitchingPassword && !m_pApp->m_collabSwitchingPassword.IsEmpty()))
 		{
-			int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
-			if (nSel != wxNOT_FOUND)
-			{
-				// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
-				pListBoxBookNames->SetSelection(nSel);
-				// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
-				pListBoxBookNames->SetFocus(); 
-				wxCommandEvent evt;
-				OnLBBookSelected(evt);
-				// whm added 29Jul11. If "Get Whole Book" is ON, we can set the focus
-				// on the OK button
-				if (pRadioBoxChapterOrBook->GetSelection() == 1)
-				{
-					// Get Whole Book is selected, so set focus on OK button
-					pBtnOK->SetFocus();
-				}
-			}
+			// a valid password was typed, so summon the dialog
+			m_pApp->LogUserAction(_T("Valid password entered - change collaboration projects"));
+		}
+		else
+		{
+			// invalid password - don't allow change of projects, beep also
+			::wxBell();
+			m_pApp->LogUserAction(_T("Invalid password entered"));
+			bAllowChangeProjects = FALSE;
 		}
 	}
-	else
+	if (bAllowChangeProjects)
 	{
-		// user clicked Cancel
-		; // do nothing - dialog will close
+		DoChangeProjects();
 	}
-	*/
 }
 
 bool CGetSourceTextFromEditorDlg::DoChangeProjects()

@@ -3238,6 +3238,8 @@ public:
 	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
 	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
+	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
 	void OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event));
@@ -3700,6 +3702,8 @@ public:
 	bool		m_bShowAdministratorMenu;
 	wxString	m_adminPassword; // store password here (but not "admin" the latter always
 								 // will work, and is hard-coded)
+	bool		m_bPwdProtectCollabSwitching; // whm added 2Feb12
+	wxString	m_collabSwitchingPassword; // whm added 2Feb12
 	bool		m_bAdminMenuRemoved; // TRUE when removed from menu bar, but still on heap
 									 // FALSE when appended (and visible) on the menu bar
 	wxMenu*		m_pRemovedAdminMenu; // store the removed Administrator menu here until needed

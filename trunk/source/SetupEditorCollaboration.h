@@ -43,6 +43,8 @@ public:
 	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	bool m_bTempCollaborationExpectsFreeTrans;
+	bool m_bTempPwdProtectCollabSwitching;
+	wxString m_TempCollabSwitchingPassword;
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
@@ -58,6 +60,8 @@ protected:
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event));
+	void OnPwdProtectCollabSwitching(wxCommandEvent& WXUNUSED(event));
+	void OnBtnSetPwdForCollabSwitching(wxCommandEvent& WXUNUSED(event));
 
 private:
 
@@ -80,7 +84,9 @@ private:
 	wxStaticText* pStaticTextSrcTextxFromThisProj;
 	wxStaticText* pStaticTextTgtTextxToThisProj;
 	wxStaticText* pStaticTextFtTextxToThisProj;
-	wxStaticText* pStaticTextSelectThirdProj;
+	//wxStaticText* pStaticTextSelectThirdProj;
+	wxCheckBox* pCheckPwdProtectCollabSwitching;
+	wxButton* pBtnSetPwdForCollabSwitching;
 	wxListBox* pListOfProjects;
 	wxComboBox* pComboAiProjects;
 	wxRadioBox* pRadioBoxCollabOnOrOff;
