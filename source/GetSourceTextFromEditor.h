@@ -148,7 +148,8 @@ public:
 	
 	wxString m_collabEditorName;
 
-	wxArrayString m_staticBoxDescriptionArray;
+	wxArrayString m_staticBoxTargetDescriptionArray;
+	wxArrayString m_staticBoxFreeTransDescriptionArray;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -168,8 +169,10 @@ protected:
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
 								wxArrayString& chapterList, wxArrayString& statusList);
-	wxString GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
-								wxString targetBookFullName,wxString& nonDraftedVerses);
+	void GetChapterListAndVerseStatusFromFreeTransBook(wxString freeTransBookFullName, 
+								wxArrayString& chapterList, wxArrayString& statusList);
+	wxString GetStatusOfChapter(enum CollabTextType cTextType, const wxArrayString &TargetArray,
+						int indexOfChItem, wxString targetBookFullName,wxString& nonDraftedVerses);
 	wxString AbbreviateColonSeparatedVerses(const wxString str);
 	void LoadBookNamesIntoList();
 	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,

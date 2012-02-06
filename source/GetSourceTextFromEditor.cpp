@@ -2315,10 +2315,15 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	wxString sourceProjShortName;
 	wxString targetProjShortName;
+	wxString freeTransProjShortName; // whm added 6Feb12
 	wxASSERT(!m_TempCollabProjectForSourceInputs.IsEmpty());
 	wxASSERT(!m_TempCollabProjectForTargetExports.IsEmpty());
 	sourceProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
 	targetProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
+	if (m_bTempCollaborationExpectsFreeTrans)
+	{
+		freeTransProjShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports); // whm added 6Feb12
+	}
 	wxString bookNumAsStr = m_pApp->GetBookNumberAsStrFromName(fullBookName);
 	
 	wxString sourceTempFileName;
@@ -2328,6 +2333,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	targetTempFileName = tempFolder + m_pApp->PathSeparator;
 	targetTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, targetProjShortName, wxEmptyString, _T(".tmp"));
 	
+	// whm added 6Feb12
+	wxString freeTransTempFileName;
+	freeTransTempFileName = tempFolder + m_pApp->PathSeparator;
+	freeTransTempFileName += m_pApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, freeTransProjShortName, wxEmptyString, _T(".tmp"));
 	
 	// Build the command lines for reading the PT projects using rdwrtp7.exe
 	// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
@@ -2345,18 +2354,24 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// important for the Bibledit projects, since we use the language name for the project
 	// name and it can contain spaces, whereas in the Paratext command line strings the
 	// short project name is used which doesn't generally contain spaces.
-	wxString commandLineSrc,commandLineTgt;
+	wxString commandLineSrc,commandLineTgt,commandLineFT;
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
 		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
 		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+		if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
+			commandLineFT = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
 		commandLineSrc = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
 		commandLineTgt = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+		if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
+			commandLineFT = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
 	}
 	wxLogDebug(commandLineSrc);
+	wxLogDebug(commandLineTgt);
+	wxLogDebug(commandLineFT); // whm added 6Feb12
 
     // Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
     // when the overloaded version of wxExecute() is used, it uses the redirection of the
@@ -2366,8 +2381,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 
 	long resultSrc = -1;
 	long resultTgt = -1;
+	long resultFT = -1; // whm added 6Feb12
     wxArrayString outputSrc, errorsSrc;
 	wxArrayString outputTgt, errorsTgt;
+	wxArrayString outputFT, errorsFT; // whm added 6Feb12
 	// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
 	// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
 	// from/to its project data files. Defined as 0 is the normal setting.
@@ -2382,6 +2399,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		if (resultSrc == 0)
 		{
 			resultTgt = ::wxExecute(commandLineTgt,outputTgt,errorsTgt);
+			if (resultTgt == 0 && m_bTempCollaborationExpectsFreeTrans)
+			{
+				resultFT = ::wxExecute(commandLineFT,outputFT,errorsFT);
+			}
 
 		}
 	}
@@ -2411,7 +2432,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		}
 	}
 
-	if (resultSrc != 0 || resultTgt != 0)
+	if (resultSrc != 0 || resultTgt != 0 || (m_bTempCollaborationExpectsFreeTrans && resultFT != 0))
 	{
 		// get the console output and error output, format into a string and 
 		// include it with the message to user
@@ -2447,6 +2468,22 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 				if (!errorsStr.IsEmpty())
 					errorsStr += _T(' ');
 				errorsStr += errorsTgt.Item(ct);
+			}
+		}
+		
+		if (m_bTempCollaborationExpectsFreeTrans && resultFT != 0)
+		{
+			for (ct = 0; ct < (int)outputFT.GetCount(); ct++)
+			{
+				if (!outputStr.IsEmpty())
+					outputStr += _T(' ');
+				outputStr += outputFT.Item(ct);
+			}
+			for (ct = 0; ct < (int)errorsFT.GetCount(); ct++)
+			{
+				if (!errorsStr.IsEmpty())
+					errorsStr += _T(' ');
+				errorsStr += errorsFT.Item(ct);
 			}
 		}
 
@@ -2511,6 +2548,14 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
 	TargetTextUsfmStructureAndExtentArray.Clear();
 	TargetTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(targetWholeBookBuffer);
+	
+	// whm added 6Feb12
+	if (m_bTempCollaborationExpectsFreeTrans)
+	{
+		freeTransWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(freeTransTempFileName,wxEmptyString);
+		FreeTransTextUsfmStructureAndExtentArray.Clear();
+		FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer); 
+	}
 	
 	/* !!!! whm testing below !!!!
 	// =====================================================================================
@@ -2652,10 +2697,43 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		return;
 	}
 
+	// whm added 6Feb12
+	if (m_bTempCollaborationExpectsFreeTrans && FreeTransTextUsfmStructureAndExtentArray.GetCount() == 0)
+	{
+		wxString msg1,msg2;
+		if (m_pApp->m_bCollaboratingWithParatext)
+		{
+			msg1 = msg1.Format(_("The book %s in the Paratext project for storing free translations (%s) has no chapter and verse numbers."),fullBookName.c_str(),freeTransProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),freeTransProjShortName.c_str());
+		}
+		else if (m_pApp->m_bCollaboratingWithBibledit)
+		{
+			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing free translations (%s) has no chapter and verse numbers."),fullBookName.c_str(),freeTransProjShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),freeTransProjShortName.c_str());
+		}
+		msg1 = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+		pListBoxBookNames->SetSelection(-1); // remove any selection
+		pBtnCancel->SetFocus();
+		// clear lists and static text box at bottom of dialog
+		//pListBoxBookNames->Clear();
+		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+		pStaticTextCtrlNote->ChangeValue(_T(""));
+		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
+		pStaticSelectAChapter->Refresh();
+		return;
+	}
+	
 	pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 	wxArrayString chapterListFromTargetBook;
 	wxArrayString chapterStatusFromTargetBook;
 	GetChapterListAndVerseStatusFromTargetBook(fullBookName,chapterListFromTargetBook,chapterStatusFromTargetBook);
+	
+	wxArrayString chapterListFromFreeTransBook;
+	wxArrayString chapterStatusFromFreeTransBook;
+	GetChapterListAndVerseStatusFromFreeTransBook(fullBookName,chapterListFromFreeTransBook,chapterStatusFromFreeTransBook);
+	// TODO: Add some checks for the Free Trans here
+
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
 		wxString msg1,msg2;
@@ -2749,7 +2827,13 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			//pListCtrlChapterNumberAndStatus->SetFocus(); // better to set focus on OK button (see below)
 			// Update the wxTextCtrl at the bottom of the dialog with more detailed
 			// info about the book and/or chapter that is selected. 
-			pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+			wxString noteStrToDisplay = m_staticBoxTargetDescriptionArray.Item(nSel);
+			if (m_bTempCollaborationExpectsFreeTrans)
+			{
+				noteStrToDisplay += _T(' ');
+				noteStrToDisplay += m_staticBoxFreeTransDescriptionArray.Item(nSel); // TODO: check that arrays have same count???
+			}
+			pStaticTextCtrlNote->ChangeValue(noteStrToDisplay);
 			// whm added 29Jul11.
 			// Set focus to the OK button since we have both a book and chapter selected
 			// so if the user wants to continue work in the same book and chapter s/he
@@ -2824,7 +2908,14 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 		m_TempCollabChapterSelected = GetBareChFromLBChSelection(tempStr);
 		// Update the wxTextCtrl at the bottom of the dialog with more detailed
 		// info about the book and/or chapter that is selected.
-		pStaticTextCtrlNote->ChangeValue(m_staticBoxDescriptionArray.Item(nSel));
+		wxString noteStrToDisplay = m_staticBoxTargetDescriptionArray.Item(nSel);
+		if (m_bTempCollaborationExpectsFreeTrans)
+		{
+			noteStrToDisplay += _T(' ');
+			noteStrToDisplay += m_staticBoxFreeTransDescriptionArray.Item(nSel); // TODO: check that arrays have same count???
+		}
+		wxLogDebug(noteStrToDisplay);
+		pStaticTextCtrlNote->ChangeValue(noteStrToDisplay);
 		// whm note 29Jul11 We can't set focus on the OK button whenever the 
 		// chapter selection changes, because working via keyboard, the up and
 		// down button especially will them move the focus from OK to to one of
@@ -3274,6 +3365,23 @@ bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxSt
 	wxASSERT(!emptyVersesStr.IsEmpty());
 	bool bAllVersesAreEmpty = FALSE;
 	wxString tempStr = emptyVersesStr;
+	// whm modified 6Feb12 to correct the situation where a range such as 2-47 was
+	// being returned as TRUE, because the range didn't start at verse 1.
+	// Check if the first number in emptyVersesStr is a 1 or not. If it is not a
+	// 1, then we know that it won't include all verses of the chapter.
+	wxStringTokenizer tkz(tempStr,_T(",-")); // tokenize by commas and hyphens
+	wxString token;
+	int tokCt = 1;
+	while (tkz.HasMoreTokens())
+	{
+		token = tkz.GetNextToken();
+		token.Trim(FALSE);
+		token.Trim(TRUE);
+		if (tokCt == 1 && token != _T("1"))
+			return FALSE;
+		tokCt++;
+	}
+	
 	// Check if there is no comma in the emptyVersesStr. Lack of a comma indicates
 	// that all verses are empty
 	if (tempStr.Find(',') == wxNOT_FOUND)
@@ -3302,7 +3410,7 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 	wxArrayString statusArray;
 	chapterArray.Clear();
 	statusArray.Clear();
-	m_staticBoxDescriptionArray.Clear();
+	m_staticBoxTargetDescriptionArray.Clear();
 	int ct,tot;
 	tot = TargetTextUsfmStructureAndExtentArray.GetCount();
 	wxString tempStr;
@@ -3373,10 +3481,8 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 				tempStr = tempStr.Mid(posAfterSp);
 				tempStr.Trim(FALSE);
 				tempStr.Trim(TRUE);
-				//int chNum;
-				//chNum = wxAtoi(tempStr);
 
-				statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
+				statusOfChapter = GetStatusOfChapter(collabTgtText,TargetTextUsfmStructureAndExtentArray,ct,targetBookFullName,nonDraftedVerses);
 				wxString listItemStatusSuffix,listItem;
 				listItemStatusSuffix = statusOfChapter;
 				listItem.Empty();
@@ -3384,13 +3490,13 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 				listItem += tempStr;
 				chapterArray.Add(listItem);
 				statusArray.Add(statusOfChapter);
-				// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
+				// Store the description array info for this chapter in the m_staticBoxTargetDescriptionArray.
 				wxString emptyVsInfo;
 				// remove padding spaces for the static box description
 				tempStr.Trim(FALSE);
 				tempStr.Trim(TRUE);
-				emptyVsInfo = targetBookFullName + _T(" ") + _("chapter") + _T(" ") + tempStr + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses are empty:") + _T(" ") + nonDraftedVerses;
-				m_staticBoxDescriptionArray.Add(emptyVsInfo ); // return the empty verses string via the nonDraftedVerses ref parameter
+				emptyVsInfo = targetBookFullName + _T(" ") + _("chapter") + _T(" ") + tempStr + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses have no target text:") + _T(" ") + nonDraftedVerses;
+				m_staticBoxTargetDescriptionArray.Add(emptyVsInfo ); // return the empty verses string via the nonDraftedVerses ref parameter
 			}
 		}
 	}
@@ -3403,7 +3509,7 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 		// for that given chapter. Hence, it will actually start collecting verse
 		// information with element 0 (the first element of the 
 		// TargetTextUsfmStructureAndExtentArray)
-		statusOfChapter = GetStatusOfChapter(TargetTextUsfmStructureAndExtentArray,-1,targetBookFullName,nonDraftedVerses);
+		statusOfChapter = GetStatusOfChapter(collabTgtText,TargetTextUsfmStructureAndExtentArray,-1,targetBookFullName,nonDraftedVerses);
 		wxString listItemStatusSuffix,listItem;
 		listItemStatusSuffix.Empty();
 		listItem.Empty();
@@ -3412,10 +3518,139 @@ void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromTargetBook(wxS
 		listItem += listItemStatusSuffix;
 		chapterArray.Add(_T("   ")); // arbitrary 3 spaces in first column
 		statusArray.Add(listItem);
-		// Store the description array info for this chapter in the m_staticBoxDescriptionArray.
+		// Store the description array info for this chapter in the m_staticBoxTargetDescriptionArray.
 		wxString chapterDetails;
-		chapterDetails = targetBookFullName + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses are empty:") + _T(" ") + nonDraftedVerses;
-		m_staticBoxDescriptionArray.Add(chapterDetails ); // return the empty verses string via the nonDraftedVerses ref parameter
+		chapterDetails = targetBookFullName + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses have no target text:") + _T(" ") + nonDraftedVerses;
+		m_staticBoxTargetDescriptionArray.Add(chapterDetails ); // return the empty verses string via the nonDraftedVerses ref parameter
+	}
+	chapterList = chapterArray; // return array list via reference parameter
+	statusList = statusArray; // return array list via reference parameter
+}
+
+void CGetSourceTextFromEditorDlg::GetChapterListAndVerseStatusFromFreeTransBook(wxString freeTransBookFullName, wxArrayString& chapterList, wxArrayString& statusList)
+{
+	// Called from OnLBBookSelected().
+	// Retrieves a wxArrayString of chapters (and their status) from the free translation 
+	// PT/BE project's FreeTransTextUsfmStructureAndExtentArray. 
+	wxArrayString chapterArray;
+	wxArrayString statusArray;
+	chapterArray.Clear();
+	statusArray.Clear();
+	m_staticBoxFreeTransDescriptionArray.Clear();
+	int ct,tot;
+	tot = FreeTransTextUsfmStructureAndExtentArray.GetCount();
+	wxString tempStr;
+	bool bChFound = FALSE;
+	bool bVsFound = FALSE;
+	wxString projShortName = GetShortNameFromProjectName(this->m_TempCollabProjectForFreeTransExports);
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = m_pApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	wxASSERT(pCollabInfo != NULL);
+	wxString chMkr;
+	wxString vsMkr;
+	if (pCollabInfo != NULL)
+	{
+		chMkr = _T("\\") + pCollabInfo->chapterMarker;
+		vsMkr = _T("\\") + pCollabInfo->verseMarker;
+	}
+	else
+	{
+		chMkr = _T("\\c");
+		vsMkr = _T("\\v");
+	}
+	// Check if the book lacks a \c (as might Philemon, 2 John, 3 John and Jude).
+	// If the book has no chapter we give the chapterArray a chapter 1 and indicate
+	// the status of that chapter.
+	for (ct = 0; ct < tot; ct++)
+	{
+		tempStr = FreeTransTextUsfmStructureAndExtentArray.Item(ct);
+		if (tempStr.Find(chMkr) != wxNOT_FOUND) // \c
+			bChFound = TRUE;
+		if (tempStr.Find(vsMkr) != wxNOT_FOUND) // \v
+			bVsFound = TRUE;
+	}
+	
+	if ((!bChFound && !bVsFound) || (bChFound && !bVsFound))
+	{
+		// The free trans book has no chapter and verse content to work with
+		chapterList = chapterArray;
+		statusList = statusArray;
+		return; // caller will give warning message
+	}
+
+	wxString statusOfChapter;
+	wxString nonDraftedVerses; // used to get string of non-drafted verse numbers/range below
+	if (bChFound)
+	{
+		for (ct = 0; ct < tot; ct++)
+		{
+			tempStr = FreeTransTextUsfmStructureAndExtentArray.Item(ct);
+			if (tempStr.Find(chMkr) != wxNOT_FOUND) // \c
+			{
+				// we're pointing at a \c element of a string that is of the form: "\c 1:0:MD5"
+				// strip away the preceding \c and the following :0:MD5
+				
+				// Account for MD5 hash now at end of tempStr
+				int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
+				tempStr = tempStr.Mid(0,posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \c markers)
+				posColon = tempStr.Find(_T(':'),TRUE);
+				tempStr = tempStr.Mid(0,posColon); // get rid of the char count part and preceding colon
+				
+				int posChMkr;
+				posChMkr = tempStr.Find(chMkr); // \c
+				wxASSERT(posChMkr == 0);
+				posChMkr = posChMkr; // avoid warning
+				int posAfterSp = tempStr.Find(_T(' '));
+				wxASSERT(posAfterSp > 0);
+				posAfterSp ++; // to point past space
+				tempStr = tempStr.Mid(posAfterSp);
+				tempStr.Trim(FALSE);
+				tempStr.Trim(TRUE);
+
+				statusOfChapter = GetStatusOfChapter(collabFreeTransText,FreeTransTextUsfmStructureAndExtentArray,ct,freeTransBookFullName,nonDraftedVerses);
+				wxString listItemStatusSuffix,listItem;
+				listItemStatusSuffix = statusOfChapter;
+				listItem.Empty();
+				listItem = freeTransBookFullName + _T(" ");
+				listItem += tempStr;
+				chapterArray.Add(listItem);
+				statusArray.Add(statusOfChapter);
+				// Store the description array info for this chapter in the m_staticBoxFreeTransDescriptionArray.
+				wxString emptyVsInfo;
+				// remove padding spaces for the static box description
+				tempStr.Trim(FALSE);
+				tempStr.Trim(TRUE);
+				// whm Note: Just abbreviate the Free translation info
+				emptyVsInfo = _T(". ");
+				emptyVsInfo += _("Free translation details: ") + statusOfChapter + _T(". ") + _("The following verses have no free translations:") + _T(" ") + nonDraftedVerses;
+				m_staticBoxFreeTransDescriptionArray.Add(emptyVsInfo ); // return the empty verses string via the nonDraftedVerses ref parameter
+			}
+		}
+	}
+	else
+	{
+		// No chapter marker was found in the book, so just collect its verse 
+		// information using an index for the "chapter" element of -1. We use -1
+		// because GetStatusOfChapter() increments the assumed location of the \c 
+		// line/element in the array before it starts collecting verse information
+		// for that given chapter. Hence, it will actually start collecting verse
+		// information with element 0 (the first element of the 
+		// FreeTransTextUsfmStructureAndExtentArray)
+		statusOfChapter = GetStatusOfChapter(collabFreeTransText,FreeTransTextUsfmStructureAndExtentArray,-1,freeTransBookFullName,nonDraftedVerses);
+		wxString listItemStatusSuffix,listItem;
+		listItemStatusSuffix.Empty();
+		listItem.Empty();
+		listItemStatusSuffix = statusOfChapter;
+		listItem += _T(" - ");
+		listItem += listItemStatusSuffix;
+		chapterArray.Add(_T("   ")); // arbitrary 3 spaces in first column
+		statusArray.Add(listItem);
+		// Store the description array info for this chapter in the m_staticBoxFreeTransDescriptionArray.
+		wxString chapterDetails;
+		chapterDetails = _T(". ");
+		chapterDetails += _("Free translation details: ") + statusOfChapter + _T(". ") + _("The following verses have no free translations:") + _T(" ") + nonDraftedVerses;
+		m_staticBoxFreeTransDescriptionArray.Add(chapterDetails ); // return the empty verses string via the nonDraftedVerses ref parameter
 	}
 	chapterList = chapterArray; // return array list via reference parameter
 	statusList = statusArray; // return array list via reference parameter
@@ -3499,17 +3734,21 @@ void CGetSourceTextFromEditorDlg::ExtractVerseNumbersFromBridgedVerse(wxString t
 	nUpperNumber = wxAtoi(subStrUpper);
 }
 
-wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &TargetArray,int indexOfChItem,
-													wxString targetBookFullName,wxString& nonDraftedVerses)
+wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(enum CollabTextType cTextType, const wxArrayString &TargetArray,
+												int indexOfChItem, wxString targetBookFullName,wxString& nonDraftedVerses)
 {
 	// When this function is called from GetChapterListAndVerseStatusFromTargetBook() the
 	// indexOfChItem parameter is pointing at a \c n:nnnn line in the TargetArray.
 	// We want to get the status of the chapter by examining each verse of that chapter to see if it 
-	// has content. The returned string will have one of these three values:
-	//    1. "Drafted (all nn verses have content)"
-	//    2. "Partly drafted (nn of a total of mm verses have content)"
-	//    3. "Empty (no verses of a total of mm have content yet)"
-	// When the returned string is 2 above ("Partly drafted...") the reference parameter nonDraftedVerses
+	// has content. For collabTgtText, the returned string will have one of these three values:
+	//    1. "All %d verses have translation text"
+	//    2. "Partly drafted (%d of a total of %d verses have translation text)"
+	//    3. "No translations (no verses of a total of %d have translation text yet)"
+	// For collabFreeTransText, the returned string will have one of these three values:
+	//    1. "All %d verses have free translations"
+	//    2. "%d of a total of %d verses have free translations"
+	//    3. "No verses of a total of %d have free translations yet"
+	// When the returned string is 2 above the reference parameter nonDraftedVerses
 	// will contain a string describing what verses/range of verses are empty, i.e. "The following 
 	// verses are empty: 12-14, 20, 21-29".
 	
@@ -3751,11 +3990,17 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr);
 		if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
 		{
-			statusStr = statusStr.Format(_("Empty (no verses of a total of %d have content yet)"),nLastVerseNumber);
+			if (cTextType == collabTgtText)
+				statusStr = statusStr.Format(_("No translations (no verses of a total of %d have translation text yet)"),nLastVerseNumber);
+			else if (cTextType == collabFreeTransText)
+				statusStr = statusStr.Format(_("No verses of a total of %d have free translations yet"),nLastVerseNumber);
 		}
 		else
 		{
-			statusStr = statusStr.Format(_("Partly drafted (%d of a total of %d verses have content)"),nVersesWithContent,nLastVerseNumber);
+			if (cTextType == collabTgtText)
+				statusStr = statusStr.Format(_("Partly drafted (%d of a total of %d verses have translation text)"),nVersesWithContent,nLastVerseNumber);
+			else if (cTextType == collabFreeTransText)
+				statusStr = statusStr.Format(_("%d of a total of %d verses have free translations"),nVersesWithContent,nLastVerseNumber);
 		}
 		nonDraftedVerses = emptyVersesStr;
 	}
@@ -3764,11 +4009,13 @@ wxString CGetSourceTextFromEditorDlg::GetStatusOfChapter(const wxArrayString &Ta
 		// Handle the "fully drafted" case.
 		// The emptyVersesStr has NO content, so there are no empty verses in the chapter. The
 		// emptyVersesStr ref parameter remains empty.
-		statusStr = statusStr.Format(_("Drafted (all %d verses have content)"),nLastVerseNumber);
+		if (cTextType == collabTgtText)
+			statusStr = statusStr.Format(_("All %d verses have translation text"),nLastVerseNumber);
+		else if (cTextType == collabFreeTransText)
+			statusStr = statusStr.Format(_("All %d verses have free translations"),nLastVerseNumber);
 		nonDraftedVerses = _T("");
 	}
 
-	
 	return statusStr; // return the status string that becomes the list item's status in the caller
 }
 
