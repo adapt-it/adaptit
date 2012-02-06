@@ -879,6 +879,13 @@ enum DestinationTextType
 	crossrefDest
 };
 
+enum CollabTextType
+{
+	collabSrcText,
+	collabTgtText,
+	collabFreeTransText
+};
+
 /// An enum for specifying the general style type of a standard format marker. Can be one
 /// of the following: paragraph, character, table_type, footnote_caller, footnote_text,
 /// default_para_font, footerSty, headerSty, horiz_rule, boxed_para ir hidden_note.

@@ -8162,7 +8162,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NOTE, wxT(""), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
     item23->SetToolTip( _("More information about the status of a selected chapter or book") );
     item22->Add( item23, 1, wxALIGN_CENTER|wxALL, 5 );
 

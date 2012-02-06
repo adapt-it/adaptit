@@ -40,6 +40,10 @@ than a comma) may result in text segments as small as a
 single word. The "Lengthen" button can be used in such cases 
 if the short segments result in free translations being 
 elided with "..." in the display.
+* In the book/chapter selection dialog during collaboration,
+the chapter details now report information about the status of
+free translations for the verses of the chapter as well as 
+(corrected) information about the status of target text.
 * If multiple instances of Adapt It are accidentally started
 by the same user, only the first instance is now allowed to 
 run. If a user accidentally starts up a second instance of
@@ -90,6 +94,9 @@ work better on small/narrow screens.
 "Verse", in some situations, the setting could switch to
 defining sections by "Punctuation" and vice versa. This has
 now been fixed.
+* In the book/chapter selection dialog during collaboration,
+the chapter details were not reporting correctly the verses
+which have no target text.
 * In Edit Source Text mode, some edits were not being saved.
 This issue has been fixed.
 * The fix that allows Adapt It to now can run on computers 
