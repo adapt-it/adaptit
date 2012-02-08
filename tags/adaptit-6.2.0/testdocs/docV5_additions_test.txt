@@ -1,0 +1,16 @@
+\id JHN
+\c 1
+\s1 A willy nilly subheading
+\v 1 The example according to \w Nobody\w*.
+\v 2 Then Jesus said, \wj “\k Verily\k* verily I say, the \qt ‘Son of Man’\qt*.”\wj* 
+\v 3 Make another footie \f + \fr 1:12 \ft The word \fk redeem \ft is a keyword. 
+     Verse \fv 4 is referred to, punctuation is internal \fq before the endmarkers.\f*! and afterwards also, \wj words of Jesus start here.
+\v 4 Fixed space!$“ ‘Inner quotation’ he said.”
+\v 5 The Son of God. \f + \fr 1.1: \ft Some lack \fq the Son of God.\f* Selah.
+\v 6 \x - \xo 1:5: \xk Son \xt Luk 1.5; \xot Dan 3.6\xot*\xnt Jhn 15.20\xnt*\x* Verse six.
+\v 7 He said, “Behold, they said ‘It might work!\f - \fr 1.7: \ft Testing testing?\f*’ ”\wj* end verse seven.
+\v 8 Down “ ‘\k Jerusalem\k*’ ” " ‘way.’ " Did both straight quotes get stored on the one source phrase? \y Here be an unknown marker.
+\v 9 Jesus said \w profound\w* things. He spoke of \k \w salvation\w*\k* and \bd \it heaven\it* \bd* with deletable space!$between endmarkers.
+\v 10 Reordering \w punctuation!\w* on export is sensible.
+\v 11 What ?now?
+
