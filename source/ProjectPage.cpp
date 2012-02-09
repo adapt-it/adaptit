@@ -517,6 +517,24 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator 
 									   + pApp->m_adaptionsFolder;
 
+			// whm added 8Feb12. The user may have created an "empty" project, for example
+			// "test1 to test2 adaptations" by simply creating such a folder in the "Adapt It
+			// Unicode Work" folder. In this case AI will also need to have an "Adaptations" 
+			// folder within the user-created project folder if it does not already exist
+			if (!::wxDirExists(pApp->m_curAdaptionsPath))
+			{
+				// The "Adaptations" folder does not yet exist, so create it
+				bool bOK = FALSE;
+				bOK = ::wxMkdir(pApp->m_curAdaptionsPath);
+				if (!bOK)
+				{
+					wxString msg = _T("Unable to create an Adaptations folder within the %s project folder");
+					msg = msg.Format(msg,pApp->m_curProjectName.c_str());
+					wxMessageBox(msg,_T(""),wxICON_WARNING);
+					return;
+				}
+			}
+
 			// BEW moved to here, 19Aug05, so that m_bSaveAsXML flag is read back in before we
 			// try to set up the KB files.
 			// Get project configuration from the config files in the project folder & set up fonts,
