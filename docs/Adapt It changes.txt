@@ -99,9 +99,9 @@ the chapter details were not reporting correctly the verses
 which have no target text.
 * In Edit Source Text mode, some edits were not being saved.
 This issue has been fixed.
-* The fix that allows Adapt It to now can run on computers 
-with screen resolutions as small as 640 x 480 pixels was
-inadvertently left out of the last updat, but is included in
+* The fix that allowed Adapt It to run on computers with
+screen resolutions as small as 640 x 480 pixels was
+mistakenly left out of the last update, but is included in
 this 6.2.0 update.
 * In the Linux version (Balsa) the "Change Bibledit Projects"
 dialog could become unresponsive. That has now been fixed.
@@ -119,8 +119,7 @@ is now fixed.
 * The Portrait versus Landscape setting in Interlinear
 Text Exports was being ignored resulting in all such exports
 being produced in portrait. It is now possible to export
-Interlinear documents in Landscape orientation. 
-documents are now possible.
+Interlinear documents in Landscape orientation.
 
 ----------------------------------------------
 Version 6.1.0 release 20 December 2011
@@ -142,17 +141,17 @@ will use. If there is only one language choice, no dialog is
 shown to the user. If two or more languages are used for
 meanings, then the ethnologue code for each is shown in a
 dialog at the start of the import process - choose the one
-to populate which KB type is current. (You can populate the
-GlossingKB simply by switching to glossing mode, and then
-choosing a different listed ethnologue code than the one you
-chose for adapting mode.)
-* The list of ethnologue language codes now include all of
+to be used in order to populate whichever KB type is current.
+(You can populate the Glossing KB simply by switching to 
+glossing mode, and then choosing a different listed ethnologue 
+code than the one you chose for adapting mode.)
+* The list of ethnologue language codes now includes all of
 the 2-letter codes (from the iso639-1 standard) as well as
 the 3-letter codes (from the iso639-3 standard). These 
 codes are used in LIFT imports and exports.
-* Edit boxes for the Gloss language name and gloss language
+* Edit boxes for the gloss language name and gloss language
 ethnologue code have been added to the Backups and Misc tab 
-of Preferences, as well as the dialog for the lookup and 
+of Preferences, as well as to the dialog for the lookup and 
 selection of language codes.
 ----------------------------------------------
 Bug fixes in 6.1.0
