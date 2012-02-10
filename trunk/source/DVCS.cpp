@@ -55,8 +55,6 @@
 #include "errno.h"
 
 
-//#if defined(TEST_DVCS)	// Initially for commits I'll uncomment this so bugs in my code don't clobber everyone.
-
 void  CallDVCS ( int action )
 {
 	wxString		str, str1, hg_command;
@@ -74,6 +72,20 @@ void  CallDVCS ( int action )
 			hg_command = _T("illegal");
 	}
 
+	// For some utterly unaccountable reason, under Windows or Linux, we can just find "hg" since if it's
+	// properly installed, it's in one of the paths listed in the PATHS environment variable.  However
+	// on the Mac, although its location is in PATHS, and we can just type "hg <whatever>" in a terminal
+	// window and it gets found, it doesn't get found by the exec() group of functions (which wxExecute
+	// calls).  So we have to put the full path.  Hopefully this won't matter, since the default installation
+	// of hg on the Mac always puts it in /usr/local/bin.
+	
+	// If hg isn't found, as well as a nonzero result from wxExecute, we get a message in our errors ArrayString 
+	// on the Mac and Windows, saying the command gave an error (2 in both cases).  But on Linux we don't get 
+	// a message back at all.
+	// In all cases if hg returns an error we get a message in errors.  So we'll need to distinguish between hg
+	// not being found, or being found and it's execution returning an error.
+
+
 #ifdef	__WXMAC__
 	str = _T("/usr/local/bin/hg ");
 #else
@@ -82,26 +94,35 @@ void  CallDVCS ( int action )
 
 	str = str + hg_command;
 	strcpy ( command, (const char*) str.mb_str(wxConvUTF8) );		// convert s to ASCII char string in buf
-	
+
 	result = wxExecute ( str, output, errors, 0 );
 
 	// The only indication we get that something went wrong, is a nonzero result.  This may mean that
 	// hg wasn't found, or it could be an illegal hg command.  Eventually we should suss this out a bit
 	// more.
-	
+
     if (result)		// An error occurred
         wxMessageBox (_T("We couldn't find Mercurial.  Please check that it's installed properly."));
     else
 	{				// hg's stdout will land in our output wxArrayString.  There can be a number of strings.
 					// Just concatenating them with a space between looks OK so far.
-		count = output.GetCount();
-		for (i=0; i<count; i++)  
-		{	str1 = str1 + output.Item(i);
-			str1.Append (wxString(" ", wxConvUTF8));
-		}
+		count = output.GetCount();  str1.Clear();
+		for (i=0; i<count; i++)
+			str1 = str1 + output.Item(i) + _T(" ");
+
         wxMessageBox (str1);
 	}
-}	
+
+	// If anything landed in our errors wxArrayString, we'll display it:
+	count = errors.GetCount();
+	if (count)
+	{	str1.Clear();
+		for (i=0; i<count; i++)
+			str1 = str1 + errors.Item(i) + _T(" ");
+
+		wxMessageBox (str1);
+	}
+
+}
 
 
-//#endif
