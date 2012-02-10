@@ -1597,9 +1597,15 @@ _("You first need to select at least one item in either list before clicking the
 		pSelectedFilesArray->Add(pPaneSelectedFiles->Item(index));
 	}
 
-	RemoveFilesAndFolders(pathToPane, pSelectedFoldersArray, pSelectedFilesArray);
+	// whm 9Feb12 added: Prompt with a warning before calling RemoveFilesAndFolders() below
+	int response;
+	response = wxMessageBox(_T("Delete the selected item(s)?"),_T(""),wxICON_QUESTION | wxYES_NO);
+	if (response == wxYES)
+	{
+		RemoveFilesAndFolders(pathToPane, pSelectedFoldersArray, pSelectedFilesArray);
 
-	gpApp->LogUserAction(_T("Deleted file(s)"));
+		gpApp->LogUserAction(_T("Deleted file(s)"));
+	}
 
 	// clear the allocations to the heap
 	pSelectedFilesArray->Clear(); // this one is on heap
