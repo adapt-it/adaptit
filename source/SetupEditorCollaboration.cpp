@@ -1132,7 +1132,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 		{
 			// Notify the administrator that AI will create a new project folder 
 			// for use in collaboration.
-			msg = _("Adapt It will create an new project folder called \"%s\" for use in collaboration with %s");
+			msg = _("Adapt It will create a new project folder called \"%s\" for use in collaboration with %s");
 			msg = msg.Format(msg, aiProjFolder.c_str(), m_pApp->m_collaborationEditor.c_str());
 			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 		}
@@ -1152,7 +1152,7 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 			}
 			if (!bProjectFound)
 			{
-				msg = _("Adapt It will create an new project folder called \"%s\" for use in collaboration with %s");
+				msg = _("Adapt It will create a new project folder called \"%s\" for use in collaboration with %s");
 				msg = msg.Format(msg, aiProjFolder.c_str(), m_pApp->m_collaborationEditor.c_str());
 				wxString msg1;
 				msg1 += _T(' ');
@@ -1160,7 +1160,50 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 				int result = 0;
 				result = wxMessageBox(msg,_T(""),wxYES_NO);
 				if (result == wxNO)
+				{
+					// Restore things the way they were in the Setup PT/BE Collaboration dialog,
+					// 1. Change the combo box to what it was previously (the App's value for m_collabAIProjectName)
+					//    and select the previous AI project name in the combobox.
+					// 2. Change the source and target language name edit boxes to what they were previously
+					// (the App's values)
+					// 3. Hide the 3a items
+
+					// 1.
+					m_TempCollabAIProjectName = m_pApp->m_CollabAIProjectName;
+					int indexOfFoundProject = wxNOT_FOUND;
+					int ct;
+					for (ct = 0; ct < (int)pComboAiProjects->GetCount(); ct++)
+					{
+						if (pComboAiProjects->GetString(ct) == m_TempCollabAIProjectName)
+						{
+							// workFolder exists as an AI project folder
+							indexOfFoundProject = ct;
+						}
+					}
+					if (indexOfFoundProject != wxNOT_FOUND)
+					{
+						pComboAiProjects->Select(indexOfFoundProject);
+					}
+					// 2.
+					m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
+					m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
+					// 3.
+					pTextCtrlAsStaticNewAIProjName->Hide();
+					pStaticTextEnterLangNames->Hide();
+					pTextCtrlSourceLanguageName->Hide();
+					pTextCtrlTargetLanguageName->Hide();
+					pTextCtrlAsStaticNewAIProjName->Hide();
+					pStaticTextNewAIProjName->Hide();
+					pStaticTextSrcLangName->Hide();
+					pStaticTextTgtLangName->Hide();
+					
+					pSetupEditorCollabSizer->Layout();
+					
 					return;
+				}
+				// If we get here, we need to assign the new AI project name
+				// to its m_TempCollabAIProjectName value.
+				m_TempCollabAIProjectName = aiProjFolder;
 			}
 		}
 	}
