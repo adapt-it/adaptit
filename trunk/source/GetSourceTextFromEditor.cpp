@@ -877,24 +877,20 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//	pRadioBoxChapterOrBook->SetSelection(1);
 
 		// whm added 7Oct11 at Bruce's request
-		// whm modified 21Jan12 to parse the language names from the ai project name
-		wxString ftProj;
-		wxString srcLangName;
-		wxString tgtLangName;
 		// whm Note: GetAILangNamesFromAIProjectNames() below issues error message if the
 		// m_TempCollabAIProjectName is mal-formed (empty, or has no " to " or " adaptations")
-		GetAILangNamesFromAIProjectNames(m_TempCollabAIProjectName,srcLangName,tgtLangName);
-		pSrcProj->SetLabel(srcLangName);
-		pTgtProj->SetLabel(tgtLangName);
 		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		{
-			ftProj = m_TempCollabProjectForFreeTransExports;
+			pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
+			pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
+			pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
 		}
 		else
 		{
-			ftProj = GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports);
+			pSrcProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForSourceInputs));
+			pTgtProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForTargetExports));
+			pFreeTransProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports));
 		}
-		pFreeTransProj->SetLabel(ftProj);
 		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
 
 		// Confirm that we can find the active source and target projects as stored in the 
@@ -3069,14 +3065,18 @@ bool CGetSourceTextFromEditorDlg::DoChangeProjects()
 		// whm added 7Oct11 at Bruce's request
 		// whm modified 28Jan12 to update the "Using these Paratext/Bibledit projects:"
 		// edit boxes for "Source Project:", "Target Project:", and "Free Translation Project:".
-		pSrcProj->SetLabel(m_TempCollabSourceProjLangName);
-		pTgtProj->SetLabel(m_TempCollabTargetProjLangName);
-		wxString ftProj;
 		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-			ftProj = m_TempCollabProjectForFreeTransExports;
+		{
+			pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
+			pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
+			pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
+		}
 		else
-			ftProj = GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports);
-		pFreeTransProj->SetLabel(ftProj);
+		{
+			pSrcProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForSourceInputs));
+			pTgtProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForTargetExports));
+			pFreeTransProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports));
+		}
 		
 		// whm added 28Jan12 update the Using this Adapt It project static text
 		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
