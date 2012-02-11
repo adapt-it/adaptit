@@ -54,14 +54,18 @@
 #include "helpers.h"
 #include "errno.h"
 
+#include "DVCS.h"
 
-void  CallDVCS ( int action )
+
+int  CallDVCS ( int action )
 {
 	wxString		str, str1, hg_command;
 	wxArrayString	output, errors;
 	char			command[1024];
     long			result;
 	int				count, i;
+	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
+
 
 	switch (action)
 	{
@@ -102,7 +106,10 @@ void  CallDVCS ( int action )
 	// more.
 
     if (result)		// An error occurred
-        wxMessageBox (_T("We couldn't find Mercurial.  Please check that it's installed properly."));
+    {	
+		wxMessageBox (_T("We couldn't find Mercurial.  Please check that it's installed properly."));
+		returnCode = 1;
+	}
     else
 	{				// hg's stdout will land in our output wxArrayString.  There can be a number of strings.
 					// Just concatenating them with a space between looks OK so far.
@@ -122,7 +129,7 @@ void  CallDVCS ( int action )
 
 		wxMessageBox (str1);
 	}
-
+	return returnCode;
 }
 
 

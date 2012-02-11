@@ -2276,7 +2276,12 @@ void CMainFrame::OnUpdateTestDVCS(wxUpdateUIEvent& event)
 
 void CMainFrame::OnTestDVCS(wxCommandEvent& WXUNUSED(event))
 {
-    CallDVCS (DVCS_CHECK);
+	int		resultCode;
+    
+	resultCode = CallDVCS (DVCS_CHECK);
+	
+// Maybe do something with resultCode here...
+	
 }
 #endif
 
