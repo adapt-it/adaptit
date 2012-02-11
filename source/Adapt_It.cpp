@@ -13071,6 +13071,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// The following is used in conjunction with the command-line switch/option:
 	//    -ai_proj "<Lang A to Lang B adaptations>"
 	m_ForceAIProjectName = _T(""); // whm added 17Jan12
+	m_bForceCollabExpectsFreeTrans = FALSE; // whm added 9Feb12
 	
 	// The following m_...Saved... values are used to store the temporary collaboration-related
 	// values that are read in from the basic config file. When the basic config file is later
@@ -14429,41 +14430,35 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		if (m_pParser->Found(_T("collab_on")))
 		{
 			// The -collab_on command-line parameter forces collab mode ON (if a collab
-			// project has been previously setup). It does this by overriding the App's
-			// values for m_bCollaboratingWithParatext, and/or m_bCollaboratingWithBibledit
-			// after first saving the value that gets stored in those variables from the 
-			// basic config file. That stored/saved value is then written back to the basic 
-			// config file anytime the config file is saved during the current session,
-			// regardless of the values for collaboration being used in the current 
-			// session as a result of the command-line switches. 
+			// project has been previously setup and would otherwise be OFF). 
+			// It does this by overriding the App's values for m_bCollaboratingWithParatext, 
+			// or m_bCollaboratingWithBibledit after first saving the value that gets stored 
+			// in those variables from the basic config file. 
+			// It is the stored/saved value is then written back to the basic config file 
+			// anytime the config file is saved during the current session, regardless of 
+			// the values for collaboration being used in the current session as a result 
+			// of the command-line switches. 
 			m_bForceCollabModeON = TRUE;
-			// whm modified 31Jan12 we should only activate collab with PT or BE depending
-			// on which editor is appropriate
-			if (m_collaborationEditor == _T("Paratext"))
-			{
-				m_bCollaboratingWithParatext = TRUE;
-			}
-			else if (m_collaborationEditor == _T("Bibledit"))
-			{
-				m_bCollaboratingWithBibledit = TRUE;
-			}
+			// whm 15Apr11 Note: See the GetConfigurationFile() function where the value of 
+			// m_bForceCollabModeON when TRUE is used to force the value of 
+			// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit to TRUE.
 		}
 
 		if (m_pParser->Found(_T("collab_off")))
 		{
 			// The -collab_off command-line parameter forces collab mode OFF (if a collab
 			// project has been previously setup and would otherwise be ON).
+			// It does this by overriding the App's values for m_bCollaboratingWithParatext, 
+			// or m_bCollaboratingWithBibledit after first saving the value that gets stored 
+			// in those variables from the basic config file. 
+			// It is the stored/saved value is then written back to the basic config file 
+			// anytime the config file is saved during the current session, regardless of 
+			// the values for collaboration being used in the current session as a result 
+			// of the command-line switches. 
 			m_bForceCollabModeOFF = TRUE;
-			// whm modified 31Jan12 we should only deactivate collab with PT or BE depending
-			// on which editor is appropriate
-			if (m_collaborationEditor == _T("Paratext"))
-			{
-				m_bCollaboratingWithParatext = FALSE;
-			}
-			else if (m_collaborationEditor == _T("Bibledit"))
-			{
-				m_bCollaboratingWithBibledit = FALSE;
-			}
+			// whm 15Apr11 Note: See the GetConfigurationFile() function where the value of 
+			// m_bForceCollabModeOFF when TRUE is used to force the value of 
+			// m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit to FALSE.
 		}
 
 		wxString collabProjNames;
@@ -14476,11 +14471,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// -collab_proj "Source Proj:Target Proj[:FreeTrans Proj]"
 			// in which the designation of a FreeTrans Proj is optional.
 			// The Paratext/Bibledit projects that are to be used during collaboration
-			// are specified within the quoted string following the -collab_proj switch. These
+			// are delimited within the quoted string following the -collab_proj switch. These
 			// projects will only be used if they already exist as Paratext/Bibledit projects
 			// on the local machine, and if collaboration is turned ON (either by administrator
-			// setting or by use of the additional -collab_on command-line swtich.
+			// setting or by use of the additional -collab_on command-line swtich).
 			m_ForceCollabProjectNames = collabProjNames;
+			// whm 15Apr11 Note: See the GetConfigurationFile() function where a non-empty 
+			// value of m_ForceCollabProjectNames is used to force the value of 
+			// m_CollabProjectForSourceInputs, m_CollabProjectForTargetExports,
+			// m_CollabProjectForFreeTransExports and m_bCollaborationExpectsFreeTrans.
 		}
 
 		wxString aiProjName;
@@ -14496,6 +14495,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// This switch has an effect whether or not the collab_off or collab_on switches are 
 			// also used at the command-line.
 			m_ForceAIProjectName = aiProjName;
+			// whm 15Apr11 Note: See the GetConfigurationFile() function where a non-empty 
+			// value of m_ForceAIProjectName is used to force the value of 
+			// m_CollabAIProjectName (after verifiying that it is a valid AI project name).
 		}
 
 		wxString wfPathStr;
@@ -22305,7 +22307,8 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 			if (result == wxNO)
 			{
 				wxASSERT(FALSE);
-				wxExit();
+				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
+				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
 				return FALSE;
 			}
 		}
@@ -22331,7 +22334,8 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 			if (result == wxNO)
 			{
 				wxASSERT(FALSE);
-				wxExit();
+				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
+				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
 				return FALSE;
 			}
 		}
@@ -26213,7 +26217,8 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// the GetConfigurationFile() function where the value of m_curProjectName
 			// can be overridden by the use of command-line switches.
 			m_curProjectName = strValue;
-			m_SavedCurProjectName = strValue;
+			if (!m_ForceAIProjectName.IsEmpty())
+				m_SavedCurProjectName = strValue;
 		}
 		else if (name == szCurLanguagesPath)
 		{
@@ -26221,7 +26226,8 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// the GetConfigurationFile() function where the value of m_curProjectPath
 			// can be overridden by the use of command-line switches.
 			m_curProjectPath = strValue;
-			m_SavedCurProjectPath = strValue;
+			if (!m_ForceAIProjectName.IsEmpty())
+				m_SavedCurProjectPath = strValue;
 		}
 		else if (name == szCurAdaptionsPath)
 		{
@@ -26700,16 +26706,22 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 0;
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_bCollaboratingWithParatext
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switches -collab_on or -collab_off.
 			if (num == 1)
 			{
 				m_bCollaboratingWithParatext = TRUE;
-				m_nSavedPTCollabSetting = 1;
+				if (m_bForceCollabModeON)
+				{
+					m_nSavedPTCollabSetting = 1;
+				}
 			}
 			else
 			{
 				m_bCollaboratingWithParatext = FALSE;
-				m_nSavedPTCollabSetting = 0;
+				if (m_bForceCollabModeOFF)
+				{
+					m_nSavedPTCollabSetting = 0;
+				}
 			}
 		}
 		else if (name == szCollaboratingWithBibledit) // whm added 15Apr11
@@ -26719,51 +26731,76 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 0;
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_bCollaboratingWithBibledit
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switches -collab_on or -collab_off.
 			if (num == 1)
 			{
 				m_bCollaboratingWithBibledit = TRUE;
-				m_nSavedBECollabSetting = 1;
+				if (m_bForceCollabModeON)
+				{
+					m_nSavedBECollabSetting = 1;
+				}
 			}
 			else
 			{
 				m_bCollaboratingWithBibledit = FALSE;
-				m_nSavedBECollabSetting = 0;
+				if (m_bForceCollabModeOFF)
+				{
+					m_nSavedBECollabSetting = 0;
+				}
 			}
 		}
 		else if (name == szCollabProjectForSourceInputs) // whm added 15Apr11
 		{
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_CollabProjectForSourceInputs
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switch -collab_proj followed by the 
+			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
+			// first part "Source Proj" is significant in this case.
 			m_CollabProjectForSourceInputs = strValue;
-			m_SavedCollabProjectForSourceInputs = strValue;
+			if (!m_ForceCollabProjectNames.IsEmpty())
+			{
+				m_SavedCollabProjectForSourceInputs = strValue;
+			}
 		}
 		else if (name == szCollabProjectForTargetExports) // whm added 15Apr11
 		{
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_CollabProjectForTargetExports
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switch -collab_proj followed by the 
+			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
+			// second part "Target Proj" is significant in this case.
 			m_CollabProjectForTargetExports = strValue;
-			m_SavedCollabProjectForTargetExports = strValue;
+			if (!m_ForceCollabProjectNames.IsEmpty())
+			{
+				m_SavedCollabProjectForTargetExports = strValue;
+			}
 		}
 		else if (name == szCollabProjectForFreeTransExports) // whm added 30Jun11
 		{
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_CollabProjectForFreeTransExports
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switch -collab_proj followed by the 
+			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
+			// third part "FreeTrans Proj", if specifieded, is significant in this case.
 			m_CollabProjectForFreeTransExports = strValue;
-			m_SavedCollabProjectForFreeTransExports = strValue;
+			if (!m_ForceCollabProjectNames.IsEmpty())
+			{
+				m_SavedCollabProjectForFreeTransExports = strValue;
+			}
 		}
 		else if (name == szCollabAIProjectName) // whm added 7Sep11
 		{
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_CollabAIProjectName
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switch -ai_proj followed by
+			// the AI project name in the form "Lang A to Lang B adaptations".
 			m_CollabAIProjectName = strValue;
-			m_SavedAIProjName = strValue;	// whm added 20Jan12 used to restore m_CollabAIProjectName before
+			if (!m_ForceAIProjectName.IsEmpty())
+			{
+				m_SavedAIProjName = strValue;	// whm added 20Jan12 used to restore m_CollabAIProjectName before
 											// saving value to basic config file after -ai_proj was used to
 											// force the project name from the command-line.
+			}
 		}
 		else if (name == szCollabExpectsFreeTrans) // whm added 9Aug11
 		{
@@ -26772,16 +26809,24 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				num = 0;
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_bCollaborationExpectsFreeTrans
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of the command-line switch -collab_proj followed by the 
+			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
+			// third part "FreeTrans Proj", if specifieded, is significant in this case.
 			if (num == 1)
 			{
 				m_bCollaborationExpectsFreeTrans = TRUE;
-				m_nSavedCollaborationExpectsFreeTrans = 1;
+				if (m_bForceCollabExpectsFreeTrans)
+				{
+					m_nSavedCollaborationExpectsFreeTrans = 1;
+				}
 			}
 			else
 			{
 				m_bCollaborationExpectsFreeTrans = FALSE;
-				m_nSavedCollaborationExpectsFreeTrans = 0;
+				if (m_bForceCollabExpectsFreeTrans)
+				{
+					m_nSavedCollaborationExpectsFreeTrans = 0;
+				}
 			}
 		}
 		// whm Note: The next three having to do with book and chapter
@@ -26809,19 +26854,27 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		{
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_CollabSourceLangName
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of command-line switches -collab_proj or -ai_proj
+			// followed by their associated strings indicating specified projects.
 			m_CollabSourceLangName = strValue;
-			m_SavedCollabSourceLangName = strValue;
+			if (!m_ForceCollabProjectNames.IsEmpty() || (!m_ForceAIProjectName.IsEmpty()))
+			{
+				m_SavedCollabSourceLangName = strValue;
+			}
 		}
 		else if (name == szCollabTargetLangName)
 		{
 			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
 			// the GetConfigurationFile() function where the value of m_CollabTargetLangName
-			// can be overridden by the use of command-line switches.
+			// can be overridden by the use of command-line switches -collab_proj or -ai_proj
+			// followed by their associated strings indicating specified projects.
 			m_CollabTargetLangName = strValue;
-			m_SavedCollabTargetLangName = strValue;
+			if (!m_ForceCollabProjectNames.IsEmpty() || (!m_ForceAIProjectName.IsEmpty()))
+			{
+				m_SavedCollabTargetLangName = strValue;
+			}
 		}
-		else if (name == szCollabSwitchingPasswordProtected) // shm added 2Feb12
+		else if (name == szCollabSwitchingPasswordProtected) // whm added 2Feb12
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
@@ -30215,7 +30268,8 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 						}
 						else
 						{
-							m_bCollaborationExpectsFreeTrans = 1;
+							m_bCollaborationExpectsFreeTrans = TRUE;
+							m_bForceCollabExpectsFreeTrans = TRUE; // whm added 9Feb12
 						}
 					}
 					
@@ -30247,6 +30301,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 						msg = msg.Format(msg,m_ForceCollabProjectNames.c_str(),collabEditor.c_str(),invalidProjStr.c_str());
 						wxMessageBox(msg,_T(""),wxICON_WARNING);
 						m_ForceCollabProjectNames.Empty(); // empty the string
+						m_bForceCollabExpectsFreeTrans = FALSE;
 					}
 				}
 				else
@@ -30259,6 +30314,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 					msg = msg.Format(msg,m_ForceCollabProjectNames.c_str(),collabEditor.c_str());
 					wxMessageBox(msg,_T(""),wxICON_WARNING);
 					m_ForceCollabProjectNames.Empty(); // empty the string
+					m_bForceCollabExpectsFreeTrans = FALSE;
 				}
 			}
 			else
@@ -30332,8 +30388,8 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 				} // end of if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 				else
 				{
-					// Collaboration is turned OFF, so check to see if there is a suitable
-					// regular AI project that can be preselected when the wizard appears.
+					// Collaboration is turned OFF, so that the designated AI project will 
+					// be preselected when the wizard appears.
 					// The selection of a project in the projectPage is based on the value
 					// contained in the App's m_curProjectName member
 					m_curProjectName = m_ForceAIProjectName;
