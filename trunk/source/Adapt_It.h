@@ -23,12 +23,13 @@
 
 // a temporary #define for Mike to use when working on DVCS:
 //#define TEST_DVCS
+
 // a symbolic menuID for the commands Mike will use (menu item appended to bottom of Help menu)
 const int ID_MENU_DVCS_TESTS = 999;
 
 // Action codes for calling the DVCS:
-
 enum{ DVCS_CHECK };     // More to be added as they come up
+
 
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
