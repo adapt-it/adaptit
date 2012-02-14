@@ -8939,6 +8939,51 @@ wxSizer *KBExportImportOptionsFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("You have selected this Adapt It project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_SELECTED_AI_PROJECT, _("Nyindrou to English adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("Options for entering this project:") );
+    wxStaticBoxSizer *item4 = new wxStaticBoxSizer( item5, wxVERTICAL );
+
+    wxRadioButton *item6 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Turn Collaboration ON - exchange texts with %s while I work"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Turn Collaboration OFF - I want to work on non-Scripture texts"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("Turn Read-Only Mode ON - I'm an advisor or consultant and just want to view the user's texts"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item10 = new wxButton( parent, ID_BUTTON, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
