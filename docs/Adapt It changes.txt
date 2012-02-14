@@ -120,6 +120,10 @@ is now fixed.
 Text Exports was being ignored resulting in all such exports
 being produced in portrait. It is now possible to export
 Interlinear documents in Landscape orientation.
+* The OK and Cancel buttons in the collaboration related
+dialogs were located in reversed order of the default
+arrangement for Windows. They are now in the default order
+arrangement.
 
 ----------------------------------------------
 Version 6.1.0 release 20 December 2011
