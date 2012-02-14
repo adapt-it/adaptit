@@ -19338,17 +19338,18 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// BEW 25Nov09, to allow pack doc but to use the m_bReadOnlyAccess flag to suppress
 /// doing a project config file write and a doc save, but instead to just take the project
 /// config file and doc files as they currently are on disk in order to do the pack
-/// whm 14Jul11 revised for when navigation protection is ON for the _PACKED_INPUTS_OUTPUTS
-/// folder. Note: The Pack Document... and the Unpack Document... commands are not available
+/// whm 12Feb12 revised to allow the Pack Document... command to be enabled when collaboration.
+/// I think the "Pack Document..." menu item was mistakenly disabled when collaboration is
+/// active. It should only be the "Unpack Document..." command that should be disabled when
 /// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
-	{
-		event.Enable(FALSE);
-		return;
-	}
+	//if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
