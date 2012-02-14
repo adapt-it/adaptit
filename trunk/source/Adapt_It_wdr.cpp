@@ -8056,13 +8056,12 @@ wxSizer *SetupEditorCollaborationFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item61 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item62 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item62 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item61->Add( item62, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item61->Add( 60, 15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item63 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item63->SetDefault();
+    wxButton *item63 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item61->Add( item63, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item61->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -8180,12 +8179,12 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item28 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item27->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item29 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item29 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item27->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -8366,13 +8365,13 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
 
     item47->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item50 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item50 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item50->SetDefault();
     item47->Add( item50, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item47->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item51 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item51->SetDefault();
+    wxButton *item51 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item47->Add( item51, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item47, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8746,7 +8745,7 @@ wxSizer *SelectCollabProjectsDialogFunc( wxWindow *parent, bool call_fit, bool s
 
     item28->Add( item32, 0, wxGROW|wxALL, 0 );
 
-    wxTextCtrl *item35 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_AI_PROJ_NAME, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    wxTextCtrl *item35 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_AI_PROJ_NAME, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
     item28->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item22->Add( item28, 1, wxGROW|wxALIGN_BOTTOM|wxALL, 0 );
