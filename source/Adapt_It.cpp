@@ -37248,7 +37248,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 			}
 		}
 		wxASSERT(!userProfiileStr.IsEmpty());
-		wxString msg = _T("At your choice Adapt It temporarily set the user profile to \"None\" to allow you to access all menu items. Before showing you the User Workflow Profiles dialog, Adapt It is now switching back to the %s user profile which was in effect when this session of Adapt It started up.");
+		wxString msg = _T("At your choice Adapt It temporarily set the user profile to \"None\" to allow you to access all menu items. Before showing you the User Workflow Profiles dialog, Adapt It is now switching back to the \"%s\" user profile which was in effect when this session of Adapt It started up.");
 		msg = msg.Format(msg,userProfiileStr.c_str());
 		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 		
