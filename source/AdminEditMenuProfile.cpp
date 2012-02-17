@@ -263,9 +263,11 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// the config file's value for the saved user workflow profile (from 
 		// m_pApp->m_nWorkflowProfile) was invalid, so set the temporary value
 		// to zero, i.e., the "None" profile.
-		tempWorkflowProfile = 0;
 		// Not likely to happen so use English message
-		wxMessageBox(_T("The user workflow profile value saved in the project configuration file was out of range (%d).\nA value of 0 (= \"None\") will be used instead."),_T(""),wxICON_WARNING);
+		wxString msg = _T("The user workflow profile value saved in the project configuration file was out of range (%d).\nA value of 0 (= \"None\") will be used instead.");
+		msg = msg.Format(msg,tempWorkflowProfile);
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		tempWorkflowProfile = 0;
 	}
 	// Get the indices for the current workflow profile value
 	if (tempWorkflowProfile > 0)
@@ -1436,6 +1438,11 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 		CopyUserProfiles(tempUserProfiles, m_pApp->m_pUserProfiles);
 	}
 	
+	// Restore the m_bAiSessionExpectsUserDefinedProfile flag to its administrator
+	// set value. The value of the flag should be TRUE when m_nWorkflowProfile is
+	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
+	m_pApp->m_bAiSessionExpectsUserDefinedProfile = (m_pApp->m_nWorkflowProfile != 0);
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 	
