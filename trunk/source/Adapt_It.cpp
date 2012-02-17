@@ -5369,6 +5369,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_SETUP_EDITOR_COLLABORATION, CAdapt_ItApp::OnUpdateSetupEditorCollaboration)
 	//EVT_MENU(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnPasswordProtectCollaborationSwitching)
 	//EVT_UPDATE_UI(ID_PASSWORD_PROTECT_COLLAB_SWITCHING, CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching)
+	EVT_MENU(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnTempRestoreUserProfiles) // whm added 14Feb12
+	EVT_UPDATE_UI(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, CAdapt_ItApp::OnUpdateTempRestoreUserProfiles) // whm added 14Feb12
 	EVT_MENU(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnEditUserMenuSettingsProfiles)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
@@ -9039,6 +9041,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// whm added 20Jul11 to initialize the View menu's "Show Administrator Menu... (Password protected)" item
 	if (pMenuBar->FindItem(ID_VIEW_SHOW_ADMIN_MENU) != NULL)
 		pMenuBar->Check(ID_VIEW_SHOW_ADMIN_MENU,m_bShowAdministratorMenu);
+	if (pMenuBar->FindItem(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE) != NULL)
+		pMenuBar->Check(ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE,m_bTemporarilyRestoreProfilesToDefaults); // whm added 14Feb12
 	//if (pMenuBar->FindItem(ID_PASSWORD_PROTECT_COLLAB_SWITCHING) != NULL) // whm added 2Feb12
 	//	pMenuBar->Check(ID_PASSWORD_PROTECT_COLLAB_SWITCHING,m_bPwdProtectCollabSwitching);
     // ensure that the Use Tooltips menu item in the Help menu is checked or unchecked
@@ -12875,6 +12879,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_nWorkflowProfile = 0; // default value is for "None" unless changed by the
 							// value stored in the basic and/or config files.
+	
+	m_nTempWorkflowProfile = -1; // -1 is the default and means no profile value is
+								 // being saved for restoration. The only time this
+								 // int value will not be -1 is when the value of
+								 // m_bTemporarilyRestoreProfilesToDefaults is TRUE.
+	m_bTemporarilyRestoreProfilesToDefaults = FALSE; // whm added 14Feb12
+	m_bAiSessionExpectsUserDefinedProfile = FALSE; // whm added 15Feb12
 
  	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back
 								  // translating, via a frm switch for a launch from the
@@ -17511,6 +17522,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	{
 		ConfigureInterfaceForUserProfile();
 	}
+
+	// Config file's value for user work profile has been read in, so set the 
+	// m_bAiSessionExpectsUserDefinedProfile flag to its initial session state here
+	// in OnInit(). The value of the flag should be TRUE when m_nWorkflowProfile is
+	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
+	m_bAiSessionExpectsUserDefinedProfile = (m_nWorkflowProfile != 0);
 
 	// whm 28Jul11 moved the initialization of m_bShowAdministratorMenu here before the
 	// call to MakeMenuInitializationsAndPlatformAdjustments().
@@ -25053,6 +25070,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	// whm added 3Sep10 for user workflow profile support
+	// whm modified 15Feb12 to restore the value of m_nWorkflowProfile
+	// to its value that it was before any temporary state was set
+	// according to the m_bAiSessionExpectsUserDefinedProfile flag and
+	// the value stored in m_nTempWorkflowProfile as long as m_nTempWorkflowProfile
+	// isn't undefined (-1).
+	if (m_nTempWorkflowProfile != -1 && m_bAiSessionExpectsUserDefinedProfile)
+	{
+		m_nWorkflowProfile = m_nTempWorkflowProfile;
+	}
 	data.Empty();
 	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
@@ -27726,6 +27752,11 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	{
 		m_nWorkflowProfile = nTempUserProfile;
 	}
+	
+	// Restore the m_bAiSessionExpectsUserDefinedProfile flag to its administrator
+	// set value. The value of the flag should be TRUE when m_nWorkflowProfile is
+	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
+	m_bAiSessionExpectsUserDefinedProfile = (m_nWorkflowProfile != 0);
 
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
@@ -28265,6 +28296,20 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	// whm added 3Sep10 for user workflow profile support
+	// whm modified 15Feb12 to deal with the case in which an administrator
+	// has toggled on the "Temporarily restore all default user profile items..."
+	// menu item on the Administrator menu.
+	// If the AI session was set by the config file to have a user profile other
+	// than "None" we need to restore the value of m_nWorkflowProfile 
+	// to its value that it was before the temporary state was set to show all
+	// menu items. When the value of the m_bAiSessionExpectsUserDefinedProfile flag 
+	// is TRUE at this point, we need to assign m_nWorkflowProfile with the temporary
+	// value in we saved in m_nTempWorkflowProfile - as long as m_nTempWorkflowProfile
+	// isn't undefined (-1).
+	if (m_nTempWorkflowProfile != -1 && m_bAiSessionExpectsUserDefinedProfile)
+	{
+		m_nWorkflowProfile = m_nTempWorkflowProfile;
+	}
 	data.Empty();
 	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
@@ -37088,6 +37133,72 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 //	// TODO:
 //}
 
+// whm added the next two handlers 14Feb12
+void CAdapt_ItApp::OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event)
+{
+	// Enable the menu item as long as m_bAiSessionExpectsUserDefinedProfile is TRUE.
+	// Note: The m_bAiSessionExpectsUserDefinedProfile flag is FALSE at initial program
+	// startup, but would be set to TRUE if, when reading the basic config file, the
+	// WorkflowProfile value there is a non-zero value. The flag could be set back to
+	// false during the current session if the administrator were to access the 
+	// Administrator menu's "User Workflow Profiles..." menu and change the user profile
+	// setting s back to "None".
+	if (m_bAiSessionExpectsUserDefinedProfile)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
+{
+	// This is the menu handler for the "Temporarily restore all default user profile items..."
+	// menu item on the Administrator menu. It is a toggle menu that toggles checked ON or OFF
+	// depending on the value of the m_bTemporarilyRestoreProfilesToDefaults boolean flag.
+	// 
+	// Note: we do NOT change the value of m_bAiSessionExpectsUserDefinedProfile
+	// here nor in the else block below, since it is to reflect what the normal session
+	// expects, not the temporary state as is done in this handler.
+	if (m_bTemporarilyRestoreProfilesToDefaults)
+	{
+		// The "Temporarily restore all default user profile items..." menu item is toggled
+		// on, so turn it off and reset any user profile setting (other than None) that
+		// was in effect previously to the value stored in the App's m_nTempWorkflowProfile
+		// variable.
+		wxASSERT(m_nTempWorkflowProfile != -1);
+		m_nWorkflowProfile = m_nTempWorkflowProfile;
+		m_nTempWorkflowProfile = -1;
+		// reset the user profile using saved setting that was in effect previously and which 
+		// is held in the m_nTempWorkflowProfile variable.
+		ConfigureInterfaceForUserProfile(); // sets the profile to the value in m_nWorkflowProfile
+		// Toggle the check state of the menu item to unticked.
+		m_bTemporarilyRestoreProfilesToDefaults = FALSE;
+		MakeMenuInitializationsAndPlatformAdjustments();
+		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+		// change was temporary.
+		// Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
+		// block of the OnEditUserMenuSettingsProfiles() handler - the code for the profile change
+		// should be the same.
+	}
+	else
+	{
+		// The "Temporarily restore all default user profile items..." menu item is toggled
+		// off, so turn it on, and set all menu items, etc to their visible defaults
+		wxASSERT(m_nWorkflowProfile != -1);
+		m_nTempWorkflowProfile = m_nWorkflowProfile; // save the current setting in the temp value
+		m_nWorkflowProfile = 0; // 0 is the "None" profile which shows all interface elements
+		ConfigureInterfaceForUserProfile();  // sets the profile to the value in m_nWorkflowProfile
+		// Toggle the check state of the menu item to ticked.
+		m_bTemporarilyRestoreProfilesToDefaults = TRUE;
+		MakeMenuInitializationsAndPlatformAdjustments(); 
+		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+		// change is goin to be temporary.
+	}
+}
+
 void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 {
 	// whm 19Sep11 modified. The "User Workflow Profiles..." menu item should
@@ -37113,6 +37224,50 @@ void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))
 {
 	LogUserAction(_T("Initiated OnEditUserMenuSettingsProfiles()"));
+	// whm added 17Feb12. If the administrator has made the Administrator
+	// menu's "Turn OFF the current user profile temporarily" active so that
+	// we are temporarily in the "None" user profile, then we unilaterally 
+	// set the Admin's normal setting of the user profile to what it normally
+	// is, and notify the administrator of what we have done.
+	if (m_bTemporarilyRestoreProfilesToDefaults)
+	{
+		wxASSERT(m_nTempWorkflowProfile > 0); // m_bTemporarilyRestoreProfilesToDefaults should not be 0 ("None") or -1 (undefined)
+		// Determine the name of the m_nTempWorkflowProfile from the m_pUserProfiles struct on the heap.
+		wxString userProfiileStr = _T("");
+		if (m_pUserProfiles != NULL)
+		{
+			int count;
+			int item_count = (int)m_pUserProfiles->definedProfileNames.GetCount();
+			for(count = 0; count < item_count; count++)
+			{
+				if ((m_nTempWorkflowProfile - 1) == count) // Note: must compare count with m_nTempWorkProfile - 1
+				{
+					userProfiileStr = m_pUserProfiles->definedProfileNames.Item(count);
+					break;
+				}
+			}
+		}
+		wxASSERT(!userProfiileStr.IsEmpty());
+		wxString msg = _T("At your choice Adapt It temporarily set the user profile to \"None\" to allow you to access all menu items. Before showing you the User Workflow Profiles dialog, Adapt It is now switching back to the %s user profile which was in effect when this session of Adapt It started up.");
+		msg = msg.Format(msg,userProfiileStr.c_str());
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		
+		// switch the interface back to the "normal" one as defined previously by the administrator
+		// Note: The code below must be the same as in the if (m_bTemporarilyRestoreProfilesToDefaults)
+		// block in OnTempRestoreUserProfiles() menu handler.
+		wxASSERT(m_nTempWorkflowProfile != -1);
+		m_nWorkflowProfile = m_nTempWorkflowProfile;
+		m_nTempWorkflowProfile = -1;
+		// reset the user profile using saved setting that was in effect previously and which 
+		// is held in the m_nTempWorkflowProfile variable.
+		ConfigureInterfaceForUserProfile(); // sets the profile to the value in m_nWorkflowProfile
+		// Toggle the check state of the menu item to unticked.
+		m_bTemporarilyRestoreProfilesToDefaults = FALSE;
+		MakeMenuInitializationsAndPlatformAdjustments();
+		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
+		// change was temporary.
+	}
+	
 	CAdminEditMenuProfile editMenuDlg(GetMainFrame());
 	editMenuDlg.Center();
 	if (editMenuDlg.ShowModal() == wxID_OK)

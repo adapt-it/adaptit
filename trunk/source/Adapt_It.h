@@ -2919,6 +2919,28 @@ public:
 									// value is 0 (zero). This value is also saved in the
 									// basic and project config files as "WorkflowProfile N"
 									// where N is the string value of the int.
+	bool m_bTemporarilyRestoreProfilesToDefaults; // Flag that is FALSE by default and at each program // whm added 14Feb12
+									// launch. Its value is not saved in a config file because it should
+									// revert to default of FALSE on each launch. It is set TRUE
+									// on a temporary basis by toggling the Administrator menu's
+									// "Temporarily restore all default user profile items..." item.
+									// It can be reset to FALSE by untoggling the same menu item.
+									// This feature was added at Kim B.'s request so that an
+									// administrator can temporarily get default menus to be seen
+									// while working on a user's computer system.
+	bool m_bAiSessionExpectsUserDefinedProfile; // The m_bAiSessionExpectsUserDefinedProfile flag 
+									// is FALSE at initial program startup, but would be set to TRUE if, 
+									// when reading the basic config file, the WorkflowProfile value 
+									// there is a non-zero value. The flag could be set back to false 
+									// during the current session if the administrator were to access 
+									// the Administrator menu's "User Workflow Profiles..." menu and 
+									// change the user profile setting s back to "None".
+	int m_nTempWorkflowProfile;		// A variable to save temporarily the m_nWorkflowProfile value
+									// while the m_bTemporarilyRestoreProfilesToDefaults (above) is TRUE.
+									// The value of m_nTempWorkflowProfile is always -1 while the value
+									// of m_bTemporarilyRestoreProfilesToDefaults is FALSE. Its value is
+									// set to -1 by default on each program launch in OnInit(), and its
+									// value is not saved in any config file.
 	AI_MenuStructure* m_pAI_MenuStructure; // a struct on the heap that conatins the default
 									// AI menu structure used to reconstruct the default menu
 									// structure when changing profiles or when the "None"
@@ -3249,6 +3271,8 @@ public:
 	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
 	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
 	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
+	void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
+	void OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event); // whm added 14Feb12
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
 	void OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event));

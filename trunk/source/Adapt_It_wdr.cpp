@@ -8983,6 +8983,342 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     return item0;
 }
 
+wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+
+    item4->Add( 10, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_AI_CAN_ASSOCIATE_PROJECTS, _("Use this dialog to setup one or more collaboration scenarios between Adapt It projects and %s projects."), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    item6->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_STATIC_SELECT_SUITABLE_AI_PROJECT, _("1. Select an existing AI project from drop-down list below; or click on \"Create New Adapt It Project\" for this collaboration setup:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    item8->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxString *strs9 = (wxString*) NULL;
+    wxComboBox *item9 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 0, strs9, wxCB_DROPDOWN );
+    item9->SetToolTip( _("Click Here to open the list of Adapt It projects, or to create a new Adapt It project for collaboration purposes") );
+    item8->Add( item9, 1, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item8->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item10 = new wxButton( parent, ID_BUTTON_CREATE_NEW_AI_PROJECT, _("Create New Adapt It Project"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item11 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item3->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    item12->Add( 10, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT_STATIC_LIST_OF_PROJECTS, _("2. Ensure %s projects exist in the list below that can collaborate with the above Adapt It project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    item14->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxString *strs15 = (wxString*) NULL;
+    wxListBox *item15 = new wxListBox( parent, IDC_LIST_OF_COLLAB_PROJECTS, wxDefaultPosition, wxSize(400,80), 0, strs15, wxLB_SINGLE );
+    item15->SetToolTip( _("List of potential projects currently available for Adapt It use") );
+    item14->Add( item15, 1, wxGROW|wxALL, 0 );
+
+    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+
+    item16->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_TOP_NOTE, _("Important: Adapt It requires that %s has at least two projects: One project for obtaining source texts, and a different %s project for receiving adapted texts from Adapt It. You should set up all %s projects needed for collaboration with Adapt It before you set up %s collaboration using this dialog."), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    item16->Add( item17, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item2->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item18 = new wxStaticLine( parent, ID_LINE_1, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item2->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+
+    item19->Add( 10, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_STATIC_SELECT_WHICH_PROJECTS, _("3. Select which %s projects Adapt It should use when collaborating."), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( 10, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    item22->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT, _("Get &source texts from this %s project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
+
+    item24->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY );
+    item25->SetToolTip( _("Use the button at right to select a default project for user to obtain source texts") );
+    item24->Add( item25, 0, wxGROW|wxALL, 0 );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, _("Select from &List"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Click this button to select a default project to put in the box at left") );
+    item24->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item24->Add( 15, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxRadioButton *item27 = new wxRadioButton( parent, ID_RADIO_BY_CHAPTER_ONLY, _("Get by Chapter Only (Recommended)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetValue( TRUE );
+    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxRadioButton *item28 = new wxRadioButton( parent, ID_RADIO_BY_WHOLE_BOOK, _("Get by Whole Book"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item21->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
+
+    item29->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item30 = new wxStaticText( parent, ID_TEXT_STATIC_TARGET_TO_THIS_PROJECT, _("Transfer &translation drafts to this %s project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item21->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
+
+    item31->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item32 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_TGT_PROJ, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY );
+    item32->SetToolTip( _("Use the button at right to select a default project for user where translated texts will be transferred") );
+    item31->Add( item32, 0, wxGROW|wxALL, 0 );
+
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, _("Select from L&ist"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Click this button to select a default project to put in the box at left") );
+    item31->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item21->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
+
+    item34->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT_STATIC_TO_THIS_FT_PROJECT, _("Transfer &free translations to this %s project (optional):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item35, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item21->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item36 = new wxBoxSizer( wxHORIZONTAL );
+
+    item36->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item37 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_FREE_TRANS_PROJ, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY );
+    item37->SetToolTip( _("Use the button at right to select a default project for user where free translation texts will be transferred") );
+    item36->Add( item37, 0, wxGROW|wxALL, 0 );
+
+    wxButton *item38 = new wxButton( parent, ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ, _("Select from Li&st"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item39 = new wxBoxSizer( wxHORIZONTAL );
+
+    item39->Add( 15, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item40 = new wxButton( parent, ID_BUTTON_NO_FREE_TRANS, _("No Free Translation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->Add( item40, 0, wxALIGN_CENTER, 0 );
+
+    item36->Add( item39, 0, wxGROW|wxALL, 0 );
+
+    item21->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item41 = new wxBoxSizer( wxHORIZONTAL );
+
+    item41->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item42 = new wxCheckBox( parent, ID_CHECKBOX_PASSWORD_PROTECT_COLLAB_SWITCHING, _("Password protect collaboration switching by user"), wxDefaultPosition, wxDefaultSize, 0 );
+    item42->SetToolTip( _("When ticked you provide a password that the user will have to enter before switching collaboration projects") );
+    item41->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item41->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item43 = new wxButton( parent, ID_BUTTON_SET_PASSWORD_FOR_COLLAB_SWITCHING, _("Set password for collaboration switching..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item41->Add( item43, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item21->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item44 = new wxStaticLine( parent, ID_LINE_2, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item2->Add( item44, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item45 = new wxBoxSizer( wxHORIZONTAL );
+
+    item45->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, _("4. "), wxDefaultPosition, wxDefaultSize, 0 );
+    item45->Add( item46, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item47 = new wxButton( parent, ID_BUTTON_SAVE_SETUP_FOR_THIS_PROJ_NOW, _("Save Setup for this Collaboration Project Now"), wxDefaultPosition, wxDefaultSize, 0 );
+    item45->Add( item47, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item45->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item48 = new wxButton( parent, ID_BUTTON_UNDO_CHANGES_FOR_THIS_SETUP, _("Undo Changes Made in this Setup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item45->Add( item48, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item45, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item49 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item50 = new wxBoxSizer( wxHORIZONTAL );
+
+    item50->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item51 = new wxStaticText( parent, ID_TEXT, _("After saving as many collaboration setups as you want, click OK to close this dialog and test your setups."), wxDefaultPosition, wxDefaultSize, 0 );
+    item50->Add( item51, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item49->Add( item50, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item52 = new wxBoxSizer( wxHORIZONTAL );
+
+    item52->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item53 = new wxStaticText( parent, ID_TEXT, _("Test your collaboration setup(s) by opening the Adapt It project (showing in 1. above) in the Start Working Wizard."), wxDefaultPosition, wxDefaultSize, 0 );
+    item52->Add( item53, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item49->Add( item52, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item54 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item55 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item54->Add( item55, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item54->Add( 60, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item56 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item54->Add( item56, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item54->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item54, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("To create a new Adapt It project for collaboration with %s please supply the following language names:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    item3->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxFlexGridSizer *item4 = new wxFlexGridSizer( 2, 2, 5 );
+    item4->AddGrowableCol( 1 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_SRC_NAME_LABEL, _("The Name of the Language Used in Source Texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_LANG_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Adapt It will use this language name along with the target language name below to form its project folder") );
+    item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_TGT_NAME_LABEL, _("The Name of the Language Used in Target Texts:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT_LANG_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetToolTip( _("Adapt It will use this language name along with the source language name above to form its project folder") );
+    item4->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME, _("The new Adapt It Project Name will be:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_NEW_AI_PROJ_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Note: The Adapt It Project's fonts and other preferences can be set up later using Adapt It's Preferences."), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item13 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item12->Add( 60, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item14 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item12->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -9127,6 +9463,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup %s Collaboration..."), _("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project for exporting its (target) texts") );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
+    item9->Append( ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, _("&Turn OFF the current user profile temporarily"), _("When ticked no user profiles will be in effect until program restart or until unticked; and all menus will be accessible"), wxITEM_CHECK );
     item9->AppendSeparator();
     item9->Append( ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS, _("&Assign Locations For Inputs and Outputs..."), _("Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system") );
     item9->AppendSeparator();
