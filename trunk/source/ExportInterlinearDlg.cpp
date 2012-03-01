@@ -152,6 +152,10 @@ CExportInterlinearDlg::CExportInterlinearDlg(wxWindow* parent) // dialog constru
 	pEditToVerse = (wxTextCtrl*)FindWindowById(IDC_EDIT_TO_VERSE);
 	//pEditToVerse->SetValidator(wxGenericValidator(&m_nToVerse));
 	
+	// whm added 21Feb12
+	pCheckUsePrefixExportProjNameOnFilename = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PREFIX_EXPORT_PROJ_NAME);
+	wxASSERT(pCheckUsePrefixExportProjNameOnFilename != NULL);
+	
 	// whm added 9Dec11
 	pCheckUsePrefixExportTypeOnFilename = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PREFIX_EXPORT_TYPE);
 	wxASSERT(pCheckUsePrefixExportTypeOnFilename != NULL);
@@ -272,6 +276,7 @@ void CExportInterlinearDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	pEditToVerse->ChangeValue(tempStr);
 	
 	// initialize the values of the checkboxes from the App's values
+	pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
 	pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
 	pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
 	// Note: the caller DoExportInterlinearRTF() accesses the above two checkbox values and may
@@ -391,6 +396,7 @@ void CExportInterlinearDlg::OnOK(wxCommandEvent& event)
 	m_nToVerse = wxAtoi(tempStr);
 	
 	// save the values to the flags on the App for saving in the basic config file
+	gpApp->m_bUsePrefixExportProjectNameOnFilename = pCheckUsePrefixExportProjNameOnFilename->GetValue();
 	gpApp->m_bUsePrefixExportTypeOnFilename = pCheckUsePrefixExportTypeOnFilename->GetValue();
 	gpApp->m_bUseSuffixExportDateTimeOnFilename = pCheckUseSuffixExportDateTimeStamp->GetValue();
 	

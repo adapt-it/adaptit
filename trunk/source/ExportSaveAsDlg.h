@@ -35,6 +35,7 @@ public:
 	bool m_ExportToRTF;
 	wxString m_StaticTitle;
 	wxStaticText* pStaticTitle;
+	wxCheckBox* pCheckUsePrefixExportProjNameOnFilename;
 	wxCheckBox* pCheckUsePrefixExportTypeOnFilename;
 	wxCheckBox* pCheckUseSuffixExportDateTimeStamp;
 	wxRadioButton* pExportAsSfm;

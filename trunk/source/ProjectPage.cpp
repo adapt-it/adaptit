@@ -66,6 +66,8 @@
 #include "Adapt_ItDoc.h"
 #include "MainFrm.h"
 #include "WaitDlg.h"
+#include "ChooseCollabOptionsDlg.h"
+#include "GetSourceTextFromEditor.h"
 
 // globals
 
@@ -86,6 +88,9 @@ extern CAdapt_ItApp*	gpApp; // if we want to access it fast
 
 /// This global is defined in Adapt_It.cpp.
 extern bool gbWizardNewProject; // for initiating a 4-page wizard
+
+/// This global is defined in Adapt_It.cpp
+extern wxString szProjectConfiguration;
 
 IMPLEMENT_DYNAMIC_CLASS( CProjectPage, wxWizardPage )
 
@@ -400,35 +405,6 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 		return;
 	}
 
-	//nSel = m_pListBox->GetSelection();
-
-	// whm: With the use of ListBoxPassesSanityCheck() above the following code block is no longer
-	// necessary. 
-	//if (nSel == -1) //LB_ERR
-	//{
-	//	// under wxGTK the user can deselect all items in the list so we'll check for that
-	//	// possibility; if there are more items in the list (other than <New Project>), we'll
-	//	// veto the page change until the user selects something; if there is only one item
-	//	// in the list, we know it must be <New Project> and will assume that item is what the
-	//	// user intended and select it automatically if it is not selected.
-	//	if (m_pListBox->GetCount() > 1)
-	//	{
-	//		wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
-	//		event.Veto();
-	//		return;
-	//	}
-	//	else
-	//	{
-	//		wxASSERT(m_pListBox->GetCount() == 1);
-	//		// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it 
-	//		// is the only item listed (GetCount should have returned 1), we assume the user wants to 
-	//		// start a <New Project>, so we'll select it for him automatically and allow the page to 
-	//		// change with <New Project> selected.
-	//		m_pListBox->SetSelection(0);
-	//		nSel = m_pListBox->GetSelection();
-	//		wxASSERT(nSel == 0);
-	//	}
-	//}
 	m_projectName = m_pListBox->GetStringSelection();
 
 	// there might be a KB open currently (eg. just returned via the <Back button) so ensure 
@@ -440,20 +416,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	{
 		UnloadKBs(pApp);
 	}
-	/*
-	if (pApp->m_pKB != NULL)
-	{
-		delete pApp->m_pKB;
-		pApp->m_bKBReady = FALSE;
-		pApp->m_pKB = (CKB*)NULL;
-	}
-	if (pApp->m_pGlossingKB != NULL)
-	{
-		delete pApp->m_pGlossingKB;
-		pApp->m_bGlossingKBReady = FALSE;
-		pApp->m_pGlossingKB = (CKB*)NULL;
-	}
-	*/
+
 	if (bMovingForward) // we can only move forward from the projectPage
 	{
 		// user selected "Next >"
@@ -489,6 +452,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 		}
 		else
 		{
+			// Note: The name of the project entered is stored in the local m_projectName
+			// variable
+			// 
 			// it's an existing project, so we'll create KBs for it and show only the
 			// two-page wizard (Project Page and Doc Page)
 
@@ -531,20 +497,163 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					wxString msg = _T("Unable to create an Adaptations folder within the %s project folder");
 					msg = msg.Format(msg,pApp->m_curProjectName.c_str());
 					wxMessageBox(msg,_T(""),wxICON_WARNING);
+					event.Veto();
 					return;
 				}
 			}
 
-			// BEW moved to here, 19Aug05, so that m_bSaveAsXML flag is read back in before we
-			// try to set up the KB files.
-			// Get project configuration from the config files in the project folder & set up fonts,
-			// punctuation settings, colours, and default cc table path as per those files; and set
-			// book mode on or off depending on what is in the config file, etc.
-			//CAdapt_ItDoc* pDoc = pApp->GetDocument();
-			//wxASSERT(pDoc);
+			// Read the project config file for all of the project settings including the
+			// project-specific collaboration settings to be in effect when 
+			// GetSourceTextFromEditorDlg dialog is invoked after the wizard terminates below. 
+			// When the collaboration-related settings were stored app-wide in the basic 
+			// configuration file, it would have been read in its entirety before invoking
+			// the GetSourceTextFromEditorDlg dialog.
 			gpApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
-			// BEW changes 19Aug05 for XML versus binary support...
+			// whm modified 18Feb12. Now that the project config file has been read we 
+			// can determine what the collaboration settings are for this AI project. If
+			// collaboration with PT/BE has been setup by the administrator for hooking
+			// up with this project, we query the user if s/he wants to turn collaboration
+			// ON, OFF, or (for advisors/consultants mainly) open the project read-only.
+			// We query via the ChooseCollabOptionsDlg dialog.
+			if (pApp->AIProjectIsACollabProject(m_projectName))
+			{
+				CChooseCollabOptionsDlg collabOptDlg(this);
+				collabOptDlg.Center();
+				collabOptDlg.m_aiProjName = m_projectName;
+				if (collabOptDlg.ShowModal() == wxID_CANCEL)
+				{
+					// We don't need to revert any project configuration settings before return 
+					// from a Cancel because the AIProjectIsACollabProject() function called at
+					// the top of this block did not assign any configuration settings when it
+					// snooped in the m_projectName's project config file.
+					// Call the wxWizard's Veto() method here before the return is executed. It
+					// causes control to go back to the wizard just as it was before the "Next >"
+					// button was pressed, so the user can choose the same or different AI project
+					// again.
+					event.Veto();
+					return;
+				}
+				else
+				{
+					// The user made a selection. Get the selection and handle it
+					// Note: The collabOptDlg.m_bEditorIsAvailable is set in the CChooseCollabOptionsDlg
+					// based on the value of the App's m_bParatextIsInstalled and m_bBibleditIsInstalled 
+					// flags.
+					if (collabOptDlg.m_bRadioSelectCollabON && collabOptDlg.m_bEditorIsAvailable)
+					{
+						// Make sure that book folder mode is OFF.
+						if (pApp->m_bBookMode)
+						{
+							// Quietly turn if off. When an administrator sets up a collaboration project
+							// the App turns book folder mode off, but just in case someone edited the project
+							// config file to turn it back on, we'll play safe here
+							pApp->m_bBookMode = FALSE;
+							pApp->m_nBookIndex = -1;
+							pApp->m_nDefaultBookIndex = 39;
+							pApp->m_nLastBookIndex = 39;
+						}
+
+						// The user selected to "Turn Collaboration ON and a collaboration editor is 
+						// available for that purpose. With project-specific collaboration the user now 
+						// determines the values for m_bCollaboratingWithParatext 
+						// and m_bCollaboratingWithBibledit having made that decision in the
+						// CChooseCollabOptionsDlg dialog.
+						if (pApp->m_collaborationEditor == _("Paratext"))
+						{
+							pApp->m_bCollaboratingWithParatext = TRUE;
+						}
+						else if (pApp->m_collaborationEditor == _("Bibledit"))
+						{
+							pApp->m_bCollaboratingWithBibledit = TRUE;
+						}
+						
+						pApp->LogUserAction(_T("Collaboration turned ON by user"));
+						
+						// The user wants to start the collaboration session.
+						// In this case we set the App's m_bJustLaunched flag to cause the 
+						// main frame's OnIdle() method to call DoStartupWizardOnLaunch(), and 
+						// also set the m_bStartWorkUsingCollaboration flag to put up the 
+						// GetSourceTextFromEditorDlg dialog instead of the actual wizard.
+						// Then we kill the current wizard session by calling EndModal().
+						pApp->m_bJustLaunched = TRUE;
+						// This should be the only place in the app where m_bStartWorkUsingCollaboration
+						// is set to TRUE.
+						pApp->m_bStartWorkUsingCollaboration = TRUE;
+
+						// Set the File > Open and File > Save menu items to have the parenthetical information
+						// during collaboration.
+						pApp->MakeMenuInitializationsAndPlatformAdjustments();
+
+						// whm Note: After the wizard closes (below), the GetSourceTextFromEditorDlg dialog
+						// will appear, and when the user clicks OK in that dialog, the HookUpToExistingAIProject()
+						// function there will read the project config file, so we need to save this 
+						// m_bStartWorkUsingCollaboration collaboration setting to the project config file
+						// before leaving this block of control
+						bool bOK;
+						bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+						
+						pStartWorkingWizard->Show(FALSE);
+						pStartWorkingWizard->EndModal(1);
+						pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+						// whm Note: Even though the wizard is being destroyed by the
+						// above calls, the remainder of this OnWizardPageChanging() method
+						// would continue to execute unless we call return at this point.
+						return; // no Veto() called here as we want the wizard to end
+					}
+					else if (collabOptDlg.m_bRadioSelectCollabOFF)
+					{
+						// The user selected to "Turn Collaboration OFF", or a collaboration editor is 
+						// not available.
+						// The user now determines the values for m_bCollaboratingWithParatext 
+						// and m_bCollaboratingWithBibledit and made that decision above.
+						if (pApp->m_collaborationEditor == _("Paratext"))
+						{
+							pApp->m_bCollaboratingWithParatext = FALSE;
+						}
+						else if (pApp->m_collaborationEditor == _("Bibledit"))
+						{
+							pApp->m_bCollaboratingWithBibledit = FALSE;
+						}
+						// The user wants to continue through the wizard with no 
+						// collaboration.
+						
+						pApp->LogUserAction(_T("Collaboration turned OFF by user"));
+						
+						pApp->m_bStartWorkUsingCollaboration = FALSE;
+						
+						// Set the File > Open and File > Save menu items back to their normal
+						// state - without the parenthetical information in the labels.
+						pApp->MakeMenuInitializationsAndPlatformAdjustments();
+					}
+					else if (collabOptDlg.m_bRadioSelectReadOnlyON)
+					{
+						if (pApp->m_collaborationEditor == _("Paratext"))
+						{
+							pApp->m_bCollaboratingWithParatext = FALSE;
+						}
+						else if (pApp->m_collaborationEditor == _("Bibledit"))
+						{
+							pApp->m_bCollaboratingWithBibledit = FALSE;
+						}
+						
+						pApp->LogUserAction(_T("Read-Only Mode turned ON by user"));
+						
+						// The administrator/consultant/user wants to continue through
+						// the wizard with no collaboration, but with any document
+						// opened in read-only mode.
+						pApp->m_bStartWorkUsingCollaboration = FALSE;
+						// TODO: set read-only mode or a flag to do so when doc is opened.
+						
+						// Set the File > Open and File > Save menu items back to their normal
+						// state - without the parenthetical information in the labels.
+						pApp->MakeMenuInitializationsAndPlatformAdjustments();
+					}
+				}
+			}
+
+			// If we get here we are continuing through the wizard page changing process.
+
 			// set up the expected KB and GlossingKB paths etc
 			gpApp->SetupKBPathsEtc();
 
@@ -584,7 +693,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 			}
 
-			// whm 28Aug11 Note: The following code if-else block waw within the
+			// whm 28Aug11 Note: The following code if-else block was within the
 			// KB loading code that existed before using the CreateAndLoadKBs() 
 			// function here in OnWizardPageChanging(). I am putting it here since
 			// it would execute on a successful load of the KB in the old code.

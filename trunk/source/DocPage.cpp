@@ -478,6 +478,22 @@ void CDocPage::OnSetActive()
 	else
 		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_curAdaptionsPath);
 
+	// whm added 23Feb12 When collaboration is ON, we don't display any of the documents
+	// with a "_Collab_" prefix in the docPage's m_pListBox.
+	if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit))
+	{
+		int ct;
+		int tot = possibleAdaptions.GetCount();
+		// remove any "_Collab..." items in reverse wxArrayString order
+		for (ct = tot-1; ct >= 0; ct--)
+		{
+			if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
+			{
+				possibleAdaptions.RemoveAt(ct,1);
+			}
+		}
+	}
+
 	// whm modified 20Oct11 to sort possibleAdaptations before adding the
 	// <New Document> as the first item. This change is needed to get a sorted
 	// list on the Linux port. Windows and Mac seem to grab the list of folders

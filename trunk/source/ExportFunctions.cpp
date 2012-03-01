@@ -384,17 +384,20 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	bool bRTFOutput = FALSE;	// local var - assume SFM output for Source, Target
 								// Glosses or Free Translation text
 	
-	wxString expTypePrefixStr; // an string prefix identifying the type of export
+	wxString expTypePrefixStr; // a string prefix identifying the type of export
 								// it is optionally added depending on value of the App's 
 								// m_bUsePrefixExportTypeOnFilename member
-	
+	wxString expProjNamePrefixStr; // a string prefix identifying the ai project name
+								// it is optionally added depending on value of the App's
+								// m_bUsePrefixExportProjectNameOnFilename member
+
 	// Set export type prefixes in case we need them, log the user action
 	// and set dialog static title.
 	switch (exportType)
 	{
 	case sourceTextExport:
 		{
-			expTypePrefixStr = _("_new_source_text_");
+			expTypePrefixStr = _("new_source_text_");
 			gpApp->LogUserAction(_T("Initiated Export Source Text"));
 			s = _("Export Source Text");
 			sadlg.m_StaticTitle = s;
@@ -402,7 +405,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 	case targetTextExport:
 		{
-			expTypePrefixStr = _("_target_text_");
+			expTypePrefixStr = _("target_text_");
 			gpApp->LogUserAction(_T("Initiated Export Target Text"));
 			s = _("Export Translation (Target) Text");
 			sadlg.m_StaticTitle = s;
@@ -410,7 +413,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 	case glossesTextExport:
 		{
-			expTypePrefixStr = _("_glosses_text_");
+			expTypePrefixStr = _("glosses_text_");
 			gpApp->LogUserAction(_T("Initiated Export Glosses Text"));
 			s = _("Export Glosses As Text");
 			sadlg.m_StaticTitle = s;
@@ -418,7 +421,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 	case freeTransTextExport:
 		{
-			expTypePrefixStr = _("_freetrans_text_");
+			expTypePrefixStr = _("freetrans_text_");
 			gpApp->LogUserAction(_T("Initiated Export Free Trans Text"));
 			s = _("Export Free Translation Text");
 			sadlg.m_StaticTitle = s;
@@ -429,6 +432,14 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	// update the dialog's checkboxes with current App values (redundant: it's done there too)
 	sadlg.pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
 	sadlg.pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
+	sadlg.pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
+
+	// substitute the actual project name string into the %s placeholder
+	expProjNamePrefixStr = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('_');
+	wxString projNameExp;
+	projNameExp = sadlg.pCheckUsePrefixExportProjNameOnFilename->GetLabel();
+	projNameExp = projNameExp.Format(projNameExp, expProjNamePrefixStr.c_str());
+	sadlg.pCheckUsePrefixExportProjNameOnFilename->SetLabel(projNameExp);
 
 	// substitute the actual export type string into the %s placeholder
 	wxString typeExp;
@@ -472,6 +483,10 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		exportFilename.Remove(pos_Collab_,collabPrefix.Length());
 	if (gpApp->m_bUsePrefixExportTypeOnFilename)
 		exportFilename = expTypePrefixStr + exportFilename;
+	// whm 21Feb12 added at Kim's request. Put the src and tgt language names as prefix on exportFilename.
+	if (gpApp->m_bUsePrefixExportProjectNameOnFilename)
+		exportFilename = expProjNamePrefixStr + exportFilename; 
+
 	len = exportFilename.Length();
 
 	// Adjust the export file's extension, the wxFileDialg's filter, and
@@ -1614,16 +1629,23 @@ void DoExportInterlinearRTF()
 	exdlg.m_bPortraitOrientation = gpApp->m_bIsPortraitOrientation;
 
 	// update the dialog's checkboxes with current App values (redundant: it's done there too)
+	exdlg.pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
 	exdlg.pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
 	exdlg.pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
 
+	// substitute the actual project name string into the %s placeholder
+	wxString expProjNamePrefixStr = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('_');
+	wxString projNameExp;
+	projNameExp = exdlg.pCheckUsePrefixExportProjNameOnFilename->GetLabel();
+	projNameExp = projNameExp.Format(projNameExp, expProjNamePrefixStr.c_str());
+	exdlg.pCheckUsePrefixExportProjNameOnFilename->SetLabel(projNameExp);
+
 	// substitute the actual export type string into the %s placeholder
 	wxString typeExp;
-	wxString expTypePrefixStr = _T("_interlinear_");
+	wxString expTypePrefixStr = _T("interlinear_");
 	typeExp = exdlg.pCheckUsePrefixExportTypeOnFilename->GetLabel();
 	typeExp = typeExp.Format(typeExp, expTypePrefixStr.c_str());
 	exdlg.pCheckUsePrefixExportTypeOnFilename->SetLabel(typeExp);
-
 
 	// show the ExportInterlinear dialog
 	if (exdlg.ShowModal() == wxID_OK)
@@ -1679,6 +1701,9 @@ void DoExportInterlinearRTF()
 		exportFilename.Remove(pos_Collab_,collabPrefix.Length());
 	if (gpApp->m_bUsePrefixExportTypeOnFilename)
 		exportFilename = expTypePrefixStr + exportFilename;
+	// whm 21Feb12 added at Kim's request. Put the src and tgt language names as prefix on exportFilename.
+	if (gpApp->m_bUsePrefixExportProjectNameOnFilename)
+		exportFilename = expProjNamePrefixStr + exportFilename; 
 
 	// make a suitable default output filename for the export function
 	int len = exportFilename.Length();

@@ -3831,7 +3831,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		if (reportFilename.Find(_T("_Collab")) == 0)
 		{
 			// the reportFilename has a _Collab prefix
-			reportFilename.Replace(_T("_Collab"),_T("_Retrans_Report"));
+			reportFilename.Replace(_T("_Collab"),_T("Retrans_Report"));
 			reportFilename += _T(".txt");
 		}
 		else

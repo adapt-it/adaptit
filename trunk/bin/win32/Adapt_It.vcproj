@@ -507,6 +507,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ChooseCollabOptionsDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ChooseConsistencyCheckTypeDlg.cpp"
 				>
 			</File>
@@ -560,6 +564,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\CorGuess.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CreateNewAIProjForCollab.cpp"
 				>
 			</File>
 			<File
@@ -980,6 +988,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ChooseCollabOptionsDlg.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ChooseConsistencyCheckTypeDlg.h"
 				>
 			</File>
@@ -1033,6 +1045,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\CorGuess.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CreateNewAIProjForCollab.h"
 				>
 			</File>
 			<File

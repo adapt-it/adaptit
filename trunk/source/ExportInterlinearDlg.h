@@ -49,6 +49,7 @@ public:
 	wxTextCtrl* pEditToChapter;
 	wxTextCtrl* pEditToVerse;
 	wxTextCtrl* pTextCtrlAsStaticExpInterlinear;
+	wxCheckBox* pCheckUsePrefixExportProjNameOnFilename;
 	wxCheckBox* pCheckUsePrefixExportTypeOnFilename;
 	wxCheckBox* pCheckUseSuffixExportDateTimeStamp;
 

@@ -98,9 +98,9 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 2
 #define VERSION_BUILD_PART 0
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 14
-#define VERSION_DATE_MONTH 2
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 10
+#define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.2.0"));
 
@@ -2088,22 +2088,25 @@ public:
                 // seconds)
 	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
 
+	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
+	/* 
 	bool m_bForceCollabModeON; // whm added 17Jan12
 	bool m_bForceCollabModeOFF; // whm added 17Jan12
 	bool m_bForceCollabExpectsFreeTrans; // whm added 9Feb12
-	wxString m_ForceAIProjectName; // whm added 17Jan12
+	wxString m_ForceCollabAIProjectName; // whm added 17Jan12
 	wxString m_ForceCollabProjectNames; // whm added 22Jan12
-	int m_nSavedPTCollabSetting; // whm added 17Jan12
-	int m_nSavedBECollabSetting; // whm added 17Jan12
-	int m_nSavedCollaborationExpectsFreeTrans; // whm added 23Jan12
+	int m_nSavedCollabPTSetting; // whm added 17Jan12
+	int m_nSavedCollabBESetting; // whm added 17Jan12
+	int m_nSavedCollabExpectsFreeTrans; // whm added 23Jan12
 	wxString m_SavedCollabProjectForSourceInputs; // whm added 23Jan12
 	wxString m_SavedCollabProjectForTargetExports; // whm added 23Jan12
 	wxString m_SavedCollabProjectForFreeTransExports; // whm added 23Jan12
-	wxString m_SavedAIProjName; // whm added 17Jan12
+	wxString m_SavedCollabAIProjName; // whm added 17Jan12
 	wxString m_SavedCollabSourceLangName; // whm added 23Jan12
 	wxString m_SavedCollabTargetLangName; // whm added 23Jan12
 	wxString m_SavedCurProjectName; // whm added 26Jan12
 	wxString m_SavedCurProjectPath; // whm added 26Jan12
+	*/
 
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
@@ -3404,6 +3407,7 @@ public:
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
 
+	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
 
 	// whm 17Oct11 removed
@@ -3429,6 +3433,7 @@ public:
 	bool BookHasChapterAndVerseReference(wxString fileAndPath, wxString chapterStr, wxString verseStr);
 
 	void	TransitionWindowsRegistryEntriesTowxFileConfig(); // whm added 2Nov10
+	void	RemoveCollabSettingsFromFailSafeStorageFile(); // whm added 29Feb12
 	wxString InsertEntities(wxString str); // similar to Bruce's function in XML.cpp but takes a wxString and returns a wxString
 	void	LogUserAction(wxString msg);
 	bool	ParatextIsInstalled(); // whm added 9Feb11
@@ -3442,6 +3447,14 @@ public:
 	wxString GetAdaptit_Bibledit_rdwrtInstallDirPath(); // whm added 18Dec11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
+	
+	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
+	//void ForceCollabSettingsFromCommandLineSwitches();
+
+	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray, 
+													   wxArrayString& collabSettingsArray);	
+	bool IsAIProjectOpen();
+	bool AIProjectIsACollabProject(wxString m_projectName);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
 	// members added by BEW 27July11, when moving collab code out of
@@ -3620,7 +3633,9 @@ public:
     // Note: The three methods below had _UNICODE and non Unicode equivalents in the MFC
     // version wxTextFile is Unicode enabled, so we should only need a single version of
     // these in the wxWidgets code.
-	void	GetBasicSettingsConfiguration(wxTextFile* pf);
+	void	GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicConfigHasCollabSettingsData,
+					wxString& collabProjectName);
+	bool	MoveCollabSettingsToProjectConfigFile(wxString collabProjName);
 	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf);
 	void	GetProjectSettingsConfiguration(wxTextFile* pf);
 #ifdef _UNICODE
@@ -3735,8 +3750,8 @@ public:
 	bool		m_bShowAdministratorMenu;
 	wxString	m_adminPassword; // store password here (but not "admin" the latter always
 								 // will work, and is hard-coded)
-	bool		m_bPwdProtectCollabSwitching; // whm added 2Feb12
-	wxString	m_collabSwitchingPassword; // whm added 2Feb12
+	//bool		m_bPwdProtectCollabSwitching; // whm added 2Feb12
+	//wxString	m_collabSwitchingPassword; // whm added 2Feb12
 	bool		m_bAdminMenuRemoved; // TRUE when removed from menu bar, but still on heap
 									 // FALSE when appended (and visible) on the menu bar
 	wxMenu*		m_pRemovedAdminMenu; // store the removed Administrator menu here until needed
@@ -3792,9 +3807,11 @@ public:
 	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES
 
 	bool m_bUsePrefixExportTypeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
-										   // export type (i.e., _target_text_) on export file names
+										   // export type (i.e., target_text_) on export file names
 	bool m_bUseSuffixExportDateTimeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
-										       // export type (i.e., _target_text_) on export file names
+										       // export type (i.e., target_text_) on export file names
+	bool m_bUsePrefixExportProjectNameOnFilename; // whm 21Feb12 added flag to include/exclude prefixing
+											// the ai project name (i.e., Telei-English) on export file names
 
 };
 

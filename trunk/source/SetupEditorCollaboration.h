@@ -3,8 +3,8 @@
 /// \file			SetupEditorCollaboration.h
 /// \author			Bill Martin
 /// \date_created	8 April 2011
-/// \date_revised	30 June 2011
-/// \copyright		2011 Bruce Waters, Bill Martin, SIL International
+/// \date_revised	28 February 2012
+/// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CSetupEditorCollaboration class. 
 /// The CSetupEditorCollaboration class represents a dialog in which an administrator can set up Adapt It to
@@ -34,7 +34,6 @@ public:
 	// corresponding settings on the App.
 	bool m_bTempCollaboratingWithParatext;
 	bool m_bTempCollaboratingWithBibledit;
-	bool m_projectSelectionMade;
 	wxString m_TempCollabProjectForSourceInputs;
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
@@ -43,25 +42,24 @@ public:
 	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	bool m_bTempCollaborationExpectsFreeTrans;
-	bool m_bTempPwdProtectCollabSwitching;
-	wxString m_TempCollabSwitchingPassword;
+	wxString m_TempCollabBookSelected;
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnOK(wxCommandEvent& event);
+	void OnClose(wxCommandEvent& event); // void OnOK(wxCommandEvent& event);
 	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
-	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
-	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event));
-	void OnPwdProtectCollabSwitching(wxCommandEvent& WXUNUSED(event));
-	void OnBtnSetPwdForCollabSwitching(wxCommandEvent& WXUNUSED(event));
+	void OnCreateNewAIProject(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
+	void OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
+	void OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
+	void SetStateOfRemovalButton();
 
 private:
 
@@ -71,33 +69,24 @@ private:
 	wxTextCtrl* pTextCtrlAsStaticSelectedSourceProj;
 	wxTextCtrl* pTextCtrlAsStaticSelectedTargetProj;
 	wxTextCtrl* pTextCtrlAsStaticSelectedFreeTransProj;
-	wxTextCtrl* pTextCtrlAsStaticNewAIProjName;
-	wxTextCtrl* pTextCtrlSourceLanguageName;
-	wxTextCtrl* pTextCtrlTargetLanguageName;
+	wxStaticText* pStaticTextUseThisDialog;
 	wxStaticText* pStaticTextListOfProjects;
-	wxStaticText* pStaticTextEnterLangNames;
-	wxStaticText* pStaticTextNewAIProjName;
-	wxStaticText* pStaticTextSrcLangName;
-	wxStaticText* pStaticTextTgtLangName;
 	wxStaticText* pStaticTextSelectWhichProj;
-	wxStaticText* pStaticTextSelectSuitableAIProj;
-	wxStaticText* pStaticTextSrcTextxFromThisProj;
-	wxStaticText* pStaticTextTgtTextxToThisProj;
-	wxStaticText* pStaticTextFtTextxToThisProj;
-	//wxStaticText* pStaticTextSelectThirdProj;
+	wxStaticText* pStaticTextSrcTextFromThisProj;
+	wxStaticText* pStaticTextTgtTextToThisProj;
+	wxStaticText* pStaticTextFtTextToThisProj;
 	wxCheckBox* pCheckPwdProtectCollabSwitching;
 	wxButton* pBtnSetPwdForCollabSwitching;
 	wxListBox* pListOfProjects;
 	wxComboBox* pComboAiProjects;
-	wxRadioBox* pRadioBoxCollabOnOrOff;
 	wxButton* pBtnSelectFmListSourceProj;
 	wxButton* pBtnSelectFmListTargetProj;
 	wxButton* pBtnSelectFmListFreeTransProj;
 	wxButton* pBtnNoFreeTrans;
 	wxRadioButton* pRadioBtnByChapterOnly;
 	wxRadioButton* pRadioBtnByWholeBook;
-	wxButton* pBtnOK;
-	bool m_bCollabSettingSave;
+	wxButton* pBtnRemoveProjFromCollab;
+	wxButton* pBtnClose;
 	bool m_bCollabChangedThisDlgSession;
 	wxArrayString projList;
 
