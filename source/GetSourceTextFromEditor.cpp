@@ -2140,10 +2140,13 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxArrayString chapterStatusFromTargetBook;
 	GetChapterListAndVerseStatusFromTargetBook(fullBookName,chapterListFromTargetBook,chapterStatusFromTargetBook);
 	
-	wxArrayString chapterListFromFreeTransBook;
-	wxArrayString chapterStatusFromFreeTransBook;
-	GetChapterListAndVerseStatusFromFreeTransBook(fullBookName,chapterListFromFreeTransBook,chapterStatusFromFreeTransBook);
-	// TODO: Add some checks for the Free Trans here
+	if (m_bTempCollaborationExpectsFreeTrans)
+	{
+		wxArrayString chapterListFromFreeTransBook;
+		wxArrayString chapterStatusFromFreeTransBook;
+		GetChapterListAndVerseStatusFromFreeTransBook(fullBookName,chapterListFromFreeTransBook,chapterStatusFromFreeTransBook);
+		// TODO: Add some checks for the Free Trans here
+	}
 
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
