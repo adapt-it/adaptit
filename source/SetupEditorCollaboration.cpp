@@ -3,8 +3,8 @@
 /// \file			SetupEditorCollaboration.cpp
 /// \author			Bill Martin
 /// \date_created	8 April 2011
-/// \date_revised	30 June 2011
-/// \copyright		2011 Bruce Waters, Bill Martin, SIL International
+/// \date_revised	28 February 2012
+/// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CSetupEditorCollaboration class. 
 /// The CSetupEditorCollaboration class represents a dialog in which an administrator can set up Adapt It to
@@ -39,39 +39,40 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/valgen.h> // for wxGenericValidator
-//#include <wx/valtext.h> // for wxTextValidator
 #include <wx/fileconf.h>
 
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
 #include "SetupEditorCollaboration.h"
-#include "GetSourceTextFromEditor.h"
 #include "CollabUtilities.h"
+#include "CreateNewAIProjForCollab.h"
 
-extern const wxString createNewProjectInstead;
-extern wxSizer *pNewNamesSizer2; // created in wxDesigner's SetupEditorCollaborationFunc()
+extern wxString szCollabProjectForSourceInputs;
+extern wxString szCollabProjectForTargetExports;
+extern wxString szCollabProjectForFreeTransExports;
+extern wxString szCollabAIProjectName;
+extern wxString szCollabExpectsFreeTrans;
+extern wxString szCollabBookSelected;
+extern wxString szCollabByChapterOnly;
+extern wxString szCollabSourceLangName;
+extern wxString szCollabTargetLangName;
+extern wxString szProjectConfiguration;
+
 // event handler table
 BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_INIT_DIALOG(CSetupEditorCollaboration::InitDialog)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListSourceProj)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListTargetProj)
 	EVT_BUTTON(ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ, CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj)
-	EVT_BUTTON(wxID_OK, CSetupEditorCollaboration::OnOK)
+	EVT_BUTTON(wxID_OK, CSetupEditorCollaboration::OnClose) // function is called OnClose, but uses the wxID_OK event
 	EVT_BUTTON(ID_BUTTON_NO_FREE_TRANS, CSetupEditorCollaboration::OnNoFreeTrans)
+	EVT_BUTTON(ID_BUTTON_CREATE_NEW_AI_PROJECT, CSetupEditorCollaboration::OnCreateNewAIProject) // whm added 23Feb12
+	EVT_BUTTON(ID_BUTTON_SAVE_SETUP_FOR_THIS_PROJ_NOW, CSetupEditorCollaboration::OnSaveSetupForThisProjNow) // whm added 23Feb12
+	EVT_BUTTON(ID_BUTTON_REMOVE_THIS_PROJ_FROM_COLLAB, CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab) // whm added 23Feb12
 	EVT_RADIOBUTTON(ID_RADIO_BY_CHAPTER_ONLY, CSetupEditorCollaboration::OnRadioBtnByChapterOnly)
 	EVT_RADIOBUTTON(ID_RADIO_BY_WHOLE_BOOK, CSetupEditorCollaboration::OnRadioBtnByWholeBook)
-	EVT_CHECKBOX(ID_CHECKBOX_PASSWORD_PROTECT_COLLAB_SWITCHING, CSetupEditorCollaboration::OnPwdProtectCollabSwitching)
-	EVT_BUTTON(ID_BUTTON_SET_PASSWORD_FOR_COLLAB_SWITCHING, CSetupEditorCollaboration::OnBtnSetPwdForCollabSwitching)
-	//EVT_MENU(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, CSetupEditorCollaboration::OnUpdateDoSomething)
-	//EVT_BUTTON(ID_SOME_BUTTON, CSetupEditorCollaboration::OnDoSomething)
-	//EVT_LISTBOX(ID_SOME_LISTBOX, CSetupEditorCollaboration::DoSomething)
 	EVT_COMBOBOX(ID_COMBO_AI_PROJECTS, CSetupEditorCollaboration::OnComboBoxSelectAiProject)
-	EVT_TEXT(ID_TEXTCTRL_SRC_LANG_NAME, CSetupEditorCollaboration::OnEnChangeSrcLangName)
-	EVT_TEXT(ID_TEXTCTRL_TGT_LANG_NAME, CSetupEditorCollaboration::OnEnChangeTgtLangName)
 	// ... other menu, button or control events
 END_EVENT_TABLE()
 
@@ -83,7 +84,7 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pSetupEditorCollabSizer = SetupEditorCollaborationFunc(this, TRUE, TRUE);
+	pSetupEditorCollabSizer = SetupCollaborationBetweenAIandEditorFunc(this, TRUE, TRUE);
 	// The declaration is: SetupParatextCollaborationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -100,10 +101,6 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pStaticTextListOfProjects = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_LIST_OF_PROJECTS);
 	wxASSERT(pStaticTextListOfProjects != NULL);
 
-	pTextCtrlAsStaticNewAIProjName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_AI_PROJ_NAME);
-	wxASSERT(pTextCtrlAsStaticNewAIProjName != NULL);
-	pTextCtrlAsStaticNewAIProjName->SetBackgroundColour(sysColorBtnFace);
-
 	pTextCtrlAsStaticSelectedSourceProj = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ);
 	wxASSERT(pTextCtrlAsStaticSelectedSourceProj != NULL);
 	pTextCtrlAsStaticSelectedSourceProj->SetBackgroundColour(sysColorBtnFace);
@@ -116,50 +113,26 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pTextCtrlAsStaticSelectedFreeTransProj != NULL);
 	pTextCtrlAsStaticSelectedFreeTransProj->SetBackgroundColour(sysColorBtnFace);
 
-	pStaticTextEnterLangNames = (wxStaticText*)FindWindowById(ID_TEXT_ENTER_LANG_NAME);
-	wxASSERT(pStaticTextEnterLangNames != NULL);
-
-	pStaticTextNewAIProjName = (wxStaticText*)FindWindowById(ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME);
-	wxASSERT(pStaticTextNewAIProjName != NULL);
-	
-	pTextCtrlSourceLanguageName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SRC_LANG_NAME);
-	wxASSERT(pTextCtrlSourceLanguageName != NULL);
-	
-	pTextCtrlTargetLanguageName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_NAME);
-	wxASSERT(pTextCtrlTargetLanguageName != NULL);
-	
-	pStaticTextSrcLangName = (wxStaticText*)FindWindowById(ID_TEXT_SRC_NAME_LABEL);
-	wxASSERT(pStaticTextSrcLangName != NULL);
-	
-	pStaticTextTgtLangName = (wxStaticText*)FindWindowById(ID_TEXT_TGT_NAME_LABEL);
-	wxASSERT(pStaticTextTgtLangName != NULL);
+	pStaticTextUseThisDialog = (wxStaticText*)FindWindowById(ID_TEXT_USE_THIS_DIALOG);
+	wxASSERT(pStaticTextUseThisDialog != NULL);
 
 	pStaticTextSelectWhichProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_WHICH_PROJECTS);
 	wxASSERT(pStaticTextSelectWhichProj != NULL);
 	
-	pStaticTextSelectSuitableAIProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_SUITABLE_AI_PROJECT);
-	wxASSERT(pStaticTextSelectSuitableAIProj != NULL);
+	pStaticTextSrcTextFromThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT);
+	wxASSERT(pStaticTextSrcTextFromThisProj != NULL);
 
-	pStaticTextSrcTextxFromThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT);
-	wxASSERT(pStaticTextSrcTextxFromThisProj != NULL);
+	pStaticTextTgtTextToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TARGET_TO_THIS_PROJECT);
+	wxASSERT(pStaticTextTgtTextToThisProj != NULL);
 
-	pStaticTextTgtTextxToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TARGET_TO_THIS_PROJECT);
-	wxASSERT(pStaticTextTgtTextxToThisProj != NULL);
-
-	pStaticTextFtTextxToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TO_THIS_FT_PROJECT);
-	wxASSERT(pStaticTextFtTextxToThisProj != NULL);
-
-	//pStaticTextSelectThirdProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_SELECT_THIRD_PROJECT);
-	//wxASSERT(pStaticTextSelectThirdProj != NULL);
+	pStaticTextFtTextToThisProj = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_TO_THIS_FT_PROJECT);
+	wxASSERT(pStaticTextFtTextToThisProj != NULL);
 
 	pListOfProjects = (wxListBox*)FindWindowById(IDC_LIST_OF_COLLAB_PROJECTS);
 	wxASSERT(pListOfProjects != NULL);
 
 	pComboAiProjects = (wxComboBox*)FindWindowById(ID_COMBO_AI_PROJECTS);
 	wxASSERT(pComboAiProjects != NULL);
-
-	pRadioBoxCollabOnOrOff = (wxRadioBox*)FindWindowById(ID_RADIOBOX_COLLABORATION_ON_OFF);
-	wxASSERT(pRadioBoxCollabOnOrOff != NULL);
 
 	pBtnSelectFmListSourceProj = (wxButton*)FindWindowById(ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ);
 	wxASSERT(pBtnSelectFmListSourceProj != NULL);
@@ -179,19 +152,17 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pRadioBtnByWholeBook = (wxRadioButton*)FindWindowById(ID_RADIO_BY_WHOLE_BOOK);
 	wxASSERT(pRadioBtnByWholeBook != NULL);
 
-	pCheckPwdProtectCollabSwitching = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PASSWORD_PROTECT_COLLAB_SWITCHING);
-	wxASSERT(pCheckPwdProtectCollabSwitching != NULL);
+	pBtnRemoveProjFromCollab = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_THIS_PROJ_FROM_COLLAB);
+	wxASSERT(pBtnRemoveProjFromCollab != NULL);
 
-	pBtnSetPwdForCollabSwitching = (wxButton*)FindWindowById(ID_BUTTON_SET_PASSWORD_FOR_COLLAB_SWITCHING);
-	wxASSERT(pBtnSetPwdForCollabSwitching != NULL);
-	
-	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
-	wxASSERT(pBtnOK != NULL);
+	pBtnClose = (wxButton*)FindWindowById(wxID_OK); // the Close button uses the wxID_OK event id
+	wxASSERT(pBtnClose != NULL);
 
-	bool bOK;
-	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
-	// other attribute initializations
+	// We have no Cancel button so no need to reverse buttons
+	//bool bOK;
+	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
+	//bOK = bOK; // avoid warning
+
 }
 
 CSetupEditorCollaboration::~CSetupEditorCollaboration() // destructor
@@ -202,44 +173,53 @@ CSetupEditorCollaboration::~CSetupEditorCollaboration() // destructor
 void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	if (m_pApp->IsAIProjectOpen())
+	{
+		CAdapt_ItView* pView = m_pApp->GetView();
+		if (pView != NULL)
+		{
+			wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
+			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(),m_pApp->m_collaborationEditor.c_str());
+			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+			m_pApp->GetView()->CloseProject();
+		}
+	}
+	
 	wxString curTitle = this->GetTitle();
 	curTitle = curTitle.Format(curTitle,m_pApp->m_collaborationEditor.c_str());
 	this->SetTitle(curTitle);
 	
-	// initialize our dialog temp variables from those held on the App
-	m_bTempCollaboratingWithParatext = m_pApp->m_bCollaboratingWithParatext;
-	m_bTempCollaboratingWithBibledit = m_pApp->m_bCollaboratingWithBibledit;
-	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
-	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
-	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
-	m_TempCollabAIProjectName = m_pApp->m_CollabAIProjectName; // whm added 7Sep11
-	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
-	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName; // whm added 4Sep11
-	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName; // whm added 4Sep11
-	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly; // whm added 28Jan12
-	m_bTempPwdProtectCollabSwitching = m_pApp->m_bPwdProtectCollabSwitching; // whm added 2Feb12
-	m_TempCollabSwitchingPassword = m_pApp->m_collabSwitchingPassword; // whm added 2Feb12
+	// whm revised 24Feb12. We now start the SetupEditorCollaboration dialog
+	// with the following initial setup:
+	// 1. No Adapt It project selected in the step 1 combo box
+	// 2. The possible PT/BE projects listed in step 2 (no change in this revision)
+	// 3. The edit boxes in step 3 are blank and "Get by Chapter Only" radio button selected.
+	// 
+	// Initialze the m_Temp... and m_bTemp... variables for above initial setup:
+	// Note: m_bTempCollaboratingWithParatext and m_bTempCollaboratingWithBibledit are 
+	// no longer used in SetupEditorCollaboration because the switching of collaboration
+	// ON or OFF is now done by the user from the ProjectPage of the wizard.
+	m_TempCollabProjectForSourceInputs = _T("");
+	m_TempCollabProjectForTargetExports = _T("");
+	m_TempCollabProjectForFreeTransExports = _T("");
+	m_TempCollabAIProjectName = _T("");
+	m_bTempCollaborationExpectsFreeTrans = FALSE;
+	m_TempCollabBookSelected = _T("");
+	m_TempCollabSourceProjLangName = _T("");
+	m_TempCollabTargetProjLangName = _T("");
+	m_bTempCollabByChapterOnly = TRUE;
 
-
-	m_projectSelectionMade = FALSE;
-
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
-	{
-		m_bCollabSettingSave = m_bTempCollaboratingWithParatext;
-	}
-	else
-	{
-		m_bCollabSettingSave = m_bTempCollaboratingWithBibledit;
-	}
 	m_bCollabChangedThisDlgSession = FALSE;
-
+	
+	SetStateOfRemovalButton(); // disables the Remov... button when m_TempCollabAIProjectName is empty
+	
 	// adjust static strings substituting "Paratext" or "Bibledit" depending on
 	// the string value in m_collaborationEditor
-	// Substitute strings in the top edit box
-	wxString text = pTextCtrlAsStaticTopNote->GetValue(); // text has four %s sequences
-	text = text.Format(text, m_pApp->m_collaborationEditor.c_str(), 
-		m_pApp->m_collaborationEditor.c_str(), m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
-	pTextCtrlAsStaticTopNote->ChangeValue(text);
+	// Substitute string in the "Use this dialog..." top static text
+	wxString text;
+	text = pStaticTextUseThisDialog->GetLabel();
+	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	pStaticTextUseThisDialog->SetLabel(text);
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
@@ -251,70 +231,37 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 		text += _("(name)");
 	pStaticTextListOfProjects->SetLabel(text);
 
-	// Substitute strings in the static text of point 2
+	// Substitute strings in the "Important" read-only edit box
+	text = pTextCtrlAsStaticTopNote->GetValue(); // text has four %s sequences
+	text = text.Format(text, m_pApp->m_collaborationEditor.c_str(), 
+		m_pApp->m_collaborationEditor.c_str(), m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
+	pTextCtrlAsStaticTopNote->ChangeValue(text);
+
+	// Substitute strings in the static text of step 3
 	text = pStaticTextSelectWhichProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pStaticTextSelectWhichProj->SetLabel(text);
 	
-	text = pStaticTextSelectSuitableAIProj->GetLabel();
+	// Substitute string in the "Get source texts from..." static text
+	text = pStaticTextSrcTextFromThisProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pStaticTextSelectSuitableAIProj->SetLabel(text);
-	
-	text = pStaticTextSrcTextxFromThisProj->GetLabel();
+	pStaticTextSrcTextFromThisProj->SetLabel(text);
+
+	// Substitute string in the "Transfer translation drafts to..." static text
+	text = pStaticTextTgtTextToThisProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pStaticTextSrcTextxFromThisProj->SetLabel(text);
+	pStaticTextTgtTextToThisProj->SetLabel(text);
 
-	text = pStaticTextTgtTextxToThisProj->GetLabel();
+	// Substitute string in the "Transfer free translations to..." static text
+	text = pStaticTextFtTextToThisProj->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pStaticTextTgtTextxToThisProj->SetLabel(text);
-
-	text = pStaticTextFtTextxToThisProj->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pStaticTextFtTextxToThisProj->SetLabel(text);
-
-	//text = pStaticTextSelectThirdProj->GetLabel();
-	//text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	//pStaticTextSelectThirdProj->SetLabel(text);
-
-	pCheckPwdProtectCollabSwitching->SetValue(m_bTempPwdProtectCollabSwitching);
-
-	// start with 3a items hidden
-	pTextCtrlAsStaticNewAIProjName->Hide();
-	pStaticTextEnterLangNames->Hide();
-	pTextCtrlSourceLanguageName->Hide();
-	pTextCtrlTargetLanguageName->Hide();
-	pTextCtrlAsStaticNewAIProjName->Hide();
-	pStaticTextNewAIProjName->Hide();
-	pStaticTextSrcLangName->Hide();
-	pStaticTextTgtLangName->Hide();
+	pStaticTextFtTextToThisProj->SetLabel(text);
 
 	// whm added 28Jan12 after moving the "Get by Chapter Only" and "Get by Whole Book" 
-	// radio buttons here from the GetSourceTextFromEditor dialog
-	if (m_bTempCollabByChapterOnly)
-	{
-		pRadioBtnByChapterOnly->SetValue(TRUE);
-		pRadioBtnByWholeBook->SetValue(FALSE);
-	}
-	else
-	{
-		pRadioBtnByChapterOnly->SetValue(FALSE);
-		pRadioBtnByWholeBook->SetValue(TRUE);
-	}
-
-	if (m_bTempCollaboratingWithParatext || m_bTempCollaboratingWithBibledit)
-		pRadioBoxCollabOnOrOff->SetSelection(0);
-	else
-		pRadioBoxCollabOnOrOff->SetSelection(1);
-	
-	// Substitute strings for the radio box's button labels
-	text = pRadioBoxCollabOnOrOff->GetLabel(); //GetString(0);
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	pRadioBoxCollabOnOrOff->SetLabel(text); //SetString(0,text);
-	//text = pRadioBoxCollabOnOrOff->GetString(1);
-	//text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	//pRadioBoxCollabOnOrOff->SetString(1,text);
-	pRadioBoxCollabOnOrOff->Refresh();
-	pSetupEditorCollabSizer->Layout();
+	// radio buttons here from the GetSourceTextFromEditor dialog.
+	// Initialize the "Get by Chapter Only" and "Get by Whole Book" radio buttons
+	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
+	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
 
 	int nProjectCount = 0;
 	// get list of PT/BE projects
@@ -333,6 +280,8 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	if (nProjectCount < 2)
 	{
 		// error: PT/BE is not set up with enough projects for collaboration
+		// this error will be reported when the administrator clicks on the "Save
+		// Setup for this Collaboration Project Now" button.
 	}
 	else
 	{
@@ -346,56 +295,19 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 
 	}
 
-	// fill in the 3 read-only and 2 editable edit boxes
-	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
-	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
-	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
-	pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-	pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
-	
-	// Load potential AI projects into the pComboAiProjects combo box, and in the process
-	// check for the existence of the aiProjectFolder project. Select it if it is in the
-	// list.
+	// Get a potential list/array of AI projects for the pComboAiProjects combo box.
 	wxArrayString aiProjectNamesArray;
-	//bool bAiProjectFound = FALSE; // set but not used
-	int indexOfFoundProject = wxNOT_FOUND;
 	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
 	aiProjectNamesArray.Sort();
 	
-	//const wxString createNewProjectInstead = _("<Create a new project instead>");
-	// insert the "<Create a new project instead>" item at the beginning
-	// of the sorted list of AI projects
-	aiProjectNamesArray.Insert(createNewProjectInstead,0);
-	
-	wxString aiProjectFolder = _T("");
-	// Get an AI project name. 
-	// Note: This assumes that the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
-	// and m_TempCollabTargetProjLangName, are set from the basic config file because
-	// at this point in InitDialog, only the basic config file will have been read in.
-	aiProjectFolder = GetAIProjectFolderForCollab(m_TempCollabAIProjectName, 
-				m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName, 
-				m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports);
-	
-	// Locate and select the aiProjectFolder
+	// Clear the combo box and load the sorted list of ai projects into it.
 	pComboAiProjects->Clear();
 	int ct;
 	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
 	{
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
-		if (aiProjectNamesArray.Item(ct) == aiProjectFolder)
-		{
-			// workFolder exists as an AI project folder
-			indexOfFoundProject = ct;
-			//bAiProjectFound = TRUE;
-		}
-	}
-	if (indexOfFoundProject != wxNOT_FOUND)
-	{
-		pComboAiProjects->Select(indexOfFoundProject);
 	}
 }
-
-// event handling functions
 
 void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event))
 {
@@ -405,7 +317,6 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	
 	// use a temporary array list for the list of projects
 	wxArrayString tempListOfProjects;
-	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
@@ -414,7 +325,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		tempListOfProjects.Add(projList.Item(ct));
 	}
 	wxString msg;
-	msg = _("Choose a default project the user will see initially for source text inputs");
+	msg = _("Choose a %s project that will be used for source text inputs");
+	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 	wxSingleChoiceDialog ChooseProjectForSourceTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
 	int nPreselectedProjIndex = -1;
@@ -433,152 +345,31 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		// choose the preselected project
 		ChooseProjectForSourceTextInputs.SetSelection(nPreselectedProjIndex);
 	}
-	//int userSelectionInt;
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
 	if (ChooseProjectForSourceTextInputs.ShowModal() == wxID_OK)
 	{
 		userSelectionStr = ChooseProjectForSourceTextInputs.GetStringSelection();
-		//userSelectionInt = ChooseProjectForSourceTextInputs.GetSelection();
-		if (userSelectionStr != _("[No Project Selected]"))
-		{
-			m_projectSelectionMade = TRUE;
-			m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
-			m_pApp->LogUserAction(_T("Selected Project for Source Text Inputs"));
-			// This IsEmpty() test block below may be entered if the Selects a Source languge project
-			// and AI cannot determine the source language name to associate its own project with.
-			// It also queries the admin for a target language name if it doesn't exist.
-			if (m_TempCollabSourceProjLangName.IsEmpty())
-			{
-				// There was no Language field in the project name composite string
-				// that was selected, indicating that we are probably working with 
-				// Bibledit, so get the administrator to type a source language
-				// name.
-				// One or both language names are still empty, so show the language name controls
-				// and set focus on the first empty one.
-				pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-				// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
-				pSetupEditorCollabSizer->Layout();
-				m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-				this->SetSize(m_computedDlgSize);
-				wxString msg = _("Please enter a source language name for the %s project.\nAdapt It will use it for its own adaptation project during collaboration.");
-				msg = msg.Format(msg,m_TempCollabProjectForSourceInputs.c_str());
-				wxString textEntered;
-				textEntered = wxGetTextFromUser(msg,_("Unknown Source Language Name"));
-				if (!textEntered.IsEmpty())
-				{
-					m_TempCollabSourceProjLangName = textEntered;
-					pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-					pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
-					wxString tempStrSrcProjName,tempStrTgtProjName;
-					tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
-					tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
-					wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
-					pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
-					m_pApp->LogUserAction(_T("Manual Entry of Source Langauge Name"));
-				}
-				// If both source and target language name fields now have values set
-				// focus on the OK button, otherwise show the project selection options.
-				if (!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty())
-				{
-					pBtnOK->SetFocus();
-				}
-				else
-				{
-					// set focus on the first empty language edit box
-					if (m_TempCollabTargetProjLangName.IsEmpty())
-						pTextCtrlTargetLanguageName->SetFocus();
-					else
-						pTextCtrlSourceLanguageName->SetFocus();
-				}
-			}
-			// Set temp value for source project name and update names in controls
-			m_TempCollabProjectForSourceInputs = userSelectionStr;
-			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
-			pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-		}
-		else
-		{
-			// The "[No Project Selected]" choice was made, so just return to the dialog
-			return; 
-		}
+		m_pApp->LogUserAction(_T("Selected Project for Source Text Inputs"));
+		// Set temp value for source project name and update names in controls
+		m_TempCollabProjectForSourceInputs = userSelectionStr;
+		pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
 	}
 	else
 	{
 		// user cancelled, don't change anything, just return
 		return;
 	}
-
 	// If we get here the administrator made a selection.
-	// Show the composite project string in the read-only edit box, 
-	// get the computed language name from the composite userSelectionStr
-	// and save it in m_TempCollabSourceProjLangName so that it will 
-	// get assigned to the App's value in OnOK() for the project 
-	// config file, and then show the computed Language name in the 
-	// Source Language Name edit box. We also need to update the
-	// selection in the combo box.
-	//pTextCtrlAsStaticSelectedSourceProj->ChangeValue(userSelectionStr);
-	//m_TempCollabProjectForSourceInputs = userSelectionStr;
-	//m_TempCollabSourceProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
-	//pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-	
-	// Load potential AI projects into the pComboAiProjects combo box, and in the process
-	// check for the existence of the aiProjectFolder project. Select it if it is in the
-	// list.
-	wxArrayString aiProjectNamesArray;
-	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
-	aiProjectNamesArray.Sort();
-	// const wxString createNewProjectInstead = _("<Create a new project instead>");
-	// insert the "<Create a new project instead>" item at the beginning
-	// of the sorted list of AI projects
-	aiProjectNamesArray.Insert(createNewProjectInstead,0);
-	// update the combo box
-	wxString aiProjectName = _T("");
-	// Get an AI project folder name. 
-	// Note: This assumes that the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
-	// and m_TempCollabTargetProjLangName, are set from the basic config file because
-	// at this point in InitDialog, only the basic config file will have been read in.
-	// Note: The project language names may also have been set via user selection as is
-	// the case for this handler.
-	// When we make the first parameter wxEmptyString the GetAIProjectFolderForCollab() will
-	// use the m_TempCollabSourceProjLangName and m_TempCollabTargetProjLangName values
-	// to return an AI project folder name of the form <source name> to <target name> adaptations".
-	// The current user selection invalidates the value of m_TempCollabAIProjectName, so we
-	// call GetAIProjectFolderForCollab() to get a new value and values for the source and
-	// target names too.
-	m_TempCollabAIProjectName = _T(""); // user selection invalidates this, 
-	aiProjectName = GetAIProjectFolderForCollab(m_TempCollabAIProjectName, 
-				m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName, 
-				m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports);
-	
-	// Locate and select the aiProjectFolder
-	pComboAiProjects->Clear();
-	int indexOfFoundProject = wxNOT_FOUND;
-	//bool bAiProjectFound = FALSE; // set but not used
-	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
-	{
-		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
-		if (aiProjectNamesArray.Item(ct) == aiProjectName)
-		{
-			// workFolder exists as an AI project folder name
-			indexOfFoundProject = ct;
-			//bAiProjectFound = TRUE;
-		}
-	}
-	if (indexOfFoundProject != wxNOT_FOUND)
-	{
-		pComboAiProjects->Select(indexOfFoundProject);
-	}
+	m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: For target project, we must ensure that the Paratext project is writeable
-	
 	// use a temporary array list for the list of projects
 	wxArrayString tempListOfProjects;
 	wxString projShortName;
-	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
@@ -593,7 +384,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		}
 	}
 	wxString msg;
-	msg = _("Choose a default project the user will see initially for translation text exports");
+	msg = _("Choose a %s project that will be used for receiving translation text exports");
+	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 	wxSingleChoiceDialog ChooseProjectForTargetTextExports(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
 	int nPreselectedProjIndex = -1;
@@ -611,141 +403,23 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	{
 		ChooseProjectForTargetTextExports.SetSelection(nPreselectedProjIndex);
 	}
-	//int userSelectionInt; // set but not used
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
 	if (ChooseProjectForTargetTextExports.ShowModal() == wxID_OK)
 	{
 		userSelectionStr = ChooseProjectForTargetTextExports.GetStringSelection();
-		//userSelectionInt = ChooseProjectForTargetTextExports.GetSelection();
-		if (userSelectionStr != _("[No Project Selected]"))
-		{
-			m_projectSelectionMade = TRUE;
-			// The basic config file did not have a value stored for the target
-			// project's language name, so get a default one from the project
-			m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
-			m_pApp->LogUserAction(_T("Selected Project for Target Text Inputs"));
-			if (m_TempCollabTargetProjLangName.IsEmpty())
-			{
-				// There was no Language field in the project name composite string
-				// that was selected, indicating that we are probably working with 
-				// Bibledit, so get the administrator to type a target language
-				// name.
-				// One or both language names are still empty, so show the language name controls
-				// and set focus on the first empty one.
-				pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-				// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
-				pSetupEditorCollabSizer->Layout();
-				m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-				this->SetSize(m_computedDlgSize);
-				wxString msg = _("Please enter a target language name for the %s project.\nAdapt It will use it for its own adaptation project during collaboration.");
-				msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str());
-				wxString textEntered;
-				textEntered = wxGetTextFromUser(msg,_("Unknown Target Language Name"));
-				if (!textEntered.IsEmpty())
-				{
-					m_TempCollabTargetProjLangName = textEntered;
-					pTextCtrlSourceLanguageName->ChangeValue(m_TempCollabSourceProjLangName);
-					pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
-					wxString tempStrSrcProjName,tempStrTgtProjName;
-					tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
-					tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
-					wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
-					pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
-					m_pApp->LogUserAction(_T("Manual Entry of Target Langauge Name"));
-				}
-				// If both source and target language name fields now have values set
-				// focus on the OK button, otherwise show the project selection options.
-				if (!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty())
-				{
-					pBtnOK->SetFocus();
-				}
-				else
-				{
-					// set focus on the first empty language edit box
-					if (m_TempCollabSourceProjLangName.IsEmpty())
-						pTextCtrlSourceLanguageName->SetFocus();
-					else
-						pTextCtrlTargetLanguageName->SetFocus();
-				}
-			}
-			// Set temp value for target project name and update names in controls
-			m_TempCollabProjectForTargetExports = userSelectionStr;
-			pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
-			pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
-		}
-		else
-		{
-			// The "[No Project Selected]" choice was made, so just return to the dialog
-			return; 
-		}
+		m_pApp->LogUserAction(_T("Selected Project for Target Text Exports"));
+		// Set temp value for target project name and update names in controls
+		m_TempCollabProjectForTargetExports = userSelectionStr;
+		pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
 	}
 	else
 	{
 		// user cancelled, don't change anything, just return
 		return;
 	}
-	
 	// If we get here the administrator made a selection.
-	// Show the composite project string in the read-only edit box, 
-	// get the computed language name from the composite userSelectionStr
-	// and save it in m_TempCollabSourceProjLangName so that it will 
-	// get assigned to the App's value in OnOK() for the project 
-	// config file, and then show the computed Language name in the 
-	// Target Language Name edit box. We also need to update the
-	// selection in the combo box.
-	//pTextCtrlAsStaticSelectedTargetProj->ChangeValue(userSelectionStr);
-	//m_TempCollabProjectForTargetExports = userSelectionStr;
-	//m_TempCollabTargetProjLangName = GetLanguageNameFromProjectName(userSelectionStr);
-	//pTextCtrlTargetLanguageName->ChangeValue(m_TempCollabTargetProjLangName);
-	
-	// Load potential AI projects into the pComboAiProjects combo box, and in the process
-	// check for the existence of the aiProjectFolder project. Select it if it is in the
-	// list.
-	wxArrayString aiProjectNamesArray;
-	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
-	aiProjectNamesArray.Sort();
-	// const wxString createNewProjectInstead = _("<Create a new project instead>");
-	// insert the "<Create a new project instead>" item at the beginning
-	// of the sorted list of AI projects
-	aiProjectNamesArray.Insert(createNewProjectInstead,0);
-	// update the combo box
-	wxString aiProjectName = _T("");
-	// Get an AI project folder name. 
-	// Note: This assumes that the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
-	// and m_TempCollabTargetProjLangName, are set from the basic config file because
-	// at this point in InitDialog, only the basic config file will have been read in.
-	// Note: The project language names may also have been set via user selection as is
-	// the case for this handler.
-	// When we make the first parameter wxEmptyString the GetAIProjectFolderForCollab() will
-	// use the m_TempCollabSourceProjLangName and m_TempCollabTargetProjLangName values
-	// to return an AI project folder name of the form <source name> to <target name> adaptations".
-	// The current user selection invalidates the value of m_TempCollabAIProjectName, so we
-	// call GetAIProjectFolderForCollab() to get a new value and values for the source and
-	// target names too.
-	m_TempCollabAIProjectName = _T(""); // user selection invalidates this, 
-	aiProjectName = GetAIProjectFolderForCollab(m_TempCollabAIProjectName, 
-				m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName, 
-				m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports);
-	
-	// Locate and select the aiProjectFolder
-	pComboAiProjects->Clear();
-	int indexOfFoundProject = wxNOT_FOUND;
-	//bool bAiProjectFound = FALSE; // set but not used
-	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
-	{
-		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
-		if (aiProjectNamesArray.Item(ct) == aiProjectName)
-		{
-			// workFolder exists as an AI project folder name
-			indexOfFoundProject = ct;
-			//bAiProjectFound = TRUE;
-		}
-	}
-	if (indexOfFoundProject != wxNOT_FOUND)
-	{
-		pComboAiProjects->Select(indexOfFoundProject);
-	}
+	m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
@@ -755,7 +429,6 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	wxArrayString tempListOfProjects;
 	wxString projShortName;
 	pBtnNoFreeTrans->Enable(TRUE);
-	tempListOfProjects.Add(_("[No Project Selected]"));
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
@@ -770,7 +443,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		}
 	}
 	wxString msg;
-	msg = _("Choose a default project the user will see initially for free translation text exports");
+	msg = _("Choose a %s project that will be used for receiving free translation text exports");
+	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 	wxSingleChoiceDialog ChooseProjectForFreeTransTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
 	int nPreselectedProjIndex = -1;
@@ -788,32 +462,22 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	{
 		ChooseProjectForFreeTransTextInputs.SetSelection(nPreselectedProjIndex);
 	}
-	//int userSelectionInt; // set but not used
 	wxString userSelectionStr;
 	userSelectionStr.Empty();
 	if (ChooseProjectForFreeTransTextInputs.ShowModal() == wxID_OK)
 	{
 		userSelectionStr = ChooseProjectForFreeTransTextInputs.GetStringSelection();
-		//userSelectionInt = ChooseProjectForFreeTransTextInputs.GetSelection();
-		if (userSelectionStr != _("[No Project Selected]"))
-		{
-			m_projectSelectionMade = TRUE;
-			m_pApp->LogUserAction(_T("Selected Project for Free Trans Text Inputs"));
-		}
-		else
-		{
-			// The "[No Project Selected]" choice was made, so just return to the dialog
-			return; 
-		}
+		m_pApp->LogUserAction(_T("Selected Project for Free Trans Text Exports"));
+		// Set temp value for free trans project name and update names in controls
+		m_TempCollabProjectForFreeTransExports = userSelectionStr;
+		pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(userSelectionStr);
+		m_bTempCollaborationExpectsFreeTrans = TRUE; // additional flag needed for free translations
 	}
 	else
 	{
 		// user cancelled, don't change anything, just return
 		return;
 	}
-	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(userSelectionStr);
-	m_TempCollabProjectForFreeTransExports = userSelectionStr;
-	m_bTempCollaborationExpectsFreeTrans = TRUE;
 	
 	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
 	// tasked with selecting the appropriate PT/BE projects for source, target, and
@@ -847,25 +511,18 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		m_bTempCollaborationExpectsFreeTrans = FALSE;
 	}
 	
-	/*
-	// whm modified 9Sep11 to provide error handling when the FT project
-	// selected does not have the book in existence that is selected in
-	// the source project's combo box, or doesn't has the book but it
-	// is empty (not containing at least empty chapters and verses).
-	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
-	if (!m_TempCollabBookSelected.IsEmpty())
-	{
-		if (!BookExistsInCollabProject(m_TempCollabProjectForFreeTransExports, m_TempCollabBookSelected))
-		{
-		}
-	}
-	*/
+	m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
 {
 	// Clear the pTextCtrlAsStaticSelectedFreeTransProj read-only text box, 
 	// empty the temp variable and disable the button.
+	if (pTextCtrlAsStaticSelectedFreeTransProj->GetValue() != wxEmptyString)
+	{
+			m_bCollabChangedThisDlgSession = TRUE;
+
+	}
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
 	m_TempCollabProjectForFreeTransExports.Empty();
 	m_bTempCollaborationExpectsFreeTrans = FALSE;
@@ -881,71 +538,120 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 		::wxBell();
 		return;
 	}
-	if (selStr == createNewProjectInstead)
+
+	// Get the AI project's collab settings if any. If the selected project already has 
+	// collab settings put them into the m_Temp... variables and into the SetupEditorCollaboration 
+	// dialog's controls, so the administrator can see what settings if any have already been made 
+	// for that AI project. If the selected project has no collab settings yet, parse the three
+	// m_Temp... ones from the selected project's name (m_TempCollabAIProjectName,
+	// m_TempCollabSourceProjLangName, and m_TempCollabTargetProjLangName), and supply defaults
+	// for the others.
+	wxArrayString collabSettingsArray;
+	wxArrayString collabLabelsArray;
+	
+	m_pApp->GetCollaborationSettingsOfAIProject(selStr, collabLabelsArray, collabSettingsArray);
+	wxASSERT(collabLabelsArray.GetCount() == collabSettingsArray.GetCount());
+	// Assign the m_Temp... and m_bTemp... local variables for the selected project..
+	// If the existing project has collaboration settings use those, if not, assign
+	// default values
+	if (collabSettingsArray.GetCount() > 0)
 	{
-		// Unhide the langauge name controls and resize the dialog to fit
-		pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-		pSetupEditorCollabSizer->Layout();
-		m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-		this->SetSize(m_computedDlgSize);
-		
-		// enable and blank out the language edit boxes
-		pTextCtrlSourceLanguageName->ChangeValue(wxEmptyString);
-		pTextCtrlTargetLanguageName->ChangeValue(wxEmptyString);
-		pTextCtrlSourceLanguageName->Enable();
-		pTextCtrlTargetLanguageName->Enable();
-		pSetupEditorCollabSizer->Layout();
-		
-		// move focus to the source language name edit box
-		pTextCtrlSourceLanguageName->SetFocus();
+		// The AI project has collaboration settings
+		int ct;
+		int tot = (int)collabSettingsArray.GetCount();
+		wxString collabLabelStr;
+		wxString collabItemStr;
+		for (ct = 0; ct < tot; ct++)
+		{
+			// Note: The main m_Temp... and m_bTemp values used by the SetupEditorCollaboration
+			// dialog are:
+			//    m_TempCollabProjectForSourceInputs
+			//    m_TempCollabProjectForTargetExports
+			//    m_TempCollabProjectForFreeTransExports
+			//    m_TempCollabAIProjectName
+			//    m_bTempCollabByChapterOnly
+			//    m_bTempPwdProtectCollabSwitching
+			//    m_TempCollabSwitchingPassword
+			// These m_Temp... and m_bTemp... values are derived from others or are unused
+			//      m_bTempCollaborationExpectsFreeTrans
+			//      m_TempCollabBookSelected
+			//      szCollabChapterSelected
+			//      m_TempCollabSourceProjLangName
+			//      m_TempCollabTargetProjLangName
+			collabLabelStr = collabLabelsArray.Item(ct);
+			collabItemStr = collabSettingsArray.Item(ct);
+			if (collabLabelStr == szCollabProjectForSourceInputs)
+				this->m_TempCollabProjectForSourceInputs = collabItemStr;
+			else if (collabLabelStr == szCollabProjectForTargetExports)
+				this->m_TempCollabProjectForTargetExports = collabItemStr;
+			else if (collabLabelStr == szCollabProjectForFreeTransExports)
+				this->m_TempCollabProjectForFreeTransExports = collabItemStr;
+			else if (collabLabelStr == szCollabAIProjectName)
+				this->m_TempCollabAIProjectName = collabItemStr;
+			else if (collabLabelStr == szCollabExpectsFreeTrans)
+			{
+				if (collabItemStr == _T("1"))
+					this->m_bTempCollaborationExpectsFreeTrans = TRUE;
+				else 
+					this->m_bTempCollaborationExpectsFreeTrans = FALSE;
+			}
+			else if (collabLabelStr == szCollabBookSelected)
+				this->m_TempCollabBookSelected = collabItemStr;
+			else if (collabLabelStr == szCollabByChapterOnly)
+			{
+				if (collabItemStr == _T("1"))
+					this->m_bTempCollabByChapterOnly = TRUE;
+				else
+					this->m_bTempCollabByChapterOnly = FALSE;
+			}
+			// Note: szCollabChapterSelected is not used within SetupEditorCollaboration.cpp
+			else if (collabLabelStr == szCollabSourceLangName)
+				this->m_TempCollabSourceProjLangName = collabItemStr;
+			else if (collabLabelStr == szCollabTargetLangName)
+				this->m_TempCollabTargetProjLangName = collabItemStr;
+		}
 	}
 	else
 	{
-		// The administrator selected an existing AI project from the
-		// combobox. 
-		// Hide the langauge name controls and resize the dialog to fit
+		// The AI project has no collaboration settings, so parse the 
+		// selStr and fill in values for m_TempCollabAIProjectName,
+		// m_TempCollabSourceProjLangName, and m_TempCollabTargetProjLangName.
+		m_TempCollabProjectForSourceInputs = _T("");
+		m_TempCollabProjectForTargetExports = _T("");
+		m_TempCollabProjectForFreeTransExports = _T("");
 		
-		pSetupEditorCollabSizer->Hide(pNewNamesSizer2,TRUE);
-		pSetupEditorCollabSizer->Layout();
-		m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-		this->SetSize(m_computedDlgSize);
+		m_TempCollabAIProjectName = selStr; // AI project name selected in the combo box
 		
-		// Parse the language names from the AI project name.
+		m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+		m_TempCollabBookSelected = _T("");
+		
+		// parse the language names from the m_TempCollabAIProjectName
 		m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr, 
 			m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 		
-		// To make the change persist, we need to also change the temp values
-		// for the newly selected AI project that gets stored in the
-		// basic config file within OnOK().
-		m_TempCollabAIProjectName = selStr; 
-
-		// set focus on the OK button
-		pBtnOK->SetFocus();
+		m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 	}
-}
+	// Note: Regardless of what the value for m_TempCollabAIProjectName might have been in the
+	// project config file collaboration settings (from above), we force it to be what the 
+	// administrator selected within the combo box, and force the associated language names too.
+	m_TempCollabAIProjectName = selStr; // AI project name selected in the combo box
+	// parse the language names from the m_TempCollabAIProjectName
+	m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(selStr, 
+		m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 
-void CSetupEditorCollaboration::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event))
-{
-	// user is editing the source language name edit box
-	// update the AI project name in the "New Adapt It project name will be:"
-	// edit box
-	wxString tempStrSrcProjName,tempStrTgtProjName;
-	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
-	tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
-	wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
-	pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
-}
+	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
 
-void CSetupEditorCollaboration::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event))
-{
-	// user is editing the target language name edit box
-	// update the AI project name in the "New Adapt It project name will be:"
-	// edit box
-	wxString tempStrSrcProjName,tempStrTgtProjName;
-	tempStrSrcProjName = pTextCtrlSourceLanguageName->GetValue();
-	tempStrTgtProjName = pTextCtrlTargetLanguageName->GetValue();
-	wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
-	pTextCtrlAsStaticNewAIProjName->ChangeValue(projFolder);
+	// Fill dialog controls with collab settings
+	// Note: The combo box selection in step 1 was selected by the administrator so something should be selected!
+	wxASSERT(pComboAiProjects->GetSelection() != -1);
+	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
+	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
+	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
+	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
+	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
+	
+	// Enable/disable "Undo Changes Made in this Setup"
+	m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event))
@@ -964,251 +670,34 @@ void CSetupEditorCollaboration::OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(e
 	pRadioBtnByWholeBook->SetValue(TRUE);
 }
 
-//CSetupEditorCollaboration::OnUpdateDoSomething(wxUpdateUIEvent& event)
-//{
-//	if (SomeCondition == TRUE)
-//		event.Enable(TRUE);
-//	else
-//		event.Enable(FALSE);	
-//}
-
-// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
-// If this returns TRUE, the function either calls EndModal(wxID_OK) if the
-// dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
-// if the dialog is modeless.
-void CSetupEditorCollaboration::OnOK(wxCommandEvent& event) 
+// Note: This OnClose() internally uses the wxID_OK event, so it is 
+// really an OnOK() handler.
+void CSetupEditorCollaboration::OnClose(wxCommandEvent& event) 
 {
-	// Check to see if book folder mode is activated. If so, warn the administrator that it
-	// will be turned OFF if s/he continues setting up AI for collaboration with Paratext/Bibledit.
-	if (m_pApp->m_bBookMode)
+	// whm revised 24Feb12. The OnClose() handler should now just check for any changes
+	// made within the dialog that were not saved using the "Save Setup for this
+	// Collaboration Project Now" button. Then prompt the user to either save the
+	// changes or abandon the changes. The button handler for "Save Setup for this
+	// Collaboration Project Now" handles all the checks that are needed (previously
+	// handled by this OnOK() handler) to ensure that all information fields have
+	// been filled, that source and target projects aren't the same, etc.
+	if (m_bCollabChangedThisDlgSession)
 	{
-		wxString msg;
-		msg = msg.Format(_("Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled. If you later turn collaboration OFF, you will need to turn book folder mode on again if that is desired.\n\nDo you want to continue setting up Adapt It for collaboration with %s?"),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
-		if (wxMessageBox(msg,_T(""),wxYES_NO | wxICON_INFORMATION) == wxNO)
+		wxString msg = _("You made changes to this collaboration setup - Do you want to save those changes?");
+		int response;
+		response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+		if (response == wxYES)
 		{
-			m_pApp->LogUserAction(msg);
+			OnSaveSetupForThisProjNow(event);
+		}
+		if (response == wxNO)
+		{
 			return;
 		}
 	}
-		
-	// whm added 7Sep11. The admin may have changed the AI project to collaborate with
-	// or changed the source language or target langauge names, so ensure that
-	// we have the current values. But, do this only if the admin/user selected
-	// <Create a new project instead> in the combo box.
-	if (pComboAiProjects->GetStringSelection() == createNewProjectInstead)
-	{
-		m_TempCollabSourceProjLangName = pTextCtrlSourceLanguageName->GetValue();
-		m_TempCollabTargetProjLangName = pTextCtrlTargetLanguageName->GetValue();
-	}
 
-	// Has the administrator turned ON collaboration? If so, ensure that the following setup
-	// has been done, otherwise we do not allow collaboration to be swtiched ON:
-	// 1. Administrator has selected an initial PT/BE project for obtaining source texts.
-	// 2. Administrator has selected an initial PT/BE project for receiving target texts.
-	// 3. Administrator has verified/set the source and target language names that AI will 
-	//    use for its own project during collaboration.
-	if (pRadioBoxCollabOnOrOff->GetSelection() == 0)
-	{
-		// Collaboration is turned ON
-		// Check if the administrator has selected an initial PT/BE project for obtaining source texts.
-		if (m_TempCollabProjectForSourceInputs.IsEmpty())
-		{
-			wxString msg, msg1;
-			msg = _("Collaboration cannot be turned ON until you select a %s project for getting source texts.\nPlease select a %s project for getting source texts.");
-			msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION);
-			pBtnSelectFmListSourceProj->SetFocus();
-			m_pApp->LogUserAction(msg);
-			return; // don't accept any changes - abort the OnOK() handler
-		}
-		// Check if the administrator has selected an initial PT/BE project for receiving translation drafts.
-		if (m_TempCollabProjectForTargetExports.IsEmpty())
-		{
-			wxString msg, msg1;
-			msg = _("Collaboration cannot be turned ON until you select a %s project for receiving translated drafts.\nPlease select a %s project for receiving translated drafts.");
-			msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION);
-			pBtnSelectFmListTargetProj->SetFocus();
-			m_pApp->LogUserAction(msg);
-			return; // don't accept any changes - abort the OnOK() handler
-		}
-		// Check if the administrator needs to verify/provide a source language name for hooking up to an
-		// Adapt It project.
-		if (m_TempCollabSourceProjLangName.IsEmpty())
-		{
-			wxString msg, msg1, msgTitle;
-			msg1 = _("Adapt It cannot determine the Source Language Name from the %s project settings. Please enter a Source Language Name.");
-			msg1 = msg1.Format(msg1,m_pApp->m_collaborationEditor.c_str());
-			msg = msg1;
-			msg += _T(' ');
-			msg += _("Adapt It will use this name to identify any existing project folder (or to create a new project folder) of the form: \"<source name> to <target name> adaptations\".");
-			msgTitle = _("No Source Language Name entered");
-			wxMessageBox(msg,msgTitle,wxICON_INFORMATION);
-			// Ensure that the language names controls are visible
-			pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-			// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
-			pSetupEditorCollabSizer->Layout();
-			m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-			this->SetSize(m_computedDlgSize);
-			// set focus on the edit box with missing data
-			pTextCtrlSourceLanguageName->SetFocus();
-			m_pApp->LogUserAction(msgTitle);
-			return; // don't accept any changes - abort the OnOK() handler
-		}
-		// Check if the administrator needs to verify/provide a target language name for hooking up to an
-		// Adapt It project.
-		if (m_TempCollabTargetProjLangName.IsEmpty())
-		{
-			wxString msg, msg1, msgTitle;
-			msg1 = _("Adapt It cannot determine the Target Language Name from the %s project settings. Please enter a Target Language Name.");
-			msg1 = msg1.Format(msg1,m_pApp->m_collaborationEditor.c_str());
-			msg = msg1;
-			msg += _T(' ');
-			msg += _("Adapt It will use this name to identify any existing project folder (or to create a new project folder) of the form: \"<source name> to <target name> adaptations\".");
-			msgTitle = _("No Target Language Name entered");
-			wxMessageBox(msg,msgTitle,wxICON_INFORMATION);
-			// Ensure that the language names controls are visible
-			pSetupEditorCollabSizer->Show(pNewNamesSizer2,TRUE,TRUE);
-			// to get the language name controls showing or hidden, call OnComboBoxSelectedAiProject()
-			pSetupEditorCollabSizer->Layout();
-			m_computedDlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
-			this->SetSize(m_computedDlgSize);
-			// set focus on the edit box with missing data
-			pTextCtrlTargetLanguageName->SetFocus();
-			m_pApp->LogUserAction(msgTitle);
-			return; // don't accept any changes - abort the OnOK() handler
-		}
-	}
-
-	// Check to ensure that the project selected for source text inputs is different 
-	// from the project selected for target text exports, unless both are empty
-	// strings, i.e., ("[No Project Selected]" was selected by the administrator).
-	if (!m_TempCollabProjectForSourceInputs.IsEmpty() && !m_TempCollabProjectForTargetExports.IsEmpty())
-	{
-		// If the same project is selected, inform the administrator and abort the OK
-		// operation so the administrator can select different projects or abort and
-		// set up the needed projects in Paratext first.
-		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports 
-			&& m_TempCollabProjectForSourceInputs != _("[No Project Selected]"))
-		{
-			wxString msg, msg1;
-			msg = _("The projects selected for getting source texts and receiving translation drafts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
-			//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
-			//msg = msg + _T("\n") + msg1;
-			wxMessageBox(msg);
-			m_pApp->LogUserAction(msg);
-			return; // don't accept any changes - abort the OnOK() handler
-		}
-		
-		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports
-			&& m_bTempCollaborationExpectsFreeTrans)
-		{
-			wxString msg, msg1;
-			msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
-			//msg1 = _("(or, if you select \"[No Project Selected]\" for a project here, the first time a source text is needed for adaptation, the user will have to choose a project from a drop down list of projects).");
-			//msg = msg + _T("\n") + msg1;
-			wxMessageBox(msg);
-			m_pApp->LogUserAction(msg);
-			return; // don't accept any changes - abort the OnOK() handler
-		}
-	}
-
-	if (!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty())
-	{
-		// Both the source and the target language name edit boxes have content.
-		// Check to see if there is an existing AI project representing those
-		// names. If not, notify the administrator of that fact, and that if 
-		// he continues AI will create a new project folder called 
-		// "<source name> to <target name> adaptations" in Adapt It's current 
-		// work folder.
-		wxString aiProjFolder = m_TempCollabSourceProjLangName + _T(" to ") + m_TempCollabTargetProjLangName + _T(" adaptations");
-		wxArrayString possibleAIProjects;
-		possibleAIProjects.Clear();
-		m_pApp->GetPossibleAdaptionProjects(&possibleAIProjects);
-		int ct, tot;
-		wxString msg;
-		tot = (int)possibleAIProjects.GetCount();
-		if (tot == 0)
-		{
-			// Notify the administrator that AI will create a new project folder 
-			// for use in collaboration.
-			msg = _("Adapt It will create a new project folder called \"%s\" for use in collaboration with %s");
-			msg = msg.Format(msg, aiProjFolder.c_str(), m_pApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
-		}
-		else
-		{
-			// Check existing AI projects to see if an existing project will be 
-			// used. If one doesn't exist notify the administrator.
-			bool bProjectFound = FALSE;
-			for (ct = 0; ct < tot; ct++)
-			{
-				wxString tempStr = possibleAIProjects.Item(ct);
-				if (aiProjFolder == tempStr)
-				{
-					bProjectFound = TRUE;
-					break;
-				}
-			}
-			if (!bProjectFound)
-			{
-				msg = _("Adapt It will create a new project folder called \"%s\" for use in collaboration with %s");
-				msg = msg.Format(msg, aiProjFolder.c_str(), m_pApp->m_collaborationEditor.c_str());
-				wxString msg1;
-				msg1 += _T(' ');
-				msg1 += _("If this is OK select Yes, or select No to change the language name(s)");
-				int result = 0;
-				result = wxMessageBox(msg,_T(""),wxYES_NO);
-				if (result == wxNO)
-				{
-					// Restore things the way they were in the Setup PT/BE Collaboration dialog,
-					// 1. Change the combo box to what it was previously (the App's value for m_collabAIProjectName)
-					//    and select the previous AI project name in the combobox.
-					// 2. Change the source and target language name edit boxes to what they were previously
-					// (the App's values)
-					// 3. Hide the 3a items
-
-					// 1.
-					m_TempCollabAIProjectName = m_pApp->m_CollabAIProjectName;
-					int indexOfFoundProject = wxNOT_FOUND;
-					int ct;
-					for (ct = 0; ct < (int)pComboAiProjects->GetCount(); ct++)
-					{
-						if (pComboAiProjects->GetString(ct) == m_TempCollabAIProjectName)
-						{
-							// workFolder exists as an AI project folder
-							indexOfFoundProject = ct;
-						}
-					}
-					if (indexOfFoundProject != wxNOT_FOUND)
-					{
-						pComboAiProjects->Select(indexOfFoundProject);
-					}
-					// 2.
-					m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
-					m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
-					// 3.
-					pTextCtrlAsStaticNewAIProjName->Hide();
-					pStaticTextEnterLangNames->Hide();
-					pTextCtrlSourceLanguageName->Hide();
-					pTextCtrlTargetLanguageName->Hide();
-					pTextCtrlAsStaticNewAIProjName->Hide();
-					pStaticTextNewAIProjName->Hide();
-					pStaticTextSrcLangName->Hide();
-					pStaticTextTgtLangName->Hide();
-					
-					pSetupEditorCollabSizer->Layout();
-					
-					return;
-				}
-				// If we get here, we need to assign the new AI project name
-				// to its m_TempCollabAIProjectName value.
-				m_TempCollabAIProjectName = aiProjFolder;
-			}
-		}
-	}
 	// /////////////////////////////////////////////////////////////////////////////////////////
-	// whm Note: Put code that aborts the OnOK() handler above this point
+	// whm Note: Put code that aborts the OnClose() handler above this point
 	// /////////////////////////////////////////////////////////////////////////////////////////
 
 	// Set the App values for the PT projects to be used for PT collaboration
@@ -1220,338 +709,312 @@ void CSetupEditorCollaboration::OnOK(wxCommandEvent& event)
 	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
 	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // whm added 28Jan12
-	m_pApp->m_bPwdProtectCollabSwitching = m_bTempPwdProtectCollabSwitching; // whm added 2Feb12
-	m_pApp->m_collabSwitchingPassword = m_TempCollabSwitchingPassword;
 
-	// Since the administrator clicked OK, we don't want to use any of the
-	// m_...Saved values, but ensure that the above values get stored in the
-	// basic config file. We can do that by resetting all the m_...Saved values
-	// to their OnInit() defaults
-	m_pApp->m_nSavedPTCollabSetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-	m_pApp->m_nSavedBECollabSetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-	m_pApp->m_SavedAIProjName = _T("");
-	m_pApp->m_SavedCollabProjectForSourceInputs = _T(""); // whm added 23Jan12
-	m_pApp->m_SavedCollabProjectForTargetExports = _T(""); // whm added 23Jan12
-	m_pApp->m_SavedCollabProjectForFreeTransExports = _T(""); // whm added 23Jan12
-	m_pApp->m_SavedCollabSourceLangName = _T(""); // whm added 23Jan12
-	m_pApp->m_SavedCollabTargetLangName = _T(""); // whm added 23Jan12
-	m_pApp->m_nSavedCollaborationExpectsFreeTrans = -1; // whm added 23Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-	m_pApp->m_SavedCurProjectName = _T(""); // whm added 26Jan12
-	m_pApp->m_SavedCurProjectPath = _T(""); // whm added 26Jan12
-
-
-	m_pApp->LogUserAction(m_pApp->m_collaborationEditor);
-	if (m_pApp->m_bCollabByChapterOnly)
-		m_pApp->LogUserAction(_T("Collab Type: Chapter Only"));
-	else
-		m_pApp->LogUserAction(_T("Collab Type: Whole Book"));
-
-	// Get the state of collaboration
-	int nSel;
-	nSel = pRadioBoxCollabOnOrOff->GetSelection();
-	if (nSel == 0)
-	{
-		// Collaboration radio button is ON
-		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-		{
-			if (m_pApp->m_bCollaboratingWithBibledit != TRUE)
-			{
-				m_bCollabChangedThisDlgSession = TRUE;
-			}
-			m_pApp->m_bCollaboratingWithBibledit = TRUE;
-			m_pApp->LogUserAction(_T("Collab with Bibledit ON"));
-		}
-		else
-		{
-			if (m_pApp->m_bCollaboratingWithParatext != TRUE)
-			{
-				m_bCollabChangedThisDlgSession = TRUE;
-			}
-			m_pApp->m_bCollaboratingWithParatext = TRUE;
-			m_pApp->LogUserAction(_T("Collab with Paratext ON"));
-		}
-	}
-	else if (nSel == 1)
-	{
-		// Collaboration radio button is OFF
-		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-		{
-			if (m_pApp->m_bCollaboratingWithBibledit != FALSE)
-			{
-				m_bCollabChangedThisDlgSession = TRUE;
-			}
-			m_pApp->m_bCollaboratingWithBibledit = FALSE;
-			m_pApp->LogUserAction(_T("Collab with Bibledit OFF"));
-		}
-		else
-		{
-			if (m_pApp->m_bCollaboratingWithParatext != FALSE)
-			{
-				m_bCollabChangedThisDlgSession = TRUE;
-			}
-			m_pApp->m_bCollaboratingWithParatext = FALSE;
-			m_pApp->LogUserAction(_T("Collab with Paratext OFF"));
-		}
-		
-		// PT/BE collaboration is OFF, but selection(s) were made using the "Select from List"
-		// button(s). Ask the admin if he really wanted to turn PT/BE collaboration ON or not.
-		if (m_projectSelectionMade && pRadioBoxCollabOnOrOff->GetSelection() == 1)
-		{
-			wxString msg;
-			msg = msg.Format(_("You pre-selected one or both projects, but you did not turn %s collaboration ON. Do you want to turn on %s collaboration now?"),
-				m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
-			int result = wxMessageBox(msg,_("Collaboration is currently turned OFF"),wxYES_NO);
-			if (result == wxYES)
-			{
-				// Admin actually wanted Collaboration ON
-				if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-				{
-					m_pApp->m_bCollaboratingWithBibledit = TRUE;
-					m_pApp->LogUserAction(_T("Collab with Bibledit ON"));
-				}
-				else
-				{
-					m_pApp->m_bCollaboratingWithParatext = TRUE;
-					m_pApp->LogUserAction(_T("Collab with Paratext ON"));
-				}
-			}
-		}
-	}
-	else
-	{
-		wxASSERT_MSG(FALSE,_T("Programming Error: Wrong pRadioBoxCollabOnOrOff index in CSetupEditorCollaboration::OnOK()."));
-	}
-
-	bool bRemoveProtectedSourceFolder = FALSE;
-	if (m_pApp->m_collaborationEditor == _T("Paratext") 
-		&& m_bCollabChangedThisDlgSession 
-		&& m_pApp->m_bCollaboratingWithParatext == FALSE)
-	{
-		bRemoveProtectedSourceFolder = TRUE;
-	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit") 
-		&& m_bCollabChangedThisDlgSession 
-		&& m_pApp->m_bCollaboratingWithBibledit == FALSE)
-	{
-		bRemoveProtectedSourceFolder = TRUE;
-	}
-
-	if (bRemoveProtectedSourceFolder)
-	{
-		wxString AiProjectName = m_TempCollabSourceProjLangName + _T(" to ") + m_TempCollabTargetProjLangName + _T(" adaptations");
-		wxString msg;
-		msg = _("During collaboration with %s Adapt It got its source texts from a %s project, and the __SOURCE_INPUTS folder was automatically protected from navigation.\n\nYou just turned collaboration OFF, and Adapt It is now removing navigation protection from the __SOURCE_INPUTS folder in the %s project.\n\nIf you want the __SOURCE_INPUTS folder of the %s project to continue to be protected even while collaboration is OFF, you will need to select the \"Assign Locations for Inputs and Outputs\" dialog from the Administrator menu and tick the checkbox labeled \"Protect from Navigation\" for the __SOURCE_INPUTS folder.");
-		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str(),AiProjectName.c_str(),AiProjectName.c_str());
-		wxMessageBox(msg,_("Navigation protection for the __SOURCE_INPUTS folder is being turned OFF"),wxICON_INFORMATION);
-		int posSrcFolder = -1;
-		posSrcFolder = m_pApp->m_foldersProtectedFromNavigation.Find(_T("__SOURCE_INPUTS:"));
-		if (posSrcFolder != wxNOT_FOUND)
-		{
-			int len = m_pApp->m_sourceInputsFolderName.Length() + 1; // + 1 for the colon ':' at end
-			m_pApp->m_foldersProtectedFromNavigation.Remove(posSrcFolder,len);
-			// Change the App flag to match since the admin might access the Assign Locations... dialog
-			// in the current session and the project config file won't be read to adjust the App's
-			// m_bProtectSourceInputsFolder flag.
-			m_pApp->m_bProtectSourceInputsFolder = FALSE;
-			// update the m_pConfig file.
-			bool bWriteOK = FALSE;
-			wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
-			m_pApp->m_pConfig->SetPath(_T("/Settings"));
-			// whm 30Sep11 Note: we want even a null string value for the m_foldersProtextedFromNavigation string
-			// to be saved in Adapt_It_WX.ini.
-			{ // block for wxLogNull
-				wxLogNull logNo; // eliminates spurious message from the system
-				bWriteOK = m_pApp->m_pConfig->Write(_T("folders_protected_from_navigation"), m_pApp->m_foldersProtectedFromNavigation);
-				if (!bWriteOK)
-				{
-					wxMessageBox(_T("SetupEditorCollaboration.cpp, OnOK() handler, m_pConfig->Write() returned FALSE at line 1253, processing will continue, but save, shutdown and restart would be wise"));
-				}
-				m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
-			}
-			// restore the oldPath back to "/Recent_File_List"
-			m_pApp->m_pConfig->SetPath(oldPath);
-		}
-	}
-
-	// ================================================================================
-	// whm 8Sep11 NOTE: The administrator's settings are saved below in the Adapt_It_WX.ini
-	// file. This is a safeguard that enables the settings to be restored if the user does
-	// a SHIFT-DOWN startup. In GetSourceTextFromEditor.cpp, however, we don't save the
-	// collaboration settings that the user may have changed - via selecting a different AI
-	// project to hook up with or even using the <Create a new project instead> selection
-	// in the drop-down combo box list of AI project). That is by design, so that if the 
-	// user has fouled things up because of making one of those selections to point AI to 
-	// a different/new AI project by mistake, the user can still (be told to) do a 
-	// SHIFT-DOWN startup and get back the settings that the administrator made when he 
-	// set things up initially in SetupEditorCollaboration.
-	// ================================================================================
-
-	// update the values related to PTcollaboration in the Adapt_It_WX.ini file
-	bool bWriteOK = FALSE;
-	wxString oldPath = m_pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
-	m_pApp->m_pConfig->SetPath(_T("/Settings"));
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
-	{
-		wxLogNull logNo; // eliminates spurious message from the system
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collaboration"), m_pApp->m_bCollaboratingWithParatext);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_free_trans_proj"), m_pApp->m_CollabProjectForFreeTransExports);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_ai_proj_name"), m_pApp->m_CollabAIProjectName);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_book_selected"), m_pApp->m_CollabBookSelected);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_by_chapter_only"), m_pApp->m_bCollabByChapterOnly);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_src_lang_name"), m_pApp->m_CollabSourceLangName);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("pt_collab_tgt_lang_name"), m_pApp->m_CollabTargetLangName);
-		if (!bWriteOK)
-		{
-			wxMessageBox(_T("SetupEditorCollaboration.cpp, OnOK() handler, one of the m_pConfig->Write() calls returned FALSE at lines 1285-94, processing will continue, but save, shutdown and restart would be wise"));
-		}
-		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
-	}
-	// update the values related to BE collaboration in the Adapt_It_WX.ini file
-	if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-	{
-		wxLogNull logNo; // eliminates spurious message from the system
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collaboration"), m_pApp->m_bCollaboratingWithBibledit);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_proj"), m_pApp->m_CollabProjectForSourceInputs);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_proj"), m_pApp->m_CollabProjectForTargetExports);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_free_trans_proj"), m_pApp->m_CollabProjectForFreeTransExports);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_ai_proj_name"), m_pApp->m_CollabAIProjectName);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_book_selected"), m_pApp->m_CollabBookSelected);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_by_chapter_only"), m_pApp->m_bCollabByChapterOnly);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_chapter_selected"), m_pApp->m_CollabChapterSelected);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_src_lang_name"), m_pApp->m_CollabSourceLangName);
-		bWriteOK = m_pApp->m_pConfig->Write(_T("be_collab_tgt_lang_name"), m_pApp->m_CollabTargetLangName);
-		if (!bWriteOK)
-		{
-			wxMessageBox(_T("SetupEditorCollaboration.cpp, OnOK() handler, one of the m_pConfig->Write() calls returned FALSE at lines 1305-14, processing will continue, but save, shutdown and restart would be wise"));
-		}
-		m_pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
-	}
-	// restore the oldPath back to "/Recent_File_List"
-	m_pApp->m_pConfig->SetPath(oldPath);
-
-	// Configure the menu interface for collaboration. The menu interface changes have
-	// to be done in such a way that they are compatible with the user profile changes to the
-	// user interface.
-	// Some menu changes may need to override any user profile allowed menu items:
-	
-	if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
-	{
-		// disallow Book mode, and prevent user from turning it on
-		m_pApp->m_bBookMode = FALSE;
-		m_pApp->m_pCurrBookNamePair = NULL;
-		m_pApp->m_nBookIndex = -1;
-		m_pApp->m_bDisableBookMode = TRUE;
-		wxASSERT(m_pApp->m_bDisableBookMode);
-	}
-	else
-	{
-		// all collaboration was turned OFF, so allow book folder mode to be changed 
-		// if desired
-		m_pApp->m_bDisableBookMode = FALSE;
-	}
-	
-	// Disabling of other menu items is done below in MakeMenuInitializationsAndPlatformAdjustments().
-	
-	// Other menu changes may involve adding tests within the menu item handler
-	// such as a test within the File's "UnPack Document..." command to prevent 
-	// the unpacking of documents that are not pertinent to the Paratext projects
-
-	// Close any open project and/or document if any are open
-	CAdapt_ItView* pView = m_pApp->GetView();
-	if (pView != NULL)
-	{
-		m_pApp->GetView()->CloseProject();
-	}
-
-	// whm added 3Jul11 Need to call MakeMenuInitializationsAndPlatformAdjustments() here to 
-	// immediately add/remove the parenthetical info to the File > Open... and File > Save menu 
-	// labels.
-	m_pApp->MakeMenuInitializationsAndPlatformAdjustments();
-	
 	// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
 	// which, when m_bCollaboratingWithParatext is TRUE, actually calls the "Get
 	// Source Text from Paratext Project" dialog instead of the normal startup
 	// wizard. When not collaborating with Paratext, the usual Start Working
 	// Wizard will appear.
 	m_pApp->m_bJustLaunched = TRUE;
+	// when leaving the SetupEditorCollaboration dialog we want the normal wizard
+	// to appear, not the GetSourceTextFromEditor dialog.
+	m_pApp->m_bStartWorkUsingCollaboration = FALSE; 
 
 	// update status bar
 	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
 	// info within its status bar message
 	m_pApp->RefreshStatusBarInfo();
-	/*
-	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
-	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
-	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
-	{
-		wxString message = _("Collaborating with ");
-		message += m_pApp->m_collaborationEditor;
-		pStatusBar->SetStatusText(message,0); // use first field 0
-	}
-	*/
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
-void CSetupEditorCollaboration::OnPwdProtectCollabSwitching(wxCommandEvent& WXUNUSED(event))
+void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12
 {
-	m_bTempPwdProtectCollabSwitching = pCheckPwdProtectCollabSwitching->IsChecked();
-	// Note: If the administrator ticked the check box but does not subsequently
-	// set a custom password using the "Set password for collaboration switching..." 
-	// button, only the "switch" default password will be accepted whevever the user
-	// clicks on the "Change Paratext/Bibledit Projects" button of the "Get Source Text
-	// from Paratext/Bibledit Project" dialog.
-	// If the administrator unticked the check box, any previously set custom password
-	// will still be stored, but not required whenever the "Change Paratext/Bibledit Projects"
-	// button is clicked on the "Get Source Text from Paratext/Bibledit Project" dialog.
+	CCreateNewAIProjForCollab newProjDlg(m_pApp->GetMainFrame());
+
+	if (newProjDlg.ShowModal() == wxID_OK)
+	{
+		// The CCreateNewAIProjForCollab dialog's OnOK() handler could assign the 
+		// values but we do it here in the parent dialog, by accessing the
+		// sub-dialog's wxTextCtrls.
+		m_pApp->m_CollabSourceLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
+		m_pApp->m_CollabTargetLangName = newProjDlg.pTextCtrlTgtLangName->GetValue();
+		
+		bool bDisableBookMode = TRUE;
+		bool bProjOK = CreateNewAIProject(m_pApp, m_pApp->m_CollabSourceLangName, 
+					m_pApp->m_CollabTargetLangName, m_pApp->m_sourceLanguageCode, 
+					m_pApp->m_targetLanguageCode, bDisableBookMode);
+		if (!bProjOK)
+		{
+            // This is a fatal error to continuing this collaboration attempt, but it won't
+            // hurt the application. The error shouldn't ever happen. We let the dialog
+            // continue to run, but tell the user that the app is probably unstable now and
+            // he should get rid of any folders created in the attempt, shut down,
+            // relaunch, and try again. This message is localizable.
+			wxString message;
+			message = message.Format(_("Error: attempting to create an Adapt It project for supporting collaboration with an external editor, failed.\nThe application is not in a state suitable for you to continue working, but it will still run. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s  if it exists.\nThen relaunch, and try again."),
+				m_pApp->m_curProjectPath.c_str());
+			m_pApp->LogUserAction(message);
+			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR);
+			return;
+		}
+		else
+		{
+			// add the new project to the combo box list of projects
+			int nNewProjIndex;
+			nNewProjIndex = pComboAiProjects->Append(m_pApp->m_curProjectName);
+			wxASSERT(nNewProjIndex >= 0);
+			pComboAiProjects->SetSelection(nNewProjIndex);
+			// fill out the Temp variables we know about
+			m_TempCollabAIProjectName = m_pApp->m_curProjectName;
+			this->m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
+			this->m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
+			SetStateOfRemovalButton();
+			// confirm to the user that the project was created
+			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
+			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_pApp->m_collaborationEditor.c_str());
+			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION);
+		}
+	}
 }
 
-void CSetupEditorCollaboration::OnBtnSetPwdForCollabSwitching(wxCommandEvent& WXUNUSED(event))
+void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12
 {
-	m_pApp->LogUserAction(_T("Initiated setting password for collaboration switching"));
-	wxString caption = _("Type A Password");
-	wxString message = _(
-"The password can be a mix of letters, numbers and punctuation. Less than five characters will not be accepted.\nEmptying the text box erases the previously set password, leaving no password set.\nTyping a different password replaces the current one.");
-	wxString default_value = m_TempCollabSwitchingPassword;
-	wxString password = ::wxGetTextFromUser(message,caption,default_value,this);
-	int length = password.Len();
-	if (length == 0)
+	// Check for completion of Step 1:
+	// Check if the administrator has selected an AI project from the combo list of AI projects (step 1). If
+	// not inform him that step 1 is necessary to identify an AI project for hookup to during collaboration
+	// so that AI can save the collaboration settings for that project.
+	if (pComboAiProjects->GetSelection() == -1 || m_TempCollabSourceProjLangName.IsEmpty() || m_TempCollabTargetProjLangName.IsEmpty())
 	{
-		// administrator wants to lock out anyone who does not know the "switch" secret password
-		m_TempCollabSwitchingPassword = _T("");
-		m_pApp->LogUserAction(_T("Admin removed password for collaboration switching"));
-		// password was removed, so go ahead and ensure that
-		// the check box is also unticked and m_bTempPwdProtectCollabSwitching
-		// flag is set FALSE
-		m_bTempPwdProtectCollabSwitching = FALSE;
-		pCheckPwdProtectCollabSwitching->SetValue(m_bTempPwdProtectCollabSwitching);
-		// NOTE: The App's values for storing any newly entered password and its
-		// associated flag are not stored until the OnOK() button is clicked.
-		return;
+		wxString msg, msg1, msgTitle;
+		msg1 = _("Please select an existing Adapt It project or create a new one in step 1.");
+		msg = msg1;
+		msg += _T(' ');
+		msg += _("Adapt It will save the collaboration settings you make in this dialog for the Adapt It project you select (or create) in step 1.");
+		msgTitle = _("No Adapt It project designated for this collaboration setup");
+		wxMessageBox(msg,msgTitle,wxICON_INFORMATION);
+		// set focus on the combo box
+		pComboAiProjects->SetFocus();
+		m_pApp->LogUserAction(msgTitle);
+		return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
 	}
-	if (length <= 4)
+
+	// Check for the completion of step 3:
+	// Check if the administrator has selected an initial PT/BE project for obtaining source texts.
+	if (m_TempCollabProjectForSourceInputs.IsEmpty())
 	{
-		::wxBell();
-		wxMessageBox(_("Too short."),_T(""),wxICON_WARNING);
-		m_pApp->LogUserAction(_T("Password too short"));
+		wxString msg, msg1;
+		msg = _("Please select a %s project for getting source texts. Use the \"Select from List\" button.");
+		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
+		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION);
+		pBtnSelectFmListSourceProj->SetFocus();
+		m_pApp->LogUserAction(msg);
+		return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+	}
+	// Check if the administrator has selected an initial PT/BE project for receiving translation drafts.
+	if (m_TempCollabProjectForTargetExports.IsEmpty())
+	{
+		wxString msg, msg1;
+		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select from List\" button.");
+		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
+		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION);
+		pBtnSelectFmListTargetProj->SetFocus();
+		m_pApp->LogUserAction(msg);
+		return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+	}
+	
+	// Check to ensure that the project selected for source text inputs is different 
+	// from the project selected for target text exports, unless both are empty
+	// strings, i.e., ("[No Project Selected]" was selected by the administrator).
+	if (!m_TempCollabProjectForSourceInputs.IsEmpty() && !m_TempCollabProjectForTargetExports.IsEmpty())
+	{
+		// If the same project is selected, inform the administrator and abort the Save
+		// operation so the administrator can select different projects.
+		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForTargetExports)
+		{
+			wxString msg;
+			msg = _("The projects selected for getting source texts and receiving translation drafts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
+			wxMessageBox(msg);
+			m_pApp->LogUserAction(msg);
+			return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+		}
+		
+		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports
+			&& m_bTempCollaborationExpectsFreeTrans)
+		{
+			wxString msg;
+			msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
+			wxMessageBox(msg);
+			m_pApp->LogUserAction(msg);
+			return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+		}
+	}
+
+	wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
+	
+	// Check to see if book folder mode is activated. If so, warn the administrator that it
+	// will be turned OFF if s/he continues setting up AI for collaboration with Paratext/Bibledit.
+	if (m_pApp->m_bBookMode)
+	{
+		wxString strSel = pComboAiProjects->GetStringSelection();
+		wxString msg;
+		msg = msg.Format(_("Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled for the %s Adapt It project in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled.\n\nDo you want to continue setting up this project for collaboration with %s?"),strSel.c_str(), m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
+		if (wxMessageBox(msg,_T(""),wxYES_NO | wxICON_INFORMATION) == wxNO)
+		{
+			m_pApp->LogUserAction(msg);
+			return;
+		}
+	}
+
+	// Store collab settings in the App's members
+	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
+	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
+	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
+	m_pApp->m_CollabAIProjectName = m_TempCollabAIProjectName;
+	m_pApp->m_bCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
+	m_pApp->m_CollabBookSelected = m_TempCollabBookSelected;
+	m_pApp->m_CollabSourceLangName = m_TempCollabSourceProjLangName;
+	m_pApp->m_CollabTargetLangName = m_TempCollabTargetProjLangName;
+	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly;
+
+	// In order to write the collab settings to the selected project file we need to compose the
+	// path to the project for the second parameter of WriteConfigurationFile().
+	wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
+								// and m_curProjectPath.
+	if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
+	{
+		newProjectPath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator 
+								 + m_pApp->m_CollabAIProjectName;
 	}
 	else
 	{
-		m_pApp->LogUserAction(_T("Password accepted"));
-		// accept the password
-		m_TempCollabSwitchingPassword = password;
-		// A valid password was entered, so go ahead and ensure that
-		// the check box is also ticked and m_bTempPwdProtectCollabSwitching
-		// flag is set
-		m_bTempPwdProtectCollabSwitching = TRUE;
-		pCheckPwdProtectCollabSwitching->SetValue(m_bTempPwdProtectCollabSwitching);
-		// NOTE: The App's values for storing any newly entered password and its
-		// associated flag are not stored until the OnOK() button is clicked.
+		newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator 
+								 + m_pApp->m_CollabAIProjectName;
 	}
+	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
+	// to save the settings in the project config file.
+	bool bOK;
+	bOK = m_pApp->WriteConfigurationFile(szProjectConfiguration, newProjectPath,projectConfigFile);
+	if (bOK)
+	{
+		wxString newAIconfigFilePath = newProjectPath + m_pApp->PathSeparator + szProjectConfiguration + _T(".aic");
+		// Tell administrator that the setup has been saved.
+		wxString msg = _("The collaboration settings for the \"%s\" project were successfully saved in the project's configuration file at:\n\n%s\n\nYou may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\nIf you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
+		msg = msg.Format(msg,m_pApp->m_CollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
+		wxMessageBox(msg,_T("Save of collaboration settings successful"),wxICON_INFORMATION);
+		m_bCollabChangedThisDlgSession = FALSE;
+	}
+	else
+	{
+		// Writing of the project config file failed for some reason. This would be unusual, so
+		// just do an English notification
+		wxCHECK_RET(bOK, _T("OnSaveSetupForThisProjNow(): WriteConfigurationFile() failed, line 1616 in SetupEditorCollaboration.cpp"));
+	}
+	
+	m_TempCollabProjectForSourceInputs = _T("");
+	m_TempCollabProjectForTargetExports = _T("");
+	m_TempCollabProjectForFreeTransExports = _T("");
+	m_TempCollabAIProjectName = _T("");
+	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+	m_TempCollabBookSelected = _T("");
+	m_TempCollabSourceProjLangName = _T("");
+	m_TempCollabTargetProjLangName = _T("");
+	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
+	
+	// Zero out all fields so the dialog is ready for another setup if desired
+	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
+	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
+	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
+	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
+	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
 }
 
+void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12
+{
+	// "Remove this AI Project from Collaboration"
+	// If no AI project is yet selected this handler is disabled, so we can assume that
+	// if we get here an AI project will have been selected. 
+	wxString projName = m_TempCollabAIProjectName;
+	wxString msg = _("You are about to remove the collaboration settings for the %s project. If you continue the user will not be able to turn on collaboration with %s for this project.\n\nDo you want to remove the collaboration settings for %s?");
+	msg = msg.Format(msg, projName.c_str(),m_pApp->m_collaborationEditor.c_str(),projName.c_str());
+	int response = wxMessageBox(msg,_("Confirm removal of collaboration settings"),wxICON_QUESTION | wxYES_NO); 
+	if (response == wxNO)
+		return;
 
-// other class methods
+	// This is similar to the save routine that is found in the OnSaveSetupForThisProjNow() handler,
+	// except that we are saving blank values for the collab settings into the project config
+	// file.
+	m_pApp->m_CollabProjectForSourceInputs = _T("");
+	m_pApp->m_CollabProjectForTargetExports = _T("");
+	m_pApp->m_CollabProjectForFreeTransExports = _T("");
+	m_pApp->m_CollabAIProjectName = _T("");
+	m_pApp->m_bCollaborationExpectsFreeTrans = FALSE;
+	m_pApp->m_CollabBookSelected = _T("");
+	m_pApp->m_CollabSourceLangName = _T("");
+	m_pApp->m_CollabTargetLangName = _T("");
+	m_pApp->m_bCollabByChapterOnly = TRUE;
+	
+	// In order to write the collab settings to the selected project file we need to compose the
+	// path to the project for the second parameter of WriteConfigurationFile().
+	wxString newProjectPath;	// a local string to avoid unnecessarily changing the App's m_curProjectName
+								// and m_curProjectPath.
+	if (!m_pApp->m_customWorkFolderPath.IsEmpty() && m_pApp->m_bUseCustomWorkFolderPath)
+	{
+		newProjectPath = m_pApp->m_customWorkFolderPath + m_pApp->PathSeparator 
+								 + m_TempCollabAIProjectName;
+	}
+	else
+	{
+		newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator 
+								 + m_TempCollabAIProjectName;
+	}
+	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
+	// to save the settings in the project config file.
+	bool bOK;
+	bOK = m_pApp->WriteConfigurationFile(szProjectConfiguration, newProjectPath,projectConfigFile);
+	if (bOK)
+	{
+		wxString newAIconfigFilePath = newProjectPath + m_pApp->PathSeparator + szProjectConfiguration + _T(".aic");
+		// Tell administrator that the setup has been saved.
+		wxString msg = _("The collaboration settings for the \"%s\" project were successfully removed from the project's configuration file at:\n\n%s\n\nYou may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\nIf you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
+		msg = msg.Format(msg,m_TempCollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
+		wxMessageBox(msg,_T("Removal of collaboration settings successful"),wxICON_INFORMATION);
+		m_bCollabChangedThisDlgSession = FALSE;
+	}
+	else
+	{
+		// Writing of the project config file failed for some reason. This would be unusual, so
+		// just do an English notification
+		wxCHECK_RET(bOK, _T("OnRemoveThisAIProjectFromCollab(): WriteConfigurationFile() failed, line 1189 in SetupEditorCollaboration.cpp"));
+	}
 
+	// zero out the local Temp... variables as we did in OnInit()
+	m_TempCollabProjectForSourceInputs = _T("");
+	m_TempCollabProjectForTargetExports = _T("");
+	m_TempCollabProjectForFreeTransExports = _T("");
+	m_TempCollabAIProjectName = _T("");
+	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+	m_TempCollabBookSelected = _T("");
+	m_TempCollabSourceProjLangName = _T("");
+	m_TempCollabTargetProjLangName = _T("");
+	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
+	
+	// Zero out all fields so the dialog is ready for another setup if desired
+	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
+	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
+	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
+	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
+	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
+
+	m_bCollabChangedThisDlgSession = FALSE;
+}
+
+void CSetupEditorCollaboration::SetStateOfRemovalButton()
+{
+	if (m_TempCollabAIProjectName.IsEmpty())
+		pBtnRemoveProjFromCollab->Disable();
+	else
+		pBtnRemoveProjFromCollab->Enable();
+}

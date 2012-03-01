@@ -6121,6 +6121,38 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		GetDocument()->OnAdvancedSendSynchronizedScrollingMessages(uevent); //toggle it to TRUE
 	}
 
+	// whm added 28Feb12
+	// when the user explicitly selects File > Close Project we want the 
+	// normal wizard to appear, not the GetSourceTextFromEditor dialog.
+	pApp->m_bStartWorkUsingCollaboration = FALSE; 
+	
+	// whm 28Feb12 modified. With project-specific collaboration the user
+	// decides whether collaboration is ON or OFF at the ProjectPage of
+	// the wizard. When the user selects Close Project from the File menu
+	// we close the project and also turn collaboration OFF, which also
+	// is needed to remove the parenthetical information from the 
+	// File > Open and File > Save labels.
+	pApp->m_bCollaboratingWithParatext = FALSE;
+	pApp->m_bCollaboratingWithBibledit = FALSE;
+	// Remove the parenthetical info from File > Open and File Save menu labels
+	pApp->MakeMenuInitializationsAndPlatformAdjustments();
+
+	// whm added 20Feb12. If no project is open, then we should not call
+	// pDoc->OnFileClose() below. Although File > Close Projects won't
+	// trigger OnFileCloseProject(), the unpacking of a packed document
+	// calls CloseProject() which ends up calling this OnFileCloseProject()
+	// handler. Then later the app wants to write out a project config
+	// file which asserts and isn't appropriate when no project is open.
+	// This situation can happen when the user cancels at the
+	// Start Working Wizard and then does an Unpack Document... command.
+	// Therefore I am adding a test for m_pKB being NULL and if so, we
+	// bail out early from OnFileCloseProject().
+	if (pApp->m_pKB == NULL)
+	{
+		wxLogDebug(_T("m_pKB is NULL - project is already closed."));
+		return;
+	}
+
 	// ask for saving of doc & both kbs (normal one and glossing one)
 	pDoc->OnFileClose(event);
 
@@ -13078,9 +13110,32 @@ void CAdapt_ItView::StatusBarMessage(wxString &message)
 	}
 }
 
-// called by DoStartupWizardOnLaunch
-void CAdapt_ItView::OnFileStartupWizard(wxCommandEvent& event)
+// whm 28Feb12 modified. This OnFileStartupWizard() handler is now called only
+// by the File > Start Working... menu item. It is no longer called by 
+// DoStartupWizardOnLaunch(). The original code in this handler that called 
+// DoStartWorkingWizard() was moved to DoStartupWizardOnLaunch().
+void CAdapt_ItView::OnFileStartupWizard(wxCommandEvent& WXUNUSED(event))
 {
+	// whm Note 28Feb12
+	// when the user explicitly clicks on the File > Start Working... item we 
+	// the App's behavior to be the following:
+	// 1. If collaboration is ON at the time File > Start Working... is selected,
+	// we want the GetSourceTextFromEditor dialog to appear so the user can select
+	// a different book and/or chapter in collaboration mode.
+	// 2. If collaboration is OFF at the time File > Start Working... is selected,
+	// we want the normal wizard to appear, not the GetSourceTextFromEditor dialog.
+	
+	// whm 28Feb12 moved the original code to DoStartupWizardOnLaunch() and
+	// this handler now calls DoStartupWizardOnLaunch().
+	DoStartupWizardOnLaunch();
+}
+
+void CAdapt_ItView::DoStartupWizardOnLaunch()
+{	
+	// whm modified 28Feb12. Moved the code from OnFileStartupWizard() to this
+	// function. The OnFileStartupWizard() handler now calls this function instead
+	// of this function calling OnFileStartupWizard().
+
     // Since the Startup Wizard menu item has an accelerator table hot key (CTRL-W see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.
@@ -13128,7 +13183,8 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 		return; // suppress its use if user wants, but only for the program launch
 	else
 	{
-		bool bSuccess = pApp->DoStartWorkingWizard(event);
+		wxCommandEvent evt;
+		bool bSuccess = pApp->DoStartWorkingWizard(evt);
 		if (!bSuccess)
 		{
 			wxMessageBox(_T(
@@ -13137,12 +13193,6 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 			pApp->LogUserAction(_T("The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."));
 		}
 	}
-}
-
-void CAdapt_ItView::DoStartupWizardOnLaunch()
-{
-	wxCommandEvent dummyevent;
-	OnFileStartupWizard(dummyevent);
 }
 
 void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))

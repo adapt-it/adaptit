@@ -7,13 +7,10 @@
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for two friend classes: the CGetSourceTextFromEditorDlg and
-/// the CSelectCollabProjectsDialog class. 
+/// the CChangeCollabProjectsDlg class. 
 /// The CGetSourceTextFromEditorDlg class represents a dialog in which a user can obtain a source text
-/// for adaptation from an external editor such as Paratext or Bibledit. Its friend class
-/// CSelectCollabProjectsDialog is used as a sub-dialog of CGetSourceTextFromEditorDlg that can
-/// be used to change the selected projects being used from the collaboration editor.
-/// \derivation		The CGetSourceTextFromEditorDlg and CSelectCollabProjectsDialog classes
-/// are both derived from AIModalDialog.
+/// for adaptation from an external editor such as Paratext or Bibledit.
+/// \derivation		The CGetSourceTextFromEditorDlg is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef GetSourceTextFromEditorDlg_h
@@ -24,72 +21,9 @@
     #pragma interface "GetSourceTextFromEditorDlg.h"
 #endif
 
-class CSelectCollabProjectsDialog : public AIModalDialog
-{
-	friend class CGetSourceTextFromEditorDlg;
-public:
-	CSelectCollabProjectsDialog(wxWindow* parent); // constructor
-	virtual ~CSelectCollabProjectsDialog(void); // destructor
-	
-	// other methods
-	wxComboBox* pComboSourceProjectName;
-	wxComboBox* pComboTargetProjectName;
-	wxComboBox* pComboFreeTransProjectName;
-	wxComboBox* pComboAiProjects;
-	wxStaticText* pStaticGetSrcFromThisProj;
-	wxStaticText* pStaticTransTgtToThisProj;
-	wxStaticText* pStaticTransFtToThisProj;
-	wxTextCtrl* pTextCtrlAsStaticNewAIProjName;
-	wxTextCtrl* pTextCtrlSourceLanguageName;
-	wxTextCtrl* pTextCtrlTargetLanguageName;
-	wxStaticText* pStaticTextEnterLangNames;
-	wxStaticText* pStaticTextNewAIProjName;
-	wxStaticText* pStaticTextSrcLangName;
-	wxStaticText* pStaticTextTgtLangName;
-	wxStaticText* pStaticTextDoNotChangeNote;
-	wxStaticText* pStaticTextUseDropDown;
-	wxStaticText* pStaticTextSelectSuitableAIProj;
-	wxButton* pBtnNoFreeTrans;
-	wxButton* pBtnCancel;
-	wxButton* pBtnOK;
-	
-	// The following m_Temp... variables are used while the dialog is active until
-	// the user clicks on OK. In the OnOK() handler the Apps persistent values are
-	// assigned according to these m_Temp... variables. Hence, if the "Cancel" button
-	// is clicked, no changes are made to the App's persistent values.
-	wxString m_TempCollabProjectForSourceInputs;
-	wxString m_TempCollabProjectForTargetExports;
-	wxString m_TempCollabProjectForFreeTransExports;
-	wxString m_TempCollabAIProjectName;
-	wxString m_TempCollabSourceProjLangName;
-	wxString m_TempCollabTargetProjLangName;
-	wxString m_TempCollabBookSelected;
-	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
-	wxString m_TempCollabChapterSelected;
-	wxString m_bareChapterSelected;
-	bool m_bTempCollaborationExpectsFreeTrans; // whm added 6Jul11
-	wxArrayString projList;
-protected:
-	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnOK(wxCommandEvent& event);
-	void OnCancel(wxCommandEvent& event);
-	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
-	void OnComboBoxSelectSourceProject(wxCommandEvent& WXUNUSED(event));
-	void OnComboBoxSelectTargetProject(wxCommandEvent& WXUNUSED(event));
-	void OnComboBoxSelectFreeTransProject(wxCommandEvent& WXUNUSED(event));
-	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
-	void OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event));
-	void OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event));
-
-private:
-	CAdapt_ItApp* m_pApp;
-
-	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
-};
-	
 class CGetSourceTextFromEditorDlg : public AIModalDialog
 {
-	friend class CSelectCollabProjectsDialog;
+	//friend class CChangeCollabProjectsDlg;
 public:
 	CGetSourceTextFromEditorDlg(wxWindow* parent); // constructor
 	virtual ~CGetSourceTextFromEditorDlg(void); // destructor
@@ -107,7 +41,7 @@ public:
 	wxStaticText* pFreeTransProj;
 	wxStaticBox* pStaticBoxUsingTheseProjects;
 	wxStaticText* pUsingAIProjectName;
-	wxButton* pBtnChangeProjects;
+	//wxButton* pBtnChangeProjects;
 	wxButton* pBtnCancel;
 	wxButton* pBtnOK;
 	wxSizer* pGetSourceTextFromEditorSizer;
@@ -155,13 +89,13 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
-	void OnBtnChangeProjects(wxCommandEvent& WXUNUSED(event)); // calls DoChangProjects()
+	//void OnBtnChangeProjects(wxCommandEvent& WXUNUSED(event)); // calls DoChangProjects()
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
 	//void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
-	bool DoChangeProjects();
+	//bool DoChangeProjects();
 	bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
 								wxString LanguageNameTgt, wxString& aiProjectFolderName,
 								wxString& aiProjectFolderPath);

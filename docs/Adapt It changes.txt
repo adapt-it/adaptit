@@ -1,36 +1,45 @@
 ----------------------------------------------
-Version 6.2.0 release 22 January 2012
+Version 6.2.0 release 10 March 2012
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.2.0
 ----------------------------------------------
+* The setup for collaboration with Paratext or Bibledit is
+now possible for each individual Adapt It project. This means
+that an administrator can now setup different collaboration
+scenarios for each Adapt It project, and collaboration
+settings are therefore now located in the project 
+configuration files.
+* The user now decides whether to turn collaboration on or 
+off for a given Adapt It project, which means a user can do
+work on a collaboration project with Paratext or Bibledit,
+and in the same session can turn collaboration off and do 
+adaptation work on other texts that don't exchange data with
+Paratext or Bibledit.
+* The "Setup Paratext/Bibledit Collaboration" dialog has been
+reordered and simplified. An administrator can now configure
+multiple Adapt It projects for collaboration without leaving
+the setup dialog.
 * For collaboration work with Paratext or Bibledit, the "Get
 Chapter Only" and "Get Whole Book" radio button selections
 have been moved from the "Get Source Text from Paratext/
 Bibledit Project" dialog to the Administrator menu's "Setup 
 Paratext/Bibledit Collaboration" dialog, thus making the 
 chapter vs. whole book selection an administrator choice 
-rather than a user choice.
+rather than a user choice. This avoids potential data loss
+problems that could happen if a user alternated between 
+chapter only and whole book collaboration while working in
+parts of the same book.
 * The "Get Source Text from Paratext/Bibledit Project" dialog
 now displays more clearly to the user which Paratext/Bibledit
 projects and which Adapt It project are involved when
 collaboration mode is turned ON. 
-* For collaboration work the "Change Paratext/Bibledit 
-Projects" button is now password protected by default. An
-administrator can set a custom password for the function, or
-remove password protection via settings on the "Setup
-Paratext/Bibledit Collaboration" dialog (on the Administrator
-menu).
-* The Collaboration with Paratext or Bibledit can now be
-turned ON or OFF for certain projects by adding command-line
-switches to Adapt It when it is launched. The Adapt It project 
-to be used at launch can also be provided in a command-line
-switch. This makes it possible to have desktop launch icons 
-for Adapt It that launch Adapt It and load a given project 
-with collaboration either ON or OFF for that project. These
-new command-line switches and how to use them are documented
-in the Help_for_Administrators.htm file (accessible from the
-Administrator menu).
+* For "Change Paratext/Bibledit Projects" button has been 
+removed from the user's collaboration dialog. Now that 
+collaboration settings are tied to individual Adapt It 
+projects, and the user can decide whether to work with 
+collaboration ON of OFF after selecting a project, the button
+is no longer needed.
 * Previously, when Define Sections By "Punctuation" the 
 automatic segmenting of text during Free Translation Mode, 
 would ignore punctuation if the punctuation resulted in text 
@@ -69,11 +78,19 @@ remembered from session to session.
 hidden) is also remembered from session to session. By hiding
 the Tool bar, Status bar, and/or Mode bar, more text 
 information can be made visible on small screens.
+* The "Pack Document..." command now adds the source and
+target language names as prefixes on the packed document's
+file name. This is to help distinguish the AI project which
+the packed document came from from the file name itself.
 * Adapt It now has a "man page" for Linux users.
 * The Linux Debian packages for Adapt It now recommend that
 the user also install a version of Bibledit-gtk that is 
 greater than or equal to version 4.2.94 in order for Adapt
 It to be able to work in collaboration with Bibledit.
+* The Linux Debian packages for Adapt It now include a
+dependency on the libgnomeprintui (>= 2.0). Some users
+including Balsa users have reported print problems because
+their systems did not have libgnomeprintui installed.
 ----------------------------------------------
 Bug fixes in 6.2.0
 ----------------------------------------------
@@ -105,6 +122,7 @@ mistakenly left out of the last update, but is included in
 this 6.2.0 update.
 * In the Linux version (Balsa) the "Change Bibledit Projects"
 dialog could become unresponsive. That has now been fixed.
+Actually that button and dialog have been removed.
 * When collaborating with Bibledit on Linux the Open... and
 Save menu items were not being relabeled to indicate that
 Adapt It would get its source texts from Bibledit and 

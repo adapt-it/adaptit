@@ -120,6 +120,10 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	pStaticTitle = (wxStaticText*)FindWindowById(IDC_STATIC_TITLE);
 	wxASSERT(pStaticTitle != NULL);
 
+	// whm added 21Feb12
+	pCheckUsePrefixExportProjNameOnFilename = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PREFIX_EXPORT_PROJ_NAME);
+	wxASSERT(pCheckUsePrefixExportProjNameOnFilename != NULL);
+	
 	// whm added 9Dec11
 	pCheckUsePrefixExportTypeOnFilename = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PREFIX_EXPORT_TYPE);
 	wxASSERT(pCheckUsePrefixExportTypeOnFilename != NULL);
@@ -186,6 +190,7 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//}
 	
 	// initialize the values of the checkboxes from the App's values
+	pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
 	pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
 	pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
 	// Note: the caller DoExportSfmText() accesses the above two checkbox values and may
@@ -250,6 +255,7 @@ void CExportSaveAsDlg::OnBnClickedButtonExportFilterOptions(wxCommandEvent& WXUN
 void CExportSaveAsDlg::OnOK(wxCommandEvent& event) 
 {
 	// save the values to the flags on the App for saving in the basic config file
+	gpApp->m_bUsePrefixExportProjectNameOnFilename = pCheckUsePrefixExportProjNameOnFilename->GetValue();
 	gpApp->m_bUsePrefixExportTypeOnFilename = pCheckUsePrefixExportTypeOnFilename->GetValue();
 	gpApp->m_bUseSuffixExportDateTimeOnFilename = pCheckUseSuffixExportDateTimeStamp->GetValue();
 	

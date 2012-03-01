@@ -15883,14 +15883,16 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	int len = exportFilename.Length();
 	exportFilename.Remove(len-3,3); // remove the xml extension
 	exportFilename += _T("aip"); // make it a *.aip file type
-	// whm addition 20Feb12. Bruce at Kim's request suggests we identify the language 
-	// names by adding them to the name of the Packed Document that is not date-time 
-	// stamped (when Nav protection is OFF). This would be helpful for when multiple
-	// projects are on a computer since the _PACKED_INPUTS_OUTPUTS folder is not 
-	// associated with a particular project, but is located directly within the Adapt
-	// It Unicode Work folder.
-	exportFilename = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('-') + exportFilename;
-
+	
+	// whm addition 21Feb12. Bruce at Kim's request suggests we identify the language 
+	// names by including them (prefixed) in the composed name of the Packed Document. This would 
+	// be helpful for when a computer has multiple AI projects since the _PACKED_INPUTS_OUTPUTS 
+	// folder (or whatever folder) is not associated with a particular project, but is 
+	// located directly within the Adapt It Unicode Work folder.
+	exportFilename = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('_') + exportFilename;
+	// Remove any _Collab_ part of the name which isn't really necessary.
+	exportFilename.Replace(_T("_Collab_"),_T(""),TRUE);
+	
 	// Here we add the incoming parameter bInvokeFileDialog to the test. When DoPackDocument()
 	// is called from EmailReportDlg.cpp it calls it with the bInvokeFileDialog parameter
 	// FALSE because it wants the document packed without user interaction in order to attach

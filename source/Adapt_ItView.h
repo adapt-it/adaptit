@@ -381,7 +381,7 @@ protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));
 	void OnFileSaveKB(wxCommandEvent& event);
 	void OnFileCloseProject(wxCommandEvent& event);
-	void OnFileStartupWizard(wxCommandEvent& event);
+	void OnFileStartupWizard(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileCloseKB(wxUpdateUIEvent& event);
 	void OnUpdateFileNew(wxUpdateUIEvent& event);
 	void OnUpdateFileSaveKB(wxUpdateUIEvent& event);
