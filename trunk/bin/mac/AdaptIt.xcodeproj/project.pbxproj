@@ -38,6 +38,8 @@
 		7DCCD18B127FA19000A42526 /* GuesserSettingsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DCCD188127FA19000A42526 /* GuesserSettingsDlg.cpp */; };
 		7DCCD1A0128CF1CF00A42526 /* EmailReportDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DCCD19E128CF1CF00A42526 /* EmailReportDlg.cpp */; };
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
+		7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DEAF5E614FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp */; };
+		7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		C80016911410923A009BA61F /* conschk_exists_notu_dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C80016901410923A009BA61F /* conschk_exists_notu_dlg.cpp */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
@@ -209,6 +211,10 @@
 		7DCCD19F128CF1CF00A42526 /* EmailReportDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EmailReportDlg.h; path = ../../source/EmailReportDlg.h; sourceTree = SOURCE_ROOT; };
 		7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FilenameConflictDlg.cpp; path = ../../source/FilenameConflictDlg.cpp; sourceTree = SOURCE_ROOT; };
 		7DE437ED10FA707E0036CC92 /* FilenameConflictDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FilenameConflictDlg.h; path = ../../source/FilenameConflictDlg.h; sourceTree = SOURCE_ROOT; };
+		7DEAF5E614FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChooseCollabOptionsDlg.cpp; path = ../../source/ChooseCollabOptionsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DEAF5E714FF24A000D6E871 /* ChooseCollabOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChooseCollabOptionsDlg.h; path = ../../source/ChooseCollabOptionsDlg.h; sourceTree = SOURCE_ROOT; };
+		7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CreateNewAIProjForCollab.cpp; path = ../../source/CreateNewAIProjForCollab.cpp; sourceTree = SOURCE_ROOT; };
+		7DEAF5E914FF24A000D6E871 /* CreateNewAIProjForCollab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreateNewAIProjForCollab.h; path = ../../source/CreateNewAIProjForCollab.h; sourceTree = SOURCE_ROOT; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../../AI_trunk/bin/mac/Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C800168F1410923A009BA61F /* conschk_exists_notu_dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = conschk_exists_notu_dlg.h; path = ../../source/conschk_exists_notu_dlg.h; sourceTree = SOURCE_ROOT; };
@@ -455,6 +461,10 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7DEAF5E614FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp */,
+				7DEAF5E714FF24A000D6E871 /* ChooseCollabOptionsDlg.h */,
+				7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */,
+				7DEAF5E914FF24A000D6E871 /* CreateNewAIProjForCollab.h */,
 				7D66132714D87232007A2C30 /* ClientServerConnection.cpp */,
 				7D66132814D87232007A2C30 /* ClientServerConnection.h */,
 				C8DC8FF114A3331200EA1D5C /* DVCS.cpp */,
@@ -974,6 +984,8 @@
 				7D6612D31495C70C007A2C30 /* KBExportImportOptionsDlg.cpp in Sources */,
 				C8DC8FF214A3331200EA1D5C /* DVCS.cpp in Sources */,
 				7D66132914D87232007A2C30 /* ClientServerConnection.cpp in Sources */,
+				7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */,
+				7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
