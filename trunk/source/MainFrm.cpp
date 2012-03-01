@@ -2984,7 +2984,8 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	}
 
 	// need to initiate a recalc of the layout with new m_docSize value, since strip-wrap is on
-	// BEW added 6May09 -- but only provided the pile list is not currently empty!!
+	// BEW added 6May09 -- but only provided the pile list is not currently empty, and
+	// then only provided vertical edit is not in effect
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	CLayout* pLayout = pView->GetLayout();
 	if (pView && !pLayout->GetPileList()->IsEmpty())
@@ -3761,6 +3762,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 // wxPostEvent() call in OnEditSourceText().
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+
 void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// adaptations updating is required
@@ -5307,11 +5309,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 						wxPostEvent(this, eventCustom);
 						return;
 					}
-
-					// the GUI is going to be shown, so restore the original value of the
-					// flag m_bDefineFreeTransByPunctuation
-					gpApp->m_bDefineFreeTransByPunctuation = !pRec->bVerseBasedSection;
-
+									
                     // now switch free translations mode ON; we do it here so that we don't
                     // bother to switch it on if the user is not going to be shown the GUI
                     // for this step; but in the backTranslationsStep's handler we will
@@ -5319,7 +5317,32 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                     // determine whether or not free translations mode was turned on at the
                     // earlier step so as to make sure we turn it off only because we know
                     // it was turned on earlier!
-					pFreeTrans->ToggleFreeTranslationMode();
+					pFreeTrans->ToggleFreeTranslationMode(); // sets radio buttons to
+						// the values defined by app's m_bDefineFreeTransByPunctuation flag
+						// which may result in wrong radio button settings, so a call below
+						// will set the buttons to their needed values using the
+						// temporary flag value below, obtained from the EditRecord
+
+					// the GUI is going to be shown, so restore the original value that the
+					// flag m_bDefineFreeTransByPunctuation had when the free translation
+					// section was first created - we get the value from  the EditRecord
+					bool bOriginal_FreeTransByPunctuationValue = !pRec->bVerseBasedSection;
+					
+                    // BEW 27Feb12, for docV6 support of m_bSectionByVerse flag. What we
+                    // need to do here is use the EditRecord's bVerseBasedSection value to
+                    // set the GUI radio buttons to what they should be to agree with the
+                    // free translation section that we are about to enter, but keep the
+                    // m_bDefineFreeTransByPunctuation flag unchanged. The above line is
+                    // therefore placed after the ToggleFreeTranslationMode() call -
+                    // because the latter includes a call to ComposeBarGuts() which would
+                    // override the button settings to follow the
+                    // m_bDefineFreeTransByPunctuation value, instead of the one obtained
+                    // from the EditRecord
+
+					// now it's safe to set the radio buttons temporarily to possibly different
+					// values
+					gpApp->GetFreeTrans()->SetupFreeTransRadioButtons(bOriginal_FreeTransByPunctuationValue);
+
                     // Initializing must be done only once (the user can return to this
                     // step using interface buttons) -- initializing is done the first time
                     // glossesStep is entered in the vertical edit, so it is put within a
@@ -5427,6 +5450,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						// layout etc
 						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
 						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+
 					}  // end TRUE block for test (bShowGUI)
 					else
 					{
@@ -5575,10 +5599,6 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						return;
 					}
 
-					// the GUI is going to be shown, so restore the original value of the
-					// flag m_bDefineFreeTransByPunctuation
-					gpApp->m_bDefineFreeTransByPunctuation = !pRec->bVerseBasedSection;
-
                     // now switch free translations mode ON; we do it here so that we don't
                     // bother to switch it on if the user is not going to be shown the GUI
                     // for this step; but in the backTranslationsStep's handler we will
@@ -5586,7 +5606,32 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                     // determine whether or not free translations mode was turned on at the
                     // earlier step so as to make sure we turn it off only because we know
                     // it was turned on earlier!
-					pFreeTrans->ToggleFreeTranslationMode();
+					pFreeTrans->ToggleFreeTranslationMode(); // sets radio buttons to
+						// the values defined by app's m_bDefineFreeTransByPunctuation flag
+						// which may result in wrong radio button settings, so a call below
+						// will set the buttons to their needed values using the
+						// temporary flag value below, obtained from the EditRecord
+
+					// the GUI is going to be shown, so restore the original value that the
+					// flag m_bDefineFreeTransByPunctuation had when the free translation
+					// section was first created - we get the value from  the EditRecord
+					bool bOriginal_FreeTransByPunctuationValue = !pRec->bVerseBasedSection;
+					
+                    // BEW 27Feb12, for docV6 support of m_bSectionByVerse flag. What we
+                    // need to do here is use the EditRecord's bVerseBasedSection value to
+                    // set the GUI radio buttons to what they should be to agree with the
+                    // free translation section that we are about to enter, but keep the
+                    // m_bDefineFreeTransByPunctuation flag unchanged. The above line is
+                    // therefore placed after the ToggleFreeTranslationMode() call -
+                    // because the latter includes a call to ComposeBarGuts() which would
+                    // override the button settings to follow the
+                    // m_bDefineFreeTransByPunctuation value, instead of the one obtained
+                    // from the EditRecord
+
+					// now it's safe to set the radio buttons temporarily to possibly different
+					// values
+					gpApp->GetFreeTrans()->SetupFreeTransRadioButtons(bOriginal_FreeTransByPunctuationValue);
+					
                     // Initializing must be done only once (the user can return to this
                     // step using interface buttons) -- initializing is done the first time
                     // glossesStep is entered in the vertical edit, so it is put within a
@@ -5697,6 +5742,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 						// place the phrase box at the start of the span, and update the layout etc
 						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
 						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+
 					}  // end TRUE block for test (bShowGUI)
 					else
 					{
@@ -5891,6 +5937,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 }
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 27Feb12 added gbVerticalEditIsEnding = TRUE;
 void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// turn receiving of synchronized scrolling messages back on, if we temporarily have

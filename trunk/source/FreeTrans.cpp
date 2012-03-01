@@ -5030,6 +5030,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 // the document is temporarily just a small number of CSourcePhrases, can result in
 // m_pActivePile being NULL. To prevent a crash do to accessing this member, we must
 // test for NULL and return before damage can be done. We do so in a couple of places.
+// BEW 27Feb12, added support for docV6's m_bSectionBtVerse flag
 void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch)
 {
 #if defined(Print_failure)
@@ -5104,7 +5105,10 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		m_pFrame->ComposeBarGuts(composeBarShow); // Show the Compose Bar -- it does a
             // RecalcLayout() call, so if turning off free translation mode, the
             // m_pCurFreeTransSectionPileArray array will store hanging pointers,
-            // so don't use it below
+		    // so don't use it below (it also sets the radio buttons "Punctuation" and
+			// "Verse" to values based on what's in m_bDefineFreeTransByPunctuation,
+			// which could be not what is wanted, so aa call of SetupFreeTransRadioButtons()
+			// is done below in order to get the radio buttons set right)
 	}
 	else
 	{
@@ -5158,7 +5162,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 			}
 			pSP = pPile->GetSrcPhrase();
 		}
-		// we are at the anchor location
+		// we are at the anchor location (or the location is about to become an anchor location)
 		m_pApp->m_pActivePile = pPile;
 		m_pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 
@@ -5197,19 +5201,48 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		m_pView->PlacePhraseBox(pCell,1); // 1 = inhibit saving at old location, as we did it above
 				// instead, and also don't remove the new location's KB entry (as the
 				// phrase box is disabled)
+ 
+		// get the radio buttons into agreement with the anchor CSourcePhrase's setting
+		// for its m_bSectionByVerse flag
+		if (m_pApp->m_pActivePile->GetSrcPhrase()->m_bStartFreeTrans)
+		{
+			// BEW 27Feb12, since we've come to the anchor of a pre-defined
+			// section, we must set up the radio buttons to be what was in
+			// effect when this section was originally created
+			bool bTemporaryByPunctuationFlag = 
+				!m_pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
+
+			// now set the radio buttons temporarily to possibly different values
+			SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
+		}
+		else
+		{
+			// it's not a free translation section yet, so set up to have the radio
+			// buttons be in sync with the m_bDefineFreeTransByPunctuation flag value;
+			// and we can't assume that the location just left was one which was
+			// already in sync with the current radio button settings, so we must do
+			// them both here too
+			SetupFreeTransRadioButtons(m_pApp->m_bDefineFreeTransByPunctuation);
+
+			// and the anchor must have m_bSectionByVerse set correctly as well
+			m_pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse =
+										!m_pApp->m_bDefineFreeTransByPunctuation;
+		}
 
 		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
 		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
+		{
 			m_pApp->m_pTargetBox->SetEditable(FALSE);
-		m_pLayout->m_pCanvas->ScrollIntoView(
-								m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
+		}
+		m_pLayout->m_pCanvas->ScrollIntoView(m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
 
-          // whm 4Apr09 moved this SetFocus below ScrollIntoView since ScrollIntoView seems
-          // to remove the focus on the Compose Bar's edit box if it follows the SetFocus
-          // call. now put the focus in the Compose Bar's edit box, and disable the phrase
-          // box for clicks & editing, and make it able to right justify and render RTL if
-          // we are in the Unicode app
+        // whm 4Apr09 moved this SetFocus below ScrollIntoView since ScrollIntoView seems
+        // to remove the focus on the Compose Bar's edit box if it follows the SetFocus
+        // call. now put the focus in the Compose Bar's edit box, and disable the phrase
+        // box for clicks & editing, and make it able to right justify and render RTL if
+        // we are in the Unicode app
 		if (m_pFrame->m_pComposeBar->GetHandle() != NULL)
+		{
 			if (m_pFrame->m_pComposeBar->IsShown())
 			{
 				#ifdef _RTL_FLAGS
@@ -5228,14 +5261,14 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 				m_pFrame->m_pComposeBarEditBox->SetFocus();
 
 			}
-
+		}
 		// get any removed free translations in gEditRecord into the GUI list
 		bool bAllsWell;
 		bAllsWell = m_pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
 		bAllsWell = bAllsWell; // avoid warning TODO: check for failures? (BEW 3Jan12, No
 							   // we want processing to continue regardless)
 	}
-	else
+	else // we've just left free translation mode
 	{
         // if the user exits the mode while the phrase box is within a retranslation, we
         // don't want the box left there (though the app would handle it just fine, no
@@ -5429,6 +5462,8 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		pSrcPhrase->m_bStartFreeTrans = FALSE;
 		pSrcPhrase->m_bEndFreeTrans = FALSE;
 		pSrcPhrase->SetFreeTrans(emptyStr);
+		// BEW 29Feb12, docV6 support of new m_bSectionByVerse flag in 6.2.0 release
+		pSrcPhrase->m_bSectionByVerse = FALSE; // default value
 	} // end while loop
 	m_pView->Invalidate();
 	m_pLayout->PlaceBox();
@@ -5486,6 +5521,84 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 }
 
 /////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if the free translation section was created with the m_bSectionByVerse
+///             flag turned ON, FALSE if the other it was created with that flat turned
+///             OFF. (True corresponds to the 'Verse' radio button, False to the 
+///             'punctuation' radio button, in the free translation GUI.)
+/// \param      pSrcPhrases				    ->	pointer to m_pSrcPhrases defined on
+///                                             CAdapt_ItDoc class
+/// \param      nStartingFreeTransSequNum	->	start of the free translation found at the
+///                                             start of the free translation span, or if
+///                                             there was no free translation there, then
+///                                             it is the same as the nStartingSN value
+///                                             of gEditRecord
+/// \param      nEndingFreeTransSequNum	    ->	bounding sequence number beyond which we
+///                                             don't scan further (it is not necessarily
+///                                             the end of a free translation section, as
+///                                             the end of the first free translation
+///                                             section, if one exists here, may occur
+///                                             earlier, because this value may just be
+///                                             the nEndingSN value of gEditRecord
+/// \param      bFreeTransPresent			->	TRUE if there is at least one free
+///                                             translation section within the span defined
+///                                             by the first two parameters (caller
+///                                             determines this), FALSE if not - and if
+///                                             FALSE, then control immediately exits and
+///                                             no scan is done and default FALSE is
+///                                             returned.
+/// \remarks
+/// Called from: The View's OnEditSourceText() only
+/// As of docVersion 6, (first released in release 6.2.0), we store the value of the
+/// "Verse" versus "Punctuation" radio buttons state which was in effect when the free
+/// translation of this section was created. If the Verse setting was in effect, the
+/// value of the anchor CSourcePhrase's m_bSectionByVerse flag (this flag was formerly the
+/// unused m_bHasBookmark flag) will have been set to TRUE. This function looks up the
+/// stored value for this boolean. Because this function may be called on a series of
+/// CSourcePhrases which don't actually store a free translation section, we provide for
+/// that and just return default FALSE in such a case. (The caller should use the passed
+/// in bFreeTransPresent value to filter the returned value, and if the bFreeTransPresent
+/// value was FALSE, then the function return value of FALSE should not be used to change
+/// the current value of m_bm_bDefineFreeTransByPunctuation boolean - the latter boolean
+/// is defined in the app class.)
+/// 
+/// The intent of this function is to remove the guesswork inherent in the legacy
+/// GetLikelyValueOfFreeTranslationSectioningFlag() function -- it could get the return
+/// value wrong occasionally, thereby switching the radio button to a wrong value without
+/// the user being aware of it. We don't want that to happen any more. From now on,
+/// whatever radio button is turned on, stays on, until the user explicitly changes it.
+/// BEW created 27Feb12 to replace GetLikelyValueOfFreeTranslationSectioningFlag()
+/////////////////////////////////////////////////////////////////////////////////
+bool CFreeTrans::GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
+					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum)
+{
+	CSourcePhrase* pSrcPhrase = NULL;
+
+	// find the first pSrcPhrase in the span which has m_bStartFreeTrans TRUE
+	SPList::Node* pos = pSrcPhrases->Item(nStartingFreeTransSequNum);
+	SPList::Node* posBoundary = pSrcPhrases->Item(nEndingFreeTransSequNum);
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		if (pos == posBoundary)
+		{
+			// we have tested the last one in the span, so must exit this loop having
+			// not found an instance where a free translation starts; and so we exit the
+			// whole function as there can be no free translation to be dealt with
+			return FALSE;
+		}
+		pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bStartFreeTrans)
+		{
+			return pSrcPhrase->m_bSectionByVerse; // send the stored value to caller
+			break;
+		}
+	}
+	return FALSE; // we didn't get a starting location
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing
 ///
 ///	\param  activeSequNum	->	the sequence number value at the phrase box location
@@ -5509,6 +5622,14 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 ///	found - the section definition within a footnote span would not include the final
 ///	CSourcePhrase on which the \f* was stored. This required a change in
 ///	IsFreeTranslationEndDueToMarker()
+///	BEW 27Feb12, added docV6 support - which here means that the anchor CSourcePhrase must
+///	store whatever the app's m_bDefineFreerTransByPunctuation flag value is in it's
+///	m_bSectionByVerse boolean member (formerly, this member was an unused m_bHasBookmark
+///	member in versions prior to 6.2.0) when setting up a new section; when accessing an
+///	existing section set up earlier, the anchor's stored value must instead be used to
+///	temporarily set the GUI's 'Verse' and 'Punctuation' radio buttons to consistent values
+///	to whatever is stored in m_bSectionByVerse, but doing so without changing the app's
+///	value for the flag m_bDefineFreerTransByPunctuation.
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
@@ -5589,56 +5710,23 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 				}
 			}
 		} // end of loop
-
-		// attempt to set the appropriate radio button, "Punctuation" or "Verse" based
-		// section choice, by analysis of the section determined by the above loop
-		if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
-		{
-			SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
-			CSourcePhrase* pFirstSPhr = ((CPile*)
-							m_pCurFreeTransSectionPileArray->Item(0))->GetSrcPhrase();
-			CSourcePhrase* pLastSPhr = ((CPile*)
-							m_pCurFreeTransSectionPileArray->Last())->GetSrcPhrase();
-			bool bFreeTransPresent = TRUE;
-            // BEW 12Jan12 -- wrapped the call of GetLikely...Flag() with a test so that
-            // m_bDefineFreeTransByPunctuation value is not potentially reset to an
-            // unwanted value whenever the user in free trans mode clicks elsewhere in the
-            // document. (But in vertical edit, where the previous setting used for the
-            // section being updated has lost, it is appropriate to do the guess)
-			if (gbVerticalEditInProgress)
-			{
-				bool bProbablyVerse =
-								m_pView->GetLikelyValueOfFreeTranslationSectioningFlag(pSrcPhrases,
-									pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber,
-									bFreeTransPresent);
-				m_pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
-			}
-
-			// now set the radio buttons
-			wxRadioButton* pRadioButton = (wxRadioButton*)
-				m_pFrame->m_pComposeBar->FindWindowById(IDC_RADIO_PUNCT_SECTION);
-			// set the value
-			if (m_pApp->m_bDefineFreeTransByPunctuation)
-				pRadioButton->SetValue(TRUE);
-			else
-				pRadioButton->SetValue(FALSE);
-			pRadioButton = (wxRadioButton*)
-				m_pFrame->m_pComposeBar->FindWindowById(IDC_RADIO_VERSE_SECTION);
-			// set the value
-			if (!m_pApp->m_bDefineFreeTransByPunctuation)
-				pRadioButton->SetValue(TRUE);
-			else
-				pRadioButton->SetValue(FALSE);
-			}
 	}
 	else
 	{
-		// it does not yet have a free translation stored in this sourcephrase,
-		// so work out the first guess for what the current section is to be
+		// It does not yet have a free translation stored in this sourcephrase
+
+		// Work out the first guess for what the current section is to be
 		pile = m_pView->GetPile(activeSequNum);
 		if (pile == NULL)
 			return; // something's very wrong - how can the phrase box be at
 					// a null pile?
+		CSourcePhrase* pSrcPhrase; // moved to here from within loop, 27Feb12
+		// BEW added next two lines, 27Feb12
+		// pile is the anchor pile, since it's not a NULL pointer, so set the current
+		// value of the bSectionByVerse flag to the NOT of m_bDefineFreeTransByPunctuation
+		pSrcPhrase = pile->GetSrcPhrase();
+		pSrcPhrase->m_bSectionByVerse = !m_pApp->m_bDefineFreeTransByPunctuation;
+
 		if (!tempStr.IsEmpty())
 			bEditBoxHasText = TRUE;
 
@@ -5656,7 +5744,6 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		CPile* pNextPile;
 		while (pile != NULL)
 		{
-			CSourcePhrase* pSrcPhrase;
 			// store this pile in the private array
 			m_pCurFreeTransSectionPileArray->Add(pile);
 
@@ -5706,7 +5793,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
             }
 			// determine if we can start testing for the end of the section
 			// BEW 28Apr06, we are now counting words, so use to MIN_FREE_TRANS_WORDS,
-			// & still = 5 (See AdaptitConstants.h)
+			// & it's been reset as = 1 for docV6 and higher (See AdaptitConstants.h)
 			if (wordcount >= MIN_FREE_TRANS_WORDS)
 			{
 				// test for final pile in this section
@@ -5815,6 +5902,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 ///	whm 23Aug06 added the last two parameters
 ///	BEW 19Feb10, updated for support of doc version 5 (changes needed)
 ///	BEW 9July10, no changes needed for support of kbVersion 2
+///	BEW 27Feb12, updated for docV6 support - re-store the original creation value of
+///	the sectioning flag, in the m_bSectionByVerse flag member -- but if the user has
+///	changed to a new value in the GUI, store that instead - so get the current value of
+///	the "Punctuation" radio button, NOT it, and store that value 
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,
 	CPile*& pLastPile,enum EditBoxContents editBoxContents, const wxString& storeStr)
@@ -5832,6 +5923,12 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 			pFirstPile = (CPile*)pPileArray->Item(0);
 			CPile* pPile = pFirstPile;
 			pFirstPile->GetSrcPhrase()->SetFreeTrans(storeStr);
+
+			// BEW 27Feb12 block added, for m_bSectionByVerse support
+			wxRadioButton* pRadioButton = (wxRadioButton*)
+				m_pApp->GetMainFrame()->m_pComposeBar->FindWindowById(IDC_RADIO_PUNCT_SECTION);
+			bool byPuncts = pRadioButton->GetValue();
+			pFirstPile->GetSrcPhrase()->m_bSectionByVerse = !byPuncts;
 
             // whm added 22Aug06 the test below to remove or retain the contents of the
             // composebar's edit box and the items in pPileArray. The contents of the edit
@@ -6160,7 +6257,11 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
-/// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
+// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
+// BEW 27Feb12, docV6 support of m_bSectionByVerse flag - no changes needed, the handling
+// of the new flag, m_bSectionByVerse, in Vertical Edit mode, is done externally to
+// ToggleFreeTranslationMode(), doing it instead in the
+// OnCustomEventFreeTranslationsEdit() handler (see MainFrm.cpp)
 void CFreeTrans::ToggleFreeTranslationMode()
 {
 	if (gbVerticalEditInProgress)
@@ -6170,7 +6271,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 		wxMenuItem * pAdvancedFreeTranslation =
 							pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 		//wxASSERT(pAdvancedFreeTranslation != NULL);
-		gbSuppressSetup = FALSE; // setdefault value
+		gbSuppressSetup = FALSE; // set default value
 
         // determine if the document is unstructured or not -- we'll need this set or
         // cleared as appropriate because in free translation mode the user may elect to
@@ -6282,6 +6383,49 @@ void CFreeTrans::ToggleFreeTranslationMode()
 		}
 	}
 }
+
+//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
+//the GUI; done here so we can call it wherever needed (DON'T put it in
+//SetupCurrentFreeTransSection() because the latter is called, in free trans mode, after
+//every RecalcLayout() call - and there can be a half dozen of these before the GUI with
+//the radio buttons is seen, and that would clobber the radio button settings often, that
+//is, flip them to have the opposite values to what is wanted)
+void CFreeTrans::SetupFreeTransRadioButtons(bool bSectionByPunctsValue)
+{
+	if (m_pApp->m_bFreeTranslationMode)
+	{
+		// set the radio buttons using the passed in value for the "Punctuation" button,
+		// and give the "Verse" button the opposite value
+		// Note: the passed in value should be the app's m_bDefineFreeTransByPunctuation
+		// member's value when a new free translation section is being set up at the
+		// CSourcePhrase location which is to be the new section's anchor; but when the
+		// phrase box is being located within an existing section, that section's anchor
+		// CSourcePhrase will have, in it's m_bSectionByVerse member, a record of what the
+		// radio buttons values were when the section was first created - in that case,
+		// pass in the NOT of the m_bSectionByVerse value
+		wxRadioButton* pRadioButton = (wxRadioButton*)
+			m_pApp->GetMainFrame()->m_pComposeBar->FindWindowById(IDC_RADIO_PUNCT_SECTION);
+		// set the value
+		if (bSectionByPunctsValue)
+			pRadioButton->SetValue(TRUE);
+		else
+			pRadioButton->SetValue(FALSE);
+		pRadioButton = (wxRadioButton*)
+			m_pApp->GetMainFrame()->m_pComposeBar->FindWindowById(IDC_RADIO_VERSE_SECTION);
+		// set the value
+		if (!bSectionByPunctsValue)
+			pRadioButton->SetValue(TRUE);
+		else
+			pRadioButton->SetValue(FALSE);
+	}
+	else
+	{
+		// warn developer, and then do nothing
+		wxMessageBox(_T("SetupFreeTransRadioButtons(): called, but the app is not in Free Translation mode, so the buttons are unchanged"),
+			_T("Wrongly placed function call"), wxICON_WARNING);
+	}
+}
+
 
 // handler for the IDC_APPLY_BUTTON, renamed Advance after first being called Apply
 // BEW 22Feb10 no changes needed for support of doc version 5
@@ -6457,6 +6601,13 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 							  // at the new location)
 			m_pView->PlacePhraseBox(pCell,selector);
 
+			// it's not a free translation section yet, so set up to have the radio
+			// buttons be in sync with the m_bDefineFreeTransByPunctuation flag value;
+			// and we can't assume that the location just left was one which was
+			// already in sync with the current radio button settings, so we must do
+			// them both here too
+			SetupFreeTransRadioButtons(m_pApp->m_bDefineFreeTransByPunctuation);
+
 			// make sure we can see the phrase box
 			m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 			m_pView->Invalidate();
@@ -6468,6 +6619,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 27Feb12, changes for support of docV6 CSourcePhrase::m_bSectionByVerse flag
 void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten or
@@ -6506,7 +6658,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			CSourcePhrase* pSrcPhr = pOldActivePile->GetSrcPhrase();
 			FixKBEntryFlag(pSrcPhr);
 
-			// get the next pile
+			// get the next pile (the one after the end of the former current section)
 			CPile* pPile = m_pView->GetNextPile(saveLastPilePtr);
 
             // check out pPile == NULL, we would then be at the doc end - fix things
@@ -6571,6 +6723,36 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 						// (ie. no save to KB and no removal from KB at the new location)
 			m_pView->PlacePhraseBox(pCell,selector); // forces RecalcLayout(), which gets
 											// SetupCurrentFreeTransSection() called
+			
+			// if the pile is already an anchor, then make the radio buttons agree with
+			// the anchor's m_bSectionByVerse member's value; if it's not in a free
+			// translation section, then use the current value of the app flag
+			// m_bDefineFreeTransByPunctuation flag, and make the radio buttons agree with
+			// that flag's value
+			if (m_pApp->m_pActivePile->GetSrcPhrase()->m_bStartFreeTrans)
+			{
+				// BEW 27Feb12, since we've come to the anchor of a pre-defined
+				// section, we must set up the radio buttons to be what was in
+				// effect when this section was originally created
+				bool bTemporaryByPunctuationFlag = 
+					!m_pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
+
+				// now set the radio buttons temporarily to possibly different values
+				SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
+			}
+			else
+			{
+				// it's not a free translation section yet, so set up to have the radio
+				// buttons be in sync with the m_bDefineFreeTransByPunctuation flag value;
+				// and we can't assume that the location just left was one which was
+				// already in sync with the current radio button settings, so we must do
+				// them both here too
+				SetupFreeTransRadioButtons(m_pApp->m_bDefineFreeTransByPunctuation);
+
+				// and the anchor must have m_bSectionByVerse set correctly as well
+				m_pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse =
+											!m_pApp->m_bDefineFreeTransByPunctuation;
+			}
 
 			// make sure we can see the phrase box
 			m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -6594,6 +6776,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 // potential free translation segment in the text
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 27Feb12, changes for support of docV6 CSourcePhrase::m_bSectionByVerse flag
 void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten
@@ -6677,6 +6860,12 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
             // is the last pile of a previously adjoining free translation segment, we want
             // to scan back to the first pile of that existing segment (regardless of any
             // potential intervening halting points)
+			// BEW added 27Feb12, and, for docV6, we want to read it's m_bSectionByVerse
+			// flag value, and use it to restore the radio buttons to be in sync (but not
+			// change the app's flag m_bDefineFreeTransByPunctuation - we only do that by
+			// the user's explicit click on one of the radio buttons); we do this
+			// restoration because it's a pre-defined section; if it wasn't, we'd use the
+			// value of m_bDefineFreeTransByPunctuation to set up the section appropriately
 			if (pPrevPile->GetSrcPhrase()->m_bEndFreeTrans)
 			{
                 // the previous pile is already within an existing free translation
@@ -6685,8 +6874,8 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 				while (pPrevPile != NULL)
 				{
 					pPile = m_pView->GetPrevPile(pPrevPile);
-                    // Check out if this pPile == NULL, we could be at the bundle start or
-                    // the doc start. Handle things according to whichever is the case.
+                    // Check out if this pPile == NULL, we would be at the doc start.
+                    // Handle things according to whichever is the case.
 					if (pPile == NULL)
 					{
                         // we are at the start of the doc, leave this section current
@@ -6712,6 +6901,14 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 							}
 						}
 
+                        // BEW 27Feb12, we didn't find an anchor pile at the doc start, so
+                        // the radio buttons are set up appropriately already - where we've
+                        // had to stop will be a new section using the current
+                        // m_bDefineFreeTransByPunctuation value, so nothing extra to do
+                        // here, except set the correct flag value on the new anchor
+                        pPrevPile->GetSrcPhrase()->m_bSectionByVerse = 
+												!m_pApp->m_bDefineFreeTransByPunctuation;
+
 						CCell* pCell = pPrevPile->GetCell(1);
 						int selector = 1;
 						m_pView->PlacePhraseBox(pCell,selector);
@@ -6724,11 +6921,20 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						return;
 					}
                     // Criteria for halting scanning and establishing the anchor for a free
-                    // translation segment: If the source pharase at pPile is already the
+                    // translation segment: If the source phrase at pPile is already the
                     // start of a free translation (m_bStartFreeTrans). We can ignore
                     // checking for other halting conditions here.
 					if (pPrevPile->GetSrcPhrase()->m_bStartFreeTrans)
 					{
+						// BEW 27Feb12, since we've come to the anchor of a pre-defined
+						// section, we must set up the radio buttons to be what was in
+						// effect when this section was originally created
+						bool bTemporaryByPunctuationFlag = 
+							!m_pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
+
+						// now set the radio buttons temporarily to possibly different values
+						SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
+
 						break;
 					}
 					pPrevPile = pPile;
@@ -6767,6 +6973,14 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 								return;
 							}
 						}
+
+                        // BEW 27Feb12, we didn't find an anchor pile at the doc start, so
+                        // the radio buttons are set up appropriately already - where we've
+                        // had to stop will be a new section using the current
+                        // m_bDefineFreeTransByPunctuation value, so nothing extra to do
+                        // here, except set the correct flag value on the new anchor
+                        pPrevPile->GetSrcPhrase()->m_bSectionByVerse = 
+												!m_pApp->m_bDefineFreeTransByPunctuation;
 
 						CCell* pCell = pPrevPile->GetCell(1);
 						int selector = 1;
@@ -6837,6 +7051,15 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					}
 					if (pPrevPile->GetSrcPhrase()->m_bStartFreeTrans)
 					{
+						// BEW 27Feb12, since we've come to the anchor of a pre-defined
+						// section, we must set up the radio buttons to be what was in
+						// effect when this section was originally created
+						bool bTemporaryByPunctuationFlag = 
+							!m_pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
+
+						// now set the radio buttons temporarily to possibly different values
+						SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
+
 						break;
 					}
 					// Check if pPile is the (potential) last pile of a previous free
@@ -6853,12 +7076,25 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
                             // there is word-final punctuation on the previous pile's
                             // source phrase, so the current pile is a suitable place to
                             // begin this section
+                            
+							// BEW 27Feb12, we are stopping where there is no predefined
+							// section, so the radio buttons are already correct - so here
+							// we just set the m_bSectionByVerse flag value
+							pPrevPile->GetSrcPhrase()->m_bSectionByVerse = 
+												!m_pApp->m_bDefineFreeTransByPunctuation;
+
 							break;
 						}
 					}
 					else if (pPrevPile->GetSrcPhrase()->m_bVerse ||
 												pPrevPile->GetSrcPhrase()->m_bFirstOfType)
 					{
+						// BEW 27Feb12, we are stopping where there is no predefined
+						// section, so the radio buttons are already correct - so here
+						// we just set the m_bSectionByVerse flag value
+						pPrevPile->GetSrcPhrase()->m_bSectionByVerse = 
+											!m_pApp->m_bDefineFreeTransByPunctuation;
+
 						break;
 					}
                     // If we get here, we've not found an actual or potential anchor point
@@ -6893,7 +7129,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
 			m_pLayout->MakeAllPilesNonCurrent();
 
-			// place the phrase box at the next anchor location
+			// place the phrase box at the previous anchor location
 			CCell* pCell = pPrevPile->GetCell(1);
 			if (gbIsGlossing)
 			{
@@ -6947,6 +7183,9 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the anchor pSrcPhrase
 			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+
+			// BEW 27Feb12, for docV6 support, restore default value to m_bSectionByVerse
+			pSrcPhrase->m_bSectionByVerse = FALSE; 
 
 			// make sure the kb entry flag is set correctly
 			FixKBEntryFlag(pSrcPhrase);
@@ -7501,6 +7740,9 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 27Feb12, added support for saving the value of m_bDefineFreeTransByPunctuation
+// on CSourcePhrase's m_bSectionByVerse member (as of docV6, first released in version
+// 6.2.0) - now it changes only if the user explicitly causes it to change
 void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 {
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -7513,20 +7755,43 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
 		if (pRPSButton != 0)
 		{
-			// set the radio button's BOOL to be TRUE
+			// first, get the current setting of the "Punctuation" radio button, we don't
+			// want to do the removal of the old free translation if we are not actually
+			// effecting a change in the current settting
+			bool bOldByPunctsValue = pRPSButton->GetValue();
+
+			// set the app's default user-chosen sectioning flag value to be TRUE (this
+			// setting will stay in effect, through doc File / Saves, until such time as
+			// the user clicks the "Verse" button - which he is free to do in this session
+			// or a later one; whatever is in effect for m_bDefineFreeTransByPunctuation
+			// will be stored in the ftsbp attribute of the doc's xml <Settings? tag at
+			// File / Save time
 			m_pApp->m_bDefineFreeTransByPunctuation = TRUE;
+			pRPSButton->SetValue(TRUE); // make the button agree
 
-			// BEW added 1Oct08: to have the butten click remove the
-			// current section and reconstitute it as a Verse-based section
-			gbSuppressSetup = FALSE;
-			wxCommandEvent evt;
-			m_pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and
-                // any Compose bar edit box test;
-                // the OnRemoveFreeTranslationButton() call calls Invalidate()
+			// make sure the Verse radio button is off
+			wxRadioButton*  pRadioButtonOther = 
+				(wxRadioButton*)pBar->FindWindow(IDC_RADIO_VERSE_SECTION);
+			pRadioButtonOther->SetValue(FALSE);
 
-            // To get SetupCurrenetFreeTranslationSection() called, we must call
+            // BEW added 1Oct08: to have the button click remove the current section and
+            // allow it to be reconstituted
+			// BEW 27Feb12, added wrapping test so that an unnecessary removal is not done
+			// if the value being set is the same as what is currently in effect
+			if (bOldByPunctsValue == FALSE)
+			{
+                // the "Verse" radio button was ON, so removal of the free trans is needed
+                // so a new section of "Punctuation"-defined length can be established
+				gbSuppressSetup = FALSE;
+				wxCommandEvent evt;
+				OnRemoveFreeTranslationButton(evt); // remove current
+							// section and any Compose bar edit box text; the
+							// OnRemoveFreeTranslationButton() call calls Invalidate()
+			}
+
+            // To get SetupCurrentFreeTranslationSection() called, we must call
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
-            // resized smaller
+            // resized (possibly smaller)
 #ifdef _NEW_LAYOUT
 			m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -7538,35 +7803,71 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 			pEdit->SetFocus();
 		}
 	}
+    // BEW added 27Feb12, check the CSourcePhrase at the active location, if the
+    // m_bDefineFreeTransByPunctuation flag is now different, then update m_bSectionByVerse
+    // to reflect the new value
+	CSourcePhrase* pAnchorSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+	if (pAnchorSrcPhrase->m_bSectionByVerse == m_pApp->m_bDefineFreeTransByPunctuation)
+	{
+		// mismatched values, so make the CSourcePhrase's one be in sync
+		pAnchorSrcPhrase->m_bSectionByVerse = !m_pApp->m_bDefineFreeTransByPunctuation;
+	}
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 27Feb12, added support for saving the value of m_bDefineFreeTransByPunctuation
+// on CSourcePhrase's m_bSectionByVerse member (as of docV6, first released in version
+// 6.2.0) - now it changes only if the user explicitly causes it to change
 void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 {
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
 	wxASSERT(pBar != NULL);
 	if(pBar != NULL && pBar->IsShown())
 	{
+		// FindWindow() finds a child of the current window
 		wxRadioButton* pRVSButton = (wxRadioButton*)
 								pBar->FindWindow(IDC_RADIO_VERSE_SECTION);
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
 		if (pRVSButton != 0)
 		{
-			// set the radio button's BOOL to be TRUE
+            // first, get the current setting of the "Verse" radio button, we don't want to
+            // do the removal of the old free translation if we are not actually effecting
+            // a change in the current settting
+			bool bOldByVerseValue = pRVSButton->GetValue();
+
+            // set the app's default user-chosen sectioning flag value to be FALSE (this
+            // setting will stay in effect, through doc File / Saves, until such time as
+            // the user clicks the "Punctuation" button - which he is free to do in this
+            // session or a later one; whatever is in effect for
+            // m_bDefineFreeTransByPunctuation will be stored in the ftsbp attribute of the
+            // doc's xml <Settings? tag at File / Save time
 			m_pApp->m_bDefineFreeTransByPunctuation = FALSE;
+			pRVSButton->SetValue(TRUE); // make the button agree
+
+			// make sure the Punctuation radio button is off
+			wxRadioButton*  pRadioButtonOther = 
+				(wxRadioButton*)pBar->FindWindow(IDC_RADIO_PUNCT_SECTION);
+			pRadioButtonOther->SetValue(FALSE);
 
 			// BEW added 1Oct08: to have the butten click remove the
-			// current section and reconstitute it as a Verse-based section
-			gbSuppressSetup = FALSE;
-			wxCommandEvent evt;
-			OnRemoveFreeTranslationButton(evt); // remove current section and
-                // any Compose bar edit box test;
-                // the OnRemoveFreeTranslationButton() call calls Invalidate()
+            // and allow it to be reconstituted
+			// BEW 27Feb12, added wrapping test so that an unnecessary removal is not done
+			// if the value being set is the same as what is currently in effect
+			if (bOldByVerseValue == FALSE)
+			{
+                // the "Punctuation" radio button was ON, so removal of the free trans is
+                // needed so a new section of "Verse"-defined length can be established
+				gbSuppressSetup = FALSE;
+				wxCommandEvent evt;
+				OnRemoveFreeTranslationButton(evt); // remove current
+							// section and any Compose bar edit box text; the
+							// OnRemoveFreeTranslationButton() call calls Invalidate()
+			}
 
             // To get SetupCurrentFreeTranslationSection() called, we must call
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
-            // resized larger
+            // resized (possibly larger)
 #ifdef _NEW_LAYOUT
 			m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -7577,6 +7878,15 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 			// restore focus to the edit box
 			pEdit->SetFocus();
 		}
+	}
+    // BEW added 27Feb12, check the CSourcePhrase at the active location, if the
+    // m_bDefineFreeTransByPunctuation flag is now different, then update m_bSectionByVerse
+    // to reflect the new value
+	CSourcePhrase* pAnchorSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+	if (pAnchorSrcPhrase->m_bSectionByVerse == m_pApp->m_bDefineFreeTransByPunctuation)
+	{
+		// mismatched values, so make the CSourcePhrase's one be in sync
+		pAnchorSrcPhrase->m_bSectionByVerse = !m_pApp->m_bDefineFreeTransByPunctuation;
 	}
 }
 

@@ -52,7 +52,7 @@ const UInt32 hasFreeTransMask			= 1024; // position 11
 const UInt32 startFreeTransMask			= 2048; // position 12
 const UInt32 endFreeTransMask			= 4096; // position 13
 const UInt32 hasNoteMask				= 8192; // position 14
-const UInt32 hasBookmarkMask			= 16384; // position 15
+const UInt32 sectionByVerseMask			= 16384; // position 15
 const UInt32 chapterMask				= 32768; // position 16
 const UInt32 verseMask					= 65536; // position 17
 const UInt32 hasInternalMarkersMask		= 131072; // position 18
@@ -319,7 +319,8 @@ bool ReadLIFT_XML(wxString& path, CKB* WXUNUSED(pKB), wxProgressDialog* pProgDlg
 // endmarkers for non-filtered info being at the start of m_markers on the next
 // CSourcePhrase instance, to dedicated storage in doc version 5, for each info type, and
 // endmarkers stored on the CSourcePhrase instance where they logically belong
-void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bool bIsEmbedded);
+void FromDocVersion4ToDocVersionCurrent( SPList* pList, CSourcePhrase*& pSrcPhrase, 
+										bool bIsEmbedded, int docVersion);
 
 // convert from doc version 5's various filtered content storage members, back to the
 // legacy doc version 4 storage regime, where filtered info and endmarkers (for

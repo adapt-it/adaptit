@@ -85,6 +85,8 @@ IMPLEMENT_DYNAMIC_CLASS(CSourcePhrase, wxObject)
 // wxWidgets version, to help users of the MFC version transition to the
 // wxWidgets version.
 
+// BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
+// translation support
 CSourcePhrase::CSourcePhrase()
 {
 	m_chapterVerse = _T("");
@@ -126,12 +128,12 @@ CSourcePhrase::CSourcePhrase()
 	m_bBeginRetranslation = FALSE;
 	m_bEndRetranslation = FALSE;
 
-	// defaults for schema 4 (free translations, notes, bookmarks added)
+	// defaults for schema 4 (free translations, notes, sectioning by 'verse', added)
 	m_bHasFreeTrans = FALSE;
 	m_bStartFreeTrans = FALSE;
 	m_bEndFreeTrans = FALSE;
 	m_bHasNote = FALSE;
-	m_bHasBookmark = FALSE;
+	m_bSectionByVerse = FALSE;
 
 	m_endMarkers = _T("");
 	m_freeTrans = _T("");
@@ -151,6 +153,13 @@ CSourcePhrase::CSourcePhrase()
 	wxASSERT(m_pMedialMarkers != NULL);
 	m_pMedialPuncts = new wxArrayString;
 	wxASSERT(m_pMedialPuncts != NULL);
+
+	// for docVersion6
+	m_lastAdaptionsPattern = _T("");
+	m_tgtMkrPattern = _T("");
+	m_glossMkrPattern = _T("");
+	m_punctsPattern = _T("");
+
 //#ifdef __WXDEBUG__
 // Leave this stuff here, commented out -- see comment in destructor for why
 //	wxLogDebug(_T("Creator: address = %x  first array = %x  second array = %x  SPList = %x"),
@@ -179,6 +188,8 @@ CSourcePhrase::~CSourcePhrase()
 //#endif
 }
 
+// BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
+// translation support
 CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 {
 	m_inform = sp.m_inform;
@@ -221,9 +232,9 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bStartFreeTrans = sp.m_bStartFreeTrans;
 	m_bEndFreeTrans = sp.m_bEndFreeTrans;
 	m_bHasNote = sp.m_bHasNote;
-	m_bHasBookmark = sp.m_bHasBookmark;
+	m_bSectionByVerse = sp.m_bSectionByVerse;
 
-	// the doc version 10 new members
+	// the doc version 4's 10 new members
 	m_endMarkers = sp.m_endMarkers;
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
@@ -287,8 +298,16 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 						 //(makes duplicates of the strings, does not copy pointers)
 		}
 	}
+
+	// for docVersion6
+	m_lastAdaptionsPattern = sp.m_lastAdaptionsPattern;
+	m_tgtMkrPattern = sp.m_tgtMkrPattern;
+	m_glossMkrPattern = sp.m_glossMkrPattern;
+	m_punctsPattern = sp.m_punctsPattern;
 }
 
+// BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
+// translation support
 CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 {
 	if (this == &sp)
@@ -333,7 +352,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bStartFreeTrans = sp.m_bStartFreeTrans;
 	m_bEndFreeTrans = sp.m_bEndFreeTrans;
 	m_bHasNote = sp.m_bHasNote;
-	m_bHasBookmark = sp.m_bHasBookmark;
+	m_bSectionByVerse = sp.m_bSectionByVerse;
 
 	// the doc version five's 10 new members
 	m_endMarkers = sp.m_endMarkers;
@@ -413,6 +432,13 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 			m_pMedialMarkers->Add(sp.m_pMedialMarkers->Item(n));
 		}
 	}
+
+	// for docVersion6
+	m_lastAdaptionsPattern = sp.m_lastAdaptionsPattern;
+	m_tgtMkrPattern = sp.m_tgtMkrPattern;
+	m_glossMkrPattern = sp.m_glossMkrPattern;
+	m_punctsPattern = sp.m_punctsPattern;
+
 	return *this;
 }
 
@@ -748,13 +774,18 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	if (pSrcPhrase->m_bBoundary)
 		m_bBoundary = TRUE;
 
-    // copy across the BOOL values for free translation, note, and/or bookmark, for
-    // versionable_schema 4 (1) if either instance has a bookmark, then the merger must
-    // have one too (BEW added 22Jul05)
-	if (!m_bHasBookmark)
+    // copy across the BOOL values for free translation, note, and free translation
+    // sectioning criterion, for versionable_schema 4, 5 & 6 etc (1) if the first instance
+    // sections a free translation by 'verse' or 'punctuation', then the merger must
+    // section the same way (unless the user explicitly changes it), so change the original
+    // to agree
+	if (m_bSectionByVerse)
 	{
-		if (pSrcPhrase->m_bHasBookmark)
-			m_bHasBookmark = TRUE;
+		pSrcPhrase->m_bSectionByVerse = TRUE;
+	}
+	else
+	{
+		pSrcPhrase->m_bSectionByVerse = FALSE;
 	}
     // (2) if the first has a note, then so must the merger - we don't need to do anything
     // because the merger process will do it automatically because m_bHasNote was TRUE on
@@ -766,6 +797,17 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_bHasFreeTrans = TRUE;
 	if (pSrcPhrase->m_bEndFreeTrans)
 		m_bEndFreeTrans = TRUE;
+
+	// for the 3 new storage strings added for docVersion6, clear them all - the first two
+	// are needed for tgt or gloss exports, and the 3rd for medial punctuation storage -
+	// clearing them means the relevant Placement dialog will open at least once so the
+	// user will get the chance to make the relevant placements once only (3rd is unused
+	// at present)
+	// for docVersion6
+	m_lastAdaptionsPattern = _T("");
+	m_tgtMkrPattern = _T("");
+	m_glossMkrPattern = _T("");
+	m_punctsPattern = _T("");
 
     // we never merge phrases, only minimal phrases (ie. single source word objects), so it
     // will never be the case that we need to copy from m_pSaveWords in the Merge function
@@ -813,6 +855,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 	switch (docVersion)
 	{
 	default:
+	case 6: // BEW added 13Feb12 for docVersion6
 	case 5:
 		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
@@ -1063,7 +1106,6 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			{
 				if (bStarted)
 				{
-					// we need to start a new line (the sixth)
 					bstr += "\r\n";
 					for (i = 0; i < nTabLevel; i++)
 					{
@@ -1120,7 +1162,72 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			}
 		}
 
-		// we can now close off the S opening tag
+		// ninth line -- 4 attributes each is possibly absent
+		// Supporting new docVersion6 storage strings (skip this block if docVersion is 5):
+		// 	m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, m_punctsPattern
+		if ( ( docVersion == 6) && 
+			 (!m_lastAdaptionsPattern.IsEmpty() || !m_tgtMkrPattern.IsEmpty() || 
+			  !m_glossMkrPattern.IsEmpty() || !m_punctsPattern.IsEmpty())
+		   )
+		{
+			// there is something in this group, so form the needed line
+			bstr += "\r\n"; // TODO?: EOL chars may need to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			// first string in the 9th line, for  last m_adaptions pattern
+			if (!m_lastAdaptionsPattern.IsEmpty())
+			{
+				bstr += "lapat=\"";
+				btemp = gpApp->Convert16to8(m_lastAdaptionsPattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_lastAdaptionsPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// second string in the 9th line, for  target marker pattern
+			if (!m_tgtMkrPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " tmpat=\"";
+				else
+					bstr += "tmpat=\"";
+				btemp = gpApp->Convert16to8(m_tgtMkrPattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_tgtMkrPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// third string in 9th line, or second, for gloss marker pattern
+			if (!m_glossMkrPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " gmpat=\"";
+				else
+					bstr += "gmpat=\"";
+				btemp = gpApp->Convert16to8(m_glossMkrPattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_glossMkrPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// fourth string in 9th line... (possibly, or third or second), for puncts pattern
+			if (!m_punctsPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " pupat=\"";
+				else
+					bstr += "pupat=\"";
+				btemp = gpApp->Convert16to8(m_punctsPattern);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_punctsPattern string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+		// we can now close off the S opening tag, the closing </S> tag is added later below
 		bstr += ">";
 
 		// there are potentially up to three further information types - each or all may be
@@ -1671,6 +1778,72 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				btemp = m_filteredInfo;
 				InsertEntities(btemp);
 				bstr += btemp; // add m_filteredInfo string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+
+		// ninth line -- 4 attributes each is possibly absent
+		// Supporting new docVersion6 storage strings (skip this block if docVersion is 5):
+		// 	m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, m_punctsPattern
+		if ( ( docVersion == 6) && 
+			 (!m_lastAdaptionsPattern.IsEmpty() || !m_tgtMkrPattern.IsEmpty() || 
+			  !m_glossMkrPattern.IsEmpty() || !m_punctsPattern.IsEmpty())
+		   )
+		{
+			// there is something in this group, so form the needed line
+			bstr += "\r\n"; // TODO?: EOL chars may need to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			// first string in the 9th line, for  last m_adaptions pattern
+			if (!m_lastAdaptionsPattern.IsEmpty())
+			{
+				bstr += "lapat=\"";
+				btemp = m_lastAdaptionsPattern;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_lastAdaptionsPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// second string in the 9th line, for  target marker pattern
+			if (!m_tgtMkrPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " tmpat=\"";
+				else
+					bstr += "tmpat=\"";
+				btemp = m_tgtMkrPattern;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_tgtMkrPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// third string in 9th line, or second, for gloss marker pattern
+			if (!m_glossMkrPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " gmpat=\"";
+				else
+					bstr += "gmpat=\"";
+				btemp = m_glossMkrPattern;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_glossMkrPattern string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// fourth string in 9th line... (possibly, or third or second), for puncts pattern
+			if (!m_punctsPattern.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " pupat=\"";
+				else
+					bstr += "pupat=\"";
+				btemp = m_punctsPattern;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_punctsPattern string
 				bstr += "\"";
 				//bStarted = TRUE; // uncomment out if we add more attributes to this block
 			}
