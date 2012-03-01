@@ -61,10 +61,12 @@ enum PunctChangeType {
 	exists_unchanged
 };
 
-enum WhichLang {
-	sourceLang,
-	targetLang
-};
+// GDLC Putting this enum definition here creates 40 compile errors on MacOS
+// Moving it to helpers.h eliminates the 40 errors.
+//enum WhichLang {
+//	sourceLang,
+//	targetLang
+//};
 
 // NOTE: in these next two enums, "flag" refers to m_bHasKBEntry when in adapting mode, or
 // m_bHasGlossingKBEntry when in glossing mode.
