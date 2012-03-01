@@ -78,10 +78,12 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) CollabUtilities.$(OBJEXT) \
 	conschk_exists_notu_dlg.$(OBJEXT) \
 	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseLanguageCode.$(OBJEXT) \
-	ChooseTranslation.$(OBJEXT) ClientServerConnection.$(OBJEXT) \
+	ChooseCollabOptionsDlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
+	ClientServerConnection.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
 	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
-	convauto.$(OBJEXT) CorGuess.$(OBJEXT) DocPage.$(OBJEXT) \
+	convauto.$(OBJEXT) CorGuess.$(OBJEXT) \
+	CreateNewAIProjForCollab.$(OBJEXT) DocPage.$(OBJEXT) \
 	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
 	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
 	DVCS.$(OBJEXT) ExportFunctions.$(OBJEXT) \
@@ -408,10 +410,12 @@ adaptit_SOURCES = \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
 	../../source/conschk_exists_notu_dlg.cpp ../../source/ConsChk_Empty_noTU_Dlg.cpp ../../source/ChooseLanguageCode.cpp \
+	../../source/ChooseCollabOptionsDlg.cpp \
 	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
-	../../source/CorGuess.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
+	../../source/CorGuess.cpp ../../source/CreateNewAIProjForCollab.cpp \
+	../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
 	../../source/DVCS.cpp \
 	../../source/ExportFunctions.cpp \
@@ -557,6 +561,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCTableNameDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CaseEquivPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Cell.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseCollabOptionsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseConsistencyCheckTypeDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageCode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChooseLanguageDlg.Po@am__quote@
@@ -569,6 +574,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistencyCheckDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsistentChanger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CorGuess.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CreateNewAIProjForCollab.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DVCS.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DocPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EarlierTranslationDlg.Po@am__quote@
@@ -1026,6 +1032,20 @@ ChooseLanguageCode.obj: ../../source/ChooseLanguageCode.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseLanguageCode.obj `if test -f '../../source/ChooseLanguageCode.cpp'; then $(CYGPATH_W) '../../source/ChooseLanguageCode.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseLanguageCode.cpp'; fi`
 
+ChooseCollabOptionsDlg.o: ../../source/ChooseCollabOptionsDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseCollabOptionsDlg.o -MD -MP -MF $(DEPDIR)/ChooseCollabOptionsDlg.Tpo -c -o ChooseCollabOptionsDlg.o `test -f '../../source/ChooseCollabOptionsDlg.cpp' || echo '$(srcdir)/'`../../source/ChooseCollabOptionsDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ChooseCollabOptionsDlg.Tpo $(DEPDIR)/ChooseCollabOptionsDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ChooseCollabOptionsDlg.cpp' object='ChooseCollabOptionsDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseCollabOptionsDlg.o `test -f '../../source/ChooseCollabOptionsDlg.cpp' || echo '$(srcdir)/'`../../source/ChooseCollabOptionsDlg.cpp
+
+ChooseCollabOptionsDlg.obj: ../../source/ChooseCollabOptionsDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseCollabOptionsDlg.obj -MD -MP -MF $(DEPDIR)/ChooseCollabOptionsDlg.Tpo -c -o ChooseCollabOptionsDlg.obj `if test -f '../../source/ChooseCollabOptionsDlg.cpp'; then $(CYGPATH_W) '../../source/ChooseCollabOptionsDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseCollabOptionsDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ChooseCollabOptionsDlg.Tpo $(DEPDIR)/ChooseCollabOptionsDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ChooseCollabOptionsDlg.cpp' object='ChooseCollabOptionsDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ChooseCollabOptionsDlg.obj `if test -f '../../source/ChooseCollabOptionsDlg.cpp'; then $(CYGPATH_W) '../../source/ChooseCollabOptionsDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ChooseCollabOptionsDlg.cpp'; fi`
+
 ChooseTranslation.o: ../../source/ChooseTranslation.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ChooseTranslation.o -MD -MP -MF $(DEPDIR)/ChooseTranslation.Tpo -c -o ChooseTranslation.o `test -f '../../source/ChooseTranslation.cpp' || echo '$(srcdir)/'`../../source/ChooseTranslation.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ChooseTranslation.Tpo $(DEPDIR)/ChooseTranslation.Po
@@ -1137,6 +1157,20 @@ CorGuess.obj: ../../source/CorGuess.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/CorGuess.cpp' object='CorGuess.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CorGuess.obj `if test -f '../../source/CorGuess.cpp'; then $(CYGPATH_W) '../../source/CorGuess.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CorGuess.cpp'; fi`
+
+CreateNewAIProjForCollab.o: ../../source/CreateNewAIProjForCollab.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CreateNewAIProjForCollab.o -MD -MP -MF $(DEPDIR)/CreateNewAIProjForCollab.Tpo -c -o CreateNewAIProjForCollab.o `test -f '../../source/CreateNewAIProjForCollab.cpp' || echo '$(srcdir)/'`../../source/CreateNewAIProjForCollab.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CreateNewAIProjForCollab.Tpo $(DEPDIR)/CreateNewAIProjForCollab.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/CreateNewAIProjForCollab.cpp' object='CreateNewAIProjForCollab.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CreateNewAIProjForCollab.o `test -f '../../source/CreateNewAIProjForCollab.cpp' || echo '$(srcdir)/'`../../source/CreateNewAIProjForCollab.cpp
+
+CreateNewAIProjForCollab.obj: ../../source/CreateNewAIProjForCollab.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CreateNewAIProjForCollab.obj -MD -MP -MF $(DEPDIR)/CreateNewAIProjForCollab.Tpo -c -o CreateNewAIProjForCollab.obj `if test -f '../../source/CreateNewAIProjForCollab.cpp'; then $(CYGPATH_W) '../../source/CreateNewAIProjForCollab.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CreateNewAIProjForCollab.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CreateNewAIProjForCollab.Tpo $(DEPDIR)/CreateNewAIProjForCollab.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/CreateNewAIProjForCollab.cpp' object='CreateNewAIProjForCollab.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CreateNewAIProjForCollab.obj `if test -f '../../source/CreateNewAIProjForCollab.cpp'; then $(CYGPATH_W) '../../source/CreateNewAIProjForCollab.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/CreateNewAIProjForCollab.cpp'; fi`
 
 DocPage.o: ../../source/DocPage.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT DocPage.o -MD -MP -MF $(DEPDIR)/DocPage.Tpo -c -o DocPage.o `test -f '../../source/DocPage.cpp' || echo '$(srcdir)/'`../../source/DocPage.cpp

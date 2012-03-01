@@ -231,6 +231,8 @@
 		<Unit filename="../../source/Ccdll.h" />
 		<Unit filename="../../source/Cell.cpp" />
 		<Unit filename="../../source/Cell.h" />
+		<Unit filename="../../source/ChooseCollabOptionsDlg.cpp" />
+		<Unit filename="../../source/ChooseCollabOptionsDlg.h" />
 		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.cpp" />
 		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.h" />
 		<Unit filename="../../source/ChooseLanguageCode.cpp" />
@@ -255,6 +257,8 @@
 		<Unit filename="../../source/ConsistentChanger.h" />
 		<Unit filename="../../source/CorGuess.cpp" />
 		<Unit filename="../../source/CorGuess.h" />
+		<Unit filename="../../source/CreateNewAIProjForCollab.cpp" />
+		<Unit filename="../../source/CreateNewAIProjForCollab.h" />
 		<Unit filename="../../source/DVCS.cpp" />
 		<Unit filename="../../source/DVCS.h" />
 		<Unit filename="../../source/DocPage.cpp" />
