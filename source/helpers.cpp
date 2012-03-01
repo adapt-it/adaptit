@@ -1109,6 +1109,32 @@ a:		ch = rStr.GetChar(j);
 			// the source list, then we MUST NOT put it in the returned string s, we just
 			// fall though and the loop iterates through any others to try find matches
 			//s += ch;
+			// BEW changed 24Feb12, the above "MUST NOT" is too strong, because it meant
+			// that a space between successive closing quotes would be removed, and we
+			// don't want that to happen. We'll accept a space provided a quote character
+			// follows it.
+			if (ch == _T(' '))
+			{
+				// it's a space - so test if a quote of some description follows
+				if (j + 1 < len)
+				{
+					// there's another character available, check if its a quote one
+					wxChar chNext = rStr.GetChar(j + 1);
+					bool bQuote = pApp->GetDocument()->IsClosingQuote(&chNext);
+					if (bQuote)
+					{
+						s += ch;
+					}
+					else
+					{
+						bQuote = pApp->GetDocument()->IsOpeningQuote(&chNext);
+						if (bQuote)
+						{
+							s += ch;
+						}
+					}
+				}
+			}
 		}
 		else
 		{
@@ -1715,7 +1741,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 	// with a search starting from startAtPos; or -1 if the subStr is not found
 	// in inputStr from startAtPos to the end of the string
 	int len = inputStr.Length();
-	if (len == 0 || startAtPos >= len)
+	if (len == 0 || (int)subStr.Len() > len || startAtPos >= len)
 		return -1;
 	const wxChar* pBuf = inputStr.GetData();
 	wxChar* pBufStart = (wxChar*)pBuf;
@@ -3564,33 +3590,58 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	// if there are internal markers, put up the dialog to place them
 	if (bHasInternalMarkers)
 	{
-		// Note: because the setters are called before ShowModal() is called,
-		// initialization of the internal controls' pointers etc has to be done in the
-		// creator, rather than as is normally done (ie. in InitDialog()) because the
-		// latter is called from ShowModal(, which is too late; once the dialog is called,
-		// we no longer care about what is within Sstr
-		CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
-
-		// set up the text controls and list box with their data; these setters enable the
-		// data passing to be done without the use of globals
-		dlg.SetNonEditableString(Sstr);
-		dlg.SetUserEditableString(Tstr);
-		// BEW 24Aug11 don't show the dialog if there is nothing in the array, Tstr would
-		// be already correct
-		if (!markersToPlaceArray.IsEmpty())
+		// there is ambiguity, so do the placement using the dialog -- BEW 22Feb12 added a
+		// check for m_tgtMkrPattern having content; if it does, use that for the Tstr
+		// value (before markersPrefix's contents get added), and so refrain from showing
+		// the placement dialog; but if the string is empty, then show the dialog
+		if (pMergedSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
-			dlg.SetPlaceableDataStrings(&markersToPlaceArray);
+			// Note: because the setters are called before ShowModal() is called,
+			// initialization of the internal controls' pointers etc has to be done in the
+			// creator, rather than as is normally done (ie. in InitDialog()) because the
+			// latter is called from ShowModal(, which is too late; once the dialog is called,
+			// we no longer care about what is within Sstr
+			CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
 
-			// show the dialog
-			dlg.ShowModal();
+			// set up the text controls and list box with their data; these setters enable the
+			// data passing to be done without the use of globals
+			dlg.SetNonEditableString(Sstr);
+			dlg.SetUserEditableString(Tstr);
+			// BEW 24Aug11 don't show the dialog if there is nothing in the array, Tstr would
+			// be already correct
+			if (!markersToPlaceArray.IsEmpty())
+			{
+				dlg.SetPlaceableDataStrings(&markersToPlaceArray);
 
-			// get the post-placement resulting string
-			Tstr = dlg.GetPostPlacementString();
+				// show the dialog
+				dlg.ShowModal();
+
+				// get the post-placement resulting string
+				Tstr = dlg.GetPostPlacementString();
+			}
+
+			// remove initial and final whitespace
+			Tstr.Trim(FALSE);
+			Tstr.Trim();
+
+			// as of version  6.2.0, we store the result whenever produced, so that
+			// the placement dialog isn't opened again (unless the user puts phrase
+			// box at this CSourcePhrase's location and edits either puncts or word(s)
+			// to be placed differently - that causes the m_tgtMkrPattern string to be
+			// cleared, and then this and other placement dialogs would show again, if
+			// relevant -- that is, if there is a placement ambiguity requiring that
+			// they show)
+			pMergedSrcPhrase->m_tgtMkrPattern = Tstr;
+
+			// make sure the doc is dirty, so the user will be prompted to save it -
+			// we don't want this setting to get lost unnecessarily
+			pDoc->Modify(TRUE);
 		}
-
-		// remove initial and final whitespace
-		Tstr.Trim(FALSE);
-		Tstr.Trim();
+		else
+		{
+			// it's non-empty, so use it as Tstr's value
+			Tstr = pMergedSrcPhrase->m_tgtMkrPattern;
+		}
 	}
 
 	// now add the prefix string material not shown in the Place... dialog,
@@ -3684,7 +3735,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	// markersPrefix wxString...
 	GetMarkersAndFilteredStrings(pMergedSrcPhrase, markersStr, endMarkersStr,
 					freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
-	/* BEW removed 11Oct10
+	/* BEW removed 11Oct10 because even if it has content, we'll ignore it anyway
 	// remove any filter bracketing markers if filteredInfoStr has content
 	if (!filteredInfoStr.IsEmpty())
 	{
@@ -3832,63 +3883,86 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	// if there are internal markers, put up the dialog to place them
 	if (bHasInternalMarkers)
 	{
-		// Note: because the setters are called before ShowModal() is called,
-		// initialization of the internal controls' pointers etc has to be done in the
-		// creator, rather than as is normally done (ie. in InitDialog()) because the
-		// latter is called from ShowModal(, which is too late; once the dialog is called,
-		// we no longer care about what is within Sstr
-		CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
-
-		// BEW added test, 07Oct05
-		if (Gstr[0] != _T(' '))
+		// BEW 22Feb12, added test of m_glossMkrPattern string - if it has content, use it
+		// to set Gstr, and don't show the placement dialog
+		if (pMergedSrcPhrase->m_glossMkrPattern.IsEmpty())
 		{
-			// need to add an initial space if there is not one there already, to make the
-			// dialog's placement algorithm fail-safe
-			Gstr = _T(" ") + Gstr;
-		}
+			// Note: because the setters are called before ShowModal() is called,
+			// initialization of the internal controls' pointers etc has to be done in the
+			// creator, rather than as is normally done (ie. in InitDialog()) because the
+			// latter is called from ShowModal(, which is too late; once the dialog is called,
+			// we no longer care about what is within Sstr
+			CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
 
-		// set up the text controls and list box with their data; these setters enable the
-		// data passing to be done without the use of globals
-		dlg.SetNonEditableString(Sstr);
-		dlg.SetUserEditableString(Gstr);
-		// BEW changed 11Oct10, in keeping with the exclusion of inline markers other than
-		// those for footnotes, endnotes or cross references, we here remove any inline
-		// binding or non-binding markers that are in the m_pMedialMarkers list. Anything
-		// which remains should be placed in the dialog. If nothing remains, the Gstr is
-		// correct "as is".
-		wxArrayString arrTemp;
-		size_t count = pMergedSrcPhrase->m_pMedialMarkers->GetCount();
-		wxString mkr;
-		size_t index;
-		for (index = 0; index < count; index++)
-		{
-			mkr = pMergedSrcPhrase->m_pMedialMarkers->Item(index);
-			wxString rev = MakeReverse(mkr);
-			if (rev[0] == _T('*'))
-				rev = rev.Mid(1); // remove * if it is present
-			wxString mkr2 = MakeReverse(rev);
-			wxString shortMkr = mkr2.Left(2); // footnote, endnote, xref give \f or \x for this
-			USFMAnalysis* pSfm =  pDoc->LookupSFM((wxChar*)mkr.GetData());
-			if (mkr == _T("\\fig"))
+			// BEW added test, 07Oct05
+			if (Gstr[0] != _T(' '))
 			{
-				// exclude this one from acceptance
-				;
+				// need to add an initial space if there is not one there already, to make the
+				// dialog's placement algorithm fail-safe
+				Gstr = _T(" ") + Gstr;
 			}
-			else if (!pSfm->inLine  || (pSfm->inLine && (shortMkr == _T("\\f") || shortMkr == _T("\\x"))))
+
+			// set up the text controls and list box with their data; these setters enable the
+			// data passing to be done without the use of globals
+			dlg.SetNonEditableString(Sstr);
+			dlg.SetUserEditableString(Gstr);
+			// BEW changed 11Oct10, in keeping with the exclusion of inline markers other than
+			// those for footnotes, endnotes or cross references, we here remove any inline
+			// binding or non-binding markers that are in the m_pMedialMarkers list. Anything
+			// which remains should be placed in the dialog. If nothing remains, the Gstr is
+			// correct "as is".
+			wxArrayString arrTemp;
+			size_t count = pMergedSrcPhrase->m_pMedialMarkers->GetCount();
+			wxString mkr;
+			size_t index;
+			for (index = 0; index < count; index++)
 			{
-				// we accept for placement any which satisfy that 2nd test
-				arrTemp.Add(mkr);
+				mkr = pMergedSrcPhrase->m_pMedialMarkers->Item(index);
+				wxString rev = MakeReverse(mkr);
+				if (rev[0] == _T('*'))
+					rev = rev.Mid(1); // remove * if it is present
+				wxString mkr2 = MakeReverse(rev);
+				wxString shortMkr = mkr2.Left(2); // footnote, endnote, xref give \f or \x for this
+				USFMAnalysis* pSfm =  pDoc->LookupSFM((wxChar*)mkr.GetData());
+				if (mkr == _T("\\fig"))
+				{
+					// exclude this one from acceptance
+					;
+				}
+				else if (!pSfm->inLine  || (pSfm->inLine && (shortMkr == _T("\\f") || shortMkr == _T("\\x"))))
+				{
+					// we accept for placement any which satisfy that 2nd test
+					arrTemp.Add(mkr);
+				}
+			}
+			if (!arrTemp.IsEmpty())
+			{
+				dlg.SetPlaceableDataStrings(&arrTemp);
+
+				// show the dialog
+				dlg.ShowModal();
+
+				// get the post-placement resulting string
+				Gstr = dlg.GetPostPlacementString();
+			
+                // as of version 6.2.0, we store the result whenever produced, so that the
+                // placement dialog isn't opened again (unless the user puts phrase box at
+                // this CSourcePhrase's location and edits either puncts or word(s) to be
+                // placed differently - that causes the m_glossMkrPattern string to be
+                // cleared (and m_tgtMkrPattern and m_punctsPattern too), and then this and
+                // other placement dialogs would show again, if relevant -- that is, if
+                // there is a placement ambiguity requiring that they show)
+				pMergedSrcPhrase->m_glossMkrPattern = Gstr;
+
+				// make sure the doc is dirty, so the user will be prompted to save it -
+				// we don't want this setting to get lost unnecessarily
+				pDoc->Modify(TRUE);
 			}
 		}
-		if (!arrTemp.IsEmpty())
+		else
 		{
-			dlg.SetPlaceableDataStrings(&arrTemp);
-
-			// show the dialog
-			dlg.ShowModal();
-
-			// get the post-placement resulting string
-			Gstr = dlg.GetPostPlacementString();
+			// it's non-empty, so use it as Gstr's value
+			Gstr = pMergedSrcPhrase->m_glossMkrPattern;
 		}
 	}
 
@@ -4225,7 +4299,8 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// \param  pSingleSrcPhrase -> a single CSourcePhrase instance which therefore cannot have
 ///                             a non-empty m_pMedialMarkers member; so no placement dialog
 ///                             will need to be called (but pseudo-merger ~ fixed-space
-///                             wordpair will need special treatment)
+///                             wordpair will need special treatment & use of the placement
+///                             dialog at least once)
 /// \param  Tstr             -> the string into which there might need to be
 ///                             placed m_markers and m_endmarkers material, and then
 ///                             prefixed with any filtered information
@@ -4272,6 +4347,8 @@ wxString RemoveCustomFilteredInfoFrom(wxString str)
 /// or ] we return Tstr immediately. (No word counting is done, because in exports in a
 /// later function which the caller calls we join the brackets to the text which they
 /// bracket and so they don't contribute to the word count)
+/// BEW 13Feb12, added code for keeping placement dialog showing to once only, by storing
+/// the placement dialog results, and versioning document to docVersion 6
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool bDoCount,
 							bool bCountInTargetText)
@@ -4532,7 +4609,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	{
         // this data has any markers 'in place' & things like verse number etc if relevant,
         // and any crossReference material will be after the verse number (other unfiltered
-        // filtered into to come from what is in markersPrefix will be preceding the \v )
+        // filtered info to come from what is in markersPrefix will be preceding the \v )
 		Tstr = strInitialStuff + Tstr;
 	}
 
@@ -4556,31 +4633,56 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	}
 	else
 	{
-		// there is ambiguity, so do the placement using the dialog
-		wxString xrefStr;
-		wxString mMarkersStr;
-		wxString otherFiltered;
-		bool bAttachFiltered = FALSE;
-		bool bAttach_m_markers = TRUE;
-		wxString Sstr = FromSingleMakeSstr(pSingleSrcPhrase, bAttachFiltered,
-			bAttach_m_markers, mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE); // need Sstr for the dialog
-
-		CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
-
-		// set up the text controls and list box with their data; these setters enable the
-		// data passing to be done without the use of globals
-		dlg.SetNonEditableString(Sstr);
-		dlg.SetUserEditableString(Tstr);
-		// BEW 24Aug11, don't display the dialog if the array is empty
-		if (!markersToPlaceArray.IsEmpty())
+		// there is ambiguity, so do the placement using the dialog -- BEW 22Feb12 added a
+		// check for m_tgtMkrPattern having content; if it does, use that for the Tstr
+		// value (before markersPrefix's contents get added), and so refrain from showing
+		// the placement dialog; but if the string is empty, then show the dialog
+		if (pSingleSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
-			dlg.SetPlaceableDataStrings(&markersToPlaceArray);
+			// manual placement is required
+			wxString xrefStr;
+			wxString mMarkersStr;
+			wxString otherFiltered;
+			bool bAttachFiltered = FALSE;
+			bool bAttach_m_markers = TRUE;
+			wxString Sstr = FromSingleMakeSstr(pSingleSrcPhrase, bAttachFiltered,
+				bAttach_m_markers, mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE); // need Sstr for the dialog
 
-			// show the dialog
-			dlg.ShowModal();
+			CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
 
-			// get the post-placement resulting string
-			Tstr = dlg.GetPostPlacementString();
+			// set up the text controls and list box with their data; these setters enable the
+			// data passing to be done without the use of globals
+			dlg.SetNonEditableString(Sstr);
+			dlg.SetUserEditableString(Tstr);
+			// BEW 24Aug11, don't display the dialog if the array is empty
+			if (!markersToPlaceArray.IsEmpty())
+			{
+				dlg.SetPlaceableDataStrings(&markersToPlaceArray);
+
+				// show the dialog
+				dlg.ShowModal();
+
+				// get the post-placement resulting string
+				Tstr = dlg.GetPostPlacementString();
+				
+				// as of version  6.2.0, we store the result whenever produced, so that
+				// the placement dialog isn't opened again (unless the user puts phrase
+				// box at this CSourcePhrase's location and edits either puncts or word(s)
+				// to be placed differently - that causes the m_tgtMkrPattern string to be
+				// cleared, and then this and other placement dialogs would show again, if
+				// relevant -- that is, if there is a placement ambiguity requiring that
+				// they show)
+				pSingleSrcPhrase->m_tgtMkrPattern = Tstr;
+
+				// make sure the doc is dirty, so the user will be prompted to save it -
+				// we don't want this setting to get lost unnecessarily
+				pDoc->Modify(TRUE);
+			}
+		}
+		else
+		{
+			// it's non-empty, so use it as Tstr's value
+			Tstr = pSingleSrcPhrase->m_tgtMkrPattern;
 		}
 	}
 
@@ -4597,9 +4699,32 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	return Tstr;
 }
 
+wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
+{
+	wxString spacelessPuncts;
+	// BEW 11Jan11, added test here so that the function can be used on target text as
+	// well as on source text
+	if (whichLang == targetLang)
+	{
+		spacelessPuncts = pApp->m_punctuation[1];
+	}
+	else
+	{
+		spacelessPuncts = pApp->m_punctuation[0];
+	}
+	while (spacelessPuncts.Find(_T(' ')) != -1)
+	{
+		// remove all spaces, leaving only the list of punctation characters
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
+	}
+	wxASSERT(!spacelessPuncts.IsEmpty());
+	return spacelessPuncts;
+}
+
 // BEW created 11Oct10, for support of improved doc version 5 functionality.
 // Used in the FromSingleMakeTstr() function, when there are inline binding markes within
-// the conjoining with USFM fixed space marker ~ joining a pair of words.
+// the conjoining with USFM fixed space marker ~ joining a pair of words. No marker
+// Placement dialog needs to be used for this process.
 wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 {
 	// this function is called only when there are inline binding marker and/or endmarker
@@ -8394,6 +8519,110 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 	{
 		myLeftCoord = 0;
 	}
+}
+
+// Return TRUE if the targetStr param of the MakeTargetStringWithPunctuation(), when
+// parsed into a series of 'words' (they may contain user-typed punctuation) and each is
+// looked up in series, each is found within the pSrcPhrase->m_punctsPattern string, and
+// in ascending sequence of offsets returned by Find() in the internal loop - which
+// indicates that the user didn't reorder the words in the phrase box, and hasn't typed
+// explicit punctuation in the phrase box either. Otherwise, return FALSE.
+// Used only in MakeTargetStringWithPunctuation(), at an active location which is not a
+// fixedsapce conjoined CSourcePhrase instance.
+// BEW created 23Feb12, for use in the docVersion6 feature which removes the redundant
+// showing of either a punction placement dialog, or when exporting adaptations, or
+// glosses-as-text, a medial marker or final marker placement dialog.
+bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase)
+{
+	wxArrayString arr; arr.Clear();
+	if (tgtPhrase.IsEmpty())
+	{
+		return FALSE; // the safest value for such a situation
+	}
+	wxString delimiters = _T(' '); // just use space to separate them
+	wxString testStr = pSrcPhrase->m_lastAdaptionsPattern;
+	wxString aSpace = _T(' ');
+	int howmany;
+	howmany = (int)SmartTokenize(delimiters, tgtPhrase, arr, FALSE); // FALSE means we won't store empty strings
+	int offset = 0;
+	int lastOffset = 0;
+	int countOfWordsFound = 0;
+	if (howmany >= 1)
+	{
+		int index;
+		for (index = 0; index < howmany; index++)
+		{
+			wxString aWord = arr[index];
+			offset = FindFromPos(testStr, aWord, lastOffset);
+			if (offset == wxNOT_FOUND)
+			{
+				return FALSE;
+			}
+			else
+			{
+				// aWord was found in testStr
+				if (offset == 0 && lastOffset == 0)
+				{
+					// matched the first word in testStr, so okay so far
+					lastOffset = offset + aWord.Len();
+					countOfWordsFound++;
+					// get to next space (the match might have only matched first part of
+					// the word - in which case, we'd want to return FALSE immediately)
+					int extraCharsCount = 0;
+					while (lastOffset < (int)testStr.Len() && testStr[lastOffset] != aSpace)
+					{
+						lastOffset++;
+						extraCharsCount++;
+					}
+					if (extraCharsCount > 0)
+					{
+						// the user has typed a different word
+						return FALSE;
+					}
+				}
+				else if (offset > lastOffset)
+				{
+					// matched a non-initial substring of testStr, okay so far
+					lastOffset = offset + aWord.Len();
+					countOfWordsFound++;
+					// if we matched 'within' a word, then the user must have edited the
+					// start of aWord to remove at least a character of it, so that counts
+					// as "an edited string" and so FALSE must be returned
+					if (offset > 0 && testStr[offset - 1] != aSpace)
+					{
+						return FALSE;
+					}
+					// get to next space (the match might have only matched first part of
+					// the word - in which case, we'd want to return FALSE immediately)
+					int extraCharsCount = 0;
+					while (lastOffset < (int)testStr.Len() && testStr[lastOffset] != aSpace)
+					{
+						lastOffset++;
+						extraCharsCount++;
+					}
+					if (extraCharsCount > 0)
+					{
+						// the user has typed a different word
+						return FALSE;
+					}
+				}
+				else
+				{
+					// there wasn't a match, so return FALSE
+					return FALSE;
+				}
+			}
+		}
+	}
+	if (countOfWordsFound != howmany)
+	{
+		// if there were fewer matches then the word count, or more, then the user has
+		// done some editing - either to remove one or more words, to to add one or more
+		// words, and in either case that counts as an "edited string" and so return FALSE
+		return FALSE;
+	}
+	// if control gets to here, it's pretty certain the strings are identical
+	return TRUE;
 }
 
 /*

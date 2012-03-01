@@ -99,7 +99,8 @@ public:
 	void		StoreFreeTranslationOnLeaving();
 	void		ToggleFreeTranslationMode();
 	void		SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch); // klb 9/2011 to support Print Preview
-
+	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, 
+					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
 	void		OnAdvancedFreeTranslationMode(wxCommandEvent& event);
@@ -164,6 +165,9 @@ private:
 public:
 	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
 	CPile*		FindPreviousFreeTransSection(CPile* pStartingPile);
+	//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
+	//the GUI
+	void		SetupFreeTransRadioButtons(bool bSectionByPunctsValue);
 private:
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
 	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);

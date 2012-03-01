@@ -1595,6 +1595,41 @@ t:	if (pCell == NULL)
 					// the PlacePhraseBox() call calls CLayout::RecalcLayout()
 					pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
 					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+
+					// Is this location an anchor for a free translation section - if it
+					// is, we must make the free translation GUI's radio boxes agree with
+					// the anchor's value for m_bSectionByVerse flag; if it's not an
+					// anchor, then we are making it one, and we must set
+					// m_bSectionByVerse to whatever value is correct according to the
+					// app's value currently for the flag m_bDefineFreeTransByPunctuation
+					// flag
+					if (pApp->m_pActivePile->GetSrcPhrase()->m_bStartFreeTrans)
+					{
+						// we are in an existing free translation section
+						
+						// BEW 27Feb12, since we've come to the anchor of a pre-defined
+						// section, we must set up the radio buttons to be what was in
+						// effect when this section was originally created
+						bool bTemporaryByPunctuationFlag = 
+							!pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
+
+						// now set the radio buttons temporarily to possibly different values
+						pApp->GetFreeTrans()->SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
+					}
+					else
+					{
+						// it's not a free translation section yet, so set up to have the radio
+						// buttons be in sync with the m_bDefineFreeTransByPunctuation flag value;
+						// and we can't assume that the location just left was one which was
+						// already in sync with the current radio button settings, so we must do
+						// them both here too
+						// now set the radio buttons temporarily to possibly different values
+						pApp->GetFreeTrans()->SetupFreeTransRadioButtons(pApp->m_bDefineFreeTransByPunctuation);
+
+						// and the anchor must have m_bSectionByVerse set correctly as well
+						pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse =
+													!pApp->m_bDefineFreeTransByPunctuation;
+					}
 					ScrollIntoView(pApp->m_nActiveSequNum);
 					translation.Empty();
 

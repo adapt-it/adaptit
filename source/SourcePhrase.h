@@ -130,6 +130,12 @@ public:
 	wxString		m_chapterVerse; // 52: text for the chapter and verse is stored here, as required
 	wxString		m_gloss;		// 56: save a 'gloss' - which can be anything, eg gloss, or an adaptation
 									// from a different project to a different target text, etc
+	// for docVersion 6, added the next 4 strings
+	wxString		m_lastAdaptionsPattern; // the value within m_adaptions at the time of the last placement dlg
+	wxString		m_tgtMkrPattern; // remember where Place Medial Markers placed any markers, for tgt text export
+	wxString		m_glossMkrPattern; // remember where Place Medial Markers placed any markers, for glossing export
+	wxString		m_punctsPattern; // remember where Place Internal Punctuation placed any medial puncts (unused
+									 // for version 6.2.0.  Possibly will be used in a later version.
 	// booleans and TextType last -- each takes 1 byte presumably even though memory is
 	// word-aligned, because the whole lot is 136 bytes for the CSourcePhrase class
 	bool			m_bHasKBEntry;	// 60: TRUE when m_key of this source phrase is used to put an entry in
@@ -165,7 +171,11 @@ public:
 									   // (considered filtered)
 	bool			m_bEndFreeTrans;   // 72: TRUE if this sourcephrase is the last in a free translation
 	bool			m_bHasNote;        // 73: TRUE if this sourcephrase contains a note (in m_note, considered filtered)
-	bool			m_bHasBookmark;    // 74: TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
+	bool			m_bSectionByVerse; // 74: TRUE if this sourcephrase is a free translation anchor
+									   //     where the sectioning was done using the (by)"Verse" setting
+									   //     (if FALSE, i.e. zero, the sectioning was (by)"Punctuation")
+									   //     Note: FALSE is the default, so can't be used to indicate
+									   //     that the CSourcePhrase has a free translation section
 	bool			m_bChapter;		   // 75: TRUE if the source phrase is first one in a new chapter
 	bool			m_bVerse;		   // 76: TRUE if the source phrase is the first one in a new verse
 	bool			m_bHasInternalMarkers; // 77: if TRUE, user will have to manually located the target

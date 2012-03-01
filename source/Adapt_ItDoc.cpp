@@ -2166,7 +2166,8 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		// delay any requested doc file rename to the end of the calling function...
 
         // get the docVersion number the user wants used for the save, an index value of 0
-        // always uses the VERSION_NUMBER as currently set, but index values 1 or higher
+		// always uses the VERSION_NUMBER as currently set, as does leaving any any
+		// parameter (since 0 is the default if left out), but index values 1 or higher
         // select a legacy docVersion number (which gives different XML structure)
         // (currently the only other index value supported is 1, which maps to doc version
         // 4) Don't permit the possibility of a File Type change until the tests above
@@ -2175,7 +2176,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		SetDocVersion(filterIndex);
 
 		// Execution control now takes one of two paths: if the user chose filterIndex ==
-		// 0 item, which is VERSION_NUMBER's docVersion (currently == 5), then the code
+		// 0 item, which is VERSION_NUMBER's docVersion (currently == 6), then the code
 		// for a norm Save is to be executed (except that in the Save As.. dialog he may
 		// have also requested a document rename, in which case a block at the end of this
 		// function will do that as well, as well as for when he makes the docVersion 4
@@ -2185,7 +2186,21 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		// FromDocVersion5ToDocVersion4() and the XML built from the converted deep copy
 		// (to prevent corrupting the internal data structures which are docVersion5
 		// compliant)
-		m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
+		// BEW 13Feb12, the old test won't work right now that 6 rather than 5 is the
+		// current value of VERSION_NUMBER, so comment out the legacy way to set the
+		// boolean, and do a better way -- that will work right if we later version the
+		// document to 7 or 8, etc
+		//m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
+		if (filterIndex > 0)
+		{
+			// docVersion4 is wanted
+			m_bLegacyDocVersionForSaveAs = TRUE;
+		}
+		else
+		{
+			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 6
+			m_bLegacyDocVersionForSaveAs = FALSE;
+		}
 
 		if (m_bLegacyDocVersionForSaveAs)
 		{
@@ -2212,6 +2227,11 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// user chose for the SaveType, so this call has to be made after the
 	// SetDocVersion() call above - as that call sets the doc's save state which
 	// remains in force until changed, or restored by a RestoreCurrentDocVersion() call
+	// 
+	// BEW 27Feb12, internally checks the value of m_bLegacyDocVersionForSaveAs flag, and
+	// if TRUE, then it doesn't construct the docV6 attribute (first used in release
+	// 6.2.0) for the m_bDefineFreeTransByPunctuation flag (see Adapt_It.h) as part of the
+	// <Settings? tag
 	aStr = ConstructSettingsInfoAsXML(1); // internally sets the docVersion attribute
 							// to whatever is the current value of m_docVersionCurrent
 	DoWrite(f,aStr);
@@ -3368,7 +3388,7 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 	{
 	default: // default to the current doc version number
 	case 0:
-		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 5 in AdaptitConstant.h
+		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 6 in AdaptitConstant.h
 		break;
 	case 1:
 		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstant.h
@@ -3383,6 +3403,9 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 /// Called by the Doc's BackupDocument(), DoFileSave(), and DoTransformedDocFileSave()
 /// functions. Creates a CBString that contains the XML prologue and settings information
 /// formatted as XML.
+/// BEW 27Feb12, added the ftsbp attribute to store the m_bDefineFreeTransByPunctuation
+/// boolean value, as per the user's last choice for "Verse" or "Punctuation" sectioning
+/// prior to the last save of the doc in the current session
 ///////////////////////////////////////////////////////////////////////////////
 CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 {
@@ -3425,11 +3448,34 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was
 	// out of bounds. (BEW note, the error no longer happens, so we should keep this for
 	// support of the Dana's Palm OS version of Adapt It)
+	// BEW note of 27Feb12 -- retain the above, since this has been the only way we
+	// remember where the phrase box was when the doc was saved - and we don't want to
+	// break that
 	bstr += "\" sizey=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
 	tempStr << gpApp->m_nActiveSequNum; // should m_docSize.cy be used instead???
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add index of active location's string (Dana uses this) // add doc length number string
+
+	// BEW added 27Feb12, for docV6 support; but if m_bLegacyDocVersionForSaveAs is TRUE,
+	// then skip this docV6 attribute's construction
+	if (!m_bLegacyDocVersionForSaveAs)
+	{
+		// we aren't constructing a docV4 legacy document from a File / SaveAs... user choice
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		if (gpApp->m_bDefineFreeTransByPunctuation)
+		{
+			tempStr << (int)1;
+		}
+		else
+		{
+			tempStr << (int)0;
+		}
+		bstr += "\" ftsbp=\"";
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr;
+	}
+
 	bstr += "\" specialcolor=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
 	tempStr << WxColour2Int(gpApp->m_specialTextColor);
@@ -12640,7 +12686,8 @@ bool CAdapt_ItDoc::IsMarker(wxString& mkr)
 /// \param		pEnd	-> a pointer to the end of the buffer
 /// \remarks
 /// Called from: the Doc's GetMarkersAndTextFromString(), AnalyseMarker(), the View's
-/// FormatMarkerBufferForOutput(), DoExportInterlinearRTF(), ProcessAndWriteDestinationText().
+/// FormatMarkerBufferForOutput(), DoExportInterlinearRTF(), ProcessAndWriteDestinationText(),
+/// and helper.cpp's FindSplitLocationForPunctsAndMkrsSubstringsPair().
 /// Determines if the marker at pChar is a USFM end marker (ends with an asterisk).
 /// BEW added to it, 11Feb10, to handle SFM endmarkers \F or \fe for 'footnote end'
 /// BEw added 11Oct10, support for halting at ] bracket
@@ -12667,7 +12714,7 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 			return TRUE;
 	}
 
-	// neither of those, so must by USFM endmarker if it is one at all
+	// neither of those, so must be USFM endmarker if it is one at all
 	while (ptr < pEnd)
 	{
 		ptr++;
@@ -13560,21 +13607,29 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	int nFreeTransWordCount = 0;
 
 	wxString spacelessPuncts;
-	// BEW 11Jan11, added test here so that the function can be used on target text as
-	// well as on source text
 	if (bTokenizingTargetText)
 	{
-		spacelessPuncts = pApp->m_punctuation[1];
+		spacelessPuncts = MakeSpacelessPunctsString(pApp, targetLang);
 	}
 	else
 	{
-		spacelessPuncts = pApp->m_punctuation[0];
+		spacelessPuncts = MakeSpacelessPunctsString(pApp, sourceLang);
 	}
-	while (spacelessPuncts.Find(_T(' ')) != -1)
-	{
-		// remove all spaces, leaving only the list of punctation characters
-		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
-	}
+	// BEW 11Jan11, added test here so that the function can be used on target text as
+	// well as on source text
+	//if (bTokenizingTargetText)
+	//{
+	//	spacelessPuncts = pApp->m_punctuation[1];
+	//}
+	//else
+	//{
+	//	spacelessPuncts = pApp->m_punctuation[0];
+	//}
+	//while (spacelessPuncts.Find(_T(' ')) != -1)
+	//{
+	//	// remove all spaces, leaving only the list of punctation characters
+	//	spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
+	//}
 	wxString boundarySet = spacelessPuncts;
 	while (boundarySet.Find(_T(',')) != -1)
 	{

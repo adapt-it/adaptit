@@ -401,7 +401,10 @@ public:
 									bool bChangedFiltering, bool bChangedSfmSet);
 	bool			SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
-	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
+	void			SetDocVersion(int index = 0); // BEW added 19Apr10 for Save As... support
+							// (using the default value of 0 causes the version number to be
+							// set to whatever version number is currently #defined in
+							// AdaptItConstants.h 
 	wxString		SetupBufferForOutput(wxString* pCString);
 	// BEW 11Oct10 (actually 11Jan11) added bTokenizingTargetText param so as to be able
 	// to parse target text, with target punctuation settings, as if it was source text -

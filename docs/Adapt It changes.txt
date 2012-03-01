@@ -40,15 +40,15 @@ collaboration settings are tied to individual Adapt It
 projects, and the user can decide whether to work with 
 collaboration ON of OFF after selecting a project, the button
 is no longer needed.
-* Previously, when Define Sections By "Punctuation" the 
-automatic segmenting of text during Free Translation Mode, 
-would ignore punctuation if the punctuation resulted in text 
-segments less than 5 words long. Now there is no minimum 
-length and automatic text segmentation by punctuation (other
-than a comma) may result in text segments as small as a
-single word. The "Lengthen" button can be used in such cases 
-if the short segments result in free translations being 
-elided with "..." in the display.
+* Previously, when Define Sections By "Punctuation" was 
+chosen, the automatic segmenting of text during Free 
+Translation Mode would ignore punctuation if the punctuation
+resulted in text segments less than 5 words long. Now there
+is no minimum length and automatic text segmentation by 
+punctuation may result in text segments as small as a singl
+word. The "Lengthen" button can be used in such cases if the
+short segments result in free translations being elided with
+an ellipsis ("...") in the display.
 * In the book/chapter selection dialog during collaboration,
 the chapter details now report information about the status of
 free translations for the verses of the chapter as well as 
@@ -81,16 +81,59 @@ information can be made visible on small screens.
 * The "Pack Document..." command now adds the source and
 target language names as prefixes on the packed document's
 file name. This is to help distinguish the AI project which
-the packed document came from from the file name itself.
+the packed document came from from packed document arising
+by packing within a different project, and then sending
+them all to a common folder. Formerly doing this would 
+overwrite the packed document file from elsewhere if it was
+the same book and chapter. Now this cannot happen.
 * Adapt It now has a "man page" for Linux users.
 * The Linux Debian packages for Adapt It now recommend that
 the user also install a version of Bibledit-gtk that is 
 greater than or equal to version 4.2.94 in order for Adapt
 It to be able to work in collaboration with Bibledit.
+* The Free Translation feature has been changed slightly.
+Formerly, it did not store the value for which radio button,
+"Punctuation" or "Verse", was turned on when creating new 
+free translation sections. This meant that Adapt It had to
+algorithmically guess what the setting may have been, and
+sometimes it got it wrong - which would 'flip' the radio
+button values without warning. This 'flip' no longer happens,
+because now the radio button value is stored for each free 
+translation section, and when the phrase box returns to a
+section, the original radio button setting is restored. The
+default setting for new sections is now decoupled from this
+mechanism - and remains unchanged so long as the user does
+not manually click one of the radio buttons to change the
+value. The default value in effect at the last File / Save
+is now stored in an ftsbp attribute in  the <Settings> 
+tag of the document's xml file. A "1" value for that 
+attribute means that the user wants new section creations
+to have "Punctuation-based" length, rather than "Verse-based"
+length. "0" means that "Verse-based" sectioning applies.
+* When USFM markers, or punctuation within a merger, has 
+"medial" position, every time the phrase box returned to
+such a location, a Placement... dialog of some kind would
+open and the user would have to place the punctuation.
+The marker placement dialog appears only during an export.
+The redundant reopening of such placement dialogs becomes
+tedious, and made the user think his placements done at an
+earlier time had not "stuck". This has been changed. The
+placement dialogs still show, but only once per location
+that is ambiguous for marker or punctuation location - and
+the results of the placement are then stored in the document
+and reused -- provided the user does not type punctuation
+explicitly into the phrase box. Typing explicit punctuation
+clears the memory of former placements for that location in
+the document. There is also on the Edit menu a new command
+which, if enabled, causes the local storage of the former
+placements to be cleared; that will cause the placement 
+dialog(s) to open again at that location, for a new 
+placement to be done, which will be automatically stored.
 * The Linux Debian packages for Adapt It now include a
 dependency on the libgnomeprintui (>= 2.0). Some users
 including Balsa users have reported print problems because
 their systems did not have libgnomeprintui installed.
+
 ----------------------------------------------
 Bug fixes in 6.2.0
 ----------------------------------------------
@@ -121,16 +164,16 @@ screen resolutions as small as 640 x 480 pixels was
 mistakenly left out of the last update, but is included in
 this 6.2.0 update.
 * In the Linux version (Balsa) the "Change Bibledit Projects"
-dialog could become unresponsive. That has now been fixed.
-Actually that button and dialog have been removed.
+dialog could become unresponsive. That has been fixed by
+removing both the button and the dialog, they are unneeded now.
 * When collaborating with Bibledit on Linux the Open... and
 Save menu items were not being relabeled to indicate that
 Adapt It would get its source texts from Bibledit and 
 transfer its target texts to Bibledit. This is now fixed.
-* Fixed a parsing problem when [ and ] are not punctuation 
-characters and an adaptation includes a bracketed substring
-[sometext] -- the parser hung. This is now fixed.
-* The selection of a cct table or creating a new cct table
+* There was a parsing problem when [ and ] are not punctuation 
+characters and an adaptation included a bracketed substring
+[sometext] -- the parser would hang. This is now fixed.
+* The selection of a cct table, or creating a new cct table,
 from the "Load Consistent Changes..." menu item on the Tools 
 menu was not working properly in earlier 6.x.x versions. It
 is now fixed.
@@ -138,6 +181,9 @@ is now fixed.
 Text Exports was being ignored resulting in all such exports
 being produced in portrait. It is now possible to export
 Interlinear documents in Landscape orientation.
+* A sequence of double and single closing quotes with a space
+between each, in the source text, was losing the spaces when
+copied to the adaptation. Now the spaces are preserved.
 * The OK and Cancel buttons in the collaboration related
 dialogs were located in reversed order of the default
 arrangement for Windows. They are now in the default order

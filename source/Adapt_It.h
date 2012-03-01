@@ -294,6 +294,8 @@ const char xml_sizex[] = "sizex";
 /// Attribute name used in Adapt It XML documents
 const char xml_sizey[] = "sizey";
 /// Attribute name used in Adapt It XML documents
+const char xml_ftsbp[] = "ftsbp"; // for "free translation section by punctuation" flag value
+/// Attribute name used in Adapt It XML documents
 const char xml_specialcolor[] = "specialcolor";
 /// Attribute name used in Adapt It XML documents
 const char xml_retranscolor[] = "retranscolor";
@@ -381,6 +383,16 @@ const char xml_iBEM[] = "iBEM"; // m_inlineBindingEndMarkers
 const char xml_iNM[] = "iNM"; // m_inlineNonbindingMarkers
 /// Attribute name used in Adapt It XML documents
 const char xml_iNEM[] = "iNEM"; // m_inlineNonbindingEndMarkers
+
+// new ones, Feb 13 2012, for support of doc version = 6
+/// Attribute name used in Adapt It XML documents
+const char xml_lapat[] = "lapat"; // m_lastAdaptionsPattern
+/// Attribute name used in Adapt It XML documents
+const char xml_tmpat[] = "tmpat"; // m_tgtMkrPattern
+/// Attribute name used in Adapt It XML documents
+const char xml_gmpat[] = "gmpat"; // m_glossMkrPattern
+/// Attribute name used in Adapt It XML documents
+const char xml_pupat[] = "pupat"; // m_punctsPattern
 
 // tag & attribute names for KB i/o
 
@@ -3125,8 +3137,8 @@ public:
                 // to ensure the bar is not already open
 	bool	m_bDefineFreeTransByPunctuation; // TRUE by default (gives smaller free
                 // translation sections), if FALSE then sections are defined as the whole
-                // verse, or if the phrase box starts off more than 5 locations before the
-                // verse end, then up to the verse's end
+                // verse (but a 'significant' USFM marker or endmarker occurring before verse
+                // end will cause the section to be closed off and a new one opened)
 	bool	m_bNotesExist; // set TRUE by OnIdle() if there are one or more Adapt It notes
 				// in the document, else FALSE
 

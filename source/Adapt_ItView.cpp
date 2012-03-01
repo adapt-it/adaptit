@@ -11852,7 +11852,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param  pDoc    ->  pointer to document class
-/// \param  pStr    ->  pointer to the CString which may have punctuation, and the
+/// \param  pStr    ->  pointer to the wxString which may have punctuation, and the
 ///                     punctuation is to be removed (this is done using ParseWord() so the
 ///                     method of stripping is consistent with how stripping is done during
 ///                     parsing of source text data
@@ -13324,13 +13324,17 @@ void CAdapt_ItView::CloseProject()
 // clicks the No Punctuation Copy button on the command bar - so this flag was added to
 // support this new functionality. The flag is automatically reset TRUE once the phrase box
 // moves to a different location by any method.
-// BEW 12Apr10, no changes needed for support of doc version 5
 // BEW 11Oct10, added more members for doc version 5, so changes needed for supporting
 // m_follOuterPunct and USFM fixedspace symbol ~ (which we now handle as a merger of two
 // words) in order to cope with all punctuation possibilities on a ~ bound pair
+// BEW 23Feb12, for docVersion 6, added support for suppression of redundant punctuation
+// placement dialog as well as support for redundant marker placement dialogs in the event
+// of doing an export; the how and why of all this is explain below in extensive comments
+// about a third of the way into the function.
 void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
 	pApp->m_nPlacePunctDlgCallNumber++;
 	int theSequNum = pSrcPhrase->m_nSequNumber;
@@ -13400,7 +13404,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 										  // done if possible
 			if (gbAutoCaps)
 			{
-				bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
+				bNoError = pDoc->SetCaseParameters(pSrcPhrase->m_key);
 				if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 				{
 					bWantChangeToUC = TRUE;
@@ -13422,32 +13426,98 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
                 // wants he can then place the extra stuff, or ignore it).
 				if (pSrcPhrase->m_bHasInternalPunct)
 				{
-					wxString punct;
-					bool bFoundAll = TRUE;
-					wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might
-																	  // contain a phrase or a word
-					int count = pList->GetCount();
-
-					for ( int n = 0; n < count; n++ )
+					// BEW 23Feb12, added code for docVersion 6 support of suppression of
+					// redundant showings of the placement dialog for puncts (and if the
+					// new storage strings for preserving state are cleared here, then
+					// that will cause placement dialog for markers to appear, if there is
+					// marker placement ambiguity, in an export
+					
+                    // The first thing to do is to check if m_lastAdaptionsPattern has
+                    // previous state stored in it; and if so, we've some work to do to
+                    // determine what we do next. There are two situations we must check
+                    // for here first, and setup accordingly within the block below. Check
+                    // if each and every one of the tokenized list of substrings (with no
+                    // puncts removed before the check is made, though there may be no
+                    // puncts in it anyway)formed from the contents of the passed in
+                    // targetStr parameter, has a match within m_lastAdaptionsPattern (the
+                    // latter we know has all puncts stripped out earlier), and that the
+                    // matches are made in natural order & increasing offset values.
+                    // Failure to satisfy those conditions means that the user has typed
+                    // something different for the adaptation - whether a change of
+                    // punctuation by typing some explicitly in the phrase box, or the
+                    // fixing of a typo, or the substitution of a different more suitable
+                    // phrase as a better translation of the source text at the active
+                    // location - and no matter which is the case, the former stored state
+                    // cannot then be relied on. We'll do all this work in a function, and
+                    // return a boolean. TRUE will mean that no user-change was detected,
+                    // FALSE that something differed.
+					// Then, still in the block below, if FALSE was returned, we clear the
+					// following four CSourcePhrase wxString members before exiting the block:
+					// m_lastAdaptionsPattern
+					// m_punctsPattern
+					// m_tgtMkrsPattern
+					// m_glossMkrsPattern
+                    // which will then have the desired side-effect, namely, that the
+                    // relevant punctuation placement dialog (when punctuation placement by
+                    // algorithm would otherwise be unreliable due to ambiguity as to the
+                    // correct location it is to be put in), and/or the relevant marker
+                    // placement dialog (when marker placement is ambiguous - this can
+                    // happen only at export time, because markers are removed from needing
+                    // to be handled explicitly until then - when they have to be put back
+                    // in the right spots in order to export correct USFM markup for the
+                    // target text, or glosses-as-text export)
+					if (!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty()) 
 					{
-						punct = pList->Item(n); // can be several punct characters in the
-													 // stored string
-						wxASSERT(!punct.IsEmpty());
-						strCorresp = GetConvertedPunct(punct); // uses PUNCTPAIRS and TWOPUNCTPAIRS
-															   // for converting
-
-                        // the new syntax no longer checks if some are already typed, it
-                        // just assumes none are
-						remainderList.Add(strCorresp);
-						bFoundAll = FALSE;
+						// m_lastAdaptionsPattern is not empty, therefore it contains the
+						// m_adaptions value (& that NEVER has punctuation not stripped
+						// off) as it was at the last time the above placement dialog was
+						// invoked -- so now we compare with the contents of the passed in
+						// targetStr parameter, with the m_lastAdaptionsPattern member of
+						// the current active pSrcPhrase instance passed in
+						bool bNoChange =  IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str);
+						if (bNoChange)
+						{
+							// let control continue to the block further below
+							;
+						}
+						else
+						{
+							// there has been a change, so empty the 4 state-storing
+							// docVersion 6 string members (we empty them all for safety's
+							// sake, because the change may also require that in an export
+							// of the target text, or glosses-as-text, marker placement
+							// may need redoing as well. At worst this can only result in
+							// one further showing of a relevant placement dialog at a
+							// later export invocation.
+							pSrcPhrase->m_lastAdaptionsPattern = _T("");
+							pSrcPhrase->m_tgtMkrPattern = _T("");
+							pSrcPhrase->m_glossMkrPattern = _T("");
+							pSrcPhrase->m_punctsPattern = _T("");
+						}
 					}
 
-					if (!bFoundAll)
+					// If the m_lastAdaptionsPattern is empty, for any reason, we must do
+					// a punctuation placement using the dialog for that purpose
+					if (pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 					{
-						// put them all in interactively using a dialog (formerly, the dialog
-						// showed only the ones not typed)
-						gpRemainderList = &remainderList; // set the global so dialog can
-														  // access it
+						// the placement dialog needs to be shown
+						wxString punct;
+						wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might
+																		  // contain a phrase or a word
+						int count = pList->GetCount();
+
+						for ( int n = 0; n < count; n++ )
+						{
+							punct = pList->Item(n); // can be several punct characters in the
+														 // stored string
+							wxASSERT(!punct.IsEmpty());
+							strCorresp = GetConvertedPunct(punct); // uses PUNCTPAIRS and TWOPUNCTPAIRS
+																   // for converting
+							remainderList.Add(strCorresp);
+						}
+
+						// put them all in interactively using a dialog
+						gpRemainderList = &remainderList; // set the global so dialog can access it
 						CPlaceInternalPunct dlg(wxGetApp().GetMainFrame());
 						dlg.Centre();
 						dlg.m_pSrcPhrase = pSrcPhrase; // set the dialog's local member
@@ -13456,13 +13526,50 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// get the result, and fix the source phrase accordingly
 						str = dlg.m_tgtPhrase; // remember str could be a phrase, and so
 											   //contain one or more spaces
+						
 						// anything left in the list can be thrown away now
 						gpRemainderList->Clear();
 						gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
 												// destroyed when it goes out of scope
 						strCorresp.Empty();
+
+                        // BEW 23Feb12, Store the placed-punctuation state pending the
+                        // possibility that this current active location may be returned to
+						// at some later time, by the user -- if so, we want the stored
+						// state to be used for setting m_targetStr, rather than showing
+						// the placement dialog again. Two strings need to be stored,
+						// m_adaptions (and we call RemovePunction() on it to ensure no
+						// punctuation slips through the net here), and the value of str
+						// as set from the dialog's m_tgtPhrase member above - the latter
+						// has, of course, the punctuation unambiguously placed (that, of
+						// course, doesn't preclude the possibility of user error in doing
+						// the placement; for that eventuality, there is a Change
+						// Punctuation or Markers Pattern menu item in the GUI by which
+						// the user can, after putting the phrase box back at the current
+						// active location, click the menu item and answer Yes in the
+						// resulting Yes/No message box, which will force all four of the
+						// state-saving wxString members discussed above, to be emptied
+						// (which in turn causes the relevant placement dialog(s) to open
+						// at this location again, at the appropriate time, for the user
+						// to correct his former placement error(s).)
+						wxString nopunctsForSureStr = pSrcPhrase->m_adaption;
+						RemovePunctuation(pDoc, &nopunctsForSureStr, 1); // 1 means "tgt 
+														// text punctuation is to be used"
+						// now save state as described above
+						pSrcPhrase->m_lastAdaptionsPattern = nopunctsForSureStr;
+						pSrcPhrase->m_punctsPattern = str;
+					} // end of TRUE block for test: if (pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
+					else
+					{
+						// if control enters here, we've determined that the word or words
+						// of the target text aren't changed, and the user hasn't
+						// explicitly typed punctuation into the phrase box, so we've
+						// every reason to expect that the former saved state for
+						// punctuation placement, and word spellings, are unchanged and so
+						// can be restored here without recourse to the placement dialog
+						str = pSrcPhrase->m_punctsPattern;
 					}
-				}
+				} // end of TRUE block for test: if (pSrcPhrase->m_bHasInternalPunct)
 			}
 			else
 			{
@@ -13475,7 +13582,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
             // is empty
 			bool bWantPrevCopy;
 			int punctLen;
-			if (bEmptyTarget) bEmptyTarget = FALSE;
+			if (bEmptyTarget) 
+			{
+				bEmptyTarget = FALSE;
+			}
 
             // BEW added 20 April 2005 to support the use of the new No Punctuation Copy
             // button. Don't restore the TRUE value for this flag at the end of this
@@ -13523,7 +13633,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						{
 							// check first that the change to upper case is possible
 							wxString noInitialPunctStr = str.Mid(punctLen);
-							bNoError = pApp->GetDocument()->SetCaseParameters(noInitialPunctStr,FALSE);
+							bNoError = pDoc->SetCaseParameters(noInitialPunctStr,FALSE);
 							if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 							{
 								// do the change to upper case at the wxChar at [punctLen] index
@@ -13560,7 +13670,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 								// put a space between consecutive curly quotes
 								size_t length = tgtFollPunct.Len();
 								size_t index;
-								CAdapt_ItDoc* pDoc = pApp->GetDocument();
 								for (index = 0; index < length - 1; index++)
 								{
 
@@ -13631,7 +13740,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						str = tgtPrecPunct + str;
 					}
 				}
-
 				// now add the final form of the target string to the source phrase
 				pSrcPhrase->m_targetStr = str;
 			} // end of else block for test: if (!pApp->m_bCopySourcePunctuation)
@@ -13743,7 +13851,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			if (gbAutoCaps)
 			{
 				// next call will work fine because ~ is not at the start of m_key
-				bNoError = pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
+				bNoError = pDoc->SetCaseParameters(pSrcPhrase->m_key);
 				if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 				{
 					bWantChangeToUC = TRUE;
@@ -13752,7 +13860,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			if (bWantChangeToUC)
 			{
 				// check first that the change to upper case is possible
-				bNoError = pApp->GetDocument()->SetCaseParameters(word1Proper,FALSE);
+				bNoError = pDoc->SetCaseParameters(word1Proper,FALSE);
 				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 				{
 					// do the change to upper case
@@ -21430,281 +21538,30 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if it appears likely the free translation section was created with
-///             the "Define Sections By"radio button "Verse" turned ON, FALSE if the other
-///             radio button "Punctuation" was the one more likely to have been ON
-/// \param      pSrcPhrases				->	pointer to m_pSrcPhrases defined on
-///                                             CAdapt_ItDoc class
-/// \param      nStartingFreeTransSequNum	->	start of the free translation found at the
-///                                             start of the free translation span, or if
-///                                             there was no free translation there, then
-///                                             it is the same as the nStartingSN value
-///                                             of gEditRecord
-/// \param      nEndingFreeTransSequNum	->	bounding sequence number beyond which we
-///                                             don't scan further (it is not necessarily
-///                                             the end of a free translation section, as
-///                                             the end of the first free translation
-///                                             section, if one exists here, may occur
-///                                             earlier, because this value may just be
-///                                             the nEndingSN value of gEditRecord
-/// \param      bFreeTransPresent			->	TRUE if there is at least one free
-///                                             translation section within the span defined
-///                                             by the first two parameters (caller
-///                                             determines this), FALSE if not - and if
-///                                             FALSE, then control immediately exits and
-///                                             no scan is done and default FALSE is
-///                                             returned.
-/// \remarks
-/// Called from: The View's OnEditSourceText().
-/// When a free translation section is set up by the SetupCurrentFreeTranslationSection()
-/// call at the end of the RecalcLayout() call, the user will have had one of the radio
-/// buttons "Punctuation" or "Verse" turned on - the latter defines, usually, a longer
-/// section than the former. However which one it was is not recorded, and so in vertical
-/// edit mode, we want to get a "best guess" for what that setting was, (it is the
-/// application class's BOOL flag, m_bDefineFreeTransByPunctuation, default is TRUE),
-/// because we wish to restore that setting before entering the freeTranslationsStep of the
-/// vertical edit process. (Otherwise, the user would be annoyed that his earlier
-/// sectioning choice is not in effect. However, even if our algorithm gets it wrong, he
-/// can just click the relevant radio button after freeTranslationsStep is entered, and
-/// before he does any updating of his free translation, and the current section would then
-/// be resized) Unfortunately, we cannot reliably determine what the former setting was. We
-/// know 5 piles will be traversed and then the sectioning code starts looking for a
-/// terminating condition - punctuation, or significant SFM, or start of a new verse. If
-/// after 5 piles we come to a following punctuation character, and the section does not
-/// end there, we can be certain that m_bDefineFreeTransByPunctuation was originaly FALSE;
-/// if we come to the end of the section and the next pile contains pSrcPhrase with
-/// m_bVerse set TRUE, then it is likely that m_bDefineFreeTransByPunctuation was FALSE -
-/// but we can't be certain; or if there are lots of piles in the section (we mean "more
-/// than 15") we'll assume the flag was FALSE. Otherwise, we'll assume it was TRUE. (The
-/// value we return is the inverse of m_bDefineFreeTransByPunctuation value; i.e. if the
-/// latter was FALSE, meaning a verse-length section, then we return TRUE; and vise versa)
-///
-/// BEW 19Feb120, no changes needed for support of doc version 5
-/// BEW 9July10, no changes needed for support of kbVersion 2
-/////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
-	int nStartingFreeTransSequNum, int nEndingFreeTransSequNum, bool bFreeTransPresent)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-
-	// 01Oct08, BEW added this function
-	if (!bFreeTransPresent)
-		return FALSE; // do nothing if we know there is no free translation in the span
-
-	wxString spacelessTgtPunctuation = pApp->m_punctuation[1]; // use target set,
-															// with delimiting spaces
-	spacelessTgtPunctuation.Replace(_T(" "),_T("")); // get rid of the spaces
-
-	int nThreshhold = NUM_WORDS_IMPLYING_VERSE_SECTIONING; // #defined as 15 near top of file
-	int nWordCount = 0;
-	int nPunctuationsNotHaltedAt = 0;
-	CSourcePhrase* pSrcPhrase = NULL;
-
-	// find the first pSrcPhrase in the span which has m_bStartFreeTrans TRUE
-	bool bFoundStart = FALSE;
-	SPList::Node* pos = pSrcPhrases->Item(nStartingFreeTransSequNum);
-	SPList::Node* posBoundary = pSrcPhrases->Item(nEndingFreeTransSequNum);
-	wxASSERT(pos != NULL);
-	bool bHasWordFinalPunct = FALSE;
-	while (pos != NULL)
-	{
-		if (pos == posBoundary)
-		{
-			// we have tested the last one in the span, so must exit this loop having
-			// not found an instance where a free translation starts; and so we exit the
-			// whole function as there can be no free translation to be dealt with
-			return FALSE;
-		}
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
-		if (pSrcPhrase->m_bStartFreeTrans)
-		{
-			bFoundStart = TRUE;
-			break;
-		}
-	}
-	if (bFoundStart)
-	{
-        // scan over this free translation, collecting information about it; but if the
-        // first pSrcPhrase is the end of the free translation section, then assume
-        // "Punctuation" radio button was ON and return a FALSE value accordingly
-		if (pSrcPhrase->m_bEndFreeTrans)
-			return FALSE;
-		// otherwise, check out this pSrcPhrase more closely
-		nWordCount += pSrcPhrase->m_nSrcWords; // could be a merger, so may already
-											   // exceed 5, so check
-		if (nWordCount >= MIN_FREE_TRANS_WORDS)
-		{
-            // test for potential halt location (following punctuation at end of
-            // m_targetStr, or end of source text word or phrase if there is no target text
-            // here)
-			bHasWordFinalPunct = pFreeTrans->HasWordFinalPunctuation(pSrcPhrase,pSrcPhrase->m_targetStr,
-															spacelessTgtPunctuation);
-			if (bHasWordFinalPunct)
-			{
-				// does the free translation section end here?
-				if (pSrcPhrase->m_bEndFreeTrans)
-				{
-                    // it does end here, and it's just a single pile, so without doubt this
-                    // section was delineated earlier with "Punctuation" radio button ON
-					return FALSE; // no need to go further
-				}
-				else if (pSrcPhrase->m_bHasFreeTrans)
-				{
-                    // we are still in the free translation section, but it does not end at
-                    // this punctuation, so count this location
-					nPunctuationsNotHaltedAt++; // its starting to look like "Verse" radio
-												// button was ON, but check some more
-				}
-				else
-				{
-					// the free translation is not defined here! This is unexpected,
-					// so return with a default value
-					return FALSE;
-				}
-			} // end block for test (bHasWordFinalPunct))
-		} // end block for test (nWordCount >= MIN_FREE_TRANS_WORDS)
-
-        // if control gets here, then we've not found the end of the free translation
-        // section yet, but we may or may not have exceeded MIN_FREE_TRANS_WORDS, anyway,
-        // we soldier on to later CSourcePhrase instances and test those
-		bool bReachedBoundary = FALSE;
-		while (pos != NULL)
-		{
-            // if we are at the boundary for scanning, record the fact but then do the
-            // tests below and use the boolean to exit the loop when those test are
-            // finished
-			if (pos == posBoundary)
-			{
-				bReachedBoundary = TRUE;
-			}
-			// get next CSourcePhrase, and increment the word count
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
-			nWordCount += pSrcPhrase->m_nSrcWords;
-
-            // if we've not exceeded the minimum words, the only thing we need check for is
-            // whether or not this is an unusualy short free translation section, if it is
-            // then return FALSE immediately, otherwise, loop; but if we've exceed the
-            // minimum words now, then we have to do more checks
-			if (nWordCount <= MIN_FREE_TRANS_WORDS)
-			{
-				if (pSrcPhrase->m_bEndFreeTrans)
-				{
-					// the section ends here, so it must be a short section
-					return FALSE;
-				}
-			}
-			else
-			{
-				// word count exceeds minimum, so more extensive testing required
-
-                // test for potential halt location (following punctuation at end of
-                // m_targetStr, or end of source text word or phrase if there is no target
-                // text here)
-				bHasWordFinalPunct = pFreeTrans->HasWordFinalPunctuation(pSrcPhrase,
-										pSrcPhrase->m_targetStr,spacelessTgtPunctuation);
-				if (bHasWordFinalPunct)
-				{
-					// does the free translation section end here?
-					if (pSrcPhrase->m_bEndFreeTrans)
-					{
-						// it does end here, so break out to check if next
-						// CSourcePhrase has m_bVerse == TRUE
-						break;
-					}
-					else if (pSrcPhrase->m_bHasFreeTrans)
-					{
-                        // we are still in the free translation section, but it does not
-                        // end at this punctuation, so count this location & iterate loop
-						nPunctuationsNotHaltedAt++;
-					}
-					else
-					{
-                        // the free translation is not defined here! This is unexpected, so
-                        // decrement nWordCount and break out for final check
-						nWordCount -= pSrcPhrase->m_nSrcWords;
-						break;
-					}
-				} // end of block for test (bHasWordFinalPunct)
-				else
-				{
-                    // no word final punctuation at this CSourcePhrase instance, so just
-                    // check if the free translation section ends here - if it does, break
-                    // out to check if the next CSourcePhrase has m_bVerse == TRUE
-					if (pSrcPhrase->m_bEndFreeTrans)
-					{
-						// it ends here
-						break;
-					}
-				} // end of else block for test (bHasWordFinalPunct)
-			} // end of else block for test (nWordCount <= MIN_FREE_TRANS_WORDS)
-
-			if (bReachedBoundary)
-			{
-                // if we get here, the m_bEndFreeTrans TRUE has not been encountered - this
-                // should not happen because the caller sets the ending boundary to the
-                // place where that flag is TRUE, unless there is no free translation
-                // defined here, in which case we should have come to the section end
-                // earlier - so all we can do is the best we can
-				if (nWordCount > nThreshhold)
-					return TRUE;
-				else
-					return FALSE;
-			}
-		} // end of loop for test (pos != NULL)
-
-		bool bEndsAtVerse = FALSE;
-		if (pos != NULL && pos != posBoundary)
-		{
-            // test the CSourcePhrase following the end of the free translation section,
-            // for m_bVerse == TRUE, if it is, then probaby the radio button that was ON
-            // was "Verse"
-			pSrcPhrase = pos->GetData();
-			pos = pos->GetNext();
-			bEndsAtVerse = pSrcPhrase->m_bVerse;
-		}
-
-		// now, make out final assessment; the most reliable ones first,
-		// less reliable ones later
-		if (nPunctuationsNotHaltedAt >= 1)
-			return TRUE; // "Verse" button was ON
-		if (bEndsAtVerse)
-			return TRUE; // "Verse" button may have been ON
-		if (nWordCount > nThreshhold)
-			return TRUE; // we don't really know, but "Verse" assumption
-						 // will give best chance of a long section
-	}
-	return FALSE; // we didn't get a starting location, or we fell though from the preceding
-				  // block because no test was conclusive, so return default;
-}
-
-/////////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if there was no error; FALSE if there was an error
 /// \param      pScrPhrases	->	pointer to m_pSrcPhrases list defined on the App
 /// \param      nStartingSN	->	reference to the sequence number for the first pile
-///                                 in the span which is to have its source text shown to
-///                                 the user (this could be more than the user's original
-///                                 selection, if extension was done because of the presence
-///                                 of a retranslation or even more than one retranslation)
-/// \param      nEndingSN		->	reference to the sequence number for the last pile in
-///                                 the span referred to by the preceding parameter's comment
+///                             in the span which is to have its source text shown to
+///                             the user (this could be more than the user's original
+///                             selection, if extension was done because of the presence
+///                             of a retranslation or even more than one retranslation)
+/// \param      nEndingSN	->	reference to the sequence number for the last pile in
+///                             the span referred to by the preceding parameter's comment
 /// \param      nStartingFreeTransSequNum	<- ref to the start of any free translation found
-///                                             at the start of the above span, or if there
-///                                             were no free translation there, then it is
-///                                             the same as the nStartingSN value
+///                             at the start of the above span, or if there
+///                             were no free translation there, then it is
+///                             the same as the nStartingSN value
 /// \param      nEndingFreeTransSequNum	<- ref to the end of any free translation found at
-///                                             the end of the above span, or if there were
-///                                             no free translation there, then it is the
-///                                             same as the nEndingSN value
-/// \param      bFreeTransPresent			<-	return TRUE if at least one free translation
-///                                             section is in or partly overlaps the passed
-///                                             in span; FALSE if none were detected (a
-///                                             \free .... \free* section with no content
-///                                             would be regarded as a free translation
-///                                             section and would cause TRUE to be
-///                                             returned)
+///                             the end of the above span, or if there were
+///                             no free translation there, then it is the
+///                             same as the nEndingSN value
+/// \param      bFreeTransPresent	<-	return TRUE if at least one free translation
+///                             section is in or partly overlaps the passed
+///                             in span; FALSE if none were detected (a
+///                             \free .... \free* section with no content
+///                             would be regarded as a free translation
+///                             section and would cause TRUE to be
+///                             returned)
 /// \remarks
 /// Called from: The View's OnEditSourceText(). Gets the starting and ending sequence
 /// numbers of any free translation within the span. "Leftwards" in this function is to be
@@ -21852,13 +21709,26 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases,
 		}
 	}
 
-    // set the flag in the EditRecord which later, entering freeTranslationsStep,
-    // allows us to get the original value of the app class's BOOL member,
-    // m_bDefineFreeTransByPunctuation set back to its earlier value (mostly that should
-    // happen), so the user most of the time will not have to manually resize the section
-	gEditRecord.bVerseBasedSection = GetLikelyValueOfFreeTranslationSectioningFlag(
-										pSrcPhrases,nStartingFreeTransSequNum,
-										nEndingFreeTransSequNum,bFreeTransPresent);
+	// BEW 27Feb12, changed to support saving the radio button state in the docV6
+	// CSourcePhrase member flag, m_bSectionByVerse (formerly it was an unused boolean
+	// called m_bHasBookmark)
+	// Set the flag in the EditRecord which later, entering freeTranslationsStep,
+    // allows us to get the original value used for the defining of the section.
+    // (The app uses m_bDefineFreeTransByPunctuation now to store the user setting, and
+	// it can no longer be changed except by explicit user choice to do so. Whenever an
+	// active location is an anchor, with a different setting to that flag, the anchor's
+	// m_bSectionByVerse value is used there only temporarily, and the GUI radio button's
+	// change to reflect the value there, but revert to the value specified by the app
+	// flag, m_bDefineFreeTransByPunctuation, whenever setting up a new section somewhere
+	// So deprecate the legacy function
+	//	gEditRecord.bVerseBasedSection = GetLikelyValueOfFreeTranslationSectioningFlag(
+	//									pSrcPhrases, nStartingFreeTransSequNum,
+	//									nEndingFreeTransSequNum ,bFreeTransPresent);
+	if (bFreeTransPresent)
+	{
+		gEditRecord.bVerseBasedSection = pApp->GetFreeTrans()->GetValueOfFreeTranslationSectioningFlag(
+										pSrcPhrases, nStartingFreeTransSequNum, nEndingFreeTransSequNum);
+	}
 	return TRUE; // there was no error
 }
 

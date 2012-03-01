@@ -2423,10 +2423,12 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// or no text and punctuation was earlier placed -- whichever is the case
 				// we need to preserve that state
 				pApp->m_targetPhrase.Empty();
-				gbSavedTargetStringWithPunctInReviewingMode = TRUE; // it gets cleared again at 
-												// end of MakeTargetStringIncludingPunctuation()
-				gStrSavedTargetStringWithPunctInReviewingMode = pSPhr->m_targetStr; // cleared at 
-												// end of MakeTargetStringIncludingPunctuation()
+				gbSavedTargetStringWithPunctInReviewingMode = TRUE; // it gets cleared again 
+						// within MakeTargetStringIncludingPunctuation() at the end the block
+						// it is being used in there
+				gStrSavedTargetStringWithPunctInReviewingMode = pSPhr->m_targetStr; // cleared 
+						// again within MakeTargetStringIncludingPunctuation() at the end of
+						// the block it is being used in there
 			}
 			// if neither test succeeds, then let 
 			// m_targetPhrase contents stand unchanged

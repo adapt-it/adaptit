@@ -1152,7 +1152,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                     // probably going to be new adaptable 'holes' in the document, so tell
                     // user Copy Source been turned off, etc
 					wxMessageBox(_(
-"To prevent a source text copy which you may fail to notice, the Copy Source command has been turned off.\nYou can manually turn it back on now if you wish - see the View menu.\nIt will automatically be returned to its original setting when you close off collaboration with this document."),
+"The Copy Source (to Target) command on View Menu is temporarily turned off because the source text was edited outside of Adapt It.\nNow you need to adapt the changed parts again.\nAdapt It will guide you, displaying each location that was changed. Use the Enter key to jump to the next location after you enter each new adaptation.\nIf these locations have free translations, you should update each free translation too."),
 					_T(""), wxICON_WARNING);
 				}
 

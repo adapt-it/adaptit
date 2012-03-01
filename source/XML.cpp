@@ -2938,8 +2938,9 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			case 2:
 			case 3:
 			case 4:
-			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5
+			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5 or 6
 			case 5:
+			case 6:
 			{
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -3031,6 +3032,11 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		case 3:
 		case 4:
 		case 5:
+			// docVersion 6 adds 3 wxString members which are absent in all earlier versions,
+			// so the same code can be used, and where docVersion == 6 support is explicit,
+			// we add a further if block, testing for gnDocVersion == 6, so that any attempt
+			// to use versions 5.2.4 or 5.2.5 will skip the parsing of the 3 new strings
+		case 6:
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
@@ -3044,6 +3050,20 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				else if (attrName == xml_sizey)
 				{
 					gpApp->m_docSize.y = atoi(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_ftsbp)
+				{
+					// BEW added 27Feb12, the user's last-chosen setting for the "Verse" or
+					// "Punctuation" free translation sectioning radio button is stored in
+					// this new attribute as of docVersion 6 (first out in release 6.2.0)
+					int anInt = atoi(attrValue);
+					if (anInt == 0)
+					{
+						gpApp->m_bDefineFreeTransByPunctuation = FALSE;
+					}else
+					{
+						gpApp->m_bDefineFreeTransByPunctuation = TRUE;
+					}
 				}
 				else if (attrName == xml_specialcolor)
 				{
@@ -3181,7 +3201,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
-						// so ReplaceEntities() will need to be called with the bTwoOnly flag set TRUE
+						// so ReplaceEntities() will need to be called
 						ReplaceEntities(attrValue); // most require it, so do it on all
 						if (attrName == xml_s)
 						{
@@ -3234,6 +3254,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else if (attrName == xml_fi)
 						{
 							gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
+						}
+						// next 4 for docVersion = 6 support
+						else if (gnDocVersion >= 6 && attrName == xml_lapat)
+						{
+							gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = attrValue;
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+						{
+							gpEmbeddedSrcPhrase->m_tgtMkrPattern = attrValue;
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+						{
+							gpEmbeddedSrcPhrase->m_glossMkrPattern = attrValue;
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_pupat)
+						{
+							gpEmbeddedSrcPhrase->m_punctsPattern = attrValue;
 						}
 						else
 						{
@@ -3354,6 +3391,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						else if (attrName == xml_fi)
 						{
 							gpSrcPhrase->SetFilteredInfo((char*)attrValue);
+						}
+						// next 4 for docVersion = 6 support
+						else if (gnDocVersion >= 6 && attrName == xml_lapat)
+						{
+							gpSrcPhrase->m_lastAdaptionsPattern = attrValue;
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+						{
+							gpSrcPhrase->m_tgtMkrPattern = attrValue;
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+						{
+							gpSrcPhrase->m_glossMkrPattern = attrValue;
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_pupat)
+						{
+							gpSrcPhrase->m_punctsPattern = attrValue;
 						}
 						else
 						{
@@ -3599,6 +3653,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						{
 							gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 						}
+						// next 4 for docVersion = 6 support
+						else if (gnDocVersion >= 6 && attrName == xml_lapat)
+						{
+							gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = gpApp->Convert8to16(attrValue);
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+						{
+							gpEmbeddedSrcPhrase->m_tgtMkrPattern = gpApp->Convert8to16(attrValue);
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+						{
+							gpEmbeddedSrcPhrase->m_glossMkrPattern = gpApp->Convert8to16(attrValue);
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_pupat)
+						{
+							gpEmbeddedSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
+						}
 						else
 						{
 							// unknown attribute
@@ -3719,6 +3790,23 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						{
 							gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 						}
+						// next 4 for docVersion = 6 support
+						else if (gnDocVersion >= 6 && attrName == xml_lapat)
+						{
+							gpSrcPhrase->m_lastAdaptionsPattern = gpApp->Convert8to16(attrValue);
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+						{
+							gpSrcPhrase->m_tgtMkrPattern = gpApp->Convert8to16(attrValue);
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+						{
+							gpSrcPhrase->m_glossMkrPattern = gpApp->Convert8to16(attrValue);
+						}
+						else if (gnDocVersion >= 6 && attrName == xml_pupat)
+						{
+							gpSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
+						}
 						else
 						{
 							// unknown attribute
@@ -3832,7 +3920,12 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// list; the difference is that the contents of m_markers in version 4 is split
 		// between 4 members in version 5, m_endMarkers, m_freeTrans, m_note,
 		// m_collectedBackTrans, and m_filteredInfo
+        // BEW 13Feb12, Added case 6 for docVersion = 6, this will require changes to
+        // functions below, eg FromDocVersion4ToDocVersion5() will need a name change to
+        // FromDocVersion4TpDocVersionCurrent() and also pass in the gnDocVersion value,
+        // and so forth
 		case 5:
+		case 6:
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
@@ -3849,7 +3942,8 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 					wxASSERT(gpSrcPhrase);
 					if (gnDocVersion == 4)
 					{
-						FromDocVersion4ToDocVersion5(gpSrcPhrase->m_pSavedWords, gpEmbeddedSrcPhrase, TRUE);
+						FromDocVersion4ToDocVersionCurrent(gpSrcPhrase->m_pSavedWords, 
+											gpEmbeddedSrcPhrase, TRUE, gnDocVersion);
 					}
 					gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
 					gpEmbeddedSrcPhrase = NULL;
@@ -3861,7 +3955,8 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
                     // clear the pointer
 					if (gnDocVersion == 4)
 					{
-						FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
+						FromDocVersion4ToDocVersionCurrent(gpApp->m_pSourcePhrases,  
+											gpSrcPhrase, FALSE, gnDocVersion);
 					}
 					if (gpSrcPhrase != NULL)
 					{
@@ -3900,8 +3995,16 @@ bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata), CStack*& WX
 	return TRUE;
 }
 
-void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bool bIsEmbedded)
+// Note: docVersion 6 introduced a ftsbp attribute (for them_bDefineFreeTransByPunctuation
+// flag defined in Adapt_It.h) in the <Settings> tag, but there is no way in going from
+// the legacy doc to docV6 that the original value for this flag can be restored, so we
+// just default the flag to being FALSE - that is, the default "by Punctuation" setting
+// for how free translations are to be section -- which may not be correct
+void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhrase, bool bIsEmbedded,
+										int docVersion)
 {
+	gpApp->m_bDefineFreeTransByPunctuation = TRUE; // BEW 27Feb12, best we can do
+
 	if (pSrcPhrase->m_markers.IsEmpty())
 		return; // no conversions needed for this one
 
@@ -4077,6 +4180,17 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase*& pSrcPhrase, bo
 			// beginmarkers
 			strRemainder = ExtractAndStoreInlineMarkersDocV4To5(strRemainder, pSrcPhrase);
 			pSrcPhrase->m_markers = strRemainder;
+
+			if (docVersion >= 6)
+			{
+				// these aren't in docV5 or earlier, so just clear them, and then the
+				// relevant placement dialog will open once per location, when a docV6 or
+				// higher app parses in the docV4 data
+				pSrcPhrase->m_lastAdaptionsPattern = _T("");
+				pSrcPhrase->m_tgtMkrPattern = _T("");
+				pSrcPhrase->m_glossMkrPattern = _T("");
+				pSrcPhrase->m_punctsPattern = _T("");
+			}
 		} // end of else block for test: if (offset == wxNOT_FOUND) -- looking for \~FILTER
 	} // end of TRUE block for test: if (!strModifiers.IsEmpty())
 }
@@ -4950,20 +5064,22 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 	}
 }
 
-/**************************************************************************************
-*   MakeBOOLs
-*
-*  Returns: nothing
-*  Parameters:
-*  pSP		->	ref to a pointer to a CSourcePhrase instance which is to have some bool members set
-*  digits	->	ref to a 22 byte byte-string of 0s and 1s, which is interpretted as a bitfield
-*  Remarks:
-*  Used to convert the 22 byte string of 0s and 1s (currently 22, at Aug 2005) into an integer
-*  and then use the masking constants to reconstuct any TRUE bool values, and set the appropriate
-*  bool members in pSP. If we subsequently add extra BOOLs to CSourcePhrase, we only
-*  need to add the code lines for the extra ones in the function and we'll be able to read legacy 
-*  Adapt It documents in XML format without having to bump a version number.
-***************************************************************************************/
+////////////////////////////////////////////////////////////////////////////////////////
+///  \return            nothing
+///  \param  pSP	->	ref to a pointer to a CSourcePhrase instance which is to have 
+///                     some bool members set
+///  \param  digits	->	ref to a 22 byte byte-string of 0s and 1s, which is interpretted
+///                     as a bitfield
+///  \remarks
+///  Used to convert the 22 byte string of 0s and 1s (currently 22, at Aug 2005) into an
+///  integer and then use the masking constants to reconstuct any TRUE bool values, and set
+///  the appropriate bool members in pSP. If we subsequently add extra BOOLs to
+///  CSourcePhrase, we only need to add the code lines for the extra ones in the function
+///  and we'll be able to read legacy Adapt It documents in XML format without having to
+///  bump a version number.
+///  BEW 27Feb12, changed the never used m_bHasBookmark, to be instead m_bSectionByVerse 
+/// (for free trans support)
+/// ////////////////////////////////////////////////////////////////////////////////////
 void MakeBOOLs(CSourcePhrase*& pSP, CBString& digits)
 {
 	CBString flagsStr;
@@ -4997,8 +5113,8 @@ void MakeBOOLs(CSourcePhrase*& pSP, CBString& digits)
 		pSP->m_bEndFreeTrans = TRUE;
 	if (n & hasNoteMask)
 		pSP->m_bHasNote = TRUE;
-	if (n & hasBookmarkMask)
-		pSP->m_bHasBookmark = TRUE;
+	if (n & sectionByVerseMask)
+		pSP->m_bSectionByVerse = TRUE;
 	if (n & chapterMask)
 		pSP->m_bChapter = TRUE;
 	if (n & verseMask)
@@ -5017,21 +5133,21 @@ void MakeBOOLs(CSourcePhrase*& pSP, CBString& digits)
 		pSP->m_bUnused = TRUE;
 }
 
-/**************************************************************************************
-*   MakeFlags
-*
-*  Returns: a CBString (string of single-byte characters) containing 22 0s and 1s digits
-*  Parameters:
-*  pSP  ->	pointer to a CSourcePhrase instance
-*  Remarks:
-*  Used to convert the (currently, at Aug 2005) 22 bool values in pSP to a 22 digit byte
-*  string to be output in the f=" " attribute of the Adapt It document's sourcephrase
-*  representations in XML. If we subsequently add extra BOOLs to CSourcePhrase, we only
-*  need to make sure that any bool we add has a safe default value of FALSE (ie. zero), and
-*  we then only need to change the hard coded constant below from 22 to 23 or whatever and
-*  fix the rest accordingly and we'll be able to read legacy Adapt It documents in XML format
-*  without having to bump a version number.
-***************************************************************************************/
+////////////////////////////////////////////////////////////////////////////////////////
+///  \return            a CBString (string of single-byte characters) containing 22 0s 
+///                     and 1s digits
+///  \param  pSP  ->	pointer to a CSourcePhrase instance
+/// \ remarks
+///  Used to convert the (currently, at Aug 2005) 22 bool values in pSP to a 22 digit byte
+///  string to be output in the f=" " attribute of the Adapt It document's sourcephrase
+///  representations in XML. If we subsequently add extra BOOLs to CSourcePhrase, we only
+///  need to make sure that any bool we add has a safe default value of FALSE (ie. zero),
+///  and we then only need to change the hard coded constant below from 22 to 23 or
+///  whatever and fix the rest accordingly and we'll be able to read legacy Adapt It
+///  documents in XML format without having to bump a version number.
+///  BEW 27Feb12, changed the never used m_bHasBookmark, to be instead m_bSectionByVerse 
+/// (for free trans support)
+/////////////////////////////////////////////////////////////////////////////////////////
 CBString MakeFlags(CSourcePhrase* pSP)
 {
 	CBString flagsStr;
@@ -5065,8 +5181,8 @@ CBString MakeFlags(CSourcePhrase* pSP)
 		n |= endFreeTransMask; // digit 13
 	if (pSP->m_bHasNote)
 		n |= hasNoteMask; // digit 14
-	if (pSP->m_bHasBookmark)
-		n |= hasBookmarkMask; // digit 15
+	if (pSP->m_bSectionByVerse)
+		n |= sectionByVerseMask; // digit 15
 	if (pSP->m_bChapter)
 		n |= chapterMask; // digit 16
 	if (pSP->m_bVerse)
@@ -7058,12 +7174,12 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 // depending on what is stored). Note, detached following punctuation will typically have
 // been stored in m_precPunct of the orphan, so analysis of m_precPunct is needed, as also
 // is analysis of what is in m_markers. A complication for this function is that the
-// function FromDocVersion4ToDocVersion5() will have been called prior to this, and it
-// will have moved inline markers out of m_markers on the orphans, and so we have to look
-// for any such in the string members for storing them, rather than in m_markers. The
-// FromDocVersion4ToDocVersion5() function handles these markers satisfactorily, it's only
-// when they occur with punctuation that there is the possibility of orphans arising in
-// doc version 4, so it's those we are trying to fix here.
+// function FromDocVersion4ToDocVersionCurrent() will have been called prior to this, and
+// it will have moved inline markers out of m_markers on the orphans, and so we have to
+// look for any such in the string members for storing them, rather than in m_markers. The
+// FromDocVersion4ToDocVersionCurrent() function handles these markers satisfactorily, it's
+// only when they occur with punctuation that there is the possibility of orphans arising
+// in doc version 4, so it's those we are trying to fix here.
 // To make things work right, we have to have two loops in sequence. The first loop will
 // kill orphans by sticking their data where it belongs and deleting the orphan
 // CSourcePhrase instance. Then we have to traverse all the list of CSourcePhrases again,
@@ -7073,6 +7189,7 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 // chapter:verse number(s) be reconstituted somewhere, and also m_inform contents.
 // BEW created 11Oct10
 // BEW modified 2Dec10 to support keeping orphans with [ and ] brackets
+// BEW 13Feb12, no changes needed for support of docVersion 6
 void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
