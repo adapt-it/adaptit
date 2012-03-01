@@ -802,6 +802,9 @@
 /* Begin PBXProject section */
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = "SIL Australia";
+			};
 			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
