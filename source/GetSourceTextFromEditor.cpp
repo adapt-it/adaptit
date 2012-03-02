@@ -266,21 +266,14 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		//else
 		//	pRadioBoxChapterOrBook->SetSelection(1);
 
-		// whm added 7Oct11 at Bruce's request
+		// whm revised 1Mar12 at Bruce's request to use the whole composite string in 
+		// the case of Paratext.
 		// whm Note: GetAILangNamesFromAIProjectNames() below issues error message if the
 		// m_TempCollabAIProjectName is mal-formed (empty, or has no " to " or " adaptations")
-		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-		{
-			pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
-			pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
-			pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
-		}
-		else
-		{
-			pSrcProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForSourceInputs));
-			pTgtProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForTargetExports));
-			pFreeTransProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports));
-		}
+		pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
+		pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
+		pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
+		
 		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
 
 		// Confirm that we can find the active source and target projects as stored in the 
@@ -1342,7 +1335,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 							      // selection (between 2nd and 3rd ':'). We use this as x and y language
 							      // names to form the "x to y adaptations" project folder name in AI if it
 							      // does not already exist
-		// wxString ethnologueCode; // If it exists, this a 3rd field seen in "Get Source Texts from this project:"
+		// wxString ethnologueCode; // If it exists, this a 4th field seen in "Get Source Texts from this project:"
 							        // drop down selection (after 3rd ':')
 		// wxString projectDir;   // this has the path/directory to the project's actual files
 		// wxString booksPresentFlags; // this is the long 123-element string of 0 and 1 chars indicating which

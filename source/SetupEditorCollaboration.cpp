@@ -494,12 +494,12 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		wxString msg1,msg2;
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			msg1 = msg1.Format(_("The Paratext project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str(),projShortName.c_str());
+			msg1 = msg1.Format(_("The Paratext project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			msg1 = msg1.Format(_("The Bibledit project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str(),projShortName.c_str());
+			msg1 = msg1.Format(_("The Bibledit project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;

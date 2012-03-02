@@ -762,10 +762,10 @@ wxSizer *LogViewerFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer =
 
 extern wxSizer *STATIC_TEXT_PTorBE_PROJECTS;
 const int ID_TEXT_SRC_PROJ = 580;
-const int ID_TEXT_TGT_PROJ = 581;
-const int ID_TEXT_FREETRANS_PROJ = 582;
-const int ID_STATIC_TEXT_SRC_PROJ = 583;
-const int ID_STATIC_TEXT_TGT_PROJ = 584;
+const int ID_STATIC_TEXT_SRC_PROJ = 581;
+const int ID_TEXT_TGT_PROJ = 582;
+const int ID_STATIC_TEXT_TGT_PROJ = 583;
+const int ID_TEXT_FREETRANS_PROJ = 584;
 const int ID_STATIC_TEXT_FREETRANS_PROJ = 585;
 const int ID_TEXT_AI_PROJ = 586;
 const int ID_TEXT_SELECT_A_CHAPTER = 587;

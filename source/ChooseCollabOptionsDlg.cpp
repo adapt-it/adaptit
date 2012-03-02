@@ -60,7 +60,7 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	ChooseCollabOptionsDlgFunc(this, TRUE, TRUE);
+	pChooseCollabOptionsDlgSizer = ChooseCollabOptionsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
@@ -161,6 +161,8 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	pRadioTurnCollabOFF->SetValue(m_bRadioSelectCollabOFF);
 	pRadioTurnReadOnlyON->SetValue(m_bRadioSelectReadOnlyON);
 	pStaticTextAIProjName->SetLabel(m_aiProjName);
+
+	pChooseCollabOptionsDlgSizer->Layout();
 }
 
 // event handling functions
