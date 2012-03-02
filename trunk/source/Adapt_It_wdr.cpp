@@ -7805,21 +7805,21 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxHORIZONTAL );
     STATIC_TEXT_PTorBE_PROJECTS = item3;
 
-    wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 5 );
+    wxFlexGridSizer *item5 = new wxFlexGridSizer( 2, 0, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_SRC_PROJ, _("Source Project: "), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT_TGT_PROJ, _("Target Project: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_STATIC_TEXT_SRC_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_FREETRANS_PROJ, _("Free Translation Project: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_TGT_PROJ, _("Target Project: "), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_STATIC_TEXT_SRC_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_STATIC_TEXT_TGT_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_STATIC_TEXT_TGT_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_FREETRANS_PROJ, _("Free Translation Project: "), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_STATIC_TEXT_FREETRANS_PROJ, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
@@ -7896,7 +7896,7 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
 
     item26->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item25->Add( item26, 1, wxALIGN_CENTER|wxALL, 5 );
+    item25->Add( item26, 1, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -8491,7 +8491,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_COLLAB_ON, _("Note: With collaboration turned on, only scripture books and chapters will be visible for opening and doing work. Any other documents created outside of collaboration will not be available for work until you turn collaboration off."), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_COLLAB_ON, _("Note: With collaboration turned on, only scripture books and chapters will be visible for opening and doing work. Any other documents created outside of collaboration will not be available for work until you turn collaboration off."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
     item7->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item4->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8503,7 +8503,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item10->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_COLLAB_OFF, _("Note: With collaboration turned off, any document files used when collaborating with %s will be hidden. You can still work with scripture files, or any other type of text file, but you must set them up for adaptation yourself. Their data will not be exchanged with %s."), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_COLLAB_OFF, _("Note: With collaboration turned off, any document files used when collaborating with %s will be hidden. You can still work with scripture files, or any other type of text file, but you must set them up for adaptation yourself. Their data will not be exchanged with %s."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item4->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8515,7 +8515,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item13->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_READ_ONLY_ON, _("Note: \"read-only\" means that you can open and read the project's data, but if you make any changes, those changes will not be saved, and will be lost as soon as you quit working with the document."), wxDefaultPosition, wxSize(-1,50), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_READ_ONLY_ON, _("Note: \"read-only\" means that you can open and read the project's data, but if you make any changes, those changes will not be saved, and will be lost as soon as you quit working with the document."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
     item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item4->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );

@@ -253,7 +253,21 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 
 wxString GetShortNameFromProjectName(wxString projName)
 {
-	// the short name is the first field in the projName string
+	// The short name is the first field in our composite projName 
+	// string of a Paratext project. The "short" project name is 
+	// used by Paratext to create the Paratext project directory
+	// which is a sub-directory of the user's My Paratext Projects
+	// folder. It is limited to 5 characters or less. Once created 
+	// as a project in Paratext, Paratext does not allow this short 
+	// name to be edited/changed. This short name is also used by
+	// Paratext as the name of the <shortName>.ssf file that defines
+	// the properties of the Paratext project.
+	// Hence, every Paratext short name has to be unique on a given 
+	// computer. 
+	// Bibledit does not distinguish "short" versus "full" 
+	// project names. Bibledit simply has a single project "name"
+	// that becomes the name of the project's folder under the
+	// ~/.bibledit/projects/ folder.
 	wxString collabProjShortName;
 	collabProjShortName.Empty();
 	int posColon;
@@ -272,6 +286,43 @@ wxString GetShortNameFromProjectName(wxString projName)
 	return collabProjShortName;
 }
 
+// unused
+/*
+wxString GetFullNameFromProjectName(wxString projName)
+{
+	// The full name is the second field in our composite projName 
+	// string representing a Paratext project. The full name is not much 
+	// used by Paratext. It is mainly a more human readable name for the 
+	// Paratext project. It can be edited at any time after the Paratext
+	// project is created. 
+	// Bibledit does not distinguish "short" versus "full" 
+	// project names. Bibledit simply has a single project "name"
+	// that becomes the name of the project's folder under the
+	// ~/.bibledit/projects/ folder.
+	wxString collabProjFullName;
+	collabProjFullName.Empty();
+	int posColon;
+	posColon = projName.Find(_T(':'));
+	if (projName.IsEmpty() || posColon == wxNOT_FOUND)
+	{
+		// We must have a Bibledit projName or the incoming projName is
+		// empty, so just return the projName unchanged. When not empty,
+		// projName is the Name of the Bibledit project.
+		return wxEmptyString; //projName;
+	}
+	// If we get here the projName has a colon and will be a composite
+	// string representing the identificational parts of a Paratext project.
+	// Parse out the second field of the composite string delimited by colon
+	// characters.
+	collabProjFullName = projName.Mid(posColon); // get the part after first colon
+	posColon = collabProjFullName.Find(_T(':')); // get the position of the second colon
+	collabProjFullName = projName.Mid(0,posColon);
+	collabProjFullName.Trim(FALSE);
+	collabProjFullName.Trim(TRUE);
+
+	return collabProjFullName;
+}
+*/
 wxString GetLanguageNameFromProjectName(wxString projName)
 {
 	// For Paratext collaboration, the Language name is the 

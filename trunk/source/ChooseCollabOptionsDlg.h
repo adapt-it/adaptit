@@ -40,6 +40,7 @@ public:
 	bool m_bRadioSelectCollabOFF;
 	bool m_bRadioSelectReadOnlyON;
 	bool m_bEditorIsAvailable;
+	wxSizer* pChooseCollabOptionsDlgSizer;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

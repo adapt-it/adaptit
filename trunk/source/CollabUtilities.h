@@ -208,6 +208,7 @@ class CSourcePhrase;
 	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 	wxString		GetShortNameFromProjectName(wxString projName);
+	//wxString		GetFullNameFromProjectName(wxString projName); // unused
 	wxString		GetLanguageNameFromProjectName(wxString projName);
 	void			GetAILangNamesFromAIProjectNames(const wxString aiProjectName, wxString& sourceLang, wxString& targetLang);
 	// The next three are the meaty ones, which together get the updated text back to the
