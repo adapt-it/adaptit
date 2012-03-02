@@ -11959,7 +11959,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 			// or adminModified="No" depending on the value of bProfilesDiffer.
 			lineStr.Trim(FALSE); // trim any white space from left end (possibly due to manual editing of config file)
 			chPos = lineStr.Find(szCollabProjectForSourceInputs);
-			tabPos = lineStr.Find(tab);
+			tabPos = lineStr.Find(tab); tabPos = tabPos; // unused, so prevent compiler warning
 			wxString strFollowingTab = _T("");
 			if (chPos == 0)
 			{

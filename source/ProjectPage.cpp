@@ -592,7 +592,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// before leaving this block of control
 						bool bOK;
 						bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
-						
+						bOK = bOK; // was unused, so prevent compiler warning
 						pStartWorkingWizard->Show(FALSE);
 						pStartWorkingWizard->EndModal(1);
 						pStartWorkingWizard = (CStartWorkingWizard*)NULL;
