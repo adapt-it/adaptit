@@ -328,7 +328,9 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU(ID_FILE_PACK_DOC, CAdapt_ItDoc::OnFilePackDoc)
 	EVT_MENU(ID_FILE_UNPACK_DOC, CAdapt_ItDoc::OnFileUnpackDoc)
 	EVT_MENU(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItDoc::OnEditConsistencyCheck)
+	EVT_MENU(ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE, CAdapt_ItDoc::OnChangePunctsOrMarkersPlacement)
 	EVT_UPDATE_UI(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItDoc::OnUpdateEditConsistencyCheck)
+	EVT_UPDATE_UI(ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE, CAdapt_ItDoc::OnUpdateChangePunctsOrMarkersPlacement)
 	EVT_MENU(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_UPDATE_UI(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_MENU(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages)
@@ -21139,6 +21141,68 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		nCumulativeTotal, nFileCount);
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION);
 	}
+}
+
+// Allow "Change Punctuation or Markers Placement" while document is open, but only if the
+// active location's CSourcePhrase stores content in one or more of the
+// m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, or m_punctsPattern members
+// -- these were introduced at docVersion 6 (March 2012) in the 6.2.0 release
+// BEW created 27Feb12
+void CAdapt_ItDoc::OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event)
+{
+	bool bKBReady = FALSE;
+	if (gbIsGlossing)
+		bKBReady = gpApp->m_bGlossingKBReady;
+	else
+		bKBReady = gpApp->m_bKBReady;
+	if (bKBReady)
+	{
+		CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase != NULL);
+		if (
+			!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty() ||
+			!pSrcPhrase->m_tgtMkrPattern.IsEmpty() ||
+			!pSrcPhrase->m_glossMkrPattern.IsEmpty() ||
+			!pSrcPhrase->m_punctsPattern.IsEmpty()
+			)
+		{
+			event.Enable(TRUE);
+		}
+		else
+		{
+			event.Enable(FALSE);
+		}
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return         nothing
+/// \remarks
+/// Handler for the Edit menu's Change Punctuation or Markers Placement command.
+/// Allow "Change Punctuation or Markers Placement" while document is open, but only if the
+/// active location's CSourcePhrase stores content in one or more of the
+/// m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, or m_punctsPattern members.
+/// If the user invokes this menu item, then clear all four of the above strings. This will
+/// re-expose the ambiguity in punctuation(s) or markers(s) placement inherent in the
+/// document structure at this location - and result in the relevant Place... dialog or
+/// dialogs being opened again, so that the user can re-place punctuation, or during an
+/// export of the target text, re-place one or more medial markers, or an endmarker at the
+/// end of the one or final CSourcePhrase where there is punctuation in both m_follPuncts
+/// and m_follOuterPuncts - the latter situation produces an ambiguity for marker placement
+/// as well.
+/// BEW created 27Feb12, as part of docVersion 6 changes, for release in version 6.2.0
+void CAdapt_ItDoc::OnChangePunctsOrMarkersPlacement(wxCommandEvent& WXUNUSED(event))
+{
+	CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+	wxASSERT(pSrcPhrase != NULL);
+	pSrcPhrase->m_lastAdaptionsPattern.Empty();
+	pSrcPhrase->m_tgtMkrPattern.Empty();
+	pSrcPhrase->m_glossMkrPattern.Empty();
+	pSrcPhrase->m_punctsPattern.Empty();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
