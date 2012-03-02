@@ -455,6 +455,8 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
+	void OnChangePunctsOrMarkersPlacement(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event);
 
   private:
     int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support

@@ -8922,6 +8922,8 @@ wxMenuBar *AIMenuBarFunc()
     item2->Append( ID_EDIT_SOURCE_TEXT, _("Edit &Source Text...\tCtrl-Q"), _("Edit the selected source text") );
     item2->Append( ID_EDIT_CONSISTENCY_CHECK, _("Consist&ency Check..."), _("Check all translations with those in the knowledge base for consistency") );
     item2->AppendSeparator();
+    item2->Append( ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE, _("Change Punctuation or Markers Placement"), _("Clear this location's stored punctuation and markers placements so Place... dialogs can open here again") );
+    item2->AppendSeparator();
     item2->Append( ID_EDIT_MOVE_NOTE_FORWARD, _("Move Note Forward\tCtrl-3"), _("Move the note forward in the document to the next word or phrase") );
     item2->Append( ID_EDIT_MOVE_NOTE_BACKWARD, _("Move Note Backward\tCtrl-2"), _("Move the note backward in the document to the previous word or phrase") );
     item2->AppendSeparator();
