@@ -480,6 +480,12 @@ void CDocPage::OnSetActive()
 
 	// whm added 23Feb12 When collaboration is ON, we don't display any of the documents
 	// with a "_Collab_" prefix in the docPage's m_pListBox.
+	// whm 2Mar12 revised at Bruce's request to only hide _Collab documents when the "_Collab" 
+	// substring of the file name is at the initial position within the filename. If an 
+	// administrator or user manually renames the Adaptations document so that some substring
+	// is prefixed to its _Collab... file name, the document will now appear as a 
+	// "non-collaboration" document within the DocPage's list - in spite of what the name seems 
+	// to indicate in the DocPage's list.
 	if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit))
 	{
 		int ct;
@@ -487,7 +493,8 @@ void CDocPage::OnSetActive()
 		// remove any "_Collab..." items in reverse wxArrayString order
 		for (ct = tot-1; ct >= 0; ct--)
 		{
-			if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
+			//if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
+			if (possibleAdaptions.Item(ct).Find(_T("_Collab")) == 0)
 			{
 				possibleAdaptions.RemoveAt(ct,1);
 			}
