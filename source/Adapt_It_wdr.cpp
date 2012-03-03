@@ -8525,6 +8525,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetDefault();
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item0->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
