@@ -518,8 +518,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// We query via the ChooseCollabOptionsDlg dialog.
 			if (pApp->AIProjectIsACollabProject(m_projectName))
 			{
-				CChooseCollabOptionsDlg collabOptDlg(this);
-				collabOptDlg.Center();
+				CChooseCollabOptionsDlg collabOptDlg(pStartWorkingWizard);
+				//collabOptDlg.Center();
 				collabOptDlg.m_aiProjName = m_projectName;
 				if (collabOptDlg.ShowModal() == wxID_CANCEL)
 				{

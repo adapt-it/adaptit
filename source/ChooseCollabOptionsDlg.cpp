@@ -60,7 +60,7 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pChooseCollabOptionsDlgSizer = ChooseCollabOptionsDlgFunc(this, TRUE, TRUE);
+	pChooseCollabOptionsDlgSizer = ChooseCollabOptionsDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
@@ -163,6 +163,12 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	pStaticTextAIProjName->SetLabel(m_aiProjName);
 
 	pChooseCollabOptionsDlgSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ChooseCollabOptionsDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pChooseCollabOptionsDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
 }
 
 // event handling functions
