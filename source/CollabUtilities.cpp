@@ -3801,7 +3801,7 @@ int FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& v
 // Return the top end of the two matched complex chunks, as indices into postEditMd5Arr and
 // fromEditorMd5Arr - namely, postEditEnd, and fromEditorEnd. postEditEnd, and
 // fromEditorEnd will point at the next matched-up line pair: either the line-counts for
-// thetwo md5 arrays if there is no later matchup, or at the lines in those arrays which
+// the two md5 arrays if there is no later matchup, or at the lines in those arrays which
 // are matched simple verses lying immediately following the complex unmatchable material,
 // or at lines which are matched to each other's versification lines in which the verseNum
 // substring, although complex, is an exact match for the verseNum substring for the
@@ -5657,6 +5657,12 @@ wxString GetUpdatedText_UsfmsChanged(
 			// fromEditorMD5Sum, and if so, then copy the span over from postEditText
 			// unilaterally (marker and text, or marker an no text, as the case may be -
 			// doesn't matter since the fromEditorText's marker had no content anyway)
+			
+			postEditArr_AfterChunkIndex = postEditArr_Index;
+			fromEditorArr_AfterChunkIndex = fromEditorArr_Index;
+			postEditArr_AfterChunkIndex++; // kick off value for next iteration
+			fromEditorArr_AfterChunkIndex++; // ditton, in the fromEditor array
+
 			if (fromEditorMD5Sum == zeroStr)
 			{
 				// text from Paratext or Bibledit for this marker is absent so far, or the
@@ -5693,17 +5699,15 @@ wxString GetUpdatedText_UsfmsChanged(
 				}
 			}
 			// advance indices
-			postEditArr_AfterChunkIndex = postEditArr_Index;
-			fromEditorArr_AfterChunkIndex = fromEditorArr_Index;
-
-			postEditArr_Index++;
-			fromEditorArr_Index++;
+			postEditArr_Index = postEditArr_AfterChunkIndex;
+			fromEditorArr_Index = fromEditorArr_AfterChunkIndex;
 		} // end of else block for test: if (postEditLineMkr != fromEditorLineMkr)
 
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
 
 	// handle the possibility that one of the arrays might have unprocessed material in it
 	// after the above loop has finished
+	/*
 	if (postEditArr_Index < (int)postEditMd5Arr_Count - 1)
 	{
 		// there is unprocessed material at the end of postEditArr, so it must be transferred
@@ -5723,6 +5727,7 @@ wxString GetUpdatedText_UsfmsChanged(
 					pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
 		newText += fromEditorTextSubstring;
 	}
+	*/
 	return newText;
 }
 
