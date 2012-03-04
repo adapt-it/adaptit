@@ -189,6 +189,10 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 		}
 	}
 
+	// whm 3Mar12 removed. The administrator now does not determine if collaboration
+	// is ON or OFF - that is now up to the user as the time that an AI project is
+	// selected at the wizard's ProjectPage.
+	/*
 	if ((m_pApp->ParatextIsInstalled() && !m_pApp->m_bCollaboratingWithParatext)
 		|| (m_pApp->BibleditIsInstalled() && !m_pApp->m_bCollaboratingWithBibledit))
 	{
@@ -206,6 +210,7 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 		titleMsg = titleMsg.Format(_("Set up %s collaboration before assigning locations for inputs and outputs"),collabEditor.c_str());
 		wxMessageBox(msg,titleMsg,wxICON_INFORMATION);
 	}
+	*/
 }
 
 // event handling functions

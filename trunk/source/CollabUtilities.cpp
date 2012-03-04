@@ -207,6 +207,9 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 		readwriteChoiceStr = _T("-w"); // writing
 
 	wxString cmdLineAppPath;
+	
+	wxASSERT(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit); // whm added 4Mar12
+	
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
 		cmdLineAppPath = GetPathToRdwrtp7();
@@ -470,6 +473,8 @@ void TransferTextBetweenAdaptItAndExternalEditor(enum CommandLineFor lineFor, en
 	beProjPath += gpApp->PathSeparator + shortProjName;
 	wxString fullBookName = gpApp->m_CollabBookSelected;
 	wxString theFileName = MakePathToFileInTempFolder_For_Collab(textKind);
+	
+	wxASSERT(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit); // whm added 4Mar12
 	
 	if (lineFor == reading)
 	{
@@ -3143,7 +3148,8 @@ void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& 
 		tmpEthnologueCode.Empty();
 		wxString tempProjStr = projList.Item(ct);
 		int tokCt = 1;
-		if (gpApp->m_bCollaboratingWithParatext)
+		
+		if (gpApp->m_collaborationEditor == _T("Paratext"))
 		{
 			wxStringTokenizer tkz(tempProjStr,_T(":"));
 			while (tkz.HasMoreTokens())
@@ -3180,7 +3186,7 @@ void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& 
 					tmpProjComposedName += _T(" : ") + tmpEthnologueCode;
 			}
 		}
-		else if (gpApp->m_bCollaboratingWithBibledit)
+		else // Bibledit
 		{
 			if (tempProjStr == tmpIncomingProjName)
 			{

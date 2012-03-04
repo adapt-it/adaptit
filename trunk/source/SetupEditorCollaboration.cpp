@@ -77,7 +77,7 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 END_EVENT_TABLE()
 
 CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog constructor
-: AIModalDialog(parent, -1, _("Set Up %s Collaboration"),
+: AIModalDialog(parent, -1, _("Setup %s Collaboration"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -418,6 +418,37 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		// user cancelled, don't change anything, just return
 		return;
 	}
+	
+	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
+	// tasked with selecting the appropriate PT/BE projects for source, target, and
+	// (optionally) free translation collaboration. He does not make any selection of
+	// books in this dialog, so we can't check to see if a book exists in the PT/BE
+	// target project (as we do in the GetSourceTestFromEditor dialog). 
+	// We can, however, check to see if that project does not have any books created, 
+	// in which case, we disallow the choice of that PT/BE project for storing target
+	// texts.
+	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
+	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForTargetExports))
+	{
+		// The book does not have at least one book in the Target project
+		wxString msg, msg1,msg2;
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
+		{
+			msg1 = msg1.Format(_("The Paratext project for storing target texts (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+		}
+		else // Bibledit
+		{
+			msg1 = msg1.Format(_("The Bibledit project for storing target texts (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+		}
+		msg = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg,_("No chapters and verses found"),wxICON_WARNING);
+		// clear out the free translation control
+		pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
+		m_TempCollabProjectForTargetExports = _T(""); // invalid project for target exports
+	}
+	
 	// If we get here the administrator made a selection.
 	m_bCollabChangedThisDlgSession = TRUE;
 }
@@ -491,19 +522,19 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports))
 	{
 		// The book does not have at least one book in the Free Trans project
-		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
+		wxString msg, msg1,msg2;
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
-			msg1 = msg1.Format(_("The Paratext project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg1 = msg1.Format(_("The Paratext project for storing free translations (%s) does not yet have any books created for that project."),projShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
+		else // Bibledit
 		{
-			msg1 = msg1.Format(_("The Bibledit project for storing free translation drafts (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg1 = msg1.Format(_("The Bibledit project for storing free translations (%s) does not yet have any books created for that project."),projShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
 		}
-		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_WARNING);
+		msg = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg,_("No chapters and verses found"),wxICON_WARNING);
 		// clear out the free translation control
 		pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
 		pBtnNoFreeTrans->Disable();
@@ -692,6 +723,7 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 		}
 		if (response == wxNO)
 		{
+			event.Skip(); // call event.Skip() to allow the handler to close the dialog
 			return;
 		}
 	}
@@ -711,10 +743,11 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 	m_pApp->m_bCollabByChapterOnly = m_bTempCollabByChapterOnly; // whm added 28Jan12
 
 	// Force the Main Frame's OnIdle() handler to call DoStartupWizardOnLaunch()
-	// which, when m_bCollaboratingWithParatext is TRUE, actually calls the "Get
-	// Source Text from Paratext Project" dialog instead of the normal startup
-	// wizard. When not collaborating with Paratext, the usual Start Working
-	// Wizard will appear.
+	// which, when appropriate calls DoStartWorkingWizard(). That in turn calls the 
+	// "Get Source Text from Paratext Project" dialog instead of the normal startup
+	// wizard when m_bStartWorkUsingCollaboration is TRUE. When 
+	// m_bStartWorkUsingCollaboration is FALSE (as in the current case) the usual 
+	// Start Working Wizard will appear.
 	m_pApp->m_bJustLaunched = TRUE;
 	// when leaving the SetupEditorCollaboration dialog we want the normal wizard
 	// to appear, not the GetSourceTextFromEditor dialog.
