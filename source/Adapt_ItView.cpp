@@ -6269,8 +6269,8 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	// whm added 16May11. Disallow File "New" menu item when PT collaboration is active
-	if (pApp->m_bCollaboratingWithParatext)
+	// whm added 16May11. Disallow File "New" menu item when PT/BE collaboration is active
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
 		return;

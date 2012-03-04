@@ -175,10 +175,6 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	title = title.Format(title,this->m_collabEditorName.c_str());
 	this->SetTitle(title);
 
-	//wxString text  = pBtnChangeProjects->GetLabel();
-	//text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
-	//pBtnChangeProjects->SetLabel(text);
-
 	// Substitute "Paratext" or "Bibledit" in "Using these %s projects:"
 	wxString usingTheseProj = pStaticBoxUsingTheseProjects->GetLabel();
 	usingTheseProj = usingTheseProj.Format(usingTheseProj,m_pApp->m_collaborationEditor.c_str());
@@ -234,168 +230,140 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	bool bSourceProjRequiredButNotFound = TRUE;
 	bool bTargetProjRequiredButNotFound = TRUE;
 	bool bFreeTransProjRequiredButNotFound = FALSE;
-	//do
-	//{
-		wxASSERT(m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit);
-		projList.Clear();
+
+	wxASSERT(m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit);
+	projList.Clear();
+	if (m_pApp->m_bCollaboratingWithParatext)
+	{
+		projList = m_pApp->GetListOfPTProjects();
+	}
+	else if (m_pApp->m_bCollaboratingWithBibledit)
+	{
+		projList = m_pApp->GetListOfBEProjects();
+	}
+	bool bTwoOrMoreProjectsInList = TRUE;
+	int nProjCount;
+	nProjCount = (int)projList.GetCount();
+	if (nProjCount < 2)
+	{
+		// Less than two PT/BE projects are defined. For AI-PT/BE collaboration to be possible 
+		// at least two PT/BE projects must be defined - one for source text inputs and 
+		// another for target exports.
+		// Notify the user that Adapt It - Paratext/Bibledit collaboration cannot proceed 
+		// until the administrator sets up the necessary projects within Paratext/Bibledit.
+		bTwoOrMoreProjectsInList = FALSE;
+	}
+
+	// whm revised 1Mar12 at Bruce's request to use the whole composite string in 
+	// the case of Paratext.
+	// whm Note: GetAILangNamesFromAIProjectNames() below issues error message if the
+	// m_TempCollabAIProjectName is mal-formed (empty, or has no " to " or " adaptations")
+	pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
+	pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
+	pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
+	
+	pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
+
+	// Confirm that we can find the active source and target projects as stored in the 
+	// config file and now stored in our projList.
+	// whm Note: The source text is rquired for collaboration. We ask the user to select
+	// one if one is listed in the basic config (and therefore m_TempCollabProjecForSourceInputs 
+	// is not empty), but a check of projList cannot find the source project.
+	if (!m_TempCollabProjectForSourceInputs.IsEmpty())
+	{
+		int ct;
+		for (ct = 0; ct < (int)projList.GetCount(); ct++)
+		{
+			if (projList.Item(ct) == m_TempCollabProjectForSourceInputs)
+				bSourceProjRequiredButNotFound = FALSE;
+		}
+	}
+	// whm Note: The target text is rquired for collaboration. We ask the user to select
+	// one if one is listed in the basic config (and therefore m_TempCollabProjecForTargetExports 
+	// is not empty), but a check of projList cannot find the target project.
+	if (!m_TempCollabProjectForTargetExports.IsEmpty())
+	{
+		int ct;
+		for (ct = 0; ct < (int)projList.GetCount(); ct++)
+		{
+			if (projList.Item(ct) == m_TempCollabProjectForTargetExports)
+				bTargetProjRequiredButNotFound = FALSE;
+		}
+	}
+
+	// whm Note: The free translation is optional. We ask the user to select
+	// one only if one is listed in the basic config (and therefore 
+	// m_TempCollabProjecForFreeTransExports is not empty), but a check of
+	// projList cannot find the project.
+	if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
+	{
+		bFreeTransProjRequiredButNotFound = TRUE;
+		int ct;
+		for (ct = 0; ct < (int)projList.GetCount(); ct++)
+		{
+			if (projList.Item(ct) == m_TempCollabProjectForFreeTransExports)
+				bFreeTransProjRequiredButNotFound = FALSE;
+		}
+	}
+	else
+	{
+		bFreeTransProjRequiredButNotFound = FALSE;
+	}
+
+	if (!bTwoOrMoreProjectsInList)
+	{
+		// This error is not likely to happen so use English message
+		wxString str;
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			projList = m_pApp->GetListOfPTProjects();
+			str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
+			wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR);
+			m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed. AI aborting..."));
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			projList = m_pApp->GetListOfBEProjects();
+			str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.\nAdapt It will now abort...");
+			wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR);
+			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed. AI aborting..."));
 		}
-		bool bTwoOrMoreProjectsInList = TRUE;
-		int nProjCount;
-		nProjCount = (int)projList.GetCount();
-		if (nProjCount < 2)
-		{
-			// Less than two PT/BE projects are defined. For AI-PT/BE collaboration to be possible 
-			// at least two PT/BE projects must be defined - one for source text inputs and 
-			// another for target exports.
-			// Notify the user that Adapt It - Paratext/Bibledit collaboration cannot proceed 
-			// until the administrator sets up the necessary projects within Paratext/Bibledit.
-			bTwoOrMoreProjectsInList = FALSE;
-		}
+		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
+		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
+		return;
+	}
 
-		// Allow selecting texts by whole book, or chapter, depending on the
-		// value of m_bTempCollabByChapterOnly as set by the basic config file
-		//if (m_bTempCollabByChapterOnly)
-		//	pRadioBoxChapterOrBook->SetSelection(0);
-		//else
-		//	pRadioBoxChapterOrBook->SetSelection(1);
+	wxString strProjectNotSel;
+	strProjectNotSel.Empty();
 
-		// whm revised 1Mar12 at Bruce's request to use the whole composite string in 
-		// the case of Paratext.
-		// whm Note: GetAILangNamesFromAIProjectNames() below issues error message if the
-		// m_TempCollabAIProjectName is mal-formed (empty, or has no " to " or " adaptations")
-		pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
-		pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
-		pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
-		
-		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
-
-		// Confirm that we can find the active source and target projects as stored in the 
-		// config file and now stored in our projList.
-		// whm Note: The source text is rquired for collaboration. We ask the user to select
-		// one if one is listed in the basic config (and therefore m_TempCollabProjecForSourceInputs 
-		// is not empty), but a check of projList cannot find the source project.
-		if (!m_TempCollabProjectForSourceInputs.IsEmpty())
-		{
-			int ct;
-			for (ct = 0; ct < (int)projList.GetCount(); ct++)
-			{
-				if (projList.Item(ct) == m_TempCollabProjectForSourceInputs)
-					bSourceProjRequiredButNotFound = FALSE;
-			}
-		}
-		// whm Note: The target text is rquired for collaboration. We ask the user to select
-		// one if one is listed in the basic config (and therefore m_TempCollabProjecForTargetExports 
-		// is not empty), but a check of projList cannot find the target project.
-		if (!m_TempCollabProjectForTargetExports.IsEmpty())
-		{
-			int ct;
-			for (ct = 0; ct < (int)projList.GetCount(); ct++)
-			{
-				if (projList.Item(ct) == m_TempCollabProjectForTargetExports)
-					bTargetProjRequiredButNotFound = FALSE;
-			}
-		}
-
-		// whm Note: The free translation is optional. We ask the user to select
-		// one only if one is listed in the basic config (and therefore 
-		// m_TempCollabProjecForFreeTransExports is not empty), but a check of
-		// projList cannot find the project.
-		if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
-		{
-			bFreeTransProjRequiredButNotFound = TRUE;
-			int ct;
-			for (ct = 0; ct < (int)projList.GetCount(); ct++)
-			{
-				if (projList.Item(ct) == m_TempCollabProjectForFreeTransExports)
-					bFreeTransProjRequiredButNotFound = FALSE;
-			}
-		}
-		else
-		{
-			bFreeTransProjRequiredButNotFound = FALSE;
-		}
-
-		if (!bTwoOrMoreProjectsInList)
-		{
-			// This error is not likely to happen so use English message
-			wxString str;
-			if (m_pApp->m_bCollaboratingWithParatext)
-			{
-				str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
-				wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR);
-				m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed. AI aborting..."));
-			}
-			else if (m_pApp->m_bCollaboratingWithBibledit)
-			{
-				str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.\nAdapt It will now abort...");
-				wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR);
-				m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed. AI aborting..."));
-			}
-			// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-			wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-			return;
-		}
-
-		wxString strProjectNotSel;
-		strProjectNotSel.Empty();
-
-		if (bSourceProjRequiredButNotFound)
-		{
-			strProjectNotSel += _T("\n   ");
-			strProjectNotSel += _("Designate a project to use for obtaining source text inputs");
-		}
-		if (bTargetProjRequiredButNotFound)
-		{
-			strProjectNotSel += _T("\n   ");
-			// BEW 15Jun11 changed "Texts" to "Drafts" in line with email discussion where we
-			// agreed to use 'draft' or 'translation draft' instead of 'translation' so as to
-			// avoid criticism for claiming to be a translation app, rather than a drafting app
-			strProjectNotSel += _("Designate a project to use for Transferring Translation Drafts");
-		}
-		
-		if (bFreeTransProjRequiredButNotFound)
-		{
-			strProjectNotSel += _T("\n   ");
-			strProjectNotSel += _("Designate a project to use for Transferring Free Translations");
-		}
-		
-		if (bSourceProjRequiredButNotFound || bTargetProjRequiredButNotFound || bFreeTransProjRequiredButNotFound)
-		{
-			wxString str;
-			str = str.Format(_("Your administrator needs to setup Adapt It and %s as follows before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
-			wxMessageBox(str, _("Collaboration setup required by administrator"), wxICON_WARNING);
-			// here we need to open the Projects Options pane
-			//if (DoChangeProjects() == FALSE)
-			//{
-			//	bProjectsOK = FALSE;
-			//	break;
-			//}
-			m_pApp->LogUserAction(str);
-			// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-			wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-			return;
-		}
-	//} while (bSourceProjRequiredButNotFound || bTargetProjRequiredButNotFound || bFreeTransProjRequiredButNotFound); // end of do ... while() loop
-
-	//if ((bSourceProjRequiredButNotFound || bTargetProjRequiredButNotFound || bFreeTransProjRequiredButNotFound) && !bProjectsOK)
-	//{
-	//	wxString str = _("Adapt It cannot collaborate with %s until your administrator sets up the necessary %s projects for collaboration. If the projects you need are not listed please ask your administrator for help. AI aborting...");
-	//	str = str.Format(str,m_collabEditorName.c_str(),m_collabEditorName.c_str());
-	//	wxMessageBox(str, _("Projects not selected"), wxICON_WARNING);
-	//	wxString msg = _T("Collaboration activated but user canceled from \"Choose %s Projects\" dialog without choosing projects. User probably needs help setting up $s projects. AI aborting...");
-	//	msg = msg.Format(msg,m_collabEditorName.c_str(),m_collabEditorName.c_str());			
-	//	m_pApp->LogUserAction(msg);
-	//	// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-	//	wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-	//	return;
-	//}
+	if (bSourceProjRequiredButNotFound)
+	{
+		strProjectNotSel += _T("\n   ");
+		strProjectNotSel += _("Designate a project to use for obtaining source text inputs");
+	}
+	if (bTargetProjRequiredButNotFound)
+	{
+		strProjectNotSel += _T("\n   ");
+		// BEW 15Jun11 changed "Texts" to "Drafts" in line with email discussion where we
+		// agreed to use 'draft' or 'translation draft' instead of 'translation' so as to
+		// avoid criticism for claiming to be a translation app, rather than a drafting app
+		strProjectNotSel += _("Designate a project to use for Transferring Translation Drafts");
+	}
+	
+	if (bFreeTransProjRequiredButNotFound)
+	{
+		strProjectNotSel += _T("\n   ");
+		strProjectNotSel += _("Designate a project to use for Transferring Free Translations");
+	}
+	
+	if (bSourceProjRequiredButNotFound || bTargetProjRequiredButNotFound || bFreeTransProjRequiredButNotFound)
+	{
+		wxString str;
+		str = str.Format(_("Your administrator needs to setup Adapt It and %s as follows before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
+		wxMessageBox(str, _("Collaboration setup required by administrator"), wxICON_WARNING);
+		m_pApp->LogUserAction(str);
+		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
+		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
+		return;
+	}
 
 	LoadBookNamesIntoList();
 
@@ -453,16 +421,6 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
 	// info within its status bar message
 	m_pApp->RefreshStatusBarInfo();
-	/*
-	// update status bar info (BEW added 27Jun11) - copy & tweak from app's OnInit()
-	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar(); //CStatusBar* pStatusBar;
-	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
-	{
-		wxString message = _("Collaborating with %s");
-		message = message.Format(message,m_pApp->m_collaborationEditor.c_str());
-		pStatusBar->SetStatusText(message,0); // use first field 0
-	}
-	*/
 
 	pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
  }
@@ -861,15 +819,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// whm modified 7Jan12 to call RefreshStatusBarInfo which now incorporates collaboration
 	// info within its status bar message
 	m_pApp->RefreshStatusBarInfo();
-	/*
-	wxStatusBar* pStatusBar = m_pApp->GetMainFrame()->GetStatusBar();
-	if (m_pApp->m_bCollaboratingWithBibledit || m_pApp->m_bCollaboratingWithParatext)
-	{
-		wxString message = _("Collaborating with ");
-		message += m_pApp->m_collaborationEditor;
-		pStatusBar->SetStatusText(message,0); // use first field 0
-	}
-	*/
 
     // Now, determine if the PT source and PT target projects exist together as an existing
     // AI project. If so we access that project and, if determine if an existing source
@@ -2053,12 +2002,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (SourceTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
 			msg1 = msg1.Format(_("The book %s in the Paratext project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),sourceProjShortName.c_str());
 		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
+		else // Bibledit
 		{
 			msg1 = msg1.Format(_("The book %s in the Bibledit project for obtaining source texts (%s) has no chapter and verse numbers."),fullBookName.c_str(),sourceProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),sourceProjShortName.c_str());
@@ -2078,12 +2027,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (TargetTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
 			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
+		else // Bibledit
 		{
 			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
@@ -2105,12 +2054,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (m_bTempCollaborationExpectsFreeTrans && FreeTransTextUsfmStructureAndExtentArray.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
 			msg1 = msg1.Format(_("The book %s in the Paratext project for storing free translations (%s) has no chapter and verse numbers."),fullBookName.c_str(),freeTransProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),freeTransProjShortName.c_str());
 		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
+		else // Bibledit
 		{
 			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing free translations (%s) has no chapter and verse numbers."),fullBookName.c_str(),freeTransProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),freeTransProjShortName.c_str());
@@ -2144,12 +2093,12 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (chapterListFromTargetBook.GetCount() == 0)
 	{
 		wxString msg1,msg2;
-		if (m_pApp->m_bCollaboratingWithParatext)
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
 			msg1 = msg1.Format(_("The book %s in the Paratext project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
+		else // Bibledit
 		{
 			msg1 = msg1.Format(_("The book %s in the Bibledit project for storing translation drafts (%s) has no chapter and verse numbers."),fullBookName.c_str(),targetProjShortName.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());

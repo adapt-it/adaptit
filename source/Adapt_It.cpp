@@ -22667,7 +22667,7 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 /// Initiates the Start Working Wizard which has smarts to detect which page of the wizard
 /// should be presented to the user for the current working situation.
 /// whm modified 20Apr11 to use the "Get Source Text from Paratext Project" dialog instead
-/// of running the Start Working Wizard when m_bCollaboratingWithParatext is TRUE
+/// of running the Start Working Wizard when m_bStartWorkUsingCollaboration is TRUE
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 {
@@ -30724,56 +30724,6 @@ void CAdapt_ItApp::OnFileNew(wxCommandEvent& event)
 		m_pDocManager->OnFileNew(event);
 }
 
-/*
-// whm added the following 10Apr11 for AI-PT collaboration
-void CAdapt_ItApp::OnGetSourceTextFromPT(wxCommandEvent& WXUNUSED(event))
-{
-	//wxMessageBox(_T("The dialog for the Get Source Text From Paratext menu item will appear after this message closes, but the code to fill the dialog lists and make it function has not yet been implemented."),_T(""),wxICON_INFORMATION);
-	CGetSourceTextFromEditorDlg dlg(GetMainFrame());
-	if (dlg.ShowModal() == wxID_OK)
-	{
-		// TODO:
-		// all setup should be done within the CSetupEditorCollaborationDlg class
-	}
-}
-
-void CAdapt_ItApp::OnUpdateGetSourceTextFromPT(wxUpdateUIEvent& event)
-{
-	// Paratext is not yet available on non-Windows platforms so disable this menu item
-	// TODO: eventually we'll have a different wording for this item when Bibledit is
-	// supported for collaboration with Adapt It.
-	if (this->m_bCollaboratingWithParatext)
-	{
-		event.Enable(TRUE);
-	}
-	else
-	{
-		event.Enable(FALSE);
-	}
-}
-
-void CAdapt_ItApp::OnTransferTransToPT(wxCommandEvent& WXUNUSED(event))
-{
-	wxMessageBox(_T("The OnTransferTransToPT function has not yet been implemented."),_T(""),wxICON_INFORMATION);
-}
-
-void CAdapt_ItApp::OnUpdateTransferTransToPT(wxUpdateUIEvent& event)
-{
-	// Paratext is not yet available on non-Windows platforms so disable this menu item
-	// TODO: eventually we'll have a different wording for this item when Bibledit is
-	// supported for collaboration with Adapt It.
-	if (this->m_bCollaboratingWithParatext)
-	{
-		event.Enable(TRUE);
-	}
-	else
-	{
-		event.Enable(FALSE);
-	}
-}
-*/
-
-
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      srcPunctuation   <- a wxString that receives the source language punctuation
@@ -38049,24 +37999,6 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 	// Note: The CSetupEditorCollaboration dialog now only has a "Close" (wxID_OK)
 	// button
 }
-
-//void CAdapt_ItApp::OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event)
-//{
-//	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-//	{
-//		event.Enable(TRUE);
-//	}
-//	else
-//	{
-//		// Not collaborating with PT nor BE so disable the menu item
-//		event.Enable(FALSE);
-//	}
-//}
-//
-//void CAdapt_ItApp::OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event))
-//{
-//	// TODO:
-//}
 
 // whm added the next two handlers 14Feb12
 void CAdapt_ItApp::OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event)
