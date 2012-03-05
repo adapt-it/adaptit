@@ -2855,6 +2855,7 @@ wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str)
 	return tempStr;
 }
 
+// use this to get just the marker
 wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str)
 {
 	wxASSERT(str.GetChar(0) == gSFescapechar);
@@ -4949,25 +4950,28 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		fromEditorText = fromEditorText.Mid(offset); // guarantees fromEditorText starts with a marker
 	}
 
-	// If the user changes the USFM structure for the text within Paratext or Bibledit,
-	// such as to bridge or unbridge verses, and/or make part verses, and/or add new
-	// markers such as poetry markers, etc - such changes, even if no words or punctuation
-	// are altered, change the data which follows the marker and that will lead to MD5
-	// changes based on the structure changes. If the USFM in the text coming from the
-	// external editor is different, we must use more complex algorithms - chunking
-	// strategies and wrapping the corresponding sections of differing USFM structure text
-	// parts in a bigger chunk and doing, within that bigger chunk, more text transfer
-	// (and possibly rubbing out better text in the external editor as a result). The
-	// situation where USFM hasn't changed is much better - in that case, every marker is
-	// the same in the same part of every one of the 3 texts: the pre-edit text, the
-	// post-edit text, and the grabbed-text (ie. just grabbed from the external editor).
-	// This fact allows for a much simpler processing algorithm. We'll tackle this case
-	// first. Fortunately, it is the overwhelmingly most common situation. To determine
-	// whether or not the USFM structure has changed we must now calculate the
-	// UsfmStructure&Extents arrays for each of the 3 text variants, then test if the USFM
-	// in the post-edit text is any different from the USFM in the grabbed text. (The
-	// pre-edit text is ALWAYS the same in USFM structure as the post-edit text, because
-	// editing of the source text is not allowed when in collaboration mode.
+    // If the user changes the USFM structure for the text within Paratext or Bibledit,
+    // such as to bridge or unbridge verses, and/or make part verses, and/or add new
+    // markers such as poetry markers, etc - such changes, even if no words or punctuation
+    // are altered, change the data which follows the marker and that will lead to MD5
+    // changes based on the structure changes. If the USFM in the text coming from the
+    // external editor is different, we must use more complex algorithms - chunking
+    // strategies and wrapping the corresponding sections of differing USFM structure text
+    // parts in a bigger chunk and doing, within that bigger chunk, more text transfer (and
+    // possibly rubbing out better text in the external editor as a result). The situation
+    // where USFM hasn't changed is much better - in that case, every marker is the same in
+    // the same part of every one of the 3 texts: the pre-edit text, the post-edit text,
+    // and the grabbed-text (ie. just grabbed from the external editor). This fact allows
+    // for a much simpler processing algorithm, but unfortunately, it is overwhelmingly an
+    // uncommon situation - usually there'll be at least just chapter and verse markers in
+    // the external editor's chapter, and the adaptation document will come from published
+    // material and so have much richer USFM markup - so the "MarkersChanged" function
+    // version is almost always the one that gets used. To determine whether or not the
+    // USFM structure has changed we must now calculate the UsfmStructure&Extents arrays
+    // for each of the 3 text variants, then test if the USFM in the post-edit text is any
+    // different from the USFM in the grabbed text. (The pre-edit text is ALWAYS the same
+    // in USFM structure as the post-edit text, because editing of the source text is not
+    // allowed when in collaboration mode.
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
@@ -5173,11 +5177,38 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		postEditMD5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
 		fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
 		
-		// start testing - first test: check for MD5 checksum of "0" in fromEditorMD5Sum,
+        // BEW 27Feb12, this first block added to fix a problem produced by Teus's decision
+        // to end a default chapter template (\c plus the \v markers, with the chapter num
+        // and the verse numbers) with a period following the last verse marker in the
+        // chapter. This mucked up the algorithm, since the single period makes the verse
+        // have a non-zero md5 checksum. So without the rectification provided by the
+        // following block, the period results in the final verse's marker and the
+        // following period being sent back to Bibledit, blocking the sending of the
+        // adaptation (and free trans, if present) from being sent -- this happened in a
+        // scenario where an adapted and/or glossed chapter doc file is copied to the AI
+        // project folder on another machine, and File / Save done in order to have the
+        // adaptations and free translations transferred. They would get transferred,
+        // except not those for the final verse -- due to that pesky period. Since we can't
+        // ask Teus to remove the period from the template, we need this extra code block
+        // here to program our way round it.
+        size_t numberOfChars = (size_t)GetCharCountFromStructExtentString(fromEditorMd5Line);
+		if (gpApp->m_bCollaboratingWithBibledit // because it's only a problem when collaborating with BE
+			&& (index == postEditMd5Arr_Count - 1) // because the problem occurs only at the very end of the loop
+			&& (numberOfChars == 1) // because there's only one character present after the delimiting space (a period)
+		   )
+		{
+			// text from this last verse, in Bibledit, is absent so far (other than
+			// the period, which we want to ignore), so transfer the Adapt It material
+			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
+			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+			newText += fragmentStr;
+		}
+		// now check for MD5 checksum of "0" in fromEditorMD5Sum,
 		// and if so, the copy the span over from postEditText unilaterally (marker and
 		// text, or marker an no text, as the case may be - doesn't matter since the
 		// fromEditorText's marker had no content anyway)
-		if (fromEditorMD5Sum == zeroStr)
+		else if (fromEditorMD5Sum == zeroStr)
 		{
 			// text from Paratext or Bibledit for this marker is absent so far, or the
 			// marker is a contentless one anyway (we have to transfer them too)
@@ -5669,7 +5700,35 @@ wxString GetUpdatedText_UsfmsChanged(
 			postEditArr_AfterChunkIndex++; // kick off value for next iteration
 			fromEditorArr_AfterChunkIndex++; // ditton, in the fromEditor array
 
-			if (fromEditorMD5Sum == zeroStr)
+			// BEW 27Feb12, this first block added to fix a problem produced by Teus's
+			// decision to end a default chapter template (\c plus the \v markers, with
+			// the chapter num and the verse numbers) with a period following the last
+			// verse marker in the chapter. This mucked up the algorithm, since the single
+			// period makes the verse have a non-zero md5 checksum. So without the
+            // rectification provided by the following block, the period results in the
+            // final verse's marker and the following period being sent back to Bibledit,
+            // blocking the sending of the adaptation (and free trans, if present) from
+            // being sent -- this happened in a scenario where an adapted and/or glossed
+            // chapter doc file is copied to the AI project folder on another machine, and
+            // File / Save done in order to have the adaptations and free translations
+            // transferred. They would get transferred, except not those for the final
+            // verse -- due to that pesky period. Since we can't ask Teus to remove the
+            // period from the template, we need this extra code block here to program our
+            // way round it.
+            size_t numberOfChars = (size_t)GetCharCountFromStructExtentString(fromEditorMd5Line);
+			if (gpApp->m_bCollaboratingWithBibledit // because it's only a problem when collaborating with BE
+				&& (fromEditorArr_AfterChunkIndex == (int)fromEditorMd5Arr_Count) // because it happens only at the very end of the loop
+				&& (numberOfChars == 1) // because there's only one character present after the delimiting space (a period)
+			   )
+			{
+				// text from this last verse, in Bibledit, is absent so far (other than
+				// the period, which we want to ignore), so transfer the Adapt It material
+				pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
+				wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
+								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+				newText += fragmentStr;
+			}
+			else if (fromEditorMD5Sum == zeroStr)
 			{
 				// text from Paratext or Bibledit for this marker is absent so far, or the
 				// marker is a contentless one anyway (we have to transfer them too)
@@ -5711,29 +5770,6 @@ wxString GetUpdatedText_UsfmsChanged(
 
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
 
-	// handle the possibility that one of the arrays might have unprocessed material in it
-	// after the above loop has finished
-	/*
-	if (postEditArr_Index < (int)postEditMd5Arr_Count - 1)
-	{
-		// there is unprocessed material at the end of postEditArr, so it must be transferred
-		MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
-		MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item((int)postEditMd5Arr_Count - 1);
-		wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd, 
-					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-		newText += postEditTextSubstring;
-	}
-	if (fromEditorArr_Index < (int)fromEditorMd5Arr_Count - 1)
-	{
-		// there is unprocessed material at the end of fromEditorArr, get it and add it to
-		// newText
-		MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
-		MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item((int)fromEditorMd5Arr_Count - 1);
-		wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd, 
-					pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-		newText += fromEditorTextSubstring;
-	}
-	*/
 	return newText;
 }
 
