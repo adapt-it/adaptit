@@ -268,11 +268,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	projList.Clear();
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects();
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+	else // Bibledit
 	{
-		projList = m_pApp->GetListOfBEProjects();
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
 	nProjectCount = (int)projList.GetCount();
 
@@ -316,6 +316,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// text inputs is different from the project selected for target text exports.
 	
 	// use a temporary array list for the list of projects
+	wxString projShortName;
 	wxArrayString tempListOfProjects;
 	int ct,tot;
 	tot = (int)projList.GetCount();
@@ -346,6 +347,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		ChooseProjectForSourceTextInputs.SetSelection(nPreselectedProjIndex);
 	}
 	wxString userSelectionStr;
+	wxString saveCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	userSelectionStr.Empty();
 	if (ChooseProjectForSourceTextInputs.ShowModal() == wxID_OK)
 	{
@@ -360,8 +362,39 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		// user cancelled, don't change anything, just return
 		return;
 	}
-	// If we get here the administrator made a selection.
-	m_bCollabChangedThisDlgSession = TRUE;
+
+	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
+	// tasked with selecting the appropriate PT/BE projects for source, target, and
+	// (optionally) free translation collaboration. He does not make any selection of
+	// books in this dialog, so we can't check to see if a book exists in the PT/BE
+	// target project (as we do in the GetSourceTestFromEditor dialog). 
+	// We can, however, check to see if that project does not have any books created, 
+	// in which case, we disallow the choice of that PT/BE project for storing target
+	// texts.
+	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForSourceInputs))
+	{
+		// The book does not have at least one book in the Source project
+		wxString msg, msg1,msg2;
+		if (m_pApp->m_collaborationEditor == _T("Paratext"))
+		{
+			msg1 = msg1.Format(_("The Paratext project for obtaining source texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForSourceInputs.c_str());
+			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+		}
+		else // Bibledit
+		{
+			msg1 = msg1.Format(_("The Bibledit project for obtaining source texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForSourceInputs.c_str());
+			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+		}
+		msg = msg1 + _T(' ') + msg2;
+		wxMessageBox(msg,_("No chapters and verses found"),wxICON_WARNING);
+		// clear out the free translation control
+		pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
+		m_TempCollabProjectForSourceInputs = _T(""); // invalid project for target exports
+	}
+
+	// If we get here the administrator made a selection. If the value changed mark it dirty.
+	if (saveCollabProjectForSourceInputs != m_TempCollabProjectForSourceInputs)
+		m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event))
@@ -404,6 +437,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		ChooseProjectForTargetTextExports.SetSelection(nPreselectedProjIndex);
 	}
 	wxString userSelectionStr;
+	wxString saveCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
 	userSelectionStr.Empty();
 	if (ChooseProjectForTargetTextExports.ShowModal() == wxID_OK)
 	{
@@ -427,19 +461,18 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// We can, however, check to see if that project does not have any books created, 
 	// in which case, we disallow the choice of that PT/BE project for storing target
 	// texts.
-	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForTargetExports))
 	{
 		// The book does not have at least one book in the Target project
 		wxString msg, msg1,msg2;
 		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
-			msg1 = msg1.Format(_("The Paratext project for storing target texts (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg1 = msg1.Format(_("The Paratext project for storing target texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForTargetExports.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
 		else // Bibledit
 		{
-			msg1 = msg1.Format(_("The Bibledit project for storing target texts (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg1 = msg1.Format(_("The Bibledit project for storing target texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForTargetExports.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
 		}
 		msg = msg1 + _T(' ') + msg2;
@@ -449,8 +482,9 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		m_TempCollabProjectForTargetExports = _T(""); // invalid project for target exports
 	}
 	
-	// If we get here the administrator made a selection.
-	m_bCollabChangedThisDlgSession = TRUE;
+	// If we get here the administrator made a selection. If the value changed mark it dirty.
+	if (saveCollabProjectForTargetExports != m_TempCollabProjectForTargetExports)
+		m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event))
@@ -494,6 +528,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		ChooseProjectForFreeTransTextInputs.SetSelection(nPreselectedProjIndex);
 	}
 	wxString userSelectionStr;
+	wxString saveCollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
 	userSelectionStr.Empty();
 	if (ChooseProjectForFreeTransTextInputs.ShowModal() == wxID_OK)
 	{
@@ -518,19 +553,18 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// We can, however, check to see if that project does not have any books created, 
 	// in which case, we disallow the choice of that PT/BE project for storing free 
 	// translations.
-	projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
 	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports))
 	{
 		// The book does not have at least one book in the Free Trans project
 		wxString msg, msg1,msg2;
 		if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		{
-			msg1 = msg1.Format(_("The Paratext project for storing free translations (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg1 = msg1.Format(_("The Paratext project for storing free translations (%s) does not yet have any books created for that project."),m_TempCollabProjectForFreeTransExports.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
 		else // Bibledit
 		{
-			msg1 = msg1.Format(_("The Bibledit project for storing free translations (%s) does not yet have any books created for that project."),projShortName.c_str());
+			msg1 = msg1.Format(_("The Bibledit project for storing free translations (%s) does not yet have any books created for that project."),m_TempCollabProjectForFreeTransExports.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
 		}
 		msg = msg1 + _T(' ') + msg2;
@@ -542,18 +576,21 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		m_bTempCollaborationExpectsFreeTrans = FALSE;
 	}
 	
-	m_bCollabChangedThisDlgSession = TRUE;
+	// If we get here the administrator made a selection. If the value changed mark it dirty.
+	if (saveCollabProjectForFreeTransExports != m_TempCollabProjectForFreeTransExports)
+		m_bCollabChangedThisDlgSession = TRUE;
 }
 
 void CSetupEditorCollaboration::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
 {
-	// Clear the pTextCtrlAsStaticSelectedFreeTransProj read-only text box, 
-	// empty the temp variable and disable the button.
-	if (pTextCtrlAsStaticSelectedFreeTransProj->GetValue() != wxEmptyString)
+	// If the free trans value changed mark it dirty.
+	if (m_TempCollabProjectForFreeTransExports != pTextCtrlAsStaticSelectedFreeTransProj->GetValue())
 	{
 			m_bCollabChangedThisDlgSession = TRUE;
 
 	}
+	// Clear the pTextCtrlAsStaticSelectedFreeTransProj
+	// read-only text box, empty the temp variable and disable the button.
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
 	m_TempCollabProjectForFreeTransExports.Empty();
 	m_bTempCollaborationExpectsFreeTrans = FALSE;
@@ -681,8 +718,27 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
 	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
 	
-	// Enable/disable "Undo Changes Made in this Setup"
-	m_bCollabChangedThisDlgSession = TRUE;
+	// Don't set m_bCollabChangedThisDlgSession to TRUE in this handler for merely selecting an existing project
+
+	wxString errorStr = _T("");
+	// CollabProjectsAreValid() doesn't consider any empty string projects to be invalid, only those non-empty
+	// string parameters that don't have at least one book created in them. Therefore, selecting an AI
+	// project that has no collaboration settings won't trigger the "Invalid PT/BE projects detected" message below.
+	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, 
+							m_TempCollabProjectForFreeTransExports, errorStr))
+	{
+		wxString msg = _("Adapt It detected invalid collaboration settings for the %s project in its project configuration file. The invalid %s project data is:\n%s");
+		msg = msg.Format(msg,selStr.c_str(),m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
+		msg += _T("\n\n");
+		wxString msg1 = _("Please set up valid %s project(s) that Adapt It can use for collaboration.");
+		msg1 = msg1.Format(msg1,m_pApp->m_collaborationEditor.c_str());
+		msg += msg1;
+		wxString titleMsg = _("Invalid %s projects detected");
+		titleMsg = titleMsg.Format(titleMsg,m_pApp->m_collaborationEditor.c_str());
+		wxMessageBox(msg,titleMsg,wxICON_WARNING);
+		m_pApp->LogUserAction(titleMsg);
+	}
+
 }
 
 void CSetupEditorCollaboration::OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event))
@@ -719,7 +775,15 @@ void CSetupEditorCollaboration::OnClose(wxCommandEvent& event)
 		response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
 		if (response == wxYES)
 		{
-			OnSaveSetupForThisProjNow(event);
+			if (!DoSaveSetupForThisProject())
+			{
+				// The DoSaveSetupForThisProject() encountered something that 
+				// indicates we cannot save the collaboration configuration,
+				// so do not Close. The user will have a chance to correct the 
+				// problem, or next time s/he clicks Close, s/he can respond No 
+				// to the prompt to save if necessary to Close the dialog.
+				return;
+			}
 		}
 		if (response == wxNO)
 		{
@@ -813,6 +877,15 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 
 void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12
 {
+	if (!DoSaveSetupForThisProject())
+	{
+		return;
+	}
+
+}
+
+bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
+{
 	// Check for completion of Step 1:
 	// Check if the administrator has selected an AI project from the combo list of AI projects (step 1). If
 	// not inform him that step 1 is necessary to identify an AI project for hookup to during collaboration
@@ -829,7 +902,7 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 		// set focus on the combo box
 		pComboAiProjects->SetFocus();
 		m_pApp->LogUserAction(msgTitle);
-		return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 
 	// Check for the completion of step 3:
@@ -842,7 +915,7 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION);
 		pBtnSelectFmListSourceProj->SetFocus();
 		m_pApp->LogUserAction(msg);
-		return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 	// Check if the administrator has selected an initial PT/BE project for receiving translation drafts.
 	if (m_TempCollabProjectForTargetExports.IsEmpty())
@@ -853,7 +926,7 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION);
 		pBtnSelectFmListTargetProj->SetFocus();
 		m_pApp->LogUserAction(msg);
-		return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 	
 	// Check to ensure that the project selected for source text inputs is different 
@@ -869,7 +942,7 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 			msg = _("The projects selected for getting source texts and receiving translation drafts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving translation texts.");
 			wxMessageBox(msg);
 			m_pApp->LogUserAction(msg);
-			return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
 		
 		if (m_TempCollabProjectForSourceInputs == m_TempCollabProjectForFreeTransExports
@@ -879,7 +952,7 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 			msg = _("The projects selected for getting source texts and receiving free translation texts cannot be the same.\nPlease select one project for getting source texts, and a different project for receiving free translation texts.");
 			wxMessageBox(msg);
 			m_pApp->LogUserAction(msg);
-			return; // don't accept any changes - abort the OnSaveSetupForThisProjNow() button handler
+			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
 	}
 
@@ -895,8 +968,30 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 		if (wxMessageBox(msg,_T(""),wxYES_NO | wxICON_INFORMATION) == wxNO)
 		{
 			m_pApp->LogUserAction(msg);
-			return;
+			return FALSE; // don't accept any changes - return FALSE to the caller
 		}
+	}
+
+	wxString selStr = pComboAiProjects->GetStringSelection();
+	wxString errorStr = _T("");
+	// CollabProjectsAreValid() doesn't consider any empty string projects to be invalid, only those non-empty
+	// string parameters that don't have at least one book created in them. In this situation, the code
+	// above has already ensured that at least the m_TempCollabProjectForSourceInputs and m_TempCollabProjectForTargetExports
+	// strings are non-empty.
+	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, 
+							m_TempCollabProjectForFreeTransExports, errorStr))
+	{
+		wxString msg = _("The following %s projects are not valid for collaboration:\n%s");
+		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
+		msg += _T("\n\n");
+		wxString msg1 = _("This setup cannot be accepted for collaboration. Please set up valid %s project(s) that Adapt It can use for collaboration.");
+		msg1 = msg1.Format(msg1,m_pApp->m_collaborationEditor.c_str());
+		msg += msg1;
+		wxString titleMsg = _("Invalid %s projects detected");
+		titleMsg = titleMsg.Format(titleMsg,m_pApp->m_collaborationEditor.c_str());
+		wxMessageBox(msg,titleMsg,wxICON_WARNING);
+		m_pApp->LogUserAction(titleMsg);
+		return FALSE; // don't accept any changes - return FALSE to the caller
 	}
 
 	// Store collab settings in the App's members
@@ -941,7 +1036,8 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 	{
 		// Writing of the project config file failed for some reason. This would be unusual, so
 		// just do an English notification
-		wxCHECK_RET(bOK, _T("OnSaveSetupForThisProjNow(): WriteConfigurationFile() failed, line 1616 in SetupEditorCollaboration.cpp"));
+		wxMessageBox(_T("Error writing the project configuration file. Make sure it is not being used by another program and then try again."));
+		return FALSE;
 	}
 	
 	m_TempCollabProjectForSourceInputs = _T("");
@@ -961,6 +1057,7 @@ void CSetupEditorCollaboration::OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUS
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
 	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
 	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
+	return TRUE; // success
 }
 
 void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)) // whm added 23Feb12

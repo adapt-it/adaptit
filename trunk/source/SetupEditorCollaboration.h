@@ -58,12 +58,12 @@ protected:
 	void OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event));
 	void OnCreateNewAIProject(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
 	void OnSaveSetupForThisProjNow(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
+	bool DoSaveSetupForThisProject();
 	void OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
 	void SetStateOfRemovalButton();
 
 private:
 
-	wxArrayString* pListOfPTProjects; // local pointer to list on App
 	CAdapt_ItApp* m_pApp;
 	wxTextCtrl* pTextCtrlAsStaticTopNote;
 	wxTextCtrl* pTextCtrlAsStaticSelectedSourceProj;

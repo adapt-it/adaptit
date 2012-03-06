@@ -2230,7 +2230,8 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 
 // Determines if a PT/BE project has at least one book created by PT/BE in its
 // data store for the project. 
-// Uses the project's composite name.
+// Uses the project's composite name. If the incoming composite name is empty
+// the funciton returns FALSE.
 // This function examines the current Collab_Project_Info_Struct objects on 
 // the heap (in m_pArrayOfCollabProjects) and gets the object for the current 
 // project. It then examines the struct's booksPresentFlags member for the 
@@ -2239,6 +2240,8 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 {
 	wxString collabProjShortName;
 	collabProjShortName = GetShortNameFromProjectName(projCompositeName);
+	if (collabProjShortName.IsEmpty())
+		return FALSE;
 	int ct, tot;
 	tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
 	wxString booksPresentFlags = _T("");
@@ -2262,6 +2265,83 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 	}
 	else
 	{
+		return FALSE;
+	}
+}
+
+// verified that PT/BE projects are valid, that is:
+// 1. If the srcCompositeProjName is non-empty, that it has at least one book defined in it
+// 2. If the tgtCompositeProjName is non-empty, that it has at least one book defined in it
+// 3. If the freeTransCompositeProjName is non-empty, that it has at least one book defined in it
+// If any of the above three conditions are not true, the errorStr reference parameter will return
+// to the caller a string describing the error. If errorStr is non-empty it will be formatted with
+// one or more \n newline characters, that is, it will format as a multi-line string.
+bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
+							wxString freeTransCompositeProjName, wxString& errorStr)
+{
+	wxString errorMsg = _T(""); 
+	wxString collabEditor = gpApp->m_collaborationEditor;
+	bool bSrcProjOK = TRUE;
+	if (!srcCompositeProjName.IsEmpty())
+	{
+		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName))
+		{
+			bSrcProjOK = FALSE;
+
+			// The book does not have at least one book in the Source project
+			wxString msg;
+			msg = _("Source project (%s) does not have any books created in it.");
+			msg = msg.Format(msg,srcCompositeProjName.c_str());
+			errorMsg += _T("\n   ");		
+			errorMsg += msg;
+		}
+	}
+
+	// whm 5Mar12 Note: Check for a valid PT/BE projects for storing target texts.
+	// We check to see if that project does not have any books created, in which case, 
+	// we disable the "Turn Collaboration ON" button, and display a message that 
+	// indicates the reason for the error.
+	bool bTgtProjOK = TRUE;
+	if (!tgtCompositeProjName.IsEmpty())
+	{
+		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName))
+		{
+			bTgtProjOK = FALSE;
+
+			// The book does not have at least one book in the Target project
+			wxString msg;
+			msg = _("Target project (%s) does not have any books created in it.");
+			msg = msg.Format(msg,tgtCompositeProjName.c_str());
+			errorMsg += _T("\n   ");		
+			errorMsg += msg;
+		}
+	}
+
+	bool bFreeTrProjOK = TRUE;
+	// A free translation PT/BE project is optional, so return FALSE only if 
+	// freeTransCompositeProjName is non-empty and fails the CollabProjectHasAtLeastOneBook test.
+	if (!freeTransCompositeProjName.IsEmpty())
+	{
+		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName))
+		{
+			bFreeTrProjOK = FALSE;
+
+			// The book does not have at least one book in the Free Trans project
+			wxString msg;
+			msg = _("Free Translation project (%s) does not have any books created in it.");
+			msg = msg.Format(msg,freeTransCompositeProjName.c_str());
+			errorMsg += _T("\n   ");		
+			errorMsg += msg;
+		}
+	}
+	if (bSrcProjOK && bTgtProjOK && bFreeTrProjOK)
+	{
+		return TRUE;
+	}
+	else 
+	{
+		wxASSERT(!errorMsg.IsEmpty());
+		errorStr = errorMsg; // return the error message to the caller
 		return FALSE;
 	}
 }

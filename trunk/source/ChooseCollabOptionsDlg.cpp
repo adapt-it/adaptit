@@ -41,6 +41,7 @@
 // other includes
 #include "Adapt_It.h"
 #include "ChooseCollabOptionsDlg.h"
+#include "CollabUtilities.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseCollabOptionsDlg, AIModalDialog)
@@ -122,6 +123,64 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	tempStr = pStaticAsTextCtrlTurnCollabOff->GetValue();
 	tempStr = tempStr.Format(tempStr,m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
 	pStaticAsTextCtrlTurnCollabOff->ChangeValue(tempStr);
+
+	// We need to call the App's GetListOfPTProjects() or GetListOfBEProjects() to ensure that the
+	// App's m_pArrayOfCollabProjects is populated before the CollabProjectsAreValid() call below
+	// which itself calls CollabProjectHasAtLeastOneBook() which utilizes the m_pArrayOfCollabProjects
+	// member.
+	// get list of PT/BE projects
+	projList.Clear();
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	{
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else // Bibledit
+	{
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	// In the event that a project folder was copied to the current computer that
+	// defined collaboration with Paratext/Bibledit, it is possible that the
+	// Paratext/Bibledit project used in that project have not yet been created
+	// on the receiving computer.
+	// 
+	// Do some sanity checks to ensure that the Paratext/Bibledit projects are
+	// properly setup for collaboration. We do the same checks here that are done
+	// within the CSetupEditorCollaboration class's "Select from List" button
+	// handlers, which call CollabProjectHasAtLeastOneBook() for PT/BE projects
+	// that are defined in the project config file. If that function returns FALSE
+	// for any of the PT/BE projects we disable the "Turn Collaboration ON" button 
+	// and change "Note:" text to indicate why it is disabled, i.e., "Target 
+	// project (%s) does not have any books created in it.", etc.
+	
+	// The caller of the ChooseCollabOptionsDlg should have ensured that the source
+	// and target projects were defined
+	wxASSERT(!m_pApp->m_CollabProjectForSourceInputs.IsEmpty());
+	wxASSERT(!m_pApp->m_CollabProjectForTargetExports.IsEmpty());
+	
+	// whm 5Mar12 Note: Check for a valid PT/BE projects for obtaining source texts.
+	// We check to see if that project does not have any books created, in which case, 
+	// we disable the "Turn Collaboration ON" button, and display a message that 
+	// indicates the reason for the error.
+	wxString errorStr = _T("");
+	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports, 
+							m_pApp->m_CollabProjectForFreeTransExports, errorStr))
+	{
+		wxString msg;
+		msg = _("COLLABORATION DISABLED! - invalid %s projects detected. Ask your administrator for help:%s");
+		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
+		
+		// set the default to collaboratin OFF
+		pRadioTurnCollabON->SetValue(FALSE);
+		pRadioTurnCollabOFF->SetValue(TRUE);
+		// disable the "Turn collaboration on" radio button
+		pRadioTurnCollabON->Disable();
+		// change the Note in the text control under the first button
+		pStaticAsTextCtrlTurnCollabOn->ChangeValue(msg);
+
+		// In this case we don't clear out the App's variables but leave them set even though
+		// they don't describe valid PT/BE projects. Administrator will have to correct in the
+		// SetupEditorCollaboration dialog.
+	}
 
 	// Initialize the radio buttons with the collaboration setting last used which 
 	// is in the App's m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit
