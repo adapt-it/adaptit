@@ -201,6 +201,8 @@ class CSourcePhrase;
 	/////////////////////////////////////////////////////////////////////////////////////
 	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
 	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName);
+	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
+							wxString frtrCompositeProjName, wxString& errorStr);
 	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()

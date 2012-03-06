@@ -36,6 +36,7 @@ public:
 	wxTextCtrl* pStaticAsTextCtrlTurnCollabOn;
 	wxTextCtrl* pStaticAsTextCtrlTurnCollabOff;
 	wxString m_aiProjName;
+	wxArrayString projList;
 	bool m_bRadioSelectCollabON;
 	bool m_bRadioSelectCollabOFF;
 	bool m_bRadioSelectReadOnlyON;

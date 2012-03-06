@@ -519,7 +519,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			if (pApp->AIProjectIsACollabProject(m_projectName))
 			{
 				CChooseCollabOptionsDlg collabOptDlg(pStartWorkingWizard);
-				//collabOptDlg.Center();
+				collabOptDlg.Center();
 				collabOptDlg.m_aiProjName = m_projectName;
 				if (collabOptDlg.ShowModal() == wxID_CANCEL)
 				{
@@ -652,7 +652,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				}
 			}
 
-			// If we get here we are continuing through the wizard page changing process.
+			// If we get here we are continuing through the wizard page changing process
+			// and no collaboration is in effect.
+			wxASSERT(pApp->m_bStartWorkUsingCollaboration == FALSE);
 
 			// set up the expected KB and GlossingKB paths etc
 			gpApp->SetupKBPathsEtc();

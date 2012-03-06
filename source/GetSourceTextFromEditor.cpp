@@ -232,14 +232,16 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	bool bFreeTransProjRequiredButNotFound = FALSE;
 
 	wxASSERT(m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit);
+	
+	// get list of PT/BE projects
 	projList.Clear();
-	if (m_pApp->m_bCollaboratingWithParatext)
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 	{
-		projList = m_pApp->GetListOfPTProjects();
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
-	else if (m_pApp->m_bCollaboratingWithBibledit)
+	else // Bibledit
 	{
-		projList = m_pApp->GetListOfBEProjects();
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
 	bool bTwoOrMoreProjectsInList = TRUE;
 	int nProjCount;
