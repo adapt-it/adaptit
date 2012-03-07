@@ -4772,14 +4772,18 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // in Paratext next did a Save there)
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
-		if (gpApp->ParatextIsRunning())
+		// Don't let the function proceed further, until Paratext is not running or the user clicks Cancel
+		while (gpApp->ParatextIsRunning())
 		{
-			// don't let the function proceed further, give message, and return empty string
 			wxString msg;
-			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and your next File / Save attempt will succeed."),
+			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and click \"OK\" to try the save operation again, or \"Cancel\" to abort the save attempt (your next File / Save attempt should succeed)."),
 				gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg, _T(""), wxICON_WARNING);
-			return text; // text is currently an empty string
+			int response;
+			response = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
+			if (response == wxCANCEL)
+			{
+				return text; // text is currently an empty string
+			}
 		}
 	}
     // If collaborating with Bibledit, check if Bibledit is running, if it is, warn user to
@@ -4792,9 +4796,10 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		{
 			// don't let the function proceed further, give message, and return empty string
 			wxString msg;
-			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and your next File / Save attempt will succeed."),
+			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and click \"OK\" to try the save operation again, or \"Cancel\" to abort the save attempt (your next File / Save attempt should succeed)."),
 				gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg, _T(""), wxICON_WARNING);
+			int response;
+			response = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
 			return text; // text is currently an empty string
 		}
 	}
