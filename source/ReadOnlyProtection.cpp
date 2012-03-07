@@ -896,6 +896,18 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 		// can delete it because the project folder is not then owned by anyone, or
 		// (2) someone else's process (or another one which I initiated) has the 
 		//     ownership of write permission - and so we must return TRUE
+		// (3) it's a bogus read-only protection file set up because the user wants to
+		//     protect from changes the data he's about to look at (e.g. he may be a 
+		//     consultant or advisor, and wants to be sure he doesn't change data copied
+		//     from a translator's machine to his own, and opened on his own machine)
+		
+		// bleed out case 3 -- the projectID will be "9999", the username "ItsMyself" - I
+		// can search for these in m_strOwningReadOnlyProtectionFilename, but on windows
+		// that isn't enough...
+// TODO ?? is this the place? On Windows, it is still open, so wxRemoveFile() won't remove
+// it		-- have to leave this to Bill to nut out
+
+
 		bool bIsZombie = IsZombie(projectFolderPath, m_strOwningReadOnlyProtectionFilename);
 		if(bIsZombie)
 		{
