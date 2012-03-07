@@ -47,16 +47,32 @@ public:
 	CAdapt_ItApp* m_pApp; // pointer to the running application instance
 private:
 	wxString	m_strLocalUsername; // whoever is the user running this instance (hyphens removed)
-	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance (hyphens removed)
 	wxString	m_strLocalProcessID; // the number which is the running instance's PID converted to a wxString
 
 	wxString	m_strOwningUsername; // a holder for the Username parsed from the filename, and
 				// set to empty string whenever the target project folder is owned by nobody
 	wxString	m_strOwningMachinename; // a holder for the Machinename parsed from the filename,
 				// and set to empty string whenever the target project folder is owned by nobody
-	wxString	m_strOwningProcessID; // the owning process's PID converted to a wxString
 
-	wxString	m_strAIROP_Prefix; // first part of the filename (see OnInit())
+	// member functions supporting Read-Only access
+public:
+	void		Initialize();
+	bool		SetReadOnlyProtection(wxString& projectFolderPath); // call when entering project
+					// and the returned bool value must be used to set (TRUE) or clear (FALSE) the 
+					// app member m_bReadOnlyAccess
+	bool		RemoveReadOnlyProtection(wxString& projectFolderPath); // call when leaving project
+                    // and the returned bool value must always be used to clear to FALSE or
+                    // set to TRUE the app member m_bReadOnlyAccess, according to whether
+                    // the attempt at removal succeeded or not, respectively
+
+	// whm moved IsItNotMe to public for use in the App's CheckLockFileOwnership()
+	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
+                        // process which owns the write privilege to the project folder is
+                        // different from me on my machine running my process which gained
+                        // ownership of write privileges earlierprivate:
+
+	// BEW 7Mar12 -- necessary to make several public, so that the 3rd radio button of the
+	// ChooseCollabOptionsDlg handler can be supported
 	wxString	m_strLock_Suffix; // the suffix to add to the filename's end (see OnInit())
 	wxString	m_strReadOnlyProtectionFilename; // has the form ~AIROP*.lock where * will
 							// be machinename followed by username, delimited by single
@@ -84,34 +100,11 @@ private:
 					// m_strReadOnlyProtectionFilename and used to determine what type of OS
 					// created the ~AIROP*.lock file.
 	bool		m_bOverrideROPGetWriteAccess; // whm added 18Feb10
+	wxString	m_strOwningProcessID; // the owning process's PID converted to a wxString
+	wxString	m_strAIROP_Prefix; // first part of the filename (see OnInit())
+	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance (hyphens removed)
 
-	// member functions supporting Read-Only access
-public:
-	void		Initialize();
-	bool		SetReadOnlyProtection(wxString& projectFolderPath); // call when entering project
-					// and the returned bool value must be used to set (TRUE) or clear (FALSE) the 
-					// app member m_bReadOnlyAccess
-	bool		RemoveReadOnlyProtection(wxString& projectFolderPath); // call when leaving project
-                    // and the returned bool value must always be used to clear to FALSE or
-                    // set to TRUE the app member m_bReadOnlyAccess, according to whether
-                    // the attempt at removal succeeded or not, respectively
-
-	// whm moved IsItNotMe to public for use in the App's CheckLockFileOwnership()
-	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
-                        // process which owns the write privilege to the project folder is
-                        // different from me on my machine running my process which gained
-                        // ownership of write privileges earlierprivate:
-private:
-	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
-	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
-	wxString	GetLocalOSHostname(); // whm added 17Feb10
-
-	wxString	ExtractUsername(wxString strFilename); 
-	wxString	ExtractMachinename(wxString strFilename); 
-	wxString	ExtractProcessID(wxString strFilename);
-	wxString	ExtractOSHostname(wxString strFilename); // whm added 17Feb10
-
 	wxString	MakeReadOnlyProtectionFilename(
 					const wxString prefix, // pass in m_strAIROP_Prefix
 					const wxString suffix, // pass in m_strLock_Suffix
@@ -121,6 +114,18 @@ private:
 					const wxString oshostname); // return str of form ~AIROP*.lock where * will
 						// be machinename followed by username, followed by processID,
 						// followed by oshostname, delimited by single hyphens
+	
+
+private:
+	wxString	GetLocalUsername(); // return empty string if the local username isn't got
+	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
+	wxString	GetLocalOSHostname(); // whm added 17Feb10
+
+	wxString	ExtractUsername(wxString strFilename); 
+	wxString	ExtractMachinename(wxString strFilename); 
+	wxString	ExtractProcessID(wxString strFilename);
+	wxString	ExtractOSHostname(wxString strFilename); // whm added 17Feb10
+
 	bool		IsDifferentUserOrMachineOrProcess(
 					wxString& localMachine,
 					wxString& localUser,

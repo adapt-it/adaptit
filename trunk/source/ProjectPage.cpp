@@ -49,7 +49,6 @@
 #include <wx/filesys.h> // for wxFileName
 #include <wx/progdlg.h> // for wxFileName
 
-#include "ProjectPage.h"
 #include "LanguagesPage.h"
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
@@ -68,6 +67,8 @@
 #include "WaitDlg.h"
 #include "ChooseCollabOptionsDlg.h"
 #include "GetSourceTextFromEditor.h"
+#include "ReadOnlyProtection.h"
+#include "ProjectPage.h"
 
 // globals
 
@@ -601,7 +602,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// would continue to execute unless we call return at this point.
 						return; // no Veto() called here as we want the wizard to end
 					}
-					else if (collabOptDlg.m_bRadioSelectCollabOFF)
+					else if (collabOptDlg.m_bRadioSelectCollabOFF && !collabOptDlg.m_bRadioSelectReadOnlyON)
 					{
 						// The user selected to "Turn Collaboration OFF", or a collaboration editor is 
 						// not available.
@@ -645,6 +646,58 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						pApp->m_bStartWorkUsingCollaboration = FALSE;
 						// TODO: set read-only mode or a flag to do so when doc is opened.
 						
+						// BEW 7Mar12 additions===================================================
+						// BEW 7Mar12, here's a first take at the problem.... it doesn't
+						// check for the existence of a zombie readonly protetion file
+						// left after an abnormal exit; nor does it check for someone having
+						// the project already open remotely for writing (and if that is
+						// the case we'd not want to let them be disenfranchised by
+						// clobbering their readonly protection file and substituting one
+						// for a ficticious user and process -- the owning one should be
+						// in m_strOwningReadOnlyProtectionFilename, so that has to be checked), 
+						// so there's more to do before the code below gets a chance to run....
+						
+
+						// the code below should work right if the project folder has no
+						// readonly protection filename present already -- but note
+						// comment above
+						pApp->m_pROP->m_strReadOnlyProtectionFilename.Empty();
+						pApp->m_pROP->m_bOverrideROPGetWriteAccess = FALSE;
+						pApp->m_pROP->m_strLocalMachinename = pApp->m_pROP->GetLocalMachinename(); // hyphens are changed to underscores
+						wxString myLocalUsername = _T("ItsMyself"); // ficticious, anything will do
+						wxString myProcessID = _T("9999"); // false, unlikely to be real, but doesn't matter anyway
+						wxString myBogusROPfilename;
+						// most of the parameters we need are already in existence due to
+						// OnInit() having been run earlier; we'll use bogus values only
+						// for the processID and the local username
+						pApp->m_pROP->m_strReadOnlyProtectionFilename = 
+							pApp->m_pROP->MakeReadOnlyProtectionFilename(
+								pApp->m_pROP->m_strAIROP_Prefix,
+								pApp->m_pROP->m_strLock_Suffix, 
+								pApp->m_pROP->m_strLocalMachinename, 
+								myLocalUsername, // my bogus "ItsMyself" name
+								myProcessID,     // my bogus "9999" value
+								pApp->m_pROP->m_strOSHostname
+							);
+						pApp->m_pROP->m_strOwningReadOnlyProtectionFilename = 
+											pApp->m_pROP->m_strReadOnlyProtectionFilename;
+						wxString readOnlyProtectionFilePath = pApp->m_curProjectPath + 
+							pApp->PathSeparator + pApp->m_pROP->m_strReadOnlyProtectionFilename;
+						wxLogNull nolog; // avoid spurious messages from the system during Open() below
+						bool bOpenOK; // whm added 4Feb10
+						bOpenOK = pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
+						wxCHECK_RET(bOpenOK, _T("OnWizardPageChanging(): m_pROPwxFile->Open() returned FALSE, line 688 in ProjectPage.cpp"));
+						bOpenOK = bOpenOK; // avoid warning
+
+						// turn on the flag
+						pApp->m_bReadOnlyAccess = TRUE;
+
+						// record the fact that the (bogus) owner is "ItsMyself" 
+						pApp->m_pROP->m_strOwningReadOnlyProtectionFilename = 
+										pApp->m_pROP->m_strReadOnlyProtectionFilename;
+						
+						// end BEW 7Mar12 additions=================================================
+						 
 						// Set the File > Open and File > Save menu items back to their normal
 						// state - without the parenthetical information in the labels.
 						pApp->MakeMenuInitializationsAndPlatformAdjustments();

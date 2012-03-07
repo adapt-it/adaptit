@@ -7749,12 +7749,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 		// BEW 4Aug11 changed the code to not test each individually, but just test if
 		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
 		// treat U+2060 individually
-		// BEW 7Mar12, added support for en dash, em dash, etc as 'whitespace' - requested
-		// by Craig Farrow, email of 7 March 12. "How to handle punctuation as word-breaking"
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		//if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D)
-		//	|| ((UInt32)*pChar >= 0x200E && (UInt32)*pChar <= 0x2015))
-		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x2015))
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
 		{
 			return TRUE;
 		}
