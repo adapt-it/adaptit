@@ -486,7 +486,9 @@ void CDocPage::OnSetActive()
 	// is prefixed to its _Collab... file name, the document will now appear as a 
 	// "non-collaboration" document within the DocPage's list - in spite of what the name seems 
 	// to indicate in the DocPage's list.
-	if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit))
+	// whm 7Mar12 modified to show all _Collab docs when in read-only mode
+	if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+		&& !gpApp->m_bReadOnlyAccess)
 	{
 		int ct;
 		int tot = possibleAdaptions.GetCount();

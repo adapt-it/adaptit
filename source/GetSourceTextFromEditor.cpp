@@ -95,7 +95,7 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	// controls are hidden. That is done in InitDialog().
 	// whm 17Nov11 redesigned the CGetSourceTextFromEditorDlg, splitting it into two dialogs, so
 	// that the project change options are now contained in the friend class CChangeCollabProjectsDlg.
-	pGetSourceTextFromEditorSizer = GetSourceTextFromEditorDlgFunc(this, TRUE, TRUE);
+	pGetSourceTextFromEditorSizer = GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
@@ -425,6 +425,12 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pApp->RefreshStatusBarInfo();
 
 	pGetSourceTextFromEditorSizer->Layout(); // update the layout for $s substitutions
+	// Some control text may be truncated unless we resize the dialog to fit it. 
+	// Note: The constructor's call of GetSourceTextFromEditorDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
  }
 
  // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
