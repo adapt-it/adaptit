@@ -133,6 +133,14 @@ placement to be done, which will be automatically stored.
 dependency on the libgnomeprintui (>= 2.0). Some users
 including Balsa users have reported print problems because
 their systems did not have libgnomeprintui installed.
+* The parsing of input data to form individual words for
+adapting purposes has been extended. The legacy versions
+used just space, tab or newline as word-dividing indicators.
+Version 6.0.0 added non-breaking space, 'word joiner' (Ux2060)
+and any character in the range Ux2000 to Ux200D - which
+includes the zero-width and reduced-width spaces; and 6.2.0 
+extends the latter range to be Ux2000 to Ux2015 inclusive,
+which includes en dash and em dash, besides others.
 
 ----------------------------------------------
 Bug fixes in 6.2.0
