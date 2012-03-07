@@ -4792,15 +4792,18 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // in Bibledit next did a Save there)
 	if (gpApp->m_bCollaboratingWithBibledit)
 	{
-		if (gpApp->BibleditIsRunning())
+		while(gpApp->BibleditIsRunning())
 		{
-			// don't let the function proceed further, give message, and return empty string
+			// don't let the function proceed further, until Bibledit is not running or the user clicks Cancel
 			wxString msg;
 			msg = msg.Format(_T("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to Paratext and shut it down, saving any unsaved work.\nThen switch back to Adapt It and click \"OK\" to try the save operation again, or \"Cancel\" to abort the save attempt (your next File / Save attempt should succeed)."),
 				gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
 			int response;
 			response = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			return text; // text is currently an empty string
+			if (response == wxCANCEL)
+			{
+				return text; // text is currently an empty string
+			}
 		}
 	}
 
