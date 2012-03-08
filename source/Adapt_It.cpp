@@ -13294,6 +13294,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// initialize for Read-Only support when accessing a remote project folder
 	m_bReadOnlyAccess = FALSE; // default, allows current user write access to projects
+	m_bFictitiousReadOnlyAccess = FALSE; // default unless explicitly turned on by advisor or consultant
 	m_pROP = new ReadOnlyProtection(this);
 	m_pROP->Initialize();
 
@@ -21652,6 +21653,14 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 
 	// BEW added 13Nov09, for setting or denying ownership for writing permission
 	// attempt to set it only if not already set
+	// whm added 7Mar12 code for fictitious read only access. If the m_bFictitiousReadOnlyAccess
+	// flag is set, ForceFictitiousReadOnlyProtection() should be called before the call to
+	// SetReadOnlyProtection().
+	if (m_bFictitiousReadOnlyAccess)
+	{
+		m_pROP->ForceFictitiousReadOnlyProtection(m_curProjectPath);
+	}
+	
 	m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
 
 #ifdef SHOW_KB_I_O_BENCHMARKS

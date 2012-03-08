@@ -629,6 +629,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					}
 					else if (collabOptDlg.m_bRadioSelectReadOnlyON)
 					{
+						// For the advisor/consultant's Read-Only Protection selection
+						// we make sure that collaboration is OFF
 						if (pApp->m_collaborationEditor == _("Paratext"))
 						{
 							pApp->m_bCollaboratingWithParatext = FALSE;
@@ -644,60 +646,47 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// the wizard with no collaboration, but with any document
 						// opened in read-only mode.
 						pApp->m_bStartWorkUsingCollaboration = FALSE;
-						// TODO: set read-only mode or a flag to do so when doc is opened.
 						
-						// BEW 7Mar12 additions===================================================
-						// BEW 7Mar12, here's a first take at the problem.... it doesn't
-						// check for the existence of a zombie readonly protetion file
-						// left after an abnormal exit; nor does it check for someone having
-						// the project already open remotely for writing (and if that is
-						// the case we'd not want to let them be disenfranchised by
-						// clobbering their readonly protection file and substituting one
-						// for a ficticious user and process -- the owning one should be
-						// in m_strOwningReadOnlyProtectionFilename, so that has to be checked), 
-						// so there's more to do before the code below gets a chance to run....
+						// whm Note: The ForceFictitiousReadOnlyProtection() function below does
+						// the following:
+						// Check for the existence of a zombie readonly protection file 
+						// left after an abnormal exit, and check for someone having the project 
+						// already open remotely for writing. We only set the fictitious ROPFile
+						// in the project folder if it is NOT already owned, as we do not want them
+						// to be disenfranchised by clobbering their readonly protection file and
+						// substituting one for a fictitious process. ForceFictitiousReadOnlyProtection()
+						// calls the IsTheProjectFolderOwnedForWriting() function which has the side
+						// effects of: (1) Assigns any active non-zombie ROPFile's name to the App's
+						// m_strOwningReadOnlyProtectionFilename member, and (2) removes any zombies.
+						// As of version 6.1.0, we have disallowed any second instance of Adapt It 
+						// being run by the same user, so if the folder is already owned, it would 
+						// never be owned by "me". The only reason that bForcedRopOK would become
+						// FALSE is if ForceFictitiousReadOnlyProtection() could not open the 
+						// m_pROPwxFile for writing. That situation would be unusual, and if the App's
+						// m_bReadOnlyAccess flag is also FALSE, we notify the user that read-only mode
+						// could not be set for some unknown reason, and the user should proceed with
+						// caution if they do not intend to make changes.
+						bool bForcedRopOK;
+						bForcedRopOK = pApp->m_pROP->ForceFictitiousReadOnlyProtection(pApp->m_curProjectPath);
+						if (!bForcedRopOK)
+						{
+							// Could not create a fictitious ROPFile
+							if (!pApp->m_bReadOnlyAccess)
+							{
+								wxString msg = _("Adapt It could not enter read-only mode for some unknown reason. You may continue to access the user's documents, but proceed with care.");
+								wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_WARNING);
+								pApp->LogUserAction(msg);
+							}
+							else
+							{
+								wxASSERT_MSG(FALSE,_T("ForceFictitiousReadOnlyProtection() failed and m_bReadOnlyAccess is TRUE. Programmer Error?"));
+							}
+						}
+						else
+						{
+							pApp->m_bFictitiousReadOnlyAccess = TRUE;
+						}
 						
-
-						// the code below should work right if the project folder has no
-						// readonly protection filename present already -- but note
-						// comment above
-						pApp->m_pROP->m_strReadOnlyProtectionFilename.Empty();
-						pApp->m_pROP->m_bOverrideROPGetWriteAccess = FALSE;
-						pApp->m_pROP->m_strLocalMachinename = pApp->m_pROP->GetLocalMachinename(); // hyphens are changed to underscores
-						wxString myLocalUsername = _T("ItsMyself"); // ficticious, anything will do
-						wxString myProcessID = _T("9999"); // false, unlikely to be real, but doesn't matter anyway
-						wxString myBogusROPfilename;
-						// most of the parameters we need are already in existence due to
-						// OnInit() having been run earlier; we'll use bogus values only
-						// for the processID and the local username
-						pApp->m_pROP->m_strReadOnlyProtectionFilename = 
-							pApp->m_pROP->MakeReadOnlyProtectionFilename(
-								pApp->m_pROP->m_strAIROP_Prefix,
-								pApp->m_pROP->m_strLock_Suffix, 
-								pApp->m_pROP->m_strLocalMachinename, 
-								myLocalUsername, // my bogus "ItsMyself" name
-								myProcessID,     // my bogus "9999" value
-								pApp->m_pROP->m_strOSHostname
-							);
-						pApp->m_pROP->m_strOwningReadOnlyProtectionFilename = 
-											pApp->m_pROP->m_strReadOnlyProtectionFilename;
-						wxString readOnlyProtectionFilePath = pApp->m_curProjectPath + 
-							pApp->PathSeparator + pApp->m_pROP->m_strReadOnlyProtectionFilename;
-						wxLogNull nolog; // avoid spurious messages from the system during Open() below
-						bool bOpenOK; // whm added 4Feb10
-						bOpenOK = pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
-						wxCHECK_RET(bOpenOK, _T("OnWizardPageChanging(): m_pROPwxFile->Open() returned FALSE, line 688 in ProjectPage.cpp"));
-						bOpenOK = bOpenOK; // avoid warning
-
-						// turn on the flag
-						pApp->m_bReadOnlyAccess = TRUE;
-
-						// record the fact that the (bogus) owner is "ItsMyself" 
-						pApp->m_pROP->m_strOwningReadOnlyProtectionFilename = 
-										pApp->m_pROP->m_strReadOnlyProtectionFilename;
-						
-						// end BEW 7Mar12 additions=================================================
-						 
 						// Set the File > Open and File > Save menu items back to their normal
 						// state - without the parenthetical information in the labels.
 						pApp->MakeMenuInitializationsAndPlatformAdjustments();
