@@ -1673,6 +1673,14 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// somehow someone else has gotten ownership of the project folder already
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
+		// whm added 7Mar12 code for fictitious read only access. If the m_bFictitiousReadOnlyAccess
+		// flag is set, ForceFictitiousReadOnlyProtection() should be called before the call to
+		// SetReadOnlyProtection().
+		if (pApp->m_bFictitiousReadOnlyAccess)
+		{
+			pApp->m_pROP->ForceFictitiousReadOnlyProtection(pApp->m_curProjectPath);
+		}
+
 		// Attempt to set it only if not already set...
 		//if (!pApp->m_bReadOnlyAccess)
 		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
@@ -3430,7 +3438,7 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	// 3380 does output the correct values when GetPrintDialogData() is called here, but
 	// somewhere after that the values are lost and so the GTK printing framework defaults
 	// to using page 1 as the fromPage and 0 as the toPage value, and the framework checks
-	// and sees the 0 value and substitutes 9999. Can't see a way to fix this. (BEW 12Nov11)
+	// and sees the 0 value and substitutes 99999. Can't see a way to fix this. (BEW 12Nov11)
 	//wxPrintDialogData printDD = printer.GetPrintDialogData();
 
 	// #printer_Print

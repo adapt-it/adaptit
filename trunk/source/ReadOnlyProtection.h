@@ -64,13 +64,18 @@ public:
                     // and the returned bool value must always be used to clear to FALSE or
                     // set to TRUE the app member m_bReadOnlyAccess, according to whether
                     // the attempt at removal succeeded or not, respectively
+    bool		ForceFictitiousReadOnlyProtection(wxString& projectFolderPath); // call when advisor
+					// or consultant wants read-only access to user's documents (3rd button of 3-button
+					// ChooseCollabOptionsDlg dialog) in ProjectPage, and also when opening documents. 
 
 	// whm moved IsItNotMe to public for use in the App's CheckLockFileOwnership()
 	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
                         // process which owns the write privilege to the project folder is
                         // different from me on my machine running my process which gained
                         // ownership of write privileges earlierprivate:
-
+	bool		IsItFictitious(wxString& projectFolderPath); // test if the process ID indicates
+						// that the lock file is fictitious, i.e., 99999 
+	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
 	// BEW 7Mar12 -- necessary to make several public, so that the 3rd radio button of the
 	// ChooseCollabOptionsDlg handler can be supported
 	wxString	m_strLock_Suffix; // the suffix to add to the filename's end (see OnInit())
@@ -105,6 +110,7 @@ public:
 	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance (hyphens removed)
 
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
+	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	MakeReadOnlyProtectionFilename(
 					const wxString prefix, // pass in m_strAIROP_Prefix
 					const wxString suffix, // pass in m_strLock_Suffix
@@ -117,8 +123,6 @@ public:
 	
 
 private:
-	wxString	GetLocalUsername(); // return empty string if the local username isn't got
-	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
 	wxString	GetLocalOSHostname(); // whm added 17Feb10
 
 	wxString	ExtractUsername(wxString strFilename); 

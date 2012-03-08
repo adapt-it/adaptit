@@ -3164,6 +3164,9 @@ public:
                 // ascii characters to decrease the likelihood of an accidental name clash
                 // when searching for the file within a project folder; AIROP means "Adapt
                 // It Read Only Protection"
+	bool	m_bFictitiousReadOnlyAccess; // default is FALSE, can be set TRUE by an advisor
+				// or consultant selecting the third radio button in the ChooseCollabOptionsDlg
+				// dialog
 	wxFile* m_pROPwxFile; // will be created in OnInit(), on the heap, and killed in OnExit(),
 				// we then use wxFile::Open() as needed. We do it this way because if we use
 				// a local wxFile and open with a path and wxFile(), then when the local wxFile

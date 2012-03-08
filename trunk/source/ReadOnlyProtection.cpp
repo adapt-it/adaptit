@@ -715,23 +715,25 @@ bool ReadOnlyProtection::RemoveROPFile(wxString& projectFolderPath, wxString& ro
 	wxString pathToFile = projectFolderPath + m_pApp->PathSeparator + ropFile;
 	wxASSERT(::wxFileExists(pathToFile));
 
-	// removal will only be possible if I on the localMachine in the process having
-	// the localProcessID, became the owner in the first place; so we must test
-	// that all the ducks line up for this running instance to be able to remove it,
-	// and report back to the caller what the outcome was
+	// whm added 7Mar12 test below to determine if the ROPFile is fictitious.
+	// Removal will be possible if the ROPFile is either our fictitious one, or if
+	// it is owned by some process other than "me"; so we must test that all the 
+	// ducks line up for this running instance to be able to remove it,
+	// and report back to the caller what the outcome was.
 	bool bRemoved = TRUE;
 	bool bItsNotMe = IsItNotMe(projectFolderPath);
-	if (bItsNotMe)
+	bool bItsFictitious = IsItFictitious(projectFolderPath);
+	if (bItsFictitious || !bItsNotMe)
 	{
-		// not me, or not same process, so the file cannot be removed
-		return FALSE;
+		// It's a fictitious ROPFile, or one owned by the current user, so qualifies 
+		// for closing it and then deleting it; do so.
+		m_pApp->m_pROPwxFile->Close(); // ignore returned boolean, this shouldn't fail
+		bRemoved = ::wxRemoveFile(pathToFile); // may fail
 	}
 	else
 	{
-		// it's an opened protection file, and my process qualifies for closing it and
-		// then deleting it; do so
-		m_pApp->m_pROPwxFile->Close(); // ignore returned boolean, this shouldn't fail
-		bRemoved = ::wxRemoveFile(pathToFile); // may fail
+		// It's not me, and not fictitious, so the file cannot be removed
+		return FALSE;
 	}
 	return bRemoved;
 }
@@ -777,6 +779,25 @@ bool ReadOnlyProtection::IsItNotMe(wxString& projectFolderPath)
 						m_strLocalUsername, m_strLocalProcessID, m_strOwningMachinename, 
 						m_strOwningUsername, m_strOwningProcessID);
 	return bItsNotMe;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if the process ID is 99999, FALSE for any other process ID
+/// \param      projectFolderPath   ->  absolute path to the project folder
+/// \remarks	Determines if the ROPFile is a fictitious one or not. By definition a 
+/// "fictitious" ROPFile is one in which the processID is 99999 and the current user's
+/// own process ID is not 99999.
+///////////////////////////////////////////////////////////////////////////////////////////
+bool ReadOnlyProtection::IsItFictitious(wxString& projectFolderPath)
+{
+	m_strOwningReadOnlyProtectionFilename = 
+							GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
+	m_strOwningProcessID = ExtractProcessID(m_strOwningReadOnlyProtectionFilename);
+	wxString myOwnProcessID = GetLocalProcessID();
+	if (m_strOwningProcessID == _T("99999") && m_strOwningProcessID != myOwnProcessID)
+		return TRUE;
+	else
+		return FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -901,13 +922,6 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 		//     consultant or advisor, and wants to be sure he doesn't change data copied
 		//     from a translator's machine to his own, and opened on his own machine)
 		
-		// bleed out case 3 -- the projectID will be "9999", the username "ItsMyself" - I
-		// can search for these in m_strOwningReadOnlyProtectionFilename, but on windows
-		// that isn't enough...
-// TODO ?? is this the place? On Windows, it is still open, so wxRemoveFile() won't remove
-// it		-- have to leave this to Bill to nut out
-
-
 		bool bIsZombie = IsZombie(projectFolderPath, m_strOwningReadOnlyProtectionFilename);
 		if(bIsZombie)
 		{
@@ -947,7 +961,7 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 //////////////////////////////////////////////////////////////////////////////////////////// 
 bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath) 
 {
-	bool bIsOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath);
+	bool bIsOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath); // removes any zombies
 #ifdef _DEBUG_ROP
 	wxLogDebug(_T("\n **BEGIN** SetReadOnlyProtection:  Is the folder owned? bIsOwned = %s"), 
 			bIsOwned ? _T("TRUE") : _T("FALSE"));
@@ -1017,11 +1031,13 @@ _("Someone has your project folder open already, so you have READ-ONLY access.")
 		m_strOwningReadOnlyProtectionFilename = m_strReadOnlyProtectionFilename;
 		wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
 												m_strReadOnlyProtectionFilename;
-		wxLogNull nolog; // avoid spurious messages from the system during Open() below
 		bool bOpenOK; // whm added 4Feb10
+		{ // block for wxLogNull, so the wxLogDebug will work below the block
+		wxLogNull nolog; // avoid spurious messages from the system during Open() below
 		bOpenOK = m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
 		wxCHECK_MSG(bOpenOK, FALSE, _T("SetReadOnlyProtection(): m_pROPwxFile->Open() returned FALSE, line 1,010 in ReadOnlyProtection.cpp, my own process is not protected, perhaps shut down and re-launch would be wise"));
 		bOpenOK = bOpenOK; // avoid warning TODO: Check for failures?
+		}
 #ifdef __WXDEBUG__ // whm added 4Feb10
 		wxLogDebug(_T("m_pROPwxFile Open(readOnlyProtectionFilePath,wxFile::write_excl) was %u where 1=true and 0=false"),bOpenOK);
 #endif
@@ -1031,6 +1047,86 @@ _("Someone has your project folder open already, so you have READ-ONLY access.")
 	wxLogDebug(_T("SetReadOnlyProtection:  Nobody owns it yet,  so returning FALSE"));
 #endif
 	return FALSE; // return FALSE to app member m_bReadOnlyAccess
+}
+ 
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if a fictitious protection file (with form ~AIROP-*.lock, where * is
+///             machinename-username-99999) is already present in the passed in
+///             folder and is open for writing, or the function succeeded in creating
+///             a fictitious m_pROPwxFile. If the folder was not already owned and the 
+///             attempt to create the m_pROPwxFile failed then return FALSE
+///	\param		projectFolderPath  ->  absolute path to the project folder (containing the
+///	                                   read-only protection file) whose documents we are 
+///	                                   attempting to make read only
+/// \remarks 
+/// As with the SetReadOnlyProtection() function fictitious ownership is relinquished 
+/// briefly while the owning instance closes a document and then opens a different 
+/// document in the same project. This gives a remote instance a brief window of 
+/// opportunity to get full access, but the remote instance would have to either enter 
+/// the project during that brief window of opportunity, or open a document in the project 
+/// during that window - either possibility is unlikely unless people explicitly agree and 
+/// time their actions accordingly.
+/// Call when advisor or consultant wants read-only access to user's documents (3rd 
+/// button of 3-button ChooseCollabOptionsDlg dialog) in ProjectPage, and also when 
+/// opening documents.
+//////////////////////////////////////////////////////////////////////////////////////////// 
+bool ReadOnlyProtection::ForceFictitiousReadOnlyProtection(wxString& projectFolderPath)
+{
+	// whm Note: Check for the existence of a zombie readonly protection file 
+	// left after an abnormal exit, and check for someone having the project 
+	// already open remotely for writing. We only set the fictitious ROPFile
+	// in the project folder if it is NOT already owned, as we do not want them
+	// to be disenfranchised by clobbering their readonly protection file and
+	// substituting one for a fictitious process. 
+	// Note: The IsTheProjectFolderOwnedForWriting() function below has the side
+	// effects of: (1) Assigning any active non-zombie ROPFile's name to the App's
+	// m_strOwningReadOnlyProtectionFilename member, and (2) removing any zombies.
+	// Its return value, assigned to bIsOwned indicates if the project folder is
+	// already owned. As of version 6.1.0, we have disallowed any second instance
+	// of Adapt It being run by the same user, therefore if bIsOwned is TRUE we
+	// can assume that it is either owned by an external instance of Adapt It, or
+	// it is due to the continuing existence of a fictitious ROPFile of our own
+	// creation, but bIsOwned will never indicate ownership by a second instance 
+	// of "me".
+	bool bIsOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath); // removes any zombies
+	if (!bIsOwned)
+	{
+		// The project folder has no readonly protection filename present already,
+		// so we can create a fictitious ROPFile
+		m_pApp->m_pROP->m_strReadOnlyProtectionFilename.Empty();
+		m_pApp->m_pROP->m_bOverrideROPGetWriteAccess = FALSE;
+		m_pApp->m_pROP->m_strLocalMachinename = m_pApp->m_pROP->GetLocalMachinename(); // hyphens are changed to underscores
+		wxString myLocalUsername = m_pApp->m_pROP->GetLocalUsername();
+		wxString myProcessID = _T("99999"); // false, unlikely to be real, but doesn't matter anyway
+		wxString myBogusROPfilename;
+		// most of the parameters we need are already in existence due to
+		// OnInit() having been run earlier; we'll use bogus values only
+		// for the processID
+		m_pApp->m_pROP->m_strReadOnlyProtectionFilename = 
+			m_pApp->m_pROP->MakeReadOnlyProtectionFilename(
+				m_pApp->m_pROP->m_strAIROP_Prefix,
+				m_pApp->m_pROP->m_strLock_Suffix, 
+				m_pApp->m_pROP->m_strLocalMachinename, 
+				myLocalUsername, // whm use normal user name
+				myProcessID,     // my bogus "99999" process value
+				m_pApp->m_pROP->m_strOSHostname
+			);
+		// record the fact that the (bogus) ROP process is 99999 
+		m_pApp->m_pROP->m_strOwningReadOnlyProtectionFilename = 
+							m_pApp->m_pROP->m_strReadOnlyProtectionFilename;
+		wxString readOnlyProtectionFilePath = m_pApp->m_curProjectPath + 
+			m_pApp->PathSeparator + m_pApp->m_pROP->m_strReadOnlyProtectionFilename;
+		
+		wxLogNull nolog; // avoid spurious messages from the system during Open() below
+		bool bOpenOK; // whm added 4Feb10
+		bOpenOK = m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
+		if (!bOpenOK)
+			return FALSE;
+		// turn on the flag
+		m_pApp->m_bReadOnlyAccess = TRUE;
+	}
+	// The project is already owned
+	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1052,7 +1148,7 @@ bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath)
 	// get the current protection file, if there is one (this call tests for a zombie
 	// as well, and if it finds one it deletes it & returns FALSE)
 	bool bRemoved = FALSE;
-	bool bOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath);
+	bool bOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath); // removes any zombies
 	if (bOwned)
 	{
 		//  the following line effects the removal only if the protection file, when
