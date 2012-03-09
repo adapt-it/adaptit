@@ -1006,9 +1006,12 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 				// access (this message is localizable)
 				// whm added 18Feb10. If another machinename created the lock and we are
 				// trying to access the project folder on our own local machine, we can
-				wxMessageBox(
-_("Someone has your project folder open already, so you have READ-ONLY access."),_("Another process owns write permission"),
-				wxICON_INFORMATION);
+				if (!m_pApp->m_bFictitiousReadOnlyAccess)
+				{
+					wxMessageBox(
+	_("Someone has your project folder open already, so you have READ-ONLY access."),_("Another process owns write permission"),
+					wxICON_INFORMATION);
+				}
 			}
 			return TRUE; // return TRUE to app member m_bReadOnlyAccess
 		}

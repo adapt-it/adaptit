@@ -3166,7 +3166,9 @@ public:
                 // It Read Only Protection"
 	bool	m_bFictitiousReadOnlyAccess; // default is FALSE, can be set TRUE by an advisor
 				// or consultant selecting the third radio button in the ChooseCollabOptionsDlg
-				// dialog
+				// dialog. This is set TRUE when advisor/consultant/user opens a project with
+				// the third radio button selected (read-only). It is only set false when the
+				// project closes, or the app closes and restarts.
 	wxFile* m_pROPwxFile; // will be created in OnInit(), on the heap, and killed in OnExit(),
 				// we then use wxFile::Open() as needed. We do it this way because if we use
 				// a local wxFile and open with a path and wxFile(), then when the local wxFile
