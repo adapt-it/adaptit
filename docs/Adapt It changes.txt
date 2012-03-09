@@ -15,11 +15,24 @@ off for a given Adapt It project, which means a user can do
 work on a collaboration project with Paratext or Bibledit,
 and in the same session can turn collaboration off and do 
 adaptation work on other texts that don't exchange data with
-Paratext or Bibledit.
+Paratext or Bibledit. When collaboration is on, only scripture
+books are selectable and all data is exchanged with Paratext
+or Bibledit. When collaboration is off only non-collaboration
+Adapt It documents are selectable.
+* In the same dialog where the user can turn collaboration on
+or off for a given Adapt It project, there is now a third 
+option that can be selected to enter a project in read-only 
+mode. This is designed for advisors or consultants who may 
+want to view the user's work (documents produced by the user
+in either collaboration or non-collaboration mode) without 
+risk of accidentally changing anything. The read-only mode 
+is indicated by a pink colored background in Adapt It's main
+window. It lasts only as long as the specified Adapt It 
+project is open.
 * The "Setup Paratext/Bibledit Collaboration" dialog has been
 reordered and simplified. An administrator can now configure
 multiple Adapt It projects for collaboration without leaving
-the setup dialog.
+the setup dialog. 
 * For collaboration work with Paratext or Bibledit, the "Get
 Chapter Only" and "Get Whole Book" radio button selections
 have been moved from the "Get Source Text from Paratext/
@@ -30,7 +43,27 @@ rather than a user choice. This avoids potential data loss
 problems that could happen if a user alternated between 
 chapter only and whole book collaboration while working in
 parts of the same book.
-* The "Get Source Text from Paratext/Bibledit Project" dialog
+* Now each time Adapt It is started the "Select a Project" 
+page of the Start Working Wizard will always appear and the 
+user can select any Adapt It project that exists on the 
+computer. If the user selects an Adapt It project that the 
+administrator has configured for collaboration with Paratext 
+or Bibledit, a dialog with the three choices (described above)
+appears in which the user can determine how that project will 
+be opened. In summary, the choices are:
+   1. Turn collaboration on
+   2. Turn collaboration off
+   3. Turn read-only mode on
+Each choice has adequate accompanying text in the dialog to 
+explain clearly what work can be done for a given choice.
+If the user selects an Adapt It project from the opening page
+of the Start Working Wizard which the administrator has not
+configured for collaboration with Paratext or Bibledit, the
+dialog presenting the three choices for entering that project
+will not appear, but the usual "Select a Document" wizard
+page appears as usual.
+* When collaboration with Paratext or Bibledit is ON, the 
+"Get Source Text from Paratext/Bibledit Project" dialog
 now displays more clearly to the user which Paratext/Bibledit
 projects and which Adapt It project are involved when
 collaboration mode is turned ON. 
