@@ -138,9 +138,9 @@ adapting purposes has been extended. The legacy versions
 used just space, tab or newline as word-dividing indicators.
 Version 6.0.0 added non-breaking space, 'word joiner' (Ux2060)
 and any character in the range Ux2000 to Ux200D - which
-includes the zero-width and reduced-width spaces; and 6.2.0 
-extends the latter range to be Ux2000 to Ux2015 inclusive,
-which includes en dash and em dash, besides others.
+includes the zero-width and reduced-width spaces (actually
+this extension happened in 6.1.0, but we forgot to
+document it).
 
 ----------------------------------------------
 Bug fixes in 6.2.0
