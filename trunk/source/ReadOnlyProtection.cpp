@@ -614,6 +614,10 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	#endif
 			return FALSE;
 		}
+		else if (IsItFictitious(folderPath) && m_pApp->m_bReadOnlyAccess)
+		{
+			return FALSE;
+		}
 		else if (ADifferentMachineMadeTheLock(ropFile))
 		{
 			// Another machine on the network created the lock file.
@@ -840,8 +844,8 @@ bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock(wxString& ropFile)
 	// be sufficient to just determine if the process IDs are different and if so,
 	// return TRUE, i.e., another local process owns the lock when we have a fictitious
 	// nRopFilePID of 99999.
-	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID)
-		|| currProcessStr != ropFileProcessStr && ropFileProcessStr == _T("99999")) 
+	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID))
+		//|| currProcessStr != ropFileProcessStr && ropFileProcessStr == _T("99999")) 
 		return TRUE;
 	return FALSE;
 }
@@ -931,7 +935,8 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 		// (3) it's a bogus read-only protection file set up because the user wants to
 		//     protect from changes the data he's about to look at (e.g. he may be a 
 		//     consultant or advisor, and wants to be sure he doesn't change data copied
-		//     from a translator's machine to his own, and opened on his own machine)
+		//     from a translator's machine to his own, and opened on his own machine),
+		//     and here too we must return TRUE
 		
 		bool bIsZombie = IsZombie(projectFolderPath, m_strOwningReadOnlyProtectionFilename);
 		if(bIsZombie)
