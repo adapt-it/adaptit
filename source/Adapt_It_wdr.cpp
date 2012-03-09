@@ -8490,7 +8490,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Options for entering this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Turn collaboration on - exchange texts with %s while I work"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Turn collaboration o&n - exchange texts with %s while I work"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
@@ -8502,7 +8502,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item5->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Turn collaboration off - I want to work on either scripture or non-scripture without exchanging texts with %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Turn collaboration o&ff - I want to work on either scripture or non-scripture without exchanging texts with %s"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
@@ -8514,7 +8514,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item5->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("Turn read-only mode on - I'm an advisor or consultant and just want to view the user's texts"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("Turn &read-only mode on - I'm an advisor or consultant and just want to view the user's texts"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
