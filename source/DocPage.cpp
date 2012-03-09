@@ -478,17 +478,18 @@ void CDocPage::OnSetActive()
 	else
 		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_curAdaptionsPath);
 
-	// whm added 23Feb12 When collaboration is ON, we don't display any of the documents
-	// with a "_Collab_" prefix in the docPage's m_pListBox.
-	// whm 2Mar12 revised at Bruce's request to only hide _Collab documents when the "_Collab" 
-	// substring of the file name is at the initial position within the filename. If an 
-	// administrator or user manually renames the Adaptations document so that some substring
-	// is prefixed to its _Collab... file name, the document will now appear as a 
-	// "non-collaboration" document within the DocPage's list - in spite of what the name seems 
-	// to indicate in the DocPage's list.
-	// whm 7Mar12 modified to show all _Collab docs when in read-only mode
+	// whm 7Mar12 revised at Bruce's request.
+	// When the user turns collaboration ON this DocPage doesn't show at all. 
+	// When the user selects "Turn collaboration off", the DocPage does appear, but
+	// we hide _Collab documents, but only when the "_Collab" substring of the file 
+	// name is at the initial position within the filename. If an administrator or 
+	// user manually renames the Adaptations document so that some substring is 
+	// prefixed to its _Collab... file name, the document will now appear as a 
+	// "non-collaboration" document within the DocPage's list - in spite of what the 
+	// name seems to indicate in the DocPage's list.
+	// When the advisor/consultant/user selects read-only mode, we show all documents.
 	if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
-		&& !gpApp->m_bReadOnlyAccess)
+		&& !gpApp->m_bFictitiousReadOnlyAccess)
 	{
 		int ct;
 		int tot = possibleAdaptions.GetCount();
