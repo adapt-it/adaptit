@@ -606,8 +606,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 		}
 		else if (AnotherLocalProcessOwnsTheLock(ropFile))
 		{
-			// Another instance of Adapt It owns the lock so it is not a zombie
-			// and no additional tests are needed, just return FALSE.
+			// Another local process owns the lock, or it is a fictitious
+			// lock, so it is not a zombie and no additional tests are needed, 
+			// just return FALSE.
 	#ifdef _DEBUG_ROP
 				wxLogDebug(_T("In IsZombie() at AnotherLocalProcessOwnsTheLock(): We can't take ownership so return FALSE."));
 	#endif
@@ -830,7 +831,17 @@ bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock(wxString& ropFile)
 	// on m_pChecker. Or, we can check if the current PID and the
 	// PID of the ropFile differ, AND if the PID of the ropFile currently exists 
 	// as a process in the local system.
-	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID)) //if (IamRunningAnotherInstance()) 
+	// whm modification 9Mar12 to account for the possibility that ropFile is fictitious.
+	// Note that just before AnotherLocalProcessOwnsTheLock() is called in an else if
+	// block, the if block called IOwnTheLock(). Hence, AnotherLocalProcessOwnsTheLock()
+	// will only be called if the IOwnTheLock() returned FALSE (it returns FALSE
+	// It is better to not test if the nRopFilePID process
+	// exists here, because a fictitious nRopFilePID will never exist as 99999. If should
+	// be sufficient to just determine if the process IDs are different and if so,
+	// return TRUE, i.e., another local process owns the lock when we have a fictitious
+	// nRopFilePID of 99999.
+	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID)
+		|| currProcessStr != ropFileProcessStr && ropFileProcessStr == _T("99999")) 
 		return TRUE;
 	return FALSE;
 }
