@@ -2328,7 +2328,7 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 									m_pApp->m_collaborationEditor.c_str());
 		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
-		
+
 	// whm 19Sep11 modified: 
 	// Previously, OnCancel() here emptied the m_pApp->m_curProjectPath. But that I think should
 	// not be done. It is not done when the user Cancel's from the Start Working Wizard when

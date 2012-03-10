@@ -22698,19 +22698,38 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 	//    I decided to use the more advanced wxWizardPage class for all the wizard
 	//    pages.
 
+	// whm added 9Mar12. DoStartWorkingWizard() can be summoned while a document
+	// is open. We should ensure that any open document is closed and unsaved 
+	// changes are saved before proceeding to either the wizard or the 
+	// GetSourceTextFromEditorDlg dialog get a pointer to the currently being used KB
+	CKB* pKB;
+	if (gbIsGlossing)
+		pKB = m_pGlossingKB;
+	else
+		pKB = m_pKB;
 
-	// whm added 20Apr11 support for Paratext/Bibledit collaboration.
-	// The App's m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit
-	// flags indicate whether Paratext collaboration or Bibledit collaboration
-	// is currently in effect. When either is ON, we don't show the typical
-	// Start Working Wizard, but instead we show the "Get Source Text from
-	// Paratext/Bibledit Project" dialog.
+	if (pKB != NULL && m_pLayout->GetStripCount() > 0)
+	{
+		// a document is open, close it and save any unsaved changes
+		// doc is open, so close it first
+		// Note: OnFileClose() calls the Doc's OnSaveModified() before closing
+		// the document. OnSaveModified() prompts for saving if the doc is
+		// dirty (usually is for a collab doc). If user indicates "Yes" to the
+		// prompt, it calls DoCollabFileSave() if collaboration is on, otherwise
+		// it calls DoFileSave_Protected().
+		wxCommandEvent dummyevent;
+		GetDocument()->OnFileClose(dummyevent);
+		GetMainFrame()->canvas->Update(); // force immediate repaint
+		GetDocument()->Modify(FALSE);
+	}
+
 	// whm 19Feb12 modified. Collaboration with PT/BE is now turned ON or OFF
 	// by the user, after selecting a project at the Start Working Wizard's
-	// ProjectPage. Therefore we no longer ever call the CGetSourceTextFromEditorDlg
-	// dialog from within DoStartWorkingWizard().
-
-	//if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+	// ProjectPage.
+	// whm added 20Apr11 support for Paratext/Bibledit collaboration.
+	// When m_bStartWorkUsingCollaboration is TRUE, we don't show the typical
+	// Start Working Wizard, but instead we show the "Get Source Text from
+	// Paratext/Bibledit Project" dialog.
 	if (m_bStartWorkUsingCollaboration)
 	{
 		gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
@@ -22721,13 +22740,48 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		if (dlg.ShowModal() == wxID_CANCEL)
 		{
 			// The user explicitly clicked on Cancel from the "Get Source Text
-			// from Paratext/Bibledit Project" dialog. Set m_bJustLaunched to
-			// FALSE so the MainFrame's OnIdle() handler won't call up the dialog
-			// again, but instead leave the main window blank. After such a Cancel,
-			// the user can always get the dialog up again by clicking on the
+			// from Paratext/Bibledit Project" dialog. After such a Cancel,
+			// the user could get the dialog up again by clicking on the
 			// Open tool bar button, or selecting File | Open or File | Start
-			// Working...).
-			m_bJustLaunched = FALSE;
+			// Working...). Normally doing a File > Open or File > Start Working...
+			// would both bring up the GetSourceTextFromEditor dialog here (because
+			// the App's m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit
+			// flags would be true at this point. The user would have to exit the 
+			// program and start up again to get the normal wizard, unless we ask 
+			// if the user wants to turn collaboration off after this Cancel. We'll
+			// ask the user. We have to set the App's flags and also save the project
+			// config file (since the flags get read out of the config file before the
+			// ChooseCollabOptionsDlg is shown again).
+			int response;
+			wxString msg = _("You cancelled the dialog - You may turn collaboration off if you want to access a different project from the Start Working Wizard.\nDo you want to turn collaboration off?");
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+			if (response == wxYES)
+			{
+				// The user selected to "Turn Collaboration OFF"
+				if (m_collaborationEditor == _("Paratext"))
+				{
+					m_bCollaboratingWithParatext = FALSE;
+				}
+				else if (m_collaborationEditor == _("Bibledit"))
+				{
+					m_bCollaboratingWithBibledit = FALSE;
+				}
+				// The user wants to get the wizard to select a different project.
+				LogUserAction(_T("Collaboration turned OFF by user after Cancel of GetSourceTextFromEditorDlg"));
+				m_bStartWorkUsingCollaboration = FALSE;
+				// Set the File > Open and File > Save menu items back to their normal
+				// state - without the parenthetical information in the labels.
+				MakeMenuInitializationsAndPlatformAdjustments();
+				// Save the changes to the above collab values to the project config file.
+				bool bOK;
+				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
+				bOK = bOK; // was unused, so prevent compiler warning
+				m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
+			}
+			else if (response == wxNO)
+			{
+				m_bJustLaunched = FALSE;
+			}
 			return TRUE;
 		}
 
@@ -23022,7 +23076,7 @@ void CAdapt_ItApp::DoFileOpen()
     // at the document page because DoStartWorkingWizard() has a test near the start for
     // m_pKB non-NULL and the flag m_bKBReady being TRUE, and if so then it knows a project
     // is open and so it should open at the document pane.)
-    // The reason for changingi DoFileOpen() to avoid using the MFC standard file i/o
+    // The reason for changing DoFileOpen() to avoid using the MFC standard file i/o
     // dialog was because of the possibility that Book Folder mode might have been used at
     // some earlier time and if so the Adaptations folder will have 67 folders at the top
     // of the list of files and folders. Not only would this be confusing to the user (he'd

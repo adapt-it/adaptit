@@ -62,6 +62,7 @@
 #include "Layout.h"
 #include "WhichBook.h"
 #include "helpers.h"
+#include "ReadOnlyProtection.h"
 
 // globals
 
@@ -232,6 +233,12 @@ wxWizardPage* CDocPage::GetPrev() const
 	}
 	else
 	{
+		// whm Note 10Mar12: This GetPrev() method is called at more times that just when
+		// the user clicks the < Back button. It is also called whenever the the user clicks
+		// on the Next > button via these calls: OnBackOrNext() > ShowPage() > HasPrevPage > GetPrev().
+		// Therefore, we cannot reset any read-only settings the user set entering the project 
+		// from the 3-button ChooseCollabOptionsDlg from here because it will nullify the settings
+		// we made at the Next > call. See StartWorkingWizard::OnPageShown()
 		return pProjectPage;
 	}
 

@@ -39,7 +39,7 @@ public:
     wxWizardPage *GetFirstPage();
 	wxSizer* pStartWorkingWizardSizer;
  	wxSizer* pWizardPageSizer;
-	
+	void OnCancel(wxCommandEvent& event);
 
 protected:
 
