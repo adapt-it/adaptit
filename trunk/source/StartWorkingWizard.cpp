@@ -50,10 +50,16 @@
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
 #include "ProjectPage.h"
-#include "DocPage.h" 
+#include "DocPage.h"
+#include "ReadOnlyProtection.h"
+#include "Adapt_ItView.h"
+#include "Adapt_ItCanvas.h"
 
 // This global is defined in Adapt_It.cpp.
 //extern bool gbWizardNewProject;
+
+/// This global is defined in Adapt_ItView.cpp.
+extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
@@ -84,6 +90,7 @@ extern CStartWorkingWizard* pStartWorkingWizard;
 
 // event handler table
 BEGIN_EVENT_TABLE(CStartWorkingWizard, wxScrollingWizard)
+	EVT_BUTTON(wxID_CANCEL, CStartWorkingWizard::OnCancel)
 END_EVENT_TABLE()
 
 
@@ -243,4 +250,33 @@ wxWizardPage* CStartWorkingWizard::GetFirstPage()
 		pProjectPage->InitDialog(ievent);
 		return pProjectPage;
 	}
+}
+
+void CStartWorkingWizard::OnCancel(wxCommandEvent& event)
+{
+	// whm 10Mar12. When a Cancel is done from the Wizard we need to 
+	// reset any read-only settings that may have been in effect. This can
+	// be done by calling the same block of code we do in EraseKB() which
+	// calls RemoveReadOnlyProtection() and sets the App's m_bReadOnlyAccess
+	// and m_bFictitiousReadOnlyAccess to FALSE, with a canvas->Refresh().
+	// See also ProjectPage::OnWizardPageChanged() where the same code should
+	// be called.
+	wxASSERT(gpApp != NULL);
+	wxASSERT(gpApp->GetView() != NULL);
+	wxASSERT(gpApp->GetView()->canvas != NULL);
+	wxASSERT(gpApp->m_pROP != NULL);
+	if (!gpApp->m_curProjectPath.IsEmpty())
+	{
+		bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(gpApp->m_curProjectPath);
+		bRemoved = bRemoved; // to avoid warning
+		// we are leaving this folder, so the local process must have m_bReadOnlyAccess unilaterally
+		// returned to a FALSE value - whether or not a ~AIROP-*.lock file remains in the folder
+		gpApp->m_bReadOnlyAccess = FALSE;
+		// whm 7Mar12 added. The project is being closed, so unilaterally set m_bFictitiousReadOnlyAccess
+		// to FALSE
+		gpApp->m_bFictitiousReadOnlyAccess = FALSE; // ditto
+		gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
+	}
+
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

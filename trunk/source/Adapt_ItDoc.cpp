@@ -1333,8 +1333,6 @@ bool CAdapt_ItDoc::OnNewDocument()
     // OnInit() and FALSE thereafter. We'll call it:   m_bControlIsWithinOnInit
 	if (!pApp->m_bControlIsWithinOnInit)
 	{
-		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
-
 		// whm added 7Mar12 code for fictitious read only access. If the m_bFictitiousReadOnlyAccess
 		// flag is set, ForceFictitiousReadOnlyProtection() should be called before the call to
 		// SetReadOnlyProtection().
@@ -1342,6 +1340,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
 			pApp->m_pROP->ForceFictitiousReadOnlyProtection(pApp->m_curProjectPath);
 		}
+
+		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 
 		if (pApp->m_bReadOnlyAccess)
 		{
@@ -3104,8 +3104,8 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 			// long as the project has not closed (EraseKB called), since the 
 			// m_bFictitiousReadOnlyAccess flag does not get reset here.
 			pApp->GetView()->canvas->Refresh(); // try force color change back to normal
-				// white background -- it won't work as the canvas is empty, but the
-				// removal of read only protection is still done if possible
+			// white background -- it won't work as the canvas is empty, but the
+			// removal of read only protection is still done if possible
 		}
 		else
 		{
@@ -16597,10 +16597,7 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 	if (!gpApp->m_curProjectPath.IsEmpty())
 	{
 		bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(gpApp->m_curProjectPath);
-		if (bRemoved)
-		{
-			gpApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
-		}
+		bRemoved = bRemoved; // to avoid warning
 		// we are leaving this folder, so the local process must have m_bReadOnlyAccess unilaterally
 		// returned to a FALSE value - whether or not a ~AIROP-*.lock file remains in the folder
 		gpApp->m_bReadOnlyAccess = FALSE;

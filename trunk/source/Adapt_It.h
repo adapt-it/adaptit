@@ -1308,6 +1308,12 @@ enum LoadabilityFilter {
 	filterOutUnloadableFiles
 };
 
+enum ReadOnlyProtectionInclude
+{
+	includeFictitiousROP,
+	excludeFictitiousROP
+};
+
 typedef struct
 {
     // Note: the "editable span" means the user's selection, except when it encroaches on

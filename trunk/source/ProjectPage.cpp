@@ -63,6 +63,7 @@
 #include "KB.h" 
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
+#include "Adapt_ItCanvas.h"
 #include "MainFrm.h"
 #include "WaitDlg.h"
 #include "ChooseCollabOptionsDlg.h"
@@ -99,7 +100,8 @@ IMPLEMENT_DYNAMIC_CLASS( CProjectPage, wxWizardPage )
 BEGIN_EVENT_TABLE(CProjectPage, wxWizardPage)
 	EVT_INIT_DIALOG(CProjectPage::InitDialog)
     EVT_WIZARD_PAGE_CHANGING(-1, CProjectPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
-    EVT_WIZARD_CANCEL(-1, CProjectPage::OnWizardCancel)
+	EVT_WIZARD_PAGE_CHANGED(-1, CProjectPage::OnWizardPageChanged)
+	EVT_WIZARD_CANCEL(-1, CProjectPage::OnWizardCancel)
 	EVT_LISTBOX_DCLICK(IDC_LIST_NEW_AND_EXISTING, CProjectPage::OnCallWizardNext)// double click simiulates OnWizardNext
 	EVT_LISTBOX(IDC_LIST_NEW_AND_EXISTING, CProjectPage::OnLBSelectItem)
 	EVT_BUTTON(IDC_BUTTON_WHAT_IS_PROJECT, CProjectPage::OnButtonWhatIsProject)
@@ -385,6 +387,46 @@ void CProjectPage::OnButtonWhatIsProject(wxCommandEvent& WXUNUSED(event))
 	accum += s;
 
 	wxMessageBox(accum, _T(""), wxICON_INFORMATION);
+}
+
+// whm added 10Mar12
+void CProjectPage::OnWizardPageChanged(wxWizardEvent& event)
+{
+	bool bDirection;
+	bDirection = event.GetDirection();
+	if (bDirection == FALSE)
+	{
+		// whm 10Mar12 Note.
+		// We changed to the ProjectPage via a < Back click from a later page.
+		// In this case we need to reset any read-only settings that may have 
+		// been in effect, namely we call RemoveReadOnlyProtection(), set 
+		// the App's m_bReadOnlyAccess and m_bFictitiousReadOnlyAccess to FALSE, 
+		// and do a canvas->Refresh().
+		// This block of code is similar to blocks called in:
+		//    CStartWorkingWizard::OnCancel()
+		//    ProjectPage::OnWizardPageChanged()
+		//    CAdapt_ItDoc::EraseKB()
+		//    CAdapt_ItDoc::OnFileClose() [m_bFictitiousReadOnlyAccess not set FALSE here]
+		// Note: All but the gpApp->m_bFictitiousReadOnlyAccess = FALSE statement
+		// is also called in CAdapt_ItDoc::OnFileClose() which shouldn't reset the
+		// Apps m_bFictitiousReadOnlyAccess flag. 
+		wxASSERT(gpApp != NULL);
+		wxASSERT(gpApp->GetView() != NULL);
+		wxASSERT(gpApp->GetView()->canvas != NULL);
+		wxASSERT(gpApp->m_pROP != NULL);
+		if (!gpApp->m_curProjectPath.IsEmpty())
+		{
+			bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(gpApp->m_curProjectPath);
+			bRemoved = bRemoved; // to avoid warning
+			// we are leaving this folder, so the local process must have m_bReadOnlyAccess unilaterally
+			// returned to a FALSE value - whether or not a ~AIROP-*.lock file remains in the folder
+			gpApp->m_bReadOnlyAccess = FALSE;
+			// whm 7Mar12 added. The project is being closed, so unilaterally set m_bFictitiousReadOnlyAccess
+			// to FALSE
+			gpApp->m_bFictitiousReadOnlyAccess = FALSE; // ditto
+			gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
+		}
+	}
 }
 
 void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)

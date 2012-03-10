@@ -1037,6 +1037,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		// the project folder is not owned for writing - this covers the the zombie
 		// case, and also when no running Adapt It instance has as yet entered this
 		// project folder... so set my process up as its owner
+		this->Initialize(); // whm added 10Mar12 since m_strReadOnlyProtectionFilename may have been fictitious
 		wxASSERT(!m_strReadOnlyProtectionFilename.IsEmpty()); // m_pROP->Initialize() 
             // should have made it already; likewise the members m_strLocalUsername &
             // m_strLocalMachinename and m_strLocalProcessID

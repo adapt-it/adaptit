@@ -63,6 +63,7 @@ public:
 	// implement wxWizardPage functions
 	void OnWizardCancel(wxWizardEvent& WXUNUSED(event));
 	void OnWizardPageChanging(wxWizardEvent& event);
+	void OnWizardPageChanged(wxWizardEvent& event);
 	void OnCallWizardNext(wxCommandEvent& WXUNUSED(event));
     virtual wxWizardPage *GetPrev() const;
     virtual wxWizardPage *GetNext() const;
