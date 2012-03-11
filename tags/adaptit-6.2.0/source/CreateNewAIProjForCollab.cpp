@@ -1,0 +1,170 @@
+/////////////////////////////////////////////////////////////////////////////
+/// \project		adaptit
+/// \file			CreateNewAIProjForCollab.cpp
+/// \author			Bill Martin
+/// \date_created	23 February 2012
+/// \date_revised	23 February 2012
+/// \copyright		2012 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \description	This is the implementation file for the CCreateNewAIProjForCollab class. 
+/// The CCreateNewAIProjForCollab class implements a simple dialog that allows the user to
+/// enter the source language and target language names that are to be used for a new Adapt It
+/// project.
+/// \derivation		The CCreateNewAIProjForCollab class is derived from AIModalDialog.
+/////////////////////////////////////////////////////////////////////////////
+// Pending Implementation Items in CreateNewAIProjForCollab.cpp (in order of importance): (search for "TODO")
+// 1. 
+//
+// Unanswered questions: (search for "???")
+// 1. 
+// 
+/////////////////////////////////////////////////////////////////////////////
+
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma implementation "CreateNewAIProjForCollab.h"
+#endif
+
+// For compilers that support precompilation, includes "wx.h".
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+// Include your minimal set of headers here, or wx.h
+#include <wx/wx.h>
+#endif
+
+// other includes
+#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+#include <wx/valgen.h> // for wxGenericValidator
+//#include <wx/valtext.h> // for wxTextValidator
+#include "Adapt_It.h"
+#include "CreateNewAIProjForCollab.h"
+#include "LanguageCodesDlg.h"
+
+// event handler table
+BEGIN_EVENT_TABLE(CCreateNewAIProjForCollab, AIModalDialog)
+	EVT_INIT_DIALOG(CCreateNewAIProjForCollab::InitDialog)
+	EVT_TEXT(ID_TEXTCTRL_SRC_LANG_NAME, CCreateNewAIProjForCollab::OnEnChangeSrcLangName)
+	EVT_TEXT(ID_TEXTCTRL_TGT_LANG_NAME, CCreateNewAIProjForCollab::OnEnChangeTgtLangName)
+	EVT_BUTTON(ID_BUTTON_LOOKUP_CODES, CCreateNewAIProjForCollab::OnBtnLookupCodes)
+	EVT_BUTTON(wxID_OK, CCreateNewAIProjForCollab::OnOK)
+END_EVENT_TABLE()
+
+CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog constructor
+	: AIModalDialog(parent, -1, _("Provide Language Names for New Adapt It Project Creation"),
+				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
+	// for the dialog. The first parameter is the parent which should normally be "this".
+	// The second and third parameters should both be TRUE to utilize the sizers and create the right
+	// size dialog.
+	CreateNewAIProjForCollabFunc(this, TRUE, TRUE);
+	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	
+	m_pApp = &wxGetApp();
+	
+	wxColour sysColorBtnFace; // color used for read-only text controls displaying
+	// color used for read-only text controls displaying static text info button face color
+	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	
+	pTextCtrlSrcLangName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SRC_LANG_NAME);
+	wxASSERT(pTextCtrlSrcLangName != NULL);
+
+	pTextCtrlSrcLangCode = (wxTextCtrl*)FindWindowById(ID_EDIT_SOURCE_LANG_CODE);
+	wxASSERT(pTextCtrlSrcLangCode != NULL);
+
+	pTextCtrlTgtLangName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TGT_LANG_NAME);
+	wxASSERT(pTextCtrlTgtLangName != NULL);
+
+	pTextCtrlTgtLangCode = (wxTextCtrl*)FindWindowById(ID_EDIT_TARGET_LANG_CODE);
+	wxASSERT(pTextCtrlTgtLangCode != NULL);
+
+	pBtnLookupCodes = (wxButton*)FindWindowById(ID_BUTTON_LOOKUP_CODES);
+	wxASSERT(pBtnLookupCodes != NULL);
+
+	pTextCtrlNewAIProjName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEW_AI_PROJ_NAME);
+	wxASSERT(pTextCtrlNewAIProjName != NULL);
+	pTextCtrlNewAIProjName->SetBackgroundColour(sysColorBtnFace);
+
+}
+
+CCreateNewAIProjForCollab::~CCreateNewAIProjForCollab() // destructor
+{
+	
+}
+
+void CCreateNewAIProjForCollab::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+{
+	//InitDialog() is not virtual, no call needed to a base class
+
+}
+
+// event handling functions
+
+void CCreateNewAIProjForCollab::OnEnChangeSrcLangName(wxCommandEvent& WXUNUSED(event))
+{
+	// user is editing the source language name edit box
+	// update the AI project name in the "New Adapt It project name will be:"
+	// edit box
+	wxString tempStrSrcProjName,tempStrTgtProjName;
+	tempStrSrcProjName = pTextCtrlSrcLangName->GetValue();
+	tempStrTgtProjName = pTextCtrlTgtLangName->GetValue();
+	wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
+	pTextCtrlNewAIProjName->ChangeValue(projFolder);
+}
+
+void CCreateNewAIProjForCollab::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(event))
+{
+	// user is editing the target language name edit box
+	// update the AI project name in the "New Adapt It project name will be:"
+	// edit box
+	wxString tempStrSrcProjName,tempStrTgtProjName;
+	tempStrSrcProjName = pTextCtrlSrcLangName->GetValue();
+	tempStrTgtProjName = pTextCtrlTgtLangName->GetValue();
+	wxString projFolder = tempStrSrcProjName + _T(" to ") + tempStrTgtProjName + _T(" adaptations");
+	pTextCtrlNewAIProjName->ChangeValue(projFolder);
+}
+
+void CCreateNewAIProjForCollab::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event))
+{
+	CLanguageCodesDlg lcDlg(this); // make the CLanguagesPage the parent in this case
+	lcDlg.Center();
+	// initialize the language code edit boxes with the values currently in
+	// the LanguagePage's edit boxes (which InitDialog initialized to the current 
+	// values on the App, or which the user manually edited before pressing the 
+	// Lookup Codes button).
+	lcDlg.m_sourceLangCode = pTextCtrlSrcLangCode->GetValue();
+	lcDlg.m_targetLangCode = pTextCtrlTgtLangCode->GetValue();
+	int returnValue = lcDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	// transfer language codes to the edit box controls and the App's members
+	pTextCtrlSrcLangCode->SetValue(lcDlg.m_sourceLangCode);
+	pTextCtrlTgtLangCode->SetValue(lcDlg.m_targetLangCode);
+	m_pApp->m_sourceLanguageCode = lcDlg.m_sourceLangCode;
+	m_pApp->m_targetLanguageCode = lcDlg.m_targetLangCode;
+}
+
+// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
+// If this returns TRUE, the function either calls EndModal(wxID_OK) if the
+// dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
+// if the dialog is modeless.
+void CCreateNewAIProjForCollab::OnOK(wxCommandEvent& event) 
+{
+	// whm Note: The caller (SetupEditorCollaboration.cpp) retrieves the
+	// values from the source and target lang name wxTextCtrl controls
+	// after OnOK() is invoked.
+	// 	
+	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
+}
+
+
+// other class methods
+
