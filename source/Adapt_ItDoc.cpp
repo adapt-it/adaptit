@@ -1841,6 +1841,15 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 		wxBell();
 		DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
 		pProgDlg->Destroy();
+		// whm added 11Mar12. This situation occurrs if the user attempted to save while
+		// Paratext is running, and instead of closing down Paratext, clicks the Cancel
+		// button of the message prompt. The local AI doc gets saved by the DoFileSave_Protected()
+		// call above, but the doc is then marked "clean" rather than "dirty" which with
+		// respect to the Paratext data is not true. Immediately after getting here the
+		// AI doc is not dirty and so the Save button and File | Save are disabled. To give 
+		// the user the opportunity of doing another save without having to do something
+		// to make the doc dirty again, we'll set the doc as modified here
+		this->Modify(TRUE);
 		return FALSE;
 	}
 	return TRUE;
