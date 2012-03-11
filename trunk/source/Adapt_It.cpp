@@ -11926,6 +11926,11 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 	}
 	projConfigPathAndName = curProjPathAndName + PathSeparator + szProjectConfiguration + _T(".aic");
 
+	// whm added 11Mar12 if there is no project config file, it obviously is not a collab project
+	// so return FALSE.
+	if (!::wxFileExists(projConfigPathAndName))
+		return FALSE; 
+
 	// Get the project configuration file open in memory in a wxTextFile
 	wxTextFile f;
 	bool bOpenedOK = f.Open(projConfigPathAndName);
@@ -14510,7 +14515,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			{
 				wxLogDebug(_T("The existing instance may be too busy to respond. Close any open dialogs and retry."));
 			}
-			wxString msg = _("Adapt It is already running for the current user. Aborting attempt to run a second instance of Adapt It...");
+			wxString msg = _("Adapt It is already running. Aborting attempt to run a second instance of Adapt It...");
 			LogUserAction(msg);
 			// If only a single instance is to be allowed, we will return FALSE here
 			// from OnInit() after deallocating some memory items below.
@@ -22758,11 +22763,11 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			if (response == wxYES)
 			{
 				// The user selected to "Turn Collaboration OFF"
-				if (m_collaborationEditor == _("Paratext"))
+				if (m_collaborationEditor == _T("Paratext"))
 				{
 					m_bCollaboratingWithParatext = FALSE;
 				}
-				else if (m_collaborationEditor == _("Bibledit"))
+				else if (m_collaborationEditor == _T("Bibledit"))
 				{
 					m_bCollaboratingWithBibledit = FALSE;
 				}

@@ -62,7 +62,7 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	CreateNewAIProjForCollabFunc(this, TRUE, TRUE);
+	pCreateNewAIProjForCollabSizer = CreateNewAIProjForCollabFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	m_pApp = &wxGetApp();
@@ -70,6 +70,12 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+	
+	pStaticTextTopInfoLine1 = (wxStaticText*)FindWindowById(ID_TEXT_TOP_INFO_1);
+	wxASSERT(pStaticTextTopInfoLine1 != NULL);
+	
+	pStaticTextTopInfoLine2 = (wxStaticText*)FindWindowById(ID_TEXT_TOP_INFO_2);
+	wxASSERT(pStaticTextTopInfoLine2 != NULL);
 	
 	pTextCtrlSrcLangName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SRC_LANG_NAME);
 	wxASSERT(pTextCtrlSrcLangName != NULL);
@@ -100,7 +106,22 @@ CCreateNewAIProjForCollab::~CCreateNewAIProjForCollab() // destructor
 void CCreateNewAIProjForCollab::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	wxString infoLine1,infoLine2;
+	infoLine1 = pStaticTextTopInfoLine1->GetLabel();
+	infoLine1 = infoLine1.Format(infoLine1,m_pApp->m_collaborationEditor.c_str());
+	pStaticTextTopInfoLine1->SetLabel(infoLine1);
 
+	infoLine2 = pStaticTextTopInfoLine2->GetLabel();
+	infoLine2 = infoLine2.Format(infoLine2,m_pApp->m_collaborationEditor.c_str());
+	pStaticTextTopInfoLine2->SetLabel(infoLine2);
+
+	pCreateNewAIProjForCollabSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of CreateNewAIProjForCollabFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pCreateNewAIProjForCollabSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
 }
 
 // event handling functions

@@ -195,6 +195,9 @@ work better on small/narrow screens.
 "Verse", in some situations, the setting could switch to
 defining sections by "Punctuation" and vice versa. This has
 now been fixed.
+* In some circumstances changes made to texts during 
+collaboration with Paratext/Bibledit were not being saved back
+to Paratext/Bibledit. This bug should now be fixed.
 * In the book/chapter selection dialog during collaboration,
 the chapter details were not reporting correctly the verses
 which have no target text.

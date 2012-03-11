@@ -27,13 +27,16 @@ public:
 	CCreateNewAIProjForCollab(wxWindow* parent); // constructor
 	virtual ~CCreateNewAIProjForCollab(void); // destructor
 	// other methods
-	// 
+	
+	wxStaticText* pStaticTextTopInfoLine1;
+	wxStaticText* pStaticTextTopInfoLine2;
 	wxTextCtrl* pTextCtrlSrcLangName;
 	wxTextCtrl* pTextCtrlSrcLangCode;
 	wxTextCtrl* pTextCtrlTgtLangName;
 	wxTextCtrl* pTextCtrlTgtLangCode;
 	wxTextCtrl* pTextCtrlNewAIProjName;
 	wxButton* pBtnLookupCodes;
+	wxSizer* pCreateNewAIProjForCollabSizer;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
