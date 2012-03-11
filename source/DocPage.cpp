@@ -486,6 +486,8 @@ void CDocPage::OnSetActive()
 		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_curAdaptionsPath);
 
 	// whm 7Mar12 revised at Bruce's request.
+	// When no collaboration has been setup for the opened project we show all documents,
+	// i.e., don't execute the block below to filter out _Collab... docs from the list.
 	// When the user turns collaboration ON this DocPage doesn't show at all. 
 	// When the user selects "Turn collaboration off", the DocPage does appear, but
 	// we hide _Collab documents, but only when the "_Collab" substring of the file 
@@ -495,18 +497,29 @@ void CDocPage::OnSetActive()
 	// "non-collaboration" document within the DocPage's list - in spite of what the 
 	// name seems to indicate in the DocPage's list.
 	// When the advisor/consultant/user selects read-only mode, we show all documents.
-	if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
-		&& !gpApp->m_bFictitiousReadOnlyAccess)
+	// Don't filter out _Collab... docs if it is not a potential collaboration project
+	if (gpApp->AIProjectIsACollabProject(gpApp->m_curProjectName))
 	{
-		int ct;
-		int tot = possibleAdaptions.GetCount();
-		// remove any "_Collab..." items in reverse wxArrayString order
-		for (ct = tot-1; ct >= 0; ct--)
+		// It is a potential collaboration project, so we filter out _Collab... docs
+		// only for these conditions:
+		// 1. Collaboration is not currently turned on by the user
+		// 2. Read-only mode is not currently turned on by an advisor/consultant/user
+		// If 1 and 2 above are both TRUE, the 2nd radio button (Collaboration is OFF) is
+		// in effect from the ChooseCollabOptionsDlg, and we do filter out the _Collab...
+		// docs in that case.
+		if (!(gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+			&& !gpApp->m_bFictitiousReadOnlyAccess)
 		{
-			//if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
-			if (possibleAdaptions.Item(ct).Find(_T("_Collab")) == 0)
+			int ct;
+			int tot = possibleAdaptions.GetCount();
+			// remove any "_Collab..." items in reverse wxArrayString order
+			for (ct = tot-1; ct >= 0; ct--)
 			{
-				possibleAdaptions.RemoveAt(ct,1);
+				//if (possibleAdaptions.Item(ct).Find(_T("_Collab")) != wxNOT_FOUND)
+				if (possibleAdaptions.Item(ct).Find(_T("_Collab")) == 0)
+				{
+					possibleAdaptions.RemoveAt(ct,1);
+				}
 			}
 		}
 	}

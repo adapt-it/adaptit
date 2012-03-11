@@ -225,7 +225,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text = pStaticTextListOfProjects->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	text += _T(' ');
-	if (m_pApp->m_collaborationEditor == _("Paratext"))
+	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		text += _("(name : full name: language : code)");
 	else 
 		text += _("(name)");
@@ -857,6 +857,15 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 		}
 		else
 		{
+			// A new AI project was created OK.
+			// A side effect of CreateNewAIProject() above is that it calls SetupDirectories()
+			// which creates and loads the KBs for the new project. We want the new project 
+			// created along with new KBs, but at this point we don't want the KBs loaded, so we 
+			// unload them here before proceeding. If we don't do this the wizard will open at 
+			// the DocPage rather than at the ProjectPage when "Close" is selected to exit the
+			// SetupEditorCollaboration dialog.
+			UnloadKBs(m_pApp);
+
 			// add the new project to the combo box list of projects
 			int nNewProjIndex;
 			nNewProjIndex = pComboAiProjects->Append(m_pApp->m_curProjectName);
@@ -871,6 +880,8 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
 			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_pApp->m_collaborationEditor.c_str());
 			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION);
+			wxCommandEvent evt;
+			OnComboBoxSelectAiProject(evt);
 		}
 	}
 }
