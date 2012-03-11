@@ -35262,7 +35262,10 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		{
 			wxString message = _("Collaborating with ");
 			message += gpApp->m_collaborationEditor;
-			rscStr = _("[") + message + _("]  Current Project: %s");
+			rscStr = _T("[");
+			rscStr += message;
+			rscStr += _T("] ");
+			rscStr += _T("Current Project: %s");
 		}
 		else
 		{
