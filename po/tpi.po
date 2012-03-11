@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-10 22:45-0600\n"
+"POT-Creation-Date: 2012-03-11 18:41-0600\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Bill Martin <adaptitbill@gmail.com>\n"
 "Language-Team: Adapt It Development <adaptitbill@gmail.com>\n"
@@ -343,7 +343,7 @@ msgid "Revelation"
 msgstr "Revelesen"
 
 #: source/Adapt_It.cpp:748
-#: source/Adapt_It.cpp:13767
+#: source/Adapt_It.cpp:13772
 msgid "Other Texts"
 msgstr "Ol Arapela Buk"
 
@@ -684,13 +684,13 @@ msgstr "(Yusim sistem defol tokples) [%s]"
 # Priority 1
 # Meaning: display glosses, if they exist (in a separate line)
 #: source/Adapt_It.cpp:7990
-#: source/Adapt_It_wdr.cpp:8992
+#: source/Adapt_It_wdr.cpp:8995
 msgid "See Glosses"
 msgstr "Lukim Glos"
 
 # Priority 1
 #: source/Adapt_It.cpp:8295
-#: source/Adapt_It.cpp:13178
+#: source/Adapt_It.cpp:13183
 #: source/Adapt_ItView.cpp:27554
 #: source/Adapt_ItView.cpp:27718
 msgid "<no gloss>"
@@ -698,7 +698,7 @@ msgstr "<nogat glos>"
 
 # Priority 1
 #: source/Adapt_It.cpp:8299
-#: source/Adapt_It.cpp:13177
+#: source/Adapt_It.cpp:13182
 #: source/Adapt_ItView.cpp:27542
 #: source/Adapt_ItView.cpp:27729
 #: source/Adapt_It_wdr.cpp:287
@@ -709,7 +709,7 @@ msgstr "<nogat trenslesen>"
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
 #: source/Adapt_It.cpp:8359
-#: source/Adapt_It.cpp:35306
+#: source/Adapt_It.cpp:35311
 #: source/Adapt_It_wdr.cpp:301
 #: source/Adapt_It_wdr.cpp:6426
 msgid "Glossing"
@@ -729,36 +729,32 @@ msgstr "<Nupela Projek>"
 
 # Priority 1
 #: source/Adapt_It.cpp:8712
-#: source/Adapt_It_wdr.cpp:8898
+#: source/Adapt_It_wdr.cpp:8901
 msgid "&Open...\tCtrl-O"
 msgstr "&Opim...\tCtrl-O"
 
 # Priority 1
 #: source/Adapt_It.cpp:8713
-#, fuzzy
 msgid "&Open... (Get Source Text From Paratext)\tCtrl-O"
-msgstr "(Kisim Sos Teks I Kam Long Paratext)"
+msgstr "&Opim... (Kisim Sos Teks I Kam Long Paratext)\tCtrl-O"
 
 #: source/Adapt_It.cpp:8714
-#, fuzzy
 msgid "&Open... (Get Source Text From Bibledit)\tCtrl-O"
-msgstr "(Kisim Sos Teks i Kam long Bibledit)"
+msgstr "&Opim... (Kisim Sos Teks I Kam Long Bibledit)\tCtrl-O"
 
 # Priority 1
 #: source/Adapt_It.cpp:8739
-#: source/Adapt_It_wdr.cpp:8899
+#: source/Adapt_It_wdr.cpp:8902
 msgid "&Save\tCtrl-S"
 msgstr "&Sevim\tCtrl-S"
 
 #: source/Adapt_It.cpp:8740
-#, fuzzy
 msgid "&Save (Transfer Translation Draft To Paratext)\tCtrl-S"
-msgstr "(Trenslesen teks i go long Paratext)"
+msgstr "&Sevim (Trenslesen teks i go long Paratext)\tCtrl-S"
 
 #: source/Adapt_It.cpp:8741
-#, fuzzy
 msgid "&Save (Transfer Translation Draft To Bibledit)\tCtrl-S"
-msgstr "(Salim Trenslesen Teks i go long Bibledit)"
+msgstr "&Sevim (Trenslesen teks i go long Bibledit)\tCtrl-S"
 
 # Priority 1
 #: source/Adapt_It.cpp:8836
@@ -814,128 +810,128 @@ msgstr "Het Tok Bilong Help\tF1"
 
 # Priority 1
 #: source/Adapt_It.cpp:10546
-#: source/Adapt_It_wdr.cpp:8919
+#: source/Adapt_It_wdr.cpp:8922
 msgid "&File"
 msgstr "&Fail"
 
 # Priority 1
 #: source/Adapt_It.cpp:10548
-#: source/Adapt_It_wdr.cpp:8938
+#: source/Adapt_It_wdr.cpp:8941
 msgid "&Edit"
 msgstr "&Edit"
 
 # Priority 1
 #: source/Adapt_It.cpp:10550
-#: source/Adapt_It_wdr.cpp:8953
+#: source/Adapt_It_wdr.cpp:8956
 msgid "&View"
 msgstr "&Vu"
 
 # Priority 1
 #: source/Adapt_It.cpp:10552
-#: source/Adapt_It_wdr.cpp:8976
+#: source/Adapt_It_wdr.cpp:8979
 msgid "&Tools"
 msgstr "&Tul"
 
 # Priority 1
 #: source/Adapt_It.cpp:10554
-#: source/Adapt_It_wdr.cpp:8989
+#: source/Adapt_It_wdr.cpp:8992
 msgid "E&xport-Import"
 msgstr "E&kspot-Impot"
 
 # Priority 1
 #: source/Adapt_It.cpp:10556
-#: source/Adapt_It_wdr.cpp:9012
+#: source/Adapt_It_wdr.cpp:9015
 msgid "&Advanced"
 msgstr "&Advens"
 
 # Priority 1
 #: source/Adapt_It.cpp:10558
-#: source/Adapt_It_wdr.cpp:9016
+#: source/Adapt_It_wdr.cpp:9019
 msgid "&Layout"
 msgstr "&Wokabaut"
 
 # Priority 1
 #: source/Adapt_It.cpp:10560
-#: source/Adapt_It_wdr.cpp:9028
+#: source/Adapt_It_wdr.cpp:9031
 msgid "&Help"
 msgstr "&Help"
 
 # Priority 1
 #: source/Adapt_It.cpp:10562
-#: source/Adapt_It_wdr.cpp:9048
+#: source/Adapt_It_wdr.cpp:9051
 msgid "Ad&ministrator"
 msgstr "Ad&ministreta"
 
 # Priority 1
-#: source/Adapt_It.cpp:13006
+#: source/Adapt_It.cpp:13011
 msgid "The user interface language change may not fully take effect until you restart Adapt It."
 msgstr "Sapos toktok bilong ol menu samting i no kamap klia, yu ken stopim na statim gen Adapt It, na bihain ol tokples i ken i kamap ples klia."
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: source/Adapt_It.cpp:13171
+#: source/Adapt_It.cpp:13176
 msgid "adaptation"
 msgstr "adaptesen"
 
 # Priority 1
-#: source/Adapt_It.cpp:13172
+#: source/Adapt_It.cpp:13177
 msgid "gloss"
 msgstr "glos"
 
 # Priority 1
-#: source/Adapt_It.cpp:13173
+#: source/Adapt_It.cpp:13178
 msgid "an adaptation"
 msgstr "wanpela adaptesen"
 
 # Priority 1
-#: source/Adapt_It.cpp:13174
+#: source/Adapt_It.cpp:13179
 msgid "a gloss"
 msgstr "wanpela glos"
 
 # Priority 1
-#: source/Adapt_It.cpp:13179
-#: source/Adapt_ItDoc.cpp:22492
-#: source/Adapt_ItDoc.cpp:22643
-#: source/Adapt_ItDoc.cpp:22882
-#: source/Adapt_ItDoc.cpp:23621
+#: source/Adapt_It.cpp:13184
+#: source/Adapt_ItDoc.cpp:22501
+#: source/Adapt_ItDoc.cpp:22652
+#: source/Adapt_ItDoc.cpp:22891
+#: source/Adapt_ItDoc.cpp:23630
 msgid "Inconsistency Found"
 msgstr "Painim Inkonsistensi"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: source/Adapt_It.cpp:13180
+#: source/Adapt_It.cpp:13185
 msgid "Adaptation text"
 msgstr "Trenslesen teks"
 
 # Priority 1
-#: source/Adapt_It.cpp:13181
+#: source/Adapt_It.cpp:13186
 msgid "Gloss text"
 msgstr "Glos teks"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: source/Adapt_It.cpp:13182
+#: source/Adapt_It.cpp:13187
 msgid "adaptations"
 msgstr "ol adaptesen"
 
 # Priority 1
-#: source/Adapt_It.cpp:13183
+#: source/Adapt_It.cpp:13188
 msgid "glosses"
 msgstr "ol glos"
 
-#: source/Adapt_It.cpp:13184
+#: source/Adapt_It.cpp:13189
 msgid "An adaptation exists. A knowledge base entry is expected, but is absent"
 msgstr "Wanpela trenslesen i stap. Nolis Bes"
 
-#: source/Adapt_It.cpp:13185
+#: source/Adapt_It.cpp:13190
 #, c-format
 msgid "The knowledge base entry is %s, the document does not agree"
 msgstr "Nolis bes i tok %s, tasol dokumen i no olsem"
 
 # Do not translate.
-#: source/Adapt_It.cpp:13529
+#: source/Adapt_It.cpp:13534
 msgid "Adapt It Unicode"
 msgstr "Adapt It Unicode"
 
 # Do not translate.
-#: source/Adapt_It.cpp:13530
+#: source/Adapt_It.cpp:13535
 msgid "Unicode "
 msgstr "Unicode "
 
@@ -944,73 +940,73 @@ msgstr "Unicode "
 # 2. In the Welcome splash screen.
 # 3. In the Help About Information.
 # It is probably best not to translate.
-#: source/Adapt_It.cpp:13532
+#: source/Adapt_It.cpp:13537
 #: source/Adapt_It_wdr.cpp:76
 #: source/Adapt_It_wdr.cpp:1267
 msgid "Adapt It"
 msgstr "Adapt It"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: source/Adapt_It.cpp:13560
-#: source/Adapt_It.cpp:35351
-#: source/Adapt_It.cpp:35416
+#: source/Adapt_It.cpp:13565
+#: source/Adapt_It.cpp:35356
+#: source/Adapt_It.cpp:35421
 msgid "Adaptations"
 msgstr "Trenslesen"
 
 # Priority 1
-#: source/Adapt_It.cpp:13763
+#: source/Adapt_It.cpp:13768
 msgid "History books"
 msgstr "Buk bilong Stori"
 
 # Priority 1
-#: source/Adapt_It.cpp:13764
+#: source/Adapt_It.cpp:13769
 msgid "Wisdom books"
 msgstr "Buk bilong Sindaun"
 
 # Priority 1
-#: source/Adapt_It.cpp:13765
+#: source/Adapt_It.cpp:13770
 msgid "Prophecy books"
 msgstr "Buk bilong ol Propet"
 
 # Priority 1
-#: source/Adapt_It.cpp:13766
+#: source/Adapt_It.cpp:13771
 msgid "New Testament books"
 msgstr "Ol Buk bilong Nupela Testamen"
 
-#: source/Adapt_It.cpp:14513
+#: source/Adapt_It.cpp:14518
 msgid "Adapt It is already running. Aborting attempt to run a second instance of Adapt It..."
 msgstr "Adapt It i ron yet i stap. Namba tu ron bilong en i laik kamap, tasol mii stopim pinis..."
 
-#: source/Adapt_It.cpp:16866
+#: source/Adapt_It.cpp:16871
 msgid "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."
 msgstr "I laik painim kastom wok folda tasol i nogat. Yu ken wok long stretim dispela arasait long Adapt It, o sapos yu klikim Kensel progrem bai stop nau."
 
-#: source/Adapt_It.cpp:16868
-#: source/Adapt_It.cpp:28500
-#: source/Adapt_It.cpp:28511
-#: source/Adapt_It.cpp:28636
+#: source/Adapt_It.cpp:16873
+#: source/Adapt_It.cpp:28505
+#: source/Adapt_It.cpp:28516
+#: source/Adapt_It.cpp:28641
 msgid "Error of file named CustomWorkFolderLocation"
 msgstr "Problem wantaim fail i gat nem CustomWorkFolderLocation"
 
-#: source/Adapt_It.cpp:17305
-#: source/Adapt_ItDoc.cpp:3134
+#: source/Adapt_It.cpp:17310
+#: source/Adapt_ItDoc.cpp:3143
 msgid "Untitled - Adapt It"
 msgstr "Nogat Nem - Adapt It"
 
 # Priority 1
 # Do not translate the file names books.xml and AI_USFM.xml.
-#: source/Adapt_It.cpp:17311
+#: source/Adapt_It.cpp:17316
 msgid "Loading books.xml and AI_USFM.xml ..."
 msgstr "Ritim books.xml na AI_USFM.xml ..."
 
 # Do not translate
-#: source/Adapt_It.cpp:17323
-#: source/Adapt_It.cpp:17327
-#: source/Adapt_It.cpp:17339
+#: source/Adapt_It.cpp:17328
+#: source/Adapt_It.cpp:17332
+#: source/Adapt_It.cpp:17344
 msgid "books.xml"
 msgstr "books.xml"
 
-#: source/Adapt_It.cpp:17386
+#: source/Adapt_It.cpp:17391
 msgid ""
 "Warning: book folder mode will be disabled until a books.xml file is stored \n"
 "in the work folder and it is read in and parsed correctly.\n"
@@ -1022,21 +1018,21 @@ msgstr ""
 "Yu mas stopim Adapt It na stretim books.xml fail\n"
 "pinis, yu ken wok gen."
 
-#: source/Adapt_It.cpp:17579
+#: source/Adapt_It.cpp:17584
 msgid "Could not remove the AI_USFM.xml file from the work folder."
 msgstr "No inap rausim oldpela AI_USFM.xml fail long wok folda."
 
-#: source/Adapt_It.cpp:17633
+#: source/Adapt_It.cpp:17638
 msgid "Warning: using default USFM styles until a AI_USFM.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_USFM.xml file if you have previously told Adapt It to hide certain standard format markers."
 msgstr "Toksave: Adapt It yet bai makim ol USFM stail inap wanpela AI_USFM.xml file i stap long wok folda na Adapt It i ken ritim gut. Yu mas stopim progrem na fixim AI_USFM.xml fail, sapos bipo yu bin tokim Adapt It long haitim sampela standet fomat maka."
 
 # Priority 1
 # Do not translate the file name AI_UserProfiles.xml
-#: source/Adapt_It.cpp:17665
+#: source/Adapt_It.cpp:17670
 msgid "Loading AI_UserProfiles.xml ..."
 msgstr "Lodim AI_UserProfiles.xml ..."
 
-#: source/Adapt_It.cpp:17843
+#: source/Adapt_It.cpp:17848
 #, c-format
 msgid ""
 "Could not create backup of the modified AI_UserProfiles.xml file: \n"
@@ -1047,16 +1043,16 @@ msgstr ""
 "   %s\n"
 "Plis askim administreta long sekim user wok profail bilong yu."
 
-#: source/Adapt_It.cpp:17875
-#: source/Adapt_It.cpp:18048
+#: source/Adapt_It.cpp:17880
+#: source/Adapt_It.cpp:18053
 msgid "Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."
 msgstr "No inap ritim AI_UserProfiles.xml fail insait long wok folda. Askim administreta long sekim gen ol Adapt It user wok profail."
 
-#: source/Adapt_It.cpp:17925
+#: source/Adapt_It.cpp:17930
 msgid "Unable to update the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."
 msgstr "No inap apdetim AI_UserProfiles.xml fail insait long wok folda. Askim administreta long sekim gen ol Adapt It user wok profail."
 
-#: source/Adapt_It.cpp:17961
+#: source/Adapt_It.cpp:17966
 #, c-format
 msgid ""
 "Could not create backup of the modified AI_UserProfiles.xml file: \n"
@@ -1067,7 +1063,7 @@ msgstr ""
 "   %s\n"
 "Plis, askim administreta long sekim gen ol Adapt It user wok profail."
 
-#: source/Adapt_It.cpp:17968
+#: source/Adapt_It.cpp:17973
 #, c-format
 msgid ""
 "There was an incompatible version (%s) of AI_UserProfiles.xml in the work folder.\n"
@@ -1082,28 +1078,28 @@ msgstr ""
 " na Adapt It i wokim wanpela nupela AI_UserProfiles.xml nau i stap insait long wok folda.\n"
 "Please ask your administrator to check and recreate your user workflow profiles if necessary."
 
-#: source/Adapt_It.cpp:18011
+#: source/Adapt_It.cpp:18016
 msgid "Could not remove the AI_UserProfiles.xml file from the work folder."
 msgstr "No inap rausim oldpela  AI_UserProfiles.xml fail long wok folda."
 
 # Priority 1
-#: source/Adapt_It.cpp:18218
+#: source/Adapt_It.cpp:18223
 #, c-format
 msgid "Initializing help system file %s..."
 msgstr "Stretim help sistem fail %s..."
 
 # Priority 1
-#: source/Adapt_It.cpp:18270
+#: source/Adapt_It.cpp:18275
 msgid "Initialization complete. Call Start Working..."
 msgstr "Stretim ol samting pinis. Kirapim Stat Wok..."
 
 # Do not translate the 'Adapt It %sWork' part of the sentence.
-#: source/Adapt_It.cpp:20042
+#: source/Adapt_It.cpp:20047
 #, c-format
 msgid "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."
 msgstr "Sori, i gat wanpela fail, nem bilong en em 'Adapt It %sWork'. Plis yu mas dilitim dispela fail bikos Adapt It i mas yusim dispela nem bilong makim wanpela folda."
 
-#: source/Adapt_It.cpp:20062
+#: source/Adapt_It.cpp:20067
 #, c-format
 msgid ""
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\n"
@@ -1112,36 +1108,36 @@ msgstr ""
 "Sori, problem i kamap taim Adapt It i laik wokim \"Adapt It %sWork\" folda insait long <home user>/My Documents folda.\n"
 "Adapt It %s i no stap stret na i no inap ron nau."
 
-#: source/Adapt_It.cpp:20125
+#: source/Adapt_It.cpp:20130
 #, c-format
 msgid "Warning: a project with the name \"%s\" already exists. Adapt It will therefore use the existing project."
 msgstr "Toksave: wanpela projek i gat nem \"%s\" i stap pinis. Adapt It bai yusim dispela oldpela projek tasol."
 
 # Also do not translate  Adapt It %sWork
 # Note that the %s place holders are filled with text in the same order as the original English text. Therefore it is important to translate the first sentence if possible so that the \"%s to %s adaptations\"  and the Adapt It %sWork parts remain in the same order, i.e., Adapt It %sWork should not precede \"%s to %s adaptations\" in the sentence.
-#: source/Adapt_It.cpp:20143
+#: source/Adapt_It.cpp:20148
 #, c-format
 msgid "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."
 msgstr "Sori, wanpela fail, nem bilong en  \"%s to %s adaptations\", i stap insait long Adapt It %sWork folda. Yu mas senisim nem o rausim dispela fail bikos Adapt It i laik yusim dispela nem long wokim wanpela folda."
 
 # Do not translate the \"s% to %s adaptions\" part.
-#: source/Adapt_It.cpp:20167
+#: source/Adapt_It.cpp:20172
 #, c-format
 msgid "Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."
 msgstr "Sori, wanpela problem i kamap taim Adapt It i laik mekim \"%s to %s adaptations\" folda insait long Adapt It %sWork folda. Ol seting bilong Adapt It i no  stret, na em i no inap ron nau."
 
-#: source/Adapt_It.cpp:20206
+#: source/Adapt_It.cpp:20211
 #, c-format
 msgid "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."
 msgstr "Sori, i gat wanpela fail, nem bilong en \"Adaptations\", i stap pinis insait long \"%s\" folda. Plis dilitim o senisim nem bilong en bikos Adapt It i mas yusim dispela nem tasol long mekim wanpela folda."
 
 # Do not translate the \"Adaptations\" part of the sentence.
-#: source/Adapt_It.cpp:20225
+#: source/Adapt_It.cpp:20230
 msgid "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."
 msgstr "Sori, i gat problem taim Adapt It i laik mekim \"Adaptations\" folda insait long projek folda. Ol seting bilong Adapt It i no stret na em no inap ron nau."
 
 # Do not translate the \"s% to %s adaptions\" part.
-#: source/Adapt_It.cpp:20242
+#: source/Adapt_It.cpp:20247
 #, c-format
 msgid ""
 "Sorry, there was an error creating the following folder(s) in your Adapt It %sWork folder.\n"
@@ -1152,61 +1148,61 @@ msgstr ""
 "%s\n"
 "Ol seting bilong Adapt It i no  stret, na em i no inap ron nau."
 
-#: source/Adapt_It.cpp:21427
-#: source/Adapt_It.cpp:21553
+#: source/Adapt_It.cpp:21432
+#: source/Adapt_It.cpp:21558
 #, c-format
 msgid "Reading File %s - part %d of %d"
 msgstr "Ritim Fail %s - hap %d bilong %d olgeta"
 
 # Priority 1
-#: source/Adapt_It.cpp:21430
+#: source/Adapt_It.cpp:21435
 msgid "Loading the Glossing Knowledge Base"
 msgstr "Lodim Nolis Bes Bilong Ol Glos"
 
-#: source/Adapt_It.cpp:21470
+#: source/Adapt_It.cpp:21475
 msgid "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."
 msgstr "Toksave: Adapt It i no inap painim wanpela nolis bes bilong holim ol glos. Adapt It i wokim wanpela nupela i nogat ol glos yet insait na bai yusim nupela."
 
 # Priority 1
-#: source/Adapt_It.cpp:21556
+#: source/Adapt_It.cpp:21561
 msgid "Loading the Knowledge Base"
 msgstr "Lodim Nolis Bes"
 
-#: source/Adapt_It.cpp:21596
+#: source/Adapt_It.cpp:21601
 msgid "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "
 msgstr "Toksave: Adapt It i no inap painim wanpela nolis bes bilong holim ol trenslesen. Adapt It i wokim wanpela nupela i nogat ol trenslesen yet i go insait na bai yusim nupela."
 
-#: source/Adapt_It.cpp:21744
+#: source/Adapt_It.cpp:21749
 msgid "Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."
 msgstr "Sori, Adapt It i laik lodim nolis bes, tasol problem i kamap. Yu ken traiim \"Stretim Nolis Bes\" seleksen i stap long Fail menu. Sapos em tu i no wok, yu mas kisim oldpels nolis base i kam long bekap na kopiim i go long wok folda. Adapt It i mas i gat gutpela nolis bes bilong yusim pastaim, pinis, em i ken mekim wok."
 
-#: source/Adapt_It.cpp:21781
+#: source/Adapt_It.cpp:21786
 msgid "Creating the knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."
 msgstr "Sori, Adapt It i laik wokim nupela nolis bes, tasol problem i kamap. Nogut narapela progrem i yusim yet KB fail. Sapos olsem stopim narapela program pastaim, na traiim gen. Sapos em tu i no wok, yu ken traiim \"Stretim Nolis Bes\" seleksen i stap long Fail menu, o kopiim i kam long ol bekap fail. Adapt It i mas i gat gutpela nolis bes bilong yusim pastaim, pinis, em i ken mekim wok."
 
-#: source/Adapt_It.cpp:21816
-#: source/Adapt_It.cpp:23624
+#: source/Adapt_It.cpp:21821
+#: source/Adapt_It.cpp:23629
 msgid "Error: loading the glossing knowledge base failed. The application will now close."
 msgstr "Problem: Adapt It i no inap ritim glos nolis bes. Adapt It bai stop nau."
 
-#: source/Adapt_It.cpp:21851
+#: source/Adapt_It.cpp:21856
 msgid "Creating the glossing knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."
 msgstr "Sori, Adapt It i laik wokim nupela nolis bes bilong ol glos, tasol problem i kamap. Nogut narapela progrem i yusim yet KB fail. Sapos olsem stopim narapela program pastaim, na traiim gen. Sapos i no wok yet, yu ken traiim \"Stretim Nolis Bes\" seleksen i stap long Fail menu. Adapt It i mas i gat gutpela nolis bes bilong yusim pastaim, pinis, em i ken mekim wok."
 
-#: source/Adapt_It.cpp:22041
+#: source/Adapt_It.cpp:22046
 msgid "Failed to set the current directory when getting existing adaptation documents"
 msgstr "Problem i kamap taim Adapt It i kisim ol trenslesen dokumen na i laik makim wanem folda bilong yusim"
 
-#: source/Adapt_It.cpp:22137
+#: source/Adapt_It.cpp:22142
 #, c-format
 msgid "Creating folder: \"%s\" failed. This folder will be skipped, processing will continue."
 msgstr "Adapt It i laik mekim \"%s\" folda, tasol i no inap. "
 
-#: source/Adapt_It.cpp:22349
+#: source/Adapt_It.cpp:22354
 msgid "Error opening glossing KB file for writing with path:\n"
 msgstr "Problem: Adapt It i no inap raitim tok insait long glos KB i stap long:\n"
 
-#: source/Adapt_It.cpp:22351
+#: source/Adapt_It.cpp:22356
 msgid ""
 "\n"
 "The glossing knowledge base was not saved.\n"
@@ -1217,26 +1213,26 @@ msgstr ""
 "Spes long disk bilong komputa i sot? o glos kb i op i stap yet insait long narapela progrem?"
 
 # Priority 1
-#: source/Adapt_It.cpp:22366
-#: source/Adapt_It.cpp:22456
+#: source/Adapt_It.cpp:22371
+#: source/Adapt_It.cpp:22461
 #, c-format
 msgid "Saving KB %s - %d of %d Total entries and senses"
 msgstr "Sevim KB %s - %d  bilong %d olgeta hap tok"
 
-#: source/Adapt_It.cpp:22370
+#: source/Adapt_It.cpp:22375
 msgid "Saving the Glossing KB"
 msgstr "Sevim Glos KB"
 
-#: source/Adapt_It.cpp:22388
-#: source/Adapt_It.cpp:22574
+#: source/Adapt_It.cpp:22393
+#: source/Adapt_It.cpp:22579
 msgid "Removing backup glossing kb file failed."
 msgstr "Adapt It i laik rausim bekap bilong glos kb file, tasol i no inap."
 
-#: source/Adapt_It.cpp:22439
+#: source/Adapt_It.cpp:22444
 msgid "Error opening KB file for writing with path:\n"
 msgstr "Problem: Adapt It i no inap raitim tok insait long KB i stap long:\n"
 
-#: source/Adapt_It.cpp:22441
+#: source/Adapt_It.cpp:22446
 msgid ""
 "\n"
 "The knowledge base was not saved.\n"
@@ -1247,16 +1243,16 @@ msgstr ""
 "Spes long disk bilong komputa i sot? o kb i op i stap yet insait long narapela progrem?"
 
 # Priority 1
-#: source/Adapt_It.cpp:22460
+#: source/Adapt_It.cpp:22465
 msgid "Saving the KB"
 msgstr "Sevim KB"
 
-#: source/Adapt_It.cpp:22479
-#: source/Adapt_It.cpp:22531
+#: source/Adapt_It.cpp:22484
+#: source/Adapt_It.cpp:22536
 msgid "Removing backup kb file failed."
 msgstr "Adapt It i laik rausim bekap kb file, tasol i no inap."
 
-#: source/Adapt_It.cpp:22756
+#: source/Adapt_It.cpp:22761
 msgid ""
 "You cancelled the dialog - You may turn collaboration off if you want to access a different project from the Start Working Wizard.\n"
 "Do you want to turn collaboration off?"
@@ -1264,12 +1260,12 @@ msgstr ""
 "Yu kenselim daialog pinis - Yu ken tanim wok wantaim i go off sapos yu laik opim narapela projek i stap long Stat Wok pes.\n"
 "Tanim wok wantaim i go off nau?"
 
-#: source/Adapt_It.cpp:22817
+#: source/Adapt_It.cpp:22822
 msgid "No project folder defined yet. "
 msgstr "I no makim projek folda yet."
 
 # Priority 1
-#: source/Adapt_It.cpp:22820
+#: source/Adapt_It.cpp:22825
 msgid ""
 "\n"
 "If you want to continue, you must choose a project or create a new project.\n"
@@ -1279,18 +1275,18 @@ msgstr ""
 "Sapos yu laik wok yet, yu mas makim wanpela projek, or wokim nupela projek olgeta.\n"
 "Yu laik mekim wok yet o nogat? "
 
-#: source/Adapt_It.cpp:22821
+#: source/Adapt_It.cpp:22826
 msgid "Basic Configuration File Not Read"
 msgstr "Adapt It I No Ritim Besik Konfig Fail"
 
 # Priority 1
-#: source/Adapt_It.cpp:22844
+#: source/Adapt_It.cpp:22849
 #, c-format
 msgid "Failed to find the %s folder."
 msgstr "Problem: Adapt It i no inap painim %s folda."
 
 # Priority 1
-#: source/Adapt_It.cpp:22847
+#: source/Adapt_It.cpp:22852
 msgid ""
 "\n"
 "If you want to continue, you must choose a different project or create a new project.\n"
@@ -1300,17 +1296,17 @@ msgstr ""
 "Sapos yu laik wok yet, yu mas makim narapela projek, or wokim nupela projek olgeta.\n"
 "Yu laik mekim wok yet o nogat? "
 
-#: source/Adapt_It.cpp:22848
+#: source/Adapt_It.cpp:22853
 msgid "Bad path in config file"
 msgstr "Path insait long konfig fail i no stret"
 
 # Priority 1
-#: source/Adapt_It.cpp:23253
+#: source/Adapt_It.cpp:23258
 msgid "Adapt It cannot create its work folder: "
 msgstr "Adapt It i laik mekim wok folda bilong en, tasol i no inap wokim long:"
 
 # Priority 1
-#: source/Adapt_It.cpp:23254
+#: source/Adapt_It.cpp:23259
 msgid ""
 "\n"
 "Adapt It cannot continue and will now abort."
@@ -1319,49 +1315,49 @@ msgstr ""
 "Adapt It i no inap ron, na bai stop nau."
 
 # Priority 1
-#: source/Adapt_It.cpp:23255
+#: source/Adapt_It.cpp:23260
 msgid "Critical Error"
 msgstr "Bikpela problem"
 
-#: source/Adapt_It.cpp:23495
-#: source/Adapt_It.cpp:23507
+#: source/Adapt_It.cpp:23500
+#: source/Adapt_It.cpp:23512
 #, c-format
 msgid "Warning: Did not remove bad knowledge base file %s."
 msgstr "Toksave: Adapt It i no inap rausim kranki nolis bes fail %s."
 
-#: source/Adapt_It.cpp:23526
+#: source/Adapt_It.cpp:23531
 #, c-format
 msgid "Error renaming glossing KB Backup file, path %s, to be the new glossing KB file."
 msgstr "Problem: Adapt It i no inap senisim nem bilong glos KB bekap fail, i stap long: %s, na kamapim olsem nupela glos KB fail."
 
-#: source/Adapt_It.cpp:23549
-#: source/Adapt_It.cpp:23593
+#: source/Adapt_It.cpp:23554
+#: source/Adapt_It.cpp:23598
 msgid "Error: saving the knowledge base failed. The application will now close."
 msgstr "Problem: Adapt It i no inap sevim nolis bes. Adapt It bai stop nau."
 
-#: source/Adapt_It.cpp:23566
+#: source/Adapt_It.cpp:23571
 #, c-format
 msgid "Error renaming KB Backup file with path %s to become the new KB file."
 msgstr "Problem: Adapt It i no inap senisim nem bilong KB bekap fail, i stap long: %s, na kamapim olsem nupela KB fail."
 
-#: source/Adapt_It.cpp:23635
+#: source/Adapt_It.cpp:23640
 msgid "Glossing KB file not found immediately after it was renamed!\n"
 msgstr "Bihain long senisim nem, Adapt It nau i no inap painim gen dispela glos KB fail!\n"
 
-#: source/Adapt_It.cpp:23662
+#: source/Adapt_It.cpp:23667
 msgid "Error: loading a knowledge base failed. The application will now close."
 msgstr "Problem: Adapt It i no inap ritim nolis bes. Adapt It bai stop nau."
 
-#: source/Adapt_It.cpp:23673
+#: source/Adapt_It.cpp:23678
 msgid "KB file not found immediately after it was renamed!\n"
 msgstr "Bihain long senisim nem, Adapt It i nau no inap painim gen dispela KB fail!\n"
 
-#: source/Adapt_It.cpp:23837
+#: source/Adapt_It.cpp:23842
 #, c-format
 msgid "Warning: the consistent changes table number %d, and any further tables, were not loaded."
 msgstr "Toksave: Konsisten Senis tebol namba %d, wantaim ol narapela tebol bihain long en i no rit gut."
 
-#: source/Adapt_It.cpp:24044
+#: source/Adapt_It.cpp:24049
 msgid ""
 "Use this command if the knowledge base has become corrupted.\n"
 "(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\n"
@@ -1377,23 +1373,23 @@ msgstr ""
 
 # Priority 1
 # Do not change the number or order of the placeholders %s - %d of %d
-#: source/Adapt_It.cpp:24077
+#: source/Adapt_It.cpp:24082
 #: source/Adapt_ItDoc.cpp:1392
-#: source/Adapt_ItDoc.cpp:2253
-#: source/Adapt_ItDoc.cpp:2561
+#: source/Adapt_ItDoc.cpp:2262
+#: source/Adapt_ItDoc.cpp:2570
 #, c-format
 msgid "Saving File %s  - %d of %d Total words and phrases"
 msgstr "Sevim Fail %s  - %d bilong %d olgeta word na fres"
 
 # Priority 1
-#: source/Adapt_It.cpp:24081
+#: source/Adapt_It.cpp:24086
 #: source/Adapt_ItDoc.cpp:1396
-#: source/Adapt_ItDoc.cpp:2565
-#: source/Adapt_ItDoc.cpp:4203
+#: source/Adapt_ItDoc.cpp:2574
+#: source/Adapt_ItDoc.cpp:4212
 msgid "Saving File"
 msgstr "Sevim Fail"
 
-#: source/Adapt_It.cpp:24090
+#: source/Adapt_It.cpp:24095
 msgid ""
 "Could not save the current document. Restore Knowledge Base command aborted.\n"
 "You can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."
@@ -1401,7 +1397,7 @@ msgstr ""
 "No inap sevim dispela dokumen. Olsem no inap wokim Stretim Nolis Bes seleksen.\n"
 "Yu ken traiim wok gen, tasol moabeta yu stopim Adapt It na statim gen, maski long sampela edit i lus."
 
-#: source/Adapt_It.cpp:24128
+#: source/Adapt_It.cpp:24133
 msgid ""
 "Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\n"
 "but it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n"
@@ -1414,30 +1410,30 @@ msgstr ""
 "Yu laik traiim dispela narapela samting bilong helpim tu?"
 
 # Priority 1
-#: source/Adapt_It.cpp:24164
+#: source/Adapt_It.cpp:24169
 #, c-format
 msgid "Restoring the KB - Step %d of %d"
 msgstr "Stretim Nolis Bes - Step %d bilong %d olgeta"
 
 # Priority 1
-#: source/Adapt_It.cpp:24167
+#: source/Adapt_It.cpp:24172
 msgid "Restoring Knowledge Base..."
 msgstr "Stretim Nolis Bes..."
 
-#: source/Adapt_It.cpp:24263
-#: source/Adapt_It.cpp:33078
+#: source/Adapt_It.cpp:24268
+#: source/Adapt_It.cpp:33083
 msgid "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."
 msgstr "Sori, i nogat yet sampela dokumen i sevim pinis insait long dispela projek. I mas i gat wanpela o moa ol dokumen bilong mekim dispela kain wok, olsem Adapt It bai i no inap mekim."
 
 # Priority 1
-#: source/Adapt_It.cpp:24554
+#: source/Adapt_It.cpp:24559
 #, c-format
 msgid "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."
 msgstr "Adapt It i wokim nupela nolis bes pinis na i stap. Em i kapam long %d sos word na fres i kam long %d dokumen."
 
 # Priority 1
 # Do not translate '__SOURCE_INPUTS'.
-#: source/Adapt_It.cpp:24956
+#: source/Adapt_It.cpp:24961
 msgid ""
 "There are no files in the '__SOURCE_INPUTS' folder.\n"
 "Therefore the user is not protected from folder navigation."
@@ -1446,13 +1442,13 @@ msgstr ""
 "Olsem na Adapt It no banasim user bilong wokabaut nating o mekim pasin i kranki insait long fail system."
 
 # Priority 1
-#: source/Adapt_It.cpp:24957
+#: source/Adapt_It.cpp:24962
 msgid "No source text files for document creation"
 msgstr "I nogat wanpela sos teks fail bilong wokim nupela dokumen"
 
 # Priority 1
 # Do not translate '__SOURCE_INPUTS'.
-#: source/Adapt_It.cpp:24997
+#: source/Adapt_It.cpp:25002
 #, c-format
 msgid ""
 "Some of the '__SOURCE_INPUTS' folder's files are not suitable for creating an adaptation document.\n"
@@ -1462,14 +1458,14 @@ msgstr ""
 "Ol dispela i olsem: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:24999
-#: source/Adapt_It.cpp:25008
+#: source/Adapt_It.cpp:25004
+#: source/Adapt_It.cpp:25013
 msgid "Warning: do not input these files"
 msgstr "Toksave: No ken lodim dispela fail olsem input fail"
 
 # Priority 1
 # Do not translate '__SOURCE_INPUTS'.
-#: source/Adapt_It.cpp:25006
+#: source/Adapt_It.cpp:25011
 #, c-format
 msgid ""
 "Folder navigation protection is not turned on, because none of the '__SOURCE_INPUTS' folder's files are suitable for creating an adaptation document.\n"
@@ -1478,18 +1474,18 @@ msgstr ""
 "Adapt It nau i no banasim rot bilong user long wokabaut nating insait long fail sistem, bilong wanem, olgeta fail insait long '__SOURCE_INPUTS' folda i no gutpela bilong wokim adaptesen dokumen.\n"
 "Ol fail i no gutpela i olsem: %s"
 
-#: source/Adapt_It.cpp:26640
+#: source/Adapt_It.cpp:26645
 msgid "Unrecognized font attribute field; unmatched name is: "
 msgstr "Adapt It i no save long dispela samting bilong font:"
 
-#: source/Adapt_It.cpp:26641
+#: source/Adapt_It.cpp:26646
 msgid "Error parsing font information"
 msgstr "Problem long ritim samting bilong font"
 
 # Priority 1
-#: source/Adapt_It.cpp:27016
-#: source/Adapt_It.cpp:29843
-#: source/Adapt_ItDoc.cpp:13459
+#: source/Adapt_It.cpp:27021
+#: source/Adapt_It.cpp:29848
+#: source/Adapt_ItDoc.cpp:13468
 msgid ""
 "\n"
 "You should not use this non-Unicode version of Adapt It.\n"
@@ -1501,7 +1497,7 @@ msgstr ""
 "Pastaim yu mas senisim deta bilong yu i go long Unicode deta. Yu ken yusim TecKit progrem long mekim dispela wok,\n"
 "na bihain yu ken yusim Unicode vesin bilong Adapt It."
 
-#: source/Adapt_It.cpp:27018
+#: source/Adapt_It.cpp:27023
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Basic Configuration File's punctuation string (see below):"
@@ -1509,20 +1505,20 @@ msgstr ""
 "Adapt It i painim ol leta olsem 8-bit ASCII leta i stap insait long\n"
 "pangsuesen bilong Besik Seting Fail (lukim daunbilo):"
 
-#: source/Adapt_It.cpp:27020
-#: source/Adapt_It.cpp:29847
-#: source/Adapt_ItDoc.cpp:13462
+#: source/Adapt_It.cpp:27025
+#: source/Adapt_It.cpp:29852
+#: source/Adapt_ItDoc.cpp:13471
 msgid "Warning: Invalid Characters Detected"
 msgstr "Toksave: Sampela Leta I No Stret"
 
 # Priority 1
-#: source/Adapt_It.cpp:27992
+#: source/Adapt_It.cpp:27997
 #, c-format
 msgid "Warning: Unrecognized Basic settings field; unmatched name is: %s\n"
 msgstr "Toksave: Adapt It i no save long dispela samting insait long Besik seting fail: %s\n"
 
 # Priority 1
-#: source/Adapt_It.cpp:28572
+#: source/Adapt_It.cpp:28577
 #, c-format
 msgid ""
 "Adapt It did not find your work folder at\n"
@@ -1542,37 +1538,37 @@ msgstr ""
 "Yu gat taim bilong stretim nau."
 
 # Priority 1
-#: source/Adapt_It.cpp:28574
+#: source/Adapt_It.cpp:28579
 msgid "Failed to find the custom work folder"
 msgstr "Adapt It i laik painim kastom wok folda, tasol i no inap"
 
 # Priority 1
-#: source/Adapt_It.cpp:28583
+#: source/Adapt_It.cpp:28588
 msgid "1. Plug in the missing external drive, then click OK here."
 msgstr "1. Subim external drive nau, pinis klikim OK batan hia. "
 
 # Priority 1
-#: source/Adapt_It.cpp:28584
+#: source/Adapt_It.cpp:28589
 msgid "2. Close the other application, or use a text editor to fix the path in the file CustomWorkFolderLocation; then click OK here."
 msgstr "2. Klosim narapela progrem, o yusim teks edita bilong stretim tok i makim ples i stap insait long CustomWorkFolderLocation fail; pinis klikim OK hia."
 
 # Priority 1
-#: source/Adapt_It.cpp:28585
+#: source/Adapt_It.cpp:28590
 msgid "3. Ignore the custom work folder location, use the default location instead. (Then ask your administrator to help you.)"
 msgstr "3. Maski yusim kastom wok folda, yusim defol ples bilong ol wok folda tasol (Askim hetman administrator bilong helpim yu)."
 
 # Priority 1
-#: source/Adapt_It.cpp:28586
+#: source/Adapt_It.cpp:28591
 msgid "4. Forget the custom work folder location. The command Custom Work Folder Location will then run, use it to relocate the folder."
 msgstr "4. Lus tingting long kastom wok folda. Daialog bilong Makim Ples Bilong Kastom Wok Folda bai ron, yusim bilong makim ples bilong folda."
 
 # Priority 1
-#: source/Adapt_It.cpp:28587
+#: source/Adapt_It.cpp:28592
 msgid "Choose Recovery Action or Cancel (to abort)"
 msgstr "Selektim Wanpela Wok o Kensel (bilong stop olgeta)"
 
 # Priority 1
-#: source/Adapt_It.cpp:28588
+#: source/Adapt_It.cpp:28593
 msgid ""
 "Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n"
 "1. Plug in the required external drive now, then click OK. \n"
@@ -1587,41 +1583,41 @@ msgstr ""
 "4. Wankain olsem opsen 3. tasol soim Administrator menu (em i ken helpim yu sapos yu save gut long yusim)."
 
 # Priority 1
-#: source/Adapt_It.cpp:28602
+#: source/Adapt_It.cpp:28607
 msgid "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."
 msgstr "Ples bilong kastom wok folda i nogut. Yu subim external draiv i gat wok folda long en pastaim, bihain yu klikim OK batan? Adapt It progrem i mas stop nau. Yu mas mekim kustom wok folda i kamap ples klia long komputa pastaim, pinis na statim Adapt It gen."
 
 # Priority 1
-#: source/Adapt_It.cpp:28603
+#: source/Adapt_It.cpp:28608
 msgid "Recovery By Plugging In The Missing External Drive Failed"
 msgstr "Stretim Ples Bilong Wok Folda Long Pasim Gen External Draiv I Nogat"
 
 # Priority 1
-#: source/Adapt_It.cpp:28635
+#: source/Adapt_It.cpp:28640
 msgid "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."
 msgstr "No inap opim fail i gat nem CustomWorkFolderLocation long defol ples bilong wok folda. Ating CustomWorkFolderLocation fail i stap op yet insait long narapela edita? Ating tok insait i save makim ples bilong kastom wok folda i stret bilong computa bilong yu o nogat? Sekim na stretim pastaim, pinis yu ken statim Adapt It gen. Wok i mas stop nau."
 
 # Priority 1
-#: source/Adapt_It.cpp:28646
+#: source/Adapt_It.cpp:28651
 msgid "The path to the custom work folder did not find a directory with the required name. Did you check the path specification using a file browser, to make sure your edit of the path in the CustomWorkFolderLocation file resulted in a correct path to the custom work folder? Aborting now. Use a text editor again to get the path typed correctly before you re-launch Adapt It."
 msgstr "Ples bilong kastom wok folda i nogut. Yu ken yusim fail brausa na editim wanpela fail nem bilong en CustomWorkFolderLocation. Insait long dispela fail i makim ples bilong kustom wok folda. Sekim gut gen - ples bilong en i tok stret o nogat? Adapt It progrem i mas stop nau. Yusim teks edita gen na stretim tok i makim ples bilong wok folda, pinis na statim Adapt It gen."
 
 # Priority 1
-#: source/Adapt_It.cpp:28647
+#: source/Adapt_It.cpp:28652
 msgid "Recovery By Editing The Path Specificiation Failed"
 msgstr "Wok Bilong Stretim Ples Bilong Wok Folda I Nogut"
 
 # Priority 1
-#: source/Adapt_It.cpp:28722
+#: source/Adapt_It.cpp:28727
 msgid "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."
 msgstr "Yu no makim gut ples bilong wok folda. Bai wok i stop nau. Taim yu statim gen progrem tasol yu o hetman bilong yu mas yusim Administrator menu bilong painim na makim tru wok folda."
 
 # Priority 1
-#: source/Adapt_It.cpp:28723
+#: source/Adapt_It.cpp:28728
 msgid "One chance to relocate the work folder failed"
 msgstr "Dispela wok bilong setim wok folda i gat problem"
 
-#: source/Adapt_It.cpp:29845
+#: source/Adapt_It.cpp:29850
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Project Configuration File's punctuation string (see below):"
@@ -1630,40 +1626,40 @@ msgstr ""
 "pangsuesen bilong Projek Seting Fail (lukim daunbilo):"
 
 # Note: leave a space after the colon.
-#: source/Adapt_It.cpp:30512
+#: source/Adapt_It.cpp:30517
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
 msgstr "Toksave: Adapt It i no save long dispela samting insait long Projek seting fail: "
 
-#: source/Adapt_It.cpp:30893
+#: source/Adapt_It.cpp:30898
 msgid "Sorry, Adapt It will not permit the < character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "Sori, Adapt It bai no inap larim dispela <  mak i kamap olsem leta insait yet long ol word. Nogat. Dispela < i mas i go wantaim ol pangsuesen mak, na Adapt It nau bai putim olsem."
 
-#: source/Adapt_It.cpp:30907
+#: source/Adapt_It.cpp:30912
 msgid "Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "Sori, Adapt It bai no inap larim dispela >  mak i kamap olsem leta insait yet long ol word. Nogat. Dispela > i mas i go wantaim ol pangsuesen mak, na Adapt It nau bai putim olsem."
 
 # Refers to the type of configuration file.
-#: source/Adapt_It.cpp:31268
-#: source/Adapt_It.cpp:31322
+#: source/Adapt_It.cpp:31273
+#: source/Adapt_It.cpp:31327
 msgid "basic"
 msgstr "besik"
 
 # Refers to the type of configuration file.
-#: source/Adapt_It.cpp:31270
-#: source/Adapt_It.cpp:31324
+#: source/Adapt_It.cpp:31275
+#: source/Adapt_It.cpp:31329
 msgid "project"
 msgstr "projek"
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:31272
+#: source/Adapt_It.cpp:31277
 #, c-format
 msgid "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"
 msgstr "Adapt It i no inap opim %s seting fail bilong ritim. Olsem Adapt It yet bai makim na yusim ol seting long save bilong en yet. (I orait, maski long tingting planti sapos em nambawan taim yu ronim Adapt It, o sapos nau tasol yu wokim nupela projek, bilong wanem, i nogat wanpela seting fail i stap yet.)"
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:31326
+#: source/Adapt_It.cpp:31331
 #, c-format
 msgid "Unable to read %s font data from the %s configuration file. Default values will be used instead."
 msgstr ""
@@ -1672,69 +1668,69 @@ msgstr ""
 
 # Priority 1
 # Refers to the source (language) from which the translation is being made
-#: source/Adapt_It.cpp:31332
+#: source/Adapt_It.cpp:31337
 msgid "source"
 msgstr "sos"
 
 # Priority 1
 # Refers to the target (language) into which the translation is being made
-#: source/Adapt_It.cpp:31342
+#: source/Adapt_It.cpp:31347
 msgid "target"
 msgstr "taget"
 
 # Priority 1
 # Refers to the navigation (language) that is used to display chapter and verse number, paragraph, etc above the text where those items begin
-#: source/Adapt_It.cpp:31352
+#: source/Adapt_It.cpp:31357
 msgid "navigation"
 msgstr "soim ples"
 
-#: source/Adapt_It.cpp:32875
-#: source/Adapt_ItDoc.cpp:2923
-#: source/Adapt_ItDoc.cpp:4492
+#: source/Adapt_It.cpp:32880
+#: source/Adapt_ItDoc.cpp:2932
+#: source/Adapt_ItDoc.cpp:4501
 #, c-format
 msgid "Reading file %s - part %d of %d"
 msgstr "Ritim fail %s - hap %d bilong %d olgeta"
 
 # Priority 1
-#: source/Adapt_It.cpp:32878
+#: source/Adapt_It.cpp:32883
 msgid "Loading the Other Project's Knowledge Base"
 msgstr "Lodim Nolis Bes Bilong Narapela Projek"
 
-#: source/Adapt_It.cpp:32891
+#: source/Adapt_It.cpp:32896
 msgid "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."
 msgstr "Problem: Adapt It i no inap painim nolis bes bilong dispela narapela projek, o, i painim, tasol no inap opim na ritim. Olsem Adapt It bai i no inap mekim."
 
 # Priority 1
 # Do not change the number or order of the placeholders %s - %d of %d
-#: source/Adapt_It.cpp:33391
+#: source/Adapt_It.cpp:33396
 #, c-format
 msgid "Transforming File %s  - %d of %d Total words and phrases"
 msgstr "Senisim Fail: %s  - %d bilong %d olgeta word na fres"
 
 # Priority 1
-#: source/Adapt_It.cpp:33395
+#: source/Adapt_It.cpp:33400
 msgid "Transformations To Glosses"
 msgstr "Tanim i go long ol glos"
 
 # Priority 1
-#: source/Adapt_It.cpp:33450
+#: source/Adapt_It.cpp:33455
 #, c-format
 msgid "The document with pathname: %s, was not opened and therefore not processed."
 msgstr "Adapt It i no opim na wokim dokumen i stap long: %s."
 
-#: source/Adapt_It.cpp:33474
+#: source/Adapt_It.cpp:33479
 #, c-format
 msgid "The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents."
 msgstr "Adapt It i senisim pinis ol dokumen yu bin selektim bilong arapela projek. Namba bilong ol sos word na fres Adapt It i tanim i go long glos i kamap olsem %d, na ol dispela i kam long %d dokumen."
 
 # Priority 1
-#: source/Adapt_It.cpp:33584
+#: source/Adapt_It.cpp:33589
 msgid "Automatic capitalization support will work only provided the source language distinguishes between upper case and lower case letters. A \"No\" response will prohibit auto-capitalization from being turned on. Does your source language have both upper and lower case letters?"
 msgstr "Adapt It yet i ken wokim kapital leta senis, tasol bilong wokim, i mas i gat smol leta wantaim kapital leta tupela wantaim insait long dispela tokples. Sapos yu makim \"Nogat\" Adapt It yet bai i no inap wokim ol smol leta i go kapital olsem automatik. Dispela sos tokples em i gat smol leta na kapital leta, tupela wantaim?"
 
 # Priority 1
-#: source/Adapt_It.cpp:33616
-#: source/Adapt_It.cpp:33637
+#: source/Adapt_It.cpp:33621
+#: source/Adapt_It.cpp:33642
 msgid ""
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\n"
 "You can set them up in the Edit Preferences menu selection on the \"Case\" tab."
@@ -1743,77 +1739,77 @@ msgstr ""
 "Yu ken makim ol smol leta na ol kapital leta sapos yu go long Edit menu na selektim \"Senisim Seting\", pinis selektim \"Kes\"."
 
 # Priority 1
-#: source/Adapt_It.cpp:33701
-#: source/Adapt_It.cpp:33856
+#: source/Adapt_It.cpp:33706
+#: source/Adapt_It.cpp:33861
 msgid "The Startup Wizard failed to open. Use the File menu's Open command to open a document."
 msgstr "Statim Wok Pes i no kamap gut. Yu ken yusim Fail menu na selektim \"Opim Fail\" bilong opim wanpela dokumen."
 
 # Priority 1
-#: source/Adapt_It.cpp:35248
+#: source/Adapt_It.cpp:35253
 #, c-format
 msgid "[Custom Work Folder Location]  Current Project: %s"
 msgstr "[Kastom wok folda lokesen] Dispela projek: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:35253
+#: source/Adapt_It.cpp:35258
 #, c-format
 msgid "[Temporary Work Folder Location]  Current Project: %s"
 msgstr "[Hap Taim Wok Folda] Projek Nau En: %s"
 
-#: source/Adapt_It.cpp:35263
+#: source/Adapt_It.cpp:35268
 msgid "Collaborating with "
 msgstr "Mekim wok wantaim"
 
 # Priority 1
-#: source/Adapt_It.cpp:35272
+#: source/Adapt_It.cpp:35277
 #, c-format
 msgid "[Default Work Folder Location]  Current Project: %s"
 msgstr "[Defol Wok Folda] Projek Nau Em: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:35317
+#: source/Adapt_It.cpp:35322
 msgid "Adapting"
 msgstr "Wokim Trenslesen"
 
 # Priority 1
-#: source/Adapt_It.cpp:35324
+#: source/Adapt_It.cpp:35329
 msgid "Reviewing"
 msgstr "Wokim Rivu"
 
 # Priority 1
 # Leave two spaces at the beginning of the sentence.
-#: source/Adapt_It.cpp:35334
-#: source/Adapt_It.cpp:35344
-#: source/Adapt_It.cpp:35351
+#: source/Adapt_It.cpp:35339
+#: source/Adapt_It.cpp:35349
+#: source/Adapt_It.cpp:35356
 #: source/Adapt_ItView.cpp:6219
 #, c-format
 msgid "  Current Folder: %s"
 msgstr "  Folda Nau Em: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:35342
+#: source/Adapt_It.cpp:35347
 #: source/Adapt_ItView.cpp:6217
 msgid " Undefined"
 msgstr "Nogat"
 
-#: source/Adapt_It.cpp:35359
+#: source/Adapt_It.cpp:35364
 msgid "!! TRANSLITERATING !!"
 msgstr "!! Trenslitaresen Mod !!"
 
-#: source/Adapt_It.cpp:37729
+#: source/Adapt_It.cpp:37734
 msgid "Setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."
 msgstr "Sori, ating setap bilong sapta na ves i paul. Wok bilong print i no inap na i stop. Ating dokumen i no gat ol sapta o ves namba olsem dispela sapta na ves yu laik makim."
 
-#: source/Adapt_It.cpp:37765
+#: source/Adapt_It.cpp:37770
 msgid "Setup of your chosen range of pages for printing, failed. This printing operation has been aborted. Please alert the developers."
 msgstr "Setap bilong ol pes yu selektim bilong print i no kamap gut. Olsem dispela wok bilong print nau bai stop. Plis yu salim tok save i go long ol developa."
 
 # Priority 1
-#: source/Adapt_It.cpp:37987
+#: source/Adapt_It.cpp:37992
 msgid "Locate the folder you wish to use for Adapt It work"
 msgstr "Painim folda yu laik yusim olsem Adapt It wok folda"
 
-#: source/Adapt_It.cpp:38264
+#: source/Adapt_It.cpp:38269
 #, c-format
 msgid ""
 "Could not launch the default browser to open the HTML file's URL at:\n"
@@ -1832,22 +1828,22 @@ msgstr ""
 "\n"
 "Yu laikim Adapt It i soim dispela HTML fail insait long wanpela liklik brausa bilong Adapt It yet?"
 
-#: source/Adapt_It.cpp:38266
+#: source/Adapt_It.cpp:38271
 msgid "Browser launch error"
 msgstr "Brausa i no inap kirap"
 
 # Priority 1
-#: source/Adapt_It.cpp:38270
+#: source/Adapt_It.cpp:38275
 msgid "Help for Administrators"
 msgstr "Helpim bilong ol Administreta"
 
 # Priority 1
-#: source/Adapt_It.cpp:38311
+#: source/Adapt_It.cpp:38316
 msgid "Type A Password"
 msgstr "Taipim Pasword"
 
 # Priority 1
-#: source/Adapt_It.cpp:38313
+#: source/Adapt_It.cpp:38318
 msgid ""
 "The password can be a mix of letters, numbers and punctuation. Less than five characters will not be accepted.\n"
 "Emptying the text box erases the previously set password, leaving no password set.\n"
@@ -1858,16 +1854,16 @@ msgstr ""
 "Taipim narapela pasword bilong senisim oldpela pasword."
 
 # Refers to the typed password having less than four characters
-#: source/Adapt_It.cpp:38331
+#: source/Adapt_It.cpp:38336
 msgid "Too short."
 msgstr "Em i sotpela tumas."
 
 # Priority 1
-#: source/Adapt_It.cpp:38647
+#: source/Adapt_It.cpp:38652
 msgid "You failed to locate a valid work folder. Please try again."
 msgstr "Yu no painim wanpela gutpela wok folda. Plis, traiim gen."
 
-#: source/Adapt_It.cpp:38698
+#: source/Adapt_It.cpp:38703
 #, c-format
 msgid ""
 "You have selected the following folder to be used as a custom work folder:\n"
@@ -1883,40 +1879,40 @@ msgstr ""
 "Yu laik pasim dispela kastom wok folda bilong kamap ples tru we man i save mekim wok olgeta taim, o nogat?"
 
 # Priority 1
-#: source/Adapt_It.cpp:39124
+#: source/Adapt_It.cpp:39129
 msgid "Someone just opened the project folder on the remote computer, so you have READ-ONLY access."
 msgstr "Narapela komputa i stap longwe liklik i opim projek folda nau tasol, olsem yu inap ritim ol samting tasol."
 
 # Priority 1
-#: source/Adapt_It.cpp:39124
+#: source/Adapt_It.cpp:39129
 msgid "Another process owns write permission"
 msgstr "Narapela proses i gat rait mekim wok"
 
 # Priority 1
-#: source/Adapt_It.cpp:39627
+#: source/Adapt_It.cpp:39632
 #: source/Adapt_It_wdr.cpp:712
 msgid "Source Font Name"
 msgstr "Nem Bilong Sos Font"
 
 # Priority 1
-#: source/Adapt_It.cpp:39709
+#: source/Adapt_It.cpp:39714
 #: source/Adapt_It_wdr.cpp:784
 msgid "Target Font Name"
 msgstr "Nem Bilong Taget Font"
 
 # Priority 1
-#: source/Adapt_It.cpp:39791
+#: source/Adapt_It.cpp:39796
 #: source/Adapt_It_wdr.cpp:856
 msgid "Navigation Font Name"
 msgstr "Nem Bilong Toksave Font"
 
 # Priority 1
-#: source/Adapt_It.cpp:39814
+#: source/Adapt_It.cpp:39819
 msgid "The following fonts (in the project configuration file) cannot be found on your computer:"
 msgstr "Ol dispela font (i stap insait long projek konfig fail) Adapt It i no inap painim long dispela komputa."
 
 # Priority 1
-#: source/Adapt_It.cpp:39817
+#: source/Adapt_It.cpp:39822
 #, c-format
 msgid ""
 "\n"
@@ -1926,33 +1922,33 @@ msgstr ""
 "Bai yusim wanpela sistem font (%s) tasol. Sapos yu laik, yu ken instalim wanem font pastaim, bihain yu ken selektim i kam long Fonts teb insait long Ol Seting daialog (i stap long Edit menu)."
 
 # Priority 1
-#: source/Adapt_It.cpp:39819
+#: source/Adapt_It.cpp:39824
 msgid "Font name in configuration file not found"
 msgstr "Adapt It i no save long font i stap insait long konfig fail"
 
 # Priority 1
-#: source/Adapt_It.cpp:40093
-#: source/Adapt_It.cpp:40539
-#: source/Adapt_It.cpp:40761
-#: source/Adapt_It.cpp:40817
-#: source/Adapt_It.cpp:40864
+#: source/Adapt_It.cpp:40098
+#: source/Adapt_It.cpp:40544
+#: source/Adapt_It.cpp:40766
+#: source/Adapt_It.cpp:40822
+#: source/Adapt_It.cpp:40869
 msgid "Unable to write updated config file, so just did nothing"
 msgstr "Adapt It i no inap raitim konfig fail, olsem i no wokim wanpela samting."
 
 # Priority 1
-#: source/Adapt_It.cpp:40951
+#: source/Adapt_It.cpp:40956
 msgid "Export Knowledge Base"
 msgstr "Ekspotim Nolis Bes"
 
 # Priority 1
-#: source/Adapt_It.cpp:41036
+#: source/Adapt_It.cpp:41041
 msgid "dictionary records"
 msgstr "diksineri rekot"
 
 # Priority 1
 # Label of a checkbox, which ticked activates glossing mode (editor puts the phrase box in the glossing line)
-#: source/Adapt_It.cpp:41040
-#: source/Adapt_It.cpp:41086
+#: source/Adapt_It.cpp:41045
+#: source/Adapt_It.cpp:41091
 msgid "glossing"
 msgstr "wokim glos"
 
@@ -1962,7 +1958,7 @@ msgstr "wokim glos"
 # SFM plain text export (with ... & ... fields) [do not translate the \\lx  or the \\ge parts]
 # All Files
 # Leave the parentheses, asterisks, vertical bar | and file wild card specifications as is.
-#: source/Adapt_It.cpp:41115
+#: source/Adapt_It.cpp:41120
 msgid "SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "SFM plen teks ekspot (i gat \\lx & \\ge fields) (*.txt)|*.txt|Olkain Fail (*.*)|*.*||"
 
@@ -1972,22 +1968,22 @@ msgstr "SFM plen teks ekspot (i gat \\lx & \\ge fields) (*.txt)|*.txt|Olkain Fai
 # SFM plain text export (with ... & ... fields) [do not translate the \\lx  or the \\ge parts]
 # All Files
 # Leave the parentheses, asterisks, vertical bar | and file wild card specifications as is.
-#: source/Adapt_It.cpp:41119
+#: source/Adapt_It.cpp:41124
 msgid "XML LIFT export (*.lift)|*.lift|All Files (*.*)|*.*||"
 msgstr "XML LIFT ekspot (*.lift)|*.lift|Olkain Fail (*.*)|*.*||"
 
 # Priority 1
-#: source/Adapt_It.cpp:41123
+#: source/Adapt_It.cpp:41128
 msgid "Filename For KB Export"
 msgstr "Fail Nem bilong KB Ekspot"
 
 # Priority 1
-#: source/Adapt_It.cpp:41175
+#: source/Adapt_It.cpp:41180
 msgid "Unable to open knowledge base export file."
 msgstr "No inap opim nolis bes ekspot fail."
 
 # Priority 1
-#: source/Adapt_It.cpp:41223
+#: source/Adapt_It.cpp:41228
 #, c-format
 msgid ""
 "The exported file was named:\n"
@@ -2006,7 +2002,7 @@ msgstr ""
 "\n"
 "%s"
 
-#: source/Adapt_It.cpp:41224
+#: source/Adapt_It.cpp:41229
 msgid "Export operation successful"
 msgstr "Ekspot i kamap gut pinis"
 
@@ -2168,8 +2164,8 @@ msgstr "Yu mas instalim na ronim Unicode vesin bilong Adapt It bilong yusim ol U
 
 # Priority 1
 #: source/Adapt_ItDoc.cpp:1542
-#: source/Adapt_ItDoc.cpp:2669
-#: source/Adapt_ItDoc.cpp:4228
+#: source/Adapt_ItDoc.cpp:2678
+#: source/Adapt_ItDoc.cpp:4237
 msgid "Warning: document save failed for some reason.\n"
 msgstr "Toksave: Adapt It i laik sevim dokumen tasol i no inap mekim.\n"
 
@@ -2181,7 +2177,7 @@ msgstr "Samting i bagarap. Adaptesen dokumen i bin stap long disk i lus o bagara
 # Priority 1
 #: source/Adapt_ItDoc.cpp:1577
 #: source/Adapt_ItDoc.cpp:1595
-#: source/Adapt_ItDoc.cpp:2702
+#: source/Adapt_ItDoc.cpp:2711
 msgid "Immediate Save Is Recommended"
 msgstr "Gutpela Yu Mas Sevim Nau"
 
@@ -2230,59 +2226,59 @@ msgstr ""
 
 # Priority 1
 # Do not translate the |*.xml| or the |*.xml|| parts
-#: source/Adapt_ItDoc.cpp:2017
+#: source/Adapt_ItDoc.cpp:2026
 msgid "New XML format, for 6.0.0 and later (default)|*.xml|Legacy XML format, as in versions 3, 4 or 5. |*.xml||"
 msgstr "Nupela XML fomat, bilong 6.0.0 na antap (defol))|*.xml|Oldpela XML fomat, olsem i stap long vesin 3, 4, o 5. |*.xml||"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2023
+#: source/Adapt_ItDoc.cpp:2032
 msgid "Save As"
 msgstr "Sevim Olsem"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2058
+#: source/Adapt_ItDoc.cpp:2067
 msgid "You must not use the Save As... dialog to change where Adapt It stores its document files. You can only rename the file, or make a different 'Save as type' choice, or both."
 msgstr "No ken yusim Sevim Olsem... daialog bilong senisim ples we Adapt It i save putim ol dokumen fail. Yu ken senisim nem bilong fail tasol, o senisim 'Sevim kain olsem', o tupela wantaim."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2059
+#: source/Adapt_ItDoc.cpp:2068
 msgid "Folder Change Is Not Allowed"
 msgstr "Senisim Folda I Tambu"
 
-#: source/Adapt_ItDoc.cpp:2086
+#: source/Adapt_ItDoc.cpp:2095
 msgid "Adapt It documents cannot be renamed when collaborating with Paratext or Bibledit."
 msgstr "Sori, no inap senisim nem bilong dokumen taim Adapt It i wok wantaim Paratext o Bibledit."
 
-#: source/Adapt_ItDoc.cpp:2087
+#: source/Adapt_ItDoc.cpp:2096
 msgid "Cannot Change The Document's Filename"
 msgstr "No Inap Senisim Nem Bilong Dokumen Fail"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2106
+#: source/Adapt_ItDoc.cpp:2115
 #, c-format
 msgid "Filenames cannot include these characters: %s Please type a valid filename using none of those characters."
 msgstr "No inap yusim ol dispela leta insait long ol nem bilong fail: %s Plis taipim gutpela nem bilong fail na no ken yusim dispela leta insait. "
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2107
+#: source/Adapt_ItDoc.cpp:2116
 msgid "Bad Characters In Filename"
 msgstr "Ol Leta Nogut I Stap Insait Long Nem Bilong Fail"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2117
+#: source/Adapt_ItDoc.cpp:2126
 msgid "The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another."
 msgstr "Adapt It i painimaut olsem narapela wankain nem i stap bipo pinis. Plis yu mas taipim narapela nem nau."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2118
+#: source/Adapt_ItDoc.cpp:2127
 msgid "Conflicting Filename"
 msgstr "Nem Bilong Tupela Fail I Laik Pait"
 
-#: source/Adapt_ItDoc.cpp:2419
+#: source/Adapt_ItDoc.cpp:2428
 msgid "Warning: the attempt to backup the current document failed."
 msgstr "Toksave: Adapt It i laik wokim bekap bilong dispela dokumen, tasol i no inap wokim."
 
-#: source/Adapt_ItDoc.cpp:2481
+#: source/Adapt_ItDoc.cpp:2490
 #, c-format
 msgid ""
 "This document (%s) is now saved on disk in the older (version 3, 4, 5) xml format.\n"
@@ -2294,7 +2290,7 @@ msgstr ""
 "Sapos yu no laikim nupela fomat i kamap gen, yu mas pasim dispela dokumen, o yu mas stopim dispela vesin bilong Adapt It nau."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2701
+#: source/Adapt_ItDoc.cpp:2710
 msgid ""
 "Something went wrong, so the document protection failed.\n"
 "The adaptation document's file on disk was lost or destroyed, but the document in memory is still good.\n"
@@ -2305,23 +2301,23 @@ msgstr ""
 "Plis klikim Sevim nau long Fail menu."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2725
+#: source/Adapt_ItDoc.cpp:2734
 msgid "Because the Save As was not successful, the file rename you requested could not be done."
 msgstr "Sevim Olsem menu i no kamap gut, olsem Adapt It i no inap senisim nem bilong dispela fail."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2726
+#: source/Adapt_ItDoc.cpp:2735
 msgid "Rename Not Done"
 msgstr "Adapt It i no senisim nem"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2926
+#: source/Adapt_ItDoc.cpp:2935
 msgid "Opening Document In Another Project"
 msgstr "Opim Dokumen Bilong Narapela Projek"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2937
-#: source/Adapt_ItDoc.cpp:4534
+#: source/Adapt_ItDoc.cpp:2946
+#: source/Adapt_ItDoc.cpp:4543
 msgid ""
 "There was an error parsing in the XML file.\n"
 "If you edited the XML file earlier, you may have introduced an error.\n"
@@ -2332,69 +2328,69 @@ msgstr ""
 "Editim gen insait long edita pastaim, pinis traiim gen."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2947
+#: source/Adapt_ItDoc.cpp:2956
 msgid "Sorry, the wxWidgets version of Adapt It does not read legacy .adt document format; it only reads the .xml format."
 msgstr "Sori, wxWidgets vesin bilong Adapt It i no save yusim dispela kain oldpela .adt dokumen; em inap ritim ol .xml dokumen tasol."
 
-#: source/Adapt_ItDoc.cpp:3230
-#: source/Adapt_ItDoc.cpp:3234
+#: source/Adapt_ItDoc.cpp:3239
+#: source/Adapt_ItDoc.cpp:3243
 #, c-format
 msgid "Warning: document backup failed for the path:  %s   No backup was done."
 msgstr "Toksave: Adapt It i laik wokim bekap bilong dispela: %s tasol i no inap wokim bekap."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:3273
+#: source/Adapt_ItDoc.cpp:3282
 #, c-format
 msgid "Could not remove the backed up document file: %s; the application will continue"
 msgstr "Adapt It i no inap rausim oldpela bekap fail bilong dokumen: %s; Tasol Adapt It bai go het yet."
 
-#: source/Adapt_ItDoc.cpp:3288
+#: source/Adapt_ItDoc.cpp:3297
 #, c-format
 msgid "Warning: document backup failed because the following name is not valid: %s    No backup was done."
 msgstr "Toksave: Adapt It i laik wokim dokumen bekap, tasol problem i kamap bikos dispela nem i no stret: %s. Olsem Adapt It i no wokim bekap."
 
-#: source/Adapt_ItDoc.cpp:3300
+#: source/Adapt_ItDoc.cpp:3309
 #, c-format
 msgid "Could not open a file stream for backup, in BackupDocument(), for file %s"
 msgstr "Adapt It i no inap opim fail bilong wokim bekap, insait long BackupDocument(), long fail %s"
 
-#: source/Adapt_ItDoc.cpp:4037
+#: source/Adapt_ItDoc.cpp:4046
 #, c-format
 msgid "When transforming documents, the Open function failed, for the path: %s"
 msgstr "Adapt It i laik wokim \"Trensform ol dokumen\" tasol i no inap mekim long dispela: %s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:4175
+#: source/Adapt_ItDoc.cpp:4184
 #, c-format
 msgid "The document %s has changed. Do you want to save it? "
 msgstr "Yu wokim sampela senis pinis long dokumen: %s. Bai Adapt It sevim dispela senis, o nogat?"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:4199
+#: source/Adapt_ItDoc.cpp:4208
 #, c-format
 msgid "Saving file %s - %d of %d Total words and phrases"
 msgstr "Sevim fail %s  - %d bilong %d olgeta ol word na fres"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:4495
+#: source/Adapt_ItDoc.cpp:4504
 msgid "Opening the Document"
 msgstr "Opim Dokumen"
 
-#: source/Adapt_ItDoc.cpp:4520
+#: source/Adapt_ItDoc.cpp:4529
 msgid "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead."
 msgstr "Dispela fail yu klikim Adapt It no inap opim. Ating i no stap moa. Sapos yu klik long OK, Stat Wok Pes bai kamap na yu ken yusim bilong opim wanpela projek na dokumen."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:4619
+#: source/Adapt_ItDoc.cpp:4628
 msgid "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."
 msgstr "I nogat samting insait long dispela fail. Dokumen format i no stret olsem Adapt It i no inap opim. Yu mas dilitim."
 
-#: source/Adapt_ItDoc.cpp:4670
+#: source/Adapt_ItDoc.cpp:4679
 msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
 msgstr "Sori, buk folda mod i no on, olsem yu no inap klikim fail nem long Fail menu bilong opim, sapos dispela fail yu laik sevim taim buk folda mod i on."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:4836
+#: source/Adapt_ItDoc.cpp:4845
 #, c-format
 msgid ""
 "Unable to open the file for exporting the target text with path:\n"
@@ -2404,24 +2400,24 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:5990
+#: source/Adapt_ItDoc.cpp:5999
 #, c-format
 msgid "Pass 1 - %d of %d Total words and phrases"
 msgstr "Ron 1 - %d bilong %d olgeta ol word na fres"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:5993
+#: source/Adapt_ItDoc.cpp:6002
 msgid "Processing Filtering Change(s)"
 msgstr "Wokim Filta Senis"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:6809
+#: source/Adapt_ItDoc.cpp:6818
 #, c-format
 msgid "Pass 2 - %d of %d Total words and phrases"
 msgstr "Ron 2 - %d bilong %d olgeta ol word na fres"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:10074
+#: source/Adapt_ItDoc.cpp:10083
 #, c-format
 msgid ""
 "Adapt It does not recognise this marker: %s which is in the input file.\n"
@@ -2433,7 +2429,7 @@ msgstr ""
 "Adapt It nau bai stop."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:10091
+#: source/Adapt_ItDoc.cpp:10100
 #, c-format
 msgid ""
 "This marker: %s  follows punctuation but is not an inline marker.\n"
@@ -2447,7 +2443,7 @@ msgstr ""
 "Adapt It bai nau stop."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13460
+#: source/Adapt_ItDoc.cpp:13469
 msgid ""
 "Extended 8-bit ASCII characters were detected in your\n"
 "input document:"
@@ -2456,36 +2452,36 @@ msgstr ""
 "i stap insait:"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:15619
+#: source/Adapt_ItDoc.cpp:15628
 #, c-format
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "%s  - %d bilong %d olgeta ol word na fres"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:15623
+#: source/Adapt_ItDoc.cpp:15632
 msgid "Packing Document"
 msgstr "Pekap Dokumen"
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
-#: source/Adapt_ItDoc.cpp:15989
-#: source/Adapt_ItDoc.cpp:19577
+#: source/Adapt_ItDoc.cpp:15998
+#: source/Adapt_ItDoc.cpp:19586
 msgid "Packed Documents (*.aip)|*.aip||"
 msgstr "Ol Dokumen i Pekap (*.aip)|*.aip||"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:15992
+#: source/Adapt_ItDoc.cpp:16001
 msgid "Filename For Packed Document"
 msgstr "Fail nem bilong Dokumen i Pekap"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:16059
+#: source/Adapt_ItDoc.cpp:16068
 #, c-format
 msgid "Could not write to the packed/zipped file: %s"
 msgstr "No inap raitim fail i pekap: %s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:16082
+#: source/Adapt_ItDoc.cpp:16091
 #, c-format
 msgid ""
 "The packed document file was named:\n"
@@ -2505,32 +2501,32 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:16083
+#: source/Adapt_ItDoc.cpp:16092
 msgid "Packing of document successful"
 msgstr "Dokumen i pekap orait na i stap gut."
 
-#: source/Adapt_ItDoc.cpp:17012
+#: source/Adapt_ItDoc.cpp:17021
 msgid "There were places where automatic rebuilding of the document potentially did not fully succeeded. Visually check and edit where necessary: "
 msgstr "Sampela problem i kamap taim Adapt It yet i laik stretim dokumen, olsem ating sampela samting i no stret. Lukim gut dokumen. Nogut sampela samting i no stret i stap na yu mas editim na stretim gut."
 
-#: source/Adapt_ItDoc.cpp:17022
+#: source/Adapt_ItDoc.cpp:17031
 msgid "Locate the following chapter:verse locations for potential errors in the rebuild of the document. Visually check and edit where necessary: "
 msgstr "Painim ol dispela sapta:ves. Ol i ken i gat asua long dispela hap bihain long Adapt It wok long stretim dokumen. Lukluk save long ol na stretim, sapos i no stret: "
 
-#: source/Adapt_ItDoc.cpp:17280
+#: source/Adapt_ItDoc.cpp:17289
 msgid " ... for additional later locations needing manual editing please check the document visually. The full list has been saved in your project folder in the file \"Rebuild Log.txt\""
 msgstr "... lukim gut, nogut i gat sampela narapela teks insait long dokumen we yu mas editim na stretim. Adapt It i sevim wanpela fail i toksave long olgeta samting bilong sekim. Nem bilong fail em: \"Rebuild Log.txt\" na I stap insait long projek folda."
 
-#: source/Adapt_ItDoc.cpp:17288
+#: source/Adapt_ItDoc.cpp:17297
 msgid "    This list has been saved in your project folder in the file \"Rebuild Log.txt\""
 msgstr "    Dispela lista bilong ol tok save Adapt It is sevim insait long projek folda insait long fail i gat nem: \"Rebuild Log.txt\""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:19575
+#: source/Adapt_ItDoc.cpp:19584
 msgid "Load And Unpack The Compressed Document"
 msgstr "Ritim na lusim Dokumen i Bin Pekap"
 
-#: source/Adapt_ItDoc.cpp:19620
+#: source/Adapt_ItDoc.cpp:19629
 #, c-format
 msgid ""
 "Choose a Packed Document from the following list:\n"
@@ -2540,7 +2536,7 @@ msgstr ""
 "(i kam long dispela ples: %s):"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:19678
+#: source/Adapt_ItDoc.cpp:19687
 #, c-format
 msgid ""
 "Error uncompressing; cannot open the file: %s\n"
@@ -2551,18 +2547,18 @@ msgstr ""
 
 # Priority 1
 # The %s refers to a file name
-#: source/Adapt_ItDoc.cpp:19694
+#: source/Adapt_ItDoc.cpp:19703
 #, c-format
 msgid "Error removing %s after unpack document command."
 msgstr "Problem i kamap taim Adapt It i laik dilitim %s bihain long lusim dokumen i pekap."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20009
+#: source/Adapt_ItDoc.cpp:20018
 msgid "There is a document of the same name in an Adapt It project of the same name on this computer."
 msgstr "Adapt It i painim olsem wanpela dokumen i stap pinis insait long projek i gat wankain nem."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20010
+#: source/Adapt_ItDoc.cpp:20019
 #, c-format
 msgid ""
 "\n"
@@ -2573,7 +2569,7 @@ msgstr ""
 
 # Priority 1
 # The %s refers to the path of the project
-#: source/Adapt_ItDoc.cpp:20011
+#: source/Adapt_ItDoc.cpp:20020
 #, c-format
 msgid ""
 "\n"
@@ -2583,7 +2579,7 @@ msgstr ""
 "      Ples bilong projek : %s"
 
 # Do not translate the %s%s%s part
-#: source/Adapt_ItDoc.cpp:20013
+#: source/Adapt_ItDoc.cpp:20022
 #, c-format
 msgid ""
 "%s%s%s\n"
@@ -2594,25 +2590,25 @@ msgstr ""
 
 # Priority 1
 # The %s refers to a file name
-#: source/Adapt_ItDoc.cpp:20030
+#: source/Adapt_ItDoc.cpp:20039
 #, c-format
 msgid "Failed removing %s before overwrite."
 msgstr "Adapt It i laik rausim %s bipo em i raitim nupela tasol i no inap mekim."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20106
+#: source/Adapt_ItDoc.cpp:20115
 #, c-format
 msgid "Error renaming earlier configuration file with path %s."
 msgstr "Problem i kamap taim Adapt It i laik senisim nem bilong seting fail i stap hia: %s."
 
 # Priority 1
 # Leave two spaces at the beginning.
-#: source/Adapt_ItDoc.cpp:20108
+#: source/Adapt_ItDoc.cpp:20117
 msgid "  Aborting the command."
 msgstr "Adapt It bai no inap wokim."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20127
+#: source/Adapt_ItDoc.cpp:20136
 #, c-format
 msgid ""
 "Unable to open the file for writing out the UTF-8 project configuration file, with path:\n"
@@ -2622,33 +2618,33 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20144
+#: source/Adapt_ItDoc.cpp:20153
 #, c-format
 msgid "Error restoring name of earlier configuration file with path %s."
 msgstr "Problem i kamap taim Adapt It i laik senisim nem bilong seting fail pastaim i stap hia %s."
 
 # Priority 1
 # Sentence starts with two spaces
-#: source/Adapt_ItDoc.cpp:20147
+#: source/Adapt_ItDoc.cpp:20156
 msgid "  Exit Adapt It and manually change .BAK to .aic for the project configuration file."
 msgstr "Yu mas stopim Adapt It, na senisim .BAK i go long .aic bilong projek seting fail."
 
-#: source/Adapt_ItDoc.cpp:20163
+#: source/Adapt_ItDoc.cpp:20172
 msgid "Writing out the project configuration file's content failed."
 msgstr "Adapt It i no inap raitim samting insait long projek seting fail."
 
 # Priority 1
 # Sentence starts with a space
-#: source/Adapt_ItDoc.cpp:20166
+#: source/Adapt_ItDoc.cpp:20175
 msgid " Exit Adapt It, and in Windows Explorer manually restore the .BAK extension on the renamed project configuration file to .aic before launching again. Beware, that configuration file may now be corrupted."
 msgstr " Yu mas stopim Adapt It, na senisim hap fail nem .BAK i go long .aic pastaim. Bihain yu ken statim Adapt It gen, tasol nogut seting fail nau i bagarap."
 
-#: source/Adapt_ItDoc.cpp:20184
+#: source/Adapt_ItDoc.cpp:20193
 msgid "Removing the renamed earlier project configuration file failed. Do it manually later in Windows Explorer - it has a .BAK extension."
 msgstr "Adapt It i laik senisim nem bilong projek seting fail, tasol i no inap mekim. Yu ken yusim narapela progrem na senisim nem bilong en bihain. Em i mas i gat .BAK olsem tel bilong fail nem."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20215
+#: source/Adapt_ItDoc.cpp:20224
 #, c-format
 msgid ""
 "Unable to open the xml text file for writing to doc folder, with path:\n"
@@ -2658,48 +2654,48 @@ msgstr ""
 "%s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20228
+#: source/Adapt_ItDoc.cpp:20237
 msgid "Writing out the xml document file's content failed."
 msgstr "Adapt It i laik raitim xml dokumen fail, tasol i no inap mekim."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20247
+#: source/Adapt_ItDoc.cpp:20256
 msgid "Opening the xml document file for Unpack Document... failed. (It was stored successfully on disk. Try opening it with the Open command on the File menu.)"
 msgstr "Adapt It i no inap opim dokumen bilong wokim Lusim Dokumen... (Adapt It i sevim gut pinis i stap long disk. Yu traiim yusim Opim Fail seleksen long Fail menu.)"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:20818
-#: source/Adapt_ItDoc.cpp:20904
+#: source/Adapt_ItDoc.cpp:20827
+#: source/Adapt_ItDoc.cpp:20913
 msgid "Could not save the current document. Consistency Check Command aborted."
 msgstr "Adapt It i no inap sevim dispela dokumen. Konsistensi Sek i no inap ron."
 
-#: source/Adapt_ItDoc.cpp:20876
+#: source/Adapt_ItDoc.cpp:20885
 msgid "No document is open. First have a document open, then the choice to check it will work."
 msgstr "Nogat dokumen i op is stap. Opim wanpela dokumen pastaim, pinis, wok bilong sekim bai ron gut."
 
-#: source/Adapt_ItDoc.cpp:21062
+#: source/Adapt_ItDoc.cpp:21071
 msgid "There are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."
 msgstr "Sori, i nogat yet sampela dokumen i sevim pinis insait long dispela projek. I mas i gat wanpela o moa ol dokumen bilong mekim dispela kain wok, olsem Adapt It bai i no inap mekim."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:21162
+#: source/Adapt_ItDoc.cpp:21171
 #, c-format
 msgid "The consistency check was successful. There were %d source words and phrases  in %d  files."
 msgstr "Konsistensi sek i pinis gut. I gat %d sos word na fres insait long %d fail."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:23079
-#: source/Adapt_ItDoc.cpp:23869
+#: source/Adapt_ItDoc.cpp:23088
+#: source/Adapt_ItDoc.cpp:23878
 msgid "Warning: failure on document save operation."
 msgstr "Toksave: Adapt It i laik sevim dokumen, tasol i no inap mekim."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:24186
+#: source/Adapt_ItDoc.cpp:24195
 msgid "[UNKNOWN MARKER]"
 msgstr "[UNKNOWN MAKA]"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:24195
+#: source/Adapt_ItDoc.cpp:24204
 msgid "[FILTERED]"
 msgstr "[FILTA]"
 
@@ -2890,7 +2886,7 @@ msgstr "Sori, yu makim sapta na ves olsem %s, tasol dispela sapta:ves i no stap 
 # Priority 1
 #: source/Adapt_ItView.cpp:18326
 #: source/Adapt_ItView.cpp:18412
-#: source/Adapt_It_wdr.cpp:9015
+#: source/Adapt_It_wdr.cpp:9018
 msgid "Layout Window Right To Left\tCtrl-1"
 msgstr "Wokim toktok i stat long han sut na i go long han kais\tCtrl-1"
 
@@ -2927,8 +2923,8 @@ msgstr "Maski Banis"
 # Priority 1
 #: source/Adapt_ItView.cpp:18841
 #: source/Adapt_ItView.cpp:18849
-#: source/Adapt_It_wdr.cpp:9079
-#: source/Adapt_It_wdr.cpp:9134
+#: source/Adapt_It_wdr.cpp:9082
+#: source/Adapt_It_wdr.cpp:9137
 msgid "Ignore boundaries when making selections"
 msgstr "Maski ol banis, taim yu laik mekim seleksen"
 
@@ -2946,15 +2942,15 @@ msgstr "Soim teks wantaim pangsuesen"
 # Priority 1
 #: source/Adapt_ItView.cpp:19144
 #: source/Adapt_ItView.cpp:19152
-#: source/Adapt_It_wdr.cpp:9110
-#: source/Adapt_It_wdr.cpp:9165
+#: source/Adapt_It_wdr.cpp:9113
+#: source/Adapt_It_wdr.cpp:9168
 msgid "No Punctuation Copy"
 msgstr "No Ken Kopiim Pangsuesen"
 
 #: source/Adapt_ItView.cpp:19145
 #: source/Adapt_ItView.cpp:19153
-#: source/Adapt_It_wdr.cpp:9110
-#: source/Adapt_It_wdr.cpp:9165
+#: source/Adapt_It_wdr.cpp:9113
+#: source/Adapt_It_wdr.cpp:9168
 msgid "Suppress the copying of source text punctuation temporarily"
 msgstr "No ken kopiim sos teks pangsuesen (hap taim tasol)"
 
@@ -2972,15 +2968,15 @@ msgstr "Switsim on kopiim sos teks pangsuesen"
 # Priority 1
 #: source/Adapt_ItView.cpp:19397
 #: source/Adapt_ItView.cpp:19405
-#: source/Adapt_It_wdr.cpp:9080
-#: source/Adapt_It_wdr.cpp:9135
+#: source/Adapt_It_wdr.cpp:9083
+#: source/Adapt_It_wdr.cpp:9138
 msgid "Hide Punctuation"
 msgstr "Haitim Pangsuesen"
 
 #: source/Adapt_ItView.cpp:19398
 #: source/Adapt_ItView.cpp:19406
-#: source/Adapt_It_wdr.cpp:9080
-#: source/Adapt_It_wdr.cpp:9135
+#: source/Adapt_It_wdr.cpp:9083
+#: source/Adapt_It_wdr.cpp:9138
 msgid "Don't show punctuation with the text"
 msgstr "No ken soim pangsuesen wantaim teks"
 
@@ -2998,15 +2994,15 @@ msgstr "Soim Sos Wantaim Taget Teks"
 # Priority 1
 #: source/Adapt_ItView.cpp:19703
 #: source/Adapt_ItView.cpp:19711
-#: source/Adapt_It_wdr.cpp:9108
-#: source/Adapt_It_wdr.cpp:9163
+#: source/Adapt_It_wdr.cpp:9111
+#: source/Adapt_It_wdr.cpp:9166
 msgid "Show Target Text Only"
 msgstr "Soim Taget Teks Tasol"
 
 #: source/Adapt_ItView.cpp:19704
 #: source/Adapt_ItView.cpp:19712
-#: source/Adapt_It_wdr.cpp:9108
-#: source/Adapt_It_wdr.cpp:9163
+#: source/Adapt_It_wdr.cpp:9111
+#: source/Adapt_It_wdr.cpp:9166
 msgid "Show target text only"
 msgstr "Soim taget teks tasol"
 
@@ -3181,7 +3177,7 @@ msgstr "Sistem Teks Direksen:"
 #: source/Adapt_It_wdr.cpp:8404
 #: source/Adapt_It_wdr.cpp:8451
 #: source/Adapt_It_wdr.cpp:8533
-#: source/Adapt_It_wdr.cpp:8868
+#: source/Adapt_It_wdr.cpp:8871
 #: source/AdminEditMenuProfile.cpp:1465
 #: source/AdminEditMenuProfile.cpp:1467
 msgid "OK"
@@ -3377,8 +3373,8 @@ msgstr "Selektim wanpela rojek i stap long lista"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:478
-#: source/Adapt_It_wdr.cpp:9061
-#: source/Adapt_It_wdr.cpp:9123
+#: source/Adapt_It_wdr.cpp:9064
+#: source/Adapt_It_wdr.cpp:9126
 msgid "Open"
 msgstr "Opim"
 
@@ -3420,7 +3416,7 @@ msgstr "Klikim Opim batan bilong go het"
 #: source/Adapt_It_wdr.cpp:8081
 #: source/Adapt_It_wdr.cpp:8410
 #: source/Adapt_It_wdr.cpp:8455
-#: source/Adapt_It_wdr.cpp:8873
+#: source/Adapt_It_wdr.cpp:8876
 msgid "Cancel"
 msgstr "Kensel"
 
@@ -3479,7 +3475,7 @@ msgstr "Dispela bai kamap olsem nem bilong projek bilong yu."
 # Priority 1
 #: source/Adapt_It_wdr.cpp:623
 #: source/Adapt_It_wdr.cpp:1961
-#: source/Adapt_It_wdr.cpp:8814
+#: source/Adapt_It_wdr.cpp:8817
 msgid "Source Language Name:"
 msgstr "Nem bilong Sos Tokples:"
 
@@ -3491,7 +3487,7 @@ msgstr "Taipim nem bilong sos tokples hia"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:632
 #: source/Adapt_It_wdr.cpp:1964
-#: source/Adapt_It_wdr.cpp:8817
+#: source/Adapt_It_wdr.cpp:8820
 msgid "Source Language Code:"
 msgstr "Kod bilong Sos Tokples:"
 
@@ -3503,7 +3499,7 @@ msgstr "Taipim 3-pela leta kod bilong sos tokples i go hia (o, klikim Painim Kod
 # Priority 1
 #: source/Adapt_It_wdr.cpp:645
 #: source/Adapt_It_wdr.cpp:1975
-#: source/Adapt_It_wdr.cpp:8827
+#: source/Adapt_It_wdr.cpp:8830
 msgid "Target Language Name:"
 msgstr "Nem bilong Taget Tokples:"
 
@@ -3515,7 +3511,7 @@ msgstr "Taipim nem bilong taget tokples hia"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:654
 #: source/Adapt_It_wdr.cpp:1978
-#: source/Adapt_It_wdr.cpp:8830
+#: source/Adapt_It_wdr.cpp:8833
 msgid "Target Language Code:"
 msgstr "Kod bilong Taget Tokples:"
 
@@ -3527,7 +3523,7 @@ msgstr "Taipim 3-pela leta kod bilong taget tokples i go hia (o, klikim Painim K
 # Priority 1
 #: source/Adapt_It_wdr.cpp:667
 #: source/Adapt_It_wdr.cpp:2007
-#: source/Adapt_It_wdr.cpp:8844
+#: source/Adapt_It_wdr.cpp:8847
 msgid "Lookup Codes"
 msgstr "Painim Kod"
 
@@ -3985,7 +3981,7 @@ msgstr "Klikim dispela boks sapos yu laikim Adapt It i senisim ol fiks spes maka
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1387
-#: source/Adapt_It_wdr.cpp:8911
+#: source/Adapt_It_wdr.cpp:8914
 msgid "Change Folder..."
 msgstr "Senisim Folda..."
 
@@ -4495,7 +4491,7 @@ msgid "Show Administrator Menu (Password protected)"
 msgstr "Soim Administreta Menu (Pasword i lukautim)"
 
 #: source/Adapt_It_wdr.cpp:2165
-#: source/Adapt_It_wdr.cpp:8952
+#: source/Adapt_It_wdr.cpp:8955
 msgid "Password protected. When ticked, Administrator menu shows"
 msgstr "Pasword i lukautim. Sapos yu tikim, Administreta menu bai kamap"
 
@@ -5162,9 +5158,9 @@ msgstr "Ol hap tok i go pas na i go las long Ekspot fail nem:"
 
 #: source/Adapt_It_wdr.cpp:3247
 #: source/Adapt_It_wdr.cpp:3445
-#, fuzzy, c-format
+#, c-format
 msgid "Use project name prefix %s on export filename"
-msgstr "Yusim hap tok \"%s\" i go pas long fail nem bilong ekspot"
+msgstr "Yusim dispela nem bilong projek \"%s\" i go pas long fail nem bilong ekspot"
 
 #: source/Adapt_It_wdr.cpp:3250
 #: source/Adapt_It_wdr.cpp:3448
@@ -7380,7 +7376,7 @@ msgstr "Klikim dispela bilong lodim ripot yu sevim pinis - na yu ken salim olsem
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7714
-#: source/Adapt_It_wdr.cpp:8901
+#: source/Adapt_It_wdr.cpp:8904
 msgid "&Close"
 msgstr "&Klosim"
 
@@ -7428,30 +7424,26 @@ msgid "Adapt It User Log (read only):"
 msgstr "Log bilong man i yusim Adapt It (ritim tasol, no ken editim):"
 
 #: source/Adapt_It_wdr.cpp:7804
-#, fuzzy, c-format
+#, c-format
 msgid "Using these %s projects:"
-msgstr "Yusim Paratext projek"
+msgstr "Yusim dispela ol %s projek:"
 
 #: source/Adapt_It_wdr.cpp:7810
-#, fuzzy
 msgid "Source Project: "
 msgstr "Sos Projek: "
 
 #: source/Adapt_It_wdr.cpp:7816
-#, fuzzy
 msgid "Target Project: "
 msgstr "Taget Projek: "
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7822
-#, fuzzy
 msgid "Free Translation Project: "
-msgstr "Fri Trenslesen Mod"
+msgstr "Fri Trenslesen Projek: "
 
 #: source/Adapt_It_wdr.cpp:7834
-#, fuzzy
 msgid "Using this Adapt It project:"
-msgstr "Yusim Paratext projek"
+msgstr "Yusim dispela Adapt It projek:"
 
 # Priority 1
 # Could be translated as "Remove Selection"
@@ -7681,9 +7673,8 @@ msgstr "Yu selektim pinis dispela Adapt It projek:"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8490
-#, fuzzy
 msgid "Options for entering this project:"
-msgstr "Sekim dispela &wantaim ol arapela dokumen bilong dispela projek"
+msgstr "Opsen bilong opim dispela projek:"
 
 # Priority 1
 # The %s will become either "Paratext" or "Bibledit"
@@ -7728,9 +7719,8 @@ msgid "Use this dialog to setup one or more collaboration scenarios between Adap
 msgstr "Yusim dispela daialog bilong stretim ol sampela Adapt It projek i mas wok wantaim sampela ol %s projek."
 
 #: source/Adapt_It_wdr.cpp:8572
-#, fuzzy
 msgid "1. Select an existing AI project from drop-down list below; or click on \"Create New Adapt It Project\" for this collaboration setup:"
-msgstr "Klikim hia bilong lukim lista bilong ol Adapt It projek, o bilong wokim nupela Adapt It project bilong wok wantaim"
+msgstr "1. Selektim wanpela AI projek i kam long drop-daun lista daunbilo; o klikim \"Wokim Nupela Adapt It Projek\" bilong dispela wok wantaim setap:"
 
 #: source/Adapt_It_wdr.cpp:8583
 msgid "Click Here to open the list of Adapt It projects, or to create a new Adapt It project for collaboration purposes"
@@ -7744,9 +7734,9 @@ msgstr "Wokim Nupela Adapt It Projek"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8602
-#, fuzzy, c-format
+#, c-format
 msgid "2. Ensure %s projects exist in the list below that can collaborate with the above Adapt It project:"
-msgstr "1. Skelim gut pastaim, i gat ol projek i stap pinis insait long dispela list bilong wok wantain %s o nogat:"
+msgstr "2. Skelim gut pastaim, i gat ol projek i stap pinis insait long dispela list bilong wok wantain %s o nogat:"
 
 #: source/Adapt_It_wdr.cpp:8613
 msgid "List of potential projects currently available for Adapt It use"
@@ -7760,9 +7750,9 @@ msgstr "Toksave: Adapt It i nidim tupela projek i stap pinis insait long %s prog
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8634
-#, fuzzy, c-format
+#, c-format
 msgid "3. Select which %s projects Adapt It should use when collaborating."
-msgstr "2. Makim tupela %s projek Adapt It i mas yusim bilong wok wantaim; wanpela bilong sos teks, na narapela bilong taget teks."
+msgstr "3. Makim wanem ol %s projek Adapt It i mas yusim bilong wok wantaim."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8647
@@ -7787,13 +7777,11 @@ msgstr "Klikim dispela batan bilong selektim wanpela projek na subim i go insait
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8666
-#, fuzzy
 msgid "Get by Chapter Only (Recommended)"
-msgstr "Kisim &Sapta Tasol"
+msgstr "Kisim &Sapta Tasol (gutpela opsen)"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8670
-#, fuzzy
 msgid "Get by Whole Book"
 msgstr "Kisim Buk &Wantaim Olgeta Sapta"
 
@@ -7814,9 +7802,9 @@ msgstr "Selektim wanpela projek i stap long L&ista"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8702
-#, fuzzy, c-format
+#, c-format
 msgid "Transfer &free translations to this %s project (optional):"
-msgstr "Salim ol fri trenslesen i go long dispela %s projek:"
+msgstr "Salim ol fri trenslesen i go long dispela %s projek (sapos nidim):"
 
 #: source/Adapt_It_wdr.cpp:8712
 msgid "Use the button at right to select a default project for user where free translation texts will be transferred"
@@ -7843,9 +7831,8 @@ msgid "Accept this setup and prepare for another"
 msgstr "Kisim dispela setap na redi long kirapim narapela"
 
 #: source/Adapt_It_wdr.cpp:8746
-#, fuzzy
 msgid "Remove this AI Project from Collaboration"
-msgstr "Kisim Dokumen bilong Wok Wantaim"
+msgstr "Rausim dispela AI Projek long Wok Wantaim"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8759
@@ -7860,1085 +7847,1086 @@ msgstr "Yu ken testim ol wok wantaim setap sapos yu opim dispela Adapt It projek
 # Priority 1
 #: source/Adapt_It_wdr.cpp:8804
 #, c-format
-msgid "To create a new Adapt It project for collaboration with %s please supply the language names and codes:"
-msgstr "Taipim nem bilong tokples wantaim tokples kod, em bilong wokim nupela Adapt It projek i wok wantaim %s:"
+msgid "To create a new Adapt It project for collaboration with %s please supply the language names and codes below."
+msgstr "Taipim nem bilong tokples wantaim tokples kod, em bilong wokim nupela Adapt It projek i wok wantaim %s."
 
-#: source/Adapt_It_wdr.cpp:8821
+#: source/Adapt_It_wdr.cpp:8807
+#, c-format
+msgid "The language names entered here should be typed exactly the same as they are named in your %s projects."
+msgstr "Ol nem bilong tokples yu taipim hia i mas wankain ol nem bilong ol i gat insait long ol %s projek."
+
+#: source/Adapt_It_wdr.cpp:8824
 msgid "Adapt It will use this language name along with the target language name below to form its project folder"
 msgstr "Adapt It bai yusim dispela tokples nem wantaim nem bilong taget tokples i stap daunbilo bilong kamapim nem bilong projek folda bilong Adapt It"
 
-#: source/Adapt_It_wdr.cpp:8834
+#: source/Adapt_It_wdr.cpp:8837
 msgid "Adapt It will use this language name along with the source language name above to form its project folder"
 msgstr "Adapt It bai yusim dispela tokples nem wantaim nem bilong sos tokples i stap antap bilong kamapim nem bilong projek folda bilong Adapt It"
 
-#: source/Adapt_It_wdr.cpp:8853
-#, fuzzy
+#: source/Adapt_It_wdr.cpp:8856
 msgid "The new Adapt It Project Name will be:"
-msgstr "Nupela AI projek nem:"
+msgstr "Nupela AI projek nem bai kamap olsem:"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8863
+#: source/Adapt_It_wdr.cpp:8866
 msgid "Note: The Adapt It Project's fonts and other preferences can be set up later using Adapt It's Preferences."
 msgstr "Toksave: Ol font na ol narapela seting bilong Adapt It projek yu ken makim bihain. Yusim \"Senisim Seting\" long Edit menu."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8897
+#: source/Adapt_It_wdr.cpp:8900
 msgid "&New\tCtrl-N"
 msgstr "&Nupela\tCtrl-N"
 
-#: source/Adapt_It_wdr.cpp:8897
-#: source/Adapt_It_wdr.cpp:9059
-#: source/Adapt_It_wdr.cpp:9121
+#: source/Adapt_It_wdr.cpp:8900
+#: source/Adapt_It_wdr.cpp:9062
+#: source/Adapt_It_wdr.cpp:9124
 msgid "Create a new document"
 msgstr "Wokim nupela dokumen"
 
-#: source/Adapt_It_wdr.cpp:8898
-#: source/Adapt_It_wdr.cpp:9061
-#: source/Adapt_It_wdr.cpp:9123
+#: source/Adapt_It_wdr.cpp:8901
+#: source/Adapt_It_wdr.cpp:9064
+#: source/Adapt_It_wdr.cpp:9126
 msgid "Open an existing document"
 msgstr "Opim wanpela dokumen i stap pinis long komputa"
 
-#: source/Adapt_It_wdr.cpp:8899
-#: source/Adapt_It_wdr.cpp:9063
-#: source/Adapt_It_wdr.cpp:9125
+#: source/Adapt_It_wdr.cpp:8902
+#: source/Adapt_It_wdr.cpp:9066
+#: source/Adapt_It_wdr.cpp:9128
 msgid "Save the active document"
 msgstr "Sevim dispela dokumen nau"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8900
+#: source/Adapt_It_wdr.cpp:8903
 msgid "Save &As...\tCtrl-A"
 msgstr "S&evim Olsem...\tCtrl-A"
 
-#: source/Adapt_It_wdr.cpp:8900
+#: source/Adapt_It_wdr.cpp:8903
 msgid "Save the document with different xml format, or different filename"
 msgstr "Sevim dokumen na yusim narapela xml fomat, o narapela nem"
 
-#: source/Adapt_It_wdr.cpp:8901
+#: source/Adapt_It_wdr.cpp:8904
 msgid "Close the active document"
 msgstr "Klosim dokumen i op nau"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8902
+#: source/Adapt_It_wdr.cpp:8905
 msgid "Pack Document..."
 msgstr "Pekap Dokkumen..."
 
-#: source/Adapt_It_wdr.cpp:8902
+#: source/Adapt_It_wdr.cpp:8905
 msgid "Pack document for transfer to another computer"
 msgstr "Pekap dokumen bilong salim i go long narapela komputa"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8903
+#: source/Adapt_It_wdr.cpp:8906
 msgid "Unpack Document..."
 msgstr "Lusim Dokumen I Pekap..."
 
-#: source/Adapt_It_wdr.cpp:8903
+#: source/Adapt_It_wdr.cpp:8906
 msgid "Unpack a document that was packed on another computer"
 msgstr "Lusim dokumen i bin pekap long narapela komputa"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8905
+#: source/Adapt_It_wdr.cpp:8908
 msgid "&Print...\tCtrl-P"
 msgstr "&Printim...\tCtrl-P"
 
-#: source/Adapt_It_wdr.cpp:8905
-#: source/Adapt_It_wdr.cpp:9070
+#: source/Adapt_It_wdr.cpp:8908
+#: source/Adapt_It_wdr.cpp:9073
 msgid "Print the active document"
 msgstr "Printim dispela dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8906
+#: source/Adapt_It_wdr.cpp:8909
 msgid "Print Pre&view"
 msgstr "Print Luksa&ve"
 
-#: source/Adapt_It_wdr.cpp:8906
+#: source/Adapt_It_wdr.cpp:8909
 msgid "Show what printed pages will look like (without printing)"
 msgstr "Luksave tasol long pes bai kamap olsem wanem long printa (tasol no printim yet)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8907
+#: source/Adapt_It_wdr.cpp:8910
 msgid "P&age Setup..."
 msgstr "P&es Setap..."
 
-#: source/Adapt_It_wdr.cpp:8907
+#: source/Adapt_It_wdr.cpp:8910
 msgid "Change the printing options"
 msgstr "Senisim seting bilong print long pepa"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8909
+#: source/Adapt_It_wdr.cpp:8912
 msgid "Start &Working...\tCtrl-W"
 msgstr "Stat &Wok...\tCtrl-W"
 
-#: source/Adapt_It_wdr.cpp:8909
+#: source/Adapt_It_wdr.cpp:8912
 msgid "Show the sequence of dialog windows used for accessing a project and working on documents"
 msgstr "Soim ol daialog pes bilong selektim projek na wok insait long dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8910
+#: source/Adapt_It_wdr.cpp:8913
 msgid "Close Pro&ject\tCtrl-J"
 msgstr "Klosim Pro&jek\tCtrl-J"
 
-#: source/Adapt_It_wdr.cpp:8910
+#: source/Adapt_It_wdr.cpp:8913
 msgid "Save the knowledge base and document, then close this project"
 msgstr "Sevim nolis bes na sevim dokumen, pinis klosim dispela projek tu"
 
-#: source/Adapt_It_wdr.cpp:8911
+#: source/Adapt_It_wdr.cpp:8914
 msgid "Change to a different book folder for document storage (book mode must be ON)"
 msgstr "Makim narapela buk folda bilong holim ol dokumen (buk mod i mas ON)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8913
+#: source/Adapt_It_wdr.cpp:8916
 msgid "Save &Knowledge Base"
 msgstr "Sevim &Nolis Bes"
 
-#: source/Adapt_It_wdr.cpp:8913
+#: source/Adapt_It_wdr.cpp:8916
 msgid "Update the knowledge base file for this project"
 msgstr "Sevim nolis bes fail bilong dispela projek"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8914
+#: source/Adapt_It_wdr.cpp:8917
 msgid "&Backup Knowledge Base"
 msgstr "&Bekap Nolis Bes"
 
-#: source/Adapt_It_wdr.cpp:8914
+#: source/Adapt_It_wdr.cpp:8917
 msgid "Make a new knowledge base backup immediately"
 msgstr "Wokim nupela bekap bilong nolis bes nau"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8915
+#: source/Adapt_It_wdr.cpp:8918
 msgid "&Restore Knowledge Base..."
 msgstr "&Wokim Gen Nolis Bes..."
 
-#: source/Adapt_It_wdr.cpp:8915
+#: source/Adapt_It_wdr.cpp:8918
 msgid "Use all the saved documents to rebuild the knowledge base file"
 msgstr "Ritim olgeta dokumen yu sevim pinis na yusim bilong wokim gen gutpela nolis bes fail"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8917
+#: source/Adapt_It_wdr.cpp:8920
 msgid "E&xit"
 msgstr "E&ksit"
 
-#: source/Adapt_It_wdr.cpp:8917
+#: source/Adapt_It_wdr.cpp:8920
 msgid "Quit the application; prompts to save documents"
 msgstr "Stopim progrem nau; Adapt It bai askim yu long sevim dokumen pastaim sapos i no sev yet"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8922
+#: source/Adapt_It_wdr.cpp:8925
 msgid "&Undo\tCtrl-Z"
 msgstr "Ra&usim Senis\tCtrl-Z"
 
-#: source/Adapt_It_wdr.cpp:8922
+#: source/Adapt_It_wdr.cpp:8925
 msgid "Undo the last action"
 msgstr "Rausim las senis yu bin mekim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8924
+#: source/Adapt_It_wdr.cpp:8927
 msgid "Cu&t\tCtrl-X"
 msgstr "Ka&t\tCtrl-X"
 
-#: source/Adapt_It_wdr.cpp:8924
-#: source/Adapt_It_wdr.cpp:9065
+#: source/Adapt_It_wdr.cpp:8927
+#: source/Adapt_It_wdr.cpp:9068
 msgid "Cut the selection and put it on the Clipboard"
 msgstr "Katim seleksen i kam long we na holim dispela samting i stap long klipbot"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8925
+#: source/Adapt_It_wdr.cpp:8928
 msgid "&Copy\tCtrl-C"
 msgstr "&Kopi\tCtrl-C"
 
-#: source/Adapt_It_wdr.cpp:8925
-#: source/Adapt_It_wdr.cpp:9066
+#: source/Adapt_It_wdr.cpp:8928
+#: source/Adapt_It_wdr.cpp:9069
 msgid "Copy the selection and put it on the Clipboard"
 msgstr "Kisim kopi bilong dispela samting na holim long Klipbot"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8926
+#: source/Adapt_It_wdr.cpp:8929
 msgid "&Paste\tCtrl-V"
 msgstr "&Pestim\tCtrl-V"
 
-#: source/Adapt_It_wdr.cpp:8926
-#: source/Adapt_It_wdr.cpp:9067
+#: source/Adapt_It_wdr.cpp:8929
+#: source/Adapt_It_wdr.cpp:9070
 msgid "Insert Clipboard contents"
 msgstr "Kisim teks i stap long Klipbot na subim  insait long teks hia"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8928
+#: source/Adapt_It_wdr.cpp:8931
 msgid "&Go To...\tCtrl-G"
 msgstr "&Go Long...\tCtrl-G"
 
-#: source/Adapt_It_wdr.cpp:8928
+#: source/Adapt_It_wdr.cpp:8931
 msgid "Go to a specific chapter and verse"
 msgstr "Kalap i go long wanpela sapta na ves"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8929
+#: source/Adapt_It_wdr.cpp:8932
 msgid "Edit &Source Text...\tCtrl-Q"
 msgstr "Editim &Sos Teks...\tCtrl-Q"
 
-#: source/Adapt_It_wdr.cpp:8929
+#: source/Adapt_It_wdr.cpp:8932
 msgid "Edit the selected source text"
 msgstr "Senisim sos tek yu bin selektim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8930
+#: source/Adapt_It_wdr.cpp:8933
 msgid "Consist&ency Check..."
 msgstr "Konsist&ensi Sek..."
 
-#: source/Adapt_It_wdr.cpp:8930
+#: source/Adapt_It_wdr.cpp:8933
 msgid "Check all translations with those in the knowledge base for consistency"
 msgstr "Sekim ol trenslesen i stap long dokumen wantaim ol trenslesen i stap long nolis bes, na stretim"
 
-#: source/Adapt_It_wdr.cpp:8932
-#, fuzzy
+#: source/Adapt_It_wdr.cpp:8935
 msgid "Change Punctuation or Markers Placement"
-msgstr "Lista bilong ol Singel pangsuesen mak"
+msgstr "Senisim ples bilong pangsuesen o maka"
 
-#: source/Adapt_It_wdr.cpp:8932
+#: source/Adapt_It_wdr.cpp:8935
 msgid "Clear this location's stored punctuation and markers placements so Place... dialogs can open here again"
 msgstr "Kliaim ples we pangsuesen na ol maka Adapt It i subim, olsem na ol \"Makim... daialog inap kamap hia gen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8934
+#: source/Adapt_It_wdr.cpp:8937
 msgid "Move Note Forward\tCtrl-3"
 msgstr "Movim Not i go het\tCtrl-3"
 
-#: source/Adapt_It_wdr.cpp:8934
+#: source/Adapt_It_wdr.cpp:8937
 msgid "Move the note forward in the document to the next word or phrase"
 msgstr "Movim not i go het long neks word o fres i stap bihain long dispela"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8935
+#: source/Adapt_It_wdr.cpp:8938
 msgid "Move Note Backward\tCtrl-2"
 msgstr "Movim Not i go bek\tCtrl-2"
 
-#: source/Adapt_It_wdr.cpp:8935
+#: source/Adapt_It_wdr.cpp:8938
 msgid "Move the note backward in the document to the previous word or phrase"
 msgstr "Movim not i go bek long las word o fres i stap bipo long dispela"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8937
+#: source/Adapt_It_wdr.cpp:8940
 msgid "Pre&ferences..."
 msgstr "Pre&frens o Seting..."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8937
+#: source/Adapt_It_wdr.cpp:8940
 msgid "Adapt It settings"
 msgstr "Adapt It Seting"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8941
+#: source/Adapt_It_wdr.cpp:8944
 msgid "&Toolbar"
 msgstr "&Tulba"
 
-#: source/Adapt_It_wdr.cpp:8941
+#: source/Adapt_It_wdr.cpp:8944
 msgid "Show or hide the toolbar"
 msgstr "Soim o haitim tulba"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8942
+#: source/Adapt_It_wdr.cpp:8945
 msgid "&Status Bar"
 msgstr "&Statis Ba"
 
-#: source/Adapt_It_wdr.cpp:8942
+#: source/Adapt_It_wdr.cpp:8945
 msgid "Show or hide the status bar"
 msgstr "Soim o haitim statis ba"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8943
+#: source/Adapt_It_wdr.cpp:8946
 msgid "&Compose Bar"
 msgstr "&Kompos Ba"
 
-#: source/Adapt_It_wdr.cpp:8943
+#: source/Adapt_It_wdr.cpp:8946
 msgid "Show or hide the bar for composing text"
 msgstr "Soim o haitim boks bilong taipim teks (bilong traiim)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8944
-#, fuzzy
+#: source/Adapt_It_wdr.cpp:8947
 msgid "&Mode Bar"
-msgstr "&Kompos Ba"
+msgstr "&Mod Ba"
 
-#: source/Adapt_It_wdr.cpp:8944
-#, fuzzy
+#: source/Adapt_It_wdr.cpp:8947
 msgid "Show or hide the mode bar"
-msgstr "Soim o haitim tulba"
+msgstr "Soim o haitim mod ba"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8946
+#: source/Adapt_It_wdr.cpp:8949
 msgid "Copy Sourc&e"
 msgstr "Kopi S&os"
 
-#: source/Adapt_It_wdr.cpp:8946
+#: source/Adapt_It_wdr.cpp:8949
 msgid "Copy source text to phrase box as default translation"
 msgstr "Kopiim sos teks i kam long fres boks olsem trenslesen bilong traiim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8947
+#: source/Adapt_It_wdr.cpp:8950
 msgid "&Wrap At Standard Format Markers"
 msgstr "&Statim Nupela Lain Long Standet Fomat Maka"
 
-#: source/Adapt_It_wdr.cpp:8947
+#: source/Adapt_It_wdr.cpp:8950
 msgid "Start a new strip whenever a standard format marker is encountered"
 msgstr "Statim nupela strip oltaim standet fomat maka i kamap"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8948
+#: source/Adapt_It_wdr.cpp:8951
 msgid "&Units of Measurement..."
 msgstr "&Skel bilong Skelim..."
 
-#: source/Adapt_It_wdr.cpp:8948
+#: source/Adapt_It_wdr.cpp:8951
 msgid "Units to be used when printing"
 msgstr "Skel bilong yusim long printim pes"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8950
+#: source/Adapt_It_wdr.cpp:8953
 msgid "Change Interface Language..."
 msgstr "Senisim Tokples bilong Menu..."
 
-#: source/Adapt_It_wdr.cpp:8950
+#: source/Adapt_It_wdr.cpp:8953
 msgid "Change the language of the program interface. You may need to restart Adapt It for the change to take effect"
 msgstr "Senisim tokples Adapt It i save yusim insait long progrem olsem menu samting. Stopim na statim gen Adapt It progrem sapos ol menu samting i no soim narapela tokples gut"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8952
+#: source/Adapt_It_wdr.cpp:8955
 msgid "Show Administrator Menu... (Password protected)"
 msgstr "Soim Administreta Menu (Pasword i lukautim)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8956
+#: source/Adapt_It_wdr.cpp:8959
 msgid "&Find...\tCtrl-F"
 msgstr "&Painim...\tCtrl-F"
 
-#: source/Adapt_It_wdr.cpp:8956
+#: source/Adapt_It_wdr.cpp:8959
 msgid "Find text in source or target or both, or special search"
 msgstr "Painim teks i stap long sos o taget teks o tupela wantaim, o mekim spesel painim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8957
+#: source/Adapt_It_wdr.cpp:8960
 msgid "Find and &Replace...\tCtrl-H"
 msgstr "Painim na &Senisim...\tCtrl-H"
 
-#: source/Adapt_It_wdr.cpp:8957
+#: source/Adapt_It_wdr.cpp:8960
 msgid "Replace in target text"
 msgstr "Senisim insait long taget teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8959
+#: source/Adapt_It_wdr.cpp:8962
 msgid "&Load Consistent Changes..."
 msgstr "&Setim Konsistent Senis..."
 
-#: source/Adapt_It_wdr.cpp:8959
+#: source/Adapt_It_wdr.cpp:8962
 msgid "Define and load one or more consistent changes tables"
 msgstr "Makim na setim wanpela o sampela konsisten senis tebol"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8960
+#: source/Adapt_It_wdr.cpp:8963
 msgid "&Unload Consistent Changes"
 msgstr "&Lusim Konsisten Senis"
 
-#: source/Adapt_It_wdr.cpp:8960
+#: source/Adapt_It_wdr.cpp:8963
 msgid "Unload any loaded consistent changes tables"
 msgstr "Lusim konsisten senis (Adapt It no ken yusim nau)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8961
+#: source/Adapt_It_wdr.cpp:8964
 msgid "Use &Consistent Changes"
 msgstr "Yusim &Konsisten Senis"
 
-#: source/Adapt_It_wdr.cpp:8961
+#: source/Adapt_It_wdr.cpp:8964
 msgid "Use the consistent changes when copying source text"
 msgstr "Yusim konsisten senis taim Adapt It i kopiim sos teks (i kam insait long fres boks)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8962
+#: source/Adapt_It_wdr.cpp:8965
 msgid "&Accept Changes Without Stopping"
 msgstr "&Larim Ol Senis na No Ken Stop"
 
-#: source/Adapt_It_wdr.cpp:8962
+#: source/Adapt_It_wdr.cpp:8965
 msgid "Accept the changed source text as the translation and continue on"
 msgstr "Larim ol senis Adapt It i wokim na go het - no ken stop bilong luksave pastaim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8964
+#: source/Adapt_It_wdr.cpp:8967
 msgid "&SIL Converters..."
 msgstr "&SIL Konveta..."
 
-#: source/Adapt_It_wdr.cpp:8964
+#: source/Adapt_It_wdr.cpp:8967
 msgid "Load an SIL Converter"
 msgstr "Makim wanpela S&IL Konveta"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8965
+#: source/Adapt_It_wdr.cpp:8968
 msgid "Use S&IL Converter"
 msgstr "Yusim S&IL Konveta"
 
-#: source/Adapt_It_wdr.cpp:8965
+#: source/Adapt_It_wdr.cpp:8968
 msgid "Use a loaded SIL Converter"
 msgstr "Yusim S&IL Konveta"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8967
+#: source/Adapt_It_wdr.cpp:8970
 msgid "&Knowledge Base Editor...\tCtrl-K"
 msgstr "&Nolis Bes Edita...\tCtrl-K"
 
-#: source/Adapt_It_wdr.cpp:8967
+#: source/Adapt_It_wdr.cpp:8970
 msgid "Display dialog for editing the knowledge base"
 msgstr "Soim daialog bilong editim o senisim samting insait long nolis bes"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8969
+#: source/Adapt_It_wdr.cpp:8972
 msgid "Use Automatic Capitalization"
 msgstr "Yusim Automatik Kapitel o Smol Leta"
 
-#: source/Adapt_It_wdr.cpp:8969
+#: source/Adapt_It_wdr.cpp:8972
 msgid "Use automatic capitalization when copying source text"
 msgstr "Taim Adapt It i kopiim teks, em yet bai wokim kapitel o litlik leta senis long stat bilong sos teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8971
+#: source/Adapt_It_wdr.cpp:8974
 msgid "Re&translation Report..."
 msgstr "Re&trenslesen Ripot..."
 
-#: source/Adapt_It_wdr.cpp:8971
+#: source/Adapt_It_wdr.cpp:8974
 msgid "Output a file listing all retranslations"
 msgstr "Wokim wanpela fail i gat lista bilong ol ritrenslesen insait"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8973
+#: source/Adapt_It_wdr.cpp:8976
 msgid "Split Document..."
 msgstr "Hapim Dokumen..."
 
-#: source/Adapt_It_wdr.cpp:8973
+#: source/Adapt_It_wdr.cpp:8976
 msgid "Split the document into two or more documents"
 msgstr "Hapim o brukim dokumen i go long tupela o planti dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8974
+#: source/Adapt_It_wdr.cpp:8977
 msgid "Join Documents..."
 msgstr "Joinim Ol Dokumen..."
 
-#: source/Adapt_It_wdr.cpp:8974
+#: source/Adapt_It_wdr.cpp:8977
 msgid "Join two or more documents into a single document"
 msgstr "Joinim tupela o planti dokumen i kamap wanpela dokumen tasol"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8975
+#: source/Adapt_It_wdr.cpp:8978
 msgid "Move Document..."
 msgstr "Movim Dokumen"
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:8975
+#: source/Adapt_It_wdr.cpp:8978
 msgid "Move documents between the Adaptations folder and a book folder location"
 msgstr "Movim dokumen i go kam namel long Adaptations folda na wanpela buk folda"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8979
+#: source/Adapt_It_wdr.cpp:8982
 msgid "Export &Source Text..."
 msgstr "Ekspotim &Sos Teks..."
 
-#: source/Adapt_It_wdr.cpp:8979
+#: source/Adapt_It_wdr.cpp:8982
 msgid "Export the source language text as a *.txt file type"
 msgstr "Ekspotim sos teks tokples i go aut olsem *.txt fail"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8980
+#: source/Adapt_It_wdr.cpp:8983
 msgid "&Export Translation Text..."
 msgstr "&Ekspotim Trenslesen Teks..."
 
-#: source/Adapt_It_wdr.cpp:8980
+#: source/Adapt_It_wdr.cpp:8983
 msgid "Export the target language translation as a *.txt file type"
 msgstr "Ekspotim taget tokples trenslesen i go aut olsem *.txt fail"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8981
+#: source/Adapt_It_wdr.cpp:8984
 msgid "Export Interlinear &Text..."
 msgstr "Ekspotim Intalinea &Teks..."
 
-#: source/Adapt_It_wdr.cpp:8981
+#: source/Adapt_It_wdr.cpp:8984
 msgid "Export the Source and Target languages in interlinear form as an *.rtf file type"
 msgstr "Ekspotim Sos wantaim Taget tokples i go long intalinea kain dokumen olsem *.rtf fail"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8982
+#: source/Adapt_It_wdr.cpp:8985
 msgid "Export &Glosses As Text..."
 msgstr "Ekspotim &Glos Olsem Teks..."
 
-#: source/Adapt_It_wdr.cpp:8982
+#: source/Adapt_It_wdr.cpp:8985
 msgid "Export the glossing lines' contents as text"
 msgstr "Ekspotim ol glos hap tok i kamap olsem teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8983
+#: source/Adapt_It_wdr.cpp:8986
 msgid "Export Free Translation..."
 msgstr "Ekspotim Fri Trenslesen Teks..."
 
-#: source/Adapt_It_wdr.cpp:8983
+#: source/Adapt_It_wdr.cpp:8986
 msgid "Collect all the free translation sections' contents, adding standard format markers, and export"
 msgstr "Bungim ol fri trenslesen teks, putim ol stendet fomat maka i go insait, na ekspotim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8985
+#: source/Adapt_It_wdr.cpp:8988
 msgid "Export Knowledge &Base..."
 msgstr "Ekspotim Nolis &Bes..."
 
-#: source/Adapt_It_wdr.cpp:8985
+#: source/Adapt_It_wdr.cpp:8988
 msgid "Export knowledge base in standard format or LIFT format"
 msgstr "Ekspotim nolis bes i go aut na kamap olsem LIFT fomat"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8986
+#: source/Adapt_It_wdr.cpp:8989
 msgid "&Import to Knowledge Base..."
 msgstr "&Impot bilong Skruim Nolis Bes..."
 
-#: source/Adapt_It_wdr.cpp:8986
+#: source/Adapt_It_wdr.cpp:8989
 msgid "Extend knowledge base by importing dictionary records"
 msgstr "Skruim nolis bes - olsem kisim ol diksineri rekod i kam insait long nolis bes"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8988
+#: source/Adapt_It_wdr.cpp:8991
 msgid "Import Edited Source Text..."
 msgstr "Impotim Sos Teks i gat senis..."
 
-#: source/Adapt_It_wdr.cpp:8988
+#: source/Adapt_It_wdr.cpp:8991
 msgid "Import an edited version of the text that was used for the currently open document"
 msgstr "Wanpela dokumen nau i op is stap. I gat samplea senis bilong dispela dokumen yet ausait long Adapt It. Impotim gen teks i gat ol dispela senis."
 
-#: source/Adapt_It_wdr.cpp:8992
+#: source/Adapt_It_wdr.cpp:8995
 msgid "Make glossing line visible on screen"
 msgstr "Soim glos lain i kamap ples klia long skrin"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8993
+#: source/Adapt_It_wdr.cpp:8996
 msgid "Glossing Uses Navigation Text's Font"
 msgstr "Ol Glos I Yusim Toksave Teks Font"
 
-#: source/Adapt_It_wdr.cpp:8993
+#: source/Adapt_It_wdr.cpp:8996
 msgid "Use the navigation text font for glossing text"
 msgstr "Yusim toksave teks font bilong ol glos teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8995
+#: source/Adapt_It_wdr.cpp:8998
 msgid "Transform Adaptations Into Glosses..."
 msgstr "Tanim Ol Adaptations I Go Long Glos..."
 
-#: source/Adapt_It_wdr.cpp:8995
+#: source/Adapt_It_wdr.cpp:8998
 msgid "Transform adaptations from another project into the current project's glosses"
 msgstr "Tanim ol adaptations bilong narapela projek i kamap olsem glos insait long dispela projek"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8996
+#: source/Adapt_It_wdr.cpp:8999
 msgid "Delay..."
 msgstr "Wet..."
 
-#: source/Adapt_It_wdr.cpp:8996
+#: source/Adapt_It_wdr.cpp:8999
 msgid "Slow automatic insertions down to a speed suitable for reading along"
 msgstr "Mekim ol automatik teks i kamap slo liklik olsem bai isi long ritim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:8998
+#: source/Adapt_It_wdr.cpp:9001
 msgid "Storing Documents in Book Folders"
 msgstr "Holim ol Dokumen insait long Buk Folda"
 
-#: source/Adapt_It_wdr.cpp:8998
+#: source/Adapt_It_wdr.cpp:9001
 msgid "Turn on, or off, storage of documents to book folders"
 msgstr "Tanim i go on, o i go of, wok bilong yusim buk folda"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9000
+#: source/Adapt_It_wdr.cpp:9003
 msgid "Free Translation Mode"
 msgstr "Fri Trenslesen Mod"
 
-#: source/Adapt_It_wdr.cpp:9000
+#: source/Adapt_It_wdr.cpp:9003
 msgid "Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"
 msgstr "Tanim i go on, o i go of, wok long taipim fri trenslesen insait long Kompos Ba na i stap ples klia"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9001
+#: source/Adapt_It_wdr.cpp:9004
 msgid "Use Target Text As Default Free Translation"
 msgstr "Yusim Taget Teks Bilong Kamapim Ol Fri Trenslesen"
 
-#: source/Adapt_It_wdr.cpp:9001
+#: source/Adapt_It_wdr.cpp:9004
 msgid "Turn on, or off, composition of a default free translation from the existing target text"
 msgstr "Tanim i go on, o i go of, wok bilong bungim fri trenslesen i kam long ol taget teks i stap"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9002
+#: source/Adapt_It_wdr.cpp:9005
 msgid "Use Gloss Text As Default Free Translation"
 msgstr "Yusim Glos Teks Bilong Kamapim Ol Fri Trenslesen"
 
-#: source/Adapt_It_wdr.cpp:9002
+#: source/Adapt_It_wdr.cpp:9005
 msgid "Turn on, or off, composition of a default free translation from the existing gloss text"
 msgstr "Tanim i go on, o i go of, wok bilong bungim fri trenslesen i kam long ol glos teks i stap"
 
-#: source/Adapt_It_wdr.cpp:9003
+#: source/Adapt_It_wdr.cpp:9006
 msgid "Remove Free Translations"
 msgstr "Rausim Ol Fri Trenslesen"
 
-#: source/Adapt_It_wdr.cpp:9003
+#: source/Adapt_It_wdr.cpp:9006
 msgid "Removes all the filtered free translations in the document"
 msgstr "Rausim olgeta filta fri trenslesen long we long dispela dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9005
+#: source/Adapt_It_wdr.cpp:9008
 msgid "Collect Back Translations..."
 msgstr "Bungim Ol Bek Trenslesen..."
 
-#: source/Adapt_It_wdr.cpp:9005
+#: source/Adapt_It_wdr.cpp:9008
 msgid "Collect adaptations, or glosses, and store them with a back translation marker as filtered material"
 msgstr "Bungim ol adaptations o ol glos, na holim ol wantaim bek trenslesen maka olsem i filta (o hait)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9006
+#: source/Adapt_It_wdr.cpp:9009
 msgid "Remove Back Translations"
 msgstr "Rausim Ol Bek Trenslesen"
 
-#: source/Adapt_It_wdr.cpp:9006
+#: source/Adapt_It_wdr.cpp:9009
 msgid "Deletes all the filtered back translations in the document"
 msgstr "Rausim olgeta filta bek trenslesen i kam long we long dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9008
+#: source/Adapt_It_wdr.cpp:9011
 msgid "Use Transliteration Mode"
 msgstr "Yusim Trenslitaresen Mod"
 
-#: source/Adapt_It_wdr.cpp:9008
+#: source/Adapt_It_wdr.cpp:9011
 msgid "Select this item to use SIL Converters in transliteration mode"
 msgstr "Selektim dispela bilong yusim SIL Konveta i go long trenslitaresen mod"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9010
+#: source/Adapt_It_wdr.cpp:9013
 msgid "Send Synchronized Scrolling Messages"
 msgstr "Salim Kontrol Signal Bilong Skrol Wantaim"
 
-#: source/Adapt_It_wdr.cpp:9010
+#: source/Adapt_It_wdr.cpp:9013
 msgid "Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"
 msgstr "Selektim dispela bilong mekim progrem olsem Paratext na TW i mas skrol automatik i go long sem ples insait long dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9011
+#: source/Adapt_It_wdr.cpp:9014
 msgid "Receive Synchronized Scrolling Messages"
 msgstr "Kisim Kontrol Signal Bilong Skrol Wantaim"
 
-#: source/Adapt_It_wdr.cpp:9011
+#: source/Adapt_It_wdr.cpp:9014
 msgid "Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"
 msgstr "Selektim dispela bilong mekim Adapt It yet i mas skrol automatik i bihainim sem ples ol narapela progrem olsem Paratext na TW i go long en"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9015
+#: source/Adapt_It_wdr.cpp:9018
 msgid "Layout text in window from right to left"
 msgstr "Mekim teks i wokabaut long han sut i kam long han kais"
 
 # This represents a menu item which will load the "Adapt It Quick Start" help (HTML) document in a browser. "Adapt It Quick Start" is the name of the HTML document.
-#: source/Adapt_It_wdr.cpp:9019
+#: source/Adapt_It_wdr.cpp:9022
 msgid "Adapt It &Quick Start Help"
 msgstr "Lukim Adapt It &Quick Start HTML dokumen"
 
-#: source/Adapt_It_wdr.cpp:9019
+#: source/Adapt_It_wdr.cpp:9022
 msgid "View the Adapt It Quick Start HTML document"
 msgstr "Opim na ritim Adapt It Quick Start HTML dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9020
+#: source/Adapt_It_wdr.cpp:9023
 msgid "&Help Topics\tShift-Ctrl-/"
 msgstr "&Het Tok Bilong Help\tShift-Ctrl-/"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9020
+#: source/Adapt_It_wdr.cpp:9023
 msgid "List Help topics"
 msgstr "Listim na soim ol het tok bilong kisim helpim long yusim Adapt It"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9022
+#: source/Adapt_It_wdr.cpp:9025
 msgid "Report a problem..."
 msgstr "Ripotim problem..."
 
-#: source/Adapt_It_wdr.cpp:9022
+#: source/Adapt_It_wdr.cpp:9025
 msgid "Send a bug or problem report to the Adapt It developers"
 msgstr "Salim bug o problem ripot i go long developa bilong Adapt It"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9023
+#: source/Adapt_It_wdr.cpp:9026
 msgid "Give feedback..."
 msgstr "Strongim bel bilong developa..."
 
-#: source/Adapt_It_wdr.cpp:9023
+#: source/Adapt_It_wdr.cpp:9026
 msgid "Give the developers feedback on your use of Adapt It"
 msgstr "Strongim bel bilong ol Adapt It developa na toksave long yusim olsem wantm"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9025
+#: source/Adapt_It_wdr.cpp:9028
 msgid "Use Tooltips"
 msgstr "Yusim Tultip"
 
-#: source/Adapt_It_wdr.cpp:9025
+#: source/Adapt_It_wdr.cpp:9028
 msgid "Select this item to turn on or turn off tooltip help messages"
 msgstr "Selektim dispela bilong kirapim o stopim ol tultip toksave"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9027
+#: source/Adapt_It_wdr.cpp:9030
 msgid "&About Adapt It..."
 msgstr "Toks&ave Long Adapt It..."
 
-#: source/Adapt_It_wdr.cpp:9027
+#: source/Adapt_It_wdr.cpp:9030
 msgid "Display program information, version number and copyright"
 msgstr "Soim toksave long dispela Adapt It progrem, vesin namba na kopirait"
 
 # This represents a menu item which will load the "Help for Administrators (HTML)" document in a browser. "Help for Administrators (HTML)" is the name of the HTML document.
-#: source/Adapt_It_wdr.cpp:9031
+#: source/Adapt_It_wdr.cpp:9034
 msgid "&Help for Administrators (HTML)"
 msgstr "Lukim Help for Administrators (HTML) dokumen"
 
-#: source/Adapt_It_wdr.cpp:9031
+#: source/Adapt_It_wdr.cpp:9034
 msgid "Step-by-step procedures to help administrators set up Adapt It to use the features on this menu."
 msgstr "Toksave bilong helpim ol administreta taim ol i laik setim ap Adapt It bilong bihainim ol item bilong dispela menu."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9033
+#: source/Adapt_It_wdr.cpp:9036
 #, c-format
 msgid "&Setup %s Collaboration..."
 msgstr "Setap %s Bilong Wok Wantaim..."
 
 # Both of the %s will be substituted with either "Paratext" or "Bibledit".
-#: source/Adapt_It_wdr.cpp:9033
+#: source/Adapt_It_wdr.cpp:9036
 #, c-format
 msgid "Configure Adapt It to use a %s project for its input (source) texts, and a different %s project for exporting its (target) texts"
 msgstr "Stretim Adapt It bilong yusim wanpela %s projek bilong kisim ol input (sos) teks, na narapela %s projek bilong kisim na holim ol taget teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9035
+#: source/Adapt_It_wdr.cpp:9038
 msgid "User &Workflow Profiles..."
 msgstr "User Wok Profail..."
 
-#: source/Adapt_It_wdr.cpp:9035
+#: source/Adapt_It_wdr.cpp:9038
 msgid "Choose which menu items the user can access"
 msgstr "Makim wanel ol menu user inap long yusim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9036
+#: source/Adapt_It_wdr.cpp:9039
 msgid "&Turn OFF the current user profile temporarily"
 msgstr "&Tanim OFF dispela user profail haptaim tasol"
 
-#: source/Adapt_It_wdr.cpp:9036
+#: source/Adapt_It_wdr.cpp:9039
 msgid "When ticked no user profiles will be in effect until program restart or until unticked; and all menus will be accessible"
 msgstr "Sapos tikim, bai stopim wanem user profail Adapt It i save yusim, inap progrem i stat gen o yu rausim tik; olgeta menu bai stap ples klia"
 
-#: source/Adapt_It_wdr.cpp:9038
+#: source/Adapt_It_wdr.cpp:9041
 msgid "&Assign Locations For Inputs and Outputs..."
 msgstr "&Banisim ol folda bilong holim ol input na autput..."
 
-#: source/Adapt_It_wdr.cpp:9038
+#: source/Adapt_It_wdr.cpp:9041
 msgid "Opens a dialog in which folder locations for inputs and outputs can be assigned, protecting users from navigating the file system"
 msgstr "Dispela i save opim wanpela daialog i save listim ol folda bilong input na autput, na yu ken banisim ol olsem na wokman i no ken go nabaut nating long fail sistem"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9040
+#: source/Adapt_It_wdr.cpp:9043
 msgid "&Move Or Copy Folders Or Files...\tShift-Ctrl-M"
 msgstr "Movim O Kopiim Folda O Fail... \tShift-Ctrl-M"
 
-#: source/Adapt_It_wdr.cpp:9040
+#: source/Adapt_It_wdr.cpp:9043
 msgid "Dialog for moving folders or files, or copying them, into a destination folder"
 msgstr "Daialog bilong movim folda o fail, o bilong kopiim ol i go long folda bilong kisim ol"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9042
+#: source/Adapt_It_wdr.cpp:9045
 msgid "Set &Password..."
 msgstr "Makim &Pasword..."
 
-#: source/Adapt_It_wdr.cpp:9042
+#: source/Adapt_It_wdr.cpp:9045
 msgid "Set a password, it will be stored in the clear in the basic configuration file"
 msgstr "Makim pasword, Adapt It bai holim i stap ples klia insait long besik configuration fail"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9044
+#: source/Adapt_It_wdr.cpp:9047
 msgid "&Custom Work Folder Location..."
 msgstr "&Makim Ples Bilong Wok Folda..."
 
-#: source/Adapt_It_wdr.cpp:9044
+#: source/Adapt_It_wdr.cpp:9047
 msgid "Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere"
 msgstr "Makim wanem wok folda Adapt It i mas yusim, na yusim inap long makim narapela folda gen bilong yusim"
 
 # Priority 1
 # Lock in the sense that ordinary users cannot change the custom work folder location
-#: source/Adapt_It_wdr.cpp:9045
+#: source/Adapt_It_wdr.cpp:9048
 msgid "&Lock Custom Location"
 msgstr "&Lokim Kastom Lokesen"
 
-#: source/Adapt_It_wdr.cpp:9045
+#: source/Adapt_It_wdr.cpp:9048
 msgid "Make the custom work folder location permanent until explicitly changed"
 msgstr "Makim ples bilong kastom wok folda i stap oltaim olsem, o inap long yu senisim bihain"
 
 # Priority 1
 # Unlock in the sense of allowing a user to change the location of the custom work folder
-#: source/Adapt_It_wdr.cpp:9046
+#: source/Adapt_It_wdr.cpp:9049
 msgid "&Unlock Custom Location"
 msgstr "&Rausim Lok Bilong Kastom Lokesen"
 
-#: source/Adapt_It_wdr.cpp:9046
+#: source/Adapt_It_wdr.cpp:9049
 msgid "Make the custom work folder location persist only until the end of the session"
 msgstr "Makim ples bilong kastom wok folda i stap hap taim tasol inap long wok nau i pinis"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9047
+#: source/Adapt_It_wdr.cpp:9050
 msgid "&Restore Default Work Folder Location"
 msgstr "&Yusim Defol Wok Folda Gen"
 
-#: source/Adapt_It_wdr.cpp:9047
+#: source/Adapt_It_wdr.cpp:9050
 msgid "Point at the local machine's default work folder"
 msgstr "Makim gen defol work folda bilong dispela computa"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9059
-#: source/Adapt_It_wdr.cpp:9121
+#: source/Adapt_It_wdr.cpp:9062
+#: source/Adapt_It_wdr.cpp:9124
 msgid "New"
 msgstr "Nupela"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9063
-#: source/Adapt_It_wdr.cpp:9125
+#: source/Adapt_It_wdr.cpp:9066
+#: source/Adapt_It_wdr.cpp:9128
 msgid "Save"
 msgstr "Sevim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9065
+#: source/Adapt_It_wdr.cpp:9068
 msgid "Cut"
 msgstr "Kat"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9066
+#: source/Adapt_It_wdr.cpp:9069
 msgid "Copy"
 msgstr "Kopi"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9067
+#: source/Adapt_It_wdr.cpp:9070
 msgid "Paste"
 msgstr "Pes"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9070
+#: source/Adapt_It_wdr.cpp:9073
 msgid "Print"
 msgstr "Print"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9072
-#: source/Adapt_It_wdr.cpp:9127
+#: source/Adapt_It_wdr.cpp:9075
+#: source/Adapt_It_wdr.cpp:9130
 msgid "Change Guesser Settings"
 msgstr "Senisim Seting bilong Gesa"
 
-#: source/Adapt_It_wdr.cpp:9072
-#: source/Adapt_It_wdr.cpp:9127
+#: source/Adapt_It_wdr.cpp:9075
+#: source/Adapt_It_wdr.cpp:9130
 msgid "Change settings for guessing the translation text"
 msgstr "Senisim seting bilong gesim trenslesen teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9074
-#: source/Adapt_It_wdr.cpp:9129
+#: source/Adapt_It_wdr.cpp:9077
+#: source/Adapt_It_wdr.cpp:9132
 msgid "Open a Note dialog"
 msgstr "Opim Not daialog"
 
-#: source/Adapt_It_wdr.cpp:9074
-#: source/Adapt_It_wdr.cpp:9129
+#: source/Adapt_It_wdr.cpp:9077
+#: source/Adapt_It_wdr.cpp:9132
 msgid "Create a note dialog and open it for typing"
 msgstr "Opim not daialog bilong wokim nupela not (bai kamap long ples bilong fres boks)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9075
-#: source/Adapt_It_wdr.cpp:9130
+#: source/Adapt_It_wdr.cpp:9078
+#: source/Adapt_It_wdr.cpp:9133
 msgid "Jump to the previous Note"
 msgstr "Kalap i go long las not"
 
-#: source/Adapt_It_wdr.cpp:9075
-#: source/Adapt_It_wdr.cpp:9130
+#: source/Adapt_It_wdr.cpp:9078
+#: source/Adapt_It_wdr.cpp:9133
 msgid "Go back and open the previous note"
 msgstr "Go bek na opim las not"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9076
-#: source/Adapt_It_wdr.cpp:9131
+#: source/Adapt_It_wdr.cpp:9079
+#: source/Adapt_It_wdr.cpp:9134
 msgid "Jump to the next Note"
 msgstr "Kalap i go long neks not"
 
-#: source/Adapt_It_wdr.cpp:9076
-#: source/Adapt_It_wdr.cpp:9131
+#: source/Adapt_It_wdr.cpp:9079
+#: source/Adapt_It_wdr.cpp:9134
 msgid "Go forward and open the next note"
 msgstr "Go het na opim neks not"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9077
-#: source/Adapt_It_wdr.cpp:9132
+#: source/Adapt_It_wdr.cpp:9080
+#: source/Adapt_It_wdr.cpp:9135
 msgid "Delete All Notes"
 msgstr "Rausim olgeta not"
 
-#: source/Adapt_It_wdr.cpp:9077
-#: source/Adapt_It_wdr.cpp:9132
+#: source/Adapt_It_wdr.cpp:9080
+#: source/Adapt_It_wdr.cpp:9135
 msgid "Delete all the notes currently in the document"
 msgstr "Rausim olgeta not i stap insait long dispela dokumen i aut olgeta"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9079
-#: source/Adapt_It_wdr.cpp:9134
+#: source/Adapt_It_wdr.cpp:9082
+#: source/Adapt_It_wdr.cpp:9137
 msgid "Ignore  Boundaries"
 msgstr "Maski Banis"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9082
-#: source/Adapt_It_wdr.cpp:9137
+#: source/Adapt_It_wdr.cpp:9085
+#: source/Adapt_It_wdr.cpp:9140
 msgid "Advance to End"
 msgstr "Kalap I Go Long Tel"
 
-#: source/Adapt_It_wdr.cpp:9082
-#: source/Adapt_It_wdr.cpp:9137
+#: source/Adapt_It_wdr.cpp:9085
+#: source/Adapt_It_wdr.cpp:9140
 msgid "Advance to the end of the data"
 msgstr "Kalap i go long tel bilong dispela dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9083
-#: source/Adapt_It_wdr.cpp:9138
+#: source/Adapt_It_wdr.cpp:9086
+#: source/Adapt_It_wdr.cpp:9141
 msgid "Back to Start"
 msgstr "Kalap I Go Long Stat"
 
-#: source/Adapt_It_wdr.cpp:9083
-#: source/Adapt_It_wdr.cpp:9138
+#: source/Adapt_It_wdr.cpp:9086
+#: source/Adapt_It_wdr.cpp:9141
 msgid "Go back to the start of the data"
 msgstr "Kalap i go long het o stat bilong dispela dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9085
-#: source/Adapt_It_wdr.cpp:9140
+#: source/Adapt_It_wdr.cpp:9088
+#: source/Adapt_It_wdr.cpp:9143
 msgid "Move Down One Step"
 msgstr "Kalap Daun 1 Step"
 
-#: source/Adapt_It_wdr.cpp:9085
-#: source/Adapt_It_wdr.cpp:9140
+#: source/Adapt_It_wdr.cpp:9088
+#: source/Adapt_It_wdr.cpp:9143
 msgid "Move the bundle down one step towards the bottom of the file"
 msgstr "Kalap i go daun 1 step i laik go long tel bilong dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9086
-#: source/Adapt_It_wdr.cpp:9141
+#: source/Adapt_It_wdr.cpp:9089
+#: source/Adapt_It_wdr.cpp:9144
 msgid "Move Up One Step"
 msgstr "Kalap Antap 1 Step"
 
-#: source/Adapt_It_wdr.cpp:9086
-#: source/Adapt_It_wdr.cpp:9141
+#: source/Adapt_It_wdr.cpp:9089
+#: source/Adapt_It_wdr.cpp:9144
 msgid "Move bundle back up one step towards the start of the file"
 msgstr "Kalap i go antap 1 step i laik go long het o stat bilong dokumen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9088
-#: source/Adapt_It_wdr.cpp:9143
+#: source/Adapt_It_wdr.cpp:9091
+#: source/Adapt_It_wdr.cpp:9146
 msgid "Jump Back"
 msgstr "Kalap I Go Bek"
 
-#: source/Adapt_It_wdr.cpp:9088
-#: source/Adapt_It_wdr.cpp:9143
+#: source/Adapt_It_wdr.cpp:9091
+#: source/Adapt_It_wdr.cpp:9146
 msgid "Jump back to the last active location"
 msgstr "Kalap i go bek long las ples fres boks i bin stap long en"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9090
-#: source/Adapt_It_wdr.cpp:9145
+#: source/Adapt_It_wdr.cpp:9093
+#: source/Adapt_It_wdr.cpp:9148
 msgid "Make A Phrase"
 msgstr "Wokim Wanpela Fres"
 
-#: source/Adapt_It_wdr.cpp:9090
-#: source/Adapt_It_wdr.cpp:9145
+#: source/Adapt_It_wdr.cpp:9093
+#: source/Adapt_It_wdr.cpp:9148
 msgid "Merge selected words into a phrase"
 msgstr "Bungim sampela word i kamap olsem fres o hap tok yet"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9092
-#: source/Adapt_It_wdr.cpp:9147
+#: source/Adapt_It_wdr.cpp:9095
+#: source/Adapt_It_wdr.cpp:9150
 msgid "Unmake A Phrase"
 msgstr "Lusim Fres"
 
-#: source/Adapt_It_wdr.cpp:9092
-#: source/Adapt_It_wdr.cpp:9147
+#: source/Adapt_It_wdr.cpp:9095
+#: source/Adapt_It_wdr.cpp:9150
 msgid "Restore selected phrase to a sequence of word objects"
 msgstr "Lusim fres yu bin bungim bipo na mekim i kamap wanwan word gen"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9095
-#: source/Adapt_It_wdr.cpp:9150
+#: source/Adapt_It_wdr.cpp:9098
+#: source/Adapt_It_wdr.cpp:9153
 msgid "Do A Retranslation"
 msgstr "Wokim Wanpela Ritrenslesen"
 
-#: source/Adapt_It_wdr.cpp:9095
-#: source/Adapt_It_wdr.cpp:9150
+#: source/Adapt_It_wdr.cpp:9098
+#: source/Adapt_It_wdr.cpp:9153
 msgid "The selected section is a retranslation, not an adaptation"
 msgstr "Dispela teks yu selektim em i ritrenslesen, i no wanpela adaptation"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9097
-#: source/Adapt_It_wdr.cpp:9152
+#: source/Adapt_It_wdr.cpp:9100
+#: source/Adapt_It_wdr.cpp:9155
 msgid "Edit A Retranslation"
 msgstr "Editim Ritrenslesen"
 
-#: source/Adapt_It_wdr.cpp:9097
-#: source/Adapt_It_wdr.cpp:9152
+#: source/Adapt_It_wdr.cpp:9100
+#: source/Adapt_It_wdr.cpp:9155
 msgid "Edit the retranslation at the selection or at the active location"
 msgstr "Editim ritrenslesen i stap long seleksen o i stap long ples bilong fres boks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9099
-#: source/Adapt_It_wdr.cpp:9154
+#: source/Adapt_It_wdr.cpp:9102
+#: source/Adapt_It_wdr.cpp:9157
 msgid "Remove A Retranslation"
 msgstr "Rausim Ritrenslesen"
 
-#: source/Adapt_It_wdr.cpp:9099
-#: source/Adapt_It_wdr.cpp:9154
+#: source/Adapt_It_wdr.cpp:9102
+#: source/Adapt_It_wdr.cpp:9157
 msgid "Remove the whole of the retranslation"
 msgstr "Rausim dispela ritrenslesen olgeta"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9102
-#: source/Adapt_It_wdr.cpp:9157
+#: source/Adapt_It_wdr.cpp:9105
+#: source/Adapt_It_wdr.cpp:9160
 msgid "Insert A Placeholder"
 msgstr "Subim Plesholda"
 
-#: source/Adapt_It_wdr.cpp:9102
-#: source/Adapt_It_wdr.cpp:9157
+#: source/Adapt_It_wdr.cpp:9105
+#: source/Adapt_It_wdr.cpp:9160
 msgid "Insert a placeholder into the source language text"
 msgstr "Subim wanpela plesholda (...) i go insait long sos teks"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9104
-#: source/Adapt_It_wdr.cpp:9159
+#: source/Adapt_It_wdr.cpp:9107
+#: source/Adapt_It_wdr.cpp:9162
 msgid "Remove A Placeholder"
 msgstr "Rausim Plesholda"
 
-#: source/Adapt_It_wdr.cpp:9104
-#: source/Adapt_It_wdr.cpp:9159
+#: source/Adapt_It_wdr.cpp:9107
+#: source/Adapt_It_wdr.cpp:9162
 msgid "Remove the placeholder and its adaptation text"
 msgstr "Rausim plesholda (...) wantaim trenslesen teks bilong en"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9107
-#: source/Adapt_It_wdr.cpp:9162
+#: source/Adapt_It_wdr.cpp:9110
+#: source/Adapt_It_wdr.cpp:9165
 msgid "Show The Choose Translation Dialog"
 msgstr "Soim \"Selektim Trenslesen\" daialog"
 
-#: source/Adapt_It_wdr.cpp:9107
-#: source/Adapt_It_wdr.cpp:9162
+#: source/Adapt_It_wdr.cpp:9110
+#: source/Adapt_It_wdr.cpp:9165
 msgid "Force the Choose Translation dialog to be shown"
 msgstr "Mas kirapim \"Selektim Trenslesen\" daialog na soim"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9109
-#: source/Adapt_It_wdr.cpp:9164
+#: source/Adapt_It_wdr.cpp:9112
+#: source/Adapt_It_wdr.cpp:9167
 msgid "View Translation or Glosses Elsewhere in the Document"
 msgstr "Luksave long Trenslesen o Glos i stap long Narapela Ples long Dokumen"
 
-#: source/Adapt_It_wdr.cpp:9109
-#: source/Adapt_It_wdr.cpp:9164
+#: source/Adapt_It_wdr.cpp:9112
+#: source/Adapt_It_wdr.cpp:9167
 msgid "View  translation or glosses elsewhere in the document; locate them by chapter and verse"
 msgstr "Luksave long trenslesen o glos i stap longnarapela ples insait long dispela dokumen; painim ples bilong sapta na ves"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:9111
+#: source/Adapt_It_wdr.cpp:9114
 msgid "Display Help Topics"
 msgstr "Listim na soim ol het tok bilong kisim helpim long yusim Adapt It"
 
-#: source/Adapt_It_wdr.cpp:9111
+#: source/Adapt_It_wdr.cpp:9114
 msgid "Display Adapt It program help topics"
 msgstr "Soim Ol Help Bilong Yusim Adapt It Progrem"
 
@@ -9575,14 +9563,14 @@ msgid "Source project (%s) does not have any books created in it."
 msgstr "Sos projek (%s) i nogat buk insait long en."
 
 #: source/CollabUtilities.cpp:2313
-#, fuzzy, c-format
+#, c-format
 msgid "Target project (%s) does not have any books created in it."
-msgstr "Paratext projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
+msgstr "Taget projek (%s) i nogat yet sampela buk insait long en."
 
 #: source/CollabUtilities.cpp:2331
-#, fuzzy, c-format
+#, c-format
 msgid "Free Translation project (%s) does not have any books created in it."
-msgstr "Paratext projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
+msgstr "Fri Trenslesen projek (%s) i nogat yet sampela buk insait long en."
 
 #: source/CollabUtilities.cpp:2536
 #, c-format
@@ -9686,36 +9674,36 @@ msgid "<New Document>"
 msgstr "<Nupela Dokumen>"
 
 # Priority 1
-#: source/DocPage.cpp:631
+#: source/DocPage.cpp:644
 msgid "An Adapt It document does not start off empty. Instead, it starts out containing all of the source text you wish to translate in that document - perhaps a whole book such as Romans."
 msgstr "Ol dokumen i no save empti nating taim Adapt It i wokim pastaim. Nogat. Ol dokumen i gat olgeta sos teks insait na i wetim yu long tanim tasol - i ken olgeta buk olsem buk bilong ol Rom."
 
 # Priority 1
-#: source/DocPage.cpp:635
+#: source/DocPage.cpp:648
 msgid "To get the source text into the document, you must first double-click the <New Document> item. Then you will see a file dialog which you can use to locate and get the file which has the source text."
 msgstr "Long kisim sos teks i kam insait long dokumen, pastaim yu mas dabel klikim <Nupela Dokumen>. Pinis, bai yu lukim wanpela fail daialog i kamap, na yu ken yusim dispela long painim fail i gat sos teks insait."
 
 # Priority 1
-#: source/DocPage.cpp:639
+#: source/DocPage.cpp:652
 msgid "Any existing Adapt It documents will have their names shown in the list below the <New Document> item. To open one of those documents for further work, just double-click it."
 msgstr "Ol dokumen bilong Adapt It bai gat nem insait long lista daun bilo ananit long <Nupela Dokumen>. Sapos yu laik opim wanpela bilong ol yu ken dabel klikim nem bilong en insait long lista."
 
 # Priority 1
-#: source/DocPage.cpp:643
+#: source/DocPage.cpp:656
 msgid "You don't have to finish translating a document in one session. Just be sure that it is saved when you close it. Adapt It stores your documents in your project's Adaptations folder."
 msgstr "Yu no ken ting yu mas pinisim trenslesen insait long wanpela taim tasol. Nogat. Yu ken sevim fail na klosim pastaim, na Adapt It i save holm dispela fail insait long Adaptations folda insait long projek bilong yu."
 
 # Priority 1
-#: source/DocPage.cpp:647
+#: source/DocPage.cpp:660
 msgid "Adapt It documents cannot be read by other computer programs. To do that you must first have your document open in Adapt It, then export its translation to a file which another program can read."
 msgstr "Ol dokumen bilong Adapt It i no inap go insait long ol narapela komputa progrem bilong ritim o bilong senisim. Nogat. Pastaim yu mas opim insait long Adapt It yet, na ekspotim trenslesen i go aut long disk fail, bilong ol arapela progrem i ken opim na ritim."
 
-#: source/DocPage.cpp:804
+#: source/DocPage.cpp:817
 #, c-format
 msgid "Warning: invalid path to the last new document: %s A safe default path will be used instead. "
 msgstr "Toksave: nem bilong ples i paul bilong las dokumen: %s Adapt It yet bai makim gutpela ples."
 
-#: source/DocPage.cpp:963
+#: source/DocPage.cpp:976
 msgid "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"
 msgstr "Sori, Adapt It i laik ritim dokumen tasol i no inap mekim. (Ating narapela progrem i yusim yet. O, nogut fail i bagarap na mas rausim.)"
 
@@ -10104,17 +10092,15 @@ msgstr "Plis, yu mas taipim nem bilong yu pastaim, na mipela i ken bekim na koli
 
 # Put underscore at beginning and end and in place of spaces
 #: source/ExportFunctions.cpp:400
-#, fuzzy
 msgid "new_source_text_"
-msgstr "_nupela_sos_teks_"
+msgstr "nupela_sos_teks_"
 
 # Priority 1
 # Refers to the target (language) into which the translation is being made
 # Put underscore at beginning and end and in place of spaces
 #: source/ExportFunctions.cpp:408
-#, fuzzy
 msgid "target_text_"
-msgstr "_taget_teks_"
+msgstr "taget_teks_"
 
 # Priority 1
 #: source/ExportFunctions.cpp:410
@@ -10124,9 +10110,8 @@ msgstr "Ekspotim Trenslesen (Taget) Teks"
 # Priority 1
 # Put underscore at beginning and end and in place of spaces
 #: source/ExportFunctions.cpp:416
-#, fuzzy
 msgid "glosses_text_"
-msgstr "_glos_teks_"
+msgstr "glos_teks_"
 
 # Priority 1
 #: source/ExportFunctions.cpp:418
@@ -10136,9 +10121,8 @@ msgstr "Ekspotim Glos Olsem Teks"
 # Priority 1
 # Put underscore at beginning and end and in place of spaces
 #: source/ExportFunctions.cpp:424
-#, fuzzy
 msgid "freetrans_text_"
-msgstr "_fri_ trenslesen_teks_"
+msgstr "fri_ trenslesen_teks_"
 
 # Priority 1
 #: source/ExportFunctions.cpp:426
@@ -10351,19 +10335,16 @@ msgid "Get Source Text from %s Project"
 msgstr "Kisim Sos Teks i kam long %s Projek"
 
 #: source/GetSourceTextFromEditor.cpp:342
-#, fuzzy
 msgid "Designate a project to use for obtaining source text inputs"
 msgstr "Makim wanpela projek bilong kisim ol sos teks input"
 
 #: source/GetSourceTextFromEditor.cpp:350
-#, fuzzy
 msgid "Designate a project to use for Transferring Translation Drafts"
 msgstr "Makim wanpela projek bilong holim ol trenslesen teks Adapt It i salim"
 
 #: source/GetSourceTextFromEditor.cpp:356
-#, fuzzy
 msgid "Designate a project to use for Transferring Free Translations"
-msgstr "Makim wanpela projek bilong holim ol trenslesen teks Adapt It i salim"
+msgstr "Makim wanpela projek bilong holim ol fri trenslesen teks Adapt It i salim"
 
 # Priority 1
 # Note: The first %s will be either "Paratext" or "Bibledit"
@@ -10384,9 +10365,8 @@ msgstr "Sapta"
 
 # Priority 1
 #: source/GetSourceTextFromEditor.cpp:377
-#, fuzzy
 msgid "Target Text Status"
-msgstr "Taget Teks Tokples"
+msgstr "Taget Teks Toksave"
 
 # Priority 1
 #: source/GetSourceTextFromEditor.cpp:452
@@ -10531,12 +10511,12 @@ msgid "The book %s in the Bibledit project for storing translation drafts (%s) h
 msgstr "Buk %s insait long Bibledit projek bilong holim ol trenslesen teks (%s) i nogat ol sapta na ves namba insait."
 
 #: source/GetSourceTextFromEditor.cpp:2067
-#, fuzzy, c-format
+#, c-format
 msgid "The book %s in the Paratext project for storing free translations (%s) has no chapter and verse numbers."
 msgstr "Buk %s insait long Paratext projek bilong holim fri trenslesen (%s) i nogat ol sapta na ves namba insait."
 
 #: source/GetSourceTextFromEditor.cpp:2072
-#, fuzzy, c-format
+#, c-format
 msgid "The book %s in the Bibledit project for storing free translations (%s) has no chapter and verse numbers."
 msgstr "Buk %s insait long Bibledit projek bilong holim fri trenslesen (%s) i nogat ol sapta na ves namba insait."
 
@@ -10566,22 +10546,19 @@ msgstr "toksave:"
 
 #: source/GetSourceTextFromEditor.cpp:2870
 #: source/GetSourceTextFromEditor.cpp:2895
-#, fuzzy
 msgid "The following verses have no target text:"
-msgstr "Ol dispela ves i nogat teks:"
+msgstr "Ol dispela ves i nogat taget teks:"
 
 # Priority 1
 #: source/GetSourceTextFromEditor.cpp:2998
 #: source/GetSourceTextFromEditor.cpp:3024
-#, fuzzy
 msgid "Free translation details: "
-msgstr "Fri Trenslesen Mod"
+msgstr "Fri Trenslesen Toksave: "
 
 #: source/GetSourceTextFromEditor.cpp:2998
 #: source/GetSourceTextFromEditor.cpp:3024
-#, fuzzy
 msgid "The following verses have no free translations:"
-msgstr "Ol dispela ves i nogat teks:"
+msgstr "Ol dispela ves i nogat fri trenslesen teks:"
 
 #: source/GetSourceTextFromEditor.cpp:3070
 #, c-format
@@ -10602,35 +10579,35 @@ msgid "Please select the Bibledit Project that contains the source texts you wil
 msgstr "Plis yu selektim Bibledit projek i gat ol sos teks yu bai yusim bilong mekim wok adaptesen."
 
 #: source/GetSourceTextFromEditor.cpp:3366
-#, fuzzy, c-format
+#, c-format
 msgid "No translations (no verses of a total of %d have translation text yet)"
-msgstr "Nogat samting (nogat wanpela ves i gat teks yet. %d ves i stap)"
+msgstr "Nogat trenslesen (nogat wanpela ves i gat teks yet. %d ves i stap)"
 
 #: source/GetSourceTextFromEditor.cpp:3368
-#, fuzzy, c-format
+#, c-format
 msgid "No verses of a total of %d have free translations yet"
-msgstr "Nogat samting (nogat wanpela ves i gat teks yet. %d ves i stap)"
+msgstr "Nogat ol fri trenslesen. I gat %d ves i stap"
 
 #: source/GetSourceTextFromEditor.cpp:3373
-#, fuzzy, c-format
+#, c-format
 msgid "Partly drafted (%d of a total of %d verses have translation text)"
-msgstr "Sampela wok i no yet (%d bilong %d ves olgeta i gat teks)"
+msgstr "Sampela wok i no yet (%d bilong %d ves olgeta i gat trenslesen teks)"
 
 #: source/GetSourceTextFromEditor.cpp:3375
-#, fuzzy, c-format
+#, c-format
 msgid "%d of a total of %d verses have free translations"
-msgstr "Sampela wok i no yet (%d bilong %d ves olgeta i gat teks)"
+msgstr "%d bilong %d ves olgeta i gat fri trenslesen teks)"
 
 # Priority 1
 #: source/GetSourceTextFromEditor.cpp:3385
-#, fuzzy, c-format
+#, c-format
 msgid "All %d verses have translation text"
-msgstr "Soim &Fri Trenslesen Teks"
+msgstr "Olgeta %d ves i gat trenslesen teks"
 
 #: source/GetSourceTextFromEditor.cpp:3387
-#, fuzzy, c-format
+#, c-format
 msgid "All %d verses have free translations"
-msgstr "Fail nem bilong Ritrenslesen Ripot"
+msgstr "Olgeta %d ves i gat fri trenslesen teks"
 
 # Priority 1
 #: source/GoToDlg.cpp:58
@@ -11597,14 +11574,14 @@ msgid "No Font Face Names are available on this system!"
 msgstr "Ating dispela komputa i no gat font fes nem!"
 
 #: source/SetupEditorCollaboration.cpp:80
-#, fuzzy, c-format
+#, c-format
 msgid "Setup %s Collaboration"
-msgstr "Mekim Wok Wantaim %s"
+msgstr "Setap %s I Wok Wantaim"
 
 #: source/SetupEditorCollaboration.cpp:181
-#, fuzzy, c-format
+#, c-format
 msgid "Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s."
-msgstr "Adapt It bai wokim nupela projek folda, na bai kolim, \"%s\" em bilong wok wantaim %s"
+msgstr "Adapt It bai klosim dispela projek (%s) pastaim bilong setimap wok wantaim %s"
 
 #: source/SetupEditorCollaboration.cpp:229
 msgid "(name : full name: language : code)"
@@ -11617,47 +11594,47 @@ msgid "(name)"
 msgstr "(nem)"
 
 #: source/SetupEditorCollaboration.cpp:329
-#, fuzzy, c-format
+#, c-format
 msgid "Choose a %s project that will be used for source text inputs"
-msgstr "Makim wanpela projek bilong kisim ol sos teks input"
+msgstr "Makim wanpela %s projek bilong kisim ol sos teks input"
 
 #: source/SetupEditorCollaboration.cpp:380
-#, fuzzy, c-format
+#, c-format
 msgid "The Paratext project for obtaining source texts (%s) does not yet have any books created for that project."
-msgstr "Paratext projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
+msgstr "Paratext projek bilong kisim ol sos teks (%s) i nogat yet sampela buk insait long projek."
 
 #: source/SetupEditorCollaboration.cpp:385
-#, fuzzy, c-format
+#, c-format
 msgid "The Bibledit project for obtaining source texts (%s) does not yet have any books created for that project."
-msgstr "Bibledit projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
+msgstr "Bibledit  projek bilong kisim ol sos teks (%s) i nogat yet sampela buk insait long projek."
 
 #: source/SetupEditorCollaboration.cpp:420
-#, fuzzy, c-format
+#, c-format
 msgid "Choose a %s project that will be used for receiving translation text exports"
-msgstr "Selektim defol projek wokman bai lukim pastaim bilong holim ol fri trenslesen teks"
+msgstr "Selektim wanpela %s projek bilong holim ol trenslesen teks"
 
 #: source/SetupEditorCollaboration.cpp:470
-#, fuzzy, c-format
+#, c-format
 msgid "The Paratext project for storing target texts (%s) does not yet have any books created for that project."
-msgstr "Paratext projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
+msgstr "Paratext projek bilong holim ol trenslesen teks (%s) i nogat yet sampela buk insait long projek."
 
 #: source/SetupEditorCollaboration.cpp:475
-#, fuzzy, c-format
+#, c-format
 msgid "The Bibledit project for storing target texts (%s) does not yet have any books created for that project."
-msgstr "Bibledit projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
+msgstr "Bibledit projek bilong holim ol taget teks (%s) i nogat yet sampela buk insait long projek."
 
 #: source/SetupEditorCollaboration.cpp:511
-#, fuzzy, c-format
+#, c-format
 msgid "Choose a %s project that will be used for receiving free translation text exports"
-msgstr "Selektim defol projek wokman bai lukim pastaim bilong holim ol fri trenslesen teks"
+msgstr "Selektim wanpela %s projek bilong holim ol fri trenslesen teks"
 
 #: source/SetupEditorCollaboration.cpp:562
-#, fuzzy, c-format
+#, c-format
 msgid "The Paratext project for storing free translations (%s) does not yet have any books created for that project."
 msgstr "Paratext projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
 
 #: source/SetupEditorCollaboration.cpp:567
-#, fuzzy, c-format
+#, c-format
 msgid "The Bibledit project for storing free translations (%s) does not yet have any books created for that project."
 msgstr "Bibledit projek bilong holim ol fri trenslesen teks (%s) i nogat yet sampela buk insait long projek."
 
@@ -11679,19 +11656,18 @@ msgid "Please set up valid %s project(s) that Adapt It can use for collaboration
 msgstr "Plis, yu mas wokim gut ol %s projek, olsem Adapt It i ken yusim bilong wok wantaim."
 
 #: source/SetupEditorCollaboration.cpp:736
-#: source/SetupEditorCollaboration.cpp:990
-#, fuzzy, c-format
+#: source/SetupEditorCollaboration.cpp:1001
+#, c-format
 msgid "Invalid %s projects detected"
-msgstr "Toksave: Sampela Leta I No Stret"
+msgstr "%s projek i nogut bilong wok wantaim"
 
 # Priority 1
 #: source/SetupEditorCollaboration.cpp:773
-#, fuzzy
 msgid "You made changes to this collaboration setup - Do you want to save those changes?"
-msgstr "Yu wokim pinis sampela senis insait long dispela ripot - Sevim ol dispela senis yu bin mekim?"
+msgstr "Yu wokim pinis sampela senis insait long dispela setap - Sevim ol dispela senis yu bin mekim?"
 
 # Priority 1
-#: source/SetupEditorCollaboration.cpp:871
+#: source/SetupEditorCollaboration.cpp:880
 #, c-format
 msgid ""
 "An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n"
@@ -11702,45 +11678,43 @@ msgstr ""
 "\n"
 "Nau yu mas bihainim step 2 i go long step 4 daunbilo, bilong mekim setap bilong dispela projek i ken wok wantaim %s."
 
-#: source/SetupEditorCollaboration.cpp:873
-#, fuzzy
+#: source/SetupEditorCollaboration.cpp:882
 msgid "New Adapt It project created"
-msgstr "Nupela AI projek nem:"
+msgstr "Nupela AI projek i kamap pinis"
 
-#: source/SetupEditorCollaboration.cpp:896
+#: source/SetupEditorCollaboration.cpp:907
 msgid "Please select an existing Adapt It project or create a new one in step 1."
 msgstr "Plis yu mas selektim wanpela Adapt It projek, o yu ken wokim wanpela nupela. Bihainim step 1."
 
-#: source/SetupEditorCollaboration.cpp:899
+#: source/SetupEditorCollaboration.cpp:910
 msgid "Adapt It will save the collaboration settings you make in this dialog for the Adapt It project you select (or create) in step 1."
 msgstr "Adapt It bai sevim setap bilong wanem Adapt It projek yu selektim (o wokim nupela) insait long step 1. "
 
-#: source/SetupEditorCollaboration.cpp:900
-#, fuzzy
+#: source/SetupEditorCollaboration.cpp:911
 msgid "No Adapt It project designated for this collaboration setup"
-msgstr "I no selektim yet taget tokples project bilong wok wantaim"
-
-# Priority 1
-#: source/SetupEditorCollaboration.cpp:913
-#, c-format
-msgid "Please select a %s project for getting source texts. Use the \"Select from List\" button."
-msgstr "Plis, yu selektim wanpela %s projek bilong kisim ol sos teks. Yusim \"Selektim i kam long lista\" batan."
-
-#: source/SetupEditorCollaboration.cpp:915
-msgid "No source language project selected for collaboration"
-msgstr "I no selektim yet sos tokples project bilong wok wantaim"
+msgstr "Yu no selektim yet Adapt It project bilong setimapim wok wantaim"
 
 # Priority 1
 #: source/SetupEditorCollaboration.cpp:924
 #, c-format
+msgid "Please select a %s project for getting source texts. Use the \"Select from List\" button."
+msgstr "Plis, yu selektim wanpela %s projek bilong kisim ol sos teks. Yusim \"Selektim i kam long lista\" batan."
+
+#: source/SetupEditorCollaboration.cpp:926
+msgid "No source language project selected for collaboration"
+msgstr "I no selektim yet sos tokples project bilong wok wantaim"
+
+# Priority 1
+#: source/SetupEditorCollaboration.cpp:935
+#, c-format
 msgid "Please select a %s project for receiving translated drafts. Use the \"Select from List\" button."
 msgstr "Plis, yu selektim wanpela %s projek bilong sevim ol trenslesen teks. Yusim \"Selektim i kam long lista\" batan."
 
-#: source/SetupEditorCollaboration.cpp:926
+#: source/SetupEditorCollaboration.cpp:937
 msgid "No target language project selected for collaboration"
 msgstr "I no selektim yet taget tokples project bilong wok wantaim"
 
-#: source/SetupEditorCollaboration.cpp:942
+#: source/SetupEditorCollaboration.cpp:953
 msgid ""
 "The projects selected for getting source texts and receiving translation drafts cannot be the same.\n"
 "Please select one project for getting source texts, and a different project for receiving translation texts."
@@ -11748,7 +11722,7 @@ msgstr ""
 "Tupela projek i gat sem nem. Projek bilong kisim sos teks na projek bilong holim trenslesen teks i noken i gat sem nem.\n"
 "Plis yu selektim wanpela projek bilong kisim sos teks, na narapela projek gen bilong holim ol trenslesen teks."
 
-#: source/SetupEditorCollaboration.cpp:952
+#: source/SetupEditorCollaboration.cpp:963
 msgid ""
 "The projects selected for getting source texts and receiving free translation texts cannot be the same.\n"
 "Please select one project for getting source texts, and a different project for receiving free translation texts."
@@ -11756,32 +11730,34 @@ msgstr ""
 "Tupela projek i gat sem nem. Projek bilong kisim sos teks na projek bilong holim fri trenslesen teks i noken i gat sem nem.\n"
 "Plis yu selektim wanpela projek bilong kisim sos teks, na narapela projek gen bilong holim ol fri trenslesen teks."
 
-#: source/SetupEditorCollaboration.cpp:967
-#, fuzzy, c-format
+#: source/SetupEditorCollaboration.cpp:978
+#, c-format
 msgid ""
 "Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled for the %s Adapt It project in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled.\n"
 "\n"
 "Do you want to continue setting up this project for collaboration with %s?"
 msgstr ""
-"Toksave: Buk Folda Mod i stap nau, tasol Adapt It i mas tanim i go OFF pastaim bilong Adapt It i mekim wok wantaim %s. Sapos yu go het, Buk Folda Mod bai go OFF. Sapos yu tanim OFF wok wantaim Paratext/Bibledit, yu mas tanim On Buk Folda Mod gen sapos yu laik usim Buk Folda Mod.\n"
+"Toksave: Buk Folda Mod i stap nau, tasol Adapt It i mas tanim i go OFF pastaim bilong Adapt It (%s) i mekim wok wantaim %s. Sapos yu go het, Buk Folda Mod bai go OFF.\n"
 "\n"
 "Yu laik go het long setap bilong Adapt It i wok wantaim %s?"
 
-#: source/SetupEditorCollaboration.cpp:984
-#, fuzzy, c-format
+#: source/SetupEditorCollaboration.cpp:995
+#, c-format
 msgid ""
 "The following %s projects are not valid for collaboration:\n"
 "%s"
-msgstr "I no selektim yet sos tokples project bilong wok wantaim"
+msgstr ""
+"Dispela ol %s projek i nogut bilong wok wantaim:\n"
+"%s"
 
 # The %s will be either "Paratext" or "Bibledit"
-#: source/SetupEditorCollaboration.cpp:987
+#: source/SetupEditorCollaboration.cpp:998
 #, c-format
 msgid "This setup cannot be accepted for collaboration. Please set up valid %s project(s) that Adapt It can use for collaboration."
 msgstr "Dispela setap i no inap yusim bilong wok wantaim. Plis, yu mas makim gutpela %s projek, na Adapt It i ken yusim bilong wok wantaim."
 
 # Priority 1
-#: source/SetupEditorCollaboration.cpp:1030
+#: source/SetupEditorCollaboration.cpp:1041
 #, c-format
 msgid ""
 "The collaboration settings for the \"%s\" project were successfully saved in the project's configuration file at:\n"
@@ -11803,7 +11779,7 @@ msgstr ""
 # The first %s will be the name of an Adapt It project.
 # The second %s will be "Paratext" or "Bibledit"
 # The third %s will be the name of the Adapt It project.
-#: source/SetupEditorCollaboration.cpp:1069
+#: source/SetupEditorCollaboration.cpp:1080
 #, c-format
 msgid ""
 "You are about to remove the collaboration settings for the %s project. If you continue the user will not be able to turn on collaboration with %s for this project.\n"
@@ -11814,12 +11790,12 @@ msgstr ""
 "\n"
 "Yu laikim tru long rausim seting bilong wok wantaim bilong %s?"
 
-#: source/SetupEditorCollaboration.cpp:1071
+#: source/SetupEditorCollaboration.cpp:1082
 msgid "Confirm removal of collaboration settings"
 msgstr "Tok orait long rausim seting bilong dispela wok wantaim"
 
 # Priority 1
-#: source/SetupEditorCollaboration.cpp:1110
+#: source/SetupEditorCollaboration.cpp:1121
 #, c-format
 msgid ""
 "The collaboration settings for the \"%s\" project were successfully removed from the project's configuration file at:\n"
