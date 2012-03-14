@@ -122,6 +122,7 @@ void CCreateNewAIProjForCollab::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	wxSize dlgSize;
 	dlgSize = pCreateNewAIProjForCollabSizer->ComputeFittingWindowSize(this);
 	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 // event handling functions
