@@ -22740,7 +22740,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
 									 // fail after phrase box gets past end of doc
 		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
-		dlg.Center();
+		dlg.CenterOnParent();
 		dlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
 		if (dlg.ShowModal() == wxID_CANCEL)
 		{
@@ -22862,7 +22862,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 	}
 
 	CStartWorkingWizard startWorkingWizard(GetMainFrame());
-	// startWorkingWizard.Center(); // whm Note: calling Center() on the wizard has no effect
+	startWorkingWizard.CenterOnParent(); // whm Note: calling Center() on the wizard has no effect
 	// Note:
 	// wizard pages are created within the CStartWorkingWizard's constructor
 	//
@@ -22919,8 +22919,8 @@ _("\nIf you want to continue, you must choose a project or create a new project.
     // wizard.
 
 	// Call RunWizard to start the wizard
+	pStartWorkingWizard->CenterOnParent();
 	pStartWorkingWizard->RunWizard(pStartWorkingWizard->GetFirstPage());
-
 	gbWizardNewProject = FALSE; // reset wizard global back to FALSE
 	pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 

@@ -32,9 +32,8 @@ public:
 	wxRadioButton* pRadioTurnCollabOFF;
 	wxRadioButton* pRadioTurnReadOnlyON;
 	wxStaticText* pStaticTextAIProjName;
-	wxTextCtrl* pStaticAsTextCtrlTurnReadOnlyOn;
-	wxTextCtrl* pStaticAsTextCtrlTurnCollabOn;
-	wxTextCtrl* pStaticAsTextCtrlTurnCollabOff;
+	wxTextCtrl* pStaticAsTextCtrlNotInstalledErrorMsg;
+	wxButton* pBtnTellMeMore;
 	wxString m_aiProjName;
 	wxArrayString projList;
 	bool m_bRadioSelectCollabON;
@@ -46,6 +45,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnBtnTellMeMore(wxCommandEvent& WXUNUSED(event));
 	void OnRadioTurnCollabON(wxCommandEvent& WXUNUSED(event));
 	void OnRadioTurnCollabOFF(wxCommandEvent& WXUNUSED(event));
 	void OnRadioReadOnlyON(wxCommandEvent& WXUNUSED(event));
