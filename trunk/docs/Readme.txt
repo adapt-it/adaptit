@@ -308,7 +308,7 @@ The Adapt It Development Team:
 ---------------------------------------------------------------------
 Bill Martin    - bill_martin@sil.org
 Bruce Waters   - bruce_waters@sil.org
-Erik Brommers  - erik_brommers@wycliffe.org
+Erik Brommers  - erik_brommers@sil.org
 Kevin Bradford - kevin_bradford@sil.org
 Graeme Costin  - adaptit@costincomputingservices.com.au (focus on
                    MacOSX)
