@@ -4,9 +4,9 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	19 December 2011, by Bill Martin
-USFM version:	2.304 as published in usfm.sty by UBS 2 November 2011
-				(bill_martin@sil.org, bruce_waters@sil.org)
+Last Updated:	14 March 2012, by Bill Martin
+USFM version:	2.35 as published in usfm.sty by UBS 2 February 2012
+				(bill_martin@sil.org, bruce_waters@sil.org, erik_brommers@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
 				recognized by Adapt It, version 3 and later.
