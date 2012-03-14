@@ -40972,6 +40972,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	dlg.pKBExportImportOptionsDlgSizer->Layout();
 	dlg.m_computedDlgSize = dlg.pKBExportImportOptionsDlgSizer->ComputeFittingWindowSize(&dlg);
 	dlg.SetSize(dlg.m_computedDlgSize);
+	dlg.CenterOnParent();
 	if (dlg.ShowModal() == wxID_CANCEL)
 	{
 		// user canceled

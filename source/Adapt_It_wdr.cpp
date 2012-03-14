@@ -8492,21 +8492,23 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Options for entering this project:"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
     wxButton *item8 = new wxButton( parent, ID_BUTTON_TELL_ME_MORE, _("Tell me more about these options"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Turn collaboration o&n - exchange texts with %s while I work"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Work with my %s &Scripture texts (collaboration o&n)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
     item5->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Turn collaboration o&ff - work without exchanging texts with %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Work with &other Adapt It texts (%s texts not available: Collaboration off)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("Turn &read-only mode on - I'm an advisor or consultant"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mod (All texts visible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );

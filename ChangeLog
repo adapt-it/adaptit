@@ -1,45 +1,87 @@
 ----------------------------------------------
-Version 6.2.0 release 22 January 2012
+Version 6.2.0 release 10 March 2012
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.2.0
 ----------------------------------------------
+* The setup for collaboration with Paratext or Bibledit is
+now possible for each individual Adapt It project. This means
+that an administrator can now setup different collaboration
+scenarios for each Adapt It project, and collaboration
+settings are therefore now located in the project 
+configuration files.
+* The user now decides whether to turn collaboration on or 
+off for a given Adapt It project, which means a user can do
+work on a collaboration project with Paratext or Bibledit,
+and in the same session can turn collaboration off and do 
+adaptation work on other texts that don't exchange data with
+Paratext or Bibledit. When collaboration is on, only scripture
+books are selectable and all data is exchanged with Paratext
+or Bibledit. When collaboration is off only non-collaboration
+Adapt It documents are selectable.
+* In the same dialog where the user can turn collaboration on
+or off for a given Adapt It project, there is now a third 
+option that can be selected to enter a project in read-only 
+mode. This is designed for advisors or consultants who may 
+want to view the user's work (documents produced by the user
+in either collaboration or non-collaboration mode) without 
+risk of accidentally changing anything. The read-only mode 
+is indicated by a pink colored background in Adapt It's main
+window. It lasts only as long as the specified Adapt It 
+project is open.
+* The "Setup Paratext/Bibledit Collaboration" dialog has been
+reordered and simplified. An administrator can now configure
+multiple Adapt It projects for collaboration without leaving
+the setup dialog. 
 * For collaboration work with Paratext or Bibledit, the "Get
 Chapter Only" and "Get Whole Book" radio button selections
 have been moved from the "Get Source Text from Paratext/
 Bibledit Project" dialog to the Administrator menu's "Setup 
 Paratext/Bibledit Collaboration" dialog, thus making the 
 chapter vs. whole book selection an administrator choice 
-rather than a user choice.
-* The "Get Source Text from Paratext/Bibledit Project" dialog
+rather than a user choice. This avoids potential data loss
+problems that could happen if a user alternated between 
+chapter only and whole book collaboration while working in
+parts of the same book.
+* Now each time Adapt It is started the "Select a Project" 
+page of the Start Working Wizard will always appear and the 
+user can select any Adapt It project that exists on the 
+computer. If the user selects an Adapt It project that the 
+administrator has configured for collaboration with Paratext 
+or Bibledit, a dialog with the three choices (described above)
+appears in which the user can determine how that project will 
+be opened. In summary, the choices are:
+   1. Turn collaboration on
+   2. Turn collaboration off
+   3. Turn read-only mode on
+Each choice has adequate accompanying text in the dialog to 
+explain clearly what work can be done for a given choice.
+If the user selects an Adapt It project from the opening page
+of the Start Working Wizard which the administrator has not
+configured for collaboration with Paratext or Bibledit, the
+dialog presenting the three choices for entering that project
+will not appear, but the usual "Select a Document" wizard
+page appears as usual.
+* When collaboration with Paratext or Bibledit is ON, the 
+"Get Source Text from Paratext/Bibledit Project" dialog
 now displays more clearly to the user which Paratext/Bibledit
 projects and which Adapt It project are involved when
 collaboration mode is turned ON. 
-* For collaboration work the "Change Paratext/Bibledit 
-Projects" button is now password protected by default. An
-administrator can set a custom password for the function, or
-remove password protection via settings on the "Setup
-Paratext/Bibledit Collaboration" dialog (on the Administrator
-menu).
-* The Collaboration with Paratext or Bibledit can now be
-turned ON or OFF for certain projects by adding command-line
-switches to Adapt It when it is launched. The Adapt It project 
-to be used at launch can also be provided in a command-line
-switch. This makes it possible to have desktop launch icons 
-for Adapt It that launch Adapt It and load a given project 
-with collaboration either ON or OFF for that project. These
-new command-line switches and how to use them are documented
-in the Help_for_Administrators.htm file (accessible from the
-Administrator menu).
-* Previously, when Define Sections By "Punctuation" the 
-automatic segmenting of text during Free Translation Mode, 
-would ignore punctuation if the punctuation resulted in text 
-segments less than 5 words long. Now there is no minimum 
-length and automatic text segmentation by punctuation (other
-than a comma) may result in text segments as small as a
-single word. The "Lengthen" button can be used in such cases 
-if the short segments result in free translations being 
-elided with "..." in the display.
+* For "Change Paratext/Bibledit Projects" button has been 
+removed from the user's collaboration dialog. Now that 
+collaboration settings are tied to individual Adapt It 
+projects, and the user can decide whether to work with 
+collaboration ON of OFF after selecting a project, the button
+is no longer needed.
+* Previously, when Define Sections By "Punctuation" was 
+chosen, the automatic segmenting of text during Free 
+Translation Mode would ignore punctuation if the punctuation
+resulted in text segments less than 5 words long. Now there
+is no minimum length and automatic text segmentation by 
+punctuation may result in text segments as small as a singl
+word. The "Lengthen" button can be used in such cases if the
+short segments result in free translations being elided with
+an ellipsis ("...") in the display.
 * In the book/chapter selection dialog during collaboration,
 the chapter details now report information about the status of
 free translations for the verses of the chapter as well as 
@@ -69,11 +111,70 @@ remembered from session to session.
 hidden) is also remembered from session to session. By hiding
 the Tool bar, Status bar, and/or Mode bar, more text 
 information can be made visible on small screens.
+* The "Pack Document..." command now adds the source and
+target language names as prefixes on the packed document's
+file name. This is to help distinguish the AI project which
+the packed document came from from packed document arising
+by packing within a different project, and then sending
+them all to a common folder. Formerly doing this would 
+overwrite the packed document file from elsewhere if it was
+the same book and chapter. Now this cannot happen.
 * Adapt It now has a "man page" for Linux users.
 * The Linux Debian packages for Adapt It now recommend that
 the user also install a version of Bibledit-gtk that is 
 greater than or equal to version 4.2.94 in order for Adapt
 It to be able to work in collaboration with Bibledit.
+* The Free Translation feature has been changed slightly.
+Formerly, it did not store the value for which radio button,
+"Punctuation" or "Verse", was turned on when creating new 
+free translation sections. This meant that Adapt It had to
+algorithmically guess what the setting may have been, and
+sometimes it got it wrong - which would 'flip' the radio
+button values without warning. This 'flip' no longer happens,
+because now the radio button value is stored for each free 
+translation section, and when the phrase box returns to a
+section, the original radio button setting is restored. The
+default setting for new sections is now decoupled from this
+mechanism - and remains unchanged so long as the user does
+not manually click one of the radio buttons to change the
+value. The default value in effect at the last File / Save
+is now stored in an ftsbp attribute in  the <Settings> 
+tag of the document's xml file. A "1" value for that 
+attribute means that the user wants new section creations
+to have "Punctuation-based" length, rather than "Verse-based"
+length. "0" means that "Verse-based" sectioning applies.
+* When USFM markers, or punctuation within a merger, has 
+"medial" position, every time the phrase box returned to
+such a location, a Placement... dialog of some kind would
+open and the user would have to place the punctuation.
+The marker placement dialog appears only during an export.
+The redundant reopening of such placement dialogs becomes
+tedious, and made the user think his placements done at an
+earlier time had not "stuck". This has been changed. The
+placement dialogs still show, but only once per location
+that is ambiguous for marker or punctuation location - and
+the results of the placement are then stored in the document
+and reused -- provided the user does not type punctuation
+explicitly into the phrase box. Typing explicit punctuation
+clears the memory of former placements for that location in
+the document. There is also on the Edit menu a new command
+which, if enabled, causes the local storage of the former
+placements to be cleared; that will cause the placement 
+dialog(s) to open again at that location, for a new 
+placement to be done, which will be automatically stored.
+* The Linux Debian packages for Adapt It now include a
+dependency on the libgnomeprintui (>= 2.0). Some users
+including Balsa users have reported print problems because
+their systems did not have libgnomeprintui installed.
+* The parsing of input data to form individual words for
+adapting purposes has been extended. The legacy versions
+used just space, tab or newline as word-dividing indicators.
+Version 6.0.0 added non-breaking space, 'word joiner' (Ux2060)
+and any character in the range Ux2000 to Ux200D - which
+includes the zero-width and reduced-width spaces (actually
+this extension happened in 6.1.0, but we forgot to
+document it).
+
 ----------------------------------------------
 Bug fixes in 6.2.0
 ----------------------------------------------
@@ -94,6 +195,9 @@ work better on small/narrow screens.
 "Verse", in some situations, the setting could switch to
 defining sections by "Punctuation" and vice versa. This has
 now been fixed.
+* In some circumstances changes made to texts during 
+collaboration with Paratext/Bibledit were not being saved back
+to Paratext/Bibledit. This bug should now be fixed.
 * In the book/chapter selection dialog during collaboration,
 the chapter details were not reporting correctly the verses
 which have no target text.
@@ -104,15 +208,16 @@ screen resolutions as small as 640 x 480 pixels was
 mistakenly left out of the last update, but is included in
 this 6.2.0 update.
 * In the Linux version (Balsa) the "Change Bibledit Projects"
-dialog could become unresponsive. That has now been fixed.
+dialog could become unresponsive. That has been fixed by
+removing both the button and the dialog, they are unneeded now.
 * When collaborating with Bibledit on Linux the Open... and
 Save menu items were not being relabeled to indicate that
 Adapt It would get its source texts from Bibledit and 
 transfer its target texts to Bibledit. This is now fixed.
-* Fixed a parsing problem when [ and ] are not punctuation 
-characters and an adaptation includes a bracketed substring
-[sometext] -- the parser hung. This is now fixed.
-* The selection of a cct table or creating a new cct table
+* There was a parsing problem when [ and ] are not punctuation 
+characters and an adaptation included a bracketed substring
+[sometext] -- the parser would hang. This is now fixed.
+* The selection of a cct table, or creating a new cct table,
 from the "Load Consistent Changes..." menu item on the Tools 
 menu was not working properly in earlier 6.x.x versions. It
 is now fixed.
@@ -120,6 +225,9 @@ is now fixed.
 Text Exports was being ignored resulting in all such exports
 being produced in portrait. It is now possible to export
 Interlinear documents in Landscape orientation.
+* A sequence of double and single closing quotes with a space
+between each, in the source text, was losing the spaces when
+copied to the adaptation. Now the spaces are preserved.
 * The OK and Cancel buttons in the collaboration related
 dialogs were located in reversed order of the default
 arrangement for Windows. They are now in the default order
