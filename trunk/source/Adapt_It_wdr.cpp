@@ -113,133 +113,138 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, wxT("bruce_waters@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item15->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, wxT("bill_martin@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
+    item15->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("erik_brommers@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+
     item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Downloads: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Downloads: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, wxT("  http://adapt-it.org/"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, wxT("  http://adapt-it.org/"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item12->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+    item12->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Send problem or feedback reports to developers via the Help menu"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Send problem or feedback reports to developers via the Help menu"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item12->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
+    item12->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("This version of Adapt It built with wxWidgets"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("This version of Adapt It built with wxWidgets"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("wxWidgets is a cross-platform GUI library"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("wxWidgets is a cross-platform GUI library"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("Built with wxWidgets version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Built with wxWidgets version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item28 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 0 );
 
-    wxStaticLine *item29 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item30 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item33->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item34->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
+    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxFlexGridSizer *item34 = new wxFlexGridSizer( 2, 0, 0 );
+    wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 0, 0 );
 
-    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item35, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item36, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item37 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item37, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item38, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item39 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item39, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item40, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item41 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item42, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item43 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item44, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item44 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item45 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item45 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item46, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item46 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item47 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item47, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item47 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item47, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item48 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item48, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item48 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item48, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item49 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item30->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item31->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item30, 0, wxALIGN_CENTER, 5 );
+    item0->Add( item31, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticLine *item49 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item49, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item50 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item50, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item50 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item51 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item51 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item51->SetDefault();
-    item50->Add( item51, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item52 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item52->SetDefault();
+    item51->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item50->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item50, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
