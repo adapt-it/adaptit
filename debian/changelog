@@ -1,8 +1,10 @@
 adaptit (6.2.0-1) unstable; urgency=low
 
-  * Pull in updates
+  * debian/control:
+    - Added Build-Depends: libgnomeprintui2.0-dev for better print support
+    - Added Recommends: libgnomeprintui (>= 2.0) for better print support
 
- -- Bill Martin <bill_martin@sil.org>  Tue, 20 Jan 2012 14:00:00 -0600
+ -- Bill Martin <bill_martin@sil.org>  Tue, 14 Mar 2012 14:00:00 -0600
 
 adaptit (6.1.1-1) unstable; urgency=low
 
