@@ -49,6 +49,7 @@ BEGIN_EVENT_TABLE(CChooseCollabOptionsDlg, AIModalDialog)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TURN_COLLAB_ON, CChooseCollabOptionsDlg::OnRadioTurnCollabON)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TURN_COLLAB_OFF, CChooseCollabOptionsDlg::OnRadioTurnCollabOFF)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_READ_ONLY_MODE, CChooseCollabOptionsDlg::OnRadioReadOnlyON)
+	EVT_BUTTON(ID_BUTTON_TELL_ME_MORE, CChooseCollabOptionsDlg::OnBtnTellMeMore)
 	EVT_BUTTON(wxID_OK, CChooseCollabOptionsDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CChooseCollabOptionsDlg::OnCancel)
 END_EVENT_TABLE()
@@ -77,21 +78,15 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 	pRadioTurnReadOnlyON = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_READ_ONLY_MODE);
 	wxASSERT(pRadioTurnReadOnlyON != NULL);
 
+	pStaticAsTextCtrlNotInstalledErrorMsg = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG);
+	wxASSERT(pStaticAsTextCtrlNotInstalledErrorMsg != NULL);
+	pStaticAsTextCtrlNotInstalledErrorMsg->SetBackgroundColour(sysColorBtnFace);
+
 	pStaticTextAIProjName = (wxStaticText*)FindWindowById(ID_TEXT_SELECTED_AI_PROJECT);
 	wxASSERT(pStaticTextAIProjName != NULL);
 
-	pStaticAsTextCtrlTurnCollabOn = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NOTE_COLLAB_ON);
-	wxASSERT(pStaticAsTextCtrlTurnCollabOn != NULL);
-	pStaticAsTextCtrlTurnCollabOn->SetBackgroundColour(sysColorBtnFace);
-
-	pStaticAsTextCtrlTurnCollabOff = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NOTE_COLLAB_OFF);
-	wxASSERT(pStaticAsTextCtrlTurnCollabOff != NULL);
-	pStaticAsTextCtrlTurnCollabOff->SetBackgroundColour(sysColorBtnFace);
-
-	pStaticAsTextCtrlTurnReadOnlyOn = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NOTE_READ_ONLY_ON);
-	wxASSERT(pStaticAsTextCtrlTurnReadOnlyOn != NULL);
-	pStaticAsTextCtrlTurnReadOnlyOn->SetBackgroundColour(sysColorBtnFace);
-
+	pBtnTellMeMore = (wxButton*)FindWindowById(ID_BUTTON_TELL_ME_MORE);
+	wxASSERT(pBtnTellMeMore != NULL);
 }
 
 CChooseCollabOptionsDlg::~CChooseCollabOptionsDlg() // destructor
@@ -120,9 +115,8 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	tempStr = tempStr.Format(tempStr,m_pApp->m_collaborationEditor.c_str());
 	pRadioTurnCollabOFF->SetLabel(tempStr);
 	
-	tempStr = pStaticAsTextCtrlTurnCollabOff->GetValue();
-	tempStr = tempStr.Format(tempStr,m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
-	pStaticAsTextCtrlTurnCollabOff->ChangeValue(tempStr);
+	// Start with the text control for error messages hidden
+	pStaticAsTextCtrlNotInstalledErrorMsg->Hide();
 
 	// We need to call the App's GetListOfPTProjects() or GetListOfBEProjects() to ensure that the
 	// App's m_pArrayOfCollabProjects is populated before the CollabProjectsAreValid() call below
@@ -165,6 +159,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports, 
 							m_pApp->m_CollabProjectForFreeTransExports, errorStr))
 	{
+		pStaticAsTextCtrlNotInstalledErrorMsg->Show(TRUE); // make it visible
 		wxString msg;
 		msg = _("COLLABORATION DISABLED! - invalid %s projects detected. Ask your administrator for help:%s");
 		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
@@ -175,7 +170,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		// disable the "Turn collaboration on" radio button
 		pRadioTurnCollabON->Disable();
 		// change the Note in the text control under the first button
-		pStaticAsTextCtrlTurnCollabOn->ChangeValue(msg);
+		pStaticAsTextCtrlNotInstalledErrorMsg->ChangeValue(msg);
 
 		// In this case we don't clear out the App's variables but leave them set even though
 		// they don't describe valid PT/BE projects. Administrator will have to correct in the
@@ -281,5 +276,16 @@ void CChooseCollabOptionsDlg::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
-// other class methods
+void CChooseCollabOptionsDlg::OnBtnTellMeMore(wxCommandEvent& WXUNUSED(event))
+{
+	wxString msg = _("Option 1: Turn collaboration on - exchange text with %s while I work.\nWhen you enter the \"%s\" project With collaboration turned on, only scripture books and chapters will be visible for opening and doing work. Any other documents created outside of collaboration will not be available for work until you turn collaboration off.\n\n");
+	msg += _("Option 2: Turn collaboration off - work without exchanging texts with %s.\nWhen you enter the \"%s\" project with collaboration turned off, any document files used when collaborating with %s will be hidden. You can still work with scripture files, or any other type of text file, but you must set them up for adaptation yourself. Their data will not be exchanged with %s.\n\n");
+	msg += _("Option 3: Turn read-only mode on - I'm an advisor or consultant.\nWhen you enter the \"%s\" project in \"read-only\" mode, \"read-only\" means that you can open and read the project's data, but if you make any changes, those changes will not be saved, and will be lost as soon as you quit working with the document.");
+	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),
+					m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str(),
+					m_aiProjName.c_str());
+	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+}
+
+
 

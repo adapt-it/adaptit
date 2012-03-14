@@ -561,8 +561,11 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// We query via the ChooseCollabOptionsDlg dialog.
 			if (pApp->AIProjectIsACollabProject(m_projectName))
 			{
-				CChooseCollabOptionsDlg collabOptDlg(pStartWorkingWizard);
-				collabOptDlg.Center();
+				// whm changed 13Mar12. Center dialog on MainFrame - Kim's request
+				// Centering on the wizard page doesn't appear to work correctly on
+				// small screens.
+				CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
+				collabOptDlg.CenterOnParent();
 				collabOptDlg.m_aiProjName = m_projectName;
 				if (collabOptDlg.ShowModal() == wxID_CANCEL)
 				{

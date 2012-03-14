@@ -8487,54 +8487,37 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Options for entering this project:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Turn collaboration o&n - exchange texts with %s while I work"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Options for entering this project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item8 = new wxButton( parent, ID_BUTTON_TELL_ME_MORE, _("Tell me more about these options"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_COLLAB_ON, _("Note: With collaboration turned on, only scripture books and chapters will be visible for opening and doing work. Any other documents created outside of collaboration will not be available for work until you turn collaboration off."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
-    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Turn collaboration o&n - exchange texts with %s while I work"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item5->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+    item5->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Turn collaboration o&ff - I want to work on either scripture or non-scripture without exchanging texts with %s"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Turn collaboration o&ff - work without exchanging texts with %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
-
-    item11->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_COLLAB_OFF, _("Note: With collaboration turned off, any document files used when collaborating with %s will be hidden. You can still work with scripture files, or any other type of text file, but you must set them up for adaptation yourself. Their data will not be exchanged with %s."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
-    item11->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item5->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("Turn &read-only mode on - I'm an advisor or consultant and just want to view the user's texts"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
-
-    item14->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL_NOTE_READ_ONLY_ON, _("Note: \"read-only\" means that you can open and read the project's data, but if you make any changes, those changes will not be saved, and will be lost as soon as you quit working with the document."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY );
-    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item5->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("Turn &read-only mode on - I'm an advisor or consultant"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetDefault();
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetDefault();
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item0->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
 
     if (set_sizer)
     {
