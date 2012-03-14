@@ -21186,7 +21186,7 @@ void CAdapt_ItDoc::OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event
 		bKBReady = gpApp->m_bGlossingKBReady;
 	else
 		bKBReady = gpApp->m_bKBReady;
-	if (bKBReady)
+	if (bKBReady && gpApp->m_pActivePile != NULL) // whm 13Mar12 added m_pActivePile != NULL test
 	{
 		CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
 		wxASSERT(pSrcPhrase != NULL);
