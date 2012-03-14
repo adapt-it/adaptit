@@ -82,31 +82,31 @@ punctuation may result in text segments as small as a singl
 word. The "Lengthen" button can be used in such cases if the
 short segments result in free translations being elided with
 an ellipsis ("...") in the display.
-* In the book/chapter selection dialog during collaboration,
-the chapter details now report information about the status of
-free translations for the verses of the chapter as well as 
+* In the book-chapter selection dialog during collaboration,
+the chapter details now report information about the status 
+of free translations for the verses of the chapter as well as 
 (corrected) information about the status of target text.
 * If multiple instances of Adapt It are accidentally started
 by the same user, only the first instance is now allowed to 
 run. If a user accidentally starts up a second instance of
 Adapt It (for example, due to a double-click on a launcher
-icon that expects only a single click to start Adapt It) the
-second instance now automatically aborts, and the first
-instance of Adapt It comes to the front of any other desktop 
-windows. Previously second instances of Adapt It would revert
-to read-only mode to prevent two Adapt It instances from 
-trying to write to the same data files simultaneously. Some 
-users however, reported that they were unable to save their
-data at times because they were unwittingly working in a 
-second instance of Adapt It and were unaware that another 
-instance was already running but hidden under other desktop 
-windows. This feature change should eliminate any confusion
-by disallowing second instances of Adapt It from being run
-by the same user. 
-* The Mode bar in the Adapt It main window can now be 
-shown or hidden using the View > Mode Bar menu item. 
-Whether hidden or shown, this new Mode Bar setting will be 
-remembered from session to session.
+icon in Balsa that expects only a single click to start Adapt 
+It) the second instance now automatically aborts, and the 
+first instance of Adapt It comes to the front of any other 
+desktop windows. Previously second instances of Adapt It 
+would revert to read-only mode to prevent two Adapt It 
+instances from trying to write to the same data files 
+simultaneously. Some users however, reported that they were 
+unable to save their data at times because they were 
+unwittingly working in a second instance of Adapt It and were 
+unaware that another instance was already running but hidden 
+under other desktop windows. This feature change should 
+eliminate any confusion by disallowing second instances of 
+Adapt It from being run by the same user. 
+* The Mode bar in the Adapt It main window can now be shown 
+or hidden using the View > Mode Bar menu item. Whether hidden 
+or shown, this new Mode Bar setting will be remembered from 
+session to session.
 * The state of the Tool bar and the Status bar (shown or
 hidden) is also remembered from session to session. By hiding
 the Tool bar, Status bar, and/or Mode bar, more text 
@@ -137,12 +137,7 @@ section, the original radio button setting is restored. The
 default setting for new sections is now decoupled from this
 mechanism - and remains unchanged so long as the user does
 not manually click one of the radio buttons to change the
-value. The default value in effect at the last File / Save
-is now stored in an ftsbp attribute in  the <Settings> 
-tag of the document's xml file. A "1" value for that 
-attribute means that the user wants new section creations
-to have "Punctuation-based" length, rather than "Verse-based"
-length. "0" means that "Verse-based" sectioning applies.
+value.
 * When USFM markers, or punctuation within a merger, has 
 "medial" position, every time the phrase box returned to
 such a location, a Placement... dialog of some kind would
