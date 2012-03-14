@@ -223,6 +223,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	wxSize dlgSize;
 	dlgSize = pChooseCollabOptionsDlgSizer->ComputeFittingWindowSize(this);
 	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 // event handling functions

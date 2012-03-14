@@ -431,6 +431,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxSize dlgSize;
 	dlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
 	this->SetSize(dlgSize);
+	this->CenterOnParent();
  }
 
  // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
