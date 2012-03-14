@@ -8494,7 +8494,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item8 = new wxButton( parent, ID_BUTTON_TELL_ME_MORE, _("Tell me more about these options"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item8 = new wxButton( parent, ID_BUTTON_TELL_ME_MORE, _("&Tell me more about these options"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -8508,7 +8508,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Work with &other Adapt It texts (%s texts not available: Collaboration off)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mod (All texts visible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mode (All texts visible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
