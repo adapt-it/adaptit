@@ -509,6 +509,14 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
 
+	// whm added 15Mar12. When in read-only mode don't register any key strokes
+	if (pApp->m_bReadOnlyAccess)
+	{
+		// return without calling Skip(). Beep for read-only feedback
+		::wxBell();
+		return;
+	}
+
 	// GDLC 2010-02-16 Pointer to the CFreeTrans class because it is needed in OnLButtonDown().
 	// Ideally, the parts of OnLButtonDown() that relate to free translations would be moved
 	// to the CFreeTrans class and this local variable of OnLButtonDown would be removed.

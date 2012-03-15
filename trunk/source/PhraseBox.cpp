@@ -4703,6 +4703,14 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 	//CLayout* pLayout = GetLayout();
 
+	// whm added 15Mar12. When in read-only mode don't register any key strokes
+	if (pApp->m_bReadOnlyAccess)
+	{
+		// return without calling Skip(). Beep for read-only feedback
+		::wxBell();
+		return;
+	}
+
 	if (!pApp->m_bSingleStep)
 	{
 		// halt the auto matching and inserting, if a key is typed
@@ -4954,6 +4962,14 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	// the phrase box, not elsewhere on the screen
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// whm added 15Mar12. When in read-only mode don't register any key strokes
+	if (pApp->m_bReadOnlyAccess)
+	{
+		// return without calling Skip(). Beep for read-only feedback
+		::wxBell();
+		return;
+	}
 
     // whm addition: don't allow cursor to be placed in phrasebox when in free trans mode
     // and when it is not editable. Allows us to have a pink background in the phrase box

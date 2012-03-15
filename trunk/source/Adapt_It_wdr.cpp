@@ -8513,7 +8513,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Work with &other Adapt It texts (%s texts not available: Collaboration off)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mode (All texts visible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mode (All texts accessible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
