@@ -1,0 +1,25 @@
+This package was debianized by Bill Martin <bill_martin@sil.org> on
+Wed, 10 Sep 2008 17:14:23 -0500.
+
+It was downloaded from <url://example.com>
+
+Upstream Author(s): 
+
+    Bill Martin bill_martin@sil.org
+    Bruce Waters bruce_waters.sil.org
+    Graeme Costin adaptit@costincomputingservices.com.au
+
+Copyright: 
+
+    Copyright 2001-2008, Bruce Waters, Bill Martin, SIL International
+    All rights reserved.
+
+License:
+
+    see license/LICENSE.txt (dual LGPL, CPL)
+
+The Debian packaging is (C) 2008, Bill Martin <bill_martin@sil.org> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+
+# Please also look if there are files or directories which have a
+# different copyright/license attached and list them here.

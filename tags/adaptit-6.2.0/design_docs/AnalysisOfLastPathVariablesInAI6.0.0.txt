@@ -1,0 +1,297 @@
+Hi Bruce,
+
+I've been taking another look at the variables that AI uses to store (via one or both of the .aic config files) the paths that were last employed in getting data into/out of Adapt It. I decided to write up my analysis of those variables. My analysis covers the following m_last...Path variables. In the analysis below I have made some modifications for handling them marked with the tag word MODIFICATION. I have actually implemented all of the MODIFICATION items in my working copy, but I'll wait to hear from you before I commit them to SVN. The items marked SUGGESTED MODIFICATION I have not yet implemented.
+
+Here are the m_last...Path variables with comments from from their declaration in Adapt_It.h:
+
+	// whm 6Aug11 Note: The following path values are used mainly when navigation 
+	// protection for the specific types of inputs/outputs is NOT in effect. These 
+	// values are saved in the indicated config file(s). When navigation 
+	// protection is in effect for the specific inputs/outputs, we use the special 
+	// (upper case) folders and generated file names that are automatically used 
+	// and manditory. Generally these values record the last...Path that was used 
+	// for the input/output, so that if navigation protection is OFF for a given 
+	// input/export type, the values here will still (at least initially) point to 
+	// the folder that was being used when nav protection was on in previous 
+	// session(s).
+
+	// whm Note: There was some inconsistency in where some of the following paths 
+	// were stored in the config files in versions prior to version 6.x.x. and the 
+	// config file labels that were used. Starting with version 6.x.x I've 
+	// reassigned some of them to be saved in only one configuration file and the
+	// one that is most appropriate for the usage scenarios, with appropriate 
+	// coding modifications in the Read... and Write... configuration file routines 
+	// adjusted so that any older config values coming into version 6.x.x will be 
+	// preserved in the appropriate config file.
+
+	// Note: The following m_last...Path variables are grouped according to which 
+	// config file the are saved in.
+
+
+	// /////////// Basic config file (AI-BasicConfiguration.aic) ///////////
+
+	/// Use: m_lastCcTablePath stores the last cc table path.
+	/// Now: in version 6.x.x saved in basic config file under LastCCTablePath.
+	/// Previously: saved in both basic and project config files under DefaultCCTablePath
+	/// Related Nav Protect folder: _CCTABLE_INPUTS_OUTPUTS
+	wxString	m_lastCcTablePath;
+	
+	/// Use: m_lastRetransReportPath stores the last retranslation reports path.
+	/// Now: in version 6.x.x saved in basic config file under LastRetranslationReportPath.
+	/// Previously: saved in basic config file under RetranslationReportPath.
+	/// Related Nav Protect folder: _REPORTS_OUTPUTS
+	wxString	m_lastRetransReportPath;
+	
+	/// Use: m_lastPackedOutputPath stores the last packed document output path.
+	/// Now: in version 6.x.x saved in basic config file under LastPackedDocumentPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _PACKED_INPUTS_OUTPUTS
+	wxString	m_lastPackedOutputPath;
+	
+	/// Use: m_lastKbOutputPath stores the last KB SFM export/import path.
+	/// Now: in version 6.x.x saved in basic config file under LastKBExportPath.
+	/// Previously: saved in basic config file under KB_ExportPath.
+	/// Related Nav Protect folder: _KB_INPUTS_OUTPUTS
+	wxString	m_lastKbOutputPath; 
+	
+	/// Use: m_lastKbLiftOutputPath stores the last KB LIFT format export/import path.
+	/// Now: in version 6.x.x saved in basic config file under LastKBLIFTExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _LIFT_INPUTS_OUTPUTS
+	wxString	m_lastKbLiftOutputPath; 
+
+	// /////////// Project config file (AI-ProjectConfiguration.aic) ///////////
+	
+	/// Use: m_lastDocPath stores the last adaptation document path.
+	/// Now: in version 6.x.x saved in project config file under LastDocumentPath.
+	/// Previously: saved in basic config file under LastDocumentPath.
+	/// Related Nav Protect folder: None - always saved in a project's Adaptations folder.
+	wxString	m_lastDocPath;
+
+	/// Use: m_lastSourceInputPath stores the last source text input path.
+	/// Now: in version 6.x.x saved in project config files under LastNewDocumentFolder.
+	/// Previously: saved in both basic and project config files under LastNewDocumentFolder.
+	/// Related Nav Protect folder: __SOURCE_INPUTS.
+	wxString	m_lastSourceInputPath;			 
+
+	/// Use: m_lastInterlinearRTFOutputPath stores the last Interlinear RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastInterlinearRTFOutputPath.
+	/// Previously: Saved in basic config file under a generic RTFExportPath.
+	/// Related Nav Protect folder: _INTERLINEAR_RTF_OUTPUTS
+	wxString	m_lastInterlinearRTFOutputPath; 
+
+	/// Use: m_lastSourceOutputPath stores the last source text export path.
+	/// Now in version 6.x.x saved in project config file under LastSourceTextExportPath.
+	/// Previously: saved in basic config file under LastSourceTextExportPath.
+	/// Related Nav Protect folder: _SOURCE_OUTPUTS
+	wxString	m_lastSourceOutputPath;
+	
+	/// Use: m_lastSourceRTFOutputPath stores the last source text RTF export path.
+	/// Now: in version 6.x.x saved in project config file under .
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _SOURCE_RTF_OUTPUTS
+	wxString	m_lastSourceRTFOutputPath; 
+
+	/// Use: m_lastTargetOutputPath stores the last target text export  path.
+	/// Now: in version 6.x.x saved in project config file under LastTargetExportPath.
+	/// Previously: saved in both basic and project config files under LastExportPath.
+	/// Related Nav Protect folder: _TARGET_OUTPUTS
+	wxString	m_lastTargetOutputPath; 
+	
+	/// Use: m_lastTargetRTFOutputPath stores the last target text RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastTargetRTFExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _TARGET_RTF_OUTPUTS
+	wxString	m_lastTargetRTFOutputPath;
+
+	/// Use: m_lastGlossesOutputPath stores the last glosses as text export path.
+	/// Now: in version 6.x.x saved in project config file under LastGlossesTextExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _GLOSS_OUTPUTS
+	wxString	m_lastGlossesOutputPath; 
+	
+	/// Use: m_lastGlossesRTFOutputPath stores the last glosses as text RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastGlossesTextRTFExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _GLOSS_RTF_OUTPUTS
+	wxString	m_lastGlossesRTFOutputPath; 
+
+	/// Use: m_lastFreeTransOutputPath stores the last free translations export path.
+	/// Now: in version 6.x.x saved in project config file under LastFreeTransExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _FREETRANS_OUTPUTS
+	wxString	m_lastFreeTransOutputPath;
+	
+	/// Use: m_lastFreeTransRTFOutputPath stores the last free translations RTF export path.
+	/// Now: in version 6.x.x saved in project config file under LastFreeTransRTFExportPath.
+	/// Previously: None - new for version 6.x.x.
+	/// Related Nav Protect folder: _FREETRANS_RTF_OUTPUTS
+	wxString	m_lastFreeTransRTFOutputPath; 
+	
+	// Use: m_lastRtfOutputPath stores the last RTF documents export path
+	// Now: 6Aug11 - no longer used in lieu of more specific m_last...RTFOutputPath 
+	//      variables held in the project config files.
+	// Previously: saved in basic config file - for all types of RTF outputs.
+	//wxString	m_lastRtfOutputPath;
+
+The main consideration in my analysis was to determine when during the running of AI such path information needs to be available from these variables and when the path information can be stored back to them (and eventually saved within one or both of the config files). Some of the functionality for which we want to store the "last" path used can only be done at certain times, depending on whether a project and/or a document is open, whether collaboration is ON/OFF at the time, and whether Navigation Protection is ON/OFF.
+
+Here below is my analysis for each of the above m_last...Path variables:
+
+BASIC CONFIG FILE:
+
+m_lastCcTablePath
+
+   a. What it is used for. The m_lastCcTablePath is used to store the path (only) of the last CC table that was loaded into Adapt It.
+   b. When AI uses it. When Navigation protection is OFF and m_lastCcTablePath is NOT empty and it points to a valid directory, AI uses the value in m_lastCcTablePath for the location to save or browse for its CC tables. Note: When not in navigation protection mode the m_lastCcTablePath can be significant any time the application is running. Even when the user has clicked Cancel at the wizard/dialog so that the main window is blank, the "Load Consistent Changes..." menu item (Tools menu) is still available from the Tools menu. This is why I decided to locate the _CCTABLE_INPUTS_OUTPUTS special folder in the "Adapt It <Unicode> Work" folder rather than in a specific AI project folder - because a CC Table can be created, edited or loaded when no project is open.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastCcTablePath as far as determining the path for loading, creating or editing the CC tables (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used in its interaction with CC tables in m_lastCcTablePath on the App, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the special folder used when protection is ON.
+   d. What config file stores its information. Previously the m_lastCcTablePath was stored in duplicate under the label LastNewDocumentFolder in BOTH the AI-BasicConfiguration.aic file and a particular AI-ProjectConfiguration.aic file. MODIFICATION: We really only need to store the m_lastCcTablePath in the AI-BasicConfiguration.aic file. AI version 6.0.0 can simply omit the saving of the m_lastCcTablePath value in project config files.
+   e. The effect of switching collaboration ON/OFF. None. The loading, creating or editing of CC tables are all available regardless of whether collaboration is ON or OFF.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _CCTABLE_INPUTS_OUTPUTS folder browsing for and saving of CC Tables is restricted to the _CCTABLE_INPUTS_OUTPUTS folder. When navigation protection is OFF, the user may browse elsewhere for a CC table and can save a CC table anywhere in the file system. Also when navigation protection is off, and m_lastCcTablePath is empty or it contains an invalid path (that doesn't exist), the initial path that is shown by the wxFileDialog will be set to the _CCTABLE_INPUTS_OUTPUTS folder - although the user is free to navigate elsewhere.
+   g. Handled in: LoadDataForPage() and OnButtonBrowse() in CCTabbedDialog.cpp.
+
+m_lastRetransReportPath
+
+   a. What it is used for. The m_lastRetransReportPath is used to store the path (only) of the last Retranslation Report that was saved from Adapt It.
+   b. When AI uses it. When Navigation protection is OFF and m_lastRetransReportPath is NOT empty and it points to a valid directory, AI uses the value in m_lastRetransReportPath for the location of its Retranslation Reports.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastRetranReportPath as far as determining the path for the reports (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used for the Retranslation Reports in this variable on the App (and the Basic config file), so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the special folder used when protection is ON.
+   d. What config file stores its information. The m_lastRetransReportPath value is stored in the AI-BasicConfiguration.aic file.
+   e. The effect of switching collaboration ON/OFF. Currently, when collaboration is ON, the user can only get a Retranslation Report for the currently open project and document. SUGGESTED MODIFICATION: Modify the CRetranslation::OnRetransReport() and DoRetranslationReport() functions to allow doing either the current document only, or all documents (selectable by user) in the project while a document is open.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _REPORTS_OUTPUTS special folder, file browsing is disabled and the reports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastRetransReportPath is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_lastRetransReportPath variable - although the user is free to navigate elsewhere and change the path/name of the report file.
+   g. Handled in: OnRetranslationReport() in Retranslation.cpp.
+
+m_lastPackedOutputPath (added)
+
+   a. What it is used for. MODIFICATION: The m_lastPackedOutputPath is a new addition and is used to store the path (only) of the last folder that was used for outputing a packed document from Adapt It. 
+   b. When AI uses it. When Navigation protection is OFF and m_lastPackedOutputPath is NOT empty and it points to a valid directory, AI uses the value in m_lastPackedOutputPath for the location of its packed documents.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastPackedOutputPath as far as determining the path for packed documents (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used in packing the document in m_lastPackedOutputPath, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the special folder used when protection is ON.
+   d. What config file stores its information. The path in m_lastPackedOutputPath is stored in the AI-BasicConfiguration.aic  config file.
+   e. The effect of switching collaboration ON/OFF. The "Pack Document..." and "Unpack Document..." commands are not available during colloboration with Paratext/Bibledit.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the PACKED_INPUTS_OUTPUTS special folder, file browsing is disabled and the packed files are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastPackedOutputPath is a valid directory the wxFileDialog is initialized to point first to the path contained in m_lastPackedOutputPath - although the user is free to navigate elsewhere and change the path/name of the export file.
+   11g. Handled in: OnFilePackDoc() and DoPackDocument() in Adapt_ItDoc.cpp; OnFileUnpackDoc() in Adapt_ItDoc.cpp.
+
+m_lastKbOutputPath and (added) m_lastKbLiftOutputPath
+
+   a. What they are used for. The m_lastKbOutputPath is used to store the path (only) of the last folder that was used for exporting KB entries in SFM format from Adapt It. MODIFICATION: The m_lastKbLiftOutputPath is a new addition and is used to store the path (only) of the last folder that was used for exporting KB entries in LIFT format from Adapt It. They function the same except that one is used to remember the path of the last SFM KB export and the other is used to remember the path of the last LIFT KB export.
+   b. When AI uses it. When Navigation protection is OFF and m_lastKbOutputPath is NOT empty and it points to a valid directory, AI uses the value in m_lastKbOutputPath for the location of its SFM KB exports. Similarly for m_lastKbLiftOutputPath and AI's LIFT KB exports.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in these variables as far as determining the path for the exports (the special folders are always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folders used in the KB export in these variables on the App (and the Basic config file), so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the special folder used when protection is ON.
+   d. What config file stores its information. Both m_lastKbOutputPath and m_lastKbLiftOutputPath are stored in the AI-BasicConfiguration.aic file. The label in the config file previously was "KB_ExportPath". MODIFICATION: To make config file label align better with other values I have renamed the label to "LastKBExportPath".
+   e. The effect of switching collaboration ON/OFF. None. Both types of KB exports are available regardless of whether collaboration is ON or OFF.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _KB_INPUTS_OUTPUTS (or _LIFT_INPUTS_OUTPUTS) special folder(s), file browsing is disabled and the exports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastKbOutputPath (or m_lastKbLiftOutputPath) is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_last...Path variable - although the user is free to navigate elsewhere and change the path/name of the export file.
+   g. Handled in: OnKbImport() in Adapt_ItView.cpp; DoKBImport() in KB.cpp; OnFileExportKb() in Adapt_It.cpp; DoKBExport() in KB.cpp.
+
+PROJECT CONFIG FILE:
+
+m_lastDocPath
+
+   a. What it is used for. The m_lastDocPath stores a full path (path and filename) of the last Adapt It document that was open.
+   b. When AI uses it. The m_lastDocPath is ignored when collaborating with Paratext/Bibledit. When Adapt It is NOT collaborating with Paratext/Bibledit, the m_lastDocPath is only significant at the point when AI has already opened a project, and is about to open a document again from the Start Working wizard. If the last document is available for reopening, it will be highlighted in the wizard's documents page. The m_lastDocPath value is not relevant when no project is open.
+   c. How it relates to nav protection and special folders. Unlike the rest of the m_last... variables above, the path stored in m_lastDocPath is essentially unaffected by our new navigation protection system and our set of special folders. The path stored in m_lastDocPath will always be a path to some "Adaptations" folder located inside an AI project folder which itself is a child of the m_curWorkFolderPath or m_customWorkFolderPath.
+   d. What config file stores its information. Previously the m_lastDocPath was stored under the label LastDocumentPath in the AI-BasicConfiguration.aic file, but I think it really only needs to be stored in the AI-ProjectConfiguration.aic file. It stores information that is never needed until AI has established a project to create/open (meaning it has either determined the particulars of a new project to create or it has read the project config file's contents) and is about to create or open a document within that open project. MODIFICATION: I have moved the m_lastDocPath's string value to the project config file from the basic config file. We just start writing the "LastDocumentPath" config file item in the pertinent project config file rather than in the basic config file. Doing so improves the logical consistency of our config files. In the not-likely scenario that a user ever needed to downgrade from 6.0.0 to 5.2.4 The 5.2.4 app would simply "forget" where m_lastDocPath pointed to and the user would need to select it again, if desired, in the wizard's document selection page.
+   e. The effect of switching collaboration ON/OFF. You had lines of code within the new HookUpToExistingAIProject() function that read:
+
+	// when not using the wizard, we don't keep track of whether we are choosing an
+	// earlier project or not, nor what the folder was for the last document opened, since
+	// this function may be used to hook up to different projects at each call!
+	pApp->m_bEarlierProjectChosen = FALSE;
+	pApp->m_lastDocPath.Empty();
+
+which effectively eliminates any memory of the path to the last document that was opened under collaboration. MODIFICATION: I commented out the pApp->m_lastDocPath.Empty() within HookUpToExistingAIProject(). I felt it was better to continue recording the active document's path and name in m_lastDocPath even during collaboration, so that if collaboration is turned OFF, the last document path which was collaborated on will continue to be selected as the default in the docPage of the wizard after ending collaboration. I could be persuaded leave the code as you had it if you come up with a good argument for it.
+   f. The effect of switching navigation protection ON/OFF. None, since m_lastDocPath doesn't have anything to do with navigation protected folders.
+   g. Handled in: DoFileSave() and OnCloseDocument() in Adapt_ItDoc.cpp; ClobberDocument() in Adapt_ItView.cpp; OnSetActive() and OnWizardFinish() in DocPage.cpp; OnWizardPageChanging() in ProjectPage.cpp.
+
+m_lastSourceInputPath
+
+   a. What it is used for. The m_lastSourceInputPath stores a path (only) of the last folder that was used for obtaining source text inputs into Adapt It.
+   b. When AI uses it. The m_lastSourceInputPath is ignored when collaborating with Paratext/Bibledit or when source text inputs (__SOURCE_INPUTS) are designated as "Protect from Navigation" within the Administrator's "Assign Locations for Inputs and Outputs" dialog. When not in either of those modes the m_lastSourceInputPath is significant when AI has just opened a project and is about to grab an source input file. Here again, as with the m_lastDocPath, the value associated with m_lastSourceInputPath is not relevant when no project is open.
+   c. How it relates to nav protection and special folders. The path string contained in m_lastSourceInputPath is only significant when AI is not in collaboration mode, and source inputs are NOT PROTECTED. It then can inform the application where to direct the initial view of a wxFileDialog when browsing for a source input file. When source inputs are protected from navigation via the Administrator's "Assign Locations for Inputs and Outputs..." menu item, the __SOURCE_INPUTS folder is used exclusively to grab input source texts and present them in a monocline list to the user. 
+   d. What config file stores its information. Previously the m_lastSourceInputPath was stored in duplicate under the label LastNewDocumentFolder in BOTH the AI-BasicConfiguration.aic file and a particular AI-ProjectConfiguration.aic file. But like the m_lastDocPath, it seems to me that m_lastSourceInputPath really only needs to be stored in the relevant AI-ProjectConfiguration.aic file. It stores information that is never needed until AI has established a project to create/open (meaning it has either determined the particulars of a new project to create or it has read the project config file's contents) and is about to create a NEW document within that project. MODIFICATION: I've modified the code to just stop writing the "LastNewDocumentFolder" item and its path value in the AI-BasicConfiguration.aic file, and continue writing it only in the pertinent project config file. Doing so improves the logical consistency of our config files. This change doesn't cause any forgetfulness in the m_lastSourceInputPath in the unlikely scenario that a user ever needed to downgrade from 6.0.0 to 5.2.4 because it would still be available from reading the project config file.
+   e. The effect of switching collaboration ON/OFF. When collaboration is turned ON, obtaining input texts by the user are limited to a list of Scripture books and chapters provided by Paratext or Bibledit. The user can select a chapter of Scripture text from a Scripture book. When collaboration is turned OFF but source inputs are obtained elsewhere depending on the protected from navigation setting for __SOURCE_INPUTS. 
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON, the user can only select an input text from a monocline list of loadable text files located in the special __SOURCE_INPUTS folder - assuming the administrator has populated that folder with suitable input texts. When navigation protection is OFF, the user is free to select an input text from anywhere in the file system via the popup wxFileDialog browser, with the browser initially pointing at whatever folder path that was previously stored in the m_lastSourceInputPath variable.
+   g. Handled in: OnNewDocument() in Adapt_ItDoc.cpp; OnWizardFinish() in DocPage.cpp.
+
+m_lastInterlinearRTFOutputPath
+
+   a. What it is used for. The m_lastInterlinearRTFOutputPath stores a path (only) of the last folder that was used for outputting interlinear RTF exports.
+   b. When AI uses it. The m_lastInterlinearRTFOutputPath is ignored when collaborating with Paratext/Bibledit or when interlinear RTF outputs (_INTERLINEAR_RTF_OUTPUTS) are designated as "Protect from Navigation" within the Administrator's "Assign Locations for Inputs and Outputs" dialog. When not in either of those modes the m_lastInterlinearRTFOutputPath is significant when AI has both a project and a document open. The value associated with m_lastInterlinearRTFOutputPath is not relevant when no project or document is open.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastInterlinearRTFOutputPath as far as determining the path for the interlinear RTF exports (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used for interlinear RTF exports in this variable on the App, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the appropriate special folder used when protection is ON.
+   d. What config file stores its information. Interlinear RTF exports are saved in the project config file under the LastInterlinearRTFOutputPath label. Previously it was saved in the basic config file under a more generic RTFExportPath label that was used for all types of RTF outputs.
+   e. The effect of switching collaboration ON/OFF. None. The exporting of source text is available regardless of whether collaboration is ON or OFF. 
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _INTERLINEAR_RTF_OUTPUTS special folder, file browsing is disabled and the exports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastInterlinearRTFOutputPath is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_lastInterlinearRTFOutputPath variable - although the user is free to navigate elsewhere and change the path/name of the export file.
+   g. Handled in: DoExportInterlinearRTF() in ExportFunctions.cpp.
+
+m_lastSourceOutputPath and (added) m_lastSourceRTFOutputPath
+
+   a. What it is used for. The m_lastSourceOutputPath is used to store the path (only) of the last folder that was used for exporting an SFM source text from Adapt It. MODIFICATION: The m_lastSourceRTFOutputPath is a new addition and is used to store the path (only) of the last folder that was used for exporting an RTF formatted source text from Adapt It.
+   b. When AI uses it. When Navigation protection is OFF and m_lastSourceOutputPath/m_lastSourceRTFOutputPath is NOT empty and it points to a valid directory, AI uses the value in m_lastSourceOutputPath/m_lastSourceRTFOutputPath for the location of its source text exports.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastSourceOutputPath/m_lastSourceRTFOutputPath as far as determining the path for the source text exports (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used for source text exports in these variables on the App, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the appropriate special folder used when protection is ON.
+   d. What config file stores its information. Previously the m_lastSourceOutputPath value was stored in the AI-BasicConfiguration.aic file under the label LastSourceTextExportPath. I think they should be stored in the AI-ProjectConfiguration.aic file instead. MODIFICATION: I've modified the code to keep reading any old basic config file's LastSourceTextExportPath value, but from 6.x.x on we need only store a value for LastSourceTextExportPath and its partner LastSourceTextRTFExportPath in the appropriate project config file.
+   e. The effect of switching collaboration ON/OFF. None. The exporting of source text is available regardless of whether collaboration is ON or OFF.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _SOURCE_OUTPUTS (or _SOURCE_RTF_OUTPUTS) special folder, file browsing is disabled and the exports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastSourceOutputPath/m_lastSourceRTFOutputPath is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_lastSourceOutputPath/m_lastSourceRTFOutputPath variable - although the user is free to navigate elsewhere and change the path/name of the export file.
+   g. Handled in: DoExportSfmText() in ExportFunctions.cpp.
+
+m_lastTargetOutputPath and (added) m_lastTargetRTFOutputPath
+
+   a. What it is used for. The m_lastTargetOutputPath is used to store the path (only) of the last folder that was used for exporting an SFM target/translation text from Adapt It. MODIFICATION: The m_lastTargetRTFOutputPath is a new addition and is used to store the path (only) of the last folder that was used for exporting an RTF formatted target/translation text from Adapt It.
+   b. When AI uses it. When Navigation protection is OFF and m_lastTargetOutputPath/m_lastTargetRTFOutputPath is NOT empty and it points to a valid directory, AI uses the value in m_lastTargetOutputPath/m_lastTargetRTFOutputPath for the location of its target/translation text exports.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastTargetOutputPath/m_lastTargetRTFOutputPath as far as determining the path for the target text exports (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used for target text exports in these variables on the App, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the appropriate special folder used when protection is ON.
+   d. What config file stores its information. Previously the m_lastTargetOutputPath was stored in duplicate under the label LastExportPath in BOTH the AI-BasicConfiguration.aic file and the AI-ProjectConfiguration.aic file. But like the m_lastDocPath, it seems to me that m_lastTargetOutputPath really only needs to be stored in the relevant AI-ProjectConfiguration.aic file. It stores information that is never needed until AI has established a project to create/open (meaning it has either determined the particulars of a new project to create or it has read the project config file's contents) and is about to export a target/translation document within that project. I have configured the new RTF storage variable m_lastTargetRTFOutputPath to only be saved in the project config file. I have made two adjustments: MODIFICATION: I've renamed the label used in the config file from LastExportPath to a more specific LastTargetExportPath. Second adjustment. MODIFICATION: I've adjusted the config file code to stop writing the "LastExportPath" item and its path value in the AI-BasicConfiguration.aic file, and continue writing it only in the pertinent project config file. Doing so improves the logical consistency of our config files. These changes would not cause any forgetfulness in the m_lastTargetOutputPath in the unlikely scenario that a user ever needed to downgrade from 6.0.0 to 5.2.4 because it would still be available from reading the project config file. See below for some considerations related to the MakeForeignBasicConfigFileSafe() and MakeForeignProjectConfigFileSafe() functions.
+   e. The effect of switching collaboration ON/OFF. None. The exporting of target/translation text is available regardless of whether collaboration is ON or OFF.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _TARGET_OUTPUTS (or _TARGET_RTF_OUTPUTS) special folder, file browsing is disabled and the exports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastTargetOutputPath/m_lastTargetRTFOutputPath is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_lastTargetOutputPath/m_lastTargetRTFOutputPath variable - although the user is free to navigate elsewhere and change the path/name of the export file.
+   g. Handled in: DoExportSfmText() in ExportFunctions.cpp.
+
+m_lastGlossesOutputPath and (added) m_lastGlossesRTFOutputPath
+
+   a. What it is used for. The m_lastGlossesOutputPath is used to store the path (only) of the last folder that was used for exporting an SFM glosses as text file from Adapt It. MODIFICATION: The m_lastGlossesRTFOutputPath is a new addition and is used to store the path (only) of the last folder that was used for exporting an RTF formatted glosses as text file from Adapt It.
+   b. When AI uses it. When Navigation protection is OFF and m_lastGlossesOutputPath/m_lastGlossesRTFOutputPath is NOT empty and it points to a valid directory, AI uses the value in m_lastGlossesOutputPath/m_lastGlossesRTFOutputPath for the location of its glosses as text exports.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastGlossesOutputPath/m_lastGlossesRTFOutputPath as far as determining the path for the glosses as text exports (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used for glosses as text exports in these variables on the App, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the appropriate special folder used when protection is ON.
+   d. What config file stores its information. The values for both of these glosses-related variables are stored in the project config file. Both are new to version 6.0.0 and so were never stored in a release version prior to 6.0.0, although we've been storing the value of the m_lastGlossesOutputPath in the project config file under the LastGlossesTextExportPath label in pre-release versions.
+   e. The effect of switching collaboration ON/OFF. None. The exporting of glosses as text is available regardless of whether collaboration is ON or OFF.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _GLOSSES_OUTPUTS (or _GLOSSES_RTF_OUTPUTS) special folder, file browsing is disabled and the exports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastGlossesOutputPath/m_lastGlossesRTFOutputPath is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_lastGlossesOutputPath/m_lastGlossesRTFOutputPath variable - although the user is free to navigate elsewhere and change the path/name of the export file.
+   g. Handled in: DoExportSfmText() in ExportFunctions.cpp.
+
+m_lastFreeTransOutputPath and (added) m_lastFreeTransRTFOutputPath
+
+   a. What it is used for. The m_lastFreeTransOutputPath is used to store the path (only) of the last folder that was used for exporting an SFM free translation text file from Adapt It. MODIFICATION: The m_lastFreeTransRTFOutputPath is a new addition and is used to store the path (only) of the last folder that was used for exporting an RTF formatted free translation file from Adapt It.
+   b. When AI uses it. When Navigation protection is OFF and m_lastFreeTransOutputPath/m_lastFreeTransRTFOutputPath is NOT empty and it points to a valid directory, AI uses the value in m_lastFreeTransOutputPath/m_lastFreeTransRTFOutputPath for the location of its free translation exports.
+   c. How it relates to nav protection and special folders. When Navigation protection is ON AI ignores what is in m_lastFreeTransOutputPath/m_lastFreeTransRTFOutputPath as far as determining the path for the free translation exports (the special folder is always used when Nav protection is ON). But, even when Navigation protection is ON, AI stores the path of the special folder used for free translation exports in these variables on the App, so that, if navigation protection is ever turned OFF, the directory shown in the wxFileDialog that appears is initialized to the appropriate special folder used when protection is ON.
+   d. What config file stores its information. The values for both of these glosses-related variables are stored in the project config file. Both are new to version 6.0.0 and so were never stored in a release version prior to 6.0.0, although we've been storing the value of the m_lastFreeTransOutputPath in the project config file under the LastFreeTransExportPath label in pre-release versions.
+   e. The effect of switching collaboration ON/OFF. None. The exporting of free translations is available regardless of whether collaboration is ON or OFF.
+   f. The effect of switching navigation protection ON/OFF. When navigation protection is ON for the _FREETRANS_OUTPUTS (or _FREETRANS_RTF_OUTPUTS) special folder, file browsing is disabled and the exports are assigned a standard date-time stamped filename, and are automatically saved in the appropriate special folder. When navigation protection is OFF, the user may browse elsewhere for a suitable path anywhere in the file system and assign a suitable file name using the standard wxFileDialog. If the path contained in m_lastFreeTransOutputPath/m_lastFreeTransRTFOutputPath is a valid directory the wxFileDialog is initialized to point first to the path contained in the m_lastFreeTransOutputPath/m_lastFreeTransRTFOutputPath variable - although the user is free to navigate elsewhere and change the path/name of the export file.
+   g. Handled in: DoExportSfmText() in ExportFunctions.cpp.
+
+No longer used (replaced):
+
+m_lastRtfOutputPath - MODIFICATION: This has been removed and replaced by specific m_last...RTFOutputPath variables newly added to the project config file (described elsewhere along with their non-RTF counterparts).
+
+Summary of where the m_last...Paths values are stored:
+
+Now saved in the Basic config file:
+   m_lastCcTablePath (previously in both config files)
+   m_lastRetransReportPath (still basic config file but new label)
+   m_lastPackedOutputPath (new)
+   m_lastKbOutputPath (still basic config file but new label)
+   m_lastKbLiftOutputPath (new)
+
+
+Now saved in the Project config file:
+   m_lastDocPath (previously in basic config file)
+   m_lastSourceInputPath (previously in both config files)
+   m_lastInterlinearRTFOutputPath (previously in basic under RTFExportPath label)
+   m_lastSourceOutputPath (previously in basic config file)
+   m_lastSourceRTFOutputPath (new)
+   m_lastTargetOutputPath (previously in both config files)
+   m_lastTargetRTFOutputPath (new)
+   m_lastGlossesOutputPath (new)
+   m_lastGlossesRTFOutputPath (new)
+   m_lastFreeTransOutputPath (new)
+   m_lastFreeTransRTFOutputPath (new)
+
+Now replaced by other values/labels:
+   m_lastRtfOutputPath
+
+Some considerations related to the MakeForeignBasicConfigFileSafe() and MakeForeignProjectConfigFileSafe() functions:
+   There is some code you placed in the GetProjectSettingsConfiguration() function originally dated 16Oct05 (but revised on 10Aug09 when support for exporting glosses and free translations was added) designed to prevent the reading of a project config file (after execution of MakeForeignBasicConfigFileSafe) from clobbering any good paths stored for m_lastTargetOutputPath at the time a possibly foreign project config file is read. The original code was also subsequently extended to cover m_lastGlossesOutputPath, m_lastGlossesRTFOutputPath, m_lastFreeTransOutputPath and m_lastFreeTransRTFOutputPath, using a bForeignConfigFile flag set on the intial encountering the m_lastTargetOutputPath value - but the bForeignConfigFile test was never added to adjust other possibly qualifying paths.
+   With the revisions I've just made to the m_last...Path variable handling, I don't think this type of adjustment is needed anymore in the GetProjectSettingsConfiguration() function, so I've commented it out. The reason is because in all of the routines where the m_last...Path variable's path is potentially used (when Nav Protection is OFF, for example), the code now tests whether the path is a valid path on the local machine - before using those paths. If the path in not a valid directory (tested with ::wxDirExists), then the value stored in the m_last...Path variable is ignored, and the special protected folder is where the wxFileDialog is pointed as its initial folder for file/folder interaction.
+   A significant benefit of not having the bForeignConfigFile test is that is reduces the order dependency of items in the project config file (the LastTargetExportPath item doesn't have to come before other export paths).
+
