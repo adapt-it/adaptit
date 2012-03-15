@@ -446,6 +446,13 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -545,6 +552,13 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		return;
 	}
 
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	//int nSel;
 	//nSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -615,6 +629,13 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	bool bOK = TRUE;
 	//int nSel;
 	//nSel = m_pListBoxExistingTranslations->GetSelection();
@@ -866,6 +887,13 @@ void CKBEditor::MessageForConsistencyCheck()
 
 void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	// the "Forget All Lines" button handler -- erases the control window and also empties
 	// the contents of m_arrSearches
 	wxTextCtrl* pText = m_pEditSearches;
@@ -884,6 +912,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // files in sync with each other.
 	
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
+	{
+		::wxBell();
+		return;
+	}
+
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
 	{
 		::wxBell();
 		return;
@@ -1084,6 +1119,13 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -1209,6 +1251,13 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		return;
 	}
 
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 	int nOldSel = nSel; // save old selection index
@@ -1325,6 +1374,13 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 
 void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event)) 
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	if (pCurTgtUnit == NULL)
 	{
 		::wxBell();

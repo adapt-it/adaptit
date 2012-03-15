@@ -23758,6 +23758,14 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 	// define and load one or more consistent change tables
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	LogUserAction(_T("Initiated OnToolsDefineCC()"));
 
 	// The wxWidgets version handles consistent changes directly via our CCModule which
@@ -32565,6 +32573,13 @@ void CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEve
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	CTransformToGlossesDlg dlg(GetMainFrame());
 	dlg.Centre();
 	if (dlg.ShowModal() == wxID_OK)

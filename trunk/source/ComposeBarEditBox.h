@@ -40,8 +40,8 @@ public:
 
 	// other methods
 	void OnKeyUp(wxKeyEvent& event);
-	// BEW 18Sep09, OnKeyDown() is unneed	
-	// void OnKeyDown(wxKeyEvent& event);
+	// whm 15Mar12 added back for read-only mode handling	
+	void OnKeyDown(wxKeyEvent& event);
 	void OnChar(wxKeyEvent& event);
 	void OnEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 

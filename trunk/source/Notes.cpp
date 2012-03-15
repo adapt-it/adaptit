@@ -2945,6 +2945,13 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	// Since the Move Note Forward menu item has an accelerator table hot key (CTRL-3 see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.
@@ -3232,6 +3239,13 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
     // Since the Move Note Backward menu item has an accelerator table hot key (CTRL-2 see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.

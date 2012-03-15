@@ -60,8 +60,8 @@ IMPLEMENT_DYNAMIC_CLASS(CComposeBarEditBox, wxTextCtrl)
 BEGIN_EVENT_TABLE(CComposeBarEditBox, wxTextCtrl)
 	EVT_TEXT(IDC_EDIT_COMPOSE, CComposeBarEditBox::OnEditBoxChanged)
 	EVT_CHAR(CComposeBarEditBox::OnChar)
-	// BEW 18Sep09 OnKeyDown() is unneed
-	//EVT_KEY_DOWN(CComposeBarEditBox::OnKeyDown)
+	// whm 15Mar12 added back for read-only mode handling
+	EVT_KEY_DOWN(CComposeBarEditBox::OnKeyDown)
 	EVT_KEY_UP(CComposeBarEditBox::OnKeyUp)
 END_EVENT_TABLE()
 
@@ -215,9 +215,17 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 	// and we don't want any base class behaviours here either
 	//event.Skip();
 }
-/* BEW 18Sep09 OnKeyDown() is unneed
+// whm 15Mar12 added back for read-only mode handling
 void CComposeBarEditBox::OnKeyDown(wxKeyEvent& event)
 {
+	// whm added 15Mar12. When in read-only mode don't register any key strokes
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		// return without calling Skip(). Beep for read-only feedback
+		::wxBell();
+		return;
+	}
+
 	event.Skip();
 }
-*/
+

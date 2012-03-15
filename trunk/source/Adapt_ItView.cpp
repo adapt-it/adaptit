@@ -12155,6 +12155,14 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
 	if (pFWnd == NULL)
@@ -12255,6 +12263,14 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	// get the window which has the current focus
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
@@ -20230,6 +20246,14 @@ void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	pApp->LogUserAction(_T("Initiated OnImportToKb()"));
 
 	// whm revised 6Aug11. See the App's OnFileExportToKb() for similar revisions.
@@ -20489,6 +20513,13 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CAdapt_ItView* pView = pApp->GetView();
 
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	pApp->LogUserAction(_T("Initiated OnImportEditedSourceText()"));
 
 	// choose a spanlimit int value, (a restricted range of CSourcePhrase instances), use
@@ -24182,6 +24213,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pApp->m_bReadOnlyAccess)
 	{
+		::wxBell(); // whm 15Mar12 added wxBell()
 		return;
 	}
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -28268,6 +28300,13 @@ void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
 	pApp->LogUserAction(_T("Initiated OnSelectSilConverters()"));
 	// bring up the SilConverter select dialog to allow
     // the user to pick a converter
