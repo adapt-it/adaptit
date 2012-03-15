@@ -8504,7 +8504,7 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Work with my %s &Scripture texts (Collaboration o&n)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Work with my %s &Scripture texts (Collaboration on)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
