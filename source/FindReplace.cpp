@@ -1620,6 +1620,13 @@ void CReplaceDlg::DoRadioSrcAndTgt()
 
 void CReplaceDlg::OnReplaceButton(wxCommandEvent& event) 
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataFromWindow()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
@@ -1699,6 +1706,13 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 
 void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event) 
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataFromWindow()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();

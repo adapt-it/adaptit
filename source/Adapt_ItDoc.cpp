@@ -19291,6 +19291,13 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	gpApp->GetView()->RemoveSelection();
 	CSplitDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
@@ -19310,6 +19317,13 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	gpApp->GetView()->RemoveSelection();
 	CJoinDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
@@ -19329,6 +19343,13 @@ void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnMoveDocument(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	gpApp->GetView()->RemoveSelection();
 	CMoveDialog d(gpApp->GetMainFrame());
 	d.ShowModal(); // We don't care about the results of the dialog -
@@ -20546,6 +20567,14 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	
+	// whm added 15Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE; // this is a global boolean

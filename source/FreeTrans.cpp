@@ -5392,6 +5392,13 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	CAdapt_ItDoc* pDoc = m_pView->GetDocument();
 	m_pApp->LogUserAction(_T("Initiated OnAdvancedRemoveFilteredFreeTranslations()"));
 
@@ -7167,6 +7174,13 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
 
 	if (pBar != NULL && pBar->IsShown())
@@ -8327,6 +8341,13 @@ void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	m_pApp->LogUserAction(_T("Initiated OnAdvancedCollectBacktranslations()"));
 	CCollectBacktranslations dlg(m_pFrame);
 	dlg.Centre();
@@ -8357,6 +8378,13 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		::wxBell();
+		return;
+	}
+	
 	m_pApp->LogUserAction(_T("Initiated OnAdvancedRemoveFilteredBacktranslations()"));
     // whm added 23Jan07 check below to determine if the doc has any back translations. If
     // not an information message is displayed saying there are no back translations; then
