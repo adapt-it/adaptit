@@ -295,8 +295,17 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 
 	// support Mike's TEST_DVCS menu item
 #if defined(TEST_DVCS)
-	EVT_MENU(ID_MENU_DVCS_TESTS, CMainFrame::OnTestDVCS)
-	EVT_UPDATE_UI(ID_MENU_DVCS_TESTS, CMainFrame::OnUpdateUseToolTips)
+	EVT_MENU (ID_MENU_DVCS_VERSION,			CMainFrame::OnDVCS_Version)
+	EVT_UPDATE_UI(ID_MENU_DVCS_VERSION,		CMainFrame::OnUpdateUseToolTips)
+
+	EVT_MENU (ID_MENU_INIT_REPOSITORY,		CMainFrame::OnInit_Repository)
+	EVT_MENU (ID_MENU_DVCS_HISTORY,			CMainFrame::OnDVCS_History)
+	EVT_MENU (ID_MENU_DVCS_ADD_FILE,		CMainFrame::OnDVCS_Add_File)
+	EVT_MENU (ID_MENU_DVCS_ADD_ALL_FILES,	CMainFrame::OnDVCS_Add_All_Files)
+	EVT_MENU (ID_MENU_DVCS_COMMIT_FILE,		CMainFrame::OnDVCS_Commit_File)
+	EVT_MENU (ID_MENU_DVCS_COMMIT_PROJECT,	CMainFrame::OnDVCS_Commit_Project)
+	EVT_MENU (ID_MENU_DVCS_LOG_FILE,		CMainFrame::OnDVCS_Log_File)
+	EVT_MENU (ID_MENU_DVCS_LOG_PROJECT,		CMainFrame::OnDVCS_Log_Project)
 #endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
@@ -2265,24 +2274,71 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pConfig->SetPath(oldPath);
 }
 
-// Support Mike's testing of the Chorus port
+// Support Mike's testing of DVCS:
+
 #if defined(TEST_DVCS)
 
-void CMainFrame::OnUpdateTestDVCS(wxUpdateUIEvent& event)
+int lastResultCode;
+
+void CMainFrame::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
 {
 	// always available
 	event.Enable(TRUE);
 }
 
-void CMainFrame::OnTestDVCS(wxCommandEvent& WXUNUSED(event))
-{
-	int		resultCode;
-    
-	resultCode = CallDVCS (DVCS_CHECK);
-	
-// Maybe do something with resultCode here...
-	
+void CMainFrame::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
+{    
+	int resultCode = CallDVCS (DVCS_VERSION);	
+	lastResultCode = resultCode;		// avoid compiler warning about unused variable
 }
+
+void CMainFrame::OnInit_Repository (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_INIT_REPOSITORY);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_History (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_HISTORY);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_ADD_FILE);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_ADD_ALL_FILES);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_Commit_File (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_COMMIT_FILE);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_Commit_Project (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_COMMIT_PROJECT);
+	lastResultCode = resultCode;
+}
+void CMainFrame::OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_LOG_FILE);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_LOG_PROJECT);
+	lastResultCode = resultCode;
+}
+
 #endif
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out

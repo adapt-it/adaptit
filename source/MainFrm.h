@@ -198,8 +198,17 @@ class CMainFrame : public wxDocParentFrame
 
 	// support Mike's TEST_DVCS menu item
 #if defined(TEST_DVCS)
-	void OnTestDVCS(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateTestDVCS(wxUpdateUIEvent& event);
+	void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));
+	void OnUpdateDVCS_Version(wxUpdateUIEvent& event);
+	
+	void OnInit_Repository (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_History (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Commit_File (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Commit_Project (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event));
 #endif
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);

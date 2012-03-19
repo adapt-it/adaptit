@@ -57,79 +57,232 @@
 #include "DVCS.h"
 
 
-int  CallDVCS ( int action )
+
+/*	Implementation notes:
+
+	Our DVCS engine is Mercurial (hg).  It uses a command-line interface.  So our job here is to create the command line, then
+	send it to hg using wxExecute(), then handle the return results.  We do this in the main function CallDVCS().
+ 
+	The command line has the form
+		
+		hg <command> <options> <arguments>
+ 
+	So we use 3 wxStrings, hg_command, hg_options and hg_arguments.  These are global to this file, so that we can easily
+	set them up with separate functions depending on the actual command we want to perform, before calling wxExecute in the
+	main function.
+ 
+	Another approach would have been to set up a class with these wxStrings as members, and the different functions as methods.  
+	This would have been a bit of overkill since we don't currently need to hang on to any state from one call to the next, and 
+	we'd only need a single object of this class.  So instead we'll keep it simple and only bring in the heavy machinery if
+	we need to later.
+ 
+	The hg man says we can use wildcards in paths.  In practice this only works in the current directory or the immediate
+	parent.  Therefore, whenever our main function is called, the first thing we do is cd to the Adaptations directory which
+	is our repository.  Then after that we can just use filenames without having to fully path them out, and wildcards work.
+ */
+ 
+ 
+ 
+wxString		hg_command, hg_options, hg_arguments;
+
+
+/*	call_hg is the function that actually calls hg.
+	For some utterly unaccountable reason, under Windows or Linux, we can just find "hg" since if it's
+	properly installed, it's in one of the paths listed in the PATHS environment variable.  However
+	on the Mac, although its location is in PATHS, and we can just type "hg <whatever>" in a terminal
+	window and it gets found, it doesn't get found by the exec() group of functions (which wxExecute
+	calls).  So we have to put the full path.  Hopefully this won't matter, since the default installation
+	of hg on the Mac always puts it in /usr/local/bin, so we can just go ahead and assume that.
+ 
+	If hg isn't found, as well as a nonzero result from wxExecute, we get a message in our errors ArrayString 
+	on the Mac and Windows, saying the command gave an error (2 in both cases).  But on Linux we don't get 
+	a message back at all.
+ 
+	In all cases if hg returns an error we get a message in errors.  So we'll need to distinguish between hg
+	not being found, or being found and its execution returning an error.
+*/
+
+int  call_hg()
 {
-	wxString		str, str1, hg_command;
+	wxString		str, str1, local_arguments;
 	wxArrayString	output, errors;
-	char			command[1024];
     long			result;
 	int				count, i;
 	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
 
+	#ifdef	__WXMAC__
+		str = _("/usr/local/bin/hg ");
+	#else
+		str = _("hg ");
+	#endif
 
-	switch (action)
-	{
-		case DVCS_CHECK:
-			hg_command = _T("version");
-			break;
-		default:
-			hg_command = _T("illegal");
+	// If there's a file or directory path in the arguments string, we need to replace any spaces with "\ ".  
+	// We do this in a local copy so the caller can reuse the arguments string if needed.
+
+	local_arguments = hg_arguments;
+	local_arguments.Replace (_(" "), _("\\ "), TRUE);
+
+	// hg complains if there are trailing blanks on the command line, so we only add the options and arguments if
+	//  they're actually there:
+
+	str = str + hg_command; 
+	if (!hg_options.IsEmpty())
+	str = str + _(" ") + hg_options;
+	if (!local_arguments.IsEmpty())
+	str = str + _(" ") + local_arguments;
+
+wxMessageBox(str);
+
+	result = wxExecute (str, output, errors, 0);
+
+	// The only indication we get that something went wrong, is a nonzero result.  It seems to always be 255, whatever the error.
+	// It may mean that hg wasn't found, or it could be an illegal hg command.  Eventually we should suss this out a bit
+	// more, using the errors wxArrayString.
+
+	if (result)		// An error occurred
+	{	
+		returnCode = result;
 	}
-
-	// For some utterly unaccountable reason, under Windows or Linux, we can just find "hg" since if it's
-	// properly installed, it's in one of the paths listed in the PATHS environment variable.  However
-	// on the Mac, although its location is in PATHS, and we can just type "hg <whatever>" in a terminal
-	// window and it gets found, it doesn't get found by the exec() group of functions (which wxExecute
-	// calls).  So we have to put the full path.  Hopefully this won't matter, since the default installation
-	// of hg on the Mac always puts it in /usr/local/bin.
+	else
+	{		// hg's stdout will land in our output wxArrayString.  There can be a number of strings.
+			// Just concatenating them with a space between looks OK so far.
+		count = output.GetCount();  
+		if (count) 
+		{	str1.Clear();
+			for (i=0; i<count; i++)
+				str1 = str1 + output.Item(i) + _T(" ");
+			wxMessageBox (str1);
+		}
+	}
 	
-	// If hg isn't found, as well as a nonzero result from wxExecute, we get a message in our errors ArrayString 
-	// on the Mac and Windows, saying the command gave an error (2 in both cases).  But on Linux we don't get 
-	// a message back at all.
-	// In all cases if hg returns an error we get a message in errors.  So we'll need to distinguish between hg
-	// not being found, or being found and it's execution returning an error.
+// If anything landed in our errors wxArrayString, we'll display it.  We'll probably need to enhance this a bit eventually.
 
-
-#ifdef	__WXMAC__
-	str = _T("/usr/local/bin/hg ");
-#else
-	str = _T("hg ");
-#endif
-
-	str = str + hg_command;
-	strcpy ( command, (const char*) str.mb_str(wxConvUTF8) );		// convert s to ASCII char string in buf
-
-	result = wxExecute ( str, output, errors, 0 );
-
-	// The only indication we get that something went wrong, is a nonzero result.  This may mean that
-	// hg wasn't found, or it could be an illegal hg command.  Eventually we should suss this out a bit
-	// more.
-
-    if (result)		// An error occurred
-    {	
-		wxMessageBox (_T("We couldn't find Mercurial.  Please check that it's installed properly."));
-		returnCode = 1;
-	}
-    else
-	{				// hg's stdout will land in our output wxArrayString.  There can be a number of strings.
-					// Just concatenating them with a space between looks OK so far.
-		count = output.GetCount();  str1.Clear();
-		for (i=0; i<count; i++)
-			str1 = str1 + output.Item(i) + _T(" ");
-
-        wxMessageBox (str1);
-	}
-
-	// If anything landed in our errors wxArrayString, we'll display it:
 	count = errors.GetCount();
 	if (count)
 	{	str1.Clear();
 		for (i=0; i<count; i++)
 			str1 = str1 + errors.Item(i) + _T(" ");
-
+			
 		wxMessageBox (str1);
 	}
+
 	return returnCode;
 }
 
+
+// Setup functions:
+
+int  init_repository ()
+{	
+	hg_command = _("init");
+	return call_hg();
+}
+
+// add_file is called when the current (new) file is to be added to version control.
+
+int  add_file (wxString fileName)
+{
+	hg_command = _("add");
+	hg_arguments = fileName;
+	return call_hg();
+}
+
+// add_all_files() adds all documents in the Adaptations folder to version control.  They should all end in
+//  "*.xml" so we pass that to hg.  Note this gives them all "A" status.  They're not really truly under
+//  version control until the first commit.
+
+int  add_all_files()
+{	
+	hg_command = _("add");
+	hg_arguments = _("glob:*.xml");		// Note: unlike in a terminal, we do need to explicitly put glob: !
+	
+	return call_hg();
+}
+
+int  show_history()
+{
+	return 0;
+}
+
+int  commit_file (wxString fileName)
+{
+	hg_command = _("commit");
+	hg_options = _("-m \"single file commit\"");
+	hg_arguments = fileName;
+	return call_hg();
+}
+
+int  commit_project()
+{
+	hg_command = _("commit");
+	hg_options = _("-m \"whole project commit\"");
+	return call_hg();
+}
+
+int  log_file()
+{
+	return 0;
+}
+
+int  log_project()
+{
+	return 0;
+}
+
+
+
+// Main function.  This is the only one called from outside this file.
+//  It just clears the global wxStrings, cd's to the current repository, then dispatches to the 
+//  appropriate function to do the work.  We return as a result whatever that function returns.
+//  If the cd fails, this means that AdaptIt doesn't have a current project yet.  We complain and bail out.
+
+int  CallDVCS ( int action )
+{
+	wxString		str;
+	wxArrayString	output, errors;
+	CAdapt_ItApp*	pApp = &wxGetApp();
+	int				result;
+		
+	hg_command.Clear();  hg_options.Clear();  hg_arguments.Clear();		// Clear the global wxStrings
+
+// Next we cd into our repository:
+
+	str = pApp->m_curAdaptionsPath;
+	str.Replace (_(" "), _("\\ "), TRUE);
+	str = _("cd ") + str;
+
+	result = wxExecute (str, output, errors, 0);
+	
+	if (result) 
+	{
+		wxMessageBox ( _("There doesn't appear to be a current project!") );
+		return 99;
+	}
+
+// Now, what have we been asked to do?
+	
+	switch (action)
+	{
+		case DVCS_VERSION:
+			hg_command = _("version");
+			result = call_hg();
+			break;
+		
+		case DVCS_INIT_REPOSITORY:	result = init_repository();  break;
+		case DVCS_ADD_FILE:			result = add_file (pApp->m_curOutputFilename);		
+																break;
+		case DVCS_ADD_ALL_FILES:	result = add_all_files();	break;
+		case DVCS_COMMIT_FILE:		result = commit_file (pApp->m_curOutputFilename);		
+																break;
+		case DVCS_COMMIT_PROJECT:	result = commit_project();	break;
+		case DVCS_LOG_FILE:			result = log_file();		break;
+		case DVCS_LOG_PROJECT:		result = log_project();		break;
+		case DVCS_HISTORY:			result = show_history();	break;
+
+		default:
+			wxMessageBox (_("Internal error - illegal DVCS command"));
+			result = -1;
+	}
+	return result;
+}
 

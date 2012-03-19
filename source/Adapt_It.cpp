@@ -18796,16 +18796,29 @@ int ii = 1;
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
 */
+
 	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_DVCS is #defined at line 25 of Adapt_It.h)
 #if defined(TEST_DVCS) && defined(__WXDEBUG__)
+
 	wxMenuBar* pAIMenuBar = NULL;
 	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
 	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
+
 	pEditMenu->AppendSeparator();
-	wxMenuItem* pTestDVCSItem = pEditMenu->Append(ID_MENU_DVCS_TESTS,_T("Test DVCS")); // defaults for final 2 params
-	pTestDVCSItem = pTestDVCSItem; // supress warning // TODO: remove this if pTestDVCSItem gets to be used here
+
+//	wxMenuItem* pTestDVCSItem = pEditMenu->Append(ID_MENU_DVCS_TESTS,_T("DVCS version"));	// defaults for final 2 params
+	pEditMenu->Append (ID_MENU_DVCS_VERSION, _("DVCS version"));							// ditto
+	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _("Set up version control"));				// ditto
+	pEditMenu->Append (ID_MENU_DVCS_HISTORY, _("Show version history"));					// ditto
+	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _("Put this file under version control"));	// ditto
+	pEditMenu->Append (ID_MENU_DVCS_ADD_ALL_FILES, _("Put all project files under version control"));
+	pEditMenu->Append (ID_MENU_DVCS_COMMIT_FILE, _("Commit changes to this file"));			// ditto
+	pEditMenu->Append (ID_MENU_DVCS_COMMIT_PROJECT, _("Commit all changes to the current project"));
+	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _("Show version log for this file"));			// ditto
+	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _("Show version log for whole project"));	// ditto
+
 #endif
 	// end of code for supporting Mike's DVCS work
 
