@@ -24,11 +24,23 @@
 // a temporary #define for Mike to use when working on DVCS:
 //#define TEST_DVCS
 
-// a symbolic menuID for the commands Mike will use (menu item appended to bottom of Help menu)
-const int ID_MENU_DVCS_TESTS = 999;
+// symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Help menu)
+const int ID_MENU_DVCS_VERSION			= 999;
+const int ID_MENU_INIT_REPOSITORY		= 998;
+const int ID_MENU_DVCS_HISTORY			= 997;
+const int ID_MENU_DVCS_ADD_FILE			= 996;
+const int ID_MENU_DVCS_ADD_ALL_FILES	= 995;
+const int ID_MENU_DVCS_COMMIT_FILE		= 994;
+const int ID_MENU_DVCS_COMMIT_PROJECT	= 993;
+const int ID_MENU_DVCS_LOG_FILE			= 992;
+const int ID_MENU_DVCS_LOG_PROJECT		= 991;
 
 // Action codes for calling the DVCS:
-enum{ DVCS_CHECK };     // More to be added as they come up
+enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY, 
+		DVCS_HISTORY, DVCS_ADD_FILE, DVCS_ADD_ALL_FILES,
+		DVCS_COMMIT_FILE, DVCS_COMMIT_PROJECT,
+		DVCS_LOG_FILE, DVCS_LOG_PROJECT };     
+				// More to be added as they come up
 
 
 
