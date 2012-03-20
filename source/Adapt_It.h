@@ -3476,6 +3476,9 @@ public:
 	bool	BibleditIsInstalled(); // whm added 13Jun11
 	bool	ParatextIsRunning(); // whm added 9Feb11
 	bool	BibleditIsRunning(); // whm added 13Jun11
+#ifdef __WXGTK__
+	wxString GetParatextEnvVar(wxString strVariableName); // edb added 19Mar12
+#endif
 	wxString GetParatextProjectsDirPath(); // whm added 9Feb11
 	wxString GetBibleditProjectsDirPath();
 	wxString GetParatextInstallDirPath(); // whm added 9Feb11
