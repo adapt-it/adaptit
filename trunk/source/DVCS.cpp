@@ -110,26 +110,29 @@ int  call_hg()
 	int				count, i;
 	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
 
-	#ifdef	__WXMAC__
-		str = _("/usr/local/bin/hg ");
-	#else
-		str = _("hg ");
-	#endif
+#ifdef	__WXMAC__
+	str = _T("/usr/local/bin/hg ");
+#else
+	str = _T("hg ");
+#endif
 
-	// If there's a file or directory path in the arguments string, we need to replace any spaces with "\ ".  
-	// We do this in a local copy so the caller can reuse the arguments string if needed.
+	// If there's a file or directory path in the arguments string, we need to replace any spaces with backslash.  
+	// We do this in a local copy so the caller can reuse the arguments string if needed.  We don't need to do
+	// this on Windows, and indeed we mustn't, because backslash is the path separator!
 
 	local_arguments = hg_arguments;
-	local_arguments.Replace (_(" "), _("\\ "), TRUE);
+#ifndef __WXWIN__
+	local_arguments.Replace (_T(" "), _T("\\ "), TRUE);
+#endif
 
 	// hg complains if there are trailing blanks on the command line, so we only add the options and arguments if
 	//  they're actually there:
 
 	str = str + hg_command; 
 	if (!hg_options.IsEmpty())
-	str = str + _(" ") + hg_options;
+	str = str + _T(" ") + hg_options;
 	if (!local_arguments.IsEmpty())
-	str = str + _(" ") + local_arguments;
+	str = str + _T(" ") + local_arguments;
 
 wxMessageBox(str);
 
@@ -141,6 +144,7 @@ wxMessageBox(str);
 
 	if (result)		// An error occurred
 	{	
+wxMessageBox( _T("error!!!") );
 		returnCode = result;
 	}
 	else
@@ -174,7 +178,7 @@ wxMessageBox(str);
 
 int  init_repository ()
 {	
-	hg_command = _("init");
+	hg_command = _T("init");
 	return call_hg();
 }
 
@@ -182,7 +186,7 @@ int  init_repository ()
 
 int  add_file (wxString fileName)
 {
-	hg_command = _("add");
+	hg_command = _T("add");
 	hg_arguments = fileName;
 	return call_hg();
 }
@@ -193,8 +197,8 @@ int  add_file (wxString fileName)
 
 int  add_all_files()
 {	
-	hg_command = _("add");
-	hg_arguments = _("glob:*.xml");		// Note: unlike in a terminal, we do need to explicitly put glob: !
+	hg_command = _T("add");
+	hg_arguments = _T("glob:*.xml");		// Note: unlike in a terminal, we do need to explicitly put glob: !
 	
 	return call_hg();
 }
@@ -206,27 +210,30 @@ int  show_history()
 
 int  commit_file (wxString fileName)
 {
-	hg_command = _("commit");
-	hg_options = _("-m \"single file commit\"");
+	hg_command = _T("commit");
+	hg_options = _T("-m \"single file commit\"");
 	hg_arguments = fileName;
 	return call_hg();
 }
 
 int  commit_project()
 {
-	hg_command = _("commit");
-	hg_options = _("-m \"whole project commit\"");
+	hg_command = _T("commit");
+	hg_options = _T("-m \"whole project commit\"");
 	return call_hg();
 }
 
-int  log_file()
+int  log_file (wxString fileName)
 {
-	return 0;
+	hg_command = _T("log");
+	hg_arguments = fileName;
+	return call_hg();
 }
 
 int  log_project()
 {
-	return 0;
+	hg_command = _T("log");
+	return call_hg();
 }
 
 
@@ -239,23 +246,21 @@ int  log_project()
 int  CallDVCS ( int action )
 {
 	wxString		str;
-	wxArrayString	output, errors;
 	CAdapt_ItApp*	pApp = &wxGetApp();
 	int				result;
-		
+	bool			bResult;
+    wxString		saveWorkDir = wxGetCwd();			// save the current working directory
+	
 	hg_command.Clear();  hg_options.Clear();  hg_arguments.Clear();		// Clear the global wxStrings
 
-// Next we cd into our repository:
+// Next we cd into our repository.  We use wxSetWorkingDirectory() and spaces in pathnames are OK.
 
 	str = pApp->m_curAdaptionsPath;
-	str.Replace (_(" "), _("\\ "), TRUE);
-	str = _("cd ") + str;
-
-	result = wxExecute (str, output, errors, 0);
+	bResult = ::wxSetWorkingDirectory (str);
 	
-	if (result) 
+	if (!bResult) 
 	{
-		wxMessageBox ( _("There doesn't appear to be a current project!") );
+		wxMessageBox ( _T("There doesn't appear to be a current project!") );
 		return 99;
 	}
 
@@ -264,7 +269,7 @@ int  CallDVCS ( int action )
 	switch (action)
 	{
 		case DVCS_VERSION:
-			hg_command = _("version");
+			hg_command = _T("version");
 			result = call_hg();
 			break;
 		
@@ -275,14 +280,17 @@ int  CallDVCS ( int action )
 		case DVCS_COMMIT_FILE:		result = commit_file (pApp->m_curOutputFilename);		
 																break;
 		case DVCS_COMMIT_PROJECT:	result = commit_project();	break;
-		case DVCS_LOG_FILE:			result = log_file();		break;
+		case DVCS_LOG_FILE:			result = log_file (pApp->m_curOutputFilename);		
+																break;
 		case DVCS_LOG_PROJECT:		result = log_project();		break;
 		case DVCS_HISTORY:			result = show_history();	break;
 
 		default:
-			wxMessageBox (_("Internal error - illegal DVCS command"));
+			wxMessageBox (_T("Internal error - illegal DVCS command"));
 			result = -1;
 	}
+
+	wxSetWorkingDirectory (saveWorkDir);		// restore working directory back to what it was
 	return result;
 }
 
