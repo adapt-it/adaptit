@@ -2372,25 +2372,29 @@ wxString GetPathToRdwrtp7()
 	// in the Paratext installation, but only check to make sure they are available in the
 	// Adapt It installation.
 
+#ifdef __WXMSW__
+    // windows dependency checks
 	rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
 	wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
 	wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
 	wxASSERT(::wxFileExists(fileName));
-#ifdef __WXMSW__ // Windows compression library dependencies
 	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll");
 	wxASSERT(::wxFileExists(fileName));
 	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Interop.XceedZipLib.dll");
 	wxASSERT(::wxFileExists(fileName));
-#endif
-#ifdef __WXGTK__ // Mono compression library dependency
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Ionic.Zip.dll");
-	wxASSERT(::wxFileExists(fileName));
-#endif
 	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
 	wxASSERT(::wxFileExists(fileName));
 	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
 	wxASSERT(::wxFileExists(fileName));
-
+#endif
+#ifdef __WXGTK__
+    // For mono, we call a script (rdwrtp7 / no extension) that sets the Paratext and mono
+    // environment variables and then calls the "real" rdwrtp7.exe in the Paratext installation
+    // directory. The code from our script is taken from the paratext startup script and is needed
+    // to avoid a security exception in ParatextShared.dll.
+	rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7");
+	wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
+#endif
 	/*
 	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
 	{
