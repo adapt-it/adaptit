@@ -1,0 +1,12 @@
+#!/bin/sh
+export MONO_IOMAP=case
+export MOZ_LIBDIR=/usr/lib/firefox-10.0.2
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MOZ_LIBDIR
+export MONO_PATH=/usr/lib/cli/gdk-sharp-2.0
+export MONO_REGISTRY_PATH=${HOME}/.config/paratext/registry
+export MONO_MWF_SCALING=disable
+export TEXINPUTS=.:/usr/lib/Paratext/xetex/share/texmf/tex/ptx2pdf/
+# Paratext uses Mutex to check for existing instance.
+export MONO_ENABLE_SHM=1
+export LD_PRELOAD=/usr/lib/Paratext/jemallocfix.so
+exec /usr/bin/mono --debug /usr/lib/Paratext/rdwrtp7.exe "$@"
