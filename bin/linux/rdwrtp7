@@ -1,4 +1,9 @@
 #!/bin/sh
+# author: Erik Brommers; content taken from /usr/bin/paratext
+# date: 22 March 2012
+# purpose: shell script for rdwrtp7.exe; this sets up
+# the mono environment for rdwrtp7.exe so that it doesn't
+# get security exceptions when driving ParatextSupport.dll.
 export MONO_IOMAP=case
 export MOZ_LIBDIR=/usr/lib/firefox-10.0.2
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MOZ_LIBDIR
@@ -9,4 +14,7 @@ export TEXINPUTS=.:/usr/lib/Paratext/xetex/share/texmf/tex/ptx2pdf/
 # Paratext uses Mutex to check for existing instance.
 export MONO_ENABLE_SHM=1
 export LD_PRELOAD=/usr/lib/Paratext/jemallocfix.so
-exec /usr/bin/mono --debug /usr/lib/Paratext/rdwrtp7.exe "$@"
+# Move to the shell script directory (if we're not already there) -
+# this is where rdwrtp7.exe should reside
+cd $(dirname $0)
+exec /usr/bin/mono --debug rdwrtp7.exe "$@"

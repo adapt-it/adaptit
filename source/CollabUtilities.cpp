@@ -2394,6 +2394,16 @@ wxString GetPathToRdwrtp7()
     // to avoid a security exception in ParatextShared.dll.
 	rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7");
 	wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
+	wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
+	wxASSERT(::wxFileExists(fileName));
+	// for mono, PT appears to be using Ionic.Zip.dll instead of SharpZipLib.dll for
+	// compression.
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Ionic.Zip.dll");
+	wxASSERT(::wxFileExists(fileName));
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
+	wxASSERT(::wxFileExists(fileName));
+	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
+	wxASSERT(::wxFileExists(fileName));
 #endif
 	/*
 	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
