@@ -28280,7 +28280,9 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 		// been wrong or corrupted, so it is best that we just assume that the
 		// administrator will set collaboration up properly in this new version
 		// for the desired AI project(s).
-		;
+		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nPlease ask your administrator to setup Adapt It for collaboration with %s.");
+		msg = msg.Format(msg,appVerStr.c_str(),m_collaborationEditor.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
 	}
 	return TRUE;
 }
