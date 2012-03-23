@@ -329,7 +329,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed. AI aborting..."));
 		}
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
+		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
+		//wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
 		return;
 	}
 
@@ -363,7 +364,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		wxMessageBox(str, _("Collaboration setup required by administrator"), wxICON_WARNING);
 		m_pApp->LogUserAction(str);
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
+		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
+		//wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
 		return;
 	}
 
