@@ -7780,17 +7780,18 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 		// BEW 4Aug11 changed the code to not test each individually, but just test if
 		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
 		// treat U+2060 individually
+		// BEW 24Mar12, removed 0x200C and 0x200D from being word-breaking, because Mark
+		// Penny said (13Mar12) in an email that those two are used as word-forming
+		// characters in many Indian languages
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200B))
 		{
 			return TRUE;
 		}
 
 		/*
 		wxChar ZWSP = (wxChar)0x200B; // ZWSP
-		wxChar ZWNJ = (wxChar)0x200C; // ZWNJ
-		wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
-		if (*pChar == WJ || *pChar == ZWSP || *pChar == ZWNJ || *pChar == ZWJ)
+		if (*pChar == WJ || *pChar == ZWSP)
 		{
 			return TRUE;
 		}
