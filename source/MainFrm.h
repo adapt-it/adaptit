@@ -202,9 +202,10 @@ class CMainFrame : public wxDocParentFrame
 	void OnUpdateDVCS_Version(wxUpdateUIEvent& event);
 	
 	void OnInit_Repository (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_History (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Remove_File (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Remove_Project (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Commit_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Commit_Project (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event));

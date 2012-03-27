@@ -134,7 +134,7 @@ int  call_hg()
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-wxMessageBox(str);
+//	wxMessageBox(str);
 
 	result = wxExecute (str, output, errors, 0);
 
@@ -154,7 +154,7 @@ wxMessageBox( _T("error!!!") );
 		if (count) 
 		{	str1.Clear();
 			for (i=0; i<count; i++)
-				str1 = str1 + output.Item(i) + _T(" ");
+				str1 = str1 + output.Item(i) + /*_T(" ")*/ _T("\n");
 			wxMessageBox (str1);
 		}
 	}
@@ -203,10 +203,23 @@ int  add_all_files()
 	return call_hg();
 }
 
-int  show_history()
+// remove_file() is called to remove the given file from version control.  The file's not deleted.
+
+int  remove_file (wxString fileName)
 {
-	return 0;
+	hg_command = _T("forget");
+	hg_arguments = fileName;
+	return call_hg();
 }
+
+// remove_project() removes the whole current project from version control.  Nothing's actually deleted.
+
+int  remove_project()
+{
+	hg_command = _T("forget");
+	hg_arguments = _T("glob:*.xml");		// Note: unlike in a terminal, we do need to explicitly put glob: !
+	return call_hg();
+}	
 
 int  commit_file (wxString fileName)
 {
@@ -274,16 +287,18 @@ int  CallDVCS ( int action )
 			break;
 		
 		case DVCS_INIT_REPOSITORY:	result = init_repository();  break;
-		case DVCS_ADD_FILE:			result = add_file (pApp->m_curOutputFilename);		
-																break;
-		case DVCS_ADD_ALL_FILES:	result = add_all_files();	break;
-		case DVCS_COMMIT_FILE:		result = commit_file (pApp->m_curOutputFilename);		
-																break;
-		case DVCS_COMMIT_PROJECT:	result = commit_project();	break;
-		case DVCS_LOG_FILE:			result = log_file (pApp->m_curOutputFilename);		
-																break;
-		case DVCS_LOG_PROJECT:		result = log_project();		break;
-		case DVCS_HISTORY:			result = show_history();	break;
+
+		case DVCS_ADD_FILE:			result = add_file (pApp->m_curOutputFilename);		break;
+		case DVCS_ADD_ALL_FILES:	result = add_all_files();							break;
+			
+		case DVCS_REMOVE_FILE:		result = remove_file(pApp->m_curOutputFilename);	break;
+		case DVCS_REMOVE_PROJECT:	result = remove_project();							break;
+
+		case DVCS_COMMIT_FILE:		result = commit_file (pApp->m_curOutputFilename);	break;
+		case DVCS_COMMIT_PROJECT:	result = commit_project();							break;
+
+		case DVCS_LOG_FILE:			result = log_file (pApp->m_curOutputFilename);		break;
+		case DVCS_LOG_PROJECT:		result = log_project();								break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));
