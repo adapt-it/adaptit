@@ -8804,6 +8804,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		}
 		if (label.Find(_T("%s")) != wxNOT_FOUND)
 		{
+			wxASSERT(!m_collaborationEditor.IsEmpty());
 			label = label.Format(label,m_collaborationEditor.c_str());
 		}
 		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
@@ -8813,6 +8814,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 		if (pCollabMenuItem != NULL)
 		{
 			label = pCollabMenuItem->GetHelp(); //_("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts")
+			wxASSERT(!m_collaborationEditor.IsEmpty());
 			label = label.Format(label,m_collaborationEditor.c_str(),m_collaborationEditor.c_str());
 			pCollabMenuItem->SetHelp(label);
 		}
@@ -11160,32 +11162,31 @@ void CAdapt_ItApp::RemoveCollabSettingsFromFailSafeStorageFile()
 	m_pConfig->SetPath(_T("/Settings"));
 	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value
 		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
-	if (this->m_collaborationEditor == _T("Paratext"))
-	{
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collaboration"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_src_proj"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_tgt_proj"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_free_trans_proj"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_ai_proj_name"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_book_selected"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_by_chapter_only"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_chapter_selected"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_src_lang_name"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_tgt_lang_name"), TRUE);
-	}
-	else
-	{
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collaboration"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_src_proj"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_tgt_proj"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_free_trans_proj"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_ai_proj_name"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_book_selected"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_by_chapter_only"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_chapter_selected"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_src_lang_name"), TRUE);
-		bDelOK = m_pConfig->DeleteEntry(_T("be_collab_tgt_lang_name"), TRUE);
-	}
+	// whm Note 27Mar12. We want to purge the Adapt_It_WX.ini (.Adapt_It_WX) file of all
+	// collaboration settings whether for pt or be, so we look for any/all such settings
+	// and delete any that are found.
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collaboration"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_src_proj"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_tgt_proj"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_free_trans_proj"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_ai_proj_name"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_book_selected"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_by_chapter_only"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_chapter_selected"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_src_lang_name"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_tgt_lang_name"), TRUE);
+	
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collaboration"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_src_proj"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_tgt_proj"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_free_trans_proj"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_ai_proj_name"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_book_selected"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_by_chapter_only"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_chapter_selected"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_src_lang_name"), TRUE);
+	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_tgt_lang_name"), TRUE);
+
 	bDelOK = bDelOK; // to avoid warning. It is not important whether the entries get removed or not
 	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
 	// restore the oldPath back to "/Recent_File_List"
@@ -13581,6 +13582,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//}
 	// end test of GetUniqueIncrementedFileName
 
+	m_collaborationEditor = _T("");
+
 	m_nWorkflowProfile = 0; // default value is for "None" unless changed by the
 							// value stored in the basic and/or config files.
 
@@ -13958,14 +13961,23 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bCollaboratingWithParatext = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
 	m_bCollaboratingWithBibledit = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
 	m_bStartWorkUsingCollaboration = FALSE; // whm added 19Feb12
+	
+	// whm 27Mar12 Note:
+	// If Paratext is installed (either on Windows or Linux) we give priority to
+	// it as the installed external Scripture editor for collaboration. If neither
+	// Paratext nor Bibledit are installed, the m_collaborationEditor is an empty
+	// string. Since m_collaborationEditor can be an empty string, code should call 
+	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string 
+	// substitutions.
 	if (m_bParatextIsInstalled)
 	{
         m_collaborationEditor = _T("Paratext"); // default editor
 	}
-	else
+	else if (m_bBibleditIsInstalled)
 	{
         m_collaborationEditor = _T("Bibledit"); // don't localize
 	}
+
 	// edb replaced with block above 19Mar12
 	/*
 #ifdef __WXGTK__
@@ -22918,6 +22930,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 									 // fail after phrase box gets past end of doc
 		CGetSourceTextFromEditorDlg dlg(GetMainFrame());
 		dlg.CenterOnParent();
+		wxASSERT(!m_collaborationEditor.IsEmpty());
 		dlg.m_collabEditorName = m_collaborationEditor; // _T("Paratext") or _T("Bibledit");
 		if (dlg.ShowModal() == wxID_CANCEL)
 		{
@@ -23873,6 +23886,13 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateLoadCcTables(wxUpdateUIEvent& event)
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -23895,6 +23915,13 @@ void CAdapt_ItApp::OnUpdateLoadCcTables(wxUpdateUIEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -23935,14 +23962,6 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 	// define and load one or more consistent change tables
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-
-	// whm added 15Mar12 for read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-
 	LogUserAction(_T("Initiated OnToolsDefineCC()"));
 
 	// The wxWidgets version handles consistent changes directly via our CCModule which
@@ -28282,6 +28301,7 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 		// administrator will set collaboration up properly in this new version
 		// for the desired AI project(s).
 		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nPlease ask your administrator to setup Adapt It for collaboration with %s.");
+		wxASSERT(!m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,appVerStr.c_str(),m_collaborationEditor.c_str());
 		wxMessageBox(msg,_T(""),wxICON_WARNING);
 	}
@@ -32705,6 +32725,13 @@ void CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEve
 	// for the OnUpdate... handlers) when certain actions need to be taken based on
 	// whether the project and/or document is open or not.
 
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -32752,13 +32779,6 @@ void CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEve
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-
 	CTransformToGlossesDlg dlg(GetMainFrame());
 	dlg.Centre();
 	if (dlg.ShowModal() == wxID_OK)
@@ -33691,6 +33711,13 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gbIsGlossing)
 	{
 		if (m_bGlossingKBReady)
@@ -35459,6 +35486,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		// with Paratext/Bibledit" info in status bar
 		if (gpApp->m_bCollaboratingWithBibledit || gpApp->m_bCollaboratingWithParatext)
 		{
+			wxASSERT(!m_collaborationEditor.IsEmpty());
 			wxString message = _("Collaborating with ");
 			message += gpApp->m_collaborationEditor;
 			rscStr = _T("[");
@@ -38239,6 +38267,13 @@ void CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED
 
 void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (m_bParatextIsInstalled || m_bBibleditIsInstalled)
 	{
 		event.Enable(TRUE);
@@ -38485,6 +38520,13 @@ void CAdapt_ItApp::OnUpdateHelpForAdministrators(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -38543,6 +38585,13 @@ void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& eve
 	//wxLogDebug(_T("m_bAdminMenuRemoved %d , equal paths %d , m_bUseCustomWorkFolderPath %d , m_customWorkFolderPath %s , m_workFolderpath %s"),
 	//			m_bAdminMenuRemoved, m_workFolderPath == m_customWorkFolderPath, m_bUseCustomWorkFolderPath ,
 	//			m_customWorkFolderPath, m_workFolderPath);
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (m_bAdminMenuRemoved)
 	{
 		// can't do it if the menu is not attached
@@ -39059,6 +39108,13 @@ bool CAdapt_ItApp::IsURI(wxString& uriPath)
 
 void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (m_bAdminMenuRemoved)
 	{
 		// can't do it if the menu is not attached
@@ -39197,6 +39253,13 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 
 void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (m_bAdminMenuRemoved)
 	{
 		// can't do it if the menu is not attached

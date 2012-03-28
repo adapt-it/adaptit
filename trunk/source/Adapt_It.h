@@ -3434,7 +3434,15 @@ public:
 	bool m_bCollaborationDocHasFreeTrans;
 	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be
 												  // later restored in File / Close
+	// whm 27Mar12 Note:
+	// If Paratext is installed (either on Windows or Linux) we give priority to
+	// it as the installed external Scripture editor for collaboration. If neither
+	// Paratext nor Bibledit are installed, the m_collaborationEditor is an empty
+	// string. Since m_collaborationEditor can be an empty string, code should call 
+	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string 
+	// substitutions.
 	wxString m_collaborationEditor;
+	
 	wxString m_CollabProjectForSourceInputs;
 	wxString m_CollabProjectForTargetExports;
 	wxString m_CollabProjectForFreeTransExports;

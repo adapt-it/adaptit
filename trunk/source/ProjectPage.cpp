@@ -605,6 +605,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// determines the values for m_bCollaboratingWithParatext 
 						// and m_bCollaboratingWithBibledit having made that decision in the
 						// CChooseCollabOptionsDlg dialog.
+						wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
 						if (pApp->m_collaborationEditor == _T("Paratext"))
 						{
 							pApp->m_bCollaboratingWithParatext = TRUE;
@@ -653,6 +654,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// not available.
 						// The user now determines the values for m_bCollaboratingWithParatext 
 						// and m_bCollaboratingWithBibledit and made that decision above.
+						wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
 						if (pApp->m_collaborationEditor == _T("Paratext"))
 						{
 							pApp->m_bCollaboratingWithParatext = FALSE;
@@ -676,6 +678,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					{
 						// For the advisor/consultant's Read-Only Protection selection
 						// we make sure that collaboration is OFF
+						wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
 						if (pApp->m_collaborationEditor == _T("Paratext"))
 						{
 							pApp->m_bCollaboratingWithParatext = FALSE;

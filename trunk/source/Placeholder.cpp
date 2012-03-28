@@ -2219,6 +2219,13 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -2611,6 +2618,13 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);

@@ -961,11 +961,15 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	// ControlBar event handlers
 	EVT_CHECKBOX(IDC_CHECK_ISGLOSSING, CAdapt_ItView::OnCheckIsGlossing)
 	EVT_RADIOBUTTON(IDC_RADIO_DRAFTING, CAdapt_ItView::OnRadioDrafting)
+	EVT_UPDATE_UI(IDC_RADIO_DRAFTING, CAdapt_ItView::OnUpdateRadioDrafting)
 	EVT_RADIOBUTTON(IDC_RADIO_REVIEWING, CAdapt_ItView::OnRadioReviewing)
+	EVT_UPDATE_UI(IDC_RADIO_REVIEWING, CAdapt_ItView::OnUpdateRadioReviewing)
 	EVT_CHECKBOX(IDC_CHECK_SINGLE_STEP, CAdapt_ItView::OnCheckSingleStep)
+	EVT_UPDATE_UI(IDC_CHECK_SINGLE_STEP, CAdapt_ItView::OnUpdateCheckSingleStep)
 	EVT_CHECKBOX(IDC_CHECK_KB_SAVE, CAdapt_ItView::OnCheckKBSave)
 	EVT_CHECKBOX(IDC_CHECK_FORCE_ASK, CAdapt_ItView::OnCheckForceAsk)
 	EVT_BUTTON(IDC_BUTTON_NO_ADAPT, CAdapt_ItView::OnButtonNoAdapt)
+	EVT_UPDATE_UI(IDC_BUTTON_NO_ADAPT, CAdapt_ItView::OnUpdateButtonNoAdapt)
 
 	// ToolBar event handlers
 	// Event for Enable/Disable Punct copy
@@ -8953,6 +8957,14 @@ void CAdapt_ItView::OnUpdateButtonMerge(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12. Disable toolbar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -10362,6 +10374,14 @@ void CAdapt_ItView::OnUpdateButtonRestore(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -11331,6 +11351,19 @@ void CAdapt_ItView::OnUpdateEditPreferences(wxUpdateUIEvent& event)
 	}
 }
 
+// whm added 26Mar12. Disable mode bar control when in read-only mode
+void CAdapt_ItView::OnUpdateCheckSingleStep(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
+}
+
 void CAdapt_ItView::OnCheckSingleStep(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -11421,6 +11454,14 @@ void CAdapt_ItView::OnCopySource(wxCommandEvent& event)
 void CAdapt_ItView::OnUpdateUseConsistentChanges(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+	// whm added 26Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -11450,6 +11491,14 @@ void CAdapt_ItView::OnUpdateUseConsistentChanges(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	
+	// whm added 2i6Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (pApp->m_bFreeTranslationMode || !pApp->bECDriverDLLLoaded)
 	{
 		event.Enable(FALSE);
@@ -11659,6 +11708,14 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateAcceptChanges(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+
+	// whm added 26Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -11722,6 +11779,19 @@ void CAdapt_ItView::OnAcceptChanges(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
+// whm added 26Mar12. Disable mode bar control when read-only mode is active
+void CAdapt_ItView::OnUpdateRadioDrafting(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
+}
+
 void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -11769,6 +11839,19 @@ void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& event)
 		if (pApp->m_pTargetBox->IsShown())
 			pApp->m_pTargetBox->SetFocus();
 	pApp->RefreshStatusBarInfo();
+}
+
+// whm added 26Mar12. Disable mode bar control when read-only mode is active
+void CAdapt_ItView::OnUpdateRadioReviewing(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
 }
 
 void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& event)
@@ -12155,14 +12238,6 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
-	// whm added 15Mar12 for read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
 	if (pFWnd == NULL)
@@ -12223,6 +12298,14 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12. Disable the tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	bool bComposeWnd = FALSE;
 
 	wxWindow* pFocusWnd = wxWindow::FindFocus(); // gets a CTempWnd
@@ -12263,14 +12346,6 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
-	// whm added 15Mar12 for read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	// get the window which has the current focus
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
@@ -12335,6 +12410,14 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12 for read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	bool bComposeSel = FALSE;
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
 	if (pFWnd == NULL)
@@ -13091,6 +13174,13 @@ void CAdapt_ItView::OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -15423,6 +15513,14 @@ void CAdapt_ItView::OnUpdateReplace(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// whm added 26Mar12. Disable the Find and Replace menu item when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -18635,6 +18733,14 @@ void CAdapt_ItView::OnUpdateButtonRespectBdry(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -18679,6 +18785,14 @@ void CAdapt_ItView::OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -18889,6 +19003,14 @@ void CAdapt_ItView::OnUpdateButtonShowPunct(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -19047,7 +19169,15 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
- 	if (pApp->m_bFreeTranslationMode)
+ 	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
@@ -19193,6 +19323,14 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& event)
 void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
+	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -19321,7 +19459,15 @@ void CAdapt_ItView::OnUpdateButtonHidePunct(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-  	if (pApp->m_bFreeTranslationMode)
+  	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
@@ -20187,6 +20333,14 @@ void CAdapt_ItView::OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event)
 	// enable when a project is open since changes may require reading
 	// kb correspondences
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 
@@ -20239,6 +20393,12 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	// whm added 26Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 
@@ -20246,14 +20406,6 @@ void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	
-	// whm added 15Mar12 for read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	pApp->LogUserAction(_T("Initiated OnImportToKb()"));
 
 	// whm revised 6Aug11. See the App's OnFileExportToKb() for similar revisions.
@@ -20512,14 +20664,6 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CAdapt_ItView* pView = pApp->GetView();
-
-	// whm added 15Mar12 for read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	pApp->LogUserAction(_T("Initiated OnImportEditedSourceText()"));
 
 	// choose a spanlimit int value, (a restricted range of CSourcePhrase instances), use
@@ -20836,6 +20980,14 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	
+	// whm added 26Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -21021,6 +21173,19 @@ void CAdapt_ItView::OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event))
 		AdjustDialogPosition(pApp->m_pEarlierTransDlg);
 		pApp->m_pEarlierTransDlg->Show(TRUE);
 	}
+}
+
+// whm added 26Mar12. Disable mode bar control when in read-only mode
+void CAdapt_ItView::OnUpdateButtonNoAdapt(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
 }
 
 void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
@@ -28274,7 +28439,15 @@ void CAdapt_ItView::OnUpdateAdvancedDelay(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-    // Only enable the SILConverters menu item if we're building for SIL Converters
+    
+	// whm added 26Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
+	// Only enable the SILConverters menu item if we're building for SIL Converters
     // and SIL Converters is installed on the local machine.
 	if (!pApp->bECDriverDLLLoaded)
 	{
@@ -28301,12 +28474,6 @@ void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	
-	// whm added 15Mar12 for read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
 	pApp->LogUserAction(_T("Initiated OnSelectSilConverters()"));
 	// bring up the SilConverter select dialog to allow
     // the user to pick a converter
@@ -28501,13 +28668,20 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// whm added 26Mar12.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
 #ifdef USE_SIL_CONVERTERS
-	CAdapt_ItApp* pApp = &wxGetApp();
 	// toggle the mode on or off
     // whm 15Aug06 added && !pApp->m_strSilEncConverterName.IsEmpty() condition
     // to disable the menu item unless a SIL converter is loaded

@@ -2280,7 +2280,6 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 							wxString freeTransCompositeProjName, wxString& errorStr)
 {
 	wxString errorMsg = _T("");
-	wxString collabEditor = gpApp->m_collaborationEditor;
 	bool bSrcProjOK = TRUE;
 	if (!srcCompositeProjName.IsEmpty())
 	{
@@ -3287,7 +3286,7 @@ void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& 
 					tmpProjComposedName += _T(" : ") + tmpEthnologueCode;
 			}
 		}
-		else // Bibledit
+		else if (gpApp->m_collaborationEditor == _T("Bibledit"))
 		{
 			if (tempProjStr == tmpIncomingProjName)
 			{
@@ -4790,6 +4789,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // close it now and then try again; it not running, the data transfer can take place
     // safely (i.e. it won't cause VCS conflicts which otherwise would happen when the user
     // in Paratext next did a Save there)
+	wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 	wxString msg;
 	msg = msg.Format(_("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to %s and shut it down, saving any unsaved work.\nThen switch back to Adapt It and click \"OK\" to try the save operation again, or \"Cancel\" to abort the save attempt (your next File / Save attempt should succeed)."),
 		gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());

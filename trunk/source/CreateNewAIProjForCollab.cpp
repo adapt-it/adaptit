@@ -105,6 +105,7 @@ CCreateNewAIProjForCollab::~CCreateNewAIProjForCollab() // destructor
 
 void CCreateNewAIProjForCollab::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	//InitDialog() is not virtual, no call needed to a base class
 	wxString infoLine1,infoLine2;
 	infoLine1 = pStaticTextTopInfoLine1->GetLabel();
