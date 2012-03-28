@@ -2622,6 +2622,13 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -2725,6 +2732,13 @@ void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -2812,6 +2826,13 @@ void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -2869,7 +2890,6 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
-	
 	int answer = wxMessageBox(_(
 "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
 	_T(""),wxYES_NO | wxICON_EXCLAMATION);
@@ -2906,6 +2926,13 @@ void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);

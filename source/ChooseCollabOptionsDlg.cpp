@@ -108,6 +108,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		tempStr = _("%s is NOT INSTALLED on this computer. No collaboration is possible");
 		m_bEditorIsAvailable = FALSE;
 	}
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	tempStr = tempStr.Format(tempStr,m_pApp->m_collaborationEditor.c_str());
 	pRadioTurnCollabON->SetLabel(tempStr);
 
@@ -128,7 +129,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	{
 		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
-	else // Bibledit
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}

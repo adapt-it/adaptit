@@ -4322,6 +4322,13 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CRetranslation::OnUpdateRetransReport(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -4356,6 +4363,13 @@ void CRetranslation::OnUpdateRetransReport(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CRetranslation::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -4444,6 +4458,13 @@ void CRetranslation::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CRetranslation::OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);

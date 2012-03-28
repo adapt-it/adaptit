@@ -139,6 +139,7 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedGlossTextIsDefault)
 	EVT_UPDATE_UI(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedGlossTextIsDefault)
 	EVT_BUTTON(IDC_BUTTON_APPLY, CFreeTrans::OnAdvanceButton)
+	EVT_UPDATE_UI(IDC_BUTTON_APPLY, CFreeTrans::OnUpdateAdvanceButton)
 	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CFreeTrans::OnUpdateNextButton)
 	EVT_BUTTON(IDC_BUTTON_NEXT, CFreeTrans::OnNextButton)
 	EVT_UPDATE_UI(IDC_BUTTON_PREV, CFreeTrans::OnUpdatePrevButton)
@@ -150,7 +151,9 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_UPDATE_UI(IDC_BUTTON_SHORTEN, CFreeTrans::OnUpdateShortenButton)
 	EVT_BUTTON(IDC_BUTTON_SHORTEN, CFreeTrans::OnShortenButton)
 	EVT_RADIOBUTTON(IDC_RADIO_PUNCT_SECTION, CFreeTrans::OnRadioDefineByPunctuation)
+	EVT_UPDATE_UI(IDC_RADIO_PUNCT_SECTION, CFreeTrans::OnUpdateRadioDefineByPunctuation)
 	EVT_RADIOBUTTON(IDC_RADIO_VERSE_SECTION, CFreeTrans::OnRadioDefineByVerse)
+	EVT_UPDATE_UI(IDC_RADIO_VERSE_SECTION, CFreeTrans::OnUpdateRadioDefineByVerse)
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
 
@@ -5392,13 +5395,6 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (m_pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	CAdapt_ItDoc* pDoc = m_pView->GetDocument();
 	m_pApp->LogUserAction(_T("Initiated OnAdvancedRemoveFilteredFreeTranslations()"));
 
@@ -5492,6 +5488,13 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event)
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -5516,6 +5519,13 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent&
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event)
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -6433,6 +6443,16 @@ void CFreeTrans::SetupFreeTransRadioButtons(bool bSectionByPunctsValue)
 	}
 }
 
+// whm added 26Mar12. Disable the Advance button of the free treanslation pane when in read-only mode.
+void CFreeTrans::OnUpdateAdvanceButton(wxUpdateUIEvent& event)
+{
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
+}
 
 // handler for the IDC_APPLY_BUTTON, renamed Advance after first being called Apply
 // BEW 22Feb10 no changes needed for support of doc version 5
@@ -7318,6 +7338,13 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12. Disable the Shorten button of free translation pane when in read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -7439,6 +7466,13 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12. Disable the Lengthen button of free translation pane when in read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	//bool bOwnsFreeTranslation;
 	if (!m_pApp->m_bFreeTranslationMode)
 	{
@@ -7752,6 +7786,16 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+void CFreeTrans::OnUpdateRadioDefineByPunctuation(wxUpdateUIEvent& event)
+{
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
+}
+
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
 // BEW 27Feb12, added support for saving the value of m_bDefineFreeTransByPunctuation
@@ -7826,6 +7870,16 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 		// mismatched values, so make the CSourcePhrase's one be in sync
 		pAnchorSrcPhrase->m_bSectionByVerse = !m_pApp->m_bDefineFreeTransByPunctuation;
 	}
+}
+
+void CFreeTrans::OnUpdateRadioDefineByVerse(wxUpdateUIEvent& event)
+{
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
@@ -7918,6 +7972,13 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12. Disable the Next button of free translation pane when in read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -7945,6 +8006,13 @@ void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12. Disable the Prev button of free translation pane when in read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -7979,6 +8047,13 @@ void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12. Disable the Remove button of free translation pane when in read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	bool bOwnsFreeTranslation;
 	if (!m_pApp->m_bFreeTranslationMode)
 	{
@@ -8326,6 +8401,13 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 {
+	// whm added 15Mar12 for read-only mode
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -8341,13 +8423,6 @@ void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (m_pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	m_pApp->LogUserAction(_T("Initiated OnAdvancedCollectBacktranslations()"));
 	CCollectBacktranslations dlg(m_pFrame);
 	dlg.Centre();
@@ -8378,13 +8453,6 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (m_pApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	m_pApp->LogUserAction(_T("Initiated OnAdvancedRemoveFilteredBacktranslations()"));
     // whm added 23Jan07 check below to determine if the doc has any back translations. If
     // not an information message is displayed saying there are no back translations; then

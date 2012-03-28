@@ -173,6 +173,7 @@ CSetupEditorCollaboration::~CSetupEditorCollaboration() // destructor
 void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	if (m_pApp->IsAIProjectOpen())
 	{
 		CAdapt_ItView* pView = m_pApp->GetView();
@@ -227,7 +228,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	text += _T(' ');
 	if (m_pApp->m_collaborationEditor == _T("Paratext"))
 		text += _("(name : full name: language : code)");
-	else 
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		text += _("(name)");
 	pStaticTextListOfProjects->SetLabel(text);
 
@@ -270,7 +271,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	{
 		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
-	else // Bibledit
+	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
@@ -327,6 +328,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	}
 	wxString msg;
 	msg = _("Choose a %s project that will be used for source text inputs");
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 	wxSingleChoiceDialog ChooseProjectForSourceTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
@@ -380,7 +382,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 			msg1 = msg1.Format(_("The Paratext project for obtaining source texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForSourceInputs.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
-		else // Bibledit
+		else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		{
 			msg1 = msg1.Format(_("The Bibledit project for obtaining source texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForSourceInputs.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
@@ -418,6 +420,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	}
 	wxString msg;
 	msg = _("Choose a %s project that will be used for receiving translation text exports");
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 	wxSingleChoiceDialog ChooseProjectForTargetTextExports(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
@@ -470,7 +473,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			msg1 = msg1.Format(_("The Paratext project for storing target texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForTargetExports.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
-		else // Bibledit
+		else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		{
 			msg1 = msg1.Format(_("The Bibledit project for storing target texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForTargetExports.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
@@ -509,6 +512,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	}
 	wxString msg;
 	msg = _("Choose a %s project that will be used for receiving free translation text exports");
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 	wxSingleChoiceDialog ChooseProjectForFreeTransTextInputs(this,msg,_("Select a project from this list"),tempListOfProjects);
 	// preselect the project that was last selected if any
@@ -562,7 +566,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			msg1 = msg1.Format(_("The Paratext project for storing free translations (%s) does not yet have any books created for that project."),m_TempCollabProjectForFreeTransExports.c_str());
 			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
 		}
-		else // Bibledit
+		else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
 		{
 			msg1 = msg1.Format(_("The Bibledit project for storing free translations (%s) does not yet have any books created for that project."),m_TempCollabProjectForFreeTransExports.c_str());
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
@@ -728,6 +732,7 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 							m_TempCollabProjectForFreeTransExports, errorStr))
 	{
 		wxString msg = _("Adapt It detected invalid collaboration settings for the %s project in its project configuration file. The invalid %s project data is:\n%s");
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,selStr.c_str(),m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
 		msg += _T("\n\n");
 		wxString msg1 = _("Please set up valid %s project(s) that Adapt It can use for collaboration.");
@@ -878,6 +883,7 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			SetStateOfRemovalButton();
 			// confirm to the user that the project was created
 			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
+			wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_pApp->m_collaborationEditor.c_str());
 			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION);
 			wxCommandEvent evt;
@@ -922,6 +928,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	{
 		wxString msg, msg1;
 		msg = _("Please select a %s project for getting source texts. Use the \"Select from List\" button.");
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 		wxMessageBox(msg,_("No source language project selected for collaboration"),wxICON_INFORMATION);
 		pBtnSelectFmListSourceProj->SetFocus();
@@ -933,6 +940,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	{
 		wxString msg, msg1;
 		msg = _("Please select a %s project for receiving translated drafts. Use the \"Select from List\" button.");
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str());
 		wxMessageBox(msg,_("No target language project selected for collaboration"),wxICON_INFORMATION);
 		pBtnSelectFmListTargetProj->SetFocus();
@@ -975,6 +983,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	{
 		wxString strSel = pComboAiProjects->GetStringSelection();
 		wxString msg;
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		msg = msg.Format(_("Note: Book Folder Mode is currently in effect, but it must be turned OFF and disabled for the %s Adapt It project in order for Adapt It to collaborate with %s. If you continue, Book Folder Mode will be turned off and disabled.\n\nDo you want to continue setting up this project for collaboration with %s?"),strSel.c_str(), m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
 		if (wxMessageBox(msg,_T(""),wxYES_NO | wxICON_INFORMATION) == wxNO)
 		{
@@ -993,6 +1002,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 							m_TempCollabProjectForFreeTransExports, errorStr))
 	{
 		wxString msg = _("The following %s projects are not valid for collaboration:\n%s");
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
 		msg += _T("\n\n");
 		wxString msg1 = _("This setup cannot be accepted for collaboration. Please set up valid %s project(s) that Adapt It can use for collaboration.");
@@ -1078,6 +1088,7 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	// if we get here an AI project will have been selected. 
 	wxString projName = m_TempCollabAIProjectName;
 	wxString msg = _("You are about to remove the collaboration settings for the %s project. If you continue the user will not be able to turn on collaboration with %s for this project.\n\nDo you want to remove the collaboration settings for %s?");
+	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 	msg = msg.Format(msg, projName.c_str(),m_pApp->m_collaborationEditor.c_str(),projName.c_str());
 	int response = wxMessageBox(msg,_("Confirm removal of collaboration settings"),wxICON_QUESTION | wxYES_NO); 
 	if (response == wxNO)

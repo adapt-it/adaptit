@@ -3183,6 +3183,14 @@ void CMainFrame::OnUpdateCheckKBSave(wxUpdateUIEvent& event)
 	// the flags we want are on the view, so get the view
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	// whm added 26Mar12. Disable the Save to Knowledge Base checkbox when in read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	if (pView != NULL)
 	{
@@ -3205,6 +3213,13 @@ void CMainFrame::OnUpdateCheckForceAsk(wxUpdateUIEvent& event)
 	// the flags we want are on the view, so get the view
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	if (pView != NULL)
 	{

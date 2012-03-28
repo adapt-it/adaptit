@@ -3915,6 +3915,12 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 	bool bTRUE = FALSE;
 	if (event.AltDown())// || event.CmdDown()) // CmdDown is same as ControlDown on PCs; Apple Command key on Macs.
 	{
+		// whm added 26Mar12. Don't allow AltDown + key events when in read-only mode
+		if (pApp->m_bReadOnlyAccess)
+		{
+			return;
+		}
+
 		// ALT key or Control/Command key is down
 		if (event.AltDown() && event.GetKeyCode() == WXK_RETURN)
 		{
@@ -4349,6 +4355,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		OnSysKeyUp(event);
 		return;
 	}
+
 	// version 1.4.2 and onwards, we want a right or left arrow used to remove the
 	// phrasebox's selection to be considered a typed character, so that if a subsequent
 	// selection and merge is done then the first target word will not get lost; and so
@@ -4379,6 +4386,12 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	// whm Note 12Feb09: This F8 action is OK on Mac (no conflict)
 	if (event.GetKeyCode() == WXK_F8)
 	{
+		// whm added 26Mar12
+		if (pApp->m_bReadOnlyAccess)
+		{
+			// Disable the F8 key invocation of the ChooseTranslation dialog
+			return;
+		}
 		pView->ChooseTranslation();
 		return;
 	}
@@ -4486,6 +4499,12 @@ c:		SetFocus();
 	{
 		if (event.ControlDown()) 
 		{
+			// whm added 26Mar12
+			if (pApp->m_bReadOnlyAccess)
+			{
+				// Disable the Ctrl + down arrow invocation of the insert after of a null srcphrase
+				return;
+			}
             // CTRL + down arrow was pressed - asking for an "insert after" of a null
             // srcphrase. CTRL + ALT + down arrow also gives the same result (on Windows
             // and Linux) - see OnSysKeyUp().
@@ -4707,7 +4726,22 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 	if (pApp->m_bReadOnlyAccess)
 	{
 		// return without calling Skip(). Beep for read-only feedback
-		::wxBell();
+		int keyCode = event.GetKeyCode();
+		if (keyCode == WXK_DOWN || keyCode == WXK_UP || keyCode == WXK_LEFT || keyCode == WXK_RIGHT
+			|| keyCode == WXK_PAGEUP || keyCode == WXK_PAGEDOWN
+			|| keyCode == WXK_CONTROL || keyCode == WXK_ALT || keyCode == WXK_SHIFT
+			|| keyCode == WXK_ESCAPE || keyCode == WXK_TAB || keyCode == WXK_BACK 
+			|| keyCode == WXK_RETURN || keyCode == WXK_DELETE || keyCode == WXK_SPACE
+			|| keyCode == WXK_HOME || keyCode == WXK_END || keyCode == WXK_INSERT
+			|| keyCode == WXK_F8)
+		{
+			; // don't beep for the various keys above 
+		}
+		else
+		{
+			::wxBell();
+		}
+		// don't pass on the key stroke - don't call Skip() 
 		return;
 	}
 

@@ -103,6 +103,7 @@ public:
 					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
+	void		OnUpdateAdvanceButton(wxUpdateUIEvent& event);
 	void		OnAdvancedFreeTranslationMode(wxCommandEvent& event);
 	void		OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
@@ -111,7 +112,9 @@ public:
 	void		OnNextButton(wxCommandEvent& WXUNUSED(event));
 	void		OnPrevButton(wxCommandEvent& WXUNUSED(event));
 	void		OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateRadioDefineByPunctuation(wxUpdateUIEvent& event);
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateRadioDefineByVerse(wxUpdateUIEvent& event);
 	void		OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event));
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event));
 

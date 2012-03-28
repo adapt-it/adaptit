@@ -1699,6 +1699,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 		// error handling
 		if (resultTgt != 0)
 		{
+			wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 			// Not likely to happen, but it is possible if there are no books created for the PT/BE
 			// project, or the files are locked/access denied.
 			wxString msg;
@@ -1792,6 +1793,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 				// error handling
 				if (resultFreeTrans != 0)
 				{
+					wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 					// Not likely to happen, but it is possible if there are no books created for the PT/BE
 					// project, or the files are locked/access denied.
 					wxString msg;
@@ -17417,6 +17419,13 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -17463,6 +17472,13 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 {
+	// whm added 15Mar12 for read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -17507,6 +17523,13 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 {
+	// whm added 26Mar12.
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -19292,13 +19315,6 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (gpApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	gpApp->GetView()->RemoveSelection();
 	CSplitDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
@@ -19318,13 +19334,6 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (gpApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	gpApp->GetView()->RemoveSelection();
 	CJoinDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
@@ -19344,13 +19353,6 @@ void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnMoveDocument(wxCommandEvent& WXUNUSED(event))
 {
-	// whm added 15Mar12 for read-only mode
-	if (gpApp->m_bReadOnlyAccess)
-	{
-		::wxBell();
-		return;
-	}
-	
 	gpApp->GetView()->RemoveSelection();
 	CMoveDialog d(gpApp->GetMainFrame());
 	d.ShowModal(); // We don't care about the results of the dialog -

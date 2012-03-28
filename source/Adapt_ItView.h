@@ -401,7 +401,9 @@ protected:
 	void OnButtonRestore(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditPreferences(wxUpdateUIEvent& event);
 	void OnCheckSingleStep(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateCheckSingleStep(wxUpdateUIEvent& event);
 	void OnCheckKBSave(wxCommandEvent& WXUNUSED(event));
+	// whm Note: The UpdateUI handler for OnUpdateCheckKBSave() is in MainFrm.cpp
 	void OnCheckForceAsk(wxCommandEvent& WXUNUSED(event));
 	void OnCopySource(wxCommandEvent& event);
 	void OnUpdateCopySource(wxUpdateUIEvent& event);
@@ -465,7 +467,9 @@ protected:
 	void OnAcceptChanges(wxCommandEvent& WXUNUSED(event));
 	void OnSelectSilConverters(wxCommandEvent& event);
 	void OnRadioDrafting(wxCommandEvent& event);
+	void OnUpdateRadioDrafting(wxUpdateUIEvent& event);
 	void OnRadioReviewing(wxCommandEvent& event);
+	void OnUpdateRadioReviewing(wxUpdateUIEvent& event);
 	void OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event);
 	void OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event);
@@ -473,6 +477,7 @@ protected:
 	void OnUpdateEditSourceText(wxUpdateUIEvent& event);
 	void OnEditSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnButtonNoAdapt(wxCommandEvent& event);
+	void OnUpdateButtonNoAdapt(wxUpdateUIEvent& event);
 	void OnFileExportSource(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileExportSource(wxUpdateUIEvent& event);
 	void OnFileExportToRtf(wxCommandEvent& WXUNUSED(event));
