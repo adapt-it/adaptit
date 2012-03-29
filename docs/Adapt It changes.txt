@@ -1,4 +1,41 @@
 ----------------------------------------------
+Version 6.2.1 release 20 April 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.2.1
+----------------------------------------------
+* The read-only mode that can be selected by an advisor or
+consultant, previously allowed changes to be made (but not 
+saved) to the document being viewed in read-only mode. Any 
+such appearance of changes being possible could potentially 
+mislead some users to think such changes would actually be 
+saved when that was not the case. Now Adapt It does not allow 
+any changes to be made to the document by any means when the 
+document is opened in read-only mode. Also fewer beeps now 
+occur if the user attempts to make changes while in that mode.
+* After reports that Unicode characters ZeroWidthNonJoiner
+\u200C and ZeroWidthJoiner \u200D are used as word-building 
+characters in some languages in India, Adapt It's parsing 
+routine will no longer treat those characters as white space 
+but will parse words containing them as units.
+* Some of the HTML Help files have been updated to reflect
+the new features and feature changes in version 6. This is an 
+ongoing effort and many of the HTML Help files have yet to be 
+updated.
+
+----------------------------------------------
+Bug fixes in 6.2.1
+----------------------------------------------
+* If when setting up collaboration with Paratext or Bibledit
+the administrator does not create any books (with empty chapter
+and verse markers) in the Paratext/Bibledit project for storing 
+target texts, an error message pops up. That message had a 
+formatting error that could result in the message referencing 
+the short name of a different project than the project the 
+administator had designated as the one for storing target texts. 
+This message formatting error has now been fixed.
+
+----------------------------------------------
 Version 6.2.0 release 14 March 2012
 ----------------------------------------------
 ----------------------------------------------
