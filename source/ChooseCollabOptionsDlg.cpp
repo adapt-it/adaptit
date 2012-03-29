@@ -172,6 +172,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		pRadioTurnCollabON->Disable();
 		// change the Note in the text control under the first button
 		pStaticAsTextCtrlNotInstalledErrorMsg->ChangeValue(msg);
+		pStaticAsTextCtrlNotInstalledErrorMsg->Update();
 
 		// In this case we don't clear out the App's variables but leave them set even though
 		// they don't describe valid PT/BE projects. Administrator will have to correct in the

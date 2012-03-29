@@ -5734,10 +5734,18 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	else
 		pApp->m_pTargetBox->SetFont(*pApp->m_pTargetFont);
 
-	// whm added following to show and enable the target box
-	pApp->m_pTargetBox->Show();
-	pApp->m_pTargetBox->Enable(TRUE);
-	pApp->m_pTargetBox->SetEditable(TRUE);
+	// whm modified 29Mar12. As of this date, this is the only
+	// location in the whole code base where the m_pTargetBox->Show()
+	// call is made. 
+	// 
+	// Only call m_pTargetBox->Show() if the app is NOT in read-only mode.
+	if (!pApp->m_bReadOnlyAccess)
+	{
+		// whm added following to show and enable the target box
+		pApp->m_pTargetBox->Show();
+		pApp->m_pTargetBox->Enable(TRUE);
+		pApp->m_pTargetBox->SetEditable(TRUE);
+	}
 
 	// restore focus and cursor position or selection
 	// whm 29Jul11 Note: The following SetFocus() call sometimes

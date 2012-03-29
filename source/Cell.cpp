@@ -698,6 +698,17 @@ void CCell::Draw(wxDC* pDC)
 			DrawCell(pDC, color);
 		}
 	}
+
+	// whm added 29Mar12. When in read-only mode the phrase box is hidden, so if the layout's
+	// active sequence number would be the current owning pile's m_nSequNumber, we want to
+	// draw any target text for read-only mode that would normally be in the cell if the phrase 
+	// box were not located at the current cell.
+	if (m_pLayout->m_pApp->m_bReadOnlyAccess && m_nCell == 1 && 
+		m_pOwningPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+	{
+		DrawCell(pDC, color);
+	}
+
 	// restore the white background for cells -- it is the default for the next call
 	// to this function
 	pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // wxSOLID
