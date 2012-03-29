@@ -375,6 +375,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// texts.
 	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForSourceInputs))
 	{
+		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
 		// The book does not have at least one book in the Source project
 		wxString msg, msg1,msg2;
 		if (m_pApp->m_collaborationEditor == _T("Paratext"))
@@ -560,6 +561,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// translations.
 	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports))
 	{
+		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
 		// The book does not have at least one book in the Free Trans project
 		wxString msg, msg1,msg2;
 		if (m_pApp->m_collaborationEditor == _T("Paratext"))
