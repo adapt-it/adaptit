@@ -466,6 +466,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// texts.
 	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForTargetExports))
 	{
+		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 		// The book does not have at least one book in the Target project
 		wxString msg, msg1,msg2;
 		if (m_pApp->m_collaborationEditor == _T("Paratext"))
