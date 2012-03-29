@@ -4896,6 +4896,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			// if read only access is turned on, force the background colour change to show
 			// now, instead of waiting for a user action requiring a canvas redraw
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more effective
+		
+			// whm added 29Mar12. When read-only access is active, we don't show the phrasebox
+			pApp->m_pTargetBox->Hide();
+			pApp->m_pTargetBox->Enable(FALSE);
+			pApp->m_pTargetBox->SetEditable(FALSE);
 		}
 	}
 
