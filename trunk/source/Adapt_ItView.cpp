@@ -5882,7 +5882,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	// show the Administrator menu if the admin person requested it and password was valid
 	// if flag is FALSE, check if the menu is visible and if so, hide it. This and more is
 	// done through the App's MakeMenuInitializationsAndPlatformAdjustments() function.
-	pApp->MakeMenuInitializationsAndPlatformAdjustments();
+	pApp->MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 
 	// We want to be smarter here so that we don't create piles and strips again
     // unnecessarily - eg. if user changes the colour of text only, no recalculation of the
@@ -6155,7 +6155,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_bCollaboratingWithParatext = FALSE;
 	pApp->m_bCollaboratingWithBibledit = FALSE;
 	// Remove the parenthetical info from File > Open and File Save menu labels
-	pApp->MakeMenuInitializationsAndPlatformAdjustments();
+	pApp->MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 
 	// whm added 20Feb12. If no project is open, then we should not call
 	// pDoc->OnFileClose() below. Although File > Close Projects won't
