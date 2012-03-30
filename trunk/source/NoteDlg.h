@@ -52,6 +52,7 @@ protected:
 	wxButton* pFirstNoteBtn;
 	wxButton* pLastNoteBtn;
 	wxButton* pOKButton;
+	wxButton* pDeleteBtn;
 	wxTextCtrl* pEditSearch; // whm added
 	wxString  m_searchStr; // the search string itself
 
