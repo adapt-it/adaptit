@@ -2832,7 +2832,7 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	}
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
-	pApp->MakeMenuInitializationsAndPlatformAdjustments();
+	pApp->MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 }
 
 

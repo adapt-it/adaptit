@@ -4800,7 +4800,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// Add the file to the file history MRU
 	// BEW added 12Nov09, m_bAutoExport test to suppress history update when export is
 	// done from the command line export command
-	if (!pApp->m_curOutputPath.IsEmpty() && !pApp->m_bAutoExport)
+	// whm added 29Mar12, omit file history when in collaboration mode
+	if (!pApp->m_curOutputPath.IsEmpty() && !pApp->m_bAutoExport
+		&& !pApp->m_bCollaboratingWithParatext && !pApp->m_bCollaboratingWithBibledit)
 	{
 		wxFileHistory* fileHistory = pApp->m_pDocManager->GetFileHistory();
 		fileHistory->AddFileToHistory(pApp->m_curOutputPath);

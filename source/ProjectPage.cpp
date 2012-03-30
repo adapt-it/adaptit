@@ -630,7 +630,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 						// Set the File > Open and File > Save menu items to have the parenthetical information
 						// during collaboration.
-						pApp->MakeMenuInitializationsAndPlatformAdjustments();
+						pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOn);
 
 						// whm Note: After the wizard closes (below), the GetSourceTextFromEditorDlg dialog
 						// will appear, and when the user clicks OK in that dialog, the HookUpToExistingAIProject()
@@ -672,7 +672,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						
 						// Set the File > Open and File > Save menu items back to their normal
 						// state - without the parenthetical information in the labels.
-						pApp->MakeMenuInitializationsAndPlatformAdjustments();
+						pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOff);
 					}
 					else if (collabOptDlg.m_bRadioSelectReadOnlyON)
 					{
@@ -737,7 +737,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						
 						// Set the File > Open and File > Save menu items back to their normal
 						// state - without the parenthetical information in the labels.
-						pApp->MakeMenuInitializationsAndPlatformAdjustments();
+						pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableReadOnlyOn);
 					}
 				}
 			}

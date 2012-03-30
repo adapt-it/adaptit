@@ -913,6 +913,18 @@ enum CollabTextType
 	collabFreeTransText
 };
 
+/// An enum for specifying the program mode for use in the 
+/// MakeMenuInitializationsAdnPlatformAdjustments(). Values can
+/// be one of the following: collabIndeterminate, collabAvailableTurnedOn,
+/// collabAvailableTurnedOff, or collabAvailableReadOnlyOn.
+enum ProgramMenuMode
+{
+	collabIndeterminate,
+	collabAvailableTurnedOn,
+	collabAvailableTurnedOff,
+	collabAvailableReadOnlyOn
+};
+
 /// An enum for specifying the general style type of a standard format marker. Can be one
 /// of the following: paragraph, character, table_type, footnote_caller, footnote_text,
 /// default_para_font, footerSty, headerSty, horiz_rule, boxed_para ir hidden_note.
@@ -3375,7 +3387,7 @@ public:
 	void	ConfigureWizardForUserProfile();
 	void	RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer);
 	void	RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar);
-	void	MakeMenuInitializationsAndPlatformAdjustments();
+	void	MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMenuMode progMenuMode);
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
 	bool	ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);

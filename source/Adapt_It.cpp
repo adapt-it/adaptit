@@ -8645,6 +8645,8 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
+/// \param      progMenuMode -> an enum which can be: collabNotAvailableNormal, collabAvailableTurnedOn, 
+///                             collabAvailableTurnedOff, or collabAvailableReadOnlyOn
 /// \remarks
 /// Called from: the App's OnInit(), OnEditUserMenuSettingsProfiles(), and from the
 /// CSetupEditorCollaboration::OnOK() handler.
@@ -8669,7 +8671,7 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 /// This function also sets the initial checked/unchecked state of menu items which are
 /// checkable.
 //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
+void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMenuMode progMenuMode)
 {
 	CMainFrame* pMainFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
@@ -8690,6 +8692,59 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments()
 	// i.e., Linux or the Mac.
 	if (pFileMenu != NULL)
 	{
+		// whm added 29Mar12. Remove file history when collaborating with PT/BE. Also remove
+		// any _Collab... files from history when collaborating was explicitly turned OFF
+		// from the ChooseCollabOptionsDlg. Use the ProgMenuMode enum for possible modes.
+		if (progMenuMode == collabAvailableTurnedOn)
+		{
+			wxASSERT(m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit);
+			// In this case the user opted to turn collab on, and as such we
+			// remove all MRU items from the file history. In collaboration mode
+			// the user should not be able to bypass the collaboration mechanism
+			// by choosing an item from the file history even if it were a _Collab
+			// item (loading of collaboration documents is not done via OnOpenDocument()).
+			wxFileHistory* fileHistory = m_pDocManager->GetFileHistory();
+			while (fileHistory->GetCount() > 0)
+			{
+				fileHistory->RemoveFileFromHistory(0);
+			}
+		}
+		else if (progMenuMode == collabAvailableTurnedOff)
+		{
+			// In this case the user opted to turn collab off, and as such we
+			// remove any _Collab documents from the file history but leave others
+			wxFileHistory* fileHistory = m_pDocManager->GetFileHistory();
+			int numFilesInHistory = fileHistory->GetCount();
+			int ct;
+			// remove any _Collab... file history items in reverse order (top down)
+			for (ct = numFilesInHistory - 1; ct >= 0; ct--)
+			{
+				wxString fileHistoryName = fileHistory->GetHistoryFile(ct);
+				if (fileHistoryName.Find(_T("_Collab")) == 0) // see DocPage.cpp test
+				{
+					fileHistory->RemoveFileFromHistory(ct);
+				}
+			}
+		}
+		else if (progMenuMode == collabIndeterminate)
+		{
+			// In this case MakeMenuInitializationsAndPlatformAdjustments() is being called
+			// at a point where collaboration might be either ON or OFF. Remove file history
+			// if collaboration is on. Don't worry about the _Collab... name cases here.
+			if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
+			{
+				wxFileHistory* fileHistory = m_pDocManager->GetFileHistory();
+				while (fileHistory->GetCount() > 0)
+				{
+					fileHistory->RemoveFileFromHistory(0);
+				}
+			}
+		}
+		else if (progMenuMode == collabAvailableReadOnlyOn)
+		{
+			; // do nothing any MRU file history is eligible for selection
+		}
+
 		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
 		// the new label, otherwise everything that comes after the tab will be displaced to the right side
 		// of the File menu (right aligned).
@@ -18327,7 +18382,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// according to the m_bShowAdministratorMenu flag set above.
 	// whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
 	// within OnInit() after the above m_collaborationEditor string has been assigned.
- 	MakeMenuInitializationsAndPlatformAdjustments();
+ 	MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 
 	// whm 28Mar11 TESTING BELOW !!!
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
@@ -22966,7 +23021,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 				m_bStartWorkUsingCollaboration = FALSE;
 				// Set the File > Open and File > Save menu items back to their normal
 				// state - without the parenthetical information in the labels.
-				MakeMenuInitializationsAndPlatformAdjustments();
+				MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOff);
 				// Save the changes to the above collab values to the project config file.
 				bool bOK;
 				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
@@ -38343,7 +38398,7 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
 		ConfigureInterfaceForUserProfile(); // sets the profile to the value in m_nWorkflowProfile
 		// Toggle the check state of the menu item to unticked.
 		m_bTemporarilyRestoreProfilesToDefaults = FALSE;
-		MakeMenuInitializationsAndPlatformAdjustments();
+		MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
 		// change was temporary.
 		// Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
@@ -38360,7 +38415,7 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
 		ConfigureInterfaceForUserProfile();  // sets the profile to the value in m_nWorkflowProfile
 		// Toggle the check state of the menu item to ticked.
 		m_bTemporarilyRestoreProfilesToDefaults = TRUE;
-		MakeMenuInitializationsAndPlatformAdjustments();
+		MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
 		// change is goin to be temporary.
 	}
@@ -38430,7 +38485,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 		ConfigureInterfaceForUserProfile(); // sets the profile to the value in m_nWorkflowProfile
 		// Toggle the check state of the menu item to unticked.
 		m_bTemporarilyRestoreProfilesToDefaults = FALSE;
-		MakeMenuInitializationsAndPlatformAdjustments();
+		MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
 		// change was temporary.
 	}
@@ -38447,7 +38502,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 			// profile selection/changes which are now stored in m_nWorkflowProfile
 			// and m_pUserProfiles.
 			ConfigureInterfaceForUserProfile();
-			MakeMenuInitializationsAndPlatformAdjustments();
+			MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
 			// Also, save the changes to the AI_UserProfiles.xml file
 			SaveUserProfilesMergingDataToXMLFile(m_userProfileFileWorkFolderPath);
 		}
