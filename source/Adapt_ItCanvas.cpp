@@ -509,13 +509,11 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
 
-	// whm added 15Mar12. When in read-only mode don't register any key strokes
-	if (pApp->m_bReadOnlyAccess)
-	{
-		// return without calling Skip(). Beep for read-only feedback
-		::wxBell();
-		return;
-	}
+	// whm modified 29Mar12. Left mouse clicks now beep only when certain parts of
+	// the canvas are clicked on, and allows other clicks to act normally (such as
+	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).
+
+	bool bClickWasProductive = FALSE;
 
 	// GDLC 2010-02-16 Pointer to the CFreeTrans class because it is needed in OnLButtonDown().
 	// Ideally, the parts of OnLButtonDown() that relate to free translations would be moved
@@ -538,6 +536,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// text in that one as filtered note text at that source phrase location before the new
 	// one is opened. If the click was not intended that way, then too bad - the note dialog
 	// will close as if the OK button was pressed, which is safe because no information is lost
+	// whm 29Mar12 Note: Clicks to close a Note dialog should be honored in read-only mode.
 	wxRect dlgRect;
 	if (pApp->m_pNoteDlg != NULL)
 	{
@@ -554,6 +553,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 		// if the point is not in this rect, then close it as if OK was pressed
 		if (!dlgRect.Contains(point))
 		{
+			bClickWasProductive = TRUE;
 			wxCommandEvent cevent(wxID_OK);
 			pApp->m_pNoteDlg->OnOK(cevent);
 			pApp->m_pNoteDlg = NULL;
@@ -603,6 +603,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
     // well (green wedge is at the pile's right for RTL layout)
 	// Updated 07Sept05 to handle clicking in the peach coloured Note icon's rectangle to
 	// open a note window.
+	// whm 29Mar12 Note: Clicks on a green wedge should be honored in read-only mode.
 	CStrip* pClickedStrip = pView->GetNearestStrip(&point);
 
 	wxPoint ptWedgeTopLeft;
@@ -690,6 +691,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					// now test to see if the click actually occurred within it
 					if (wedgeRect.Contains(point))
 					{
+						bClickWasProductive = TRUE;						
 						// user clicked in this wedge - so open the dialog
 
                         // keep track of the sequ num of the src phrase whose m_markers is
@@ -780,6 +782,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 						// check if the click was in noteRect
 						if (noteRect.Contains(point)) //if (noteRect.PtInRect(point))
 						{
+							bClickWasProductive = TRUE;						
 							// user clicked in the note icon - so open the note window
 							if (pApp->m_pViewFilteredMaterialDlg != NULL)
 								return; // if the green wedge dialog is open, prevent a
@@ -877,6 +880,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 
     // a left click in the view when the "View Earlier Translation" modeless dialog is the
     // active window, must make the view window the active one
+	// whm 29Mar12 Note: Clicks to make the view window be active should be honored in read-only mode.
 	bool bMadeViewActive = FALSE;
 	if (pApp->m_pEarlierTransDlg != NULL)
 	{
@@ -889,6 +893,8 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 			{
 				pApp->m_pEarlierTransDlg->Show(FALSE); // hide the dialog window
 				bMadeViewActive = TRUE;
+				
+				bClickWasProductive = TRUE;						
 
 				if (pApp->m_pTargetBox == NULL)
 					goto y; // check, just in case, and do the longer cleanup if the box
@@ -913,6 +919,10 @@ y:				; // I may put some code here later
     // OnCancel for CFindReplace whm adjusted the following to accommodate different
     // modeless dialogs for "Find" (pApp->m_pFindDlg) and "Find and Replace"
     // (pApp->m_pReplaceDlg).
+	// whm 29Mar12 Note: A Replace modeless dialog won't ever be open in read-only mode
+	// but a Find dialog can be, so clicks in this instance should be honored in read-only 
+	// mode. Note: The phrase Box will always be hidden in read-only mode so the code to
+	// set focus on the phrase box below will not have any effect.
 	if (pApp->m_pFindDlg != NULL || pApp->m_pReplaceDlg != NULL || bMadeViewActive)
 	{
 		if (pApp->m_pFindDlg == NULL && pApp->m_pReplaceDlg == NULL && bMadeViewActive)
@@ -922,6 +932,7 @@ y:				; // I may put some code here later
 			if ((pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown()) ||
 				(pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->IsShown()))
 			{
+				bClickWasProductive = TRUE;						
 				if (pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown())
 					pApp->m_pFindDlg->Show(FALSE); // hide the dialog window
 				if (pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->IsShown())
@@ -1058,723 +1069,735 @@ x:					CCell* pCell = 0;
 	} // end block for find or replace active, or view has just been reactivated
 
 	// I want to make the background of a clicked cell be yellow
-
 	if (pApp->m_pLayout == NULL) return;
 	if (pApp->m_pLayout->GetStripCount() == 0) return;
 
-	CCell* pAnchor = pApp->m_pAnchor; // anchor cell, for use when extending
-                                      // selection (null if no selection current)
-	int    nAnchorSequNum = -1; // if no anchor defined, set value -1; we can test
-                                //for this value later
-	if (pAnchor != NULL)
+	// whm 29Mar12 Note: Clicks to make the background of a clicked cell become yellow
+	// should NOT be honored in read-only mode.
+	if (!pApp->m_bReadOnlyAccess)
 	{
-		nAnchorSequNum = pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber; // there
-			// is a pre-existing selection or at least the anchor click to make one
-		wxASSERT(nAnchorSequNum >= 0);
-	}
-
-	CSourcePhrase* pCurSrcPhrase; // used in loop when extending selection
-	int sequNum;
-
-	// find which cell the click was in
-	CCell* pCell = pView->GetClickedCell(&point); // returns NULL if click was
-												  // not in a cell
-    // BEW added 03Aug08: disallow a click in the gray text area (preceding or following
-    // context) during vertical editing mode; I'll code this block as if I was supporting
-    // adaptations or glosses or free translations as entry points too, but for MFC it will
-    // only be source text editing as the entry point, but the code will work even with the
-    // extra stuff in it
-	if (gbVerticalEditInProgress && pCell != NULL)
-	{
-		int nClickedSequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
-		if (gEditStep == adaptationsStep && gEditRecord.bAdaptationStepEntered)
+		CCell* pAnchor = pApp->m_pAnchor; // anchor cell, for use when extending
+										  // selection (null if no selection current)
+		int    nAnchorSequNum = -1; // if no anchor defined, set value -1; we can test
+									//for this value later
+		if (pAnchor != NULL)
 		{
-            // use the bounds for the editable span to test if the click was in the gray
-            // text before the left bound, or in the gray text following the right bound;
-            // if either is true, warn the user and disallow the click
-			if (nClickedSequNum < gEditRecord.nAdaptationStep_StartingSequNum ||
-				nClickedSequNum > gEditRecord.nAdaptationStep_EndingSequNum)
+			nAnchorSequNum = pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber; // there
+				// is a pre-existing selection or at least the anchor click to make one
+			wxASSERT(nAnchorSequNum >= 0);
+		}
+
+		CSourcePhrase* pCurSrcPhrase; // used in loop when extending selection
+		int sequNum;
+
+		// find which cell the click was in
+		CCell* pCell = pView->GetClickedCell(&point); // returns NULL if click was
+													  // not in a cell
+		// BEW added 03Aug08: disallow a click in the gray text area (preceding or following
+		// context) during vertical editing mode; I'll code this block as if I was supporting
+		// adaptations or glosses or free translations as entry points too, but for MFC it will
+		// only be source text editing as the entry point, but the code will work even with the
+		// extra stuff in it
+		if (gbVerticalEditInProgress && pCell != NULL)
+		{
+			int nClickedSequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
+			if (gEditStep == adaptationsStep && gEditRecord.bAdaptationStepEntered)
 			{
-				// IDS_CLICK_IN_GRAY_ILLEGAL
-				wxMessageBox(_(
-"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-				_T(""), wxICON_WARNING);
-				pApp->m_pTargetBox->SetFocus();
-				return;
+				// use the bounds for the editable span to test if the click was in the gray
+				// text before the left bound, or in the gray text following the right bound;
+				// if either is true, warn the user and disallow the click
+				if (nClickedSequNum < gEditRecord.nAdaptationStep_StartingSequNum ||
+					nClickedSequNum > gEditRecord.nAdaptationStep_EndingSequNum)
+				{
+					// IDS_CLICK_IN_GRAY_ILLEGAL
+					wxMessageBox(_(
+	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+					_T(""), wxICON_WARNING);
+					pApp->m_pTargetBox->SetFocus();
+					return;
+				}
+			}
+			else if (gEditStep == glossesStep && gEditRecord.bGlossStepEntered)
+			{
+				if (nClickedSequNum < gEditRecord.nGlossStep_StartingSequNum ||
+					nClickedSequNum > gEditRecord.nGlossStep_EndingSequNum)
+				{
+					// IDS_CLICK_IN_GRAY_ILLEGAL
+					wxMessageBox(_(
+	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+					_T(""), wxICON_WARNING);
+					pApp->m_pTargetBox->SetFocus();
+					return;
+				}
+			}
+			else if (gEditStep == freeTranslationsStep &&
+						gEditRecord.bFreeTranslationStepEntered)
+			{
+				if (nClickedSequNum < gEditRecord.nFreeTranslationStep_StartingSequNum ||
+					nClickedSequNum > gEditRecord.nFreeTranslationStep_EndingSequNum)
+				{
+					// IDS_CLICK_IN_GRAY_ILLEGAL
+					wxMessageBox(_(
+	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
+					_T(""), wxICON_WARNING);
+					pApp->m_pTargetBox->SetFocus();
+					return;
+				}
 			}
 		}
-		else if (gEditStep == glossesStep && gEditRecord.bGlossStepEntered)
+
+		// we may be going to drag-select, so prepare for drag
+		gbHaltedAtBoundary = FALSE;
+		if (pCell != NULL && pCell->GetCellIndex() == 0)
 		{
-			if (nClickedSequNum < gEditRecord.nGlossStep_StartingSequNum ||
-				nClickedSequNum > gEditRecord.nGlossStep_EndingSequNum)
-			{
-				// IDS_CLICK_IN_GRAY_ILLEGAL
-				wxMessageBox(_(
-"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-				_T(""), wxICON_WARNING);
-				pApp->m_pTargetBox->SetFocus();
-				return;
-			}
+			// if we have a selection and shift key is being held down, we assume user is not
+			// dragging, but rather is extending an existing selection, so check for this and
+			// exit block if so
+			if (event.ShiftDown() && pApp->m_selection.GetCount() > 0)
+				goto t;
+			// remove any old selection & update window immediately
+			pView->RemoveSelection();
+			Refresh();
+
+			// prepare for drag
+			pApp->m_mouse = point;
+			CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse()
+							// and DoCaptureMouse() in wxWidget sources wincmn.cpp
+							// and window.cpp
+			wxLogDebug(_T("CaptureMouse."));
 		}
-		else if (gEditStep == freeTranslationsStep &&
-					gEditRecord.bFreeTranslationStepEntered)
+
+	t:	if (pCell == NULL)
 		{
-			if (nClickedSequNum < gEditRecord.nFreeTranslationStep_StartingSequNum ||
-				nClickedSequNum > gEditRecord.nFreeTranslationStep_EndingSequNum)
-			{
-				// IDS_CLICK_IN_GRAY_ILLEGAL
-				wxMessageBox(_(
-"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-				_T(""), wxICON_WARNING);
-				pApp->m_pTargetBox->SetFocus();
-				return;
-			}
-		}
-	}
+			// click was not in a cell, so just remove any existing selection
+			pView->RemoveSelection();
 
-	// we may be going to drag-select, so prepare for drag
-	gbHaltedAtBoundary = FALSE;
-	if (pCell != NULL && pCell->GetCellIndex() == 0)
-	{
-        // if we have a selection and shift key is being held down, we assume user is not
-        // dragging, but rather is extending an existing selection, so check for this and
-        // exit block if so
-		if (event.ShiftDown() && pApp->m_selection.GetCount() > 0)
-			goto t;
-		// remove any old selection & update window immediately
-		pView->RemoveSelection();
-		Refresh();
+			// click was not in a cell, so allow removal of the automatically
+			// inserted highlighting on target/glosses. This is effected
+			// by clearing the following two globals to -1 values.
+			gnBeginInsertionsSequNum = -1;
+			gnEndInsertionsSequNum = -1;
 
-		// prepare for drag
-		pApp->m_mouse = point;
-		CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse()
-						// and DoCaptureMouse() in wxWidget sources wincmn.cpp
-						// and window.cpp
-		wxLogDebug(_T("CaptureMouse."));
-	}
-
-t:	if (pCell == NULL)
-	{
-		// click was not in a cell, so just remove any existing selection
-		pView->RemoveSelection();
-
-		// click was not in a cell, so allow removal of the automatically
-		// inserted highlighting on target/glosses. This is effected
-		// by clearing the following two globals to -1 values.
-		gnBeginInsertionsSequNum = -1;
-		gnEndInsertionsSequNum = -1;
-
-		pApp->m_bSelectByArrowKey = FALSE;
-		Refresh(); // must force a redraw, or else the selection
-                   // stays on the screen (UpdateWindow() doesn't work here)
-
-        // can't initiate a drag selection unless we click on a cell, so clear drag support
-        // variables too
-		pApp->m_mouse.x = pApp->m_mouse.y = -1;
-	}
-	else // pCell is not NULL, that is, a cell was clicked on
-	{
-		if (event.ShiftDown())
-		{
-            // shift key is down, so extend the selection if there is an existing one on
-            // the matching line
 			pApp->m_bSelectByArrowKey = FALSE;
-			if (pApp->m_selectionLine == -1)
+			Refresh(); // must force a redraw, or else the selection
+					   // stays on the screen (UpdateWindow() doesn't work here)
+
+			// can't initiate a drag selection unless we click on a cell, so clear drag support
+			// variables too
+			pApp->m_mouse.x = pApp->m_mouse.y = -1;
+		}
+		else // pCell is not NULL, that is, a cell was clicked on
+		{
+			if (event.ShiftDown())
 			{
-				// no current selection, so treat the SHIFT+click as an ordinary
-				// unshifted click
-				goto a;
-			}
+				// shift key is down, so extend the selection if there is an existing one on
+				// the matching line
+				pApp->m_bSelectByArrowKey = FALSE;
+				if (pApp->m_selectionLine == -1)
+				{
+					// no current selection, so treat the SHIFT+click as an ordinary
+					// unshifted click
+					goto a;
+				}
+				else
+				{
+					// there is a current selection, so extend it but only provided the click
+					// was on the same line as the current selection is on
+					wxASSERT(pApp->m_selection.GetCount() != 0);
+
+					// local variables to use in the loops below
+					CPile*	pEndPile;
+					CPile*	pCurPile; // the one we use in the loop, starting from pOldSel's pile
+					CStrip* pCurStrip; // the strip the starting pile is in
+					CCell*	pCurCell; // the current cell in the current pile (used in loop)
+					int nCurPileCount; // how many piles in current strip
+					int nCurPile; // index of current pile (in loop)
+					int nCurStrip; // index of current strip in which is the current pile
+
+					// set all the above local variables from pCell and pAnchor (anchor is the
+					// cell first clicked, pCell is the one at the end of the extend or drag)
+					pEndPile = pCell->GetPile();
+					pCurPile = pAnchor->GetPile();
+					pCurStrip = pCurPile->GetStrip();
+					nCurPileCount = pCurStrip->GetPileCount();
+					nCurPile = pCurPile->GetPileIndex(); // value of m_nPile
+					nCurStrip = pCurStrip->GetStripIndex(); // value of m_nStrip
+
+					if (pApp->m_selectionLine != pCell->GetCellIndex())
+						goto b; // delete old selection then do new one, because lines not the same
+					else
+					{
+						// its on the same line, so we can extend it
+						sequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
+						if (sequNum >= nAnchorSequNum)
+						{
+							// we are extending forwards (to the "right" in logical order, but
+							// in the view it is rightwards for LTR layout, but leftwards for
+							// RTL layout)
+							if (pApp->m_selectionLine == 0)
+							{
+								// source text line, but respect boundaries, unless
+								// m_bRespectBoundaries is FALSE; first determine if the
+								// anchor cell is at a boundary, if it is then we cannot
+								// extend the selection in which case just do nothing
+								// except warn the user
+								if (pApp->m_bRespectBoundaries)
+								{
+									if (pView->IsBoundaryCell(pAnchor) && pCell != pAnchor)
+									{
+										// warn user
+										// IDS_CANNOT_EXTEND_FWD
+										wxMessageBox(_(
+	"Sorry, but the application will not allow you to extend a selection forwards across any punctuation unless you use a technique for ignoring a boundary as well."),
+										_T(""), wxICON_INFORMATION);
+										event.Skip();
+										return;
+									}
+								}
+
+								// first remove any selection preceding the anchor, since
+								// click was forward of the anchor
+								pView->RemovePrecedingAnchor(&aDC, pAnchor);
+
+								// extend the selection
+								int sequ = nAnchorSequNum;
+								while (sequ < sequNum)
+								{
+									sequ++; // next one
+
+									// get the next pile
+									if (nCurPile < nCurPileCount-1)
+									{
+										// there is at least one more pile in this strip,
+										// so access it
+										nCurPile++; // index of next pile
+										pCurPile = pCurStrip->GetPileByIndex(nCurPile);
+										pCurSrcPhrase = pCurPile->GetSrcPhrase();
+										pCurSrcPhrase = pCurSrcPhrase; // avoid warning TODO: need test below?
+										wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
+										pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
+
+										// if it is already selected, continue to next one,
+										// else select it
+										if (!pCurCell->IsSelected())
+										{
+											aDC.SetBackgroundMode(pApp->m_backgroundMode);
+											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
+											pCurCell->SetSelected(TRUE);
+
+											// keep a record of it
+											pApp->m_selection.Append(pCurCell);
+										}
+
+										// if we have reached a boundary, then break out,
+										// otherwise continue
+										if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
+										{
+											break;
+										}
+									} // end of block for test "cell isn't the strip's last"
+									else
+									{
+										// we have reached the end of the strip, so go to
+										// start of next
+										nCurPile = 0; // first in next strip
+										nCurStrip++; // the next strip's index
+										// get the pointer to next strip
+										pCurStrip = pLayout->GetStripByIndex(nCurStrip);
+										// get the pointer to its first pile
+										pCurPile = pCurStrip->GetPileByIndex(nCurPile);
+										nCurPileCount = pCurStrip->GetPileCount(); // update
+												// so test above remains correct for the strip
+										pCurSrcPhrase = pCurPile->GetSrcPhrase();
+										wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
+										// get the required cell if it is already selected,
+										// & continue to next one, else select it
+										pCurCell = pCurPile->GetCell(pApp->m_selectionLine);
+										if (!pCurCell->IsSelected())
+										{
+											aDC.SetBackgroundMode(pApp->m_backgroundMode);
+											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
+											pCurCell->SetSelected(TRUE);
+
+											// keep a record of it
+											pApp->m_selection.Append(pCurCell);
+										}
+
+										// if we have reached a boundary, then break out,
+										// otherwise continue
+										if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
+										{
+											break;
+										}
+									}
+								}
+								// user may have shortened an existing selection, so check
+								// for any selected cells beyond the last one clicked, and
+								// if they exist then remove them from the list and
+								// deselect them.
+								CCell* pEndCell = pEndPile->GetCell(pApp->m_selectionLine);
+								pView->RemoveLaterSelForShortening(&aDC, pEndCell);
+							} // end of block for test that selectionLine is 0
+							else
+							{
+								// second or third line, a shift click here does nothing as yet.
+								;
+							}
+						} // end of block for extending to higher sequence numbers
+						  // (ie. visibly right for LTR layout, but visibly left for RTL layout)
+
+						// else extend to lower sequence numbers...
+						else
+						{
+							// we are extending backwards (ie. to the "left" for logical order,
+							// but in the view it is left for LTR layout, but right for RTL
+							// layout); ie. moving to lower sequ numbers
+							if (pApp->m_selectionLine == 0)
+							{
+								// block for source text selection extending the selection
+								// backwards; take boundaries into account, provided
+								// m_RespectBoundaries is TRUE; first determine if the anchor
+								// cell follows a boundary, if it is then we cannot extend the
+								// selection backwards, in which case just do nothing except
+								// warn the user
+								CCell* pPrevCell;
+								pPrevCell = pView->GetPrevCell(pAnchor, pApp->m_selectionLine);
+								if (pApp->m_bRespectBoundaries)
+								{
+									if (pView->IsBoundaryCell(pPrevCell))
+									{
+										// warn user
+										// IDS_CANNOT_EXTEND_BACK
+										wxMessageBox(_(
+	"Sorry, it is not possible to extend the selection backwards at this location unless you use one of the methods for ignoring a boundary."),
+										_T(""), wxICON_INFORMATION);
+										event.Skip();
+										return;
+									}
+								}
+
+								// first if there are any cells selected beyond
+								// the anchor cell, then get rid of them
+								pView->RemoveFollowingAnchor(&aDC, pAnchor);
+
+								int sequ = nAnchorSequNum; // starting point
+								while (sequ > sequNum)
+								{
+									sequ--; // next one to the left
+
+									// get the previous pile
+									if (nCurPile > 0)
+									{
+										// there is at least one previous pile in this strip,
+										// so access it
+										nCurPile--; // index of previous pile
+										pCurPile = pCurStrip->GetPileByIndex(nCurPile);
+										pCurSrcPhrase = pCurPile->GetSrcPhrase();
+										wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
+										pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
+
+										// if it is a boundary then we must break out
+										// of the loop
+										if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
+										{
+											if (pView->IsBoundaryCell(pCurCell))
+												break;
+										}
+
+										// if it is already selected, continue to next prev one,
+										// else select it
+										if (!pCurCell->IsSelected())
+										{
+											aDC.SetBackgroundMode(pApp->m_backgroundMode);
+											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
+											pCurCell->SetSelected(TRUE);
+
+											// keep a record of it, retaining order of words/phrases
+											pApp->m_selection.Insert(pCurCell);
+										}
+									}
+									else
+									{
+										// we have reached the start of the strip, so go to end
+										// of previous strip
+										nCurStrip--; // the previous strip's index
+										pCurStrip = pLayout->GetStripByIndex(nCurStrip); // prev strip
+										nCurPileCount = pCurStrip->GetPileCount(); // update this so
+														//test above remains correct for the strip
+										nCurPile = nCurPileCount-1; // last in this strip
+										pCurPile = pCurStrip->GetPileByIndex(nCurPile);  // pointer
+																				 // to its last pile
+										pCurSrcPhrase = pCurPile->GetSrcPhrase();
+										wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
+										// get the required cell
+										pCurCell = pCurPile->GetCell(pApp->m_selectionLine);
+
+										// if it is a boundary then we must break out of the loop
+										if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
+										{
+											if (pView->IsBoundaryCell(pCurCell))
+												break;
+										}
+
+										// if it is already selected, continue to next prev one,
+										// else select it
+										if (!pCurCell->IsSelected())
+										{
+											aDC.SetBackgroundMode(pApp->m_backgroundMode);
+											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+											pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
+											pCurCell->SetSelected(TRUE);
+
+											// keep a record of it, preserving order of words/phrases
+											pApp->m_selection.Insert(pCurCell);
+										}
+									}
+								} // end sequ > sequNum  test block
+
+								// user may have shortened an existing selection, so check for
+								// any selected cells previous to the last one clicked, and if
+								// they exist then remove them from the list and deselect them.
+								CCell* pEndCell = pEndPile->GetCell(pApp->m_selectionLine);
+								pView->RemoveEarlierSelForShortening(&aDC,pEndCell);
+							}  // end of block for test selectionLine == 0
+							else
+							{
+								// one of the target language lines, -- behaviour yet to be
+								// determined probably just ignore the click
+								;
+							}
+						} // end of block for extending to lower sequence numbers
+						  // (ie. visibly left for LTR layout but visibly right for RTL layout)
+					} // end block for a "same line" click which means extension of selection can
+					  // be done
+				} // end block for extending a selection
+	#ifdef __WXMAC__
+				pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+	#endif
+			} // end of block for a click with SHIFT key down - for extending selection
 			else
 			{
-                // there is a current selection, so extend it but only provided the click
-                // was on the same line as the current selection is on
-				wxASSERT(pApp->m_selection.GetCount() != 0);
+				// SHIFT key is not down
 
-				// local variables to use in the loops below
-				CPile*	pEndPile;
-				CPile*	pCurPile; // the one we use in the loop, starting from pOldSel's pile
-				CStrip* pCurStrip; // the strip the starting pile is in
-				CCell*	pCurCell; // the current cell in the current pile (used in loop)
-				int nCurPileCount; // how many piles in current strip
-				int nCurPile; // index of current pile (in loop)
-				int nCurStrip; // index of current strip in which is the current pile
-
-                // set all the above local variables from pCell and pAnchor (anchor is the
-                // cell first clicked, pCell is the one at the end of the extend or drag)
-				pEndPile = pCell->GetPile();
-				pCurPile = pAnchor->GetPile();
-				pCurStrip = pCurPile->GetStrip();
-				nCurPileCount = pCurStrip->GetPileCount();
-				nCurPile = pCurPile->GetPileIndex(); // value of m_nPile
-				nCurStrip = pCurStrip->GetStripIndex(); // value of m_nStrip
-
-				if (pApp->m_selectionLine != pCell->GetCellIndex())
-					goto b; // delete old selection then do new one, because lines not the same
-				else
+				// found the cell, and the shift key is not down, so remove the old selection
+				// (or shift key was down, but clicked cell was not on same line of a strip)
+				if (pCell->GetCellIndex() == 1)
 				{
-					// its on the same line, so we can extend it
-					sequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
-					if (sequNum >= nAnchorSequNum)
+					// second line - the phrase box's line (always): a click here places the
+					// phraseBox in that cell clicked, unless the cell is part of a
+					// retranslation
+					CPile* pRetrPile = pCell->GetPile();
+					wxASSERT(pRetrPile);
+					if (!gbIsGlossing && pRetrPile->GetSrcPhrase()->m_bRetranslation)
 					{
-                        // we are extending forwards (to the "right" in logical order, but
-                        // in the view it is rightwards for LTR layout, but leftwards for
-                        // RTL layout)
-						if (pApp->m_selectionLine == 0)
+						// make any single pile within a retranslation (other than a click in
+						// line 0 which causes a selection) inaccessible - user should
+						// treat a retranslation as a whole, & access it via toolbar buttons
+						if (!pApp->m_bFreeTranslationMode) // BEW added 8Jul05 to allow making
+												// a retranslation pile the anchor location for
+												// a free translation by a click
 						{
-                            // source text line, but respect boundaries, unless
-                            // m_bRespectBoundaries is FALSE; first determine if the
-                            // anchor cell is at a boundary, if it is then we cannot
-                            // extend the selection in which case just do nothing
-                            // except warn the user
-							if (pApp->m_bRespectBoundaries)
-							{
-								if (pView->IsBoundaryCell(pAnchor) && pCell != pAnchor)
-								{
-									// warn user
-									// IDS_CANNOT_EXTEND_FWD
-									wxMessageBox(_(
-"Sorry, but the application will not allow you to extend a selection forwards across any punctuation unless you use a technique for ignoring a boundary as well."),
-									_T(""), wxICON_INFORMATION);
-									event.Skip();
-									return;
-								}
-							}
-
-                            // first remove any selection preceding the anchor, since
-                            // click was forward of the anchor
-							pView->RemovePrecedingAnchor(&aDC, pAnchor);
-
-							// extend the selection
-							int sequ = nAnchorSequNum;
-							while (sequ < sequNum)
-							{
-								sequ++; // next one
-
-								// get the next pile
-								if (nCurPile < nCurPileCount-1)
-								{
-									// there is at least one more pile in this strip,
-									// so access it
-									nCurPile++; // index of next pile
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
-									pCurSrcPhrase = pCurPile->GetSrcPhrase();
-									pCurSrcPhrase = pCurSrcPhrase; // avoid warning TODO: need test below?
-									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
-									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
-
-									// if it is already selected, continue to next one,
-									// else select it
-									if (!pCurCell->IsSelected())
-									{
-										aDC.SetBackgroundMode(pApp->m_backgroundMode);
-										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
-										pCurCell->SetSelected(TRUE);
-
-										// keep a record of it
-										pApp->m_selection.Append(pCurCell);
-									}
-
-									// if we have reached a boundary, then break out,
-									// otherwise continue
-									if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
-									{
-										break;
-									}
-								} // end of block for test "cell isn't the strip's last"
-								else
-								{
-                                    // we have reached the end of the strip, so go to
-                                    // start of next
-									nCurPile = 0; // first in next strip
-									nCurStrip++; // the next strip's index
-									// get the pointer to next strip
-									pCurStrip = pLayout->GetStripByIndex(nCurStrip);
-									// get the pointer to its first pile
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
-									nCurPileCount = pCurStrip->GetPileCount(); // update
-											// so test above remains correct for the strip
-									pCurSrcPhrase = pCurPile->GetSrcPhrase();
-									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
-									// get the required cell if it is already selected,
-									// & continue to next one, else select it
-									pCurCell = pCurPile->GetCell(pApp->m_selectionLine);
-									if (!pCurCell->IsSelected())
-									{
-										aDC.SetBackgroundMode(pApp->m_backgroundMode);
-										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
-										pCurCell->SetSelected(TRUE);
-
-										// keep a record of it
-										pApp->m_selection.Append(pCurCell);
-									}
-
-									// if we have reached a boundary, then break out,
-									// otherwise continue
-									if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
-									{
-										break;
-									}
-								}
-							}
-                            // user may have shortened an existing selection, so check
-                            // for any selected cells beyond the last one clicked, and
-                            // if they exist then remove them from the list and
-                            // deselect them.
-							CCell* pEndCell = pEndPile->GetCell(pApp->m_selectionLine);
-							pView->RemoveLaterSelForShortening(&aDC, pEndCell);
-						} // end of block for test that selectionLine is 0
-						else
-						{
-							// second or third line, a shift click here does nothing as yet.
-							;
-						}
-					} // end of block for extending to higher sequence numbers
-					  // (ie. visibly right for LTR layout, but visibly left for RTL layout)
-
-					// else extend to lower sequence numbers...
-					else
-					{
-                        // we are extending backwards (ie. to the "left" for logical order,
-                        // but in the view it is left for LTR layout, but right for RTL
-                        // layout); ie. moving to lower sequ numbers
-						if (pApp->m_selectionLine == 0)
-						{
-                            // block for source text selection extending the selection
-                            // backwards; take boundaries into account, provided
-                            // m_RespectBoundaries is TRUE; first determine if the anchor
-                            // cell follows a boundary, if it is then we cannot extend the
-                            // selection backwards, in which case just do nothing except
-                            // warn the user
-							CCell* pPrevCell;
-							pPrevCell = pView->GetPrevCell(pAnchor, pApp->m_selectionLine);
-							if (pApp->m_bRespectBoundaries)
-							{
-								if (pView->IsBoundaryCell(pPrevCell))
-								{
-									// warn user
-									// IDS_CANNOT_EXTEND_BACK
-									wxMessageBox(_(
-"Sorry, it is not possible to extend the selection backwards at this location unless you use one of the methods for ignoring a boundary."),
-									_T(""), wxICON_INFORMATION);
-									event.Skip();
-									return;
-								}
-							}
-
-							// first if there are any cells selected beyond
-							// the anchor cell, then get rid of them
-							pView->RemoveFollowingAnchor(&aDC, pAnchor);
-
-							int sequ = nAnchorSequNum; // starting point
-							while (sequ > sequNum)
-							{
-								sequ--; // next one to the left
-
-								// get the previous pile
-								if (nCurPile > 0)
-								{
-									// there is at least one previous pile in this strip,
-									// so access it
-									nCurPile--; // index of previous pile
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
-									pCurSrcPhrase = pCurPile->GetSrcPhrase();
-									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
-									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
-
-									// if it is a boundary then we must break out
-									// of the loop
-									if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
-									{
-										if (pView->IsBoundaryCell(pCurCell))
-											break;
-									}
-
-									// if it is already selected, continue to next prev one,
-									// else select it
-									if (!pCurCell->IsSelected())
-									{
-										aDC.SetBackgroundMode(pApp->m_backgroundMode);
-										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
-										pCurCell->SetSelected(TRUE);
-
-										// keep a record of it, retaining order of words/phrases
-										pApp->m_selection.Insert(pCurCell);
-									}
-								}
-								else
-								{
-                                    // we have reached the start of the strip, so go to end
-                                    // of previous strip
-									nCurStrip--; // the previous strip's index
-									pCurStrip = pLayout->GetStripByIndex(nCurStrip); // prev strip
-									nCurPileCount = pCurStrip->GetPileCount(); // update this so
-													//test above remains correct for the strip
-									nCurPile = nCurPileCount-1; // last in this strip
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile);  // pointer
-																			 // to its last pile
-									pCurSrcPhrase = pCurPile->GetSrcPhrase();
-									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
-									// get the required cell
-									pCurCell = pCurPile->GetCell(pApp->m_selectionLine);
-
-									// if it is a boundary then we must break out of the loop
-									if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
-									{
-										if (pView->IsBoundaryCell(pCurCell))
-											break;
-									}
-
-									// if it is already selected, continue to next prev one,
-									// else select it
-									if (!pCurCell->IsSelected())
-									{
-										aDC.SetBackgroundMode(pApp->m_backgroundMode);
-										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->DrawCell(&aDC, pLayout->GetSrcColor());
-										pCurCell->SetSelected(TRUE);
-
-										// keep a record of it, preserving order of words/phrases
-										pApp->m_selection.Insert(pCurCell);
-									}
-								}
-							} // end sequ > sequNum  test block
-
-                            // user may have shortened an existing selection, so check for
-                            // any selected cells previous to the last one clicked, and if
-                            // they exist then remove them from the list and deselect them.
-							CCell* pEndCell = pEndPile->GetCell(pApp->m_selectionLine);
-							pView->RemoveEarlierSelForShortening(&aDC,pEndCell);
-						}  // end of block for test selectionLine == 0
-						else
-						{
-                            // one of the target language lines, -- behaviour yet to be
-                            // determined probably just ignore the click
-							;
-						}
-					} // end of block for extending to lower sequence numbers
-					  // (ie. visibly left for LTR layout but visibly right for RTL layout)
-				} // end block for a "same line" click which means extension of selection can
-				  // be done
-			} // end block for extending a selection
-#ifdef __WXMAC__
-			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-#endif
-		} // end of block for a click with SHIFT key down - for extending selection
-		else
-		{
-			// SHIFT key is not down
-
-            // found the cell, and the shift key is not down, so remove the old selection
-            // (or shift key was down, but clicked cell was not on same line of a strip)
-			if (pCell->GetCellIndex() == 1)
-			{
-                // second line - the phrase box's line (always): a click here places the
-                // phraseBox in that cell clicked, unless the cell is part of a
-                // retranslation
-				CPile* pRetrPile = pCell->GetPile();
-				wxASSERT(pRetrPile);
-				if (!gbIsGlossing && pRetrPile->GetSrcPhrase()->m_bRetranslation)
-				{
-                    // make any single pile within a retranslation (other than a click in
-                    // line 0 which causes a selection) inaccessible - user should
-                    // treat a retranslation as a whole, & access it via toolbar buttons
-					if (!pApp->m_bFreeTranslationMode) // BEW added 8Jul05 to allow making
-											// a retranslation pile the anchor location for
-											// a free translation by a click
-					{
-						// IDS_NO_ACCESS_TO_RETRANS
-						::wxBell(); // a ding here might help too
-						wxMessageBox(_(
-"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
-						wxICON_INFORMATION);
-						// put the focus back in the former place
-						if (pApp->m_pTargetBox != NULL)
-							if (pApp->m_pTargetBox->IsShown())
-								pApp->m_pTargetBox->SetFocus();
-						return;
-					}
-				}
-
-                // We should clear target text highlighting if user clicks in a cell within
-                // a stretch of text that is not already highlighted. We can clear it by
-                // resetting the globals to -1. The highlighting should be retained if user
-                // clicks in a cell within a stretch of highlighted text since the user is
-                // probably correcting one or more cells that were not good translations
-				if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum
-					|| pApp->m_nActiveSequNum > gnEndInsertionsSequNum)
-				{
-					gnBeginInsertionsSequNum = -1;
-					gnEndInsertionsSequNum = -1;
-				}
-
-				// save old sequ number in case required for toolbar's Back button
-				gnOldSequNum = pApp->m_nActiveSequNum;
-
-				// set up a temporary pile pointer
-				CPile* pile = NULL;
-
-				// BEW added block 26Jun05 for free translation support
-				if (pApp->m_bFreeTranslationMode)
-				{
-					// get the phrase box to the start of the free translation section if
-					// in one, otherwise where clicked becomes the start of a free
-					// translation section
-					pile = pCell->GetPile();
-					CSourcePhrase* pSP = pile->GetSrcPhrase();
-					wxASSERT(pSP != NULL);
-					while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
-					{
-                        // there must be an earlier one which starts the free translation
-                        // section, so iterate back until it is found; in the refactored
-                        // design (April 2009) iterating back will not find a bundle start
-                        // (there are no bundles anymore), the only possibility is to find
-                        // the free translation section's start - there has to be one
-                        // before the start of the doc is found, though it could be the
-						// first pile of the doc; but we'll test for a malformed doc too
-						// and make a fix as best we can
-						CPile* pOldPile = pile; // keep the one we are leaving in case the
-										// next line gives NULL and so the fix is needed
-						pile = pView->GetPrevPile(pile);
-						if (pile == NULL)
-						{
-                            // went past start of doc! we should find the section start
-                            // before coming to the doc start, (check Split Document
-                            // command - can it split within a free translation section
-                            // without alerting user or helping, and so generate a
-                            // doc-initial partial free trans section with no beginning?
-                            // Assume it can for now...) So, fix the srcPhrase & leave
-                            // phrase box here & return
-							gbSuppressSetup = TRUE; // don't permit reentry at
-													// RecalcLayout() call
-							pApp->m_nActiveSequNum = 0;
-							CSourcePhrase* pOldSrcPhrase = pOldPile->GetSrcPhrase();
-							pOldSrcPhrase->m_bStartFreeTrans = TRUE; // it didn't have it
-																	 // set, so do it
-#ifdef _NEW_LAYOUT
-							pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-							pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-							pApp->m_pActivePile = pView->GetPile(0);
-							wxASSERT(pApp->m_pActivePile != NULL);
-
-							// now we've located the phrase box, permit setup again
-							gbSuppressSetup = FALSE; // allow reentry again
+							// IDS_NO_ACCESS_TO_RETRANS
+							::wxBell(); // a ding here might help too
+							wxMessageBox(_(
+	"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
+							wxICON_INFORMATION);
+							// put the focus back in the former place
+							if (pApp->m_pTargetBox != NULL)
+								if (pApp->m_pTargetBox->IsShown())
+									pApp->m_pTargetBox->SetFocus();
 							return;
 						}
-						pSP = pile->GetSrcPhrase(); // get the sourcephrase on the previous pile
-					} // end of while loop for test: pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans
-
-					pCell = pile->GetCell(1); // the correct pCell which is the free
-					// trans anchor for this F.Tr section; or if no free translation
-					// is at the place clicked, this one will become the anchor
-
-                    // if about to place the phrase box elsewhere due to a click, and free
-                    // translation mode is turned on, we don't want to retain the Compose
-                    // Bar's edit box contents, since it will be different at the new
-                    // location - it is sufficient to clear that edit box's contents and
-                    // then the SetupCurFreeTransSection() call will, if appropriate, put
-                    // the free translation text in the box, or none, or compose a default
-                    // text, depending on what options are currently on and whether or not
-                    // the place where the box was clicked has free translation text
-                    // already - if the latter is true, then the phrase box will be
-                    // automatically moved if necessary so that it is placed at the start
-					// of the clicked free translation section
-					wxString tempStr;
-					tempStr.Empty();
-					pEditCompose->ChangeValue(tempStr); // clear the box
-
-					pApp->m_nActiveSequNum = pile->GetSrcPhrase()->m_nSequNumber;
-					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-
-					// make m_bIsCurrentFreeTransSection FALSE on every pile
-					pApp->m_pLayout->MakeAllPilesNonCurrent();
-
-					// BEW added 8Apr10, the global wxString translation has to be given
-					// the value for the phrase box at the new location, otherwise the
-					// last location's string will wrongly be put there; we get the value
-					// from the m_adaption member of that CSourcePhrase instance
-					translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
-
-					// the PlacePhraseBox() call calls CLayout::RecalcLayout()
-					pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
-					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-
-					// Is this location an anchor for a free translation section - if it
-					// is, we must make the free translation GUI's radio boxes agree with
-					// the anchor's value for m_bSectionByVerse flag; if it's not an
-					// anchor, then we are making it one, and we must set
-					// m_bSectionByVerse to whatever value is correct according to the
-					// app's value currently for the flag m_bDefineFreeTransByPunctuation
-					// flag
-					if (pApp->m_pActivePile->GetSrcPhrase()->m_bStartFreeTrans)
-					{
-						// we are in an existing free translation section
-						
-						// BEW 27Feb12, since we've come to the anchor of a pre-defined
-						// section, we must set up the radio buttons to be what was in
-						// effect when this section was originally created
-						bool bTemporaryByPunctuationFlag = 
-							!pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
-
-						// now set the radio buttons temporarily to possibly different values
-						pApp->GetFreeTrans()->SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
-					}
-					else
-					{
-						// it's not a free translation section yet, so set up to have the radio
-						// buttons be in sync with the m_bDefineFreeTransByPunctuation flag value;
-						// and we can't assume that the location just left was one which was
-						// already in sync with the current radio button settings, so we must do
-						// them both here too
-						// now set the radio buttons temporarily to possibly different values
-						pApp->GetFreeTrans()->SetupFreeTransRadioButtons(pApp->m_bDefineFreeTransByPunctuation);
-
-						// and the anchor must have m_bSectionByVerse set correctly as well
-						pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse =
-													!pApp->m_bDefineFreeTransByPunctuation;
-					}
-					ScrollIntoView(pApp->m_nActiveSequNum);
-					translation.Empty();
-
-				} // end of block for test: pApp->m_bFreeTranslationMode == TRUE
-				else
-				{
-					// not in free translation mode
-					translation.Empty();
-
-					#ifdef _Trace_Click_FT
-					TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
-					#endif
-
-					// if the user has turned on the sending of synchronized scrolling
-					// messages, send the relevant message
-					if (!gbIgnoreScriptureReference_Send)
-					{
-						pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pCell->GetPile()->GetSrcPhrase());
 					}
 
-					// BEW changed 1Jul09, the use of the CPhraseBox::m_bAbandonable flag
-					// got lost in the port to wxWidgets, so it needs to be restored. We
-					// don't retain the box contents if m_bAbandonable is TRUE when the
-					// user clicks at some other location, nor do we store something in
-					// the KB based on whatever source text may have been copied to the
-					// location that is now being moved from. This lets the user click
-					// around the document in locations without any adaptation, examine
-					// what is there, and click to move the box elsewhere, without any
-					// copies of source text being stored to the KB (unless of course he
-					// clicks in the box or edits, etc). The PlacePhraseBox() call, for
-					// either situation, calls RecalcLayout()
-					if (pApp->m_pTargetBox->m_bAbandonable)
+					// We should clear target text highlighting if user clicks in a cell within
+					// a stretch of text that is not already highlighted. We can clear it by
+					// resetting the globals to -1. The highlighting should be retained if user
+					// clicks in a cell within a stretch of highlighted text since the user is
+					// probably correcting one or more cells that were not good translations
+					if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum
+						|| pApp->m_nActiveSequNum > gnEndInsertionsSequNum)
 					{
-						translation.Empty();
-						pApp->m_targetPhrase.Empty();
-						pApp->m_pTargetBox->ChangeValue(_T(""));
-						pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
-							// is done at the leaving location, but a removal from the KB
-							// will be done at the landing location
+						gnBeginInsertionsSequNum = -1;
+						gnEndInsertionsSequNum = -1;
 					}
-					else
+
+					// save old sequ number in case required for toolbar's Back button
+					gnOldSequNum = pApp->m_nActiveSequNum;
+
+					// set up a temporary pile pointer
+					CPile* pile = NULL;
+
+					// BEW added block 26Jun05 for free translation support
+					if (pApp->m_bFreeTranslationMode)
 					{
-						pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
-							// KB access is done at both leaving and landing locations)
-					}
-					ScrollIntoView(pApp->m_nActiveSequNum);
-				}
-
-				// restore default button image, and m_bCopySourcePunctuation to TRUE
-				wxCommandEvent event;
-				pApp->GetView()->OnButtonEnablePunctCopy(event);
-
-				CPile* pPile;
-				pPile = pView->GetPile(pApp->m_nActiveSequNum);
-				pPile = pPile; // avoid warning in release build
-				wxASSERT(pApp->m_nActiveSequNum == pPile->GetSrcPhrase()->m_nSequNumber);
-
-				// refresh status info at the bottom of the main window
-				pApp->RefreshStatusBarInfo();
-
-				// if we are in free translation mode, there is a bit more to do...
-				if (pApp->m_bFreeTranslationMode)
-				{
-                    // put the focus in the compose bar's edit box, select any text there,
-                    // but only when it has been composed from the target text or gloss
-                    // text; if it is preexisting then put the cursor at the end of it
-					pEditCompose->SetFocus();
-					if (pApp->m_bTargetIsDefaultFreeTrans || pApp->m_bGlossIsDefaultFreeTrans)
-					{
-						if (pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
+						// get the phrase box to the start of the free translation section if
+						// in one, otherwise where clicked becomes the start of a free
+						// translation section
+						pile = pCell->GetPile();
+						CSourcePhrase* pSP = pile->GetSrcPhrase();
+						wxASSERT(pSP != NULL);
+						while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 						{
-							// whm modified 24Aug06
-							wxString tempStr;
-							tempStr = pEditCompose->GetValue();
-							int len = tempStr.Length();
-							pEditCompose->SetSelection(len,len);
+							// there must be an earlier one which starts the free translation
+							// section, so iterate back until it is found; in the refactored
+							// design (April 2009) iterating back will not find a bundle start
+							// (there are no bundles anymore), the only possibility is to find
+							// the free translation section's start - there has to be one
+							// before the start of the doc is found, though it could be the
+							// first pile of the doc; but we'll test for a malformed doc too
+							// and make a fix as best we can
+							CPile* pOldPile = pile; // keep the one we are leaving in case the
+											// next line gives NULL and so the fix is needed
+							pile = pView->GetPrevPile(pile);
+							if (pile == NULL)
+							{
+								// went past start of doc! we should find the section start
+								// before coming to the doc start, (check Split Document
+								// command - can it split within a free translation section
+								// without alerting user or helping, and so generate a
+								// doc-initial partial free trans section with no beginning?
+								// Assume it can for now...) So, fix the srcPhrase & leave
+								// phrase box here & return
+								gbSuppressSetup = TRUE; // don't permit reentry at
+														// RecalcLayout() call
+								pApp->m_nActiveSequNum = 0;
+								CSourcePhrase* pOldSrcPhrase = pOldPile->GetSrcPhrase();
+								pOldSrcPhrase->m_bStartFreeTrans = TRUE; // it didn't have it
+																		 // set, so do it
+	#ifdef _NEW_LAYOUT
+								pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	#else
+								pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+	#endif
+								pApp->m_pActivePile = pView->GetPile(0);
+								wxASSERT(pApp->m_pActivePile != NULL);
+
+								// now we've located the phrase box, permit setup again
+								gbSuppressSetup = FALSE; // allow reentry again
+								return;
+							}
+							pSP = pile->GetSrcPhrase(); // get the sourcephrase on the previous pile
+						} // end of while loop for test: pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans
+
+						pCell = pile->GetCell(1); // the correct pCell which is the free
+						// trans anchor for this F.Tr section; or if no free translation
+						// is at the place clicked, this one will become the anchor
+
+						// if about to place the phrase box elsewhere due to a click, and free
+						// translation mode is turned on, we don't want to retain the Compose
+						// Bar's edit box contents, since it will be different at the new
+						// location - it is sufficient to clear that edit box's contents and
+						// then the SetupCurFreeTransSection() call will, if appropriate, put
+						// the free translation text in the box, or none, or compose a default
+						// text, depending on what options are currently on and whether or not
+						// the place where the box was clicked has free translation text
+						// already - if the latter is true, then the phrase box will be
+						// automatically moved if necessary so that it is placed at the start
+						// of the clicked free translation section
+						wxString tempStr;
+						tempStr.Empty();
+						pEditCompose->ChangeValue(tempStr); // clear the box
+
+						pApp->m_nActiveSequNum = pile->GetSrcPhrase()->m_nSequNumber;
+						pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+
+						// make m_bIsCurrentFreeTransSection FALSE on every pile
+						pApp->m_pLayout->MakeAllPilesNonCurrent();
+
+						// BEW added 8Apr10, the global wxString translation has to be given
+						// the value for the phrase box at the new location, otherwise the
+						// last location's string will wrongly be put there; we get the value
+						// from the m_adaption member of that CSourcePhrase instance
+						translation = pCell->GetPile()->GetSrcPhrase()->m_adaption;
+
+						// the PlacePhraseBox() call calls CLayout::RecalcLayout()
+						pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
+						pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+
+						// Is this location an anchor for a free translation section - if it
+						// is, we must make the free translation GUI's radio boxes agree with
+						// the anchor's value for m_bSectionByVerse flag; if it's not an
+						// anchor, then we are making it one, and we must set
+						// m_bSectionByVerse to whatever value is correct according to the
+						// app's value currently for the flag m_bDefineFreeTransByPunctuation
+						// flag
+						if (pApp->m_pActivePile->GetSrcPhrase()->m_bStartFreeTrans)
+						{
+							// we are in an existing free translation section
+							
+							// BEW 27Feb12, since we've come to the anchor of a pre-defined
+							// section, we must set up the radio buttons to be what was in
+							// effect when this section was originally created
+							bool bTemporaryByPunctuationFlag = 
+								!pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
+
+							// now set the radio buttons temporarily to possibly different values
+							pApp->GetFreeTrans()->SetupFreeTransRadioButtons(bTemporaryByPunctuationFlag);
 						}
 						else
 						{
-							pEditCompose->SetSelection(-1,-1);// -1,-1 selects all
-						}
-					}
+							// it's not a free translation section yet, so set up to have the radio
+							// buttons be in sync with the m_bDefineFreeTransByPunctuation flag value;
+							// and we can't assume that the location just left was one which was
+							// already in sync with the current radio button settings, so we must do
+							// them both here too
+							// now set the radio buttons temporarily to possibly different values
+							pApp->GetFreeTrans()->SetupFreeTransRadioButtons(pApp->m_bDefineFreeTransByPunctuation);
 
-					// mark the current section
-					pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
-					if (pApp->m_nActiveSequNum >= 0 &&
-											pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
+							// and the anchor must have m_bSectionByVerse set correctly as well
+							pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse =
+														!pApp->m_bDefineFreeTransByPunctuation;
+						}
+						ScrollIntoView(pApp->m_nActiveSequNum);
+						translation.Empty();
+
+					} // end of block for test: pApp->m_bFreeTranslationMode == TRUE
+					else
 					{
+						// not in free translation mode
+						translation.Empty();
+
+						#ifdef _Trace_Click_FT
+						TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
+						#endif
+
+						// if the user has turned on the sending of synchronized scrolling
+						// messages, send the relevant message
+						if (!gbIgnoreScriptureReference_Send)
+						{
+							pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pCell->GetPile()->GetSrcPhrase());
+						}
+
+						// BEW changed 1Jul09, the use of the CPhraseBox::m_bAbandonable flag
+						// got lost in the port to wxWidgets, so it needs to be restored. We
+						// don't retain the box contents if m_bAbandonable is TRUE when the
+						// user clicks at some other location, nor do we store something in
+						// the KB based on whatever source text may have been copied to the
+						// location that is now being moved from. This lets the user click
+						// around the document in locations without any adaptation, examine
+						// what is there, and click to move the box elsewhere, without any
+						// copies of source text being stored to the KB (unless of course he
+						// clicks in the box or edits, etc). The PlacePhraseBox() call, for
+						// either situation, calls RecalcLayout()
+						if (pApp->m_pTargetBox->m_bAbandonable)
+						{
+							translation.Empty();
+							pApp->m_targetPhrase.Empty();
+							pApp->m_pTargetBox->ChangeValue(_T(""));
+							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
+								// is done at the leaving location, but a removal from the KB
+								// will be done at the landing location
+						}
+						else
+						{
+							pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
+								// KB access is done at both leaving and landing locations)
+						}
 						ScrollIntoView(pApp->m_nActiveSequNum);
 					}
-				} // end of block for test: pApp->m_bFreeTranslationMode
-				return;
 
-			} // end block for test: pCell->GetCellIndex() == 1
-			if (pCell->GetCellIndex() == 2)
-			{
-				return; // prevent clicks in bottom line of piles selecting or doing anything
-			}
+					// restore default button image, and m_bCopySourcePunctuation to TRUE
+					wxCommandEvent event;
+					pApp->GetView()->OnButtonEnablePunctCopy(event);
 
-			// if it's none of the above things, then just a plain old click for making a
-			// selection... so clear the old selection, then make a new one
-			if (pCell->GetCellIndex() == 0)
-			{
-b:				if (pApp->m_selection.GetCount() != 0)
-				{
-					CCellList::Node* pos = pApp->m_selection.GetFirst();
-					CCell* pOldSel;
-					while (pos != NULL)
+					CPile* pPile;
+					pPile = pView->GetPile(pApp->m_nActiveSequNum);
+					pPile = pPile; // avoid warning in release build
+					wxASSERT(pApp->m_nActiveSequNum == pPile->GetSrcPhrase()->m_nSequNumber);
+
+					// refresh status info at the bottom of the main window
+					pApp->RefreshStatusBarInfo();
+
+					// if we are in free translation mode, there is a bit more to do...
+					if (pApp->m_bFreeTranslationMode)
 					{
-						pOldSel = (CCell*)pos->GetData();
-						pos = pos->GetNext();
-						aDC.SetBackgroundMode(pApp->m_backgroundMode);
-						aDC.SetTextBackground(wxColour(255,255,255)); // white
-						pOldSel->DrawCell(&aDC, pLayout->GetSrcColor());
-						pOldSel->SetSelected(FALSE);
-					}
-					pApp->m_selection.Clear();
-					pApp->m_selectionLine = -1; // no selection
-					pApp->m_pAnchor = NULL;
+						// put the focus in the compose bar's edit box, select any text there,
+						// but only when it has been composed from the target text or gloss
+						// text; if it is preexisting then put the cursor at the end of it
+						pEditCompose->SetFocus();
+						if (pApp->m_bTargetIsDefaultFreeTrans || pApp->m_bGlossIsDefaultFreeTrans)
+						{
+							if (pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
+							{
+								// whm modified 24Aug06
+								wxString tempStr;
+								tempStr = pEditCompose->GetValue();
+								int len = tempStr.Length();
+								pEditCompose->SetSelection(len,len);
+							}
+							else
+							{
+								pEditCompose->SetSelection(-1,-1);// -1,-1 selects all
+							}
+						}
+
+						// mark the current section
+						pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
+						if (pApp->m_nActiveSequNum >= 0 &&
+												pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
+						{
+							ScrollIntoView(pApp->m_nActiveSequNum);
+						}
+					} // end of block for test: pApp->m_bFreeTranslationMode
+					return;
+
+				} // end block for test: pCell->GetCellIndex() == 1
+				if (pCell->GetCellIndex() == 2)
+				{
+					return; // prevent clicks in bottom line of piles selecting or doing anything
 				}
 
-				// then do the new selection
-a:				pApp->m_bSelectByArrowKey = FALSE;
-				aDC.SetBackgroundMode(pApp->m_backgroundMode);
-				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pCell->DrawCell(&aDC, pLayout->GetSrcColor());
-				pCell->SetSelected(TRUE);
+				// if it's none of the above things, then just a plain old click for making a
+				// selection... so clear the old selection, then make a new one
+				if (pCell->GetCellIndex() == 0)
+				{
+	b:				if (pApp->m_selection.GetCount() != 0)
+					{
+						CCellList::Node* pos = pApp->m_selection.GetFirst();
+						CCell* pOldSel;
+						while (pos != NULL)
+						{
+							pOldSel = (CCell*)pos->GetData();
+							pos = pos->GetNext();
+							aDC.SetBackgroundMode(pApp->m_backgroundMode);
+							aDC.SetTextBackground(wxColour(255,255,255)); // white
+							pOldSel->DrawCell(&aDC, pLayout->GetSrcColor());
+							pOldSel->SetSelected(FALSE);
+						}
+						pApp->m_selection.Clear();
+						pApp->m_selectionLine = -1; // no selection
+						pApp->m_pAnchor = NULL;
+					}
 
-				// preserve record of the selection
-				pApp->m_selection.Append(pCell);
-				pApp->m_selectionLine = pCell->GetCellIndex();
-				pApp->m_pAnchor = pCell;
-			} //end of block for test: pCell->GetCellIndex() == 0
+					// then do the new selection
+	a:				pApp->m_bSelectByArrowKey = FALSE;
+					aDC.SetBackgroundMode(pApp->m_backgroundMode);
+					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+					pCell->DrawCell(&aDC, pLayout->GetSrcColor());
+					pCell->SetSelected(TRUE);
 
-		} // end of else block for test: event.ShiftDown() == TRUE
-	} // end of else block for test: pCell == NULL, i.e. pCell not null
+					// preserve record of the selection
+					pApp->m_selection.Append(pCell);
+					pApp->m_selectionLine = pCell->GetCellIndex();
+					pApp->m_pAnchor = pCell;
+				} //end of block for test: pCell->GetCellIndex() == 0
 
+			} // end of else block for test: event.ShiftDown() == TRUE
+		} // end of else block for test: pCell == NULL, i.e. pCell not null
+	} // end of if (!pApp->m_bReadOnlyAccess)
+	else
+	{
+		// Read-only access is active, so if the click was not productive beep
+		if (!bClickWasProductive)
+		{
+			// The click was not productive so beep
+			::wxBell();
+		}
+	}
 	event.Skip();
 }
 

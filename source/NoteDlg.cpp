@@ -100,6 +100,9 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	pFindNextBtn = (wxButton*)FindWindowById(IDC_FIND_NEXT_BTN);
 	wxASSERT(pFindNextBtn != NULL);
 
+	pDeleteBtn = (wxButton*)FindWindowById(IDC_DELETE_BTN);
+	wxASSERT(pDeleteBtn != NULL);
+
 	wxButton* pOKButton;
 	pOKButton = (wxButton*)FindWindow(wxID_OK);
 	wxASSERT(pOKButton != NULL);
@@ -233,6 +236,14 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	// event, which now deprecated SetValue() generates.
 	pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
 	pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
+
+	// whm added 29Mar12. Disable the pMkrTextEdit box and the "Remove ..." button
+	// when in read-only mode
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		pEditNote->Disable();
+		pDeleteBtn->Disable();
+	}
 
 	int len = m_strNote.Length();
 	bool bSearchBoxHasFocus = FALSE; // BEW added 6Mar08

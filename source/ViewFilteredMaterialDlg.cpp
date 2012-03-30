@@ -231,6 +231,14 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	//pMarkers->SetFont(*pApp->m_pDlgTgtFont);
 	//pEndMarkers->SetFont(*pApp->m_pDlgTgtFont);
 	pMkrTextEdit->SetFont(*pApp->m_pDlgTgtFont);
+
+	// whm added 29Mar12. Disable the pMkrTextEdit box and the "Remove ..." button
+	// when in read-only mode
+	if (pApp->m_bReadOnlyAccess)
+	{
+		pMkrTextEdit->Disable();
+		pRemoveBtn->Disable();
+	}
 	
 	// whm note: we start by using the nav text font's encoding for the edit box
 	editBoxEncoding = pApp->m_pNavTextFont->GetEncoding(); 
