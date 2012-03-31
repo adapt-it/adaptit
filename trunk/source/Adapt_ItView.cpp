@@ -13704,10 +13704,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
             // is empty
 			bool bWantPrevCopy;
 			int punctLen;
-			if (bEmptyTarget) 
-			{
-				bEmptyTarget = FALSE;
-			}
+			// BEW 31Mar12, commented the switching of the value out, because we don't
+			// want an empty string to have punctuation prefixed or suffixed to it; so if
+			// bEmptyTarget is TRUE, let that value continue for the code which follows
+			//if (bEmptyTarget) 
+			//{
+			//	bEmptyTarget = FALSE;
+			//}
 
             // BEW added 20 April 2005 to support the use of the new No Punctuation Copy
             // button. Don't restore the TRUE value for this flag at the end of this
@@ -21014,16 +21017,19 @@ void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
 		pApp->m_nActiveSequNum >= 0)
 	{
-		if (gnOldSequNum == -1)
-			event.Enable(FALSE);
-		else
+		// BEW 26Mar12, removed the test for gnOldSequNum as it is irrelevant for whether
+		// or not to import edited source text (it's designed primarily for support of the
+		// Back button, and I think I cloned this code from elsewhere and didn't realize that
+		// this test here would wrongly prevent an import to a just-opened document in which the
+		// phrase box has not yet been moved)
+		//if (gnOldSequNum == -1)
+		//	event.Enable(FALSE);
+		//else
 			event.Enable(TRUE);
 	}
 	else
 		event.Enable(FALSE);
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
