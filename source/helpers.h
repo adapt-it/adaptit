@@ -117,6 +117,8 @@ CBString  SearchXMLFileContentForBookID(wxString FilePath);
 //int FindLocationBeforeFinalSpaces(wxString& str); // BEW added 17Jan09
 //int FindLocationAfterInitialSpaces(wxString& str); // BEW added 20Jan09
 
+bool      FileIsEmpty(wxString path);
+
 // Helpers added by Jonathan Field 2005
 wxString  ConcatenatePathBits(wxString Bit1, wxString Bit2);
 
