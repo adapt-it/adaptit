@@ -609,6 +609,57 @@ wxString ExtractSubstring(const wxString& str, int first, int last)
 }
 */
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return TRUE if file at path is empty (either zero length or 3 bytes of BOM), FALSE if file has content
+/// \param	path		-> the path to the file being checked
+/// \remarks
+/// Assumes that ::wxFileExists(path) has been called previously to verify that the file at path does exist.
+/// Checks if the length of the file at path is 3 bytes or less. If so returns TRUE, otherwise returns FALSE.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool FileIsEmpty(wxString path)
+{
+	wxLogNull logNo;
+	wxULongLong fileLen = wxFileName::GetSize(path);
+	// If file has zero bytes it is empty by definition
+	bool bIsEmpty = FALSE;
+	if (fileLen == 0 || fileLen == wxInvalidSize)
+	{
+		bIsEmpty = TRUE;
+		return bIsEmpty;
+	}
+	// If file only has 3 bytes and those bytes are "\xEF\xBB\xBF" then it is an "empty" file that has a UTF8 BOM.
+	if (fileLen == 3)
+	{
+		wxFile f(path,wxFile::read);
+		bool bOpenedOK = f.IsOpened();
+		if (!bOpenedOK)
+		{
+			// If we can't open the file assume it is "empty" since fileLen == 3
+			bIsEmpty = TRUE;
+			return bIsEmpty;
+		}
+		wxFileOffset fileLenBytes;
+		fileLenBytes= f.Length();
+		wxASSERT(fileLenBytes == 3); // should agree with wxFileName::GetSize() call above
+		// read the raw byte data into pByteBuf (char buffer on the heap)
+		char* pByteBuf = (char*)malloc(3 + 1);
+		memset(pByteBuf,0,3 + 1); // fill with nulls
+		f.Read(pByteBuf,3);
+		wxASSERT(pByteBuf[3] == '\0'); // should end in NULL
+		f.Close();
+		if (*pByteBuf == '\xEF' && *(pByteBuf+1) == '\xBB' && *(pByteBuf+2) == '\xBF')
+		{
+			bIsEmpty = TRUE;
+			return bIsEmpty;
+		}
+		free((void*)pByteBuf);
+		
+	}
+	return bIsEmpty;
+}
+
+
 /* *************************************************************************
 *
 *	Helpers added by Jonathan Field, 2005

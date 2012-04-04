@@ -31489,6 +31489,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	wxString name;
 	bool	bIsOK = TRUE;
 	bool	bSuccessful = FALSE;
+	bool	bEmptyConfigFile = FALSE;
 	wxString  strValue;
 	wxString dummy;
 
@@ -31503,6 +31504,18 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 
 	wxLogNull logNo; // avoid spurious messages from the system
 
+	wxString configType;
+	// whm Note 30Jan12. The wxString configType declaration in the line above was conflicting with the
+	// enum 'ConfigFileType configType' parameter declaration in the GetConfigurationFile() function's
+	// signature (see above). It has been this way for a long time. This had the effect that the local
+	// configType string creation would make override and turn the parameter into an empty string and
+	// thus skip the "if...else if" test below entirely. To fix it I changed the parameter name to
+	// configFType and modified it accordingly in the comparisons used in this function.
+	if (configFType == basicConfigFile)
+		configType = _("basic");
+	else if (configFType == projectConfigFile)
+		configType = _("project");
+		
 	// open the config file for reading
     // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
     // Note: Need to check if file exists, otherwise if Open fails wxWidgets' wxTextFile
@@ -31514,27 +31527,35 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 	else
 	{
+		// file exists at path.
+		// whm added 4Apr12. Check for a zero-length (empty) basic config file
+		if (FileIsEmpty(path))
+		{
+			bEmptyConfigFile = TRUE;
+		}
+		else
+		{
+
 #ifndef _UNICODE
-		// ANSI
-		bSuccessful = f.Open(path); // read ANSI file into memory
+			// ANSI
+			bSuccessful = f.Open(path); // read ANSI file into memory
 #else
-		// UNICODE
-		bSuccessful = f.Open(path, wxConvUTF8); // read UNICODE file into memory
+			// UNICODE
+			bSuccessful = f.Open(path, wxConvUTF8); // read UNICODE file into memory
+		}
 #endif
 	}
-	if (!bSuccessful)
+	if (bEmptyConfigFile)
 	{
-		wxString configType,msg;
-		// whm Note 30Jan12. The wxString configType declaration in the line above was conflicting with the
-		// enum 'ConfigFileType configType' parameter declaration in the GetConfigurationFile() function's
-		// signature (see above). It has been this way for a long time. This had the effect that the local
-		// configType string creation would make override and turn the parameter into an empty string and
-		// thus skip the "if...else if" test below entirely. To fix it I changed the parameter name to
-		// configFType and modified it accordingly in the comparisons used in this function.
-		if (configFType == basicConfigFile)
-			configType = _("basic");
-		else if (configFType == projectConfigFile)
-			configType = _("project");
+		// whm added 4Apr12. Tell user about the zero-length (empty) basic config file
+		wxString msg = _("The %s configuration file exists but it is empty (has no content). Default values will be used instead. You may need to reset some preferences by selecting Preferences... from the Edit menu.");
+		msg = msg.Format(msg, configType.c_str());
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		bIsOK = FALSE;
+	}
+	else if (!bSuccessful)
+	{
+		wxString msg;
 		msg = msg.Format(_(
 "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"),
 		configType.c_str());
@@ -31584,11 +31605,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
     // wx version: fonts are created only once in the App's OnInit(). The default font
     // color is also assigned there using wxFontData::SetColour(). If GetFontConfiguration
     // fails here the default values will be used
-	wxString configFileType,errMsg,msg;
-	if (configFType == basicConfigFile)
-		configFileType = _("basic");
-	else
-		configFileType = _("project");
+	wxString errMsg,msg;
 	msg = _(
 "Unable to read %s font data from the %s configuration file. Default values will be used instead.");
 
@@ -31598,7 +31615,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	{
 		wxString fontType = _("source");
 		errMsg = errMsg.Format(msg,
-			fontType.c_str(), configFileType.c_str());
+			fontType.c_str(), configType.c_str());
 		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
 	}
 
@@ -31608,7 +31625,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	{
 		wxString fontType = _("target");
 		errMsg = errMsg.Format(msg,
-			fontType.c_str(), configFileType.c_str());
+			fontType.c_str(), configType.c_str());
 		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
 	}
 
@@ -31618,7 +31635,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	{
 		wxString fontType = _("navigation");
 		errMsg = errMsg.Format(msg,
-			fontType.c_str(), configFileType.c_str());
+			fontType.c_str(), configType.c_str());
 		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
 	}
 
