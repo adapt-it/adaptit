@@ -38,11 +38,13 @@ public:
 	wxString m_TempCollabProjectForTargetExports;
 	wxString m_TempCollabProjectForFreeTransExports;
 	wxString m_TempCollabAIProjectName;
+	wxString m_TempCollaborationEditor;
 	wxString m_TempCollabSourceProjLangName;
 	wxString m_TempCollabTargetProjLangName;
 	bool m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxString m_TempCollabBookSelected;
+	wxString m_TempCollabChapterSelected;
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
@@ -61,6 +63,8 @@ protected:
 	bool DoSaveSetupForThisProject();
 	void OnRemoveThisAIProjectFromCollab(wxCommandEvent& WXUNUSED(event)); // whm added 23Feb12
 	void SetStateOfRemovalButton();
+	void SetPTorBEsubStringsInControls();
+	void OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event)); // whm added 4Apr12
 
 private:
 
@@ -75,8 +79,9 @@ private:
 	wxStaticText* pStaticTextSrcTextFromThisProj;
 	wxStaticText* pStaticTextTgtTextToThisProj;
 	wxStaticText* pStaticTextFtTextToThisProj;
-	wxCheckBox* pCheckPwdProtectCollabSwitching;
-	wxButton* pBtnSetPwdForCollabSwitching;
+	//wxCheckBox* pCheckPwdProtectCollabSwitching;
+	//wxButton* pBtnSetPwdForCollabSwitching;
+	wxRadioBox* pRadioBoxScriptureEditor;
 	wxListBox* pListOfProjects;
 	wxComboBox* pComboAiProjects;
 	wxButton* pBtnSelectFmListSourceProj;

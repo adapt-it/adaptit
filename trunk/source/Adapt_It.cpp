@@ -3546,7 +3546,9 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 
 	MapMenuLabelStrToIdInt::iterator iter;
 	//m_mapMenuLabelStrToIdInt.clear(); // don't call .clear() here because we've already populated the map
-	//with the untranslated menu label string-to-int associations
+	// with the untranslated menu label string-to-int associations via the earlier call of 
+	// SetupUnTranslatedMapMenuLabelStrToIdInt() in OnInit(). Here below we further populate the map
+	// with the translated menu label strings associating them with their ID ints.
 
 	if (pMenuBar == NULL)
 	{
@@ -6082,85 +6084,92 @@ wxString szWorkflowProfile = _T("WorkflowProfile");
 
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
-// "CollaboratingWithParatext". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a boolean in the App's
+// "CollaboratingWithParatext". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a boolean in the App's
 // m_bCollaboratingWithParatext member variable.
 wxString szCollaboratingWithParatext = _T("CollaboratingWithParatext");
 
 // whm added 15Apr11 for Paratext collaboration support
 // The label that identifies the following string encoded number as the application's
-// "CollaboratingWithBibledit". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a boolean in the App's
+// "CollaboratingWithBibledit". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a boolean in the App's
 // m_bCollaboratingWithBibledit member variable.
 wxString szCollaboratingWithBibledit = _T("CollaboratingWithBibledit");
 
 // whm added 15Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabProjectForSourceInputs". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabProjectForSourceInputs". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabProjectForSourceInputs member variable.
 wxString szCollabProjectForSourceInputs = _T("CollabProjectForSourceInputs");
 
 // whm added 15Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabProjectForTargetExports". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabProjectForTargetExports". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabProjectForTargetExports member variable.
 wxString szCollabProjectForTargetExports = _T("CollabProjectForTargetExports");
 
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabProjectForFreeTransExports". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabProjectForFreeTransExports". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabProjectForFreeTransExports member variable.
 wxString szCollabProjectForFreeTransExports = _T("CollabProjectForFreeTransExports");
 
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabAIProjectName". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabAIProjectName". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabAIProjectName member variable.
 wxString szCollabAIProjectName = _T("CollabAIProjectName");
 
+// whm added 4Apr12 for Paratext/Bibledit collaboration support.
+// The label that identifies the following string as the application's
+// "CollaborationEditor". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
+// m_collaborationEditor member variable.
+wxString szCollaborationEditor = _T("CollaborationEditor");
+
 // whm added 30Jun11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabExpectsFreeTrans". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabExpectsFreeTrans". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_bCollaborationExpectsFreeTrans member variable.
 wxString szCollabExpectsFreeTrans = _T("CollabExpectsFreeTrans");
 
 // whm added 27Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabBookSelected". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabBookSelected". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabBookSelected member variable.
 wxString szCollabBookSelected = _T("CollabBookSelected");
 
 // whm added 27Jul11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabByChapterOnly". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a boolean in the App's
+// "CollabByChapterOnly". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a boolean in the App's
 // m_bCollabByChapterOnly member variable.
 wxString szCollabByChapterOnly = _T("CollabByChapterOnly");
 
 // whm added 27Apr11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabChapterSelected". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabChapterSelected". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabChapterSelected member variable.
 wxString szCollabChapterSelected = _T("CollabChapterSelected");
 
 // whm added 4Sep11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabSourceLangName". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabSourceLangName". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabSourceLangName member variable.
 wxString szCollabSourceLangName = _T("CollabSourceLangName");
 
 // whm added 4Sep11 for Paratext/Bibledit collaboration support.
 // The label that identifies the following string encoded number as the application's
-// "CollabTargetLangName". This value is written in the "Settings" part of the basic
-// configuration file. Adapt It stores this value as a wxString in the App's
+// "CollabTargetLangName". This value is written in the "ProjectSettings" part
+/// of the project configuration file.  Adapt It stores this value as a wxString in the App's
 // m_CollabTargetLangName member variable.
 wxString szCollabTargetLangName = _T("CollabTargetLangName");
 
@@ -8857,22 +8866,24 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMen
 		{
 			label.Remove(0,1);
 		}
-		if (label.Find(_T("%s")) != wxNOT_FOUND)
-		{
-			wxASSERT(!m_collaborationEditor.IsEmpty());
-			label = label.Format(label,m_collaborationEditor.c_str());
-		}
+		// whm 4Apr12 removed %s from this label in wxDesigner
+		//if (label.Find(_T("%s")) != wxNOT_FOUND)
+		//{
+		//	wxASSERT(!m_collaborationEditor.IsEmpty());
+		//	label = label.Format(label,m_collaborationEditor.c_str());
+		//}
 		pAdministratorMenu->SetLabel(ID_SETUP_EDITOR_COLLABORATION,label);
 		// whm added 1Sep11
 		// now substitute "Paratext" or "Bibledit" for the %s in the menu help text
-		wxMenuItem* pCollabMenuItem = pAdministratorMenu->FindItem(ID_SETUP_EDITOR_COLLABORATION);
-		if (pCollabMenuItem != NULL)
-		{
-			label = pCollabMenuItem->GetHelp(); //_("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts")
-			wxASSERT(!m_collaborationEditor.IsEmpty());
-			label = label.Format(label,m_collaborationEditor.c_str(),m_collaborationEditor.c_str());
-			pCollabMenuItem->SetHelp(label);
-		}
+		// whm 4Apr12 removed %s instances (2) from this menu's help text in wxDesigner
+		//wxMenuItem* pCollabMenuItem = pAdministratorMenu->FindItem(ID_SETUP_EDITOR_COLLABORATION);
+		//if (pCollabMenuItem != NULL)
+		//{
+		//	label = pCollabMenuItem->GetHelp(); //_("Configure Adapt It to use a %s project for its input (source) texts, and a different %s project exporting its (target) texts")
+		//	wxASSERT(!m_collaborationEditor.IsEmpty());
+		//	label = label.Format(label,m_collaborationEditor.c_str(),m_collaborationEditor.c_str());
+		//	pCollabMenuItem->SetHelp(label);
+		//}
 	}
 
 	// MAKE MENU ACCELERATOR KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
@@ -14017,34 +14028,35 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bCollaboratingWithBibledit = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
 	m_bStartWorkUsingCollaboration = FALSE; // whm added 19Feb12
 	
-	// whm 27Mar12 Note:
-	// If Paratext is installed (either on Windows or Linux) we give priority to
-	// it as the installed external Scripture editor for collaboration. If neither
-	// Paratext nor Bibledit are installed, the m_collaborationEditor is an empty
-	// string. Since m_collaborationEditor can be an empty string, code should call 
-	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string 
+	// whm 4Apr12 modification:
+	// As of version 6.2.1 the App's m_collaborationEditor variable is stored in
+	// the project config file with the other collaboration settings. Therefore
+	// we allow the reading of a project config file to set the string value of 
+	// m_collaborationEditor, overriding whatever is set here based solely on what 
+	// editor is installed. If more than one editor is installed, the administrator
+	// can select the external Scripture editor of choice in the 
+	// SetupEditorCollaboration dialog by choosing the appropriate radio box button.
+	// If Paratext or Bibledit is currently installed we set a default editor name
+	// here, giving Paratext preference if it is installed. We set it here because 
+	// when the SetupEditorCollaboration dialog is invoked, no project will be open
+	// and we won't know initially what editor may be preferred for a given AI project
+	// until the administrator selects an AI project at Step 1 in the dialog. This
+	// default assigned here will at least provide something other than %s for the
+	// string substitutions in the dialog's controls when it first appears and before
+	// the administrator selects an existing AI project.
+	// 
+	// If neither Paratext nor Bibledit are installed, the m_collaborationEditor is 
+	// an empty string. Since m_collaborationEditor can be an empty string, code should 
+	// call wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string 
 	// substitutions.
 	if (m_bParatextIsInstalled)
 	{
-        m_collaborationEditor = _T("Paratext"); // default editor
+	     m_collaborationEditor = _T("Paratext"); // default editor
 	}
 	else if (m_bBibleditIsInstalled)
 	{
-        m_collaborationEditor = _T("Bibledit"); // don't localize
+	     m_collaborationEditor = _T("Bibledit"); // don't localize
 	}
-
-	// edb replaced with block above 19Mar12
-	/*
-#ifdef __WXGTK__
-	m_collaborationEditor = _T("Bibledit"); // don't localize
-#endif
-#ifdef __WXMAC__
-	m_collaborationEditor = _T("Bibledit"); // don't localize
-#endif
-#ifdef __WXMSW__
-	m_collaborationEditor = _T("Paratext"); // default editor
-#endif
-*/
 	m_CollabProjectForSourceInputs = _T("");
 	m_CollabProjectForTargetExports = _T("");
 	m_CollabProjectForFreeTransExports = _T("");
@@ -29495,6 +29507,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szCollabAIProjectName << tab << m_CollabAIProjectName; //strCollabValueToUse;
 	pf->AddLine(data);
 
+	data.Empty();
+	data << szCollaborationEditor << tab << m_collaborationEditor; // whm added 4Apr12
+	pf->AddLine(data);
+
 	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
 	/*
 	// whm 23Jan11 added
@@ -30399,6 +30415,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			//								// saving value to basic config file after -ai_proj was used to
 			//								// force the project name from the command-line.
 			//}
+		}
+		else if (name == szCollaborationEditor) // whm added 4Apr12
+		{
+			m_collaborationEditor = strValue;
 		}
 		else if (name == szCollabExpectsFreeTrans) // whm added 9Aug11
 		{
