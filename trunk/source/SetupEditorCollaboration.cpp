@@ -75,7 +75,7 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 	EVT_RADIOBUTTON(ID_RADIO_BY_CHAPTER_ONLY, CSetupEditorCollaboration::OnRadioBtnByChapterOnly)
 	EVT_RADIOBUTTON(ID_RADIO_BY_WHOLE_BOOK, CSetupEditorCollaboration::OnRadioBtnByWholeBook)
 	EVT_COMBOBOX(ID_COMBO_AI_PROJECTS, CSetupEditorCollaboration::OnComboBoxSelectAiProject)
-	EVT_RADIOBOX(ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, OnRadioBoxSelectBtn)
+	EVT_RADIOBOX(ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR, CSetupEditorCollaboration::OnRadioBoxSelectBtn)
 	// ... other menu, button or control events
 END_EVENT_TABLE()
 
