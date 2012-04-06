@@ -1263,12 +1263,28 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	// Substitute string in the "Use this dialog..." top static text
 	wxString text;
 	text = pStaticTextUseThisDialog->GetLabel();
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextUseThisDialog->SetLabel(text);
 	pStaticTextUseThisDialog->Refresh();
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	int posP = text.Find(_T('('));
 	if (posP != wxNOT_FOUND)
 	{
@@ -1286,6 +1302,14 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 
 	// Substitute strings in the "Important" read-only edit box
 	text = pTextCtrlAsStaticTopNote->GetValue(); // text has four %s sequences
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text, m_TempCollaborationEditor.c_str(), 
 		m_TempCollaborationEditor.c_str(), m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
 	pTextCtrlAsStaticTopNote->ChangeValue(text);
@@ -1293,24 +1317,56 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 
 	// Substitute strings in the static text of step 3
 	text = pStaticTextSelectWhichProj->GetLabel();
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextSelectWhichProj->SetLabel(text);
 	pStaticTextSelectWhichProj->Refresh();
 	
 	// Substitute string in the "Get source texts from..." static text
 	text = pStaticTextSrcTextFromThisProj->GetLabel();
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextSrcTextFromThisProj->SetLabel(text);
 	pStaticTextSrcTextFromThisProj->Refresh();
 
 	// Substitute string in the "Transfer translation drafts to..." static text
 	text = pStaticTextTgtTextToThisProj->GetLabel();
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextTgtTextToThisProj->SetLabel(text);
 	pStaticTextTgtTextToThisProj->Refresh();
 
 	// Substitute string in the "Transfer free translations to..." static text
 	text = pStaticTextFtTextToThisProj->GetLabel();
+	// whm Note: The control's label text may have already been substituted in which 
+	// case there would be no $s to use in the .Format() statement. If substitutions
+	// have already been done, just find and replace the "Paratext" or "Bibledit" 
+	// substring with the current value for m_TempCollaborationEditor. 
+	if (text.Find(_T("Paratext")) != wxNOT_FOUND)
+		text.Replace(_T("Paratext"),m_TempCollaborationEditor);
+	if (text.Find(_T("Bibledit")) != wxNOT_FOUND)
+		text.Replace(_T("Bibledit"),m_TempCollaborationEditor);
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextFtTextToThisProj->SetLabel(text);
 	pStaticTextFtTextToThisProj->Refresh();
