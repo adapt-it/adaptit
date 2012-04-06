@@ -571,7 +571,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	wxASSERT(bareChapterSelectedStr == derivedChStr);
 
 	// do sanity check on AI project name and source and target language names
-	wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
 	m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);
 	wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
 	// save new project selection to the App's variables for writing to config file
@@ -1266,6 +1265,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
 	else
 	{
+		// As of version 6.1.x, this block should never be entered. Collaboration is now on a project-by-project
+		// basis and GetSourceTextFromEditor() should only be called via an existing project.
+		wxString msg = _T("In GetSourceTextFromEditor::OnOK() entered else block of if (bCollaborationUsingExistingAIProject) - programming error for version 6.2.x!");
+		wxCHECK_RET(FALSE,msg);
         // The Paratext/Bibledit project selected for source text and target texts do not
         // yet exist as a previously created AI project in the user's work folder, so we
         // need to create the AI project using information contained in the
