@@ -313,6 +313,7 @@ void CSetupEditorCollaboration::DoInit()
 	if (!strSelection.IsEmpty())
 	{
 		pComboAiProjects->Remove(0,strSelection.Length());
+		pComboAiProjects->Refresh();
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	
@@ -1207,6 +1208,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (!strSelection.IsEmpty())
 	{
 		pComboAiProjects->Remove(0,strSelection.Length());
+		pComboAiProjects->Refresh();
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
@@ -1297,6 +1299,7 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	if (!strSelection.IsEmpty())
 	{
 		pComboAiProjects->Remove(0,strSelection.Length());
+		pComboAiProjects->Refresh();
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
