@@ -1256,6 +1256,7 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	text = pStaticTextUseThisDialog->GetLabel();
 	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
 	pStaticTextUseThisDialog->SetLabel(text);
+	pStaticTextUseThisDialog->Refresh();
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
@@ -1266,32 +1267,40 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 		text += _("(name)");
 	pStaticTextListOfProjects->SetLabel(text);
+	pStaticTextListOfProjects->Refresh();
 
 	// Substitute strings in the "Important" read-only edit box
 	text = pTextCtrlAsStaticTopNote->GetValue(); // text has four %s sequences
 	text = text.Format(text, m_TempCollaborationEditor.c_str(), 
 		m_TempCollaborationEditor.c_str(), m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
 	pTextCtrlAsStaticTopNote->ChangeValue(text);
+	pTextCtrlAsStaticTopNote->Refresh();
 
 	// Substitute strings in the static text of step 3
 	text = pStaticTextSelectWhichProj->GetLabel();
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextSelectWhichProj->SetLabel(text);
+	pStaticTextSelectWhichProj->Refresh();
 	
 	// Substitute string in the "Get source texts from..." static text
 	text = pStaticTextSrcTextFromThisProj->GetLabel();
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextSrcTextFromThisProj->SetLabel(text);
+	pStaticTextSrcTextFromThisProj->Refresh();
 
 	// Substitute string in the "Transfer translation drafts to..." static text
 	text = pStaticTextTgtTextToThisProj->GetLabel();
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextTgtTextToThisProj->SetLabel(text);
+	pStaticTextTgtTextToThisProj->Refresh();
 
 	// Substitute string in the "Transfer free translations to..." static text
 	text = pStaticTextFtTextToThisProj->GetLabel();
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextFtTextToThisProj->SetLabel(text);
+	pStaticTextFtTextToThisProj->Refresh();
+
+	pSetupEditorCollabSizer->Layout();
 }
 
 void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event))
