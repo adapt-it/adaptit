@@ -41943,7 +41943,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 {
 	wxArrayString tempListOfBEProjects, tempListOfAllBEProjects;
 	tempListOfBEProjects.Clear();
-	tempListOfAllBEProjects.Clear();
+  	tempListOfAllBEProjects.Clear();
 	// deallocate any memory for items currently in list on heap
 	int aTot = (int)m_pArrayOfCollabProjects->GetCount();
 	if (aTot > 0)
