@@ -780,6 +780,17 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	
 	// Don't set m_bCollabChangedThisDlgSession to TRUE in this handler for merely selecting an existing project
 
+	// Refresh the list of PT/BE projects
+	projList.Clear();
+	if (m_TempCollaborationEditor == _T("Paratext"))
+	{
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
+	{
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+
 	wxString errorStr = _T("");
 	// CollabProjectsAreValid() doesn't consider any empty string projects to be invalid, only those non-empty
 	// string parameters that don't have at least one book created in them. Therefore, selecting an AI
@@ -1299,5 +1310,4 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
 		m_TempCollaborationEditor = _T("Bibledit");
 	}
 	DoInit();
-	SetPTorBEsubStringsInControls();
 }
