@@ -164,6 +164,8 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pBtnClose = (wxButton*)FindWindowById(wxID_OK); // the Close button uses the wxID_OK event id
 	wxASSERT(pBtnClose != NULL);
 
+	this->Hide();
+
 	// We have no Cancel button so no need to reverse buttons
 	//bool bOK;
 	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
@@ -194,6 +196,8 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 			m_pApp->GetView()->CloseProject();
 		}
 	}
+
+	this->Show();
 
 	m_bCollabChangedThisDlgSession = FALSE;
 	
@@ -1034,7 +1038,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	// Check if the administrator has selected an AI project from the combo list of AI projects (step 1). If
 	// not inform him that step 1 is necessary to identify an AI project for hookup to during collaboration
 	// so that AI can save the collaboration settings for that project.
-	if (pComboAiProjects->GetSelection() == -1 || m_TempCollabSourceProjLangName.IsEmpty() || m_TempCollabTargetProjLangName.IsEmpty())
+	if (pComboAiProjects->GetSelection() == -1)
 	{
 		wxString msg, msg1, msgTitle;
 		msg1 = _("Please select an existing Adapt It project or create a new one in step 1.");
