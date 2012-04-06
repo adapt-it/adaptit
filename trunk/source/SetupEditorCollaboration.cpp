@@ -1269,6 +1269,9 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
+	int posP = text.Find(_T('('));
+	if (posP != wxNOT_FOUND)
+		text = text.Mid(0,text.Find(_T('('))); // get only text before '(' to remove any old parenthetical text
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	text += _T(' ');
 	if (m_TempCollaborationEditor == _T("Paratext"))
