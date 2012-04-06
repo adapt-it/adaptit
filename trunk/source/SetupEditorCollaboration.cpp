@@ -286,6 +286,7 @@ void CSetupEditorCollaboration::DoInit()
 	}
 	else
 	{
+		// repopulate the pListOfProjects
 		pListOfProjects->Clear();
 		int i;
 		for (i = 0; i < nProjectCount; i++)
@@ -294,7 +295,6 @@ void CSetupEditorCollaboration::DoInit()
 			tempStr = projList.Item(i);
 			pListOfProjects->Append(tempStr);
 		}
-
 	}
 
 	// Get a potential list/array of AI projects for the pComboAiProjects combo box.
@@ -813,6 +813,7 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	// Don't set m_bCollabChangedThisDlgSession to TRUE in this handler for merely selecting an existing project
 
 	// Refresh the list of PT/BE projects
+	int nProjectCount = 0;
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
@@ -821,6 +822,27 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	nProjectCount = (int)projList.GetCount();
+	
+	// Check for at least two usable PT projects in list
+	if (nProjectCount < 2)
+	{
+		// error: PT/BE is not set up with enough projects for collaboration
+		// this error will be reported when the administrator clicks on the "Save
+		// Setup for this Collaboration Project Now" button.
+	}
+	else
+	{
+		// repopulate the pListOfProjects
+		pListOfProjects->Clear();
+		int i;
+		for (i = 0; i < nProjectCount; i++)
+		{
+			wxString tempStr;
+			tempStr = projList.Item(i);
+			pListOfProjects->Append(tempStr);
+		}
 	}
 
 	wxString errorStr = _T("");
