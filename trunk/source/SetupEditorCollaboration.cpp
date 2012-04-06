@@ -722,6 +722,14 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 					m_TempCollaborationEditor = _T("Bibledit");
 			}
 		}
+		if (!m_TempCollabAIProjectName.IsEmpty() && (this->m_TempCollabSourceProjLangName.IsEmpty() || this->m_TempCollabTargetProjLangName.IsEmpty()))
+		{
+			// Do sanity check to insure the m_TempCollabSourceProjLangName and m_TempCollabTargetLangName
+			// values are consistent with those used in the m_TempCollabAIProjectName.
+			// The AI project name is defined, but the individual source and/or target language names for
+			// the project are empty, so parse them from the language name.
+			GetAILangNamesFromAIProjectNames(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);
+		}
 	}
 	else
 	{
@@ -1000,8 +1008,9 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			pComboAiProjects->SetSelection(nNewProjIndex);
 			// fill out the Temp variables we know about
 			m_TempCollabAIProjectName = m_pApp->m_curProjectName;
-			this->m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
-			this->m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
+			wxASSERT(pComboAiProjects->GetStringSelection() == m_TempCollabAIProjectName);
+			m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);
+			wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
 			SetStateOfRemovalButton();
 			// confirm to the user that the project was created
 			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
@@ -1097,6 +1106,8 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		}
 	}
 
+	wxASSERT(!m_TempCollabAIProjectName.IsEmpty());
+	GetAILangNamesFromAIProjectNames(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,m_TempCollabTargetProjLangName);
 	wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
 	
 	// Check to see if book folder mode is activated. If so, warn the administrator that it
