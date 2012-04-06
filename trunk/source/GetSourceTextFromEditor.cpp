@@ -570,6 +570,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
 	wxASSERT(bareChapterSelectedStr == derivedChStr);
 
+	// do sanity check on AI project name and source and target language names
+	wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty()) && !m_TempCollabTargetProjLangName.IsEmpty());
+	m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);
+	wxASSERT(!m_TempCollabSourceProjLangName.IsEmpty() && !m_TempCollabTargetProjLangName.IsEmpty());
 	// save new project selection to the App's variables for writing to config file
 	// BEW 1Aug11, moved this block of assignments to after bareChapterSelectedStr is set
 	// just above, otherwise the value that m_CollabChapterSelected is that which came
