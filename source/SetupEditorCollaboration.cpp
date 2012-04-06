@@ -87,7 +87,7 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pSetupEditorCollabSizer = SetupCollaborationBetweenAIandEditorFunc(this, TRUE, TRUE);
+	pSetupEditorCollabSizer = SetupCollaborationBetweenAIandEditorFunc(this, FALSE, TRUE); // second param FALSE enables resize);
 	// The declaration is: SetupParatextCollaborationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -310,6 +310,15 @@ void CSetupEditorCollaboration::DoInit()
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+	
+	pSetupEditorCollabSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ChooseCollabOptionsDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pSetupEditorCollabSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event))
@@ -1254,7 +1263,7 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	// Substitute string in the "Use this dialog..." top static text
 	wxString text;
 	text = pStaticTextUseThisDialog->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextUseThisDialog->SetLabel(text);
 	pStaticTextUseThisDialog->Refresh();
 
@@ -1299,8 +1308,6 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextFtTextToThisProj->SetLabel(text);
 	pStaticTextFtTextToThisProj->Refresh();
-
-	pSetupEditorCollabSizer->Layout();
 }
 
 void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(event))
