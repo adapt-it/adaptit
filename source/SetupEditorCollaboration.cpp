@@ -313,9 +313,9 @@ void CSetupEditorCollaboration::DoInit()
 	if (!strSelection.IsEmpty())
 	{
 		pComboAiProjects->Remove(0,strSelection.Length());
-		pComboAiProjects->Refresh();
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+	pComboAiProjects->Refresh();
 	
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
@@ -1208,9 +1208,9 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	if (!strSelection.IsEmpty())
 	{
 		pComboAiProjects->Remove(0,strSelection.Length());
-		pComboAiProjects->Refresh();
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+	pComboAiProjects->Refresh();
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
@@ -1299,9 +1299,9 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	if (!strSelection.IsEmpty())
 	{
 		pComboAiProjects->Remove(0,strSelection.Length());
-		pComboAiProjects->Refresh();
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
+	pComboAiProjects->Refresh();
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
