@@ -311,6 +311,10 @@ void CSetupEditorCollaboration::DoInit()
 	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	
+	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
+	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
+	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
+
 	pSetupEditorCollabSizer->Layout();
 	// The second radio button's label text is likely going to be truncated unless we resize the
 	// dialog to fit it. Note: The constructor's call of ChooseCollabOptionsDlgFunc(this, FALSE, TRUE)
