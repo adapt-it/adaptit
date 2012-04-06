@@ -8659,7 +8659,7 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
 
     item27->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY );
+    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY );
     item28->SetToolTip( _("Use the button at right to select a default project for user to obtain source texts") );
     item27->Add( item28, 0, wxGROW|wxALL, 0 );
 
@@ -8691,7 +8691,7 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
 
     item34->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item35 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_TGT_PROJ, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY );
+    wxTextCtrl *item35 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_TGT_PROJ, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY );
     item35->SetToolTip( _("Use the button at right to select a default project for user where translated texts will be transferred") );
     item34->Add( item35, 0, wxGROW|wxALL, 0 );
 
@@ -8714,7 +8714,7 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
 
     item39->Add( 15, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item40 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_FREE_TRANS_PROJ, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY );
+    wxTextCtrl *item40 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_SELECTED_FREE_TRANS_PROJ, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY );
     item40->SetToolTip( _("Use the button at right to select a default project for user where free translation texts will be transferred") );
     item39->Add( item40, 0, wxGROW|wxALL, 0 );
 
