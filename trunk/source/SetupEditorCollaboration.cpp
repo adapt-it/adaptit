@@ -309,6 +309,11 @@ void CSetupEditorCollaboration::DoInit()
 	{
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
 	}
+	wxString strSelection = pComboAiProjects->GetStringSelection();
+	if (!strSelection.IsEmpty())
+	{
+		pComboAiProjects->Remove(0,strSelection.Length());
+	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
@@ -1198,6 +1203,11 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	m_TempCollabChapterSelected = _T("");
 	
 	// Zero out all fields so the dialog is ready for another setup if desired
+	wxString strSelection = pComboAiProjects->GetStringSelection();
+	if (!strSelection.IsEmpty())
+	{
+		pComboAiProjects->Remove(0,strSelection.Length());
+	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
@@ -1283,6 +1293,11 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	m_TempCollabChapterSelected = _T("");
 	
 	// Zero out all fields so the dialog is ready for another setup if desired
+	wxString strSelection = pComboAiProjects->GetStringSelection();
+	if (!strSelection.IsEmpty())
+	{
+		pComboAiProjects->Remove(0,strSelection.Length());
+	}
 	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
