@@ -770,6 +770,14 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 	// if available, giving preference to Paratext
 	if (m_TempCollaborationEditor.IsEmpty())
 	{
+		// m_TempCollaborationEditor is empty so make empty the m_TempCollabProjectFor... variables too
+		// since they may not be up to date - user will have to select from updated list of projects
+		m_TempCollabProjectForSourceInputs.Empty();
+		m_TempCollabProjectForTargetExports.Empty();
+		m_TempCollabProjectForFreeTransExports.Empty();
+		// The text controls will be updated with the empty values below
+		
+		// Assign a default editor so the text substitutions for
 		if (m_pApp->ParatextIsInstalled())
 		{
 		     m_TempCollaborationEditor = _T("Paratext"); // default editor
@@ -778,6 +786,17 @@ void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUS
 		{
 		     m_TempCollaborationEditor = _T("Bibledit"); // don't localize
 		}
+	}
+
+	if (m_TempCollaborationEditor == _T("Paratext"))
+	{
+		// set the "Paratext" radio box button
+		pRadioBoxScriptureEditor->SetSelection(0);
+	}
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
+	{
+		// set the "Bibledit" radio box button
+		pRadioBoxScriptureEditor->SetSelection(1);
 	}
 
 	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
