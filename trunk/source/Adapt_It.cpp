@@ -38381,6 +38381,24 @@ void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
 void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 {
 	LogUserAction(_T("Initiated OnSetupEditorCollaboration()"));
+
+	// whm 6Apr12 moved here from the InitDialog() of the CSetupEditorCollaboration class. Avoids having the
+	// SetupEditorCollaboration dialog appear in the background while the following prompt is displaying.
+	if (IsAIProjectOpen())
+	{
+		// whm Note: for the following block we use the App's m_collaborationEditor value instead of
+		// our local m_TempCollaborationEditor which below this block is initialized to a null string.
+		wxASSERT(!m_collaborationEditor.IsEmpty());
+		CAdapt_ItView* pView = GetView();
+		if (pView != NULL)
+		{
+			wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
+			msg = msg.Format(msg,m_curProjectName.c_str(),m_collaborationEditor.c_str());
+			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+			pView->CloseProject();
+		}
+	}
+	
 	CSetupEditorCollaboration dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{

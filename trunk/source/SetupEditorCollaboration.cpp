@@ -180,20 +180,20 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	
-	if (m_pApp->IsAIProjectOpen())
-	{
-		// whm Note: for the following block we use the App's m_collaborationEditor value instead of
-		// our local m_TempCollaborationEditor which below this block is initialized to a null string.
-		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
-		CAdapt_ItView* pView = m_pApp->GetView();
-		if (pView != NULL)
-		{
-			wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
-			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(),m_pApp->m_collaborationEditor.c_str());
-			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
-			m_pApp->GetView()->CloseProject();
-		}
-	}
+	//if (m_pApp->IsAIProjectOpen())
+	//{
+	//	// whm Note: for the following block we use the App's m_collaborationEditor value instead of
+	//	// our local m_TempCollaborationEditor which below this block is initialized to a null string.
+	//	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+	//	CAdapt_ItView* pView = m_pApp->GetView();
+	//	if (pView != NULL)
+	//	{
+	//		wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
+	//		msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(),m_pApp->m_collaborationEditor.c_str());
+	//		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	//		m_pApp->GetView()->CloseProject();
+	//	}
+	//}
 
 	m_bCollabChangedThisDlgSession = FALSE;
 	
