@@ -80,7 +80,7 @@ BEGIN_EVENT_TABLE(CSetupEditorCollaboration, AIModalDialog)
 END_EVENT_TABLE()
 
 CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog constructor
-: AIModalDialog(parent, -1, _("Setup %s Collaboration"),
+: AIModalDialog(parent, -1, _("Setup Collaboration"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -179,9 +179,12 @@ CSetupEditorCollaboration::~CSetupEditorCollaboration() // destructor
 void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+	
 	if (m_pApp->IsAIProjectOpen())
 	{
+		// whm Note: for the following block we use the App's m_collaborationEditor value instead of
+		// our local m_TempCollaborationEditor which below this block is initialized to a null string.
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		CAdapt_ItView* pView = m_pApp->GetView();
 		if (pView != NULL)
 		{
@@ -191,44 +194,49 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 			m_pApp->GetView()->CloseProject();
 		}
 	}
-	
-	wxString curTitle = this->GetTitle();
-	curTitle = curTitle.Format(curTitle,m_pApp->m_collaborationEditor.c_str());
-	this->SetTitle(curTitle);
-	
-	// whm revised 24Feb12. We now start the SetupEditorCollaboration dialog
-	// with the following initial setup:
-	// 1. No Adapt It project selected in the step 1 combo box
-	// 2. The possible PT/BE projects listed in step 2 (no change in this revision)
-	// 3. The edit boxes in step 3 are blank and "Get by Chapter Only" radio button selected.
-	// 
-	// Initialze the m_Temp... and m_bTemp... variables for above initial setup:
-	// Note: m_bTempCollaboratingWithParatext and m_bTempCollaboratingWithBibledit are 
-	// no longer used in SetupEditorCollaboration because the switching of collaboration
-	// ON or OFF is now done by the user from the ProjectPage of the wizard.
-	m_TempCollabProjectForSourceInputs = _T("");
-	m_TempCollabProjectForTargetExports = _T("");
-	m_TempCollabProjectForFreeTransExports = _T("");
-	m_TempCollabAIProjectName = _T("");
-	m_TempCollaborationEditor = _T("");
-	m_bTempCollaborationExpectsFreeTrans = FALSE;
-	m_TempCollabBookSelected = _T("");
-	m_TempCollabChapterSelected = _T("");
-	m_TempCollabSourceProjLangName = _T("");
-	m_TempCollabTargetProjLangName = _T("");
-	m_bTempCollabByChapterOnly = TRUE;
 
 	m_bCollabChangedThisDlgSession = FALSE;
 	
+	// For InitDialog() empty the m_TempCollabAIProjectName
+	m_TempCollabAIProjectName = _T("");
+	
+	DoInit(); // empties m_Temp... variables for a new collab setup
+}
+
+void CSetupEditorCollaboration::DoInit()
+{
+	// DoInit() is called in the dialog's InitiDialog() handler and also in the OnRadioBoxSelectBtn()
+	// handler.
+
+	// whm revised 5Apr12. We now start the SetupEditorCollaboration dialog
+	// with the following initial setup:
+	// 1. No Adapt It project selected in the step 1 combo box.
+	// 2. The possible PT/BE projects listed in step 2 (no change in this revision).
+	// 3. The "Get by Chapter Only" radio button in Step 3 is selected.
+	// 4. The edit boxes in step 3 are set blank/empty.
+
+	// zero out the local Temp... variables as we did in OnInit()
+	m_TempCollabProjectForSourceInputs = _T("");
+	m_TempCollabProjectForTargetExports = _T("");
+	m_TempCollabProjectForFreeTransExports = _T("");
+	// m_TempCollabAIProjectName // can stay set to its current value - user sets it in OnComboBoxSelectAiProject()
+	m_TempCollaborationEditor = m_pApp->m_collaborationEditor; // can stay set to its App value - user can set it in OnRadioBoxSelectBtn()
+	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
+	m_TempCollabBookSelected = _T("");
+	m_TempCollabSourceProjLangName = _T("");
+	m_TempCollabTargetProjLangName = _T("");
+	m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
+	m_TempCollabChapterSelected = _T("");
+	
 	SetStateOfRemovalButton(); // disables the Remov... button when m_TempCollabAIProjectName is empty
 	
-	SetPTorBEsubStringsInControls(); // whm added 4Apr12
-
+	SetPTorBEsubStringsInControls(); // whm added 4Apr12. Sets %s substitutions with m_TempCollaborationEditor
+	
 	// whm added 28Jan12 after moving the "Get by Chapter Only" and "Get by Whole Book" 
 	// radio buttons here from the GetSourceTextFromEditor dialog.
 	// Initialize the "Get by Chapter Only" and "Get by Whole Book" radio buttons
-	pRadioBtnByChapterOnly->SetValue(m_bTempCollabByChapterOnly);
-	pRadioBtnByWholeBook->SetValue(!m_bTempCollabByChapterOnly);
+	pRadioBtnByChapterOnly->SetValue(TRUE);
+	pRadioBtnByWholeBook->SetValue(FALSE);
 
 	// whm added 4Apr12 for selection of scripture editor.
 	// Note: The SetupEditorCollaboration dialog will only be accessible from the
@@ -241,11 +249,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	if (!m_pApp->m_bBibleditIsInstalled)
 		pRadioBoxScriptureEditor->Enable(1,FALSE);
 	
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
 		pRadioBoxScriptureEditor->SetSelection(0);
 	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		pRadioBoxScriptureEditor->SetSelection(1);
 	}
@@ -258,11 +266,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	int nProjectCount = 0;
 	// get list of PT/BE projects
 	projList.Clear();
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
 		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
 		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
@@ -299,6 +307,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	{
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
 	}
+	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
 }
 
 void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event))
@@ -1237,38 +1246,38 @@ void CSetupEditorCollaboration::SetPTorBEsubStringsInControls()
 
 	// Substitute strings in the static text above the list box
 	text = pStaticTextListOfProjects->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	text += _T(' ');
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
+	if (m_TempCollaborationEditor == _T("Paratext"))
 		text += _("(name : full name: language : code)");
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
 		text += _("(name)");
 	pStaticTextListOfProjects->SetLabel(text);
 
 	// Substitute strings in the "Important" read-only edit box
 	text = pTextCtrlAsStaticTopNote->GetValue(); // text has four %s sequences
-	text = text.Format(text, m_pApp->m_collaborationEditor.c_str(), 
-		m_pApp->m_collaborationEditor.c_str(), m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text, m_TempCollaborationEditor.c_str(), 
+		m_TempCollaborationEditor.c_str(), m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
 	pTextCtrlAsStaticTopNote->ChangeValue(text);
 
 	// Substitute strings in the static text of step 3
 	text = pStaticTextSelectWhichProj->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextSelectWhichProj->SetLabel(text);
 	
 	// Substitute string in the "Get source texts from..." static text
 	text = pStaticTextSrcTextFromThisProj->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextSrcTextFromThisProj->SetLabel(text);
 
 	// Substitute string in the "Transfer translation drafts to..." static text
 	text = pStaticTextTgtTextToThisProj->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextTgtTextToThisProj->SetLabel(text);
 
 	// Substitute string in the "Transfer free translations to..." static text
 	text = pStaticTextFtTextToThisProj->GetLabel();
-	text = text.Format(text,m_pApp->m_collaborationEditor.c_str());
+	text = text.Format(text,m_TempCollaborationEditor.c_str());
 	pStaticTextFtTextToThisProj->SetLabel(text);
 }
 
@@ -1287,5 +1296,6 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
 		// "Bibledit" button selected
 		m_TempCollaborationEditor = _T("Bibledit");
 	}
+	DoInit();
 	SetPTorBEsubStringsInControls();
 }

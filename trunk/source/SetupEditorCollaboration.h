@@ -50,6 +50,7 @@ public:
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	void DoInit();
 	void OnClose(wxCommandEvent& event); // void OnOK(wxCommandEvent& event);
 	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
