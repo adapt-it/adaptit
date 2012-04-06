@@ -199,6 +199,7 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	
 	// For InitDialog() empty the m_TempCollabAIProjectName
 	m_TempCollabAIProjectName = _T("");
+	m_TempCollaborationEditor = m_pApp->m_collaborationEditor;
 	
 	DoInit(); // empties m_Temp... variables for a new collab setup
 }
@@ -220,7 +221,7 @@ void CSetupEditorCollaboration::DoInit()
 	m_TempCollabProjectForTargetExports = _T("");
 	m_TempCollabProjectForFreeTransExports = _T("");
 	// m_TempCollabAIProjectName // can stay set to its current value - user sets it in OnComboBoxSelectAiProject()
-	m_TempCollaborationEditor = m_pApp->m_collaborationEditor; // can stay set to its App value - user can set it in OnRadioBoxSelectBtn()
+	// m_TempCollaborationEditor // can stay set to its App value - user can set it in OnRadioBoxSelectBtn()
 	m_bTempCollaborationExpectsFreeTrans = FALSE; // defaults to FALSE for no free trans
 	m_TempCollabBookSelected = _T("");
 	m_TempCollabSourceProjLangName = _T("");
