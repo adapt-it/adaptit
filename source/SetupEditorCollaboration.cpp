@@ -286,6 +286,7 @@ void CSetupEditorCollaboration::DoInit()
 	}
 	else
 	{
+		pListOfProjects->Clear();
 		int i;
 		for (i = 0; i < nProjectCount; i++)
 		{
