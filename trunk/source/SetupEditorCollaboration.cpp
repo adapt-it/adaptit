@@ -201,6 +201,18 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 	m_TempCollabAIProjectName = _T("");
 	m_TempCollaborationEditor = m_pApp->m_collaborationEditor;
 	
+	// Get a potential list/array of AI projects for the pComboAiProjects combo box.
+	wxArrayString aiProjectNamesArray;
+	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
+	aiProjectNamesArray.Sort();
+	// Clear the combo box and load the sorted list of ai projects into it.
+	pComboAiProjects->Clear();
+	int ct;
+	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
+	{
+		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
+	}
+	
 	DoInit(); // empties m_Temp... variables for a new collab setup
 }
 
@@ -296,27 +308,9 @@ void CSetupEditorCollaboration::DoInit()
 			pListOfProjects->Append(tempStr);
 		}
 	}
+	
+	// We don't need to change any pComboAiProjects selection here in DoInit().
 
-	// Get a potential list/array of AI projects for the pComboAiProjects combo box.
-	wxArrayString aiProjectNamesArray;
-	m_pApp->GetPossibleAdaptionProjects(&aiProjectNamesArray);
-	aiProjectNamesArray.Sort();
-	
-	// Clear the combo box and load the sorted list of ai projects into it.
-	pComboAiProjects->Clear();
-	int ct;
-	for (ct = 0; ct < (int)aiProjectNamesArray.GetCount(); ct++)
-	{
-		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
-	}
-	wxString strSelection = pComboAiProjects->GetStringSelection();
-	if (!strSelection.IsEmpty())
-	{
-		pComboAiProjects->Remove(0,strSelection.Length());
-	}
-	pComboAiProjects->SetSelection(-1); // remove any selection from the combo box
-	pComboAiProjects->Refresh();
-	
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
