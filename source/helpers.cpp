@@ -641,6 +641,7 @@ bool FileIsEmpty(wxString path)
 		}
 		wxFileOffset fileLenBytes;
 		fileLenBytes= f.Length();
+		fileLenBytes = fileLenBytes; // to avoid compiler "set but not used" warning in release build
 		wxASSERT(fileLenBytes == 3); // should agree with wxFileName::GetSize() call above
 		// read the raw byte data into pByteBuf (char buffer on the heap)
 		char* pByteBuf = (char*)malloc(3 + 1);
