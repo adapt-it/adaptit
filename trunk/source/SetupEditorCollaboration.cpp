@@ -164,8 +164,6 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	pBtnClose = (wxButton*)FindWindowById(wxID_OK); // the Close button uses the wxID_OK event id
 	wxASSERT(pBtnClose != NULL);
 
-	this->Hide();
-
 	// We have no Cancel button so no need to reverse buttons
 	//bool bOK;
 	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
@@ -196,8 +194,6 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 			m_pApp->GetView()->CloseProject();
 		}
 	}
-
-	this->Show();
 
 	m_bCollabChangedThisDlgSession = FALSE;
 	
