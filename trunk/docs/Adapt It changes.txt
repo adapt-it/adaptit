@@ -4,8 +4,15 @@ Version 6.2.1 release 20 April 2012
 ----------------------------------------------
 Feature changes and new features in 6.2.1
 ----------------------------------------------
+* The "Setup Collaboration" dialog now detects situations in
+which both Paratext and Bibledit are installed on the same
+computer, and allows the administrator to select the preferred
+Scripture editor for collaboration with Adapt It. The selected
+editor is remembered from session to session. This change is
+in preparation for the future release of Paratext for Linux 
+(running as a .NET application under mono).
 * The read-only mode that can be selected by an advisor or
-consultant, previously allowed changes to be made (but not 
+consultant, previously allowed some changes to be made (but not 
 saved) to the document being viewed in read-only mode. Any 
 such appearance of changes being possible could potentially 
 mislead some users to think such changes would actually be 
@@ -26,14 +33,27 @@ updated.
 ----------------------------------------------
 Bug fixes in 6.2.1
 ----------------------------------------------
-* If when setting up collaboration with Paratext or Bibledit
+* The setup of collaboration between Adapt It and Paratext or
+Bibledit is now more robust. Some users reported situations in 
+which collaboration settings were not being remembered from
+session to session.
+* If, when setting up collaboration with Paratext or Bibledit,
 the administrator does not create any books (with empty chapter
 and verse markers) in the Paratext/Bibledit project for storing 
 target texts, an error message pops up. That message had a 
-formatting error that could result in the message referencing 
-the short name of a different project than the project the 
+formatting error that could result in a confusing message that
+referenced the name of a different project than the project the 
 administator had designated as the one for storing target texts. 
 This message formatting error has now been fixed.
+* In some instances punctuation was being copied from the the
+source text into empty target text locations throughout a 
+document. This has been fixed.
+* The list of most recently used (MRU) document files is now 
+removed from the bottom of the File menu during collaboration 
+since the loading of a document during collaboration should not 
+be done via the MRU list, but only via the "Get Source Text
+from Paratext/Bibledit Project" dialog.
+
 
 ----------------------------------------------
 Version 6.2.0 release 14 March 2012
