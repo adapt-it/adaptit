@@ -195,6 +195,7 @@ CCell::CCell()
 	m_pLayout = NULL; // CreateCell() will set this to m_pLayout
 	m_pOwningPile = NULL; // CreateCell() will set this
 	m_nCell = 0; // CreateCell() will set this to its permanent value
+	m_bAutoInserted = FALSE; // BEW added 9Apr12
 }
 
 // the copy constructor does not need to be coded explicitly because it owns nothing, but
@@ -206,6 +207,7 @@ CCell::CCell(const CCell& cell)
 	m_pPhrase = cell.m_pPhrase;
 	m_pLayout = cell.m_pLayout;
 	m_pOwningPile = cell.m_pOwningPile;
+	m_bAutoInserted = FALSE; // BEW added 9Apr12
 }
 
 CCell::~CCell()

@@ -3765,6 +3765,41 @@ void CLayout::MakeAllPilesNonCurrent()
 	// makes them ALL false
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return         nothing
+///
+/// \remarks
+///	Scans all piles of the current layout to find any CCell[1] which has its
+///	m_bAutoInserted member boolean set to TRUE, and clears it to FALSE
+///	
+///	Usage:
+///	Call as follows:
+///	1. In OnNewDocument() to ensure correct initialization
+///	2. In OnOpenDocument() to ensure correct initialization
+///	3. ?? add new call locations here...
+///	
+/// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
+/// which supports discontinuos auto-insertions (temporarily, legacy code will be
+/// commented out and BKHILITE added there to facilitate searching for all such
+/// locations in the application)
+/////////////////////////////////////////////////////////////////////////////////
+void CLayout::ClearAutoInsertionsHighlighting()
+{
+	CPile* pPile = NULL;
+	PileList::Node* pos = m_pileList.GetFirst();
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+		CCell* pCell = pPile->GetCell(1); // depending on current mode, it could
+										  // be an adaptation cell, or a gloss cell
+		if (pCell->m_bAutoInserted)
+		{
+			pCell->m_bAutoInserted = FALSE;
+		}
+		pos = pos->GetNext();
+	}
+}
 
 /*
 // created for identifying where some piles didn't get their m_nPile values updated -- turned out

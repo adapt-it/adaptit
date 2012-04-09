@@ -398,7 +398,7 @@ CLayout* CPhraseBox::GetLayout()
 // (2) checks for vertical edit being current, and whether or not a vertical edit step
 // transitioning event has just been posted (that would be the case if the phrase box at
 // the new location would be in grayed-out text), and if so, returns FALSE after setting
-// the global bool gbTunnellingOut to TRUE - so that MoveToNextPile() can be exitted early
+// the global bool gbTunnellingOut to TRUE - so that MoveToNextPile() can be exited early
 // and the vertical edit step's transition take place instead
 // (3) for non-vertical edit mode, if the new location would be within a retranslation, it
 // shows an informative message to the user, enables the button for copying punctuation,
@@ -1987,7 +1987,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// BEW modified 20June06; the starting value for gnEndInsertionsSequNum
 		// must be one less than gnBeginInsertionsSequNum so that at the first
 		// auto insert location the incrementation of gnEndInsertionsSequNum will
-		// become equal in value to gnBeginInsertionsSequNum, and ony for a second
+		// become equal in value to gnBeginInsertionsSequNum, and only for a second
 		// and subsequent insertions will the end one become greater than the
 		// beginning one. This fixes an error which resulted in the pile AFTER
 		// the halted phrase box having background highlighting even though the
@@ -2260,15 +2260,14 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// active sequence number plus one, so we can track any 
 			// automatically inserted target/gloss text
 			gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
-			// BEW modified 20June06; the starting value for gnEndInsertionsSequNum
-			// must be one less than gnBeginInsertionsSequNum so that at the first
-			// auto insert location the incrementation of gnEndInsertionsSequNum will
-			// become equal in value to gnBeginInsertionsSequNum, and ony for a second
-			// and subsequent insertions will the end one become greater than the
-			// beginning one. This fixes an error which resulted in the pile AFTER
-			// the halted phrase box having background highlighting even though the
-			// phrase box has not yet got that far (because gnEndInsertionsSequNum
-			// was set one too large)
+            // BEW modified 20June06; the starting value for gnEndInsertionsSequNum must be
+            // one less than gnBeginInsertionsSequNum so that at the first auto insert
+            // location the incrementation of gnEndInsertionsSequNum will become equal in
+            // value to gnBeginInsertionsSequNum, and only for a second or subsequent
+            // insertions will the end one become greater than the beginning one. This
+            // fixes an error which resulted in the pile AFTER the halted phrase box having
+            // background highlighting even though the phrase box has not yet got that far
+            // (because gnEndInsertionsSequNum was set one too large)
 			gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
 #ifdef Highlighting_Bug
 			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, begin at %d   (Smaller) end value starts at  %d "),
