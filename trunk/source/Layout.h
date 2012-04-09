@@ -442,6 +442,13 @@ public:
 
 	// a debugging function
 	//void		DebugIndexMismatch(int nPileIndex_InList, int locator);
+	
+	// BEW 9Apr12, BKHLITE, functions for the refactored support of background
+	// highlighting for auto-inserted adaptations, or glosses - using the new
+	// m_bAutoInserted member of CCell class
+	void ClearAutoInsertionsHighlighting(); // scans whole of the piles array and clears the
+											// m_bAutoInserted member of CCell[1] whenever
+											// it is TRUE
 
 public:
 	DECLARE_DYNAMIC_CLASS(CLayout)

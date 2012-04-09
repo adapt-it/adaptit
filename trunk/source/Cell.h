@@ -52,6 +52,11 @@ private:
 	wxString*	m_pPhrase;	// point to m_gloss or m_targetStr depending on gbIsGlossing
 	CLayout*	m_pLayout;
 	CPile*		m_pOwningPile;
+	// BEW 9Apr12 added m_bAutoInserted - default FALSE, but set TRUE for an adaptation or
+	// gloss CCell instance (depending on whether gbIsGlossing is FALSE or TRUE,
+	// respectively) that has just received a CKB adaptation or gloss due to a successful
+	// lookup and insertion
+	bool		m_bAutoInserted;
 public:
 	// destructor
 	virtual		~CCell();
