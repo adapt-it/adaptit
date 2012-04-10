@@ -142,12 +142,6 @@ extern enum TextType gPreviousTextType; // moved to global space in the App, mad
 
 #endif
 
-/// This global is defined in Adapt_ItView.cpp.
-extern int	gnBeginInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern int	gnEndInsertionsSequNum;
-
 /// This global boolean informs the Doc's BackupDocument() function whether a split or
 /// join operation is in progress. If gbDoingSplitOrJoin is TRUE BackupDocument() exits
 /// immediately without performing any backup operations. Split operations especially
@@ -401,11 +395,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
 
-	// legacy code for auto-insertions highlighting
-	//gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
-	//gnEndInsertionsSequNum = -1; // reset for "no current insertions"
-
-	// BEW changed 9Apr12, BKHILITE, support discontinuous auto-inserted spans highlighting
+	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
 
  	// get a pointer to the view
@@ -4463,11 +4453,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// lpszPathName string, and replace it with a test on curPos instead (when doing a
 	// consistency check, the full path is not passed in)
 
-	// legacy code for auto-insertions highlighting
-	//gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
-	//gnEndInsertionsSequNum = -1; // reset for "no current insertions"
-
-	// BEW changed 9Apr12, BKHILITE, support discontinuous auto-inserted spans highlighting
+	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
 
 	wxString thePath = filename;

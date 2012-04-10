@@ -76,11 +76,6 @@ extern bool gbReplaceAllIsCurrent;
 extern bool gbHaltedAtBoundary;
 
 /// This global is defined in Adapt_ItView.cpp.
-extern int gnBeginInsertionsSequNum;
-
-extern int gnEndInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing;
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -1174,12 +1169,7 @@ x:					CCell* pCell = 0;
 
 			// Click was not in a cell, so remove the highlighting of automatically
 			// inserted target (or glosses) text
-			//  
-			// This is effected by clearing the following two globals to -1 values.
-			//gnBeginInsertionsSequNum = -1;
-			//gnEndInsertionsSequNum = -1;
-			
-			// BEW changed 9Apr12, BKHILITE
+			// BEW changed 9Apr12
 			pApp->m_pLayout->ClearAutoInsertionsHighlighting();
 
 			pApp->m_bSelectByArrowKey = FALSE;
@@ -1493,9 +1483,9 @@ x:					CCell* pCell = 0;
 					// second line - the phrase box's line (always): a click here places the
 					// phraseBox in that cell clicked, unless the cell is part of a
 					// retranslation
-					CPile* pRetrPile = pCell->GetPile();
-					wxASSERT(pRetrPile);
-					if (!gbIsGlossing && pRetrPile->GetSrcPhrase()->m_bRetranslation)
+					CPile* pClickedPile = pCell->GetPile();
+					wxASSERT(pClickedPile);
+					if (!gbIsGlossing && pClickedPile->GetSrcPhrase()->m_bRetranslation)
 					{
 						// make any single pile within a retranslation (other than a click in
 						// line 0 which causes a selection) inaccessible - user should
@@ -1523,15 +1513,9 @@ x:					CCell* pCell = 0;
                     // stretch of highlighted text since the user is probably correcting
                     // one or more cells that were not good translations
 
-					// We can clear it by resetting the globals to -1 (legacy code)
-					//if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum
-					//	|| pApp->m_nActiveSequNum > gnEndInsertionsSequNum)
-					//{
-					//	gnBeginInsertionsSequNum = -1;
-					//	gnEndInsertionsSequNum = -1;
-					//}
-					// BEW changed 9Apr12, to support discontinuous auto-insertions, BKHILITE
-					if (!pApp->m_pLayout->IsLocationWithinAutoInsertionsHighlightedSpan(pApp->m_nActiveSequNum))
+					// BEW changed 9Apr12, to support discontinuous auto-insertions
+					int sequNumAtClick = pClickedPile->GetSrcPhrase()->m_nSequNumber;
+					if (!pApp->m_pLayout->IsLocationWithinAutoInsertionsHighlightedSpan(sequNumAtClick))
 					{
 						pApp->m_pLayout->ClearAutoInsertionsHighlighting();
 					}

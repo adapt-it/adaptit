@@ -93,12 +93,6 @@ extern bool gbGlossingUsesNavFont;
 extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp.
-extern int gnBeginInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnEndInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbFindIsCurrent;
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -647,13 +641,6 @@ void CCell::Draw(wxDC* pDC)
 		{
 			// not free translation mode -- this is where the auto-highlighting (in light
 			// purple) of automatically inserted adaptations or glosses is done 
-			//
-			// (legacy code...)
-			// (the bounding sequence numbers on which it relies, however, get set elsewhere beforehand)
-			//if (	!(m_pLayout->m_pApp->m_bSuppressTargetHighlighting)
-			//		&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber >= gnBeginInsertionsSequNum
-			//		&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber <= gnEndInsertionsSequNum)
-			// BKHILITE
 			// BEW changed 9Apr12 to support discontinuous highlighted spans for auto-inserts
 			if ( !m_pLayout->m_pApp->m_bSuppressTargetHighlighting && m_bAutoInserted)
 			{

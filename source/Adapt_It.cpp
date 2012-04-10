@@ -319,12 +319,6 @@ extern bool gbReachedDocPage; // BEW added 10Nov05  (see DocPage.cpp, & OnInitDi
 /// This global is defined in PhraseBox.cpp.
 extern bool gbCameToEnd; // see PhraseBox.cpp
 
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnBeginInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnEndInsertionsSequNum;
-
 /// This global boolean is used to inform functions involved in opening documents whether
 /// the file is being opened via the OnMRUFile() function, i.e., due to the user attempting
 /// to open the file from the MRU list. If the file no longer exists and is an XML one, we
@@ -408,7 +402,7 @@ bool gbFreeTranslationJustRemovedInVFMdialog = FALSE;
 /// of the pointers on which the layout relies and the app crashes. This does not happen if
 /// no highlighting takes place. The original setting for highlighting is restored when the
 /// toggle command is turned back off.
-bool gbSaveHilightingSetting = FALSE;
+bool gbSaveHilightingSetting = FALSE; // *** NOTE *** in version 6 & higher, this protection might not be needed - noone has checked as yet
 
 // The above declarations moved here from the View's global space
 

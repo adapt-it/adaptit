@@ -29,6 +29,8 @@ but will parse words containing them as units.
 the new features and feature changes in version 6. This is an 
 ongoing effort and many of the HTML Help files have yet to be 
 updated.
+* Highlighting of auto-insertions done in non-contiguous parts
+of the document are now supported.
 
 ----------------------------------------------
 Bug fixes in 6.2.1
@@ -53,6 +55,8 @@ removed from the bottom of the File menu during collaboration
 since the loading of a document during collaboration should not 
 be done via the MRU list, but only via the "Get Source Text
 from Paratext/Bibledit Project" dialog.
+* Formerly, auto-insertions done up to the end of the document
+had their background highlighting lost; now it is retained.
 
 
 ----------------------------------------------
