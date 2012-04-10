@@ -2014,6 +2014,12 @@ public:
                 // was-current document after reading the other documents for the join
                 // operation. (If TRUE, document loading does nothing except set up the
                 // list of CSourcePhrase instances.)
+	
+	// Version control variables:
+	bool		m_underVersionControl;
+	int			m_LatestRevisionNumber;
+	wxDateTime	m_LatestRevisionTime;
+
 
 	/////////////////////////////////////////////////////////////////////////////////
     // Variable declarations moved here from the View because the wxWidgets doc/view
