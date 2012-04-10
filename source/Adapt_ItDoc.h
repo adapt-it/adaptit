@@ -166,7 +166,8 @@ public:
 					// version (see note above)
 
 	//////////////////////////////////////////////////////////////////////////////
-	// All of the Doc's public data members were moved to the App class' public area
+	// All of the Doc's public data members were moved to the App class' public 
+	// area, in Adaptit.h.
 	// SINCE POINTERS TO THE CURRENT DOCUMENT CAN CHANGE, DO NOT PUT DATA MEMBERS
 	// HERE, BUT RATHER PLACE THEM IN THE APP CLASS' PUBLIC AREA.
 	//////////////////////////////////////////////////////////////////////////////
