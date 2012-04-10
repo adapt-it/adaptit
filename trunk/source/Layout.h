@@ -443,14 +443,17 @@ public:
 	// a debugging function
 	//void		DebugIndexMismatch(int nPileIndex_InList, int locator);
 	
-	// BEW 9Apr12, BKHLITE, functions for the refactored support of background
+	// BEW 9Apr12, functions for the refactored support of background
 	// highlighting for auto-inserted adaptations, or glosses - using the new
 	// m_bAutoInserted member of CCell class
 	void ClearAutoInsertionsHighlighting(); // scans whole of the piles array and clears the
 						// m_bAutoInserted member of CCell[1] whenever it is TRUE
 	bool IsLocationWithinAutoInsertionsHighlightedSpan(int sequNum); // return TRUE if the
 						// CCell[1] at sequNum in the pile list has m_bAutoInserted TRUE
-	void SetAutoInsertionHighlightFlag(CPile* pPile); // sets pPile->m_bAutoInserted to TRUE	
+	void SetAutoInsertionHighlightFlag(CPile* pPile); // sets pPile->m_bAutoInserted to TRUE
+	bool AreAnyAutoInsertHighlightsPresent(); // scans whole of the piles array and returns TRUE
+						// if the m_bAutoInserted member of CCell[1] somewhere is TRUE
+
 public:
 	DECLARE_DYNAMIC_CLASS(CLayout)
 	// Used inside a class declaration to declare that the objects of

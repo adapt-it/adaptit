@@ -141,12 +141,6 @@ extern bool gbGlossingUsesNavFont;
 extern bool	gbGlossingVisible; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp.
-extern int gnBeginInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnEndInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbFindIsCurrent;
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -2160,66 +2154,93 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 	}
 }
 
-// Returns TRUE if background highlighting of a range of auto-insertions is currently in
-// effect, FALSE if that is not so or background highlighting is turned off
-// Parameters:
-//    nStripCount          <-  returns a count of how many consecutive strips (the last
-//                             one could be the active strip, and usually is) are shown
-//                             highlighted
-//    bActivePileIsInLast  <-  returns TRUE if the active pile is within the strip with
-//                             index nLast, FALSE it it is not (ie. first pile in next strip)
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return                     TRUE if background highlighting of a range of 
+///                             auto-insertions is currently in effect, FALSE if that
+///                             is not so or background highlighting is turned off
+/// \param nStripCount          <-  returns a count of how many consecutive strips (the 
+///                                 last one could be the active strip, and usually is)
+///                                 are shown highlighted
+/// \param bActivePileIsInLast  <-  returns TRUE if the active pile is within the strip 
+///                                 with index nLast, FALSE it it is not (perhaps
+///                                 it's the first pile in next strip)
+/// \remarks
+/// A completely new implementation is needed for the new way of supporting auto-insertion
+/// hilighting, which uses a m_bAutoInserted boolean flag in CCell, rather than the legacy
+/// approach which used a beginning and ending sequNum for a single contiguous range only.
+/// Usage: only called in ScrollIntoView(), to supply information about how many
+/// auto-inserted strips there are so as to help ScrollIntoView() to intelligently
+/// position the phrase box in the vertical dimension.
+/// BEW created 2010??
+/// BEW refactored 9Apr12, to support discontinuous highlight spans when auto-inserting                            
+///////////////////////////////////////////////////////////////////////////////////////                        
 bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast)
 {
-	if (gnBeginInsertionsSequNum == -1 || gnEndInsertionsSequNum == -1 ||
-		m_pApp->m_bSuppressTargetHighlighting)
+	if (!AreAnyAutoInsertHighlightsPresent())
 	{
 		return FALSE;
 	}
-	// insertions done in adaptation mode or glossing mode at the end of a document on
-	// words appended in the source text edit can result in gnBeginInsertionsSequNum
-	// getting a value beyond doc's max index when box goes forward out of the editing
-	// span, and this has to be tested for so as to protect against a crash due to a
-	// bounds error in the SPList.
+	
+	// Get the index for the active strip...
+	// First, get a default nActiveStrip index - use the last strip of the document
 	int maxIndex = m_pApp->GetMaxIndex();
-	if (gnBeginInsertionsSequNum > maxIndex)
-	{
-		gnBeginInsertionsSequNum = maxIndex;
-		gnEndInsertionsSequNum = maxIndex;
-		bActivePileIsInLast = FALSE;
-		nStripCount = 1;
-		return FALSE;
-	}
-	if (gnEndInsertionsSequNum > maxIndex)
-	{
-		// this is unlikely to happen, but just in case...
-		gnEndInsertionsSequNum = maxIndex;
-		bActivePileIsInLast = FALSE;
-		nStripCount = 1;
-		return FALSE;
-	}
-	// now calculate the range
-	CPile* pFirstPile = m_pView->GetPile(gnBeginInsertionsSequNum);
-	wxASSERT(pFirstPile);
-	CPile* pLastPile = m_pView->GetPile(gnEndInsertionsSequNum);
-	wxASSERT(pLastPile);
-	int nFirst = pFirstPile->GetStripIndex();
-	int nLast = pLastPile->GetStripIndex();
-	nStripCount = nLast - nFirst + 1;
-	// in case m_pActivePile is currently unset, do it this way
-	bActivePileIsInLast = FALSE; // appropriate if box is hidden when beyond the doc end
+	CPile* pLastPile = m_pView->GetPile(maxIndex);
+	int nActiveStrip = pLastPile->GetStripIndex(); // this will work if the phrase
+							// box is beyond the doc end, i.e. is invisible
+
+	bActivePileIsInLast = FALSE; // a default, and appropriate if the phrase box 
+								 // is hidden when beyond the doc end
 	if (m_pApp->m_nActiveSequNum != -1)
 	{
+		// there is a valid active pile
 		CPile* pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
-		int nActiveStrip = pActivePile->GetStripIndex();
+		nActiveStrip = pActivePile->GetStripIndex();
 		wxASSERT(nActiveStrip >= 0 && nActiveStrip <= 256000); // unlikely to have docs
 			// bigger than about 256000 strips, but garbage values are likely to be larger
-#ifdef Highlighting_Bug
-		wxLogDebug(_T("CLayout::GetHighlightedStripsRange(),first %d  last %d   End Pile is %d , %s"),
-			nFirst, nLast, gnEndInsertionsSequNum, pLastPile->GetSrcPhrase()->m_srcPhrase);
-#endif
-		if (nActiveStrip == nLast)
-			bActivePileIsInLast = TRUE;
 	}
+
+	// Use stripIndicesArray to accumulate the unique strip indices of all piles having a
+	// CCell[1] with m_bAutoInserted set to TRUE; if any match the nActiveStrip value,
+	// preserve the index for it in the array in the local int nActiveLocationStrip_Index 
+	wxArrayInt stripIndicesArray;
+	stripIndicesArray.Clear();
+	int nActiveLocationStrip_Index = -1; // if it remains -1, then there was no match
+
+	CPile* pPile = NULL;
+	PileList::Node* pos = m_pileList.GetFirst();
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+		CCell* pCell = pPile->GetCell(1); // depending on current mode, it could
+										  // be an adaptation cell, or a gloss cell
+		if (pCell->m_bAutoInserted)
+		{
+			int itsStripIndex = pPile->GetStripIndex();
+			if (itsStripIndex == nActiveStrip)
+			{
+				// preserve which strip index has the active pile
+				nActiveLocationStrip_Index = itsStripIndex;
+			}
+			// add it to the array if not already within it
+			AddUniqueInt(&stripIndicesArray, itsStripIndex);
+		}
+		pos = pos->GetNext();
+	}
+
+    // when the loop finishes, the difference between the last and first strip indices
+    // stored within it, plus one, gives the strip range (discontinuities may mean the
+    // range is large, but that shouldn't matter); and if the last stored strip index is
+    // equal to the nActiveLocationStrip_Index value, then the active location is in the
+    // last strip having highlighted background in one or more piles
+	int nFirstStripIndex = stripIndicesArray.Item(0);
+	int nLastStripIndex = stripIndicesArray.Last(); // first and last could be the same value
+	nStripCount = nLastStripIndex - nFirstStripIndex + 1;
+	if (nLastStripIndex == nActiveLocationStrip_Index)
+	{
+		bActivePileIsInLast = TRUE;
+	}
+	stripIndicesArray.Clear();
 	return TRUE;
 }
 
@@ -3779,12 +3800,11 @@ void CLayout::MakeAllPilesNonCurrent()
 ///	3. In OnLButtonDown() - in one place to clear highlighting for a click not
 ///	   in any cell; in another place to clear highlighting for a click in a cell
 ///	   not already highlighted [uses IsClickWithinAutoInsertionsHighlightedSpan()]
-///	4. other calls go here...
+///	4. In OpenDocWithMerger()
+///	5. In JumpForward() 
 ///	
-/// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
-/// which supports discontinuos auto-insertions (temporarily, legacy code will be
-/// commented out and BKHILITE added there to facilitate searching for all such
-/// locations in the application)
+/// BEW 9Apr12 created, for the refactored auto-insert mechanism,
+/// which supports discontinuous auto-insertions
 /////////////////////////////////////////////////////////////////////////////////
 void CLayout::ClearAutoInsertionsHighlighting()
 {
@@ -3816,12 +3836,9 @@ void CLayout::ClearAutoInsertionsHighlighting()
 ///	Usage:
 ///	Call as follows:
 ///	1. In OnLButtonDown() - to clear highlighting for a click in a cell not already highlighted
-///	2. other calls go here...
 ///	
-/// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
-/// which supports discontinuos auto-insertions (temporarily, legacy code will be
-/// commented out and BKHILITE added there to facilitate searching for all such
-/// locations in the application)
+/// BEW 9Apr12 created, for the refactored auto-insert mechanism,
+/// which supports discontinuos auto-insertions
 /////////////////////////////////////////////////////////////////////////////////
 bool CLayout::IsLocationWithinAutoInsertionsHighlightedSpan(int sequNum)
 {
@@ -3837,13 +3854,35 @@ bool CLayout::IsLocationWithinAutoInsertionsHighlightedSpan(int sequNum)
 }
 
 // sets pPile->m_bAutoInserted to TRUE
-// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
-// which supports discontinuos auto-insertions (temporarily, legacy code will be
-// commented out and BKHILITE added there to facilitate searching for all such
-// locations in the application)
+// BEW 9Apr12 created, for the refactored auto-insert mechanism,
+// which supports discontinuos auto-insertions
 void CLayout::SetAutoInsertionHighlightFlag(CPile* pPile)
 {
 	pPile->GetCell(1)->m_bAutoInserted = TRUE;
+}
+
+// scans whole of the piles array and returns TRUE if the m_bAutoInserted member of
+// a CCell[1] somewhere within the layout is TRUE; else returns FALSE
+// Used only in GetHighlightedStripsRange() [and the latter is used only in ScrollIntoView()]
+bool CLayout::AreAnyAutoInsertHighlightsPresent()
+{
+	CPile* pPile = NULL;
+	PileList::Node* pos = m_pileList.GetFirst();
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+		CCell* pCell = pPile->GetCell(1); // depending on current mode, it could
+										  // be an adaptation cell, or a gloss cell
+		if (pCell->m_bAutoInserted)
+		{
+			// we found a highlighted one
+			return TRUE;
+		}
+		pos = pos->GetNext();
+	}
+	// there are none hilighted
+	return FALSE;
 }
 
 /*

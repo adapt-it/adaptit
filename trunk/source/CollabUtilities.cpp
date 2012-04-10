@@ -75,8 +75,6 @@ extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 //extern bool gbForceUTF8; // not used within CollabUtilities.cpp
 extern int  gnOldSequNum;
-extern int  gnBeginInsertionsSequNum;
-extern int  gnEndInsertionsSequNum;
 extern bool gbTryingMRUOpen;
 extern bool gbConsistencyCheckCurrent;
 extern bool gbDoingInitialSetup;
@@ -1570,8 +1568,10 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
 			// fail after phrase box gets past end of doc
 
-	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
-	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+	// BEW changed 9Apr12, to support highlighting when auto-inserts are not
+	// contiguous
+	pApp->m_pLayout->ClearAutoInsertionsHighlighting(); // ensure there are none
+
 	bool bBookMode;
 	bBookMode = pApp->m_bBookMode;
 	wxASSERT(!bBookMode);

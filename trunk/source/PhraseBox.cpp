@@ -150,12 +150,6 @@ extern wxChar gcharSrcLC;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcUC;
 
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnBeginInsertionsSequNum;
-
-/// This global is defined in Adapt_ItView.cpp.
-extern int gnEndInsertionsSequNum;
-
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -412,21 +406,9 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 	if (gbIsGlossing)
 		return TRUE; // allow phrase box to land in a retranslation when glossing mode is ON
 
-	// legacy code... (when discontinuous highlight spans were not allowed)
 	// the code below will only be entered when glossing mode is OFF, that is, in adapting mode
-	// BEW 9Apr12, BKHILITE, deprecated the check and clearing of the highlighting, discontinuity
-	// is now supported
-	//if (pNextEmptyPile->GetSrcPhrase()->m_nSequNumber > pCurPile->GetSrcPhrase()->m_nSequNumber + 1)
-	//{
-		// The next empty pile is not contiguous to the last pile where
-		// the phrasebox was located, so don't highlight target/gloss text
-	//	gnBeginInsertionsSequNum = -1;
-	//	gnEndInsertionsSequNum = -1;
-//#ifdef Highlighting_Bug
-//		wxLogDebug(_T("PhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation() reset to -1, empty pile %d  current pile plus one %d"),
-//			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_nSequNumber + 1);
-//#endif
-	//}
+	// BEW 9Apr12,deprecated the check and clearing of the highlighting, discontinuity in the
+	// highlighted spans of auto-inserted material is now supported
 	pCurPile = pCurPile; // avoid compiler warning
 
 	if (pNextEmptyPile->GetSrcPhrase()->m_bRetranslation)
@@ -975,35 +957,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 				}
 			}
 
-			// legacy code....
-            // For automatically inserted target/gloss text highlighting, we increment the
-            // Ending Sequence Number as long as the Beginning Sequence Number is
-            // non-negative. If the Beginning Sequence Number is negative, the Ending
-            // Sequence Number must also be negative. Each time a new insertion is done,
-            // the test below checks for a zero or positive value of
-            // gnBeginInsertionsSequNum, and if it finds that is the case, the True block
-            // just increments the gnEndInsertionsSequNum value, the False block insures
-            // both globals have -1 values. So after the 2nd insertion, the two globals
-            // have values differing by 1 and so the previous two insertions get the
-            // highlighting, etc. BKHILITE
-			//if (gnBeginInsertionsSequNum >= 0)
-			//{
-//#ifdef Highlighting_Bug
-//				wxLogDebug(_T("PhraseBox::MoveToNextPile(), incrementing %d  by one"),gnEndInsertionsSequNum);
-//#endif
-//				gnEndInsertionsSequNum++;
-//#ifdef Highlighting_Bug
-//				wxLogDebug(_T("PhraseBox::MoveToNextPile(), gnEndInsertionsSequNum is now %d  "),gnEndInsertionsSequNum);
-//#endif
-//			}
-//			else
-//			{
-//#ifdef Highlighting_Bug
-//				wxLogDebug(_T("PhraseBox::MoveToNextPile(), resetting end value to beginning which is %d "),gnBeginInsertionsSequNum);
-//#endif
-//				gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
-//			}
-			// BEW changed 9Apr12 to support discontinuous highlighting spans, BKHILITE
+			// BEW changed 9Apr12 to support discontinuous highlighting spans
 			if (nWordsInPhrase == 1 || !gbSuppressMergeInMoveToNextPile)
 			{
                 // When nWordsInPhrase > 1, since the call of LookAhead() didn't require
@@ -1459,26 +1413,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 				}
 			}
 
-			// legacy code....
-			// For automatically inserted target/gloss text highlighting, we increment the
-            // Ending Sequence Number as long as the Beginning Sequence Number is
-            // non-negative. If the Beginning Sequence Number is negative, the Ending
-            // Sequence Number must also be negative. Each time a new insertion is done,
-            // the test below checks for a zero or positive value of
-            // gnBeginInsertionsSequNum, and if it finds that is the case, the True block
-            // just increments the gnEndInsertionsSequNum value, the False block insures
-            // both globals have -1 values. So after the 2nd insertion, the two globals
-            // have values differing by 1 and so the previous two insertions get the
-            // highlighting, etc.
-			//if (gnBeginInsertionsSequNum >= 0)
-			//{
-			//	gnEndInsertionsSequNum++;
-			//}
-			//else
-			//{
-			//	gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
-			//}
-			// BEW changed 9Apr12 to support discontinuous highlighting spans, BKHILITE
+			// BEW changed 9Apr12 to support discontinuous highlighting spans
 			if (nWordsInPhrase == 1 || !gbSuppressMergeInMoveToNextPile)
 			{
                 // When nWordsInPhrase > 1, since the call of LookAhead() didn't require
@@ -2033,20 +1968,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// any automatically inserted target/gloss text, starting from the 
 		// current phrase box location (where the Choose Translation dialog appears).
 
-		// legacy code....
-		// BEW modified 20June06; the starting value for gnEndInsertionsSequNum
-		// must be one less than gnBeginInsertionsSequNum so that at the first
-		// auto insert location the incrementation of gnEndInsertionsSequNum will
-		// become equal in value to gnBeginInsertionsSequNum, and only for a second
-		// and subsequent insertions will the end one become greater than the
-		// beginning one. This fixes an error which resulted in the pile AFTER
-		// the halted phrase box having background highlighting even though the
-		// phrase box has not yet got that far (because gnEndInsertionsSequNum
-		// was set one too large)
-		//gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
-		//gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
-
-		// BEW changed 9Apr12 for support of discontinuous highlighting spans, BKHILITE
+		// BEW changed 9Apr12 for support of discontinuous highlighting spans...
 		// A new protocol is needed here. The legacy code wiped out any auto-insert
 		// highlighting already accumulated, and setup for a possible auto-inserted span
 		// starting at the NEXT pile following the merger location. The user-choice of the
@@ -2055,7 +1977,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// do nothing, and in the caller (which usually is MoveToNextPile() we clobber the
 		// old highlighted span and setup for a potential new one
 #ifdef Highlighting_Bug
-		// BEW changed 9Apr12 for support of discontinuous highlighting spans, BKHILITE
+		// BEW changed 9Apr12 for support of discontinuous highlighting spans
 		wxLogDebug(_T("PhraseBox::LookAhead(), hilited span ends at merger at: sequnum = %d  where the user chose:  %s  for source:  %s"),
 			pApp->m_nActiveSequNum, translation, pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase);
 #endif
@@ -2171,15 +2093,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 					}
 				}
 
-				// legacy code...
-				// At the end, we'll reset the globals to turn off any highlight
-				//gnBeginInsertionsSequNum = -1;
-				//gnEndInsertionsSequNum = -1;
-//#ifdef Highlighting_Bug
-				//wxLogDebug(_T("PhraseBox::JumpForward(), failed to move to next pile, resetting to -1 from pile %d   %s "),
-				//	pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber, pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase);
-//#endif
-				// BEW changed 9Apr12, BKHILITE, to support discontinuous highlighting
+				// BEW changed 9Apr12, to support discontinuous highlighting
 				// spans for auto-insertions...
 				// When we come to the end, we could get there having done some
 				// auto-insertions, and so we'd want them to be highlighted in the normal
@@ -2327,26 +2241,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			gbEnterTyped = TRUE;
 
 			// User has pressed the Enter key  (OnChar() calls JumpForward())
-
-			// Legacy code...
-            // Set the globals to the active sequence number plus one, so we can track any
-            // automatically inserted target/gloss text
-			//gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
-            // BEW modified 20June06; the starting value for gnEndInsertionsSequNum must be
-            // one less than gnBeginInsertionsSequNum so that at the first auto insert
-            // location the incrementation of gnEndInsertionsSequNum will become equal in
-            // value to gnBeginInsertionsSequNum, and only for a second or subsequent
-            // insertions will the end one become greater than the beginning one. This
-            // fixes an error which resulted in the pile AFTER the halted phrase box having
-            // background highlighting even though the phrase box has not yet got that far
-            // (because gnEndInsertionsSequNum was set one too large)
-			//gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
-//#ifdef Highlighting_Bug
-//			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, begin at %d   (Smaller) end value starts at  %d "),
-//				gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
-//#endif
-
-			// BEW changed 9Apr12, BKHILITE, to support discontinuous highlighting
+			// BEW changed 9Apr12, to support discontinuous highlighting
 			// spans for auto-insertions...
 			// Since OnIdle() will call OnePass() and the latter will call
 			// MoveToNextPile(), and it is in MoveToNextPile() that CCell's
@@ -4312,16 +4207,8 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
 		{
 			// we got to the end of the doc...
-			// 
-			// At the end, we'll reset the globals to turn off any highlight (legacy code)
-			//gnBeginInsertionsSequNum = -1;
-			//gnEndInsertionsSequNum = -1;
-#ifdef Highlighting_Bug
-			//wxLogDebug(_T("PhraseBox::OnePass(), -1 value set:  begin at %d  end  %d "),
-			//	gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
-			//	BEW 9Apr12 ...discontinuous highlighted spans would need a new wxLogDebug function...
-#endif
-			// BEW changed 9Apr12, BKHILITE, support discontinuous auto-inserted spans highlighting
+			 
+			// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 			//pLayout->ClearAutoInsertionsHighlighting(); <- I'm trying no call here,
 			// hoping that JumpForward() will suffice, so that OnIdle()'s call of OnePass()
 			// twice at the end of doc won't clobber the highlighting already established.

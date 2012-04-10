@@ -287,22 +287,6 @@ bool	gbGlossingUsesNavFont = FALSE;
 /// in unstructured data, on export of source or target text.
 bool	gbIsUnstructuredData = FALSE;
 
-/// When no highlighting is wanted for insertions the value is -1, otherwise this global
-/// holds the sequence number of the first pile where highlighted background of
-/// automatically inserted target text is to be drawn (current active pile + 1).
-int	gnBeginInsertionsSequNum = -1;
-
-/// When no highlighting is wanted for insertions the value is -1, otherwise this global
-/// holds the sequence number of the last pile where highlighted background of
-/// automatically inserted target text is to be drawn. The ending sequence number is the
-/// value for the pile of the phrasebox when it has halted (such as when a KB item can't be
-/// found for a match, or when the user uses the Cancel or Cancel and Select buttons in the
-/// Choose Translation dialog. Highlight on the cell with the ending value is not apparent
-/// as long at the phrase box is located there, but becomes visible if the phrase box is
-/// moved away. This also helps the user see where the stopping place was after moving
-/// away.)
-int	gnEndInsertionsSequNum = -1;
-
 /// This global is defined in Adapt_It.cpp.
 extern bool gbDoingInitialSetup;
 
@@ -7737,27 +7721,6 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	}
 	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
-    // BEW added 28Sep05, to fix the following bug. It the globals below are not here
-    // reset, and especially to the same value, then when we are in a bundle at the start
-    // of the doc we'll not get trouble, but when we've been doing autoinseting at a
-    // location way down in the document, and we stop the process (eg. Cancel a Choose
-    // Translation dialog choice) and click the ToStart button, the button's handler
-    // eventually recreates the layout at the start of the document (where we hope to end
-    // up), but in the handler ScrollIntoView() gets called, and it has "smart" code in it
-    // that takes the two globals below and if they are different, it will ask for a
-    // recalculation of the pile pointers for the beginning and end of the last inserted
-    // set of adaptations -- and these require GetPile() calls which, because that old
-    // location was miles away further down in the document, a bundle advance and layout
-    // recalculation get done in order to get valid pointers - and on return from
-    // ScrollIntoView() the layout is no longer at the start and the active pointer has be
-    // put back where we had been when we clicked ToStart to get back to the doc start.
-    // Then, not only does the window not scroll and the phrase box get written over the
-    // old window contents, but the bad active pile pointer causes any Update handler which
-    // requires that value to crash (eg. OnUpdateButtonRestore()). Setting both globals to
-    // zero avoids all and causes the legacy scrolling block to be used in
-    // ScrollIntoView(), as wanted.
-	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, and make both be same value
-
 	SPList* pList = pApp->m_pSourcePhrases;
 
 	// remove any selection to be safe from unwanted selection-related side effects
@@ -8095,27 +8058,6 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 		pEdit->ChangeValue(tempStr);
 	}
 
-    // BEW added 28Sep05, to fix the following bug. It the globals below are not here
-    // reset, and especially to the same value, then when we are in a bundle at the start
-    // of the doc we'll not get trouble, but when we've been doing autoinseting at a
-    // location way down in the document, and we stop the process (eg. Cancel a Choose
-    // Translation dialog choice) and click the ToStart button, the button's handler
-    // eventually recreates the layout at the start of the document (where we hope to end
-    // up), but in the handler ScrollIntoView() gets called, and it has "smart" code in it
-    // that takes the two globals below and if they are different, it will ask for a
-    // recalculation of the pile pointers for the beginning and end of the last inserted
-    // set of adaptations -- and these require GetPile() calls which, because that old
-    // location was miles away further down in the document, a bundle advance and layout
-    // recalculation get done in order to get valid pointers - and on return from
-    // ScrollIntoView() the layout is no longer at the start and the active pointer has be
-    // put back where we had been when we clicked ToStart to get back to the doc start.
-    // Then, not only does the window not scroll and the phrase box get written over the
-    // old window contents, but the bad active pile pointer causes any Update handler which
-    // requires that value to crash (eg. OnUpdateButtonRestore()). Setting both globals to
-    // zero avoids all and causes the legacy scrolling block to be used in
-    // ScrollIntoView(), as wanted.
-	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, and make both be same value
-
 	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	SPList* pList = pApp->m_pSourcePhrases;
@@ -8336,27 +8278,6 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	SPList* pList = pApp->m_pSourcePhrases;
 	int nSaveOldSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	wxString saveTargetPhrase = pApp->m_targetPhrase;
-
-    // BEW added 28Sep05, to fix the following bug. It the globals below are not here
-    // reset, and especially to the same value, then when we are in a bundle at the start
-    // of the doc we'll not get trouble, but when we've been doing autoinseting at a
-    // location way down in the document, and we stop the process (eg. Cancel a Choose
-    // Translation dialog choice) and click the ToStart button, the button's handler
-    // eventually recreates the layout at the start of the document (where we hope to end
-    // up), but in the handler ScrollIntoView() gets called, and it has "smart" code in it
-    // that takes the two globals below and if they are different, it will ask for a
-    // recalculation of the pile pointers for the beginning and end of the last inserted
-    // set of adaptations -- and these require GetPile() calls which, because that old
-    // location was miles away further down in the document, a bundle advance and layout
-    // recalculation get done in order to get valid pointers - and on return from
-    // ScrollIntoView() the layout is no longer at the start and the active pointer has be
-    // put back where we had been when we clicked ToStart to get back to the doc start.
-    // Then, not only does the window not scroll and the phrase box get written over the
-    // old window contents, but the bad active pile pointer causes any Update handler which
-    // requires that value to crash (eg. OnUpdateButtonRestore()). Setting both globals to
-    // zero avoids all and causes the legacy scrolling block to be used in
-    // ScrollIntoView(), as wanted.
-	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, and make both be same value
 
 	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
@@ -8684,28 +8605,6 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-
-    // BEW added 28Sep05, to fix the following bug. It the globals below are not here
-    // reset, and especially to the same value, then when we are in a bundle at the start
-    // of the doc we'll not get trouble, but when we've been doing autoinseting at a
-    // location way down in the document, and we stop the process (eg. Cancel a Choose
-    // Translation dialog choice) and click the ToStart button, the button's handler
-    // eventually recreates the layout at the start of the document (where we hope to end
-    // up), but in the handler ScrollIntoView() gets called, and it has "smart" code in it
-    // that takes the two globals below and if they are different, it will ask for a
-    // recalculation of the pile pointers for the beginning and end of the last inserted
-    // set of adaptations -- and these require GetPile() calls which, because that old
-    // location was miles away further down in the document, a bundle advance and layout
-    // recalculation get done in order to get valid pointers - and on return from
-    // ScrollIntoView() the layout is no longer at the start and the active pointer has be
-    // put back where we had been when we clicked ToStart to get back to the doc start.
-    // Then, not only does the window not scroll and the phrase box get written over the
-    // old window contents, but the bad active pile pointer causes any Update handler which
-    // requires that value to crash (eg. OnUpdateButtonRestore()). Setting both globals to
-    // zero avoids all and causes the legacy scrolling block to be used in
-    // ScrollIntoView(), as wanted.
-	gnBeginInsertionsSequNum = 0;
-	gnEndInsertionsSequNum = 0; // clear, and make both be same value
 
 	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
@@ -14409,20 +14308,6 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 		pApp->LogUserAction(_T("Doc is empty in OnGoTo()"));
 		return;
 	}
-
-    // BEW added 28Sep05, to fix the following bug. It the globals below are not here
-    // reset, and especially to the same value, then when we've been doing autoinseting at
-    // a location somewhere and we go to a very different location far away in the
-    // document, any call to ScrollIntoView() will invoke its "smart" code -- that takes
-    // the two globals below and if they are different, it will ask for a recalculation of
-    // the pile pointers for the beginning and end of the last inserted set of adaptations
-    // -- and these require GetPile() calls which, because that old location was miles away
-    // further away in the document, a bundle advance and layout recalculation get done in
-    // order to get valid pointers - and on return from ScrollIntoView() the layout is no
-    // longer where expected and the active pointer has probably become invalid. Setting
-    // both globals to zero avoids all and causes the legacy scrolling block to be used in
-    // ScrollIntoView(), as wanted. (may not need this in refactored layout, but leave it)
-	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, & make both be same
 
     // provided the phrase box exists, unconditionally enter the old phrase box's text into
     // the KB - we assume it is complete, if not, too bad - it can be fixed later if it's
@@ -21079,20 +20964,6 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-
-    // BEW added 28Sep05, to fix the following bug. It the globals below are not here
-    // reset, and especially to the same value, then when we've been doing autoinseting at
-    // a location somewhere and we click the back button to go to a very different location
-    // far away in the document, any call to ScrollIntoView() will invoke its "smart" code
-    // -- that takes the two globals below and if they are different, it will ask for a
-    // recalculation of the pile pointers for the beginning and end of the last inserted
-    // set of adaptations -- and these require GetPile() calls which, because that old
-    // location was miles away further away in the document, a bundle advance and layout
-    // recalculation get done in order to get valid pointers - and on return from
-    // ScrollIntoView() the layout is no longer where expected and the active pointer has
-    // probably become invalid. Setting both globals to zero avoids all and causes the
-    // legacy scrolling block to be used in ScrollIntoView(), as wanted.
-	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, and make both be same value
 
 	// there must be a valid earlier active location, so jump to there
 	int nOldSequNum;

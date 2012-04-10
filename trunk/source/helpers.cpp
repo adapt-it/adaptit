@@ -74,8 +74,6 @@ extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 extern bool gbForceUTF8;
 extern int  gnOldSequNum;
-extern int  gnBeginInsertionsSequNum;
-extern int  gnEndInsertionsSequNum;
 extern bool gbTryingMRUOpen;
 extern bool gbConsistencyCheckCurrent;
 extern bool gbInhibitMakeTargetStringCall;
@@ -5643,7 +5641,8 @@ int ParseMarker(const wxChar *pChar)
 // wxArrayInt, whether or not keep_strips_keep_piles is used for RecalcLayout() - the
 // contents won't be used if another layout_selector enum valus is in effect, as
 // RecalcLayout() would recreate the strips and repopulate the partner piles in such
-// situations
+// situations. The function can be used in other contexts of course. The int values can
+// be from anything
 void AddUniqueInt(wxArrayInt* pArrayInt, int nInt)
 {
 	int count = pArrayInt->GetCount();
