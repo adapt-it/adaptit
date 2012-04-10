@@ -3776,7 +3776,10 @@ void CLayout::MakeAllPilesNonCurrent()
 ///	Call as follows:
 ///	1. In OnNewDocument() to ensure correct initialization
 ///	2. In OnOpenDocument() to ensure correct initialization
-///	3. ?? add new call locations here...
+///	3. In OnLButtonDown() - in one place to clear highlighting for a click not
+///	   in any cell; in another place to clear highlighting for a click in a cell
+///	   not already highlighted [uses IsClickWithinAutoInsertionsHighlightedSpan()]
+///	4. other calls go here...
 ///	
 /// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
 /// which supports discontinuos auto-insertions (temporarily, legacy code will be
@@ -3799,6 +3802,48 @@ void CLayout::ClearAutoInsertionsHighlighting()
 		}
 		pos = pos->GetNext();
 	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return         TRUE if, at the active pile, CCell[1] has m_bAutoInserted set TRUE,
+///                 otherwise return FALSE
+/// \param      ->  the active sequence number (of the CSourcePhrase associated with the
+///                 just-clicked CPile instance)
+/// \remarks
+///	Tests CCell[1] for its m_bAutoInserted member boolean set to TRUE, returning the
+///	result to the caller
+///	
+///	Usage:
+///	Call as follows:
+///	1. In OnLButtonDown() - to clear highlighting for a click in a cell not already highlighted
+///	2. other calls go here...
+///	
+/// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
+/// which supports discontinuos auto-insertions (temporarily, legacy code will be
+/// commented out and BKHILITE added there to facilitate searching for all such
+/// locations in the application)
+/////////////////////////////////////////////////////////////////////////////////
+bool CLayout::IsLocationWithinAutoInsertionsHighlightedSpan(int sequNum)
+{
+	CPile* pPile = GetPile(sequNum);
+	if (pPile == NULL)
+	{
+		return FALSE;
+	}
+	else
+	{
+		return pPile->GetCell(1)->m_bAutoInserted;
+	}
+}
+
+// sets pPile->m_bAutoInserted to TRUE
+// BEW 9Apr12 created, BKHILITE, for the refactored auto-insert mechanism,
+// which supports discontinuos auto-insertions (temporarily, legacy code will be
+// commented out and BKHILITE added there to facilitate searching for all such
+// locations in the application)
+void CLayout::SetAutoInsertionHighlightFlag(CPile* pPile)
+{
+	pPile->GetCell(1)->m_bAutoInserted = TRUE;
 }
 
 /*

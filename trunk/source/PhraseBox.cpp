@@ -393,18 +393,17 @@ CLayout* CPhraseBox::GetLayout()
 // returns TRUE if the phrase box, when placed at pNextEmptyPile, would not be within a
 // retranslation, or FALSE if it is within a retranslation
 // Side effects:
-// (1) tests for non-contiguous auto-insertions, and if finds such, turns off background
-// highlighting of the auto-inserted material
-// (2) checks for vertical edit being current, and whether or not a vertical edit step
+// (1) checks for vertical edit being current, and whether or not a vertical edit step
 // transitioning event has just been posted (that would be the case if the phrase box at
 // the new location would be in grayed-out text), and if so, returns FALSE after setting
 // the global bool gbTunnellingOut to TRUE - so that MoveToNextPile() can be exited early
 // and the vertical edit step's transition take place instead
-// (3) for non-vertical edit mode, if the new location would be within a retranslation, it
+// (2) for non-vertical edit mode, if the new location would be within a retranslation, it
 // shows an informative message to the user, enables the button for copying punctuation,
 // and returns FALSE
-// (4) if within a retranslation, the global bool gbEnterTyped is cleared to FALSE
+// (3) if within a retranslation, the global bool gbEnterTyped is cleared to FALSE
 // BEW 13Apr10, no changes needed for support of doc version 5
+// BEW 9Apr12, changed to support discontinuous hightlight spans for auto-inserts
 bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, 
 												CPile* pNextEmptyPile, CPile* pCurPile)
 {
@@ -413,18 +412,22 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 	if (gbIsGlossing)
 		return TRUE; // allow phrase box to land in a retranslation when glossing mode is ON
 
+	// legacy code... (when discontinuous highlight spans were not allowed)
 	// the code below will only be entered when glossing mode is OFF, that is, in adapting mode
-	if (pNextEmptyPile->GetSrcPhrase()->m_nSequNumber > pCurPile->GetSrcPhrase()->m_nSequNumber + 1)
-	{
+	// BEW 9Apr12, BKHILITE, deprecated the check and clearing of the highlighting, discontinuity
+	// is now supported
+	//if (pNextEmptyPile->GetSrcPhrase()->m_nSequNumber > pCurPile->GetSrcPhrase()->m_nSequNumber + 1)
+	//{
 		// The next empty pile is not contiguous to the last pile where
 		// the phrasebox was located, so don't highlight target/gloss text
-		gnBeginInsertionsSequNum = -1;
-		gnEndInsertionsSequNum = -1;
-#ifdef Highlighting_Bug
-		wxLogDebug(_T("PhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation() reset to -1, empty pile %d  current pile plus one %d"),
-			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_nSequNumber + 1);
-#endif
-	}
+	//	gnBeginInsertionsSequNum = -1;
+	//	gnEndInsertionsSequNum = -1;
+//#ifdef Highlighting_Bug
+//		wxLogDebug(_T("PhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation() reset to -1, empty pile %d  current pile plus one %d"),
+//			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_nSequNumber + 1);
+//#endif
+	//}
+	pCurPile = pCurPile; // avoid compiler warning
 
 	if (pNextEmptyPile->GetSrcPhrase()->m_bRetranslation)
 	{
@@ -834,29 +837,29 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 	// this location in the document, but just to suppress the KB store; if glossing is ON, then
 	// being a <Not In KB> location is irrelevant, and we will want the store done normally - but
 	// to the glossing KB of course
+	bOK = TRUE;
 	if (!gbIsGlossing && !pOldActiveSrcPhrase->m_bHasKBEntry && pOldActiveSrcPhrase->m_bNotInKB)
 	{
 		// if the user edited out the <Not In KB> entry from the KB editor, we need to put
 		// it back so that the setting is preserved (the "right" way to change the setting is to
 		// use the toolbar checkbox - this applies when adapting, not glossing)
 		pApp->m_pKB->Fix_NotInKB_WronglyEditedOut(pCurPile);
-		goto b;
 	}
-
-	// make the punctuated target string, but only if adapting; note, for auto capitalization
-	// ON, the function will change initial lower to upper as required, whatever punctuation
-	// regime is in place for this particular sourcephrase instance
-	bOK = TRUE;
-	// in the next call, the final bool flag, bIsTransliterateMode, is default FALSE
-	bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
-	if (!bOK)
+	else
 	{
-		DealWithUnsuccessfulStore(pApp, pView, pNextEmptyPile);
-		return FALSE; // can't move until a valid adaption (which could be null) is supplied
+		// make the punctuated target string, but only if adapting; note, for auto capitalization
+		// ON, the function will change initial lower to upper as required, whatever punctuation
+		// regime is in place for this particular sourcephrase instance
+		// in the next call, the final bool flag, bIsTransliterateMode, is default FALSE
+		bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
+		if (!bOK)
+		{
+			DealWithUnsuccessfulStore(pApp, pView, pNextEmptyPile);
+			return FALSE; // can't move until a valid adaption (which could be null) is supplied
+		}
 	}
-
 	// since we are moving, make sure the default m_bSaveToKB value is set
-b:	pApp->m_bSaveToKB = TRUE;
+	pApp->m_bSaveToKB = TRUE;
 
 	// move to next pile's cell which has no adaptation yet
 	pApp->m_bUserTypedSomething = FALSE; // user has not typed at the new location yet
@@ -958,7 +961,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 			{
                 // this merge is suppressed if we get here after doing a merge in
                 // LookAhead() in order to see the phrase box at the correct location when
-                // the Choose Translation dialog is up
+				// the Choose Translation dialog is up; it's done here only if an
+				// auto-insert can be done
 				if (nWordsInPhrase > 1) // nWordsInPhrase is a global, set in LookAhead()
 										// or in LookUpSrcWord()
 				{
@@ -970,13 +974,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 					pApp->bLookAheadMerge = FALSE; // restore static flag to OFF
 				}
 			}
-			else
-			{
-				// clear the flag to false
-				gbSuppressMergeInMoveToNextPile = FALSE; // make sure it's reset to 
-														 // the default value
-			}
 
+			// legacy code....
             // For automatically inserted target/gloss text highlighting, we increment the
             // Ending Sequence Number as long as the Beginning Sequence Number is
             // non-negative. If the Beginning Sequence Number is negative, the Ending
@@ -986,23 +985,45 @@ b:	pApp->m_bSaveToKB = TRUE;
             // just increments the gnEndInsertionsSequNum value, the False block insures
             // both globals have -1 values. So after the 2nd insertion, the two globals
             // have values differing by 1 and so the previous two insertions get the
-            // highlighting, etc.
-			if (gnBeginInsertionsSequNum >= 0)
+            // highlighting, etc. BKHILITE
+			//if (gnBeginInsertionsSequNum >= 0)
+			//{
+//#ifdef Highlighting_Bug
+//				wxLogDebug(_T("PhraseBox::MoveToNextPile(), incrementing %d  by one"),gnEndInsertionsSequNum);
+//#endif
+//				gnEndInsertionsSequNum++;
+//#ifdef Highlighting_Bug
+//				wxLogDebug(_T("PhraseBox::MoveToNextPile(), gnEndInsertionsSequNum is now %d  "),gnEndInsertionsSequNum);
+//#endif
+//			}
+//			else
+//			{
+//#ifdef Highlighting_Bug
+//				wxLogDebug(_T("PhraseBox::MoveToNextPile(), resetting end value to beginning which is %d "),gnBeginInsertionsSequNum);
+//#endif
+//				gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
+//			}
+			// BEW changed 9Apr12 to support discontinuous highlighting spans, BKHILITE
+			if (nWordsInPhrase == 1 || !gbSuppressMergeInMoveToNextPile)
 			{
-#ifdef Highlighting_Bug
-				wxLogDebug(_T("PhraseBox::MoveToNextPile(), incrementing %d  by one"),gnEndInsertionsSequNum);
-#endif
-				gnEndInsertionsSequNum++;
-#ifdef Highlighting_Bug
-				wxLogDebug(_T("PhraseBox::MoveToNextPile(), gnEndInsertionsSequNum is now %d  "),gnEndInsertionsSequNum);
-#endif
-			}
-			else
-			{
-#ifdef Highlighting_Bug
-				wxLogDebug(_T("PhraseBox::MoveToNextPile(), resetting end value to beginning which is %d "),gnBeginInsertionsSequNum);
-#endif
-				gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
+                // When nWordsInPhrase > 1, since the call of LookAhead() didn't require
+                // user choice of the adaptation or gloss for the merger, it wasn't done in
+                // the latter function, and so is done here automatically (because there is
+                // a unique adaptation available) and so it is appropriate to make this
+                // location have background highlighting, since the adaptation is now to be
+                // auto-inserted after the merger was done above. Note: the
+                // gbSuppressMergeInMoveToNextPile flag will be FALSE if the merger was not
+                // done in the prior LookAhead() call (with ChooseTranslation() being
+                // required for the user to manually choose which adaptation is wanted); we
+                // use that fact in the test above.
+				// When nWordsInPhrase is 1, there is no merger involved and the
+				// auto-insert to be done now requires background highlighting (Note, we
+				// set the flag when appropriate, but only suppress doing the background
+				// colour change in the CCell's Draw() function, if the user has requested
+				// that no background highlighting be used - that uses the
+				// m_bSuppressTargetHighlighting flag with TRUE value to accomplish the
+				// suppression)
+                pLayout->SetAutoInsertionHighlightFlag(pNewPile);
 			}
             // assign the translation text - but check it's not "<Not In KB>", if it is,
             // phrase box can have m_targetStr, turn OFF the m_bSaveToKB flag, DON'T halt
@@ -1029,7 +1050,11 @@ b:	pApp->m_bSaveToKB = TRUE;
 				pApp->m_targetPhrase = translation;
 				bWantSelect = FALSE;
 			}
-
+#ifdef Highlighting_Bug
+			// BEW changed 9Apr12 for support of discontinuous highlighting spans
+			wxLogDebug(_T("PhraseBox::MoveToNextPile(), hilighting: sequnum = %d  where the user chose:  %s  for source:  %s"),
+				nCurrentSequNum, translation, pNewPile->GetSrcPhrase()->m_srcPhrase);
+#endif
             // treat auto insertion as if user typed it, so that if there is a
             // user-generated extension done later, the inserted translation will not be
             // removed and copied source text used instead; since user probably is going to
@@ -1171,6 +1196,9 @@ b:	pApp->m_bSaveToKB = TRUE;
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
 		else
 			SetModify(FALSE); // our own SetModify(); calls DiscardEdits()
+
+		// make sure gbSuppressMergeInMoveToNextPile is reset to the default value
+		gbSuppressMergeInMoveToNextPile = FALSE;
 
 		return TRUE;
 	}
@@ -1417,7 +1445,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 			{
                 // this merge is suppressed if we get here after doing a merge in
                 // LookAhead() in order to see the phrase box at the correct location when
-                // the Choose Translation dialog is up
+                // the Choose Translation dialog is up; it's done here only if an
+				// auto-insert can be done
 				if (nWordsInPhrase > 1) // nWordsInPhrase is a global, set in LookAhead()
 										// or in LookUpSrcWord()
 				{
@@ -1429,13 +1458,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 					pApp->bLookAheadMerge = FALSE; // restore static flag to OFF
 				}
 			}
-			else
-			{
-				// clear the flag to false
-				gbSuppressMergeInMoveToNextPile = FALSE; // make sure it's reset to 
-														 // the default value
-			}
 
+			// legacy code....
 			// For automatically inserted target/gloss text highlighting, we increment the
             // Ending Sequence Number as long as the Beginning Sequence Number is
             // non-negative. If the Beginning Sequence Number is negative, the Ending
@@ -1446,13 +1470,35 @@ b:	pApp->m_bSaveToKB = TRUE;
             // both globals have -1 values. So after the 2nd insertion, the two globals
             // have values differing by 1 and so the previous two insertions get the
             // highlighting, etc.
-			if (gnBeginInsertionsSequNum >= 0)
+			//if (gnBeginInsertionsSequNum >= 0)
+			//{
+			//	gnEndInsertionsSequNum++;
+			//}
+			//else
+			//{
+			//	gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
+			//}
+			// BEW changed 9Apr12 to support discontinuous highlighting spans, BKHILITE
+			if (nWordsInPhrase == 1 || !gbSuppressMergeInMoveToNextPile)
 			{
-				gnEndInsertionsSequNum++;
-			}
-			else
-			{
-				gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
+                // When nWordsInPhrase > 1, since the call of LookAhead() didn't require
+                // user choice of the adaptation or gloss for the merger, it wasn't done in
+                // the latter function, and so is done here automatically (because there is
+                // a unique adaptation available) and so it is appropriate to make this
+                // location have background highlighting, since the adaptation is now to be
+                // auto-inserted after the merger was done above. Note: the
+                // gbSuppressMergeInMoveToNextPile flag will be FALSE if the merger was not
+                // done in the prior LookAhead() call (with ChooseTranslation() being
+                // required for the user to manually choose which adaptation is wanted); we
+                // use that fact in the test above.
+				// When nWordsInPhrase is 1, there is no merger involved and the
+				// auto-insert to be done now requires background highlighting (Note, we
+				// set the flag when appropriate, but only suppress doing the background
+				// colour change in the CCell's Draw() function, if the user has requested
+				// that no background highlighting be used - that uses the
+				// m_bSuppressTargetHighlighting flag with TRUE value to accomplish the
+				// suppression)
+                pLayout->SetAutoInsertionHighlightFlag(pNewPile);
 			}
             // assign the translation text - but check it's not "<Not In KB>", if it is,
             // phrase box can have m_targetStr, turn OFF the m_bSaveToKB flag, DON'T halt
@@ -1669,6 +1715,9 @@ b:	pApp->m_bSaveToKB = TRUE;
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
 		else
 			SetModify(FALSE); // our own SetModify(); calls DiscardEdits()
+
+		// make sure gbSuppressMergeInMoveToNextPile is reset to the default value
+		gbSuppressMergeInMoveToNextPile = FALSE;
 
 		return TRUE;
 	}
@@ -1984,6 +2033,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// any automatically inserted target/gloss text, starting from the 
 		// current phrase box location (where the Choose Translation dialog appears).
 
+		// legacy code....
 		// BEW modified 20June06; the starting value for gnEndInsertionsSequNum
 		// must be one less than gnBeginInsertionsSequNum so that at the first
 		// auto insert location the incrementation of gnEndInsertionsSequNum will
@@ -1993,11 +2043,21 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 		// the halted phrase box having background highlighting even though the
 		// phrase box has not yet got that far (because gnEndInsertionsSequNum
 		// was set one too large)
-		gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
-		gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+		//gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
+		//gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+
+		// BEW changed 9Apr12 for support of discontinuous highlighting spans, BKHILITE
+		// A new protocol is needed here. The legacy code wiped out any auto-insert
+		// highlighting already accumulated, and setup for a possible auto-inserted span
+		// starting at the NEXT pile following the merger location. The user-choice of the
+		// adaptation or gloss rightly ends the previous auto-inserted span, but we want
+		// that span to be visible while the ChooseTranslation dialog is open; so here we
+		// do nothing, and in the caller (which usually is MoveToNextPile() we clobber the
+		// old highlighted span and setup for a potential new one
 #ifdef Highlighting_Bug
-		wxLogDebug(_T("PhraseBox::LookAhead(), starting values: begin %d  end  %d"),
-			gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+		// BEW changed 9Apr12 for support of discontinuous highlighting spans, BKHILITE
+		wxLogDebug(_T("PhraseBox::LookAhead(), hilited span ends at merger at: sequnum = %d  where the user chose:  %s  for source:  %s"),
+			pApp->m_nActiveSequNum, translation, pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase);
 #endif
 	}
 	else // count == 1 case (ie. a unique adaptation, or a unique gloss when glossing)
@@ -2110,13 +2170,23 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 						return;
 					}
 				}
+
+				// legacy code...
 				// At the end, we'll reset the globals to turn off any highlight
-				gnBeginInsertionsSequNum = -1;
-				gnEndInsertionsSequNum = -1;
-#ifdef Highlighting_Bug
-				wxLogDebug(_T("PhraseBox::JumpForward(), failed to move to next pile, resetting to -1 from pile %d   %s "),
-					pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber, pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase);
-#endif
+				//gnBeginInsertionsSequNum = -1;
+				//gnEndInsertionsSequNum = -1;
+//#ifdef Highlighting_Bug
+				//wxLogDebug(_T("PhraseBox::JumpForward(), failed to move to next pile, resetting to -1 from pile %d   %s "),
+				//	pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber, pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase);
+//#endif
+				// BEW changed 9Apr12, BKHILITE, to support discontinuous highlighting
+				// spans for auto-insertions...
+				// When we come to the end, we could get there having done some
+				// auto-insertions, and so we'd want them to be highlighted in the normal
+				// way, and so we do nothing here -- the user can manually clear them, or
+				// position the box elsewhere and initiate the lookup-and-insert loop from
+				// there, in which case auto-inserts would kick off with new span(s)
+				
 				pLayout->Redraw(); // remove highlight before MessageBox call below
 				pLayout->PlaceBox();
 
@@ -2256,10 +2326,12 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			pApp->m_bAutoInsert = TRUE;
 			gbEnterTyped = TRUE;
 
-			// User has pressed the Enter key so set the globals to the
-			// active sequence number plus one, so we can track any 
-			// automatically inserted target/gloss text
-			gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
+			// User has pressed the Enter key  (OnChar() calls JumpForward())
+
+			// Legacy code...
+            // Set the globals to the active sequence number plus one, so we can track any
+            // automatically inserted target/gloss text
+			//gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
             // BEW modified 20June06; the starting value for gnEndInsertionsSequNum must be
             // one less than gnBeginInsertionsSequNum so that at the first auto insert
             // location the incrementation of gnEndInsertionsSequNum will become equal in
@@ -2268,11 +2340,25 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
             // fixes an error which resulted in the pile AFTER the halted phrase box having
             // background highlighting even though the phrase box has not yet got that far
             // (because gnEndInsertionsSequNum was set one too large)
-			gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+			//gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+//#ifdef Highlighting_Bug
+//			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, begin at %d   (Smaller) end value starts at  %d "),
+//				gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+//#endif
+
+			// BEW changed 9Apr12, BKHILITE, to support discontinuous highlighting
+			// spans for auto-insertions...
+			// Since OnIdle() will call OnePass() and the latter will call
+			// MoveToNextPile(), and it is in MoveToNextPile() that CCell's
+			// m_bAutoInserted flag can get set TRUE, we only here need to ensure that the
+			// current location is a kick-off one, which we can do by clearing any earlier
+			// highlighting currently in effect
+			pLayout->ClearAutoInsertionsHighlighting(); 
 #ifdef Highlighting_Bug
-			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, begin at %d   (Smaller) end value starts at  %d "),
-				gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, from  pile at sequnum = %d   SrcText:  "),
+				pSPhr->m_nSequNumber, pSPhr->m_srcPhrase);
 #endif
+
 			pLayout->m_docEditOperationType = relocate_box_op;
 		}
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
@@ -4226,13 +4312,25 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
 		{
 			// we got to the end of the doc...
-			// At the end, we'll reset the globals to turn off any highlight
-			gnBeginInsertionsSequNum = -1;
-			gnEndInsertionsSequNum = -1;
+			// 
+			// At the end, we'll reset the globals to turn off any highlight (legacy code)
+			//gnBeginInsertionsSequNum = -1;
+			//gnEndInsertionsSequNum = -1;
 #ifdef Highlighting_Bug
-			wxLogDebug(_T("PhraseBox::OnePass(), -1 value set:  begin at %d  end  %d "),
-				gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+			//wxLogDebug(_T("PhraseBox::OnePass(), -1 value set:  begin at %d  end  %d "),
+			//	gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+			//	BEW 9Apr12 ...discontinuous highlighted spans would need a new wxLogDebug function...
 #endif
+			// BEW changed 9Apr12, BKHILITE, support discontinuous auto-inserted spans highlighting
+			//pLayout->ClearAutoInsertionsHighlighting(); <- I'm trying no call here,
+			// hoping that JumpForward() will suffice, so that OnIdle()'s call of OnePass()
+			// twice at the end of doc won't clobber the highlighting already established.
+            // YES!! That works - the highlighting is now visible when the box has
+            // disappeared and the end of doc message shows. Also, normal adapting still
+            // works right despite this change, so that's a bug (or undesireable feature -
+            // namely, the loss of highlighting when the doc is reached by auto-inserting)
+            // now fixed.
+			
 			// remove highlight before MessageBox call below
 			//pView->Invalidate();
 			pLayout->Redraw(); // bFirstClear is default TRUE
@@ -4275,8 +4373,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 #endif
 			pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
 			pLayout->m_docEditOperationType = no_edit_op;
-		}
-		else // not successful, but we have a non-null active pile defined, and sequence number >= 0
+		} // end of TRUE block for test: if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
+
+		else // we have a non-null active pile defined, and sequence number >= 0
 		{
 			pApp->m_pTargetBox->SetFocus();
 			pLayout->m_docEditOperationType = no_edit_op; // is this correct for here?
@@ -4288,7 +4387,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		pView->Invalidate(); // added 1Apr09, since we return at next line
 		pLayout->PlaceBox();
 		return FALSE; // must have been a null string, or at EOF;
-	}
+	} // end of TRUE block for test: if (!bSuccessful)
 
 	// if control gets here, all is well so far, so set up the main window
 	//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);

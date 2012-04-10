@@ -646,11 +646,16 @@ void CCell::Draw(wxDC* pDC)
 		else
 		{
 			// not free translation mode -- this is where the auto-highlighting (in light
-			// purple) of automatically inserted adaptations or glosses is done (the bounding
-			// sequence numbers on which it relies, however, get set elsewhere beforehand)
-			if (	!(m_pLayout->m_pApp->m_bSuppressTargetHighlighting)
-					&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber >= gnBeginInsertionsSequNum
-					&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber <= gnEndInsertionsSequNum)
+			// purple) of automatically inserted adaptations or glosses is done 
+			//
+			// (legacy code...)
+			// (the bounding sequence numbers on which it relies, however, get set elsewhere beforehand)
+			//if (	!(m_pLayout->m_pApp->m_bSuppressTargetHighlighting)
+			//		&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber >= gnBeginInsertionsSequNum
+			//		&& m_pOwningPile->m_pSrcPhrase->m_nSequNumber <= gnEndInsertionsSequNum)
+			// BKHILITE
+			// BEW changed 9Apr12 to support discontinuous highlighted spans for auto-inserts
+			if ( !m_pLayout->m_pApp->m_bSuppressTargetHighlighting && m_bAutoInserted)
 			{
 				//Draw automatically inserted target text with selected background color
 				// Some decent possibilities for default background highlight color are:
@@ -663,9 +668,9 @@ void CCell::Draw(wxDC* pDC)
 				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
 				pDC->SetTextBackground(m_pLayout->m_pApp->m_AutoInsertionsHighlightColor); // light purple
 #ifdef Highlighting_Bug
-				wxLogDebug(_T("Cell::Draw(), *PURPLE* at %d  %s , Range begins at %d  Ends at %d"),
-					m_pOwningPile->m_pSrcPhrase->m_nSequNumber, m_pOwningPile->m_pSrcPhrase->m_srcPhrase,
-					gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+				// BEW changed 9Apr12 to reflect supported discontinuous auto-insertions highlighting
+				wxLogDebug(_T("Cell::Draw(), *PURPLE* at %d  %s"),
+					m_pOwningPile->m_pSrcPhrase->m_nSequNumber, m_pOwningPile->m_pSrcPhrase->m_srcPhrase);
 #endif
 			}
 		}
@@ -864,7 +869,7 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 #if defined(__WXGTK__)
 			// a kludge to see if we can get anything printed below the strip in GTK build when printing free trans
 			// -- Yes, it works; so I can build a function to exploit this...
-			// It's now 22Nov and I've built such a function and called it from CPile::Draw() but it not only doesn't
+			// It's now 22Nov11 and I've built such a function and called it from CPile::Draw() but it not only doesn't
 			// draw anything on the page (even though correct DrawText() calls are made), it also clobbers the drawn
 			// source and target lines of most of the strips except a little bit at top strip - their area is white too!
 			wxString ftStr;
