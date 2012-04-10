@@ -30,7 +30,9 @@ the new features and feature changes in version 6. This is an
 ongoing effort and many of the HTML Help files have yet to be 
 updated.
 * Highlighting of auto-insertions done in non-contiguous parts
-of the document are now supported.
+of the document are now supported. The highlighting is preserved
+when scrolling. Clicking a highlighted cell does not remove the
+highlighting of other cells in the viscinity.
 
 ----------------------------------------------
 Bug fixes in 6.2.1
