@@ -401,8 +401,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
 
-	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
-	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+	// legacy code for auto-insertions highlighting
+	//gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	//gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+
+	// BEW changed 9Apr12, BKHILITE, support discontinuous auto-inserted spans highlighting
+	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
 
  	// get a pointer to the view
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
@@ -4459,8 +4463,12 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// lpszPathName string, and replace it with a test on curPos instead (when doing a
 	// consistency check, the full path is not passed in)
 
-	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
-	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+	// legacy code for auto-insertions highlighting
+	//gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	//gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+
+	// BEW changed 9Apr12, BKHILITE, support discontinuous auto-inserted spans highlighting
+	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
 
 	wxString thePath = filename;
 	wxString extension = thePath.Right(4);

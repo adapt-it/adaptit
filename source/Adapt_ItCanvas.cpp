@@ -1172,11 +1172,15 @@ x:					CCell* pCell = 0;
 			// click was not in a cell, so just remove any existing selection
 			pView->RemoveSelection();
 
-			// click was not in a cell, so allow removal of the automatically
-			// inserted highlighting on target/glosses. This is effected
-			// by clearing the following two globals to -1 values.
-			gnBeginInsertionsSequNum = -1;
-			gnEndInsertionsSequNum = -1;
+			// Click was not in a cell, so remove the highlighting of automatically
+			// inserted target (or glosses) text
+			//  
+			// This is effected by clearing the following two globals to -1 values.
+			//gnBeginInsertionsSequNum = -1;
+			//gnEndInsertionsSequNum = -1;
+			
+			// BEW changed 9Apr12, BKHILITE
+			pApp->m_pLayout->ClearAutoInsertionsHighlighting();
 
 			pApp->m_bSelectByArrowKey = FALSE;
 			Refresh(); // must force a redraw, or else the selection
@@ -1513,16 +1517,23 @@ x:					CCell* pCell = 0;
 						}
 					}
 
-					// We should clear target text highlighting if user clicks in a cell within
-					// a stretch of text that is not already highlighted. We can clear it by
-					// resetting the globals to -1. The highlighting should be retained if user
-					// clicks in a cell within a stretch of highlighted text since the user is
-					// probably correcting one or more cells that were not good translations
-					if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum
-						|| pApp->m_nActiveSequNum > gnEndInsertionsSequNum)
+                    // We should clear target text highlighting if user clicks in a cell
+                    // within a stretch of text that is not already highlighted. The
+                    // highlighting should be retained if user clicks in a cell within a
+                    // stretch of highlighted text since the user is probably correcting
+                    // one or more cells that were not good translations
+
+					// We can clear it by resetting the globals to -1 (legacy code)
+					//if (pApp->m_nActiveSequNum < gnBeginInsertionsSequNum
+					//	|| pApp->m_nActiveSequNum > gnEndInsertionsSequNum)
+					//{
+					//	gnBeginInsertionsSequNum = -1;
+					//	gnEndInsertionsSequNum = -1;
+					//}
+					// BEW changed 9Apr12, to support discontinuous auto-insertions, BKHILITE
+					if (!pApp->m_pLayout->IsLocationWithinAutoInsertionsHighlightedSpan(pApp->m_nActiveSequNum))
 					{
-						gnBeginInsertionsSequNum = -1;
-						gnEndInsertionsSequNum = -1;
+						pApp->m_pLayout->ClearAutoInsertionsHighlighting();
 					}
 
 					// save old sequ number in case required for toolbar's Back button

@@ -447,9 +447,10 @@ public:
 	// highlighting for auto-inserted adaptations, or glosses - using the new
 	// m_bAutoInserted member of CCell class
 	void ClearAutoInsertionsHighlighting(); // scans whole of the piles array and clears the
-											// m_bAutoInserted member of CCell[1] whenever
-											// it is TRUE
-
+						// m_bAutoInserted member of CCell[1] whenever it is TRUE
+	bool IsLocationWithinAutoInsertionsHighlightedSpan(int sequNum); // return TRUE if the
+						// CCell[1] at sequNum in the pile list has m_bAutoInserted TRUE
+	void SetAutoInsertionHighlightFlag(CPile* pPile); // sets pPile->m_bAutoInserted to TRUE	
 public:
 	DECLARE_DYNAMIC_CLASS(CLayout)
 	// Used inside a class declaration to declare that the objects of
