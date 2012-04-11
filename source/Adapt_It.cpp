@@ -19055,6 +19055,7 @@ int ii = 1;
 	pEditMenu->Append (ID_MENU_DVCS_COMMIT_PROJECT, _T("Commit all changes to the current project"));
 	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this file"));			// ditto
 	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));	// ditto
+	pEditMenu->Append (ID_MENU_DVCS_REVERT_FILE, _T("Revert this file to previous revision"));	// ditto
 
 #endif
 	// end of code for supporting Mike's DVCS work

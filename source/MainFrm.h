@@ -210,6 +210,7 @@ class CMainFrame : public wxDocParentFrame
 	void OnDVCS_Commit_Project (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Revert_File (wxCommandEvent& WXUNUSED(event));
 #endif
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);

@@ -249,6 +249,23 @@ int  log_project()
 	return call_hg();
 }
 
+// For reverting, instead of passing a filename, we assume the current file.  Probably we'll do this
+// for the other functions as well.
+
+int  revert_current_file()
+{
+	CAdapt_ItApp*	pApp = &wxGetApp();
+	wxString		fileName = pApp->m_curOutputFilename;
+	int				revision = pApp->m_LatestRevisionNumber - 1;	// We keep things simple by only ever reverting
+																//  to the previous revision.
+	hg_command = _T("revert");
+	hg_arguments = fileName;	// ????MUST CONVERT revision TO wxString!!!!
+
+	// NOT FINISHED YET
+	revision = revision;
+	return 0;
+}
+
 
 
 // Main function.  This is the only one called from outside this file.
@@ -286,7 +303,7 @@ int  CallDVCS ( int action )
 			result = call_hg();
 			break;
 		
-		case DVCS_INIT_REPOSITORY:	result = init_repository();  break;
+		case DVCS_INIT_REPOSITORY:	result = init_repository();							break;
 
 		case DVCS_ADD_FILE:			result = add_file (pApp->m_curOutputFilename);		break;
 		case DVCS_ADD_ALL_FILES:	result = add_all_files();							break;
@@ -299,6 +316,8 @@ int  CallDVCS ( int action )
 
 		case DVCS_LOG_FILE:			result = log_file (pApp->m_curOutputFilename);		break;
 		case DVCS_LOG_PROJECT:		result = log_project();								break;
+		
+		case DVCS_REVERT_FILE:		result = revert_current_file();						break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));
