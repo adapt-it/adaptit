@@ -307,6 +307,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU (ID_MENU_DVCS_COMMIT_PROJECT,	CMainFrame::OnDVCS_Commit_Project)
 	EVT_MENU (ID_MENU_DVCS_LOG_FILE,		CMainFrame::OnDVCS_Log_File)
 	EVT_MENU (ID_MENU_DVCS_LOG_PROJECT,		CMainFrame::OnDVCS_Log_Project)
+	EVT_MENU (ID_MENU_DVCS_REVERT_FILE,		CMainFrame::OnDVCS_Revert_File)
 #endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
@@ -2343,6 +2344,12 @@ void CMainFrame::OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event))
 void CMainFrame::OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event))
 {
 	int resultCode = CallDVCS (DVCS_LOG_PROJECT);
+	lastResultCode = resultCode;
+}
+
+void CMainFrame::OnDVCS_Revert_File (wxCommandEvent& WXUNUSED(event))
+{
+	int resultCode = CallDVCS (DVCS_REVERT_FILE);
 	lastResultCode = resultCode;
 }
 
