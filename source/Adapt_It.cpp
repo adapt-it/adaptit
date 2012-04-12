@@ -31557,8 +31557,8 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 #else
 			// UNICODE
 			bSuccessful = f.Open(path, wxConvUTF8); // read UNICODE file into memory
-		}
 #endif
+		}
 	}
 	if (bEmptyConfigFile)
 	{
