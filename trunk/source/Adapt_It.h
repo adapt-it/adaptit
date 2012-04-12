@@ -22,7 +22,7 @@
 #define Adapt_It_h
 
 // a temporary #define for Mike to use when working on DVCS:
-//#define TEST_DVCS
+// #define TEST_DVCS
 
 // symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Help menu)
 const int ID_MENU_DVCS_VERSION			= 999;
@@ -2017,10 +2017,11 @@ public:
                 // operation. (If TRUE, document loading does nothing except set up the
                 // list of CSourcePhrase instances.)
 	
-	// Version control variables:
+	// Version control variables, relating to the current document
 	bool		m_underVersionControl;
 	int			m_LatestRevisionNumber;
 	wxDateTime	m_LatestRevisionTime;
+	wxString	m_committer;			// unique username for whoever's allowed to commit this file
 
 
 	/////////////////////////////////////////////////////////////////////////////////
