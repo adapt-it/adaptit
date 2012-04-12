@@ -2372,19 +2372,27 @@ wxString GetPathToRdwrtp7()
 	// Adapt It installation.
 
 #ifdef __WXMSW__
-    // windows dependency checks
-	rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
-	wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
-	wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Interop.XceedZipLib.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
-	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
-	wxASSERT(::wxFileExists(fileName));
+	if (::wxFileExists(gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe")))
+	{
+		// rdwrtp7.exe exists in the Paratext installation so use it
+		rdwrtp7PathAndFileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("rdwrtp7.exe");
+	}
+	else
+	{
+		// windows dependency checks
+		rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7.exe");
+		wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
+		wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
+		wxASSERT(::wxFileExists(fileName));
+		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ICSharpCode.SharpZipLib.dll");
+		wxASSERT(::wxFileExists(fileName));
+		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Interop.XceedZipLib.dll");
+		wxASSERT(::wxFileExists(fileName));
+		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
+		wxASSERT(::wxFileExists(fileName));
+		fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
+		wxASSERT(::wxFileExists(fileName));
+	}
 #endif
 #ifdef __WXGTK__
     // For mono, we call a script (rdwrtp7 / no extension) that sets the Paratext and mono
