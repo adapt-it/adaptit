@@ -53,6 +53,7 @@
 #include "WhichBook.h"
 #include "helpers.h"
 #include "errno.h"
+#include "ReadOnlyProtection.h"
 
 #include "DVCS.h"
 
@@ -78,12 +79,14 @@
  
 	The hg man says we can use wildcards in paths.  In practice this only works in the current directory or the immediate
 	parent.  Therefore, whenever our main function is called, the first thing we do is cd to the Adaptations directory which
-	is our repository.  Then after that we can just use filenames without having to fully path them out, and wildcards work.
+	is our repository.  We use wxSetWorkingDirectory() for this.  Then after that we can just use filenames without having 
+	to fully path them out, and wildcards work.
  */
  
  
  
 wxString		hg_command, hg_options, hg_arguments;
+wxString		username;		// TEMP until AI gets a proper system for ensuring unique usernames
 
 
 /*	call_hg is the function that actually calls hg.
@@ -134,7 +137,7 @@ int  call_hg()
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-//	wxMessageBox(str);
+wxMessageBox(str);
 
 	result = wxExecute (str, output, errors, 0);
 
@@ -287,6 +290,8 @@ int  CallDVCS ( int action )
 
 	str = pApp->m_curAdaptionsPath;
 	bResult = ::wxSetWorkingDirectory (str);
+	
+	username = wxGetUserId();		// MUST CHANGE when the unique username stuff gets handled properly
 	
 	if (!bResult) 
 	{
