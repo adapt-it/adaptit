@@ -15182,7 +15182,7 @@ wxString RebuildText_For_Collaboration(SPList* pList, enum ExportType exportType
 	switch(exportType)
 	{
 	case targetTextExport:
-		nTextLength = RebuildSourceText(usfmText, pList);
+		nTextLength = RebuildTargetText(usfmText, pList);
 		break;
 	case freeTransTextExport:
 		nTextLength = RebuildFreeTransText(usfmText, pList);
