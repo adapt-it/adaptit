@@ -705,6 +705,11 @@ bool FileExists(wxString Path)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool FileHasNewerModTime(wxString fileAndPathTrueIfNewer, wxString fileAndPathFalseIfNewer)
 {
+#ifdef Output_Default_Style_Strings
+	// Whenever we are building the Unix-default strings we don't want the app to determine 
+	// if there is a newer version of the AI_USFM_full.xml file, so return FALSE
+	return FALSE;
+#else
 	wxFileName fnTrueIfNewer(fileAndPathTrueIfNewer);
 	wxFileName fnFalseIfNewer(fileAndPathFalseIfNewer);
 	wxDateTime dtTrueIfNewerAccessTime,dtTrueIfNewerModTime,dtTrueIfNewerCreateTime;
@@ -713,6 +718,7 @@ bool FileHasNewerModTime(wxString fileAndPathTrueIfNewer, wxString fileAndPathFa
 	fnFalseIfNewer.GetTimes(&dtFalseIfNewerAccessTime,&dtFalseIfNewerModTime,&dtFalseIfNewerCreateTime);
 	// Check if we have a newer version in fileAndPathTrueIfNewer
 	return dtTrueIfNewerModTime > dtFalseIfNewerModTime;
+#endif
 }
 
 

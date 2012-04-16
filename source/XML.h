@@ -14,15 +14,13 @@
 
 #include "Adapt_It.h"
 
-// whm NOTE: TODO: Fix the auto-generating Unix-style usfm string routine. Modifications to
-// the routines in XML.cpp have broked this auto-generating Unix-style strings.
 //#define Output_Default_Style_Strings	// uncomment to output default Unix-style usfm strings
-										// to books.txt and AI_USFM_full.txt. For this to work
-										// properly, the up-to-date AI_USFM_full.xml file should 
-										// be located in the Adapt It Work folder. The normally
-										// used AI_USFM.xml file need not be renamed, since when
-										// this symbol is defined, AI_USFM_full.xml only will be
-										// used.
+										// to books.txt, AI_USFM_full.txt, and AI_UserProfiiles.txt.
+										// For this to work properly, the up-to-date AI_USFM_full.xml 
+										// file should be located in the Adapt It Work folder. The 
+										// normally used AI_USFM.xml file need not be renamed, since 
+										// at the time this symbol is defined, AI_USFM_full.xml only 
+										// will be used.
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
