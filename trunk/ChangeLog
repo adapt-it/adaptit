@@ -1,4 +1,67 @@
 ----------------------------------------------
+Version 6.2.1 release 14 April 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.2.1
+----------------------------------------------
+* The "Setup Collaboration" dialog now detects situations in
+which both Paratext and Bibledit are installed on the same
+computer, and allows the administrator to select the preferred
+Scripture editor for collaboration with Adapt It. The selected
+editor is remembered from session to session. This change is
+in preparation for the future release of Paratext for Linux 
+(running as a .NET application under mono).
+* The read-only mode that can be selected by an advisor or
+consultant, previously allowed some changes to be made (but not 
+saved) to the document being viewed in read-only mode. Any 
+such appearance of changes being possible could potentially 
+mislead some users to think such changes would actually be 
+saved when that was not the case. Now Adapt It does not allow 
+any changes to be made to the document by any means when the 
+document is opened in read-only mode. Also fewer beeps now 
+occur if the user attempts to make changes while in that mode.
+* After reports that Unicode characters ZeroWidthNonJoiner
+\u200C and ZeroWidthJoiner \u200D are used as word-building 
+characters in some languages in India, Adapt It's parsing 
+routine will no longer treat those characters as white space 
+but will parse words containing them as units.
+* Some of the HTML Help files have been updated to reflect
+the new features and feature changes in version 6. This is an 
+ongoing effort and many of the HTML Help files have yet to be 
+updated.
+* Highlighting of auto-insertions done in non-contiguous parts
+of the document are now supported. The highlighting is preserved
+when scrolling. Clicking a highlighted cell does not remove the
+highlighting of other cells in the viscinity.
+
+----------------------------------------------
+Bug fixes in 6.2.1
+----------------------------------------------
+* The setup of collaboration between Adapt It and Paratext or
+Bibledit is now more robust. Some users reported situations in 
+which collaboration settings were not being remembered from
+session to session.
+* If, when setting up collaboration with Paratext or Bibledit,
+the administrator does not create any books (with empty chapter
+and verse markers) in the Paratext/Bibledit project for storing 
+target texts, an error message pops up. That message had a 
+formatting error that could result in a confusing message that
+referenced the name of a different project than the project the 
+administator had designated as the one for storing target texts. 
+This message formatting error has now been fixed.
+* In some instances punctuation was being copied from the the
+source text into empty target text locations throughout a 
+document. This has been fixed.
+* The list of most recently used (MRU) document files is now 
+removed from the bottom of the File menu during collaboration 
+since the loading of a document during collaboration should not 
+be done via the MRU list, but only via the "Get Source Text
+from Paratext/Bibledit Project" dialog.
+* Formerly, auto-insertions done up to the end of the document
+had their background highlighting lost; now it is retained.
+
+
+----------------------------------------------
 Version 6.2.0 release 14 March 2012
 ----------------------------------------------
 ----------------------------------------------
