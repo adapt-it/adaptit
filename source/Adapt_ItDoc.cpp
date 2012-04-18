@@ -3412,7 +3412,7 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 6 in AdaptitConstant.h
 		break;
 	case 1:
-		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstant.h
+		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstants.h
 		break;
 	}
 }

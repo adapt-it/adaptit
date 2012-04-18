@@ -3922,7 +3922,7 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// m_collectedBackTrans, and m_filteredInfo
         // BEW 13Feb12, Added case 6 for docVersion = 6, this will require changes to
         // functions below, eg FromDocVersion4ToDocVersion5() will need a name change to
-        // FromDocVersion4TpDocVersionCurrent() and also pass in the gnDocVersion value,
+        // FromDocVersion4ToDocVersionCurrent() and also pass in the gnDocVersion value,
         // and so forth
 		case 5:
 		case 6:
