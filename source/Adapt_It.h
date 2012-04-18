@@ -22,7 +22,7 @@
 #define Adapt_It_h
 
 // a temporary #define for Mike to use when working on DVCS:
-// #define TEST_DVCS
+#define TEST_DVCS
 
 // symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Help menu)
 const int ID_MENU_DVCS_VERSION			= 999;
@@ -2016,12 +2016,23 @@ public:
                 // was-current document after reading the other documents for the join
                 // operation. (If TRUE, document loading does nothing except set up the
                 // list of CSourcePhrase instances.)
+
+
+	// mrh 2012-04-17 The current user of AI, introduced for version control.  This will
+	//  probably be the user name + machine name + UUID.  "****" means "unassigned, up for grabs".
+	//  We may possibly only assign this string if version control is enabled.
 	
+#define  UNASSIGNED  _T("****")
+
+	wxString	gAI_user;
+
 	// Version control variables, relating to the current document
 	bool		m_underVersionControl;
 	int			m_LatestRevisionNumber;
 	wxDateTime	m_LatestRevisionTime;
-	wxString	m_committer;			// unique username for whoever's allowed to commit this file
+	wxString	m_owner;			// owner of this document, in the same format as AI_user.
+									// m_owner and gAI_user must match before a commit is allowed,
+									// unless either is unassigned.
 
 
 	/////////////////////////////////////////////////////////////////////////////////

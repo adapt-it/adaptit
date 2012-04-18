@@ -165,6 +165,7 @@
 		03F468AD11F759A300B3CAEC /* PeekAtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PeekAtFile.h; path = ../../source/PeekAtFile.h; sourceTree = SOURCE_ROOT; };
 		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
@@ -258,7 +259,6 @@
 		C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It_wdr.cpp; path = ../../source/Adapt_It_wdr.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_wdr.h; path = ../../source/Adapt_It_wdr.h; sourceTree = SOURCE_ROOT; };
 		C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It.cpp; path = ../../source/Adapt_It.cpp; sourceTree = SOURCE_ROOT; };
-		C8F82DB70F3F9CAB007579B8 /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItCanvas.h; path = ../../source/Adapt_ItCanvas.h; sourceTree = SOURCE_ROOT; };
 		C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItDoc.cpp; path = ../../source/Adapt_ItDoc.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItDoc.h; path = ../../source/Adapt_ItDoc.h; sourceTree = SOURCE_ROOT; };
@@ -461,14 +461,18 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
+				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
+				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
+				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
+				C8DC8FF014A3331200EA1D5C /* DVCS.h */,
+				C8DC8FF114A3331200EA1D5C /* DVCS.cpp */,
 				7DEAF5E614FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp */,
 				7DEAF5E714FF24A000D6E871 /* ChooseCollabOptionsDlg.h */,
 				7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */,
 				7DEAF5E914FF24A000D6E871 /* CreateNewAIProjForCollab.h */,
 				7D66132714D87232007A2C30 /* ClientServerConnection.cpp */,
 				7D66132814D87232007A2C30 /* ClientServerConnection.h */,
-				C8DC8FF114A3331200EA1D5C /* DVCS.cpp */,
-				C8DC8FF014A3331200EA1D5C /* DVCS.h */,
 				7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */,
 				7D6612D21495C70C007A2C30 /* KBExportImportOptionsDlg.h */,
 				7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */,
@@ -529,12 +533,8 @@
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
 				C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */,
 				C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */,
-				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
-				C8F82DB70F3F9CAB007579B8 /* Adapt_It.h */,
 				C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */,
 				C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */,
-				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
-				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
 				C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */,
 				C8F82DBE0F3F9CAB007579B8 /* Adapt_ItView.h */,
 				C8F82DBF0F3F9CAB007579B8 /* AdaptitConstants.h */,
