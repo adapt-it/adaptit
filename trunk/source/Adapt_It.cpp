@@ -13357,6 +13357,9 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
+	gAI_user = wxGetUserName() + _T("@") + wxGetHostName();
+
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
 	m_bIsPrinting = FALSE;
@@ -19044,17 +19047,16 @@ int ii = 1;
 
 	pEditMenu->AppendSeparator();
 
-//	wxMenuItem* pTestDVCSItem = pEditMenu->Append(ID_MENU_DVCS_TESTS,_T("DVCS version"));	// defaults for final 2 params
-	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));							// ditto
-	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));				// ditto
-	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));	// ditto
+	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));								// defaults for final 2 params
+	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));					// ditto
+	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));		// ditto
 	pEditMenu->Append (ID_MENU_DVCS_ADD_ALL_FILES, _T("Put all project files under version control"));
 	pEditMenu->Append (ID_MENU_DVCS_REMOVE_FILE, _T("Remove this file from version control (file won't be deleted)"));
 	pEditMenu->Append (ID_MENU_DVCS_REMOVE_PROJECT, _T("Remove project from version control (files won't be deleted)"));
 	pEditMenu->Append (ID_MENU_DVCS_COMMIT_FILE, _T("Commit changes to this file"));			// ditto
 	pEditMenu->Append (ID_MENU_DVCS_COMMIT_PROJECT, _T("Commit all changes to the current project"));
 	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this file"));			// ditto
-	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));	// ditto
+	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));		// ditto
 	pEditMenu->Append (ID_MENU_DVCS_REVERT_FILE, _T("Revert this file to previous revision"));	// ditto
 
 #endif

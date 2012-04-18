@@ -54,6 +54,7 @@
 #include "helpers.h"
 #include "errno.h"
 #include "ReadOnlyProtection.h"
+#include "Uuid_AI.h"
 
 #include "DVCS.h"
 
@@ -86,7 +87,6 @@
  
  
 wxString		hg_command, hg_options, hg_arguments;
-wxString		username;		// TEMP until AI gets a proper system for ensuring unique usernames
 
 
 /*	call_hg is the function that actually calls hg.
@@ -137,7 +137,8 @@ int  call_hg()
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-wxMessageBox(str);
+wxMessageBox(GetUuid());
+
 
 	result = wxExecute (str, output, errors, 0);
 
@@ -224,8 +225,27 @@ int  remove_project()
 	return call_hg();
 }	
 
+bool  commit_valid()
+{
+	CAdapt_ItApp*	pApp = &wxGetApp();
+
+	if (pApp->gAI_user == UNASSIGNED | pApp->m_owner == UNASSIGNED)  return TRUE;
+	
+	if (pApp->gAI_user != pApp->m_owner)
+	{
+		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + pApp->m_owner 
+					  + _T(" but the currently logged in user is ") + pApp->gAI_user 
+					  + _T(".  Only the document's owner can commit changes to it.") );
+		return FALSE;
+	}
+	else  return TRUE;
+}
+			
+
 int  commit_file (wxString fileName)
 {
+	if (!commit_valid()) return -1;
+	
 	hg_command = _T("commit");
 	hg_options = _T("-m \"single file commit\"");
 	hg_arguments = fileName;
@@ -234,6 +254,8 @@ int  commit_file (wxString fileName)
 
 int  commit_project()
 {
+	if (!commit_valid()) return -1;
+
 	hg_command = _T("commit");
 	hg_options = _T("-m \"whole project commit\"");
 	return call_hg();
@@ -291,7 +313,7 @@ int  CallDVCS ( int action )
 	str = pApp->m_curAdaptionsPath;
 	bResult = ::wxSetWorkingDirectory (str);
 	
-	username = wxGetUserId();		// MUST CHANGE when the unique username stuff gets handled properly
+pApp->m_owner = wxGetUserId();		// MUST CHANGE!!!!!
 	
 	if (!bResult) 
 	{
