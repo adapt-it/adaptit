@@ -4751,6 +4751,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	errors.Add(_T("\n\n   In the following document(s) punctuation was removed from non-punctuation fields (see below):")); 
 	// iterate over the document files
 	int i;
+	bool bDontDoIt; // BEW added 20Apr12, see further below for comments
+	bDontDoIt = m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit;
 	for (i=0; i < nCount; i++)
 	{
 		wxString newName = pList->Item(i);
@@ -4809,7 +4811,15 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 			}
 		}
 		// whm added 27Apr09 to save any changes made by RedoStorage above
-		if (bThisDocChanged)
+		// BEW 20Apr12, the OnFileSave() call, if collaboration mode is currently on, will
+		// try to transfer data to PT or BE, but the document is not currently properly
+		// set up for this, and so errors in indices result in the attempt failing and the
+		// app crashing. The possibility of the RedoStorage() call actually modifying the
+		// document is quite small, and the easiest thing to do is to here refrain from
+		// saving the doc if collaboration is in effect; and further below, to supress the
+		// logging block just before the function ends; we'll use bDon'tDoIt for these two
+		// purposes
+		if (bThisDocChanged && !bDontDoIt)
 		{
 			bAnyDocChanged = TRUE;
 			// Save the current document before proceeding
@@ -4848,7 +4858,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		}
 	}
 	
-	if (bAnyDocChanged)
+	// BEW 20Apr12, added !bDontDoIt -- see comment above for why
+	if (bAnyDocChanged && !bDontDoIt)
 	{
 	
 		wxLogNull logNo; // avoid spurious messages from the system
