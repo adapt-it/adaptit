@@ -59,6 +59,13 @@ be done via the MRU list, but only via the "Get Source Text
 from Paratext/Bibledit Project" dialog.
 * Formerly, auto-insertions done up to the end of the document
 had their background highlighting lost; now it is retained.
+* Adapt It would crash if during a File -> Restore Knowledge
+Base attempt in which some automatic punctuation editing was done
+during the restore operation and collaboration mode is currently 
+turned on. This is now fixed. (When collaboration is on, the
+punctuation edits are ignored. If you want them not to be ignored,
+then turn of collaboration temporarily before doing File -> 
+Restore Knowledge Base.)
 
 
 ----------------------------------------------
