@@ -19207,7 +19207,7 @@ int CAdapt_ItApp::OnExit(void)
 		{
 			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
 		}
-		wxCHECK_MSG(bOK, 0, _T("Terminate(): WriteConfigurationFile() returned FALSE, line 18,112,or 114, or 118"));
+		wxCHECK_MSG(bOK, 0, _T("OnExit(): WriteConfigurationFile() returned FALSE, either project one or admin project one"));
 		// below is original
 		//if (::wxDirExists(m_curProjectPath))
 		//{
@@ -36066,7 +36066,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	//m_pSourcePhrases->Append(ol);
     // wx doesn't have a wxList method for appending one list onto another list, so we'll
     // do it manually
-    // BEW 15Jun09; in the refactored view design, each CSourcePhrase instande in the list
+    // BEW 15Jun09; in the refactored view design, each CSourcePhrase instance in the list
 	// should have a partner pile in the m_pileList in CLayout, and just appending
 	// CSourcePhrase instances in the loop below will not be enough. Moreover the Jump()
 	// call at the end of the block below has a PlacePhraseBox() call, with RecalcLayout()
