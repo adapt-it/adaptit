@@ -23989,10 +23989,9 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			// the GetSourceTextFromEditor dialog had to abort due to a the external editor either having
 			// less than two projects, or from the project config file's collaboration settings having 
 			// specified PT/BE projects that cannot be found in the list of the external editor's projects.
-			int response;
 			wxString msg = _("Adapt It cannot collaborate with this project (%s). There is a problem with the project's settings.\nPlease ask your administrator for help.");
 			msg = msg.Format(msg,dlg.m_TempCollabAIProjectName.c_str());
-			response = wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
 			m_bStartWorkUsingCollaboration = FALSE;
 			m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
 			return TRUE;
