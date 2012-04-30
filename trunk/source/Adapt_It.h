@@ -22,7 +22,7 @@
 #define Adapt_It_h
 
 // a temporary #define for Mike to use when working on DVCS:
-#define TEST_DVCS
+//#define TEST_DVCS
 
 // symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Help menu)
 const int ID_MENU_DVCS_VERSION			= 999;
@@ -115,7 +115,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_MINOR_PART 2
 #define VERSION_BUILD_PART 1
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 16
+#define VERSION_DATE_DAY 30
 #define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.2.1"));
@@ -913,6 +913,17 @@ enum CollabTextType
 	collabSrcText,
 	collabTgtText,
 	collabFreeTransText
+};
+
+enum AiProjectCollabStatus
+{
+	projConfigFileMissing,
+	projConfigFileUnableToOpen,
+	collabProjMissingFromConfigFile,
+	collabProjMissingFromEditorList,
+	collabProjExistsAndIsValid,
+	collabProjExistsButIsInvalid,
+	collabProjNotConfigured,
 };
 
 /// An enum for specifying the program mode for use in the 
@@ -3535,7 +3546,10 @@ public:
 	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray, 
 													   wxArrayString& collabSettingsArray);	
 	bool IsAIProjectOpen();
+	bool AIProjectHasCollabDocs(wxString m_projectName);
 	bool AIProjectIsACollabProject(wxString m_projectName);
+	enum AiProjectCollabStatus GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr, 
+		bool& bChangeMadeToCollabSettings, wxString& errorProjects);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
 	// members added by BEW 27July11, when moving collab code out of

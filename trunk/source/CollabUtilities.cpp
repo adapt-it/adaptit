@@ -2124,8 +2124,11 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 	// save the config file for the newly made project
 	bool bOK = pApp->WriteConfigurationFile(szProjectConfiguration,
 							pApp->m_curProjectPath, projectConfigFile);
-	bOK = bOK; // ignore errors (shouldn't fail anyway),
-			   // and avoid compiler warning
+	if (!bOK)
+	{
+		wxMessageBox(_T("In CreateNewAIProject() WriteConfigurationFile() failed for project config file.")); 
+		pApp->LogUserAction(_T("In CreateNewAIProject() WriteConfigurationFile() failed for project config file."));
+	}
 	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
 			// fail after phrase box gets past end of doc
 	return TRUE;
@@ -2228,14 +2231,23 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 	return bFoundBookName;
 }
 
-// Determines if a PT/BE project has at least one book created by PT/BE in its
-// data store for the project.
-// Uses the project's composite name. If the incoming composite name is empty
-// the funciton returns FALSE.
-// This function examines the current Collab_Project_Info_Struct objects on
-// the heap (in m_pArrayOfCollabProjects) and gets the object for the current
-// project. It then examines the struct's booksPresentFlags member for the
-// existence of the book in that project.
+////////////////////////////////////////////////////////////////////////////////
+/// \return            TRUE if the projCompositeName of the PT/BE collab project 
+///                     is non-empty and has at least one book defined in it
+/// \param projCompositeName     ->  the PT/BE project's composite string
+/// \remarks
+/// Called from: CollabUtilities' CollabProjectsAreValid(), 
+/// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(), 
+/// CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(), and
+/// CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj().
+/// Determines if a PT/BE project has at least one book created by PT/BE in its
+/// data store for the project. Uses the short name part of the incoming project's 
+/// composite name to find the project in the m_pArrayOfCollabProjects on the heap.
+/// If the incoming composite name is empty or the project could not be found,
+/// the funciton returns FALSE. If found, the function populates, then examines 
+/// the current Collab_Project_Info_Struct object for that project on the heap 
+/// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags 
+/// member for the existence of at least one book in that project.
 bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 {
 	wxString collabProjShortName;
@@ -2243,11 +2255,23 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 	if (collabProjShortName.IsEmpty())
 		return FALSE;
 	int ct, tot;
+	// get list of PT/BE projects
+	wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
+	wxArrayString projList;
+	projList.Clear();
+	// The calls below to GetListOfPTProjects() and GetListOfBEProjects() populate the App's m_pArrayOfCollabProjects
+	if (gpApp->m_collaborationEditor == _T("Paratext"))
+	{
+		projList = gpApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else if (gpApp->m_collaborationEditor == _T("Bibledit"))
+	{
+		projList = gpApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
 	tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
 	wxString booksPresentFlags = _T("");
 	Collab_Project_Info_Struct* pArrayItem;
 	pArrayItem = (Collab_Project_Info_Struct*)NULL;
-	//bool bFoundProjStruct = FALSE;
 	for (ct = 0; ct < tot; ct++)
 	{
 		pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
@@ -2255,7 +2279,6 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 		if (pArrayItem != NULL && pArrayItem->shortName == collabProjShortName)
 		{
 			booksPresentFlags = pArrayItem->booksPresentFlags;
-			//bFoundProjStruct = TRUE;
 			break;
 		}
 	}
@@ -2269,17 +2292,33 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 	}
 }
 
-// verified that PT/BE projects are valid, that is:
-// 1. If the srcCompositeProjName is non-empty, that it has at least one book defined in it
-// 2. If the tgtCompositeProjName is non-empty, that it has at least one book defined in it
-// 3. If the freeTransCompositeProjName is non-empty, that it has at least one book defined in it
-// If any of the above three conditions are not true, the errorStr reference parameter will return
-// to the caller a string describing the error. If errorStr is non-empty it will be formatted with
-// one or more \n newline characters, that is, it will format as a multi-line string.
+////////////////////////////////////////////////////////////////////////////////
+/// \return            TRUE if PT/BE collab projects are non-empty, and have
+///                    at least one book defined in them
+/// \param srcCompositeProjName     ->  the PT/BE's source project's composite string
+/// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
+/// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
+/// \param errorStr               <-  a wxString (multi-line) representing any error information 
+///                                     for when a FALSE value is returned from the function
+/// \param errorProjects          <-  a wxString representing "source", "target" "freetrans", or
+///                                     any combination delimited by ':' chars of the three types
+/// \remarks
+/// Called from: The App's GetAIProjectCollabStatus(); CChooseCollabOptionsDlg::InitDialog,
+/// CSetupEditorCollaboration::OnComboBoxSelectAiProject, and DoSaveSetupForThisProject.
+/// This function verifies whether the PT/BE projects are valid, that is they are valid:
+/// 1. If the srcCompositeProjName is non-empty, that it has at least one book defined in it.
+/// 2. If the tgtCompositeProjName is non-empty, that it has at least one book defined in it.
+/// 3. If the freeTransCompositeProjName is non-empty, that it has at least one book defined in it.
+/// If any of the above three conditions are not true, the errorStr reference parameter will return
+/// to the caller a string describing the error. If errorStr is non-empty it will be formatted with
+/// one or more \n newline characters, that is, it will format as a multi-line string. The 
+/// errorProjects string will also return to the caller a string indicating which type of project
+/// the errors apply to, i.e., "source" or "source:freetrans", etc.
 bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
-							wxString freeTransCompositeProjName, wxString& errorStr)
+							wxString freeTransCompositeProjName, wxString& errorStr, wxString& errorProjects)
 {
 	wxString errorMsg = _T("");
+	wxString errorProj = _T("");
 	bool bSrcProjOK = TRUE;
 	if (!srcCompositeProjName.IsEmpty())
 	{
@@ -2287,12 +2326,13 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 		{
 			bSrcProjOK = FALSE;
 
-			// The book does not have at least one book in the Source project
+			// There is not at least one book in the Source project
 			wxString msg;
 			msg = _("Source project (%s) does not have any books created in it.");
 			msg = msg.Format(msg,srcCompositeProjName.c_str());
 			errorMsg += _T("\n   ");
 			errorMsg += msg;
+			errorProj = _T("source");
 		}
 	}
 
@@ -2307,12 +2347,15 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 		{
 			bTgtProjOK = FALSE;
 
-			// The book does not have at least one book in the Target project
+			// There is not at least one book in the Target project
 			wxString msg;
 			msg = _("Target project (%s) does not have any books created in it.");
 			msg = msg.Format(msg,tgtCompositeProjName.c_str());
 			errorMsg += _T("\n   ");
 			errorMsg += msg;
+			if (!errorProj.IsEmpty())
+				errorProj += _T(':');
+			errorProj += _T("target");
 		}
 	}
 
@@ -2325,12 +2368,15 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 		{
 			bFreeTrProjOK = FALSE;
 
-			// The book does not have at least one book in the Free Trans project
+			// There is not at least one book in the Free Trans project
 			wxString msg;
 			msg = _("Free Translation project (%s) does not have any books created in it.");
 			msg = msg.Format(msg,freeTransCompositeProjName.c_str());
 			errorMsg += _T("\n   ");
 			errorMsg += msg;
+			if (!errorProj.IsEmpty())
+				errorProj += _T(':');
+			errorProj += _T("freetrans");
 		}
 	}
 	if (bSrcProjOK && bTgtProjOK && bFreeTrProjOK)
@@ -2341,6 +2387,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	{
 		wxASSERT(!errorMsg.IsEmpty());
 		errorStr = errorMsg; // return the error message to the caller
+		errorProjects = errorProj; // return the error projects to the caller
 		return FALSE;
 	}
 }
@@ -3236,18 +3283,25 @@ bool IsUsfmStructureChanged(wxString& oldText, wxString& newText)
 	}
 }
 
-void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& composedProjStr)
+bool CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString projList, wxString& composedProjStr)
 {
 	int nProjCount;
 	nProjCount = (int)projList.GetCount();
 	int ct;
+	composedProjStr.Empty();
 	bool bProjFound = FALSE;
 	wxString tmpShortName = _T("");
 	wxString tmpFullName = _T("");
 	wxString tmpLangName = _T("");
 	wxString tmpEthnologueCode = _T("");
 	wxString tmpIncomingProjName = projName;
+	tmpIncomingProjName.Trim(FALSE);
+	tmpIncomingProjName.Trim(TRUE);
+	wxString tmpIncomingShortName = GetShortNameFromProjectName(projName);
+	tmpIncomingShortName.Trim(FALSE);
+	tmpIncomingShortName.Trim(TRUE);
 	wxString tmpProjComposedName = _T("");
+	wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 	for (ct = 0; ct < nProjCount; ct++)
 	{
 		tmpShortName.Empty();
@@ -3262,22 +3316,22 @@ void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& 
 			wxStringTokenizer tkz(tempProjStr,_T(":"));
 			while (tkz.HasMoreTokens())
 			{
-				// Get the third token in tempProjStr and compare it with
-				// the tmpSourceLangName and tmpTargetLangName for matches
+				// Get the first token in tempProjStr and compare it with
+				// the tmpShortName for a possible match.
 				wxString tokenStr = tkz.GetNextToken();
 				tokenStr.Trim(FALSE);
 				tokenStr.Trim(TRUE);
 				switch (tokCt)
 				{
-				case 1: tmpShortName = tokenStr;
-					break;
-				case 2: tmpFullName = tokenStr;
-					break;
-				case 3: tmpLangName = tokenStr; // the languageName is the 3rd token
-					if (tokenStr == tmpIncomingProjName)
+				case 1: tmpShortName = tokenStr; // the short name is the 1st token
+					if (tokenStr == tmpIncomingShortName)
 						bProjFound = TRUE;
 					break;
-				case 4: tmpEthnologueCode = tokenStr;
+				case 2: tmpFullName = tokenStr; // the full name is the 2nd token
+					break;
+				case 3: tmpLangName = tokenStr; // the language name is the 3rd token
+					break;
+				case 4: tmpEthnologueCode = tokenStr; // the ethnologue code is the 4th token
 					break;
 				default: tmpShortName = tokenStr;
 				}
@@ -3307,6 +3361,7 @@ void ValidateCollabProject(wxString projName, wxArrayString projList, wxString& 
 	{
 		composedProjStr = tmpProjComposedName;
 	}
+	return bProjFound;
 }
 
 

@@ -181,10 +181,27 @@ void CCreateNewAIProjForCollab::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)
 // if the dialog is modeless.
 void CCreateNewAIProjForCollab::OnOK(wxCommandEvent& event) 
 {
+	// Check for empty values (user hit OK without entering at least a value for the
+	// source and target language names. If one or both is empty, notify user and cancel
+	if (pTextCtrlSrcLangName->GetValue().IsEmpty()) 
+	{
+		wxString msg = _("Please enter a name for the source language, or Cancel to quit.");
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		pTextCtrlSrcLangName->SetFocus();
+		return;
+	}
+
+	if (pTextCtrlTgtLangName->GetValue().IsEmpty())
+	{
+		wxString msg = _("Please enter a name for the target language, or Cancel to quit.");
+		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		pTextCtrlTgtLangName->SetFocus();
+		return;
+	}
+
 	// whm Note: The caller (SetupEditorCollaboration.cpp) retrieves the
 	// values from the source and target lang name wxTextCtrl controls
 	// after OnOK() is invoked.
-	// 	
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

@@ -45,17 +45,41 @@ public:
 	bool m_bTempCollaborationExpectsFreeTrans;
 	wxString m_TempCollabBookSelected;
 	wxString m_TempCollabChapterSelected;
+	
+	// These are temporary m_Save... values for holding the App's original
+	// collaboration settings upon entry to the SetupEditorCollaboration dialog. 
+	// They are used to restore those App values before closing the dialog. This
+	// is designed to provide a safety net to help prevent the unintended 
+	// saving of bogus collaboration settings as a result of actions taken in
+	// this dialog that require adjusting the value of the App's collaboration
+	// settings before callling WriteConfigurationFile(szProjectConfiguration....
+	bool m_bSaveCollaboratingWithParatext;
+	bool m_bSaveCollaboratingWithBibledit;
+	wxString m_SaveCollabProjectForSourceInputs;
+	wxString m_SaveCollabProjectForTargetExports;
+	wxString m_SaveCollabProjectForFreeTransExports;
+	wxString m_SaveCollabAIProjectName;
+	wxString m_SaveCollaborationEditor;
+	wxString m_SaveCollabSourceProjLangName;
+	wxString m_SaveCollabTargetProjLangName;
+	bool m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	bool m_bSaveCollaborationExpectsFreeTrans;
+	wxString m_SaveCollabBookSelected;
+	wxString m_SaveCollabChapterSelected;
+	
 	wxSizer* pSetupEditorCollabSizer;
 	wxSize m_computedDlgSize; // stores the computed size of the dialog's sizer - accounting for its current layout state
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void DoInit();
+	void OnCancel(wxCommandEvent& event);
 	void OnClose(wxCommandEvent& event); // void OnOK(wxCommandEvent& event);
 	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
+	void DoSetControlsFromConfigFileCollabData();
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event));
