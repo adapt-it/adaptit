@@ -250,6 +250,12 @@ extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 
 /// This global is defined in Adapt_It.cpp.
+extern wxString szProjectConfiguration;
+
+/// This global is defined in Adapt_It.cpp.
+extern wxString szAdminProjectConfiguration;
+
+/// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcUC;
 
 bool	gbCallerIsRemoveButton = FALSE;
@@ -6235,6 +6241,41 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_nDefaultBookIndex = 39; // default is Matthew
 	pApp->m_nLastBookIndex = -1;
 	pApp->m_pCurrBookNamePair = NULL;
+	
+	// whm added 27Apr12. When the project is closed, the project config file should be written
+	// out to disk and then the m_curProjectPath should become empty so that the project config
+	// file won't get written out at time when no project is open. The m_curProjectPaht is given
+	// a new value when a project is subsequently opened.
+	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
+	// to save the settings in the project config file.
+	bool bOK;
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		if (pApp->m_bUseCustomWorkFolderPath && !pApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the
+			// custom location.
+			if (pApp->m_bLockedCustomWorkFolderPath)
+				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = pApp->WriteConfigurationFile(szAdminProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		// we don't expect a write error, but tell the developer or user if the write
+		// fails, and keep on processing
+		if (!bOK)
+		{
+			wxMessageBox(_T("In OnFileCloseProject() WriteConfigurationFile() failed for project config file or admin project config file.")); 
+			pApp->LogUserAction(_T("In OnFileCloseProject() WriteConfigurationFile() failed for project config file or admin project config file."));
+		}
+	}
+	// whm added 27Apr12. When the project is closed the m_curProjectPath should be an empty string.
+	pApp->m_curProjectPath.Empty();
 }
 
 /////////////////////////////////////////////////////////////////////////////////

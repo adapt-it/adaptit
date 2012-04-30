@@ -152,18 +152,21 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	wxASSERT(!m_pApp->m_CollabProjectForSourceInputs.IsEmpty());
 	wxASSERT(!m_pApp->m_CollabProjectForTargetExports.IsEmpty());
 	
-	// whm 5Mar12 Note: Check for a valid PT/BE projects for obtaining source texts.
+	// whm 5Mar12 Note: Check for a valid PT/BE projects for obtaining source texts,
+	// for storing translations, and (optionally) for storing free translations.
 	// We check to see if that project does not have any books created, in which case, 
 	// we disable the "Turn Collaboration ON" button, and display a message that 
 	// indicates the reason for the error.
 	wxString errorStr = _T("");
+	wxString errProj = _T("");
 	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports, 
-							m_pApp->m_CollabProjectForFreeTransExports, errorStr))
+							m_pApp->m_CollabProjectForFreeTransExports, errorStr, errProj))
 	{
 		pStaticAsTextCtrlNotInstalledErrorMsg->Show(TRUE); // make it visible
 		wxString msg;
 		msg = _("COLLABORATION DISABLED! - invalid %s projects detected. Ask your administrator for help:%s");
 		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
+		// Note: the returned errProj string is unused here
 		
 		// set the default to collaboratin OFF
 		pRadioTurnCollabON->SetValue(FALSE);
@@ -206,8 +209,8 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		// disable it (its label was changed above in this case)
 		m_pApp->m_bCollaboratingWithParatext = FALSE;
 		m_pApp->m_bCollaboratingWithBibledit = FALSE;
-		m_bRadioSelectCollabON = FALSE; // the caller may change this depending on what was selected previously
-		m_bRadioSelectCollabOFF = TRUE; // the caller may change this depending on what was selected previously
+		m_bRadioSelectCollabON = FALSE;
+		m_bRadioSelectCollabOFF = TRUE;
 		pRadioTurnCollabON->Disable();
 		
 	}

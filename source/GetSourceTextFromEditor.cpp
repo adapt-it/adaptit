@@ -181,23 +181,13 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	usingTheseProj = usingTheseProj.Format(usingTheseProj,m_pApp->m_collaborationEditor.c_str());
 	pStaticBoxUsingTheseProjects->SetLabel(usingTheseProj);
 
-	// whm Note 21Jan12: If the user has forced the use of a particular
-	// AI project via the -ai_proj "Lang A to Lang B adaptations" command-line
-	// options, the first 6 App values below may have been changed during the 
-	// course of this AI session in accordance with the command-line options. 
-	// When the basic config file is about to be saved, the project name values 
-	// that were read in from the basic config file will be restored to the basic 
-	// config file. Hence, the -ai_proj forcing command-line options are only 
-	// effective during the session that was started with those switches in 
-	// effect. If the command-line switches are removed, the actual basic config 
-	// values are used.
+	// Assign the Temp values for use in this dialog until OnOK() executes
 	m_TempCollabProjectForSourceInputs = m_pApp->m_CollabProjectForSourceInputs;
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 	m_TempCollabAIProjectName = m_pApp->m_CollabAIProjectName;
 	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName; // whm added 4Sep11
 	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName; // whm added 4Sep11
-	
 	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
@@ -216,17 +206,19 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// Generally when the "Get Source Text from Paratext/Bibledit Project" dialog is called, we 
 	// can be sure that some checks have been done to ensure that Paratext/Bibledit is installed,
-	// that previously selected PT/BE projects are still valid/exist, and that the administrator 
-	// has switched on AI-PT/BE Collaboration, etc.
-	// But, there is a chance that PT/BE projects could be changed while AI is running and
-	// if so, AI would be unaware of such changes.
+	// that previously selected PT/BE projects are still valid/exist, etc. Those consistency and
+	// validity checks were done in the GetAIProjectCollabStatus() function call in ProjectPage's
+	// OnWizardPageChanging() just after the user has selected the project to open and the
+	// selected project's project config file has been read.
+	// 
+	// TODO: Revise below to remove most of the sanity checks from here since they have been done
+	// in the GetAIProjectCollabStatus() function in the ProjectPage's OnWizardPageChanging() method.
 	// 
 	// Normally, the projects in PT/BE will have been set up by the administrator, and the 
 	// project existence will pass the following validation checks. However, it is
 	// possible that the user could have removed/changed projects in PT/BE since the last Adapt It
 	// session, so we have to do sanity checking for the necessary projects on each invocation of
-	// the GetSourceTextFromEditor dialog. Basically, we query the user until the project setup
-	// can be validated.
+	// the GetSourceTextFromEditor dialog. 
 	//bool bProjectsOK = TRUE;
 	bool bSourceProjRequiredButNotFound = TRUE;
 	bool bTargetProjRequiredButNotFound = TRUE;
@@ -269,42 +261,48 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// Confirm that we can find the active source and target projects as stored in the 
 	// config file and now stored in our projList.
-	// whm Note: The source text is rquired for collaboration. We ask the user to select
-	// one if one is listed in the basic config (and therefore m_TempCollabProjecForSourceInputs 
-	// is not empty), but a check of projList cannot find the source project.
+	// whm 19Apr12 modified: The source text is required for collaboration. If the project config 
+	// file lists a project string for its CollabProjectForSourceInputs field (and 
+	// therefore m_TempCollabProjecForSourceInputs is not empty), we check to ensure
+	// that short project names match. If not, bSourceProjReuiredButNotFound is set
+	// FALSE.
 	if (!m_TempCollabProjectForSourceInputs.IsEmpty())
 	{
 		int ct;
 		for (ct = 0; ct < (int)projList.GetCount(); ct++)
 		{
-			if (projList.Item(ct) == m_TempCollabProjectForSourceInputs)
+			// Do the comparison only on the projects' short names which must be unique
+			if (GetShortNameFromProjectName(projList.Item(ct)) == GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs))
 				bSourceProjRequiredButNotFound = FALSE;
 		}
 	}
-	// whm Note: The target text is rquired for collaboration. We ask the user to select
-	// one if one is listed in the basic config (and therefore m_TempCollabProjecForTargetExports 
-	// is not empty), but a check of projList cannot find the target project.
+	// whm 19Apr12 modified: The target text is rquired for collaboration. If the project config 
+	// file lists a project string for its CollabProjectForTargetExports field (and 
+	// therefore m_TempCollabProjectForFreeTransExports is not empty), we check to ensure
+	// that short project names match. If not, bFreeTransProjRequiredButNotFound is set
+	// FALSE.
 	if (!m_TempCollabProjectForTargetExports.IsEmpty())
 	{
 		int ct;
 		for (ct = 0; ct < (int)projList.GetCount(); ct++)
 		{
-			if (projList.Item(ct) == m_TempCollabProjectForTargetExports)
+			if (GetShortNameFromProjectName(projList.Item(ct)) == GetShortNameFromProjectName(m_TempCollabProjectForTargetExports))
 				bTargetProjRequiredButNotFound = FALSE;
 		}
 	}
 
-	// whm Note: The free translation is optional. We ask the user to select
-	// one only if one is listed in the basic config (and therefore 
-	// m_TempCollabProjecForFreeTransExports is not empty), but a check of
-	// projList cannot find the project.
+	// whm 19Apr12 modified: The free translation is optional. If the project config 
+	// file lists a project string for its CollabProjectForFreeTransExports field (and 
+	// therefore m_TempCollabProjectForFreeTransExports is not empty), we check to ensure
+	// that short project names match. If not, bFreeTransProjRequiredButNotFound is set
+	// FALSE.
 	if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
 	{
 		bFreeTransProjRequiredButNotFound = TRUE;
 		int ct;
 		for (ct = 0; ct < (int)projList.GetCount(); ct++)
 		{
-			if (projList.Item(ct) == m_TempCollabProjectForFreeTransExports)
+			if (GetShortNameFromProjectName(projList.Item(ct)) == GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports))
 				bFreeTransProjRequiredButNotFound = FALSE;
 		}
 	}
@@ -319,20 +317,31 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		wxString str;
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
-			str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.\nAdapt It will now abort...");
+			str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.");
 			wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR);
-			m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed. AI aborting..."));
+			m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed."));
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
-			str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.\nAdapt It will now abort...");
+			str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.");
 			wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR);
-			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed. AI aborting..."));
+			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed."));
 		}
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
 		//wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-		return;
+		//return;
+		// whm modified 19Apr12. It is not adequate to simply call return at this point since return from
+		// InitDialog() does not stop the dialog from appearing. We need to call this dialog's EndModal()
+		// method to destroy the dialog. We also need to set the m_bStartWorkUsingCollaboration flag to FALSE
+		// to prevent the DoStartWorkingWizard() function in the App from calling up the 
+		// CGetSourceTextFromEditorDlg again.
+		m_pApp->m_bStartWorkUsingCollaboration = FALSE;
+		this->EndModal(wxID_ABORT); // causes an assert because at the point in InitDialog() the dialog
+		// is not yet fully "modal" but the assert won't be seen in release version, and at least doing it
+		// this way provides an abort message that pops up over the dialog (see the else if (dlgResult == wxID_ABORT)
+		// block in the App's DoStartWorkingWizard() where the message is generated.
+		return; // return here prevents the dialog from loading book names etc below
 	}
 
 	wxString strProjectNotSel;
@@ -367,7 +376,18 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
 		//wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-		return;
+		//return;
+		// whm modified 19Apr12. It is not adequate to simply call return at this point since return from
+		// InitDialog() does not stop the dialog from appearing. We need to call this dialog's EndModal()
+		// method to destroy the dialog. We also need to set the m_bStartWorkUsingCollaboration flag to FALSE
+		// to prevent the DoStartWorkingWizard() function in the App from calling up the 
+		// CGetSourceTextFromEditorDlg again.
+		m_pApp->m_bStartWorkUsingCollaboration = FALSE;
+		this->EndModal(wxID_ABORT); // causes an assert because at the point in InitDialog() the dialog
+		// is not yet fully "modal" but the assert won't be seen in release version, and at least doing it
+		// this way provides an abort message that pops up over the dialog (see the else if (dlgResult == wxID_ABORT)
+		// block in the App's DoStartWorkingWizard() where the message is generated.
+		return; // return here prevents the dialog from loading book names etc below
 	}
 
 	LoadBookNamesIntoList();
@@ -2349,159 +2369,20 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 	//	m_pApp->m_curProjectPath.Empty();
 	//}
 	
+	// Restore the App's original collab values before exiting the dialog
+	m_pApp->m_CollabProjectForSourceInputs = m_SaveCollabProjectForSourceInputs;
+	m_pApp->m_CollabProjectForTargetExports = m_SaveCollabProjectForTargetExports;
+	m_pApp->m_CollabProjectForFreeTransExports = m_SaveCollabProjectForFreeTransExports;
+	m_pApp->m_CollabAIProjectName = m_SaveCollabAIProjectName;
+	m_pApp->m_CollabSourceLangName = m_SaveCollabSourceProjLangName;
+	m_pApp->m_CollabTargetLangName = m_SaveCollabTargetProjLangName;
+	m_pApp->m_CollabBookSelected = m_SaveCollabBookSelected;
+	m_pApp->m_bCollabByChapterOnly = m_bSaveCollabByChapterOnly; // FALSE means the "whole book" option
+	m_pApp->m_CollabChapterSelected = m_SaveCollabChapterSelected;
+	m_pApp->m_bCollaborationExpectsFreeTrans = m_bSaveCollaborationExpectsFreeTrans;
+
 	event.Skip();
 }
-
-/*
-// whm added 2Feb12 to get password for changing projects
-void CGetSourceTextFromEditorDlg::OnBtnChangeProjects(wxCommandEvent& WXUNUSED(event))
-{
-	// Someone wants to change the PT/BE collaboration projects. If the App's 
-	// m_bPwdProtectCollabSwitching flag is TRUE it requires a password.
-	// We always accept the secret default "admin" and "switch" passwords.
-	// Note: Although we won't document the fact, anyone can type an arbitrary password
-	// string in the relevant line of the basic configuration file, and the code below
-	// will accept it when next that config file is read in - ie. at next launch.
-	bool bAllowChangeProjects = TRUE;
-	if (m_pApp->m_bPwdProtectCollabSwitching)
-	{
-		wxString message = _("Access to change %s projects for collaboration requires that you type a password");
-		message = message.Format(message, m_pApp->m_collaborationEditor.c_str());
-		wxString caption = _("Type Password to Change Projects");
-		wxString default_value = _T("");
-		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this);
-		if (password == _T("admin") || password == _T("switch") ||
-			(password == m_pApp->m_collabSwitchingPassword && !m_pApp->m_collabSwitchingPassword.IsEmpty()))
-		{
-			// a valid password was typed, so summon the dialog
-			m_pApp->LogUserAction(_T("Valid password entered - change collaboration projects"));
-		}
-		else
-		{
-			// invalid password - don't allow change of projects, beep also
-			::wxBell();
-			m_pApp->LogUserAction(_T("Invalid password entered"));
-			bAllowChangeProjects = FALSE;
-		}
-	}
-	if (bAllowChangeProjects)
-	{
-		DoChangeProjects();
-	}
-}
-*/
-/*
-bool CGetSourceTextFromEditorDlg::DoChangeProjects()
-{
-	bool bChangeProjectsOK = TRUE;
-	// whm 28Dec11 revised to create the secondary dialog rather than show it
-	CChangeCollabProjectsDlg scpDlg(this);
-	// Initialize the scpDlg's temp variables to be the same as this dialog's temp variables
-	scpDlg.m_TempCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
-	scpDlg.m_TempCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
-	scpDlg.m_TempCollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
-	scpDlg.m_TempCollabAIProjectName = m_TempCollabAIProjectName;
-	scpDlg.m_TempCollabSourceProjLangName = m_TempCollabSourceProjLangName;
-	scpDlg.m_TempCollabTargetProjLangName = m_TempCollabTargetProjLangName;
-	scpDlg.m_TempCollabBookSelected = m_TempCollabBookSelected;
-	scpDlg.m_bTempCollabByChapterOnly = m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
-	scpDlg.m_TempCollabChapterSelected = m_TempCollabChapterSelected;
-	scpDlg.m_bareChapterSelected = m_bareChapterSelected;
-	scpDlg.m_bTempCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
-	scpDlg.projList = projList;
-	
-	if (scpDlg.ShowModal() == wxID_OK)
-	{
-		// user clicked OK
-		// Initialize the scpDlg's temp variables to be the same as this dialog's temp variables
-		m_TempCollabProjectForSourceInputs = scpDlg.m_TempCollabProjectForSourceInputs;
-		m_TempCollabProjectForTargetExports = scpDlg.m_TempCollabProjectForTargetExports;
-		m_TempCollabProjectForFreeTransExports = scpDlg.m_TempCollabProjectForFreeTransExports;
-		m_TempCollabAIProjectName = scpDlg.m_TempCollabAIProjectName;
-		m_TempCollabSourceProjLangName = scpDlg.m_TempCollabSourceProjLangName;
-		m_TempCollabTargetProjLangName = scpDlg.m_TempCollabTargetProjLangName;
-		m_TempCollabBookSelected = scpDlg.m_TempCollabBookSelected;
-		m_bTempCollabByChapterOnly = scpDlg.m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
-		m_TempCollabChapterSelected = scpDlg.m_TempCollabChapterSelected;
-		m_bareChapterSelected = scpDlg.m_bareChapterSelected;
-		m_bTempCollaborationExpectsFreeTrans = scpDlg.m_bTempCollaborationExpectsFreeTrans;
-		
-		// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-		// Since the user/administrator clicked OK, we don't want to use any of the
-		// m_...Saved values, but ensure that the above values get stored in the
-		// basic config file. We can do that by resetting all the m_...Saved values
-		// to their OnInit() defaults
-		//m_pApp->m_nSavedCollabPTSetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-		//m_pApp->m_nSavedCollabBESetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-		//m_pApp->m_SavedCollabAIProjName = _T("");
-		//m_pApp->m_SavedCollabProjectForSourceInputs = _T(""); // whm added 23Jan12
-		//m_pApp->m_SavedCollabProjectForTargetExports = _T(""); // whm added 23Jan12
-		//m_pApp->m_SavedCollabProjectForFreeTransExports = _T(""); // whm added 23Jan12
-		//m_pApp->m_SavedCollabSourceLangName = _T(""); // whm added 23Jan12
-		//m_pApp->m_SavedCollabTargetLangName = _T(""); // whm added 23Jan12
-		//m_pApp->m_nSavedCollabExpectsFreeTrans = -1; // whm added 23Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-		//m_pApp->m_SavedCurProjectName = _T(""); // whm added 26Jan12
-		//m_pApp->m_SavedCurProjectPath = _T(""); // whm added 26Jan12
-
-		projList = scpDlg.projList;
-		// whm added 7Oct11 at Bruce's request
-		// whm modified 28Jan12 to update the "Using these Paratext/Bibledit projects:"
-		// edit boxes for "Source Project:", "Target Project:", and "Free Translation Project:".
-		if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-		{
-			pSrcProj->SetLabel(m_TempCollabProjectForSourceInputs);
-			pTgtProj->SetLabel(m_TempCollabProjectForTargetExports);
-			pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
-		}
-		else
-		{
-			pSrcProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForSourceInputs));
-			pTgtProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForTargetExports));
-			pFreeTransProj->SetLabel(GetLanguageNameFromProjectName(m_TempCollabProjectForFreeTransExports));
-		}
-		
-		// whm added 28Jan12 update the Using this Adapt It project static text
-		pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
-		
-		// when the projects change we need to reload the "Select a book" list.
-		LoadBookNamesIntoList();
-
-		// Note: We already called the wxListCtrl routines to set up columns, their
-		// headers and calculate optimum widths, so we don't need to do that again
-		// here.
-
-		// Compare the source and target project's books again, which we do by 
-		// calling the OnLBBookSelected() handler explicitly here.
-		if (!m_TempCollabBookSelected.IsEmpty())
-		{
-			int nSel = pListBoxBookNames->FindString(m_TempCollabBookSelected);
-			if (nSel != wxNOT_FOUND)
-			{
-				// the pListBoxBookNames must have a selection before OnLBBookSelected() below will do anything
-				pListBoxBookNames->SetSelection(nSel);
-				// set focus on the Select a book list (OnLBBookSelected call below may change focus to Select a chapter list)
-				pListBoxBookNames->SetFocus(); 
-				wxCommandEvent evt;
-				OnLBBookSelected(evt);
-				// whm added 29Jul11. If "Get Whole Book" is ON, we can set the focus
-				// on the OK button
-				if (!m_bTempCollabByChapterOnly)
-				{
-					// Get Whole Book is ON, so set focus on OK button
-					pBtnOK->SetFocus();
-				}
-			}
-		}
-	}
-	else
-	{
-		// user clicked Cancel
-		bChangeProjectsOK = FALSE;
-		; // do nothing - dialog will close
-	}
-	return bChangeProjectsOK;
-}
-*/
 
 EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueCodes(
 							wxString& editorSrcLangCode, wxString& editorTgtLangCode)

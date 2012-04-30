@@ -498,6 +498,14 @@ void CDocPage::OnSetActive()
 	// name seems to indicate in the DocPage's list.
 	// When the advisor/consultant/user selects read-only mode, we show all documents.
 	// Don't filter out _Collab... docs if it is not a potential collaboration project
+	// 
+	// whm added 19Apr12. Ensure that the collaboration flags are set to FALSE. The DocPage
+	// is only supposed to appear when collaboration is turned off by the user at the ProjectPage, 
+	// so these two lines of code below ensure that some faulty logic elsewhere won't get propagated 
+	// any further.
+	gpApp->m_bCollaboratingWithParatext = FALSE;
+	gpApp->m_bCollaboratingWithParatext = FALSE;
+
 	if (gpApp->AIProjectIsACollabProject(gpApp->m_curProjectName))
 	{
 		// It is a potential collaboration project, so we filter out _Collab... docs

@@ -260,6 +260,8 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
 
+	wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
+
 	// if the user has tabbed back to this page while there is a project open,
 	// that project has to be closed and its doc saved (ie user given chance to
 	// do so), similarly for KB, before project can be made or existing one opened
@@ -559,191 +561,460 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// up with this project, we query the user if s/he wants to turn collaboration
 			// ON, OFF, or (for advisors/consultants mainly) open the project read-only.
 			// We query via the ChooseCollabOptionsDlg dialog.
-			if (pApp->AIProjectIsACollabProject(m_projectName))
+			// whm modified 20Apr12 changed the sanity test function name to 
+			// GetAIProjectCollabStatus() which now returns an enum of type 
+			// AiProjectCollabStatus which can be one of collabProjExistsAndIsValid,
+			// collabProjExistsButIsInvalid, or collabProjNotConfigured.
+			wxString errMessageCommon = _("When opening the %s project Adapt It detected the following error(s):\n\n");
+			errMessageCommon = errMessageCommon.Format(errMessageCommon,m_projectName.c_str());
+			errMessageCommon += _("%s\n\nPlease correct the problem, or ask your administrator for help, then try again."); // leaves one %s in the string
+			wxString titleMessageCommon = _("This project's collaboration settings are invalid");
+			enum AiProjectCollabStatus aiProjCollabStatus;
+			wxString errString = _T("");	// will get any error message by reference from the 
+											// GetAIProjectCollabStatus() call below
+			wxString errProjects = _T("");
+			bool bConfigFileChangesMade = FALSE;
+			// ========================= Collab Status of AI Project Determined Below ========================
+			aiProjCollabStatus = pApp->GetAIProjectCollabStatus(m_projectName,errString,bConfigFileChangesMade,errProjects);
+			// ========================= Collab Status of AI Project Determined Above ========================
+			// Check if the GetAIProjectCollabStatus() call above made changes to the collab settings
+			// during validation. If so, save the changes to the project config file here before 
+			// proceeding.
+			if (bConfigFileChangesMade)
 			{
-				// whm changed 13Mar12. Center dialog on MainFrame - Kim's request
-				// Centering on the wizard page doesn't appear to work correctly on
-				// small screens.
-				CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
-				collabOptDlg.CenterOnParent();
-				collabOptDlg.m_aiProjName = m_projectName;
-				if (collabOptDlg.ShowModal() == wxID_CANCEL)
+				bool bOK;
+				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+				bOK = bOK; // was unused, so prevent compiler warning
+			}
+			// Now handle the returned status values from the GetAIProjectCollabStatus() function.
+			switch (aiProjCollabStatus)
+			{
+			case projConfigFileUnableToOpen:
 				{
-					// We don't need to revert any project configuration settings before return 
-					// from a Cancel because the AIProjectIsACollabProject() function called at
-					// the top of this block did not assign any configuration settings when it
-					// snooped in the m_projectName's project config file.
-					// Call the wxWizard's Veto() method here before the return is executed. It
-					// causes control to go back to the wizard just as it was before the "Next >"
-					// button was pressed, so the user can choose the same or different AI project
-					// again.
+					// This situation would probably be due to the project config file being 
+					// open in another program/editor and its state being "access denied".
+					// Tell user to close any programs that might have the config file open,
+					// and try again. In this case we will veto the action and leave Adapt It
+					// at the ProjectPage of the wizard
+					// Determine if the project folder's Adaptations folder has any _Collab... docs
+					// in it. If so, that would indicate that this project has been used for 
+					// collaboration work.
+					wxString titleMsg;
+					bool bHasCollabDocs = pApp->AIProjectHasCollabDocs(m_projectName);
+					if (bHasCollabDocs)
+					{
+						titleMsg = _("Cannot determine this project's collaboration settings");
+					}
+					else
+					{
+						titleMsg = _("Cannot determine this project's settings");
+					}
+					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
+					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					pApp->LogUserAction(msg);
 					event.Veto();
 					return;
+					break;
 				}
-				else
+			case projConfigFileMissing:
 				{
-					// The user made a selection. Get the selection and handle it
-					// Note: The collabOptDlg.m_bEditorIsAvailable is set in the CChooseCollabOptionsDlg
-					// based on the value of the App's m_bParatextIsInstalled and m_bBibleditIsInstalled 
-					// flags.
-					if (collabOptDlg.m_bRadioSelectCollabON && collabOptDlg.m_bEditorIsAvailable)
+					wxString titleMsg;
+					bool bHasCollabDocs = pApp->AIProjectHasCollabDocs(m_projectName);
+					if (bHasCollabDocs)
 					{
-						// Make sure that book folder mode is OFF.
-						if (pApp->m_bBookMode)
-						{
-							// Quietly turn if off. When an administrator sets up a collaboration project
-							// the App turns book folder mode off, but just in case someone edited the project
-							// config file to turn it back on, we'll play safe here
-							pApp->m_bBookMode = FALSE;
-							pApp->m_nBookIndex = -1;
-							pApp->m_nDefaultBookIndex = 39;
-							pApp->m_nLastBookIndex = 39;
-						}
-
-						// The user selected to "Turn Collaboration ON and a collaboration editor is 
-						// available for that purpose. With project-specific collaboration the user now 
-						// determines the values for m_bCollaboratingWithParatext 
-						// and m_bCollaboratingWithBibledit having made that decision in the
-						// CChooseCollabOptionsDlg dialog.
-						wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
-						if (pApp->m_collaborationEditor == _T("Paratext"))
-						{
-							pApp->m_bCollaboratingWithParatext = TRUE;
-						}
-						else if (pApp->m_collaborationEditor == _T("Bibledit"))
-						{
-							pApp->m_bCollaboratingWithBibledit = TRUE;
-						}
-						
-						pApp->LogUserAction(_T("Collaboration turned ON by user"));
-						
-						// The user wants to start the collaboration session.
-						// In this case we set the App's m_bJustLaunched flag to cause the 
-						// main frame's OnIdle() method to call DoStartupWizardOnLaunch(), and 
-						// also set the m_bStartWorkUsingCollaboration flag to put up the 
-						// GetSourceTextFromEditorDlg dialog instead of the actual wizard.
-						// Then we kill the current wizard session by calling EndModal().
-						pApp->m_bJustLaunched = TRUE;
-						// This should be the only place in the app where m_bStartWorkUsingCollaboration
-						// is set to TRUE.
-						pApp->m_bStartWorkUsingCollaboration = TRUE;
-
-						// Set the File > Open and File > Save menu items to have the parenthetical information
-						// during collaboration.
-						pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOn);
-
-						// whm Note: After the wizard closes (below), the GetSourceTextFromEditorDlg dialog
-						// will appear, and when the user clicks OK in that dialog, the HookUpToExistingAIProject()
-						// function there will read the project config file, so we need to save this 
-						// m_bStartWorkUsingCollaboration collaboration setting to the project config file
-						// before leaving this block of control
-						bool bOK;
-						bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
-						bOK = bOK; // was unused, so prevent compiler warning
-						pStartWorkingWizard->Show(FALSE);
-						pStartWorkingWizard->EndModal(1);
-						pStartWorkingWizard = (CStartWorkingWizard*)NULL;
-						// whm Note: Even though the wizard is being destroyed by the
-						// above calls, the remainder of this OnWizardPageChanging() method
-						// would continue to execute unless we call return at this point.
-						return; // no Veto() called here as we want the wizard to end
+						titleMsg = _("Cannot determine this project's collaboration settings");
 					}
-					else if (collabOptDlg.m_bRadioSelectCollabOFF && !collabOptDlg.m_bRadioSelectReadOnlyON)
+					else
 					{
-						// The user selected to "Turn Collaboration OFF", or a collaboration editor is 
-						// not available.
-						// The user now determines the values for m_bCollaboratingWithParatext 
-						// and m_bCollaboratingWithBibledit and made that decision above.
-						wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
-						if (pApp->m_collaborationEditor == _T("Paratext"))
-						{
-							pApp->m_bCollaboratingWithParatext = FALSE;
-						}
-						else if (pApp->m_collaborationEditor == _T("Bibledit"))
-						{
-							pApp->m_bCollaboratingWithBibledit = FALSE;
-						}
-						// The user wants to continue through the wizard with no 
-						// collaboration.
-						
-						pApp->LogUserAction(_T("Collaboration turned OFF by user"));
-						
-						pApp->m_bStartWorkUsingCollaboration = FALSE;
-						
-						// Set the File > Open and File > Save menu items back to their normal
-						// state - without the parenthetical information in the labels.
-						pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOff);
+						titleMsg = _("Cannot determine this project's settings");
 					}
-					else if (collabOptDlg.m_bRadioSelectReadOnlyON)
+					// This situation indicates that the project the user selected does not have
+					// a project config file even though the project folder exists. This could be
+					// from accidentally deleting the project config file from the project folder,
+					// or from an aborted creation of a new AI project.
+					// We need to notify the user of this situation, and give the user a choice:
+					//    (1) Continue and open the project using a set of project defaults for 
+					//    fonts, punctuation, text colors, and NO collaboration with Paratext or 
+					//    Bibledit, or
+					//    (2) Return to the ProjectPage of the Wizard where the user can select a 
+					//    different AI project to work in, or click Cancel from the wizard in order
+					//    to restore the missing config file and/or project data from backups.
+					// The returned errString in this case will say (errMessageCommon + errString): 
+					// "When opening the %s project Adapt It detected the following error(s):
+					// 
+					// "The Adapt It project %s is missing its project configuration file (AI-ProjectConfiguration.aic)."
+					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
+					// Add to the msg the following question:
+					if (bHasCollabDocs)
 					{
-						// For the advisor/consultant's Read-Only Protection selection
-						// we make sure that collaboration is OFF
-						wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
-						if (pApp->m_collaborationEditor == _T("Paratext"))
+						msg += _("\n\nYou can try to open the %s project, but collaboration with %s will NOT be possible, and default fonts, punctuation and other default settings will be used. We recommend that you not open this project, but instead you should quit Adapt It and restore the AI-ProjectConfiguration.aic file from backups, or ask your administrator to restore any collaboration settings.\n\nQuit Adapt It now?");
+						msg = msg.Format(msg,m_projectName.c_str(), pApp->m_collaborationEditor.c_str());
+					}
+					else
+					{
+						msg += _("\n\nYou can try to open the %s project, but default fonts, punctuation and other settings will be used. We recommend that you not open this project, but instead you should quit Adapt It and restore the AI-ProjectConfiguration.aic file from backups, or ask your administrator for help.\n\nQuit Adapt It now?");
+						msg = msg.Format(msg,m_projectName.c_str());
+					}
+					int response;
+					response = wxMessageBox(msg,titleMsg,wxICON_QUESTION | wxYES_NO);
+					pApp->LogUserAction(msg);
+					if (response == wxYES)
+					{
+						// Use wxKill() here to abort the application and allow the user/administrator to 
+						// correct the problem by restoring the project config file or by doing any collaboration
+						// setup and configuration of Preferences.
+						wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
+						return;
+					}
+					// The user opted to continue, so remind him to redo his Preferences and/or ask his administrator
+					// to redo any collaboration setup for the project that may be needed.
+					if (bHasCollabDocs)
+					{
+						msg = _("No collaboration with %s is possible for the %s project until an administrator sets it up. Remember to check and possibly adjust your fonts, punctuation and other settings by accessing Preferences... on the Edit menu.");
+						msg = msg.Format(msg, pApp->m_collaborationEditor.c_str(),m_projectName.c_str());
+					}
+					else
+					{
+						msg = _("Remember to check and possibly adjust your fonts, punctuation and other settings by accessing Preferences... on the Edit menu.");
+						msg = msg.Format(msg, pApp->m_collaborationEditor.c_str(),m_projectName.c_str());
+					}
+					wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+					break;
+				}
+			case collabProjMissingFromConfigFile: // fall through - this case should be handled similarly to the case below
+			case collabProjMissingFromEditorList: // fall through - this case should be handled similarly to the case below
+			case collabProjExistsButIsInvalid:
+				{
+					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
+					wxMessageBox(msg,titleMessageCommon,wxICON_WARNING);
+					pApp->LogUserAction(msg);
+					// Either the config file's CollabProjectForSourceInputs or 
+					// CollabProjectForTargetExports string was missing, or if present,
+					// the string(s) point to a project whose short names could not be
+					// found in the external editor's list of projects (projList).
+					// This error requires operator/user intervention to either select the
+					// appropriate PT/BE project from a list of PT/BE projects provided to the
+					// user, or for the user to opt instead to abort the collaboration work
+					// session.
+					//
+					// The errProjects reference parameter returns the type of project which
+					// could not be found. It may contain one or two instances each of "source",
+					// "target", and/or "freetrans", for example: "source:target:source:target:freetrans".
+					// So, we need to search this string to determine which type of PT/BE project to query 
+					// the user for.
+					bool bQueryForSource = FALSE;
+					bool bQueryForTarget = FALSE;
+					bool bQueryForFreeTrans = FALSE;
+					if (errProjects.find(_T("source")) != wxNOT_FOUND)
+						bQueryForSource = TRUE;
+					if (errProjects.find(_T("target")) != wxNOT_FOUND)
+						bQueryForTarget = TRUE;
+					if (errProjects.find(_T("freetrans")) != wxNOT_FOUND)
+						bQueryForFreeTrans = TRUE;
+					wxString caption = _("You may be able to fix this problem if you do the following...");
+					wxString message = _T("");
+					wxString addSpace = _T(" ");
+					wxString promptSrc = _("Select the %s project for obtaining source texts.\n(If no %s project listed is suitable click Cancel to abort and seek help from your administrator.)");
+					promptSrc = promptSrc.Format(promptSrc,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+					wxString promptTgt = _("Select the %s project for storing translations.\n(If no %s project listed is suitable click Cancel to abort and seek help from your administrator.)");
+					promptTgt = promptTgt.Format(promptTgt,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+					wxString promptFreeTrans = _("Select the %s project for storing free translations.\n(If no %s project is suitable click Cancel to abort and seek help from your administrator.)");
+					promptFreeTrans = promptFreeTrans.Format(promptFreeTrans,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
+					// Get a list of current projects from the appropriate external editor.
+					wxArrayString projList;
+					if (gpApp->m_collaborationEditor == _T("Paratext"))
+						projList = gpApp->GetListOfPTProjects();
+					else if (gpApp->m_collaborationEditor == _T("Bibledit"))
+						projList = gpApp->GetListOfBEProjects();
+
+					wxString choiceMadeforSrcProj;
+					if (bQueryForSource)
+					{
+						message = promptSrc;
+						int returnValue = wxGetSingleChoiceIndex(
+							message,caption,projList,gpApp->GetMainFrame());
+						if (returnValue == -1)
 						{
-							pApp->m_bCollaboratingWithParatext = FALSE;
+							// user pressed Cancel or OK with nothing selected (list empty)
+							gpApp->LogUserAction(_T("Cancelled from wxGetSingleChoiceIndex() in ProjectPage's OnWizardPageChanging()"));
+							event.Veto();
+							return;
 						}
-						else if (pApp->m_collaborationEditor == _T("Bibledit"))
+						// User made a selection, so get it and establish the collab settings for that selection
+						choiceMadeforSrcProj = projList.Item(returnValue);
+						gpApp->m_CollabProjectForSourceInputs = choiceMadeforSrcProj;
+					}
+
+					wxString choiceMadeforTgtProj;
+					if (bQueryForTarget)
+					{
+						message = promptTgt;
+						int returnValue = wxGetSingleChoiceIndex(
+							message,caption,projList,gpApp->GetMainFrame());
+						if (returnValue == -1)
 						{
-							pApp->m_bCollaboratingWithBibledit = FALSE;
+							// user pressed Cancel or OK with nothing selected (list empty)
+							gpApp->LogUserAction(_T("Cancelled from wxGetSingleChoiceIndex() in ProjectPage's OnWizardPageChanging()"));
+							event.Veto();
+							return;
 						}
-						
-						pApp->LogUserAction(_T("Read-Only Mode turned ON by user"));
-						
-						// The administrator/consultant/user wants to continue through
-						// the wizard with no collaboration, but with any document
-						// opened in read-only mode.
-						pApp->m_bStartWorkUsingCollaboration = FALSE;
-						
-						// whm Note: The ForceFictitiousReadOnlyProtection() function below does
-						// the following:
-						// Check for the existence of a zombie readonly protection file 
-						// left after an abnormal exit, and check for someone having the project 
-						// already open remotely for writing. We only set the fictitious ROPFile
-						// in the project folder if it is NOT already owned, as we do not want them
-						// to be disenfranchised by clobbering their readonly protection file and
-						// substituting one for a fictitious process. ForceFictitiousReadOnlyProtection()
-						// calls the IsTheProjectFolderOwnedForWriting() function which has the side
-						// effects of: (1) Assigns any active non-zombie ROPFile's name to the App's
-						// m_strOwningReadOnlyProtectionFilename member, and (2) removes any zombies.
-						// As of version 6.1.0, we have disallowed any second instance of Adapt It 
-						// being run by the same user, so if the folder is already owned, it would 
-						// never be owned by "me". The only reason that bForcedRopOK would become
-						// FALSE is if ForceFictitiousReadOnlyProtection() could not open the 
-						// m_pROPwxFile for writing. That situation would be unusual, and if the App's
-						// m_bReadOnlyAccess flag is also FALSE, we notify the user that read-only mode
-						// could not be set for some unknown reason, and the user should proceed with
-						// caution if they do not intend to make changes.
-						bool bForcedRopOK;
-						bForcedRopOK = pApp->m_pROP->ForceFictitiousReadOnlyProtection(pApp->m_curProjectPath);
-						if (!bForcedRopOK)
+						// User made a selection, so get it and establish the collab settings for that selection
+						choiceMadeforTgtProj = projList.Item(returnValue);
+						gpApp->m_CollabProjectForTargetExports = choiceMadeforTgtProj;
+					}
+
+					wxString choiceMadeForFreeTransProj;
+					if (bQueryForFreeTrans)
+					{
+						message = promptFreeTrans;
+						int returnValue = wxGetSingleChoiceIndex(
+							message,caption,projList,gpApp->GetMainFrame());
+						if (returnValue == -1)
 						{
-							// Could not create a fictitious ROPFile
-							if (!pApp->m_bReadOnlyAccess)
+							// user pressed Cancel or OK with nothing selected (list empty)
+							gpApp->LogUserAction(_T("Cancelled from wxGetSingleChoiceIndex() in ProjectPage's OnWizardPageChanging()"));
+							event.Veto();
+							return;
+						}
+						// User made a selection, so get it and establish the collab settings for that selection
+						choiceMadeForFreeTransProj = projList.Item(returnValue);
+						gpApp->m_CollabProjectForFreeTransExports = choiceMadeForFreeTransProj;
+					}
+					// If control gets here the user has manually selected projects for collaboration.
+					// Do a validity test, and if the projects are valid just fall through to the 
+					// collabProjExistsAndIsValid case below, to call up the 3-button collaboration
+					// dialog and proceed with the session.
+					wxString errStr = _T("");
+					wxString errProj = _T("");
+					if (!CollabProjectsAreValid(gpApp->m_CollabProjectForSourceInputs, gpApp->m_CollabProjectForTargetExports, 
+											gpApp->m_CollabProjectForFreeTransExports, errStr, errProj))
+					{
+						wxString msg = _("Sorry, the projects you selected have the following problem:\n%s\n\nCollaboration is not possible until the necessary %s projects have been set up. Please ask your administrator to set up %s with the projects necessary for collaboration with Adapt It.");
+						msg = msg.Format(msg,errStr.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+						// Note: The errProj returned string is not used here.
+						wxMessageBox(msg,_("Administrator setup required for collaboration"),wxICON_WARNING); 
+						gpApp->LogUserAction(_T("User selected PT/BE projects to collaborate with after missing reports, but those selected projects didn't pass validity testing so vetoed ProjectPage's OnWizardPageChanging()."));
+						event.Veto();
+						return;
+					}
+					// If control gets here the projects passed validity testing, so
+					// just fall through.
+				}
+			case collabProjExistsAndIsValid:
+				{
+					// whm changed 13Mar12. Center dialog on MainFrame - Kim's request
+					// Centering on the wizard page doesn't appear to work correctly on
+					// small screens.
+					CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
+					collabOptDlg.CenterOnParent();
+					collabOptDlg.m_aiProjName = m_projectName;
+					if (collabOptDlg.ShowModal() == wxID_CANCEL)
+					{
+						// We don't need to revert any project configuration settings before return 
+						// from a Cancel because the AIProjectIsACollabProject() function called at
+						// the top of this block did not assign any configuration settings when it
+						// snooped in the m_projectName's project config file.
+						// Call the wxWizard's Veto() method here before the return is executed. It
+						// causes control to go back to the wizard just as it was before the "Next >"
+						// button was pressed, so the user can choose the same or different AI project
+						// again.
+						event.Veto();
+						return;
+					}
+					else
+					{
+						// The user made a selection. Get the selection and handle it
+						// Note: The collabOptDlg.m_bEditorIsAvailable is set in the CChooseCollabOptionsDlg
+						// based on the value of the App's m_bParatextIsInstalled and m_bBibleditIsInstalled 
+						// flags.
+						if (collabOptDlg.m_bRadioSelectCollabON && collabOptDlg.m_bEditorIsAvailable)
+						{
+							// Make sure that book folder mode is OFF.
+							if (pApp->m_bBookMode)
 							{
-								wxString msg = _("Adapt It could not enter read-only mode for some unknown reason. You may continue to access the user's documents, but proceed with care.");
-								wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_WARNING);
-								pApp->LogUserAction(msg);
+								// Quietly turn if off. When an administrator sets up a collaboration project
+								// the App turns book folder mode off, but just in case someone edited the project
+								// config file to turn it back on, we'll play safe here
+								pApp->m_bBookMode = FALSE;
+								pApp->m_nBookIndex = -1;
+								pApp->m_nDefaultBookIndex = 39;
+								pApp->m_nLastBookIndex = 39;
+							}
+
+							// The user selected to "Turn Collaboration ON and a collaboration editor is 
+							// available for that purpose. With project-specific collaboration the user now 
+							// determines the values for m_bCollaboratingWithParatext 
+							// and m_bCollaboratingWithBibledit having made that decision in the
+							// CChooseCollabOptionsDlg dialog.
+							wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
+							if (pApp->m_collaborationEditor == _T("Paratext"))
+							{
+								pApp->m_bCollaboratingWithParatext = TRUE;
+							}
+							else if (pApp->m_collaborationEditor == _T("Bibledit"))
+							{
+								pApp->m_bCollaboratingWithBibledit = TRUE;
+							}
+							
+							pApp->LogUserAction(_T("Collaboration turned ON by user"));
+							
+							// The user wants to start the collaboration session.
+							// In this case we set the App's m_bJustLaunched flag to cause the 
+							// main frame's OnIdle() method to call DoStartupWizardOnLaunch(), and 
+							// also set the m_bStartWorkUsingCollaboration flag to put up the 
+							// GetSourceTextFromEditorDlg dialog instead of the actual wizard.
+							// Then we kill the current wizard session by calling EndModal().
+							pApp->m_bJustLaunched = TRUE;
+							// This should be the only place in the app where m_bStartWorkUsingCollaboration
+							// is set to TRUE.
+							pApp->m_bStartWorkUsingCollaboration = TRUE;
+
+							// Set the File > Open and File > Save menu items to have the parenthetical information
+							// during collaboration.
+							pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOn);
+
+							// whm Note: After the wizard closes (below), the GetSourceTextFromEditorDlg dialog
+							// will appear, and when the user clicks OK in that dialog, the HookUpToExistingAIProject()
+							// function there will read the project config file, so we need to save this 
+							// m_bStartWorkUsingCollaboration collaboration setting to the project config file
+							// before leaving this block of control
+							bool bOK;
+							bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+							bOK = bOK; // was unused, so prevent compiler warning
+							pStartWorkingWizard->Show(FALSE);
+							pStartWorkingWizard->EndModal(1);
+							pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+							// whm Note: Even though the wizard is being destroyed by the
+							// above calls, the remainder of this OnWizardPageChanging() method
+							// would continue to execute unless we call return at this point.
+							return; // no Veto() called here as we want the wizard to end
+						}
+						else if (collabOptDlg.m_bRadioSelectCollabOFF && !collabOptDlg.m_bRadioSelectReadOnlyON)
+						{
+							// The user selected to "Turn Collaboration OFF", or a collaboration editor is 
+							// not available.
+							// The user now determines the values for m_bCollaboratingWithParatext 
+							// and m_bCollaboratingWithBibledit and made that decision above.
+							wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
+							if (pApp->m_collaborationEditor == _T("Paratext"))
+							{
+								pApp->m_bCollaboratingWithParatext = FALSE;
+							}
+							else if (pApp->m_collaborationEditor == _T("Bibledit"))
+							{
+								pApp->m_bCollaboratingWithBibledit = FALSE;
+							}
+							// The user wants to continue through the wizard with no 
+							// collaboration.
+							
+							pApp->LogUserAction(_T("Collaboration turned OFF by user"));
+							
+							pApp->m_bStartWorkUsingCollaboration = FALSE;
+							
+							// Set the File > Open and File > Save menu items back to their normal
+							// state - without the parenthetical information in the labels.
+							pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOff);
+						}
+						else if (collabOptDlg.m_bRadioSelectReadOnlyON)
+						{
+							// For the advisor/consultant's Read-Only Protection selection
+							// we make sure that collaboration is OFF
+							wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
+							if (pApp->m_collaborationEditor == _T("Paratext"))
+							{
+								pApp->m_bCollaboratingWithParatext = FALSE;
+							}
+							else if (pApp->m_collaborationEditor == _T("Bibledit"))
+							{
+								pApp->m_bCollaboratingWithBibledit = FALSE;
+							}
+							
+							pApp->LogUserAction(_T("Read-Only Mode turned ON by user"));
+							
+							// The administrator/consultant/user wants to continue through
+							// the wizard with no collaboration, but with any document
+							// opened in read-only mode.
+							pApp->m_bStartWorkUsingCollaboration = FALSE;
+							
+							// whm Note: The ForceFictitiousReadOnlyProtection() function below does
+							// the following:
+							// Check for the existence of a zombie readonly protection file 
+							// left after an abnormal exit, and check for someone having the project 
+							// already open remotely for writing. We only set the fictitious ROPFile
+							// in the project folder if it is NOT already owned, as we do not want them
+							// to be disenfranchised by clobbering their readonly protection file and
+							// substituting one for a fictitious process. ForceFictitiousReadOnlyProtection()
+							// calls the IsTheProjectFolderOwnedForWriting() function which has the side
+							// effects of: (1) Assigns any active non-zombie ROPFile's name to the App's
+							// m_strOwningReadOnlyProtectionFilename member, and (2) removes any zombies.
+							// As of version 6.1.0, we have disallowed any second instance of Adapt It 
+							// being run by the same user, so if the folder is already owned, it would 
+							// never be owned by "me". The only reason that bForcedRopOK would become
+							// FALSE is if ForceFictitiousReadOnlyProtection() could not open the 
+							// m_pROPwxFile for writing. That situation would be unusual, and if the App's
+							// m_bReadOnlyAccess flag is also FALSE, we notify the user that read-only mode
+							// could not be set for some unknown reason, and the user should proceed with
+							// caution if they do not intend to make changes.
+							bool bForcedRopOK;
+							bForcedRopOK = pApp->m_pROP->ForceFictitiousReadOnlyProtection(pApp->m_curProjectPath);
+							if (!bForcedRopOK)
+							{
+								// Could not create a fictitious ROPFile
+								if (!pApp->m_bReadOnlyAccess)
+								{
+									wxString msg = _("Adapt It could not enter read-only mode for some unknown reason. You may continue to access the user's documents, but proceed with care.");
+									wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_WARNING);
+									pApp->LogUserAction(msg);
+								}
+								else
+								{
+									wxASSERT_MSG(FALSE,_T("ForceFictitiousReadOnlyProtection() failed and m_bReadOnlyAccess is TRUE. Programmer Error?"));
+								}
 							}
 							else
 							{
-								wxASSERT_MSG(FALSE,_T("ForceFictitiousReadOnlyProtection() failed and m_bReadOnlyAccess is TRUE. Programmer Error?"));
+								pApp->m_bFictitiousReadOnlyAccess = TRUE;
 							}
+							
+							// Set the File > Open and File > Save menu items back to their normal
+							// state - without the parenthetical information in the labels.
+							pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableReadOnlyOn);
 						}
-						else
-						{
-							pApp->m_bFictitiousReadOnlyAccess = TRUE;
-						}
-						
-						// Set the File > Open and File > Save menu items back to their normal
-						// state - without the parenthetical information in the labels.
-						pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableReadOnlyOn);
 					}
+					break;
+				}
+			default:
+			case collabProjNotConfigured:
+				{
+					// No collaboration settings exist or if the settings exist they have no project
+					// values associated with them, therefore we assume this project has not been
+					// configured for collaboration. The legacy Adapt It wizard's DocPage will appear
+					// when control continues below.
+					break;
 				}
 			}
 
-			// If we get here we are continuing through the wizard page changing process
-			// and no collaboration is in effect.
+			// We will *not* arrive here if any of the following conditions prevailed above:
+			// 1. The "Work with my %s Scripture texts (Collaboration on)" radio button was selected
+			//    in the 3-button dialog. Instead of coming here the wizard is forced to close above
+			//    to allow the "Get Source Text From PT/BE Project" dialog to open.
+			// 2. The user clicks Cancel from the 3-button dialog. Instead of coming here the flow of
+			//    control goes back to the wizard just as it was before the "Next >" button was pressed, 
+			//    allowing the user to choose again from the list of AI projects (the same or different 
+			//    AI project).
+			// 3. The AI project has collaboration settings but they are invalid as determined by a
+			//    collabProjExistsButIsInvalid result from the GetAIProjectCollabStatus() function above.
+			//    
+			// We get here if one of the following conditions is TRUE:
+			// 1. Collaboration is not configured for the selected project as determined by the return
+			//    value of collabProjNotConfigured from the GetAIProjectCollabStatus() function above, or
+			// 2. The "Read-only mode (All texts accessible but not editable - I'm an advisor or
+			//    consultant)" radio button was selected in the 3-button dialog, or
+			// 3. The "Work with other Adapt It texts (%s texts not available: Collaboration off" radio 
+			//    button was selected in the 3-button dialog
+			// 4. The collabOptDlg.m_bEditorIsAvailable turned out to be FALSE (Paratext or Bibledit
+			//    was unexpectedly uninstalled)
+			// We continue through the wizard page changing process and no collaboration is in effect.
 			wxASSERT(pApp->m_bStartWorkUsingCollaboration == FALSE);
 
 			// set up the expected KB and GlossingKB paths etc

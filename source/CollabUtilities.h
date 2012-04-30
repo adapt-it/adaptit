@@ -172,7 +172,7 @@ class CSourcePhrase;
 	bool			HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, 
 							wxString* pProjectFolderPath);
 	bool			IsEthnologueCodeValid(wxString& code);
-	void			ValidateCollabProject(wxString projName, wxArrayString projList,wxString& composedProjStr);
+	bool			CollabProjectFoundInListOfEditorProjects(wxString projName, wxArrayString projList,wxString& composedProjStr); // whm added 19Apr12
 	bool			KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar); //BEW added 13Jun11
 	// a module for doing the layout and getting the view ready for the user to start
 	// adapting;; it is not limited to being used in a Collaboration scenario
@@ -202,7 +202,7 @@ class CSourcePhrase;
 	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
 	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName);
 	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
-							wxString frtrCompositeProjName, wxString& errorStr);
+							wxString frtrCompositeProjName, wxString& errorStr, wxString& errorProjects);
 	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()
