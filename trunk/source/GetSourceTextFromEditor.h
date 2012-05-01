@@ -115,9 +115,9 @@ protected:
 	//void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
 
 	//bool DoChangeProjects();
-	bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
-								wxString LanguageNameTgt, wxString& aiProjectFolderName,
-								wxString& aiProjectFolderPath);
+	//bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
+	//							wxString LanguageNameTgt, wxString& aiProjectFolderName,
+	//							wxString& aiProjectFolderPath);
 	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 

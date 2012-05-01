@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.2.1 release 14 April 2012
+Version 6.2.1 release 1 May 2012
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.2.1
@@ -38,8 +38,8 @@ highlighting of other cells in the viscinity.
 Bug fixes in 6.2.1
 ----------------------------------------------
 * The setup of collaboration between Adapt It and Paratext or
-Bibledit is now more robust. Some users reported situations in 
-which collaboration settings were not being remembered from
+Bibledit is now much more robust. Some users reported situations 
+in which collaboration settings were not being remembered from
 session to session.
 * If, when setting up collaboration with Paratext or Bibledit,
 the administrator does not create any books (with empty chapter

@@ -12177,7 +12177,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 		//   "CollabProjectForTargetExports"
 		//   "CollabAIProjectName"
 		// If all three of these config labels are followed by string values and the string
-		// stored in the "CollabAIProjectName" is idential to the m_projectName incoming
+		// stored in the "CollabAIProjectName" is identical to the m_projectName incoming
 		// parameter, we can safely assume that collaboration has been established for this
 		// project. We could do some sanity checks if needed but that would mainly detect if
 		// someone has been manually editing the config file, in which case anything could
@@ -12474,7 +12474,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// 
 		// The first 6 are checks for when the CollabAIProjectName field has a string entry:
 		// 1. Ensure that the CollaborationEditor field is set to either "Paratext" or "Bibledit".
-		// 2. Check that the string stored in the "CollabAIProjectName" is idential to the 
+		// 2. Check that the string stored in the "CollabAIProjectName" is identical to the 
 		// m_projectName incoming parameter.
 		// 3. Check for existence of the CollabSourceLangName field. If it is missing parse the source
 		// lang name from the CollabAIProjectName and assign that name to CollabSourceLangName.
@@ -12485,7 +12485,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// 6. If the CollabTargetLangName exists, check whether it agrees with the parsed target lang
 		// name from the CollabAIProjectName string. If not just log the fact that it differs.
 		// 
-		// The next 4 checks are for when the CollabAIProjectName field is missing/empty:
+		// The next 5 checks are for when the CollabAIProjectName field is missing/empty:
 		// 7. If the other 5 collab settings are present, construct a potential CollabAIProjectName
 		// field entry from the CollabSourceLangName and CollabTargetLangName fields. If the
 		// constructed name agrees with the currently selected AI project, go ahead and assign
@@ -12569,7 +12569,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		GetSrcAndTgtLanguageNamesFromProjectName(m_projectName, srcNameStr, tgtNameStr);
 		if (bFoundCollabAiProj)
 		{
-			// 2. Check that the string stored in the "CollabAIProjectName" is idential to the 
+			// 2. Check that the string stored in the "CollabAIProjectName" is identcial to the 
 			// m_projectName incoming parameter.
 			//
 			// A CollabAIProjectName string is stored in the config file. Do some sanity tests.
@@ -12860,7 +12860,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			wxString projects = _T("");
 			if (!bFoundCollabSrcProj)
 			{
-				msg = _("1. ");
+				msg = _T("1. ");
 				msg += _("The Adapt It project \"%s\" is missing its setting that designates its %s project for obtaining source texts.");
 				msg = msg.Format(msg,m_projectName.c_str(), m_collaborationEditor.c_str());
 				projects = _T("source");
@@ -12868,9 +12868,9 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			if (!bFoundCollabTgtProj)
 			{
 				if (!msg.IsEmpty())
-					msg += _("\n2. ");
+					msg += _T("\n2. ");
 				else
-					msg += _("1. ");
+					msg += _T("1. ");
 				msg += _("The Adapt It project \"%s\" is missing its setting that designates its %s project for storing translation texts.");
 				msg = msg.Format(msg,m_projectName.c_str(), m_collaborationEditor.c_str());
 				if (!projects.IsEmpty())

@@ -193,6 +193,17 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
 	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
 
+	m_SaveCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
+	m_SaveCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
+	m_SaveCollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
+	m_SaveCollabAIProjectName = m_TempCollabAIProjectName;
+	m_SaveCollabSourceProjLangName = m_TempCollabSourceProjLangName;
+	m_SaveCollabTargetProjLangName = m_TempCollabTargetProjLangName;
+	m_SaveCollabBookSelected = m_TempCollabBookSelected;
+	m_bSaveCollabByChapterOnly = m_bTempCollabByChapterOnly; // FALSE means the "whole book" option
+	m_SaveCollabChapterSelected = m_TempCollabChapterSelected;
+	m_bSaveCollaborationExpectsFreeTrans = m_bTempCollaborationExpectsFreeTrans;
+
 	if (!m_pApp->m_bCollaboratingWithBibledit)
 	{
 		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
@@ -210,7 +221,8 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// validity checks were done in the GetAIProjectCollabStatus() function call in ProjectPage's
 	// OnWizardPageChanging() just after the user has selected the project to open and the
 	// selected project's project config file has been read.
-	// 
+	
+	/*
 	// TODO: Revise below to remove most of the sanity checks from here since they have been done
 	// in the GetAIProjectCollabStatus() function in the ProjectPage's OnWizardPageChanging() method.
 	// 
@@ -248,6 +260,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// until the administrator sets up the necessary projects within Paratext/Bibledit.
 		bTwoOrMoreProjectsInList = FALSE;
 	}
+	*/
 
 	// whm revised 1Mar12 at Bruce's request to use the whole composite string in 
 	// the case of Paratext.
@@ -259,6 +272,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	
 	pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
 
+	/*
 	// Confirm that we can find the active source and target projects as stored in the 
 	// config file and now stored in our projList.
 	// whm 19Apr12 modified: The source text is required for collaboration. If the project config 
@@ -389,6 +403,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// block in the App's DoStartWorkingWizard() where the message is generated.
 		return; // return here prevents the dialog from loading book names etc below
 	}
+	*/
 
 	LoadBookNamesIntoList();
 
@@ -627,21 +642,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		wxCHECK_RET(bReadOK, _T("GetSourceTextFromEditor(): WriteConfigurationFile() failed, line 1247."));
 	}
 
-	// ================================================================================
-	// whm 8Sep11 NOTE: At about this point in SetupEditorCollaboration.cpp, under the
-	// administrator's action, the code in OnOK() there saves the collaboration values
-	// that are assigned to the App above, also to the Adapt_It_WX.ini file for safe
-	// keeping in case the user does a SHIFT-DOWN startup to get some default values
-	// restored. I think it best here in GetSourceTextFromEditor::OnOK() however, to
-	// not store any changes to the above made by the user selecting a different AI
-	// project to hook up with or even using the <Create a new project instead> selection
-	// in the drop-down combo box list of AI projects. Then, if the user has fouled things
-	// up because of making one of those selections to point AI to a different/new
-	// AI project by mistake, the user can still do a SHIFT-DOWN startup and get
-	// back the settings that the administrator made when he set things up initially
-	// in SetupEditorCollaboration.
-	// ================================================================================
-
 	// Set up (or access any existing) project for the selected book or chapter
 	// How this is handled will depend on whether the book/chapter selected
 	// amounts to an existing AI project or not. The m_bCollabByChapterOnly flag now
@@ -876,27 +876,21 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// If an existing source AI document is obtained from the source text we get from PT
 	// or BE, we quietly merge the externally derived one to the AI document; using the
     // import edited source text routine (no user intervention occurs in this case).
-	// 
-    // If the PT source and PT target projects do not yet exist as an existing AI project,
-    // we create the project complete with project config file, empty KB, etc., using the
-    // information gleaned from the PT source and PT target projects (i.e. language names,
-    // font choices and sizes,...)
-	bool bCollaborationUsingExistingAIProject;
-
-	// BEW added 21Jun11, provide a storage location for the Adapt It project folder's
-	// name, in the event that we successfully obtain a matchup from the
-	// CollabProjectsExistAsAIProject() call below (aiMatchedProjectFolder will be an empty
-	// wxString if the call returns FALSE)
 	
+	wxASSERT(!m_pApp->m_curProjectPath.IsEmpty() && !m_pApp->m_curProjectName.IsEmpty());
+	wxASSERT(!this->m_TempCollabAIProjectName.IsEmpty() && m_TempCollabAIProjectName == m_pApp->m_curProjectName);
+	wxASSERT(::wxDirExists(m_pApp->m_curProjectPath));
+ 
 	// whm 26Feb12 design note: With project-specific collaboration, we will only hookup
 	// to existing AI projects
 
-	wxString aiMatchedProjectFolder;
-	wxString aiMatchedProjectFolderPath;
-	bCollaborationUsingExistingAIProject = CollabProjectsExistAsAIProject(m_pApp->m_CollabSourceLangName, 
-												m_pApp->m_CollabTargetLangName, aiMatchedProjectFolder, 
-												aiMatchedProjectFolderPath);
-	if (bCollaborationUsingExistingAIProject)
+	wxString aiMatchedProjectFolder = m_pApp->m_curProjectName;
+	wxString aiMatchedProjectFolderPath = m_pApp->m_curProjectPath;
+
+	bool bAIProjectExists;
+	bAIProjectExists = ::wxDirExists(m_pApp->m_curProjectPath);
+
+	if (bAIProjectExists)
 	{
 		// The Paratext projects selected for source text and target texts have an existing
 		// AI project in the user's work folder, so we use that AI project.
@@ -973,8 +967,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pProgDlg->Update(nStep,msgDisplayed);
 		//::wxSafeYield();
 		
-		// first, get the project hooked up, if there is indeed one pre-existing for the
-		// given language pair; if not, we create a new project
+		// first, get the project hooked up
 		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
 		wxASSERT(!aiMatchedProjectFolderPath.IsEmpty());
 		// do a wizard-less hookup to the matched project
@@ -1285,6 +1278,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
 	else
 	{
+		// The App's m_curProjectPath member was unexpectedly empty!
+		wxString msg = _T("The Adapt It project \"%s\" at the following path:\n\n%s\n\nunexpectedly went missing!\n\nYou should Cancel from the current collaboration attempt.\nThen carefully check that the Adapt It project folder exists - restoring it from backups if necessary, then try again.");
+		msg = msg.Format(msg,m_pApp->m_CollabAIProjectName.c_str(), m_pApp->m_curProjectPath.c_str());
+		m_pApp->LogUserAction(msg);
+		pProgDlg->Destroy();
+		return;
+	}
+	/*
 		// As of version 6.1.x, this block should never be entered. Collaboration is now on a project-by-project
 		// basis and GetSourceTextFromEditor() should only be called via an existing project.
 		wxString msg = _T("In GetSourceTextFromEditor::OnOK() entered else block of if (bCollaborationUsingExistingAIProject) - programming error for version 6.2.x!");
@@ -1501,6 +1502,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		}
 
 	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
+	*/
 
 	nStep = 8;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
@@ -2358,6 +2360,7 @@ void CGetSourceTextFromEditorDlg::OnCancel(wxCommandEvent& event)
 		message = message.Format(_("Collaborating with %s: getting source text was Cancelled"), 
 									m_pApp->m_collaborationEditor.c_str());
 		pStatusBar->SetStatusText(message,0); // use first field 0
+		m_pApp->LogUserAction(message);
 	}
 
 	// whm 19Sep11 modified: 
@@ -2484,7 +2487,12 @@ EthnologueCodePair*  CGetSourceTextFromEditorDlg::MatchAIProjectUsingEthnologueC
 	return pMatchedProject;
 }
 
-
+/*
+// whm 30Apr12 removed; not needed for project-specific collaboration in which an
+// existing AI project is always selected and its project config file is read and
+// its collaboration settings validated before initiating the GetSourceTextFromEditor
+// dialog
+// 
 // Attempts to find a pre-existing Adapt It project that adapts between the same language
 // pair as is the case for the two Paratext or Bibledit project pairs which have been
 // selected for this current collaboration. It first tries to find a match by building the
@@ -2510,26 +2518,6 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString langua
 {
 	aiProjectFolderName.Empty();
 	aiProjectFolderPath.Empty();
-
-	/*
-	// whm modified 7Sep11. It is more reliable to determine the source and
-	// target language names from the new App members that are now determined
-	// by administrator/user interaction within the two collaboration dialogs
-	// 
-	Collab_Project_Info_Struct* pCollabInfoSrc;
-	Collab_Project_Info_Struct* pCollabInfoTgt;
-	pCollabInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
-																// pApp->m_pArrayOfCollabProjects
-	pCollabInfoTgt = m_pApp->GetCollab_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
-																// pApp->m_pArrayOfCollabProjects
-	wxASSERT(pCollabInfoSrc != NULL);
-	wxASSERT(pCollabInfoTgt != NULL);
-	wxString srcLangStr = pCollabInfoSrc->languageName;
-	wxASSERT(!srcLangStr.IsEmpty());
-	wxString tgtLangStr = pCollabInfoTgt->languageName;
-	wxASSERT(!tgtLangStr.IsEmpty());
-	wxString projectFolderName = srcLangStr + _T(" to ") + tgtLangStr + _T(" adaptations");
-	*/
 
 	wxString projectFolderName = languageNameSrc + _T(" to ") + languageNameTgt + _T(" adaptations");
 	
@@ -2567,7 +2555,7 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString langua
 	}
 
 	// whm removed 7Sep11 but save in comments
-	/*
+
 	// BEW added 22Jun11, checking for a match based on 2- or 3-letter ethnologue codes
 	// should also be attempted, if the language names don't match -- this will catch
 	// projects where the language name(s) may have a typo, or a local spelling different
@@ -2577,39 +2565,38 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString langua
 	// provided such a match is unique, if ambiguous (ie. two or more Adapt It projects
 	// have the same pair of ethnologue codes) then don't guess, instead return FALSE so
 	// that a new independent Adapt It project will get created instead
-	EthnologueCodePair* pMatchedCodePair = NULL;
-	wxString srcLangCode = pCollabInfoSrc->ethnologueCode;
-	if (srcLangCode.IsEmpty())
-	{
-		return FALSE; 
-	}
-	wxString tgtLangCode = pCollabInfoTgt->ethnologueCode;
-	if (tgtLangCode.IsEmpty())
-	{
-		return FALSE; 
-	}
-	if (!IsEthnologueCodeValid(srcLangCode) || !IsEthnologueCodeValid(tgtLangCode))
-	{
-		return FALSE;
-	}
-	else
-	{
-		// both codes from the PT or BE projects are valid, so try for a match with an
-		// existing Adapt It project
-		pMatchedCodePair = MatchAIProjectUsingEthnologueCodes(srcLangCode, tgtLangCode);
-		if (pMatchedCodePair == NULL)
-		{
-			return FALSE;
-		}
-		else
-		{
-			// we have a successful match to an existing AI project
-			aiProjectFolderName = pMatchedCodePair->projectFolderName;
-			aiProjectFolderPath	= pMatchedCodePair->projectFolderPath;
-			delete pMatchedCodePair;
-		}
-	}
-	*/
+	//EthnologueCodePair* pMatchedCodePair = NULL;
+	//wxString srcLangCode = pCollabInfoSrc->ethnologueCode;
+	//if (srcLangCode.IsEmpty())
+	//{
+	//	return FALSE; 
+	//}
+	//wxString tgtLangCode = pCollabInfoTgt->ethnologueCode;
+	//if (tgtLangCode.IsEmpty())
+	//{
+	//	return FALSE; 
+	//}
+	//if (!IsEthnologueCodeValid(srcLangCode) || !IsEthnologueCodeValid(tgtLangCode))
+	//{
+	//	return FALSE;
+	//}
+	//else
+	//{
+	//	// both codes from the PT or BE projects are valid, so try for a match with an
+	//	// existing Adapt It project
+	//	pMatchedCodePair = MatchAIProjectUsingEthnologueCodes(srcLangCode, tgtLangCode);
+	//	if (pMatchedCodePair == NULL)
+	//	{
+	//		return FALSE;
+	//	}
+	//	else
+	//	{
+	//		// we have a successful match to an existing AI project
+	//		aiProjectFolderName = pMatchedCodePair->projectFolderName;
+	//		aiProjectFolderPath	= pMatchedCodePair->projectFolderPath;
+	//		delete pMatchedCodePair;
+	//	}
+	//}
 
 	// whm 7Sep11 changed to FALSE, since if we get here after commenting out
 	// the material above we have NOT found any AI existing project to hook up
@@ -2617,6 +2604,7 @@ bool CGetSourceTextFromEditorDlg::CollabProjectsExistAsAIProject(wxString langua
 	//return TRUE;
 	return FALSE;
 }
+*/
 
 bool CGetSourceTextFromEditorDlg::EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 {
