@@ -681,6 +681,15 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 					break;
 				}
+			case collabProjExistsButEditorNotInstalled:
+				{
+					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
+					wxMessageBox(msg,titleMessageCommon,wxICON_WARNING);
+					pApp->LogUserAction(msg);
+					gpApp->LogUserAction(msg);
+					event.Veto();
+					return;
+				}
 			case collabProjMissingFromConfigFile: // fall through - this case should be handled similarly to the case below
 			case collabProjMissingFromEditorList: // fall through - this case should be handled similarly to the case below
 			case collabProjExistsButIsInvalid:
