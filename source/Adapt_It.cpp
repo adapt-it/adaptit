@@ -12546,6 +12546,79 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// 1. Ensure that the CollaborationEditor field is set to either "Paratext" or "Bibledit".
 		// 
 		// First do sanity test for the bFoundCollabEditor and ensure it is specified properly
+		// whm 2May12 added this sanity test for a valid external editor for collaboration. It is
+		// possible that a project could be copied (including the project config file) between a
+		// Linux machine and a Windows machine. In such cases the CollaborationEditor field may
+		// no longer refer to an existing external edditor. If the machine receiving the data does 
+		// have a different external Scripture editor installed, we can adjust the value of 
+		// CollaborationEditor to point to that existing external editor. If no external editor is 
+		// installed/available we need to prevent ...
+		// 
+		// If the values for CollabAiProjStrFound, CollabSrcLangNameStrFound, and 
+		// CollabTgtLangNameStrFound are not empty, we can assume that the project was at some 
+		// point configured by an administrator as a collaboration project.
+		// Check whether there is an actual installation of Paratext or Bibledit on the user's
+		// machine. If not we must return collabProjExistsButEditorNotInstalled.
+		if (!CollabAiProjStrFound.IsEmpty() && !CollabSrcLangNameStrFound.IsEmpty() && !CollabTgtLangNameStrFound.IsEmpty()
+			&& !ParatextIsInstalled() && !BibleditIsInstalled())
+		{
+			// Although there are collaboration values in the project config file, there is currently
+			// no installation of Paratext or Bibledit on the machine, so regardless of whether
+			// the bFoundCollabEditor is TRUE or FALSE, the user's computer is not set up to
+			// do collaboration. Return that status with collabProjExistsButEditorNotInstalled.
+			wxString msg = _("The Adapt It project \"%s\" has been setup for collaboration, but neither Paratext nor Bibledit are installed on this computer. In order to continue to work on this project, Paratext or Bibledit need to be installed with the necessary projects for collaboration with Adapt It.");
+			msg = msg.Format(msg,m_projectName.c_str());
+			errorStr = msg;
+			return collabProjExistsButEditorNotInstalled;
+		}
+		
+		// If we get here either Paratext or Bibledit is installed on the user's machine.
+		// If there is an external editor designated in the project config file, ensure that
+		// the designated editor is actually the one that is installed. If not assign 
+		// m_collaborationEditor to point to the one that is installed.
+		if (bFoundCollabEditor)
+		{
+			// There is a string in the CollabEditorStrFound field of the project config file.
+			// Verify that the collaboration editor that has been specified in the config file is
+			// actually installed on the computer. If not, check to see if the other external
+			// editor is installed and if it is, use it instead.
+			bool bDesignatedEditorIsInstalled = FALSE;
+			if (m_collaborationEditor == _T("Paratext") && ParatextIsInstalled())
+			{
+				 bDesignatedEditorIsInstalled = TRUE;
+			}
+			else if (m_collaborationEditor == _T("Bibledit") && BibleditIsInstalled())
+			{
+				 bDesignatedEditorIsInstalled = TRUE;
+			}
+			if (!bDesignatedEditorIsInstalled)
+			{
+				// The collaboration editor designated in the project config file is not installed
+				// on this machine. Check to see if the other editor choice is installed on this
+				// machine (might happen if config files are copied between Windows and Linux 
+				// machines).
+				if (m_collaborationEditor == _T("Paratext") && m_bBibleditIsInstalled)
+				{
+					m_collaborationEditor = _T("Bibledit");
+					m_bCollaboratingWithBibledit = TRUE;
+					m_bCollaboratingWithParatext = FALSE;
+					bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
+					wxString msg = _T("In GetAIProjectCollabStatus() the CollaborationEditor field designated non-installed editor (%s). Adapt It assigned it to be '%s' which is installed.");
+					msg = msg.Format(msg,CollabEditorStrFound.c_str(),m_collaborationEditor.c_str());
+					this->LogUserAction(msg);
+				}
+				else if (m_collaborationEditor == _T("Bibledit") && m_bParatextIsInstalled)
+				{
+					m_collaborationEditor = _T("Paratext");
+					m_bCollaboratingWithBibledit = FALSE;
+					m_bCollaboratingWithParatext = TRUE;
+					bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
+					wxString msg = _T("In GetAIProjectCollabStatus() the CollaborationEditor field designated non-installed editor (%s). Adapt It assigned it to be '%s' which is installed.");
+					msg = msg.Format(msg,CollabEditorStrFound.c_str(),m_collaborationEditor.c_str());
+					this->LogUserAction(msg);
+				}
+			}
+		}
 		if (!bFoundCollabEditor || !(CollabEditorStrFound == _T("Paratext") || CollabEditorStrFound == _T("Bibledit")))
 		{
 			wxString editorStr;
@@ -12557,6 +12630,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			else
 				editorStr = _T("Bibledit");
 #endif
+			m_collaborationEditor = editorStr;
 			bChangeMadeToCollabSettings = TRUE; // to force a save of project config file with new setting
 			wxString msg = _T("In GetAIProjectCollabStatus() the CollaborationEditor field was empty or mis-named (%s). Adapt It assigned it to be '%s'.");
 			msg = msg.Format(msg,CollabEditorStrFound.c_str(),editorStr.c_str());

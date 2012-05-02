@@ -921,6 +921,7 @@ enum AiProjectCollabStatus
 	projConfigFileUnableToOpen,
 	collabProjMissingFromConfigFile,
 	collabProjMissingFromEditorList,
+	collabProjExistsButEditorNotInstalled,
 	collabProjExistsAndIsValid,
 	collabProjExistsButIsInvalid,
 	collabProjNotConfigured,
