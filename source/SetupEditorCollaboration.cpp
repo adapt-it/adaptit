@@ -358,6 +358,15 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// use a temporary array list for the list of projects
 	wxString projShortName;
 	wxArrayString tempListOfProjects;
+	projList.Clear();
+	if (m_TempCollaborationEditor == _T("Paratext"))
+	{
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
+	{
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
@@ -445,6 +454,15 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// use a temporary array list for the list of projects
 	wxArrayString tempListOfProjects;
 	wxString projShortName;
+	projList.Clear();
+	if (m_TempCollaborationEditor == _T("Paratext"))
+	{
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
+	{
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
@@ -538,6 +556,15 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	wxArrayString tempListOfProjects;
 	wxString projShortName;
 	pBtnNoFreeTrans->Enable(TRUE);
+	projList.Clear();
+	if (m_TempCollaborationEditor == _T("Paratext"))
+	{
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
+	{
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
 	int ct,tot;
 	tot = (int)projList.GetCount();
 	for (ct = 0; ct < tot; ct++)
