@@ -281,11 +281,22 @@ void CSetupEditorCollaboration::DoInit()
 	// is currently installed, hence here in InitDialog() we can assume that either
 	// Paratext or Bibledit will be installed when control gets here.
 	// Disable any editor selection which is not installed.
+	if (m_pApp->ParatextIsInstalled())
+	{
+		m_TempCollaborationEditor = _T("Paratext");
+	}
+	else if (m_pApp->BibleditIsInstalled())
+	{
+		m_TempCollaborationEditor = _T("Bibledit");
+	}
+
+	// Disable editor selection radio box for any editor not installed
 	if (!m_pApp->m_bParatextIsInstalled)
 		pRadioBoxScriptureEditor->Enable(0,FALSE);
 	if (!m_pApp->m_bBibleditIsInstalled)
 		pRadioBoxScriptureEditor->Enable(1,FALSE);
 	
+	// Set the appropriate editor selection radio button
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
 		pRadioBoxScriptureEditor->SetSelection(0);
@@ -706,6 +717,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 		int tot = (int)collabSettingsArray.GetCount();
 		wxString collabLabelStr;
 		wxString collabItemStr;
+		wxString saveCollabEditor = m_TempCollaborationEditor;
 		for (ct = 0; ct < tot; ct++)
 		{
 			// Note: The main m_Temp... and m_bTemp values used by the SetupEditorCollaboration
@@ -733,7 +745,9 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 			else if (collabLabelStr == szCollabAIProjectName)
 				this->m_TempCollabAIProjectName = collabItemStr;
 			else if (collabLabelStr == szCollaborationEditor)
+			{
 				this->m_TempCollaborationEditor = collabItemStr;
+			}
 			else if (collabLabelStr == szCollabExpectsFreeTrans)
 			{
 				if (collabItemStr == _T("1"))
@@ -757,26 +771,65 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 			else if (collabLabelStr == szCollabTargetLangName)
 				this->m_TempCollabTargetProjLangName = collabItemStr;
 		}
-		if (m_TempCollaborationEditor.IsEmpty() && !m_TempCollabProjectForSourceInputs.IsEmpty())
+
+		// whm Note: InitDialog() initializes m_TempCollaborationEditor to be "Paratext"
+		// or "Bibledit" depending on which is installed, giving preference to "Paratext"
+		// if both editors are installed. That initial value is now saved in saveCollabEditor.
+		// Now we need to deal with the possibility that the collaboration settings read in 
+		// from the project config file may specify a different editor or no editor.
+		// 
+		// First, deal with the situation if m_TempCollaborationEditor is now empty. We can
+		// examine m_TempCollabProjectForSourceInputs to see if it has ':' delimiters. If so the 
+		// project was previously a Paratext project; if not the project was a Bibledit project. 
+		// If the currently installed editor is compatible we can allow the assignment of 
+		// collaboration editor to stand. However, if m_TempCollaborationEditor now specifies an
+		// editor that is not currently installed we must use what is installed instead.
+		if (m_TempCollaborationEditor.IsEmpty())
 		{
-			// we can determine which external editor was used previously by inspecting the
-			// m_TempCollabProjectForSourceInputs string. If it has at least one color delimiter
-			// in its string, it was using Paratext, otherwise it was using Bibledit
-			if (m_TempCollabProjectForSourceInputs.Find(_T(':')) != wxNOT_FOUND)
+			if (!m_TempCollabProjectForSourceInputs.IsEmpty())
 			{
-				// At least one colon ':' character is present in string therefore it was previously
-				// using Paratext. Assign "Paratext" as editor (if it is installed).
-				if (m_pApp->ParatextIsInstalled())
-					m_TempCollaborationEditor = _T("Paratext");
+				// we can determine which external editor was used previously by inspecting the
+				// m_TempCollabProjectForSourceInputs string. If it has at least one color delimiter
+				// in its string, it was using Paratext, otherwise it was using Bibledit
+				if (m_TempCollabProjectForSourceInputs.Find(_T(':')) != wxNOT_FOUND)
+				{
+					// At least one colon ':' character is present in string therefore it was previously
+					// using Paratext. Assign "Paratext" as editor (if it is installed).
+					if (m_pApp->ParatextIsInstalled())
+						m_TempCollaborationEditor = _T("Paratext");
+				}
+				else
+				{
+					// No colons found in the project string, therefore it was previously using Bibledit.
+					// Assign "Bibledit" as editor (if it is installed).
+					if (m_pApp->BibleditIsInstalled())
+						m_TempCollaborationEditor = _T("Bibledit");
+				}
 			}
 			else
 			{
-				// No colons found in the project string, therefore it was previously using Bibledit.
-				// Assign "Bibledit" as editor (if it is installed).
+				// No source PT/BE project was specified in m_TempCollabProjectForSourceInputs, so we
+				// reassign m_TempCollaborationEditor back to what InitDialog() set it to
+				m_TempCollaborationEditor = saveCollabEditor;
+			}
+		}
+		else
+		{
+			// m_TempCollaborationEditor has a non-empty value after reading the project config file's
+			// collaboration settings. Here we can just ensure that the editor specified is installed
+			if (m_TempCollaborationEditor == _T("Paratext") && !m_pApp->ParatextIsInstalled())
+			{
 				if (m_pApp->BibleditIsInstalled())
 					m_TempCollaborationEditor = _T("Bibledit");
 			}
+			if (m_TempCollaborationEditor == _T("Bibledit") && !m_pApp->BibleditIsInstalled())
+			{
+				if (m_pApp->ParatextIsInstalled())
+					m_TempCollaborationEditor = _T("Paratext");
+			}
 		}
+
+		// Check the AI project name values for consistency.
 		if (!m_TempCollabAIProjectName.IsEmpty() && (this->m_TempCollabSourceProjLangName.IsEmpty() || this->m_TempCollabTargetProjLangName.IsEmpty()))
 		{
 			// Do sanity check to insure the m_TempCollabSourceProjLangName and m_TempCollabTargetLangName
@@ -820,6 +873,19 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 		m_bTempCollabByChapterOnly = TRUE; // defaults to TRUE for collab by chapter only
 		m_TempCollabChapterSelected = _T("");
 	}
+
+	// Since the m_TempCollaborationEditor may have changed above we need to get a fresh
+	// list of editor projects
+	projList.Clear();
+	if (m_TempCollaborationEditor == _T("Paratext"))
+	{
+		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+	else if (m_TempCollaborationEditor == _T("Bibledit"))
+	{
+		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
+	}
+
 	// Note: Regardless of what the value for m_TempCollabAIProjectName might have been in the
 	// project config file collaboration settings (from above), we force it to be what the 
 	// administrator selected within the combo box, and force the associated language names too.
@@ -853,13 +919,27 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
-		// set the "Paratext" radio box button
-		pRadioBoxScriptureEditor->SetSelection(0);
+		if (m_pApp->ParatextIsInstalled())
+		{
+			// set the "Paratext" radio box button
+			pRadioBoxScriptureEditor->SetSelection(0);
+		}
+		else if (m_pApp->BibleditIsInstalled())
+		{
+		     pRadioBoxScriptureEditor->SetSelection(1);
+		}
 	}
 	else if (m_TempCollaborationEditor == _T("Bibledit"))
 	{
-		// set the "Bibledit" radio box button
-		pRadioBoxScriptureEditor->SetSelection(1);
+		if (m_pApp->BibleditIsInstalled())
+		{
+			// set the "Bibledit" radio box button
+			pRadioBoxScriptureEditor->SetSelection(1);
+		}
+		else if (m_pApp->ParatextIsInstalled())
+		{
+			pRadioBoxScriptureEditor->SetSelection(0);
+		}
 	}
 
 	SetStateOfRemovalButton(); // enables the Remove... button because m_TempCollabAIProjectName now has content
@@ -908,6 +988,176 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 		}
 	}
 
+	// First check if the projects exist in the list of PT/BE projects. If they don't exist there
+	// then notify the user.
+
+// ***************
+	// The code for testing if project exist in the editor's list of projects below borrowed from
+	// similar code in the App's GetAIProjectCollabStatus() function.
+	// 
+	// both bFoundCollabSrcProj and bFoundBollabTgtProj are TRUE, so the project config file
+	// contains strings for both. Now test that they exist in the inventory of current PT/BE 
+	// projects (in projList) by calling CollabProjectFoundInListOfEditorProjects() on each
+	// PT/BE project name that appears in the project config file.
+	wxString foundSrcProjString = _T("");
+	wxString foundTgtProjString = _T("");
+	wxString foundFreeTransProjString = _T("");
+	// In the CollabProjectFoundInListOfEditorProjects() function calls below the short name 
+	// of the project is used (in PT) to match an existing PT/BE project (in projList). If 
+	// the returned value is FALSE, no project was found, if the returned value is TRUE the 
+	// project was found and the returned by reference foundProjString parameter will contain 
+	// the actual composed string of the project - this is used to correct any typos in the 
+	// full name part of a PT composite project id string.
+	wxString msg = _T("");
+	wxString projects = _T("");
+	bool srcProjFoundInEditor = TRUE;
+	bool tgtProjFoundInEditor = TRUE;
+	bool freeTransProjFoundInEditor = TRUE;
+	srcProjFoundInEditor = CollabProjectFoundInListOfEditorProjects(m_TempCollabProjectForSourceInputs,projList,foundSrcProjString);
+	tgtProjFoundInEditor = CollabProjectFoundInListOfEditorProjects(m_TempCollabProjectForTargetExports,projList,foundTgtProjString);
+	if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
+		freeTransProjFoundInEditor = CollabProjectFoundInListOfEditorProjects(m_TempCollabProjectForFreeTransExports,projList,foundFreeTransProjString);
+	if (!srcProjFoundInEditor)
+	{
+		// The project config file has an entry for the CollabSrcProjStrFound, but that project
+		// could not be found in the PT/BE editor's list of current projects.
+		wxString msgAdd = _("The \"%s\" project cannot be found as a %s project for obtaining source texts.");
+		msgAdd = msgAdd.Format(msgAdd,m_TempCollabProjectForSourceInputs.c_str(), m_pApp->m_collaborationEditor.c_str());
+		msgAdd = _T("1. ") + msgAdd; // src was not found and is item 1
+		msg += msgAdd;
+		projects = _T("source");
+	}
+	else
+	{
+		// The project was found in the PT/BE editor's list of current projects.
+		wxASSERT(!foundSrcProjString.IsEmpty());
+		// Ensure the spelling of of full project name part in the config file is 
+		// correct as used within the actual editor's full project name (user could
+		// have changed it in PT).
+		if (m_TempCollabProjectForSourceInputs != foundSrcProjString)
+		{
+			// There was an irregularity in spelling of a token in the 2nd through 4th fields of the
+			// composite project string. Fix the App's value and set flag to save the project config 
+			// file changes.
+			m_pApp->m_CollabProjectForSourceInputs = foundSrcProjString;
+			//bChangeMadeToCollabSettings = TRUE;
+		}
+	}
+	if (!tgtProjFoundInEditor)
+	{
+		// The project config file has an entry for the CollabTgtProjStrFound, but that project
+		// could not be found in the PT/BE editor's list of current projects.
+		wxString msgAdd = _("The \"%s\" project cannot be found as a %s project for storing translation texts.");
+		msgAdd = msgAdd.Format(msgAdd,m_TempCollabProjectForTargetExports.c_str(), m_pApp->m_collaborationEditor.c_str());
+		if (!srcProjFoundInEditor)
+		{
+			// src was not found and was item 1; tgt is item 2.
+			msgAdd = _T("\n2. ") + msgAdd;
+		}
+		else
+		{
+			// src was found; tgt is now item 1.
+			msgAdd = _T("1. ") + msgAdd;
+		}
+		msg += msgAdd;
+		if (!projects.IsEmpty())
+			projects += _T(':');
+		projects += _T("target");
+	}
+	else
+	{
+		// The project was found in the PT/BE editor's list of current projects.
+		wxASSERT(!foundTgtProjString.IsEmpty());
+		// Ensure the spelling of of full project name part in the config file is 
+		// correct as used within the actual editor's full project name (user could
+		// have changed it in PT).
+		if (m_TempCollabProjectForTargetExports != foundTgtProjString)
+		{
+			// There was an irregularity in spelling of a token in the 2nd through 4th fields of the
+			// composite project string. Fix the App's value and set flag to save the project config 
+			// file changes.
+			m_pApp->m_CollabProjectForTargetExports = foundTgtProjString;
+			//bChangeMadeToCollabSettings = TRUE;
+		}
+	}
+	if (!m_TempCollabProjectForFreeTransExports.IsEmpty() && !freeTransProjFoundInEditor)
+	{
+		// The project config file has an entry for the CollabFreeTransProjStrFound, but that project
+		// could not be found in the PT/BE editor's list of current projects.
+		wxString msgAdd = _("The \"%s\" project cannot be found as a %s project for storing free translation texts.");
+		msgAdd = msgAdd.Format(msgAdd,m_TempCollabProjectForFreeTransExports.c_str(), m_pApp->m_collaborationEditor.c_str());
+		if (!srcProjFoundInEditor)
+		{
+			// src was not found as so was item 1
+			if (!tgtProjFoundInEditor)
+			{
+				// both src and tgt were not found (items 1 and 2); free trans is now item 3.
+				msgAdd = _T("\n3. ") + msgAdd;
+			}
+			else
+			{
+				// src was not found and was item 1, but tgt was found; free trans is now item 2.
+				msgAdd = _T("\n2. ") + msgAdd;
+			}
+		}
+		else
+		{
+			// src was found
+			if (!tgtProjFoundInEditor)
+			{
+				// src was found but target not found and was item 1; free trans is item 2.
+				msgAdd = _T("\n2. ") + msgAdd;
+			}
+			else
+			{
+				// both src and tgt were found; free trans is first item, item 1.
+				msgAdd = _T("1. ") + msgAdd;
+			}
+		}
+		msg += msgAdd;
+		if (!projects.IsEmpty())
+			projects += _T(':');
+		projects += _T("freetrans");
+	}
+	else if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
+	{
+		// The project was found in the PT/BE editor's list of current projects.
+		wxASSERT(!foundFreeTransProjString.IsEmpty());
+		// Ensure the spelling of of full project name part in the config file is 
+		// correct as used within the actual editor's full project name (user could
+		// have changed it in PT).
+		if (m_TempCollabProjectForFreeTransExports != foundFreeTransProjString)
+		{
+			// There was an irregularity in spelling of a token in the 2nd through 4th fields of the
+			// composite project string. Fix the App's value and set flag to save the project config 
+			// file changes.
+			m_pApp->m_CollabProjectForFreeTransExports = foundFreeTransProjString;
+			//bChangeMadeToCollabSettings = TRUE;
+		}
+	}
+
+	if (!srcProjFoundInEditor || !tgtProjFoundInEditor || (!m_TempCollabProjectForFreeTransExports.IsEmpty() && !freeTransProjFoundInEditor))
+	{
+		// msg has the info we need to notify the user
+		wxString msg2 = _("Adapt It detected invalid collaboration settings for the \"%s\" project in its project configuration file. The invalid %s project data is:\n\n%s");
+		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
+		msg2 = msg2.Format(msg2,selStr.c_str(),m_pApp->m_collaborationEditor.c_str(),msg.c_str());
+		msg2 += _T("\n\n");
+		msg2 += _("Please use the \"Select from list\" buttons to select the appropriate %s projects.");
+		msg2 = msg2.Format(msg2, m_pApp->m_collaborationEditor.c_str());
+		wxMessageBox(msg2,_T(""),wxICON_INFORMATION);
+		return; // return here otherwise the block below will also flag these projects as invalid because
+				// they have no books created - the actual problem here is that they aren't projects found
+				// in the PT/BE list of projects.
+	}
+	
+	// If the m_TempCollabProjectForFreeTransExports string is empty ensure that the 
+	// m_bTempCollaborationExpectsFreeTrans flag is also set to FALSE, or if it has content
+	// that it is set to TRUE.
+	m_bTempCollaborationExpectsFreeTrans = !m_TempCollabProjectForFreeTransExports.IsEmpty();
+
+// ***************
+
 	wxString errorStr = _T("");
 	wxString errProj = _T("");
 	// CollabProjectsAreValid() doesn't consider any empty string projects to be invalid, only those non-empty
@@ -916,7 +1166,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports, 
 							m_TempCollabProjectForFreeTransExports, errorStr, errProj))
 	{
-		wxString msg = _("Adapt It detected invalid collaboration settings for the %s project in its project configuration file. The invalid %s project data is:\n%s");
+		wxString msg = _("Adapt It detected invalid collaboration settings for the \"%s\" project in its project configuration file. The invalid %s project data is:\n%s");
 		wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,selStr.c_str(),m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
 		// Note: The errProj returned string is not used here.
