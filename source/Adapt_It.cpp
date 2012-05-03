@@ -13162,6 +13162,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 				errorProjects = projects; // return the project type ("source", "target", or "freetrans") by reference
 				return collabProjMissingFromEditorList;
 			}
+
+			// Also ensure that the m_bCollaborationExpectsFreeTrans flag is FALSE if the free trans
+			// string is empty, TRUE if it has valid (as checked above) content.
+			this->m_bCollaborationExpectsFreeTrans = !CollabFreeTransProjStrFound.IsEmpty();
 		}
 
 		// 15. If both the CollabProjectForSourceInputs and CollabProjectForTargetExports fields
