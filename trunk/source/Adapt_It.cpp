@@ -13165,7 +13165,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 
 			// Also ensure that the m_bCollaborationExpectsFreeTrans flag is FALSE if the free trans
 			// string is empty, TRUE if it has valid (as checked above) content.
-			this->m_bCollaborationExpectsFreeTrans = !CollabFreeTransProjStrFound.IsEmpty();
+			if (this->m_bCollaborationExpectsFreeTrans != !CollabFreeTransProjStrFound.IsEmpty())
+			{
+				this->m_bCollaborationExpectsFreeTrans = !CollabFreeTransProjStrFound.IsEmpty();
+				bChangeMadeToCollabSettings = TRUE;
+			}
 		}
 
 		// 15. If both the CollabProjectForSourceInputs and CollabProjectForTargetExports fields
