@@ -1,0 +1,14 @@
+\v 34 [Starts.]
+\v 35 [“ ‘Also begins!’ ”]
+\v 36 [“Also begins!”]
+[\v 37 Filipo Paul wrote.]
+\v 38 The end.
+[\v 39 One without punctuation] is here.
+[\v 40 \k second\k* with \it inline binding marker\it*] is here.
+[\v 41 “ ‘\k third\k* with’ ” punctuation and “ ‘\it inline binding marker\it*’ ”] is here.
+[\v 42 “ ‘\k fourth\k* with’ ” punctuation and “ ‘\it inline binding marker\it*’ ” \wj*] then [words of Jesus] marker.
+[\v 43 ‘ “ ‘\k fifth\k* with’ ” \f + \ft “ ‘footnote and puncts either side’ \f*” ’] is here.
+[\v 44 “\k sixth\k* with” punctuation and “\it inline binding marker\it*”] is here.
+[\v 45 “\k seventh\k* with” punctuation and without “inline binding marker”] is here.
+[\v 46 “ ‘\k eighth\k* with’ ” \f + \ft “ ‘footnote and puncts either side’ \f*”] is here.
+[\v 47 “ ‘\k ninth\k* with’ ” \qt quoted text and punctuation and “ ‘\it inline binding marker\it*’ ” \wj*\qt*] then after two inline nonbinding endmarkers before the closing bracket, finally the end.
