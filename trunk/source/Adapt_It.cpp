@@ -12360,13 +12360,18 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// for this project. 
 		// Note: We also collect any collab setting for 
 		//   "CollabProjectForFreeTransExports"
-		// which is an optional setting for collaboration. But, if it has a string value
-		// we need to check for validity in the CollabProjectsAreValid() call farther below.
+		//   "CollabExpectsFreeTrans"
+		// The CollabProjectForFreeTransExports is an optional setting for collaboration, but
+		// the CollabExpectsFreeTrans must be TRUE or FALSE depending on whether CollabProjectForFreeTransExports
+		// has content or not. If CollabProjectForFreeTransExports has a string value we need to check for 
+		// validity in the CollabProjectsAreValid() call farther below and that CollabProjectForFreeTransExports
+		// and CollabExpectsFreeTrans are in sync.
 		wxString tab = _T("\t");
 		wxString lineStr;
 		bool bFoundCollabSrcProj = FALSE;
 		bool bFoundCollabTgtProj = FALSE;
 		bool bFoundCollabFreeTransProj = FALSE; // (optional)
+		bool bFoundCollabExpectsFreeTrans = FALSE; 
 		bool bFoundCollabAiProj = FALSE;
 		bool bFoundCollabEditor = FALSE;
 		bool bFoundCollabSrcLangName = FALSE;
@@ -12374,6 +12379,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		wxString CollabSrcProjStrFound = _T("");
 		wxString CollabTgtProjStrFound = _T("");
 		wxString CollabFreeTransProjStrFound = _T(""); // (optional)
+		wxString CollabExpectsFreeTransFound = _T("");
 		wxString CollabAiProjStrFound = _T("");
 		wxString CollabEditorStrFound = _T("");
 		wxString CollabSrcLangNameStrFound = _T("");
@@ -12417,6 +12423,17 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 				CollabFreeTransProjStrFound.Trim(TRUE);
 				if (!CollabFreeTransProjStrFound.IsEmpty())
 					bFoundCollabFreeTransProj = TRUE;
+				continue;
+			}
+			chPos = lineStr.Find(szCollabExpectsFreeTrans);
+			if (chPos == 0)
+			{
+				// Check for a following non-empty string, storing any string found for sanity checks (below)
+				CollabExpectsFreeTransFound = lineStr.Mid(szCollabExpectsFreeTrans.Length());
+				CollabExpectsFreeTransFound.Trim(FALSE);
+				CollabExpectsFreeTransFound.Trim(TRUE);
+				if (!CollabExpectsFreeTransFound.IsEmpty())
+					bFoundCollabExpectsFreeTrans = TRUE;
 				continue;
 			}
 			chPos = lineStr.Find(szCollabAIProjectName);
@@ -13165,7 +13182,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 
 			// Also ensure that the m_bCollaborationExpectsFreeTrans flag is FALSE if the free trans
 			// string is empty, TRUE if it has valid (as checked above) content.
-			if (this->m_bCollaborationExpectsFreeTrans != !CollabFreeTransProjStrFound.IsEmpty())
+			bool bCollabExpectsFreeTransAsFound = CollabExpectsFreeTransFound == _T("1");
+			if (!bFoundCollabExpectsFreeTrans || bCollabExpectsFreeTransAsFound != !CollabFreeTransProjStrFound.IsEmpty())
 			{
 				this->m_bCollaborationExpectsFreeTrans = !CollabFreeTransProjStrFound.IsEmpty();
 				bChangeMadeToCollabSettings = TRUE;
