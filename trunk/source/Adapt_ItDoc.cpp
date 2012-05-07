@@ -3765,7 +3765,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" commitcnt=\"" + tempStr;	// add commit count, without unicode conversion needed
 	
 	if (gpApp->m_revisionDate.IsValid()) 
-		numStr = gpApp->m_revisionDate.Format (_T("%F %T")));	// without unicode conversion
+		numStr = gpApp->m_revisionDate.Format (_T("%F %T"));	// without unicode conversion
 	else 
 		numStr = "";
 	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
