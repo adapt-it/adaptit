@@ -97,6 +97,7 @@
 #include "NavProtectNewDoc.h"
 #include "ConsChk_Empty_noTU_Dlg.h"
 #include "conschk_exists_notu_dlg.h"
+#include "DVCS.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
@@ -306,6 +307,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU(wxID_NEW, CAdapt_ItDoc::OnFileNew)
 	EVT_MENU(wxID_SAVE, CAdapt_ItDoc::OnFileSave)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
+	EVT_MENU (ID_MENU_SAVE_COMMIT_FILE, CAdapt_ItDoc::OnSaveAndCommit)
+	EVT_MENU (ID_MENU_REVERT_FILE, CAdapt_ItDoc::OnRevertToPreviousRevision)
+	EVT_MENU (ID_MENU_ACCEPT_REVISION, CAdapt_ItDoc::OnAcceptRevision)
+	EVT_MENU (ID_MENU_RETURN_TO_LATEST, CAdapt_ItDoc::OnReturnToLatestRevision)
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
 	EVT_MENU(ID_SAVE_AS, CAdapt_ItDoc::OnFileSaveAs)
@@ -1412,6 +1417,171 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	}
 	pProgDlg->Destroy();
 }
+
+
+/*	mrh - May 2012.
+	This function is needed for the version control stuff, but might be more generally useful
+	as well.  It's called when something external to AdaptIt has modified the current document.  
+	We need to re-read it, and refresh the screen display.  The code below is largely lifted from
+	OnEditConsistencyCheck().
+*/
+
+void CAdapt_ItDoc::DocChangedExternally()
+{
+	bool			bOK;
+	
+	wxString		savedCurOutputPath = gpApp->m_curOutputPath;			// includes filename
+	wxString		savedCurOutputFilename = gpApp->m_curOutputFilename;
+	int				savedCurSequNum = gpApp->m_nActiveSequNum;				// for resetting the box location
+	bool			savedBookmodeFlag = gpApp->m_bBookMode;					// for ensuring correct mode
+	bool			savedDisableBookmodeFlag = gpApp->m_bDisableBookMode;	// ditto
+	int				savedBookIndex = gpApp->m_nBookIndex;
+	BookNamePair*	pSavedCurBookNamePair = gpApp->m_pCurrBookNamePair;
+	int				savedCommitCount = gpApp->m_commitCount;				// We'll have this count up monotonically, not
+																			//  use the value we read in.  Change if necessary.
+	int				savedTrialRevNum = gpApp->m_trialRevNum;
+	wxString		dirPath;
+//	int				test;
+
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+		dirPath = gpApp->m_bibleBooksFolderPath;
+	else
+		dirPath = gpApp->m_curAdaptionsPath;
+
+	wxString		strSaveCurrentDirectoryFullPath = dirPath;
+
+	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	
+	OnCloseDocument();
+	
+	gpApp->m_bDocReopeningInProgress = TRUE;	// suppresses warning message about project folder with same name
+
+	bOK = ReOpenDocument (	gpApp,
+							strSaveCurrentDirectoryFullPath,
+							savedCurOutputPath, 
+							savedCurOutputFilename, 
+							savedCurSequNum, 
+							savedBookmodeFlag,
+							savedDisableBookmodeFlag, 
+							pSavedCurBookNamePair, 
+							savedBookIndex, 
+							FALSE					// don't mark as dirty
+						  );
+	
+	gpApp->m_bDocReopeningInProgress = FALSE;
+	gpApp->m_commitCount = savedCommitCount;
+//	test = gpApp->m_commitCount;
+	gpApp->m_trialRevNum = savedTrialRevNum;
+}
+
+
+void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
+{
+	int				commit_result;
+	wxCommandEvent	dummy;
+	wxDateTime		origDate = gpApp->m_revisionDate;
+	wxString		origOwner = gpApp->m_owner;
+
+// Do we need a check here that the file is really under version control??  More likely
+// the menu item or button will be disabled if it's not, but let's make sure.  Likewise if a
+// trial is under way, we need a decision from the user first as to whether to accept the
+// trial or go back.
+	
+	if (gpApp->m_commitCount < 0) 
+	{
+		wxMessageBox(_T("This document hasn't been put under version control yet!"));
+		return;
+	}
+
+	if (gpApp->m_trialRevNum >= 0) 
+	{
+		wxMessageBox(_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
+		return;
+	}
+	
+// Here we find the date/time and the commit count, which we'll save in the file before we do the commit.
+	
+	gpApp->m_revisionDate = wxDateTime::Now();
+	gpApp->m_commitCount += 1;					// bump the commit count
+	
+	gpApp->m_owner = gpApp->m_AIuser;			// owner must be assigned on a commit
+
+	OnFileSave (dummy);							// save the file, ready to commit
+
+	commit_result = CallDVCS (DVCS_COMMIT_FILE, 0);
+
+	if (commit_result) 
+	{
+	// What do we do here??  We've already saved the document with the above info updated.  I think we
+	//  should roll everything back and re-save.  The DVCS code will already have given a message.
+		gpApp->m_revisionDate = origDate;
+		gpApp->m_commitCount -= 1;
+		gpApp->m_owner = origOwner;
+		
+		OnFileSave (dummy);
+	}
+}
+
+void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
+{
+	int				commit_result;
+	wxCommandEvent	dummy;
+	int				trialRevNum = gpApp->m_trialRevNum;
+	int				test;
+
+	if (gpApp->m_commitCount < 0) 
+	{
+		wxMessageBox (_T("This document hasn't been put under version control yet!") );
+		return;
+	}
+	
+	if (trialRevNum == 0) 
+	{
+		wxMessageBox (_T("We're already back at the first commit!") );
+		return;
+	}
+
+	if (trialRevNum < 0) 
+	{			// We don't already have a previous revision under trial.  We need to save and commit the current
+				// revision, so we can come back to it if necessary.
+		OnSaveAndCommit(dummy);
+		gpApp->m_latestRevNum = CallDVCS (DVCS_LATEST_REVISION, 0);
+		test = gpApp->m_latestRevNum;
+				// this is what we just committed - we need to hang on to it so we can come back if needed,
+				//  and the following DVCS call will give us the next version back
+	}
+
+	trialRevNum = CallDVCS (DVCS_PREV_REVISION, 0);			// get the previous revision number
+
+	commit_result = CallDVCS (DVCS_REVERT_FILE, trialRevNum);
+
+	if ( !commit_result && (trialRevNum >= 0) ) 
+	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
+			// ReadOnlyProtection sees that m_trialRevNum is non-negative.  We skip this
+			//  if CallDVCS() returned an error, and leave m_trialRevNum alone.
+		gpApp->m_trialRevNum = trialRevNum;
+		DocChangedExternally();
+	}
+}
+
+void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
+{	
+	gpApp->m_trialRevNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
+										//  the doc when we reverted.
+	DocChangedExternally();				// will become read-write again
+}
+
+void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
+{
+	int		commit_result = CallDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
+
+	if (commit_result)
+		wxMessageBox(_T("We couldn't go back to the latest revision!"));
+	
+	gpApp->m_trialRevNum = -1;
+	DocChangedExternally();
+}
+
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
 // Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),
@@ -3409,7 +3579,7 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 	{
 	default: // default to the current doc version number
 	case 0:
-		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 6 in AdaptitConstant.h
+		m_docVersionCurrent = (int)VERSION_NUMBER; // currently #defined as 7 in AdaptitConstant.h
 		break;
 	case 1:
 		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstants.h
@@ -3430,14 +3600,15 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 ///////////////////////////////////////////////////////////////////////////////
 CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 {
-	CBString bstr;
+	CBString	bstr;
 	bstr.Empty();
-	CBString btemp;
-	int i;
-	wxString tempStr;
+	CBString	btemp;
+	int			i, commitCount;
+	wxString	tempStr;
     // wx note: the wx version in Unicode build refuses to assign a CBString to char
     // numStr[24] so I'll declare numStr as a CBString also
-	CBString numStr; //char numStr[24];
+	CBString	numStr; //char numStr[24];
+ 
 #ifdef _UNICODE
 
 	// first line -- element name and 4 attributes
@@ -3458,6 +3629,26 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr << GetCurrentDocVersion(); // tempStr is UTF-16
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add versionable schema number string
+
+	numStr = gpApp->Convert16to8(gpApp->m_owner);
+	InsertEntities(numStr);				// ensure any XML metacharacters in the owner name are escaped properly
+	bstr += "\" owner=\"" + numStr;		// add owner name
+
+	tempStr.Empty();
+	commitCount = gpApp->m_commitCount;
+	if (commitCount < 0)
+		tempStr << UNASSIGNED;			// this doc isn't under version control
+	else
+		tempStr << commitCount;			// this many commits have been done
+	
+	numStr = gpApp->Convert16to8(tempStr);
+	bstr += "\" commitcnt=\"" + numStr;	// add revision number
+	
+	if (gpApp->m_revisionDate.IsValid()) 
+		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%F %T")));
+	else 
+		numStr = "";
+	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
 
 	bstr += "\" sizex=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
@@ -3541,6 +3732,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += btemp; // all all the unix string materials (could be a lot)
 	bstr += "\"/>\r\n"; // TODO: EOL chars need adjustment for Linux and Mac??
 	return bstr;
+
 #else // regular version
 
 	// first line -- element name and 4 attributes
@@ -3558,6 +3750,26 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr << GetCurrentDocVersion();
 	numStr = tempStr;
 	bstr += numStr; // add versionable schema number string
+	
+	numStr = gpApp->m_owner;			// no unicode conversion needed
+	InsertEntities(numStr);				// ensure any XML metacharacters in the owner name are escaped properly
+	bstr += "\" owner=\"" + numStr;		// add owner name
+
+	tempStr.Empty();
+	commitCount = gpApp->m_commitCount;
+	if (commitCount < 0)
+		tempStr << UNASSIGNED;			// this doc isn't under version control
+	else
+		tempStr << commitCount;			// this many commits have been done
+		
+	bstr += "\" commitcnt=\"" + tempStr;	// add commit count, without unicode conversion needed
+	
+	if (gpApp->m_revisionDate.IsValid()) 
+		numStr = gpApp->m_revisionDate.Format (_T("%F %T")));	// without unicode conversion
+	else 
+		numStr = "";
+	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
+
 	bstr += "\" sizex=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
 	tempStr << gpApp->m_docSize.x;
@@ -4455,7 +4667,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
-
+	
 	wxString thePath = filename;
 	wxString extension = thePath.Right(4);
 	extension.MakeLower();
@@ -4660,6 +4872,15 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         // The gbAbortMRUOpen flag is only set true by a test within SetupDirectories() -
         // and we are interested only in this after a click of an MRU item on the File
         // menu.
+		
+		// mrh 3May12 - since the document variables are now in the app instead of the doc, the
+		//  following call causes some to be re-initialized, which we don't want.  So we need
+		//  to save and restore them.  A redesign should avoid the need for this!
+		
+		wxString	savedOwner = pApp->m_owner;
+		int			savedCommitCount = pApp->m_commitCount;
+		wxDateTime	savedRevisionDate = pApp->m_revisionDate;
+		
 		pApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
 		if (gbViaMostRecentFileList)
 		{
@@ -4693,6 +4914,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		}
 		gbAbortMRUOpen = FALSE; // make sure the flag has its default setting again
 		gbViaMostRecentFileList = FALSE; // clear it to default setting
+		
+		pApp->m_owner = savedOwner;					// restore saved quantities
+		pApp->m_commitCount = savedCommitCount;
+		pApp->m_revisionDate = savedRevisionDate;
 	}
 
 	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc

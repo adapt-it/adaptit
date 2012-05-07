@@ -953,6 +953,10 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 	}
 	if (bOpenOK)
 	{
+		gpApp->m_owner = UNASSIGNED;			// mrh - initial defaults.  If we read the appropriate tags, these will be replaced.
+		gpApp->m_commitCount = -1;				//  means not under version control (yet)
+		gpApp->m_revisionDate = wxInvalidDateTime;
+
 		wxStructStat status;
 		if (wxStat(path, &status))
 		{
@@ -2938,9 +2942,10 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			case 2:
 			case 3:
 			case 4:
-			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5 or 6
+			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5, 6 or 7
 			case 5:
 			case 6:
+			case 7:
 			{
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -3037,12 +3042,14 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			// we add a further if block, testing for gnDocVersion == 6, so that any attempt
 			// to use versions 5.2.4 or 5.2.5 will skip the parsing of the 3 new strings
 		case 6:
+		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
 				// none of this tag's attributes need entity replacement; first
 				// attributes are numbers, and so are handled the same for the
 				// regular & unicode apps; only strings require different treatment
+				
 				if (attrName == xml_sizex)
 				{
 					gpApp->m_docSize.x = atoi(attrValue); 
@@ -3065,6 +3072,41 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 						gpApp->m_bDefineFreeTransByPunctuation = TRUE;
 					}
 				}
+
+			// mrh 20Apr12 - for docVersion 7, we look for the 3 new items:
+	
+				else if (gnDocVersion >= 7)
+				{
+					if (attrName == xml_owner)
+					{
+						ReplaceEntities (attrValue);			// first restore any XML metacharacters
+		#ifdef _UNICODE
+						gpApp->m_owner = gpApp->Convert8to16 (attrValue);
+		#else
+						gpApp->m_owner = attrValue;
+		#endif	
+					}
+
+					else if (attrName == xml_commitcnt)
+					{	
+						if (attrValue == "****")
+							gpApp->m_commitCount = -1;			// means not under version control yet
+						else
+							gpApp->m_commitCount = atoi(attrValue);
+					}
+					else if (attrName == xml_revdate)
+					{		
+		#ifdef _UNICODE
+						wxString	tmp = gpApp->Convert8to16(attrValue);
+		#else
+						wxString	tmp = attrValue;
+		#endif
+						bool		result = gpApp->m_revisionDate.ParseDateTime (tmp);
+						if (!result)
+							gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
+					}
+				}			// (gnDocVersion >= 7)
+				
 				else if (attrName == xml_specialcolor)
 				{
 					num = atoi(attrValue);
@@ -3926,6 +3968,7 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
         // and so forth
 		case 5:
 		case 6:
+		case 7:		// mrh 20Apr12 - added docVersion 7
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 

@@ -303,11 +303,10 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU (ID_MENU_DVCS_ADD_ALL_FILES,	CMainFrame::OnDVCS_Add_All_Files)
 	EVT_MENU (ID_MENU_DVCS_REMOVE_FILE,		CMainFrame::OnDVCS_Remove_File)
 	EVT_MENU (ID_MENU_DVCS_REMOVE_PROJECT,	CMainFrame::OnDVCS_Remove_Project)
-	EVT_MENU (ID_MENU_DVCS_COMMIT_FILE,		CMainFrame::OnDVCS_Commit_File)
-	EVT_MENU (ID_MENU_DVCS_COMMIT_PROJECT,	CMainFrame::OnDVCS_Commit_Project)
+//	EVT_MENU (ID_MENU_SAVE_COMMIT_FILE,		CMainFrame::OnSaveAndCommit) -- moved to doc class
+//	EVT_MENU (ID_MENU_DVCS_COMMIT_PROJECT,	CMainFrame::OnDVCS_Commit_Project)
 	EVT_MENU (ID_MENU_DVCS_LOG_FILE,		CMainFrame::OnDVCS_Log_File)
 	EVT_MENU (ID_MENU_DVCS_LOG_PROJECT,		CMainFrame::OnDVCS_Log_Project)
-	EVT_MENU (ID_MENU_DVCS_REVERT_FILE,		CMainFrame::OnDVCS_Revert_File)
 #endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
@@ -2290,66 +2289,49 @@ void CMainFrame::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
 
 void CMainFrame::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 {    
-	int resultCode = CallDVCS (DVCS_VERSION);	
+	int resultCode = CallDVCS (DVCS_VERSION, 0);	
 	lastResultCode = resultCode;		// avoid compiler warning about unused variable
 }
 
 void CMainFrame::OnInit_Repository (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_INIT_REPOSITORY);
+	int resultCode = CallDVCS (DVCS_INIT_REPOSITORY, 0);
 	lastResultCode = resultCode;
 }
 
 void CMainFrame::OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_ADD_FILE);
+	int resultCode = CallDVCS (DVCS_ADD_FILE, 0);
 	lastResultCode = resultCode;
 }
 
 void CMainFrame::OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_ADD_ALL_FILES);
+	int resultCode = CallDVCS (DVCS_ADD_ALL_FILES, 0);
 	lastResultCode = resultCode;
 }
 
 void CMainFrame::OnDVCS_Remove_File (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_REMOVE_FILE);
+	int resultCode = CallDVCS (DVCS_REMOVE_FILE, 0);
 	lastResultCode = resultCode;
 }
 
 void CMainFrame::OnDVCS_Remove_Project (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_REMOVE_PROJECT);
+	int resultCode = CallDVCS (DVCS_REMOVE_PROJECT, 0);
 	lastResultCode = resultCode;
 }
 
-void CMainFrame::OnDVCS_Commit_File (wxCommandEvent& WXUNUSED(event))
-{
-	int resultCode = CallDVCS (DVCS_COMMIT_FILE);
-	lastResultCode = resultCode;
-}
-
-void CMainFrame::OnDVCS_Commit_Project (wxCommandEvent& WXUNUSED(event))
-{
-	int resultCode = CallDVCS (DVCS_COMMIT_PROJECT);
-	lastResultCode = resultCode;
-}
 void CMainFrame::OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_LOG_FILE);
+	int resultCode = CallDVCS (DVCS_LOG_FILE, 0);
 	lastResultCode = resultCode;
 }
 
 void CMainFrame::OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = CallDVCS (DVCS_LOG_PROJECT);
-	lastResultCode = resultCode;
-}
-
-void CMainFrame::OnDVCS_Revert_File (wxCommandEvent& WXUNUSED(event))
-{
-	int resultCode = CallDVCS (DVCS_REVERT_FILE);
+	int resultCode = CallDVCS (DVCS_LOG_PROJECT, 0);
 	lastResultCode = resultCode;
 }
 
