@@ -435,6 +435,11 @@ protected:
 public:
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
+	void DocChangedExternally();
+	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
+	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));
+	void OnAcceptRevision (wxCommandEvent& WXUNUSED(event));
+	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
 	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);
 	void OnFileOpen(wxCommandEvent& WXUNUSED(event));

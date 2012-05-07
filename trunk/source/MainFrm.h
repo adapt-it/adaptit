@@ -206,11 +206,9 @@ class CMainFrame : public wxDocParentFrame
 	void OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Remove_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Remove_Project (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Commit_File (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Commit_Project (wxCommandEvent& WXUNUSED(event));
+	void OnDVCS_Save_Commit_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Revert_File (wxCommandEvent& WXUNUSED(event));
 #endif
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);

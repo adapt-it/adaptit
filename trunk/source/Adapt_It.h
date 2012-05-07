@@ -24,26 +24,28 @@
 // a temporary #define for Mike to use when working on DVCS:
 //#define TEST_DVCS
 
-// symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Help menu)
+// Symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Edit menu)
+// Later this functionality will move to other places, but this is convenient for testing.
 const int ID_MENU_DVCS_VERSION			= 999;
 const int ID_MENU_INIT_REPOSITORY		= 998;
 const int ID_MENU_DVCS_ADD_FILE			= 997;
 const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
 const int ID_MENU_DVCS_REMOVE_FILE		= 995;
 const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
-const int ID_MENU_DVCS_COMMIT_FILE		= 993;
-const int ID_MENU_DVCS_COMMIT_PROJECT	= 992;
-const int ID_MENU_DVCS_LOG_FILE			= 991;
-const int ID_MENU_DVCS_LOG_PROJECT		= 990;
-const int ID_MENU_DVCS_REVERT_FILE		= 989;
+const int ID_MENU_SAVE_COMMIT_FILE		= 993;
+const int ID_MENU_REVERT_FILE			= 992;
+const int ID_MENU_ACCEPT_REVISION		= 991;
+const int ID_MENU_RETURN_TO_LATEST		= 990;
+const int ID_MENU_DVCS_LOG_FILE			= 989;
+const int ID_MENU_DVCS_LOG_PROJECT		= 988;
 
 // Action codes for calling the DVCS:
 enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY, 
 		DVCS_ADD_FILE, DVCS_ADD_ALL_FILES,
 		DVCS_REMOVE_FILE, DVCS_REMOVE_PROJECT,
-		DVCS_COMMIT_FILE, DVCS_COMMIT_PROJECT,
-		DVCS_LOG_FILE, DVCS_LOG_PROJECT,
-		DVCS_REVERT_FILE };     
+		DVCS_COMMIT_FILE, DVCS_REVERT_FILE,
+		DVCS_LOG_FILE, DVCS_LOG_PROJECT, 
+		DVCS_LATEST_REVISION, DVCS_PREV_REVISION };     
 				// More to be added as they come up
 
 
@@ -305,6 +307,12 @@ const char xml_mmcap[] = "MM";
 
 /// Attribute name used in Adapt It XML documents
 const char xml_docversion[] = "docVersion";
+/// Attribute name used in Adapt It XML documents
+const char xml_owner[] = "owner";
+/// Attribute name used in Adapt It XML documents
+const char xml_commitcnt[] = "commitcnt";
+/// Attribute name used in Adapt It XML documents
+const char xml_revdate[] = "revdate";
 /// Attribute name used in Adapt It XML documents
 const char xml_sizex[] = "sizex";
 /// Attribute name used in Adapt It XML documents
@@ -2031,21 +2039,27 @@ public:
 
 
 	// mrh 2012-04-17 The current user of AI, introduced for version control.  This will
-	//  probably be the user name + machine name + UUID.  "****" means "unassigned, up for grabs".
-	//  We may possibly only assign this string if version control is enabled.
+	//  probably be the user name + machine name.  "****" means "unassigned, up for grabs".
+	//  We only assign this string if version control is enabled.  If a different user
+	//  opens the document, it will come up read-only.
 	
-#define  UNASSIGNED  _T("****")
+#define  UNASSIGNED  _T("****")			// a real user can't have asterisks, and must have "@"
 
-	wxString	gAI_user;
+	wxString	m_AIuser;				// e.g. joe bloggs@joesMachine
 
 	// Version control variables, relating to the current document
-	bool		m_underVersionControl;
-	int			m_LatestRevisionNumber;
-	wxDateTime	m_LatestRevisionTime;
-	wxString	m_owner;			// owner of this document, in the same format as AI_user.
-									// m_owner and gAI_user must match before a commit is allowed,
-									// unless either is unassigned.
+	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
+										//  if the file is actually under version control.
+										//   -1 = not under version control
+										//    0 = under VC, but no commits done yet.
+	int			m_trialRevNum,			// non-negative if we're trialling a look at an earlier revision, and this is
+										//  the revision number.  Negative means no trial.
+				m_latestRevNum;			// Saves the latest revision number over a trial, so we can get back
 
+	wxDateTime	m_revisionDate;			// when this revision was committed
+	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
+										// m_owner and m_AIuser must match before a commit is allowed,
+										// unless either is unassigned.
 
 	/////////////////////////////////////////////////////////////////////////////////
     // Variable declarations moved here from the View because the wxWidgets doc/view
@@ -2975,6 +2989,10 @@ public:
 	// BEW added 25Aug11, to suppress warning message about project existing coming from
 	// SetupDirectories() when a Retranslation Report is being processed in collab mode
 	bool		m_bRetransReportInProgress;
+	
+	// mrh added 2May12, likewise to suppress the warning when we're re-opening a document that's
+	// been changed externally.
+	bool		m_bDocReopeningInProgress;
 
     // flag for skipping USFM fixed space "~" (tilde) when parsing source text (if TRUE,
     // then skip, if FALSE then don't check for its presence) used in the ParseWord()

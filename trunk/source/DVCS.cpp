@@ -87,6 +87,8 @@
  
  
 wxString		hg_command, hg_options, hg_arguments;
+wxArrayString	hg_output;
+int				hg_count, hg_lineNumber;
 
 
 /*	call_hg is the function that actually calls hg.
@@ -105,10 +107,10 @@ wxString		hg_command, hg_options, hg_arguments;
 	not being found, or being found and its execution returning an error.
 */
 
-int  call_hg()
+int  call_hg ( bool bDisplayOutput )
 {
 	wxString		str, str1, local_arguments;
-	wxArrayString	output, errors;
+	wxArrayString	errors;
     long			result;
 	int				count, i;
 	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
@@ -119,7 +121,7 @@ int  call_hg()
 	str = _T("hg ");
 #endif
 
-	// If there's a file or directory path in the arguments string, we need to replace any spaces with backslash.  
+	// If there's a file or directory path in the arguments string, we need to escape any spaces with backslash space.  
 	// We do this in a local copy so the caller can reuse the arguments string if needed.  We don't need to do
 	// this on Windows, and indeed we mustn't, because backslash is the path separator!
 
@@ -137,10 +139,9 @@ int  call_hg()
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-wxMessageBox(GetUuid());
+//wxMessageBox (str);		// debugging
 
-
-	result = wxExecute (str, output, errors, 0);
+	result = wxExecute (str, hg_output, errors, 0);
 
 	// The only indication we get that something went wrong, is a nonzero result.  It seems to always be 255, whatever the error.
 	// It may mean that hg wasn't found, or it could be an illegal hg command.  Eventually we should suss this out a bit
@@ -148,18 +149,22 @@ wxMessageBox(GetUuid());
 
 	if (result)		// An error occurred
 	{	
-wxMessageBox( _T("error!!!") );
+wxMessageBox( _T("error!!!") );		// debugging
 		returnCode = result;
 	}
 	else
-	{		// hg's stdout will land in our output wxArrayString.  There can be a number of strings.
-			// Just concatenating them with a space between looks OK so far.
-		count = output.GetCount();  
-		if (count) 
-		{	str1.Clear();
-			for (i=0; i<count; i++)
-				str1 = str1 + output.Item(i) + /*_T(" ")*/ _T("\n");
-			wxMessageBox (str1);
+	{		// hg's stdout will land in our hg_output wxArrayString.  There can be a number of strings.
+			// Just concatenating them with a space between looks OK so far.  We only display a message
+			// with the output if we've been asked to.  Otherwise the caller will handle.
+		if (bDisplayOutput) 
+		{
+			count = hg_output.GetCount();  
+			if (count) 
+			{	str1.Clear();
+				for (i=0; i<count; i++)
+					str1 = str1 + hg_output.Item(i) + /*_T(" ")*/ _T("\n");
+				wxMessageBox (str1);
+			}
 		}
 	}
 	
@@ -171,7 +176,7 @@ wxMessageBox( _T("error!!!") );
 		for (i=0; i<count; i++)
 			str1 = str1 + errors.Item(i) + _T(" ");
 			
-		wxMessageBox (str1);
+		wxMessageBox (_T("Error message:\n") + str1);
 	}
 
 	return returnCode;
@@ -183,16 +188,21 @@ wxMessageBox( _T("error!!!") );
 int  init_repository ()
 {	
 	hg_command = _T("init");
-	return call_hg();
+	return call_hg (FALSE);
 }
 
-// add_file is called when the current (new) file is to be added to version control.
+// add_file is called when the current (new) file is to be added to version control.  No commits have been done
+//  yet, so we initialize the commit count to zero.
 
 int  add_file (wxString fileName)
 {
+	CAdapt_ItApp*	pApp = &wxGetApp();
+	
+	pApp->m_commitCount = 0;
+
 	hg_command = _T("add");
 	hg_arguments = fileName;
-	return call_hg();
+	return call_hg (FALSE);
 }
 
 // add_all_files() adds all documents in the Adaptations folder to version control.  They should all end in
@@ -204,7 +214,7 @@ int  add_all_files()
 	hg_command = _T("add");
 	hg_arguments = _T("glob:*.xml");		// Note: unlike in a terminal, we do need to explicitly put glob: !
 	
-	return call_hg();
+	return call_hg (FALSE);
 }
 
 // remove_file() is called to remove the given file from version control.  The file's not deleted.
@@ -213,7 +223,7 @@ int  remove_file (wxString fileName)
 {
 	hg_command = _T("forget");
 	hg_arguments = fileName;
-	return call_hg();
+	return call_hg (FALSE);
 }
 
 // remove_project() removes the whole current project from version control.  Nothing's actually deleted.
@@ -222,19 +232,62 @@ int  remove_project()
 {
 	hg_command = _T("forget");
 	hg_arguments = _T("glob:*.xml");		// Note: unlike in a terminal, we do need to explicitly put glob: !
-	return call_hg();
+	return call_hg (FALSE);
 }	
+
+
+// get_prev_revision() uses hg's log to get the previous changeset number.  The first time in we pass TRUE and
+//  we know to read the log and initialize the counter.  Then on each subsequent call we read earlier log entries
+//  and return the previous changeset number.  If we hit the end, we return -1.
+
+int  get_prev_revision ( bool bFirstTime, wxString fileName )
+{
+	wxString	nextLine, str;
+//	int			test;
+
+	if (bFirstTime)
+	{
+		hg_output.Clear();
+		hg_command = _T("log");
+		hg_arguments = fileName;
+		call_hg (FALSE);
+		hg_lineNumber = 0;
+		hg_count = hg_output.GetCount();
+	}
+
+// The log has multiple entries, each with a first line that looks like
+// changeset:  9:<big hex number>
+// We loop till we get such a line, then parse out the number.
+
+//	test = hg_count;
+//	test = hg_lineNumber;
+	
+	while (TRUE) 
+	{
+		if (hg_lineNumber >= hg_count)  return -1;		// we've hit the end
+	
+		nextLine = hg_output.Item(hg_lineNumber);  hg_lineNumber += 1;
+		if (nextLine.Find(_T("changeset")) != wxNOT_FOUND)  break;
+	}
+	str = nextLine.AfterFirst (_T(':'));
+	str = str.BeforeLast (_T(':'));
+	hg_lineNumber += 1;
+//	test = wxAtoi(str);
+	return  wxAtoi (str);		
+		// if for some reason the line didn't contain a number, this returns zero, which we can live with
+}
+
 
 bool  commit_valid()
 {
 	CAdapt_ItApp*	pApp = &wxGetApp();
 
-	if (pApp->gAI_user == UNASSIGNED | pApp->m_owner == UNASSIGNED)  return TRUE;
+	if (pApp->m_AIuser == UNASSIGNED || pApp->m_owner == UNASSIGNED)  return TRUE;
 	
-	if (pApp->gAI_user != pApp->m_owner)
+	if (pApp->m_AIuser != pApp->m_owner)
 	{
 		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + pApp->m_owner 
-					  + _T(" but the currently logged in user is ") + pApp->gAI_user 
+					  + _T(" but the currently logged in user is ") + pApp->m_AIuser 
 					  + _T(".  Only the document's owner can commit changes to it.") );
 		return FALSE;
 	}
@@ -244,12 +297,29 @@ bool  commit_valid()
 
 int  commit_file (wxString fileName)
 {
+	CAdapt_ItApp*	pApp = &wxGetApp();
+	wxString		local_owner = pApp->m_owner;
+	int				commitCount = pApp->m_commitCount;
+	
 	if (!commit_valid()) return -1;
+
+#ifndef __WXWIN__
+	local_owner.Replace (_T(" "), _T("\\ "), TRUE);
+#endif
 	
 	hg_command = _T("commit");
-	hg_options = _T("-m \"single file commit\"");
+//	hg_options << _T("-m \"revision ");
+	hg_options << _T("-m \"");
+	hg_options << commitCount;
+	
+	if (commitCount == 1)
+		hg_options << _T(" commit\" -u ");
+	else
+		hg_options << _T(" commits\" -u ");
+
+	hg_options << local_owner;
 	hg_arguments = fileName;
-	return call_hg();
+	return call_hg (FALSE);
 }
 
 int  commit_project()
@@ -258,37 +328,38 @@ int  commit_project()
 
 	hg_command = _T("commit");
 	hg_options = _T("-m \"whole project commit\"");
-	return call_hg();
+	return call_hg (FALSE);
 }
 
 int  log_file (wxString fileName)
 {
+	hg_output.Clear();
 	hg_command = _T("log");
 	hg_arguments = fileName;
-	return call_hg();
+	return call_hg (TRUE);
 }
 
 int  log_project()
 {
+	hg_output.Clear();
 	hg_command = _T("log");
-	return call_hg();
+	return call_hg (TRUE);
 }
 
 // For reverting, instead of passing a filename, we assume the current file.  Probably we'll do this
 // for the other functions as well.
 
-int  revert_current_file()
+int  revert_to_revision ( int revision )
 {
 	CAdapt_ItApp*	pApp = &wxGetApp();
 	wxString		fileName = pApp->m_curOutputFilename;
-	int				revision = pApp->m_LatestRevisionNumber - 1;	// We keep things simple by only ever reverting
-																//  to the previous revision.
+	wxString		strRevision = wxString::Format	(_T("%i"), revision);		
+
 	hg_command = _T("revert");
 	hg_arguments = fileName;	// ????MUST CONVERT revision TO wxString!!!!
-
-	// NOT FINISHED YET
-	revision = revision;
-	return 0;
+	hg_options = _T("-C -r ") + strRevision;
+	
+	return call_hg (FALSE);
 }
 
 
@@ -298,7 +369,7 @@ int  revert_current_file()
 //  appropriate function to do the work.  We return as a result whatever that function returns.
 //  If the cd fails, this means that AdaptIt doesn't have a current project yet.  We complain and bail out.
 
-int  CallDVCS ( int action )
+int  CallDVCS ( int action, int parm )
 {
 	wxString		str;
 	CAdapt_ItApp*	pApp = &wxGetApp();
@@ -306,15 +377,13 @@ int  CallDVCS ( int action )
 	bool			bResult;
     wxString		saveWorkDir = wxGetCwd();			// save the current working directory
 	
-	hg_command.Clear();  hg_options.Clear();  hg_arguments.Clear();		// Clear the global wxStrings
+	hg_command.Clear();  hg_options.Clear();  hg_arguments.Clear();				// Clear the globals
 
 // Next we cd into our repository.  We use wxSetWorkingDirectory() and spaces in pathnames are OK.
 
 	str = pApp->m_curAdaptionsPath;
 	bResult = ::wxSetWorkingDirectory (str);
-	
-pApp->m_owner = wxGetUserId();		// MUST CHANGE!!!!!
-	
+
 	if (!bResult) 
 	{
 		wxMessageBox ( _T("There doesn't appear to be a current project!") );
@@ -326,8 +395,9 @@ pApp->m_owner = wxGetUserId();		// MUST CHANGE!!!!!
 	switch (action)
 	{
 		case DVCS_VERSION:
+			hg_output.Clear();
 			hg_command = _T("version");
-			result = call_hg();
+			result = call_hg (TRUE);
 			break;
 		
 		case DVCS_INIT_REPOSITORY:	result = init_repository();							break;
@@ -339,12 +409,12 @@ pApp->m_owner = wxGetUserId();		// MUST CHANGE!!!!!
 		case DVCS_REMOVE_PROJECT:	result = remove_project();							break;
 
 		case DVCS_COMMIT_FILE:		result = commit_file (pApp->m_curOutputFilename);	break;
-		case DVCS_COMMIT_PROJECT:	result = commit_project();							break;
+		case DVCS_REVERT_FILE:		result = revert_to_revision (parm);					break;
 
 		case DVCS_LOG_FILE:			result = log_file (pApp->m_curOutputFilename);		break;
 		case DVCS_LOG_PROJECT:		result = log_project();								break;
-		
-		case DVCS_REVERT_FILE:		result = revert_current_file();						break;
+		case DVCS_LATEST_REVISION:	result = get_prev_revision (TRUE, pApp->m_curOutputFilename);		break;
+		case DVCS_PREV_REVISION:	result = get_prev_revision (FALSE, pApp->m_curOutputFilename);		break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));

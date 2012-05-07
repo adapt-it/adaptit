@@ -37,7 +37,9 @@
 // RestoreCurrentDocVersion() returning void, to reset m_docVersionCurrent back to the
 // VERSION_NUMBER value after the Save As... is done; and an access function
 // GetCurrentDocVersion() to get its value whenever needed.
-#define VERSION_NUMBER		6   // as of 13Feb12
+
+#define VERSION_NUMBER		7	// as of 20Apr12
+//#define VERSION_NUMBER	6   // as of 13Feb12
 //#define VERSION_NUMBER	5   // superceded on 13Feb12
 #define DOCVERSION4			4
 
