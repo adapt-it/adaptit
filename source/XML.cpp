@@ -3101,8 +3101,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		#else
 						wxString	tmp = attrValue;
 		#endif
-						bool		result = gpApp->m_revisionDate.ParseDateTime (tmp);
-						if (!result)
+						const wxChar*  result = gpApp->m_revisionDate.ParseDateTime (tmp);
+						if (result == NULL)
 							gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
 					}
 				}			// (gnDocVersion >= 7)
