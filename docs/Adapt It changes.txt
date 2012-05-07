@@ -64,7 +64,7 @@ Base attempt in which some automatic punctuation editing was done
 during the restore operation and collaboration mode is currently 
 turned on. This is now fixed. (When collaboration is on, the
 punctuation edits are ignored. If you want them not to be ignored,
-then turn of collaboration temporarily before doing File -> 
+then turn off collaboration temporarily before doing File -> 
 Restore Knowledge Base.)
 
 

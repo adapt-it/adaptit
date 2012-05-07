@@ -260,7 +260,7 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
 
-	wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
+	//wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
 
 	// if the user has tabbed back to this page while there is a project open,
 	// that project has to be closed and its doc saved (ie user given chance to
