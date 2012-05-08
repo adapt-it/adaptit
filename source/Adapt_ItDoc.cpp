@@ -1545,17 +1545,24 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 	{			// We don't already have a previous revision under trial.  We need to save and commit the current
 				// revision, so we can come back to it if necessary.
 		OnSaveAndCommit(dummy);
-		gpApp->m_latestRevNum = CallDVCS (DVCS_LATEST_REVISION, 0);
+		gpApp->m_latestRevNum = CallDVCS (DVCS_LATEST_REVISION, 0);		// also reads the log, and hangs on to it
 		test = gpApp->m_latestRevNum;
 				// this is what we just committed - we need to hang on to it so we can come back if needed,
 				//  and the following DVCS call will give us the next version back
 	}
 
-	trialRevNum = CallDVCS (DVCS_PREV_REVISION, 0);			// get the previous revision number
+	trialRevNum = CallDVCS (DVCS_PREV_REVISION, 0);			// looks at the log to get the previous revision number
+
+	if (trialRevNum < 0)
+	{								// no more in the log - bail out
+		gpApp->m_trialRevNum = 0;
+		wxMessageBox (_T("We're already back at the first commit!") );
+		return;
+	}
 
 	commit_result = CallDVCS (DVCS_REVERT_FILE, trialRevNum);
 
-	if ( !commit_result && (trialRevNum >= 0) ) 
+	if (!commit_result) 
 	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
 			// ReadOnlyProtection sees that m_trialRevNum is non-negative.  We skip this
 			//  if CallDVCS() returned an error, and leave m_trialRevNum alone.
@@ -3645,7 +3652,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" commitcnt=\"" + numStr;	// add revision number
 	
 	if (gpApp->m_revisionDate.IsValid()) 
-		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%F %T")));
+		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));		// This is failing on Windows!!!!
 	else 
 		numStr = "";
 	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
@@ -3765,7 +3772,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" commitcnt=\"" + tempStr;	// add commit count, without unicode conversion needed
 	
 	if (gpApp->m_revisionDate.IsValid()) 
-		numStr = gpApp->m_revisionDate.Format (_T("%F %T"));	// without unicode conversion
+		numStr = gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S"));	// without unicode conversion
 	else 
 		numStr = "";
 	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one

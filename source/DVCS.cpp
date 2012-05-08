@@ -122,11 +122,14 @@ int  call_hg ( bool bDisplayOutput )
 #endif
 
 	// If there's a file or directory path in the arguments string, we need to escape any spaces with backslash space.  
-	// We do this in a local copy so the caller can reuse the arguments string if needed.  We don't need to do
-	// this on Windows, and indeed we mustn't, because backslash is the path separator!
+	// We do this in a local copy so the caller can reuse the arguments string if needed.  But on Windows this doesn't
+	// work, because backslash is the path separator!  It seems we need to put the string within quote (") marks.
 
 	local_arguments = hg_arguments;
-#ifndef __WXWIN__
+
+#ifdef __WXMSW__
+	local_arguments = (_T("\"")) + local_arguments + (_T("\""));
+#else
 	local_arguments.Replace (_T(" "), _T("\\ "), TRUE);
 #endif
 
@@ -303,7 +306,7 @@ int  commit_file (wxString fileName)
 	
 	if (!commit_valid()) return -1;
 
-#ifndef __WXWIN__
+#ifndef __WXMSW__
 	local_owner.Replace (_T(" "), _T("\\ "), TRUE);
 #endif
 	
