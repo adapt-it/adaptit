@@ -195,18 +195,23 @@ int  init_repository ()
 }
 
 // add_file is called when the current (new) file is to be added to version control.  No commits have been done
-//  yet, so we initialize the commit count to zero.
+//  yet, so we initialize the commit count to zero.  If the file is already under version control we just
+//  return without doing anything -- we must leave the commit count alone.
 
 int  add_file (wxString fileName)
 {
 	CAdapt_ItApp*	pApp = &wxGetApp();
 	
+	if (pApp->m_commitCount >= 0)       // already under version control - do nothing
+        return 0;
+	
 	pApp->m_commitCount = 0;
-
+	
 	hg_command = _T("add");
 	hg_arguments = fileName;
 	return call_hg (FALSE);
 }
+
 
 // add_all_files() adds all documents in the Adaptations folder to version control.  They should all end in
 //  "*.xml" so we pass that to hg.  Note this gives them all "A" status.  They're not really truly under
