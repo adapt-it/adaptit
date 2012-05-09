@@ -20102,9 +20102,9 @@ int ii = 1;
 	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));						// defaults for final 2 params for all these
 	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));
 	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));
-	pEditMenu->Append (ID_MENU_DVCS_ADD_ALL_FILES, _T("Put all project files under version control"));
+//	pEditMenu->Append (ID_MENU_DVCS_ADD_ALL_FILES, _T("Put all project files under version control"));
 	pEditMenu->Append (ID_MENU_DVCS_REMOVE_FILE, _T("Remove this file from version control (file won't be deleted)"));
-	pEditMenu->Append (ID_MENU_DVCS_REMOVE_PROJECT, _T("Remove project from version control (files won't be deleted)"));
+//	pEditMenu->Append (ID_MENU_DVCS_REMOVE_PROJECT, _T("Remove project from version control (files won't be deleted)"));
 	pEditMenu->Append (ID_MENU_SAVE_COMMIT_FILE, _T("Save and Commit changes to this file"));
 	pEditMenu->Append (ID_MENU_REVERT_FILE, _T("Look at previously committed version of this file"));
 	pEditMenu->Append (ID_MENU_ACCEPT_REVISION, _T("Accept this revision as CURRENT, and DISCARD any later changes"));

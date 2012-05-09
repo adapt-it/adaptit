@@ -300,9 +300,9 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 
 	EVT_MENU (ID_MENU_INIT_REPOSITORY,		CMainFrame::OnInit_Repository)
 	EVT_MENU (ID_MENU_DVCS_ADD_FILE,		CMainFrame::OnDVCS_Add_File)
-	EVT_MENU (ID_MENU_DVCS_ADD_ALL_FILES,	CMainFrame::OnDVCS_Add_All_Files)
+//	EVT_MENU (ID_MENU_DVCS_ADD_ALL_FILES,	CMainFrame::OnDVCS_Add_All_Files)
 	EVT_MENU (ID_MENU_DVCS_REMOVE_FILE,		CMainFrame::OnDVCS_Remove_File)
-	EVT_MENU (ID_MENU_DVCS_REMOVE_PROJECT,	CMainFrame::OnDVCS_Remove_Project)
+//	EVT_MENU (ID_MENU_DVCS_REMOVE_PROJECT,	CMainFrame::OnDVCS_Remove_Project)
 //	EVT_MENU (ID_MENU_SAVE_COMMIT_FILE,		CMainFrame::OnSaveAndCommit) -- moved to doc class
 //	EVT_MENU (ID_MENU_DVCS_COMMIT_PROJECT,	CMainFrame::OnDVCS_Commit_Project)
 	EVT_MENU (ID_MENU_DVCS_LOG_FILE,		CMainFrame::OnDVCS_Log_File)
