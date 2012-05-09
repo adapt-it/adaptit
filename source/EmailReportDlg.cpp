@@ -743,6 +743,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(_T("The curl utility could not be initialized"),_T(""),wxICON_INFORMATION);
 			pApp->LogUserAction(_T("The curl utility could not be initialized"));
 		}
+		curl_global_cleanup(); // whm added 8May12 to see if it avoids memory leaks. No, but it should be called here.
 	}
 	else
 	{
