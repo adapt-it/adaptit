@@ -22,7 +22,7 @@
 #define Adapt_It_h
 
 // a temporary #define for Mike to use when working on DVCS:
-//#define TEST_DVCS
+#define TEST_DVCS
 
 // Symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Edit menu)
 // Later this functionality will move to other places, but this is convenient for testing.
