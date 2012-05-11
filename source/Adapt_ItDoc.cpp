@@ -1475,7 +1475,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 }
 
 
-void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
+int CAdapt_ItDoc::DoSaveAndCommit()
 {
 	int				commit_result;
 	wxCommandEvent	dummy;
@@ -1490,13 +1490,13 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 	if (gpApp->m_commitCount < 0) 
 	{
 		wxMessageBox(_T("This document hasn't been put under version control yet!"));
-		return;
+		return -1;
 	}
 
 	if (gpApp->m_trialRevNum >= 0) 
 	{
 		wxMessageBox(_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
-		return;
+		return -1;
 	}
 	
 // Here we find the date/time and the commit count, which we'll save in the file before we do the commit.
@@ -1519,7 +1519,15 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 		gpApp->m_owner = origOwner;
 		
 		OnFileSave (dummy);
+		return -2;
 	}
+
+	return 0;			// all OK
+}
+
+void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
+{
+	if (DoSaveAndCommit())  return;			// bail out on error
 }
 
 void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
@@ -1544,7 +1552,9 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 	if (trialRevNum < 0) 
 	{			// We don't already have a previous revision under trial.  We need to save and commit the current
 				// revision, so we can come back to it if necessary.
-		OnSaveAndCommit(dummy);
+
+		if (DoSaveAndCommit())  return;			// bail out on error - message should be already displayed
+
 		gpApp->m_latestRevNum = CallDVCS (DVCS_LATEST_REVISION, 0);		// also reads the log, and hangs on to it
 		test = gpApp->m_latestRevNum;
 				// this is what we just committed - we need to hang on to it so we can come back if needed,
@@ -1553,7 +1563,9 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
 	trialRevNum = CallDVCS (DVCS_PREV_REVISION, 0);			// looks at the log to get the previous revision number
 
-	if (trialRevNum < 0)
+	if (trialRevNum == -2)  return;				// bail out on error - message should already be displayed
+
+	if (trialRevNum == -1)
 	{								// no more in the log - bail out
 		gpApp->m_trialRevNum = 0;
 		wxMessageBox (_T("We're already back at the first commit!") );
@@ -1573,6 +1585,12 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
 {	
+	if (gpApp->m_trialRevNum < 0)
+	{
+		wxMessageBox (_T("We're not looking at earlier revisions!"));
+		return;
+	}
+
 	gpApp->m_trialRevNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
@@ -1580,10 +1598,17 @@ void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 {
-	int		commit_result = CallDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
+	int		commit_result;
 
-	if (commit_result)
-		wxMessageBox(_T("We couldn't go back to the latest revision!"));
+	if (gpApp->m_trialRevNum < 0)
+	{
+		wxMessageBox (_T("We're not looking at earlier revisions - already at latest!"));
+		return;
+	}
+
+	commit_result = CallDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
+
+	if (commit_result)  return;			// bail out on error - message should have been displayed
 	
 	gpApp->m_trialRevNum = -1;
 	DocChangedExternally();

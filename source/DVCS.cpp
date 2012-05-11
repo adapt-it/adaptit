@@ -123,12 +123,13 @@ int  call_hg ( bool bDisplayOutput )
 
 	// If there's a file or directory path in the arguments string, we need to escape any spaces with backslash space.  
 	// We do this in a local copy so the caller can reuse the arguments string if needed.  But on Windows this doesn't
-	// work, because backslash is the path separator!  It seems we need to put the string within quote (") marks.
+	// work, because backslash is the path separator!  It seems we need to put the whole string within quote (") marks.
 
 	local_arguments = hg_arguments;
 
 #ifdef __WXMSW__
-	local_arguments = (_T("\"")) + local_arguments + (_T("\""));
+	if (!local_arguments.IsEmpty())
+		local_arguments = (_T("\"")) + local_arguments + (_T("\""));
 #else
 	local_arguments.Replace (_T(" "), _T("\\ "), TRUE);
 #endif
@@ -152,7 +153,7 @@ int  call_hg ( bool bDisplayOutput )
 
 	if (result)		// An error occurred
 	{	
-wxMessageBox( _T("error!!!") );		// debugging
+//wxMessageBox( _T("error!!!") );		// debugging
 		returnCode = result;
 	}
 	else
@@ -173,13 +174,20 @@ wxMessageBox( _T("error!!!") );		// debugging
 	
 // If anything landed in our errors wxArrayString, we'll display it.  We'll probably need to enhance this a bit eventually.
 
-	count = errors.GetCount();
-	if (count)
-	{	str1.Clear();
-		for (i=0; i<count; i++)
-			str1 = str1 + errors.Item(i) + _T(" ");
+	if (returnCode)						// an error occurred
+	{
+		count = errors.GetCount();
+		if (count)
+		{	str1.Clear();
+			for (i=0; i<count; i++)
+				str1 = str1 + errors.Item(i) + _T(" ");
 			
-		wxMessageBox (_T("Error message:\n") + str1);
+			wxMessageBox (_T("Error message:\n") + str1);
+		}
+		else			// there was an error, but no error message.  So we'll just do something...
+		{
+			wxMessageBox (_T("An error occurred -- further information should follow."));
+		}
 	}
 
 	return returnCode;
@@ -246,7 +254,8 @@ int  remove_project()
 
 // get_prev_revision() uses hg's log to get the previous changeset number.  The first time in we pass TRUE and
 //  we know to read the log and initialize the counter.  Then on each subsequent call we read earlier log entries
-//  and return the previous changeset number.  If we hit the end, we return -1.
+//  and return the previous changeset number.  If we hit the end, we return -1.  If call_hg() returned an error,
+//  we return -2.
 
 int  get_prev_revision ( bool bFirstTime, wxString fileName )
 {
@@ -258,7 +267,8 @@ int  get_prev_revision ( bool bFirstTime, wxString fileName )
 		hg_output.Clear();
 		hg_command = _T("log");
 		hg_arguments = fileName;
-		call_hg (FALSE);
+		if (call_hg (FALSE))
+			return -2;				// maybe hg's not installed!
 		hg_lineNumber = 0;
 		hg_count = hg_output.GetCount();
 	}

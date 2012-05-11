@@ -437,6 +437,7 @@ public:
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
 	void DocChangedExternally();
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
+	int  DoSaveAndCommit();
 	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));
 	void OnAcceptRevision (wxCommandEvent& WXUNUSED(event));
 	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
