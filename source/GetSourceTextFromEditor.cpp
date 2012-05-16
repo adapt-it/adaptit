@@ -1751,10 +1751,22 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	wxString commandLineSrc,commandLineTgt,commandLineFT;
 	if (m_pApp->m_bCollaboratingWithParatext)
 	{
-		commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
-		commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
-		if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
-			commandLineFT = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+	    if (m_rdwrtp7PathAndFileName.Contains(_T("paratext")))
+	    {
+	        // PT on linux -- need to add --rdwrtp7 as the first param to the command line
+            commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+            commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+            if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
+                commandLineFT = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+	    }
+	    else
+	    {
+	        // PT on Windows
+            commandLineSrc = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + sourceProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + sourceTempFileName + _T("\"");
+            commandLineTgt = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + targetProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + targetTempFileName + _T("\"");
+            if (m_bTempCollaborationExpectsFreeTrans) // whm added 6Feb12
+                commandLineFT = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + freeTransProjShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + freeTransTempFileName + _T("\"");
+	    }
 	}
 	else if (m_pApp->m_bCollaboratingWithBibledit)
 	{
