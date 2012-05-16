@@ -245,9 +245,23 @@ wxString BuildCommandLineFor(enum CommandLineFor lineFor, enum DoFor textKind)
 		// whm 23Aug11 added quotes around shortProjName since Bibledit only uses the language name
 		// for its project name and language names, unlike PT shortnames, can be more than one word
 		// i.e., "Tok Pisin".
-		cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" ") + readwriteChoiceStr + _T(" ") +
-					_T("\"") + shortProjName + _T("\"") + _T(" ") + bookCode + _T(" ") +
-					chStrForCommandLine + _T(" ") + _T("\"") + pathToFile + _T("\"");
+		if (cmdLineAppPath.Contains(_T("paratext")))
+		{
+		    // PT on linux -- command line is /usr/bin/paratext --rdwrtp7
+		    // (calls a mono script to set up the environment, then calls rdwrtp7.exe
+            // with the rest of the params)
+            cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" --rdwrtp7 ") +
+                readwriteChoiceStr + _T(" ") +	_T("\"") + shortProjName + _T("\"") +
+                _T(" ") + bookCode + _T(" ") + chStrForCommandLine +
+                _T(" ") + _T("\"") + pathToFile + _T("\"");
+		}
+		else
+		{
+		    // regular processing
+            cmdLine = _T("\"") + cmdLineAppPath + _T("\"") + _T(" ") + readwriteChoiceStr +
+                _T(" ") + _T("\"") + shortProjName + _T("\"") + _T(" ") + bookCode + _T(" ") +
+                chStrForCommandLine + _T(" ") + _T("\"") + pathToFile + _T("\"");
+		}
 	}
 	return cmdLine;
 }
@@ -2442,21 +2456,22 @@ wxString GetPathToRdwrtp7()
 	}
 #endif
 #ifdef __WXGTK__
-    // For mono, we call a script (rdwrtp7 / no extension) that sets the Paratext and mono
-    // environment variables and then calls the "real" rdwrtp7.exe in the Paratext installation
-    // directory. The code from our script is taken from the paratext startup script and is needed
+    // For mono, we call a the paratext startup script (usr/bin/paratext, no extension)
+    // that sets the Paratext and mono environment variables and then calls the "real"
+    // rdwrtp7.exe in the Paratext installation directory. The script is needed
     // to avoid a security exception in ParatextShared.dll.
-	rdwrtp7PathAndFileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("rdwrtp7");
-	wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
-	wxString fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("ParatextShared.dll");
+	rdwrtp7PathAndFileName = _T("/usr/bin/paratext");
+    wxASSERT(::wxFileExists(rdwrtp7PathAndFileName));
+
+	wxString fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("ParatextShared.dll");
 	wxASSERT(::wxFileExists(fileName));
 	// for mono, PT appears to be using Ionic.Zip.dll instead of SharpZipLib.dll for
 	// compression.
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Ionic.Zip.dll");
+	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Ionic.Zip.dll");
 	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("NetLoc.dll");
+	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("NetLoc.dll");
 	wxASSERT(::wxFileExists(fileName));
-	fileName = gpApp->m_appInstallPathOnly + gpApp->PathSeparator + _T("Utilities.dll");
+	fileName = gpApp->m_ParatextInstallDirPath + gpApp->PathSeparator + _T("Utilities.dll");
 	wxASSERT(::wxFileExists(fileName));
 #endif
 	/*

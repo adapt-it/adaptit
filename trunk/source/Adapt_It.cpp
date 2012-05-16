@@ -11587,7 +11587,7 @@ wxString CAdapt_ItApp::GetParatextInstallDirPath()
 	}
 #endif
 #ifdef __WXGTK__ // linux -- check /usr/lib/Paratext
-    wxString strDir = _T("/usr/bin/Paratext");
+    wxString strDir = _T("/usr/lib/Paratext");
     if (::wxDirExists(strDir))
     {
         path = strDir;
