@@ -11,7 +11,7 @@ Standards-Version: 3.7.2
 Package: adaptit
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: bibledit-gtk (>= 4.2.93), libgnomeprintui (>= 2.2)
+Recommends: bibledit-gtk (>= 4.2.93), libgnomeprintui2.2-0 | libgnomeprintui (>= 2.2)
 Description: helps in translating between related languages
  Adapt It gives you tools for translating text from one language which
  you know, to another related language known to you or a co-worker.
