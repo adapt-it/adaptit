@@ -1,4 +1,28 @@
 ----------------------------------------------
+Version 6.2.2 release 21 May 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.2.2
+----------------------------------------------
+* Adapt It for Linux can now be run in collaboration mode
+with the upcoming Paratext for Linux. Paratext for Linux is
+currently in beta testing. This patch release is to help
+ensure the two products will work properly when Paratext
+for Linux is released.
+
+----------------------------------------------
+Bug fixes in 6.2.2
+----------------------------------------------
+* Fixed a bug in the Setup Collaboration dialog that was 
+preventing users from selecting Bibledit as the preferred
+editor for collaboration when both Paratext and Bibledit 
+are installed on the machine.
+* Fixed a packaging issue in Linux where the naming for
+a recommended printing library (libgnomeprintui) had changed
+for Ubuntu 12.04.
+
+
+----------------------------------------------
 Version 6.2.1 release 1 May 2012
 ----------------------------------------------
 ----------------------------------------------
@@ -66,7 +90,6 @@ turned on. This is now fixed. (When collaboration is on, the
 punctuation edits are ignored. If you want them not to be ignored,
 then turn off collaboration temporarily before doing File -> 
 Restore Knowledge Base.)
-
 
 ----------------------------------------------
 Version 6.2.0 release 14 March 2012
