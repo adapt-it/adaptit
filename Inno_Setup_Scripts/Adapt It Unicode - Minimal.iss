@@ -2,10 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.2.1"
+#define MyAppVersion "6.2.2"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
+#define SvnBase "c:\dev\adaptit"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -20,23 +21,23 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
-LicenseFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\LICENSING.txt
-InfoBeforeFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Readme_Unicode_Version.txt
-OutputBaseFilename=Adapt_It_WX_6_2_1_Unicode_Minimal
-SetupIconFile=C:\C++ Programming\Adapt It\adaptit\res\ai_32.ico
+LicenseFile={#SvnBase}\setup Unicode - Minimal\LICENSING.txt
+InfoBeforeFile={#SvnBase}\setup Unicode - Minimal\Readme_Unicode_Version.txt
+OutputBaseFilename=Adapt_It_WX_6_2_2_Unicode_Minimal
+SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
-OutputDir=C:\Users\Bill Martin\Desktop\AIWX Installers
+OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2012 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.2.1
-WizardImageFile="C:\C++ Programming\Adapt It\adaptit\res\AIWX.bmp"
-WizardSmallImageFile="C:\C++ Programming\Adapt It\adaptit\res\AILogo32x32.bmp"
+VersionInfoProductVersion=6.2.2
+WizardImageFile="{#SvnBase}\res\AIWX.bmp"
+WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2012 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.2.1
+VersionInfoVersion=6.2.2
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
@@ -56,23 +57,23 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Adapt_It_Unicode.exe"; DestDir: "{app}"; Flags: ignoreversion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\AI_UserProfiles.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\AI_USFM.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\books.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\curl-ca-bundle.crt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\LICENSING.txt"; DestDir: "{app}"; Flags: ignoreversion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\License_CPLv05.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\rdwrtp7.exe"; DestDir: {app}; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "{#SvnBase}\setup Unicode - Minimal\Adapt_It_Unicode.exe"; DestDir: "{app}"; Flags: ignoreversion; 
+Source: "{#SvnBase}\setup Unicode - Minimal\AI_UserProfiles.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\AI_USFM.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\books.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\curl-ca-bundle.crt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\LICENSING.txt"; DestDir: "{app}"; Flags: ignoreversion; 
+Source: "{#SvnBase}\setup Unicode - Minimal\License_CPLv05.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\rdwrtp7.exe"; DestDir: {app}; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - Minimal\ParatextShared.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "{#SvnBase}\setup Unicode - Minimal\ICSharpCode.SharpZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "{#SvnBase}\setup Unicode - Minimal\Interop.XceedZipLib.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "{#SvnBase}\setup Unicode - Minimal\NetLoc.dll"; DestDir: "{app}"; Flags: IgnoreVersion
+Source: "{#SvnBase}\setup Unicode - Minimal\Utilities.dll"; DestDir: "{app}"; Flags: IgnoreVersion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode - Minimal\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: {group}\_{#MyAppName}; Filename: {app}\{#MyAppExeName}; WorkingDir: {app}; Comment: "Launch Adapt It Unicode"; 

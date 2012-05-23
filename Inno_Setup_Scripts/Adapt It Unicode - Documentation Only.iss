@@ -2,10 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.2.1"
+#define MyAppVersion "6.2.2"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
+#define SvnBase "c:\dev\adaptit"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -20,23 +21,23 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
-LicenseFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\LICENSING.txt
-InfoBeforeFile=C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Readme_Unicode_Version.txt
+LicenseFile={#SvnBase}\setup Unicode Documentation Only\LICENSING.txt
+InfoBeforeFile={#SvnBase}\setup Unicode Documentation Only\Readme_Unicode_Version.txt
 OutputBaseFilename=Adapt_It_WX_Unicode_Documentation_Only
-SetupIconFile=C:\C++ Programming\Adapt It\adaptit\res\ai_32.ico
+SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
-OutputDir=C:\Users\Bill Martin\Desktop\AIWX Installers
+OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2012 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.2.1
-WizardImageFile="C:\C++ Programming\Adapt It\adaptit\res\AIWX.bmp"
-WizardSmallImageFile="C:\C++ Programming\Adapt It\adaptit\res\AILogo32x32.bmp"
+VersionInfoProductVersion=6.2.2
+WizardImageFile="{#SvnBase}\res\AIWX.bmp"
+WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2012 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.2.1
+VersionInfoVersion=6.2.2
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
@@ -54,25 +55,25 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 [Tasks]
 
 [Files]
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Adapt It changes.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Adapt_It_Quick_Start.htm"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Help_for_Administrators.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Adapt It Reference.doc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Adapt It Tutorial.doc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Adapt_It_Unicode.htb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\KJV 1Jn 2.12-17.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Known Issues and Limitations.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\LICENSING.txt"; DestDir: "{app}"; Flags: ignoreversion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\License_CPLv05.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt It changes.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt_It_Quick_Start.htm"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Help_for_Administrators.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt It Reference.doc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt It Tutorial.doc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt_It_Unicode.htb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\KJV 1Jn 2.12-17.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Known Issues and Limitations.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\LICENSING.txt"; DestDir: "{app}"; Flags: ignoreversion; 
+Source: "{#SvnBase}\setup Unicode Documentation Only\License_CPLv05.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\License_LGPLv21.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Localization_Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Readme_Unicode_Version.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Tok Pisin fragment 1John.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Images\Admin_help\*.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
-Source: "C:\C++ Programming\Adapt It\adaptit\setup Unicode Documentation Only\Images\Adapt_It_Quick_Start\*.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode Documentation Only\SILConverters in AdaptIt.doc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Tok Pisin fragment 1John.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode Documentation Only\Images\Admin_help\*.gif"; DestDir: "{app}\Images\Admin_help\"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode Documentation Only\Images\Adapt_It_Quick_Start\*.gif"; DestDir: "{app}\Images\Adapt_It_Quick_Start\"; Flags: IgnoreVersion; 
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppShortName}}"; Filename: {#MyAppURL}; Comment: "Go to the Adapt It website at http://adapt-it.org"; 
