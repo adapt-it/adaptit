@@ -4,13 +4,13 @@ Priority: optional
 Maintainer: Bill Martin <bill_martin@sil.org>
 Uploaders: Bruce Waters <bruce_waters@sil.org>,
  Jonathan Marsden <jmarsden@fastmail.fm>
-Build-Depends: debhelper (>= 5), libwxgtk2.8-dev, zip, uuid-dev, libcurl3-gnutls-dev
+Build-Depends: debhelper (>= 5), libwxgtk2.8-dev (>= 2.8.10.1-0ubuntu1.2), zip, uuid-dev, libcurl3-gnutls-dev
 HomePage: http://adapt-it.org
 Standards-Version: 3.7.2
 
 Package: adaptit
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libwxgtk2.8-0 (>= 2.8.10.1-0ubuntu1.2)
 Recommends: bibledit-gtk (>= 4.2.93), libgnomeprintui2.2-0 | libgnomeprintui (>= 2.2)
 Description: helps in translating between related languages
  Adapt It gives you tools for translating text from one language which
