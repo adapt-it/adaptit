@@ -482,7 +482,7 @@ not already a line that contains a reference to <strong>http://packages.sil.org/
 click on the "Add..." button at the bottom. Then enter <strong>one</strong> of the following lines depending on which 
 distribution of Ubuntu Linux is installed on your machine:</p>
 <p><font face="Courier"><strong>deb http://packages.sil.org/ubuntu lucid main<br>deb http://packages.sil.org/ubuntu maverick main<br>deb http://packages.sil.org/ubuntu&nbsp;natty main<br>deb http://packages.sil.org/ubuntu oneiric 
-main</strong></font> </p>
+main<br>deb http://packages.sil.org/ubuntu precise main</strong></font> </p>
 <p><strong>c.</strong> Close the 
 Software Sources, and return to the Synaptic Package Manager, <strong>click on "Reload"</strong> to insure you have the latest 
 information from the repositories. If you get an error, check that you have 
@@ -503,11 +503,43 @@ popup menu. Select the "Mark" button in the warning dialog. Then click on the
 "Apply" button at the top of the Synaptic Package Manager application, and click 
 on the "Apply" button on the Summary dialog. Close Synaptic Package Manager 
 after it completes the installation of Adapt It.</p>
-<p><strong>e.</strong> <strong>Close the Synaptic Package Manager</strong> and open a 
-Terminal. In the terminal type the following&nbsp;commands:</p>
-<p><font face="Courier New"><strong>sudo add-apt-repository ppa:pkgcrosswire/ppa/ubuntu<br></strong><strong>sudo apt-get 
-update<br>sudo apt-get install bibledit-gtk</strong></font> 
-</p>
+
+
+<p><strong>e.</strong> In the Synaptic 
+Package Manager application click on the <strong>Settings 
+&gt; Repositories</strong>. Click on the "<strong>Other 
+Software</strong>" tab. Examine the list of software repositories. If there is 
+not already a line that contains a reference to <strong>http://ppa.launchpad.net/pkgcrosswire/ppa/ubuntu&nbsp;...</strong>, then 
+click on the "Add..." button at the bottom. Then enter <strong>one</strong> of the following lines depending on which 
+distribution of Ubuntu Linux is installed on your machine:</p>
+<p><font face="Courier"><strong>deb http://ppa.launchpad.net/pkgcrosswire/ppa/ubuntu lucid main<br>deb http://ppa.launchpad.net/pkgcrosswire/ppa/ubuntu maverick main<br>deb http://ppa.launchpad.net/pkgcrosswire/ppa/ubuntu&nbsp;natty main<br>deb http://ppa.launchpad.net/pkgcrosswire/ppa/ubuntu oneiric 
+main<br>deb http://ppa.launchpad.net/pkgcrosswire/ppa/ubuntu precise main</strong></font> </p>
+<p><strong>f.</strong> Close the 
+Software Sources, and return to the Synaptic Package Manager, <strong>click on "Reload"</strong> to insure you have the latest 
+information from the repositories. If you get an error, check that you have 
+entered the correct line into your Other Software (step e above).</p>
+<p><strong>g.</strong> Click on the 
+"Search" button and type <strong>bibledit-gtk</strong> in the 
+search box. When the&nbsp;bibledit-gtk and bibledit-gtk-data packages appear, look&nbsp;at the "Installed 
+Version" and "Latest Version" columns. Ensure that the version listed for 
+bibledit is <strong>at least 4.3</strong>. If no version is listed in 
+the "Installed Version", or if the "Latest Version" is newer than&nbsp;the 
+"Installed Version" listed you should mark the bibledit-gtk and bibledit-gtk-data entries for 
+installation or upgrade. To mark the bibledit-gtk and bibledit-gtk-data packages, right 
+click on them and select "Mark for Installation" or "Mark for Upgrade" from the 
+popup menu. Select the "Mark" button in the warning dialog. Then click on the 
+"Apply" button at the top of the Synaptic Package Manager application, and click 
+on the "Apply" button on the Summary dialog. Close Synaptic Package Manager 
+after it completes the installation of bibledit-gtk.<br/></p>
+<p><strong>Troubleshooting:</strong> if the only version of bibledit-gtk listed is lower than 4.3, take the following steps:<br>
+<ul><li> In the Synaptic 
+Package Manager application click on the <strong>Settings 
+&gt; Repositories</strong>.</li>
+<li>Click on the '<strong>Other 
+Software</strong>' tab.</li>
+<li>Uncheck any repository containing <strong>http://packages.sil.org</strong>.</li>
+<li>Repeat steps f and g above.</ul></p>
+
 <p>After their installation, both Adapt It 
 and&nbsp;Bibledit-Gtk should be listed in the Office menu (or can be found by 
 searching for adaptit or bibledit on Unity's Desk Home search bar). The next 
