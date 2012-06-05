@@ -79,7 +79,7 @@ protected:
 	void OnBtnSelectFromListTargetProj(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSelectFromListFreeTransProj(wxCommandEvent& WXUNUSED(event));
 	void OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event));
-	void DoSetControlsFromConfigFileCollabData();
+	void DoSetControlsFromConfigFileCollabData(bool bCreatingNewProject);
 	void OnNoFreeTrans(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByChapterOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioBtnByWholeBook(wxCommandEvent& WXUNUSED(event));

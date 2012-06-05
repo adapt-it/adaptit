@@ -709,10 +709,10 @@ void CSetupEditorCollaboration::OnNoFreeTrans(wxCommandEvent& WXUNUSED(event))
 
 void CSetupEditorCollaboration::OnComboBoxSelectAiProject(wxCommandEvent& WXUNUSED(event))
 {
-	DoSetControlsFromConfigFileCollabData(); // Sets all Temp collab values as read from proj config file
+	DoSetControlsFromConfigFileCollabData(FALSE); // Sets all Temp collab values as read from proj config file FALSE = we're NOT creating a new project
 }
 
-void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
+void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCreatingNewProject)
 {
 	int nSel = pComboAiProjects->GetSelection();
 	wxString selStr = pComboAiProjects->GetStringSelection();
@@ -1012,6 +1012,29 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 			tempStr = projList.Item(i);
 			pListOfProjects->Append(tempStr);
 		}
+	}
+
+	// The PT/BE project source and/or target name variables may be empty if they were empty in 
+	// the config file or when this function is called by OnCreateNewAIProject(). If one or both
+	// are empty strings, remind the user to use the "Select from List" buttons
+	if (m_TempCollabProjectForSourceInputs.IsEmpty() || m_TempCollabProjectForTargetExports.IsEmpty())
+	{
+		wxString msg = _("Please use the \"Select from list\" buttons to select the appropriate %s projects.");
+		msg = msg.Format(msg, m_TempCollaborationEditor.c_str());
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		if (m_TempCollabProjectForSourceInputs.IsEmpty())
+			this->pBtnSelectFmListSourceProj->SetFocus();
+		else
+			this->pBtnSelectFmListTargetProj->SetFocus();
+		return; // return here otherwise the block below will also flag these projects as invalid because
+				// they have no books created - the actual problem here is that they aren't projects found
+				// in the PT/BE list of projects.
+	}
+	// whm added 5Jun12. If we were called from OnCreateNewAIProject, the PT/BE project names
+	// won't have been entered, so we can just return without doing the checks below
+	if (bCreatingNewProject)
+	{
+		return;
 	}
 
 	// First check if the projects exist in the list of PT/BE projects. If they don't exist there
@@ -1329,20 +1352,11 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 		m_pApp->m_CollabProjectForTargetExports = _T("");
 		m_pApp->m_CollabProjectForFreeTransExports = _T("");
 		m_pApp->m_CollabAIProjectName = _T("");
-		// If neither Paratext nor Bibledit are installed, the m_collaborationEditor is
-		// an empty string. Since m_collaborationEditor can be an empty string, code should
-		// call wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
-		// substitutions.
-		// whm 4Jun12 Note: Shouldn't the m_TempCollaborationEditor be use below in setting
-		// the App's m_collaborationEditor member? TODO: Check this!!
-		if (m_pApp->m_bParatextIsInstalled)
-		{
-			m_pApp->m_collaborationEditor = _T("Paratext"); // default editor
-		}
-		else if (m_pApp->m_bBibleditIsInstalled)
-		{
-			m_pApp->m_collaborationEditor = _T("Bibledit"); // don't localize
-		}
+		
+		// whm 4Jun12 Note: The m_TempCollaborationEditor value should be used for setting
+		// the App's m_collaborationEditor member.
+		m_pApp->m_collaborationEditor = m_TempCollaborationEditor; // selected editor
+		
 		m_pApp->m_CollabSourceLangName = _T("");
 		m_pApp->m_CollabTargetLangName = _T("");
 		m_pApp->m_bCollabByChapterOnly = TRUE; // FALSE means the "whole book" option
@@ -1407,7 +1421,7 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			wxString msg = _("An Adapt It project called \"%s\" was successfully created. It will appear as an Adapt It project in the \"Select a Project\" list of the Start Working Wizard.\n\nContinue through steps 2 through 4 below to set up this Adapt It project to collaborate with %s.");
 			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_TempCollaborationEditor.c_str());
 			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION);
-			DoSetControlsFromConfigFileCollabData(); // Sets all Temp collab values as read from project config file
+			DoSetControlsFromConfigFileCollabData(TRUE); // Sets all Temp collab values as read from project config file TRUE = we're creating a new project
 			// Override the AI Proj Name related Temp values with the new AI project's name (from above)
 			this->m_TempCollabSourceProjLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
 			this->m_TempCollabTargetProjLangName = newProjDlg.pTextCtrlTgtLangName->GetValue();
