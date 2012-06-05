@@ -164,7 +164,12 @@ CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	
+
+// whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
+#if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
+	wxCHECK_RET(FALSE,_T("!!! Programming Error !!!\n\nComment out the FORCE_BIBLEDIT_IS_INSTALLED_FLAG define in Adapt_It.h for normal debug builds - otherwise the GetSourceTextFromEditor dialog will not work properly!"));
+#endif
+
 	// Note: the wxListItem which is the column has to be on the heap, because if made a local
 	// variable then it will go out of scope and be lost from the wxListCtrl before the
 	// latter has a chance to display anything, and then nothing will display in the control

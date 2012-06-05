@@ -11351,6 +11351,22 @@ bool CAdapt_ItApp::ParatextIsInstalled()
 
 bool CAdapt_ItApp::BibleditIsInstalled()
 {
+
+// whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
+// is set at the beginning of Adapt_It.h. When set it does the following:
+// 1. Forces the this BibleditIsInstalled() function to return TRUE
+// 2. Forces the App's m_bBibleditIsInstalled member to be TRUE
+// 3. Forces the GetListOfBEProjects() function to return an array of three
+//    dummy Bibledit project names: Nyindrou, Tok Pisin, and Free Trans. See the
+//    GetListOfBEProjects() function.
+// 4. Forces the CollabProjectIsEditable() function (in CollabUtilities.cpp) to
+//    return TRUE.
+// 5. Forces the CollabProjectHasAtLeastOneBook() function (in CollabUtilities.cpp)
+//    to return TRUE.
+#if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
+	return TRUE;
+#else
+
 	bool bBEInstalled;
 	bBEInstalled = FALSE;
 	wxString pathToExecutable;
@@ -11383,6 +11399,8 @@ bool CAdapt_ItApp::BibleditIsInstalled()
 
 	m_bBibleditIsInstalled = bBEInstalled; // set the App's flag
 	return bBEInstalled;
+
+#endif // of #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
 }
 
 #ifdef __WXGTK__ // only used for mono / linux
@@ -43054,6 +43072,18 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 // "shortName"  [note that in Bibledit's case shortName == fullName == languageName]
 wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 {
+
+// whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
+#if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
+	wxArrayString tempListOfBEProjects;
+	tempListOfBEProjects.Clear();
+	tempListOfBEProjects.Add(_T("Nyindrou"));	
+	tempListOfBEProjects.Add(_T("Tok Pisin"));
+	// Comment out the next one to test with Bibledit having just two projects
+	tempListOfBEProjects.Add(_T("Free Trans"));	
+	return tempListOfBEProjects;
+#else
+
 	wxArrayString tempListOfBEProjects, tempListOfAllBEProjects;
 	tempListOfBEProjects.Clear();
   	tempListOfAllBEProjects.Clear();
@@ -43397,8 +43427,9 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 			}
 		}
 	}
-
 	return tempListOfBEProjects;
+
+#endif // of #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
 }
 
 wxString CAdapt_ItApp::GetBibleditBooksPresentFlagsStr(wxString projPath)
