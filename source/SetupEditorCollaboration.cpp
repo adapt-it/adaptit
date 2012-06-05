@@ -458,7 +458,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 	// We can, however, check to see if that project does not have any books created,
 	// in which case, we disallow the choice of that PT/BE project for storing target
 	// texts.
-	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForSourceInputs))
+	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForSourceInputs,m_TempCollaborationEditor))
 	{
 		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
 		// The book does not have at least one book in the Source project
@@ -559,7 +559,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 	// We can, however, check to see if that project does not have any books created,
 	// in which case, we disallow the choice of that PT/BE project for storing target
 	// texts.
-	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForTargetExports))
+	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForTargetExports,m_TempCollaborationEditor))
 	{
 		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
 		// The book does not have at least one book in the Target project
@@ -662,7 +662,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 	// We can, however, check to see if that project does not have any books created,
 	// in which case, we disallow the choice of that PT/BE project for storing free
 	// translations.
-	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports))
+	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor))
 	{
 		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
 		// The book does not have at least one book in the Free Trans project
@@ -1190,7 +1190,7 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData()
 	// string parameters that don't have at least one book created in them. Therefore, selecting an AI
 	// project that has no collaboration settings won't trigger the "Invalid PT/BE projects detected" message below.
 	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
-							m_TempCollabProjectForFreeTransExports, errorStr, errProj))
+							m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, errorStr, errProj))
 	{
 		wxString msg = _("Adapt It detected invalid collaboration settings for the \"%s\" project in its project configuration file. The invalid %s project data is:\n%s");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());
@@ -1541,7 +1541,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	// above has already ensured that at least the m_TempCollabProjectForSourceInputs and m_TempCollabProjectForTargetExports
 	// strings are non-empty.
 	if (!CollabProjectsAreValid(m_TempCollabProjectForSourceInputs, m_TempCollabProjectForTargetExports,
-							m_TempCollabProjectForFreeTransExports, errorStr, errProj))
+							m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor, errorStr, errProj))
 	{
 		wxString msg = _("The following %s projects are not valid for collaboration:\n%s");
 		wxASSERT(!m_TempCollaborationEditor.IsEmpty());

@@ -13005,7 +13005,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			// can select a correct PT/BE project for the free trans.
 			if (bFoundCollabFreeTransProj)
 			{
-				if (!CollabProjectHasAtLeastOneBook(CollabFreeTransProjStrFound))
+				if (!CollabProjectHasAtLeastOneBook(CollabFreeTransProjStrFound,m_collaborationEditor))
 				{
 					// There is not at least one book in the Source project
 					wxString msgAdd;
@@ -13236,7 +13236,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			wxString errStr = _T("");
 			wxString errProj = _T("");
 			if (!CollabProjectsAreValid(CollabSrcProjStrFound, CollabTgtProjStrFound, 
-									CollabFreeTransProjStrFound, errStr, errProj))
+									CollabFreeTransProjStrFound, m_collaborationEditor,
+									errStr, errProj))
 			{
 				errorStr = errStr;
 				errorProjects = errProj;

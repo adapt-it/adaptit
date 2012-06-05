@@ -200,9 +200,10 @@ class CSourcePhrase;
 	///     to the external editor, when doing collaboration
 	/////////////////////////////////////////////////////////////////////////////////////
 	bool			BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName);
-	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName);
+	bool			CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor);
 	bool			CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName, 
-							wxString frtrCompositeProjName, wxString& errorStr, wxString& errorProjects);
+							wxString frtrCompositeProjName, wxString collabEditor,
+							wxString& errorStr, wxString& errorProjects);
 	wxString		GetPathToRdwrtp7(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetPathToBeRdwrt(); // used in GetSourceTextFromEditor::OnInit() and CollabUtilities.cpp
 	wxString		GetBibleditInstallPath();  // used in GetSourceTextFromEditor::OnInit()

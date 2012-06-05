@@ -2255,6 +2255,7 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 /// \return            TRUE if the projCompositeName of the PT/BE collab project 
 ///                     is non-empty and has at least one book defined in it
 /// \param projCompositeName     ->  the PT/BE project's composite string
+/// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
 /// \remarks
 /// Called from: CollabUtilities' CollabProjectsAreValid(), 
 /// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(), 
@@ -2268,7 +2269,7 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 /// the current Collab_Project_Info_Struct object for that project on the heap 
 /// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags 
 /// member for the existence of at least one book in that project.
-bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
+bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor)
 {
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
@@ -2281,15 +2282,15 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 		return FALSE;
 	int ct, tot;
 	// get list of PT/BE projects
-	wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
+	wxASSERT(!collabEditor.IsEmpty());
 	wxArrayString projList;
 	projList.Clear();
 	// The calls below to GetListOfPTProjects() and GetListOfBEProjects() populate the App's m_pArrayOfCollabProjects
-	if (gpApp->m_collaborationEditor == _T("Paratext"))
+	if (collabEditor == _T("Paratext"))
 	{
 		projList = gpApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
-	else if (gpApp->m_collaborationEditor == _T("Bibledit"))
+	else if (collabEditor == _T("Bibledit"))
 	{
 		projList = gpApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
 	}
@@ -2325,6 +2326,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 /// \param srcCompositeProjName     ->  the PT/BE's source project's composite string
 /// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
 /// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
+/// \param collabEditor             -> the collaboration editor, either "Paratext" or "Bibledit"
 /// \param errorStr               <-  a wxString (multi-line) representing any error information 
 ///                                     for when a FALSE value is returned from the function
 /// \param errorProjects          <-  a wxString representing "source", "target" "freetrans", or
@@ -2342,14 +2344,15 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 /// errorProjects string will also return to the caller a string indicating which type of project
 /// the errors apply to, i.e., "source" or "source:freetrans", etc.
 bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
-							wxString freeTransCompositeProjName, wxString& errorStr, wxString& errorProjects)
+							wxString freeTransCompositeProjName, wxString collabEditor,
+							wxString& errorStr, wxString& errorProjects)
 {
 	wxString errorMsg = _T("");
 	wxString errorProj = _T("");
 	bool bSrcProjOK = TRUE;
 	if (!srcCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName))
+		if (!CollabProjectHasAtLeastOneBook(srcCompositeProjName,collabEditor))
 		{
 			bSrcProjOK = FALSE;
 
@@ -2370,7 +2373,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	bool bTgtProjOK = TRUE;
 	if (!tgtCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName))
+		if (!CollabProjectHasAtLeastOneBook(tgtCompositeProjName,collabEditor))
 		{
 			bTgtProjOK = FALSE;
 
@@ -2391,7 +2394,7 @@ bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtComposite
 	// freeTransCompositeProjName is non-empty and fails the CollabProjectHasAtLeastOneBook test.
 	if (!freeTransCompositeProjName.IsEmpty())
 	{
-		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName))
+		if (!CollabProjectHasAtLeastOneBook(freeTransCompositeProjName,collabEditor))
 		{
 			bFreeTrProjOK = FALSE;
 
