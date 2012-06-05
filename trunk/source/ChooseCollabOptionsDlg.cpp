@@ -160,7 +160,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	wxString errorStr = _T("");
 	wxString errProj = _T("");
 	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports, 
-							m_pApp->m_CollabProjectForFreeTransExports, errorStr, errProj))
+							m_pApp->m_CollabProjectForFreeTransExports, m_pApp->m_collaborationEditor, errorStr, errProj))
 	{
 		pStaticAsTextCtrlNotInstalledErrorMsg->Show(TRUE); // make it visible
 		wxString msg;

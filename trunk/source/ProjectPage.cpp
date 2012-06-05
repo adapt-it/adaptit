@@ -796,7 +796,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					wxString errStr = _T("");
 					wxString errProj = _T("");
 					if (!CollabProjectsAreValid(gpApp->m_CollabProjectForSourceInputs, gpApp->m_CollabProjectForTargetExports, 
-											gpApp->m_CollabProjectForFreeTransExports, errStr, errProj))
+											gpApp->m_CollabProjectForFreeTransExports, gpApp->m_collaborationEditor, errStr, errProj))
 					{
 						wxString msg = _("Sorry, the projects you selected have the following problem:\n%s\n\nCollaboration is not possible until the necessary %s projects have been set up. Please ask your administrator to set up %s with the projects necessary for collaboration with Adapt It.");
 						msg = msg.Format(msg,errStr.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
