@@ -72,7 +72,7 @@ public:
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void DoInit();
+	void DoInit(bool bPrompt);
 	void OnCancel(wxCommandEvent& event);
 	void OnClose(wxCommandEvent& event); // void OnOK(wxCommandEvent& event);
 	void OnBtnSelectFromListSourceProj(wxCommandEvent& WXUNUSED(event));
