@@ -21,7 +21,7 @@ APTCACHE="/var/cache/pbuilder/$NAME/aptcache/"
 #HOOKDIR="/var/cache/pbuilder/hook.d"
 
 case "$DIST" in
-    oneiric|natty|maverick|lucid|karmic|jaunty|intrepid|hardy|gutsy|feisty) # ubuntu specific
+    precise|oneiric|natty|maverick|lucid|karmic|jaunty|intrepid|hardy|gutsy|feisty) # ubuntu specific
         case "$ARCH" in 
             lpia)
                 #MIRRORSITE="http://ie.archive.ubuntu.com/ubuntu"
