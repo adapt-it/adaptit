@@ -258,10 +258,10 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 		pComboAiProjects->Append(aiProjectNamesArray.Item(ct));
 	}
 
-	DoInit(); // empties m_Temp... variables for a new collab setup
+	DoInit(FALSE); // empties m_Temp... variables for a new collab setup // FALSE = don't prompt
 }
 
-void CSetupEditorCollaboration::DoInit()
+void CSetupEditorCollaboration::DoInit(bool bPrompt)
 {
 	// DoInit() is called in the dialog's InitiDialog() handler and also in the OnRadioBoxSelectBtn()
 	// handler.
@@ -375,6 +375,21 @@ void CSetupEditorCollaboration::DoInit()
 	pTextCtrlAsStaticSelectedSourceProj->ChangeValue(m_TempCollabProjectForSourceInputs);
 	pTextCtrlAsStaticSelectedTargetProj->ChangeValue(m_TempCollabProjectForTargetExports);
 	pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(m_TempCollabProjectForFreeTransExports);
+	
+	// whm added 5Jun12
+	if (bPrompt)
+	{
+		if (m_TempCollabProjectForSourceInputs.IsEmpty() || m_TempCollabProjectForTargetExports.IsEmpty())
+		{
+			wxString msg = _("Please use the \"Select from list\" buttons to select the appropriate %s projects.");
+			msg = msg.Format(msg, m_TempCollaborationEditor.c_str());
+			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+			if (m_TempCollabProjectForSourceInputs.IsEmpty())
+				this->pBtnSelectFmListSourceProj->SetFocus();
+			else
+				this->pBtnSelectFmListTargetProj->SetFocus();
+		}
+	}
 
 	pSetupEditorCollabSizer->Layout();
 	// The second radio button's label text is likely going to be truncated unless we resize the
@@ -1881,5 +1896,5 @@ void CSetupEditorCollaboration::OnRadioBoxSelectBtn(wxCommandEvent& WXUNUSED(eve
 		// "Bibledit" button selected
 		m_TempCollaborationEditor = _T("Bibledit");
 	}
-	DoInit();
+	DoInit(TRUE); // TRUE = prompt reminder to use Select from List buttons
 }
