@@ -1,0 +1,19 @@
+Source: adaptit
+Section: editors
+Priority: optional
+Maintainer: Bill Martin <bill_martin@sil.org>
+Build-Depends: debhelper (>= 5), libwxgtk2.8-dev, zip
+Standards-Version: 3.7.2
+
+Package: adaptit
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Adapt It
+ Adapt It gives you tools for translating text from one language which you know, to another related language known to you or a co-worker.
+
+Package: adaptit-docs
+Architecture: any
+Depends: adaptit
+Description: Adapt It Documentation and Localization
+ Documentation and localization for Adapt It.
+ Adapt It gives you tools for translating text from one language which you know, to another related language known to you or a co-worker.
