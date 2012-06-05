@@ -1997,6 +1997,11 @@ void UnloadKBs(CAdapt_ItApp* pApp)
 
 bool CollabProjectIsEditable(wxString projShortName)
 {
+// whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
+#if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
+	return TRUE;
+#else
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// check whether the projListItem has the <Editable>T</Editable> attribute which
 	// we can just query our pPTInfo->bProjectIsEditable attribute for the project
@@ -2008,6 +2013,7 @@ bool CollabProjectIsEditable(wxString projShortName)
 		return TRUE;
 	else
 		return FALSE;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2264,6 +2270,11 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 /// member for the existence of at least one book in that project.
 bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 {
+// whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
+#if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
+	return TRUE;
+#else
+
 	wxString collabProjShortName;
 	collabProjShortName = GetShortNameFromProjectName(projCompositeName);
 	if (collabProjShortName.IsEmpty())
@@ -2304,6 +2315,8 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName)
 	{
 		return FALSE;
 	}
+
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////

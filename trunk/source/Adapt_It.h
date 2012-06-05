@@ -21,6 +21,24 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
+// whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
+// is set at the beginning of Adapt_It.h. When set it does the following:
+// 1. Forces the this BibleditIsInstalled() function to return TRUE
+// 2. Forces the App's m_bBibleditIsInstalled member to be TRUE
+// 3. Forces the GetListOfBEProjects() function to return an array of three
+//    dummy Bibledit project names: Nyindrou, Tok Pisin, and Free Trans. See the
+//    GetListOfBEProjects() function.
+// 4. Forces the CollabProjectIsEditable() function (in CollabUtilities.cpp) to
+//    return TRUE.
+// 5. Forces the CollabProjectHasAtLeastOneBook() function (in CollabUtilities.cpp)
+//    to return TRUE.
+// WARNING: This define should be set only for debugging the Setup Collaboration
+// dialog. It will not enable any fetching or saving of documents, so it should
+// not be defined when the GetSourceTextFromEditor dialog is called!!
+#if defined(__WXDEBUG__)
+//#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
+#endif
+
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
 
