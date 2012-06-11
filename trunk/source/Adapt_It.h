@@ -58,12 +58,12 @@ const int ID_MENU_DVCS_LOG_FILE			= 989;
 const int ID_MENU_DVCS_LOG_PROJECT		= 988;
 
 // Action codes for calling the DVCS:
-enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY, 
+enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY,
 		DVCS_ADD_FILE, DVCS_ADD_ALL_FILES,
 		DVCS_REMOVE_FILE, DVCS_REMOVE_PROJECT,
 		DVCS_COMMIT_FILE, DVCS_REVERT_FILE,
-		DVCS_LOG_FILE, DVCS_LOG_PROJECT, 
-		DVCS_LATEST_REVISION, DVCS_PREV_REVISION };     
+		DVCS_LOG_FILE, DVCS_LOG_PROJECT,
+		DVCS_LATEST_REVISION, DVCS_PREV_REVISION };
 				// More to be added as they come up
 
 
@@ -205,7 +205,7 @@ const wxString appVerStr(_T("6.2.2"));
 #include <wx/datetime.h>
 #include <wx/file.h>
 #include <wx/ffile.h>
-
+#include <wx/mstream.h> // edb 08June2012 - add for embedded .png support
 
 // Does wxWidgets recognize/utilize these clipboard defines???
 #ifdef _UNICODE
@@ -953,7 +953,7 @@ enum AiProjectCollabStatus
 	collabProjNotConfigured,
 };
 
-/// An enum for specifying the program mode for use in the 
+/// An enum for specifying the program mode for use in the
 /// MakeMenuInitializationsAdnPlatformAdjustments(). Values can
 /// be one of the following: collabIndeterminate, collabAvailableTurnedOn,
 /// collabAvailableTurnedOff, or collabAvailableReadOnlyOn.
@@ -2060,7 +2060,7 @@ public:
 	//  probably be the user name + machine name.  "****" means "unassigned, up for grabs".
 	//  We only assign this string if version control is enabled.  If a different user
 	//  opens the document, it will come up read-only.
-	
+
 #define  UNASSIGNED  _T("****")			// a real user can't have asterisks, and must have "@"
 
 	wxString	m_AIuser;				// e.g. joe bloggs@joesMachine
@@ -2197,7 +2197,7 @@ public:
 	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
 
 	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/* 
+	/*
 	bool m_bForceCollabModeON; // whm added 17Jan12
 	bool m_bForceCollabModeOFF; // whm added 17Jan12
 	bool m_bForceCollabExpectsFreeTrans; // whm added 9Feb12
@@ -3007,7 +3007,7 @@ public:
 	// BEW added 25Aug11, to suppress warning message about project existing coming from
 	// SetupDirectories() when a Retranslation Report is being processed in collab mode
 	bool		m_bRetransReportInProgress;
-	
+
 	// mrh added 2May12, likewise to suppress the warning when we're re-opening a document that's
 	// been changed externally.
 	bool		m_bDocReopeningInProgress;
@@ -3043,12 +3043,12 @@ public:
 									// This feature was added at Kim B.'s request so that an
 									// administrator can temporarily get default menus to be seen
 									// while working on a user's computer system.
-	bool m_bAiSessionExpectsUserDefinedProfile; // The m_bAiSessionExpectsUserDefinedProfile flag 
-									// is FALSE at initial program startup, but would be set to TRUE if, 
-									// when reading the basic config file, the WorkflowProfile value 
-									// there is a non-zero value. The flag could be set back to false 
-									// during the current session if the administrator were to access 
-									// the Administrator menu's "User Workflow Profiles..." menu and 
+	bool m_bAiSessionExpectsUserDefinedProfile; // The m_bAiSessionExpectsUserDefinedProfile flag
+									// is FALSE at initial program startup, but would be set to TRUE if,
+									// when reading the basic config file, the WorkflowProfile value
+									// there is a non-zero value. The flag could be set back to false
+									// during the current session if the administrator were to access
+									// the Administrator menu's "User Workflow Profiles..." menu and
 									// change the user profile setting s back to "None".
 	int m_nTempWorkflowProfile;		// A variable to save temporarily the m_nWorkflowProfile value
 									// while the m_bTemporarilyRestoreProfilesToDefaults (above) is TRUE.
@@ -3430,6 +3430,14 @@ protected:
 #endif
 
 public:
+// EDB 08June2012 Image processing
+#define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
+inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
+    wxMemoryInputStream is(data, length);
+    return wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1);
+}
+// end EDB
+
 	// whm 25Sep11 added the following two functions
 	bool	DocHasGlosses(SPList* pSPList);
 	bool	DocHasFreeTranslations(SPList* pSPList);
@@ -3518,11 +3526,11 @@ public:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
 	// it as the installed external Scripture editor for collaboration. If neither
 	// Paratext nor Bibledit are installed, the m_collaborationEditor is an empty
-	// string. Since m_collaborationEditor can be an empty string, code should call 
-	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string 
+	// string. Since m_collaborationEditor can be an empty string, code should call
+	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
 	// substitutions.
 	wxString m_collaborationEditor;
-	
+
 	wxString m_CollabProjectForSourceInputs;
 	wxString m_CollabProjectForTargetExports;
 	wxString m_CollabProjectForFreeTransExports;
@@ -3576,16 +3584,16 @@ public:
 	wxString GetAdaptit_Bibledit_rdwrtInstallDirPath(); // whm added 18Dec11
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
-	
+
 	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
 	//void ForceCollabSettingsFromCommandLineSwitches();
 
-	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray, 
-													   wxArrayString& collabSettingsArray);	
+	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
+													   wxArrayString& collabSettingsArray);
 	bool IsAIProjectOpen();
 	bool AIProjectHasCollabDocs(wxString m_projectName);
 	bool AIProjectIsACollabProject(wxString m_projectName);
-	enum AiProjectCollabStatus GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr, 
+	enum AiProjectCollabStatus GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
 		bool& bChangeMadeToCollabSettings, wxString& errorProjects);
     void SetFolderProtectionFlagsFromCombinedString(wxString combinedStr);
 
