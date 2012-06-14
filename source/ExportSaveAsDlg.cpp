@@ -143,7 +143,7 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	Panel1->SetSizer(BoxSizer1);
 	BoxSizer1->Fit(Panel1);
 	BoxSizer1->SetSizeHints(Panel1);
-	FlexGridSizer1->Add(Panel1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Description"));
 	lblExportTypeDescription = new wxStaticText(this, ID_LBLEXPORTTYPEDESCRIPTION, _("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean posuere dictum sem id elementum. Mauris lobortis, sapien nec iaculis condimentum, turpis risus posuere turpis, vel condimentum magna libero at lectus."), wxDefaultPosition, wxSize(425,75), 0, _T("ID_LBLEXPORTTYPEDESCRIPTION"));
 	StaticBoxSizer1->Add(lblExportTypeDescription, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
