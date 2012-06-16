@@ -1113,7 +1113,7 @@
 				MACOSX_DEPLOYMENT_TARGET = "";
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				USER_HEADER_SEARCH_PATHS = "$(inherited)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -1126,7 +1126,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				WARNING_CFLAGS = "";
 			};
 			name = UnicodeRelease;

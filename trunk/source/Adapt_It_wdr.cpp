@@ -19,19 +19,6 @@
 
 #include <wx/intl.h>
 
-// Euro sign hack of the year
-#if wxUSE_UNICODE
-    #define __WDR_EURO__ wxT("\u20ac")
-#else
-    #if defined(__WXMAC__)
-        #define __WDR_EURO__ wxT("\xdb")
-    #elif defined(__WXMSW__)
-        #define __WDR_EURO__ wxT("\x80")
-    #else
-        #define __WDR_EURO__ wxT("\xa4")
-    #endif
-#endif
-
 // Custom source
 /////////////////////////////////////////////////////////////////////////////
 /// \project		Adapt It wxWidgets
@@ -103,7 +90,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2012, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2011, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -472,7 +459,7 @@ wxSizer *OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     item0->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxString *strs3 = (wxString*) NULL;
-    wxListBox *item3 = new wxListBox( parent, IDC_LISTBOX_ADAPTIONS, wxDefaultPosition, wxSize(400,120), 0, strs3, wxLB_SINGLE|wxLB_SORT|wxLB_HSCROLL|wxLB_NEEDED_SB );
+    wxListBox *item3 = new wxListBox( parent, IDC_LISTBOX_ADAPTIONS, wxDefaultPosition, wxSize(400,120), 0, strs3, wxLB_SINGLE|wxLB_SORT|wxLB_HSCROLL );
     item3->SetToolTip( _("Select a project from this list") );
     item0->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -524,8 +511,6 @@ wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item1->Add( 20, 10, 0, wxALIGN_CENTER, 0 );
 
     wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 0 );
-    item5->AddGrowableCol( 1 );
-    item5->AddGrowableRow( 0 );
 
     item5->Add( 20, 20, 1, wxALIGN_CENTER, 5 );
 
@@ -534,6 +519,10 @@ wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item5->Add( item6, 5, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item5->Add( 20, 20, 1, wxALIGN_CENTER, 5 );
+
+    item5->AddGrowableCol( 1 );
+
+    item5->AddGrowableRow( 0 );
 
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -1165,10 +1154,6 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxFlexGridSizer *item10 = new wxFlexGridSizer( 3, 1, 3 );
-    item10->AddGrowableCol( 0 );
-    item10->AddGrowableCol( 1 );
-    item10->AddGrowableCol( 2 );
-    item10->AddGrowableRow( 1 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_SL, _("Source Language"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -1230,6 +1215,14 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item26 = new wxButton( parent, IDC_BUTTON_SRC_COPY_TO_GLOSS, _("Copy To Gloss List"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->SetToolTip( _("Copy the source lower-upper case equivalences above to the gloss list") );
     item10->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item10->AddGrowableCol( 0 );
+
+    item10->AddGrowableCol( 1 );
+
+    item10->AddGrowableCol( 2 );
+
+    item10->AddGrowableRow( 1 );
 
     item2->Add( item10, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -1958,10 +1951,6 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item11 = new wxFlexGridSizer( 2, 0, 10 );
-    item11->AddGrowableCol( 0 );
-    item11->AddGrowableRow( 1 );
-    item11->AddGrowableRow( 3 );
-    item11->AddGrowableRow( 5 );
 
     wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Source Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -2004,6 +1993,14 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item23 = new wxTextCtrl( parent, ID_EDIT_GLOSS_LANG_CODE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item23->SetToolTip( _("This is the 3-letter target language code") );
     item11->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item11->AddGrowableCol( 0 );
+
+    item11->AddGrowableRow( 1 );
+
+    item11->AddGrowableRow( 3 );
+
+    item11->AddGrowableRow( 5 );
 
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -3195,93 +3192,70 @@ wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
 wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
 
-    wxStaticText *item1 = new wxStaticText( parent, IDC_STATIC_TITLE, _("Export Source Text"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxPanel *item1 = new wxPanel( parent, ID_PNLEXPORT, wxDefaultPosition, wxSize(-1,58), wxTAB_TRAVERSAL );
+    item1->SetName( wxT("pnlExport") );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Description") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
 
-    wxStaticBox *item4 = new wxStaticBox( parent, -1, _("Export File Format Options:") );
-    wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxVERTICAL );
+    wxStaticText *item4 = new wxStaticText( parent, ID_LBLEXPORTTYPEDESCRIPTION, _("lblDescription"), wxDefaultPosition, wxSize(425,-1), 0 );
+    item4->SetName( wxT("lblExportTypeDescription") );
+    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item5 = new wxRadioButton( parent, IDC_RADIO_EXPORT_AS_SFM, _("&Standard Format Text File (.txt)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->SetToolTip( _("Click this button to export the open document as a text formatted with standard format markers") );
-    item3->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+    wxStaticBox *item6 = new wxStaticBox( parent, -1, _("Export Filters") );
+    wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
 
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_1, _("Select Standard Format Text File if you want to create a file having backslash markers that can be used as a source text for another Adapt It project, or that can be edited in a text editor, or loaded into the Paratext program."), wxDefaultPosition, wxSize(450,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item7 = new wxRadioButton( parent, ID_RDOFILTEROFF, _("Export &all markers and text"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item7->SetName( wxT("rdoFilterOff") );
+    item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item3->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item8 = new wxRadioButton( parent, IDC_RADIO_EXPORT_AS_RTF, _("&Rich Text Format (RTF) Document File (.rtf)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetToolTip( _("Click this button to export the open document in a Rich Text Format (RTF) that can be opened and printed out from Word") );
-    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RDOFILTERON, _("&Filter out selected markers and text:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetName( wxT("rdoFilterOn") );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+    wxButton *item10 = new wxButton( parent, ID_BTNFILTEROPTIONS, _("&Options..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
+    item10->SetName( wxT("btnFilterOptions") );
+    item8->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_2, _("Select Rich Text Format if you want to create a file that can be loaded into a Word processor like MS Word. Adapt It will format the file using the Word Scripture Template, so that you can print it in a publishable format. NOTE: RTF files can be very large, so do not try to export an RTF file from Adapt It to a floppy disk."), wxDefaultPosition, wxSize(450,50), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item9->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item5->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item3->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("Export Document Content:") );
+    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("Export filename prefixes and suffixes:") );
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
+    wxCheckBox *item13 = new wxCheckBox( parent, ID_CHKPROJECTNAMEPREFIX, _("Use project name prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_EXPORT_SAVE_AS_3, _("Document export will include ALL standard format markers and the text associated with them (including any filtered markers). If you do not want to export everything, click on the \"Export Filter/Options\" button below to specify what to exclude from exports."), wxDefaultPosition, wxSize(450,50), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item14 = new wxCheckBox( parent, ID_CHKTARGETTEXTPREFIX, _("Use export type prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item11->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item15 = new wxCheckBox( parent, ID_CHKDATETIMESUFFIX, _("Use date-time suffix on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item15 = new wxButton( parent, IDC_BUTTON_EXPORT_FILTER_OPTIONS, _("Export &Filter/Options"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
-    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item11->Add( 400, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticBox *item17 = new wxStaticBox( parent, -1, _("Export filename prefixes and suffixes:") );
-    wxStaticBoxSizer *item16 = new wxStaticBoxSizer( item17, wxVERTICAL );
+    item16->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item18 = new wxCheckBox( parent, ID_CHECKBOX_PREFIX_EXPORT_PROJ_NAME, _("Use project name prefix %s on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStdDialogButtonSizer *item17 = new wxStdDialogButtonSizer;
+    { wxButton *button = new wxButton( parent, wxID_OK );
+      button->SetDefault();
+      item17->AddButton( button ); }
+    item17->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item17->Realize();
+    item16->Add( item17, 0, wxGROW|wxALL, 5 );
 
-    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_PREFIX_EXPORT_TYPE, _("Use export type prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxCheckBox *item20 = new wxCheckBox( parent, ID_CHECKBOX_SUFFIX_EXPORT_DATETIME_STAMP, _("Use date-time suffix on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item11->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item2->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
-
-    item21->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item22 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetDefault();
-    item22->SetToolTip( _("Click OK to continue the export process (a file dialog will appear next)") );
-    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item21->Add( 10, 10, 0, wxALIGN_CENTER, 0 );
-
-    wxButton *item23 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Click Cancel to stop the export and close the dialog") );
-    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item21->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item2->Add( item21, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -3372,10 +3346,6 @@ wxSizer *ExportInterlinearDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item19->Add( 20, 10, 0, wxALIGN_CENTER, 5 );
 
     wxFlexGridSizer *item20 = new wxFlexGridSizer( 4, 3, 0 );
-    item20->AddGrowableCol( 1 );
-    item20->AddGrowableCol( 3 );
-    item20->AddGrowableRow( 0 );
-    item20->AddGrowableRow( 1 );
 
     wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("from: chapter"), wxDefaultPosition, wxDefaultSize, 0 );
     item20->Add( item21, 0, wxALIGN_CENTER, 5 );
@@ -3408,6 +3378,14 @@ wxSizer *ExportInterlinearDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item28->SetToolTip( _("Type an ending verse number here") );
     item28->Enable( false );
     item20->Add( item28, 1, wxGROW, 5 );
+
+    item20->AddGrowableCol( 1 );
+
+    item20->AddGrowableCol( 3 );
+
+    item20->AddGrowableRow( 0 );
+
+    item20->AddGrowableRow( 1 );
 
     item19->Add( item20, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -3503,10 +3481,6 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item4 = new wxFlexGridSizer( 3, 0, 0 );
-    item4->AddGrowableCol( 0 );
-    item4->AddGrowableCol( 1 );
-    item4->AddGrowableCol( 2 );
-    item4->AddGrowableRow( 1 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("&Marker:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item5, 0, wxALIGN_CENTER, 5 );
@@ -3578,6 +3552,14 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     item4->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item4->AddGrowableCol( 0 );
+
+    item4->AddGrowableCol( 1 );
+
+    item4->AddGrowableCol( 2 );
+
+    item4->AddGrowableRow( 1 );
 
     item3->Add( item4, 1, wxGROW, 0 );
 
@@ -3713,9 +3695,6 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 0 );
 
     wxFlexGridSizer *item3 = new wxFlexGridSizer( 1, 0, 0, 0 );
-    item3->AddGrowableCol( 0 );
-    item3->AddGrowableCol( 1 );
-    item3->AddGrowableRow( 1 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
@@ -3752,6 +3731,12 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item3->Add( item9, 1, wxGROW|wxALL, 0 );
 
+    item3->AddGrowableCol( 0 );
+
+    item3->AddGrowableCol( 1 );
+
+    item3->AddGrowableRow( 1 );
+
     item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Choose an action: ") );
@@ -3776,9 +3761,6 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item1->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxFlexGridSizer *item20 = new wxFlexGridSizer( 1, 0, 0, 3 );
-    item20->AddGrowableCol( 0 );
-    item20->AddGrowableCol( 1 );
-    item20->AddGrowableRow( 1 );
 
     wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
 
@@ -3861,6 +3843,12 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item26->Add( item40, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     item20->Add( item26, 1, wxGROW|wxALL, 0 );
+
+    item20->AddGrowableCol( 0 );
+
+    item20->AddGrowableCol( 1 );
+
+    item20->AddGrowableRow( 1 );
 
     item1->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -4278,11 +4266,7 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxNotebook *item7 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
-#if !wxCHECK_VERSION(2,5,2)
-    wxNotebookSizer *item6 = new wxNotebookSizer( item7 );
-#else
-    wxWindow *item6 = item7;
-#endif
+wxWindow *item6 = item7;
 
     wxPanel *item8 = new wxPanel( item7, -1 );
     KBEditorPanelFunc( item8, FALSE );
@@ -4456,10 +4440,6 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxFlexGridSizer *item4 = new wxFlexGridSizer( 3, 0, 0 );
-    item4->AddGrowableCol( 0 );
-    item4->AddGrowableCol( 2 );
-    item4->AddGrowableRow( 0 );
-    item4->AddGrowableRow( 1 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
@@ -4520,6 +4500,14 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item4->AddGrowableCol( 0 );
+
+    item4->AddGrowableCol( 2 );
+
+    item4->AddGrowableRow( 0 );
+
+    item4->AddGrowableRow( 1 );
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -4817,9 +4805,6 @@ wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
-    item1->AddGrowableCol( 0 );
-    item1->AddGrowableCol( 1 );
-    item1->AddGrowableRow( 1 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("&Select a Consistent Changes (CC) Table:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -4857,6 +4842,12 @@ wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item5->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->AddGrowableCol( 0 );
+
+    item1->AddGrowableCol( 1 );
+
+    item1->AddGrowableRow( 1 );
 
     item0->Add( item1, 3, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4941,9 +4932,6 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item14 = new wxFlexGridSizer( 1, 0, 0, 5 );
-    item14->AddGrowableCol( 0 );
-    item14->AddGrowableCol( 1 );
-    item14->AddGrowableRow( 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -4976,6 +4964,12 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item19->Add( 10, 20, 0, wxALIGN_CENTER, 5 );
 
     item14->Add( item19, 1, wxGROW|wxALL, 0 );
+
+    item14->AddGrowableCol( 0 );
+
+    item14->AddGrowableCol( 1 );
+
+    item14->AddGrowableRow( 0 );
 
     item13->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5142,9 +5136,6 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item14 = new wxFlexGridSizer( 1, 0, 0, 5 );
-    item14->AddGrowableCol( 0 );
-    item14->AddGrowableCol( 1 );
-    item14->AddGrowableRow( 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5177,6 +5168,12 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item19->Add( 10, 20, 0, wxALIGN_CENTER, 5 );
 
     item14->Add( item19, 0, wxGROW|wxALL, 0 );
+
+    item14->AddGrowableCol( 0 );
+
+    item14->AddGrowableCol( 1 );
+
+    item14->AddGrowableRow( 0 );
 
     item13->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5394,10 +5391,6 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item25->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxFlexGridSizer *item27 = new wxFlexGridSizer( 5, 0, 0 );
-    item27->AddGrowableCol( 1 );
-    item27->AddGrowableCol( 4 );
-    item27->AddGrowableRow( 0 );
-    item27->AddGrowableRow( 1 );
 
     wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("from: chapter"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
     item27->Add( item28, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -5430,6 +5423,14 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item35 = new wxTextCtrl( parent, IDC_EDIT4, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item35->SetToolTip( _("Type the ending verse to print here") );
     item27->Add( item35, 1, wxGROW|wxALL, 5 );
+
+    item27->AddGrowableCol( 1 );
+
+    item27->AddGrowableCol( 4 );
+
+    item27->AddGrowableRow( 0 );
+
+    item27->AddGrowableRow( 1 );
 
     item25->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5521,11 +5522,7 @@ wxSizer *CCTabbedNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxNotebook *item5 = new wxNotebook( parent, ID_CC_TABBED_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
-#if !wxCHECK_VERSION(2,5,2)
-    wxNotebookSizer *item4 = new wxNotebookSizer( item5 );
-#else
-    wxWindow *item4 = item5;
-#endif
+wxWindow *item4 = item5;
 
     wxPanel *item6 = new wxPanel( item5, -1 );
     CCTablePageFunc( item6, FALSE );
@@ -5573,9 +5570,6 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
-    item1->AddGrowableCol( 0 );
-    item1->AddGrowableRow( 0 );
-    item1->AddGrowableRow( 1 );
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("List of Interface Language Localizations found for Adapt It:") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
@@ -5644,6 +5638,12 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->AddGrowableCol( 0 );
+
+    item1->AddGrowableRow( 0 );
+
+    item1->AddGrowableRow( 1 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -5793,23 +5793,6 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxFlexGridSizer *item13 = new wxFlexGridSizer( 7, 0, 0 );
-    item13->AddGrowableCol( 0 );
-    item13->AddGrowableCol( 2 );
-    item13->AddGrowableCol( 4 );
-    item13->AddGrowableCol( 6 );
-    item13->AddGrowableRow( 1 );
-    item13->AddGrowableRow( 2 );
-    item13->AddGrowableRow( 3 );
-    item13->AddGrowableRow( 4 );
-    item13->AddGrowableRow( 5 );
-    item13->AddGrowableRow( 6 );
-    item13->AddGrowableRow( 7 );
-    item13->AddGrowableRow( 8 );
-    item13->AddGrowableRow( 9 );
-    item13->AddGrowableRow( 10 );
-    item13->AddGrowableRow( 11 );
-    item13->AddGrowableRow( 12 );
-    item13->AddGrowableRow( 13 );
 
     wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Source  "), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -6217,6 +6200,40 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item125 = new wxTextCtrl( parent, IDC_EDIT_TGT25, wxT(""), wxDefaultPosition, wxSize(50,-1), wxTE_CENTRE );
     item13->Add( item125, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    item13->AddGrowableCol( 0 );
+
+    item13->AddGrowableCol( 2 );
+
+    item13->AddGrowableCol( 4 );
+
+    item13->AddGrowableCol( 6 );
+
+    item13->AddGrowableRow( 1 );
+
+    item13->AddGrowableRow( 2 );
+
+    item13->AddGrowableRow( 3 );
+
+    item13->AddGrowableRow( 4 );
+
+    item13->AddGrowableRow( 5 );
+
+    item13->AddGrowableRow( 6 );
+
+    item13->AddGrowableRow( 7 );
+
+    item13->AddGrowableRow( 8 );
+
+    item13->AddGrowableRow( 9 );
+
+    item13->AddGrowableRow( 10 );
+
+    item13->AddGrowableRow( 11 );
+
+    item13->AddGrowableRow( 12 );
+
+    item13->AddGrowableRow( 13 );
+
     item10->Add( item13, 1, wxGROW|wxALL, 0 );
 
     item9->Add( item10, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
@@ -6237,18 +6254,6 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item127->Add( item128, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxFlexGridSizer *item131 = new wxFlexGridSizer( 3, 0, 0 );
-    item131->AddGrowableCol( 0 );
-    item131->AddGrowableCol( 2 );
-    item131->AddGrowableRow( 1 );
-    item131->AddGrowableRow( 2 );
-    item131->AddGrowableRow( 3 );
-    item131->AddGrowableRow( 4 );
-    item131->AddGrowableRow( 5 );
-    item131->AddGrowableRow( 6 );
-    item131->AddGrowableRow( 7 );
-    item131->AddGrowableRow( 8 );
-    item131->AddGrowableRow( 9 );
-    item131->AddGrowableRow( 10 );
 
     wxStaticText *item132 = new wxStaticText( parent, ID_TEXT, _("Source"), wxDefaultPosition, wxDefaultSize, 0 );
     item131->Add( item132, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -6348,6 +6353,30 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item164 = new wxTextCtrl( parent, IDC_EDIT_2TGT9, wxT(""), wxDefaultPosition, wxSize(90,-1), wxTE_CENTRE );
     item131->Add( item164, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item131->AddGrowableCol( 0 );
+
+    item131->AddGrowableCol( 2 );
+
+    item131->AddGrowableRow( 1 );
+
+    item131->AddGrowableRow( 2 );
+
+    item131->AddGrowableRow( 3 );
+
+    item131->AddGrowableRow( 4 );
+
+    item131->AddGrowableRow( 5 );
+
+    item131->AddGrowableRow( 6 );
+
+    item131->AddGrowableRow( 7 );
+
+    item131->AddGrowableRow( 8 );
+
+    item131->AddGrowableRow( 9 );
+
+    item131->AddGrowableRow( 10 );
 
     item127->Add( item131, 1, wxGROW|wxALL, 0 );
 
@@ -6632,8 +6661,6 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 0 );
-    item3->AddGrowableCol( 0 );
-    item3->AddGrowableCol( 1 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
@@ -6668,6 +6695,10 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item3->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item3->AddGrowableCol( 0 );
+
+    item3->AddGrowableCol( 1 );
 
     item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -6878,9 +6909,6 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
-    item1->AddGrowableCol( 0 );
-    item1->AddGrowableRow( 0 );
-    item1->AddGrowableRow( 1 );
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("&List of Language Codes and Names:") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
@@ -7005,6 +7033,12 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item32, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->AddGrowableCol( 0 );
+
+    item1->AddGrowableRow( 0 );
+
+    item1->AddGrowableRow( 1 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -7143,11 +7177,7 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxNotebook *item6 = new wxNotebook( parent, ID_MENU_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
-#if !wxCHECK_VERSION(2,5,2)
-    wxNotebookSizer *item5 = new wxNotebookSizer( item6 );
-#else
-    wxWindow *item5 = item6;
-#endif
+wxWindow *item5 = item6;
 
     wxPanel *item7 = new wxPanel( item6, -1 );
     MenuEditorPanelFunc( item7, FALSE );
@@ -7203,8 +7233,6 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxFlexGridSizer *item18 = new wxFlexGridSizer( 2, 0, 0 );
-    item18->AddGrowableCol( 1 );
-    item18->AddGrowableRow( 1 );
 
     item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -7220,6 +7248,10 @@ wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item18->AddGrowableCol( 1 );
+
+    item18->AddGrowableRow( 1 );
 
     item11->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -7543,7 +7575,6 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item1 = new wxStaticBoxSizer( item2, wxVERTICAL );
 
     wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 0 );
-    item3->AddGrowableCol( 1 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("TO: (Adapt It Developers)"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -7565,6 +7596,8 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_SUMMARY_SUBJECT, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
     item9->SetToolTip( _("Enter a brief summary of your report - it becomes the subject of your email") );
     item3->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item3->AddGrowableCol( 1 );
 
     item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -7609,8 +7642,6 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxVERTICAL );
 
     wxFlexGridSizer *item21 = new wxFlexGridSizer( 4, 0, 3 );
-    item21->AddGrowableCol( 1 );
-    item21->AddGrowableCol( 3 );
 
     wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("AI Version:"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
@@ -7692,6 +7723,10 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item41->SetToolTip( _("Adapt It collects this information and automatically includes it in your report") );
     item21->Add( item41, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    item21->AddGrowableCol( 1 );
+
+    item21->AddGrowableCol( 3 );
+
     item19->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticLine *item42 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
@@ -7703,7 +7738,6 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item43 = new wxStaticBoxSizer( item44, wxVERTICAL );
 
     wxFlexGridSizer *item45 = new wxFlexGridSizer( 2, 3, 0 );
-    item45->AddGrowableCol( 1 );
 
     wxStaticBox *item47 = new wxStaticBox( parent, -1, _("Report handling:") );
     wxStaticBoxSizer *item46 = new wxStaticBoxSizer( item47, wxVERTICAL );
@@ -7747,6 +7781,8 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item51->Add( item55, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item45->Add( item51, 0, wxGROW|wxALL, 0 );
+
+    item45->AddGrowableCol( 1 );
 
     item43->Add( item45, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -7853,9 +7889,6 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
 
     wxFlexGridSizer *item17 = new wxFlexGridSizer( 2, 0, 0 );
-    item17->AddGrowableCol( 0 );
-    item17->AddGrowableCol( 1 );
-    item17->AddGrowableRow( 1 );
 
     wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Select a &book:"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -7871,6 +7904,12 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     wxListCtrl *item21 = new wxListCtrl( parent, ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, wxDefaultPosition, wxSize(420,120), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL  );
     item21->SetToolTip( _("Chapters available for the selected book (and their translation status)") );
     item17->Add( item21, 1, wxGROW|wxALL, 5 );
+
+    item17->AddGrowableCol( 0 );
+
+    item17->AddGrowableCol( 1 );
+
+    item17->AddGrowableRow( 1 );
 
     item16->Add( item17, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -8126,7 +8165,7 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_EMPTY_STR, _("The %s is empty, a knowledge base entry is expected, but is absent"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item5->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item4->Add( item5, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -8223,7 +8262,7 @@ wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, b
 
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_EXISTS_STR, wxT("%s"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item8->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item7->Add( item8, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item7->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -8818,7 +8857,6 @@ wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
     wxFlexGridSizer *item6 = new wxFlexGridSizer( 2, 0, 40 );
-    item6->AddGrowableCol( 1 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Source Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -8845,6 +8883,8 @@ wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set
 
     wxTextCtrl *item14 = new wxTextCtrl( parent, ID_EDIT_TARGET_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
     item6->Add( item14, 0, wxGROW|wxALL, 0 );
+
+    item6->AddGrowableCol( 1 );
 
     item5->Add( item6, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -9066,15 +9106,15 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->SetMargins( 0, 0 );
     
     parent->AddTool( wxID_NEW, wxT(""), AIToolBarBitmapsUnToggledFunc( 0 ), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document") );
-    parent->EnableTool( wxID_NEW, FALSE );
+    parent->EnableTool( wxID_NEW, false );
     parent->AddTool( wxID_OPEN, wxT(""), AIToolBarBitmapsUnToggledFunc( 1 ), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document") );
-    parent->EnableTool( wxID_OPEN, FALSE );
+    parent->EnableTool( wxID_OPEN, false );
     parent->AddTool( wxID_SAVE, wxT(""), AIToolBarBitmapsUnToggledFunc( 2 ), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document") );
     parent->AddSeparator();
     parent->AddTool( ID_EDIT_CUT, wxT(""), AIToolBarBitmapsUnToggledFunc( 3 ), wxNullBitmap, wxITEM_NORMAL, _("Cut"), _("Cut the selection and put it on the Clipboard") );
     parent->AddTool( ID_EDIT_COPY, wxT(""), AIToolBarBitmapsUnToggledFunc( 4 ), wxNullBitmap, wxITEM_NORMAL, _("Copy"), _("Copy the selection and put it on the Clipboard") );
     parent->AddTool( ID_EDIT_PASTE, wxT(""), AIToolBarBitmapsUnToggledFunc( 5 ), wxNullBitmap, wxITEM_NORMAL, _("Paste"), _("Insert Clipboard contents") );
-    parent->EnableTool( ID_EDIT_PASTE, FALSE );
+    parent->EnableTool( ID_EDIT_PASTE, false );
     parent->AddSeparator();
     parent->AddTool( wxID_PRINT, wxT(""), AIToolBarBitmapsUnToggledFunc( 6 ), wxNullBitmap, wxITEM_NORMAL, _("Print"), _("Print the active document") );
     parent->AddSeparator();
@@ -9090,28 +9130,28 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_TO_END, wxT(""), AIToolBarBitmapsUnToggledFunc( 11 ), wxNullBitmap, wxITEM_NORMAL, _("Advance to End"), _("Advance to the end of the data") );
     parent->AddTool( ID_BUTTON_TO_START, wxT(""), AIToolBarBitmapsUnToggledFunc( 12 ), wxNullBitmap, wxITEM_NORMAL, _("Back to Start"), _("Go back to the start of the data") );
-    parent->EnableTool( ID_BUTTON_TO_START, FALSE );
+    parent->EnableTool( ID_BUTTON_TO_START, false );
     parent->AddTool( ID_BUTTON_STEP_DOWN, wxT(""), AIToolBarBitmapsUnToggledFunc( 13 ), wxNullBitmap, wxITEM_NORMAL, _("Move Down One Step"), _("Move the bundle down one step towards the bottom of the file") );
     parent->AddTool( ID_BUTTON_STEP_UP, wxT(""), AIToolBarBitmapsUnToggledFunc( 14 ), wxNullBitmap, wxITEM_NORMAL, _("Move Up One Step"), _("Move bundle back up one step towards the start of the file") );
-    parent->EnableTool( ID_BUTTON_STEP_UP, FALSE );
+    parent->EnableTool( ID_BUTTON_STEP_UP, false );
     parent->AddTool( ID_BUTTON_BACK, wxT(""), AIToolBarBitmapsUnToggledFunc( 15 ), wxNullBitmap, wxITEM_NORMAL, _("Jump Back"), _("Jump back to the last active location") );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_MERGE, wxT(""), AIToolBarBitmapsUnToggledFunc( 16 ), wxNullBitmap, wxITEM_NORMAL, _("Make A Phrase"), _("Merge selected words into a phrase") );
-    parent->EnableTool( ID_BUTTON_MERGE, FALSE );
+    parent->EnableTool( ID_BUTTON_MERGE, false );
     parent->AddTool( ID_BUTTON_RESTORE, wxT(""), AIToolBarBitmapsUnToggledFunc( 17 ), wxNullBitmap, wxITEM_NORMAL, _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects") );
-    parent->EnableTool( ID_BUTTON_RESTORE, FALSE );
+    parent->EnableTool( ID_BUTTON_RESTORE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 18 ), wxNullBitmap, wxITEM_NORMAL, _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation") );
-    parent->EnableTool( ID_BUTTON_RETRANSLATION, FALSE );
+    parent->EnableTool( ID_BUTTON_RETRANSLATION, false );
     parent->AddTool( ID_BUTTON_EDIT_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 19 ), wxNullBitmap, wxITEM_NORMAL, _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location") );
-    parent->EnableTool( ID_BUTTON_EDIT_RETRANSLATION, FALSE );
+    parent->EnableTool( ID_BUTTON_EDIT_RETRANSLATION, false );
     parent->AddTool( ID_REMOVE_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 20 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation") );
-    parent->EnableTool( ID_REMOVE_RETRANSLATION, FALSE );
+    parent->EnableTool( ID_REMOVE_RETRANSLATION, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggledFunc( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
-    parent->EnableTool( ID_BUTTON_NULL_SRC, FALSE );
+    parent->EnableTool( ID_BUTTON_NULL_SRC, false );
     parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggledFunc( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text") );
-    parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, FALSE );
+    parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );
     parent->AddTool( ID_SHOWING_ALL, wxT(""), AIToolBarBitmapsUnToggledFunc( 24 ), wxNullBitmap, wxITEM_NORMAL, _("Show Target Text Only"), _("Show target text only") );
@@ -9128,9 +9168,9 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->SetMargins( 0, 0 );
     
     parent->AddTool( wxID_NEW, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 0 ), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document") );
-    parent->EnableTool( wxID_NEW, FALSE );
+    parent->EnableTool( wxID_NEW, false );
     parent->AddTool( wxID_OPEN, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 1 ), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document") );
-    parent->EnableTool( wxID_OPEN, FALSE );
+    parent->EnableTool( wxID_OPEN, false );
     parent->AddTool( wxID_SAVE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 2 ), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document") );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_GUESSER, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 32 ), wxNullBitmap, wxITEM_NORMAL, _("Change Guesser Settings"), _("Change settings for guessing the translation text") );
@@ -9145,28 +9185,28 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_TO_END, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 11 ), wxNullBitmap, wxITEM_NORMAL, _("Advance to End"), _("Advance to the end of the data") );
     parent->AddTool( ID_BUTTON_TO_START, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 12 ), wxNullBitmap, wxITEM_NORMAL, _("Back to Start"), _("Go back to the start of the data") );
-    parent->EnableTool( ID_BUTTON_TO_START, FALSE );
+    parent->EnableTool( ID_BUTTON_TO_START, false );
     parent->AddTool( ID_BUTTON_STEP_DOWN, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 13 ), wxNullBitmap, wxITEM_NORMAL, _("Move Down One Step"), _("Move the bundle down one step towards the bottom of the file") );
     parent->AddTool( ID_BUTTON_STEP_UP, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 14 ), wxNullBitmap, wxITEM_NORMAL, _("Move Up One Step"), _("Move bundle back up one step towards the start of the file") );
-    parent->EnableTool( ID_BUTTON_STEP_UP, FALSE );
+    parent->EnableTool( ID_BUTTON_STEP_UP, false );
     parent->AddTool( ID_BUTTON_BACK, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 15 ), wxNullBitmap, wxITEM_NORMAL, _("Jump Back"), _("Jump back to the last active location") );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_MERGE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 16 ), wxNullBitmap, wxITEM_NORMAL, _("Make A Phrase"), _("Merge selected words into a phrase") );
-    parent->EnableTool( ID_BUTTON_MERGE, FALSE );
+    parent->EnableTool( ID_BUTTON_MERGE, false );
     parent->AddTool( ID_BUTTON_RESTORE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 17 ), wxNullBitmap, wxITEM_NORMAL, _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects") );
-    parent->EnableTool( ID_BUTTON_RESTORE, FALSE );
+    parent->EnableTool( ID_BUTTON_RESTORE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 18 ), wxNullBitmap, wxITEM_NORMAL, _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation") );
-    parent->EnableTool( ID_BUTTON_RETRANSLATION, FALSE );
+    parent->EnableTool( ID_BUTTON_RETRANSLATION, false );
     parent->AddTool( ID_BUTTON_EDIT_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 19 ), wxNullBitmap, wxITEM_NORMAL, _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location") );
-    parent->EnableTool( ID_BUTTON_EDIT_RETRANSLATION, FALSE );
+    parent->EnableTool( ID_BUTTON_EDIT_RETRANSLATION, false );
     parent->AddTool( ID_REMOVE_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 20 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation") );
-    parent->EnableTool( ID_REMOVE_RETRANSLATION, FALSE );
+    parent->EnableTool( ID_REMOVE_RETRANSLATION, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
-    parent->EnableTool( ID_BUTTON_NULL_SRC, FALSE );
+    parent->EnableTool( ID_BUTTON_NULL_SRC, false );
     parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text") );
-    parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, FALSE );
+    parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );
     parent->AddTool( ID_SHOWING_ALL, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap, wxITEM_NORMAL, _("Show Target Text Only"), _("Show target text only") );
@@ -9181,7 +9221,7 @@ void AIToolBar32x30Func( wxToolBar *parent )
 
 wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
 {
-    if (index == 0)
+    if (index == (size_t)0)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9210,7 +9250,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 1)
+    if (index == (size_t)1)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9241,7 +9281,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 2)
+    if (index == (size_t)2)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9270,7 +9310,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 3)
+    if (index == (size_t)3)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9299,7 +9339,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 4)
+    if (index == (size_t)4)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9329,7 +9369,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 5)
+    if (index == (size_t)5)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9362,7 +9402,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 6)
+    if (index == (size_t)6)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9394,7 +9434,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 7)
+    if (index == (size_t)7)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9426,7 +9466,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 8)
+    if (index == (size_t)8)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9458,8 +9498,8 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 9) ||
-        (index == ID_BUTTON_RESPECTING_BDRY))
+    if ((index == (size_t)9) ||
+        (index == (size_t)ID_BUTTON_RESPECTING_BDRY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9492,8 +9532,8 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 10) ||
-        (index == ID_BUTTON_SHOWING_PUNCT))
+    if ((index == (size_t)10) ||
+        (index == (size_t)ID_BUTTON_SHOWING_PUNCT))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9526,7 +9566,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 11)
+    if (index == (size_t)11)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9558,7 +9598,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 12)
+    if (index == (size_t)12)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9590,7 +9630,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 13)
+    if (index == (size_t)13)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9621,7 +9661,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 14)
+    if (index == (size_t)14)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9653,7 +9693,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 15)
+    if (index == (size_t)15)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9683,7 +9723,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 16)
+    if (index == (size_t)16)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9715,7 +9755,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 17)
+    if (index == (size_t)17)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9747,7 +9787,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 18)
+    if (index == (size_t)18)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9780,7 +9820,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 19)
+    if (index == (size_t)19)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9810,7 +9850,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 20)
+    if (index == (size_t)20)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9845,7 +9885,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 21)
+    if (index == (size_t)21)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9879,7 +9919,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 22)
+    if (index == (size_t)22)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9914,7 +9954,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 23)
+    if (index == (size_t)23)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9952,8 +9992,8 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 24) ||
-        (index == ID_SHOWING_ALL))
+    if ((index == (size_t)24) ||
+        (index == (size_t)ID_SHOWING_ALL))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -9983,7 +10023,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 25)
+    if (index == (size_t)25)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10018,7 +10058,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 26)
+    if (index == (size_t)26)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10047,8 +10087,8 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 27) ||
-        (index == ID_BUTTON_NO_PUNCT_COPY))
+    if ((index == (size_t)27) ||
+        (index == (size_t)ID_BUTTON_NO_PUNCT_COPY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10076,7 +10116,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 28)
+    if (index == (size_t)28)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10106,7 +10146,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 29)
+    if (index == (size_t)29)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10136,7 +10176,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 30)
+    if (index == (size_t)30)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10166,7 +10206,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 31)
+    if (index == (size_t)31)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10196,7 +10236,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 32)
+    if (index == (size_t)32)
     {
         static const unsigned char data[] = 
         {
@@ -10232,7 +10272,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
             78,129,129,129,130,130,130,130,130,130,119,119,119,119,119,119,119,119,119,119,119,119,119,119,119,
             119,119,119,130,130,130,129,129,129,126,126,126,116,116,116,52,52,52
         };
-        wxImage image( 16, 16, (unsigned char*)data, TRUE );
+        wxImage image( 16, 16, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
@@ -10241,7 +10281,7 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
 
 wxBitmap AIMainFrameIcons( size_t index )
 {
-    if (index == 0)
+    if (index == (size_t)0)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10294,7 +10334,7 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 1)
+    if (index == (size_t)1)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -10367,7 +10407,7 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 2)
+    if (index == (size_t)2)
     {
         static const unsigned char data[] = 
         {
@@ -11644,11 +11684,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,247,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
         };
-        wxImage image( 200, 53, (unsigned char*)data, TRUE );
+        wxImage image( 200, 53, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 3)
+    if (index == (size_t)3)
     {
         static const unsigned char data[] = 
         {
@@ -12336,11 +12376,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,63,
             63,63
         };
-        wxImage image( 116, 49, (unsigned char*)data, TRUE );
+        wxImage image( 116, 49, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 4)
+    if (index == (size_t)4)
     {
         static const unsigned char data[] = 
         {
@@ -13731,11 +13771,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             62,166,62,62,166,62,62,165,62,62,166,76,82,170,161,161,211,250,250,252,255,255,255,255,255,
             255
         };
-        wxImage image( 199, 58, (unsigned char*)data, TRUE );
+        wxImage image( 199, 58, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 5)
+    if (index == (size_t)5)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -13824,7 +13864,7 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 6)
+    if (index == (size_t)6)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -13877,7 +13917,7 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 7)
+    if (index == (size_t)7)
     {
         static const unsigned char data[] = 
         {
@@ -16221,11 +16261,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,0,0,0,0,0,0,0
         };
-        wxImage image( 116, 168, (unsigned char*)data, TRUE );
+        wxImage image( 116, 168, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 8)
+    if (index == (size_t)8)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -16276,7 +16316,7 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 9)
+    if (index == (size_t)9)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -16321,8 +16361,8 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 10) ||
-        (index == ID_BITMAP_FOLDERAI))
+    if ((index == (size_t)10) ||
+        (index == (size_t)ID_BITMAP_FOLDERAI))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -16352,8 +16392,8 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 11) ||
-        (index == ID_BITMAP_FILEAI))
+    if ((index == (size_t)11) ||
+        (index == (size_t)ID_BITMAP_FILEAI))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -16384,8 +16424,8 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 12) ||
-        (index == ID_BITMAP_EMPTY_FOLDER))
+    if ((index == (size_t)12) ||
+        (index == (size_t)ID_BITMAP_EMPTY_FOLDER))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -16416,7 +16456,7 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 13)
+    if (index == (size_t)13)
     {
         static const unsigned char data[] = 
         {
@@ -18388,11 +18428,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255
         };
-        wxImage image( 128, 128, (unsigned char*)data, TRUE );
+        wxImage image( 128, 128, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 14)
+    if (index == (size_t)14)
     {
         static const unsigned char data[] = 
         {
@@ -18889,11 +18929,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255
         };
-        wxImage image( 64, 64, (unsigned char*)data, TRUE );
+        wxImage image( 64, 64, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 15)
+    if (index == (size_t)15)
     {
         static const unsigned char data[] = 
         {
@@ -19021,11 +19061,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
         };
-        wxImage image( 32, 32, (unsigned char*)data, TRUE );
+        wxImage image( 32, 32, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 16)
+    if (index == (size_t)16)
     {
         static const unsigned char data[] = 
         {
@@ -19061,11 +19101,11 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
         };
-        wxImage image( 16, 16, (unsigned char*)data, TRUE );
+        wxImage image( 16, 16, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 17)
+    if (index == (size_t)17)
     {
         static const unsigned char data[] = 
         {
@@ -21409,7 +21449,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
             0,0,0,0,0,0,0,0,0,0,0,0,0,0
         };
-        wxImage image( 116, 168, (unsigned char*)data, TRUE );
+        wxImage image( 116, 168, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
@@ -21418,8 +21458,8 @@ wxBitmap AIMainFrameIcons( size_t index )
 
 wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
 {
-    if ((index == 0) ||
-        (index == ID_BUTTON_IGNORING_BDRY))
+    if ((index == (size_t)0) ||
+        (index == (size_t)ID_BUTTON_IGNORING_BDRY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21450,8 +21490,8 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 1) ||
-        (index == ID_BUTTON_HIDING_PUNCT))
+    if ((index == (size_t)1) ||
+        (index == (size_t)ID_BUTTON_HIDING_PUNCT))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21483,8 +21523,8 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 2) ||
-        (index == ID_SHOWING_TGT))
+    if ((index == (size_t)2) ||
+        (index == (size_t)ID_SHOWING_TGT))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21513,8 +21553,8 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 3) ||
-        (index == ID_BUTTON_ENABLE_PUNCT_COPY))
+    if ((index == (size_t)3) ||
+        (index == (size_t)ID_BUTTON_ENABLE_PUNCT_COPY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21550,7 +21590,7 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
 
 wxBitmap WhichFilesBitmapsFunc( size_t index )
 {
-    if (index == 0)
+    if (index == (size_t)0)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21596,7 +21636,7 @@ wxBitmap WhichFilesBitmapsFunc( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 1)
+    if (index == (size_t)1)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21647,8 +21687,8 @@ wxBitmap WhichFilesBitmapsFunc( size_t index )
 
 wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index )
 {
-    if ((index == 0) ||
-        (index == ID_BUTTON_IGNORING_BDRY))
+    if ((index == (size_t)0) ||
+        (index == (size_t)ID_BUTTON_IGNORING_BDRY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21694,8 +21734,8 @@ wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 1) ||
-        (index == ID_BUTTON_HIDING_PUNCT))
+    if ((index == (size_t)1) ||
+        (index == (size_t)ID_BUTTON_HIDING_PUNCT))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21742,8 +21782,8 @@ wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 2) ||
-        (index == ID_SHOWING_TGT))
+    if ((index == (size_t)2) ||
+        (index == (size_t)ID_SHOWING_TGT))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21787,8 +21827,8 @@ wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 3) ||
-        (index == ID_BUTTON_ENABLE_PUNCT_COPY))
+    if ((index == (size_t)3) ||
+        (index == (size_t)ID_BUTTON_ENABLE_PUNCT_COPY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21838,7 +21878,7 @@ wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index )
 
 wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
 {
-    if (index == 0)
+    if (index == (size_t)0)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21882,7 +21922,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 1)
+    if (index == (size_t)1)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21928,7 +21968,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 2)
+    if (index == (size_t)2)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -21972,7 +22012,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 3)
+    if (index == (size_t)3)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22016,7 +22056,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 4)
+    if (index == (size_t)4)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22061,7 +22101,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 5)
+    if (index == (size_t)5)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22109,7 +22149,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 6)
+    if (index == (size_t)6)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22156,7 +22196,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 7)
+    if (index == (size_t)7)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22203,7 +22243,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 8)
+    if (index == (size_t)8)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22250,8 +22290,8 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 9) ||
-        (index == ID_BUTTON_RESPECTING_BDRY))
+    if ((index == (size_t)9) ||
+        (index == (size_t)ID_BUTTON_RESPECTING_BDRY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22299,8 +22339,8 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 10) ||
-        (index == ID_BUTTON_SHOWING_PUNCT))
+    if ((index == (size_t)10) ||
+        (index == (size_t)ID_BUTTON_SHOWING_PUNCT))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22349,7 +22389,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 11)
+    if (index == (size_t)11)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22396,7 +22436,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 12)
+    if (index == (size_t)12)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22443,7 +22483,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 13)
+    if (index == (size_t)13)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22489,7 +22529,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 14)
+    if (index == (size_t)14)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22536,7 +22576,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 15)
+    if (index == (size_t)15)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22581,7 +22621,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 16)
+    if (index == (size_t)16)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22628,7 +22668,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 17)
+    if (index == (size_t)17)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22675,7 +22715,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 18)
+    if (index == (size_t)18)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22723,7 +22763,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 19)
+    if (index == (size_t)19)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22768,7 +22808,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 20)
+    if (index == (size_t)20)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22818,7 +22858,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 21)
+    if (index == (size_t)21)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22867,7 +22907,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 22)
+    if (index == (size_t)22)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22917,7 +22957,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 23)
+    if (index == (size_t)23)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -22970,8 +23010,8 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 24) ||
-        (index == ID_SHOWING_ALL))
+    if ((index == (size_t)24) ||
+        (index == (size_t)ID_SHOWING_ALL))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23016,7 +23056,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 25)
+    if (index == (size_t)25)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23066,7 +23106,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 26)
+    if (index == (size_t)26)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23110,8 +23150,8 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if ((index == 27) ||
-        (index == ID_BUTTON_NO_PUNCT_COPY))
+    if ((index == (size_t)27) ||
+        (index == (size_t)ID_BUTTON_NO_PUNCT_COPY))
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23154,7 +23194,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 28)
+    if (index == (size_t)28)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23199,7 +23239,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 29)
+    if (index == (size_t)29)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23244,7 +23284,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 30)
+    if (index == (size_t)30)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23289,7 +23329,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 31)
+    if (index == (size_t)31)
     {
         /* XPM */
         static const char *xpm_data[] = {
@@ -23334,7 +23374,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
-    if (index == 32)
+    if (index == (size_t)32)
     {
         static const unsigned char data[] = 
         {
@@ -23462,7 +23502,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
             8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
             8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,16,16,16
         };
-        wxImage image( 32, 32, (unsigned char*)data, TRUE );
+        wxImage image( 32, 32, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
@@ -23471,7 +23511,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
 
 wxBitmap HtmlWindowBitmapsFunc( size_t index )
 {
-    if (index == 0)
+    if (index == (size_t)0)
     {
         static const unsigned char data[] = 
         {
@@ -23623,12 +23663,12 @@ wxBitmap HtmlWindowBitmapsFunc( size_t index )
             102,132,48,106,135,82,127,150,121,154,170,179,190,195,240,240,240,240,240,240,240,240,240,240,240,
             240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240
         };
-        wxImage image( 35, 35, (unsigned char*)data, TRUE );
+        wxImage image( 35, 35, (unsigned char*)data, true );
         image.SetMaskColour( 240, 240, 240);
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 1)
+    if (index == (size_t)1)
     {
         static const unsigned char data[] = 
         {
@@ -23780,12 +23820,12 @@ wxBitmap HtmlWindowBitmapsFunc( size_t index )
             102,132,48,106,135,82,127,150,123,154,169,179,190,195,240,240,240,240,240,240,240,240,240,240,240,
             240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240,240
         };
-        wxImage image( 35, 35, (unsigned char*)data, TRUE );
+        wxImage image( 35, 35, (unsigned char*)data, true );
         image.SetMaskColour( 240, 240, 240);
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 2)
+    if (index == (size_t)2)
     {
         static const unsigned char data[] = 
         {
@@ -23844,11 +23884,11 @@ wxBitmap HtmlWindowBitmapsFunc( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
         };
-        wxImage image( 30, 15, (unsigned char*)data, TRUE );
+        wxImage image( 30, 15, (unsigned char*)data, true );
         wxBitmap bitmap( image );
         return bitmap;
     }
-    if (index == 3)
+    if (index == (size_t)3)
     {
         /* XPM */
         static const char *xpm_data[] = {

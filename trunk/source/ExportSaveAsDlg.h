@@ -54,7 +54,9 @@ class CExportSaveAsDlg: public AIModalDialog
 public:
 
 	CExportSaveAsDlg(wxWindow* parent);
-	virtual ~CExportSaveAsDlg();
+	virtual ~CExportSaveAsDlg(void);
+	
+	//enum {IDD = IDD_FILE_EXPORT};
 
 	//(*Declarations(ExportSaveAsDlg)
 	wxPanel* Panel1;
@@ -70,6 +72,7 @@ public:
 	wxCheckBox* pCheckUsePrefixExportTypeOnFilename;
 	wxCheckBox* pCheckUseSuffixExportDateTimeStamp;
 	wxCheckBox* pCheckUsePrefixExportProjNameOnFilename;
+	wxSizer* pExportSaveAsSizer;
 	//*)
 
 	ExportType exportType;
@@ -88,20 +91,22 @@ protected:
 	static const long ID_BTNEXPORTTOXHTML;
 	static const long ID_BTNEXPORTTOPATHWAY;
 	static const long ID_PANEL1;
-	static const long ID_LBLEXPORTTYPEDESCRIPTION;
+/*	static const long ID_LBLEXPORTTYPEDESCRIPTION;
 	static const long ID_RDOFILTEROFF;
 	static const long ID_RDOFILTERON;
 	static const long ID_BTNFILTEROPTIONS;
 	static const long ID_CHKPROJECTNAMEPREFIX;
 	static const long ID_CHKTARGETTEXTPREFIX;
 	static const long ID_CHKDATETIMESUFFIX;
-	//*)
+*/
+    //*)
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 
 private:
-
+	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
+	
 	//(*Handlers(CExportSaveAsDlg)
 	void OnchkDateTimeSuffixClick(wxCommandEvent& event);
 	void OnchkProjectNamePrefixClick(wxCommandEvent& event);
@@ -119,7 +124,6 @@ private:
 
 	void SetExportTypeDescription(ExportSaveAsType newType);
 
-	DECLARE_EVENT_TABLE()
 };
 
 #endif

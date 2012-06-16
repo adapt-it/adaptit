@@ -429,11 +429,6 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 	}
 
-	// update the dialog's checkboxes with current App values (redundant: it's done there too)
-	sadlg.pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
-	sadlg.pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
-	sadlg.pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
-
 	// substitute the actual project name string into the %s placeholder
 	expProjNamePrefixStr = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('_');
 	wxString projNameExp;
