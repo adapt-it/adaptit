@@ -96,38 +96,41 @@ const long CExportSaveAsDlg::ID_BTNEXPORTTORTF = wxNewId();
 const long CExportSaveAsDlg::ID_BTNEXPORTTOXHTML = wxNewId();
 const long CExportSaveAsDlg::ID_BTNEXPORTTOPATHWAY = wxNewId();
 const long CExportSaveAsDlg::ID_PANEL1 = wxNewId();
-const long CExportSaveAsDlg::ID_LBLEXPORTTYPEDESCRIPTION = wxNewId();
-const long CExportSaveAsDlg::ID_RDOFILTEROFF = wxNewId();
-const long CExportSaveAsDlg::ID_RDOFILTERON = wxNewId();
-const long CExportSaveAsDlg::ID_BTNFILTEROPTIONS = wxNewId();
-const long CExportSaveAsDlg::ID_CHKPROJECTNAMEPREFIX = wxNewId();
-const long CExportSaveAsDlg::ID_CHKTARGETTEXTPREFIX = wxNewId();
-const long CExportSaveAsDlg::ID_CHKDATETIMESUFFIX = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(CExportSaveAsDlg,wxDialog)
+BEGIN_EVENT_TABLE(CExportSaveAsDlg,AIModalDialog)
 	//(*EventTable(CExportSaveAsDlg)
 	EVT_INIT_DIALOG(CExportSaveAsDlg::InitDialog)
+	EVT_BUTTON(ID_BTNEXPORTTOTXT, CExportSaveAsDlg::OnbtnExportToTxtClick)
+	EVT_BUTTON(ID_BTNEXPORTTORTF, CExportSaveAsDlg::OnbtnExportToRtfClick)
+	EVT_BUTTON(ID_BTNEXPORTTOXHTML, CExportSaveAsDlg::OnbtnExportToXhtmlClick)
+	EVT_BUTTON(ID_BTNEXPORTTOPATHWAY, CExportSaveAsDlg::OnbtnExportToPathwayClick)
 	EVT_BUTTON(wxID_OK, CExportSaveAsDlg::OnOK)
+	EVT_BUTTON(ID_BTNFILTEROPTIONS, CExportSaveAsDlg::OnbtnFilterOptionsClick)
+	EVT_RADIOBUTTON(ID_RDOFILTEROFF,CExportSaveAsDlg::OnrdoFilterOffSelect)
+	EVT_RADIOBUTTON(ID_RDOFILTERON,CExportSaveAsDlg::OnrdoFilterOnSelect)
 	//*)
 END_EVENT_TABLE()
 
 CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Export Document"),
-		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
-	//(*Initialize(CExportSaveAsDlg)
-	wxStaticBoxSizer* StaticBoxSizer2;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxBoxSizer* BoxSizer3;
-	wxStaticBoxSizer* StaticBoxSizer3;
+	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
+	// for the dialog. The first parameter is the parent which should normally be "this".
+	// The second and third parameters should both be TRUE to utilize the sizers and create the right
+	// size dialog.
+	pExportSaveAsSizer = ExportSaveAsDlgFunc(this, TRUE, TRUE);
+	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	
+	// edb 15June2012: This is a workaround for a difference between wxSmith and wxDesigner 2.20a.
+	// wxDesigner doesn't appear to let you add controls to a wxPanel (you can do this in wxSmith);
+	// we've created a panel in wxDesigner that we'll manually add the export format buttons to here.
 	wxBoxSizer* BoxSizer1;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
-	wxStaticBoxSizer* StaticBoxSizer1;
-
-	FlexGridSizer1 = new wxFlexGridSizer(4, 1, 0, 0);
-	Panel1 = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
+	wxPanel* Panel1;
+	Panel1 = (wxPanel*)FindWindowById(ID_PNLEXPORT);
 	Panel1->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	Panel1->SetWindowStyle(wxEXPAND);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	lblExportTo = new wxStaticText(Panel1, ID_LBLEXPORTTO, _("Export to:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_LBLEXPORTTO"));
 	BoxSizer1->Add(lblExportTo, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -143,55 +146,26 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	Panel1->SetSizer(BoxSizer1);
 	BoxSizer1->Fit(Panel1);
 	BoxSizer1->SetSizeHints(Panel1);
-	FlexGridSizer1->Add(Panel1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Description"));
-	lblExportTypeDescription = new wxStaticText(this, ID_LBLEXPORTTYPEDESCRIPTION, _("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean posuere dictum sem id elementum. Mauris lobortis, sapien nec iaculis condimentum, turpis risus posuere turpis, vel condimentum magna libero at lectus."), wxDefaultPosition, wxSize(425,75), 0, _T("ID_LBLEXPORTTYPEDESCRIPTION"));
-	StaticBoxSizer1->Add(lblExportTypeDescription, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer3 = new wxStaticBoxSizer(wxVERTICAL, this, _("Export Filters"));
-	rdoFilterOff = new wxRadioButton(this, ID_RDOFILTEROFF, _("Export all markers and text"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_RDOFILTEROFF"));
-	StaticBoxSizer3->Add(rdoFilterOff, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	BoxSizer3 = new wxBoxSizer(wxHORIZONTAL);
-	rdoFilterOn = new wxRadioButton(this, ID_RDOFILTERON, _("Filter out selected markers and text:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RDOFILTERON"));
-	BoxSizer3->Add(rdoFilterOn, 2, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	btnFilterOptions = new wxButton(this, ID_BTNFILTEROPTIONS, _("&Options..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BTNFILTEROPTIONS"));
-	BoxSizer3->Add(btnFilterOptions, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxSHAPED|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer3->Add(BoxSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer1->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StaticBoxSizer2 = new wxStaticBoxSizer(wxVERTICAL, this, _("Export filename"));
-	pCheckUsePrefixExportProjNameOnFilename = new wxCheckBox(this, ID_CHKPROJECTNAMEPREFIX, _("Use project &name prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHKPROJECTNAMEPREFIX"));
-	pCheckUsePrefixExportProjNameOnFilename->SetValue(false);
-	StaticBoxSizer2->Add(pCheckUsePrefixExportProjNameOnFilename, 1, wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	pCheckUsePrefixExportTypeOnFilename = new wxCheckBox(this, ID_CHKTARGETTEXTPREFIX, _("Use export &type prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHKTARGETTEXTPREFIX"));
-	pCheckUsePrefixExportTypeOnFilename->SetValue(false);
-	StaticBoxSizer2->Add(pCheckUsePrefixExportTypeOnFilename, 1, wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	pCheckUseSuffixExportDateTimeStamp = new wxCheckBox(this, ID_CHKDATETIMESUFFIX, _("Use &date-time suffix on export filename"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHKDATETIMESUFFIX"));
-	pCheckUseSuffixExportDateTimeStamp->SetValue(false);
-	StaticBoxSizer2->Add(pCheckUseSuffixExportDateTimeStamp, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer1->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
-	FlexGridSizer1->SetSizeHints(this);
-
-	Connect(ID_BTNEXPORTTOTXT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnbtnExportToTxtClick);
-	Connect(ID_BTNEXPORTTORTF,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnbtnExportToRtfClick);
-	Connect(ID_BTNEXPORTTOXHTML,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnbtnExportToXhtmlClick);
-	Connect(ID_BTNEXPORTTOPATHWAY,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnbtnExportToPathwayClick);
-	Connect(ID_RDOFILTEROFF,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&CExportSaveAsDlg::OnrdoFilterOffSelect);
-	Connect(ID_RDOFILTERON,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&CExportSaveAsDlg::OnrdoFilterOnSelect);
-	Connect(ID_BTNFILTEROPTIONS,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnbtnFilterOptionsClick);
-	Connect(ID_CHKPROJECTNAMEPREFIX,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnchkProjectNamePrefixClick);
-	Connect(ID_CHKTARGETTEXTPREFIX,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnchkTargetTextPrefixClick);
-	Connect(ID_CHKDATETIMESUFFIX,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&CExportSaveAsDlg::OnchkDateTimeSuffixClick);
-	//*)
+	// end wxDesigner workaround
+	
+	// initialize UI control pointers
+	lblExportTypeDescription = (wxStaticText*)FindWindowById(ID_LBLEXPORTTYPEDESCRIPTION);
+	wxASSERT(lblExportTypeDescription != NULL);
+	pCheckUsePrefixExportProjNameOnFilename = (wxCheckBox*)FindWindowById(ID_CHKPROJECTNAMEPREFIX);
+	wxASSERT(pCheckUsePrefixExportProjNameOnFilename != NULL);
+	pCheckUsePrefixExportTypeOnFilename = (wxCheckBox*)FindWindowById(ID_CHKTARGETTEXTPREFIX);
+	wxASSERT(pCheckUsePrefixExportTypeOnFilename != NULL);
+	pCheckUseSuffixExportDateTimeStamp = (wxCheckBox*)FindWindowById(ID_CHKDATETIMESUFFIX);
+	wxASSERT(pCheckUseSuffixExportDateTimeStamp != NULL);
+	rdoFilterOff = (wxRadioButton *)FindWindowById(ID_RDOFILTEROFF);
+	wxASSERT(rdoFilterOff != NULL);
+	rdoFilterOn = (wxRadioButton *)FindWindowById(ID_RDOFILTERON);
+	wxASSERT(rdoFilterOn != NULL);
+	btnFilterOptions = (wxButton *)FindWindowById(ID_BTNFILTEROPTIONS);
+	wxASSERT(btnFilterOptions != NULL);
 }
 
-CExportSaveAsDlg::~CExportSaveAsDlg()
+CExportSaveAsDlg::~CExportSaveAsDlg(void)
 {
 	//(*Destroy(CExportSaveAsDlg)
 	//*)
@@ -239,6 +213,11 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	pCheckUseSuffixExportDateTimeStamp->SetValue(gpApp->m_bUseSuffixExportDateTimeOnFilename);
 	// Note: the caller DoExportSfmText() accesses the above two checkbox values and may
 	// enable or disable the checkboxes as appropriate to the exporting context there.
+	
+	pExportSaveAsSizer->Layout();
+	this->Fit();
+	
+	//this->SetWindowStyle(wxDEFAULT_DIALOG_STYLE);
 }
 
 // Update the lblExportTypeDescription text based on the specified export type
@@ -270,19 +249,6 @@ void CExportSaveAsDlg::SetExportTypeDescription(ExportSaveAsType newType)
 /////////////////////////////////////////////////////////////////////////////
 // Event Handlers
 /////////////////////////////////////////////////////////////////////////////
-
-void CExportSaveAsDlg::OnchkDateTimeSuffixClick(wxCommandEvent& event)
-{
-}
-
-void CExportSaveAsDlg::OnchkProjectNamePrefixClick(wxCommandEvent& event)
-{
-}
-
-void CExportSaveAsDlg::OnchkTargetTextPrefixClick(wxCommandEvent& event)
-{
-}
-
 void CExportSaveAsDlg::OnrdoFilterOnSelect(wxCommandEvent& event)
 {
     bExportAll = FALSE;
@@ -311,7 +277,6 @@ void CExportSaveAsDlg::OnbtnFilterOptionsClick(wxCommandEvent& event)
 	}
 }
 
-
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -325,7 +290,6 @@ void CExportSaveAsDlg::OnOK(wxCommandEvent& event)
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
-
 
 void CExportSaveAsDlg::OnbtnExportToTxtClick(wxCommandEvent& event)
 {
