@@ -82,7 +82,13 @@
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
-#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingWizard located in scrollingwizard.h
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
 #include "StartWorkingWizard.h"
 #include "EmailReportDlg.h"
 #include "HtmlFileViewer.h"
@@ -821,7 +827,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						// IDS_LOAD_DOC_FAILURE
 						wxMessageBox(_(
 "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
-						_T(""), wxICON_ERROR);
+						_T(""), wxICON_ERROR | wxOK);
 						bool bOK;
 						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory
 						// we don't expect this call to have failed
@@ -951,7 +957,8 @@ int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxSt
 				wxString rangeStr = refStr.Mid(curPos + 1);
 				int count = 0;
 				int index = 0;
-				while (wxIsdigit(rangeStr[index]) > 0)
+				// whm 11Jun12 changed while below to avoid warning '>' : unsafe use of type 'bool' in operation
+				while (wxIsdigit(rangeStr[index]) == TRUE) //while (wxIsdigit(rangeStr[index]) > 0)
 				{
 					// if the character at index is a digit, count it & increment index & iterate
 					count++;
@@ -961,7 +968,8 @@ int FindChapterVerseLocation(SPList* pDocList, int nChap, int nVerse, const wxSt
 				nFirstVerse = wxAtoi(firstStr);
 				rangeStr = MakeReverse(rangeStr);
 				count = index = 0;
-				while (wxIsdigit(rangeStr[index]) > 0)
+				// whm 11Jun12 changed while below to avoid warning '>' : unsafe use of type 'bool' in operation
+				while (wxIsdigit(rangeStr[index]) == TRUE) //while (wxIsdigit(rangeStr[index]) > 0)
 				{
 					// if the character at index is a digit, count it & increment index & iterate
 					count++;
@@ -1118,6 +1126,16 @@ WXLRESULT CMainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
 
 CMainFrame::~CMainFrame()
 {
+	// whm 13Jun12 added pop the four event handlers that were pushed onto pFrame in OnInit()
+	// This is needed in wxWidgets 2.9.3 to avoid an assert at the end of this CMainFrame::~CMainFrame
+	// destructor and a crash in OnExit(). There needs to be four calls of PopEventHandler(FALSE)
+	// here in the destructor, one for each of the four pFrame->PushEventHandler() calls in
+	// the App's OnInit() function.
+	PopEventHandler(FALSE); // for PushEventHandler(m_pPlaceholder)
+	PopEventHandler(FALSE); // for PushEventHandler(m_pRetranslation)
+	PopEventHandler(FALSE); // for PushEventHandler(m_pNotes)
+	PopEventHandler(FALSE); // for PushEventHandler(m_pFreeTrans)
+	
 	// restore to the menu bar the Administrator menu if it is currently removed
 	if (gpApp->m_bAdminMenuRemoved)
 	{
@@ -2094,7 +2112,7 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString strMsg;
 		strMsg = strMsg.Format(_T("Adapt It could not add book contents to its help file.\nThe name and location of the help file it looked for:\n %s\nTo ensure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
-		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+		wxMessageBox(strMsg, _T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(strMsg);
 	}
 	if (bOK1)
@@ -2105,7 +2123,7 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& WXUNUSED(event))
 		{
 			wxString strMsg;
 			strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo ensure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
-			wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+			wxMessageBox(strMsg, _T(""), wxICON_EXCLAMATION | wxOK);
 			gpApp->LogUserAction(strMsg);
 		}
 	}
@@ -2149,7 +2167,7 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, quickStartHelpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Browser launch error"),wxYES_NO);
+		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		gpApp->LogUserAction(msg);
 		if (response == wxYES)
 		{
@@ -2179,7 +2197,7 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString strMsg;
 		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the online help.\nIf you have Internet access, you can try launching your browser\nyourself and view the online Adapt It help site by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),onlineHelpURL.c_str());
-		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_WARNING);
+		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(strMsg);
 	}
 }
@@ -2199,7 +2217,7 @@ void CMainFrame::OnOnlineHelp(wxCommandEvent& WXUNUSED(event))
 //	{
 //		wxString strMsg;
 //		strMsg = strMsg.Format(_T("Adapt It could not launch your browser to access the user forum.\nIf you have Internet access, you can try launching your browser\nyourself and go to the Adapt It user forum by writing down\nthe following Internet address and typing it by hand in your browser:\n %s"),userForumURL.c_str());
-//		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_WARNING);
+//		wxMessageBox(strMsg, _T("Error launching browser"), wxICON_EXCLAMATION | wxOK);
 //	}
 //}
 
@@ -3071,7 +3089,8 @@ void CMainFrame::RecreateToolBar()
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	// delete and recreate the toolbar
     AIToolBar *toolBar = GetToolBar();
-    delete toolBar;
+	if (toolBar != NULL) // whm 11Jun12 added NULL test
+	    delete toolBar;
 	toolBar = (AIToolBar*)NULL;
     SetToolBar(NULL);
 
@@ -3229,7 +3248,7 @@ void CMainFrame::OnViewComposeBar(wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnViewModeBar(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMessageBox(_T("Not yet implemented!"),_T("Mode Bar"),wxICON_INFORMATION);
+	//wxMessageBox(_T("Not yet implemented!"),_T("Mode Bar"),wxICON_INFORMATION | wxOK);
 	wxView* pView = gpApp->GetView();
 	if (pView != NULL)
 	{
@@ -3789,7 +3808,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// IDS_AT_END
 		wxMessageBox(
 		_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 	}
 
 	if (bUserCancelled)
@@ -3849,7 +3868,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 	if (m_pVertEditBar == NULL)
 	{
 		wxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in \
-						 OnCustomEventAdaptationsEdit()"),_T(""), wxICON_EXCLAMATION);
+						 OnCustomEventAdaptationsEdit()"),_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -4568,7 +4587,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(
 _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventAdaptationsEdit()"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -5237,7 +5256,7 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	{
 		wxMessageBox(
 _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventAdaptationsEdit()"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
@@ -5889,7 +5908,7 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	{
 		// unlikely to fail, give a warning if it does
 		wxMessageBox(_("Warning: recollecting the back translations did not succeed. Try doing it manually."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 	}
 
 	// unilaterally end the vertical edit process - don't provide a rollback chance

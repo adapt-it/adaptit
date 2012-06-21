@@ -49,13 +49,24 @@
 #include <wx/filesys.h> // for wxFileName
 #include <wx/progdlg.h> // for wxFileName
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include "LanguagesPage.h"
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
 #include "CaseEquivPage.h"
 #include "UsfmFilterPage.h"
 #include "DocPage.h"
-#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingWizard located in scrollingwizard.h
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
 #include "StartWorkingWizard.h"
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -212,7 +223,8 @@ void CProjectPage::OnLBSelectItem(wxCommandEvent& WXUNUSED(event))
 	}
 	wxString selStr;
 	selStr = m_pListBox->GetStringSelection();
-	if (selStr.GetChar(0) == _T('<'))	// the name might change in a localized version, 
+	// whm 11Jun12 added !selStr.IsEmpty() && to test below. GetChar(0) should not be called on an empty string.
+	if (!selStr.IsEmpty() && selStr.GetChar(0) == _T('<'))	// the name might change in a localized version, 
 										// so look for < as the indicator that <New Project>
 										// was chosen by the user, rather than an existing one
 	{
@@ -388,7 +400,7 @@ void CProjectPage::OnButtonWhatIsProject(wxCommandEvent& WXUNUSED(event))
 	s = s.Format(_("In the list below, if you do not have your project set up yet, double click <New Project>. If it is already set up, you will see its name in the list - double click the name to open that project."));
 	accum += s;
 
-	wxMessageBox(accum, _T(""), wxICON_INFORMATION);
+	wxMessageBox(accum, _T(""), wxICON_INFORMATION | wxOK);
 }
 
 // whm added 10Mar12
@@ -445,7 +457,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 	{
-		wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION | wxOK);
 		event.Veto();
 		return;
 	}
@@ -465,7 +477,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	if (bMovingForward) // we can only move forward from the projectPage
 	{
 		// user selected "Next >"
-		if (m_projectName.GetChar(0) == _T('<')) // the name might change in a localized version, 
+		// whm 11Jun12 added !m_projectName.IsEmpty() && to test below. GetChar(0) should not be called on
+		// an empty string.
+		if (!m_projectName.IsEmpty() && m_projectName.GetChar(0) == _T('<')) // the name might change in a localized version, 
 											// so look for < as the indicator that <New Project>
 											// was chosen by the user, rather than an existing one
 		{
@@ -541,7 +555,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				{
 					wxString msg = _T("Unable to create an Adaptations folder within the %s project folder");
 					msg = msg.Format(msg,pApp->m_curProjectName.c_str());
-					wxMessageBox(msg,_T(""),wxICON_WARNING);
+					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 					event.Veto();
 					return;
 				}
@@ -610,7 +624,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						titleMsg = _("Cannot determine this project's settings");
 					}
 					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
-					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 					pApp->LogUserAction(msg);
 					event.Veto();
 					return;
@@ -656,7 +670,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						msg = msg.Format(msg,m_projectName.c_str());
 					}
 					int response;
-					response = wxMessageBox(msg,titleMsg,wxICON_QUESTION | wxYES_NO);
+					response = wxMessageBox(msg,titleMsg,wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					pApp->LogUserAction(msg);
 					if (response == wxYES)
 					{
@@ -678,13 +692,13 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						msg = _("Remember to check and possibly adjust your fonts, punctuation and other settings by accessing Preferences... on the Edit menu.");
 						msg = msg.Format(msg, pApp->m_collaborationEditor.c_str(),m_projectName.c_str());
 					}
-					wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+					wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 					break;
 				}
 			case collabProjExistsButEditorNotInstalled:
 				{
 					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
-					wxMessageBox(msg,titleMessageCommon,wxICON_WARNING);
+					wxMessageBox(msg,titleMessageCommon,wxICON_EXCLAMATION | wxOK);
 					pApp->LogUserAction(msg);
 					gpApp->LogUserAction(msg);
 					event.Veto();
@@ -695,7 +709,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			case collabProjExistsButIsInvalid:
 				{
 					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
-					wxMessageBox(msg,titleMessageCommon,wxICON_WARNING);
+					wxMessageBox(msg,titleMessageCommon,wxICON_EXCLAMATION | wxOK);
 					pApp->LogUserAction(msg);
 					// Either the config file's CollabProjectForSourceInputs or 
 					// CollabProjectForTargetExports string was missing, or if present,
@@ -801,7 +815,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						wxString msg = _("Sorry, the projects you selected have the following problem:\n%s\n\nCollaboration is not possible until the necessary %s projects have been set up. Please ask your administrator to set up %s with the projects necessary for collaboration with Adapt It.");
 						msg = msg.Format(msg,errStr.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
 						// Note: The errProj returned string is not used here.
-						wxMessageBox(msg,_("Administrator setup required for collaboration"),wxICON_WARNING); 
+						wxMessageBox(msg,_("Administrator setup required for collaboration"),wxICON_EXCLAMATION | wxOK); 
 						gpApp->LogUserAction(_T("User selected PT/BE projects to collaborate with after missing reports, but those selected projects didn't pass validity testing so vetoed ProjectPage's OnWizardPageChanging()."));
 						event.Veto();
 						return;
@@ -972,7 +986,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 								if (!pApp->m_bReadOnlyAccess)
 								{
 									wxString msg = _("Adapt It could not enter read-only mode for some unknown reason. You may continue to access the user's documents, but proceed with care.");
-									wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_WARNING);
+									wxMessageBox(msg,_("Read Only Protection Failed"),wxICON_EXCLAMATION | wxOK);
 									pApp->LogUserAction(msg);
 								}
 								else
@@ -1094,7 +1108,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				{
 					wxMessageBox(
 _("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
-					_T(""), wxICON_INFORMATION);
+					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
 			

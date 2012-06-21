@@ -163,7 +163,7 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 	if (nEnd > len || nEnd < 0 || nEnd == 0 || nEnd == len )
 	{
 		// IDS_WRONG_PASTE_LOCATION
-		wxMessageBox(_("Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."),_T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."),_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -187,7 +187,7 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 		{
 			// message can be in English, it's never likely to occur
 			wxMessageBox(_T("List box error when getting the current selection, Adaptit will do nothing."),
-				_T(""), wxICON_EXCLAMATION);
+				_T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 

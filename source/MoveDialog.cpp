@@ -133,7 +133,7 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 
 	if (pSourceFolderDocumentListBox->GetSelection() == -1)
 	{
-		wxMessageBox(_("Please select the file you wish to move."),_T(""), wxICON_WARNING); //IDS_SELECT_MOVE_FILE
+		wxMessageBox(_("Please select the file you wish to move."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_SELECT_MOVE_FILE
 		return;
 	}
 
@@ -158,11 +158,11 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 		{
 			case DOCUMENTMOVER_SUCCESS :
 				UpdateFileList();
-				wxMessageBox(_("Moving the document was successful."),_T(""),wxICON_INFORMATION); //IDS_SUCCESSFUL_MOVE
+				wxMessageBox(_("Moving the document was successful."),_T(""),wxICON_INFORMATION | wxOK); //IDS_SUCCESSFUL_MOVE
 				gpApp->LogUserAction(_T("Moving the document was successful."));
 				break;
 			case DOCUMENTMOVER_USERINTERVENTIONREQUIRED_PROMPTSAVECHANGES :
-				nAnswer = wxMessageBox(msg, _T(""), wxYES_NO | wxCANCEL);
+				nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
 				switch (nAnswer)
 				{
 					case wxYES: //case +1 :
@@ -192,12 +192,12 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 				gpApp->LogUserAction(_T("A file with this name already exists in the destination folder.  Do you want to overwrite it?"));
 				break;
 			case DOCUMENTMOVER_ERROR_BOOKVIOLATION :
-				wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."),_T(""), wxICON_WARNING); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
+				wxMessageBox(_("Sorry, the file you are trying to move belongs to a different book folder than the current one."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_NOT_FOR_CURRENT_BOOK_FOLDER
 				gpApp->LogUserAction(_T("Sorry, the file you are trying to move belongs to a different book folder than the current one."));
 				break;
 			default :
 				m.CancelMove();
-				wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."),_T(""), wxICON_WARNING); //IDS_UNEXPECTED_MOVE_ERROR
+				wxMessageBox(_("An unexpected error occured while trying to do the move.  The move has been aborted."),_T(""), wxICON_EXCLAMATION | wxOK); //IDS_UNEXPECTED_MOVE_ERROR
 				gpApp->LogUserAction(_T("An unexpected error occured while trying to do the move.  The move has been aborted."));
 				break;
 		}
@@ -215,7 +215,7 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 
 	if (pSourceFolderDocumentListBox->GetSelection() == -1) 
 	{
-		wxMessageBox(_("Please select the file you wish to rename."),_T(""),wxICON_WARNING); //IDS_SELECT_FILE_TO_RENAME
+		wxMessageBox(_("Please select the file you wish to rename."),_T(""),wxICON_EXCLAMATION | wxOK); //IDS_SELECT_FILE_TO_RENAME
 		return;
 	}
 	if (bFromBookFolder) 
@@ -238,7 +238,7 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 	msg += str;
 
 	if (SelectedFileIsOpenWithUnsavedChanges) {
-		int nAnswer = wxMessageBox(msg, _T(""), wxYES_NO | wxCANCEL);
+		int nAnswer = wxMessageBox(msg, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCANCEL);
 		switch (nAnswer)
 		{
 			case wxYES: //case +1 :
@@ -295,7 +295,7 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 
 		} else 
 		{
-			wxMessageBox(_("Sorry, an unexpected error occured while trying to rename the document."),_T(""),wxICON_WARNING); //TellUser(IDS_UNEXPECTED_ERROR_WHEN_RENAMING);
+			wxMessageBox(_("Sorry, an unexpected error occured while trying to rename the document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_UNEXPECTED_ERROR_WHEN_RENAMING);
 		}
 	}
 

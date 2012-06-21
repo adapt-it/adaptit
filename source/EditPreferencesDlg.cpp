@@ -13,7 +13,7 @@
 /// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", and
 /// "USFM and Filtering" depending on the current user workflow profile selected.
-/// \derivation		The CEditPreferencesDlg class is derived from wxScrollingPropertySheetDialog.
+/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in EditPreferencesDlg.cpp (in order of importance): (search for "TODO")
 // 1. Debug the RTL stuff and conditional compile it for other platforms
@@ -49,11 +49,19 @@
 #include <wx/valgen.h>
 #include <wx/colordlg.h>
 #include <wx/wizard.h>
-//#include <wx/propdlg.h>
 #include <wx/display.h> // for wxDisplay
 
 #include "Adapt_It.h" // for access to extern fontInfo structs below
-#include "scrollingdialog.h" // whm added 13Nov11 for wxScrollingPropertySheetDialog - needs to be included here before EditPreferencesDlg.h
+
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling dialog features available in wxWidgets 2.9.x
+#include <wx/propdlg.h> // whm 8Jun12 Note: this now includes wxScrollingPropertyScheetDialog features in 2.9.3
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingDialog located in scrollingdialog.h
+#include "scrollingdialog.h"
+#endif
+
 #include "EditPreferencesDlg.h"
 #include "Adapt_It_Resources.h"
 #include "Adapt_ItDoc.h"
@@ -86,10 +94,10 @@ extern CAdapt_ItApp* gpApp;
 // our config files.
 extern struct fontInfo SrcFInfo, TgtFInfo, NavFInfo;
 
-//IMPLEMENT_DYNAMIC_CLASS(CEditPreferencesDlg, wxScrollingPropertySheetDialog)
+//IMPLEMENT_DYNAMIC_CLASS(CEditPreferencesDlg, wxPropertySheetDialog)
 
 // event handler table
-BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxScrollingPropertySheetDialog)
+BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxPropertySheetDialog)
 	EVT_INIT_DIALOG(CEditPreferencesDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CEditPreferencesDlg::OnOK)
 
@@ -171,10 +179,10 @@ CEditPreferencesDlg::CEditPreferencesDlg(
 bool CEditPreferencesDlg::Create( wxWindow* parent, wxWindowID id, const wxString& caption, const wxPoint& pos, const wxSize& size, long style )
 {
     SetExtraStyle(GetExtraStyle()|wxWS_EX_BLOCK_EVENTS|wxDIALOG_EX_CONTEXTHELP);
-    wxScrollingPropertySheetDialog::Create( parent, id, caption, pos, size, style );
+    wxPropertySheetDialog::Create( parent, id, caption, pos, size, style );
 
     CreateButtons(wxOK|wxCANCEL); //|wxHELP);
-	// whm note: the wxScrollingPropertySheetDialog has internal smarts to reverse the order of the
+	// whm note: the wxPropertySheetDialog has internal smarts to reverse the order of the
 	// OK and Cancel buttons on creation, so we don't need to call the App's 
 	// ReverseOkCancelButtonsForMac() function.
     CreateControls();
@@ -324,36 +332,44 @@ CEditPreferencesDlg::~CEditPreferencesDlg(void)
 	// deallocated here in the destructor.
 	if (!TabIsVisibleInCurrentProfile(_("Fonts")))
 	{
-		delete fontPage;
+		if (fontPage != NULL) // whm 11Jun12 added NULL test
+			delete fontPage;
 	}
 	if (!TabIsVisibleInCurrentProfile(_("Punctuation")))
 	{
-		delete punctMapPage;
+		if (punctMapPage != NULL) // whm 11Jun12 added NULL test
+			delete punctMapPage;
 	}
 	if (!TabIsVisibleInCurrentProfile(_("Case")))
 	{
-		delete caseEquivPage;
+		if (caseEquivPage != NULL) // whm 11Jun12 added NULL test
+			delete caseEquivPage;
 	}
 	if (!TabIsVisibleInCurrentProfile(_("Backups and Misc")))
 	{
-		delete kbPage;
+		if (kbPage != NULL) // whm 11Jun12 added NULL test
+			delete kbPage;
 	}
 	if (!TabIsVisibleInCurrentProfile(_("View")))
 	{
-		delete viewPage;
+		if (viewPage != NULL) // whm 11Jun12 added NULL test
+			delete viewPage;
 	}
 	if (!TabIsVisibleInCurrentProfile(_("Auto-Saving")))
 	{
-		delete autoSavePage;
+		if (autoSavePage != NULL) // whm 11Jun12 added NULL test
+			delete autoSavePage;
 	}
 	if (!TabIsVisibleInCurrentProfile(_("Units")))
 	{
-		delete unitsPage;
+		if (unitsPage != NULL) // whm 11Jun12 added NULL test
+			delete unitsPage;
 	}
 	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")) 
 		&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit))
 	{
-		delete usfmFilterPage;
+		if (usfmFilterPage != NULL) // whm 11Jun12 added NULL test
+			delete usfmFilterPage;
 	}
 	*/
 }
@@ -438,7 +454,7 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 		if (gbIsGlossing && pgText == _("Punctuation"))
 		{
 			// Remove Punctuation page from Edit Preferences notebook when Glossing box is checked
-			wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION); 
+			wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION | wxOK); 
 			pNotebook->RemovePage(pgCt);
 			break;
 		}
@@ -473,21 +489,21 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (fontPage->fontPgCommon.pSrcFontNameBox->GetValue().IsEmpty())
 		{
 			pNotebook->SetSelection(0); // Font tab is first in EditPreferencesDlg notebook
-			wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pSrcFontNameBox->SetFocus();
 			return;
 		}
 		if (fontPage->fontPgCommon.pTgtFontNameBox->GetValue().IsEmpty())
 		{
 			pNotebook->SetSelection(0);
-			wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pTgtFontNameBox->SetFocus();
 			return;
 		}
 		if (fontPage->fontPgCommon.pNavFontNameBox->GetValue().IsEmpty())
 		{
 			pNotebook->SetSelection(0);
-			wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pNavFontNameBox->SetFocus();
 			return;
 		}
@@ -501,7 +517,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("source"),MIN_FONT_SIZE,MAX_FONT_SIZE);
 			pNotebook->SetSelection(0);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pSrcFontSizeBox->SetFocus();
 			fontPage->fontPgCommon.pSrcFontSizeBox->SetValue(_T("12"));
 			return;
@@ -512,7 +528,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("target"),MIN_FONT_SIZE,MAX_FONT_SIZE);
 			pNotebook->SetSelection(0);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pTgtFontSizeBox->SetValue(_T("12"));
 			fontPage->fontPgCommon.pTgtFontSizeBox->SetFocus();
 			return;
@@ -523,7 +539,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("navigation"),MIN_FONT_SIZE,MAX_FONT_SIZE);
 			pNotebook->SetSelection(0);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pNavFontSizeBox->SetValue(_T("12"));
 			fontPage->fontPgCommon.pNavFontSizeBox->SetFocus();
 			fontPage->fontPgCommon.tempNavTextSize = 12;
@@ -541,7 +557,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("source"));
 			pNotebook->SetSelection(1);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			kbPage->m_pEditSrcName->SetFocus();
 			return;
 		}
@@ -549,7 +565,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("target"));
 			pNotebook->SetSelection(1);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			kbPage->m_pEditTgtName->SetFocus();
 			return;
 		}
@@ -567,7 +583,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		//{
 		//	msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
 		//	pNotebook->SetSelection(2);
-		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		//	viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
 		//	return;
 		//}
@@ -578,7 +594,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		//{
 		//	msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
 		//	pNotebook->SetSelection(2);
-		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		//	viewPage->m_pEditMinPrecContext->SetFocus();
 		//	return;
 		//}
@@ -589,7 +605,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		//{
 		//	msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
 		//	pNotebook->SetSelection(2);
-		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		//	viewPage->m_pEditMinFollContext->SetFocus();
 		//	return;
 		//}
@@ -599,7 +615,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("vertical gap between text strips"),14,80);
 			pNotebook->SetSelection(2);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditLeading->SetFocus();
 			return;
 		}
@@ -609,7 +625,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
 			pNotebook->SetSelection(2);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditGapWidth->SetFocus();
 			return;
 		}
@@ -619,7 +635,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("expansion multiplier"),5,30);
 			pNotebook->SetSelection(2);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditMultiplier->SetFocus();
 			return;
 		}
@@ -634,7 +650,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("number of minutes value"),1,30);
 			pNotebook->SetSelection(3);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditMinutes->SetFocus();
 			return;
 		}
@@ -644,7 +660,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("number of moves value"),10,1000);
 			pNotebook->SetSelection(3);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditMoves->SetFocus();
 			return;
 		}
@@ -654,7 +670,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr,_("number of minutes"),2,60);
 			pNotebook->SetSelection(3);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditKBMinutes->SetFocus();
 			return;
 		}
@@ -670,7 +686,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("source"));
 				pNotebook->SetSelection(4);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
 				return;
 			}
@@ -678,7 +694,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("target"));
 				pNotebook->SetSelection(4);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
 				return;
 			}
@@ -690,7 +706,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("source"));
 				pNotebook->SetSelection(4);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
 				return;
 			}
@@ -698,7 +714,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			{
 				msg = msg.Format(subStr,_("target"));
 				pNotebook->SetSelection(4);
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
 				return;
 			}
@@ -713,7 +729,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("source"));
 			pNotebook->SetSelection(5);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditSrcEquivalences->SetFocus();
 			return;
 		}
@@ -721,7 +737,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("target"));
 			pNotebook->SetSelection(5);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditTgtEquivalences->SetFocus();
 			return;
 		}
@@ -729,7 +745,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		{
 			msg = msg.Format(subStr, _("gloss"));
 			pNotebook->SetSelection(5);
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditGlossEquivalences->SetFocus();
 			return;
 		}

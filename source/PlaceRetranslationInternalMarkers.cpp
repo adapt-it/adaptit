@@ -124,7 +124,7 @@ void CPlaceRetranslationInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
 		wxMessageBox(_("List box error when getting the current selection, place manually instead"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return; // whm added
 	}
 	int nSel;

@@ -13,7 +13,9 @@
 /// user to specify a replacement string.
 /// Both CFindDlg and CReplaceDlg are created as a Modeless dialogs. They are created on 
 /// the heap and are displayed with Show(), not ShowModal().
-/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxScrollingDialog.
+/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxScrollingDialog 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxDialog for version 
+/// 2.9.x and later.
 /////////////////////////////////////////////////////////////////////////////
 
 // BEW 26Mar10, these classes are updated for support of doc version 5
@@ -90,10 +92,20 @@ bool	gbJustCancelled = FALSE;
 
 // the CFindDlg class //////////////////////////////////////////////////////////////////////
 
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+IMPLEMENT_DYNAMIC_CLASS( CFindDlg, wxDialog )
+#else
 IMPLEMENT_DYNAMIC_CLASS( CFindDlg, wxScrollingDialog )
+#endif
 
 // event handler table
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+BEGIN_EVENT_TABLE(CFindDlg, wxDialog)
+#else
 BEGIN_EVENT_TABLE(CFindDlg, wxScrollingDialog)
+#endif
 	EVT_INIT_DIALOG(CFindDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CFindDlg::OnCancel)	
 	
@@ -121,8 +133,14 @@ CFindDlg::~CFindDlg()
 
 // BEW 26Mar10, no changes needed for support of doc version 5
 CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	: wxDialog(parent, -1, _("Find"),
+		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
 	: wxScrollingDialog(parent, -1, _("Find"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#endif
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
@@ -1081,10 +1099,20 @@ void CFindDlg::OnRadioSrcAndTgt(wxCommandEvent& WXUNUSED(event))
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CReplaceDlg !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+IMPLEMENT_DYNAMIC_CLASS( CReplaceDlg, wxDialog )
+#else
 IMPLEMENT_DYNAMIC_CLASS( CReplaceDlg, wxScrollingDialog )
+#endif
 
 // event handler table
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+BEGIN_EVENT_TABLE(CReplaceDlg, wxDialog)
+#else
 BEGIN_EVENT_TABLE(CReplaceDlg, wxScrollingDialog)
+#endif
 	EVT_INIT_DIALOG(CReplaceDlg::InitDialog)
 	EVT_BUTTON(wxID_CANCEL, CReplaceDlg::OnCancel)	
 	
@@ -1107,8 +1135,14 @@ CReplaceDlg::~CReplaceDlg()
 }
 
 CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	: wxDialog(parent, -1, _("Find and Replace"),
+		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
 	: wxScrollingDialog(parent, -1, _("Find and Replace"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#endif
 {
     // This dialog function below is generated in wxDesigner, and defines the controls and
     // sizers for the dialog. The first parameter is the parent which should normally be
@@ -1652,7 +1686,7 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 		// IDS_NO_SELECTION_YET
 		wxMessageBox(_(
 "Sorry, you cannot do a Replace operation because there is no selection yet."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		gbJustReplaced = FALSE;
 		return;
 	}
@@ -1673,7 +1707,7 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 		"Failed to do the replacement without error. The next Find Next will be skipped."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 	

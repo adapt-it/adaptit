@@ -8,7 +8,10 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CStartWorkingWizard class. 
 /// The CStartWorkingWizard class implements Adapt It's Start Working Wizard.
-/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard.
+/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxWizard for 
+/// version 2.9.x and later.
+
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in StartWorkingWizard.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -40,10 +43,24 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h> // for wxWizard
 #include <wx/display.h> // for wxDisplay
-#include "Adapt_It.h"
-#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
-#include "StartWorkingWizard.h"
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
+#include "Adapt_It.h"
+
+// whm 12Jun12 added conditional compile wxWidgets library version check
+#if wxCHECK_VERSION(2,9,0)
+// Use the built-in scrolling wizard features available in wxWidgets 2.9.x
+#else
+// The wxWidgets library being used is pre-2.9.x, so use our own modified
+// version named wxScrollingWizard located in scrollingwizard.h
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
+
+#include "StartWorkingWizard.h"
 #include "FontPage.h"
 #include "LanguagesPage.h"
 #include "UsfmFilterPage.h"
@@ -89,14 +106,24 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 extern CStartWorkingWizard* pStartWorkingWizard;
 
 // event handler table
+// whm 14Jun12 modified to use wxWizard for wxWidgets 2.9.x and later; wxScrollingWizard for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+BEGIN_EVENT_TABLE(CStartWorkingWizard, wxWizard)
+#else
 BEGIN_EVENT_TABLE(CStartWorkingWizard, wxScrollingWizard)
+#endif
 	EVT_BUTTON(wxID_CANCEL, CStartWorkingWizard::OnCancel)
 END_EVENT_TABLE()
 
 
 CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
+#if wxCHECK_VERSION(2,9,0)
+	: wxWizard(parent, wxID_ANY, _("Start Working"), wxNullBitmap,
+				wxDefaultPosition, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
 	: wxScrollingWizard(parent, wxID_ANY, _("Start Working"), wxNullBitmap,
 				wxDefaultPosition, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#endif
 {
 	// The Start Working Wizard is not generated in wxDesigner.
 	

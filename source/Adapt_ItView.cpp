@@ -80,7 +80,14 @@
 #include "CollabUtilities.h"
 #include "BString.h"
 #include "XML.h"
-#include "scrollingdialog.h" // whm added 13Nov11 for wxScrollingPropertySheetDialog - needs to be included here before EditPreferencesDlg.h
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling dialog features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingDialog located in scrollingdialog.h
+#include "scrollingdialog.h"
+#endif
+
 #include "EditPreferencesDlg.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
@@ -308,8 +315,10 @@ extern bool bPlaceFreeTransInRTFText;	// default is TRUE
 extern bool bPlaceBackTransInRTFText;	// default is FALSE
 extern bool bPlaceAINotesInRTFText;		// default is FALSE
 
-extern const wxChar* filterMkr; // defined in the Doc, used here in OnLButtonDown() & free translation code, etc
-extern const wxChar* filterMkrEnd; // defined in the Doc, used in free translation code, etc
+// whm 9Jun12 changed the type for filterMkr and filterMrkEnd to wxString (and remove const) to agree with the actual
+// declaration in Adapt_ItDoc. Otherwise wxWidgets 2.9.3 generates a error LNK2001: unresolved external symbol "wchar_t const * const filterMkr" 
+extern wxString filterMkr; // defined in the Doc, used here in OnLButtonDown() & free translation code, etc
+extern wxString filterMkrEnd; // defined in the Doc, used in free translation code, etc
 
 // The following string is a list of markers that affect character formatting and the text
 // to which they apply should not be filtered when the marker is filtered, only the markers
@@ -1761,7 +1770,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			{
 				wxMessageBox(_(
 "Error: loading the glossing knowledge base failed. The application will now close."),_T(""),
-				wxICON_ERROR);
+				wxICON_ERROR | wxOK);
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -1770,7 +1779,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		{
 			wxMessageBox(_(
 		"Error: loading a knowledge base failed. The application will now close."),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			wxExit();
 		}
@@ -1808,7 +1817,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 				// IDS_STORE_GLOSSINGKB_FAILURE
 				wxMessageBox(_(
 "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."),
-				_T(""), wxICON_ERROR); // something went wrong
+				_T(""), wxICON_ERROR | wxOK); // something went wrong
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -1818,7 +1827,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			// IDS_STORE_KB_FAILURE
 			wxMessageBox(_(
 "Error: saving the knowledge base failed. The application will now close."),
-			_T(""), wxICON_ERROR); // something went wrong
+			_T(""), wxICON_ERROR | wxOK); // something went wrong
 			wxASSERT(FALSE);
 			wxExit();
 		}
@@ -1915,7 +1924,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		//IDS_ASK_USE_CC
         if( wxMessageBox(_(
 "Do you wish consistent changes to be applied to the text to be pasted?"),
-		_T(""), wxYES_NO) == wxYES )
+		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES )
 		{
 			insertionText = DoConsistentChanges(pasteStr);
 		}
@@ -1925,7 +1934,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		// IDS_ASK_USE_SILCONVERTER
         if( wxMessageBox(_(
 "Do you wish the configured SILConverter to be applied to the text to be pasted?"),
-		_T(""), wxYES_NO) == wxYES )
+		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES )
 	    {
 		    insertionText = DoSilConvert(pasteStr);
 	    }
@@ -1998,7 +2007,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		// IDS_PASTE_TEXT_TOO_LONG
 		wxMessageBox(_(
 "Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."),
-		_T(""),wxICON_EXCLAMATION); // warn user
+		_T(""),wxICON_EXCLAMATION | wxOK); // warn user
 	}
 	else
 	{
@@ -3528,7 +3537,8 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 									new AIPrintout(printTitle), & printDialogData);
     if (!preview->Ok())
     {
-        delete preview;
+		if (preview != NULL) // whm 11Jun12 added NULL test
+	        delete preview;
         wxMessageBox(_T(
 "There was a problem previewing.\nPerhaps your current printer is not set correctly?"),
 		_T("Previewing"), wxOK);
@@ -3609,7 +3619,7 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 	if(nMaxStrips <= 0)
 	{
 		wxMessageBox(_T("Error: Cannot paginate an empty document."),_T(""),
-			wxICON_EXCLAMATION);
+			wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -4588,14 +4598,14 @@ bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const
 	{
 		// IDS_ILLEGAL_RANGE
 		wxMessageBox(_("Sorry, the range you specified is illegal. Try again."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	else if (nFromCh == nToCh && nToV < nFromV)
 	{
 		// IDS_ILLEGAL_RANGE
 		wxMessageBox(_("Sorry, the range you specified is illegal. Try again."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -5409,7 +5419,8 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	}
 
 	// delete pFont for no memory leaks
-	delete pFont;
+	if (pFont != NULL) // whm 11Jun12 added NULL test
+		delete pFont;
 }
 #endif
 
@@ -5570,7 +5581,8 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
 	}
 
 	// delete pFont for no memory leaks
-	delete pFont;
+	if (pFont != NULL) // whm 11Jun12 added NULL test
+		delete pFont;
 }
 #endif
 
@@ -5839,7 +5851,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
     // - as does the MFC version.
 
 	// Put up the "Edit Preferences" dialog
-    // wx note: Since CEditPreferencesDlg is based on wxScrollingPropertySheetDialog rather than on
+    // wx note: Since CEditPreferencesDlg is based on wxPropertySheetDialog rather than on
     // wxDialog, it does not get its idle event processing turned off while it is in modal
     // state, therefore we turn off idle processing here manually just before the ShowModal
     // call; and turn it back on afterwards (below).
@@ -6032,7 +6044,7 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& event)
 		mess += _("and try one of the recovery strategies (either use the backup one ");
 		mess += _("or the Restore Knowledge Base command). DO NOT use ");
 		mess += _("the Backup Knowledge Base command now!");
-		wxMessageBox(mess, _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(mess, _T(""), wxICON_EXCLAMATION | wxOK);
 		pApp->LogUserAction(mess);
 	}
 }
@@ -7039,7 +7051,7 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 "FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posMaster value is NULL. ");
 			error += _T("Abandoning current operation.");
 			error += _T(" (If restoring document's original state, it is not properly restored.");
-			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+			wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 	}
@@ -7057,7 +7069,7 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 "FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posReplace value is NULL. ");
 		error += _T("Abandoning current operation.");
 		error += _T(" (If restoring document's original state, it is not properly restored.");
-		wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -7199,7 +7211,7 @@ ins:	;
 					error += _T("following the gap. Abandoning current operation.");
 					error += _T(
 			" (If restoring document's original state, it is not properly restored.");
-					wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+					wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
 					return FALSE;
 				}
 //#ifdef _debugLayout
@@ -7392,8 +7404,10 @@ bool CAdapt_ItView::AreMarkerSetsDifferent(const wxString& str1, const wxString&
 	// bleed out the easy cases
 	if (nSize1 == 0 && nSize2 == 0)
 	{
-		delete pStrArr1;
-		delete pStrArr2;
+		if (pStrArr1 != NULL) // whm 11Jun12 added NULL test
+			delete pStrArr1;
+		if (pStrArr2 != NULL) // whm 11Jun12 added NULL test
+			delete pStrArr2;
 		return FALSE; // both empty, they can't be different
 	}
 	// check for new source text with no markers
@@ -7404,8 +7418,10 @@ bool CAdapt_ItView::AreMarkerSetsDifferent(const wxString& str1, const wxString&
 		// unfiltering is involved because there is no marker which
 		// could be a candidate (sso m_FilterStatusMap remains empty)
 		pStrArr1->Clear();
-		delete pStrArr1;
-		delete pStrArr2;
+		if (pStrArr1 != NULL) // whm 11Jun12 added NULL test
+			delete pStrArr1;
+		if (pStrArr2 != NULL) // whm 11Jun12 added NULL test
+			delete pStrArr2;
 		return TRUE;
 	}
 	// check for pre-edit source text with no markers
@@ -7435,9 +7451,11 @@ bool CAdapt_ItView::AreMarkerSetsDifferent(const wxString& str1, const wxString&
 			else
 				bUnfilteringRequired = TRUE;
 		}
-		delete pStrArr1;
+		if (pStrArr1 != NULL) // whm 11Jun12 added NULL test
+			delete pStrArr1;
 		pStrArr2->Clear();
-		delete pStrArr2;
+		if (pStrArr2 != NULL) // whm 11Jun12 added NULL test
+			delete pStrArr2;
 		goto b;
 	}
 
@@ -7515,9 +7533,11 @@ bool CAdapt_ItView::AreMarkerSetsDifferent(const wxString& str1, const wxString&
 	}
 	// clean up
 	pStrArr1->Clear();
-	delete pStrArr1;
+	if (pStrArr1 != NULL) // whm 11Jun12 added NULL test
+		delete pStrArr1;
 	pStrArr2->Clear();
-	delete pStrArr2;
+	if (pStrArr2 != NULL) // whm 11Jun12 added NULL test
+		delete pStrArr2;
 b:	return bReturnValue;
 }
 
@@ -7613,7 +7633,7 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 	}
 	else
 	{
-		wxMessageBox( _("Cannot open the Clipboard"), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox( _("Cannot open the Clipboard"), _T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 }
@@ -8470,7 +8490,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 					//IDS_CANNOT_STEP_DOWN //  BEW changed message 10Apr09
 					wxMessageBox(_(
 "Adapt It cannot step down to the beginning of the next chapter because it cannot find a legal place to put the phrase box, retranslations at the end of the document prevent it."),
-					_T(""),wxICON_INFORMATION);
+					_T(""),wxICON_INFORMATION | wxOK);
 					// restore old location's values (no RecalcLayout() was done, so
 					// layout is valid still)
 					pApp->m_targetPhrase = saveTargetPhrase;
@@ -8801,7 +8821,7 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 					//IDS_CANNOT_STEP_UP //  BEW changed message 11Apr09
 					wxMessageBox(_(
 "Adapt It cannot step up to the beginning of chapter, or to the beginning of the previous chapter because it cannot find a legal place to put the phrase box, retranslations at the beginning of the document prevent it."),
-					_T(""),wxICON_INFORMATION);
+					_T(""),wxICON_INFORMATION | wxOK);
 					// restore old location's values (no RecalcLayout() was done, so
 					// layout is valid still)
 					pApp->m_targetPhrase = saveTargetPhrase;
@@ -9046,7 +9066,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 		"This particular operation is not available when you are glossing."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -9149,7 +9169,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_selection.GetCount() == 0)
 		{
 			pList->Clear();
-			delete pList;
+			if (pList != NULL) // whm 11Jun12 added NULL test
+				delete pList;
 			pList = (SPList*)NULL;
 			RemoveSelection(); // whm this not really needed as there is no selection
 							   // (but doesn't hurt)
@@ -9327,9 +9348,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// IDS_NO_RETRANSLATION_IN_SEL
 		wxMessageBox(_(
 "This operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		RemoveSelection();
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
@@ -9355,9 +9377,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_(
 "Merging is not permitted when the selection contains ~ which is the USFM fixed space marker.\nTry a retranslation instead."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		RemoveSelection();
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
@@ -9378,9 +9401,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		// IDS_NO_NULL_SRCPHRASE_IN_SEL
 		wxMessageBox(_(
 "Merging a selection which contains a placeholder (represented by ... dots) is not permitted."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		RemoveSelection();
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
@@ -9405,9 +9429,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		//IDS_NO_MERGE_FILTERED
 		wxMessageBox(_(
 		"Merging words across filtered material is not allowed."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		RemoveSelection();
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
@@ -9428,9 +9453,10 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		//IDS_NO_MERGE_ACROSS_FT_END
 		wxMessageBox(_(
 "Merging across the end of a free translation is not permitted. (You can merge up to the end of the free translation, but not beyond that point in the same merger.)"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		RemoveSelection();
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
@@ -9558,7 +9584,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // delete the temporary list, and then do the merge using the restored minimal phrases
     // for the original selection
 	pList->Clear();
-	delete pList;
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
 	pList = (SPList*)NULL;
 
     // at this point, pApp->m_targetPhrase may not have anything in it, because no
@@ -10214,7 +10241,8 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		SPList::Node* extraPos = pList->GetLast();
 		wxASSERT(extraPos != NULL);
 		CSourcePhrase* pDummySrcPhrase = extraPos->GetData();
-		delete pDummySrcPhrase;
+		if (pDummySrcPhrase != NULL) // whm 11Jun12 added NULL test
+			delete pDummySrcPhrase;
 		pList->Erase(extraPos);
 	}
 
@@ -10261,13 +10289,15 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 	{
 		pBigOne->m_pMedialMarkers->Clear();
 	}
-	delete pBigOne->m_pMedialMarkers;
+	if (pBigOne->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+		delete pBigOne->m_pMedialMarkers;
 	pBigOne->m_pMedialMarkers = (wxArrayString*)NULL;
 	if (pBigOne->m_pMedialPuncts->GetCount() > 0)
 	{
 		pBigOne->m_pMedialPuncts->Clear();
 	}
-	delete pBigOne->m_pMedialPuncts;
+	if (pBigOne->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+		delete pBigOne->m_pMedialPuncts;
 	pBigOne->m_pMedialPuncts = (wxArrayString*)NULL;
 	if (pBigOne->m_pSavedWords->GetCount() > 0)
 	{
@@ -10275,13 +10305,15 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		// any copies of this source phrase will only have copied pointers in the sublist
 		pBigOne->m_pSavedWords->Clear();
 	}
-	delete pBigOne->m_pSavedWords;
+	if (pBigOne->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+		delete pBigOne->m_pSavedWords;
 	pBigOne->m_pSavedWords = (SPList*)NULL;
 
 	// BEW added 13Mar09 for refactor of layout; delete its partner pile too
 	GetDocument()->DeletePartnerPile(pBigOne);
 
-	delete pBigOne;
+	if (pBigOne != NULL) // whm 11Jun12 added NULL test
+		delete pBigOne;
 	pBigOne = (CSourcePhrase*)NULL;
 
 	// update the sequence numbers for elements subsequent to the first
@@ -10407,7 +10439,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 		"This particular operation is not available when you are glossing."),
-		_T(""),wxICON_INFORMATION);
+		_T(""),wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -10437,7 +10469,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 			RemoveSelection();
 			wxMessageBox(_(
 			"To undo a merger using a selection, select only one pile."),
-			_T(""),wxICON_INFORMATION);
+			_T(""),wxICON_INFORMATION | wxOK);
 			return;
 		}
 		wxASSERT(nCount == 1); // must only be one
@@ -10746,7 +10778,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			{
 				wxMessageBox(_(
 				"Error while trying to deselect a cell. Try selecting using the mouse instead.\n"),
-                _T(""), wxICON_INFORMATION);
+                _T(""), wxICON_INFORMATION | wxOK);
 				RemoveSelection();	// whm added 7July06 to prevent crash when invoking
 						// ALT+Rightarrow at end of document (avoids m_selectionLine becoming 1
 						// while m_selection is empty. The crash would happen in a OnUpdateUI
@@ -10803,7 +10835,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		{
 			wxMessageBox(_(
 			"Could not get a pointer to the next cell. Try selecting with the mouse instead.\n"),
-            _T(""), wxICON_INFORMATION);
+            _T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();	// whm added 7July06 to prevent crash when invoking
 					// ALT+Rightarrow at end of document (avoids m_selectionLine becoming 1
 					// while m_selection is empty. The crash would happen in a OnUpdateUI
@@ -10861,7 +10893,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		{
 			wxMessageBox(_(
 			"Could not get a pointer to the next cell. Try selecting with the mouse instead.\n"),
-            _T(""), wxICON_INFORMATION);
+            _T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();	// whm added 7July06 to prevent crash when invoking
 					// ALT+Rightarrow at end of document (avoids m_selectionLine becoming 1
 					// while m_selection is empty. The crash would happen in a OnUpdateUI
@@ -10965,7 +10997,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 			{
 				wxMessageBox(_(
 				"Error while trying to deselect a cell. Try selecting using the mouse instead.\n"),
-                _T(""), wxICON_INFORMATION);
+                _T(""), wxICON_INFORMATION | wxOK);
 				return FALSE;
 			}
 #ifdef __WXMAC__
@@ -11018,7 +11050,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		{
 			wxMessageBox(_(
 			"Could not get a pointer to the previous cell. Try selecting with the mouse instead.\n"
-			), _T(""), wxICON_INFORMATION);
+			), _T(""), wxICON_INFORMATION | wxOK);
 			return FALSE;
 		}
 	}
@@ -11089,7 +11121,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		{
 			wxMessageBox(_(
 			"Could not get a pointer to the previous cell. Try selecting with the mouse instead.\n"
-			), _T(""), wxICON_INFORMATION);
+			), _T(""), wxICON_INFORMATION | wxOK);
 			return FALSE;
 		}
 	}
@@ -12070,14 +12102,14 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the frame window in OnEditCopy\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	wxPanel* pBar = pFWnd->m_pComposeBar;
 	if (pBar == NULL)
 	{
 		wxMessageBox(_T("Failure to obtain pointer to the Compose Bar in OnEditCopy\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -12085,7 +12117,7 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the Compose Bar's wxTextCtrl control in OnEditCopy\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	// In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle
@@ -12141,7 +12173,7 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 	if (pFWnd == NULL)
 	{
 		//wxMessageBox(_T("Failure to obtain pointer to the frame window in OnUpdateEditCopy\n"),
-		//	_T(""), wxICON_EXCLAMATION);
+		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
@@ -12149,7 +12181,7 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 	if (pBar == NULL)
 	{
 		//wxMessageBox(_T("Failure to obtain pointer to the Compose Bar in OnUpdateEditCopy\n"),
-		//	_T(""), wxICON_EXCLAMATION);
+		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
@@ -12158,7 +12190,7 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 	{
 		//wxMessageBox(_T(
 		//	"Failure to obtain pointer to the Compose Bar's wxTextCtrl control in OnUpdateEditCopy\n"),
-		//	_T(""), wxICON_EXCLAMATION);
+		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
@@ -12192,7 +12224,7 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the frame window in OnEditPaste\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	wxPanel* pBar = pFWnd->m_pComposeBar;
@@ -12200,7 +12232,7 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the Compose Bar in OnEditPaste\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -12208,7 +12240,7 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the Compose Bar's wxTextCtrl control in OnEditPaste\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
     // In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle from
@@ -12301,7 +12333,7 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the frame window in OnEditCut\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	wxPanel* pBar = pFWnd->m_pComposeBar;
@@ -12309,7 +12341,7 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the Compose Bar in OnEditCut\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -12317,7 +12349,7 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the Compose Bar's wxTextCtrl control in OnEditCut\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
     // In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle from
@@ -12371,7 +12403,7 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 	if (pFWnd == NULL)
 	{
 		//wxMessageBox(_T("Failure to obtain pointer to the frame window in OnUpdateEditCut\n"),
-		//	_T(""), wxICON_EXCLAMATION);
+		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
@@ -12379,7 +12411,7 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 	if (pBar == NULL)
 	{
 		//wxMessageBox(_T("Failure to obtain pointer to the Compose Bar in OnUpdateEditCut\n"),
-		//	_T(""), wxICON_EXCLAMATION);
+		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
@@ -12388,7 +12420,7 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 	{
 		//wxMessageBox(_T(
 		//	"Failure to obtain pointer to the Compose Bar's wxTextCtrl control in OnUpdateEditCut\n"),
-		//	_T(""), wxICON_EXCLAMATION);
+		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
@@ -12733,7 +12765,7 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 				ccErrorStr = ccErrorStr.Format(
 				_(" Processing a CC table failed. Got error code %d with table having index %d."),
 									iResult,nTableIndex);
-				wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION);
+				wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
 				return str; // if there was a table procesing error then return the
 							// original string, ie. no tables used
 			}
@@ -12820,7 +12852,7 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 				ccErrorStr.Format(
 				_(" Processing a CC table failed. Got error code %d with table having index %d."),
 				iResult,nTableIndex);
-				wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION);
+				wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
 				return str; // if there was a table procesing error then return the original
 							// string, ie. no tables used
 			}
@@ -12961,7 +12993,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 			wxString msg = _(
 "The dialog can be opened at a selection only if the phrase box is located at the first word of the selection.");
 			wxString title = _("Illegal attempt to open ChooseTranslation dialog");
-			wxMessageBox(msg, title, wxICON_WARNING);
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 	}
@@ -12980,7 +13012,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		_T(
 "Error: longest phrase in KB is shorter than current source phrase's number of words!\n");
 		str += _T("So this command will be ignored.\n");
-		wxMessageBox(str, _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(str, _T(""), wxICON_EXCLAMATION | wxOK);
 		nWordsInPhrase = 0;
 		pApp->m_pTargetBox->SetFocus();
 		return;
@@ -13017,7 +13049,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		// IDS_NO_KB_ENTRY
 		wxMessageBox(_(
 "Sorry, the knowledge base does not yet have an entry matching this source text, so the Choose Translation dialog cannot be shown."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		nWordsInPhrase = 0;
 		pApp->m_pTargetBox->SetFocus();
 		return;
@@ -13251,7 +13283,7 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 		{
 			wxMessageBox(_T(
 "The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(_T("The Startup Wizard failed. Try using either the New...\nor Open... items on the File... menu instead."));
 		}
 	}
@@ -14113,7 +14145,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 "DeepCopySourcePhraseSublist() returned NULL for POSITION pos on .FindIndex() call. Saving document. ");
 		errStr += _T(
 		"Edit process abandoned. Document restored to pre-edit state.");
-		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	SPList::Node* endpos = pList->Item(nEndingSequNum);
@@ -14124,7 +14156,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 "DeepCopySourcePhraseSublist() returned NULL for POSITION endpos on .FindIndex() call. Saving document. ");
 		errStr += _T(
 		"Edit process abandoned. Document restored to pre-edit state.");
-		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -14477,7 +14509,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									//IDS_GOTO_FAILED
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
-									_T(""), wxICON_EXCLAMATION);
+									_T(""), wxICON_EXCLAMATION | wxOK);
 									pApp->m_pTargetBox->SetFocus();
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
@@ -14529,7 +14561,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									// IDS_GOTO_FAILED
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
-									_T(""),wxICON_EXCLAMATION);
+									_T(""),wxICON_EXCLAMATION | wxOK);
 									pApp->m_pTargetBox->SetFocus();
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
@@ -14583,7 +14615,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 									// IDS_GOTO_FAILED
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
-									_T(""), wxICON_EXCLAMATION);
+									_T(""), wxICON_EXCLAMATION | wxOK);
 									pApp->m_pTargetBox->SetFocus();
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
@@ -14660,7 +14692,7 @@ f:					if (!gbIsGlossing)
 									// IDS_GOTO_FAILED
 									wxMessageBox(_(
 "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"),
-									_T(""), wxICON_EXCLAMATION);
+									_T(""), wxICON_EXCLAMATION | wxOK);
 									pApp->m_pTargetBox->SetFocus();
 									pApp->LogUserAction(_T("Go To command failed. No valid location for the phrase box..."));
 									goto b; // don't jump anywhere
@@ -14693,7 +14725,7 @@ f:					if (!gbIsGlossing)
 a:			str = str.Format(_(
 "Sorry, but the chapter and verse combination  %s  does not exist in this document. The command will be ignored."),
 			dlg.m_chapterVerse.c_str());
-			wxMessageBox(str,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(str,_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->m_pTargetBox->SetFocus();
 			pApp->LogUserAction(str);
 			goto b;
@@ -15990,7 +16022,8 @@ void CAdapt_ItView::DeleteTempList(SPList* pList)
 	SPList::Node* p;
 	if (pList->IsEmpty())
 	{
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		return;
 	}
@@ -15999,17 +16032,22 @@ void CAdapt_ItView::DeleteTempList(SPList* pList)
 	{
 		CSourcePhrase* pSP = (CSourcePhrase*)p->GetData();
 		p = p->GetNext();
-		delete pSP->m_pMedialMarkers;
+		if (pSP->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+			delete pSP->m_pMedialMarkers;
 		pSP->m_pMedialMarkers = (wxArrayString*)NULL;
-		delete pSP->m_pMedialPuncts;
+		if (pSP->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+			delete pSP->m_pMedialPuncts;
 		pSP->m_pMedialPuncts = (wxArrayString*)NULL;
-		delete pSP->m_pSavedWords;
+		if (pSP->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+			delete pSP->m_pSavedWords;
 		pSP->m_pSavedWords = (SPList*)NULL;
-		delete pSP;
+		if (pSP != NULL) // whm 11Jun12 added NULL test
+			delete pSP;
 		pSP = (CSourcePhrase*)NULL;
 	}
 	pList->Clear();
-	delete pList;
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
 	pList = (SPList*)NULL;
 }
 
@@ -16426,7 +16464,8 @@ a:			if (nCount == 1)
 			{
 				// if aString is empty, we've nothing to search in on this srcPhrase,
 				// so cause progression
-				delete pAList; // don't leak memory
+				if (pAList != NULL) // whm 11Jun12 added NULL test
+					delete pAList; // don't leak memory
 				if (bFirstOnly)
 					pos = pos1;
 				return FALSE;
@@ -16722,7 +16761,8 @@ bool CAdapt_ItView::DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bS
 		else
 		{
 			// if theString is empty, we've nothing to search for, so return FALSE
-			delete pTempList; // don't leak memory
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList; // don't leak memory
 			return FALSE;
 		}
 
@@ -16966,7 +17006,8 @@ bool CAdapt_ItView::DoTgtOnlyFind(int		nStartSequNum,
 		else
 		{
 			// if theString is empty, we've nothing to search for, so return FALSE
-			delete pTempList; // don't leak memory
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList; // don't leak memory
 			return FALSE;
 		}
 
@@ -17264,7 +17305,8 @@ bool CAdapt_ItView::DoSrcAndTgtFind(int			nStartSequNum,
 		else
 		{
 			// if theString is empty, we've nothing to search for, so return FALSE
-			delete pTempList; // don't leak memory
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList; // don't leak memory
 			return FALSE;
 		}
 
@@ -18372,9 +18414,9 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		if (pLayoutMenuAlignment != NULL)
 		{
 #ifdef __WXMAC__
-			pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+			pLayoutMenuAlignment->SetItemLabel(_("Layout Window Right To Left\tCtrl-Shift-1"));
 #else
-			pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+			pLayoutMenuAlignment->SetItemLabel(_("Layout Window Right To Left\tCtrl-1"));
 #endif
 		}
 	}
@@ -18390,9 +18432,9 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		if (pLayoutMenuAlignment != NULL)
 		{
 #ifdef __WXMAC__
-			pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
+			pLayoutMenuAlignment->SetItemLabel(_("Layout Window Left To Right\tCtrl-Shift-1"));
 #else
-			pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
+			pLayoutMenuAlignment->SetItemLabel(_("Layout Window Left To Right\tCtrl-1"));
 #endif
 		}
 	}
@@ -18445,7 +18487,7 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 #endif
 		if (pLayoutMenuAlignment != NULL)
 		{
-			pLayoutMenuAlignment->SetText(menuItem);
+			pLayoutMenuAlignment->SetItemLabel(menuItem);
 		}
 	}
 	else
@@ -18464,7 +18506,7 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 #endif
 			if (pLayoutMenuAlignment != NULL)
 			{
-				pLayoutMenuAlignment->SetText(menuItem);
+				pLayoutMenuAlignment->SetItemLabel(menuItem);
 			}
 		}
 		else
@@ -20041,7 +20083,7 @@ a:		pCell = GetNextCell(pCell,cellIndex);
 			// IDS_DIFF_TEXT_TYPE
 			wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();
 			pApp->m_mouse.x = pApp->m_mouse.y = -1;
 			pApp->m_pAnchor = NULL;
@@ -20089,7 +20131,7 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 			// IDS_DIFF_TEXT_TYPE
 			wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			RemoveSelection();
 			pApp->m_mouse.x = pApp->m_mouse.y = -1;
 			pApp->m_pAnchor = NULL;
@@ -20716,7 +20758,8 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			}
 			pMergedList->Clear(); // doesn't try to delete the pointers' memory because
 								  // DeleteContents(TRUE) was not called beforehand
-			delete pMergedList; // don't leak memory
+			if (pMergedList != NULL) // whm 11Jun12 added NULL test
+				delete pMergedList; // don't leak memory
 
             // after the above changes that result in the modifications to m_pSourcePhrases
             // being finished ... delete the temporary new list of CSourcePhrase instances
@@ -20730,7 +20773,8 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 																// as there are none anyway
 			}
 			pSourcePhrases->Clear();
-			delete pSourcePhrases; // don't leak memory
+			if (pSourcePhrases != NULL) // whm 11Jun12 added NULL test
+				delete pSourcePhrases; // don't leak memory
 
 			// get the nav text stuff updated
 			int unusedInt = 0;
@@ -20745,7 +20789,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 			{
 				wxMessageBox(_(
 "Warning: there was no source language data in the file you imported, so the document has not been changed."),
-					_T(""), wxICON_WARNING);
+					_T(""), wxICON_EXCLAMATION | wxOK);
 
 				// restore everything
 				//pApp->m_pTargetBox->ChangeValue(_T(""));
@@ -20855,7 +20899,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString strMessage;
 		strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
-		wxMessageBox(strMessage,_T(""), wxICON_ERROR);
+		wxMessageBox(strMessage,_T(""), wxICON_ERROR | wxOK);
 		pApp->LogUserAction(strMessage);
 		break;
 	}
@@ -20870,7 +20914,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
 		strMessage2 += _T("\n");
 		strMessage2 += strMessage;
-		wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+		wxMessageBox(strMessage2,_T(""), wxICON_ERROR | wxOK);
 		pApp->LogUserAction(strMessage2);
 		break;
 	}
@@ -20881,14 +20925,14 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
         // compiler needs a case for this enum value otherwise there is a warning
         // generated
 		wxMessageBox(_T("Input data malformed: CR and LF not in sequence"),
-		_T(""),wxICON_ERROR);
+		_T(""),wxICON_ERROR | wxOK);
 		pApp->LogUserAction(_T("Input data malformed: CR and LF not in sequence"));
 		break;
 	}
 	case getNewFile_error_no_data_read:
 	{
 		// we got no data, so this constitutes a read failure
-		wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+		wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR | wxOK);
 		pApp->LogUserAction(_T("File read error: no data was read in"));
 		break;
 	}
@@ -20907,7 +20951,7 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 		strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
 		strMessage2 += _T("\n");
 		strMessage2 += strMessage;
-		wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+		wxMessageBox(strMessage2,_T(""), wxICON_ERROR | wxOK);
 		pApp->LogUserAction(strMessage2);
 		break;
 	}
@@ -21360,7 +21404,7 @@ bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nSta
 		// whm Note: The following error message does not need to be available for localization
 		wxMessageBox(_T(
 "FindIndex() failed in ExtendEditSourceTextSelection(), pos value is NULL. Saving document & cancelling this editing attempt..."),
-		 _T(""), wxICON_EXCLAMATION);
+		 _T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -21575,7 +21619,7 @@ bool CAdapt_ItView::IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& 
 		// An English message would be ok here.
 		wxMessageBox(_T(
 "FindIndex() failed in IsAdaptationInformationInThisSpan(), pos value is NULL. Saving the document. Exiting the edit process."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -21637,7 +21681,7 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 	{
 		wxMessageBox(_T(
 "FindIndex() failed in IsGlossInformationInThisSpan(), pos value is NULL. Saving the document. Exiting the edit process."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -21730,7 +21774,7 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases,
 	{
 		wxMessageBox(_T(
 "FindIndex() failed in GetEditSourceTextFreeTranslationSpan(), pos value is NULL. Saving document. Abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -21790,7 +21834,7 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases,
 	{
 		wxMessageBox(_T(
 "FindIndex() failed in GetEditSourceTextFreeTranslationSpan(), pos value is NULL, for index nEndingSN. Saving document. Abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -22036,7 +22080,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 	{
 		wxMessageBox(_T(
 "FindIndex() failed in GetEditSourceTextBackTranslationSpan(), pos value is NULL. Saving document. Abandoning edit."),
-		 _T(""), wxICON_EXCLAMATION);
+		 _T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -22703,7 +22747,7 @@ bool CAdapt_ItView::RemoveInformationDuringEdit(CSourcePhrase*	pSrcPhrase,
 					errStr = _T(".Add() for note string, failed. ");
 					errStr += _T(
 					"Edit process abandoned. Document restored to pre-edit state.");
-					wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+					wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 					return FALSE;
 				}
 
@@ -22737,7 +22781,7 @@ bool CAdapt_ItView::RemoveInformationDuringEdit(CSourcePhrase*	pSrcPhrase,
 			errStr = _T(
 			"gEntryPoint was undefined in RemoveInformationDuringEdit() function. ");
 			errStr += _T("Edit process abandoned. Document restored to pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE; // indicate an error state
 		}
 	}
@@ -22765,7 +22809,7 @@ s:	if (nSequNum >= nEditableSpanStart && nSequNum <= nEditableSpanEnd)
 					errStr = _T(".Add() for adaptation string, failed. ");
 					errStr += _T(
 					"Edit process abandoned. Document restored to pre-edit state.");
-					wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+					wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 					return FALSE;
 				}
 			}
@@ -22797,7 +22841,7 @@ a:	if (nSequNum >= nEditableSpanStart && nSequNum <= nEditableSpanEnd)
 						errStr = _T(".Add() for gloss string, failed. ");
 						errStr += _T(
 						"Edit process abandoned. Document restored to pre-edit state.");
-						wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+						wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 						return FALSE;
 					}
 				}
@@ -22839,7 +22883,7 @@ g:	if ((nFreeTranslationSpanStart != -1 && nSequNum >= nFreeTranslationSpanStart
 							errStr = _T(".Add() for free translation string, failed. ");
 							errStr += _T(
 							"Edit process abandoned. Document restored to pre-edit state.");
-							wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+							wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 							return FALSE;
 						}
 					} // end block for testing for non-empty str
@@ -22944,7 +22988,7 @@ bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 		// whm: No need to localize the following error message.
 		wxMessageBox(_T(
 "GetHeadPosition() failed in ScanSpanDoingRemovals(), pos value is NULL. Saving document, abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -22966,7 +23010,7 @@ bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 			// whm: No need to localize the following error message.
 			wxMessageBox(_T(
 "RemoveInformationDuringEdit() returned FALSE in loop within ScanSpanDoingRemovals(). Saving document, abandoning edit."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 	}
@@ -23042,7 +23086,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 		// whm: no need to localize this type of error message
 		wxMessageBox(_T(
 "GetHeadPosition() failed in ScanSpanDoingSourceTextReconstruction(), pos value is NULL. Saving document and abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -23256,7 +23300,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 		// for this type of error message
 		wxMessageBox(_T(
 "FindIndex() failed in MoveCSourcePhrasesToExtendSpan(), posOrig value is NULL. Saving document. Abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		BailOutFromEditProcess(pApp->m_pSourcePhrases, &gEditRecord); // restore
 														// original document state
 		wxCommandEvent evt;
@@ -23270,7 +23314,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 		// for this type of error message
 		wxMessageBox(_T(
 "FindIndex() failed in MoveCSourcePhrasesToExtendSpan(), posInsert value is NULL. Saving document. Abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		BailOutFromEditProcess(pApp->m_pSourcePhrases, &gEditRecord); // restore
 														// original document state
 		wxCommandEvent evt;
@@ -23448,7 +23492,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
                 // content lacking somewhere within. Error is unlikely, so English will do
 				error = _T(
 "Restoration of the following context's span of potentially moved notes failed, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
-				wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
+				wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR | wxOK);
 				wxExit();
 			}
 		}
@@ -23472,7 +23516,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
                 // content lacking somewhere within. English will do, error is unlikely.
 				error = _T(
 "Restoration of the preceding context's span of potential moved notes failed, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
-				wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
+				wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR | wxOK);
 				wxExit();
 			}
 		}
@@ -23498,7 +23542,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
             // lacking somewhere within. Don't localize the message
 			error = _T(
 "Restoration of the document failed in the initial replacements from the cancel span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
-			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
+			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR | wxOK);
 			wxExit();
 		}
 	}
@@ -23523,7 +23567,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
         // somewhere within
 		error = _T(
 "Restoration of the document failed in the replacements from the editable span within the cancel span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
-		wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
+		wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR | wxOK);
 		wxExit();
 	}
 	// update the sequence numbers, starting from the start of the cancel span
@@ -23550,7 +23594,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
             // lacking somewhere within. Don't localize message
 			error = _T(
 "Restoration of the document failed in the final replacements from the cancel span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
-			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_EXCLAMATION);
+			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_EXCLAMATION | wxOK);
 			wxExit();
 		}
 	}
@@ -23584,7 +23628,7 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
             // lacking somewhere within. Don't localize the message
 			error = _T(
 "Restoration of the document failed in the replacements from the propagation span, so rather than save a bad document, we abort the application now, losing the work done since the last save.");
-			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR);
+			wxMessageBox(error, _T("Source Text Edit: error"), wxICON_ERROR | wxOK);
 			wxExit();
 		}
 	}
@@ -23677,7 +23721,7 @@ bool CAdapt_ItView::ExtendEditableSpanForFiltering(
 	{
 		wxMessageBox(_T(
 "FindIndex() failed in ExtendEditableSpanForFiltering(), pos value is NULL. Saving and restoring document. Abandoning edit."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
@@ -23805,7 +23849,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 		// layout not valid, shouldn't happen so just give a message & abort
 		wxMessageBox(_T(
 		"Null active pile pointer in BailOutFromEditProcess(), so will abort..."),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		wxExit();
 	}
 
@@ -24608,7 +24652,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		if (!bAllWasOK)
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
-			delete pTempList;
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList;
 			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not
 			// yet been modified)
@@ -24640,7 +24685,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		if (!bAllWasOK)
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
-			delete pTempList;
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList;
 			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not
 			// yet been modified)
@@ -24691,7 +24737,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		if (!bAllWasOK)
 		{
  			pDoc->DeleteSourcePhrases(pTempList);
-			delete pTempList;
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList;
  			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents
             // have not yet been modified)
@@ -24750,7 +24797,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 	{
 		// clear out the contents of the temporary list & delete the list itself
 		pDoc->DeleteSourcePhrases(pTempList);
-		delete pTempList;
+		if (pTempList != NULL) // whm 11Jun12 added NULL test
+			delete pTempList;
 		pTempList = NULL;
 		// something went wrong, bail out (m_pSourcePhrases list contents have not yet
 		// been modified)
@@ -24783,7 +24831,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		if (!bAllWasOK)
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
-			delete pTempList;
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList;
 			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list
 			// contents have not yet been modified)
@@ -24826,7 +24875,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		if (!bAllWasOK)
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
-			delete pTempList;
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList;
 			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not
 			// yet been modified)
@@ -24852,7 +24902,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		if (!bAllWasOK)
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
-			delete pTempList;
+			if (pTempList != NULL) // whm 11Jun12 added NULL test
+				delete pTempList;
 			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not
 			// yet been modified)
@@ -24889,7 +24940,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 	*/
 	// clear out the contents of the temporary list & delete the list itself
 	pDoc->DeleteSourcePhrases(pTempList);
-	delete pTempList;
+	if (pTempList != NULL) // whm 11Jun12 added NULL test
+		delete pTempList;
 	pTempList = NULL;
 
     // Up to now, the CAdapt_ItDoc class's m_pSourcePhrases list which defines the document
@@ -24946,10 +24998,14 @@ bailout:	pAdaptList->Clear();
 		pGlossList->Clear();
 		pFTList->Clear();
 		pNoteList->Clear();
-		delete pAdaptList;
-		delete pGlossList;
-		delete pFTList;
-		delete pNoteList;
+		if (pAdaptList != NULL) // whm 11Jun12 added NULL test
+			delete pAdaptList;
+		if (pGlossList != NULL) // whm 11Jun12 added NULL test
+			delete pGlossList;
+		if (pFTList != NULL) // whm 11Jun12 added NULL test
+			delete pFTList;
+		if (pNoteList != NULL) // whm 11Jun12 added NULL test
+			delete pNoteList;
 		pApp->LogUserAction(_T("Error from ScanSpanDoingRemovals() in OnEditSourceText()"));
 		goto exit;
 	}
@@ -24969,7 +25025,7 @@ bailout:	pAdaptList->Clear();
 "InsertSublistAtHeadOfList() for adaptations sublist, failed. Unknown list requested. ");
 			errStr += _T(
 			"Edit process abandoned. Document restored to pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
@@ -24983,7 +25039,7 @@ bailout:	pAdaptList->Clear();
 			errStr = _T(
 "InsertSublistAtHeadOfList() for glosses sublist, failed. Unknown list requested. ");
 			errStr += _T("Edit process abandoned. Document restored to pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
@@ -24998,7 +25054,7 @@ bailout:	pAdaptList->Clear();
 "InsertSublistAtHeadOfList() for free translations sublist, failed. Unknown list requested. ");
 			errStr += _T(
 			"Edit process abandoned. Document restored to pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
@@ -25013,7 +25069,7 @@ bailout:	pAdaptList->Clear();
 "InsertSublistAtHeadOfList() for notes sublist, failed. Unknown list requested. ");
 			errStr += _T(
 			"Edit process abandoned. Document restored to pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(errStr);
 			goto bailout;
 		}
@@ -25021,10 +25077,14 @@ bailout:	pAdaptList->Clear();
 
 	// don't leak memory, delete the local lists now their contents have been inserted at
 	// the top of the respective persistent lists
-	delete pNoteList;
-	delete pFTList;
-	delete pGlossList;
-	delete pAdaptList;
+	if (pNoteList != NULL) // whm 11Jun12 added NULL test
+		delete pNoteList;
+	if (pFTList != NULL) // whm 11Jun12 added NULL test
+		delete pFTList;
+	if (pGlossList != NULL) // whm 11Jun12 added NULL test
+		delete pGlossList;
+	if (pAdaptList != NULL) // whm 11Jun12 added NULL test
+		delete pAdaptList;
 
     // We are now ready to accumulate the editable text from the editable span. The
     // accumulation, however, is not done from the unmodified CSourcePhrase instances in
@@ -25170,7 +25230,9 @@ bailout:	pAdaptList->Clear();
 				// get chapter and verse (internally it scans backwards till it finds the
 				// information needed, or comes to doc start)
 				wxString cv = GetChapterAndVerse(pInitialSrcPhrase);
-				if (cv.GetChar(0) == _T('0'))
+				// whm 11Jun12 added test for !cv.IsEmpty() && since GetChar(0) should never
+				// be called on an empty string
+				if (!cv.IsEmpty() && cv.GetChar(0) == _T('0'))
 				{
 					// there are no chapter numbers, so leave the default zero at the
 					// start to flag this fact
@@ -25260,7 +25322,7 @@ bailout:	pAdaptList->Clear();
 				"Failure when extending the editable span to handle filterable content. ");
 				errStr += _T("Vertical edit process abandoned. ");
 				errStr += _T("Will try now to restore the document to its pre-edit state.");
-				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
 				pApp->LogUserAction(errStr);
 				goto exit;
@@ -25356,7 +25418,7 @@ bailout:	pAdaptList->Clear();
 			"Replacing with modified CSourcePhrases after dialog dismissal failed. ");
 			errStr += _T("Vertical edit process abandoned. ");
 			errStr += _T("Will try now to restore the document to its pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			BailOutFromEditProcess(pSrcPhrases,pRec);
 			pApp->LogUserAction(errStr);
 			goto exit;
@@ -25747,7 +25809,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Vertical edit process abandoned. ");
 				errStr += _T(
 				"Will try now to restore the document to its pre-edit state.");
-				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 				pApp->LogUserAction(errStr);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
 				goto exit;
@@ -25768,7 +25830,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Vertical edit process abandoned. ");
 				errStr += _T(
 				"Will try now to restore the document to its pre-edit state.");
-				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 				pApp->LogUserAction(errStr);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
 				goto exit;
@@ -26332,7 +26394,7 @@ wxComboBox* CAdapt_ItView::GetRemovalsComboBox()
 	{
 		wxMessageBox(_T(
 		"Failure to obtain pointer to the ComboBox control in GetRemovalsComboBox()"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 	}
 	return pCombo;
 }
@@ -28772,7 +28834,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 		{
 			wxMessageBox(_T(
 "OnButtonUndoLastCopy error, compose bar's wxTextCtrl pointer is null; copy not done."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			gnWasSequNum = -1;
 			gnWasNumWordsInSourcePhrase = 0;
 			gbWasGlossingMode = FALSE;

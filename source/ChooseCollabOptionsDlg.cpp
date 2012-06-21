@@ -290,7 +290,7 @@ void CChooseCollabOptionsDlg::OnBtnTellMeMore(wxCommandEvent& WXUNUSED(event))
 	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),
 					m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str(),
 					m_aiProjName.c_str());
-	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 }
 
 

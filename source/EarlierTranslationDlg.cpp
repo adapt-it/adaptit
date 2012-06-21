@@ -470,7 +470,7 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 
 		// didn't find the verse, so tell the user
 		// IDS_NO_SUCH_CHVERSE
-		wxMessageBox(_("Sorry, the application was not able to find the verse you specified."),_T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, the application was not able to find the verse you specified."),_T(""), wxICON_INFORMATION | wxOK);
 		m_srcText.Empty();
 		m_tgtText.Empty();
 		EnableLessButton(FALSE);
@@ -563,7 +563,7 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 		// not found, so tell the user
 		// IDS_NO_SUCH_CHAPTER
 a:		str = str.Format(_("Sorry, but the chapter and verse combination %s does not exist in this document. The command will be ignored."),m_chapterVerse.c_str());
-		wxMessageBox(str,_T(""), wxICON_INFORMATION);
+		wxMessageBox(str,_T(""), wxICON_INFORMATION | wxOK);
 		EnableLessButton(FALSE);
 		EnableMoreButton(FALSE);
 		EnableJumpButton(FALSE);

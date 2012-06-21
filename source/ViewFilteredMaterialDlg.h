@@ -12,7 +12,9 @@
 /// (green) wedge signaling the presence of filtered information hidden within the document.
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog.
+/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog when 
+/// built with wxWidgets prior to version 2.9.x, but derived from wxDialog for version 2.9.x 
+/// and later.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef ViewFilteredMaterialDlg_h
@@ -28,8 +30,16 @@
 /// (green) wedge signaling the presence of filtered information hidden within the document.
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog.
-class CViewFilteredMaterialDlg : public wxScrollingDialog
+/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog when 
+/// built with wxWidgets prior to version 2.9.x, but derived from wxDialog for version 2.9.x 
+/// and later.
+
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+class CViewFilteredMaterialDlg : public wxDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
+#else
+class CViewFilteredMaterialDlg : public wxScrollingDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
+#endif
 {
 public:
 	CViewFilteredMaterialDlg(wxWindow* parent); // constructor

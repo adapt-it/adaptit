@@ -141,7 +141,8 @@ void CTargetUnit::Copy(const CTargetUnit &tu)
 
 CTargetUnit::~CTargetUnit()
 {
-	delete m_pTranslations;
+	if (m_pTranslations != NULL) // whm 11Jun12 added NULL test
+		delete m_pTranslations;
 	m_pTranslations = (TranslationsList*)NULL;
 }
 

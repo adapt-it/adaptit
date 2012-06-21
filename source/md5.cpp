@@ -315,7 +315,12 @@ wxString wxMD5::GetMD5(const wxString &string)
 	char tmp[40];		// MD5 are fixed sized to 32 chars
 	
 	MD5Init(&ctx);
+	// whm 9Jun12 modified the MD5Update() function below to use string.wx_str() in wxWidgets 2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	MD5Update(&ctx, (const unsigned char*)string.wx_str(), length*sizeof(wxChar));
+#else
 	MD5Update(&ctx, (const unsigned char*)string.GetData(), length*sizeof(wxChar));
+#endif
 	MD5End(&ctx, tmp);
 
 	return wxString(tmp, wxConvUTF8);

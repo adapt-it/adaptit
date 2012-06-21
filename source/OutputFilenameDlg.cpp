@@ -135,7 +135,7 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 		{
 			// IDS_TYPED_DOCNAME_CLASHES
 			wxMessageBox(_("The name you typed clashes with an existing document name. Please type a different name.")
-				,_T(""), wxICON_WARNING);
+				,_T(""), wxICON_EXCLAMATION | wxOK);
 			return; // leave user in the dialog, to fix the name
 		}
 	}
@@ -163,7 +163,7 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 		// if we decide to verbally tell the user what the beep means:
 		//wxString message;
 		//message = message.Format(_("Names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
-		//wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION);	}
+		//wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION | wxOK);	}
 	}
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

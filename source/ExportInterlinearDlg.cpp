@@ -366,7 +366,7 @@ void CExportInterlinearDlg::OnBnClickedCheckIncludeNavText(wxCommandEvent& WXUNU
 		// any free translation or back translation when formatted as footnotes. If you omit
 		// the Navigation text row, these note items will not be included in the RTF output."
 		//IDS_WARN_IF_NO_NAV_TEXT
-		wxMessageBox(_("Warning: The Navigation text row is necessary to display Adapt It Notes and any Free translation or Back translation when they are formatted as footnotes. If you omit the Navigation text row, these note items will not be included in the RTF output."),_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_("Warning: The Navigation text row is necessary to display Adapt It Notes and any Free translation or Back translation when they are formatted as footnotes. If you omit the Navigation text row, these note items will not be included in the RTF output."),_T(""), wxICON_EXCLAMATION | wxOK);
 	}
 }
 

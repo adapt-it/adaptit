@@ -60,7 +60,9 @@ class AI_Connection : public wxConnection
 public:
 	AI_Connection(void); // constructor
 	virtual ~AI_Connection(void); // destructor
-	virtual wxChar* OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format);
+	// whm 9Jun12 removed OnRequest() below because it is not currently used and it has compile problems
+	// in wxWidgets 2.9.3.
+	//virtual wxChar* OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format);
 	virtual bool OnExecute(const wxString& topic, wxChar* data, int size, wxIPCFormat format);
     virtual bool Advise(const wxString& item, wxChar* data, int size = -1, wxIPCFormat format = wxIPC_TEXT);
     wxString m_strAdvise;

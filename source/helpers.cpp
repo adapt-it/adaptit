@@ -1793,6 +1793,8 @@ wxString GetLastMarker(wxString markers)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos)
 {
+	// whm 11Jun12 added.
+	wxCHECK_MSG(!subStr.IsEmpty(),-1, _T("Programming error. FindFromPos() function's incoming subStr is empty!"));
 	// returns the zero based index position of the subStr if it exists in inputStr
 	// with a search starting from startAtPos; or -1 if the subStr is not found
 	// in inputStr from startAtPos to the end of the string
@@ -2268,39 +2270,46 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	// advancing the pointer for where multiple spaces are adjacent to each other).
 	wxString destString;
 	destString.Empty();
-	// Our copy-to buffer must be writeable so we use GetWriteBuf() for it.
-	wxChar* pDestBuffChar = destString.GetWriteBuf(nLen + 1); // pDestBuffChar is the pointer to the write buffer
-	wxChar* pEndDestBuff = pDestBuffChar + nLen;
-	pEndDestBuff = pEndDestBuff; // avoid compiler warning in release build
+	// whm 8Jun12 revised to use wxStringBuffer instead of calling GetWriteBuf() and UngetWriteBuf() on the wxString
+	// Our copy-to buffer must be writeable.
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString textStr2 is accessed directly within
+	// this function in the return destString; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pDestBuff(destString,nLen + 1);
+		wxChar* pDestBuffChar = pDestBuff; // wxChar* pDestBuffChar = destString.GetWriteBuf(nLen + 1); // pDestBuffChar is the pointer to the write buffer
+		wxChar* pEndDestBuff = pDestBuffChar + nLen;
+		pEndDestBuff = pEndDestBuff; // avoid compiler warning in release build
 
-	const wxChar* pSourceBuffChar = rString.GetData(); // pSourceBuffChar is the pointer to the read buffer
-	wxChar* pEndSourceBuff = (wxChar*)pSourceBuffChar + nLen;
-	wxASSERT(*pEndSourceBuff == _T('\0')); // ensure there is a null there
-	wxChar* pNextSource;
-	while (pSourceBuffChar < pEndSourceBuff)
-	{
-		if (*pSourceBuffChar == _T(' '))
+		const wxChar* pSourceBuffChar = rString.GetData(); // pSourceBuffChar is the pointer to the read buffer
+		wxChar* pEndSourceBuff = (wxChar*)pSourceBuffChar + nLen;
+		wxASSERT(*pEndSourceBuff == _T('\0')); // ensure there is a null there
+		wxChar* pNextSource;
+		while (pSourceBuffChar < pEndSourceBuff)
 		{
-			pNextSource = (wxChar*)pSourceBuffChar;
-			pNextSource++;
-			if (pNextSource < pEndSourceBuff && *pNextSource == _T(' '))
+			if (*pSourceBuffChar == _T(' '))
 			{
-				// Advance only the pSourceBuffChar pointer and continue which
-				// will bypass writing this space into the destination buffer
-				// because the next character in the source buffer is a space.
-				pSourceBuffChar++;
-				continue; // skip this space because another one follows this one
-			};
+				pNextSource = (wxChar*)pSourceBuffChar;
+				pNextSource++;
+				if (pNextSource < pEndSourceBuff && *pNextSource == _T(' '))
+				{
+					// Advance only the pSourceBuffChar pointer and continue which
+					// will bypass writing this space into the destination buffer
+					// because the next character in the source buffer is a space.
+					pSourceBuffChar++;
+					continue; // skip this space because another one follows this one
+				};
+			}
+			*pDestBuffChar = *pSourceBuffChar;
+			// advance both buffer pointers
+			pDestBuffChar++;
+			pSourceBuffChar++;
 		}
-		*pDestBuffChar = *pSourceBuffChar;
-		// advance both buffer pointers
-		pDestBuffChar++;
-		pSourceBuffChar++;
-	}
-	wxASSERT(pSourceBuffChar == pEndSourceBuff);
-	wxASSERT(pDestBuffChar <= pEndDestBuff);
-	*pDestBuffChar = _T('\0'); // terminate the dest buffer string with null char
-	destString.UngetWriteBuf();
+		wxASSERT(pSourceBuffChar == pEndSourceBuff);
+		wxASSERT(pDestBuffChar <= pEndDestBuff);
+		*pDestBuffChar = _T('\0'); // terminate the dest buffer string with null char
+	} // end of special scoping block
+	//destString.UngetWriteBuf(); // whm 8Jun12 removed - not needed with wxStringBuffer above
 
 	return destString;
 }
@@ -2479,7 +2488,7 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 		{
 			wxMessageBox(_(
 "No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."),
-			_("Error, empty path specification"), wxICON_WARNING);
+			_("Error, empty path specification"), wxICON_EXCLAMATION | wxOK);
 		}
 		return FALSE;
 	}
@@ -2496,7 +2505,7 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 				msg = msg.Format(
 _("Failed to make the directory  %s  the current working directory prior to getting the directory's child directories; perhaps try again."),
 				pathToFolder.c_str());
-				wxMessageBox(msg, _("Error, no working directory"), wxICON_WARNING);
+				wxMessageBox(msg, _("Error, no working directory"), wxICON_EXCLAMATION | wxOK);
 			}
 			return FALSE;
 		}
@@ -2524,7 +2533,7 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 					wxString msg;
 					msg = msg.Format(_T(
 						"The directory %s was detected but testing for its existence failed. You probably should try again."), str.c_str());
-					wxMessageBox(msg, _("Error, not a directory"), wxICON_ERROR);
+					wxMessageBox(msg, _("Error, not a directory"), wxICON_ERROR | wxOK);
 					return FALSE;
 				}
 				wxASSERT(!str.IsEmpty());
@@ -2661,7 +2670,7 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 			msg = msg.Format(
 _("Failed to make the directory  %s  the current working directory prior to getting the folder's files; perhaps try again."),
 			pathToFolder.c_str());
-			wxMessageBox(msg, _("Error, no working directory"), wxICON_WARNING);
+			wxMessageBox(msg, _("Error, no working directory"), wxICON_EXCLAMATION | wxOK);
 		}
 		return FALSE;
 	}
@@ -3979,7 +3988,10 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 					rev = rev.Mid(1); // remove * if it is present
 				wxString mkr2 = MakeReverse(rev);
 				wxString shortMkr = mkr2.Left(2); // footnote, endnote, xref give \f or \x for this
-				USFMAnalysis* pSfm =  pDoc->LookupSFM((wxChar*)mkr.GetData());
+				// whm 8Jun12 changed LookupSFM argument below to use wxStringBuffer. Note: The other
+				// override of LookupSFM() requires an argument which is a bare marker which is not
+				// the case here.
+				USFMAnalysis* pSfm =  pDoc->LookupSFM(wxStringBuffer(mkr,mkr.Length())); //pDoc->LookupSFM((wxChar*)mkr.GetData());
 				if (mkr == _T("\\fig"))
 				{
 					// exclude this one from acceptance
@@ -5920,7 +5932,8 @@ wxString GetUuid()
 	wxString anUuid;
 	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
 	anUuid = pUuidGen->GetUUID();
-	delete pUuidGen;
+	if (pUuidGen != NULL) // whm 11Jun12 added NULL test
+		delete pUuidGen;
 	//wxLogDebug(_T("UUID =    %s"), anUuid);
 	return anUuid;
 }
@@ -6114,7 +6127,8 @@ bool IsLoadableFile(wxString& absPathToFile)
 	extension = extension.Lower();
 
 	// exclude any files commencing with a period
-	if (fullName.GetChar(0) == _T('.'))
+	wxASSERT(!fullName.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+	if (!fullName.IsEmpty() && fullName.GetChar(0) == _T('.'))
 		return FALSE;
 
 	// check the known legals first
@@ -6154,7 +6168,7 @@ bool IsLoadableFile(wxString& absPathToFile)
 	{
 		// don't expect this error, so use English message
 		wxMessageBox(_T("IsLoadableFile() could not open file. File will be treated as non-loadable."),
-			_T("Error"),wxICON_WARNING);
+			_T("Error"),wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	//size_t len = GetFileSize_t(absPathToFile); // not needed
@@ -6173,8 +6187,9 @@ bool IsLoadableFile(wxString& absPathToFile)
 	{
 		// don't expect this error, so use English message
 		wxMessageBox(_T("IsLoadableFile() read in less then all of the file. File will be treated as non-loadable."),
-			_T("Error"),wxICON_WARNING);
-		delete pbyteBuff;
+			_T("Error"),wxICON_EXCLAMATION | wxOK);
+		if (pbyteBuff != NULL) // whm 11Jun12 added NULL test
+			delete pbyteBuff;
 		f.Close();
 		return FALSE;
 	}
@@ -6206,7 +6221,8 @@ bool IsLoadableFile(wxString& absPathToFile)
 	{
 		bIsXML = TRUE;
 	}
-	delete pbyteBuff;
+	if (pbyteBuff != NULL) // whm 11Jun12 added NULL test
+		delete pbyteBuff;
 
 //	if (bIsXML || resultStr == "binary" || resultStr == "ucs-4" || resultStr == "ucs-4le")
 // GDLC I agree with Bill that we can allow ucs-4 and usc4-le
@@ -6379,7 +6395,7 @@ bool PopulateTextCtrlWithChunk(wxTextCtrl* pText, wxString* pPath, int numKiloby
 				// this error is pretty well absolutely certain never to occur, so we
 				// won't bother to localize it; just inform the user and abort the Peek
 				wxMessageBox(_T("Input data malformed, running Adapt It (Regular): CR (carriage return) and LF (linefeed) characters are present in the data, but are not paired as a sequence of two bytes. This should never happen!"),
-				_T("Incredible data format error!"),wxICON_ERROR);
+				_T("Incredible data format error!"),wxICON_ERROR | wxOK);
 			}
 			else
 			{
@@ -6484,6 +6500,7 @@ bool IsEthnologueCodeValid(wxString& code)
 	int index;
 	for (index = 0; index < length; index++)
 	{
+		wxASSERT(!code.IsEmpty());// whm 11Jun12 added. Should be the case (see first line of function above)
 		aChar = code.GetChar(0);
 		bIsAlphabetic = IsAnsiLetter(aChar);
 		if (!bIsAlphabetic)
@@ -6522,7 +6539,8 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 	if(!bSuccessfulRead)
 	{
 		// if error on reading data, return FALSE and don't bother further
-		delete pTempStr;
+		if (pTempStr != NULL) // whm 11Jun12 added NULL test
+			delete pTempStr;
 		return FALSE;
 	}
 	// whm Note: regardless of the platform, when reading a text file from disk into a
@@ -6544,7 +6562,8 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 	//}
 	if (offset == wxNOT_FOUND)
 	{
-		delete pTempStr;
+		if (pTempStr != NULL) // whm 11Jun12 added NULL test
+			delete pTempStr;
 		return FALSE;
 	}
 	int len2 = searchStr.Len();
@@ -6556,7 +6575,8 @@ bool GetLanguageCodePrintName(wxString code, wxString& printName)
 	// the printName is the text between locations pos to offset
 	wxString s(*pTempStr, pos, offset - pos);
 	printName = s;
-	delete pTempStr;
+	if (pTempStr != NULL) // whm 11Jun12 added NULL test
+		delete pTempStr;
 	return TRUE;
 }
 
@@ -6785,7 +6805,8 @@ enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength,
 	// Return the wxString and its length to the caller.
 	*pstrBuffer = wxString(pBuf, bufLen);
 	nLength = bufLen;
-	delete pBuf; // don't leak memory
+	if (pBuf != NULL) // whm 11Jun12 added NULL test
+		delete pBuf; // don't leak memory
 	return getNewFile_success;
 }
 
@@ -8340,7 +8361,7 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 		wxString msg;
 		msg = msg.Format(_T("ExtractSubarray() bounds error: total %d, startAt %d, endAt %d\n The subarray has not been populated."),
 			nTotal,nStartAt,nEndAt);
-		wxMessageBox(msg, _T("Index out of bounds"),wxICON_ERROR);
+		wxMessageBox(msg, _T("Index out of bounds"),wxICON_ERROR | wxOK);
 		pSubarray->Clear();
 		return;
 	}
@@ -8437,7 +8458,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 				{
 				wxMessageBox(_(
 "Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-				_T(""),wxICON_EXCLAMATION);
+				_T(""),wxICON_EXCLAMATION | wxOK);
 				bNoStore = TRUE;
 				}
 			}

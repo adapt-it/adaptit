@@ -36,6 +36,12 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
+
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include "Adapt_It.h"
 #include "AdminMoveOrCopy.h"
 #include "PeekAtFile.h"
@@ -164,7 +170,7 @@ void CPeekAtFileDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 		msg = msg.Format(_T(
 "PopulateTextCtrlByLines() failed, so nothing is visible. wxTextFile failed to open the file with path: %s"),
 		m_filePath.c_str());
-		wxMessageBox(msg,_T("Error"),wxICON_WARNING);
+		wxMessageBox(msg,_T("Error"),wxICON_EXCLAMATION | wxOK);
 	}
 	m_pEditCtrl->SetInsertionPoint(0);
 	m_pEditCtrl->SetEditable(FALSE);
@@ -222,7 +228,8 @@ enum TxtDir CPeekAtFileDlg::ReverseTextDirectionality(enum TxtDir currentDir)
 	int nID = m_pEditCtrl->GetId(); // the ID was dynamically assigned, so we need to get it
 	m_viewedText = m_pEditCtrl->GetValue(); // store the control's text
 	m_pEditCtrl->Clear();
-	delete m_pEditCtrl;
+	if (m_pEditCtrl != NULL) // whm 11Jun12 added NULL test
+		delete m_pEditCtrl;
 	m_pEditCtrl = new wxTextCtrl(this, nID, wxT(""), wxDefaultPosition, wxSize(640,440), wxTE_MULTILINE|wxVSCROLL|wxHSCROLL );
 
 	// set the new directionality

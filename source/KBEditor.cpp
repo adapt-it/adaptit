@@ -227,7 +227,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	if (nSel == -1) // LB_ERR
 	{
 		wxMessageBox(_("Keys list box error when getting the current selection"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 	}
 	wxString str;
@@ -466,7 +466,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		// IDS_ILLEGAL_EDIT
 		wxMessageBox(_(
 		"Editing this kind of entry is not permitted."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -477,7 +477,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// IDS_CONSISTENCY_CHECK_NEEDED
 	int ok = wxMessageBox(_(
 "Changing the spelling in this editor will leave the instances in the document unchanged.\n(Do a Consistency Check later to fix this problem.)\nDo you wish to go ahead with the spelling change?"),
-	_T(""),wxYES_NO);
+	_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (ok != wxYES)
 		return;
 
@@ -486,7 +486,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		// IDS_REDUCED_TO_NOTHING
 		int value = wxMessageBox(_(
 "You have made the translation nothing. This is okay, but is it what you want to do?"),
-		_T(""), wxYES_NO);
+		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value != wxYES)
 			return;
 	}
@@ -504,7 +504,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		{
 			wxMessageBox(_(
 "The translation you are attempting to associate with the current source phrase already exists."),
-			_T(""),wxICON_INFORMATION);
+			_T(""),wxICON_INFORMATION | wxOK);
 			return;
 		}
 	}
@@ -594,7 +594,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		{
 			wxMessageBox(_(
 			"Error warning: Did not find the translation text just inserted!"),_T("")
-			,wxICON_WARNING);
+			,wxICON_EXCLAMATION | wxOK);
 			m_edTransStr = m_pListBoxExistingTranslations->GetString(0);
 			CRefString* pRefStr = (CRefString*)
 							m_pListBoxExistingTranslations->GetClientData(0);
@@ -659,8 +659,8 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	if (newText.IsEmpty())
 	{
 		int value = wxMessageBox(_(
-		"You adding a translation which is nothing. That is okay, but is it what you want to do?"),
-		_T(""), wxYES_NO);
+		"You are adding a translation which is nothing. That is okay, but is it what you want to do?"),
+		_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value == wxNO)
 			return;
 	}
@@ -695,7 +695,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		{
 			wxMessageBox(_(
 			"Error warning: Did not find the translation text just inserted!"),_T(""),
-			wxICON_WARNING);
+			wxICON_EXCLAMATION | wxOK);
 			m_pListBoxExistingTranslations->SetSelection(0,TRUE);
 			m_pEditRefCount->SetValue(m_refCountStr);
 			m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
@@ -776,7 +776,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 	{
 		::wxBell();
 		wxMessageBox(_("You have not yet typed something to search for."),
-		_("No search strings defined"), wxICON_WARNING);
+		_("No search strings defined"), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	else
@@ -866,7 +866,8 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 			;
 		}
 		gpApp->m_arrSearches.Empty();
-		delete pKBSearchDlg;
+		if (pKBSearchDlg != NULL) // whm 11Jun12 added NULL test
+			delete pKBSearchDlg;
 	}
 }
 
@@ -875,7 +876,7 @@ void CKBEditor::MessageForConsistencyCheck()
 	wxString msg;
 	msg = msg.Format(_("You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do an inconsistency check of all documents as soon as you dismiss this message. Do you want the inconsistency check to start automatically?"));
 	wxString title = _("Do Consistency Check Now?");
-	long style = wxYES_NO | wxICON_QUESTION | wxCENTRE;
+	long style = wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT | wxCENTRE;
 	int answer = ::wxMessageBox(msg.c_str(),title.c_str(),style);
 	if (answer == wxYES)
 	{
@@ -951,7 +952,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		// IDS_ILLEGAL_REMOVE
 		wxMessageBox(_(
 "Sorry, you can only remove this kind of entry by putting the phrase box at the relevant location in the document, and then click the  \"Save To Knowledge Base\" checkbox back to ON."),_T(""),
-		wxICON_INFORMATION);
+		wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -987,7 +988,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			// message can be in English, it's never likely to occur, let processing continue
 			wxMessageBox(_T(
 			"Remove button error: Knowledge bases's adaptation text does not match that selected in the list box\n"),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 	}
 	// get the ref count, use it to warn user about how many previous references 
@@ -998,7 +999,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	message = message.Format(_(
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
 		str2.c_str(),nPreviousReferences);
-	int nResult = wxMessageBox(message, _T(""), wxYES_NO | wxICON_WARNING);
+	int nResult = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (!(nResult == wxYES))
 	{
 		return; // user backed out
@@ -1115,7 +1116,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(_(
 "Translations list box error when getting the current selection"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -1208,7 +1209,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T(
 			"Error: MoveUp button failed to reinsert the translation being moved\n"),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			wxASSERT(FALSE);
 		}
 		/* legacy code
@@ -1227,7 +1228,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T(
 			"Error: MoveUp button failed to reinsert the translation being moved\n"),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			wxASSERT(FALSE);
 		}
 		*/
@@ -1247,7 +1248,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 		"Translations list box error when getting the current selection"), 
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -1355,7 +1356,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T(
 				"Error: MoveDown button failed to reinsert the translation being moved.\nTo avoid data loss from the knowledge base the application will close the KB editor, without saving your changes, when you dismiss this message. \n(Afterwards, you can safely retry the Edit Knowledge Base... command if you wish.)"),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			OnCancel(event);
 			return;
 		}
@@ -1633,7 +1634,7 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 			{
 				wxMessageBox(_(
 "Sorry, the translation you are attempting to associate with the current source phrase already exists."),
-				_T(""),wxICON_INFORMATION);
+				_T(""),wxICON_INFORMATION | wxOK);
 				pRefString->DeleteRefString(); // don't need this one
 				return FALSE;
 			}
@@ -1890,7 +1891,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				//wxASSERT(pos != NULL);
 				//pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
 													  // gone from list
-				delete pCurTgtUnit; // and its memory chunk is freed
+				if (pCurTgtUnit != NULL) // whm 11Jun12 added NULL test
+					delete pCurTgtUnit; // and its memory chunk is freed
 				continue;
 			}
 			int index;
@@ -1993,7 +1995,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		{
 			pCurTgtUnit = 0; // invalid pointer
 			m_flagSetting = m_OFF;
-			wxMessageBox(_T("Warning: Invalid pointer to current target unit returned."),_T(""), wxICON_WARNING);
+			wxMessageBox(_T("Warning: Invalid pointer to current target unit returned."),_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 		else
 		{
@@ -2106,7 +2108,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			{
 				m_refCount = 0; // an error condition
 				m_refCountStr = _T("0");
-				wxMessageBox(_T("A value of zero for the reference count means there was an error."),_T(""),wxICON_WARNING);
+				wxMessageBox(_T("A value of zero for the reference count means there was an error."),_T(""),wxICON_EXCLAMATION | wxOK);
 			}
 
 			// get the selected translation text; if nNewSel is the same value as the default

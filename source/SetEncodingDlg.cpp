@@ -244,7 +244,7 @@ void CSetEncodingDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	{
 		// error - no font available for the selected encoding - this should never happen
 		// here in InitDialog where we are selecting the first item in each list
-		wxMessageBox(_("No Font Face Names are available on this system!"),_T(""),wxICON_WARNING);
+		wxMessageBox(_("No Font Face Names are available on this system!"),_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 	
 	FontEncodingEnumerator fontEncEnumerator;
@@ -643,7 +643,7 @@ void FontDisplayCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
     dc.SetTextForeground(m_colour);
 
     // the size of one cell (Normally biggest char + small margin)
-    long maxCharWidth, maxCharHeight;
+    wxCoord maxCharWidth, maxCharHeight;
     dc.GetTextExtent(wxT("W"), &maxCharWidth, &maxCharHeight);
     int cellWidth = maxCharWidth + 5,
         cellHeight = maxCharHeight + 4;
@@ -675,7 +675,7 @@ void FontDisplayCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
 					cellWidth+3,cellHeight+3);
 				// the pen is set below for drawing the regular matrix lines 
 			}
-			long charWidth, charHeight;
+			wxCoord charWidth, charHeight;
  			if (rowCount > 2) // rows 3 through 6, if UTF-8 font is selected cannot be displayed in non-Unicode version
 			{
 				if (gthisFontsCurrEncoding == wxFONTENCODING_UTF8)

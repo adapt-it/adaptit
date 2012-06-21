@@ -48,6 +48,12 @@
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
 #include <wx/textfile.h> // for wxTextFile
 #include <wx/encconv.h> // for wxEncodingConverter
+
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include <wx/fontmap.h> // for wxFontMapper
 #include <wx/printdlg.h> // for print data and page setup data
 #include <wx/dir.h> // for wxDir
@@ -142,7 +148,15 @@
 #include "OpenExistingProjectDlg.h"
 #include "ProjectPage.h"
 #include "DocPage.h"
+
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingWizard located in scrollingwizard.h
 #include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
+
 #include "StartWorkingWizard.h"
 #include "TargetUnit.h"
 #include "RefString.h"
@@ -177,7 +191,16 @@
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
+
+#if wxCHECK_VERSION(2,9,1)
+// Use the built-in wxConvAuto from <wx/version.h>
+#include <wx/version.h>
+#else
+// The wxWidgets library being used is pre-2.9.1, so use our own modified
+// version named wxConvAuto_AI located in convauto.h
 #include "convauto.h"
+#endif
+
 #include "KBExportImportOptionsDlg.h"
 #include "ClientServerConnection.h"
 
@@ -2912,7 +2935,8 @@ void SetupDefaultStylesMap()
 		{
 			// the marker is neither usfm nor png and therefore not stored in
 			// any of the three possible maps, so we must delete it
-			delete gpUsfmAnalysis;
+			if (gpUsfmAnalysis != NULL) // whm 11Jun12 added NULL test
+				delete gpUsfmAnalysis;
 		}
 		else
 		{
@@ -3670,7 +3694,8 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 
 	// Note: calling delete on pMenuBar is sufficient; because of its hierarchy of ownership
 	// all of its child objects get destroyed automatically.
-	delete pMenuBar;
+	if (pMenuBar != NULL) // whm 11Jun12 added NULL test
+		delete pMenuBar;
 	pMenuBar = (wxMenuBar*)NULL;
 }
 
@@ -3813,7 +3838,8 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 
 	// Note: calling delete on pMenuBar is sufficient; because of its hierarchy of ownership
 	// all of its child objects get destroyed automatically.
-	delete pMenuBar;
+	if (pMenuBar != NULL) // whm 11Jun12 added NULL test
+		delete pMenuBar;
 	pMenuBar = (wxMenuBar*)NULL;
 }
 
@@ -3983,12 +4009,14 @@ void CAdapt_ItApp::DestroyUserProfiles(UserProfiles*& pUserProfiles)
 			UserProfileItem* pItem;
 			pItem = pos->GetData();
 			//wxLogDebug(_T("Deleting UserProfileItem %s"),pItem->itemText.c_str());
-			delete pItem;
+			if (pItem != NULL) // whm 11Jun12 added NULL test
+				delete pItem;
 			pItem = (UserProfileItem*)NULL;
 		}
 		pUserProfiles->profileItemList.Clear();
 		//wxLogDebug(_T("Deleting m_pUserProfiles - end"));
-		delete pUserProfiles;
+		if (pUserProfiles != NULL) // whm 11Jun12 added NULL test
+			delete pUserProfiles;
 		pUserProfiles = (UserProfiles*)NULL;
 	}
 }
@@ -4027,17 +4055,20 @@ void CAdapt_ItApp::DestroyMenuStructure(AI_MenuStructure*& pMenuStructure)
 				psmItem = smpos->GetData();
 				wxASSERT(psmItem != NULL);
 				//wxLogDebug(_T("Deleting submenu Item %s"),psmItem->subMenuLabel.c_str());
-				delete psmItem;
+				if (psmItem != NULL) // whm 11Jun12 added NULL test
+					delete psmItem;
 				psmItem = (AI_SubMenuItem*)NULL;
 			}
 			pmmItem->aiSubMenuItems.Clear();
 			//wxLogDebug(_T("Deleting mainmenu Item %s"),pmmItem->mainMenuLabel.c_str());
-			delete pmmItem;
+			if (pmmItem != NULL) // whm 11Jun12 added NULL test
+				delete pmmItem;
 			pmmItem = (AI_MainMenuItem*)NULL;
 		}
 		pMenuStructure->aiMainMenuItems.Clear();
 		//wxLogDebug(_T("Deleting m_pAI_MenuStructure - end"));
-		delete pMenuStructure;
+		if (pMenuStructure != NULL) // whm 11Jun12 added NULL test
+			delete pMenuStructure;
 		pMenuStructure = (AI_MenuStructure*)NULL;
 	}
 }
@@ -4098,7 +4129,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		}
 		wxString msg = _("The AI_UserProfiles.xml file was not located at the following path:\n   %s\nA new AI_UserProfiles.xml file will be created there.");
 		msg = msg.Format(msg,fullFilePath.c_str());
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		// Construct a new AI_UserProfiles.xml file from our internal data
 		textFile.Create(fullFilePath); // Create() must only be called when the file doesn't exist - verified above
 		// Note textFile is empty at this point
@@ -4126,7 +4157,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 		{
 			wxString msg = _("Unable to open the AI_UserProfiles.xml file at the following path:\n   %s\nChanges to user workflow profiles will not be saved.\nEnsure that the AI_UserProfiles.xml file is not open in another program, then try again.");
 			msg = msg.Format(msg,fullFilePath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 		else
@@ -4250,7 +4281,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 					// error message
 					titleMsg = _("Unable to remove existing AI_UserProfiles.xml file");
 					// msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
-					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 					return FALSE;
 				}
 			}
@@ -4278,7 +4309,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 					// error message
 					titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
 					//msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
-					wxMessageBox(msg,titleMsg,wxICON_WARNING);
+					wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 					return FALSE;
 				}
 				newTextFile.Close();
@@ -4288,7 +4319,7 @@ bool CAdapt_ItApp::SaveUserProfilesMergingDataToXMLFile(wxString fullFilePath)
 				// error message
 				titleMsg = _("Unable to create a new AI_UserProfiles.xml file");
 				//msg = _("Adapt It could not upgrade AI_UserProfiles.xml (modified) with the newer version from the last Adapt It installation.\nAI_UserProfiles.xml may be in use by another program.");
-				wxMessageBox(msg,titleMsg,wxICON_WARNING);
+				wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
 				return FALSE;
 			}
 
@@ -5195,7 +5226,12 @@ wxToolBarToolsList AIToolBar::GetToolBarToolsList()
 /////////////////////////////////////////////////////////////////////////////////////
 AIModalDialog::AIModalDialog( wxWindow *parent, const wxWindowID id, const wxString& title,
 			const wxPoint& pos, const wxSize& size, const long windowStyle ) :
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+			wxDialog(parent, id, title, pos, size, windowStyle)
+#else
 			wxScrollingDialog(parent, id, title, pos, size, windowStyle)
+#endif
 {
 }
 
@@ -5216,7 +5252,7 @@ AIModalDialog::~AIModalDialog()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \remarks
-/// Override of the wxScrollingDialog's ShowModal() method.
+/// Override of the wxDialog's/wxScrollingDialog's ShowModal() method.
 /// This override effectively turns off the wxIdleEvent and wxUpdateUIEvent idle processing
 /// while any AIModalDialog based dialog is being shown in modal fashion.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -5226,7 +5262,12 @@ int AIModalDialog::ShowModal()
 	// processing of UI events while the modal dialog is displaying.
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	return wxDialog::ShowModal();
+#else
 	return wxScrollingDialog::ShowModal();
+#endif
 }
 // end of AIModalDialog class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -7223,7 +7264,7 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 											wxString pathPrefix)
 {
 	// delete any existing locale object
-	if (m_pLocale)
+	if (m_pLocale != NULL)
 		delete m_pLocale;
 
 	bool bLoadOK = TRUE;
@@ -7978,9 +8019,10 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 						// Don't remove File History items which are menu items that start with a digit (1
 						// through 9) followed by a space, followed by the full path name. We assume we can
 						// skip all menu items that start with a digit and a space.
-						wxString tempStr = mItem->GetLabel();
+						wxString tempStr = mItem->GetItemLabelText(); //wxString tempStr = mItem->GetLabel();
 						tempStr = tempStr.Mid(0,2);
-						if ((tempStr.GetChar(0) == _T('1') || tempStr.GetChar(0) == _T('2') ||
+						if (!tempStr.IsEmpty() &&
+							(tempStr.GetChar(0) == _T('1') || tempStr.GetChar(0) == _T('2') ||
 							tempStr.GetChar(0) == _T('3') || tempStr.GetChar(0) == _T('4') || tempStr.GetChar(0) == _T('5') ||
 							tempStr.GetChar(0) == _T('6') || tempStr.GetChar(0) == _T('7') || tempStr.GetChar(0) == _T('8') ||
 							tempStr.GetChar(0) == _T('9')) && tempStr.GetChar(1) == _T(' ') )
@@ -7990,7 +8032,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 							continue;
 						}
 						//wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
-						if (mItem->GetLabel() == _("See Glosses"))
+						if (mItem->GetItemLabelText() == _("See Glosses")) //if (mItem->GetLabel() == _("See Glosses"))
 						{
 							// TODO: Check the following assumption: We should unilaterally disable Glossing here.
 							// Reasoning: An administrator cannot really force the "See Glossing" Advanced
@@ -8003,7 +8045,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 							gbIsGlossing = FALSE; // this must be FALSE if gbGlossingVisible is FALSE
 						}
 						removedItem = pMainMenuItem_CurrentMenuBar->Remove(mItem);
-						delete removedItem;
+						if (removedItem != NULL) // whm 11Jun12 added NULL test
+							delete removedItem;
 						removedItem = (wxMenuItem*)NULL;
 					}
 				}
@@ -8073,7 +8116,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 					wxMenuItem* pRemMenuItem;
 					pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
 					wxASSERT(pRemMenuItem != NULL);
-					delete pRemMenuItem; // to avoid memory leaks
+					if (pRemMenuItem != NULL) // whm 11Jun12 added NULL test
+						delete pRemMenuItem; // to avoid memory leaks
 					pRemMenuItem = (wxMenuItem*)NULL;
 				}
 				pMenuItemList = pMainMenuItem_CurrentMenuBar->GetMenuItems(); // refresh list
@@ -8093,7 +8137,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 					wxMenuItem* pRemMenuItem;
 					pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
 					wxASSERT(pRemMenuItem != NULL);
-					delete pRemMenuItem; // to avoid memory leaks
+					if (pRemMenuItem != NULL) // whm 11Jun12 added NULL test
+						delete pRemMenuItem; // to avoid memory leaks
 					pRemMenuItem = (wxMenuItem*)NULL;
 				}
 				else
@@ -8124,7 +8169,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 						wxMenuItem* pRemMenuItem;
 						pRemMenuItem = pMainMenuItem_CurrentMenuBar->Remove(pMenuItem);
 						wxASSERT(pRemMenuItem != NULL);
-						delete pRemMenuItem; // to avoid memory leaks
+						if (pRemMenuItem != NULL) // whm 11Jun12 added NULL test
+							delete pRemMenuItem; // to avoid memory leaks
 						pRemMenuItem = (wxMenuItem*)NULL;
 					}
 					bLastItemWasSeparator = TRUE;
@@ -8146,7 +8192,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 
 	pMenuBar_Current->Thaw(); // to avoid flicker while changing the menu
 	// remove the temporary invisible menu bar to avoid memory leaks
-	delete pTempMenuBar;
+	if (pTempMenuBar != NULL) // whm 11Jun12 added NULL test
+		delete pTempMenuBar;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -9033,7 +9080,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMen
 		wxMenu* pRemMenu;
 		pRemMenu = pMenuBar->Remove(layoutMenu);
 		wxASSERT(pRemMenu != NULL);
-		delete pRemMenu; // to avoid memory leaks
+		if (pRemMenu != NULL) // whm 11Jun12 added NULL test
+			delete pRemMenu; // to avoid memory leaks
 		pRemMenu = (wxMenu*)NULL;
 	}
 #else
@@ -11193,8 +11241,10 @@ void CAdapt_ItApp::TransitionWindowsRegistryEntriesTowxFileConfig()
 		// Finally, delete the temporary objects we've used above.
 		// Note: mpFileConfig will be created again for the duration of the running app
 		// in OnInit() just after this function ends.
-		delete mpConfig;
-		delete mpFileConfig;
+		if (mpConfig != NULL) // whm 11Jun12 added NULL test
+			delete mpConfig;
+		if (mpFileConfig != NULL) // whm 11Jun12 added NULL test
+			delete mpFileConfig;
 	}
 #endif
 }
@@ -11915,7 +11965,7 @@ void CAdapt_ItApp::ForceCollabSettingsFromCommandLineSwitches()
 					wxString collabEditor = m_collaborationEditor;
 					wxString msg = _("The command-line string \"%s\" designates at least one %s project that cannot be found (%s). The -collab_proj command-line option will be ignored.");
 					msg = msg.Format(msg,m_ForceCollabProjectNames.c_str(),collabEditor.c_str(),invalidProjStr.c_str());
-					wxMessageBox(msg,_T(""),wxICON_WARNING);
+					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 					m_ForceCollabProjectNames.Empty(); // empty the string
 					m_bForceCollabExpectsFreeTrans = FALSE;
 				}
@@ -11928,7 +11978,7 @@ void CAdapt_ItApp::ForceCollabSettingsFromCommandLineSwitches()
 				wxString collabEditor = m_collaborationEditor;
 				wxString msg = _("The command-line string %s does not designate at least two %s projects in the form \"<source proj>:<target proj>\". The -collab_proj command-line option will be ignored.");
 				msg = msg.Format(msg,m_ForceCollabProjectNames.c_str(),collabEditor.c_str());
-				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 				m_ForceCollabProjectNames.Empty(); // empty the string
 				m_bForceCollabExpectsFreeTrans = FALSE;
 			}
@@ -11982,7 +12032,7 @@ void CAdapt_ItApp::ForceCollabSettingsFromCommandLineSwitches()
 			// that the -ai_proj parameter will be ignored.
 			wxString msg = _("An Adapt It Project named %s was not found. The -ai_proj command-line option will be ignored.");
 			msg = msg.Format(msg,m_ForceCollabAIProjectName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_ForceCollabAIProjectName.Empty();	// empty the string so other functions in the App will
 											// know that it is not in effect.
 		}
@@ -12275,7 +12325,7 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 		// we will set isCollabProject to FALSE.
 		wxString msg = _("Adapt It could not open the project configuration file (AI-ProjectConfiguration.aic) for the \"%s\" project. Please ask your administrator for help.");
 		msg = msg.Format(msg,m_projectName.c_str());
-		wxMessageBox(msg,_("This project's configuration settings could not be read"),wxICON_WARNING);
+		wxMessageBox(msg,_("This project's configuration settings could not be read"),wxICON_EXCLAMATION | wxOK);
 		// Add the following to the msg for the user log:
 		msg += _T(" ");
 		if (AIProjectHasCollabDocs(m_projectName))
@@ -14503,7 +14553,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// before a user can change the interface language
 		wxString appVer = GetAppVersionOfRunningAppAsString();
 		msg = msg.Format(_T("The Display size of this computer is too small (%dw x %dh) to run this version of Adapt It (%s).\nAdapt It cannot display its windows and dialogs properly.\nProgram aborting..."),nDisplayWidthInPixels,nDisplayHeightInPixels,appVer.c_str());
-		wxMessageBox(msg,_T("Screen size too small"),wxICON_ERROR);
+		wxMessageBox(msg,_T("Screen size too small"),wxICON_ERROR | wxOK);
 		LogUserAction(_T("Screen size too small"));
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -14596,6 +14646,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
 
+	// testing of wxMessageBox() style flags
+	//long style;
+	//style = wxICON_QUESTION; // about 100 instances in the code
+	//wxMessageBox(_T("This style uses wxICON_QUESTION"),_T("caption"),style);
+	//style = wxICON_WARNING | wxOK; // about 220 instances in the code
+	//wxMessageBox(_T("This style uses wxICON_WARNING which is same as wxICON_EXCLAMATION"),_T("caption"),style);
+	//style = wxICON_INFORMATION | wxOK; // about 200 instances
+	//wxMessageBox(_T("This style uses wxICON_INFORMATION"),_T("caption"),style);
+
+	//int stopHere = 1;
 	// testing of BreakStringBufIntoChapters()
 	//wxString testBookStr1,testBookStr2,testBookStr3;
 	//testBookStr1 = _T("\\id MAT \n\\mt Matthew\n\\c 1\n\\s Subheading 1\n\\v 1\n\\c 2\n\\c 3\n\\v 1 \\v2 \\v3\n\\c 4\n\\v 1 Some verse text.\n\\c 5\n\\v 1");
@@ -15240,7 +15300,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
 	// Do not try to load SIL Converters ECDriver.dll on Win95 and Win98
-    if (wxGetWinVersion() >= wxWinVersion_5)
+    //if (wxGetWinVersion() >= wxWinVersion_5)
+    // whm 13May12 modified. The above calls are unknown in wxWidgets-2.9.3, so use the following:
+	int majorVersion;
+    wxOperatingSystemId sysID = wxGetOsVersion(&majorVersion, NULL);
+	if (sysID == wxOS_WINDOWS && majorVersion >= 5)
 	{
 		// Turn off system message "Failed to load shared library...(error 126: the specified
 		// module could not be found", which pops up in idle time if following .Load() call
@@ -15282,7 +15346,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				msg = msg.Format(_T(
 		"Could not load the %s dynamic library file. SIL Encoding Converters will not be available, however the rest of Adapt It will work fine.\n(The SIL Encoding Converters that is currently installed is apparently not compatible with Adapt It.)"),
 				LIB_NAME);
-				wxMessageBox(msg,_T("Incompatible version of SIL Encoding Converters"),wxICON_INFORMATION);
+				wxMessageBox(msg,_T("Incompatible version of SIL Encoding Converters"),wxICON_INFORMATION | wxOK);
 			}
 		}
 	}
@@ -15697,7 +15761,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			size_t actualNumBytes = fileIn.Read((void*)pBuff, aSafeLength);
 			// make a CBString with a copy of the buffer contents
 			CBString inStr(pBuff);
-			delete pBuff; // no longer needed
+			if (pBuff != NULL) // whm 11Jun12 added NULL test
+				delete pBuff; // no longer needed
 			wxString outStr;
 			int length = inStr.GetLength();
 			for (int i = 0; i < length; i++)
@@ -15818,7 +15883,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				// Ask the other instance to raise itself
 				pConnection->Execute(cmdLine); // cmdLine is "[Raise]" in our case
 				pConnection->Disconnect();
-				delete pConnection;
+				if (pConnection != NULL) // whm 11Jun12 added NULL test
+					delete pConnection;
 				pConnection = (wxConnectionBase*)NULL;
 			}
 			else
@@ -15830,7 +15896,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// If only a single instance is to be allowed, we will return FALSE here
 			// from OnInit() after deallocating some memory items below.
 			// First deallocate the client
-			delete pClient;
+			if (pClient != NULL) // whm 11Jun12 added NULL test
+				delete pClient;
 
 			if (pConnection != NULL)
 				delete pConnection;
@@ -15841,23 +15908,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_nTotalBooks = m_pBibleBooks->GetCount(); //m_nTotalBooks = m_pBibleBooks->GetSize();
 			if (m_nTotalBooks == 0L)
 			{
-				delete m_pBibleBooks;
+				if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
+					delete m_pBibleBooks;
 			}
 			else
 			{
 				for (int i = 0; i < m_nTotalBooks; i++)
 				{
 					BookNamePair* pPair =  (BookNamePair*)(*m_pBibleBooks)[i];
-					if (pPair)
+					if (pPair != NULL)
 						delete pPair;
 				}
-				delete m_pBibleBooks;
+				if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
+					delete m_pBibleBooks;
 			}
 			int aTot;
 			aTot = m_pRemovedMenuItemArray->GetCount();
 			if (aTot == 0L)
 			{
-				delete m_pRemovedMenuItemArray;
+				if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
+					delete m_pRemovedMenuItemArray;
 			}
 			else
 			{
@@ -15865,15 +15935,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				for (aIndex = 0; aIndex < aTot; aIndex++)
 				{
 					wxMenuItem* mItem = (wxMenuItem*)(*m_pRemovedMenuItemArray)[aIndex];
-					delete mItem;
+					if (mItem != NULL) // whm 11Jun12 added NULL test
+						delete mItem;
 				}
-				delete m_pRemovedMenuItemArray;
+				if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
+					delete m_pRemovedMenuItemArray;
 			}
 
 			aTot = m_pArrayOfCollabProjects->GetCount();
 			if (aTot == 0L)
 			{
-				delete m_pArrayOfCollabProjects;
+				if (m_pArrayOfCollabProjects != NULL) // whm 11Jun12 added NULL test
+					delete m_pArrayOfCollabProjects;
 			}
 			else
 			{
@@ -15881,25 +15954,29 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				for (aIndex = 0; aIndex < aTot; aIndex++)
 				{
 					Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
-					delete pArrayItem;
+					if (pArrayItem != NULL) // whm 11Jun12 added NULL test
+						delete pArrayItem;
 				}
 				m_pArrayOfCollabProjects->Clear();
-				delete m_pArrayOfCollabProjects;
+				if (m_pArrayOfCollabProjects != NULL) // whm 11Jun12 added NULL test
+					delete m_pArrayOfCollabProjects;
 			}
-			if (m_pChecker)
+			if (m_pChecker != NULL)
 			{
 				delete m_pChecker;
 			}
-			if (m_pServer)
+			if (m_pServer != NULL)
 			{
 				delete m_pServer;
 			}
-			delete m_pROP; // delete the ReadOnlyProtection class's only instance
-			delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
+			if (m_pROP != NULL) // whm 11Jun12 added NULL test
+				delete m_pROP; // delete the ReadOnlyProtection class's only instance
+			if (m_pROPwxFile != NULL) // whm 11Jun12 added NULL test
+				delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
 								 // open read-only protection file of form
 								 // ~AIRIOP-machinename-username.lock while the owning user
 								 // has a project folder open (on this or a remote machine)
-			if (m_pLayout)
+			if (m_pLayout != NULL)
 			{
 				// add code here to ensure the CLayout's lists are cleared before deleting it, we
 				// don't want to leak memory
@@ -15916,34 +15993,49 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				m_pUsfmStylesMap->clear(); //m_pUsfmStylesMap->Clear();
 			}
 			// destroy the Usfm map itself
-			delete m_pUsfmStylesMap;
+			if (m_pUsfmStylesMap != NULL) // whm 11Jun12 added NULL test
+				delete m_pUsfmStylesMap;
 			if (m_pPngStylesMap->size() > 0)
 			{
 				// destroy all Png key/object associations
 				m_pPngStylesMap->clear();
 			}
 			// destroy the Png map itself
-			delete m_pPngStylesMap;
+			if (m_pPngStylesMap != NULL) // whm 11Jun12 added NULL test
+				delete m_pPngStylesMap;
 			if (m_pUsfmAndPngStylesMap->size() > 0)
 			{
 				// destroy all UsfmAndPng key/object associations
 				m_pUsfmAndPngStylesMap->clear();
 			}
 			// destroy the UsfmAndPng map itself
-			delete m_pUsfmAndPngStylesMap;
+			if (m_pUsfmAndPngStylesMap != NULL) // whm 11Jun12 added NULL test
+				delete m_pUsfmAndPngStylesMap;
 
-			delete m_pSourceFont;
-			delete m_pTargetFont;
-			delete m_pNavTextFont;
-			delete m_pDlgSrcFont;
-			delete m_pDlgTgtFont;
-			delete m_pComposeFont;
-			delete m_pDlgGlossFont;
-			delete m_pRemovalsFont;
-			delete m_pVertEditFont;
-			delete m_pSrcFontData;
-			delete m_pTgtFontData;
-			delete m_pNavFontData;
+			if (m_pSourceFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pSourceFont;
+			if ( m_pTargetFont!= NULL) // whm 11Jun12 added NULL test
+				delete m_pTargetFont;
+			if (m_pNavTextFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pNavTextFont;
+			if (m_pDlgSrcFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pDlgSrcFont;
+			if (m_pDlgTgtFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pDlgTgtFont;
+			if (m_pComposeFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pComposeFont;
+			if (m_pDlgGlossFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pDlgGlossFont;
+			if (m_pRemovalsFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pRemovalsFont;
+			if (m_pVertEditFont != NULL) // whm 11Jun12 added NULL test
+				delete m_pVertEditFont;
+			if (m_pSrcFontData != NULL) // whm 11Jun12 added NULL test
+				delete m_pSrcFontData;
+			if (m_pTgtFontData != NULL) // whm 11Jun12 added NULL test
+				delete m_pTgtFontData;
+			if (m_pNavFontData != NULL) // whm 11Jun12 added NULL test
+				delete m_pNavFontData;
 			wxString key;
 			USFMAnalysis* pSfm;
 			// destroy all USFMAnalysis objects and the CPtrArray pointing to them
@@ -15953,14 +16045,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				for (int upos = 0; upos < (int)m_pMappedObjectPointers->GetCount(); upos++)
 				{
 					pSfm = (USFMAnalysis*)m_pMappedObjectPointers->Item(upos);
-					if (pSfm)
+					if (pSfm != NULL)
 						delete pSfm;
 				}
 				// destroy all keys from CPtrArray
 				m_pMappedObjectPointers->Clear();
 				// destroy the CPtrArray itself
 			}
-			delete m_pMappedObjectPointers;
+			if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
+				delete m_pMappedObjectPointers;
 
 			return FALSE; // this terminates the current instance of the application
 		}
@@ -16213,8 +16306,47 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
 	// (intended for Bob Eaton, for shell opening of the application only, for a given doc)
 
+	// whm 13May12 note: must remove the _T() macros below for wxWidgets-2.9.3
 	static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{
+#if wxCHECK_VERSION(2,9,1)
+		{ wxCMD_LINE_SWITCH, "h", "help", "show this help message",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
+		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, "frm", "forcereviewmode", "Force review mode ON",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		// BEW 28Feb11, moved frm switch to above, it was before the  BEW 12Nov09 line previously
+		{ wxCMD_LINE_SWITCH, "xo", "olpc", "Adjust GUI elements for OLPC XO Screen Resolution",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		//{ wxCMD_LINE_SWITCH, _T("collab_on"), _T("collab_mode_on"), _T("Force collaboration mode ON"),
+		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		//{ wxCMD_LINE_SWITCH, _T("collab_off"), _T("collab_mode_off"), _T("Force collaboration mode OFF"),
+		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		//{ wxCMD_LINE_OPTION, _T("collab_proj"), _T("collab_project_names"), _T("Use these PT/BE projects \"Src Proj:Tgt Proj[:FreeTrans Proj]\""),
+		//	wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		//{ wxCMD_LINE_OPTION, _T("ai_proj"), _T("ai_project_name"), _T("Use this AI project \"Lang A to Lang B adaptations\""),
+		//	wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, "wf", "workfolder", "Use alternate path for work folder",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, "newdocs", "newdocumentspath", "Lock new documents path to this path",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, "exports", "exporteddocumentspath", "Lock exported documents path to this path",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
+		// for default adaptation export of adaptation text from a given doc file from
+		// a given project folder is what the next 4 params are
+		{ wxCMD_LINE_PARAM, "export", "export_auto","export",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, "", "", "\nproject name (must be in doublequotes)",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, "", "", "\ndocument name (in doublequotes if spaces present)",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, "", "", "\noutput folder path (in doublequotes if spaces present)",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+
+		{ wxCMD_LINE_NONE }
+#else
 		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
 		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
@@ -16241,7 +16373,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
 		// for default adaptation export of adaptation text from a given doc file from
 		// a given project folder is what the next 4 params are
-		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"), _T("export"),
+		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"),_T("export"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\nproject name (must be in doublequotes)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
@@ -16251,6 +16383,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 
 		{ wxCMD_LINE_NONE }
+#endif
 	};
 
 	// Note: In the MFC version, InitInstance() sets up CCommandLineInfo cmdInfo.
@@ -16729,7 +16862,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 "Adapt It failed to initialize and load the localization for the %s language at the following path:\n%s\nYou may need to re-install the localization files or tell Adapt It where they are located by selecting the \"Change Interface Language..\" item on the View menu."),
 			currLocalizationInfo.curr_fullName.c_str(),
 			currLocalizationInfo.curr_localizationPath.c_str());
-			wxMessageBox(msg,_T("Previous localization file not found"),wxICON_WARNING);
+			wxMessageBox(msg,_T("Previous localization file not found"),wxICON_EXCLAMATION | wxOK);
 		}
 	}
 	wxString EncodingName = wxFontMapper::Get()->GetEncodingName(m_systemEncoding);
@@ -18180,7 +18313,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		str = str.Format(_(
 "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."),
 		m_customWorkFolderPath.c_str());
-		wxMessageBox(str, _("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+		wxMessageBox(str, _("Error of file named CustomWorkFolderLocation"), wxICON_ERROR | wxOK);
 		LogUserAction(_T("Locating the custom work folder location failed"));
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -18439,7 +18572,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			m_bReadOnlyAccess = TRUE; // control should never enter this block, don't
 									  // proceed further if it does, abort instead
 			wxString mssg;
-			wxMessageBox(_T("Read-only protection was not removed. Remove the ~AIROP*.lock protection file from the project folder and re-launch. Now aborting."),_T("OnInit() Initialization error"), wxICON_ERROR);
+			wxMessageBox(_T("Read-only protection was not removed. Remove the ~AIROP*.lock protection file from the project folder and re-launch. Now aborting."),_T("OnInit() Initialization error"), wxICON_ERROR | wxOK);
 			// this is how to abort cleanly from within the OnInit() function
 			// (wxKill() is required, otherwise the process hangs around and that
 			// makes the system think the app is still running)
@@ -18699,7 +18832,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// IDS_DISABLE_BOOK_MODE
 			wxMessageBox(_(
 "Warning: book folder mode will be disabled until a books.xml file is stored \nin the work folder and it is read in and parsed correctly.\nYou should exit the application and fix the books.xml file\nbefore trying to do more work."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			m_bDisableBookMode = TRUE; // it will stay disabled until we exit the app &
             // fix the books.xml file disabling the mode does not change the m_bBookMode
             // value, nor the m_nBookIndex value, and these continue to be saved in the
@@ -18892,7 +19025,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			if (!wxRemoveFile(AIstyleFileWorkFolderPath))
 			{
 				wxMessageBox(_("Could not remove the AI_USFM.xml file from the work folder."),
-					_T(""), wxICON_INFORMATION);
+					_T(""), wxICON_INFORMATION | wxOK);
 			}
 			if (bSetupStyleFileExists)
 			{
@@ -18946,7 +19079,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// IDS_USING_DEFAULT_USFM_STYLES
 			wxMessageBox(_(
 "Warning: using default USFM styles until a AI_USFM.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_USFM.xml file if you have previously told Adapt It to hide certain standard format markers."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			m_bUsingDefaultUsfmStyles = TRUE;
             // To use any non-default styles, user needs to fix the AI_USFM.xml file so it
             // parses correctly, or if it did not get read in, so that it gets read in.
@@ -19157,7 +19290,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// This message should be localized
 							wxString msg = _("Could not create backup of the modified AI_UserProfiles.xml file: \n   %s\nPlease ask your administrator to check your user workflow profiles.");
 							msg = msg.Format(msg,AIuserProfilesWorkFolderPath.c_str());
-							wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+							wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 						}
 						// Note: we do the above back up quietly - unless
 						// BackupExistingUserProfilesFileInWorkFolder() does not succeed for some reason.
@@ -19171,7 +19304,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						//	// here we fill the first %s with the applicationCompatibilityStr which is in the
 						//	// form of the application's version number, i.e., 6.x.x
 						//	msg = msg.Format(msg,applicationCompatibilityStr.c_str(),runningAppVerStr.c_str(),backupPathNameUsed.c_str());
-						//	wxMessageBox(msg,_T(""),wxICON_WARNING);
+						//	wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 						//}
 
 						// The "normal" calling of ReadPROFILES_XML() has not happened yet, so we need to
@@ -19188,7 +19321,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// makes all menu items/settings visible.
 							wxMessageBox(_(
 				"Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
-							_T(""), wxICON_INFORMATION);
+							_T(""), wxICON_INFORMATION | wxOK);
 
 							// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
 							// We'll populate the list boxes with default settings parsed from our
@@ -19238,7 +19371,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							{
 								wxMessageBox(_(
 					"Unable to update the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
-								_T(""), wxICON_INFORMATION);
+								_T(""), wxICON_INFORMATION | wxOK);
 								SetupDefaultUserProfiles(m_pUserProfiles); // calls GetAndAssignIdValuesToUserProfilesStruct()
 							}
 						}
@@ -19275,7 +19408,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// This message should be localized
 							wxString msg = _("Could not create backup of the modified AI_UserProfiles.xml file: \n   %s\nPlease ask your administrator to recreate your user workflow profiles.");
 							msg = msg.Format(msg,m_userProfileFileWorkFolderPath.c_str());
-							wxMessageBox(msg,_T(""),wxICON_WARNING);
+							wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 						}
 						else
 						{
@@ -19284,7 +19417,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 							// here we fill the first %s with the profileAppVerStr which is in the
 							// form of the AI_UserProfiles.xml's profileVersion number, i.e., 1.x
 							msg = msg.Format(msg,profileVersionStr.c_str(),runningAppVerStr.c_str(),profileAppVerStr.c_str(),backupPathNameUsed.c_str());
-							wxMessageBox(msg,_T(""),wxICON_WARNING);
+							wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 						}
 						// Set bSetupFoldersVersionCanReplace = TRUE here because we want the version in the
 						// setup install folder to be used since it is known to be compatible with the running
@@ -19324,7 +19457,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			if (!wxRemoveFile(m_userProfileFileWorkFolderPath))
 			{
 				wxMessageBox(_("Could not remove the AI_UserProfiles.xml file from the work folder."),
-					_T(""), wxICON_INFORMATION);
+					_T(""), wxICON_INFORMATION | wxOK);
 			}
 			if (bInstallFolderUserProfileFileExists)
 			{
@@ -19361,7 +19494,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
             // makes all menu items/settings visible.
 			wxMessageBox(_(
 				"Unable to read the AI_UserProfiles.xml file in the work folder. Ask your administrator to recreate Adapt It's user workflow profiles."),
-				_T(""), wxICON_INFORMATION);
+				_T(""), wxICON_INFORMATION | wxOK);
 
 			// XML.cpp issues a Warning that AI_UserProfiles.xml could not be read.
 			// We'll populate the list boxes with default settings parsed from our
@@ -19488,7 +19621,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				msg = msg.Format(_T(
 		"Could not find the %s dynamic library file. Paratext collaboration will not be available, however the rest of the application will work fine."),
 				PT_LIB_NAME);
-				wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
+				wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION | wxOK);
 			}
 			else
 			{
@@ -20037,6 +20170,9 @@ int ii = 1;
 	// Create the free translation display handler
 	m_pFreeTrans = new CFreeTrans(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	// whm 13Jun12 Note: I needed to add four calls to PopEventHandler(FALSE) in the
+	// CMainFrame's destructor in MainFrm.cpp, to avoid a crash in OnExit(). One call for
+	// each of the four PushEventHandler() calls below.
 	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
 
 	m_pNotes = new CNotes(this);
@@ -20230,24 +20366,30 @@ int CAdapt_ItApp::OnExit(void)
 	//delete m_pUsfm2Oxes;
 
 	// delete the CNotes object
-	delete m_pNotes;
+	if (m_pNotes != NULL) // whm 11Jun12 added NULL test
+		delete m_pNotes;
 
 	// delete the CRetranslation object
-	delete m_pRetranslation;
+	if (m_pRetranslation != NULL) // whm 11Jun12 added NULL test
+		delete m_pRetranslation;
 
 	// delete the CPlaceholder object
-	delete m_pPlaceholder;
+	if (m_pPlaceholder != NULL) // whm 11Jun12 added NULL test
+		delete m_pPlaceholder;
 
 	//GDLC Added 2010-02-12
 	// Delete the CFreeTrans manager after popping its event table off the stack of
 	// windows event handlers
 	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE
 								// (meaning that we'll do the deleting ourselves)
-	delete m_pFreeTrans;
+	if (m_pFreeTrans != NULL) // whm 11Jun12 added NULL test
+		delete m_pFreeTrans;
 
-	delete m_pROP; // delete the ReadOnlyProtection class's only instance
+	if (m_pROP != NULL) // whm 11Jun12 added NULL test
+		delete m_pROP; // delete the ReadOnlyProtection class's only instance
 	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
-	delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
+	if (m_pROPwxFile != NULL) // whm 11Jun12 added NULL test
+		delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
 						 // open read-only protection file of form
 						 // ~AIRIOP-machinename-username.lock while the owning user
 						 // has a project folder open (on this or a remote machine)
@@ -20288,7 +20430,8 @@ int CAdapt_ItApp::OnExit(void)
 		//}
 	}
     // clean up the help system
-	delete m_pHelpController;
+	if (m_pHelpController != NULL) // whm 11Jun12 added NULL test
+		delete m_pHelpController;
 	m_pHelpController = (wxHtmlHelpController*)NULL;
 	delete wxHelpProvider::Set(NULL);
 
@@ -20308,54 +20451,70 @@ int CAdapt_ItApp::OnExit(void)
 	//delete m_pTargetBox;
 	//m_pTargetBox = (CPhraseBox*)NULL;
 
-	delete m_pConfig;
+	if (m_pConfig != NULL) // whm 11Jun12 added NULL test
+		delete m_pConfig;
 	m_pConfig = (wxFileConfig*)NULL;
 
-	if (m_pChecker)
+	if (m_pChecker != NULL)
 	{
 		delete m_pChecker;
 		m_pChecker = (wxSingleInstanceChecker*)NULL;
 	}
-	if (m_pServer)
+	if (m_pServer != NULL)
 	{
 		delete m_pServer;
 		m_pServer = (AI_Server*)NULL;
 	}
 
-	delete m_pParser;
+	if (m_pParser != NULL) // whm 11Jun12 added NULL test
+		delete m_pParser;
 	m_pParser = (wxCmdLineParser*)NULL;
 	//delete m_pParser2; // BEW added 11Nov09
 	//m_pParser2 = (wxCmdLineParser*)NULL;
 
-	delete m_pSourceFont;
+	if (m_pSourceFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pSourceFont;
 	m_pSourceFont = (wxFont*)NULL;
-	delete m_pTargetFont;
+	if (m_pTargetFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pTargetFont;
 	m_pTargetFont = (wxFont*)NULL;
-	delete m_pNavTextFont;
+	if (m_pNavTextFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pNavTextFont;
 	m_pNavTextFont = (wxFont*)NULL;
-	delete m_pDlgSrcFont;
+	if (m_pDlgSrcFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pDlgSrcFont;
 	m_pDlgSrcFont = (wxFont*)NULL;
-	delete m_pDlgTgtFont;
+	if (m_pDlgTgtFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pDlgTgtFont;
 	m_pDlgTgtFont = (wxFont*)NULL;
-	delete m_pComposeFont;
+	if (m_pComposeFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pComposeFont;
 	m_pComposeFont = (wxFont*)NULL;
-	delete m_pDlgGlossFont;
+	if (m_pDlgGlossFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pDlgGlossFont;
 	m_pDlgGlossFont = (wxFont*)NULL;
-	delete m_pRemovalsFont;
+	if (m_pRemovalsFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pRemovalsFont;
 	m_pRemovalsFont = (wxFont*)NULL;
-	delete m_pVertEditFont;
+	if (m_pVertEditFont != NULL) // whm 11Jun12 added NULL test
+		delete m_pVertEditFont;
 	m_pVertEditFont = (wxFont*)NULL;
 
-	delete m_pSrcFontData;
+	if (m_pSrcFontData != NULL) // whm 11Jun12 added NULL test
+		delete m_pSrcFontData;
 	m_pSrcFontData = (wxFontData*)NULL;
-	delete m_pTgtFontData;
+	if (m_pTgtFontData != NULL) // whm 11Jun12 added NULL test
+		delete m_pTgtFontData;
 	m_pTgtFontData = (wxFontData*)NULL;
-	delete m_pNavFontData;
+	if (m_pNavFontData != NULL) // whm 11Jun12 added NULL test
+		delete m_pNavFontData;
 	m_pNavFontData = (wxFontData*)NULL;
 
-	delete pPgSetupDlgData;
+	if (pPgSetupDlgData != NULL) // whm 11Jun12 added NULL test
+		delete pPgSetupDlgData;
 	pPgSetupDlgData = (wxPageSetupDialogData*)NULL;
-	delete pPrintData;
+	if (pPrintData != NULL) // whm 11Jun12 added NULL test
+		delete pPrintData;
 	pPrintData = (wxPrintData*)NULL;
 
 	if (gpDocList != NULL)
@@ -20367,13 +20526,13 @@ int CAdapt_ItApp::OnExit(void)
 
 	// In wxWidgets we've moved all the doc's data members to the App
 	// The following is from the MFC's CAdapt_ItDoc::~CAdapt_ItDoc() destructor:
-	if (m_pSourcePhrases != 0)
+	if (m_pSourcePhrases != NULL)
 	{
 		delete m_pSourcePhrases;
 		m_pSourcePhrases = (SPList*)NULL;
 	}
 
-	if (m_pBuffer != 0)
+	if (m_pBuffer != NULL)
 	{
 		delete m_pBuffer;
 		m_pBuffer = (wxString*)NULL;
@@ -20384,17 +20543,19 @@ int CAdapt_ItApp::OnExit(void)
 	m_nTotalBooks = m_pBibleBooks->GetCount(); //m_nTotalBooks = m_pBibleBooks->GetSize();
 	if (m_nTotalBooks == 0L)
 	{
-		delete m_pBibleBooks;
+		if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
+			delete m_pBibleBooks;
 	}
 	else
 	{
 		for (int i = 0; i < m_nTotalBooks; i++)
 		{
 			BookNamePair* pPair =  (BookNamePair*)(*m_pBibleBooks)[i];
-			if (pPair)
+			if (pPair != NULL)
 				delete pPair;
 		}
-		delete m_pBibleBooks;
+		if (m_pBibleBooks != NULL) // whm 11Jun12 added NULL test
+			delete m_pBibleBooks;
 	}
 
 	// whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
@@ -20407,14 +20568,15 @@ int CAdapt_ItApp::OnExit(void)
 		for (int upos = 0; upos < (int)m_pMappedObjectPointers->GetCount(); upos++)
 		{
 			pSfm = (USFMAnalysis*)m_pMappedObjectPointers->Item(upos);
-			if (pSfm)
+			if (pSfm != NULL)
 				delete pSfm;
 		}
 		// destroy all keys from CPtrArray
 		m_pMappedObjectPointers->Clear();
 		// destroy the CPtrArray itself
 	}
-	delete m_pMappedObjectPointers;
+	if (m_pMappedObjectPointers != NULL) // whm 11Jun12 added NULL test
+		delete m_pMappedObjectPointers;
 
 	// USFMAnalysis objects are destroyed, now destroy the map keys and
 	// maps themselves
@@ -20424,7 +20586,8 @@ int CAdapt_ItApp::OnExit(void)
 		m_pUsfmStylesMap->clear(); //m_pUsfmStylesMap->Clear();
 	}
 	// destroy the Usfm map itself
-	delete m_pUsfmStylesMap;
+	if (m_pUsfmStylesMap != NULL) // whm 11Jun12 added NULL test
+		delete m_pUsfmStylesMap;
 
 	if (m_pPngStylesMap->size() > 0)
 	{
@@ -20432,7 +20595,8 @@ int CAdapt_ItApp::OnExit(void)
 		m_pPngStylesMap->clear();
 	}
 	// destroy the Png map itself
-	delete m_pPngStylesMap;
+	if (m_pPngStylesMap != NULL) // whm 11Jun12 added NULL test
+		delete m_pPngStylesMap;
 
 	if (m_pUsfmAndPngStylesMap->size() > 0)
 	{
@@ -20440,7 +20604,8 @@ int CAdapt_ItApp::OnExit(void)
 		m_pUsfmAndPngStylesMap->clear();
 	}
 	// destroy the UsfmAndPng map itself
-	delete m_pUsfmAndPngStylesMap;
+	if (m_pUsfmAndPngStylesMap != NULL) // whm 11Jun12 added NULL test
+		delete m_pUsfmAndPngStylesMap;
 
 	// destroy the allocated memory in m_pUserProfiles. This is a single
 	// instance of the UserProfiles struct that was allocated on the heap. Note
@@ -20471,7 +20636,8 @@ int CAdapt_ItApp::OnExit(void)
 	aTot = m_pRemovedMenuItemArray->GetCount();
 	if (aTot == 0L)
 	{
-		delete m_pRemovedMenuItemArray;
+		if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
+			delete m_pRemovedMenuItemArray;
 	}
 	else
 	{
@@ -20479,15 +20645,18 @@ int CAdapt_ItApp::OnExit(void)
 		for (aIndex = 0; aIndex < aTot; aIndex++)
 		{
 			wxMenuItem* mItem = (wxMenuItem*)(*m_pRemovedMenuItemArray)[aIndex];
-			delete mItem;
+			if (mItem != NULL) // whm 11Jun12 added NULL test
+				delete mItem;
 		}
-		delete m_pRemovedMenuItemArray;
+		if (m_pRemovedMenuItemArray != NULL) // whm 11Jun12 added NULL test
+			delete m_pRemovedMenuItemArray;
 	}
 
 	aTot = m_pArrayOfCollabProjects->GetCount();
 	if (aTot == 0L)
 	{
-		delete m_pArrayOfCollabProjects;
+		if (m_pArrayOfCollabProjects != NULL) // whm 11Jun12 added NULL test
+			delete m_pArrayOfCollabProjects;
 	}
 	else
 	{
@@ -20495,10 +20664,12 @@ int CAdapt_ItApp::OnExit(void)
 		for (aIndex = 0; aIndex < aTot; aIndex++)
 		{
 			Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
-			delete pArrayItem;
+			if (pArrayItem != NULL) // whm 11Jun12 added NULL test
+				delete pArrayItem;
 		}
 		m_pArrayOfCollabProjects->Clear();
-		delete m_pArrayOfCollabProjects;
+		if (m_pArrayOfCollabProjects != NULL) // whm 11Jun12 added NULL test
+			delete m_pArrayOfCollabProjects;
 	}
 
 	// whm: before deleting our CConsistentChanger objects, we need to
@@ -20508,18 +20679,19 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		if (m_pConsistentChanger[ct] != NULL && m_bCCTableLoaded[ct])
 		{
-			delete m_pConsistentChanger[ct];
+			if (m_pConsistentChanger[ct] != NULL) // whm 11Jun12 added NULL test
+				delete m_pConsistentChanger[ct];
 			m_pConsistentChanger[ct] = (CConsistentChanger*)NULL;
 		}
 	}
 
-	if (m_pLocale)
+	if (m_pLocale != NULL)
 	{
 		delete m_pLocale;
 		m_pLocale = (wxLocale*)NULL;
 	}
 
-	if (m_pLayout)
+	if (m_pLayout != NULL)
 	{
         // add code here to ensure the CLayout's lists are cleared before deleting it, we
         // don't want to leak memory
@@ -20537,14 +20709,16 @@ int CAdapt_ItApp::OnExit(void)
 		// try shut down by deleting the top window, which also halts the event loop
 		m_bAutoExport = FALSE;
 		//ExitMainLoop();
-		delete GetTopWindow();
+		if (GetTopWindow() != NULL)
+			delete GetTopWindow();
 	}
 	else
 	{
 		// can't do this from a call of OnExit() from OnOpenDocument() without it
 		// asking if I want to save the document because it is changed, so I moved
 		// this to the end, and we do it only if not auto exporting
-		delete m_pDocManager; // deleting this
+		if (m_pDocManager != NULL) // whm 11Jun12 added NULL test
+			delete m_pDocManager; // deleting this
 		m_pDocManager = (wxDocManager*)NULL;
 	}
 
@@ -21372,7 +21546,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			str = str.Format(_(
 "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."),
 			m_strNR.c_str());
-			wxMessageBox(str, _T(""), wxICON_ERROR);
+			wxMessageBox(str, _T(""), wxICON_ERROR | wxOK);
 			LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name. Aborting..."));
 			// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 			wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -21392,7 +21566,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			str = str.Format(_(
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\nAdapt It %s is not set up correctly and so must close down."),
 			m_strNR.c_str(),m_strNR.c_str());
-			wxMessageBox(str, _T(""), wxICON_ERROR);
+			wxMessageBox(str, _T(""), wxICON_ERROR | wxOK);
 			LogUserAction(_T("Error creating the \"Adapt It %sWork\" folder in <home user>"));
 			wxASSERT(FALSE);
 			return FALSE;
@@ -21462,7 +21636,7 @@ bool CAdapt_ItApp::SetupDirectories()
                     // reason the dialog would have a null parent when loading a file
                     // from MRU, and wxMessageDialog allows us to specify the main
                     // frame as parent.
-					wxMessageBox(str, _T(""), wxICON_INFORMATION);
+					wxMessageBox(str, _T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
 		}
@@ -21476,7 +21650,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			text = text.Format(_(
 "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."),
 			m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str());
-			wxMessageBox(text, _T(""), wxICON_ERROR);
+			wxMessageBox(text, _T(""), wxICON_ERROR | wxOK);
 			LogUserAction(_T("A file named 'Adapt It Work' exists interfering with creating the folder of same name. Aborting..."));
 			// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 			wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -21500,7 +21674,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				str = str.Format(_(
 "Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
-				wxMessageBox(str, _T(""), wxICON_ERROR);
+				wxMessageBox(str, _T(""), wxICON_ERROR | wxOK);
 				wxASSERT(FALSE);
 				return FALSE;
 			}
@@ -21539,7 +21713,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			text = text.Format(_(
 "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."),
 			m_curProjectName.c_str());
-			wxMessageBox(text, _T(""), wxICON_ERROR);
+			wxMessageBox(text, _T(""), wxICON_ERROR | wxOK);
 			LogUserAction(_T("A file named \"Adaptations\" exists interfering with creating the folder of same name. Aborting..."));
 			// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 			wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -21557,7 +21731,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			// IDS_CREATE_DIR3_FAILED // MFC error message has "Adaptions" rather than "Adaptations"
 			wxMessageBox(_(
 "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			LogUserAction(_T("Error creating the \"Adaptations\" folder in the project folder"));
 			wxASSERT(FALSE);
 			return FALSE;
@@ -21575,7 +21749,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			str = str.Format(_(
 "Sorry, there was an error creating the following folder(s) in your Adapt It %sWork folder.\n%s\nAdapt It is not set up correctly and so must close down."),
 			m_strNR.c_str(),pathCreationErrors.c_str());
-			wxMessageBox(str, _T(""), wxICON_ERROR);
+			wxMessageBox(str, _T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			return FALSE;
 	}
@@ -22802,7 +22976,7 @@ bool CAdapt_ItApp::LoadGlossingKB(bool bShowProgress)
 	{
 		wxMessageBox(_(
 "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 
 		// make the substitute KB in memory
 		if (m_pGlossingKB == NULL)
@@ -22928,7 +23102,7 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 	{
 		wxMessageBox(_(
 "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 
 		// make the substitute KB in memory
 		if (m_pKB == NULL)
@@ -23076,7 +23250,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 			// backups.
 			wxMessageBox(_(
 "Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			LogUserAction(_T("Loading the knowledge base failed. You should now try the Restore Knowledge Base command in the File menu. If that fails, you should restore your knowledge base from backups. You need a valid knowledge base before doing any more work."));
 			m_bKBReady = FALSE;
@@ -23113,7 +23287,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 			// the kb files from backups.
 			wxMessageBox(_(
 "Creating the knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."),
-			_T(""), wxICON_ERROR); // something went wrong
+			_T(""), wxICON_ERROR | wxOK); // something went wrong
 			wxASSERT(FALSE);
 			LogUserAction(_T("Creating the knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."));
 			//abort(); // whm removed 28Aug11
@@ -23148,7 +23322,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 			// backups.
 			wxMessageBox(_(
 "Error: loading the glossing knowledge base failed. The application will now close."),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			LogUserAction(_T("Error: loading the glossing knowledge base failed"));
 			m_bGlossingKBReady = FALSE;
@@ -23183,7 +23357,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 			// the kb files from backups.
 			wxMessageBox(_(
 "Creating the glossing knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."),
-			_T(""), wxICON_ERROR); // something went wrong
+			_T(""), wxICON_ERROR | wxOK); // something went wrong
 			wxASSERT(FALSE);
 			LogUserAction(_T("Creating the glossing knowledge base failed. Ensure that no other program is using the KB files, then try again. If continue to get failures you can try the Restore Knowledge Base... command from the File menu, or restore your knowledge base files from backups. You need a valid knowledge base before doing any more work."));
 			m_bGlossingKBReady = FALSE;
@@ -23247,7 +23421,8 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				{
 					m_pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this
 														// invalid association
-					delete pTU; // its memory chunk is freed (don't leak memory)
+					if (pTU != NULL) // whm 11Jun12 added NULL test
+						delete pTU; // its memory chunk is freed (don't leak memory)
 					continue;
 				}
 				else
@@ -23373,7 +23548,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 		// think again!
 		wxMessageBox(_(
 	"Failed to set the current directory when getting existing adaptation documents"),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 		wxExit();
 	}
@@ -23470,7 +23645,7 @@ void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 				str = str.Format(_(
 "Creating folder: \"%s\" failed. This folder will be skipped, processing will continue."),
 				path.c_str());
-				wxMessageBox(str, _T(""), wxICON_WARNING);
+				wxMessageBox(str, _T(""), wxICON_EXCLAMATION | wxOK);
 			}
 		}
 	}
@@ -23506,7 +23681,7 @@ bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 	{
 		wxMessageBox(_T(
 			"Failed to set the current directory in AreBookFoldersCreated function"),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 		wxExit();	// TODO: See if there is a more graceful way to recover from
 					// not being able to set the working directory to dirPath
@@ -23615,7 +23790,7 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 	{
 		// oops, this is a fatal error, we can't go on
 		wxMessageBox(_T("Failed setting current directory in GetPossibleAdaptationProjects()")
-		,_T(""), wxICON_ERROR);
+		,_T(""), wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 		wxExit(); // this calls OnExit() before exiting
 	}
@@ -23683,7 +23858,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 		message = _("Error opening glossing KB file for writing with path:\n")
 			+ m_curGlossingKBPath + _(
 "\nThe glossing knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
-		wxMessageBox(message, _T(""), wxICON_INFORMATION);
+		wxMessageBox(message, _T(""), wxICON_INFORMATION | wxOK);
 		LogUserAction(message);
 		return FALSE;
 	}
@@ -23719,7 +23894,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 			if (!::wxRemoveFile(m_curGlossingKBBackupPath))
 			{
 				// notify user of error (maybe backup file is protected or in use???)
-				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),wxICON_WARNING);
+				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),wxICON_EXCLAMATION | wxOK);
 				LogUserAction(_T("Removing backup glossing kb file failed."));
 				if (pProgDlg != NULL)
 					pProgDlg->Destroy();
@@ -23773,7 +23948,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			message = _("Error opening KB file for writing with path:\n")
 				+ m_curKBPath + _(
 "\nThe knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
+			wxMessageBox(message, _T(""), wxICON_INFORMATION | wxOK);
 			LogUserAction(message);
 			return FALSE;
 	}
@@ -23810,7 +23985,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			if (!::wxRemoveFile(m_curKBBackupPath))
 			{
 				// notify user of error (maybe backup file is protected or in use???)
-				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_WARNING);
+				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_EXCLAMATION | wxOK);
 				LogUserAction(_T("Removing backup kb file failed."));
 				if (pProgDlg != NULL)
 					pProgDlg->Destroy();
@@ -23862,7 +24037,7 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 			{
 				// notify user of error (maybe backup file is protected or in use???)
 				// The following message did not exist in the MFC version
-				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_ERROR);
+				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_ERROR | wxOK);
 				LogUserAction(_T("Removing backup kb file failed."));
 				return FALSE;
 			}
@@ -23906,7 +24081,7 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 				// notify user of error (maybe backup file is protected or in use???)
 				// The following message did not exist in the MFC version
 				wxMessageBox(_("Removing backup glossing kb file failed."),
-				_T(""), wxICON_ERROR);
+				_T(""), wxICON_ERROR | wxOK);
 				LogUserAction(_T("Removing backup glossing kb file failed."));
 				return FALSE;
 			}
@@ -24090,7 +24265,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			// ChooseCollabOptionsDlg is shown again).
 			int response;
 			wxString msg = _("You cancelled the dialog - You may turn collaboration off if you want to access a different project from the Start Working Wizard.\nDo you want to turn collaboration off?");
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			if (response == wxYES)
 			{
 				// The user selected to "Turn Collaboration OFF"
@@ -24127,7 +24302,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			// specified PT/BE projects that cannot be found in the list of the external editor's projects.
 			wxString msg = _("Adapt It cannot collaborate with this project (%s). There is a problem with the project's settings.\nPlease ask your administrator for help.");
 			msg = msg.Format(msg,dlg.m_TempCollabAIProjectName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			m_bStartWorkUsingCollaboration = FALSE;
 			m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
 			return TRUE;
@@ -24166,7 +24341,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 				m_curAdaptionsPath.c_str());
 			message2 = message1 +
 _("\nIf you want to continue, you must choose a project or create a new project.\nDo you want to continue? ");
-			int result = wxMessageBox(message2,_("Basic Configuration File Not Read"), wxYES_NO | wxICON_WARNING);
+			int result = wxMessageBox(message2,_("Basic Configuration File Not Read"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 			if (result == wxNO)
 			{
 				wxASSERT(FALSE);
@@ -24193,7 +24368,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				m_curAdaptionsPath.c_str());
 			message2 = message1 + _(
 "\nIf you want to continue, you must choose a different project or create a new project.\nDo you want to continue? ");
-			int result = wxMessageBox(message2,_("Bad path in config file"), wxYES_NO | wxICON_WARNING);
+			int result = wxMessageBox(message2,_("Bad path in config file"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 			if (result == wxNO)
 			{
 				wxASSERT(FALSE);
@@ -24600,7 +24775,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 			wxString message;
 			message = _("Adapt It cannot create its work folder: ") + workFolderPath;
 			message += _("\nAdapt It cannot continue and will now abort.");
-			wxMessageBox(message, _("Critical Error"), wxICON_ERROR | wxOK);
+			wxMessageBox(message, _("Critical Error"), wxICON_ERROR | wxOK | wxOK);
 			LogUserAction(_T("Adapt It cannot create its work folder in EnsureWorkFolderPresent(. Aborting...)"));
 			// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 			wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -24842,7 +25017,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			message = message.Format(_(
 			"Warning: Did not remove bad knowledge base file %s."),
 			m_curGlossingKBPath.c_str());
-			wxMessageBox(message, _T(""), wxICON_ERROR);
+			wxMessageBox(message, _T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			wxExit();
 		}
@@ -24854,7 +25029,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			message = message.Format(_(
 			"Warning: Did not remove bad knowledge base file %s."),
 			m_curKBPath.c_str());
-			wxMessageBox(message, _T(""), wxICON_ERROR);
+			wxMessageBox(message, _T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			wxExit();
 		}
@@ -24873,7 +25048,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 				message = message.Format(_(
 "Error renaming glossing KB Backup file, path %s, to be the new glossing KB file."),
 				m_curGlossingKBBackupPath.c_str());
-				wxMessageBox(message, _T(""), wxICON_ERROR);
+				wxMessageBox(message, _T(""), wxICON_ERROR | wxOK);
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -24895,7 +25070,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 				// IDS_STORE_KB_FAILURE
 				wxMessageBox(_(
 				"Error: saving the knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR); // something went wrong
+				_T(""), wxICON_ERROR | wxOK); // something went wrong
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -24913,7 +25088,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 				message = message.Format(_(
 			"Error renaming KB Backup file with path %s to become the new KB file."),
 				m_curKBBackupPath.c_str());
-				wxMessageBox(message, _T(""), wxICON_ERROR);
+				wxMessageBox(message, _T(""), wxICON_ERROR | wxOK);
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -24939,7 +25114,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 				// IDS_STORE_KB_FAILURE
 				wxMessageBox(_(
 			"Error: saving the knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR); // something went wrong
+				_T(""), wxICON_ERROR | wxOK); // something went wrong
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -24970,7 +25145,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			{
 				wxMessageBox(_(
 	"Error: loading the glossing knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR);
+				_T(""), wxICON_ERROR | wxOK);
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -24981,7 +25156,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			// happen
 			wxMessageBox(_(
 			"Glossing KB file not found immediately after it was renamed!\n"),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			wxExit();
 		}
@@ -25008,7 +25183,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 				// IDS_LOAD_KB_FAILURE
 				wxMessageBox(_(
 				"Error: loading a knowledge base failed. The application will now close."),
-				_T(""), wxICON_ERROR);
+				_T(""), wxICON_ERROR | wxOK);
 				wxASSERT(FALSE);
 				wxExit();
 			}
@@ -25019,7 +25194,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			// happen
 			wxMessageBox(_(
 			"KB file not found immediately after it was renamed!\n"),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 			wxExit();
 		}
@@ -25199,7 +25374,7 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 "Warning: the consistent changes table number %d, and any further tables, were not loaded."),
 			whichOne + 1);
 			sError += addMore;
-			wxMessageBox(sError, _T(""), wxICON_INFORMATION);
+			wxMessageBox(sError, _T(""), wxICON_INFORMATION | wxOK);
 			LogUserAction(sError);
 			// later ones won't be loaded once the error has occurred, so ensure that
 			// the non-loaded ones are not tried
@@ -25404,7 +25579,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// IDS_RESTORE_KB_MSG
 	int value = wxMessageBox(_(
 "Use this command if the knowledge base has become corrupted.\n(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\nIt will throw away your current knowledge base, and then using your saved document files it will build a new one.\n\nDo you wish to go ahead?"),
-	_T("Restore Knowledge Base..."), wxYES_NO);
+	_T("Restore Knowledge Base..."), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (!(value == wxYES))
 		return;
 
@@ -25450,7 +25625,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			// something's real wrong!
 			wxMessageBox(_(
 "Could not save the current document. Restore Knowledge Base command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("Could not close and save the current document. Restore Knowledge Base command aborted."));
 			pProgDlg->Destroy();
 			return;
@@ -25488,7 +25663,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// from the corrupted KB
 		value = wxMessageBox(_(
 		"Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\nbut it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n\nDo you wish to try this extra rescue?"),
-		_T("Restore Knowledge Base..."), wxYES_NO);
+		_T("Restore Knowledge Base..."), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (value == wxYES)
 		{
 			LogUserAction(_T("Using bRescueFlags"));
@@ -25623,7 +25798,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		{
 			wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-			_T("Restore Knowledge Base..."), wxICON_EXCLAMATION);
+			_T("Restore Knowledge Base..."), wxICON_EXCLAMATION | wxOK);
 
 			// let the view respond again to updates
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
@@ -25723,7 +25898,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			s2 = _T(
 "processing book folders, so the book folder document files do not contribute to the rebuild.");
 			s3 = s3.Format(_T("%s%s"),s1.c_str(),s2.c_str());
-			wxMessageBox(s3,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(s3,_T(""), wxICON_EXCLAMATION | wxOK);
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			m_acceptedFilesList.Clear();
 			if (::wxFileExists(tempKBfilePath))
@@ -25806,7 +25981,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 							errStr = errStr.Format(_T(
 			"Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 							folderPath.c_str());
-							wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+							wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 							LogUserAction(errStr);
 
 							// BEW added 19Mar10, a call of wxSetWorkingDirectory() is
@@ -25915,7 +26090,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	stats = stats.Format(_(
 "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."),
 	nCumulativeTotal,nDocCount);
-	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION);
+	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION | wxOK);
 	LogUserAction(stats);
 
 	// clean up the list
@@ -26007,7 +26182,7 @@ bool CAdapt_ItApp::EnumerateDocFiles(CAdapt_ItDoc* WXUNUSED(pDoc), wxString fold
 		// something's real wrong!
 		wxMessageBox(_T(
 		"Failed to set the current directory to the passed in folder. Command aborted."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -26075,7 +26250,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 		// something's real wrong!
 		wxMessageBox(_T(
 		"Failed to set the current directory to the passed in folder, in EnumerateDocFiles_ParametizedStore(). Command aborted."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -26090,7 +26265,7 @@ bool CAdapt_ItApp::EnumerateDocFiles_ParametizedStore(wxArrayString& docNamesLis
 		// something's real wrong!
 		wxMessageBox(_T(
 		"Failed to re-set the work directory in EnumerateDocFiles_ParametizedStore(). Command aborted."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	return TRUE; // return TRUE even if the list is empty
@@ -26139,7 +26314,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 		// something's real wrong!
 		wxMessageBox(_T(
 "Failed to set the current directory to the passed in folder, in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
-		_T(""), wxICON_WARNING);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -26154,7 +26329,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 		// continue - but with no user protection from folder navigation
 		wxMessageBox(_T(
 			"Error: The wxDir::Open() call failed in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	else
@@ -26185,7 +26360,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 			// something's real wrong!
 			wxMessageBox(_T(
 			"Failed to re-set the work directory in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
         // we can't enumerate files that don't exist, so just return TRUE for an empty
@@ -26231,7 +26406,7 @@ bool CAdapt_ItApp::EnumerateLoadableSourceTextFiles(wxArrayString& array, wxStri
 		// something's real wrong! This is too big an error for the app to continue
 		wxMessageBox(_T(
 		"Failed to re-set the work directory in EnumerateLoadableSourceTextFiles().\nThe user is not protected from folder navigation."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 
@@ -26317,7 +26492,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 				wxMessageBox(_(
 "There are no files in the '__SOURCE_INPUTS' folder.\nTherefore the user is not protected from folder navigation."),
 				_("No source text files for document creation"),
-				wxICON_WARNING);
+				wxICON_EXCLAMATION | wxOK);
 				return FALSE;
 			}
 
@@ -26358,7 +26533,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 				wxString msg;
 				msg = msg.Format(_("Some of the '__SOURCE_INPUTS' folder's files are not suitable for creating an adaptation document.\nThey are: %s"),
 				unloadables.c_str());
-				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
+				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_EXCLAMATION | wxOK);
 			}
 			else if (bSomeAreBad && !bOneIsGood)
 			{
@@ -26367,7 +26542,7 @@ bool CAdapt_ItApp::UseSourceDataFolderOnlyForInputFiles()
 				wxString msg;
 				msg = msg.Format(_("Folder navigation protection is not turned on, because none of the '__SOURCE_INPUTS' folder's files are suitable for creating an adaptation document.\nThe unsuitable ones are: %s"),
 				unloadables.c_str());
-				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_WARNING);
+				wxMessageBox(msg,_("Warning: do not input these files"),wxICON_EXCLAMATION | wxOK);
 				return FALSE;
 			}
 		}
@@ -28000,7 +28175,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 		{
 			bIsOK = FALSE;
 			wxString error = _("Unrecognized font attribute field; unmatched name is: ") + name;
-			wxMessageBox(error, _("Error parsing font information"), wxICON_ERROR);
+			wxMessageBox(error, _("Error parsing font information"), wxICON_ERROR | wxOK);
 		}
 	} while(!pf->Eof());// should never get here just reading the font config data
 
@@ -28379,7 +28554,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				wxString msg1 = _(
 "Extended 8-bit ASCII characters were detected in the\nBasic Configuration File\'s punctuation string (see below):");
 				msg1 += hackedStr + msg2;
-				wxMessageBox(msg1,_("Warning: Invalid Characters Detected"),wxICON_WARNING);
+				wxMessageBox(msg1,_("Warning: Invalid Characters Detected"),wxICON_EXCLAMATION | wxOK);
 			}
 
 #endif
@@ -29352,7 +29527,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				wxString error;
 				error = error.Format(_(
 				"Warning: Unrecognized Basic settings field; unmatched name is: %s\n"),name.c_str());
-				wxMessageBox(error, _T(""), wxICON_INFORMATION);
+				wxMessageBox(error, _T(""), wxICON_INFORMATION | wxOK);
 			}
 		}
 	} while (!pf->Eof());
@@ -29456,7 +29631,7 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 		wxString msg = _("Adapt It was not able to upgrade the collaboration settings for use in this version (%s) of Adapt It.\nPlease ask your administrator to setup Adapt It for collaboration with %s.");
 		wxASSERT(!m_collaborationEditor.IsEmpty());
 		msg = msg.Format(msg,appVerStr.c_str(),m_collaborationEditor.c_str());
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 	return TRUE;
 }
@@ -29862,7 +30037,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				// a call to abort())
 				wxMessageBox(_T(
 					"The CustomWorkFolderLocation file is empty, but it should contain the path to the custom work folder. Aborting now. To recover: (1) Outside of Adapt It use a file browser to find where your custom work folder is located, then (2) in a text editor, type the path to that custom work folder into the CustomWorkFolderLocation, (3) save the file where it currently is (in the default work folder), and then (4) re-launch Adapt It."),
-				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR | wxOK);
 				LogUserAction(_T("Error of file named CustomWorkFolderLocation - file is empty"));
 				return FALSE;
 			}
@@ -29873,7 +30048,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				// check for a returned FALSE and likewise abort)
 				wxMessageBox(_T(
 "Another running process has the file named CustomWorkFolderLocation open, and so that file is locked and Adapt It is unable to use it until you halt that other process. Aborting now. Halt the other process, then re-launch Adapt It."),
-				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR | wxOK);
 				LogUserAction(_T("Error of file named CustomWorkFolderLocation - another process has the file open"));
 				return FALSE;
 			}
@@ -29912,7 +30087,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					// resulting file the name strOriginalFile
 			wxMessageBox(_T(
 "DealWithThePossibilityOfACustomWorkFolderLocation(): Failed to open the CustomWorkFolderLocation file at default work folder location, and that file is neither locked nor empty. Aborting..."),
-			_T("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+			_T("Error of file named CustomWorkFolderLocation"), wxICON_ERROR | wxOK);
 			LogUserAction(_T("Error of file named CustomWorkFolderLocation - failed to open at default work folder location"));
 			wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxRenameFile() failed, line 27,026 in Adapt_It.cpp"));
 			return FALSE; // forces caller to call abort()
@@ -29936,7 +30111,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			str = str.Format(_(
 "Adapt It did not find your work folder at\n   %s\nThis error will occur either \n1. because your work folder is located on an external drive which is not currently plugged in, or \n2. because there is a typing error in the work folder path stored in the file named CustomWorkFolderLocation, or \n3. another application currently has the CustomWorkFolderLocation file open. \nYou will have a chance to recover now."),
 			m_customWorkFolderPath.c_str());
-			wxMessageBox(str, _("Failed to find the custom work folder"), wxICON_ERROR);
+			wxMessageBox(str, _("Failed to find the custom work folder"), wxICON_ERROR | wxOK);
 			enum ActionChoices {
 				cancelled = -1,
 				plugInDriveAndRetry = 0,
@@ -29965,7 +30140,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					{
 						wxMessageBox(_(
 "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."),
-						_("Recovery By Plugging In The Missing External Drive Failed"), wxICON_ERROR);
+						_("Recovery By Plugging In The Missing External Drive Failed"), wxICON_ERROR | wxOK);
 						LogUserAction(_T("Recovery By Plugging In The Missing External Drive Failed"));
 						return FALSE; // let caller do the abort() call
 					}
@@ -29998,7 +30173,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						bOK = ::wxRenameFile(strRenamedFile,strOriginalFile,TRUE);
 						wxMessageBox(_(
 "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."),
-						_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
+						_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR | wxOK);
 						LogUserAction(_T("Error of file named CustomWorkFolderLocation - file still oper or incorrect path"));
 						wxCHECK_MSG(bOK, FALSE, _T("DealWithThePossibilityOfACustomWorkFolderLocation(): ::wxRenameFile() failed, line 27,114 in Adapt_It.cpp"));
 						return FALSE; // forces caller to call abort()
@@ -30009,7 +30184,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					{
 						wxMessageBox(_(
 "The path to the custom work folder did not find a directory with the required name. Did you check the path specification using a file browser, to make sure your edit of the path in the CustomWorkFolderLocation file resulted in a correct path to the custom work folder? Aborting now. Use a text editor again to get the path typed correctly before you re-launch Adapt It."),
-						_("Recovery By Editing The Path Specificiation Failed"), wxICON_ERROR);
+						_("Recovery By Editing The Path Specificiation Failed"), wxICON_ERROR | wxOK);
 						LogUserAction(_T("Recovery By Editing The Path Specificiation Failed"));
 						return FALSE; // let caller do the abort() call
 					}
@@ -30085,7 +30260,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						// his access to the custom work folder location got lost.
 						wxMessageBox(_(
 "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."),
-						_("One chance to relocate the work folder failed"), wxICON_ERROR);
+						_("One chance to relocate the work folder failed"), wxICON_ERROR | wxOK);
 						LogUserAction(_T("One chance to relocate the work folder failed. Aborting..."));
 						// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 						wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -31227,7 +31402,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				wxString msg1 = _(
 "Extended 8-bit ASCII characters were detected in the\nProject Configuration File\'s punctuation string (see below):");
 				msg1 += hackedStr + msg2;
-				wxMessageBox(msg1,_("Warning: Invalid Characters Detected"),wxICON_WARNING);
+				wxMessageBox(msg1,_("Warning: Invalid Characters Detected"),wxICON_EXCLAMATION | wxOK);
 			}
 #endif
             // wxGTK uses UTF-8 internally in its wxTextCtrl widgets, so let's try
@@ -31902,7 +32077,7 @@ t:				m_pCurrBookNamePair = NULL;
 			{
 				wxString error = _(
 				"Warning: Unrecognized project settings field; unmatched name is: ") + name;
-				wxMessageBox(error, _T(""), wxICON_INFORMATION);
+				wxMessageBox(error, _T(""), wxICON_INFORMATION | wxOK);
 			}
 		}
 	} while (!pf->Eof());
@@ -32150,7 +32325,8 @@ bool CAdapt_ItApp::GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCode
 			for(index2 = 0; index2 < count2; index2++)
 			{
 				EthnologueCodePair* pCP = (EthnologueCodePair*)pCodePairsArray->Item(index2);
-				delete pCP;
+				if (pCP != NULL) // whm 11Jun12 added NULL test
+					delete pCP;
 			}
 			pCodePairsArray->Clear();
 			return FALSE;
@@ -32283,7 +32459,7 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
 		// IDS_LEFT_WEDGE_ERR
 		wxMessageBox(_(
 "Sorry, Adapt It will not permit the < character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		srcPunctuation += _T(" <"); // add it after a delimiting space
 		AddWedgePunctPair(_T('<'));
 	}
@@ -32296,7 +32472,7 @@ void CAdapt_ItApp::GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPun
         // the dialog manually; all we do now is make sure it gets put in m_punctuation[0]
         // and [1])
 		// IDS_RIGHT_WEDGE_ERR
-		wxMessageBox(_("Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."), _T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."), _T(""), wxICON_INFORMATION | wxOK);
 		srcPunctuation += _T(" >"); // add it after a delimiting space
 		AddWedgePunctPair(_T('>'));
 	}
@@ -32675,7 +32851,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		// whm added 4Apr12. Tell user about the zero-length (empty) basic config file
 		wxString msg = _("The %s configuration file exists but it is empty (has no content). Default values will be used instead. You may need to reset some preferences by selecting Preferences... from the Edit menu.");
 		msg = msg.Format(msg, configType.c_str());
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		bIsOK = FALSE;
 	}
 	else if (!bSuccessful)
@@ -32692,7 +32868,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	"Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"),
 			configType.c_str());
 			// assume there was no configuration file in existence yet, so nothing needs to be fixed
-			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+			wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 		}
 
 		bIsOK = FALSE;
@@ -32750,7 +32926,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		wxString fontType = _("source");
 		errMsg = errMsg.Format(msg,
 			fontType.c_str(), configType.c_str());
-		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
+		wxMessageBox(errMsg,_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 
 	// get the target font's TgtFInfo data from the configFileType config file
@@ -32760,7 +32936,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		wxString fontType = _("target");
 		errMsg = errMsg.Format(msg,
 			fontType.c_str(), configType.c_str());
-		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
+		wxMessageBox(errMsg,_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 
 	// get the nav font's NavFInfo data from the configFileType config file
@@ -32770,7 +32946,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		wxString fontType = _("navigation");
 		errMsg = errMsg.Format(msg,
 			fontType.c_str(), configType.c_str());
-		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
+		wxMessageBox(errMsg,_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 
     // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
@@ -33760,7 +33936,16 @@ void CAdapt_ItApp::DoInputConversion(wxChar*& pBuf,wxUint32& bufLen, const char*
 {
 #define NUL	'\0'
 #ifdef _UNICODE
+
+// whm 14Jun12 modified to use wxConvAuto for wxWidgets 2.9.1 and later; wxConvAuto_AI for pre-2.9.1
+#if wxCHECK_VERSION(2,9,1)
+	// Use the built-in wxConvAuto from <wx/version.h>
+	wxConvAuto conv(eEncoding);
+#else
+	// The wxWidgets library being used is pre-2.9.1, so use our own modified
+	// version named wxConvAuto_AI located in convauto.h
 	wxConvAuto_AI conv(eEncoding);
+#endif
 	// GDLC 26Nov11 Because the pbyteBuff could be UTF16 which has numerous NUL bytes,
 	// we specify the length of the input buffer rather than allow ToWChar to stop
 	// when it finds a NUL.
@@ -34187,7 +34372,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		nCount,nGlossingCount);
 		int nGoAhead = wxYES; // default (proceed)
 
-		nGoAhead = wxMessageBox(message,_T(""), wxYES_NO);
+		nGoAhead = wxMessageBox(message,_T(""), wxICON_QUESTION | wxYES_NO);
 		if (nGoAhead == wxNO)
 		{
             // whm added 05Jan07 for safety sake restore the former current working
@@ -34214,7 +34399,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		{
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
@@ -34225,7 +34410,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		{
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
@@ -34238,7 +34423,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		{
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
@@ -34269,7 +34454,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
             // debug purposes only
 			wxMessageBox(_T(
 			"Aborting the Transform operation, because no valid KB file was detected"),
-			_T(""),wxICON_WARNING);
+			_T(""),wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("Aborting the Transform operation, because no valid KB file was detected"));
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
@@ -34314,7 +34499,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// already, so just abort the command
 			wxMessageBox(_(
 "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			LogUserAction(_T("Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."));
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
@@ -34430,7 +34615,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// unlikely to fail, so an English message hardcoded will do
 			if (!bStoredOK)
 				wxMessageBox(_T("The new empty adaptations KB did not successfully store to disk"),
-				_T(""), wxICON_INFORMATION);
+				_T(""), wxICON_INFORMATION | wxOK);
 			LogUserAction(_T("The new empty adaptations KB did not successfully store to disk"));
 //		}
 
@@ -34446,7 +34631,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		{
 			wxMessageBox(_T(
 			"Warning: the newly filled glossing KB did not successfully store to disk"),
-				_T(""), wxICON_INFORMATION);
+				_T(""), wxICON_INFORMATION | wxOK);
 			LogUserAction(_T("Warning: the newly filled glossing KB did not successfully store to disk"));
 		}
 
@@ -34489,7 +34674,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,950 in Adapt_It.cpp"));
 			wxMessageBox(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("EnumerateDocFiles() in AccessOtherAdaptionProject() returned FALSE. Aborting the transform process before documents are transformed, but the glossing KB was built."));
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
@@ -34501,7 +34686,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// IDS_NO_DOCUMENTS_YET
 			wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
             LogUserAction(_T("Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."));
 			// whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
@@ -34546,7 +34731,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 				s2 = _T(
 "processing book folders, so the book folder document files are absent in the transformed project.");
 				s3 = s1 + s2;
-				wxMessageBox(s3,_T(""),wxICON_EXCLAMATION);
+				wxMessageBox(s3,_T(""),wxICON_EXCLAMATION | wxOK);
 				LogUserAction(s3);
                 // whm added 05Jan07 for safety sake restore the former current working
                 // directory to what it was on entry. The
@@ -34620,7 +34805,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 							{
 								// we don't expect failure, English message will do
 								wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."),
-								_T(""), wxICON_WARNING);
+								_T(""), wxICON_EXCLAMATION | wxOK);
 								LogUserAction(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject() in a book folder. Aborting the transform process before it begins."));
 								if (pProgDlg != NULL)
 									pProgDlg->Destroy();
@@ -34874,7 +35059,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 			errStr = errStr.Format(_(
 			"The document with pathname: %s, was not opened and therefore not processed."),
 				newPathName.c_str());
-			wxMessageBox(errStr, _T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr, _T(""), wxICON_EXCLAMATION | wxOK);
 		}
 
 		if (m_pBuffer != NULL)
@@ -34898,7 +35083,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 		stats = stats.Format(_(
 "The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents."),
 		nCumulativeTotal,nCount);
-		wxMessageBox(stats,_T(""),wxICON_INFORMATION);
+		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
 	// let the view respond again to updates
 	wxGetApp().GetMainFrame()->canvas->Thaw();
@@ -35014,7 +35199,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 			{
 				intTrue = wxMessageBox(_(
 "Automatic capitalization support will work only provided the source language distinguishes between upper case and lower case letters. A \"No\" response will prohibit auto-capitalization from being turned on. Does your source language have both upper and lower case letters?"),
-				_T(""), wxYES_NO);
+				_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 			}
 			if (intTrue == wxNO)
 			{
@@ -35046,7 +35231,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 						// IDS_NO_SRC_PUNCT_CORRESP_EXIST
 						wxMessageBox(_(
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\nYou can set them up in the Edit Preferences menu selection on the \"Case\" tab."),
-						_T(""), wxICON_WARNING);
+						_T(""), wxICON_EXCLAMATION | wxOK);
 						LogUserAction(_T("Src or Gls language u/l case do not yet exist... in OnToolsAutoCapitalization()"));
 						return;
 					}
@@ -35067,7 +35252,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 						// IDS_NO_SRC_PUNCT_CORRESP_EXIST
 						wxMessageBox(_(
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\nYou can set them up in the Edit Preferences menu selection on the \"Case\" tab."),
-						_T(""), wxICON_WARNING);
+						_T(""), wxICON_EXCLAMATION | wxOK);
 						LogUserAction(_T("Src or Tgt language u/l case do not yet exist... in OnToolsAutoCapitalization()"));
 						return;
 					}
@@ -35131,7 +35316,7 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 "The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		LogUserAction(_T("The Startup Wizard failed to open. Use the File menu's Open command to open a document."));
 	}
 
@@ -35286,7 +35471,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 "The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		LogUserAction(_T("After Book Folder Mode changed - The Startup Wizard failed to open. Use the File menu's Open command to open a document."));
 	}
 }
@@ -35401,8 +35586,7 @@ bool CAdapt_ItApp::ContainsOrdinaryQuote(wxString s, wxChar ch)
     // returns a const wxChar* to the data in the string.
 	const wxChar* pBuff = s.GetData();
 	wxChar* pEnd = (wxChar*)pBuff + len; //
-	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there; this must be done
-								 // for all wxStringBuffer calls!!!
+	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there;
 	wxChar* ptr = (wxChar*)pBuff;
 	while (ptr < pEnd)
 	{
@@ -37074,7 +37258,7 @@ void CAdapt_ItApp::DiscardDocChanges()
 		// a hard coded message will do, we never expect to see it
 		wxMessageBox(_T(
 "DiscardDocChanges() failed on the OnOpenDocument() call after passing in the reversion document's path."),
-		_T(""), wxICON_WARNING);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 	}
 }
 
@@ -39508,7 +39692,7 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 		{
 			wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
 			msg = msg.Format(msg,m_curProjectName.c_str(),m_collaborationEditor.c_str());
-			wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+			wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 			pView->CloseProject();
 		}
 	}
@@ -39641,7 +39825,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 		wxASSERT(!userProfiileStr.IsEmpty());
 		wxString msg = _T("At your choice Adapt It temporarily set the user profile to \"None\" to allow you to access all menu items. Before showing you the User Workflow Profiles dialog, Adapt It is now switching back to the \"%s\" user profile which was in effect when this session of Adapt It started up.");
 		msg = msg.Format(msg,userProfiileStr.c_str());
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 
 		// switch the interface back to the "normal" one as defined previously by the administrator
 		// Note: The code below must be the same as in the if (m_bTemporarilyRestoreProfilesToDefaults)
@@ -39721,7 +39905,7 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 	{
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, adminHelpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Browser launch error"),wxYES_NO);
+		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		LogUserAction(msg);
 		if (response == wxYES)
 		{
@@ -39793,7 +39977,7 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 	if (length <= 4)
 	{
 		::wxBell();
-		wxMessageBox(_("Too short."),_T(""),wxICON_WARNING);
+		wxMessageBox(_("Too short."),_T(""),wxICON_EXCLAMATION | wxOK);
 		LogUserAction(_T("Password too short"));
 	}
 	else
@@ -40117,7 +40301,7 @@ a:			wxString stdDocsDir = _T("");
 			m_bUseCustomWorkFolderPath = bSaveUsageFlag;
 			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
 			wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
-			wxMessageBox(msg1,_T(""),wxICON_WARNING);
+			wxMessageBox(msg1,_T(""),wxICON_EXCLAMATION | wxOK);
 			LogUserAction(msg1);
 			// check the former location is valid as a work folder, if not set up the default
 			// path
@@ -40169,7 +40353,7 @@ a:			wxString stdDocsDir = _T("");
 		wxString msg;
 		msg = _("You have selected the following folder to be used as a custom work folder:\n\n%s\n\nDo you want this custom work folder to be \"locked\" so that it becomes the user's permanent work folder?");
 		msg = msg.Format(msg,m_customWorkFolderPath.c_str());
-		int response = wxMessageBox(msg,_T("Is this custom work folder permanent or temporary?"),wxICON_QUESTION | wxYES_NO);
+		int response = wxMessageBox(msg,_T("Is this custom work folder permanent or temporary?"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (response == wxYES)
 		{
 			LogUserAction(_T("Lock custom work folder"));
@@ -40424,7 +40608,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 		// shouldn't fail
 		wxMessageBox(_T(
 		"Failed to set the current working directory to default work folder location. Aborting..."),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		LogUserAction(_T("Failed to set the current working directory to default work folder location in OnLockCustomLocation(). Aborting..."));
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -40438,7 +40622,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 		// don't expect a failure, but if we get one, just tell the developer & abort
 		wxMessageBox(_T(
 		"Failed to open the CustomWorkFolderLocation file at default work folder location. Aborting..."),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		LogUserAction(_T("Failed to open the CustomWorkFolderLocation file at default work folder location in OnLockCustomLocation(). Aborting..."));
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -40450,7 +40634,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 	{
 		wxMessageBox(_T(
 			"Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		LogUserAction(_T("Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."));
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -40570,7 +40754,7 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& event)
 				// not be made non-persistent
 			wxMessageBox(_T(
 				"OnUnlockCustomLocation(): Failed to remove the CustomWorkFolderLocation file at default work folder location. The custom work folder location remains persistent. Developer must fix this problem. Adapt It now continues to run with full functionality."),
-			_T(""), wxICON_ERROR);
+			_T(""), wxICON_ERROR | wxOK);
 			LogUserAction(_T("OnUnlockCustomLocation(): Failed to remove the CustomWorkFolderLocation file at default work folder location. The custom work folder location remains persistent. Developer must fix this problem. Adapt It now continues to run with full functionality."));
 		}
 	}
@@ -40608,7 +40792,7 @@ void CAdapt_ItApp::CheckLockFileOwnership()
 			GetView()->canvas->Refresh(); // force color change to pink
 			wxMessageBox(
 	_("Someone just opened the project folder on the remote computer, so you have READ-ONLY access."),_("Another process owns write permission"),
-			wxICON_INFORMATION);
+			wxICON_INFORMATION | wxOK);
 		}
 	}
 }
@@ -41071,7 +41255,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 				;
 				wxASSERT(FALSE);
 			}
-			delete tempFont;
+			if (tempFont != NULL) // whm 11Jun12 added NULL test
+				delete tempFont;
 			tempFont = (wxFont*)NULL;
 		}
 		else
@@ -41091,7 +41276,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 					;
 					wxASSERT(FALSE);
 				}
-				delete tempFont;
+				if (tempFont != NULL) // whm 11Jun12 added NULL test
+					delete tempFont;
 				tempFont = (wxFont*)NULL;
 			}
 			else
@@ -41106,7 +41292,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 				}
 				m_pSourceFont->SetPointSize(12); // use a reasonable size for
 												 // the system font
-				delete tempFont;
+				if (tempFont != NULL) // whm 11Jun12 added NULL test
+					delete tempFont;
 				tempFont = (wxFont*)NULL;
 
 				errMsg += _T("\n   ");
@@ -41153,7 +41340,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 				;
 				wxASSERT(FALSE);
 			}
-			delete tempFont;
+			if (tempFont != NULL) // whm 11Jun12 added NULL test
+				delete tempFont;
 			tempFont = (wxFont*)NULL;
 		}
 		else
@@ -41173,7 +41361,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 					;
 					wxASSERT(FALSE);
 				}
-				delete tempFont;
+				if (tempFont != NULL) // whm 11Jun12 added NULL test
+					delete tempFont;
 				tempFont = (wxFont*)NULL;
 			}
 			else
@@ -41188,7 +41377,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 				}
 				m_pTargetFont->SetPointSize(12); // use a reasonable size
 												 // for the system font
-				delete tempFont;
+				if (tempFont != NULL) // whm 11Jun12 added NULL test
+					delete tempFont;
 				tempFont = (wxFont*)NULL;
 
 				errMsg += _T("\n   ");
@@ -41235,7 +41425,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 				;
 				wxASSERT(FALSE);
 			}
-			delete tempFont;
+			if (tempFont != NULL) // whm 11Jun12 added NULL test
+				delete tempFont;
 			tempFont = (wxFont*)NULL;
 		}
 		else
@@ -41255,7 +41446,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 					;
 					wxASSERT(FALSE);
 				}
-				delete tempFont;
+				if (tempFont != NULL) // whm 11Jun12 added NULL test
+					delete tempFont;
 				tempFont = (wxFont*)NULL;
 			}
 			else
@@ -41270,7 +41462,8 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 				}
 				m_pNavTextFont->SetPointSize(12); // use a reasonable size
 												  // for the system font
-				delete tempFont;
+				if (tempFont != NULL) // whm 11Jun12 added NULL test
+					delete tempFont;
 				tempFont = (wxFont*)NULL;
 
 				errMsg += _T("\n   ");
@@ -41303,7 +41496,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 "\nA system font (%s) will be used instead. You may need to install the appropriate font, then select it from the Fonts tab of the Preferences... dialog (on the Edit menu).");
 		errMsg2 = errMsg2.Format(errMsg2,sysFontName.c_str());
 		wxMessageBox(errMsg2,_("Font name in configuration file not found"),
-		wxICON_WARNING);
+		wxICON_EXCLAMATION | wxOK);
 	}
 
 	// Note: In GetFontConfiguration() in the "else if (name == szFontEncoding)"
@@ -41869,7 +42062,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 			{
 				// there was a problem opening the file
 				wxString str = _T("MakeForeignBasicConfigFileSafe() failed, path to the folder was  %s. Aborting...");
-				wxMessageBox(str, _T("Could not open basic config file"), wxICON_ERROR);
+				wxMessageBox(str, _T("Could not open basic config file"), wxICON_ERROR | wxOK);
 				LogUserAction(_T("MakeForeignBasicConfigFileSafe(): Could not open basic config file. Aborting..."));
 				// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 				wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
@@ -42660,7 +42853,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	if( !f.Open(exportPath, wxFile::write))
 	{
 		wxMessageBox(_("Unable to open knowledge base export file."),
-		_T(""), wxICON_WARNING);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("Unable to open knowledge base export file."));
 		return; // return since it is not a fatal error
 	}
@@ -42708,7 +42901,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Export operation successful"));
 }
 
@@ -42792,7 +42985,8 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 		for (aIndex = 0; aIndex < aTot; aIndex++)
 		{
 			Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
-			delete pArrayItem;
+			if (pArrayItem != NULL) // whm 11Jun12 added NULL test
+				delete pArrayItem;
 		}
 		m_pArrayOfCollabProjects->Clear();
 	}
@@ -43055,7 +43249,8 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 				}
 				else
 				{
-					delete pPTInfo; // it's not a valid PT project we can use
+					if (pPTInfo != NULL) // whm 11Jun12 added NULL test
+						delete pPTInfo; // it's not a valid PT project we can use
 				}
 				f.Close();
 			}
@@ -43096,7 +43291,8 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 		for (aIndex = 0; aIndex < aTot; aIndex++)
 		{
 			Collab_Project_Info_Struct* pArrayItem = (Collab_Project_Info_Struct*)(*m_pArrayOfCollabProjects)[aIndex];
-			delete pArrayItem;
+			if (pArrayItem != NULL) // whm 11Jun12 added NULL test
+				delete pArrayItem;
 		}
 		m_pArrayOfCollabProjects->Clear();
 	}
@@ -43421,7 +43617,8 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 					}
 					else
 					{
-						delete pBEInfo; // it's not a valid PT project we can use
+						if (pBEInfo != NULL) // whm 11Jun12 added NULL test
+							delete pBEInfo; // it's not a valid PT project we can use
 					}
 					f.Close();
 				}
@@ -43708,7 +43905,8 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 			} // end of while()
 			f.Close();
 		} // end of if (f.Open...
-		delete pBuff;
+		if (pBuff != NULL) // whm 11Jun12 added NULL test
+			delete pBuff;
 	} // end of if (wxFileExists(pathAndName))
 	if (bFoundCode && bookCd.GetLength() == 3)
 	{

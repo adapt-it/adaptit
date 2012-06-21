@@ -162,7 +162,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 		// this and not made the call)
 		wxString errStr = _T(
 		"There is already a Note at the passed in index, within CreateNoteAtLocation(), so the attempt was abandoned.");
-		wxMessageBox(errStr, _T(""), wxICON_WARNING);
+		wxMessageBox(errStr, _T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	else
@@ -540,7 +540,7 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		"Error in helper function FindNote(); the POSITION value returned from ");
 		errStr += _T(
 		"FindIndex() was null. The current operation will be abandoned.");
-		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	if (bFindForwards)
@@ -822,7 +822,7 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 			_T("FindIndex() failed in GetMovedNotesSpan(), preceding context, pos value is NULL.");
 			errStr += 
 			_T(" Abandoning the edit process. Will attempt to restore original document state.");
-			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION);
+			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 		while (pos != NULL)
@@ -871,7 +871,7 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 			_T("FindIndex() failed in GetMovedNotesSpan(), following context, pos value is NULL.");
 			errStr += 
 			_T(" Abandoning the edit process. Will attempt to restore original document state.");
-			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION);
+			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 		while (pos != NULL)
@@ -1706,7 +1706,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 						aStr = aStr.Format(
 _("Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %d"),
 						nRemainder);
-						wxMessageBox(aStr, _T(""), wxICON_INFORMATION);
+						wxMessageBox(aStr, _T(""), wxICON_INFORMATION | wxOK);
 						break; // break out of the loop and let the rest of the 
 						// function do the replacements of those that were successfully
 						// relocated and stored in arrSqueezedLocations
@@ -1848,13 +1848,15 @@ _("Some temporarily removed Notes could not be restored to the document due to l
 									_T("Notes in the free translations list (just some from tail), failed. ");
 									errStr += 
 									_T("Edit process abandoned. Document restored to pre-edit state.");
-									wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+									wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 									pRemList->Clear();
-									delete pRemList;
+									if (pRemList != NULL) // whm 11Jun12 added NULL test
+										delete pRemList;
 									return FALSE;
 								}
 								
-								delete pRemList; // the free translations list now 
+								if (pRemList != NULL) // whm 11Jun12 added NULL test
+									delete pRemList; // the free translations list now 
 								// manages these strings, so don't do any Remove()
 								// before doing this deletion
 								// warn the user about what has happened ?? Nah
@@ -1921,13 +1923,15 @@ _("Some temporarily removed Notes could not be restored to the document due to l
 						_T("Notes in the free translations list (all the removed ones), failed. ");
 						errStr += 
 						_T("Edit process abandoned. Document restored to pre-edit state.");
-						wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+						wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 						pRemList->Clear();
-						delete pRemList;
+						if (pRemList != NULL) // whm 11Jun12 added NULL test
+							delete pRemList;
 						return FALSE;
 					}
 					
-					delete pRemList; // the free translations list now manages 
+					if (pRemList != NULL) // whm 11Jun12 added NULL test
+						delete pRemList; // the free translations list now manages 
 					// these strings, so don't do any Remove() before doing this
 					// deletion
 					// warn the user about what has happened ?? No
@@ -1974,7 +1978,7 @@ en:	;
 			errStr += _T(
 			"a Note at a location where there was supposed to be no Note already stored. ");
 			errStr += _T("Edit process abandoned. Document restored to pre-edit state.");
-			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 		else
@@ -1994,7 +1998,7 @@ en:	;
 				errStr += _T("previous checks said there wasn't!! ");
 				errStr += _T(
 				"Edit process abandoned. Document restored to pre-edit state.");
-				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 				return FALSE;
 			}
 		}
@@ -2562,7 +2566,7 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 			// unlikely, so an English message will do
 			wxMessageBox(_T(
 			"A zero pile pointer was returned, the note dialog cannot be put up."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		wxASSERT(pPile != NULL);
@@ -2580,7 +2584,7 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 			// unlikely, so an English message will do
 			wxMessageBox(_T(
 			"A zero pile pointer was returned, the note dialog cannot be put up."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 	}
@@ -2892,7 +2896,7 @@ void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
 	int answer = wxMessageBox(_(
 "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
-	_T(""),wxYES_NO | wxICON_EXCLAMATION);
+	_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (answer == wxYES)
 	{
 		m_pView->RemoveSelection();
@@ -3018,7 +3022,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 			// unlikely, so an English message will do
 		a:	wxMessageBox(_T(
 			"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("A zero pile pointer was returned, the sourcephrase with the note is indeterminate."));
 			return;
 		}
@@ -3310,7 +3314,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 			// unlikely, so an English message will do
 		a:	wxMessageBox(_T(
 			"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("A zero pile pointer was returned, the sourcephrase with the note is indeterminate."));
 			return;
 		}

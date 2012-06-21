@@ -50,6 +50,13 @@
 #include <wx/mstream.h> // for wxMemoryInputStream
 #include <wx/tooltip.h> // for wxToolTip
 
+// whm 9Jun12 added the following for wxWidgets 2.9.3
+#if wxCHECK_VERSION(2,9,1)
+#include <wx/base64.h> // for wxBase64 manipulations
+#else
+#include "base64.h"
+#endif
+
 // libcurl includes:
 #include <curl/curl.h>
 //#include <curl/types.h>
@@ -60,7 +67,10 @@
 #include "helpers.h"
 #include "XML.h"
 #include "EmailReportDlg.h"
-#include "base64.h" // for wxBase64 encode of zipped/packed attachments
+
+// whm 9Jun12 remove the use of base64.h and base64.cpp since wxWidgets 2.9.3 now has built-in
+// functions to encode and decode base64.
+//#include "base64.h" // for wxBase64 encode of zipped/packed attachments
 	
 static int totalBytesSent = 0;
 
@@ -84,7 +94,7 @@ CLogViewer::CLogViewer(wxWindow* parent)
 	{
 		wxString msg;
 		msg = msg.Format(_("Cannot display user log:\n%s"),pApp->m_usageLogFilePathAndName.c_str());
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 	}
 }
 
@@ -467,7 +477,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			}
 			
 			userLogInASCII = userLogContents.To8BitData();
-			// TODO: modify below to convert userLogContents to zip archive format and base64 encoding
+			// Convert userLogContents to zip archive format and base64 encoding
 			wxString tempZipFile;
 			wxString nameInZip;
 			wxString exportPath = pApp->m_usageLogFilePathAndName;
@@ -499,7 +509,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			{
 				wxString msg;
 				msg = msg.Format(_("Could not write to the packed/zipped file: %s"),exportPath.c_str());
-				wxMessageBox(msg,_T(""),wxICON_ERROR);
+				wxMessageBox(msg,_T(""),wxICON_ERROR | wxOK);
 			} 
 			if (wxFileExists(exportPath))
 			{
@@ -513,7 +523,19 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 				wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
 				// Since pByteBuf has embedded null characters, it needs to be processed 
 				// to a base64 form before using it with formpost.
-				userLogInBase64 = wxBase64::Encode(pByteBuf,fileLen);
+				
+				// whm 9Jun12 modified: As of wxWidgets 2.9.1 it now has built-in wxBase64 
+				// encode and decode functions, so we can conditionally compile the app to 
+				// use the built-in functions when building against wxWidgets 2.9.1 or newer.
+#if wxCHECK_VERSION(2,9,1)
+				wxMemoryBuffer memBuff;
+				memBuff.AppendData(pByteBuf,fileLen);
+				userLogInBase64 = wxBase64Encode(memBuff);
+#else
+				std::string encoded;
+				encoded = base64_encode(reinterpret_cast<const unsigned char*>(pByteBuf),fileLen);
+				userLogInBase64 = wxString(encoded.c_str(), wxConvUTF8);
+#endif
 				free((void*)pByteBuf);
 			}
 
@@ -740,7 +762,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			// This shouldn't happen. English error message "curl could not be initialized"
-			wxMessageBox(_T("The curl utility could not be initialized"),_T(""),wxICON_INFORMATION);
+			wxMessageBox(_T("The curl utility could not be initialized"),_T(""),wxICON_INFORMATION | wxOK);
 			pApp->LogUserAction(_T("The curl utility could not be initialized"));
 		}
 		curl_global_cleanup(); // whm added 8May12 to see if it avoids memory leaks. No, but it should be called here.
@@ -759,7 +781,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		msg2 = msg2.Format(_("Error %d: %s"),curl_result,errorStr.c_str());
 		msg2 = _T("\n\n") + msg2;
 		msg1 = msg1 + msg2;
-		wxMessageBox(msg1,_T(""),wxICON_INFORMATION);
+		wxMessageBox(msg1,_T(""),wxICON_INFORMATION | wxOK);
 		bool bPromptForMissingData = FALSE;
 		bool bSavedOK;
 		wxString nameSuffix = _T("");
@@ -770,7 +792,7 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			wxString path,msg;
 			path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
 			msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 	}
@@ -786,14 +808,14 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			wxString path,msg;
 			path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
 			msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		else
 		{
 			wxString msg1;
 			msg1 = msg1.Format(_("Your email was sent to the Adapt It developers.\nThank you for your report.\nThe email contained %d bytes of data.\nAdapt It will put a copy of the sent report in your work folder at:\n   %s"),totalBytesSent,nameUsed.c_str());
-			wxMessageBox(msg1,_T(""),wxICON_INFORMATION);
+			wxMessageBox(msg1,_T(""),wxICON_INFORMATION | wxOK);
 		}
 	}
 
@@ -885,7 +907,7 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 	if (!bReportBuiltOK)
 	{
 		msg = msg.Format(_("Could not create the email report to disk at the following work folder path:\n   %s"),reportPathAndName.c_str());
-		wxMessageBox(msg,_("Problem creating or writing the xml file"),wxICON_WARNING);
+		wxMessageBox(msg,_("Problem creating or writing the xml file"),wxICON_EXCLAMATION | wxOK);
 		pApp->LogUserAction(msg);
 	}
 	else
@@ -894,7 +916,7 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 		if (nameSuffix.IsEmpty())
 		{
 			msg = msg.Format(_("The email report was saved at the following work folder path:\n   %s"),reportPathAndName.c_str());
-			wxMessageBox(msg,_("Your report was saved for later use or reference"),wxICON_INFORMATION);
+			wxMessageBox(msg,_("Your report was saved for later use or reference"),wxICON_INFORMATION | wxOK);
 			pApp->LogUserAction(msg);
 		}
 		bSubjectHasUnsavedChanges = FALSE;
@@ -918,7 +940,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 	if (bSubjectHasUnsavedChanges || bYouEmailAddrHasUnsavedChanges 
 		|| bDescriptionBodyHasUnsavedChanges || bSendersNameHasUnsavedChanges)
 	{
-		response = wxMessageBox(_("You made changes to this report - Do you want to save those changes?"),_T(""),wxYES_NO | wxICON_INFORMATION);
+		response = wxMessageBox(_("You made changes to this report - Do you want to save those changes?"),_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (response == wxYES)
 		{
 			bool bPromptForMissingData = TRUE;
@@ -931,7 +953,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 				wxString path,msg;
 				path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
 				msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
-				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 				pApp->LogUserAction(msg);
 				// return; 
 				// allow the Load operation to continue 
@@ -1007,7 +1029,7 @@ void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 					pdMsg3 = _("If you want to attach a packed document, you must attach the packed doument\nagain before sending this email. Do you want to attach one now?");
 					pdMsg1 += pdMsg3;
 					int response;
-					response = wxMessageBox(pdMsg1,_("Could not find the packed document in your work folder"),wxYES_NO | wxICON_WARNING);
+					response = wxMessageBox(pdMsg1,_("Could not find the packed document in your work folder"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					pApp->LogUserAction(pdMsg1);
 					if (response == wxYES)
 					{
@@ -1039,7 +1061,7 @@ void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 	if (bSubjectHasUnsavedChanges || bYouEmailAddrHasUnsavedChanges 
 		|| bDescriptionBodyHasUnsavedChanges || bSendersNameHasUnsavedChanges)
 	{
-		response = wxMessageBox(_("You made changes to this report - Do you want to save those changes?"),_T("This dialog is about to close..."),wxYES_NO | wxICON_INFORMATION);
+		response = wxMessageBox(_("You made changes to this report - Do you want to save those changes?"),_T("This dialog is about to close..."),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (response == wxYES)
 		{
 			bool bPromptForMissingData = FALSE;
@@ -1052,7 +1074,7 @@ void CEmailReportDlg::OnBtnClose(wxCommandEvent& WXUNUSED(event))
 				wxString path,msg;
 				path = pApp->m_logsEmailReportsFolderPath + pApp->PathSeparator + pApp->m_logsEmailReportsFolderName;
 				msg = msg.Format(_("Unable to save the report to the following path:\n\n%s"),path.c_str());
-				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 				pApp->LogUserAction(msg);
 				// return;
 				// allow the dialog to close via the EndModal() call below
@@ -1071,7 +1093,7 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	if (pApp->m_pSourcePhrases->GetCount() == 0)
 	{
-		wxMessageBox(_("A document must be open before Adapt It can pack it.\nClose the report dialog and open a document, then try again."),_("No document open"),wxICON_INFORMATION);
+		wxMessageBox(_("A document must be open before Adapt It can pack it.\nClose the report dialog and open a document, then try again."),_("No document open"),wxICON_INFORMATION | wxOK);
 		pApp->LogUserAction(_T("A document must be open before Adapt It can pack it.\nClose the report dialog and open a document, then try again."));
 		return;
 	}
@@ -1114,7 +1136,19 @@ void CEmailReportDlg::OnBtnAttachPackedDoc(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pByteBuf[fileLen] == '\0'); // should end in NULL
 		// Since pByteBuf has embedded null characters, it needs to be processed 
 		// to a base64 form before using it with formpost.
-		packedDocInBase64 = wxBase64::Encode(pByteBuf,fileLen);
+		// whm 9Jun12 modified to use the built-in wxBase64Encode() function.
+		// TODO: Verify that the built-in wxBase64Encode() function works in identical
+		// fashion to the old base64 class method. Then, remove base64.h and base64.cpp 
+		// from the adaptit repository.
+#if wxCHECK_VERSION(2,9,1)
+		wxMemoryBuffer memBuff;
+		memBuff.AppendData(pByteBuf,fileLen);
+		packedDocInBase64 = wxBase64Encode(memBuff);
+#else
+		std::string encoded;
+		encoded = base64_encode(reinterpret_cast<const unsigned char*>(pByteBuf),fileLen);
+		packedDocInBase64 = wxString(encoded.c_str(), wxConvUTF8);
+#endif
 		free((void*)pByteBuf);
 	}
 	bPackedDocToBeAttached = TRUE;
@@ -1318,13 +1352,13 @@ bool CEmailReportDlg::bMinimumFieldsHaveData()
 {
 	if (pTextYourEmailAddr->GetValue().IsEmpty())
 	{
-		wxMessageBox(_("Please enter your email address"),_T("Information missing or incomplete"),wxICON_WARNING);
+		wxMessageBox(_("Please enter your email address"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextYourEmailAddr->SetFocus();
 		return FALSE; // keep dialog open
 	}
 	if (pTextEmailSubject->GetValue().IsEmpty())
 	{
-		wxMessageBox(_("Please enter a brief summary/subject for your email"),_T("Information missing or incomplete"),wxICON_WARNING);
+		wxMessageBox(_("Please enter a brief summary/subject for your email"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextEmailSubject->SetFocus();
 		return FALSE; // keep dialog open
 	}
@@ -1333,13 +1367,13 @@ bool CEmailReportDlg::bMinimumFieldsHaveData()
 	// the edit box contents with the saveDescriptionBodyText in this case.
 	if (pTextDescriptionBody->GetValue() == templateTextForDescription)
 	{
-		wxMessageBox(_("Please enter some description for the body of your email"),_T("Information missing or incomplete"),wxICON_WARNING);
+		wxMessageBox(_("Please enter some description for the body of your email"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextDescriptionBody->SetFocus();
 		return FALSE; // keep dialog open
 	}
 	if (pTextSendersName->GetValue().IsEmpty())
 	{
-		wxMessageBox(_("Please enter your name so we can respond to you by name"),_T("Information missing or incomplete"),wxICON_WARNING);
+		wxMessageBox(_("Please enter your name so we can respond to you by name"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextSendersName->SetFocus();
 		return FALSE; // keep dialog open
 	}

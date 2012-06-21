@@ -482,7 +482,7 @@ CAdapt_ItApp* CLayout::GetApp()
 	if (pApp == NULL)
 	{
 		wxMessageBox(_T("Error: failed to get m_pApp pointer in CLayout"),_T(""),
-		wxICON_ERROR);
+		wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 	}
 	return pApp;
@@ -494,7 +494,7 @@ CAdapt_ItView* CLayout::GetView()
 	if (pView == NULL)
 	{
 		wxMessageBox(_T("Error: failed to get m_pView pointer in CLayout"),_T(""),
-		wxICON_ERROR);
+		wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 	}
 	return pView;
@@ -507,7 +507,7 @@ CAdapt_ItCanvas* CLayout::GetCanvas()
 	if (pCanvas == NULL)
 	{
 		wxMessageBox(_T("Error: failed to get m_pCanvas pointer in CLayout"),_T(""),
-		wxICON_ERROR);
+		wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 	}
 	return pCanvas;
@@ -519,7 +519,7 @@ CAdapt_ItDoc* CLayout::GetDoc()
 	if (pDoc == NULL)
 	{
 		wxMessageBox(_T("Error: failed to get m_pDoc pointer in CLayout"),_T(""),
-		wxICON_ERROR);
+		wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 	}
 	return pDoc;
@@ -531,7 +531,7 @@ CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
 	if (pFrame == NULL)
 	{
 		wxMessageBox(_T("Error: failed to get m_pMainFrame pointer in CLayout"),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		wxASSERT(FALSE);
 	}
 	return pFrame;
@@ -1364,7 +1364,8 @@ void CLayout::DestroyStrip(int index)
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
 	pStrip->m_arrPiles.Clear();
 	pStrip->m_arrPileOffsets.Clear();
- 	delete pStrip;
+	if (pStrip != NULL) // whm 11Jun12 added NULL test
+	 	delete pStrip;
 	// don't try to delete CCell array, because the cell objects are managed
     // by the persistent pile pointers in the CLayout array m_pPiles, and the
     // strip does not own these
@@ -1397,7 +1398,8 @@ void CLayout::DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromLis
 	pPile->SetStrip(NULL); // sets m_pOwningStrip to NULL
 	for (index = 0; index < MAX_CELLS; index++)
 	{
-		delete pPile->m_pCell[index];
+		if (pPile->m_pCell[index] != NULL) // whm 11Jun12 added NULL test
+			delete pPile->m_pCell[index];
 	}
 	if (bRemoveFromListToo)
 	{
@@ -1405,7 +1407,8 @@ void CLayout::DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromLis
 		wxASSERT(pos != NULL);
 		pPileList->Erase(pos);
 	}
-	delete pPile;
+	if (pPile != NULL) // whm 11Jun12 added NULL test
+		delete pPile;
 	pPile = NULL;
 }
 
@@ -3086,7 +3089,8 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 					}
 				#endif
 #endif
-				delete pStripForRemoval;
+				if (pStripForRemoval != NULL) // whm 11Jun12 added NULL test
+					delete pStripForRemoval;
 				m_stripArray.RemoveAt(index);
 				nNumberRemoved++;
 				//DebugIndexMismatch(111, 105);
@@ -3599,7 +3603,8 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 				pUpStrip->m_bValid = TRUE; // make sure it's valid, the last in doc always is
 			}
 			// now do the strip deletion (not always is it the last in the doc though)
-			delete pFollStrip;
+			if (pFollStrip != NULL) // whm 11Jun12 added NULL test
+				delete pFollStrip;
 			m_stripArray.RemoveAt(nFollStripIndex);
 			bDeletedFollowingStrip = TRUE;
 			UpdateStripIndices(nUpStripIndex); // keep strip numbering consecutive

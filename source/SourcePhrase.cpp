@@ -50,8 +50,11 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
-extern const wxChar* filterMkr;
-extern const wxChar* filterMkrEnd;
+// whm modified type declaration of filterMkr and filterMkrEnd below to agree with the
+// declaration in Adapt_ItDoc.cpp
+extern wxString filterMkr; //extern const wxChar* filterMkr; // defined in the Doc
+extern wxString filterMkrEnd; //extern const wxChar* filterMkrEnd; // defined in the Doc
+
 const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
 extern wxChar gSFescapechar;

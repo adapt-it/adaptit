@@ -457,7 +457,7 @@ void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event))
 			listBoxStr = GetListItemWithoutUsedString(listBoxStr);
 			wxString msg;
 			msg = msg.Format(_("The %s changes table was already assigned in Table tab %d"),listBoxStr.c_str(),nTableNum+1);
-			wxMessageBox(msg,_T("Consistent Changes"),wxICON_WARNING);
+			wxMessageBox(msg,_T("Consistent Changes"),wxICON_EXCLAMATION | wxOK);
 			m_pListBox->SetSelection(m_nPrevSelection);
 		}
 	}
@@ -746,7 +746,7 @@ void CCCTabbedDialog::GetPossibleCCTables(wxArrayString* pList)
 	{
 		// we might be working on a different machine, so the path on the current machine cannot
 		// be assumed to be valid; so allow the user to try again
-		wxMessageBox(_("Sorry, the default consistent changes table path is not valid. Adapt It has substituted the path to the project folder. Use the Browse button to locate the changes table files(s)."),_T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, the default consistent changes table path is not valid. Adapt It has substituted the path to the project folder. Use the Browse button to locate the changes table files(s)."),_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 	else
@@ -774,7 +774,7 @@ void CCCTabbedDialog::OnButtonEditCct(wxCommandEvent& WXUNUSED(event))
 
 	if (m_tblName[m_nCurPage].IsEmpty())
 	{
-		wxMessageBox(_("Sorry, you have not yet selected a consistent changes table from the list box. Do so and then try the editing button again."),_T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, you have not yet selected a consistent changes table from the list box. Do so and then try the editing button again."),_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -846,7 +846,7 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 		{
 			if (!f.Open(path,wxFile::read_write))
 			{
-				wxMessageBox(_("Error opening the file. Cannot edit the file. Aborting."), _T(""), wxICON_EXCLAMATION);
+				wxMessageBox(_("Error opening the file. Cannot edit the file. Aborting."), _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 			}
 		}
@@ -855,7 +855,7 @@ void CCCTabbedDialog::OnButtonCreateCct(wxCommandEvent& WXUNUSED(event))
 			// file doesn't yet exist, so create it
 			if (!f.Open(path,wxFile::write))
 			{
-				wxMessageBox(_("Error creating the file. Aborting."), _T(""), wxICON_EXCLAMATION);
+				wxMessageBox(_("Error creating the file. Aborting."), _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 			}
 		}
@@ -943,7 +943,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 	{
 		if (!f.Open(path,wxFile::read_write))
 		{
-			wxMessageBox(_("Error opening the file. Cannot edit the file. Aborting."), _T(""), wxICON_EXCLAMATION);
+			wxMessageBox(_("Error opening the file. Cannot edit the file. Aborting."), _T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 	}
@@ -952,7 +952,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 		// file doesn't yet exist, so create it
 		if (!f.Open(path,wxFile::write))
 		{
-			wxMessageBox(_("Error creating the file. Aborting."), _T(""), wxICON_EXCLAMATION);
+			wxMessageBox(_("Error creating the file. Aborting."), _T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 	}
@@ -1063,7 +1063,7 @@ void CCCTabbedDialog::DoEditor(CCCTableEditDlg& editor,wxString& path)
 				wxString message;
 				message = message.Format(_("Error opening cc table file for writing with path %s."),path.c_str());
 				message += _T("  The table file was not updated.");
-				wxMessageBox(message, _T(""), wxICON_EXCLAMATION);
+				wxMessageBox(message, _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 		}
 

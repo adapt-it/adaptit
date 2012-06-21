@@ -129,7 +129,7 @@ void CClassName::OnOK(wxCommandEvent& event)
 	//nSel = pListBox->GetSelection();
 	//if (nSel == LB_ERR) // LB_ERR is #define -1
 	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 	//}
 	//m_projectName = pListBox->GetString(nSel);
 	

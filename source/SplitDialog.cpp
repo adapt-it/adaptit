@@ -160,7 +160,7 @@ bool CSplitDialog::GoToNextChapter_Interactive()
 	else 
 	{
 		// IDS_NO_MORE_CHAPTERS
-		wxMessageBox(_("There are no more chapters after the current phrasebox location."),_T(""), wxICON_INFORMATION); //TellUser();
+		wxMessageBox(_("There are no more chapters after the current phrasebox location."),_T(""), wxICON_INFORMATION | wxOK); //TellUser();
 		return false;
 	}
 }
@@ -256,7 +256,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	if (FirstFileName.IsEmpty()) 
 	{
 		// IDS_SUPPLY_NAME_FOR_SPLIT
-		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_INFORMATION); //TellUser();
+		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
 		return;
 	}
 	FirstFileName = CAdapt_ItApp::ApplyDefaultDocFileExtension(FirstFileName);
@@ -292,7 +292,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	if (FirstFileNameIsSecondFileName)
 	{
 		// IDS_MUST_BE_DIFFERENT_NAMES
-		wxMessageBox(_("Your name choices would result in the two document parts having the same name, which would cause the data in the first part to be lost.\nPlease make the name in the second box different than the name of the currently open document."),_T(""),wxICON_WARNING); //TellUser();
+		wxMessageBox(_("Your name choices would result in the two document parts having the same name, which would cause the data in the first part to be lost.\nPlease make the name in the second box different than the name of the currently open document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser();
 		return;
 	}
 
@@ -365,7 +365,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 		pView->canvas->Thaw();
 		pSplittingWait->Show(FALSE);
 		// IDS_BOX_NOT_MOVED_FORWARD
-		wxMessageBox(_("The split was aborted because the phrase box was still at the start of the document."),_T(""), wxICON_WARNING);
+		wxMessageBox(_("The split was aborted because the phrase box was still at the start of the document."),_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -397,7 +397,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 
 	// Now free memory by deleting SourcePhrases1 and it's contents.
 	gpApp->DeleteSourcePhraseListContents(SourcePhrases1);
-	delete SourcePhrases1;
+	if (SourcePhrases1 != NULL) // whm 11Jun12 added NULL test
+		delete SourcePhrases1;
 
 	// Finish the effective-rename of what was the current document if applicable.
 	// (The new filename has already been allocated and saved to at this point, so all we need to do,
@@ -430,7 +431,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	pView->canvas->Thaw();
 	pSplittingWait->Show(FALSE);
 	//IDS_SPLIT_SUCCEEDED
-	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION);
+	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Splitting the document succeeded - split at phrasebox."));
 }
 
@@ -595,7 +596,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	if (FileNameBase.IsEmpty()) 
 	{
 		// IDS_SUPPLY_FILENAME_BASE
-		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_INFORMATION); //TellUser();
+		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
 		return;
 	}
 
@@ -606,7 +607,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	{
 		pSplittingWait->Show(FALSE);
 		// IDS_ONLY_ONE_CHAPTER_IN_DOC
-		wxMessageBox(_("There is only one chapter in this document."),_T(""), wxICON_WARNING); //TellUser();
+		wxMessageBox(_("There is only one chapter in this document."),_T(""), wxICON_EXCLAMATION | wxOK); //TellUser();
 		return;
 	}
 
@@ -618,7 +619,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		if (FileExists(c->FilePath)) 
 		{
 			// IDS_FILENAME_CONFLICT
-			wxMessageBox(_("There is a name conflict with an existing file.  Please specify a different file name base."),_T(""),wxICON_WARNING);//TellUser();
+			wxMessageBox(_("There is a name conflict with an existing file.  Please specify a different file name base."),_T(""),wxICON_EXCLAMATION | wxOK);//TellUser();
 			pSplittingWait->Show(FALSE);
 			return;
 		}
@@ -647,7 +648,8 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	gpApp->CloseDocDiscardingAnyUnsavedChanges();
 
 	// Free memory.
-	delete OriginalSourcePhraseList;
+	if (OriginalSourcePhraseList != NULL) // whm 11Jun12 added NULL test
+		delete OriginalSourcePhraseList;
 	p = Chapters->GetFirst();
 	while (p) 
 	{
@@ -656,17 +658,20 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 		if (c->SourcePhrases != gpApp->m_pSourcePhrases) 
 		{
 			gpApp->DeleteSourcePhraseListContents(c->SourcePhrases);
-			delete c->SourcePhrases;
+			if (c->SourcePhrases != NULL) // whm 11Jun12 added NULL test
+				delete c->SourcePhrases;
 		}
-		delete c;
+		if (c != NULL) // whm 11Jun12 added NULL test
+			delete c;
 	}
-	delete Chapters;
+	if (Chapters != NULL) // whm 11Jun12 added NULL test
+		delete Chapters;
 
 	// Close the dialog box.
 	wxCommandEvent event;
 	OnOK(event);
 	// IDS_SPLIT_SUCCEEDED
-	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION); //TellUser();
+	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION | wxOK); //TellUser();
 	gpApp->LogUserAction(_T("Splitting the document succeeded - split into chapters interactive."));
 
 	// having the end result be an empty window could be confusing, so have the Start Working...

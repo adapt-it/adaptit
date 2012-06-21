@@ -696,10 +696,12 @@ bool AIPrintout::OnPrintPage(int page)
                 for (index2 = 0; index2 < count2; index2++)
                 {
                     FreeTrElement* pElement = (FreeTrElement*)pAPV->Item(index2);
-                    delete pElement;
+ 					if (pElement != NULL) // whm 11Jun12 added NULL test
+	                   delete pElement;
                 }
                 pAPV->Clear();
-                delete pAPV;
+				if (pAPV != NULL) // whm 11Jun12 added NULL test
+	                delete pAPV;
             }
             // arrFTElementsArrays is local to the OnPrintPage() function, and will be destroyed
             // by it's destructor automatically
@@ -711,7 +713,8 @@ bool AIPrintout::OnPrintPage(int page)
             {
                 wxArrayString* pAS = (wxArrayString*)arrFTSubstringsArrays.Item(index);
                 pAS->Clear();
-                delete pAS;
+ 				if (pAS != NULL) // whm 11Jun12 added NULL test
+	               delete pAS;
             }
             // arrFTSubstringsArrays is local to the OnPrintPage() function, and will be destroyed
             // by it's destructor automatically

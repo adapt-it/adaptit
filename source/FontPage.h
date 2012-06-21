@@ -29,6 +29,8 @@
     #pragma interface "FontPage.h"
 #endif
 
+class wxFontData;
+
 /// The CFontPageCommon class contains data and methods which are 
 /// common to the CFontPageWiz and CFontPagePrefs classes.
 /// \derivation The CFontPageCommon class is derived from wxPanel

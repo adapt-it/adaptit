@@ -129,9 +129,12 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 {
 	pIconImages->RemoveAll();
-	delete pIconImages;
-	delete pTheColumnForLeftList;
-	delete pTheColumnForRightList;
+	if (pIconImages != NULL) // whm 11Jun12 added NULL test
+		delete pIconImages;
+	if (pTheColumnForLeftList != NULL) // whm 11Jun12 added NULL test
+		delete pTheColumnForLeftList;
+	if (pTheColumnForRightList != NULL) // whm 11Jun12 added NULL test
+		delete pTheColumnForRightList;
 
 	leftFoldersArray.Clear();
 	leftFilesArray.Clear();
@@ -695,7 +698,8 @@ void AdminMoveOrCopy::OnBnClickedLeftParentFolder(wxCommandEvent& WXUNUSED(event
 			SetupLeftList(m_strLeftFolderPath);
 		}
 	}
-	delete pFN;
+	if (pFN != NULL) // whm 11Jun12 added NULL test
+		delete pFN;
 	SetNeitherSideHasFocus();
 	EnableButtons();
 }
@@ -738,7 +742,8 @@ void AdminMoveOrCopy::OnBnClickedRightParentFolder(wxCommandEvent& WXUNUSED(even
 			SetupRightList(m_strRightFolderPath);
 		}
 	}
-	delete pFN;
+	if (pFN != NULL) // whm 11Jun12 added NULL test
+		delete pFN;
 	SetNeitherSideHasFocus();
 	EnableButtons();
 }
@@ -809,7 +814,12 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 	// value. However, mostly no such end string is present, in which case we can just
 	// create a name with "(2)" at the end immediately.
 	wxString shortname;
-	wxChar aChar = reversed.GetChar(0);
+	// whm 11Jun12 added test to ensure that reversed is not empty when GetChar(0) is called
+	wxChar aChar;
+	if (!reversed.IsEmpty())
+		aChar = reversed.GetChar(0);
+	else
+		aChar = _T('\0');
 	wxString ending = _T("");
 	if (aChar == _T(')'))
 	{
@@ -1280,7 +1290,7 @@ bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& leftPath, wxString& right
 		wxString msg;
 		::wxBell();
 		msg = msg.Format(_("The source and destination folders must not be the same folder."));
-		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_WARNING);
+		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_EXCLAMATION | wxOK);
 		return TRUE;
 	}
 	return FALSE;
@@ -1470,7 +1480,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 			wxString msg;
 			msg = msg.Format(_("The right folder's file with the name %s would be overwritten if this move or copy were to go ahead. To avoid this unexpected possibility for data loss, the move or copy will now be cancelled. Do something appropriate with the right folder's file, and then try again."),
 				filename.c_str());
-			wxMessageBox(msg,_("Unexpected Filename Conflict During Copy Or Move"),wxICON_WARNING);
+			wxMessageBox(msg,_("Unexpected Filename Conflict During Copy Or Move"),wxICON_EXCLAMATION | wxOK);
 			return FALSE;
 		}
 		bool bSuccess2 = ::wxCopyFile(theLeftPath, theRightPath); //bool overwrite = true
@@ -1480,7 +1490,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& leftPath, wxString& rightPath, wx
 			msg = msg.Format(
 _("Moving or copying the file with path %s failed unexpectedly. Possibly you forgot to use the button for locating the folder to show on the right. Do so then try again."),
 theLeftPath.c_str());
-			wxMessageBox(msg,_("Moving or copying failed"),wxICON_WARNING);
+			wxMessageBox(msg,_("Moving or copying failed"),wxICON_EXCLAMATION | wxOK);
 			if (bSuccess)
 				bSuccess = FALSE;
 		}
@@ -1514,7 +1524,7 @@ bool AdminMoveOrCopy::RemoveSingleFile(wxString& thePath, wxString& filename)
 		msg = msg.Format(
 _("Removing the file with path %s failed. Removals have been halted. Possibly an application has the file still open. Close the file and then you can try the removal operation again."),
 		thisPath.c_str());
-		wxMessageBox(msg,_("Removing a file failed"),wxICON_WARNING);
+		wxMessageBox(msg,_("Removing a file failed"),wxICON_EXCLAMATION | wxOK);
 
 		// use the m_bUserCancelled mechanism to force drilling up through any recursions,
 		// but don't clobber the AdminMoveOrCopy dialog itself
@@ -1563,8 +1573,10 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 			{
 				wxASSERT(FALSE);
 				wxBell();
-				delete pSelectedFilesArray; // don't leak
-				delete pSelectedFoldersArray; // don't leak
+				if (pSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+					delete pSelectedFilesArray; // don't leak
+				if (pSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+					delete pSelectedFoldersArray; // don't leak
 				SetNeitherSideHasFocus();
 				EnableButtons();
 				return;
@@ -1579,11 +1591,13 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(
 _("You first need to select at least one item in either list before clicking the Delete button"),
-		_("No Files Or Folders Selected"),wxICON_WARNING);
+		_("No Files Or Folders Selected"),wxICON_EXCLAMATION | wxOK);
 		pSelectedFilesArray->Clear(); // this one is on heap
 		pSelectedFoldersArray->Clear(); // this one is on heap
-		delete pSelectedFilesArray; // don't leak it
-		delete pSelectedFoldersArray; // don't leak it
+		if (pSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+			delete pSelectedFilesArray; // don't leak it
+		if (pSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+			delete pSelectedFoldersArray; // don't leak it
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -1599,7 +1613,7 @@ _("You first need to select at least one item in either list before clicking the
 
 	// whm 9Feb12 added: Prompt with a warning before calling RemoveFilesAndFolders() below
 	int response;
-	response = wxMessageBox(_T("Delete the selected item(s)?"),_T(""),wxICON_QUESTION | wxYES_NO);
+	response = wxMessageBox(_T("Delete the selected item(s)?"),_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (response == wxYES)
 	{
 		RemoveFilesAndFolders(pathToPane, pSelectedFoldersArray, pSelectedFilesArray);
@@ -1610,8 +1624,10 @@ _("You first need to select at least one item in either list before clicking the
 	// clear the allocations to the heap
 	pSelectedFilesArray->Clear(); // this one is on heap
 	pSelectedFoldersArray->Clear(); // this one is on heap
-	delete pSelectedFilesArray; // don't leak it
-	delete pSelectedFoldersArray; // don't leak it
+	if (pSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+		delete pSelectedFilesArray; // don't leak it
+	if (pSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+		delete pSelectedFoldersArray; // don't leak it
 
 	pPaneSelectedFiles->Clear();
 	pPaneSelectedFolders->Clear();
@@ -1714,7 +1730,7 @@ void AdminMoveOrCopy::RemoveFilesAndFolders(wxString theFolderPath,
 			{
 				wxString msg;
 				msg = msg.Format(_("Failed to remove the directory %s. \nPossibly it contains a hidden file that should not be removed. \nIf so, the rest of the contents may still have been removed."),theFolderPath2.c_str());
-				wxMessageBox(msg,_("Could not remove directory"),wxICON_WARNING);
+				wxMessageBox(msg,_("Could not remove directory"),wxICON_EXCLAMATION | wxOK);
 				m_bUserCancelled = TRUE;
 			}
 //			else
@@ -1724,8 +1740,10 @@ void AdminMoveOrCopy::RemoveFilesAndFolders(wxString theFolderPath,
 			// clean up for this iteration
 			pSelectedFilesArray2->Clear();
 			pSelectedFoldersArray2->Clear();
-			delete pSelectedFilesArray2; // don't leak it
-			delete pSelectedFoldersArray2; // don't leak it
+			if (pSelectedFilesArray2 != NULL) // whm 11Jun12 added NULL test
+				delete pSelectedFilesArray2; // don't leak it
+			if (pSelectedFoldersArray2 != NULL) // whm 11Jun12 added NULL test
+				delete pSelectedFoldersArray2; // don't leak it
 
 			// if there was a failure...
 			if (m_bUserCancelled)
@@ -1949,7 +1967,7 @@ void AdminMoveOrCopy::PutUpInvalidsMessage(wxString& strAllInvalids)
 "One or more files selected for copying to the __SOURCE_INPUTS folder were not copied.\nThey were: %s"),
 	strAllInvalids.c_str());
 	wxMessageBox(msg, _("Detected files not suitable for creating adaptation documents"),
-	wxICON_WARNING);
+	wxICON_EXCLAMATION | wxOK);
 }
 
 // The MoveOrCopyFilesAndFolders() function is used in both the Move and the Copy button
@@ -1984,7 +2002,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 	{
 		wxMessageBox(_(
 "Moving files to the __SOURCE_INPUTS folder is not permitted.\nYou are allowed to copy them to that folder, so use the Copy button instead."),
-		_("Only copy files to __SOURCE_INPUTS folder"), wxICON_INFORMATION);
+		_("Only copy files to __SOURCE_INPUTS folder"), wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -2112,7 +2130,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 					wxString msg;
 					msg = msg.Format(_T("MoveOrCopyFiles: Removing the file with path: %s  for the requested move, failed"),
 							theSourceFilePath.c_str());
-					wxMessageBox(msg, _T("Failed to remove from source folder a moved file"),wxICON_WARNING);
+					wxMessageBox(msg, _T("Failed to remove from source folder a moved file"),wxICON_EXCLAMATION | wxOK);
 				} // end block for test: if (!bRemovedSuccessfully)
 //				else
 //				{
@@ -2139,7 +2157,7 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
             // subsequent re-entrancy)
 			wxMessageBox(_(
 "You are allowed only to copy files to the __SOURCE_INPUTS folder.\nThe folders you selected have not been copied.\nInstead, in the left pane, choose a folder and open it, select the files you want to copy, then click Copy."),
-			_("Copy of folders to __SOURCE_INPUTS folder is not allowed"), wxICON_WARNING);
+			_("Copy of folders to __SOURCE_INPUTS folder is not allowed"), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		else
@@ -2178,10 +2196,12 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 						msg = msg.Format(
 _("Failed to create the copy directory  %s  for the Copy or Move operation.\nThe parent dialog will now close.\nFiles and folders already copied or moved will remain so.\nYou may need to use your system's file browser to clean up before you try again."),
 						destFolderPath2.c_str());
-						wxMessageBox(msg, _("Error: could not make directory"), wxICON_WARNING);
+						wxMessageBox(msg, _("Error: could not make directory"), wxICON_EXCLAMATION | wxOK);
 						m_bUserCancelled = TRUE; // causes call of EndModal() at top level call
-						delete pSrcSelectedFoldersArray2; // don't leak memory
-						delete pSrcSelectedFilesArray2;   // ditto
+						if (pSrcSelectedFoldersArray2 != NULL) // whm 11Jun12 added NULL test
+							delete pSrcSelectedFoldersArray2; // don't leak memory
+						if (pSrcSelectedFilesArray2 != NULL) // whm 11Jun12 added NULL test
+							delete pSrcSelectedFilesArray2;   // ditto
 						return;
 					}
 				}
@@ -2222,7 +2242,7 @@ _("Failed to create the copy directory  %s  for the Copy or Move operation.\nThe
 					{
 						wxString msg;
 						msg = msg.Format(_T("::Rmdir() failed to remove directory: %s "),srcFolderPath2.c_str());
-						wxMessageBox(msg,_T("Couldn't remove directory"),wxICON_WARNING);
+						wxMessageBox(msg,_T("Couldn't remove directory"),wxICON_EXCLAMATION | wxOK);
 					}
 					else
 					{
@@ -2233,8 +2253,10 @@ _("Failed to create the copy directory  %s  for the Copy or Move operation.\nThe
 				// clean up for this iteration
 				pSrcSelectedFilesArray2->Clear();
 				pSrcSelectedFoldersArray2->Clear();
-				delete pSrcSelectedFilesArray2;   // don't leak it
-				delete pSrcSelectedFoldersArray2; // don't leak it
+				if (pSrcSelectedFilesArray2 != NULL) // whm 11Jun12 added NULL test
+					delete pSrcSelectedFilesArray2;   // don't leak it
+				if (pSrcSelectedFoldersArray2 != NULL) // whm 11Jun12 added NULL test
+					delete pSrcSelectedFoldersArray2; // don't leak it
 
 				// if the user asked for a cancel from the file conflict dialog, it halts
 				// recursion and cancels the AdminMoveOrCopy dialog
@@ -2319,7 +2341,7 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
-		_("Cannot copy"), wxICON_WARNING);
+		_("Cannot copy"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -2328,7 +2350,7 @@ _("No source folder is defined. (The source folder is where your selections are 
 	{
 		wxMessageBox(
 _("No destination folder is defined. (The destination folder is where your selections will be copied to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
-		_("Cannot copy"), wxICON_WARNING);
+		_("Cannot copy"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -2353,11 +2375,13 @@ _("No destination folder is defined. (The destination folder is where your selec
 	{
 		wxMessageBox(
 _("Before you click the Copy button, you need to select at least one item from the list in whichever pane you want to copy data from."),
-		_("No Files Or Folders Selected"),wxICON_WARNING);
+		_("No Files Or Folders Selected"),wxICON_EXCLAMATION | wxOK);
 		pSrcSelectedFoldersArray->Clear(); // this one is on heap
 		pSrcSelectedFilesArray->Clear(); // this one is on heap
-		delete pSrcSelectedFilesArray;   // don't leak it
-		delete pSrcSelectedFoldersArray; // don't leak it
+		if (pSrcSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+			delete pSrcSelectedFilesArray;   // don't leak it
+		if (pSrcSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+			delete pSrcSelectedFoldersArray; // don't leak it
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -2407,8 +2431,10 @@ _("Before you click the Copy button, you need to select at least one item from t
 	// clear the allocations to the heap
 	pSrcSelectedFilesArray->Clear(); // this one is on heap
 	pSrcSelectedFoldersArray->Clear(); // this one is on heap
-	delete pSrcSelectedFilesArray; // don't leak it
-	delete pSrcSelectedFoldersArray; // don't leak it
+	if (pSrcSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+		delete pSrcSelectedFilesArray; // don't leak it
+	if (pSrcSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+		delete pSrcSelectedFoldersArray; // don't leak it
 
 	gpApp->LogUserAction(_T("Copied File(s)"));
 
@@ -2508,7 +2534,7 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 	{
 		wxMessageBox(
 _("No source folder is defined. (The source folder is where your selections are made.)\nUse the appropriate 'Locate the folder' button to first open a source folder, then try again."),
-		_("Cannot move"), wxICON_WARNING);
+		_("Cannot move"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -2517,7 +2543,7 @@ _("No source folder is defined. (The source folder is where your selections are 
 	{
 		wxMessageBox(
 _("No destination folder is defined. (The destination folder is where your selections will be moved to.)\nUse the appropriate 'Locate the folder' button to first open a destination folder, then try again."),
-		_("Cannot move"), wxICON_WARNING);
+		_("Cannot move"), wxICON_EXCLAMATION | wxOK);
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -2546,7 +2572,7 @@ _("No destination folder is defined. (The destination folder is where your selec
 			// abort the Move
 			wxMessageBox(
 _("Trying to move the '__SOURCE_INPUTS' folder is not permitted.\nThe Move operation is cancelled. Nothing has been moved."),
-			_("Illegal folder move attempt"),wxICON_WARNING);
+			_("Illegal folder move attempt"),wxICON_EXCLAMATION | wxOK);
 			pPaneSelectedFiles->Clear();
 			pPaneSelectedFolders->Clear();
 			if (sideWithFocus == leftSideHasFocus)
@@ -2576,11 +2602,13 @@ _("Trying to move the '__SOURCE_INPUTS' folder is not permitted.\nThe Move opera
 	{
 		wxMessageBox(
 _("Before you click the Move button, you need to select at least one item from the list in whichever pane you want to move data from."),
-		_("No Files Or Folders Selected"),wxICON_WARNING);
+		_("No Files Or Folders Selected"),wxICON_EXCLAMATION | wxOK);
 		pSrcSelectedFoldersArray->Clear(); // this one is on heap
 		pSrcSelectedFilesArray->Clear(); // this one is on heap
-		delete pSrcSelectedFilesArray;   // don't leak it
-		delete pSrcSelectedFoldersArray; // don't leak it
+		if (pSrcSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+			delete pSrcSelectedFilesArray;   // don't leak it
+		if (pSrcSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+			delete pSrcSelectedFoldersArray; // don't leak it
 		SetNeitherSideHasFocus();
 		EnableButtons();
 		return;
@@ -2633,8 +2661,10 @@ _("Before you click the Move button, you need to select at least one item from t
 	// clear the allocations to the heap
 	pSrcSelectedFilesArray->Clear(); // this one is on heap
 	pSrcSelectedFoldersArray->Clear(); // this one is on heap
-	delete pSrcSelectedFilesArray; // don't leak it
-	delete pSrcSelectedFoldersArray; // don't leak it
+	if (pSrcSelectedFilesArray != NULL) // whm 11Jun12 added NULL test
+		delete pSrcSelectedFilesArray; // don't leak it
+	if (pSrcSelectedFoldersArray != NULL) // whm 11Jun12 added NULL test
+		delete pSrcSelectedFoldersArray; // don't leak it
 
 	// if the user asked for a cancel from the file conflict dialog, it cancels the parent
 	// dlg too
@@ -2688,7 +2718,7 @@ void AdminMoveOrCopy::NoSelectionMessage()
 	// nothing to Peek at, tell the user what to do
 	wxString str = _(
 "The Peek... button will show you up to the first 16 kB of whichever file you selected in either list.\nBut first, click on a file to select it, then click the Peek... button.");
-	wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION);
+	wxMessageBox(str,_("Peek needs a file selection"), wxICON_INFORMATION | wxOK);
 }
 
 // BEW added 14July10

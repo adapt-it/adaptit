@@ -17,6 +17,14 @@
 
 #include "scrollingdialog.h" // #include "uiutils/scrollingdialog.h"
 
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+// Note: This conditional compile directive must follow the #include "scrollingdialog.h" statement
+// above.
+#if wxCHECK_VERSION(2,9,0)
+// For wxWidgets 2.9.x and later do not compile this file into project, because
+// the scrolling dialog functionality is built-in to the main wxWidgets library.
+#else
+
 // Allow for caption size on wxWidgets < 2.9
 #if defined(__WXGTK__) && !wxCHECK_VERSION(2,9,0)
 #define wxEXTRA_DIALOG_HEIGHT 30
@@ -506,3 +514,4 @@ int wxScrollingPropertySheetDialog::ShowModal()
     return wxPropertySheetDialog::ShowModal();
 }
 
+#endif // #if wxCHECK_VERSION(2,9,0)

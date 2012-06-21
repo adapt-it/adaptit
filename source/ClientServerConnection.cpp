@@ -69,6 +69,7 @@ void AI_Server::Advise()
 {
 	// whm 2Feb12 Note: The following data is not currently used in Adapt It. This is only
 	// some sample data that shows how AI_Server::Advise() could be used.
+/*
     if (CanAdvise())
     {
         wxString testStr = wxDateTime::Now().Format();
@@ -76,6 +77,7 @@ void AI_Server::Advise()
         testStr = wxDateTime::Now().FormatTime() + _T(" ") + wxDateTime::Now().FormatDate();
         m_pConnection->Advise(m_pConnection->m_strAdvise, (wxChar *)testStr.c_str(), (testStr.Length() + 1) * sizeof(wxChar));
     }
+*/
 }
 
 bool AI_Server::CanAdvise()
@@ -180,6 +182,7 @@ bool AI_Connection::OnExecute(const wxString& topic, wxChar* data, int size, wxI
 	return FALSE;
 }
 	
+	/*
 wxChar* AI_Connection::OnRequest(const wxString& topic, const wxString& item, int* size, wxIPCFormat format)
 {
 	// whm 2Feb12 Note: The following data is not currently used in Adapt It. This is only
@@ -210,6 +213,7 @@ wxChar* AI_Connection::OnRequest(const wxString& topic, const wxString& item, in
 	wxLogDebug(_T("OnRequest: topic = %s item = %s data = %s size = %d format = %s"), topic.c_str(), item.c_str(), data, *size, str.c_str());
 	return data;
 }
+*/
 
 bool AI_Connection::Advise(const wxString& item, wxChar* data, int size, wxIPCFormat format)
 {

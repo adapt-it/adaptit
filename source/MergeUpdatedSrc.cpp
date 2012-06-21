@@ -963,10 +963,12 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			for (iter = 0; iter < countStructs; iter++)
 			{
 				SfmChunk* pChunk = (SfmChunk*)pChunksOld->Item(iter);
-				delete pChunk;
+				if (pChunk != NULL) // whm 11Jun12 added NULL test
+					delete pChunk;
 			}
 		}
-		delete pChunksOld;
+		if (pChunksOld != NULL) // whm 11Jun12 added NULL test
+			delete pChunksOld;
 
 		countStructs = pChunksNew->GetCount();
 		if (countStructs > 0)
@@ -974,10 +976,12 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			for (iter = 0; iter < countStructs; iter++)
 			{
 				SfmChunk* pChunk = (SfmChunk*)pChunksNew->Item(iter);
-				delete pChunk;
+				if (pChunk != NULL) // whm 11Jun12 added NULL test
+					delete pChunk;
 			}
 		}
-		delete pChunksNew;
+		if (pChunksNew != NULL) // whm 11Jun12 added NULL test
+			delete pChunksNew;
 
 		return;
 	} // end of TRUE block for test: if (!bSuccessful_Old && !bSuccessful_New)
@@ -1668,10 +1672,12 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		for (iter = 0; iter < countStructs; iter++)
 		{
 			SfmChunk* pChunk = (SfmChunk*)pChunksOld->Item(iter);
-			delete pChunk;
+			if (pChunk != NULL) // whm 11Jun12 added NULL test
+				delete pChunk;
 		}
 	}
-	delete pChunksOld;
+	if (pChunksOld != NULL) // whm 11Jun12 added NULL test
+		delete pChunksOld;
 
 	countStructs = pChunksNew->GetCount();
 	if (countStructs > 0)
@@ -1679,10 +1685,12 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		for (iter = 0; iter < countStructs; iter++)
 		{
 			SfmChunk* pChunk = (SfmChunk*)pChunksNew->Item(iter);
-			delete pChunk;
+			if (pChunk != NULL) // whm 11Jun12 added NULL test
+				delete pChunk;
 		}
 	}
-	delete pChunksNew;
+	if (pChunksNew != NULL) // whm 11Jun12 added NULL test
+		delete pChunksNew;
 }
 
 
@@ -1967,12 +1975,14 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 	for (oldIndex = 0; oldIndex < countOldInfoStructs; oldIndex++)
 	{
 		ChunkInfo* pInfo = (ChunkInfo*)arrOldChunkInfos.Item(oldIndex);
-		delete pInfo;
+		if (pInfo != NULL) // whm 11Jun12 added NULL test
+			delete pInfo;
 	}
 	for (newIndex = 0; newIndex < countNewInfoStructs; newIndex++)
 	{
 		ChunkInfo* pInfo = (ChunkInfo*)arrNewChunkInfos.Item(newIndex);
-		delete pInfo;
+		if (pInfo != NULL) // whm 11Jun12 added NULL test
+			delete pInfo;
 	}
 	// determine what to tell the caller
 	if (!bMatched)
@@ -2817,7 +2827,8 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	ReplaceSavedOriginalSrcPhrases(pTo, pRangeNew);
 
 	pRangeNew->Clear();
-	delete pRangeNew;
+	if (pRangeNew != NULL) // whm 11Jun12 added NULL test
+		delete pRangeNew;
 	// update the values to be returned as indices preceding the next kick-off locations
 	oldDoneToIncluding = oldIndex;
 	newDoneToIncluding = newEndAt;
@@ -4339,7 +4350,8 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 				countCommonSpanDeletions++;
 #endif
 #endif
-				delete (Subspan*)arrSubspans.Item(i);
+				if ((Subspan*)arrSubspans.Item(i) != NULL) // whm 11Jun12 added NULL test
+					delete (Subspan*)arrSubspans.Item(i);
 			}
 		}
 		arrSubspans.Clear();
@@ -5848,7 +5860,7 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 				msg = msg.Format(_T(
 "DoUSFMandPunctuationAlterations() failed badly, probably a bounds error. Import will be cancelled.\n oldIndex %d , old subspan %d to %d ; newIndex %d , new subspan %d to %d"),
 				oldIndex, oldSpanStart, oldSpanEnd, newIndex, newSpanStart, newSpanEnd);
-				wxMessageBox(msg,_T("Error: Out of bounds?"), wxICON_ERROR);
+				wxMessageBox(msg,_T("Error: Out of bounds?"), wxICON_ERROR | wxOK);
 				return FALSE;
 			}
 			// should be able to recover, work out what to do... and continue iterating;
@@ -6671,7 +6683,8 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 	}
 #endif
 #endif
-	delete pSubspan;
+	if (pSubspan != NULL) // whm 11Jun12 added NULL test
+		delete pSubspan;
 	pSubspan = NULL;
 #ifdef myMilestoneDebugCalls
 #ifdef __WXDEBUG__
@@ -7362,7 +7375,8 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					countBeforeSpanDeletions++;
 #endif
 #endif
-					delete pParent;
+					if (pParent != NULL) // whm 11Jun12 added NULL test
+						delete pParent;
 				}
 				else if (pParent->spanType == afterSpan)
 				{
@@ -7375,7 +7389,8 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					countAfterSpanDeletions++;
 #endif
 #endif
-					delete pParent;
+					if (pParent != NULL) // whm 11Jun12 added NULL test
+						delete pParent;
 				}
 			}
 			else
@@ -7560,7 +7575,11 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 		range = range.Mid(count);
 		numChars = range.Len();
 		// if a part-verse marker (assume one of a or b or c only), get it
-		aChar = range.GetChar(0);
+		// whm 11Jun12 modified below. GetChar(0) should not be called on an empty string
+		if (!range.IsEmpty())
+			aChar = range.GetChar(0);
+		else
+			aChar = _T('\0');
 		if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
 		{
 			charStartingVerseSuffix = aChar;
@@ -7664,7 +7683,11 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 					if (numChars > 0)
 					{
 						// what remains should just be a final a or b or c
-						aChar = range.GetChar(0);
+						// whm 11Jun12 modified below. GetChar(0) should not be called on an empty string.
+						if (!range.IsEmpty())
+							aChar = range.GetChar(0);
+						else
+							aChar = _T('\0');
 						if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
 						{
 							charEndingVerseSuffix = aChar;
@@ -7690,7 +7713,7 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 _T("The verse range was parsed, and the following remains unparsed: %s\nfrom the specification %s:%s%s%s%s%s%s"),
 							range.c_str(),strChapter.c_str(),strStartingVerse.c_str(),suffix1.c_str(),
 							strDelimiter.c_str(),strEndingVerse.c_str(),suffix2.c_str(),range.c_str());
-							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_WARNING);
+							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_EXCLAMATION | wxOK);
 						}
 					} //end of TRUE block for test: if (numChars > 0)
 				} // end of else block for test: if (count == numChars)

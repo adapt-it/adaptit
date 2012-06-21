@@ -12,7 +12,9 @@
 /// (green) wedge signaling the presence of filtered information hidden within the document.
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog.
+/// \derivation		The CViewFilteredMaterialDlg class is derived from wxScrollingDialog 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxDialog for 
+/// version 2.9.x and later.
 /// 
 /// BEW 22Mar10, updated for support of doc version 5 (some changes needed)
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +65,12 @@ extern bool gbFreeTranslationJustRemovedInVFMdialog;
 wxFontEncoding editBoxEncoding; // stores an enum for which of the encodings is the current one
 
 // event handler table
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxDialog)
+#else
 BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxScrollingDialog)
+#endif
 	EVT_INIT_DIALOG(CViewFilteredMaterialDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, CViewFilteredMaterialDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CViewFilteredMaterialDlg::OnCancel)
@@ -79,8 +86,14 @@ END_EVENT_TABLE()
 
 
 CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog constructor
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	: wxDialog(parent, -1, _("View Filtered Material"),
+		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
 	: wxScrollingDialog(parent, -1, _("View Filtered Material"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#endif
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
@@ -712,7 +725,8 @@ void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	// wx version: Unless delete is called on the App's pointer to the dialog below, a "ghost" dialog
 	// appears (with no data in controls) when clicking on a different green wedge when the dialog 
 	// was still open at a different green wedge location. 
-	delete gpApp->m_pViewFilteredMaterialDlg; // BEW added 19Nov05, to prevent memory leak // harmful in wx!!!
+	if (gpApp->m_pViewFilteredMaterialDlg != NULL) // whm 11Jun12 added NULL test
+		delete gpApp->m_pViewFilteredMaterialDlg; // BEW added 19Nov05, to prevent memory leak // harmful in wx!!!
 	gpApp->m_pViewFilteredMaterialDlg = NULL; // allow the Note dialog to be opened
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
