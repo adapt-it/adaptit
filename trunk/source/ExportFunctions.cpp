@@ -16086,9 +16086,6 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 	{ // begin special scoped block
 		wxStringBuffer pBuff2(text2,len + 1);
 		//wxChar* pBuff2 = text2.GetWriteBuf(len + 1);
-		//wxChar* pBufStart2 = pBuff2;
-		//wxChar* pEnd2;
-		//pEnd2 = pBufStart2 + len;
 		wxChar* pNew = pBuff2;
 
 		wxString wholeMkr;
