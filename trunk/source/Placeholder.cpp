@@ -132,7 +132,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		{
 			wxMessageBox(_T(
 							"Sorry, a zero pointer was returned, the insertion cannot be done."),
-						 _T(""), wxICON_EXCLAMATION);
+						 _T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -148,7 +148,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		{
 			wxMessageBox(_T(
 							"Sorry, a zero pointer was returned, the insertion cannot be done."),
-						 _T(""), wxICON_EXCLAMATION);
+						 _T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -164,7 +164,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 			// IDS_NO_INSERT_IN_RETRANS
 			wxMessageBox(_(
 						   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
-						 _T(""), wxICON_EXCLAMATION);
+						 _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pView->RemoveSelection();
 			m_pView->Invalidate();
 			m_pLayout->PlaceBox();
@@ -225,7 +225,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		{
 			wxMessageBox(_T(
 							"Sorry, a zero pointer was returned, the insertion cannot be done."),
-						 _T(""), wxICON_EXCLAMATION);
+						 _T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -240,7 +240,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		{
 			wxMessageBox(_T(
 							"Sorry, a zero pointer was returned, the insertion cannot be done."),
-						 _T(""), wxICON_EXCLAMATION);
+						 _T(""), wxICON_EXCLAMATION | wxOK);
 			return;
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -259,7 +259,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 			// IDS_NO_INSERT_IN_RETRANS
 			wxMessageBox(_(
 						   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
-						 _T(""), wxICON_EXCLAMATION);
+						 _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pView->RemoveSelection();
 			m_pView->Invalidate();
 			m_pLayout->PlaceBox();
@@ -347,15 +347,19 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		// for refactored code, first remove the partner pile for the dummy, then the dummy
 		pDoc->DeletePartnerPile(pDummySrcPhrase);
 		// now the dummy CSourcePhrase instance
-		delete pDummySrcPhrase->m_pSavedWords;
+		if (pDummySrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+			delete pDummySrcPhrase->m_pSavedWords;
 		pDummySrcPhrase->m_pSavedWords = (SPList*)NULL;
-		delete pDummySrcPhrase->m_pMedialMarkers;
+		if (pDummySrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+			delete pDummySrcPhrase->m_pMedialMarkers;
 		pDummySrcPhrase->m_pMedialMarkers = (wxArrayString*)NULL;
-		delete pDummySrcPhrase->m_pMedialPuncts;
+		if (pDummySrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+			delete pDummySrcPhrase->m_pMedialPuncts;
 		pDummySrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
 		SPList::Node *pLast = pSrcPhrases->GetLast();
 		pSrcPhrases->DeleteNode(pLast);
-		delete pDummySrcPhrase;
+		if (pDummySrcPhrase != NULL) // whm 11Jun12 added NULL test
+			delete pDummySrcPhrase;
 		pDummySrcPhrase = (CSourcePhrase*)NULL;
 		
 		// get another valid layout
@@ -758,7 +762,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 				// any other situation, we need to let the user make the choice
 				if (wxMessageBox(_(
 "Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows.\nIs it the start of what follows?"),
-				_T(""),wxYES_NO) == wxYES)
+				_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 				{
 					bAssociatingRightwards = TRUE;
 				}
@@ -771,7 +775,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 				{
 					wxMessageBox(_(
 "Two words are joined with fixed-space marker ( ~ ) following the placeholder.\nForwards association is not possible when this happens."),
-_T("Warning: Unacceptable Forwards Association"),wxICON_WARNING);
+_T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 						goto m; // make no further adjustments, just jump to the 
 								// RecalcLayout() call near the end
 				}
@@ -789,7 +793,7 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_WARNING);
 						// retranslation itself
 						wxMessageBox(_(
 "Trying to associate the inserted placeholder with the start of the retranslation text which follows it does not work.\nIt will be better if you now delete the placeholder and instead edit the retranslation itself."),
-_T("Warning: Unacceptable Forwards Association"),wxICON_WARNING);
+_T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 						goto m; // make no further adjustments, just jump to the 
 								// RecalcLayout() call near the end
 					}
@@ -881,7 +885,7 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_WARNING);
 				{
 					wxMessageBox(_(
 "Two words are joined with fixed-space marker ( ~ ) preceding the placeholder.\nBackwards association is not possible when this happens."),
-_T("Warning: Unacceptable Backwards Association"),wxICON_WARNING);
+_T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 						goto m; // make no further adjustments, just jump to the 
 								// RecalcLayout() call near the end
 				}
@@ -1067,7 +1071,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_WARNING);
                                     // IDS_ASSOC_WITH_FREE_TRANS
 									if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?")
-									,_T(""), wxYES_NO) == wxYES)
+									,_T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 									{
                                         // user wants to associate it to the right - make
                                         // the placeholder the new start location, and move
@@ -1146,7 +1150,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_WARNING);
                                 // IDS_ASSOC_WITH_FREE_TRANS
 								if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?"),
-								_T(""),wxYES_NO) == wxYES)
+								_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 								{
 									// associate rightwards, which means we'll need to move
 									// m_markers too
@@ -1197,7 +1201,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_WARNING);
 							// IDS_ASSOC_LEFT_FREE_TRANS
 							if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which immediately precedes it?"),
-							_T(""),wxYES_NO) == wxYES)
+							_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 							{
                                 // user wants the inserted placeholder to be associated
                                 // with the free translation lying to the left - so make
@@ -1262,7 +1266,7 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_WARNING);
 							// IDS_ASSOC_WITH_FREE_TRANS
 							if (wxMessageBox(_(
 "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?"),
-							_T(""),wxYES_NO) == wxYES)
+							_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT) == wxYES)
 							{
                                 // rightwards association - move the start to the
                                 // placeholder, but in this case no m_markers movement will
@@ -1747,7 +1751,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 			//IDS_TOO_MANY_NULL_SRCPHRASES
 			wxMessageBox(_T(
 "Warning: you are trying to remove more placeholders than exist at the selection location: the command will be ignored."),
-			_T(""),wxICON_WARNING);
+			_T(""),wxICON_EXCLAMATION | wxOK);
 			if (m_pApp->m_selectionLine != -1)
 				m_pView->RemoveSelection();
 			m_pView->Invalidate();
@@ -2137,7 +2141,7 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	{
 		//IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_("This particular operation is not available when you are glossing."),
-					 _T(""),wxICON_INFORMATION);
+					 _T(""),wxICON_INFORMATION | wxOK);
 		return;
 	}
 	
@@ -2297,7 +2301,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		//IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
-					 _T(""),wxICON_INFORMATION);
+					 _T(""),wxICON_INFORMATION | wxOK);
 		return;
 	}
 	int nSequNum;
@@ -2344,7 +2348,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			{
 				wxMessageBox(_T(
 								"A zero pointer was returned, the insertion cannot be done."),
-							 _T(""), wxICON_EXCLAMATION);
+							 _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 			}
 			nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -2359,7 +2363,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			{
 				wxMessageBox(_T(
 								"A zero pointer was returned, the insertion cannot be done."),
-							 _T(""), wxICON_EXCLAMATION);
+							 _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 			}
 			nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -2378,7 +2382,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 				// IDS_NO_INSERT_IN_RETRANS
 				wxMessageBox(_(
 							   "You cannot insert a placeholder within a retranslation. The command has been ignored.")
-							 ,_T(""), wxICON_EXCLAMATION);
+							 ,_T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
 				m_pView->Invalidate();
 				m_pLayout->PlaceBox();
@@ -2469,14 +2473,18 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			pDoc->DeletePartnerPile(pDummySrcPhrase);
 			
 			// now remove the dummy element, and make sure memory is not leaked!
-			delete pDummySrcPhrase->m_pSavedWords;
-			delete pDummySrcPhrase->m_pMedialMarkers;
-			delete pDummySrcPhrase->m_pMedialPuncts;
+			if (pDummySrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pSavedWords;
+			if (pDummySrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pMedialMarkers;
+			if (pDummySrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pMedialPuncts;
 			bool deleteOK;
 			deleteOK = pSrcPhrases->DeleteNode(pSrcPhrases->GetLast());
 			wxASSERT(deleteOK);
 			deleteOK = deleteOK; // avoid warning (BEW 3Jan12, leave it as is, a leak is unlikely)
-			delete pDummySrcPhrase;
+			if (pDummySrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase;
 			
 			// get another valid layout
 			m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
@@ -2527,7 +2535,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			{
 				wxMessageBox(_T(
 								"A zero pointer was returned, the insertion cannot be done."),
-							 _T(""), wxICON_EXCLAMATION);
+							 _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 			}
 			nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -2543,7 +2551,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			{
 				wxMessageBox(_T(
 								"A zero pointer was returned, the insertion cannot be done."),
-							 _T(""), wxICON_EXCLAMATION);
+							 _T(""), wxICON_EXCLAMATION | wxOK);
 				return;
 			}
 			nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
@@ -2561,7 +2569,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 				// IDS_NO_INSERT_IN_RETRANS
 				wxMessageBox(_(
 							   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
-							 _T(""), wxICON_EXCLAMATION);
+							 _T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
 				m_pView->Invalidate();
 				m_pLayout->PlaceBox();

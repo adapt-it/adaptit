@@ -8,7 +8,9 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CStartWorkingWizard class. 
 /// The CStartWorkingWizard class implements Adapt It's Start Working Wizard.
-/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard.
+/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxWizard for 
+/// version 2.9.x and later.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef StartWorkingWizard_h
@@ -29,8 +31,16 @@ class CUsfmFilterPageWiz;
 
 
 /// The CStartWorkingWizard class implements Adapt It's Start Working Wizard.
-/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard.
+/// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxWizard for 
+/// version 2.9.x and later.
+
+// whm 14Jun12 modified to use wxWizard for wxWidgets 2.9.x and later; wxScrollingWizard for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+class CStartWorkingWizard : public wxWizard
+#else
 class CStartWorkingWizard : public wxScrollingWizard
+#endif
 {
 public:
 	CStartWorkingWizard(wxWindow* parent); // constructor

@@ -16,7 +16,8 @@
 /// processing while the dialog is being shown.
 /// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support
 ///                 for the document/view framework.
-/// The AIModalDialog class is derived from wxScrollingDialog.
+/// The AIModalDialog class is derived from wxScrollingDialog when built with wxWidgets
+/// prior to version 2.9.x, but derived from wxDialog for version 2.9.x and later.
 /////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
@@ -81,6 +82,7 @@ enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY,
 // Once CFreeTrans is completed, a search and destroy operation was carried out to remove
 // the old code wherever _FREETR was found
 
+class wxFontData;
 class AIPrintout;
 // for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...
 // comment out when the wxLogDebug() calls are no longer needed
@@ -214,7 +216,14 @@ const wxString appVerStr(_T("6.2.2"));
 #define CF_CLIPBOARDFORMAT CF_TEXT
 #endif
 
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling dialog features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingDialog located in scrollingdialog.h
 #include "scrollingdialog.h"
+#endif
+
 #include "PhraseBox.h"
 #include "FindReplace.h"
 #include "Retranslation.h"
@@ -1756,8 +1765,17 @@ typedef struct
 /// The AIModalDialog class is used as the base class for most of Adapt It's modal dialogs.
 /// Its primary purpose is to turn off background idle processing while the dialog is being
 /// displayed.
-/// \derivation The AIModalDialog is derived from wxScrollingDialog.
+/// \derivation The AIModalDialog is derived from wxDialog in wxWidgets 2.9.x; wxScrollingDialog
+/// for earlier versions of wxWidgets.
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.3 and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+// Use the built-in wxConvAuto from <wx/version.h>
+class AIModalDialog : public wxDialog
+#else
+// The wxWidgets library being used is pre-2.9.x, so use our own 
+// wxScrollingDialog located in scrollingdialog.h
 class AIModalDialog : public wxScrollingDialog
+#endif
 {
 public:
     AIModalDialog(wxWindow *parent, const wxWindowID id, const wxString& title,
@@ -1765,9 +1783,9 @@ public:
             const wxSize& size = wxDefaultSize,
             const long style = wxDEFAULT_DIALOG_STYLE);
 	~AIModalDialog(); // destructor calls wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL)
-					  // before calling wxScrollingDialog::~wxScrollingDialog()
+					  // before calling the class destructor
 	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before
-					 // calling wxScrollingDialog::ShowModal()
+					 // calling ::ShowModal()
 };
 
 // whm 12Oct10 added this class. It didn't seem worth the bother to put it into

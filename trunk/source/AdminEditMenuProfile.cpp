@@ -23,7 +23,9 @@
 /// The selection is saved in the basic and project config files, and the 
 /// profile information is saved in an external control file under the
 /// name AI_UserProfiles.xml. 
-/// \derivation		The CAdminEditMenuProfile class is derived from wxScrollingDialog.
+/// \derivation		The CAdminEditMenuProfile class is derived from wxScrollingDialog 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxDialog for 
+/// version 2.9.x and later.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in AdminEditMenuProfile.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -64,7 +66,12 @@
 extern CAdapt_ItApp* m_pApp;
 
 // event handler table
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxDialog)
+#else
 BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxScrollingDialog)
+#endif
 	EVT_INIT_DIALOG(CAdminEditMenuProfile::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_CANCEL, CAdminEditMenuProfile::OnCancel)
 	EVT_BUTTON(wxID_OK, CAdminEditMenuProfile::OnOK)
@@ -81,12 +88,18 @@ BEGIN_EVENT_TABLE(CAdminEditMenuProfile, wxScrollingDialog)
 END_EVENT_TABLE()
 
 CAdminEditMenuProfile::CAdminEditMenuProfile(wxWindow* parent) // dialog constructor
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	: wxDialog(parent, -1, _("User Workflow Profiles"),
+				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
 	: wxScrollingDialog(parent, -1, _("User Workflow Profiles"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#endif
 {
-	// Note: Since this dialog is derived from wxScrollingDialog rather than AIModalDialog we need to turn
-	// off update idle handling here early in the constructor until initialization is done. We 
-	// turn it back on at the end of InitDialog().
+	// Note: Since this dialog is derived from wxDialog (or wxScrollingDialog) rather than 
+	// AIModalDialog we need to turn off update idle handling here early in the constructor 
+	// until initialization is done. We turn it back on at the end of InitDialog().
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
 
@@ -266,7 +279,7 @@ void CAdminEditMenuProfile::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 		// Not likely to happen so use English message
 		wxString msg = _T("The user workflow profile value saved in the project configuration file was out of range (%d).\nA value of 0 (= \"None\") will be used instead.");
 		msg = msg.Format(msg,tempWorkflowProfile);
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		tempWorkflowProfile = 0;
 	}
 	// Get the indices for the current workflow profile value
@@ -1397,7 +1410,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 				msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
 				msg = msg.Format(msg,editedProfilesStr.c_str(),previousProfileName.c_str(),previousProfileName.c_str(),previousProfileName.c_str()); // in this case oldProfileName == newProfileName
 			}
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else if (bProfileChanged.Item(tempWorkflowProfile - 1) != 1) // when tempWorkflowProfile is other than 0, the profile index is 1 less
@@ -1414,7 +1427,7 @@ void CAdminEditMenuProfile::OnOK(wxCommandEvent& event)
 			msg += _T("\n");
 			msg += msg4; // _("Click \"Yes\" to use the %s profile (and save the other profile's changes).\nClick \"No\" to continue editing in the User Workflow Profile dialog.");
 			msg = msg.Format(msg,editedProfilesStr.c_str(),newProfileName.c_str(),newProfileName.c_str(),newProfileName.c_str());
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO);
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else
@@ -1495,7 +1508,7 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg1;
 			msg += msg2;
 			msg = msg.Format(msg,editedProfilesStr.c_str());
-			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else if (bSelChanged)
@@ -1505,7 +1518,7 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg2;
 			msg = msg.Format(msg,GetNameOfProfileFromProfileValue(startingWorkflowProfile).c_str(),
 				GetNameOfProfileFromProfileValue(tempWorkflowProfile).c_str());
-			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		else if (bItemsChanged)
@@ -1515,7 +1528,7 @@ void CAdminEditMenuProfile::OnCancel(wxCommandEvent& WXUNUSED(event))
 			msg += msg1;
 			msg += msg2;
 			msg = msg.Format(msg,editedProfilesStr.c_str());
-			response = wxMessageBox(msg,_T(""),wxYES_NO | wxICON_WARNING);
+			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			m_pApp->LogUserAction(msg);
 		}
 		if (response == wxNO)

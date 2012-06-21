@@ -25,6 +25,13 @@ Problem: page size is calculated using a bitmap that may not be the full width.
 #ifndef _WX_SCROLLING_WIZARD_H_
 #define _WX_SCROLLING_WIZARD_H_
 
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+// For wxWidgets 2.9.x and later do not compile this file into project, because
+// the scrolling wizard functionality is built-in to the main wxWidgets library.
+#else
+
+
 #include "wx/wizard.h"
 
 #include "scrollingdialog.h" // #include "uiutils/scrollingdialog.h"
@@ -221,3 +228,5 @@ private:
 
 
 #endif // _WX_SCROLLING_WIZARD_H_
+
+#endif //#if wxCHECK_VERSION(2,9,0)

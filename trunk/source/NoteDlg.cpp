@@ -11,7 +11,10 @@
 /// and navigating through Adapt It notes (those prefixed by \note).
 /// The CNoteDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
-/// \derivation		The CNoteDlg class is derived from wxScrollingDialog.
+/// \derivation		The CNoteDlg class is derived from wxScrollingDialog when built 
+/// with wxWidgets prior to version 2.9.x, but derived from wxDialog for version 2.9.x 
+/// and later.
+
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -62,7 +65,12 @@ int    gnEndOffset = -1; // ending offset to the matched note substring
 wxString gSearchStr; // a place to store the search string so it can be restored when a match was made in searching
 
 // event handler table
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+BEGIN_EVENT_TABLE(CNoteDlg, wxDialog)
+#else
 BEGIN_EVENT_TABLE(CNoteDlg, wxScrollingDialog)
+#endif
 	EVT_INIT_DIALOG(CNoteDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CNoteDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CNoteDlg::OnCancel)
@@ -78,8 +86,14 @@ END_EVENT_TABLE()
 
 
 CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+	: wxDialog(parent, -1, _("Note"),
+		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#else
 	: wxScrollingDialog(parent, -1, _("Note"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+#endif
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
@@ -371,7 +385,8 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 		pSrcPhrase->SetNote(m_strNote); // make m_note contain nothing
 		pSrcPhrase->m_bHasNote = FALSE; // this makes the note non-existing, rather than just empty
 		Destroy(); // the wxWidgets call to destroy the top level window (ie. the dialog)
-		delete gpApp->m_pNoteDlg; // yes, it is required in wx to prevent crashes while navigating
+		if (gpApp->m_pNoteDlg != NULL) // whm 11Jun12 added NULL test
+			delete gpApp->m_pNoteDlg; // yes, it is required in wx to prevent crashes while navigating
 		gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 		gpNotePile = NULL;
 		pView->RemoveSelection(); // in case a selection was used to indicate the note location
@@ -395,7 +410,8 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	// the old one and a new one created with the new operator. With the case of the ViewFilteredMaterialDlg
 	// I found it necessary to call delete on the App's dialog pointer, only in OnCancel. I assume
 	// that delete should be called on the App's Note dialog pointer here in OnOK().
-	delete gpApp->m_pNoteDlg; // yes, it is required in wx to prevent crashes while navigating
+	if (gpApp->m_pNoteDlg != NULL) // whm 11Jun12 added NULL test
+		delete gpApp->m_pNoteDlg; // yes, it is required in wx to prevent crashes while navigating
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->RemoveSelection(); // in case a selection was used to indicate the note location
@@ -559,8 +575,9 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 		//IDS_NO_MATCHING_NOTE
 		wxMessageBox(
 		_("Searching forward did not find a note with text matching that which you typed into the box."),
-		_T(""), wxICON_INFORMATION);
-		delete pWordList;
+		_T(""), wxICON_INFORMATION | wxOK);
+		if (pWordList != NULL) // whm 11Jun12 added NULL test
+			delete pWordList;
 		gnStartOffset = gnEndOffset = -1; // ensure the 'no match' condition is restored
 		// BEW changed 6Mar08, so that search string is retained until user explicitly deletes it
 		//gSearchStr.Empty(); // ensure it is empty
@@ -579,7 +596,8 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 		// close the current note dialog which is still open, saving its note
 		OnOK(event); //OnBnClickedOk(event);
 		gpApp->m_pNoteDlg = NULL;
-		delete pWordList;
+		if (pWordList != NULL) // whm 11Jun12 added NULL test
+			delete pWordList;
 	
 		// jump to the found note and open it
 		gpApp->GetNotes()->JumpForwardToNote_CoreCode(nJumpOffSequNum);

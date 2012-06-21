@@ -71,7 +71,8 @@ CConsistentChanger::CConsistentChanger() // constructor
 ////////////////////////////////////////////////////////////////////////////////////////////
 CConsistentChanger::~CConsistentChanger() // destructor
 {
-	delete ccModule;
+	if (ccModule != NULL) // whm 11Jun12 added NULL test
+		delete ccModule;
 	ccModule = (CCCModule*)NULL;
 }
 
@@ -118,7 +119,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 		wxString aPath = tablePathName;
 		wxString s;
 		s = s.Format(_T("Relocating the CC table file in loadTableFromFile failed, so cc processing is disabled; original table's path was: %s"),aPath.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION | wxOK);
 		return s ; // MFC note: we really need to return BOOL -- add this change later
 	}
 
@@ -127,16 +128,13 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 
 #ifdef _UNICODE
 
-	// BEW changed 10Apr06 to use 'safe' conversion macro, from VS 2003, which does
-	// not use a buffer on the stack, nor does it need USES_CONVERSION_U8 macro either
-	//USES_CONVERSION_U8;
-
 	// whm: one method of conversion is to use the .mb_str() method of wxString as illustrated in the
 	// two commented out lines below:
 	//wxCharBuffer tempBuff = lpPath.mb_str(wxConvUTF8);
 	//CBString psz(tempBuff);
 	// whm: an easier method of conversion is just to use the wxString constructor with wxConvUTF8 conversion parameter
-	iResult = ccModule->CCLoadTable(wxString(lpPath,wxConvUTF8));
+	// whm 8Jun12 modified. The lpPath is already a wxString, so it doesn't need any further conversion with wxConfUTF8
+	iResult = ccModule->CCLoadTable(lpPath); //iResult = ccModule->CCLoadTable(wxString(lpPath,wxConvUTF8));
 
 	// make the environment enabled for UTF-8 support
 	iResult2 = ccModule->CCSetUTF8Encoding(TRUE);
@@ -156,7 +154,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 		wxString aPath = tablePathName;
 		wxString s;
 		s = s.Format(_T("CopyTableToPersonalFolder() failed to remove the temporary file for path %s (so remove it manually using Win Explorer)"),aPath.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION | wxOK);
 	}
 
 	if(iResult)
@@ -206,6 +204,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 wxString CConsistentChanger::CopyTableToPersonalFolder(wxString pOriginalTable)
 {
 	wxString path = gpApp->m_workFolderPath; // determined from earlier EnsureWorkFolderPresent() call
+	wxASSERT(!gpApp->PathSeparator.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
 	int offset = path.Find(gpApp->PathSeparator.GetChar(0),TRUE); // TRUE is find from right end in wx
 	path = path.Left(offset); // the path to the My Documents folder, or in Vista, the Documents folder
 	wxString fname = _T("_tbl_.cct");
@@ -217,7 +216,7 @@ wxString CConsistentChanger::CopyTableToPersonalFolder(wxString pOriginalTable)
 	{
 		wxString s;
 		s = s.Format(_T("CopyTableToPersonalFolder() failed while copying to %s"),path.c_str());
-		wxMessageBox(s,_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(s,_T(""), wxICON_EXCLAMATION | wxOK);
 		path.Empty();
 		return path;
 	}

@@ -444,6 +444,8 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 					str = str.Mid(subStr.Length());
 					str.Trim(FALSE);
 					str.Trim(TRUE);
+					// whm 11Jun12 note: str is guaranteed to not be empty here because the above
+					// if (str.Find(subStr) != -1) test found the subStr
 					wxASSERT(str.GetChar(0) == _T('['));
 					wxASSERT(str.GetChar(str.Length()-1) == _T(']'));
 					str.Remove(0,1);
@@ -522,7 +524,7 @@ void CChooseLanguageDlg::OnBrowseForPath(wxCommandEvent& WXUNUSED(event))
 		{
 			wxString msg;
 			msg = msg.Format(_("Sorry, there are no localization folders or files at the following location you chose:\n%s"),selectedPath.c_str());
-			wxMessageBox(msg,_T(""), wxICON_WARNING);
+			wxMessageBox(msg,_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 	}
 }
@@ -545,7 +547,7 @@ void CChooseLanguageDlg::OnSelchangeListboxLanguages(wxCommandEvent& WXUNUSED(ev
 	//	// handler. The following message is of little help to the user even if it were called for a genuine
 	//	// problem, so I've commented it out, so the present handler can exit gracefully
 	//	//wxMessageBox(_("List box error when getting the current selection"), 
-	//	//	_T(""), wxICON_ERROR);
+	//	//	_T(""), wxICON_ERROR | wxOK);
 	//	//wxASSERT(FALSE);
 	//	return;
 	//}
@@ -635,7 +637,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 	//	m_strCurrentLanguage = m_strCurrentLanguage.Mid(0,posn);
 	//	wxString msg;
 	//	msg = msg.Format(_(" The %s localization is not available on this computer. You may need to enable the language in your operating system. Adapt It will continue to use its default language interface."),m_strCurrentLanguage.c_str());
-	//	wxMessageBox(msg,_T(""),wxICON_WARNING);
+	//	wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 	//	// highlight the default list choice since the current choice didn't work
 	//	pListBox->SetSelection(0);
 	//	return; // go back to the dialog in case the user wants to select a different language
@@ -767,7 +769,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 			{
 				wxString msg = _T("Initialization of the new locale and use of localization files for %s failed.");
 				msg = msg.Format(msg,currLocInfo.curr_fullName.c_str());
-				wxMessageBox(msg,_T(""),wxICON_WARNING);
+				wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 
 				// remove the user defined language from the registry/hidden settings file by calling the App's
 				// RemoveUserDefinedanguageInfoStringFromConfig()

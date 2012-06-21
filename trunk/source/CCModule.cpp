@@ -859,9 +859,9 @@ void CCCModule::Process_msg(short nMsgIndex, wxString errStr, long unsigned lPar
 	wxString tempStr;
 	int MsgIcon;
 	if (errortable[nMsgIndex].msgWarnOrError == WARNING_MESSAGE)
-		MsgIcon = wxICON_WARNING;
+		MsgIcon = wxICON_EXCLAMATION | wxOK;
 	else
-		MsgIcon = wxICON_INFORMATION;
+		MsgIcon = wxICON_INFORMATION | wxOK;
 
     formatType = errortable[nMsgIndex].msgFormatType;
     switch (formatType)
@@ -3223,7 +3223,7 @@ int CCCModule::wfclose(WFILE * stream)
     free(stream);
     if (!bCloseOK)
     {
-        wxMessageBox(_("Error closing file"),_("Consistent Changes"), wxICON_ERROR);
+        wxMessageBox(_("Error closing file"),_("Consistent Changes"), wxICON_ERROR | wxOK);
         return EOF;
     }
     return 0;
@@ -6894,7 +6894,7 @@ int CCCModule::wfflush(WFILE * stream)
         nBytesWritten = stream->hfFile->Write(stream->Buffer + UNGETBUFFERSIZE, stream->iBufferEnd - UNGETBUFFERSIZE);
         if (nBytesWritten == -1)
         {
-            wxMessageBox(_T("Error flushing file"), _T("CC.DLL"), wxICON_ERROR); //MessageBox(NULL, "Error flushing file", "CC.DLL", MB_OK);
+            wxMessageBox(_T("Error flushing file"), _T("CC.DLL"), wxICON_ERROR | wxOK); //MessageBox(NULL, "Error flushing file", "CC.DLL", MB_OK);
             return EOF;
         }
     }

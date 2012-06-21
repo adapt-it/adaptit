@@ -79,10 +79,14 @@
 extern TextType gPropagationType; // needed for the MurderDocV4Orphans() function
 extern bool gbPropagationNeeded; // ditto
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
-extern const wxChar* filterMkr; // defined in the Doc
-extern const wxChar* filterMkrEnd; // defined in the Doc
-const int filterMkrLen = 8;
-const int filterMkrEndLen = 9;
+
+// whm modified type declaration of filterMkr and filterMkrEnd below to agree with the
+// declaration in Adapt_ItDoc.cpp
+extern wxString filterMkr; //extern const wxChar* filterMkr; // defined in the Doc
+extern wxString filterMkrEnd; //extern const wxChar* filterMkrEnd; // defined in the Doc
+
+int filterMkrLen = 8; // whm 9Jun12 removed const from declaration in Adapt_ItDoc.cpp
+int filterMkrEndLen = 9; // whm 9Jun12 removed const from declaration in Adapt_ItDoc.cpp
 
 #ifdef _UNICODE
 static unsigned char szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
@@ -536,7 +540,7 @@ void ReplaceEntities(CBString& s)
 		wxString msg2 = _("\nYou should not use this non-Unicode version of Adapt It.\nYour data should first be converted to Unicode using TecKit\nand then you should use the Unicode version of Adapt It.");
 		wxString msg1 = _("Extended 8-bit ASCII characters were detected in your\ndata files (see below):");
 		msg1 += hackedStr + msg2;
-		wxMessageBox(msg1,_("Warning: Invalid Characters Detected"),wxICON_WARNING);
+		wxMessageBox(msg1,_("Warning: Invalid Characters Detected"),wxICON_EXCLAMATION | wxOK);
 	}
 #endif
 #endif
@@ -919,7 +923,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 	if (pBuff == NULL)
 	{
 		// IDS_BUFFER_ALLOC_ERR
-		wxMessageBox(_("Failed to allocate a buffer for parsing in the XML document's data"), _T(""), wxICON_WARNING);
+		wxMessageBox(_("Failed to allocate a buffer for parsing in the XML document's data"), _T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
 	memset(pBuff,0,BUFFSIZE); // assume no error
@@ -1113,7 +1117,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 			wxString errStr;
 			// IDS_UTF16_BOM_PRESENT
 			errStr = errStr.Format(_("The XML file (%s) being loaded begins with a UTF-16 BOM (Byte Order Mark), so it is not UTF-8 data. Maybe you edited the file in a word processor and did not specify UTF-8 output. Please do that then try opening the document again."), path1.c_str());
-			wxMessageBox(errStr,_T(""), wxICON_WARNING);
+			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 			//close the stream before returning
 			file.Close();
 			delete[] pBuff;
@@ -2288,7 +2292,8 @@ bool AtPROFILEEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			// the user profile item is not one that an administrator can change, so
 			// we don't add it to the m_pUserProfiles.profileItemList, but instead
 			// we must delete it from the heap.
-			delete gpUserProfileItem;
+			if (gpUserProfileItem != NULL) // whm 11Jun12 added NULL test
+				delete gpUserProfileItem;
 		}
 		else
 		{
@@ -2895,7 +2900,8 @@ bool AtSFMEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		{
 			// the marker is neither usfm nor png and therefore not stored in
 			// any of the three possible maps, so we must delete it
-			delete gpUsfmAnalysis;
+			if (gpUsfmAnalysis != NULL) // whm 11Jun12 added NULL test
+				delete gpUsfmAnalysis;
 		}
 		else
 		{
@@ -5582,7 +5588,8 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			// it here to avoid a memory leak
 			//gpTU->DeleteTargetUnit(gpTU);
 			gpTU->DeleteTargetUnitContents();
-			delete gpTU;
+			if (gpTU != NULL) // whm 11Jun12 added NULL test
+				delete gpTU;
 			gpTU = (CTargetUnit*)NULL;
 
 			if (gpRefStr != NULL)
@@ -6555,7 +6562,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 						wxString str;
 						str = str.Format(_T(
 "Error. Adapt It is trying either to load a glossing knowledge base as if it was an adapting one, or an adapting one as if it was a glossing one. Either way, this must not happen so the load operation will now be aborted."));
-						wxMessageBox(str, _T("Bad LoadKB() or bad LoadGlossingKB() call"), wxICON_ERROR);
+						wxMessageBox(str, _T("Bad LoadKB() or bad LoadGlossingKB() call"), wxICON_ERROR | wxOK);
 						return FALSE;
 					}
 				}
@@ -6744,7 +6751,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 						wxString str;
 						str = str.Format(_T(
 "Error. Adapt It is trying either to load a glossing knowledge base as if it was an adapting one, or an adapting one as if it was a glossing one. Either way, this must not happen so the load operation will now be aborted."));
-						wxMessageBox(str, _T("Bad LoadKB() or bad LoadGlossingKB() call"), wxICON_ERROR);
+						wxMessageBox(str, _T("Bad LoadKB() or bad LoadGlossingKB() call"), wxICON_ERROR | wxOK);
 						return FALSE;
 					}
 				}
@@ -7118,7 +7125,7 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 	{
 		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Undeletions %d");
 		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nUndeletions);
-		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
+		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
 	}
 	return bXMLok;
 }	
@@ -7330,7 +7337,9 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 						// starts with the inline binding beginmarker
 						mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
 						wxString mkrPlusSpace = mkr2 + aSpace;
-						if (pDoc->IsMarker(&mkr2[0]) && 
+						// whm modified 13May12 to use the override of IsMarker() that takes wxString
+						//if (pDoc->IsMarker(&mkr2[0]) && 
+						if (pDoc->IsMarker(mkr2) && 
 							gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
 						{
 							wxString precPuncts = pSrcPhrase->m_precPunct;
@@ -7378,7 +7387,9 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 							// the inline binding beginmarker
 							mkr2 = pDoc->GetWholeMarker(pFollSrcPhrase->GetInlineBindingMarkers());
 							wxString mkrPlusSpace = mkr2 + aSpace;
-							if (pDoc->IsMarker(&mkr2[0]) && 
+							// whm modified 13May12 to use the override of IsMarker() that takes wxString
+							//if (pDoc->IsMarker(&mkr2[0]) && 
+							if (pDoc->IsMarker(mkr2) && 
 								gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND)
 							{
 								wxString precPuncts = pSrcPhrase->m_precPunct;
@@ -8314,7 +8325,8 @@ bool GetLIFTlanguageCodes(CAdapt_ItApp* pApp, wxString& path, wxString& srcLangC
 		// make a CBString with a copy of the buffer contents (however
 		// many we actually got, that is, actualNumBytes worth)
 		CBString xmlStr(pBuff); // xmlStr will now manage the copied byte data
-		delete pBuff; // temp buff is no longer needed
+		if (pBuff != NULL) // whm 11Jun12 added NULL test
+			delete pBuff; // temp buff is no longer needed
 
 		// first task is to find if we are dealing with <gloss> only, <definition> 
 		// only, or a file which has both those kinds of elements; and how many of

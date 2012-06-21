@@ -336,7 +336,7 @@ void CWhichFilesDlg::OnOK(wxCommandEvent& event)
 	if (count == 0)
 	{
 		// IDS_NO_DOCS_ERR
-		wxMessageBox(_("Sorry, the left list must not be empty. Doing that makes it impossible to restore the knowledge base."),_T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, the left list must not be empty. Doing that makes it impossible to restore the knowledge base."),_T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 	// We don't need to use a validator to transfer data since below we

@@ -41,6 +41,14 @@
 
 #include "scrollingwizard.h" // #include "uiutils/scrollingwizard.h"
 
+// whm 14Jun12 modified to use wxWizard for wxWidgets 2.9.x and later; wxScrollingWizard for pre-2.9.x
+// Note: This conditional compile directive must follow the #include "scrollingwizard.h" statement
+// above.
+#if wxCHECK_VERSION(2,9,0)
+// For wxWidgets 2.9.x and later do not compile this file into project, because
+// the scrolling wizard functionality is built-in to the main wxWidgets library.
+#else
+
 // ----------------------------------------------------------------------------
 // event tables and such
 // ----------------------------------------------------------------------------
@@ -960,3 +968,5 @@ bool wxScrollingWizard::TileBitmap(const wxRect& rect, wxDC& dc, const wxBitmap&
 }
 
 #endif // wxUSE_WIZARDDLG
+
+#endif // #if wxCHECK_VERSION(2,9,0)

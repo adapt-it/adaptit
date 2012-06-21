@@ -1076,7 +1076,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		if( !f.Open( pathName, wxFile::read))
 		{
 			wxMessageBox(_("Unable to open import file for reading."),
-		  _T(""), wxICON_WARNING);
+		  _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
 			if (pProgDlg != NULL)
 			{
@@ -1450,7 +1450,9 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 								{
 									// it remains a deleted entry, or undeleted, as the
 									// case may be
-									if (delStr.GetChar(0) == _T('1'))
+									// whm 11Jun12 added !delStr.IsEmpty() && to test below. GetChar(0)
+									// should not be called on an empty string.
+									if (!delStr.IsEmpty() && delStr.GetChar(0) == _T('1'))
 									{
 										nDelItems++; // count deletions that remain deletions
 										pRefStr->m_bDeleted = TRUE;
@@ -1598,7 +1600,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		// provide the user with a statistics summary
 		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
 		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
-		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION);
+		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(msg);
 	} // end importing from an SFM text file
 }
@@ -1883,7 +1885,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						langStr += _("target language code");
 					}
 					message = message.Format(_("You did not enter a language code for the following language(s):\n\n%s\n\nLIFT XML Export requires 3-letter language codes.\nDo you want to try again?"),langStr.c_str());
-					int response = wxMessageBox(message, _("Language code(s) missing"), wxYES_NO | wxICON_WARNING);
+					int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					if (response == wxNO)
 					{
 						// user wants to abort 
@@ -1963,7 +1965,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	{
 		wxString message;
 		message = message.Format(_("Deleted entries are kept in the knowledge base but are hidden. Do you want these included in the export?\n(Click No only if you intend to later import the data to a legacy version of Adapt It, otherwise click Yes.)"));
-		int result = wxMessageBox(message,_("How should deleted entries be handled?"), wxYES_NO | wxICON_QUESTION);
+		int result = wxMessageBox(message,_("How should deleted entries be handled?"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		if (result == wxNO)
 		{
 			bSuppressDeletionsInSFMexport = TRUE;
@@ -2007,7 +2009,8 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				{
 					m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
 														// invalid association
-					delete pTU; // its memory chunk is freed (don't leak memory)
+					if (pTU != NULL) // whm 11Jun12 added NULL test
+						delete pTU; // its memory chunk is freed (don't leak memory)
 					continue;
 				}
 				else
@@ -2556,9 +2559,10 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 			str = str.Format(_T(
 "Error (non fatal): did not find an entry for the key:  %s  in the map with index %d\n"),
 			pK->key.c_str(), pK->count - 1);
-			wxMessageBox(str, _T(""), wxICON_EXCLAMATION);
+			wxMessageBox(str, _T(""), wxICON_EXCLAMATION | wxOK);
 		}
-		delete pK; // no longer needed, so ensure we don't leak memory
+		if (pK != NULL) // whm 11Jun12 added NULL test
+			delete pK; // no longer needed, so ensure we don't leak memory
 		pK = (KeyPlusCount*)NULL;
 
 		node = node->GetNext();
@@ -2733,7 +2737,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		m_pApp->m_bForceAsk = FALSE; // make sure it is now turned off
 		wxMessageBox(_(
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
-		, _T(""), wxICON_INFORMATION);
+		, _T(""), wxICON_INFORMATION | wxOK);
 		gbMatchedKB_UCentry = FALSE;
 		return TRUE;
 	}
@@ -3350,7 +3354,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pSrcPhrase->m_bHasKBEntry = FALSE;
 		wxMessageBox(_(
 "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
-		_T(""),wxICON_INFORMATION);
+		_T(""),wxICON_INFORMATION | wxOK);
 		gbMatchedKB_UCentry = FALSE;
 		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
 		return TRUE;
@@ -3468,7 +3472,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// empty m_translations list
 			wxMessageBox(_T(
 "Warning: the current storage operation has been skipped, and a bad storage element has been deleted."),
-			_T(""), wxICON_WARNING);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 
 			if (pTU != NULL)
 			{
@@ -4853,7 +4857,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		if (!bSavedOK)
 		{
 			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
-							_T(""), wxICON_INFORMATION);
+							_T(""), wxICON_INFORMATION | wxOK);
 			m_pApp->LogUserAction(_T("Warning: something went wrong doing a save of the KB"));
 		}
 	}
@@ -4889,7 +4893,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		msg = msg.Format(_(
 "Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),
 		logName.c_str());
-		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
+		wxMessageBox(msg,_T(""), wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(msg);
 	}
 	// whm Note: the pProgDlg->Destroy() is done back in the caller function OnFileRestoreKb() on the App

@@ -203,7 +203,10 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// whm modified conditional test below to include && !__WXGTK__ after finding that
 	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
 	// link errors for "undefined reference wxGCDC::...
-#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__
+	// whm 9Jun12 added && !__WXMSW__ to the following conditional code, because the
+	// wxWidgets 2.9.3 apparently does not have wxGCDC defined for Windows
+	// TODO: Test
+#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__ && !__WXMSW__
      wxGCDC gdc( paintDC ) ;
     wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
 #else
@@ -1107,7 +1110,7 @@ x:					CCell* pCell = 0;
 					// IDS_CLICK_IN_GRAY_ILLEGAL
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_WARNING);
+					_T(""), wxICON_EXCLAMATION | wxOK);
 					pApp->m_pTargetBox->SetFocus();
 					return;
 				}
@@ -1120,7 +1123,7 @@ x:					CCell* pCell = 0;
 					// IDS_CLICK_IN_GRAY_ILLEGAL
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_WARNING);
+					_T(""), wxICON_EXCLAMATION | wxOK);
 					pApp->m_pTargetBox->SetFocus();
 					return;
 				}
@@ -1134,7 +1137,7 @@ x:					CCell* pCell = 0;
 					// IDS_CLICK_IN_GRAY_ILLEGAL
 					wxMessageBox(_(
 	"Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_WARNING);
+					_T(""), wxICON_EXCLAMATION | wxOK);
 					pApp->m_pTargetBox->SetFocus();
 					return;
 				}
@@ -1243,7 +1246,7 @@ x:					CCell* pCell = 0;
 										// IDS_CANNOT_EXTEND_FWD
 										wxMessageBox(_(
 	"Sorry, but the application will not allow you to extend a selection forwards across any punctuation unless you use a technique for ignoring a boundary as well."),
-										_T(""), wxICON_INFORMATION);
+										_T(""), wxICON_INFORMATION | wxOK);
 										event.Skip();
 										return;
 									}
@@ -1366,7 +1369,7 @@ x:					CCell* pCell = 0;
 										// IDS_CANNOT_EXTEND_BACK
 										wxMessageBox(_(
 	"Sorry, it is not possible to extend the selection backwards at this location unless you use one of the methods for ignoring a boundary."),
-										_T(""), wxICON_INFORMATION);
+										_T(""), wxICON_INFORMATION | wxOK);
 										event.Skip();
 										return;
 									}
@@ -1498,7 +1501,7 @@ x:					CCell* pCell = 0;
 							::wxBell(); // a ding here might help too
 							wxMessageBox(_(
 	"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
-							wxICON_INFORMATION);
+							wxICON_INFORMATION | wxOK);
 							// put the focus back in the former place
 							if (pApp->m_pTargetBox != NULL)
 								if (pApp->m_pTargetBox->IsShown())
@@ -1862,7 +1865,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 			// IDS_DIFF_TEXT_TYPE
 			wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			pView->RemoveSelection();
 			Refresh(); //Invalidate();  but no phrase box redraw here
 			goto a;
@@ -2011,7 +2014,8 @@ void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
   {
     if (currentSegment->lines.Number() == 0)
     {
-      delete currentSegment;
+		if (currentSegment != NULL) // whm 11Jun12 added NULL test
+	      delete currentSegment;
       currentSegment = (DoodleSegment *) NULL;
     }
     else

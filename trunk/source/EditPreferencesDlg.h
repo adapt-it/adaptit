@@ -13,7 +13,7 @@
 /// maintained by wxDesigner. The notebook contains up to 8 tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", and
 /// "USFM and Filtering" depending on the current user workflow profile selected.
-/// \derivation		The CEditPreferencesDlg class is derived from wxScrollingPropertySheetDialog.
+/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef EditPreferencesDlg_h
@@ -33,7 +33,7 @@ class CViewPage;
 class CAutoSavingPage;
 class CUnitsPage;
 class CUsfmFilterPagePrefs;
-class wxScrollingPropertySheetDialog;
+class wxPropertySheetDialog;
 
 /// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
 /// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
@@ -41,8 +41,9 @@ class wxScrollingPropertySheetDialog;
 /// maintained by wxDesigner. The notebook contains up to 8 tabs labeled "Fonts", 
 /// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
 /// "USFM and Filtering" depending on the current user workflow profile selected.
-/// \derivation		The CEditPreferencesDlg class is derived from wxScrollingPropertySheetDialog.
-class CEditPreferencesDlg : public wxScrollingPropertySheetDialog
+/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
+// whm 8Jun12 changed wxScrollingPropertySheetDialog back to wxPropertySheetDialog
+class CEditPreferencesDlg : public wxPropertySheetDialog
 {
 	//DECLARE_DYNAMIC_CLASS(CEditPreferencesDlg)
 public:

@@ -33,6 +33,13 @@
 #include <wx/dir.h>
 #include <wx/textfile.h>
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
+#include <wx/progdlg.h>
+
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
@@ -56,7 +63,6 @@
 #include "helpers.h"
 #include "tellenc.h"	// needed for check_ucs_bom() in MoveTextToFolderAndSave()
 #include "md5.h"
-#include <wx/progdlg.h>
 #include "CollabUtilities.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -614,7 +620,9 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 				wxString chNumStr;
 				chNumStr.Empty();
 				chNumStr << chNumArray.Item(ct);
-				while (chNumStr.GetChar(0) == _T('0') && chNumStr.Length() > 1)
+				// whm 11Jun12 added to the while test below !chNumStr.IsEmpty()) && to ensure that 
+				// GetChar(0) is not called on an empty string
+				while (!chNumStr.IsEmpty() && chNumStr.GetChar(0) == _T('0') && chNumStr.Length() > 1)
 					chNumStr.Remove(0,1);
 				wxString pathToChapterDataFolder = pathToBookFolder + gpApp->PathSeparator + chNumStr + gpApp->PathSeparator + dataFolder;
 				bool bOK;
@@ -624,7 +632,8 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 					wxString msg = _T("A Bibledit data folder was not found at:\n%s");
 					msg = msg.Format(msg,pathToChapterDataFolder.c_str());
 					errors.Add(msg);
-					delete pTempFile;
+					if (pTempFile != NULL) // whm 11Jun12 added NULL test
+						delete pTempFile;
 					pTempFile = (wxFile*)NULL;
 					return FALSE;
 				}
@@ -636,7 +645,8 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 					wxString msg = _T("Unable to write to temporary file at:\n%s");
 					msg = msg.Format(msg,tempFilePathName.c_str());
 					errors.Add(msg);
-					delete pTempFile;
+					if (pTempFile != NULL) // whm 11Jun12 added NULL test
+						delete pTempFile;
 					pTempFile = (wxFile*)NULL;
 					return FALSE;
 				}
@@ -649,7 +659,8 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 			wxString msg = _T("Unable to open book directory at:\n%s");
 			msg = msg.Format(msg,pathToBookFolder.c_str());
 			errors.Add(msg);
-			delete pTempFile;
+			if (pTempFile != NULL) // whm 11Jun12 added NULL test
+				delete pTempFile;
 			pTempFile = (wxFile*)NULL;
 			return FALSE;
 		}
@@ -668,7 +679,8 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 			wxString msg = _T("A Bibledit data folder was not found at:\n%s");
 			msg = msg.Format(msg,pathToChapterDataFolder.c_str());
 			errors.Add(msg);
-			delete pTempFile;
+			if (pTempFile != NULL) // whm 11Jun12 added NULL test
+				delete pTempFile;
 			pTempFile = (wxFile*)NULL;
 			return FALSE;
 		}
@@ -680,12 +692,14 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 			wxString msg = _T("Unable to write to temporary file at:\n%s");
 			msg = msg.Format(msg,tempFilePathName.c_str());
 			errors.Add(msg);
-			delete pTempFile;
+			if (pTempFile != NULL) // whm 11Jun12 added NULL test
+				delete pTempFile;
 			pTempFile = (wxFile*)NULL;
 			return FALSE;
 		}
 	}
-	delete pTempFile;
+	if (pTempFile != NULL) // whm 11Jun12 added NULL test
+		delete pTempFile;
 	pTempFile = (wxFile*)NULL;
 	return TRUE;
 }
@@ -931,7 +945,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	if (pApp->m_pKB != NULL)
 	{
 		// an English message will do here - it's a development error
-		wxMessageBox(_T("HookUpToExistingAIProject() failed. There is an adaptation KB still open."), _T("Error"), wxICON_ERROR);
+		wxMessageBox(_T("HookUpToExistingAIProject() failed. There is an adaptation KB still open."), _T("Error"), wxICON_ERROR | wxOK);
 		wxASSERT(pApp->m_pKB == NULL);
 		return FALSE;
 	}
@@ -943,7 +957,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	if (pApp->m_pGlossingKB != NULL)
 	{
 		// an English message will do here - it's a development error
-		wxMessageBox(_T("HookUpToExistingAIProject() failed. There is a glossing KB still open."), _T("Error"), wxICON_ERROR);
+		wxMessageBox(_T("HookUpToExistingAIProject() failed. There is a glossing KB still open."), _T("Error"), wxICON_ERROR | wxOK);
 		wxASSERT(pApp->m_pGlossingKB == NULL);
 		return FALSE;
 	}
@@ -1283,6 +1297,9 @@ bool MoveTextToTempFolderAndSave(enum DoFor textKind, wxString& theText, bool bA
 	wxUint32 littleENDIANutf16BOM = 0xFFFE;
 	// next line gives us the UTF16 BOM on a machine of either endianness
 	wxChar utf16BOM = (wxChar)wxUINT32_SWAP_ON_BE(littleENDIANutf16BOM);
+	// whm 11Jun12 the caller ensured that theText is not an empty string so just
+	// assert that fact
+	wxASSERT(!theText.IsEmpty());
 	wxChar firstChar = theText.GetChar(0);
 	if (firstChar == utf16BOM)
 	{
@@ -1669,7 +1686,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 				// allow the user to continue
 				s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
+				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
 			return TRUE; // return TRUE to allow the user another go at it
@@ -1815,7 +1832,8 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			}
 			pMergedList->Clear(); // doesn't try to delete the pointers' memory because
 								  // DeleteContents(TRUE) was not called beforehand
-			delete pMergedList; // don't leak memory
+			if (pMergedList != NULL) // whm 11Jun12 added NULL test
+				delete pMergedList; // don't leak memory
 
 			// Update for step 8 loop of DeleteSingleSrcPhrase(), etc.
 			msgDisplayed = progMsg.Format(progMsg,8,nTotal);
@@ -1831,7 +1849,8 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 				pDoc->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
 			}
 			pSourcePhrases->Clear();
-			delete pSourcePhrases; // don't leak memory
+			if (pSourcePhrases != NULL) // whm 11Jun12 added NULL test
+				delete pSourcePhrases; // don't leak memory
 
 		} // end of TRUE block for test: if (nHowMany > 0)
 	} // end of TRUE block for test: if (bDoMerger)
@@ -2640,7 +2659,7 @@ wxString GetPathToBeRdwrt()
 		wxFileName fn(beRdwrtPathAndFileName);
 		wxString msg = _("Adapt It cannot execute the helper application %s at the following location:\n\n%s\n\nPlease ensure that the current user has execute permissions for %s.\nFor more information see the Trouble Shooting topic in Help for Administrators (HTML) on the Help Menu.");
 		msg = msg.Format(msg,fn.GetFullName().c_str(), beRdwrtPathAndFileName.c_str(),fn.GetFullName().c_str());
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(msg);
 	}
 	return beRdwrtPathAndFileName;
@@ -3033,7 +3052,9 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 // else is wanted, use GetStrictUsfmMarkerFromStructExtentString() instead.
 wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str)
 {
-	wxASSERT(str.GetChar(0) == gSFescapechar);
+	// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
+	// called on an empty string
+	wxASSERT(!str.IsEmpty() && str.GetChar(0) == gSFescapechar);
 	int posColon = str.Find(_T(':'),FALSE);
 	wxASSERT(posColon != wxNOT_FOUND);
 	wxString tempStr = str.Mid(0,posColon);
@@ -3043,7 +3064,9 @@ wxString GetInitialUsfmMarkerFromStructExtentString(const wxString str)
 // use this to get just the marker
 wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str)
 {
-	wxASSERT(str.GetChar(0) == gSFescapechar);
+	// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
+	// called on an empty string
+	wxASSERT(!str.IsEmpty() && str.GetChar(0) == gSFescapechar);
 	int posColon = str.Find(_T(':'),FALSE);
 	wxASSERT(posColon != wxNOT_FOUND);
 	wxString tempStr = str.Mid(0,posColon);
@@ -3063,7 +3086,9 @@ wxString GetStrictUsfmMarkerFromStructExtentString(const wxString str)
 // get the substring for thee character count, and return it's base-10 value
 int GetCharCountFromStructExtentString(const wxString str)
 {
-	wxASSERT(str.GetChar(0) == gSFescapechar);
+	// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
+	// called on an empty string
+	wxASSERT(!str.IsEmpty() && str.GetChar(0) == gSFescapechar);
 	int posColon = str.Find(_T(':'),FALSE);
 	wxASSERT(posColon != wxNOT_FOUND);
 	wxString astr = str.Mid(posColon + 1);
@@ -3076,7 +3101,9 @@ int GetCharCountFromStructExtentString(const wxString str)
 
 wxString GetFinalMD5FromStructExtentString(const wxString str)
 {
-	wxASSERT(str.GetChar(0) == gSFescapechar);
+	// whm 11Jun12 added test !str.IsEmpty() && to ensure that GetChar(0) is not
+	// called on an empty string
+	wxASSERT(!str.IsEmpty() && str.GetChar(0) == gSFescapechar);
 	int posColon = str.Find(_T(':'),TRUE); // TRUE - find from right end
 	wxASSERT(posColon != wxNOT_FOUND);
 	wxString tempStr = str.Mid(posColon+1);
@@ -3717,7 +3744,7 @@ bool AnalyseChapterVerseRef_For_Collab(wxString& strChapVerse, wxString& strChap
 _T("The verse range was parsed, and the following remains unparsed: %s\nfrom the specification %s:%s%s%s%s%s%s"),
 							range.c_str(),strChapter.c_str(),strStartingVerse.c_str(),suffix1.c_str(),
 							strDelimiter.c_str(),strEndingVerse.c_str(),suffix2.c_str(),range.c_str());
-							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_WARNING);
+							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_EXCLAMATION | wxOK);
 						}
 					} //end of TRUE block for test: if (numChars > 0)
 				} // end of else block for test: if (count == numChars)
@@ -3778,6 +3805,7 @@ bool DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal)
 		range = range.Mid(count);
 		numChars = range.Len();
 		// if a part-verse marker (assume one of a or b or c only), get it
+		wxASSERT(!range.IsEmpty()); // whm 11Jun12 added. GetChar(0) should never be called on an empty string
 		aChar = range.GetChar(0);
 		if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
 		{
@@ -3880,6 +3908,7 @@ bool DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal)
 					if (numChars > 0)
 					{
 						// what remains should just be a final a or b or c
+						wxASSERT(!range.IsEmpty()); // whm 11Jun12 added. GetChar(0) should never be called on an empty string
 						aChar = range.GetChar(0);
 						if ( aChar == _T('a') || aChar == _T('b') || aChar == _T('c'))
 						{
@@ -3906,7 +3935,7 @@ bool DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal)
 _T("The verse range was parsed, and the following remains unparsed: %s\nfrom the specification %s:%s%s%s%s%s"),
 							range.c_str(),rVerseAnal.strStartingVerse.c_str(),suffix1.c_str(),
 							rVerseAnal.strDelimiter.c_str(),rVerseAnal.strEndingVerse.c_str(),suffix2.c_str(),range.c_str());
-							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_WARNING);
+							wxMessageBox(msg,_T("Verse range specification error (ignored)"),wxICON_EXCLAMATION | wxOK);
 						}
 					} //end of TRUE block for test: if (numChars > 0)
 				} // end of else block for test: if (count == numChars)
@@ -3933,7 +3962,7 @@ bool DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, siz
 	{
 		// don't expect the error, a message to developer will do
 		wxString msg = _T("DoVerseAnalysis(), for the passed in lineIndex, the string returned does not start with a verse marker.\nFALSE will be returned - the logic will be wrong hereafter so exit without saving as soon as possible.");
-		wxMessageBox(msg,_T(""),wxICON_ERROR);
+		wxMessageBox(msg,_T(""),wxICON_ERROR | wxOK);
 		InitializeVerseAnalysis(refVAnal);
 		return FALSE;
 
@@ -4633,7 +4662,8 @@ void DeleteAllVerseInfStructs(wxArrayPtrVoid& arr)
 	for (i=0; i<count; i++)
 	{
 		VerseInf* pVI = (VerseInf*)arr.Item(i);
-		delete pVI;
+		if (pVI != NULL) // whm 11Jun12 added NULL test
+			delete pVI;
 	}
 }
 
@@ -5308,7 +5338,8 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 	for (index = 0; index < count; index++)
 	{
 		pStruct = (MD5Map*)structsArr.Item(index);
-		delete pStruct;
+		if (pStruct != NULL) // whm 11Jun12 added NULL test
+			delete pStruct;
 	}
 	structsArr.Clear();
 }

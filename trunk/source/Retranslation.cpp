@@ -209,7 +209,7 @@ void CRetranslation::DoRetranslation()
 	// IDS_TOO_MANY_SRC_WORDS
 	wxMessageBox(_(
 				   "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
-				 _T(""), wxICON_INFORMATION);
+				 _T(""), wxICON_INFORMATION | wxOK);
 	
 	OnButtonRetranslation(dummyevent);
 }
@@ -550,7 +550,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			{
 				wxString str;
 				str = str.Format(_T("Bad file:  %s"),newName.c_str());
-				wxMessageBox(str,_T(""),wxICON_WARNING);
+				wxMessageBox(str,_T(""),wxICON_EXCLAMATION | wxOK);
 				// whm Note: Even though this error should not happen but rarely, it 
 				// shouldn't result in the entire application stopping!
 				return;
@@ -1127,20 +1127,25 @@ void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 			if (pSP != NULL)
 			{
 				// don't want memory leaks
-				delete pSP->m_pMedialMarkers;
+				if (pSP->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+					delete pSP->m_pMedialMarkers;
 				pSP->m_pMedialMarkers = (wxArrayString*)NULL;
-				delete pSP->m_pMedialPuncts;
+				if (pSP->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+					delete pSP->m_pMedialPuncts;
 				pSP->m_pMedialPuncts = (wxArrayString*)NULL;
 				pSP->m_pSavedWords->Clear(); // remove pointers only
-				delete pSP->m_pSavedWords;
+				if (pSP->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+					delete pSP->m_pSavedWords;
 				pSP->m_pSavedWords = (SPList*)NULL;
-				delete pSP;
+				if (pSP != NULL) // whm 11Jun12 added NULL test
+					delete pSP;
 				pSP = (CSourcePhrase*)NULL;
 			}
 		}
 		pSaveList->Clear();
 	}
-	delete pSaveList; // don't leak memory
+	if (pSaveList != NULL) // whm 11Jun12 added NULL test
+		delete pSaveList; // don't leak memory
 	pSaveList = (SPList*)NULL;
 }
 
@@ -1210,15 +1215,19 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 #ifdef _NEW_LAYOUT
 			pDoc->DeletePartnerPile(pDummySrcPhrase);
 #endif
-			delete pDummySrcPhrase->m_pSavedWords;
+			if (pDummySrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pSavedWords;
 			pDummySrcPhrase->m_pSavedWords = (SPList*)NULL;
-			delete pDummySrcPhrase->m_pMedialMarkers;
+			if (pDummySrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pMedialMarkers;
 			pDummySrcPhrase->m_pMedialMarkers = (wxArrayString*)NULL;
-			delete pDummySrcPhrase->m_pMedialPuncts;
+			if (pDummySrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase->m_pMedialPuncts;
 			pDummySrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
 			SPList::Node *pLast = pSrcPhrases->GetLast();
 			pSrcPhrases->DeleteNode(pLast);
-			delete pDummySrcPhrase;
+			if (pDummySrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pDummySrcPhrase;
 			
 			// get another valid layout
 			m_pApp->m_nActiveSequNum = nSaveActiveSN; // restore original location
@@ -1299,7 +1308,7 @@ void CRetranslation::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, i
 				// never had a problem here, so this message can stay in English
 				wxMessageBox(_T(
 				"Warning: redoing the StoreText operation failed in OnButtonRetranslation\n"),
-				_T(""), wxICON_EXCLAMATION);
+				_T(""), wxICON_EXCLAMATION | wxOK);
 			}
 		}
 	}
@@ -1313,7 +1322,7 @@ bool CRetranslation::IsConstantType(SPList* pList)
 	{
 		wxMessageBox(_T(
 		"Error accessing sublist in IsConstantType function\n"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		return FALSE;
 	}
@@ -1404,14 +1413,16 @@ void CRetranslation::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* p
 			{
 				pSrcPhrase->m_pMedialMarkers->Clear(); // can clear the strings safely
 			}
-			delete pSrcPhrase->m_pMedialMarkers;
+			if (pSrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pMedialMarkers;
 			pSrcPhrase->m_pMedialMarkers = (wxArrayString*)NULL;
 			
 			if (pSrcPhrase->m_pMedialPuncts->GetCount() > 0)
 			{
 				pSrcPhrase->m_pMedialPuncts->Clear(); // can clear the strings safely
 			}
-			delete pSrcPhrase->m_pMedialPuncts;
+			if (pSrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pMedialPuncts;
 			pSrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
 			
 			// don't delete any saved CSourcePhrase instances forming a phrase (and these
@@ -1422,11 +1433,13 @@ void CRetranslation::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* p
 			{
 				pSrcPhrase->m_pSavedWords->Clear(); // just remove the pointers
 			}
-			delete pSrcPhrase->m_pSavedWords;		// and delete the list from the heap
+			if (pSrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pSavedWords;		// and delete the list from the heap
 			pSrcPhrase->m_pSavedWords = (SPList*)NULL;
 			
 			// finally delete the source phrase copy itself
-			delete pSrcPhrase;
+			if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase;
 			pSrcPhrase = (CSourcePhrase*)NULL;
 			
 			// remove its pointer from the list
@@ -1702,7 +1715,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
-					 _T(""), wxICON_INFORMATION);
+					 _T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 
@@ -1772,7 +1785,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 					   "Sorry, for a retranslation your selection must not include all the document contents - otherwise there would be no possible place for the phrase box afterwards. Shorten the selection then try again."),
-					 _T(""),wxICON_INFORMATION);
+					 _T(""),wxICON_INFORMATION | wxOK);
 		return;
 	}
 	
@@ -1799,9 +1812,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 "Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		m_pView->RemoveSelection();
-		delete pList; // BEW 3Oct11: beware, don't try deleting the ptrs in pList, 
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList; // BEW 3Oct11: beware, don't try deleting the ptrs in pList, 
 					  // they are shallow copies of some of those in m_pSourcePhrases, 
 					  // and so deleting them would destroy part of the document;
 					  // similarly in other places below in this function
@@ -1819,9 +1833,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	{
 		wxMessageBox(_(
 "Sorry, but this operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
-		delete pList;
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
 		pList = (SPList*)NULL;
 		m_pView->RemoveSelection();
 		m_pApp->m_pTargetBox->SetFocus();
@@ -2184,7 +2199,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 				// IDS_ALL_RETRANSLATIONS
 				wxMessageBox(_(
 "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."),
-				_T(""), wxICON_EXCLAMATION);
+				_T(""), wxICON_EXCLAMATION | wxOK);
                 // BEW changed 19Mar09 for refactored layout, to comment out & so allow the
                 // phrase box to be shown at the last pile of the document whether there's
                 // a retranslation there or not, if no other safe location is found
@@ -2285,14 +2300,16 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		{
 			pSaveList->Clear();
 		}
-		delete pSaveList; // don't leak memory
+		if (pSaveList != NULL) // whm 11Jun12 added NULL test
+			delete pSaveList; // don't leak memory
 		pSaveList = (SPList*)NULL;
 	}
 	
 	// delete the temporary list after removing its pointer copies (copy constructor was not
 	// used on this list, so removal of pointers is sufficient)
 	pList->Clear();
-	delete pList;
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
 	pList = (SPList*)NULL;
 	
 	// recalculate the layout
@@ -2405,7 +2422,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
-					 _T(""), wxICON_INFORMATION);
+					 _T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 	SPList* pList = new SPList; // list of the CSourcePhrase objects in the retranslation section
@@ -2436,9 +2453,10 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 				//IDS_NO_REMOVE_RETRANS
 			h:				wxMessageBox(_(
 										   "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."),
-										 _T(""), wxICON_EXCLAMATION);
+										 _T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
-				delete pList;
+				if (pList != NULL) // whm 11Jun12 added NULL test
+					delete pList;
 				m_pView->Invalidate();
 				m_pLayout->PlaceBox();
 				return;
@@ -2666,7 +2684,8 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
 			m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
 			
-			delete pSrcPhrase; // delete the null source phrase itself
+			if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase; // delete the null source phrase itself
 			pList->DeleteNode(savePos); // also remove its pointer from the local sublist
 			
 			nCount -= 1; // since there is one less source phrase in the selection now
@@ -2831,7 +2850,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 				// IDS_ALL_RETRANSLATIONS
 				wxMessageBox(_(
 							   "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."),
-							 _T(""), wxICON_EXCLAMATION);
+							 _T(""), wxICON_EXCLAMATION | wxOK);
                 // BEW changed 19Mar09 for refactored layout, to comment out & so allow the
                 // phrase box to be shown at the last pile of the document whether there's
                 // a retranslation there or not
@@ -2972,12 +2991,14 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		{
 			pSaveList->Clear();
 		}
-		delete pSaveList; // don't leak memory
+		if (pSaveList != NULL) // whm 11Jun12 added NULL test
+			delete pSaveList; // don't leak memory
 	}
 	
 	// delete the temporary list after removing its pointer copies
 	pList->Clear();
-	delete pList;
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
 	
     // recalculate the layout from the first strip in the selection, 
     // to force the text to change color
@@ -3208,11 +3229,15 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 			wxASSERT(pos1 != NULL); // it has to be there
 			pSrcPhrases->DeleteNode(pos1); // remove its pointer from the passed in pSPList
 			
-			delete pSrcPhrase->m_pMedialPuncts;
-			delete pSrcPhrase->m_pMedialMarkers;
+			if (pSrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pMedialPuncts;
+			if (pSrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pMedialMarkers;
 			pSrcPhrase->m_pSavedWords->Clear();
-			delete pSrcPhrase->m_pSavedWords;
-			delete pSrcPhrase; // delete the null source phrase itself
+			if (pSrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pSavedWords;
+			if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase; // delete the null source phrase itself
 			pList->DeleteNode(savePos); // also remove its pointer from the local sublist
 		}
 		else
@@ -3280,7 +3305,8 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 	
 	// remove from the heap the temporary pList
 	pList->Clear();
-	delete pList;
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
 }
 
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
@@ -3293,7 +3319,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	{
 		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_("This particular operation is not available when you are glossing."),
-					 _T(""), wxICON_INFORMATION);
+					 _T(""), wxICON_INFORMATION | wxOK);
 		return;
 	}
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
@@ -3323,9 +3349,10 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 				// IDS_NO_REMOVE_RETRANS
 			h:				wxMessageBox(_(
 										   "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."), 
-										 _T(""), wxICON_EXCLAMATION);
+										 _T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
-				delete pList;
+				if (pList != NULL) // whm 11Jun12 added NULL test
+					delete pList;
 				m_pView->Invalidate();
 				m_pLayout->PlaceBox();
 				return;
@@ -3531,11 +3558,15 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
 			m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
 			
-			delete pSrcPhrase->m_pMedialPuncts;
-			delete pSrcPhrase->m_pMedialMarkers;
+			if (pSrcPhrase->m_pMedialPuncts != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pMedialPuncts;
+			if (pSrcPhrase->m_pMedialMarkers != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pMedialMarkers;
 			pSrcPhrase->m_pSavedWords->Clear();
-			delete pSrcPhrase->m_pSavedWords;
-			delete pSrcPhrase; // delete the null source phrase itself
+			if (pSrcPhrase->m_pSavedWords != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase->m_pSavedWords;
+			if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
+				delete pSrcPhrase; // delete the null source phrase itself
 			pList->DeleteNode(savePos); // also remove its pointer from the local sublist
 		}
 		else
@@ -3656,7 +3687,8 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 	
 	pList->Clear();
-	delete pList;
+	if (pList != NULL) // whm 11Jun12 added NULL test
+		delete pList;
 	
 	m_pView->Invalidate();
 	m_pLayout->PlaceBox();
@@ -3680,7 +3712,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		// IDS_NOT_WHEN_GLOSSING
 		wxMessageBox(_(
 					   "This particular operation is not available when you are glossing."),
-					 _T(""),wxICON_INFORMATION);
+					 _T(""),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(_T("This particular operation is not available when you are glossing."));
 		return;
 	}
@@ -3727,7 +3759,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		//wxString msg = _("Collaborating: the retranslation report will be based on this open document only.");
 		//if (m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit)
 		//{
-		//	wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		//	wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 		//	m_pApp->LogUserAction(msg);
 		//}
 		//else
@@ -3738,7 +3770,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			// a "Yes" answer is a choice for reporting only for the current document,
 			// a "No" answer will close the current document, scans all docs, builds
 			// the report and then reopens the document with the box at its old location
-			answer = wxMessageBox(msg,_T(""),wxYES_NO);
+			answer = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 			if (answer == wxYES)
 			{
 				bThisDocOnly = TRUE;
@@ -3948,7 +3980,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			// something's real wrong!
 			wxMessageBox(_(
 "Could not save the current document. Retranslation Report command aborted.\nYou can try to continue working, but it would be safer to shut down and relaunch, even if you loose your unsaved edits."),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("Could not close and save the current document. Retranslation Report command aborted."));
 			if (bDocForcedToClose)
 			{
@@ -3985,7 +4017,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	{
 #ifdef __WXDEBUG__
 		wxLogError(_("Unable to open report file.\n")); 
-		wxMessageBox(_("Unable to open report file."),_T(""), wxICON_WARNING);
+		wxMessageBox(_("Unable to open report file."),_T(""), wxICON_EXCLAMATION | wxOK);
 #endif
         // whm added 05Jan07 to restore the former current working directory for safety
         // sake to what it was on entry, since there was a wxSetWorkingDirectory call made
@@ -4073,7 +4105,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				// nothing to work on, so abort the operation
 				wxMessageBox(_(
 "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."),
-							 _T(""),wxICON_EXCLAMATION);
+							 _T(""),wxICON_EXCLAMATION | wxOK);
                 // whm added 05Jan07 to restore the former current working directory for
                 // safety sake to what it was on entry, since the EnumerateDocFiles call
                 // made above changes the current working dir to the Adaptations folder
@@ -4116,7 +4148,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				s2 = _T(
 						"processing book folders, so the book folder document files contribute nothing.");
 				s3 = s3.Format(_T("%s%s"),s1.c_str(),s2.c_str());
-				wxMessageBox(s3,_T(""), wxICON_EXCLAMATION);
+				wxMessageBox(s3,_T(""), wxICON_EXCLAMATION | wxOK);
                 // whm added 05Jan07 to restore the former current working directory for
                 // safety sake to what it was on entry, since the wxSetWorkingDirectory
                 // call made above changes the current working dir to the Adaptations
@@ -4194,7 +4226,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 								errStr = errStr.Format(_T(
 			"Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 													   folderPath.c_str());
-								wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+								wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION | wxOK);
 								m_pApp->LogUserAction(errStr);
 								m_pApp->GetMainFrame()->canvas->Freeze();
 								continue;
@@ -4298,7 +4330,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 	wxString msg;
 	msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),reportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 	if (bDocForcedToClose)
 	{
 		bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,

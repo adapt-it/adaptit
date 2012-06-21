@@ -45,6 +45,11 @@
 #include <wx/wizard.h>
 #include "LanguagesPage.h"
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include "Adapt_It.h"
 #include "KB.h"
 #include "helpers.h"
@@ -305,7 +310,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		if (pSrcBox->GetValue().IsEmpty())
 		{
 			// IDS_NULL_SOURCE_NAME
-			wxMessageBox(_("Sorry, the source language name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Sorry, the source language name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			pSrcBox->SetFocus();
 			event.Veto();
 			return;
@@ -313,7 +318,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		if (pTgtBox->GetValue().IsEmpty())
 		{
 			// IDS_NULL_TARGET_NAME
-			wxMessageBox(_("Sorry, the target language name cannot be left blank."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Sorry, the target language name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			pTgtBox->SetFocus();
 			event.Veto();
 			return;

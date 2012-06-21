@@ -208,7 +208,7 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 		msg = msg.Format(_("%s is installed on this computer. If you intend for the user to collaborate with %s, you should turn ON that collaboration before you assign locations for inputs and outputs in the following dialog."),
 			collabEditor.c_str(),collabEditor.c_str());
 		titleMsg = titleMsg.Format(_("Set up %s collaboration before assigning locations for inputs and outputs"),collabEditor.c_str());
-		wxMessageBox(msg,titleMsg,wxICON_INFORMATION);
+		wxMessageBox(msg,titleMsg,wxICON_INFORMATION | wxOK);
 	}
 	*/
 }

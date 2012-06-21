@@ -135,19 +135,22 @@ KBEditSearch::~KBEditSearch() // destructor
 		// the m_pDummyMatchRecord is still on heap and will not have been
 		// used, so delete it here; but if there were no matches, then the
 		// next block below will delete it instead
-		delete m_pDummyMatchRecord;
+		if (m_pDummyMatchRecord != NULL) // whm 11Jun12 added NULL test
+			delete m_pDummyMatchRecord;
 	}
 	if (!m_pMatchRecordArray->IsEmpty())
 	{
 		for (index = 0; index < count; index++)
 		{
 			pMR = m_pMatchRecordArray->Item(index);
-			delete pMR;
+			if (pMR != NULL) // whm 11Jun12 added NULL test
+				delete pMR;
 		}
 	}
 	else
 
-	delete m_pMatchRecordArray;
+	if (m_pMatchRecordArray != NULL) // whm 11Jun12 added NULL test
+		delete m_pMatchRecordArray;
 
 	count = m_pUpdateRecordArray->GetCount();
 	KBUpdateRecord* pUR = NULL;
@@ -156,13 +159,16 @@ KBEditSearch::~KBEditSearch() // destructor
 		for (index = 0; index < count; index++)
 		{
 			pUR = m_pUpdateRecordArray->Item(index);
-			delete pUR;
+			if (pUR != NULL) // whm 11Jun12 added NULL test
+				delete pUR;
 		}
 	}
-	delete m_pUpdateRecordArray;
+	if (m_pUpdateRecordArray != NULL) // whm 11Jun12 added NULL test
+		delete m_pUpdateRecordArray;
 
 	m_pMatchStrArray->Clear();
-	delete m_pMatchStrArray;
+	if (m_pMatchStrArray != NULL) // whm 11Jun12 added NULL test
+		delete m_pMatchStrArray;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -536,7 +542,8 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 	for (subStrIndex = 0; subStrIndex < numSearchStrings; subStrIndex++)
 	{
 		wxArrayString* pSubStrArray = (wxArrayString*)arrSubStringSet.Item(subStrIndex);
-		delete pSubStrArray;
+		if (pSubStrArray != NULL) // whm 11Jun12 added NULL test
+			delete pSubStrArray;
 	}
 
 	if (m_pMatchRecordArray->IsEmpty())
@@ -791,7 +798,8 @@ void KBEditSearch::OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(e
 			m_nCurUpdateListIndex = (int)GetUpdateListIndexFromDataPtr(m_pCurKBUpdateRec);
 			m_pCurKBMatchRec->pUpdateRecord = NULL;
 			m_pUpdateListBox->Delete(m_nCurUpdateListIndex);
-			delete m_pCurKBUpdateRec;
+			if (m_pCurKBUpdateRec != NULL) // whm 11Jun12 added NULL test
+				delete m_pCurKBUpdateRec;
 			m_pCurKBUpdateRec = NULL;
 			m_pUpdateRecordArray->RemoveAt(m_nCurUpdateListIndex); // get rid of the entry
 										// in the sorted array of KBUpdateRecord pointers
@@ -1066,7 +1074,8 @@ void KBEditSearch::OnBnClickedRemoveUpdate(wxCommandEvent& WXUNUSED(event))
 		m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
 		m_pCurKBMatchRec->pUpdateRecord = NULL; // clear the pointer to the struct we are deleting 
 		m_pUpdateListBox->Delete(m_nCurUpdateListIndex); // delete the entry from the update list
-		delete m_pCurKBUpdateRec; // delete its struct too
+		if (m_pCurKBUpdateRec != NULL) // whm 11Jun12 added NULL test
+			delete m_pCurKBUpdateRec; // delete its struct too
 		m_pEditBox->ChangeValue(_T("")); // clear the edit box
 		m_pMatchListBox->Deselect(m_nCurMatchListIndex); // deselect the match list's item
 		// the above handles all the visible stuff, now clear out the relevant member variables

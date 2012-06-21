@@ -46,6 +46,11 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h>
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include "Adapt_It.h"
 #include "Pile.h"
 #include "Layout.h"
@@ -480,6 +485,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 			}
 			else
 			{
+				// whm 11Jun12 Note: the if block above ensures that m_srcPunctStr[index] is not empty here
 				pApp->m_punctPairs[index].charSrc = m_srcPunctStr[index].GetChar(0);
 			}
 			if (m_tgtPunctStr[index].IsEmpty())
@@ -488,6 +494,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 			}
 			else
 			{
+				// whm 11Jun12 Note: the if block above ensures that m_tgtPunctStr[index] is not empty here
 				pApp->m_punctPairs[index].charTgt = m_tgtPunctStr[index].GetChar(0);
 			}
 		}
@@ -504,6 +511,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 			else
 			{
 				// there is something in the pair to be dealt with, do src side
+				// whm 11Jun12 Note: the if block above ensures that m_srcTwoPunctStr[index] is not empty here
 				pApp->m_twopunctPairs[index].twocharSrc[0] = m_srcTwoPunctStr[index].GetChar(0);
 				if (m_srcTwoPunctStr[index].GetChar(1) == _T('\0'))
 				{
@@ -524,6 +532,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 				else
 				{
 					// target side has something
+					// whm 11Jun12 Note: the if block above ensures that m_tgtTwoPunctStr[index] is not empty here
 					pApp->m_twopunctPairs[index].twocharTgt[0] = m_tgtTwoPunctStr[index].GetChar(0);
 					if (m_tgtTwoPunctStr[index].GetChar(1) == _T('\0'))
 					{
@@ -559,7 +568,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 						// if an error, make this cell empty
 						pApp->m_punctPairs[index].charTgt = _T('\0');
 					else
-						pApp->m_punctPairs[index].charTgt = s.GetChar(0);
+						pApp->m_punctPairs[index].charTgt = s.GetChar(0); // whm 11Jun12 ok. s cannot be empty here
 				}
 			}
 			else
@@ -572,7 +581,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 				}
 				else
 				{
-					pApp->m_punctPairs[index].charSrc = s.GetChar(0);
+					pApp->m_punctPairs[index].charSrc = s.GetChar(0); // whm 11Jun12 ok. s cannot be empty here
 				}
 
 				// do the target one
@@ -587,7 +596,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 						// if an error, make this cell empty
 						pApp->m_punctPairs[index].charTgt = _T('\0');
 					else
-						pApp->m_punctPairs[index].charTgt = s.GetChar(0);
+						pApp->m_punctPairs[index].charTgt = s.GetChar(0); // whm 11Jun12 ok. s cannot be empty here
 				}
 			}
 		}
@@ -620,8 +629,12 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 				firstStr.Empty();
 				firstStr = UnMakeUNNNN(s1); // should check here, but I'll assume that anyone editing
 				secondStr.Empty();			// the U+nnnn value knows he should retain leading zeros
-				secondStr = UnMakeUNNNN(s2); 
-				pApp->m_twopunctPairs[index].twocharSrc[0] = firstStr.GetChar(0);
+				secondStr = UnMakeUNNNN(s2);
+				// whm 11Jun12 modified. The UnMakeUNNNN() function above will return an empty string
+				// if s1 is an empty string, so we need to protect the firstStr.GetChar(0) call below
+				if (!firstStr.IsEmpty())
+					pApp->m_twopunctPairs[index].twocharSrc[0] = firstStr.GetChar(0);
+				// when firstStr is empty just keep the _T('\0') char assigned to twocharSrc[0] above 
 				if (secondStr.IsEmpty())
 				{
 					pApp->m_twopunctPairs[index].twocharSrc[1] = _T('\0');
@@ -769,7 +782,14 @@ wxString CPunctCorrespPageCommon::MakeUNNNN(wxString& chStr)
 {
 	wxString prefix = _T(""); // some people said U+ makes the strings too wide, so leave
 							 // it off_T("U+");
-	wxChar theChar = chStr.GetChar(0);
+	// whm 11Jun12 Note: I think chStr will always have at least a value of T('\0'), so
+	// GetChar(0) won't ever be called on an empty string, but to be safe test for empty
+	// string.
+	wxChar theChar;
+	if (!chStr.IsEmpty())
+		theChar = chStr.GetChar(0);
+	else
+		theChar = _T('\0');
 	wxChar str[6] = {_T('\0'),_T('\0'),_T('\0'),_T('\0'),_T('\0'),_T('\0')};
 	wxChar* pStr = str;
 	wxSnprintf(pStr,6,_T("%x"),(int)theChar);
@@ -842,7 +862,7 @@ wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 	{
 		wxString msg;
 		msg = msg.Format(_("Error, hex number longer than 4 digits: %s\n"),nnnnStr.c_str());
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		return _T("");
 	}
 	wxString s;
@@ -878,7 +898,7 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 	{
 		wxString msg;
 		msg = msg.Format(_("Error, pair of hex numbers plus space longer than 9 digits: %s\n"),dataStr.c_str());
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		return FALSE;
 	}
 	wxString s;
@@ -897,7 +917,7 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 		{
 			wxString msg;
 			msg = msg.Format(_("Error, invalid hex digit: %s\n"),hold.c_str());
-			wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			return FALSE;
 		}
 		else
@@ -917,7 +937,7 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 			{
 				wxString msg;
 				msg = msg.Format(_("Error, invalid hex digit: %s\n"),hold.c_str());
-				wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				return FALSE;
 			}
 			else

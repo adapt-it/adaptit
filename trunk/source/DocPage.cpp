@@ -43,6 +43,11 @@
 #include <wx/wizard.h>
 #include <wx/filesys.h> // for wxFileName
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItDoc.h"
@@ -55,7 +60,13 @@
 #include "CaseEquivPage.h"
 #include "UsfmFilterPage.h"
 #include "DocPage.h"
-#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingWizard located in scrollingwizard.h
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
 #include "Pile.h"
@@ -278,7 +289,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 	{
 		if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 		{
-			wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+			wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION | wxOK);
 			event.Veto();
 			return;
 		}
@@ -296,7 +307,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		//{
 		//	if (m_pListBox->GetCount() > 1)
 		//	{
-		//		wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+		//		wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION | wxOK);
 		//		event.Veto();
 		//		return;
 		//	}
@@ -618,7 +629,9 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 	wxString tempStr;
 	//nSel = m_pListBox->GetSelection();
 	tempStr = m_pListBox->GetStringSelection();
-	if (tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
+	// whm 11Jun12 added !tempStr.IsEmpty() && to the test below. GetChar(0) should not be called on an
+	// empty string.
+	if (!tempStr.IsEmpty() && tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{
@@ -668,7 +681,7 @@ void CDocPage::OnButtonWhatIsDoc(wxCommandEvent& WXUNUSED(event))
 	s = s.Format(_("Adapt It documents cannot be read by other computer programs. To do that you must first have your document open in Adapt It, then export its translation to a file which another program can read."));
 	accum += s;
 
-	wxMessageBox(accum, _T(""), wxICON_INFORMATION);
+	wxMessageBox(accum, _T(""), wxICON_INFORMATION | wxOK);
 }
 
 void CDocPage::OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event)) 
@@ -686,7 +699,7 @@ void CDocPage::OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event))
 //	wxCheckBox* pCheck = (wxCheckBox*)FindWindowById(IDC_SAVE_DOCSKB_AS_XML);
 //
 //	// wx version: remind user that the wx version only handles xml docs and kb files
-//	wxMessageBox(_("Sorry, this version of Adapt It only handles Adapt It documents\nand knowledge bases in xml format. If you have .adt or .KB\nfiles created by a previous version of Adapt It, you will need\nto first convert those files to .xml format by saving them\nusing Version 3.x of Adapt It."),_T(""),wxICON_INFORMATION);
+//	wxMessageBox(_("Sorry, this version of Adapt It only handles Adapt It documents\nand knowledge bases in xml format. If you have .adt or .KB\nfiles created by a previous version of Adapt It, you will need\nto first convert those files to .xml format by saving them\nusing Version 3.x of Adapt It."),_T(""),wxICON_INFORMATION | wxOK);
 //	pCheck->SetValue(TRUE);
 //	gpApp->m_bSaveAsXML = TRUE;
 //	return;
@@ -739,7 +752,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		// this should never happen even on Linux/GTK, since we've forced a selection back in
 		// the OnWizardPageChanging() handler.
 		wxMessageBox(_("List box error when getting the current selection"), 
-						_T(""), wxICON_EXCLAMATION);
+						_T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		wxExit();
 	}
@@ -790,7 +803,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	pApp->GetView()->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // whm added23Mar07
 #endif // for _RTL_FLAGS
 
-	if (m_docName.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
+	// whm 11Jun12 added !m_docName.IsEmpty() && to the test below. GetChar(0) should never be called on an
+	// empty string.
+	if (!m_docName.IsEmpty() && m_docName.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{
@@ -824,7 +839,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			str = str.Format(_(
 "Warning: invalid path to the last new document: %s A safe default path will be used instead. "),
 			dirPath.c_str());
-			wxMessageBox(str, _T(""), wxICON_INFORMATION);
+			wxMessageBox(str, _T(""), wxICON_INFORMATION | wxOK);
 			dirPath = pApp->m_workFolderPath;
 			bOK = ::wxSetWorkingDirectory(dirPath);
 			if (!bOK)
@@ -832,7 +847,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 				// should not fail, but if it did, then exit the new operation with message,
 				wxMessageBox(_T(
 "Failure trying to set the current directory. Check the LastNewDocumentFolder entry in both the basic and project configuration files."),
-				_T(""), wxICON_EXCLAMATION);
+				_T(""), wxICON_EXCLAMATION | wxOK);
 				gbDoingInitialSetup = FALSE;
 			}
 		}
@@ -897,7 +912,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 				// whm modified 18Jun09 The Doc's GetNewFile() function now returns an enum so that
 				// OnNewDocument() reports the specific error, therefore, no additional error needs to
 				// be reported here.
-				//wxMessageBox(_("Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"), _T(""),wxICON_INFORMATION);
+				//wxMessageBox(_("Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"), _T(""),wxICON_INFORMATION | wxOK);
 				gbDoingInitialSetup = FALSE;
 				return; //return CPropertyPage::OnWizardFinish();
 			}
@@ -1176,7 +1191,9 @@ void CDocPage::OnLbnSelchangeListNewdocAndExistingdoc(wxCommandEvent& WXUNUSED(e
 		nSel = 0;
 	}
 	tempStr = m_pListBox->GetString(nSel);
-	if (tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
+	// whm 11Jun12 added !tempStr.IsEmpty() && to the test below. GetChar(0) should not be called on an
+	// empty string.
+	if (! tempStr.IsEmpty() && tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{

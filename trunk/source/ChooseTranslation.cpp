@@ -154,7 +154,8 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
         ttLBStr = pLBToolTip->GetTip();
     }
     // delete the existing list box
-    delete pLB;
+	if (pLB != NULL) // whm 11Jun12 added NULL test
+	    delete pLB;
     // create an instance of our CMyListBox class
     m_pMyListBox = new CMyListBox(this, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition,
 									wxSize(400,-1), 0, NULL, wxLB_SINGLE);
@@ -362,7 +363,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T("Error: Move Up button failed to reinsert the translation being moved\n"),
-				_T(""), wxICON_ERROR);
+				_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 		}
 	}
@@ -549,7 +550,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 		{
 			// a rough & ready error message, unlikely to ever be called
 			wxMessageBox(_T("Error: Move Down button failed to reinsert the translation being moved\n"),
-				_T(""), wxICON_ERROR);
+				_T(""), wxICON_ERROR | wxOK);
 			wxASSERT(FALSE);
 		}
 	}
@@ -610,7 +611,7 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
         // In wxGTK, when m_pMyListBox->Clear() is called it triggers this
         // OnSelchangeListExistingTranslations handler.
 		wxMessageBox(_("List box error when getting the current selection"),
-		_T(""), wxICON_EXCLAMATION);
+		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
@@ -661,7 +662,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	{
 		// message can be in English, it's never likely to occur
 		wxMessageBox(_("List box error when getting the current selection"),
-		_T(""), wxICON_ERROR);
+		_T(""), wxICON_ERROR | wxOK);
 		return;
 	}
 
@@ -710,7 +711,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			// message can be in English, it's never likely to occur
 			wxMessageBox(_T(
 "OnButtonRemove() error: Knowledge bases's adaptation text does not match that selected in the list box\n"),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 	}
 	// get the ref count, use it to warn user about how many previous references 
@@ -721,7 +722,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	message = message.Format(_(
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n(You can fix that later by using the Consistency Check command.)\nDo you want to go ahead and remove it?"),
 		str2.c_str(),nPreviousReferences);
-	int response = wxMessageBox(message, _T(""), wxYES_NO | wxICON_WARNING);
+	int response = wxMessageBox(message, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 	if (!(response == wxYES))
 	{
 		return; // user backed out

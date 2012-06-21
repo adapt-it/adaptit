@@ -178,7 +178,7 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 	wxASSERT(pListBox != NULL);
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
-		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		return;
 	}
@@ -215,7 +215,7 @@ void COpenExistingProjectDlg::OnSelchangeListboxAdaptions(wxCommandEvent& WXUNUS
 	
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
-		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		return;
 	}
@@ -224,7 +224,7 @@ void COpenExistingProjectDlg::OnSelchangeListboxAdaptions(wxCommandEvent& WXUNUS
 	nSel = pListBox->GetSelection();
 	//if (nSel == -1) //LB_ERR
 	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 	//	wxASSERT(FALSE);
 	//	//wxExit();
 	//}
@@ -238,7 +238,7 @@ void COpenExistingProjectDlg::OnDblclkListboxAdaptions(wxCommandEvent& WXUNUSED(
 	wxASSERT(pListBox != NULL);
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
-		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		return;
 	}
@@ -246,7 +246,7 @@ void COpenExistingProjectDlg::OnDblclkListboxAdaptions(wxCommandEvent& WXUNUSED(
 	nSel = pListBox->GetSelection();
 	//if (nSel == -1) //LB_ERR
 	//{
-	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION | wxOK);
 	//	wxASSERT(FALSE);
 	//	wxExit();
 	//}

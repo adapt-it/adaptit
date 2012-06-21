@@ -119,7 +119,7 @@ void CUnitsPage::OnRadioUseInches(wxCommandEvent& WXUNUSED(event))
 #ifdef __WXMSW__
 	wxString msg;
 	msg = _("Sorry, only metric units (Centimeters) can be set on the Windows platform at this time.");
-	wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 	m_pRadioUseInches->SetValue(FALSE);
 	m_pRadioUseCentimeters->SetValue(TRUE);
 	tempUseInches = FALSE;

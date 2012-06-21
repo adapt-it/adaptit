@@ -105,7 +105,7 @@ void CRetranslationDlg::OnCopyRetranslationToClipboard(wxCommandEvent& WXUNUSED(
 	{
 		::wxBell();
 		wxMessageBox(_T("Failure to obtain pointer to the edit box control. No copy was done.\n"),
-			_T(""), wxICON_EXCLAMATION);
+			_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	pRetransBox->SetFocus();

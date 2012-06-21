@@ -12,6 +12,12 @@
 #ifndef _WX_SCROLLINGDIALOG_H_
 #define _WX_SCROLLINGDIALOG_H_
 
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+// For wxWidgets 2.9.x and later do not compile this file into project, because
+// the scrolling wizard functionality is built-in to the main wxWidgets library.
+#else
+
 #include "wx/dialog.h"
 #include "wx/propdlg.h"
 #include "wx/scrolwin.h"
@@ -264,3 +270,4 @@ protected:
 #endif
  // _WX_SCROLLINGDIALOG_H_
 
+#endif // #if wxCHECK_VERSION(2,9,0)

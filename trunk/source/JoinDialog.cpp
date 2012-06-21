@@ -192,7 +192,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 
 	if (pAcceptedFiles->GetCount() == 0) 
 	{
-		wxMessageBox(_("There are no files listed for joining to the current document."),_T(""),wxICON_WARNING); //TellUser(IDS_NONE_FOR_JOINING);
+		wxMessageBox(_("There are no files listed for joining to the current document."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_NONE_FOR_JOINING);
 		gbDoingSplitOrJoin = FALSE; // restore default
 		return;
 	}
@@ -240,7 +240,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	{
 		if (!IsValidFileName(MergeFileName)) 
 		{
-			wxMessageBox(_("The new file name you supplied contains characters that are not permitted in a file name. Please edit the file name."),_T(""),wxICON_WARNING); //TellUser(IDS_BAD_FNAME_FOR_JOIN);
+			wxMessageBox(_("The new file name you supplied contains characters that are not permitted in a file name. Please edit the file name."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_BAD_FNAME_FOR_JOIN);
 			this->pJoiningWait->Show(FALSE);
 			gbDoingSplitOrJoin = FALSE; // restore default
 			return;
@@ -264,7 +264,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			}
 			if (CantOverwrite) 
 			{
-				wxMessageBox(_("The resulting document's file name must be unique or must be the same as one of the input files."),_T(""),wxICON_WARNING); //TellUser(IDS_UNIQUE_OR_SAME_FOR_JOIN);
+				wxMessageBox(_("The resulting document's file name must be unique or must be the same as one of the input files."),_T(""),wxICON_EXCLAMATION | wxOK); //TellUser(IDS_UNIQUE_OR_SAME_FOR_JOIN);
 				this->pJoiningWait->Show(FALSE);
 				gbDoingSplitOrJoin = FALSE; // restore default
 				return;
@@ -294,11 +294,12 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			wxString msg;
 			//IDS_MISMATCHED_BOOK_IDS
 			msg = msg.Format(_("The book ID in the document with filename %s does not match the book ID for the currently open document."),FileName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_WARNING);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		}
 		ol->Clear();
-		delete ol;
+		if (ol != NULL) // whm 11Jun12 added NULL test
+			delete ol;
 
 	}
 	// set up safe indices range for the bundle; refresh the document view if the parameter passed in
@@ -375,12 +376,12 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 
 	if (bNoIDMismatch)
 	{
-		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION);// IDS_JOIN_SUCCESSFUL
+		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION | wxOK);// IDS_JOIN_SUCCESSFUL
 		gpApp->LogUserAction(_T("Joining to the current document was successful."));
 	}
 	else
 	{
-		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_WARNING); //IDS_BAD_JOIN_FROM_MISMATCH
+		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_EXCLAMATION | wxOK); //IDS_BAD_JOIN_FROM_MISMATCH
 		gpApp->LogUserAction(_T("Joining documents exited prematurely because of a mismatched book ID code."));
 	}
 
@@ -518,7 +519,7 @@ void CJoinDialog::OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pAcceptedFiles))
 	{
 		wxMessageBox(_("Error when getting the current selection, Move Down button has been ignored"), 
-						_T(""),wxICON_EXCLAMATION);
+						_T(""),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	int nSel;
@@ -526,7 +527,7 @@ void CJoinDialog::OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	//if (nSel == -1) // LB_ERR
 	//{
 	//	wxMessageBox(_("Error when getting the current selection, Move Down button has been ignored"), 
-	//					_T(""),wxICON_EXCLAMATION);
+	//					_T(""),wxICON_EXCLAMATION | wxOK);
 	//	return;
 	//}
 	int nOldSel = nSel; // save old selection index
@@ -555,7 +556,7 @@ void CJoinDialog::OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pAcceptedFiles))
 	{
 		wxMessageBox(_("Error when getting the current selection, Move Up button has been ignored"),
-						_T(""), wxICON_EXCLAMATION);
+						_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	int nSel;
@@ -563,7 +564,7 @@ void CJoinDialog::OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	//if (nSel == -1) // LB_ERR
 	//{
 	//	wxMessageBox(_("Error when getting the current selection, Move Up button has been ignored"),
-	//					_T(""), wxICON_EXCLAMATION);
+	//					_T(""), wxICON_EXCLAMATION | wxOK);
 	//	return;
 	//}
 	int nOldSel = nSel; // save old selection index
@@ -597,7 +598,7 @@ void CJoinDialog::MoveSelectedItems(wxListBox& From, wxListBox& To)
 
 	if (From.GetSelection() == -1) 
 	{
-		wxMessageBox(_("Nothing selected."),_T(""),wxICON_WARNING);
+		wxMessageBox(_("Nothing selected."),_T(""),wxICON_EXCLAMATION | wxOK);
 	}
 	for (i = 0; i < (int)From.GetCount(); ++i) 
 	{

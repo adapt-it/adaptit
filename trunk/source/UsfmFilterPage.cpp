@@ -56,7 +56,13 @@
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "CaseEquivPage.h"
-#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingWizard located in scrollingwizard.h
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
 #include "StartWorkingWizard.h"
 #include "MainFrm.h"
 #include "DocPage.h"
@@ -1088,7 +1094,7 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 				// IDS_FILTER_WARNING
 				warnText = warnText.Format(_("Warning: You are about to filter out the following marker:\n   \"%s \"\nAny text associated with this marker that was previously included\nin adaptations you have already done, will also be filtered out.\n\nDo you really want to filter out this marker? "), 
 					pSfmMarkerAndDescriptionsDoc->Item(actualArrayIndex).c_str());
-				int response = wxMessageBox(warnText, _T(""), wxYES_NO | wxICON_WARNING);
+				int response = wxMessageBox(warnText, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 				if (response != wxYES) //if (response != IDYES)
 				{
 					// User aborted so remove the check from the checkbox
@@ -1314,7 +1320,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1376,7 +1382,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 				msg2 = msg2.Format(_(
 "The currently open document is marked up using the PNG 1998 Marker Set.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
 				newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_WARNING);
+				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				// restore the radio button to what it was before the click
 				if (currentSet == PngOnly)
 				{
@@ -1490,7 +1496,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1618,7 +1624,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
             // exit the handler keeps being reentered (the event is not consumed) - at
             // least four times before an OK or Cancel click gets 'seen'; remove the
             // breakpoint and all is well!
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1681,7 +1687,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 				msg2 = msg2.Format(_(
 "The currently open document is marked up as USFM.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
 				newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_WARNING);
+				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				// restore the radio button to what it was before the click
 				if (currentSet == UsfmOnly)
 				{
@@ -1778,7 +1784,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -1880,7 +1886,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2063,7 +2069,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2163,7 +2169,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2247,7 +2253,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 				msg2 = msg2.Format(_(
 "The currently open document is marked up with markers from the %s.\nChanging to the %s is unlikely to be helpful.\n(This may result in a badly formed document, and similarly for other documents in this project which are marked up the same way.)"),
 				docSet.c_str(), newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_WARNING);
+				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				// restore the radio button to what it was before the click
 				if (currentSet == PngOnly)
 				{
@@ -2373,7 +2379,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2488,7 +2494,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2567,7 +2573,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 				msg2 = msg2.Format(_(
 "The currently open document is marked up as USFM.\nChanging to the %s is unlikely to be helpful.\n(This may result in a badly formed document, and similarly for other documents in this project which are marked up the same way.)"),
 				newSet.c_str());
-				wxMessageBox(msg2, _T(""), wxICON_WARNING);
+				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
 				// restore the radio button to what it was before the click
 				if (currentSet == UsfmOnly)
 				{
@@ -2682,7 +2688,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2784,7 +2790,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -2987,7 +2993,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
             // set change to get done. (Set change should have priority, because filtering
             // certain markers relies on those markers existing, which is not necessarily
             // the case if the SFM set is changed.)
-			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_WARNING);
+			wxMessageBox(msgCannotFilterAndChangeSFMset, _T(""), wxICON_EXCLAMATION | wxOK);
 			// now restore the set radio buttons to what they were before the click, and
 			// restore necessary pre-edit local variables, and leave the page ready for
 			// the filter changes to be done if the user clicks its OK button
@@ -3474,7 +3480,7 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		{
 			wxString msgForIllegalJob = _(
 "Trying to change the standard format marker (SFM) set at the same time as trying to change the marker filtering settings is illegal.\nThe filtering changes will be ignored. Only the SFM set change will be done now.\nTo get the filtering changes done, return to this page after the SFM set changes are completed and then set up the filtering changes a second time.");
-			wxMessageBox(msgForIllegalJob, _T(""), wxICON_WARNING);
+			wxMessageBox(msgForIllegalJob, _T(""), wxICON_EXCLAMATION | wxOK);
 
 			// undo the filter changes here
 			if (usfm_filterPgCommon.bDocSfmSetChanged)

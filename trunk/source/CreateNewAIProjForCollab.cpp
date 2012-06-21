@@ -186,7 +186,7 @@ void CCreateNewAIProjForCollab::OnOK(wxCommandEvent& event)
 	if (pTextCtrlSrcLangName->GetValue().IsEmpty()) 
 	{
 		wxString msg = _("Please enter a name for the source language, or Cancel to quit.");
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		pTextCtrlSrcLangName->SetFocus();
 		return;
 	}
@@ -194,7 +194,7 @@ void CCreateNewAIProjForCollab::OnOK(wxCommandEvent& event)
 	if (pTextCtrlTgtLangName->GetValue().IsEmpty())
 	{
 		wxString msg = _("Please enter a name for the target language, or Cancel to quit.");
-		wxMessageBox(msg,_T(""),wxICON_WARNING);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		pTextCtrlTgtLangName->SetFocus();
 		return;
 	}

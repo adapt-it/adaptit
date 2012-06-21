@@ -154,7 +154,7 @@ void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 		 //also used for 5.1.4 bug fix release
 		wxMessageBox(_T(
 	"This functionality is a work in progress and it is not finished yet. Please wait for next release."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		m_pCheckShowAdminMenu->SetValue(FALSE);
 		 return;
 	}

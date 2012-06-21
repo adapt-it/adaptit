@@ -401,7 +401,7 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 		mssg = mssg.Format(
 _("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
 projectFolderPath.c_str());
-		wxMessageBox(mssg, _("Warning: Not a folder!"), wxICON_WARNING);
+		wxMessageBox(mssg, _("Warning: Not a folder!"), wxICON_EXCLAMATION | wxOK);
 		return theFilename;
 	}
 	// sadly the following wxDir class function does not support a path which is a URI
@@ -429,7 +429,7 @@ projectFolderPath.c_str());
 			mssg = mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."), 
 projectFolderPath.c_str());
-			wxMessageBox(mssg, _T("wxDir() Err: directory not opened"), wxICON_ERROR);
+			wxMessageBox(mssg, _T("wxDir() Err: directory not opened"), wxICON_ERROR | wxOK);
 			wxExit();
 			return theFilename;
 		}
@@ -486,7 +486,7 @@ projectFolderPath.c_str());
 		mssg = mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder does not exist! Now aborting."),
 projectFolderPath.c_str());
-		wxMessageBox(mssg, _T("wxDir() Err: the directory does not exist"), wxICON_ERROR);
+		wxMessageBox(mssg, _T("wxDir() Err: the directory does not exist"), wxICON_ERROR | wxOK);
 		wxExit();
 		*/
 	}
@@ -576,6 +576,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 		// On Windows systems the file can be removed only if it is a (closed) one, that is, a 
 		// zombie left over from a crash or power loss (regardless of whoever was the former 
 		// owner for writing)
+		wxLogNull logNo; // eliminates any spurious messages from the system if wxRemoveFile()
+						// below fails - which it should in normal cases during the opening
+						// of an AI document
 		bool bRemoved = ::wxRemoveFile(pathToFile);
 		if (bRemoved)
 		{
@@ -646,7 +649,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 				{
 					wxString message;
 					message = _("Someone has your project folder open already, so you have READ-ONLY access.\nIf you need to be able to save your work, you can gain write access now.\nDoing so will force the other person to have read-only access.\n\nDo you to want to have write access now?");
-					int response = wxMessageBox(message, _T("Another process owns write permission"), wxYES_NO | wxICON_WARNING);
+					int response = wxMessageBox(message, _T("Another process owns write permission"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 					if (response == wxYES)
 					{
 						// User responded "YES", i.e., wants to have immediate write access so the
@@ -1010,7 +1013,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 				{
 					wxMessageBox(
 	_("Someone has your project folder open already, so you have READ-ONLY access."),_("Another process owns write permission"),
-					wxICON_INFORMATION);
+					wxICON_INFORMATION | wxOK);
 				}
 			}
 			return TRUE;	// return TRUE to app member m_bReadOnlyAccess
@@ -1031,7 +1034,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 #endif
 				wxMessageBox (
 	_("This document is owned by someone else, so you have READ-ONLY access."), _("Another person owns write permission"),
-							 wxICON_INFORMATION);
+							 wxICON_INFORMATION | wxOK);
 				return TRUE;	// return TRUE to app member m_bReadOnlyAccess
 			}
 			

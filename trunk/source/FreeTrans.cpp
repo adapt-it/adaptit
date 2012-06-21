@@ -201,9 +201,11 @@ CFreeTrans::~CFreeTrans()
 {
 	// Clear and delete the arrays for FreeTrSections and Piles
 	m_pCurFreeTransSectionPileArray->Clear();
-	delete m_pCurFreeTransSectionPileArray;
+	if (m_pCurFreeTransSectionPileArray != NULL) // whm 11Jun12 added NULL test
+		delete m_pCurFreeTransSectionPileArray;
 	m_pFreeTransArray->Clear();
-	delete m_pFreeTransArray;
+	if (m_pFreeTransArray != NULL) // whm 11Jun12 added NULL test
+		delete m_pFreeTransArray;
 }
 
 // BEW 19Feb10 no changes needed for support of doc version 5
@@ -2287,7 +2289,8 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                         pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
 	}
 #endif
-            delete pElement;
+			if (pElement != NULL) // whm 11Jun12 added NULL test
+	            delete pElement;
             // ftStr was not created on the heap, so it will be automatically destroyed
         }
     }
@@ -2442,7 +2445,8 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                         pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
 	}
 #endif
-                delete pElement;
+				if (pElement != NULL) // whm 11Jun12 added NULL test
+	                delete pElement;
                 // substring s was not created on the heap, so it will be automatically destroyed
             }
         } // end of loop: for (index = 0; index < rectsCount; index++)
@@ -2878,7 +2882,8 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 	{
 		pPileSetArray = (wxArrayPtrVoid*)arrPileSets.Item(index);
 		pPileSetArray->Clear();
-		delete pPileSetArray;
+		if (pPileSetArray != NULL) // whm 11Jun12 added NULL test
+			delete pPileSetArray;
 	}
 
 	// delete all the FreeTrElement structs from this Page's printing, and their storage
@@ -2889,9 +2894,11 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 	{
 		pFreeTrElementsSet = (wxArrayPtrVoid*)m_pFreeTransSetsArray->Item(index);
 		DestroyElements(pFreeTrElementsSet);
-		delete pFreeTrElementsSet;
+		if (pFreeTrElementsSet != NULL) // whm 11Jun12 added NULL test
+			delete pFreeTrElementsSet;
 	}
-	delete m_pFreeTransSetsArray;
+	if (m_pFreeTransSetsArray != NULL) // whm 11Jun12 added NULL test
+		delete m_pFreeTransSetsArray;
 #if defined(Print_failure)
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
     wxLogDebug(_T("FreeTrans.cpp line 1682, at end, m_pFreeTransSetsArray's count: is %d      *** DrawFreeTranslationsForPrinting now exiting ***  "), count);
@@ -5431,14 +5438,14 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		// so tell the user and return
 		wxMessageBox(_(
 		"The document does not contain any free translations."),
-		_T(""),wxICON_INFORMATION);
+		_T(""),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(_T("The document does not contain any free translations."));
 		return;
 	}
 
 	int nResult = wxMessageBox(_(
 "You are about to delete all the free translations in the document. Is this what you want to do?"),
-	_T(""), wxYES_NO);
+	_T(""), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	if (nResult == wxNO)
 	{
 		// user clicked the command by mistake, so exit the handler
@@ -6439,7 +6446,7 @@ void CFreeTrans::SetupFreeTransRadioButtons(bool bSectionByPunctsValue)
 	{
 		// warn developer, and then do nothing
 		wxMessageBox(_T("SetupFreeTransRadioButtons(): called, but the app is not in Free Translation mode, so the buttons are unchanged"),
-			_T("Wrongly placed function call"), wxICON_WARNING);
+			_T("Wrongly placed function call"), wxICON_EXCLAMATION | wxOK);
 	}
 }
 
@@ -6877,7 +6884,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					// IDS_CLICK_IN_GRAY_ILLEGAL
 					wxMessageBox(_(
 "Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."),
-					_T(""), wxICON_WARNING);
+					_T(""), wxICON_EXCLAMATION | wxOK);
 					return;
 				}
 			}
@@ -8130,7 +8137,8 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 	for (i = 0; i < size; i++)
 	{
 		pElem = (FreeTrElement*)pArr->Item(i);
-		delete pElem;
+		if (pElem != NULL) // whm 11Jun12 added NULL test
+			delete pElem;
 	}
 	pArr->Clear();
 }
@@ -8486,7 +8494,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 		// there are no free translations in the document, so tell the user and return
 		wxMessageBox(_(
 		"The document does not contain any back translations."),
-		_T(""),wxICON_INFORMATION);
+		_T(""),wxICON_INFORMATION | wxOK);
 		m_pApp->LogUserAction(_T("The document does not contain any back translations."));
 		return;
 	}
@@ -8494,7 +8502,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	// IDS_DELETE_ALL_BT_ASK
 	if( wxMessageBox(_(
 "You are about to delete all the back translations in the document. Is this what you want to do?"),
-	_T(""), wxYES_NO|wxICON_INFORMATION) == wxNO)
+	_T(""), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT) == wxNO)
 	{
 		// user clicked the command by mistake, so exit the handler
 		m_pApp->LogUserAction(_T("Aborted delete all back translations"));

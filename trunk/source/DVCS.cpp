@@ -33,6 +33,11 @@
 #include <wx/wizard.h>
 #include <wx/filesys.h> // for wxFileName
 
+// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
+#if wxCHECK_VERSION(2,9,0)
+#include <wx/fontdata.h>
+#endif
+
 #include "Adapt_It.h"
 #include "MainFrm.h"
 #include "Adapt_ItDoc.h"
@@ -45,7 +50,13 @@
 #include "CaseEquivPage.h"
 #include "UsfmFilterPage.h"
 #include "DocPage.h"
-#include "scrollingwizard.h" // whm added 13Nov11 for wxScrollingWizard - need to include this here before "StartWorkingWizard.h" below
+#if wxCHECK_VERSION(2,9,0)
+	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
+#else
+	// The wxWidgets library being used is pre-2.9.x, so use our own modified
+	// version named wxScrollingWizard located in scrollingwizard.h
+#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
+#endif
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
 #include "Pile.h"

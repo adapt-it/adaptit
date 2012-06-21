@@ -104,14 +104,13 @@ CRefString::~CRefString()
 
 void CRefString::DeleteRefString()
 {
-		// first delete the pointed at CRefStringMetadata instance
-
+	// first delete the pointed at CRefStringMetadata instance
 	if (m_pRefStringMetadata != NULL)
-		{
-			delete m_pRefStringMetadata;
-		}
-		// now delete the parent CRefString instance
-		delete this;
+	{
+		delete m_pRefStringMetadata;
+	}
+	// now delete the parent CRefString instance
+	delete this;
 }
 
 bool CRefString::GetDeletedFlag() { return m_bDeleted; }

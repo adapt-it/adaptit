@@ -321,7 +321,7 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 	if (nNewSequNum > nMaxIndex)
 	{
 		// this is unlikely to ever happen, but play safe just in case
-		wxMessageBox(_T("Index bounds error in BuildPhrases call\n"), _T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_T("Index bounds error in BuildPhrases call\n"), _T(""), wxICON_EXCLAMATION | wxOK);
 		wxExit();
 	}
 
@@ -436,7 +436,7 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 		// IDS_NO_ACCESS_TO_RETRANS
 		wxMessageBox(_(
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
-						_T(""), wxICON_INFORMATION);
+						_T(""), wxICON_INFORMATION | wxOK);
 		GetLayout()->m_pApp->m_pTargetBox->SetFocus();
 		gbEnterTyped = FALSE;
 		// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -2108,7 +2108,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// IDS_AT_END
 				wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-				_T(""), wxICON_INFORMATION);
+				_T(""), wxICON_INFORMATION | wxOK);
 				wxStatusBar* pStatusBar;
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				if (pFrame != NULL)
@@ -2301,7 +2301,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			::wxBell();
 			wxMessageBox(_(
 "Sorry, transliteration mode is not supported in review mode. Turn review mode off."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			pLayout->m_docEditOperationType = no_edit_op;
 			return;
 		}
@@ -2320,7 +2320,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 
 				wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-				_T(""), wxICON_INFORMATION);
+				_T(""), wxICON_INFORMATION | wxOK);
 				wxStatusBar* pStatusBar;
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				if (pFrame != NULL)
@@ -2349,7 +2349,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			{
 				wxMessageBox(_(
 "Sorry, the next pile cannot be a valid active location, so no move forward was done."),
-				_T(""), wxICON_INFORMATION);
+				_T(""), wxICON_INFORMATION | wxOK);
 #ifdef _NEW_LAYOUT
 				pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -3257,7 +3257,7 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 		// IDS_CANNOT_GO_BACK
 		wxMessageBox(_(
 "You are already at the start of the file, so it is not possible to move back any further."),
-		_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION | wxOK);
 		pApp->m_pTargetBox->SetFocus();
 		pLayout->m_docEditOperationType = no_edit_op;
 		return FALSE;
@@ -3274,7 +3274,7 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 			// IDS_NO_ACCESS_TO_RETRANS
 			wxMessageBox(_(
 "To edit or remove a retranslation you must use the toolbar buttons for those operations."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			pApp->m_pTargetBox->SetFocus();
 			pLayout->m_docEditOperationType = no_edit_op;
 			return FALSE;
@@ -3606,7 +3606,7 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 			// IDS_NO_ACCESS_TO_RETRANS
 			wxMessageBox(_(
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
-			_T(""), wxICON_INFORMATION);
+			_T(""), wxICON_INFORMATION | wxOK);
 			pApp->m_pTargetBox->SetFocus();
 			GetLayout()->m_docEditOperationType = no_edit_op;
 			return FALSE;
@@ -3947,7 +3947,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			// transliteration mode on before using this feature, so warn him to turn it on and then
 			// do nothing
 			//IDS_TRANSLITERATE_OFF
-			wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_WARNING);
+			wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_EXCLAMATION | wxOK);
 
 			// restore focus to the phrase box
 			if (pApp->m_pTargetBox != NULL)
@@ -3978,7 +3978,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				{
 					// did not succeed - do something eg. warn user he's collided with a boundary
 					// IDS_RIGHT_EXTEND_FAIL
-					wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."),_T(""), wxICON_INFORMATION);
+					wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."),_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
 			SetFocus();
@@ -4002,7 +4002,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				{
 					// did not succeed, so warn user
 					// IDS_LEFT_EXTEND_FAIL
-					wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION);
+					wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
 			SetFocus();
@@ -4127,7 +4127,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			{
 				// IDS_NOT_WHEN_GLOSSING
 				wxMessageBox(_("This particular operation is not available when you are glossing."),
-				_T(""),wxICON_INFORMATION);
+				_T(""),wxICON_INFORMATION | wxOK);
 				return;
 			}
 			pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a lookup,
@@ -4682,7 +4682,7 @@ d:		SetFocus();
 			// special KB storage mode, but forgot to turn the transliteration mode on before
 			// using this feature, so warn him to turn it on and then do nothing
 			// IDS_TRANSLITERATE_OFF
-			wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_WARNING);
+			wxMessageBox(_("Transliteration mode is not yet turned on."),_T(""),wxICON_EXCLAMATION | wxOK);
 
 			// restore focus to the phrase box
 			if (pApp->m_pTargetBox != NULL)	

@@ -136,7 +136,7 @@ MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as n
 /// for output to a file which the caller will have defined by showing the user a File
 /// Save dialog etc.
 /// This function is based on the view class's DoExportSfmText(), heavily edited
-///
+/// 
 /// BEW deprecated, 15Jun11, until such time as OXES support in AI is needed - and that
 /// depends on there being another app out there that could usefully use an AI OXES
 /// export, TE is dead in the water now since Mara project don't use it, and PT is taking
@@ -158,14 +158,14 @@ void DoExportAsOxes(int versionNum)
 	{
 		msg = msg.Format(_(
 "Export in OXES xml format is supported only for data originally marked up in standard format (meaning, using backslash markers).\nThe current document lacks backslash markers."));
-		wxMessageBox(msg,_("Unstructured Data"),wxICON_WARNING);
+		wxMessageBox(msg,_("Unstructured Data"),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
-	if (versionNum > 1)
+	if (versionNum > 1) 
 	{
 		msg = msg.Format(_(
 "Only version 1 is currently supported for the Open XML for Editing Scripture standard.\n The value supplied was %d"),versionNum);
-		wxMessageBox(msg,_("Invalid OXES version number"),wxICON_WARNING);
+		wxMessageBox(msg,_("Invalid OXES version number"),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 	// check for a valid 3-letter bookCode, must be present and valid for an OXES export
@@ -178,13 +178,13 @@ void DoExportAsOxes(int versionNum)
 			bookCode = _T("empty");
 		msg = msg.Format(_(
 "The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn OXES export is not possible in this circumstance.\nThe value obtained was %s"),bookCode.c_str());
-		wxMessageBox(msg,_("Invalid Book Code"),wxICON_WARNING);
+		wxMessageBox(msg,_("Invalid Book Code"),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 
 	// It's SFM or USFM structured data, and the version number wanted is OXES 1, so
 	// continue processing
-
+	
 	Usfm2Oxes* pToOxes = gpApp->m_pUsfm2Oxes;
 	// set the class to build according to the version number wanted
 	pToOxes->SetOXESVersionNumber(versionNum);
@@ -197,12 +197,12 @@ void DoExportAsOxes(int versionNum)
 	int len = 0;
 
 	// make the working directory the "<Project Name>" one, unless there is a path in
-	// app's m_lastTargetOutputPath member
-
+	// app's m_lastTargetOutputPath member 
+	
 	// get a default file name - copy the current one for the adaptation document itself
 	exportFilename = gpApp->m_curOutputFilename;
 	len = exportFilename.Length();
-
+	
 	// set the working directory
 	if (gpApp->m_lastTargetOutputPath.IsEmpty())
 	{
@@ -215,13 +215,13 @@ void DoExportAsOxes(int versionNum)
 			::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
 	}
 	// prepare to get a file save dialog...
-
+	
 	// make a suitable default output filename for the export function
 	exportFilename.Remove(len-3,3); // remove the xml extension
 	exportFilename += _T("oxes"); // make it an *.oxes file type
 	// get a file Save As dialog for OXES Output
 	DefaultExt = _T("oxes");
-	filter = _("Exported OXES Documents (*.oxes)|*.oxes||");
+	filter = _("Exported OXES Documents (*.oxes)|*.oxes||"); 
 
     // set the default folder to be shown in the dialog, for OXES make it
     // m_lastTargetOutputPath which is the same as for target text
@@ -235,7 +235,7 @@ void DoExportAsOxes(int versionNum)
 		defaultDir = gpApp->m_lastTargetOutputPath;
 	}
 	// MainFrame is parent window for file dialog
-	wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(),
+	wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
 		_("Filename and Folder For OXES Export"),
 		defaultDir,	// empty string causes it to use the current working directory (set above)
 		exportFilename,	// default filename
@@ -249,7 +249,7 @@ void DoExportAsOxes(int versionNum)
 	}
 
 	//wxLogNull logNo; // avoid spurious messages from the system
-
+	
 	// we are committed to the task...
 	gpApp->m_bOxesExportInProgress = TRUE;
 
@@ -273,7 +273,7 @@ void DoExportAsOxes(int versionNum)
     // RebuildTargetText removes filter brackets from the source or target, exposing
     // previously filtered material as it was before input tokenization, and also exposes
     // new information added and filtered in the document, such as backtranslations, notes,
-    // and free translations.
+    // and free translations. 
 	// Rebuild the AdaptItSFM text (if there are collected backtranslations in the
 	// document, they will be included - so we have to get rid of them later)
 	nTextLength = RebuildTargetText(target);
@@ -284,7 +284,7 @@ void DoExportAsOxes(int versionNum)
 
 	// format for text oriented output
 	FormatMarkerBufferForOutput(target, targetTextExport);
-
+	
 	target = RemoveMultipleSpaces(target);
 
 	// Decompose (by chunking the (U)SFM text) and then build the OXES version 1 xml
@@ -300,7 +300,7 @@ void DoExportAsOxes(int versionNum)
 		wxString msg;
 		// don't localize this, it's unlikely to ever be seen
 		msg = msg.Format(_T("Unable to open the file for exporting the target text as OXES with path:\n%s"),exportPath.c_str());
-		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		gpApp->m_bOxesExportInProgress = FALSE;
 		return;
 	}
@@ -371,7 +371,7 @@ wxString RemoveCollectedBacktranslations(wxString& str)
 // behaviors related to the prefixes/suffixes
 void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 {
-	bForceUTF8Conversion = bForceUTF8Conversion; // to avoid unreferenced formal
+	bForceUTF8Conversion = bForceUTF8Conversion; // to avoid unreferenced formal 
 												 // parameter warning
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename;
@@ -383,9 +383,9 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	wxString s;
 	bool bRTFOutput = FALSE;	// local var - assume SFM output for Source, Target
 								// Glosses or Free Translation text
-
+	
 	wxString expTypePrefixStr; // a string prefix identifying the type of export
-								// it is optionally added depending on value of the App's
+								// it is optionally added depending on value of the App's 
 								// m_bUsePrefixExportTypeOnFilename member
 	wxString expProjNamePrefixStr; // a string prefix identifying the ai project name
 								// it is optionally added depending on value of the App's
@@ -445,24 +445,24 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	// Use the App's m_curOutputFilename as the base filename for exports
 	wxString defaultDir;
 	exportFilename = gpApp->m_curOutputFilename;
-
+	
 	// Show the dialog
 	if (sadlg.ShowModal() != wxID_OK)
 	{
 		return; // user cancelled
 	}
 
-	// Any change in the checkbox values are now stored in the App's
-	// m_bUseSuffixExportDateTimeOnFilename and m_bUsePrefixExportTypeOnFilename
+	// Any change in the checkbox values are now stored in the App's 
+	// m_bUseSuffixExportDateTimeOnFilename and m_bUsePrefixExportTypeOnFilename 
 	// members.
 
-	// Make adjustments to the exportFilename based on the user's preference for
+	// Make adjustments to the exportFilename based on the user's preference for 
 	// exportFilename prefix and suffix.
-	//
-	// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing sfm/rtf
-	// export operations, the exportFilename as obtained from m_curOutputFilename
+	// 
+	// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing sfm/rtf 
+	// export operations, the exportFilename as obtained from m_curOutputFilename 
 	// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
-	// produced exports within the _TARGET_OUTPUTS or _TARGET_RTF_OUTPUTS folder from
+	// produced exports within the _TARGET_OUTPUTS or _TARGET_RTF_OUTPUTS folder from 
 	// those generated automatically by the collaboration process, we remove the
 	// "_Collab_" prefix. We then add an exportType prefix if the user ticked
 	// the checkbox for using export type prefixes in the ExportSaveAsDlg.
@@ -475,12 +475,12 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		exportFilename = expTypePrefixStr + exportFilename;
 	// whm 21Feb12 added at Kim's request. Put the src and tgt language names as prefix on exportFilename.
 	if (gpApp->m_bUsePrefixExportProjectNameOnFilename)
-		exportFilename = expProjNamePrefixStr + exportFilename;
+		exportFilename = expProjNamePrefixStr + exportFilename; 
 
 	len = exportFilename.Length();
 
 	// Adjust the export file's extension, the wxFileDialg's filter, and
-	// navigation protection settings according to the user's selection
+	// navigation protection settings according to the user's selection 
 	// of SFM or RTF.
 	wxString filter;
 	switch(sadlg.GetSaveAsType())
@@ -489,156 +489,156 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
             /////////////////////////////////////
             // Export to RTF
             /////////////////////////////////////
-            // make a suitable default output filename for the export function
-            exportFilename.Remove(len-3,3); // remove the extension
+		// make a suitable default output filename for the export function
+		exportFilename.Remove(len-3,3); // remove the extension
             exportFilename += _T("rtf"); // make it an *.rtf file type
             filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
             bRTFOutput = TRUE;
-            // Set up for Navigation Protection and determine the defaultDir for the
-            // exports
-            switch (exportType)
-            {
-            case sourceTextExport:
+		// Set up for Navigation Protection and determine the defaultDir for the
+		// exports
+		switch (exportType)
+		{
+		case sourceTextExport:
                 gpApp->LogUserAction(_T("Export Source RTF Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectSourceRTFOutputsFolder)
-                {
-                    // Navigation protection in effect - limit source text exports to
+			{
+				// Navigation protection in effect - limit source text exports to
                     // be saved in the _SOURCE_RTF_OUTPUTS folder which is always a child
                     // folder of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastSourceRTFOutputPath.IsEmpty()
                     || (!gpApp->m_lastSourceRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastSourceRTFOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastSourceRTFOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastSourceRTFOutputPath,
                     // so we initialize the defaultDir to point to the m_lastSourceRTFOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastSourceRTFOutputPath;
-                }
-                break;
-            case glossesTextExport:
+			}
+			break;
+		case glossesTextExport:
                 gpApp->LogUserAction(_T("Export Glosses RTF Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectGlossRTFOutputsFolder)
-                {
-                    // Navigation protection in effect - limit source text exports to
+			{
+				// Navigation protection in effect - limit source text exports to
                     // be saved in the _GLOSS_RTF_OUTPUTS folder which is always a child
                     // folder of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_glossRTFOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastGlossesRTFOutputPath.IsEmpty()
                     || (!gpApp->m_lastGlossesRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastGlossesRTFOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastGlossesRTFOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_glossRTFOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastGlossesRTFOutputPath,
                     // so we initialize the defaultDir to point to the m_lastGlossesRTFOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastGlossesRTFOutputPath;
-                }
-                break;
-            case freeTransTextExport:
+			}
+			break;
+		case freeTransTextExport:
                 gpApp->LogUserAction(_T("Export Free Trans RTF Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectFreeTransRTFOutputsFolder)
-                {
+			{
                     // Navigation protection in effect - limit free translation exports to
                     // be saved in the _FREETRANS_RTF_OUTPUTS folder which is always a child
                     // folder of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_freeTransRTFOutputsFolderName;
-                }
+			}
                 else if (gpApp->m_lastFreeTransRTFOutputPath.IsEmpty()
                     || (!gpApp->m_lastFreeTransRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastFreeTransRTFOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastFreeTransRTFOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_freeTransRTFOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastFreeTransRTFOutputPath,
                     // so we initialize the defaultDir to point to the m_lastFreeTransRTFOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastFreeTransRTFOutputPath;
-                }
-                break;
-            default:
-            case targetTextExport:
+			}
+			break;
+		default:
+		case targetTextExport:
                 gpApp->LogUserAction(_T("Export Target RTF Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectTargetRTFOutputsFolder)
-                {
-                    // Navigation protection in effect - limit source text exports to
+			{
+				// Navigation protection in effect - limit source text exports to
                     // be saved in the _TARGET_RTF_OUTPUTS folder which is always a child
-                    // folder of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				// folder of the folder that m_curProjectPath points to.
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_targetRTFOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastTargetRTFOutputPath.IsEmpty()
                     || (!gpApp->m_lastTargetRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastTargetRTFOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastTargetRTFOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_targetRTFOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastTargetRTFOutputPath,
                     // so we initialize the defaultDir to point to the m_lastTargetRTFOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastTargetRTFOutputPath;
-                }
-                break;
+			}
+			break;
             } // switch (exportType)
             break;
 	    case ExportSaveAsXHTML:
@@ -655,8 +655,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
             /////////////////////////////////////
             // Export to SFM / TXT
             /////////////////////////////////////
-            // make a suitable default output filename for the export function
-            exportFilename.Remove(len-3,3); // remove the extension
+		// make a suitable default output filename for the export function
+		exportFilename.Remove(len-3,3); // remove the extension
             exportFilename += _T("txt"); // make it a *.txt file type
             // get a file Save As dialog for Source Text Output
             filter = _("All Files (*.*)|*.*|Exported Adapt It Documents (*.txt)|*.txt||");
@@ -665,158 +665,158 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
                         // nice property that if the user types an extension in the
                         // filename, .txt won't be appended to it.
             bRTFOutput = FALSE;
-            // Set up for Navigation Protection and determine the defaultDir for the
+		// Set up for Navigation Protection and determine the defaultDir for the
             // exportsz
-            switch (exportType)
-            {
-            case sourceTextExport:
+		switch (exportType)
+		{
+		case sourceTextExport:
                 gpApp->LogUserAction(_T("Export Source SFM Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectSourceOutputsFolder)
-                {
-                    // Navigation protection in effect - limit source text exports to
+			{
+				// Navigation protection in effect - limit source text exports to
                     // be saved in the _SOURCE_OUTPUTS folder which is always a child folder
                     // of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_sourceOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastSourceOutputPath.IsEmpty()
                     || (!gpApp->m_lastSourceOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastSourceOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastSourceOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_sourceOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastSourceOutputPath,
                     // so we initialize the defaultDir to point to the m_lastSourceOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastSourceOutputPath;
-                }
-                break;
-            case glossesTextExport:
+			}
+			break;
+		case glossesTextExport:
                 gpApp->LogUserAction(_T("Export Glosses SFM Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectGlossOutputsFolder)
-                {
-                    // Navigation protection in effect - limit source text exports to
+			{
+				// Navigation protection in effect - limit source text exports to
                     // be saved in the _GLOSS_OUTPUTS folder which is always a child folder
                     // of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_glossOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastGlossesOutputPath.IsEmpty()
                     || (!gpApp->m_lastGlossesOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastGlossesOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastGlossesOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_glossOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastGlossesOutputPath,
                     // so we initialize the defaultDir to point to the m_lastGlossesOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastGlossesOutputPath;
-                }
-                break;
-            case freeTransTextExport:
+			}
+			break;
+		case freeTransTextExport:
                 gpApp->LogUserAction(_T("Export Freee Trans SFM Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectFreeTransOutputsFolder)
-                {
+			{
                     // Navigation protection in effect - limit source text exports to
                     // be saved in the _FREETRANS_RTF_OUTPUTS folder which is always a
                     // child folder of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_freeTransOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastFreeTransOutputPath.IsEmpty()
                     || (!gpApp->m_lastFreeTransOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastFreeTransOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastFreeTransOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_freeTransOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{	
                     // Navigation protection is OFF and we have a valid path in m_lastFreeTransOutputPath,
                     // so we initialize the defaultDir to point to the m_lastFreeTransOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastFreeTransOutputPath;
-                }
-                break;
-            default:
-            case targetTextExport:
+			}
+			break;
+		default:
+		case targetTextExport:
                 gpApp->LogUserAction(_T("Export Target SFM Text"));
-                // The specific special folders involved depend on whether navigation
-                // protection is ON or OFF, and whether the m_last...Path members point
-                // to a valid path.
+			// The specific special folders involved depend on whether navigation 
+			// protection is ON or OFF, and whether the m_last...Path members point
+			// to a valid path.
                 if (gpApp->m_bProtectTargetOutputsFolder)
-                {
-                    // Navigation protection in effect - limit source text exports to
+			{
+				// Navigation protection in effect - limit source text exports to
                     // be saved in the _TARGET_OUTPUTS folder which is always a child
-                    // folder of the folder that m_curProjectPath points to.
-                    bBypassFileDialog_ProtectedNavigation = TRUE;
+				// folder of the folder that m_curProjectPath points to.
+				bBypassFileDialog_ProtectedNavigation = TRUE;
                     defaultDir = gpApp->m_targetOutputsFolderPath;
-                }
+			}
                 else if (gpApp->m_lastTargetOutputPath.IsEmpty()
                     || (!gpApp->m_lastTargetOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastTargetOutputPath)))
-                {
-                    // Navigation protection is OFF so we set the flag to allow the wxFileDialog
+			{
+				// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
                     // to appear. But the m_lastTargetOutputPath is either empty or, if not empty,
-                    // it points to an invalid path, so we initialize the defaultDir to point to
-                    // the special protected folder, even though Navigation protection is not ON.
-                    // In this case, the user could point the export path elsewhere using the
-                    // wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// it points to an invalid path, so we initialize the defaultDir to point to 
+				// the special protected folder, even though Navigation protection is not ON. 
+				// In this case, the user could point the export path elsewhere using the 
+				// wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_targetOutputsFolderPath;
-                }
-                else
-                {
+			}
+			else
+			{
                     // Navigation protection is OFF and we have a valid path in m_lastTargetOutputPath,
                     // so we initialize the defaultDir to point to the m_lastTargetOutputPath for the
-                    // location of the export. The user could still point the export path elsewhere
-                    // in the wxFileDialog that will appear.
-                    bBypassFileDialog_ProtectedNavigation = FALSE;
+				// location of the export. The user could still point the export path elsewhere 
+				// in the wxFileDialog that will appear.
+				bBypassFileDialog_ProtectedNavigation = FALSE;
                     defaultDir = gpApp->m_lastTargetOutputPath;
-                }
-                break;
+			}
+			break;
             } // switch (exportType)
             break;
-	}
+		}
 
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
-	// Prepare a unique filename and path from the exportFilename. This unique filename
+	// Prepare a unique filename and path from the exportFilename. This unique filename 
 	// and path is used when the export is nav protected or when the user has ticked the
 	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
 	// is to be suffixed to the export filename, which ensures that any existing exports
@@ -827,7 +827,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// Use the unique path for exportPath
 		exportFilename = uniqueFilenameAndPath;
 	}
-
+	
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
 	// navigation.
 	if (!bBypassFileDialog_ProtectedNavigation)
@@ -838,7 +838,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			defaultDir,	// empty string causes it to use the current working directory (set above)
 			exportFilename,	// default filename
 			filter,
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY);
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); 
 				// wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown	fileDlg.Centre();
 				// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 
@@ -847,7 +847,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			gpApp->LogUserAction(_T("Cancelled DoExportSfmText()"));
 			return; // user cancelled file dialog so return to what user was doing previously
 		}
-		exportPath = fileDlg.GetPath();
+		exportPath = fileDlg.GetPath();	
 	}
 	else
 	{
@@ -880,7 +880,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			break;
 		}
 	}
-
+	
 	wxLogNull logNo; // avoid spurious messages from the system
 
 	// whm 7Jul11 note: We'll allow the saving of the m_last... Paths even when navigation
@@ -970,7 +970,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(source, sourceTextExport);
-
+		
 		source = RemoveMultipleSpaces(source);
 
 		if (gbIsUnstructuredData)
@@ -992,7 +992,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			ChangeCustomMarkersToParatextPrivates(source); // change our custom markers to
+			ChangeCustomMarkersToParatextPrivates(source); // change our custom markers to 
 														   // \z... markers for Paratext
 		}
 		break;
@@ -1003,7 +1003,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(glosses, glossesTextExport);
-
+		
 		glosses = RemoveMultipleSpaces(glosses);
 
 		if (gbIsUnstructuredData)
@@ -1016,7 +1016,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			ChangeCustomMarkersToParatextPrivates(glosses); // change our custom markers to
+			ChangeCustomMarkersToParatextPrivates(glosses); // change our custom markers to 
 														   // \z... markers for Paratext
 		}
 		break;
@@ -1027,7 +1027,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(freeTrans, freeTransTextExport);
-
+		
 		freeTrans = RemoveMultipleSpaces(freeTrans);
 
 		if (gbIsUnstructuredData)
@@ -1040,7 +1040,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			ChangeCustomMarkersToParatextPrivates(freeTrans); // change our custom markers
+			ChangeCustomMarkersToParatextPrivates(freeTrans); // change our custom markers 
 														   // to \z... markers for Paratext
 		}
 		break;
@@ -1053,9 +1053,9 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(target, targetTextExport);
-
+		
 		target = RemoveMultipleSpaces(target);
-
+		
 		if (gbIsUnstructuredData)
 			FormatUnstructuredTextBufferForOutput(target,bRTFOutput);
 
@@ -1076,7 +1076,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		}
 		else
 		{
-			ChangeCustomMarkersToParatextPrivates(target); // change our custom markers to
+			ChangeCustomMarkersToParatextPrivates(target); // change our custom markers to 
 														   // \z... markers for Paratext
 		}
 		break;
@@ -1088,15 +1088,15 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		// filename that is used for the export, and the export itself is
 		// automatically saved in the appropriate outputs folder. Since the
 		// user has no opportunity to provide a file name nor navigate to
-		// a random path, we should inform the user at this point of the
-		// successful completion of the export, and indicate the file name
+		// a random path, we should inform the user at this point of the 
+		// successful completion of the export, and indicate the file name 
 		// that was used and its outputs folder name and location.
 		wxFileName fn(exportFilename);
 		wxString fileNameAndExtOnly = fn.GetFullName();
 
 		wxString msg;
 		msg = msg.Format(_("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s"),fileNameAndExtOnly.c_str(),exportPath.c_str());
-		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+		wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 
 		return; // this ends RTF output
 	}
@@ -1116,14 +1116,14 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			wxLogDebug(_T("Unable to open export source text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the source text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		case glossesTextExport:
 			#ifdef __WXDEBUG__
 			wxLogDebug(_T("Unable to open export glosses text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the glosses text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 
 			break;
 		case freeTransTextExport:
@@ -1131,7 +1131,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			wxLogDebug(_T("Unable to open export free translation text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the free translation text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		default:
 		case targetTextExport:
@@ -1139,7 +1139,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 			wxLogDebug(_T("Unable to open export target text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),exportPath.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		}
 		gpApp->LogUserAction(msg);
@@ -1171,11 +1171,11 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	case sourceTextExport:
 		{
 		// Bruce added 8Dec06 two following lines
-		wxFontEncoding saveSrcEncoding = gpApp->m_srcEncoding; // I don't want
-			// to mess with checking whether the enforced conversion is safe
+		wxFontEncoding saveSrcEncoding = gpApp->m_srcEncoding; // I don't want 
+			// to mess with checking whether the enforced conversion is safe 
 			// to leave in place or not, so I'll restore afterwards
-		gpApp->m_srcEncoding = wxFONTENCODING_UTF8; // BEW added 8Dec06 to
-			// force conversion to UTF-8 always when exporting, same as is now
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF8; // BEW added 8Dec06 to 
+			// force conversion to UTF-8 always when exporting, same as is now 
 			// done for SFM export of the target text
 		// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
 		// so that source text exports don't get written with a null char embedded as
@@ -1236,21 +1236,21 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		break;
 	}
 	#endif // for _UNICODE
-
+	
 	// whm 7Jul11 Note:
 	// For protected navigation situations AI determines the actual
 	// filename that is used for the export, and the export itself is
 	// automatically saved in the appropriate outputs folder. Since the
 	// user has no opportunity to provide a file name nor navigate to
-	// a random path, we should inform the user at this point of the
-	// successful completion of the export, and indicate the file name
+	// a random path, we should inform the user at this point of the 
+	// successful completion of the export, and indicate the file name 
 	// that was used and its outputs folder name and location.
 	wxFileName fn(exportFilename);
 	wxString fileNameAndExtOnly = fn.GetFullName();
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 	gpApp->LogUserAction(_T("Export operation successful"));
 
 	f.Close();
@@ -1350,7 +1350,7 @@ bool IsFootnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredFootnotes)
 	// filtered footnotes will result in m_filteredInfo storing \f marker, so if we don't
 	// care whether it is filtered or not, but just want to know if any are in the
 	// document, then we must test both members
-	if ((pSrcPhrase->m_markers.Find(_T("\\f ")) != -1) ||
+	if ((pSrcPhrase->m_markers.Find(_T("\\f ")) != -1) || 
 		(pSrcPhrase->GetFilteredInfo().Find(_T("\\f ")) != -1))
 	{
 		return TRUE;
@@ -1381,7 +1381,7 @@ bool IsEndnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredEndnotes)
         // filtered endnotes will result in m_filteredInfo storing an \fe marker, so if we
         // don't care whether it is filtered or not, but just want to know if any are in
         // the document, then we must test both members
-		if ((pSrcPhrase->m_markers.Find(_T("\\fe ")) != -1) ||
+		if ((pSrcPhrase->m_markers.Find(_T("\\fe ")) != -1) || 
 			(pSrcPhrase->GetFilteredInfo().Find(_T("\\fe ")) != -1))
 		{
 			return TRUE;
@@ -1412,7 +1412,7 @@ bool IsNoteInDoc(CSourcePhrase* pSrcPhrase)
 // whm added 15Jul03 and Revised 1Aug03
 // whm revised November 2007 to improve reliability with Word 2003
 // BEW 10Apr10, updated for support of doc version 5 (changes were needed)
-// whm revised July 2011 to improve formatting for OpenOffice/LibreOffice,
+// whm revised July 2011 to improve formatting for OpenOffice/LibreOffice, 
 // while maintaining compatible with MS Word.
 // whm revised 9Dec11 to better handle export filename prefix/suffix consistent
 // with other exports.
@@ -1424,7 +1424,7 @@ void DoExportInterlinearRTF()
 
 	gpApp->LogUserAction(_T("Initiated DoExportInterlinearRTF()"));
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
-
+	
 	// establish pointer to the list of Source Phrases,
 	// so we can scan them and access them
 	SPList* pList = gpApp->m_pSourcePhrases;
@@ -1437,7 +1437,7 @@ void DoExportInterlinearRTF()
 	//saveWorkDir = ::wxGetCwd();
 	wxString defaultDir;
 	//bool bOK;
-
+	
 	// whm added 7Jul11 support for protecting inputs/outputs folder navigation
 	if (gpApp->m_bProtectInterlinearRTFOutputsFolder)
 	{
@@ -1453,11 +1453,11 @@ void DoExportInterlinearRTF()
 	else if (gpApp->m_lastInterlinearRTFOutputPath.IsEmpty()
 		|| (!gpApp->m_lastInterlinearRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastInterlinearRTFOutputPath)))
 	{
-		// Navigation protection is OFF so we set the flag to allow the wxFileDialog
-		// to appear. But the m_lastInterlinearRTFOutputPath is either empty or, if
-		// not empty, it points to an invalid path, so we initialize the defaultDir
-		// to point to  the special protected folder, even though Navigation
-		//  is not ON. In this case, the user could point the export path elsewhere
+		// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
+		// to appear. But the m_lastInterlinearRTFOutputPath is either empty or, if 
+		// not empty, it points to an invalid path, so we initialize the defaultDir 
+		// to point to  the special protected folder, even though Navigation 
+		//  is not ON. In this case, the user could point the export path elsewhere 
 		//  using the wxFileDialog that will appear.
 		bBypassFileDialog_ProtectedNavigation = FALSE;
 		defaultDir = gpApp->m_interlinearRTFOutputsFolderPath;
@@ -1465,8 +1465,8 @@ void DoExportInterlinearRTF()
 	else
 	{
 		// Navigation protection is OFF and we have a valid path in m_lastInterlinearRTFOutputPath,
-		// so we initialize the defaultDir to point to the m_lastInterlinearRTFOutputPath for the
-		// location of the export. The user could still point the export path elsewhere
+		// so we initialize the defaultDir to point to the m_lastInterlinearRTFOutputPath for the 
+		// location of the export. The user could still point the export path elsewhere 
 		// in the wxFileDialog that will appear.
 		bBypassFileDialog_ProtectedNavigation = FALSE;
 		defaultDir = gpApp->m_lastInterlinearRTFOutputPath;
@@ -1485,7 +1485,7 @@ void DoExportInterlinearRTF()
 													// output tables.
 	bool bInclNavLangRow = TRUE;					// When true the the Navigation lang check box is checked
 													// as default and Nav lang row is included in output tables.
-	bool bNewTableForNewLineMarker = FALSE;			// When true a new table starts for markers assoc with new
+	bool bNewTableForNewLineMarker = FALSE;			// When true a new table starts for markers assoc with new 
 													// lines.
 	bool bCenterTableForCenteredMarker = FALSE;		// When true the table is centered for markers assoc with
 													// centered text
@@ -1516,7 +1516,7 @@ void DoExportInterlinearRTF()
 	int nVsLast = 0;								// ending verse of range
 	wxString ChVsFirst = _T("");
 	wxString ChVsLast = _T("");
-	// whm 26Oct07 added check for footnotes and endnotes to process the \fetN control word properly
+	// whm 26Oct07 added check for footnotes and endnotes to process the \fetN control word properly 
 	// (see composition of Doctags below).
 	bool bDocHasFootnotes = FALSE;	// assume no footnotes unless found in while loop below
 	bool bDocHasEndnotes = FALSE;	// assume no endnotes unless found in while loop below
@@ -1529,7 +1529,7 @@ void DoExportInterlinearRTF()
 	CSourcePhrase* pSrcPhrase = NULL;
 	//SPList::Node* savePos = NULL; //POSITION savePos = NULL;
 
-	// Scan the SrcPhrase structure to get certain information that we need upfront, before
+	// Scan the SrcPhrase structure to get certain information that we need upfront, before 
     // putting up the export interlinear dialog, or before constructing the RTF header items:
 	// 1. The Ch/Vs range parameters for exdlg (needed before the dialog is presented)
 	// 2. Whether the document contains footnotes and/or endnotes (needed before RTF header is formed)
@@ -1550,21 +1550,21 @@ void DoExportInterlinearRTF()
 		{
 			// whm added 26Oct07
 			// Check for existence of footnotes and/or endnotes
-			// This is done mainly to determine what value for N we will assign to the
+			// This is done mainly to determine what value for N we will assign to the 
 			// problematic \fetN control word when the DocTags part of the RTF header
 			// string is composed farther below.
-			// Check for footnotes and/or endnotes within m_markers.
+			// Check for footnotes and/or endnotes within m_markers. 
 			// Note that filtered information is always exported, so we consider that
-			// any "\f " or "\fe " (not PngOnly) within filtered information should
+			// any "\f " or "\fe " (not PngOnly) within filtered information should 
 			// initially set the appropriate boolean flag to TRUE. Below we check
 			// against the export output filter to change the final state of these
 			// flags if they won't end up being exported in the RTF file.
 			//
 			// Now, look for existence of "\f " and/or "\fe " markers in the doc.
-			// The existence of "\f " always indicates a beginning footnote marker in
+			// The existence of "\f " always indicates a beginning footnote marker in 
 			// any sfm set
 			if (IsFootnoteInDoc(pSrcPhrase))
-				bDocHasFootnotes = TRUE; // TRUE if marker was in m_markers or m_filteredInfo
+				bDocHasFootnotes = TRUE; // TRUE if marker was in m_markers or m_filteredInfo 
 			// Only when "\fe " exists apart from the PngOnly set does it signal existence of endnotes
 			if (IsEndnoteInDoc(pSrcPhrase))
 				bDocHasEndnotes = TRUE; // TRUE if markers was in m_markers or m_filteredInfo
@@ -1581,7 +1581,7 @@ void DoExportInterlinearRTF()
 			if (IsBackTransInDoc(pSrcPhrase))
 				bDocHasBackTrans = TRUE;
 			// Now, look for existence of a note in the doc (these are always regarded as
-			// "filtered")
+			// "filtered") 
 			if (IsNoteInDoc(pSrcPhrase))
 				bDocHasAINotes = TRUE;
 		}
@@ -1629,7 +1629,7 @@ void DoExportInterlinearRTF()
 	// depending of gbGlossingVisible
 	exdlg.m_bIncludeGlossText = gbGlossingVisible;
 
-	// start with the Orientation that the PageSetup dialog would have as contained in
+	// start with the Orientation that the PageSetup dialog would have as contained in 
 	// the App's m_bIsPortraitOrientation.
 	exdlg.m_bPortraitOrientation = gpApp->m_bIsPortraitOrientation;
 
@@ -1663,7 +1663,7 @@ void DoExportInterlinearRTF()
 		bInclNavLangRow = exdlg.m_bIncludeNavText;
 		bNewTableForNewLineMarker = exdlg.m_bNewTableForNewLineMarker; // whm 13Oct06 added
 		bCenterTableForCenteredMarker = exdlg.m_bCenterTableForCenteredMarker; // whm 13Oct06 added
-
+		
         // 11Nov07 whm modified. If bDocHasFreeTrans == FALSE there are no actual free
         // translations in the document and we do not need an extra row in the table even
         // though the default is to do so in the Export Options dialog.
@@ -1671,7 +1671,7 @@ void DoExportInterlinearRTF()
 			bInclFreeTransRow = bPlaceFreeTransInRTFText; // retrieve from global - version 3
 		if (bDocHasBackTrans)
 			bInclBackTransRow = bPlaceBackTransInRTFText; // retrieve from global - version 3
-
+		
 		nChFirst = exdlg.m_nFromChapter;
 		nChLast = exdlg.m_nToChapter;
 		nVsFirst = exdlg.m_nFromVerse;
@@ -1689,13 +1689,13 @@ void DoExportInterlinearRTF()
 		return; // user cancelled
 	}
 
-	// Make adjustments to the exportFilename based on the user's preference for
+	// Make adjustments to the exportFilename based on the user's preference for 
 	// exportFilename prefix and suffix.
-	//
+	// 
 	// whm Note 8Jul11: When collaboration with PT/BE is ON, and when doing targetTextExport
-	// operations in this case block, the exportFilename as obtained from m_curOutputFilename
+	// operations in this case block, the exportFilename as obtained from m_curOutputFilename 
 	// above will be of the form _Collab_45_ACT_CH02.txt. To distinguish these manually
-	// produced exports within the _INTERLINEAR_RTF_OUTPUTS folder from those generated
+	// produced exports within the _INTERLINEAR_RTF_OUTPUTS folder from those generated 
 	// automatically by our collaboration code, we remove the "_Collab..." prefix. We
 	// then add an exportType prefix "_Interlinear" if the user ticked the checkbox for
 	// using export type prefixes in the ExportInterlinearDlg.
@@ -1708,7 +1708,7 @@ void DoExportInterlinearRTF()
 		exportFilename = expTypePrefixStr + exportFilename;
 	// whm 21Feb12 added at Kim's request. Put the src and tgt language names as prefix on exportFilename.
 	if (gpApp->m_bUsePrefixExportProjectNameOnFilename)
-		exportFilename = expProjNamePrefixStr + exportFilename;
+		exportFilename = expProjNamePrefixStr + exportFilename; 
 
 	// make a suitable default output filename for the export function
 	int len = exportFilename.Length();
@@ -1719,7 +1719,7 @@ void DoExportInterlinearRTF()
 	// navigation.
 	wxString exportPath;
 	wxString uniqueFilenameAndPath;
-	// Prepare a unique filename and path from the exportFilename. This unique filename
+	// Prepare a unique filename and path from the exportFilename. This unique filename 
 	// and path is used when the export is nav protected or when the user has ticked the
 	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
 	// is to be suffixed to the export filename, which ensures that any existing exports
@@ -1730,7 +1730,7 @@ void DoExportInterlinearRTF()
 		// Use the unique path for exportPath
 		exportFilename = uniqueFilenameAndPath;
 	}
-
+	
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
 		// get a file dialog
@@ -1742,7 +1742,7 @@ void DoExportInterlinearRTF()
 			defaultDir,
 			exportFilename,
 			filter,
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY 
 						// deprecated in 2.6 - the checkbox is never shown
 						// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 		fileDlg.Centre();
@@ -1759,21 +1759,21 @@ void DoExportInterlinearRTF()
 		exportPath = gpApp->m_interlinearRTFOutputsFolderPath + gpApp->PathSeparator + exportFilename;
 	}
 
-	// whm Note: We set the App's m_lastInterlinearRTFOutputPath variable with the
-	// path part of the exportPath just used. We do this even when navigation
-	// protection is on, so that the special folders would be the initial path
+	// whm Note: We set the App's m_lastInterlinearRTFOutputPath variable with the 
+	// path part of the exportPath just used. We do this even when navigation 
+	// protection is on, so that the special folders would be the initial path 
 	// suggested if the administrator were to switch Navigation Protection OFF.
 	wxString path, fname, ext;
 	wxFileName::SplitPath(exportPath, &path, &fname, &ext);
 	gpApp->m_lastInterlinearRTFOutputPath = path;
-
+	
 	wxFile f;
 
 	if( !f.Open( exportPath, wxFile::write))
 	{
 	   #ifdef __WXDEBUG__
 		  wxLogError(_("Unable to open export file.\n"));
-		  wxMessageBox(_("Unable to open export file."),_T(""),wxICON_WARNING);
+		  wxMessageBox(_("Unable to open export file."),_T(""),wxICON_EXCLAMATION | wxOK);
 	   #endif
 		  //bOK = ::wxSetWorkingDirectory(saveWorkDir); // ignore failures
 		  gpApp->LogUserAction(_T("Unable to open export file in DoExportInterlinearRTF()."));
@@ -2170,7 +2170,7 @@ void DoExportInterlinearRTF()
 	// from our existing m_pSourceFont, m_pTargetFont, and m_pNavTextFont fonts.
 	// These new temporary fonts are deleted near the end of DoExportInterlinearRTF.
 	// We'll use CopyFontBaseProperties() to copy the font's basic properties (encoding,
-	// family, and facename) from the corresponding screen fonts, but then we'll set the
+	// family, and facename) from the corresponding screen fonts, but then we'll set the 
 	// other font properties (point size, style, underline, and weight) from the attributes
 	// for exported fonts established in the AI_USFM.xml file
 	// 1. The font encoding, (there are about 40 "known font encodings")
@@ -2220,7 +2220,7 @@ void DoExportInterlinearRTF()
 
 	// Set up the RTF TARGET font based on pSfmTgt (from _tgt_lang_interlinear USFM in AI_USFM.xml)
 	// assign the USFMAnalysis specified fontSize, bold and underline characteristics to pRtfTgtFnt
-	pRtfTgtFnt->SetPointSize(pSfmTgt->fontSize);
+	pRtfTgtFnt->SetPointSize(pSfmTgt->fontSize); 
 	if (pSfmTgt->bold)
 		pRtfTgtFnt->SetWeight(wxFONTWEIGHT_BOLD);
 	else
@@ -2663,7 +2663,13 @@ void DoExportInterlinearRTF()
 
 	// get a device context
 	wxClientDC dC(gpApp->GetMainFrame()->canvas);
+	
+	// whm 8Jun12 changed SaveMapMode to be of type wxMappingMode rather than int (required in 2.9.3)
+#if wxCHECK_VERSION(2,9,0)
+	wxMappingMode SaveMapMode = dC.GetMapMode();
+#else
 	int SaveMapMode = dC.GetMapMode();
+#endif
 	// MFC had MM_LOENGLISH, in which each logical unit is converted to 0.01 inch.
 	// and Positive x is to the right; positive y is up.
 	// Although wxWidgets compiles with the wxMM_LOENGLISH identifier used here
@@ -2694,15 +2700,15 @@ void DoExportInterlinearRTF()
 	wxString MarginRight;
 	// whm Note: The DoExportInterlinearRTF() routine's CExportInterlinearDlg dialog has a "Maximum
 	// output table width designed for:" section with "Portrait Orientation" and "Landscape Orientation"
-	// radio buttons. The bUsePortrait flag was initialized to agree with the Page Setup dialog's
+	// radio buttons. The bUsePortrait flag was initialized to agree with the Page Setup dialog's 
 	// "Orientation" radio buttons. If the user changes the CExportInterlinearDlg's setting, it will
-	// be reflected in the value of bUsePortrait here. If user chooses to format interlinear output
-	// maximized for landscape, we don't automatically change the Page Setup dialog's Orientation
+	// be reflected in the value of bUsePortrait here. If user chooses to format interlinear output 
+	// maximized for landscape, we don't automatically change the Page Setup dialog's Orientation 
 	// to agree - let the user do that if he/she so wishes.
 	// Therefore here we don't call GetPageOrientation() to get the Page Setup's value for Orientation
 	// but use the CExportInterlinearDlg's explicit setting.
 	//bUsePortrait = (gpApp->GetPageOrientation()== 1); // this is not needed
-
+	
 	// Do sanity check: Ensure that the MaxRowWidth never ends up negative which might happen if the
 	// m_pageWidth were to be zero when DoExportInterlinearRTF(). This situation would probably signal
 	// a problem with the page setup values.
@@ -2834,7 +2840,7 @@ void DoExportInterlinearRTF()
 	// get called in the process.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
@@ -2843,7 +2849,7 @@ void DoExportInterlinearRTF()
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	wxProgressDialog* pProgDlg;
 	pProgDlg = gpApp->OpenNewProgressDialog(_("Export to Interlinear RTF"),msgDisplayed,nTotal,500);
-	int counter = 0;
+	int counter = 0;	
 	// Build final style tag strings - enclosed in {}
 	// Style information is used in three ways in our RTF output:
 	// 1. Style Definitions in the RTF Header
@@ -2904,7 +2910,7 @@ void DoExportInterlinearRTF()
 	// the Sindoc forms by employing some calls to the pSfm maps to determine the extra attributes
 	// needed for the Sdef forms (namely the styleName, basedOn, nextStyle, keepTogether,
 	// and keepWithNext attributes).
-	//
+	// 
 	// First assign the Sindoc forms directly from those in the rtfTagsMap
 
 	rtfIter = rtfTagsMap.find(_T("__normal"));
@@ -2915,7 +2921,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "__normal" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_src_lang_interlinear"));
@@ -2926,7 +2932,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_src_lang_interlinear" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_tgt_lang_interlinear"));
@@ -2937,7 +2943,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_tgt_lang_interlinear" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_gls_lang_interlinear"));
@@ -2948,7 +2954,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_gls_lang_interlinear" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_nav_lang_interlinear"));
@@ -2959,7 +2965,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_nav_lang_interlinear" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_hdr_ftr_interlinear"));
@@ -2970,7 +2976,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_hdr_ftr_interlinear" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_footnote_caller"));
@@ -2981,7 +2987,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_footnote_caller" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("f"));
@@ -2992,7 +2998,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "f" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
@@ -3003,7 +3009,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_annotation_ref" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_annotation_text"));
@@ -3014,7 +3020,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_annotation_text" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_notes_base"));
@@ -3025,7 +3031,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_notes_base" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("_vernacular_base"));
@@ -3036,7 +3042,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "_vernacular_base" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("free"));
@@ -3047,7 +3053,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "free" !!!
 	}
 	rtfIter = rtfTagsMap.find(_T("bt"));
@@ -3058,7 +3064,7 @@ void DoExportInterlinearRTF()
 	}
 	else
 	{
-		::wxBell();
+		::wxBell(); 
 		wxASSERT(FALSE); // assert here indicates malformed xml attribute for "bt" !!!
 	}
 
@@ -3136,9 +3142,9 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
-	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural
-	// RTL or LTR state for the Nav font which will force the cell text (paragraph)
-	// alignment within the table cells to be right-aligned for RTL and left-aligned for
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
 #ifdef _RTL_FLAGS
@@ -3180,9 +3186,9 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
-	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural
-	// RTL or LTR state for the Nav font which will force the cell text (paragraph)
-	// alignment within the table cells to be right-aligned for RTL and left-aligned for
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
 #ifdef _RTL_FLAGS
@@ -3224,10 +3230,10 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
-
-	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural
-	// RTL or LTR state for the Nav font which will force the cell text (paragraph)
-	// alignment within the table cells to be right-aligned for RTL and left-aligned for
+	
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
 	if (gbGlossingUsesNavFont)
@@ -3281,10 +3287,10 @@ void DoExportInterlinearRTF()
 		parPos = tempStr.Find(_T("\\li")); // \widctrlpar not found so use \liN instead
 	// insert the Tintbl and TytsN tags
 	tempStr = InsertInString(tempStr,parPos,Tintbl + TytsN);
-
-	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural
-	// RTL or LTR state for the Nav font which will force the cell text (paragraph)
-	// alignment within the table cells to be right-aligned for RTL and left-aligned for
+	
+	// whm added 23Jul11: For the in-table style add a \qr or \ql depending on the natural 
+	// RTL or LTR state for the Nav font which will force the cell text (paragraph) 
+	// alignment within the table cells to be right-aligned for RTL and left-aligned for 
 	// LRT. We don't do this outside of tables. This seems to be necessary for OpenOffice
 	// and LibreOffice.
 #ifdef _RTL_FLAGS
@@ -3581,7 +3587,7 @@ void DoExportInterlinearRTF()
 
 	// Build the DOCUMENT tags
 	// combine document parameter tags with other doc level tags
-
+	
 	// whm added 26Oct07
 	// Since different versions of Word (especially Word 2003) are sensitive to whether or not the
 	// \fetN control word is used, and what value N has. The RTF Specs all say about \fetN:
@@ -3589,8 +3595,8 @@ void DoExportInterlinearRTF()
 	//   0	Footnotes only or nothing at all (the default)
 	//   1	Endnotes only
 	//   2	Both footnotes and endnotes
-	// For backward compatibility, if \fet1 is emitted, \endnotes or \enddoc will be emitted
-	// along with \aendnotes or \aenddoc. RTF readers that understand \fet will need to
+	// For backward compatibility, if \fet1 is emitted, \endnotes or \enddoc will be emitted 
+	// along with \aendnotes or \aenddoc. RTF readers that understand \fet will need to 
 	// ignore the footnote-positioning control words and use the endnote control words instead."
 	//
 	// Note: When we scanned all the pSrcPhrase->m_markers members up near the beginning of
@@ -3611,30 +3617,30 @@ void DoExportInterlinearRTF()
 	{
 		bDocHasEndnotes = FALSE;
 	}
-	// Lastly, as far as the RTF \fetN control word goes, if any Free Translations,
+	// Lastly, as far as the RTF \fetN control word goes, if any Free Translations, 
 	// Back Translations, and/or AI Notes are to be formatted as footnotes in the final
-	// exported RTF document, we need to finally force the bDocHasFootnotes flag back to
+	// exported RTF document, we need to finally force the bDocHasFootnotes flag back to 
 	// TRUE, even if the user had no actual textual footnotes in the document, or has
 	// optionally filtered footnotes from output using the ExportOptionsDlg.
-	//
-	// Check if Free Translation, Back Translations or AI Notes are to be formatted as
+	// 
+	// Check if Free Translation, Back Translations or AI Notes are to be formatted as 
 	// footnotes. When set to FALSE they would be formatted as footnotes
 	// The extern globals available from the ExportOptionsDlg are (with their initial defaults):
 	//bPlaceFreeTransInRTFText = TRUE; // changed to TRUE; in v 3.0.1 after table row code added
 	//bPlaceBackTransInRTFText = FALSE;
 	//bPlaceAINotesInRTFText = FALSE;
 	// Here is the logic for the final test:
-	// If any one of the above are FALSE, AND their markers actually exist in the document,
-	// AND they are not eliminated in the OptionsDlg filter, we will have footnotes in the
+	// If any one of the above are FALSE, AND their markers actually exist in the document, 
+	// AND they are not eliminated in the OptionsDlg filter, we will have footnotes in the 
 	// actual final output.
 
-	if (   (!bPlaceFreeTransInRTFText && bDocHasFreeTrans && !MarkerIsToBeFilteredFromOutput(_T("free")))
+	if (   (!bPlaceFreeTransInRTFText && bDocHasFreeTrans && !MarkerIsToBeFilteredFromOutput(_T("free"))) 
 		|| (!bPlaceBackTransInRTFText && bDocHasBackTrans && !MarkerIsToBeFilteredFromOutput(_T("bt")))
 		|| (!bPlaceAINotesInRTFText   && bDocHasAINotes   && !MarkerIsToBeFilteredFromOutput(_T("note"))) )
 		bDocHasFootnotes = TRUE;
 
-	// The following code should at least make the value of N conform to the RTF specifications,
-	// and hopefully avoid some of the situations where a particular version of Word is unable
+	// The following code should at least make the value of N conform to the RTF specifications, 
+	// and hopefully avoid some of the situations where a particular version of Word is unable 
 	// to open the RTF file. See the options for setting N of the \fetN control word in comments above.
 	wxString fetNstr;
 	if ((!bDocHasFootnotes && !bDocHasEndnotes) || (bDocHasFootnotes &&  !bDocHasEndnotes)) // has Footnotes or neither
@@ -3740,8 +3746,8 @@ void DoExportInterlinearRTF()
 	// similar to the wx code below. (see note below).
 	wxDateTime theTime = wxDateTime::Now();
 	wxString DateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
-	// Note: wxDateTime::Format could simply use the ASNI C strftime %c conversion specifier which
-	// is shown commented out below. Doing so would give the preferred date and time representation for
+	// Note: wxDateTime::Format could simply use the ASNI C strftime %c conversion specifier which 
+	// is shown commented out below. Doing so would give the preferred date and time representation for 
 	// the current locale. The format actually used above mimics that used in the MFC version.
 	//wxString DateTime = theTime.Format(_T("%c")).c_str();
 
@@ -3787,7 +3793,7 @@ void DoExportInterlinearRTF()
 	if (bReverseLayout)
 	{
 		TStartPos = _T("");						// There is no \trright0 tag in RTF specs
-		Tjust = _T("\\trqr");					// Right justify the table row with respect to its
+		Tjust = _T("\\trqr");					// Right justify the table row with respect to its 
 												// containing column (containing column is the page
 												// between the margins in our case)
 		TRowPrecedence = _T("\\rtlrow");		// Cells in the table row will have RTL precedence
@@ -3823,7 +3829,7 @@ void DoExportInterlinearRTF()
 												// as delimiters in the actual text of the row, i.e.,
 												// {This is\cell some\cell Source\cell Language\cell text.\cell }
 
-	//
+	// 
 	// We now have all the info to output the entire RTF Header for Interlinear
 	// RTF output. Most of this header is similar to the non-interlinear
 	// RTF output of the Source and/or Translation drafts.
@@ -3870,7 +3876,7 @@ void DoExportInterlinearRTF()
 	// Note: If there is a write error in WriteOutputString() it must go to writeErrExit point
 	// to delete font objects and prevent memory leaks
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-	{
+	{	
 		pProgDlg->Destroy();
 		return;
 	}
@@ -3997,7 +4003,7 @@ void DoExportInterlinearRTF()
 	int CVvfirst = 0;	// not used except as parameter to AnalyseReference
 	int CVvlast = 0;
 
-
+	 
 	// These are used in while loop below to control output filtering
 	bool bCurrentlyFiltering = FALSE;
 	bool bHasNoteMarker = FALSE;
@@ -4225,7 +4231,7 @@ void DoExportInterlinearRTF()
 		// whm 27Nov05 Note: The Interlinear Export does not really need to worry about the
 		// placement of markers within a Retranslation, since it basically strips out all markers
 		// as far as the target text is concerned.
-		//
+		// 
 		// BEW 12Apr10 - the above comment is inaccurate. Retranslation stores the marker
 		// information, but it has no need to assign markers to specific locations within
 		// the target text until that text is exported (and that may cause a Place Markers
@@ -4236,7 +4242,7 @@ void DoExportInterlinearRTF()
 		// a loss is probably a small price to pay for the greater good of not
 		// interrupting the RTF construction process in order to ask the user to manually
 		// place markers. So I'm leaving Bill's code unchanged in this matter.
-		//
+		// 
         // We treat the contents of m_markers separately, especially with regard to the
         // formatting of \note, \free and \bt material which are handled below.
 		// The version of the code below for constructing the SrcStr, TgtStr, GlsStr and NavStr was
@@ -4301,7 +4307,7 @@ void DoExportInterlinearRTF()
 			// design, the hidden elements are to propagate through from input source to
 			// target output; and in our interlinear case we are displaying both the source
 			// and the target on the same display.
-			//
+			//			
 			// Handle any note, back trans or free trans stuff. Rather than putting it into
 			// the SrcStr and TgtStr, we'll set it aside in some temporary strings to be
 			// formatted into the proper RTF form (comments, footnotes, or eventual extra
@@ -4349,7 +4355,7 @@ void DoExportInterlinearRTF()
 				{
 					bHasBTMarker = FALSE;
 				}
-			}
+			}			
 
 			// At this point any \note, \free and \bt... material and associated text has
 			// been removed from tempStr. What remains are various markers and text composed of:
@@ -4389,298 +4395,305 @@ void DoExportInterlinearRTF()
 			// Setup copy-to buffer textStr2. It needs to be twice the size of input buffer since
 			// we will be adding a backslash for every control char we find
 			wxString textStr2;
-			wxChar* pBuffer2;
+			//wxChar* pBuffer2;
 			// wx Note: pBuffer2 must be a writeable buffer
-			pBuffer2 = textStr2.GetWriteBuf(nTheLen*2 + 1); // buffer double size for safety even
-												// though pBuffer2 should be same size or smaller
-			int mkrLen = 0;
-			wxString bareMkrForLookup;
-			wxString wholeMkr;
-			wxString wholeMkrNoAsteriskSp;
-			wxChar* pOld = (wxChar*)pBuffer;  // source
-			wxChar* pNew = pBuffer2; // destination
+			// whm 8Jun12 modified to use wxStringBuffer
+			// Create the wxStringBuffer in a specially scoped block. This is crucial here
+			// in this function since the wxString textStr2 is accessed directly within
+			// this function (see about line 4691).
+			{ // begin special scoped block
+				wxStringBuffer pBuffer2(textStr2,nTheLen*2 + 1);
+				//pBuffer2 = textStr2.GetWriteBuf(nTheLen*2 + 1); // buffer double size for safety even
+													// though pBuffer2 should be same size or smaller
+				int mkrLen = 0;
+				wxString bareMkrForLookup;
+				wxString wholeMkr;
+				wxString wholeMkrNoAsteriskSp;
+				wxChar* pOld = (wxChar*)pBuffer;  // source
+				wxChar* pNew = pBuffer2; // destination
 
-			// We cannot use ApplyOutputFilterToText() here in DoExportInterlinearRTF() because
-			// ApplyOutputFilterToText is designed to work on a whole text that completely resides
-			// in a wxString. Here we are dealing with the individual source phrases and markers
-			// which are all located within the m_markers member of the first source phrase where
-			// they are encountered.
-			//
-			// CODE BELOW FUNCTIONS AS OUTPUT FILTER FOR INTERLINEAR EXPORT
-			//bool bHitMkr = FALSE;
-			while (pOld < pEnd && *pOld != (wxChar)0)
-			{
-				if (IsMarkerRTF(pOld,pBuffStart))
+				// We cannot use ApplyOutputFilterToText() here in DoExportInterlinearRTF() because
+				// ApplyOutputFilterToText is designed to work on a whole text that completely resides
+				// in a wxString. Here we are dealing with the individual source phrases and markers
+				// which are all located within the m_markers member of the first source phrase where
+				// they are encountered.
+				//
+				// CODE BELOW FUNCTIONS AS OUTPUT FILTER FOR INTERLINEAR EXPORT
+				//bool bHitMkr = FALSE;
+				while (pOld < pEnd && *pOld != (wxChar)0)
 				{
-					// we are pointing at a marker
-					// What kind of marker is it?
-					// Get its USFMAnalysis struct
-					bareMkrForLookup = pDoc->GetBareMarkerForLookup(pOld);
-					wholeMkr = pDoc->GetWholeMarker(pOld);
-					wholeMkrNoAsteriskSp = wholeMkr;
-					wholeMkrNoAsteriskSp.Replace(_T("*"),_T(""));
-					wholeMkrNoAsteriskSp += _T(' ');
-					// if we have been filtering and this marker is not to be filtered
-					// from output, we set bCurrentlyFiltering back to FALSE
-					if (bCurrentlyFiltering
-						&& !MarkerIsToBeFilteredFromOutput(bareMarkerForLookup)
-						&& embeddedWholeMkrs.Find(wholeMkr + _T(' ')) == -1
-						)
+					if (IsMarkerRTF(pOld,pBuffStart))
 					{
-						bCurrentlyFiltering = FALSE;
-					}
-
-					int nMkrLen = 0; // disregard nMkrLen here; used as dummy for IsVerseMarker
-
-					// is it a chapter marker?
-					if (pDoc->IsChapterMarker(pOld))
-					{
-						// we don't put the \c n in the text; NavStr handles it
-						mkrLen = ParseMarkerRTF(pOld,pEnd);
-						pOld += mkrLen; // point pOld past \c marker
-						mkrLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += mkrLen;
-						if (pOld >= pEnd)
-							break;
-						// should be a chapter number so parse it and following whitesp
-						mkrLen = pDoc->ParseNumber(pOld);
-						pOld += mkrLen; // point pOld past n
-						if (pOld >= pEnd)
-							break;
-						mkrLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += mkrLen;
-						if (pOld >= pEnd)
-							break;
-					}
-					// is it a verse marker?
-					else if (pDoc->IsVerseMarker(pOld,nMkrLen))
-					{
-						// we don't put the \v n in the text; NavStr handles it
-						mkrLen = ParseMarkerRTF(pOld,pEnd);
-						pOld += mkrLen; // point pOld past \v marker
-						mkrLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += mkrLen;
-						if (pOld >= pEnd)
-							break;
-						// should be a verse number so parse it and following whitesp
-						mkrLen = pDoc->ParseNumber(pOld);
-						pOld += mkrLen; // point pOld past n
-						if (pOld >= pEnd)
-							break;
-						mkrLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += mkrLen;
-						if (pOld >= pEnd)
-							break;
-					}
-					// is it to be output filtered?
-					else if (MarkerIsToBeFilteredFromOutput(bareMkrForLookup))
-					{
-						// it is one to be filtered from output - if it was input
-						// filtered, the marker and its assoc string and any end marker
-						// should reside wholly in m_markers.
-						if (gpApp->gCurrentFilterMarkers.Find(wholeMkrNoAsteriskSp) != -1)
+						// we are pointing at a marker
+						// What kind of marker is it?
+						// Get its USFMAnalysis struct
+						bareMkrForLookup = pDoc->GetBareMarkerForLookup(pOld);
+						wholeMkr = pDoc->GetWholeMarker(pOld);
+						wholeMkrNoAsteriskSp = wholeMkr;
+						wholeMkrNoAsteriskSp.Replace(_T("*"),_T(""));
+						wholeMkrNoAsteriskSp += _T(' ');
+						// if we have been filtering and this marker is not to be filtered
+						// from output, we set bCurrentlyFiltering back to FALSE
+						if (bCurrentlyFiltering
+							&& !MarkerIsToBeFilteredFromOutput(bareMarkerForLookup)
+							&& embeddedWholeMkrs.Find(wholeMkr + _T(' ')) == -1
+							)
 						{
-							// it was input filtered and \~FILTER ... \~FILTER* brackets were
-							// removed above. We can expect that the whole marker and assoc
-							// text and any end marker is present so we can use the
-							// ParseMarkerAndAnyAssociatedText
-							int combinedLen = 0;
-							combinedLen = ParseMarkerAndAnyAssociatedText(pOld,pBuffStart,pEnd,
-								bareMkrForLookup,wholeMkr,TRUE,FALSE);	// TRUE is RTF aware
-																		// FALSE don't include
-																		// char format markers
-							//the marker and assoc text and any end marker is to be filtered
-							//from output, so we'll just move pOld and pNew past the whole thing
-							//effectively filtering it out
-							pOld += combinedLen;
-							//pNew += combinedLen; // whm modified 27Dec07 to fix potential bug
+							bCurrentlyFiltering = FALSE;
 						}
-						else if (pDoc->IsEndMarker(pOld,pEnd))
 
+						int nMkrLen = 0; // disregard nMkrLen here; used as dummy for IsVerseMarker
+
+						// is it a chapter marker?
+						if (pDoc->IsChapterMarker(pOld))
 						{
-							// it's an end marker that is being filtered from output
-							// if it is not an end marker of the embedded marker type
-							// we stop filtering. If it is an end marker of the embedded
-							// marker type we do nothing, because there will probably be
-							// the parent end marker coming up soon (which will turn off
-							// the filtering for the parent marker.
-							if (embeddedWholeEndMkrs.Find(wholeMkr + _T(' ')) != -1)
+							// we don't put the \c n in the text; NavStr handles it
+							mkrLen = ParseMarkerRTF(pOld,pEnd);
+							pOld += mkrLen; // point pOld past \c marker
+							mkrLen = pDoc->ParseWhiteSpace(pOld);
+							pOld += mkrLen;
+							if (pOld >= pEnd)
+								break;
+							// should be a chapter number so parse it and following whitesp
+							mkrLen = pDoc->ParseNumber(pOld);
+							pOld += mkrLen; // point pOld past n
+							if (pOld >= pEnd)
+								break;
+							mkrLen = pDoc->ParseWhiteSpace(pOld);
+							pOld += mkrLen;
+							if (pOld >= pEnd)
+								break;
+						}
+						// is it a verse marker?
+						else if (pDoc->IsVerseMarker(pOld,nMkrLen))
+						{
+							// we don't put the \v n in the text; NavStr handles it
+							mkrLen = ParseMarkerRTF(pOld,pEnd);
+							pOld += mkrLen; // point pOld past \v marker
+							mkrLen = pDoc->ParseWhiteSpace(pOld);
+							pOld += mkrLen;
+							if (pOld >= pEnd)
+								break;
+							// should be a verse number so parse it and following whitesp
+							mkrLen = pDoc->ParseNumber(pOld);
+							pOld += mkrLen; // point pOld past n
+							if (pOld >= pEnd)
+								break;
+							mkrLen = pDoc->ParseWhiteSpace(pOld);
+							pOld += mkrLen;
+							if (pOld >= pEnd)
+								break;
+						}
+						// is it to be output filtered?
+						else if (MarkerIsToBeFilteredFromOutput(bareMkrForLookup))
+						{
+							// it is one to be filtered from output - if it was input
+							// filtered, the marker and its assoc string and any end marker
+							// should reside wholly in m_markers.
+							if (gpApp->gCurrentFilterMarkers.Find(wholeMkrNoAsteriskSp) != -1)
 							{
-								// unilaterally stop output filtering
-								bCurrentlyFiltering = FALSE;
+								// it was input filtered and \~FILTER ... \~FILTER* brackets were
+								// removed above. We can expect that the whole marker and assoc
+								// text and any end marker is present so we can use the
+								// ParseMarkerAndAnyAssociatedText
+								int combinedLen = 0;
+								combinedLen = ParseMarkerAndAnyAssociatedText(pOld,pBuffStart,pEnd,
+									bareMkrForLookup,wholeMkr,TRUE,FALSE);	// TRUE is RTF aware
+																			// FALSE don't include
+																			// char format markers
+								//the marker and assoc text and any end marker is to be filtered
+								//from output, so we'll just move pOld and pNew past the whole thing
+								//effectively filtering it out
+								pOld += combinedLen;
+								//pNew += combinedLen; // whm modified 27Dec07 to fix potential bug
 							}
-							// parse the marker and following space
-							mkrLen = ParseMarkerRTF(pOld,pEnd);
-							pOld += mkrLen;
-							mkrLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += mkrLen;
-							// omit marker itself from pNew
-							//bHitMkr = TRUE;
-							if (pOld >= pEnd)
-								break;
-						}
-						else if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != -1)
-						{
-							// We are filtering one of the character markers that affects font
-							// formatting. We don't want to filter out the associated text, only
-							// remove the formatting, i.e., by remove the markers and leaving the
-							// associated text.
-							// We do not set bCurrentlyFiltering = TRUE here, but only parse the
-							// marker and following space to effectively omit these formatting
-							// markers from output
-							mkrLen = ParseMarkerRTF(pOld,pEnd);
-							pOld += mkrLen;
-							mkrLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += mkrLen;
-							// omit marker itself from pNew
-							//bHitMkr = TRUE;
-							if (pOld >= pEnd)
-								break;
-						}
-						else
-						{
-							// the marker is NOT an end marker but should now be filtered
-							// from output (because we are in the "to-be-filtered" block
-                            // If this marker is wholly contained in our current m_markers,
-                            // we can filter it and its associated text right here by
-                            // parsing the whole thing and not advancing the pNew in the
-                            // process. If this marker is not wholly contained here (or we
-                            // cannot determine that it is), we'll just set the flag for a
-                            // subsequent pSrcPhrase to filter it.
-							bCurrentlyFiltering = TRUE;
-							// parse the marker and following space
-							mkrLen = ParseMarkerRTF(pOld,pEnd);
-							pOld += mkrLen;
-							mkrLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += mkrLen;
-							// omit marker itself from pNew
-							//bHitMkr = TRUE;
-							if (pOld >= pEnd)
-								break;
-						}
-					}
-					else
-					{
-						// the marker is NOT one that is to be output filtered.
+							else if (pDoc->IsEndMarker(pOld,pEnd))
 
-                        // determine if it is a wrap marker which would start a new table
-                        // if user desires it to do so
-						USFMAnalysis* pSfm = NULL;
-						pSfm = pDoc->LookupSFM(bareMkrForLookup);
-						if (pSfm != NULL)
-						{
-							bMarkerStartsNewLine = pSfm->wrap;
-							bNextTableIsCentered = (pSfm->justification == center);
-						}
-						else
-						{
-							// an unknown marker stops table centering
-							bNextTableIsCentered = FALSE;
-						}
-
-						if (gpApp->gCurrentFilterMarkers.Find(wholeMkrNoAsteriskSp) != -1)
-						{
-							// it was input filtered and \~FILTER ... \~FILTER* brackets were
-							// removed above. We can expect that it will be wholly contained
-							// within this m_markers and we can parse it here (and enclose it
-							// in [...].
-							bHasInputFilteredMaterial = TRUE;
-							int combinedLen = 0;
-							int mkrAndSpLen = 0;
-							combinedLen = ParseMarkerAndAnyAssociatedText(pOld,pBuffStart,pEnd,
-								bareMkrForLookup,wholeMkr,TRUE,FALSE);	// TRUE is RTF aware
-																		// FALSE don't include
-																		// char format markers
-							// first parse the marker and following space to skip them
-							mkrLen = ParseMarkerRTF(pOld,pEnd);
-							mkrAndSpLen = mkrLen;
-							pOld += mkrLen;
-							mkrLen = pDoc->ParseWhiteSpace(pOld);
-							mkrAndSpLen += mkrLen;
-							pOld += mkrLen;
-							// we add [...] and copy from pOld to pNew
-							*pNew++ = _T('[');
-							int ct = 0;
-							while (ct < (combinedLen - mkrAndSpLen))
 							{
-								if (IsMarkerRTF(pOld,pBuffStart))
+								// it's an end marker that is being filtered from output
+								// if it is not an end marker of the embedded marker type
+								// we stop filtering. If it is an end marker of the embedded
+								// marker type we do nothing, because there will probably be
+								// the parent end marker coming up soon (which will turn off
+								// the filtering for the parent marker.
+								if (embeddedWholeEndMkrs.Find(wholeMkr + _T(' ')) != -1)
 								{
-									// we have an embedded marker within the associated text
-									// of the parent marker. We want to remove these for the
-									// purposes of the interlinear display
-									mkrLen = ParseMarkerRTF(pOld,pEnd);
-									pOld += mkrLen; // point past the embedded marker
-									ct += mkrLen;
+									// unilaterally stop output filtering
+									bCurrentlyFiltering = FALSE;
 								}
-								else
+								// parse the marker and following space
+								mkrLen = ParseMarkerRTF(pOld,pEnd);
+								pOld += mkrLen;
+								mkrLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += mkrLen;
+								// omit marker itself from pNew
+								//bHitMkr = TRUE;
+								if (pOld >= pEnd)
+									break;
+							}
+							else if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != -1)
+							{
+								// We are filtering one of the character markers that affects font
+								// formatting. We don't want to filter out the associated text, only
+								// remove the formatting, i.e., by remove the markers and leaving the
+								// associated text.
+								// We do not set bCurrentlyFiltering = TRUE here, but only parse the
+								// marker and following space to effectively omit these formatting
+								// markers from output
+								mkrLen = ParseMarkerRTF(pOld,pEnd);
+								pOld += mkrLen;
+								mkrLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += mkrLen;
+								// omit marker itself from pNew
+								//bHitMkr = TRUE;
+								if (pOld >= pEnd)
+									break;
+							}
+							else
+							{
+								// the marker is NOT an end marker but should now be filtered
+								// from output (because we are in the "to-be-filtered" block
+								// If this marker is wholly contained in our current m_markers,
+								// we can filter it and its associated text right here by
+								// parsing the whole thing and not advancing the pNew in the
+								// process. If this marker is not wholly contained here (or we
+								// cannot determine that it is), we'll just set the flag for a
+								// subsequent pSrcPhrase to filter it.
+								bCurrentlyFiltering = TRUE;
+								// parse the marker and following space
+								mkrLen = ParseMarkerRTF(pOld,pEnd);
+								pOld += mkrLen;
+								mkrLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += mkrLen;
+								// omit marker itself from pNew
+								//bHitMkr = TRUE;
+								if (pOld >= pEnd)
+									break;
+							}
+						}
+						else
+						{
+							// the marker is NOT one that is to be output filtered.
+
+							// determine if it is a wrap marker which would start a new table
+							// if user desires it to do so
+							USFMAnalysis* pSfm = NULL;
+							pSfm = pDoc->LookupSFM(bareMkrForLookup);
+							if (pSfm != NULL)
+							{
+								bMarkerStartsNewLine = pSfm->wrap;
+								bNextTableIsCentered = (pSfm->justification == center);
+							}
+							else
+							{
+								// an unknown marker stops table centering
+								bNextTableIsCentered = FALSE;
+							}
+
+							if (gpApp->gCurrentFilterMarkers.Find(wholeMkrNoAsteriskSp) != -1)
+							{
+								// it was input filtered and \~FILTER ... \~FILTER* brackets were
+								// removed above. We can expect that it will be wholly contained
+								// within this m_markers and we can parse it here (and enclose it
+								// in [...].
+								bHasInputFilteredMaterial = TRUE;
+								int combinedLen = 0;
+								int mkrAndSpLen = 0;
+								combinedLen = ParseMarkerAndAnyAssociatedText(pOld,pBuffStart,pEnd,
+									bareMkrForLookup,wholeMkr,TRUE,FALSE);	// TRUE is RTF aware
+																			// FALSE don't include
+																			// char format markers
+								// first parse the marker and following space to skip them
+								mkrLen = ParseMarkerRTF(pOld,pEnd);
+								mkrAndSpLen = mkrLen;
+								pOld += mkrLen;
+								mkrLen = pDoc->ParseWhiteSpace(pOld);
+								mkrAndSpLen += mkrLen;
+								pOld += mkrLen;
+								// we add [...] and copy from pOld to pNew
+								*pNew++ = _T('[');
+								int ct = 0;
+								while (ct < (combinedLen - mkrAndSpLen))
 								{
-									// copy the old char to the new char, but if
-									// the previous new char was a space and the current
-									// old char is a space skip adding two adjacent spaces to pNew
-									if (*(pNew -1) == _T(' ') && *pOld == _T(' '))
+									if (IsMarkerRTF(pOld,pBuffStart))
 									{
-										pOld++;
-										ct++;
-									}
-									// skip final space before ] is added in pNew
-									else if (!(combinedLen - mkrAndSpLen -ct == 1 && *pOld == _T(' ')))
-									{
-										*pNew++ = *pOld++;
-										ct++;
+										// we have an embedded marker within the associated text
+										// of the parent marker. We want to remove these for the
+										// purposes of the interlinear display
+										mkrLen = ParseMarkerRTF(pOld,pEnd);
+										pOld += mkrLen; // point past the embedded marker
+										ct += mkrLen;
 									}
 									else
 									{
-										ct++; // continue incrementing loop
+										// copy the old char to the new char, but if
+										// the previous new char was a space and the current
+										// old char is a space skip adding two adjacent spaces to pNew
+										if (*(pNew -1) == _T(' ') && *pOld == _T(' '))
+										{
+											pOld++;
+											ct++;
+										}
+										// skip final space before ] is added in pNew
+										else if (!(combinedLen - mkrAndSpLen -ct == 1 && *pOld == _T(' ')))
+										{
+											*pNew++ = *pOld++;
+											ct++;
+										}
+										else
+										{
+											ct++; // continue incrementing loop
+										}
 									}
 								}
+								*pNew++ = _T(']');
 							}
-							*pNew++ = _T(']');
-						}
-						else if (pDoc->IsEndMarker(pOld,pEnd))
-						{
-							// it's an end marker that is being filtered from output
-							// if it is not an end marker of the embedded marker type
-							// we stop filtering. If it is an end marker of the embedded
-							// marker type we do nothing, because there will probably be
-							// the parent end marker coming up soon (which will turn off
-							// the filtering for the parent marker.
-							if (bCurrentlyFiltering && embeddedWholeEndMkrs.Find(wholeMkr + _T(' ')) != -1)
+							else if (pDoc->IsEndMarker(pOld,pEnd))
 							{
-								// unilaterally stop output filtering
-								bCurrentlyFiltering = FALSE;
+								// it's an end marker that is being filtered from output
+								// if it is not an end marker of the embedded marker type
+								// we stop filtering. If it is an end marker of the embedded
+								// marker type we do nothing, because there will probably be
+								// the parent end marker coming up soon (which will turn off
+								// the filtering for the parent marker.
+								if (bCurrentlyFiltering && embeddedWholeEndMkrs.Find(wholeMkr + _T(' ')) != -1)
+								{
+									// unilaterally stop output filtering
+									bCurrentlyFiltering = FALSE;
+								}
+								// parse the marker and following space
+								mkrLen = ParseMarkerRTF(pOld,pEnd);
+								pOld += mkrLen;
+								mkrLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += mkrLen;
+								// omit marker itself from pNew
+								//bHitMkr = TRUE;
+								if (pOld >= pEnd)
+									break;
 							}
-							// parse the marker and following space
-							mkrLen = ParseMarkerRTF(pOld,pEnd);
-							pOld += mkrLen;
-							mkrLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += mkrLen;
-							// omit marker itself from pNew
-							//bHitMkr = TRUE;
-							if (pOld >= pEnd)
-								break;
+							else
+							{
+								// parse the marker and following space
+								mkrLen = ParseMarkerRTF(pOld,pEnd);
+								pOld += mkrLen;
+								mkrLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += mkrLen;
+								// omit marker itself from pNew
+								//bHitMkr = TRUE;
+								if (pOld >= pEnd)
+									break;
+							}
 						}
-						else
-						{
-							// parse the marker and following space
-							mkrLen = ParseMarkerRTF(pOld,pEnd);
-							pOld += mkrLen;
-							mkrLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += mkrLen;
-							// omit marker itself from pNew
-							//bHitMkr = TRUE;
-							if (pOld >= pEnd)
-								break;
-						}
+					} // end of if IsMarkerRTF()
+					else
+					{
+						// not a marker so just copy
+						*pNew++ = *pOld++;
 					}
-				} // end of if IsMarkerRTF()
-				else
-				{
-					// not a marker so just copy
-					*pNew++ = *pOld++;
-				}
-			}// end of while (pOld < pEnd && *pOld != (TCHAR)0)
-			*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
-			textStr2.UngetWriteBuf();
+				}// end of while (pOld < pEnd && *pOld != (TCHAR)0)
+				*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+			} // end of special scoping block
+			//textStr2.UngetWriteBuf(); // not used in 2.9.3 with wxStringBuffer
 
 			// add any non-output-filtered stuff from m_markers to SrcStr
 			if (!SrcStr.IsEmpty())
@@ -4758,7 +4771,7 @@ void DoExportInterlinearRTF()
 		SrcStr = EscapeAnyEmbeddedRTFControlChars(SrcStr);
 		TgtStr = EscapeAnyEmbeddedRTFControlChars(TgtStr);
 		GlsStr = EscapeAnyEmbeddedRTFControlChars(GlsStr);
-
+		
 		// FreeTStr and BackTStr are empty at this point so we won't escape chars in them either.
 		// We call EscapeAnyEmbeddedRTFControlChars() on the appropriate parts of the NavStr below
 		// after we've composed it from the m_inform member, and also before the text associated
@@ -4814,7 +4827,7 @@ void DoExportInterlinearRTF()
 			}
 			if (pSrcPhrase->m_bFootnoteEnd)
 			{
-				// whm 19Nov10 added hack here to show "end fn" in interlinear navtext cell
+				// whm 19Nov10 added hack here to show "end fn" in interlinear navtext cell 
 				// as is done on main window display by my hack in CPile::DrawNavTextInfoAndIcons.
 				// The more proper way would probably be to actually add this "end fn" text to
 				// the m_inform member when pSrcPhrase->m_bFootnoteEnd is set in parsing.
@@ -4882,7 +4895,7 @@ void DoExportInterlinearRTF()
 		// Get text extents including gap between piles/columns.
 		// Using LO_ENGLISH mapping mode, GetTextExtent returns int values that are in hundredths of
 		// an inch. We need to multiply by 14.4 to get twips, add twice the amount of the
-		// (half) intercell gap + a fudge factor for word processors like Word which tend to
+		// (half) intercell gap + a fudge factor for word processors like Word which tend to 
 		// wrap short strings (like the ... null phrase) of small point size within short cells.
 
 		// whm 8Nov07 added to reduce unwanted wrapping of text in cells. Unicode fonts seem to
@@ -4933,7 +4946,7 @@ void DoExportInterlinearRTF()
 		// at this point may contain something like "?\vref?" where the \vref marker was not
 		// recognized. We need to ensure that the backslash is escaped in these cases.
 		NavStr = EscapeAnyEmbeddedRTFControlChars(NavStr);
-
+		
 		if (bHasNoteMarker)
 		{
 			// We implement Adapt It Notes by simply adding the RTF footnote tags and
@@ -4952,7 +4965,7 @@ void DoExportInterlinearRTF()
 			assocNoteMarkerText.Trim(TRUE); // trim right end
 			bareNoteMarker.Trim(FALSE); // trim left end
 			bareNoteMarker.Trim(TRUE); // trim right end
-
+			
 			// The assocNoteMarkerText string may also contain embedded backslash or curly brace
 			// characters inserted within AI Notes or embedded within back or free translation etc.
 			// We need to ensure that the backslash is escaped in these cases also.
@@ -5021,7 +5034,7 @@ void DoExportInterlinearRTF()
 				}
 				//NavStr += noteRefNumStr;
 				// recalculate text extent of NavStr since we've added "note N" to it
-				dC.SetFont(*pRtfNavFnt);
+				dC.SetFont(*pRtfNavFnt); 
 				dC.GetTextExtent(noteRefNumStr,&Navextent.x,&Navextent.y);
 				WidthNav += (int)((float)(Navextent.GetWidth())*14.4*.7); // increase WidthNav for added "N"
 				// add RTF tags to NavStr
@@ -5071,7 +5084,7 @@ void DoExportInterlinearRTF()
 			assocFreeMarkerText.Trim(TRUE); // trim right end
 			bareFreeMarker.Trim(FALSE); // trim left end
 			bareFreeMarker.Trim(TRUE); // trim right end
-
+			
 			// The assocFreeMarkerText string may also contain embedded backslash or curly brace
 			// characters inserted within AI Notes or embedded within back or free translation etc.
 			// We need to ensure that the backslash is escaped in these cases also.
@@ -5081,7 +5094,7 @@ void DoExportInterlinearRTF()
 			dC.SetFont(*pRtfFreeFnt);
 			dC.GetTextExtent(assocFreeMarkerText,&FreeTransextent.x,&FreeTransextent.y);
 			WidthFreeTrans = (int)((float)(FreeTransextent.GetWidth())*14.4) + (ngaphNum*2) + RTFCellGapFudgeFactor; // convert 100ths to twips + gap*2
-			WidthFreeTrans = WidthFreeTrans; // avoid warning
+			WidthFreeTrans = WidthFreeTrans; // avoid warning 
 			// construct numerically sequenced caller
 			freeRefNumInt++; // increment the free N to free 1, free 2, free 3, etc.
 			freeRefNumStr = bareFreeMarker + _T(' ');
@@ -5131,7 +5144,7 @@ void DoExportInterlinearRTF()
 			assocBTMarkerText.Trim(TRUE); // trim right end
 			bareBTMarker.Trim(FALSE); // trim left end
 			bareBTMarker.Trim(TRUE); // trim right end
-
+			
 			// The assocBTMarkerText string may also contain embedded backslash or curly brace
 			// characters inserted within AI Notes or embedded within back or free translation etc.
 			// We need to ensure that the backslash is escaped in these cases also.
@@ -5255,7 +5268,7 @@ a:
 				Tjust = _T(""); // allow the default to happen
 				if (bReverseLayout)
 				{
-					Tjust = _T("\\trqr");					// Right justify the table row with respect to its
+					Tjust = _T("\\trqr");					// Right justify the table row with respect to its 
 															// containing column (containing column is the page
 															// between the margins in our case)
 					TRowPrecedence = _T("\\rtlrow");		// Cells in the table row will have RTL precedence
@@ -5379,8 +5392,8 @@ a:
 						// and, if its value is not the same as CellxNum above, add the CellxNum value to
 						// cellxNListBT (thus making it extend to the same width as rows above it).
 						wxASSERT(cellxNListBT.GetCount() > 0);
-						wxString TCellNTest = cellxNListBT.Item(cellxNListBT.GetCount()-1);
-						if (TCellNTest != CellxNum)
+						wxString TCellNTest = cellxNListBT.Item(cellxNListBT.GetCount()-1); 
+						if (TCellNTest != CellxNum) 
 						{
 							cellxNListBT.Add(CellxNum);
 							// wx note: wxList works with pointers to wxStrings on the heap so must use new in
@@ -5418,24 +5431,24 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = CellDimsNav;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// don't increment nCurrentRow here because it would still be row zero if
 				// the Nav Lang row is included
 				TRowNum.Empty();
-				TRowNum << nCurrentRow;
+				TRowNum << nCurrentRow; 
 
 				wxString TLastRow;
 				TLastRow = _T("");
@@ -5446,7 +5459,7 @@ a:
 				+SintblNav							// Nav Style
 				+ gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -5462,7 +5475,7 @@ a:
 					// Use m_systemEncoding for the nav text row.
 					wxString testStr = navList.Item(count);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,testStr))	// Nav text string
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5474,7 +5487,7 @@ a:
 					// text.
 					// Note: \cell delimiter follows cell contents for each cell in row
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))					// \cell delimiter
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5485,7 +5498,7 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -5507,20 +5520,20 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = CellDimsSrc;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// if the Nav Lang row above is included then this would be row index 1,
 				// otherwise this Src Lang row would still be row index 0
 				if (bInclNavLangRow)
@@ -5537,7 +5550,7 @@ a:
 				+SintblSrc							// Src Style
 				+gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -5546,12 +5559,12 @@ a:
 				for (int count=0; count < (int)srcList.GetCount(); count++)
 				{
 					if (!WriteOutputString(f,gpApp->m_srcEncoding,srcList.Item(count))) // Src text string
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5562,7 +5575,7 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -5589,11 +5602,11 @@ a:
 					// the tags above are output once for a given row
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
-
+					
 					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
 					// in this row, with increasing values for N
 					if (gbGlossingUsesNavFont)
@@ -5605,7 +5618,7 @@ a:
 						hstr = CellDimsTgt;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5624,7 +5637,7 @@ a:
 					+SintblGls							// Gls Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5637,12 +5650,12 @@ a:
 							// whm 8Nov07 note: We'll use the tgt encoding for gloss text which
 							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls text string
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
@@ -5653,12 +5666,12 @@ a:
 						for (int count=0; count < (int)glsList.GetCount(); count++)
 						{
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls uses Tgt encoding
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
@@ -5670,7 +5683,7 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5690,20 +5703,20 @@ a:
 					// the tags above are output once for a given row
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
-
+					
 					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
 					// increasing values for N
 					hstr = CellDimsTgt;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
-
+					
 					if (bInclNavLangRow || bInclSrcLangRow)
 						nCurrentRow++;
 					TRowNum.Empty();
@@ -5718,7 +5731,7 @@ a:
 					+SintblTgt							// Tgt Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5727,12 +5740,12 @@ a:
 					for (int count=0; count < (int)tgtList.GetCount(); count++)
 					{
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count))) // Tgt text string
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
@@ -5743,7 +5756,7 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5764,11 +5777,11 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
 				// in this row, with increasing values for N
 				if (gbGlossingUsesNavFont)
@@ -5780,11 +5793,11 @@ a:
 					hstr = CellDimsTgt;
 				}
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// When not Glossing place Target Row then Gloss Row last
 				if (bInclTgtLangRow && !bTgtProcessed)
 				{
@@ -5797,12 +5810,12 @@ a:
 					TLastRow = _T("");
 
 					bTgtProcessed = TRUE;
-					hstr = gpApp->m_eolStr
+					hstr = gpApp->m_eolStr 
 					+PardPlain
 					+SintblTgt							// Tgt Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5811,12 +5824,12 @@ a:
 					for (int count=0; count < (int)tgtList.GetCount(); count++)
 					{
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count))) // Tgt text string
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
@@ -5827,7 +5840,7 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5847,7 +5860,7 @@ a:
 					// the tags above are output once for a given row
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5863,7 +5876,7 @@ a:
 						hstr = CellDimsTgt;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5877,12 +5890,12 @@ a:
 					TLastRow = _T("");
 
 					bGlsProcessed = TRUE;
-					hstr = gpApp->m_eolStr
+					hstr = gpApp->m_eolStr 
 					+PardPlain
 					+SintblGls							// Gls Style
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5897,12 +5910,12 @@ a:
 							// whm 8Nov07 note: We'll use the tgt encoding for gloss text which
 							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls text string
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
@@ -5913,12 +5926,12 @@ a:
 						for (int count=0; count < (int)glsList.GetCount(); count++)
 						{
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls uses Tgt encoding
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
-							{
+							{	
 								pProgDlg->Destroy();
 								return;
 							}
@@ -5930,7 +5943,7 @@ a:
 					+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-					{
+					{	
 						pProgDlg->Destroy();
 						return;
 					}
@@ -5955,16 +5968,16 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// cellDimsFree below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = cellDimsFree;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -5984,7 +5997,7 @@ a:
 				+gpApp->m_eolStr // Note: end hstr line after Free Trans Style tag below
 				+SintblFree;						// Free Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -6000,7 +6013,7 @@ a:
 				int freeTransListCount;
 				freeTransListCount = freeTransList.GetCount();
 				wxASSERT(cellxNListCount == freeTransListCount);
-				freeTransListCount = freeTransListCount; // avoid warining
+				freeTransListCount = freeTransListCount; // avoid warining 
 				for (int count=0; count < cellxNListCount; count++)
 				{
 					wxString numAtFree = cellxNListFree.Item(count);
@@ -6010,7 +6023,7 @@ a:
 					if (numAtFree != _T("0") && numAtFree != _T(""))
 					{
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
@@ -6050,7 +6063,7 @@ a:
 						{
 							// first, check if the space we have available in the current row
 							// is too short for the existing text to fit without wrapping
-							int intNumAtFree = wxAtoi(numAtFree);
+							int intNumAtFree = wxAtoi(numAtFree); 
 							int intNumAtFreeEndCell = wxAtoi(numAtFreeEndCell);
 							int extentRemaining = intNumAtFreeEndCell - intNumAtFree - 400;
 							// We need to wrap some text to the next table, so we divide up
@@ -6083,7 +6096,7 @@ a:
 						// whm 8Nov07 note: We'll use the tgt encoding for Free Trans text which
 						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,FreeTransFitsInRowStr))
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
@@ -6096,7 +6109,7 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -6120,20 +6133,20 @@ a:
 				// the tags above are output once for a given row
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				// cellDimsBack below contains as many \cellxN items as there are cells in this row, with
 				// increasing values for N
 				hstr = cellDimsBack;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
-
+				
 				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
 					nCurrentRow++;
 				TRowNum.Empty();
@@ -6149,7 +6162,7 @@ a:
 				+gpApp->m_eolStr // Note: end hstr line after Back Trans Style tag below
 				+SintblBack;							// Back Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -6175,7 +6188,7 @@ a:
 					if (numAtBT != _T("0") && numAtBT != _T(""))
 					{
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
@@ -6199,7 +6212,7 @@ a:
 							// scan the cellxNListBT entires until we come to either the
 							// end of the list or to any following non-zero, non-null item
 							numAtBackEndCell = cellxNListBT.Item(btpos);
-							btpos++;
+							btpos++; 
 						}
 						// At this point numAtBackEndCell should contain the cellxN of either the
 						// end of the row or the beginning of another back trans item. If btpos
@@ -6247,7 +6260,7 @@ a:
 						// whm 8Nov07 note: We'll use the tgt encoding for Back Trans text which
 						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,BackTransFitsInRowStr))
-						{
+						{	
 							pProgDlg->Destroy();
 							return;
 						}
@@ -6260,7 +6273,7 @@ a:
 				+ gpApp->m_eolStr // whm added second m_eolStr to visuall mark end of row in RTF file
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-				{
+				{	
 					pProgDlg->Destroy();
 					return;
 				}
@@ -6271,7 +6284,7 @@ a:
 			// between the tables to prevent them from fusing together
 			hstr = _T("\\pard ") + gpApp->m_eolStr + Sindoc__normal +gpApp->m_eolStr+ _T("{\\par }"+gpApp->m_eolStr); // paragraph between tables
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-			{
+			{	
 				pProgDlg->Destroy();
 				return;
 			}
@@ -6299,9 +6312,9 @@ a:
 			//FreeTransFitsInRowStr.Empty(); // don't clear this
 
 			nColsInRow = 0;					// restart at row zero
-
+			
 			// Note: when a table is centered it applies to the upcoming table, i.e., this "else" block
-			// not the block above which outputs the current/last table
+			// not the block above which outputs the current/last table 
 			if (bCenterTableForCenteredMarker && bNextTableIsCentered)
 			{
 				bTableIsCentered = TRUE; // center table in margins
@@ -6421,7 +6434,7 @@ a:
 			// delimited row text
 
 			// Note: when a table is centered it applies to the upcoming table, i.e., this "else" block
-			// not the block above which outputs the current/last table
+			// not the block above which outputs the current/last table 
 			if (bCenterTableForCenteredMarker && bNextTableIsCentered)
 			{
 				bTableIsCentered = TRUE; // center table in margins
@@ -6539,11 +6552,11 @@ b:						// b: is exit point to write the last columns of data
 	// append last '}' to the RTF file
 	hstr = _T('}');
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
-	{
+	{	
 		pProgDlg->Destroy();
 		return;
 	}
-
+	
 	// remove the progress indicator window
 	pProgDlg->Destroy();
 
@@ -6560,15 +6573,20 @@ b:						// b: is exit point to write the last columns of data
 	// before reaching this point - with consequent memory leaks. Such occurrences would
 	// not happen ordinatily however, so I've not redesigned the function to be strictly
 	// preventitive of memory leaks in such situations.
-	delete pRtfSrcFnt;
+	if (pRtfSrcFnt != NULL) // whm 11Jun12 added NULL test
+		delete pRtfSrcFnt;
 	pRtfSrcFnt = NULL;
-	delete pRtfTgtFnt;
+	if (pRtfTgtFnt != NULL) // whm 11Jun12 added NULL test
+		delete pRtfTgtFnt;
 	pRtfTgtFnt = NULL;
-	delete pRtfNavFnt;
+	if (pRtfNavFnt != NULL) // whm 11Jun12 added NULL test
+		delete pRtfNavFnt;
 	pRtfNavFnt = NULL;
-	delete pRtfFreeFnt;
+	if (pRtfFreeFnt != NULL) // whm 11Jun12 added NULL test
+		delete pRtfFreeFnt;
 	pRtfFreeFnt = NULL;
-	delete pRtfBtFnt;
+	if (pRtfBtFnt != NULL) // whm 11Jun12 added NULL test
+		delete pRtfBtFnt;
 	pRtfBtFnt = NULL;
 
 	// return the MapMode to its original setting (probably not required since
@@ -6586,10 +6604,10 @@ b:						// b: is exit point to write the last columns of data
 		// graciously inform user that there was not Chapter/Verse Range
 		// or Final Matter to output
 		// IDS_NO_OUTPUT_FOUND
-		wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION);
+		wxMessageBox(_("No text was found to output in the range you specified. The output file will exist but will be empty."),_T(""),wxICON_INFORMATION | wxOK);
 		gpApp->LogUserAction(_T("No text was found to output in the range you specified. The output file will exist but will be empty."));
 	}
-
+	
 #ifndef __WXGTK__
 	// TODO: Determine why the following wxMessageBox() call crashes the application
 	// on Linux when navigation protection is ON for _INTERLINEAR_RTF_OUTPUTS. For now
@@ -6601,15 +6619,15 @@ b:						// b: is exit point to write the last columns of data
 	// filename that is used for the export, and the export itself is
 	// automatically saved in the appropriate outputs folder. Since the
 	// user has no opportunity to provide a file name nor navigate to
-	// a random path, we should inform the user at this point of the
-	// successful completion of the export, and indicate the file name
+	// a random path, we should inform the user at this point of the 
+	// successful completion of the export, and indicate the file name 
 	// that was used and its outputs folder name and location.
 	wxFileName fn2(exportFilename);
 	wxString fileNameAndExtOnly = fn2.GetFullName();
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
-	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION);
+	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
 
 #endif
 	gpApp->LogUserAction(_T("Export operation successful"));
@@ -6651,7 +6669,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	{
 	   #ifdef __WXDEBUG__
 		  wxLogDebug(_T("Unable to open export source text file\n"));
-		  wxMessageBox(_("Unable to open export source text file"),_T(""),wxICON_WARNING);
+		  wxMessageBox(_("Unable to open export source text file"),_T(""),wxICON_EXCLAMATION | wxOK);
 	   #endif
 	  return;
 	}
@@ -6758,8 +6776,8 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	// Font Face Names
 	wxString FNameNrm = _T("Arial");// our default font name
 	// Get font face names stored on the App
-	wxString FNameSrc = gpApp->m_pSourceFont->GetFaceName();
-	wxString FNameTgt = gpApp->m_pTargetFont->GetFaceName();
+	wxString FNameSrc = gpApp->m_pSourceFont->GetFaceName(); 
+	wxString FNameTgt = gpApp->m_pTargetFont->GetFaceName(); 
 	// Build final font tag strings - enclosed in {}
 	wxString FTagsNrm = _T("{\\f")
 						+FNumNrm+FFamNrm+FCharsetNrm+FPitchNrm+FNameNrm
@@ -7235,16 +7253,16 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	}
 
 	// whm Note 26Oct07:
-	// We cannot use the EscapeAnyEmbeddedRTFControlChars() function on Buffer here,
-	// because EscapeAnyEmbeddedRTFControlChars() expects its imput buffer to be text
-	// associated with markers, but not the actual markers themselves (the Buffer
-	// here in DoExportSrcOrTgtRTF is the full text including the actual markers).
-	// EscapeAnyEmbeddedRTFControlChars is suitable for DoExportInterlinearRTF at various
-	// places where we know we are dealing with non-marker text, but not here where we
-	// have the whole Buffer. Another place to consider escaping embedded \, {, and }
-	// characters is in the ApplyOutputFilterToText() function which is called on the
-	// Buffer text before it is passed to DoExportSrcOrTgtRTF. Before the 26Oct07 changes,
-	// ApplyOutputFilterToText() already had code to escape the curly brace characters,
+	// We cannot use the EscapeAnyEmbeddedRTFControlChars() function on Buffer here, 
+	// because EscapeAnyEmbeddedRTFControlChars() expects its imput buffer to be text 
+	// associated with markers, but not the actual markers themselves (the Buffer 
+	// here in DoExportSrcOrTgtRTF is the full text including the actual markers). 
+	// EscapeAnyEmbeddedRTFControlChars is suitable for DoExportInterlinearRTF at various 
+	// places where we know we are dealing with non-marker text, but not here where we 
+	// have the whole Buffer. Another place to consider escaping embedded \, {, and } 
+	// characters is in the ApplyOutputFilterToText() function which is called on the 
+	// Buffer text before it is passed to DoExportSrcOrTgtRTF. Before the 26Oct07 changes, 
+	// ApplyOutputFilterToText() already had code to escape the curly brace characters, 
 	// but it did not have code to detect non-marker backslash codes and escape them.
 
 	//////////////////// DOCUMENT LEVEL TAGS ///////////////////////////
@@ -7252,20 +7270,20 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	// Different versions of Word (especially Word 2003) are sensitive to whether or not the
 	// \fetN control word is used, and what value N has. Up to now this flag has merely been
 	// hard coded into the RTF header as \fet1, which seemed to make Word 2002 happy. But
-	// Word 2003 is sensitive to the
+	// Word 2003 is sensitive to the 
 	// The RTF Specs all say about \fetN:
 	// "Footnote/endnote type. This indicates what type of notes are present in the document.
 	//   0	Footnotes only or nothing at all (the default)
 	//   1	Endnotes only
 	//   2	Both footnotes and endnotes
-	// For backward compatibility, if \fet1 is emitted, \endnotes or \enddoc will be emitted
-	// along with \aendnotes or \aenddoc. RTF readers that understand \fet will need to
+	// For backward compatibility, if \fet1 is emitted, \endnotes or \enddoc will be emitted 
+	// along with \aendnotes or \aenddoc. RTF readers that understand \fet will need to 
 	// ignore the footnote-positioning control words and use the endnote control words instead."
-	// The following code should at least make the value of N conform to the RTF specifications,
-	// and hopefully avoid some of the situations where a particular version of Word is unable
+	// The following code should at least make the value of N conform to the RTF specifications, 
+	// and hopefully avoid some of the situations where a particular version of Word is unable 
 	// to open the RTF file. See the options for setting N of the \fetN control word in comments above.
 	//
-	// whm 26Oct07 added check for footnotes and endnotes to process the \fetN control word properly
+	// whm 26Oct07 added check for footnotes and endnotes to process the \fetN control word properly 
 	// (see composition of Doctags below and comments in DoExportInterlinearRTF).
 	bool bDocHasFootnotes = FALSE;	// assume no footnotes unless found in while loop below
 	bool bDocHasEndnotes = FALSE;	// assume no endnotes unless found in while loop below
@@ -7317,8 +7335,8 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	wxDateTime theTime = wxDateTime::Now();
 	wxString DateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
     //wxString DateTime = theTime.Format(_T("%c")).c_str();
-    // Note: wxDateTime::Format could simply use the ASNI C strftime %c conversion specifier which
-    // is commented out above. Doing so would give the preferred date and time representation for
+    // Note: wxDateTime::Format could simply use the ASNI C strftime %c conversion specifier which 
+    // is commented out above. Doing so would give the preferred date and time representation for 
     // the current locale. The format actually used above mimics that used in the MFC version.
 
 	wxString Sindoc_footer;
@@ -7579,15 +7597,15 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	// whm 26Aug11 Open a wxProgressDialog instance here for export to rtf operations.
 	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
 	// be changed after the dialog is created. So any routine that gets passed the
-	// pProgDlg pointer, must make sure that value in its Update() function does not
+	// pProgDlg pointer, must make sure that value in its Update() function does not 
 	// exceed the same maximum value (nTotal).
-	// whm Note: We calculate nTotal differently here and can't use our
+	// whm Note: We calculate nTotal differently here and can't use our 
 	// GetMaxRangeForProgressDialog() function because we are progressing
 	// through the buffer from beginPtr through pEnd.
 	wxChar* beginPtr;
 	beginPtr = ptr;
 	const int nTotal = (pEnd - beginPtr) + 1;
-
+	
 	wxString msgDisplayed;
 	wxString progMsg = _("Exporting File %s  - %d of %d Total words and phrases");
 	wxFileName fn(exportName);
@@ -7645,8 +7663,8 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		// within this block like ParseMarker()
 b:		if (IsRTFControlWord(ptr,pEnd))
 		{
-			// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases
-			// where a backslash is escaping a {, }, or \ character in the character stream.
+			// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases 
+			// where a backslash is escaping a {, }, or \ character in the character stream. 
 			itemLen = ParseRTFControlWord(ptr,pEnd);
 			VernacText = wxString(ptr,itemLen);
 			//CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
@@ -7686,7 +7704,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						pProgDlg->Destroy();
 						return;
 					}
-
+					
 					Item sfm;
 					pCharStack->Pop(sfm); // pop an "unknown" character style marker
 					// Check if the stack has another character style marker in it.
@@ -7707,9 +7725,9 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						if (rtfIter != rtfTagsMap.end())
 						{
 							// We found an associated value for Marker in map.
-							// We need only output the previous char style tags here without any
-							// opening curly brace.
-
+							// We need only output the previous char style tags here without any 
+							// opening curly brace. 
+							
 							pCharStack->Push(Marker.char_str()); // push it back on the stack
 
 							// RTF tags use gpApp->m_systemEncoding
@@ -7793,7 +7811,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				// after the main while loop, text associated with \bt, \note and/or \free would still be
 				// pending output - and we don't want the code there to add a closing brace } char
 				// prematurely.
-				if (Marker == _T("free")
+				if (Marker == _T("free") 
 					|| Marker == _T("note")
 					|| Marker.Find(_T("bt")) != -1)
 				{
@@ -7822,10 +7840,10 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				// put a paragraph marker \p between a section head (\s, \s1, etc) and any
 				// following verse \v N, or between a chapter number (\c, \ca, etc) and any
 				// following verse, or between a reference (\r, \rq, etc) and any following verse.
-				if (LastStyle == _T("s") || LastStyle == _T("s1") || LastStyle == _T("s2")
-					|| LastStyle == _T("s3") || LastStyle == _T("s4") || LastStyle == _T("sr")
-					|| LastStyle == _T("sx") || LastStyle == _T("sz") || LastStyle == _T("sp")
-					|| LastStyle == _T("c") || LastStyle == _T("ca") || LastStyle == _T("cp")
+				if (LastStyle == _T("s") || LastStyle == _T("s1") || LastStyle == _T("s2") 
+					|| LastStyle == _T("s3") || LastStyle == _T("s4") || LastStyle == _T("sr") 
+					|| LastStyle == _T("sx") || LastStyle == _T("sz") || LastStyle == _T("sp") 
+					|| LastStyle == _T("c") || LastStyle == _T("ca") || LastStyle == _T("cp") 
 					|| LastStyle == _T("cl") || LastStyle == _T("cd")
 					|| LastStyle == _T("r") || LastStyle == _T("rem") || LastStyle == _T("rq") )
 				{
@@ -9067,7 +9085,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								pProgDlg->Destroy();
 								return;
 							}
-
+							
 							pCharStack->Push(Marker.char_str()); // push a TABLE (\th... or \tc...) character style marker
 						}
 						// RTF tags use gpApp->m_systemEncoding
@@ -9443,9 +9461,9 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							if (rtfIter != rtfTagsMap.end())
 							{
 								// We found an associated value for Marker in map.
-								// We need only output the previous char style tags here without any
-								// opening curly brace.
-
+								// We need only output the previous char style tags here without any 
+								// opening curly brace. 
+								
 								pCharStack->Push(Marker.char_str()); // push it back on the stack
 
 								// RTF tags use gpApp->m_systemEncoding
@@ -9458,9 +9476,9 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								}
 							}
 						}
-
+						
 						// Marker is either not a character style or is the same style as the last style
-						// marker encountered.
+						// marker encountered. 
 						bProcessingCharacterStyle = FALSE; // we've finished processing the char style group
 					}
 				}
@@ -9580,7 +9598,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					//}
 					//else
 					//{
-					//	bLastCellTagOutput = FALSE;
+					//	bLastCellTagOutput = FALSE; 
 					//}
 
 					// Handle any pending bt and/or free material that should be output before
@@ -9741,7 +9759,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 									pProgDlg->Destroy();
 									return;
 								}
-
+								
 								pCharStack->Push(Marker.char_str()); // push a character style marker
 							}
 							// RTF tags use gpApp->m_systemEncoding
@@ -9774,13 +9792,13 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				ptr += itemLen;	// advance pointer past the marker
 
 				itemLen = pDoc->ParseWhiteSpace(ptr); // parse white space following the marker
-				// Omit output of white space here when there is punctuation following the whitespace,
+				// Omit output of white space here when there is punctuation following the whitespace, 
 				// otherwise include the white space in the output, but only for whitespace following
 				// end markers.
 				if (Marker.Find(_T('*')) == (int)Marker.Length()-1 && ptr + itemLen + 1 < pEnd && spaceless.Find(*(ptr + itemLen + 1)) == wxNOT_FOUND)
 				{
 					// We just processed an end marker, and the first char past whitespace is not a
-					// punctuation char, so output the whitespace. This is needed following character
+					// punctuation char, so output the whitespace. This is needed following character 
 					// end markers.
 					// white space here usually would be part of vernacular so use EncodingSrcOrTgt
 					// but don't output \n new lines
@@ -9868,16 +9886,16 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			// RTF quote tags as we did in version 2.
 
 			// whm added 8Nov07. Behavior of IsMarkerRTF has changed so that it returns FALSE
-			// for the escaped RTF character \\, as well as for \{, and \}. We need to detect this
-			// situation here and parse through such escaped characters as valid text (previously
+			// for the escaped RTF character \\, as well as for \{, and \}. We need to detect this 
+			// situation here and parse through such escaped characters as valid text (previously 
 			// they were wrongly detected as unknown markers and processed in the block above before
 			// the present else block). After correcting the behavior of IsMarkerRTF so that it
-			// returns FALSE for the escaped backslash sequence \\, it became possible for
+			// returns FALSE for the escaped backslash sequence \\, it became possible for 
 			// ProcessAndWriteDestinationText to get into an infinite loop causing a program
-			// hang/crash. This occurs due to the fact that when ptr points at the initial
-			// backslash of an escaped character, VernacText resolves to an empty string and
-			// itemLen from subsequent parsing functions is always set to zero resulting in
-			// ptr not advancing through the remainder of the destination text. We need to:
+			// hang/crash. This occurs due to the fact that when ptr points at the initial 
+			// backslash of an escaped character, VernacText resolves to an empty string and 
+			// itemLen from subsequent parsing functions is always set to zero resulting in 
+			// ptr not advancing through the remainder of the destination text. We need to: 
 			// (1) parse through any escaped \\, \{, or \} sequences, and (2) ensure that, if
 			// VernacText resolves to an empty string (for any other unanticipated reason), the
 			// current while loop can continue advancing through the destination string.
@@ -9885,8 +9903,8 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			{
 				// we likely have an escaped \\, \{, or \} sequence so parse it
 				itemLen = ParseEscapedCharSequence(ptr,pEnd);
-				// if itemLen is zero at this point, we had an empty VernacText for some
-				// other unknown reason. In this case it is best to simply advance ptr and
+				// if itemLen is zero at this point, we had an empty VernacText for some 
+				// other unknown reason. In this case it is best to simply advance ptr and 
 				// goto b to check for another marker or pEnd.
 				if (itemLen == 0)
 				{
@@ -9964,7 +9982,7 @@ d: // exit point for if ptr == pEnd
 			pProgDlg->Destroy();
 			return;
 		}
-
+		
 		Item sfm;
 		pCharStack->Pop(sfm); // pop a character style marker
 		// Check if the stack has another character style marker in it.
@@ -9995,7 +10013,7 @@ d: // exit point for if ptr == pEnd
 				//CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
 				//if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 				//	return;
-
+				
 				pCharStack->Push(Marker.char_str()); // push it back on the stack
 
 				// RTF tags use gpApp->m_systemEncoding
@@ -10161,9 +10179,9 @@ d: // exit point for if ptr == pEnd
 	// of the document.
 	// Note: The opposite situation where there are more closing braces than opening ones
 	// would not normally cause Word to choke, but it will truncate the file at the point
-	// where the last closing brace is expected. The only example of this I've seen
-	// truncated it right at the end which didn't matter. It may have resulted from
-	// a Free translation in a source phrase that only contained orphaned punctuation
+	// where the last closing brace is expected. The only example of this I've seen 
+	// truncated it right at the end which didn't matter. It may have resulted from 
+	// a Free translation in a source phrase that only contained orphaned punctuation 
 	// after a footnote filtering operation.
 	if (nClosingBraces < nOpeningBraces)
 	{
@@ -10268,7 +10286,7 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 			bIsAParagraphStyle = TRUE;
 		wholeMkrUpperCase = wholeMkr;
 		wholeMkrUpperCase.MakeUpper();
-
+		
 		// whm added 8Nov07. It is possible that wholeMkr (and wholeMkrUpperCase) is an isolated
 		// user entered non-marker backslash. In this case we want to continue parsing.
 		if (wholeMkrUpperCase == _T("\\"))
@@ -10376,7 +10394,7 @@ int ParseEndnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 		else
 			bIsAParagraphStyle = TRUE;
 		wholeMkrUpperCase = wholeMkr.MakeUpper();
-
+		
 		// whm added 8Nov07. It is possible that wholeMkr (and wholeMkrUpperCase) is an isolated
 		// user entered non-marker backslash. In this case we want to continue parsing.
 		if (wholeMkrUpperCase == _T("\\"))
@@ -10487,7 +10505,7 @@ int ParseCrossRef(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 		else
 			bIsAParagraphStyle = TRUE;
 		wholeMkrUpperCase = wholeMkr.MakeUpper();
-
+		
 		// whm added 8Nov07. It is possible that wholeMkr (and wholeMkrUpperCase) is an isolated
 		// user entered non-marker backslash. In this case we want to continue parsing.
 		if (wholeMkrUpperCase == _T("\\"))
@@ -10718,7 +10736,7 @@ bool ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString
 			spaceless.Replace(_T(" "),_T("")); // don't have any spaces in the string of source text punctuation characters
 			precPunct.Empty();
 			follPunct.Empty();
-// ***TODO*** temporarily disabled 11Oct10
+// ***TODO*** temporarily disabled 11Oct10			
 			fnItemLen = ParseWordRTF(fnptr, precPunct, follPunct, spaceless);
 			// make the word into a wxString
 			VernacText = wxString(fnptr,fnItemLen);
@@ -10791,7 +10809,7 @@ bool ProcessAndWriteDestinationText(wxFile& f, wxFontEncoding Encoding, wxString
 			spaceless.Replace(_T(" "),_T("")); // don't have any spaces in the string of source text punctuation characters
 			precPunct.Empty();
 			follPunct.Empty();
-// ***TODO*** temporarily disabled 11Oct10
+// ***TODO*** temporarily disabled 11Oct10			
 			fnItemLen = ParseWordRTF(fnptr, precPunct, follPunct, spaceless);
 			fnptr += fnItemLen; // point past the word
 			// we don't make the word into wxString here, just ignore it
@@ -10985,11 +11003,11 @@ fnb: while (fnptr < pfnEnd)
 	{
 		if (IsRTFControlWord(fnptr,pfnEnd))
 		{
-			// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases
-			// where a backslash is escaping a {, }, or \ character in the character stream.
+			// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases 
+			// where a backslash is escaping a {, }, or \ character in the character stream. 
 			fnItemLen = ParseRTFControlWord(fnptr,pfnEnd);
-			// if fnItemLen is zero at this point, we had an empty VernacText for some
-			// other unknown reason. In this case it is best to simply advance fnptr and
+			// if fnItemLen is zero at this point, we had an empty VernacText for some 
+			// other unknown reason. In this case it is best to simply advance fnptr and 
 			// goto fnb to check for another marker or pfnEnd.
 			if (fnItemLen == 0)
 			{
@@ -11317,7 +11335,8 @@ fnb: while (fnptr < pfnEnd)
 
 			}
 			// Is it an embedded content begin marker?
-			else if (fnWholeMkr.Find(destMarkerPrefixChar == 1)) //destMarkerPrefixChar can be 'f' or 'x'
+			// whm 8Jun12 moved parentheses position below to correct position
+			else if (fnWholeMkr.Find(destMarkerPrefixChar) == 1) //else if (fnWholeMkr.Find(destMarkerPrefixChar == 1)) //destMarkerPrefixChar can be 'f' or 'x'
 			{
 				// it's an embedded content (begin) marker so start a group and output
 				// its style tags
@@ -11415,7 +11434,7 @@ fnb: while (fnptr < pfnEnd)
 			// must be a word within destination text
 			precPunct.Empty();
 			follPunct.Empty();
-// ***TODO*** temporarily disabled 11Oct10
+// ***TODO*** temporarily disabled 11Oct10			
 			fnItemLen = ParseWordRTF(fnptr, precPunct, follPunct, spaceless);
 			// make the word into a wxString
 			VernacText = wxString(fnptr,fnItemLen);
@@ -11596,8 +11615,8 @@ wxString GetANSIorUnicodeRTFCharsFromString(wxString inStr)
 	// handle Unicode). If the app version is ANSI, this function simply returns
 	// the inStr input string unchanged.
 	// GetANSIorUnicodeRTFCharsFromString assumes there are no other embedded RTF
-	// control words other than possibly the three escaped char sequences \\, \{
-	// and \}. If \\, \{, or \} are in the input string,
+	// control words other than possibly the three escaped char sequences \\, \{ 
+	// and \}. If \\, \{, or \} are in the input string, 
 	// GetANSIorUnicodeRTFCharsFromString removes the initial \ escaping character
 	// so that "\\" becomes "\u92\'f3", "\{" becomes "\u123\'f3", and "\}" becomes
 	// "\u125\'f3".
@@ -11617,8 +11636,8 @@ wxString GetANSIorUnicodeRTFCharsFromString(wxString inStr)
 		Ch = inStr[nCharNum];
 		if (Ch == _T('\\') && (nCharNum+1 < nOSLength))
 		{
-			if (inStr[nCharNum+1] == _T('\\')
-				|| inStr[nCharNum+1] == _T('{')
+			if (inStr[nCharNum+1] == _T('\\') 
+				|| inStr[nCharNum+1] == _T('{') 
 				|| inStr[nCharNum+1] == _T('}'))
 			{
 				// the current char is a backslash and the next char is a backslash,
@@ -11673,7 +11692,7 @@ bool WriteOutputString(wxFile& f, wxFontEncoding Encoding, const wxString& OutSt
 				//f.WriteString(test2);
 
 				wxString RTFUnicode = _T("");
-
+				
 				// whm 8Nov07 moved original code block below to a dedicated function
 				// which can also be reused elsewhere
 				RTFUnicode = GetANSIorUnicodeRTFCharsFromString(OutStr);
@@ -11687,8 +11706,8 @@ bool WriteOutputString(wxFile& f, wxFontEncoding Encoding, const wxString& OutSt
 					Ch = OutStr[nCharNum];
 					if (Ch == _T('\\') && (nCharNum+1 < nOSLength))
 					{
-						if (OutStr[nCharNum+1] == _T('\\')
-							|| OutStr[nCharNum+1] == _T('{')
+						if (OutStr[nCharNum+1] == _T('\\') 
+							|| OutStr[nCharNum+1] == _T('{') 
 							|| OutStr[nCharNum+1] == _T('}'))
 						{
 							// the current char is a backslash and the next char is a backslash,
@@ -11760,9 +11779,9 @@ bool IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart)
 	// designed to return FALSE if the character following a backslash character at pChar is
 	// either an opening curly brace { or a closing curly brace }.
 	// whm 8Nov07 modified to also return false if the character following a backslash
-	// character is another backslash character. This additional check insures that
-	// IsMarkerRTF does not return TRUE for a non-marker backslash entered as normal text
-	// by the user, since ApplyOutputFilterToText() now also escapes such non-marker
+	// character is another backslash character. This additional check insures that 
+	// IsMarkerRTF does not return TRUE for a non-marker backslash entered as normal text 
+	// by the user, since ApplyOutputFilterToText() now also escapes such non-marker 
 	// backslash characters found in user entered text.
 	if (*(pChar +1) == _T('{') || *(pChar +1) == _T('}')|| *(pChar +1) == _T('\\'))
 	{
@@ -11962,24 +11981,31 @@ wxString EscapeAnyEmbeddedRTFControlChars(wxString& textStr)
 	// Setup copy-to buffer textStr2. It needs to be twice the size of input buffer since
 	// we will be adding a backslash for every control char we find
 	wxString textStr2;
-	wxChar* pBuffer2;
-	pBuffer2 = textStr2.GetWriteBuf(nTheLen*2 + 1);
+	//wxChar* pBuffer2;
+	// whm 8Jun12 modified to use wxStringBuffer
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString textStr2 is accessed directly within
+	// this function in the return textStr2; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuffer2(textStr2,nTheLen*2 + 1);
+		//pBuffer2 = textStr2.GetWriteBuf(nTheLen*2 + 1);
 
-	wxChar* pOld = pBufStart;  // source
-	wxChar* pNew = pBuffer2; // destination
-	while (*pOld != (wxChar)0)
-	{
-		if (*pOld == _T('\\') || *pOld == _T('{') || *pOld == _T('}'))
+		wxChar* pOld = pBufStart;  // source
+		wxChar* pNew = pBuffer2; // destination
+		while (*pOld != (wxChar)0)
 		{
-			// there is a control char we need to escape to make it a legitimate text char in RTF
-			// We "escape" it by inserting a backslash character before it
-			*pNew++ = _T('\\');
+			if (*pOld == _T('\\') || *pOld == _T('{') || *pOld == _T('}'))
+			{
+				// there is a control char we need to escape to make it a legitimate text char in RTF
+				// We "escape" it by inserting a backslash character before it
+				*pNew++ = _T('\\');
+			}
+			// just copy whatever we are pointing at and then advance
+			*pNew++ = *pOld++;
 		}
-		// just copy whatever we are pointing at and then advance
-		*pNew++ = *pOld++;
-	}
-	*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
-	textStr2.UngetWriteBuf();
+		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+	} // end of special scoping block
+	//textStr2.UngetWriteBuf(); // whm 8Jun12 removed - not needed in wxStringBuffer for 2.9.3
 	return textStr2;
 }
 
@@ -12096,7 +12122,7 @@ void DivideTextForExtentRemaining(wxClientDC& dC, int extentRemaining, wxString 
 }
 
 // whm 8Nov07 changed behavior to return TRUE if the escaped backslash \\ is detected
-// as an RTF control word at the current pChar location.
+// as an RTF control word at the current pChar location. 
 // This change also corrects a potential bug by insuring that the current
 // pChar pointer ptr currently points at a backslash before testing the character
 // following it to see if the following character is a '{', '}' or a '\' character.
@@ -12687,7 +12713,7 @@ wxString BuildColorTableFromUSFMColorAttributes(MapMkrToColorStr& colorMap)
 	colorTbl.Sort();
 	wxASSERT(colorTbl[0] == _T("      "));
 	colorTbl[0] = _T(";"); // change the first element back to its original ;
-
+	
 	// convert the sorted strings to the RTF color table format
 	int asCt;
 	wxString changeStr;
@@ -12718,10 +12744,10 @@ wxString BuildColorTableFromUSFMColorAttributes(MapMkrToColorStr& colorMap)
 		}
 	}
 
-	// go through the pSfmMap again and build the whole colorMap by associating the
+	// go through the pSfmMap again and build the whole colorMap by associating the 
 	// colorIndexStr (\cfN) with the pSfmMap markers that require colors.
 	wxString colorIndexStr = _T("\\cf");
-	//int cIndex;
+	//int cIndex; 
 	//cIndex = 0;
 	for( iter = pSfmMap->begin(); iter != pSfmMap->end(); ++iter )
 	{
@@ -12730,7 +12756,7 @@ wxString BuildColorTableFromUSFMColorAttributes(MapMkrToColorStr& colorMap)
 		wxColour col = Int2wxColour(colorInt);
 		rVal = col.Red();
 		gVal = col.Green();
-		bVal = col.Blue();
+		bVal = col.Blue(); 
 		// build the RTF color table string, i.e., \red255\green0\blue255;
 		rgbColorTblStr.Empty();
 		rgbColorTblStr << _T("\\red");
@@ -12811,7 +12837,7 @@ void DetermineRTFDestinationMarkerFlagsFromBuffer(wxString& textStr,
 			wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
 			// Check for specific markers that would change the destination marker flags.
 			// First, look for existence of "\f" and/or "\fe" markers in the doc.
-			// The existence of "\f" always indicates a beginning footnote marker in
+			// The existence of "\f" always indicates a beginning footnote marker in 
 			// any sfm set.
 			if (wholeMarker == _T("\\f"))
 				bDocHasFootnotes = TRUE;
@@ -12828,7 +12854,7 @@ void DetermineRTFDestinationMarkerFlagsFromBuffer(wxString& textStr,
 			// Now, look for existence of \note in the doc (these are always "filtered").
 			if (wholeMarker == _T("\\note"))
 					bDocHasAINotes = TRUE;
-
+			
 			itemLen = ParseMarkerRTF(pOld,pEnd);
 			pOld += itemLen;
 		}
@@ -13181,7 +13207,7 @@ int GetMaxMarkerLength()
 	MapSfmToUSFMAnalysisStruct* pSfmMap;
 	pSfmMap = gpApp->GetCurSfmMap(gpApp->gCurrentSfmSet);
 	USFMAnalysis* pSfm;
-	MapSfmToUSFMAnalysisStruct::iterator iter;
+	MapSfmToUSFMAnalysisStruct::iterator iter; 
 	int len;
 	int maxLen = 0;
 	for( iter = pSfmMap->begin(); iter != pSfmMap->end(); ++iter )
@@ -14403,7 +14429,7 @@ wxString GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 // other filtered information, if present, goes before it; so we must look for xref stuff
 // and locate it properly in the string for output.
 // BEW created 11Oct10
-wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase,
+wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhrase, 
 					 bool& bAddedSomething, bool bIncludeNote,
 					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine)
 {
@@ -14424,7 +14450,7 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 		// entry here means there is something filtered to be collected (includes custom
 		// ai stuff, such as free trans, note if requested, collected back trans, as well
 		// as the standard filtered stuff in m_filteredInfo)
-		temp = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans,
+		temp = GetFilteredStuffAsUnfiltered(pSrcPhrase, bDoCountForFreeTrans, 
 												bCountInTargetTextLine, bIncludeNote);
 		SeparateOutCrossRefInfo(temp, xrefStr, otherFiltered);
 	}
@@ -14483,7 +14509,7 @@ wxString AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 	if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 	{
 		wxString binders = pSrcPhrase->GetInlineBindingMarkers();
-		binders.Trim(FALSE); // ensure no bogus space precedings an
+		binders.Trim(FALSE); // ensure no bogus space precedings an 
 							 // inline binding beginmarker
 		appendHere += binders;
 		bAddedSomething = TRUE;
@@ -14698,7 +14724,7 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // determine whether to include the marker and associated text by inspecting the underlying
 // marker within any filtered material.
 //
-// whm wx version observations and modifications:
+// whm wx version observations and modifications: 
 // This RebuildSourceText() function basically prepares a buffer which is used only for
 // writing the source text out to disk in sfm form. (The RTF export routines need to
 // process the text bit by bit and add a great amount of RTF code words to the output text,
@@ -14764,7 +14790,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
     // from those - since they will have any sf markers in the right places, and that info
 	// is lost to the parent merged one; and handling filtered information complicates
 	// this even further)
-    //
+    // 
     // BEW added comment 08Oct05: version 3 introduces filtering, and this complicates the
     // picture a little. Mergers are not possible across filtered information, and so saved
     // original sourcephrase instances within a merged sourcephrase will never contain
@@ -14790,7 +14816,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
     // content would get lost from the source text export. So now we check for moved
     // markers, store them temporarily, and then make sure they are relocated
     // appropriately. Also, a local wxString to hold the markers pending placement at the
-    // correct location.
+    // correct location. 
     // Legacy comment: (We don't need to bother with punctuation movement in the context of
     // placeholder insertion because it is already handled by our choice of using the
     // m_srcPhrase member - which has it still attached.) And a further one to hold any
@@ -14838,11 +14864,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	// information just placed won't also be on the pSrcPhrase, or pMergedSrcPhrase passed
 	// in to the respective function, so just output the Sstr and append it to whatever is
 	// at the end of the so far built up output source text string.
-	//
+	// 
 	// The above protocol does not lend itself to pulling the info off of a placeholder
 	// within a function, but rather directly in RebuildSourceText() itself. So the
 	// additional local variables are created here, adding to those just above.
-	// Ending-stuff storage ones: (for information moved forward to be ending on the
+	// Ending-stuff storage ones: (for information moved forward to be ending on the 
 	// placeholder)
 	// I've commented these out, because I can place the information immediately without
 	// temporarily storing it in a local string variable -- see a little further down
@@ -14851,7 +14877,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	//wxString strPlaceholderFollPuncts;
 	//wxString strPlaceholderFollOuterPunct;
 	// The above strPlaceholderEndMarkers also belongs to the above ending set
-	//
+	// 
 	// Beginning-stuff storage ones: (for information moved backwards to be at the beginning
 	// on the placeholder)
 	wxString strCollectedBeginnings; // <<-- use this one when its okay to get the lot as 1 string
@@ -14863,7 +14889,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 										 // but not notes because in docV5 we don't move
 										 // a note to or from the placeholder
 	// The above strPlaceholderMarkers also belongs to the above beginning set
-	//
+	// 
     // In case you are wondering... All these shenanigans are not required for target text
     // export for the following reason. The placeholder's m_targetStr will have one or more
     // target text words in it which are vital to the meaning expressed. So, as far as the
@@ -14887,7 +14913,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
 
-		// BEW added to following block 16Jan09, for handling relocated markers on
+		// BEW added to following block 16Jan09, for handling relocated markers on 
 		// placeholders
 		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 		if (pSrcPhrase->m_bNullSourcePhrase)
@@ -14905,7 +14931,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 				// association, but if there are some from a left association (ie.
 				// ending-stuff as discussed above), then don't set the flag but instead
 				// append the relevant material directly to source parameter.
-
+				
 				// deal with any ending-stuff first, as it's immediately placeable; do it
 				// in the order in which it must be appended to the accumulating str variable
 				str = AppendSrcPhraseEndingInfo(str, pSrcPhrase);
@@ -14926,7 +14952,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
                 // held over until the loop "sees" the next CSourcePhrase instance, it is
                 // almost certainly the next one, since there's no need for the user to
                 // manually insert two placeholders in sequence.
-
+				
 			} // end of TRUE block for test: if (!bMarkersOnPlaceholder)
 
 			// If bMarkersOnPlaceholder was set TRUE on the last iteration, then if a
@@ -14947,7 +14973,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
             // string, but subsequent ones in the sublist must have pre-word and post-word
             // members examined and such information appended to the exported information
             // at the appropriate places.
-			//
+			// 
             // BEW added more on 17Jan09: if pre-word info was moved to a preceding
             // placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
             // must be placed now on this CSourcePhrase instance (which will not itself
@@ -14961,7 +14987,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
                 // pending for placement, should be dealt with now
 				if (!strCollectedBeginnings.IsEmpty())
 				{
-					// append any pre-word information earlier moved to a preceding
+					// append any pre-word information earlier moved to a preceding 
 					// placeholder when it was right-associated
 					str += strCollectedBeginnings;
 					strCollectedBeginnings.Empty();
@@ -15059,11 +15085,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		}
 		else
 		{
-			// it's a single word sourcephrase, or a ~ conjoinded word pair,
+			// it's a single word sourcephrase, or a ~ conjoinded word pair, 
 			// so handle it....
 
 			// handle any stnd format markers first
-			//
+			// 
             // BEW added more on 17Jan09: if m_markers content was moved to a preceding
             // placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
             // must be placed now on this CSourcePhrase instance (which will not itself
@@ -15078,7 +15104,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
                 // pending for placement, should be dealt with now
 				if (!strCollectedBeginnings.IsEmpty())
 				{
-					// append any pre-word information earlier moved to a preceding
+					// append any pre-word information earlier moved to a preceding 
 					// placeholder when it was right-associated
 					str += strCollectedBeginnings;
 					strCollectedBeginnings.Empty();
@@ -15221,7 +15247,10 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxString wholeMkr;
 	bool bStartsWithMarker = FALSE;
-	if (str.GetChar(0) == gSFescapechar)
+	// whm 11Jun12 added test !str.IsEmpty() && to the test below. GetChar(0) should not be called on an
+	// empty string.
+	wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) below should not be called on an empty 
+	if (!str.IsEmpty() && str.GetChar(0) == gSFescapechar)
 	{
 		wholeMkr = pDoc->GetWholeMarker(str);
 		bStartsWithMarker = TRUE;
@@ -15238,7 +15267,8 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 		{
 			// add an initial space if one is not already there, and it is not started
 			// by a marker for which we want no space insertion
-			if (str.GetChar(0) != _T(' '))
+			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
 			}
@@ -15247,7 +15277,11 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 	else
 	{
 		// add an initial space if one is not already there
-		if (str.GetChar(0) != _T(' '))
+		// whm 11Jun12 added test !str.IsEmpty() && to the test below. GetChar(0) should not be called on an
+		// empty string.
+		wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) below should not be called on an empty 
+		// string.
+		if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 		{
 			str = _T(" ") + str;
 		}
@@ -15267,7 +15301,7 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 // include any of those markers and their associated text by inspecting the underlying
 // markers within any filtered material.
 //
-// whm wx version observations and modifications:
+// whm wx version observations and modifications: 
 // This RebuildGlossesText() function basically prepares a buffer which is used only for
 // writing the glosses as text out to disk in sfm form. (The RTF export routines need to
 // process the text bit by bit and add a great amount of RTF code words to the output text,
@@ -15314,13 +15348,13 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 	// restoring standard format markers as appropriate....
 	// As we traverse the list of CSourcePhrase instances, we do most but not all of what
 	// RebuildSourceText() does, but there are significant differences, and this function
-	// will be simpler: the special things we must be careful of are:
+	// will be simpler: the special things we must be careful of are: 
     // 1. Null source phrase (ie. placeholders) -- we ignore these, but we don't ignore any
     // m_markers, content which has been moved to them by the user and we do collect from
     // them any non-empty gloss. Also we can't do any punctuation restoration since it
     // wasn't stripped from glosses in the first place.
     // 2. Retranslations -- we can ignore the fact these instances belong within a
-    // retranslation.
+    // retranslation. 
     // 3. Mergers (these give us a headache) -- we have to look at the stored list of
     // original CSourcePhrase instances on each such merged one, and build the glosses text
     // from those - since they will have any sf markers in the right places, and that info
@@ -15388,7 +15422,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 		str.Empty();
 
 		// BEW added to following block 16Jan09, for handling relocated markers on
-		// placeholders
+		// placeholders 
 		//bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
@@ -15449,7 +15483,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
             // its m_gloss text string, but subsequent ones in the sublist must have their
             // m_markers member examined and its contents restored to the exported
             // information, likewise endmarkers.
-			//
+			// 
 			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
 			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
 			// must be placed now on this CSourcePhrase instance (which will not itself
@@ -15499,7 +15533,9 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
             // of str when it starts with one of these markers
 			wxString wholeMkr;
 			bool bStartsWithMarker = FALSE;
-			if (str.GetChar(0) == gSFescapechar)
+			//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			// Tests show that str can be an empty string in export of glosses.
+			if (!str.IsEmpty() && str.GetChar(0) == gSFescapechar)
 			{
 				wholeMkr = pDoc->GetWholeMarker(str);
 				bStartsWithMarker = TRUE;
@@ -15511,11 +15547,12 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			if (bStartsWithMarker)
 			{
 				if (pSrcPhrase->m_nSequNumber != 0 &&
-					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") &&
+					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") && 
 					wholeMkr != _T("\\x")))
 				{
                     // add an initial space if one is not already there, and it is not
                     // started by a marker for which we want no space insertion
+					wxASSERT(!str.IsEmpty()); // whm 11Jun12 added.
 					if (str.GetChar(0) != _T(' '))
 					{
 						str = _T(" ") + str;
@@ -15525,7 +15562,8 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			else
 			{
 				// add an initial space if one is not already there
-				if (str.GetChar(0) != _T(' '))
+				wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 				{
 					str = _T(" ") + str;
 				}
@@ -15579,7 +15617,8 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			}
 
 			// add an initial space if one is not already there
-			if (str.GetChar(0) != _T(' '))
+			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
 			}
@@ -15591,7 +15630,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// it's a single word sourcephrase, so handle it....
 
 			// handle any stnd format markers first
-			//
+			// 
 			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
 			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
 			// must be placed now on this CSourcePhrase instance (which will not itself
@@ -15640,7 +15679,8 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
             // of str when it starts with one of these markers
 			wxString wholeMkr;
 			bool bStartsWithMarker = FALSE;
-			if (str.GetChar(0) == gSFescapechar)
+			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			if (!str.IsEmpty() && str.GetChar(0) == gSFescapechar)
 			{
 				wholeMkr = pDoc->GetWholeMarker(str);
 				bStartsWithMarker = TRUE;
@@ -15652,12 +15692,13 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			if (bStartsWithMarker)
 			{
 				if (pSrcPhrase->m_nSequNumber != 0 &&
-					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") &&
+					(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") && 
 					wholeMkr != _T("\\x")))
 				{
                     // add an initial space if one is not already there, and it is not
                     // started by a marker for which we want no space insertion
-					if (str.GetChar(0) != _T(' '))
+					wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string.
+					if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 					{
 						str = _T(" ") + str;
 					}
@@ -15666,7 +15707,8 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			else
 			{
 				// add an initial space if one is not already there
-				if (str.GetChar(0) != _T(' '))
+				wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string.
+				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 				{
 					str = _T(" ") + str;
 				}
@@ -15702,7 +15744,8 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			}
 
 			// insert an initial space if one is not already there
-			if (str.GetChar(0) != _T(' '))
+			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
 			}
@@ -15729,7 +15772,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 // markers within any filtered material. Notes and collected back translations are never
 // included
 //
-// whm wx version observations and modifications:
+// whm wx version observations and modifications: 
 // This RebuildFreeTransText() function basically prepares a buffer which is used only for
 // writing the free translation sections' strings out to disk in sfm form. (The RTF export
 // routines need to process the text bit by bit and add a great amount of RTF code words to
@@ -15776,11 +15819,11 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
     // markers as appropriate...
 	// As we traverse the list of CSourcePhrase instances, we do most but not all of what
 	// RebuildGlossesText() does, but there are significant differences, and this function
-	// will be simpler: the special things we must be careful of are:
+	// will be simpler: the special things we must be careful of are: 
     // 1. null source phrase placeholders (we ignore these, but we don't ignore any
 	// m_markers, content which has been moved to them by the user's placeholder insertion
 	// 2. retranslations (we can ignore the fact these instances may belong within a
-	// retranslation),
+	// retranslation), 
 	// 3. mergers - we'll just take what's on the merged CSourcePhrase instance, we won't
 	// look at the originals it stores -- this decision may result in loss of some
 	// markers, but that's okay as they are not likely to be important ones and to keep
@@ -15805,14 +15848,14 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 	// because of the way free translation strings are stored, such as \it \it* for an
 	// italicized word, or \k and \k* for a keyword, etc -- this will be in the output
 	// together, after the free translation section in which they were stored. No big deal.
-	//
+	// 
 	// BEW comment 11Jun10, docVersion 5 doesn't store all the filtered material in
 	// m_markers any more, but in dedicated wxString members of the CSourcePhrase; also,
 	// we will ignore any markers which have the textType 'none' - because these are the
 	// things likely to be medial in a merger (the user doesn't see them in the GUI), and
 	// if medial and a RTF export is wanted, that could result in an endmarker without
 	// matching start-marker, etc - which would cause the RTF scanning loop to terminate
-	// prematurely - so it's best to just get rid of such markers
+	// prematurely - so it's best to just get rid of such markers 
 	freeTrans.Empty();
 	wxString tempStr;
     // BEW added 16Jan08 A boolean added in support of adequate handling of markers which
@@ -15846,7 +15889,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 		str.Empty();
 
 		// BEW added to following block 16Jan09, for handling relocated markers on
-		// placeholders
+		// placeholders 
 		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase); // let it be calculated, but
 								// if it is TRUE then I'll use that to comment out the
 								// relevant code blocks (BEW 11Oct10)
@@ -15906,7 +15949,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
             // it's a merged or an unmerged sourcephrase non-placeholder; if a merger then
             // ignore the sublist, and just take anything useful from the merger itself,
             // and likewise for a nonmerger
-			//
+			// 
             // BEW added more on 17Jan09: if m_markers content was moved to a preceding
             // placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
             // must be placed now on this CSourcePhrase instance (which will not itself
@@ -15949,7 +15992,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 				freeTrans << aSpace << tempStr;
 			}
 			tempStr.Empty();
-
+           
             // append any m_markers content, then the free translation (if non-empty), and
             // endmarkers will be handled later below
             /* BEW removed 11Oct10
@@ -15976,7 +16019,10 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 				str << pSrcPhrase->GetEndMarkers();
 			}
 			// add an initial space if one is not already there
-			if (str.GetChar(0) != _T(' '))
+			// whm 9Jun12 added !str.IsEmpty() to the test below because wxWidgets 2.9.3
+			// asserts if str is empty and str.GetChar(0) is called - 0 is a bad index
+			// into an empty string!
+			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
 			}
@@ -16033,112 +16079,122 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 	// For a copy-to buffer we'll base it on text2 with a same-sized buffer
 	wxString text2;
 	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it
-	wxChar* pBuff2 = text2.GetWriteBuf(len + 1);
-	//wxChar* pBufStart2 = pBuff2;
-	//wxChar* pEnd2;
-	//pEnd2 = pBufStart2 + len;
-	wxChar* pNew = pBuff2;
+	// whm 8Jun12 modified to use wxStringBuffer
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString text2 is accessed directly within
+	// this function in the text = text2; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuff2(text2,len + 1);
+		//wxChar* pBuff2 = text2.GetWriteBuf(len + 1);
+		//wxChar* pBufStart2 = pBuff2;
+		//wxChar* pEnd2;
+		//pEnd2 = pBufStart2 + len;
+		wxChar* pNew = pBuff2;
 
-	wxString wholeMkr;
-	wxString bareMkr;
-	wholeMkr.Empty();
-	bool bIsMkrOfTypeToRemove = FALSE;
-	int itemLen; // stores length of parsed marker
-	while (*pOld != (wxChar)0 && pOld < pEnd)
-	{
-		// scan & copy across until next backslash (this test assumes we will no longer
-		// support the legacy feature that \ is to be interpretted as a SF escape
-		// character only before newlines)
-		while (*pOld != gSFescapechar && pOld < pEnd)
+		wxString wholeMkr;
+		wxString bareMkr;
+		wholeMkr.Empty();
+		bool bIsMkrOfTypeToRemove = FALSE;
+		int itemLen; // stores length of parsed marker
+		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
-			*pNew++ = *pOld++;
-		}
-		if (pOld == pEnd)
-		{
-			// all transfers are done, return the string to the caller
-			*pNew = (wxChar)0; // terminate the new buffer string with null char
-			text2.UngetWriteBuf();
-			text = text2; // replace old string with new one
-			return;
-		}
-		// at an SF marker, we determine if it is one we wish to remove, or not, and in
-		// the former case we jump it and and continue searching, but if not for removal
-		// then we copy it across & continue searching
-		//if (pDoc->IsMarker(pOld, pBufStart))
-		if (pDoc->IsMarker(pOld))
-		{
-			// we are pointing at a marker; get the marker into the wholeMkr
-			wholeMkr = pDoc->GetWholeMarker(pOld);
-
-			// get the length of the marker
-			itemLen = pDoc->ParseMarker(pOld);
-			// check integrity of results from ParseMarker
-			wxASSERT(itemLen > 0);
-			wxASSERT(itemLen == (int)wholeMkr.Len());
-
-			// get the bare marker, lookupable, (ie. no \ and no final *)
-			bareMkr = wholeMkr.Mid(1); // remove initial backslash
-			if (bareMkr.Last() == _T('*'))
+			// scan & copy across until next backslash (this test assumes we will no longer
+			// support the legacy feature that \ is to be interpretted as a SF escape
+			// character only before newlines)
+			while (*pOld != gSFescapechar && pOld < pEnd)
 			{
-				bareMkr = bareMkr.Left(itemLen - 2);
+				*pNew++ = *pOld++;
 			}
-
-			// is it a marker of the type we want to remove?
-			bool bSatifiesAdditionalRemovalTests = FALSE; // BEW added 11Oct10
-			USFMAnalysis* pUSFMStruct = pDoc->LookupSFM(bareMkr);
-			// BEW added 12N0v10 - protect against it being an unknown marker (as then
-			// pUSFMStruct will be returned as NULL)
-			if (pUSFMStruct == NULL)
+			if (pOld == pEnd)
 			{
-				bIsMkrOfTypeToRemove = FALSE; // we don't remove unknown marker types
+				// all transfers are done, return the string to the caller
+				*pNew = (wxChar)0; // terminate the new buffer string with null char
+				//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
+				//text = text2; // replace old string with new one
+				// Use break here rather than return so the control will pass the end of the
+				// special scope block to restore text2 to its normal state before it is used
+				// to assign a value to the text reference parameter.				
+				break; //return; 
 			}
-			else
+			// at an SF marker, we determine if it is one we wish to remove, or not, and in
+			// the former case we jump it and and continue searching, but if not for removal
+			// then we copy it across & continue searching
+			//if (pDoc->IsMarker(pOld, pBufStart))
+			if (pDoc->IsMarker(pOld))
 			{
-				bIsMkrOfTypeToRemove = pUSFMStruct->textType == theTextType ? TRUE : FALSE;
+				// we are pointing at a marker; get the marker into the wholeMkr
+				wholeMkr = pDoc->GetWholeMarker(pOld);
 
-				// BEW 11Oct10, additional brute force tests, a little inneficiency here
-				// won't be noticed.
+				// get the length of the marker
+				itemLen = pDoc->ParseMarker(pOld);
+				// check integrity of results from ParseMarker
+				wxASSERT(itemLen > 0);
+				wxASSERT(itemLen == (int)wholeMkr.Len());
+
+				// get the bare marker, lookupable, (ie. no \ and no final *)
+				bareMkr = wholeMkr.Mid(1); // remove initial backslash
+				if (bareMkr.Last() == _T('*'))
+				{
+					bareMkr = bareMkr.Left(itemLen - 2);
+				}
+
+				// is it a marker of the type we want to remove?
+				bool bSatifiesAdditionalRemovalTests = FALSE; // BEW added 11Oct10
+				USFMAnalysis* pUSFMStruct = pDoc->LookupSFM(bareMkr);
+				// BEW added 12N0v10 - protect against it being an unknown marker (as then
+				// pUSFMStruct will be returned as NULL)
+				if (pUSFMStruct == NULL)
+				{
+					bIsMkrOfTypeToRemove = FALSE; // we don't remove unknown marker types
+				}
+				else
+				{
+					bIsMkrOfTypeToRemove = pUSFMStruct->textType == theTextType ? TRUE : FALSE;
+
+					// BEW 11Oct10, additional brute force tests, a little inneficiency here
+					// won't be noticed.
 				wxString mkrPlusSpace = gSFescapechar;
-				mkrPlusSpace += bareMkr + _T(' ');
-				if ((gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
-					(gpApp->m_inlineNonbindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
-					(bareMkr == _T("fr") || bareMkr == _T("fk") || bareMkr == _T("fqa") ||
-					 bareMkr == _T("fq") || bareMkr == _T("fl") || bareMkr == _T("fp") ||
-					 bareMkr == _T("fv") || bareMkr == _T("ft") || bareMkr == _T("fdc") ||
-					 bareMkr == _T("fm") || bareMkr == _T("xot") || bareMkr == _T("xk") ||
-					 bareMkr == _T("xq") || bareMkr == _T("xt") || bareMkr == _T("xo") ||
-					 bareMkr == _T("xnt") || bareMkr == _T("xdc")) )
-				{
+					mkrPlusSpace += bareMkr + _T(' ');
+					if ((gpApp->m_inlineBindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
+						(gpApp->m_inlineNonbindingMarkers.Find(mkrPlusSpace) != wxNOT_FOUND) ||
+						(bareMkr == _T("fr") || bareMkr == _T("fk") || bareMkr == _T("fqa") ||
+						 bareMkr == _T("fq") || bareMkr == _T("fl") || bareMkr == _T("fp") ||
+						 bareMkr == _T("fv") || bareMkr == _T("ft") || bareMkr == _T("fdc") ||
+						 bareMkr == _T("fm") || bareMkr == _T("xot") || bareMkr == _T("xk") ||
+						 bareMkr == _T("xq") || bareMkr == _T("xt") || bareMkr == _T("xo") ||
+						 bareMkr == _T("xnt") || bareMkr == _T("xdc")) )
+					{
 					bSatifiesAdditionalRemovalTests = TRUE;
+					}
 				}
-			}
-			bool bRemovedIt = FALSE;
-			if (bIsMkrOfTypeToRemove)
-			{
-				// don't copy it across, just put pOld pointing at first character after
-				// it
-				pOld += itemLen;
-				bRemovedIt = TRUE;
-			}
-			else if (!bRemovedIt && bSatifiesAdditionalRemovalTests)
-			{
-				// don't copy it across, just put pOld pointing at first character after
-				// it
-				pOld += itemLen;
-			}
-			else
-			{
-				// it's not for removal, so copy it across
-				int ctmkr;
-				for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
+				bool bRemovedIt = FALSE;
+				if (bIsMkrOfTypeToRemove)
 				{
-					*pNew++ = *pOld++;
+					// don't copy it across, just put pOld pointing at first character after
+					// it
+					pOld += itemLen;
+					bRemovedIt = TRUE;
 				}
-			}
-		} // end of TRUE block for test: if (pDoc->IsMarker(pOld, pBufStart))
-	} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
-	*pNew = (wxChar)0; // terminate the new buffer string with null char
-	text2.UngetWriteBuf();
+				else if (!bRemovedIt && bSatifiesAdditionalRemovalTests)
+				{
+					// don't copy it across, just put pOld pointing at first character after
+					// it
+					pOld += itemLen;
+				}
+				else
+				{
+					// it's not for removal, so copy it across
+					int ctmkr;
+					for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
+					{
+						*pNew++ = *pOld++;
+					}
+				}
+			} // end of TRUE block for test: if (pDoc->IsMarker(pOld, pBufStart))
+		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
+		*pNew = (wxChar)0; // terminate the new buffer string with null char
+	} // end of special scoping block
+	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	text = text2; // replace old string with new one
 }
 
@@ -16183,7 +16239,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			// we then, still within the function, call the Placement dialog for any
 			// medial markers needing placement, and then set savePos to be the Node*
 			// immediately after the retranslation, or NULL if at end of doc
-			pos = DoPlacementOfMarkersInRetranslation(savePos,pList,str);
+			pos = DoPlacementOfMarkersInRetranslation(savePos,pList,str); 
 		}
 		else
 		{
@@ -16221,7 +16277,8 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		// precedes, so we don't want space after [ and no space before ]; here, deal with
 		// the case of str containing ]
 		bool bPlacedAlready = FALSE;
-		if (str[0] == _T(']'))
+		// whm 9Jun12 modified to add !str.IsEmpty() in the test
+		if (!str.IsEmpty() && str[0] == _T(']'))
 		{
 			targetstr.Trim(); // remove any final space before appending ]
 			targetstr << str;
@@ -16238,7 +16295,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
         }
 		// after the above, targetstr will end with space, if it is not empty
 
-		// handle when str contains only [, we don't want space after [
+		// handle when str contains only [, we don't want space after [ 
 		if (!targetstr.IsEmpty() && targetstr[targetstr.Len() - 2] == _T('['))
 		{
 			// in this circumstance we don't want the space which follows [
@@ -16268,7 +16325,7 @@ bool IsDocWithParagraphMarkersOnly(SPList* pSrcPhrasesList)
 	if (pSrcPhrasesList->IsEmpty())
 		return FALSE;
 	// we scan only until we find some marker other than \p
-	bool bFoundParagraphMarker = FALSE; // use this to prevent unneeded
+	bool bFoundParagraphMarker = FALSE; // use this to prevent unneeded 
 										// finds after the first
 	SPList::Node* pos = NULL;
 	pos = pSrcPhrasesList->GetFirst();
@@ -16338,7 +16395,7 @@ retry:					offset2 = afterStr.Find(gSFescapechar);
 				}
 				else
 				{
-					// there is no \p marker in m_markers nor any marker beginning with \p,
+					// there is no \p marker in m_markers nor any marker beginning with \p, 
 					// so check for a backslash there -- if there is, we've some other
 					// marker present and so can return FALSE; if not, keep scanning
 					offset2 = markers.Find(gSFescapechar);
@@ -16397,7 +16454,7 @@ wxString RemoveParagraphMarkersOnly(wxString& str)
 
 // BEW 26Aug10, added ChangeCustomMarkersToParatextPrivates() in order to support the USFM
 // 2.3 new feature, where a \z prefix is supplied to 3rd party developers for custom
-// markers which Paratext will ignore.
+// markers which Paratext will ignore. 
 // BEW 30Aug10, the Oxes documentation says that the appropriate USFM would be
 // \zAnnotation, and so I'll change from \zNote to \zAnnotation, to comply with this
 // This function will change:
@@ -16407,7 +16464,7 @@ wxString RemoveParagraphMarkersOnly(wxString& str)
 // \note   to      \zAnnotation
 // \note*  to      \zAnnotation*
 // but it will be called late, so that these changes are NOT made in the wxString buffer
-// that is passed on to the RTF-construction functions.
+// that is passed on to the RTF-construction functions. 
 // Note: we retain the use of \bt, \free, and \note internally; so importing must convert
 // these \z- based alternatives back to our legacy ones
 void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
@@ -16433,7 +16490,7 @@ void ChangeCustomMarkersToParatextPrivates(wxString& buffer)
 // and builds a new wxString minus the markers and associated text whose flags are set to
 // be filtered from output in bareMarkerArray and filterFlagsArray; then returns the new
 // string.
-wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray,
+wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArray, 
 								 wxArrayInt& filterFlagsArray, bool bRTFOutput)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -16460,156 +16517,218 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 	// we'll always get the same or smaller string at end of processing and the size
 	// of textStr2 in that case can be the same size as textStr.
 	wxString textStr2;
-	wxChar* pBuffer2;
 	wxChar* pEnd2;
+	
+	// whm 8Jun12 modified to use wxStringBuffer
+	int buffSizeMultiplier;
 	if (bRTFOutput)
-	{
-		pBuffer2 = textStr2.GetWriteBuf(nTheLen*2 + 1);
-		pEnd2 = pBuffer2 + nTheLen*2; // whm added
-		// wx version note: This buffer does not have, nor need a null char placed
-		// at the end of it. We assume being twice pBuffer's size would be sufficient
-		// for all cases. Moreover, the pointer pNew only checks for a null char in
-		// the pBuffer, not this one.
-	}
+		buffSizeMultiplier = 2;
 	else
+		buffSizeMultiplier = 1;
+	
+	// Begin a new block where pBuffer2 is created as wxStringBuffer from textStr2.
+	// Note: this block is required to be able to return textStr2 to its usable 
+	// state at the end of the block below before returning the value of textStr2
+	// to the caller.
 	{
-		// wx version note: This buffer does not have, nor need a null char placed
-		// at the end of it. We assume being the same as pBuffer's size would be sufficient
-		// for all cases. Moreover, the pointer pNew only checks for a null char in
-		// the pBuffer, not this one.
-		pBuffer2 = textStr2.GetWriteBuf(nTheLen + 1);
-		pEnd2 = pBuffer2 + nTheLen; // whm added
-		*pEnd2 = (wxChar)0; // whm added
-	}
-
-	wxString bareMarkerForLookup,bareMarkerInInputArray, wholeMarker;
-	int nMarkersInArray = bareMarkerArray.GetCount();
-	if (nMarkersInArray != (int)filterFlagsArray.GetCount())
-	{
-		::wxBell();
-		wxASSERT(FALSE);
-	}
-
-	wxChar* pOld = pBufStart;  // source
-	wxChar* pNew = pBuffer2; // destination
-	while (*pOld != (wxChar)0)
-	{
-		// Use the the View's IsMarkerRTF if bRTFOutput
+		wxStringBuffer pBuffer2(textStr2,nTheLen*buffSizeMultiplier + 1);
+		pEnd2 = pBuffer2 + nTheLen*buffSizeMultiplier;
+		if (buffSizeMultiplier == 1)
+			*pEnd2 = (wxChar)0;
+		if (wxUSE_STL)
+		{
+			int i;
+			i = 0;
+		}
+		/*
 		if (bRTFOutput)
 		{
-			bIsAMarker = IsMarkerRTF(pOld,pBufStart);
+			// whm 8Jun12 modified to use wxStringBuffer
+			//wxStringBuffer pBuffer2(textStr2,nTheLen*2 + 1);
+			//pBuffer2 = textStr2.GetWriteBuf(nTheLen*2 + 1);
+			//pEnd2 = pBuffer2 + nTheLen*2; // whm added
+			// wx version note: This buffer does not have, nor need a null char placed
+			// at the end of it. We assume being twice pBuffer's size would be sufficient
+			// for all cases. Moreover, the pointer pNew only checks for a null char in
+			// the pBuffer, not this one.
 		}
 		else
 		{
-			//bIsAMarker = pDoc->IsMarker(pOld,pBufStart);
-			bIsAMarker = pDoc->IsMarker(pOld);
+			// wx version note: This buffer does not have, nor need a null char placed
+			// at the end of it. We assume being the same as pBuffer's size would be sufficient
+			// for all cases. Moreover, the pointer pNew only checks for a null char in
+			// the pBuffer, not this one.
+			// whm 8Jun12 modified to use wxStringBuffer
+			// wxStringBuffer pBuffer2(textStr2,nTheLen + 1);
+			// pBuffer2 = textStr2.GetWriteBuf(nTheLen + 1);
+			// pEnd2 = pBuffer2 + nTheLen; // whm added
+			// *pEnd2 = (wxChar)0; // whm added
+		}
+		*/
+
+		wxString bareMarkerForLookup,bareMarkerInInputArray, wholeMarker;
+		int nMarkersInArray = bareMarkerArray.GetCount();
+		if (nMarkersInArray != (int)filterFlagsArray.GetCount())
+		{
+			::wxBell();
+			wxASSERT(FALSE);
 		}
 
-		if (bIsAMarker)
+		wxChar* pOld = pBufStart;  // source
+		wxChar* pNew = pBuffer2; // destination
+		while (*pOld != (wxChar)0)
 		{
-			// We're pointing at a marker. Look it up and see if we should skip over it and
-			// its associated text
-			wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+			// Use the the View's IsMarkerRTF if bRTFOutput
+			if (bRTFOutput)
+			{
+				bIsAMarker = IsMarkerRTF(pOld,pBufStart);
+			}
+			else
+			{
+				//bIsAMarker = pDoc->IsMarker(pOld,pBufStart);
+				bIsAMarker = pDoc->IsMarker(pOld);
+			}
 
-			// whm added 7Nov07
+			if (bIsAMarker)
+			{
+				// We're pointing at a marker. Look it up and see if we should skip over it and
+				// its associated text
+				wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+
+				// whm added 7Nov07
 			// If wholeMarker is just a bare backslash it means that we have an embedded user entered
 			// back slash that is not part of a marker. In RTF outputs we need to escape it so that
 			// it does not look like some RTF control word to the RTF file reader, likely causing
-			// MS Word to choke on it.
-			if (wholeMarker == _T("\\"))
-			{
-				if (bRTFOutput)
-				{
-					// check for embedded backslash in the text
-					if (*pOld == _T('\\'))
-					{
-						// prefix the backslash with another backslash in pNew to escape it.
-						*pNew++ = _T('\\');
-					}
-				}
-
-				*pNew++ = *pOld++;
-
-				// The tests below don't make sense for an isolated non-marker backslash,
-				// and we shouldn't set bHitMarker to TRUE, so just continue processing at
-				// the top of the while loop
-				continue;
-			}
-
-			bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
-			// if we encounter an end marker before its beginning form (as might happen if we
-			// are using ApplyOutputFilterToText on an m_endMarkers string, we want to check it
-			// for filtering in isolated fashion without parsing to find any associated text.
-			if (wholeMarker.Find(_T('*')) != -1 && !bHitMkr)
-			{
-				// we hit this end marker before seeing a beginning marker in the input text
-				// if its non-end form it to be filtered we'll parse over it and omit it from
-				// the text, otherwise we'll leave it alone
-				if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
+				// MS Word to choke on it.
+				if (wholeMarker == _T("\\"))
 				{
 					if (bRTFOutput)
 					{
-						itemLen = ParseMarkerRTF(pOld,pEnd);
+						// check for embedded backslash in the text
+						if (*pOld == _T('\\'))
+						{
+							// prefix the backslash with another backslash in pNew to escape it.
+							*pNew++ = _T('\\');
+						}
 					}
-					else
-					{
-						itemLen = pDoc->ParseMarker(pOld);
-					}
-					pOld += itemLen;
-					// don't increment pNew here
-					itemLen = pDoc->ParseWhiteSpace(pOld);
-					pOld += itemLen;
-					// don't increment pNew here
-					continue; // BEW added 22June11, control needs to iterate if this block was entered
+
+					*pNew++ = *pOld++;
+
+				// The tests below don't make sense for an isolated non-marker backslash,
+				// and we shouldn't set bHitMarker to TRUE, so just continue processing at
+					// the top of the while loop
+					continue;
 				}
-			}
 
-			bHitMkr = TRUE;
-			// for output filter purposes we treat all \bt... initial markers as simple \bt, so
-			// change any \bt... ones to just \bt
-			if (bareMarkerForLookup.Find(_T("bt")) == 0)
-			{
-				bareMarkerForLookup = _T("bt"); // change all \bt... initial ones to just \bt
-			}
-			if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
-			{
-				// This marker needs to be filtered out/skipped over. We have to parse over
-				// the marker and its associated text and any end marker it may have. In the
-				// process we increment pOld but not pNew.
-
-				wxString wholeMkrNoAsteriskSp = _T('\\') + bareMarkerForLookup + _T(' ');
-				if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != -1)
+				bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
+				// if we encounter an end marker before its beginning form (as might happen if we
+				// are using ApplyOutputFilterToText on an m_endMarkers string, we want to check it
+				// for filtering in isolated fashion without parsing to find any associated text.
+				if (wholeMarker.Find(_T('*')) != -1 && !bHitMkr)
 				{
-					// we are filtering one of the character markers that affects font formatting
-					// we don't want to filter out the associated text, only remove the formatting
-					// i.e., by removing the markers and leaving the associated text
-					// parse the initial marker
-					itemLen = pDoc->ParseMarker(pOld);
-					pOld += itemLen;
-					// don't increment pNew here
-					itemLen = pDoc->ParseWhiteSpace(pOld);
-					pOld += itemLen;
-					// don't increment pNew here
-					// parse the associated text until we come to the end marker
-					while (pOld < pEnd && !pDoc->IsCorresEndMarker(wholeMarker, pOld, pEnd))
+					// we hit this end marker before seeing a beginning marker in the input text
+					// if its non-end form it to be filtered we'll parse over it and omit it from
+					// the text, otherwise we'll leave it alone
+					if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
 					{
-						// just copy whatever we are pointing at and then advance
-						*pNew++ = *pOld++;
+						if (bRTFOutput)
+						{
+							itemLen = ParseMarkerRTF(pOld,pEnd);
+						}
+						else
+						{
+							itemLen = pDoc->ParseMarker(pOld);
+						}
+						pOld += itemLen;
+						// don't increment pNew here
+						itemLen = pDoc->ParseWhiteSpace(pOld);
+						pOld += itemLen;
+						// don't increment pNew here
+						continue; // BEW added 22June11, control needs to iterate if this block was entered
 					}
-					if (pOld < pEnd)
+				}
+
+				bHitMkr = TRUE;
+				// for output filter purposes we treat all \bt... initial markers as simple \bt, so
+				// change any \bt... ones to just \bt
+				if (bareMarkerForLookup.Find(_T("bt")) == 0)
+				{
+					bareMarkerForLookup = _T("bt"); // change all \bt... initial ones to just \bt
+				}
+				if (MarkerIsToBeFilteredFromOutput(bareMarkerForLookup))
+				{
+					// This marker needs to be filtered out/skipped over. We have to parse over
+					// the marker and its associated text and any end marker it may have. In the
+					// process we increment pOld but not pNew.
+
+					wxString wholeMkrNoAsteriskSp = _T('\\') + bareMarkerForLookup + _T(' ');
+					if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != -1)
 					{
-						// we found a corresponding end marker to we need to parse it too
+						// we are filtering one of the character markers that affects font formatting
+						// we don't want to filter out the associated text, only remove the formatting
+						// i.e., by removing the markers and leaving the associated text
+						// parse the initial marker
 						itemLen = pDoc->ParseMarker(pOld);
 						pOld += itemLen;
 						// don't increment pNew here
-
-						// parse remaining whitespace but preserve new lines
-						if (*pOld == _T('\n'))
+						itemLen = pDoc->ParseWhiteSpace(pOld);
+						pOld += itemLen;
+						// don't increment pNew here
+						// parse the associated text until we come to the end marker
+						while (pOld < pEnd && !pDoc->IsCorresEndMarker(wholeMarker, pOld, pEnd))
 						{
-							// just copy the new line and then advance
+							// just copy whatever we are pointing at and then advance
 							*pNew++ = *pOld++;
 						}
-						else
+						if (pOld < pEnd)
+						{
+							// we found a corresponding end marker to we need to parse it too
+							itemLen = pDoc->ParseMarker(pOld);
+							pOld += itemLen;
+							// don't increment pNew here
+
+							// parse remaining whitespace but preserve new lines
+							if (*pOld == _T('\n'))
+							{
+								// just copy the new line and then advance
+								*pNew++ = *pOld++;
+							}
+							else
+							{
+								itemLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += itemLen;
+								// don't increment pNew here
+							}
+						}
+					}
+					else
+					{
+						// we are filtering both marker(s) and associated text
+						itemLen = ParseMarkerAndAnyAssociatedText(pOld, pBufStart, pEnd,
+													bareMarkerForLookup, wholeMarker,FALSE,FALSE);
+						// 1st FALSE above means don't consider this text to be RTF text at this point
+						// because it won't be RTF compatible text until ApplyOutputFilterToText is done
+						// with it
+						// 2nd FALSE above means don't include char format markers
+
+						pOld += itemLen; // advance pOld past marker and its associated text
+						// don't increment pNew for the skipped marker
+						// if after parsing the marker we're now pointing at a new line, preserve it
+
+						// parse any remaining white space but preserve new lines
+						// BEW 18Apr2011 -- just preserving newline means that the one and
+						// only space between the endmarker and the following text is also
+						// removed, and if there was not a space before the begin marker, this
+						// makes a bogus coalescence of two words - so we need to retain at
+						// least one space
+						if (*pOld == _T('\n') || *pOld == _T(' '))
+						{
+							// just copy the new line or one space and then advance over it
+							*pNew++ = *pOld++;
+						}
+						//else
+						// remove any additional spaces
+						if (*pOld == _T(' '))
 						{
 							itemLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += itemLen;
@@ -16619,42 +16738,23 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				}
 				else
 				{
-					// we are filtering both marker(s) and associated text
-					itemLen = ParseMarkerAndAnyAssociatedText(pOld, pBufStart, pEnd,
-												bareMarkerForLookup, wholeMarker,FALSE,FALSE);
-					// 1st FALSE above means don't consider this text to be RTF text at this point
-					// because it won't be RTF compatible text until ApplyOutputFilterToText is done
-					// with it
-					// 2nd FALSE above means don't include char format markers
-
-					pOld += itemLen; // advance pOld past marker and its associated text
-					// don't increment pNew for the skipped marker
-					// if after parsing the marker we're now pointing at a new line, preserve it
-
-					// parse any remaining white space but preserve new lines
-					// BEW 18Apr2011 -- just preserving newline means that the one and
-					// only space between the endmarker and the following text is also
-					// removed, and if there was not a space before the begin marker, this
-					// makes a bogus coalescence of two words - so we need to retain at
-					// least one space
-					if (*pOld == _T('\n') || *pOld == _T(' '))
+					// not filtering
+					// just copy whatever we are pointing at and then advance
+					if (bRTFOutput)
 					{
-						// just copy the new line or one space and then advance over it
-						*pNew++ = *pOld++;
+						// check for embedded curly braces in the text
+						if (*pOld == _T('{') || *pOld == _T('}'))
+						{
+							// there is a curly brace so prefix it with a backslash in pNew to escape it.
+							*pNew++ = _T('\\');
+						}
 					}
-					//else
-					// remove any additional spaces
-					if (*pOld == _T(' '))
-					{
-						itemLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += itemLen;
-						// don't increment pNew here
-					}
+					*pNew++ = *pOld++;
 				}
 			}
 			else
 			{
-				// not filtering
+				// it's not a marker but text
 				// just copy whatever we are pointing at and then advance
 				if (bRTFOutput)
 				{
@@ -16668,25 +16768,10 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 				*pNew++ = *pOld++;
 			}
 		}
-		else
-		{
-			// it's not a marker but text
-			// just copy whatever we are pointing at and then advance
-			if (bRTFOutput)
-			{
-				// check for embedded curly braces in the text
-				if (*pOld == _T('{') || *pOld == _T('}'))
-				{
-					// there is a curly brace so prefix it with a backslash in pNew to escape it.
-					*pNew++ = _T('\\');
-				}
-			}
-			*pNew++ = *pOld++;
-		}
-	}
-	*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
-
-	textStr2.UngetWriteBuf();
+		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+	} // end the scoping block where pBuffer2 is created as wxStringBuffer from textStr2.
+	  // Note: this block ending is required to return textStr2 to its usable state.
+	//textStr2.UngetWriteBuf(); // whm 8Jun12 not used with wxStringBuffer
 	return textStr2;
 }
 
@@ -16700,7 +16785,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 // ApplyOutputFilterToText_For_Collaboration() does not rely on or use the filtering
 // mechanisms and structures designed by Bill, it is self-contained, and has no provision
 // for filtering for RTF purposes, but only for (U)SFM output.
-wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray)
+wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray) 
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
@@ -16717,106 +16802,145 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 
 	// Setup copy-to buffer from textStr2.
 	wxString textStr2;
-	wxChar* pBuffer2;
+	//wxChar* pBuffer2;
 	wxChar* pEnd2;
     // This buffer does not have, nor need a null char placed at the end of it. We assume
     // being the same as pBuffer's size would be sufficient for all cases. Moreover, the
     // pointer pNew only checks for a null char in the pBuffer, not this one.
-	pBuffer2 = textStr2.GetWriteBuf(nTheLen + 1);
-	pEnd2 = pBuffer2 + nTheLen;
-	*pEnd2 = (wxChar)0;
+	// whm 8Jun12 modified to use wxStringBuffer
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString textStr2 is accessed directly within
+	// this function in the return textStr2; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuffer2(textStr2,nTheLen + 1);
+		//pBuffer2 = textStr2.GetWriteBuf(nTheLen + 1);
+		pEnd2 = pBuffer2 + nTheLen;
+		*pEnd2 = (wxChar)0;
 
-	wxString bareMarkerForLookup, bareMarkerInInputArray, wholeMarker;
-	//int nMarkersInArray = bareMarkerArray.GetCount();
+		wxString bareMarkerForLookup, bareMarkerInInputArray, wholeMarker;
+		//int nMarkersInArray = bareMarkerArray.GetCount();
 
-	wxChar* pOld = pBufStart;  // source
-	wxChar* pNew = pBuffer2; // destination
-	while (*pOld != (wxChar)0)
-	{
-		bIsAMarker = pDoc->IsMarker(pOld);
-		if (bIsAMarker)
+		wxChar* pOld = pBufStart;  // source
+		wxChar* pNew = pBuffer2; // destination
+		while (*pOld != (wxChar)0)
 		{
-			// We're pointing at a marker. Look it up and see if we should skip over it and
-			// its associated text
-			wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
-
-			if (wholeMarker == _T("\\"))
+			bIsAMarker = pDoc->IsMarker(pOld);
+			if (bIsAMarker)
 			{
-				*pNew++ = *pOld++;
+				// We're pointing at a marker. Look it up and see if we should skip over it and
+				// its associated text
+				wholeMarker = pDoc->GetWholeMarker(pOld); // the whole marker including backslash and any ending *
+
+				if (wholeMarker == _T("\\"))
+			{
+					*pNew++ = *pOld++;
 
 				// The tests below don't make sense for an isolated non-marker backslash,
 				// and we shouldn't set bHitMarker to TRUE, so just continue processing at
-				// the top of the while loop
-				continue;
-			}
-
-			bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
-			// if we encounter an end marker before its beginning form (as might happen if we
-			// are using the function on an m_endMarkers string , we want to check it
-			// for filtering in isolated fashion without parsing to find any associated text.
-			if (wholeMarker.Find(_T('*')) != wxNOT_FOUND && !bHitMkr)
-			{
-				// we hit this end marker before seeing a beginning marker in the input text
-				// if its non-end form it to be filtered we'll parse over it and omit it from
-				// the text, otherwise we'll leave it alone
-				if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
-				{
-					itemLen = pDoc->ParseMarker(pOld);
-					pOld += itemLen;
-					// don't increment pNew here
-					itemLen = pDoc->ParseWhiteSpace(pOld);
-					pOld += itemLen; // and don't increment pNew here
-					continue; // iterate
+					// the top of the while loop
+					continue;
 				}
-			}
 
-			bHitMkr = TRUE;
-			// for output filter purposes we treat all \bt... initial markers as simple \bt, so
-			// change any \bt... ones to just \bt
-			if (bareMarkerForLookup.Find(_T("bt")) == 0)
-			{
-				bareMarkerForLookup = _T("bt"); // change all \bt... initial ones to just \bt
-			}
-			if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
-			{
-				// This marker needs to be filtered out/skipped over. We have to parse over
-				// the marker and its associated text and any end marker it may have. In the
-				// process we increment pOld but not pNew.
-
-				wxString wholeMkrNoAsteriskSp = _T('\\') + bareMarkerForLookup + _T(' ');
-				// charFormatMkrs is defined and populated near top of Adapt_ItView.cpp
-				if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != wxNOT_FOUND)
+				bareMarkerForLookup = pDoc->GetBareMarkerForLookup(pOld); // strips off backslash and any ending *
+				// if we encounter an end marker before its beginning form (as might happen if we
+				// are using the function on an m_endMarkers string , we want to check it
+				// for filtering in isolated fashion without parsing to find any associated text.
+				if (wholeMarker.Find(_T('*')) != wxNOT_FOUND && !bHitMkr)
 				{
-					// we are filtering one of the character markers that affects font formatting
-					// we don't want to filter out the associated text, only remove the formatting
-					// i.e., by removing the markers and leaving the associated text
-					// parse the initial marker
-					itemLen = pDoc->ParseMarker(pOld);
-					pOld += itemLen;
-					// don't increment pNew here
-					itemLen = pDoc->ParseWhiteSpace(pOld);
-					pOld += itemLen;
-					// don't increment pNew here
-					// parse the associated text until we come to the end marker
-					while (pOld < pEnd && !pDoc->IsCorresEndMarker(wholeMarker, pOld, pEnd))
+					// we hit this end marker before seeing a beginning marker in the input text
+					// if its non-end form it to be filtered we'll parse over it and omit it from
+					// the text, otherwise we'll leave it alone
+					if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
 					{
-						// just copy whatever we are pointing at and then advance
-						*pNew++ = *pOld++;
-					}
-					if (pOld < pEnd)
-					{
-						// we found a corresponding end marker to we need to parse it too
 						itemLen = pDoc->ParseMarker(pOld);
 						pOld += itemLen;
 						// don't increment pNew here
+						itemLen = pDoc->ParseWhiteSpace(pOld);
+						pOld += itemLen; // and don't increment pNew here
+						continue; // iterate
+					}
+				}
 
-						// parse remaining whitespace but preserve new lines
-						if (*pOld == _T('\n'))
+				bHitMkr = TRUE;
+				// for output filter purposes we treat all \bt... initial markers as simple \bt, so
+				// change any \bt... ones to just \bt
+				if (bareMarkerForLookup.Find(_T("bt")) == 0)
+				{
+					bareMarkerForLookup = _T("bt"); // change all \bt... initial ones to just \bt
+				}
+				if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
+				{
+					// This marker needs to be filtered out/skipped over. We have to parse over
+					// the marker and its associated text and any end marker it may have. In the
+					// process we increment pOld but not pNew.
+
+					wxString wholeMkrNoAsteriskSp = _T('\\') + bareMarkerForLookup + _T(' ');
+					// charFormatMkrs is defined and populated near top of Adapt_ItView.cpp
+					if (charFormatMkrs.Find(wholeMkrNoAsteriskSp) != wxNOT_FOUND)
+					{
+						// we are filtering one of the character markers that affects font formatting
+						// we don't want to filter out the associated text, only remove the formatting
+						// i.e., by removing the markers and leaving the associated text
+						// parse the initial marker
+						itemLen = pDoc->ParseMarker(pOld);
+						pOld += itemLen;
+						// don't increment pNew here
+						itemLen = pDoc->ParseWhiteSpace(pOld);
+						pOld += itemLen;
+						// don't increment pNew here
+						// parse the associated text until we come to the end marker
+						while (pOld < pEnd && !pDoc->IsCorresEndMarker(wholeMarker, pOld, pEnd))
 						{
-							// just copy the new line and then advance
+							// just copy whatever we are pointing at and then advance
 							*pNew++ = *pOld++;
 						}
-						else
+						if (pOld < pEnd)
+						{
+							// we found a corresponding end marker to we need to parse it too
+							itemLen = pDoc->ParseMarker(pOld);
+							pOld += itemLen;
+							// don't increment pNew here
+
+							// parse remaining whitespace but preserve new lines
+							if (*pOld == _T('\n'))
+							{
+								// just copy the new line and then advance
+								*pNew++ = *pOld++;
+							}
+							else
+							{
+								itemLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += itemLen;
+								// don't increment pNew here
+							}
+						}
+					}
+					else
+					{
+						// we are filtering both marker(s) and associated text
+						itemLen = ParseMarkerAndAnyAssociatedText(pOld, pBufStart, pEnd,
+											bareMarkerForLookup, wholeMarker, FALSE, FALSE);
+						// 1st FALSE above means don't consider this text to be RTF text
+						// 2nd FALSE above means don't include char format markers
+
+						pOld += itemLen; // advance pOld past marker and its associated text
+						// don't increment pNew for the skipped marker
+						// if after parsing the marker we're now pointing at a new line, preserve it
+
+						// parse any remaining white space but preserve new lines
+						// BEW 18Apr2011 -- just preserving newline means that the one and
+						// only space between the endmarker and the following text is also
+						// removed, and if there was not a space before the begin marker, this
+						// makes a bogus coalescence of two words - so we need to retain at
+						// least one space
+						if (*pOld == _T('\n') || *pOld == _T(' '))
+						{
+							// just copy the new line or one space and then advance over it
+							*pNew++ = *pOld++;
+						}
+						//else
+						// remove any additional spaces
+						if (*pOld == _T(' '))
 						{
 							itemLen = pDoc->ParseWhiteSpace(pOld);
 							pOld += itemLen;
@@ -16826,54 +16950,21 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 				}
 				else
 				{
-					// we are filtering both marker(s) and associated text
-					itemLen = ParseMarkerAndAnyAssociatedText(pOld, pBufStart, pEnd,
-										bareMarkerForLookup, wholeMarker, FALSE, FALSE);
-					// 1st FALSE above means don't consider this text to be RTF text
-					// 2nd FALSE above means don't include char format markers
-
-					pOld += itemLen; // advance pOld past marker and its associated text
-					// don't increment pNew for the skipped marker
-					// if after parsing the marker we're now pointing at a new line, preserve it
-
-					// parse any remaining white space but preserve new lines
-					// BEW 18Apr2011 -- just preserving newline means that the one and
-					// only space between the endmarker and the following text is also
-					// removed, and if there was not a space before the begin marker, this
-					// makes a bogus coalescence of two words - so we need to retain at
-					// least one space
-					if (*pOld == _T('\n') || *pOld == _T(' '))
-					{
-						// just copy the new line or one space and then advance over it
-						*pNew++ = *pOld++;
-					}
-					//else
-					// remove any additional spaces
-					if (*pOld == _T(' '))
-					{
-						itemLen = pDoc->ParseWhiteSpace(pOld);
-						pOld += itemLen;
-						// don't increment pNew here
-					}
+					// not filtering
+					// just copy whatever we are pointing at and then advance
+					*pNew++ = *pOld++;
 				}
 			}
 			else
 			{
-				// not filtering
+				// it's not a marker but text
 				// just copy whatever we are pointing at and then advance
 				*pNew++ = *pOld++;
 			}
 		}
-		else
-		{
-			// it's not a marker but text
-			// just copy whatever we are pointing at and then advance
-			*pNew++ = *pOld++;
-		}
-	}
-	*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
-
-	textStr2.UngetWriteBuf();
+		*pNew = (wxChar)0; // add a null at the end of the string in pBuffer2
+	} // end of special scoping block
+	//textStr2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	return textStr2;
 }
 
@@ -16903,21 +16994,21 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		text.Trim();
 	}
 
-	// whm 17Sep11 added: Test if text ends with an eol. If not, add the appropriate eol
-	// at the end of the text. This is needed especially for texts that are transferred
-	// back to PT/BE during chapter sized text collaboration, otherwise we could be inserting
-	// text back into PT/BE which lacks an eol between the last verse of a chapter and the
-	// next \c n, that is, without an ending eol, Paratext would end up with something like
+	// whm 17Sep11 added: Test if text ends with an eol. If not, add the appropriate eol 
+	// at the end of the text. This is needed especially for texts that are transferred 
+	// back to PT/BE during chapter sized text collaboration, otherwise we could be inserting 
+	// text back into PT/BE which lacks an eol between the last verse of a chapter and the 
+	// next \c n, that is, without an ending eol, Paratext would end up with something like 
 	// this:
-	//
+	// 
 	// \c 2
 	// \v 1 This is the first verse of chapter 1
 	// ...
 	// \v 20 This is the last verse of chapter 2.\c 3
 	// \v 1 This is the first verse of chapter 3.
 	// ...
-	//
-	// where the \c 3 ends up concatenated to the end of the last verse of the previous
+	// 
+	// where the \c 3 ends up concatenated to the end of the last verse of the previous 
 	// chapter, instead of starting on a new line.
 	if ((gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit) && gpApp->m_bCollabByChapterOnly)
 	{
@@ -16961,281 +17052,289 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	// For a copy-to buffer we'll base it on text2 with a double-sized buffer
 	wxString text2;
 	// Our copy-to buffer must be writeable so we must use GetWriteBuf() for it
-	wxChar* pBuff2 = text2.GetWriteBuf(len*2 + 1);
-	//wxChar* pBufStart2 = pBuff2;
-	//wxChar* pEnd2;
-	//pEnd2 = pBufStart2 + len*2;
-	wxChar* pOld = pBufStart;
-	wxChar* pNew = pBuff2;
+	// whm 8Jun12 modified to use wxStringBuffer
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString text2 is accessed directly within
+	// this function in text = text2; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuff2(text2,len*2 + 1);
+		//wxChar* pBuff2 = text2.GetWriteBuf(len*2 + 1);
+		//wxChar* pBufStart2 = pBuff2;
+		//wxChar* pEnd2;
+		//pEnd2 = pBufStart2 + len*2;
+		wxChar* pOld = pBufStart;
+		wxChar* pNew = pBuff2;
 
-	wxString wholeMkr;
-	wholeMkr.Empty();
-	// BEW 11Oct10, changed signature so as to match the punctuation used to the export
-	// type - formerly a target text export was using source language's punctuation.
+		wxString wholeMkr;
+		wholeMkr.Empty();
+		// BEW 11Oct10, changed signature so as to match the punctuation used to the export
+		// type - formerly a target text export was using source language's punctuation.
 	//
-	// Get a spaceless array of the appropriate language's punctuation characters
-	wxString spacelessPuncts;
-	if (expType == sourceTextExport)
-	{
-		spacelessPuncts = gpApp->m_punctuation[0]; // 0 for source language,
-	}
-	else
-	{
-		// we'll assume the target language's punctuation should also be used for exports
-		// of gloss text, and free translation, at least until someone complains
-		spacelessPuncts = gpApp->m_punctuation[1]; // 1 for target language
-	}
-	while (spacelessPuncts.Find(_T(' ')) != -1)
-	{
-		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
-		// used in DetachedNonQuotePunctuationFollows() below
-	}
-	int lenEolStr = wxStrlen_(gpApp->m_eolStr);
-	bool bDetachedNonquotePunctuationFollows = FALSE;
-	//bool IsWrapMarker = FALSE;
-	bool IsInLineMarker = FALSE;
-	int itemLen; // gets length of parsed item
-	int ctmkr;   // used to count item chars while copying from pOld to pNew
-	while (*pOld != (wxChar)0 && pOld < pEnd)
-	{
-		// scan the whole text for standard format markers
-		//if (pDoc->IsMarker(pOld, pBufStart))
-		if (pDoc->IsMarker(pOld))
+		// Get a spaceless array of the appropriate language's punctuation characters
+		wxString spacelessPuncts;
+		if (expType == sourceTextExport)
 		{
-			// we are pointing at a marker; get the marker into the wholeMkr
-			wholeMkr = pDoc->GetWholeMarker(pOld);
-			wholeMkr = MakeReverse(wholeMkr);
-
-			// get the length of the marker
-			itemLen = pDoc->ParseMarker(pOld);
-			// check integrity of results from ParseMarker
-			wxASSERT(itemLen > 0);
-			wxASSERT(itemLen == (int)wholeMkr.Length());
-
-			// We handle specific markers that need to have end-of-line char(s)
-			// inserted before them, or that need to have a certain kind of
-			// spacing before or after them for properly formatted output. These
-			// specific markers include:
-			//    chapter markers \c n (no space after the number)
-			//    end markers: never a space before end markers
-			//      (tuck puncts left to be adjacent to end marker)
-			// All other markers encountered get end-of-line chars inserted before
-			// them except for the following situations:
-			//    Don't add eol char(s) if the marker is at beginning of buffer
-			//    Don't add eol char(s) if the marker is an inline marker
-			//    (defined in AI_USFM.xml)
-			//    Don't added eol char(s) if a [ bracket precedes
-			if (pDoc->IsEndMarker(pOld,pEnd))
+			spacelessPuncts = gpApp->m_punctuation[0]; // 0 for source language,
+		}
+		else
+		{
+			// we'll assume the target language's punctuation should also be used for exports
+			// of gloss text, and free translation, at least until someone complains
+			spacelessPuncts = gpApp->m_punctuation[1]; // 1 for target language
+		}
+		while (spacelessPuncts.Find(_T(' ')) != -1)
+		{
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
+			// used in DetachedNonQuotePunctuationFollows() below
+		}
+		// whm 8Jun12 modified for wxWidgets-2.9.3 wxStrlen_() is invalid, use wxStrlen()
+		int lenEolStr = wxStrlen(gpApp->m_eolStr); //int lenEolStr = wxStrlen_(gpApp->m_eolStr);
+		bool bDetachedNonquotePunctuationFollows = FALSE;
+		//bool IsWrapMarker = FALSE;
+		bool IsInLineMarker = FALSE;
+		int itemLen; // gets length of parsed item
+		int ctmkr;   // used to count item chars while copying from pOld to pNew
+		while (*pOld != (wxChar)0 && pOld < pEnd)
+		{
+			// scan the whole text for standard format markers
+			//if (pDoc->IsMarker(pOld, pBufStart))
+			if (pDoc->IsMarker(pOld))
 			{
-                // wholeMkr is an end marker, so after wholeMkr is a place where
-                // white space should be removed so as to tuck up following detached
-                // non-quote punctuation to the end of the endmarker
-                // BEW 11Oct10, if docVersion 5 is coded right, this next test should never
-                // require any tucking up, our code should never have a space after the
-                // endmarker. Period. But no harm to keep this as it would correct a the
-                // situation if a bogus space somehow crept in.
+				// we are pointing at a marker; get the marker into the wholeMkr
+				wholeMkr = pDoc->GetWholeMarker(pOld);
 				wholeMkr = MakeReverse(wholeMkr);
-				wxChar* pPosAfterMkr = pOld;
-				pPosAfterMkr += wholeMkr.Length(); // make curMkrPos be at next
-												   // char after endmarker
-				bDetachedNonquotePunctuationFollows = DetachedNonQuotePunctuationFollows(
-												pOld,pEnd,pPosAfterMkr,spacelessPuncts);
-				// parse the end marker
+
+				// get the length of the marker
 				itemLen = pDoc->ParseMarker(pOld);
-				for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
-				{
-					*pNew++ = *pOld++;
-				}
-				curMkrPos = (int)(pOld - pBufStart); // update value
-                // parse through any white space; but if bDetachedNonquotePunctuationFollows
-                // is true, do not add the white space to the new buffer to effect the tuck
-                // with any following detached non-quote punctuation.
-				itemLen = pDoc->ParseWhiteSpace(pOld);
-				if (bDetachedNonquotePunctuationFollows)
-				{
-					for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
-						pOld++;
-				}
-				curMkrPos = (int)(pOld - pBufStart); // update value
-			}
-			else
-			{
-				// It is some other marker besides a chapter marker or an end marker;
-				// if we're not at the beginning of the file, insert the end-of-line
-				// char(s) before the marker, except for certain conditions (see below).
+				// check integrity of results from ParseMarker
+				wxASSERT(itemLen > 0);
+				wxASSERT(itemLen == (int)wholeMkr.Length());
 
-				// we don't do anything if the marker is at the start of the buffer
-				if (pOld != pBufStart)
+				// We handle specific markers that need to have end-of-line char(s)
+			// inserted before them, or that need to have a certain kind of
+				// spacing before or after them for properly formatted output. These
+				// specific markers include:
+				//    chapter markers \c n (no space after the number)
+				//    end markers: never a space before end markers
+				//      (tuck puncts left to be adjacent to end marker)
+			// All other markers encountered get end-of-line chars inserted before
+				// them except for the following situations:
+				//    Don't add eol char(s) if the marker is at beginning of buffer
+			//    Don't add eol char(s) if the marker is an inline marker
+				//    (defined in AI_USFM.xml)
+				//    Don't added eol char(s) if a [ bracket precedes
+				if (pDoc->IsEndMarker(pOld,pEnd))
 				{
-					// determine if the marker is an inline marker
+					// wholeMkr is an end marker, so after wholeMkr is a place where
+					// white space should be removed so as to tuck up following detached
+					// non-quote punctuation to the end of the endmarker
+					// BEW 11Oct10, if docVersion 5 is coded right, this next test should never
+					// require any tucking up, our code should never have a space after the
+					// endmarker. Period. But no harm to keep this as it would correct a the
+					// situation if a bogus space somehow crept in.
 					wholeMkr = MakeReverse(wholeMkr);
-					//IsWrapMarker = FALSE;
-					IsInLineMarker = FALSE;
-					switch(gpApp->gCurrentSfmSet)
+					wxChar* pPosAfterMkr = pOld;
+				pPosAfterMkr += wholeMkr.Length(); // make curMkrPos be at next
+													   // char after endmarker
+					bDetachedNonquotePunctuationFollows = DetachedNonQuotePunctuationFollows(
+													pOld,pEnd,pPosAfterMkr,spacelessPuncts);
+					// parse the end marker
+					itemLen = pDoc->ParseMarker(pOld);
+					for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
 					{
-					case UsfmOnly:
-						{
-							//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-							//	IsWrapMarker = TRUE;
-							if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsInLineMarker = TRUE;
-							break;
-						}
-					case PngOnly:
-						{
-							//if (gpApp->PngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-							//	IsWrapMarker = TRUE;
-                            // whm ammended 23Nov07 to consider PngOnly footnote end
-                            // markers \fe and \F as inline markers (even if they are not
-                            // marked so in AI_USFM.xml), so they won't get a new line
-                            // inserted before them, and be formatted as other inline
-                            // markers.
-							if (gpApp->PngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1
-								|| wholeMkr + _T(' ') == _T("\\fe ") || wholeMkr + _T(' ') == _T("\\F "))
-								IsInLineMarker = TRUE;
-							break;
-						}
-					case UsfmAndPng:
-						{
-							//if (gpApp->UsfmAndPngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-							//	IsWrapMarker = TRUE;
-							if (gpApp->UsfmAndPngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsInLineMarker = TRUE;
-							break;
-						}
-					default:
-						{
-							//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-							//	IsWrapMarker = TRUE;
-							if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
-								IsInLineMarker = TRUE;
-						}
+						*pNew++ = *pOld++;
 					}
-                    // insert any eol char(s) needed for current marker here. In this block
-                    // the marker cannot be an end marker, nor located at the beginning of
-                    // the file. We will always add eol unless the marker's attribute is
-					// inLine; but if a [ precedes the marker, we'll tuck the marker up
-					// against the [  and put the eol char(s) preceding the [ bracket
-					// BEW 13Jul11: add code to check for "\v<sp>number<sp>" preceding the
-					// pOld pointer, and set a flag if so, because we'll keep the final
-					// space in such a circumstance - it's likely an export for Paratext
-					// or Bibledit contentless usfm markup where we want the verse number
-					// to be followed by a space (handle \vn similarly)
-					bool bKeepLineFinalSpace = FALSE;
-					bKeepLineFinalSpace = KeepSpaceBeforeEOLforVerseMkr(pOld);
-					if (!IsInLineMarker)
+					curMkrPos = (int)(pOld - pBufStart); // update value
+					// parse through any white space; but if bDetachedNonquotePunctuationFollows
+					// is true, do not add the white space to the new buffer to effect the tuck
+					// with any following detached non-quote punctuation.
+					itemLen = pDoc->ParseWhiteSpace(pOld);
+					if (bDetachedNonquotePunctuationFollows)
 					{
-						if (*(pOld - 1) == _T('['))
-						{
-							// remove the [ we've already added to the new buffer
-							--pNew;
-							// now add the eol char(s) to the new buffer, lenEolStr is 2 for
-							// windows, 1 for mac or linux
-							int cteol;
-							for (cteol = 0; cteol < lenEolStr; cteol++)
-							{
-								*pNew = gpApp->m_eolStr.GetChar(cteol);
-								pNew++;
-							}
-							// put the [ bracket back after the eol char(s)
-							*pNew = _T('[');
-							pNew++;
-							// now the marker will be immediately following the [ bracket
+						for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
+							pOld++;
+					}
+					curMkrPos = (int)(pOld - pBufStart); // update value
+				}
+				else
+				{
+					// It is some other marker besides a chapter marker or an end marker;
+				// if we're not at the beginning of the file, insert the end-of-line
+					// char(s) before the marker, except for certain conditions (see below).
 
-						}
-						else
+					// we don't do anything if the marker is at the start of the buffer
+					if (pOld != pBufStart)
+					{
+						// determine if the marker is an inline marker
+						wholeMkr = MakeReverse(wholeMkr);
+						//IsWrapMarker = FALSE;
+						IsInLineMarker = FALSE;
+						switch(gpApp->gCurrentSfmSet)
 						{
-							// Backslashes may initiate markers anywhere in the file - after
-							// new lines, or in the midst of text lines. when inserting eolStr,
-							// if preceding char is a space, first remove that space so there
-							// won't be any spaces dangling at ends of lines preceding the
-							// newly inserted eol char(s). I'll remove any spaces that managed
-							// to creep in, as they are not needed.
-							// BEW 13Jul11, wrapped it with a test for FALSE for the
-							// bKeepLineFinalSpace which is set or cleared above; the idea
-							// is that \v<space>versenum<space> keeps the final space and
-							// eol is added after it - to support Paratext empty USFM
-							// markup chapter or book files, exports thereof
-							if (!bKeepLineFinalSpace)
+						case UsfmOnly:
 							{
-								while (*(pNew-1) == _T(' '))
+								//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+								//	IsWrapMarker = TRUE;
+								if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+									IsInLineMarker = TRUE;
+								break;
+							}
+						case PngOnly:
+							{
+								//if (gpApp->PngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+								//	IsWrapMarker = TRUE;
+								// whm ammended 23Nov07 to consider PngOnly footnote end
+								// markers \fe and \F as inline markers (even if they are not
+								// marked so in AI_USFM.xml), so they won't get a new line
+								// inserted before them, and be formatted as other inline
+								// markers.
+								if (gpApp->PngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1
+									|| wholeMkr + _T(' ') == _T("\\fe ") || wholeMkr + _T(' ') == _T("\\F "))
+									IsInLineMarker = TRUE;
+								break;
+							}
+						case UsfmAndPng:
+							{
+								//if (gpApp->UsfmAndPngWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+								//	IsWrapMarker = TRUE;
+								if (gpApp->UsfmAndPngInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+									IsInLineMarker = TRUE;
+								break;
+							}
+						default:
+							{
+								//if (gpApp->UsfmWrapMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+								//	IsWrapMarker = TRUE;
+								if (gpApp->UsfmInLineMarkersStr.Find(wholeMkr + _T(' ')) != -1)
+									IsInLineMarker = TRUE;
+							}
+						}
+						// insert any eol char(s) needed for current marker here. In this block
+						// the marker cannot be an end marker, nor located at the beginning of
+						// the file. We will always add eol unless the marker's attribute is
+						// inLine; but if a [ precedes the marker, we'll tuck the marker up
+						// against the [  and put the eol char(s) preceding the [ bracket
+						// BEW 13Jul11: add code to check for "\v<sp>number<sp>" preceding the
+						// pOld pointer, and set a flag if so, because we'll keep the final
+						// space in such a circumstance - it's likely an export for Paratext
+						// or Bibledit contentless usfm markup where we want the verse number
+						// to be followed by a space (handle \vn similarly)
+						bool bKeepLineFinalSpace = FALSE;
+						bKeepLineFinalSpace = KeepSpaceBeforeEOLforVerseMkr(pOld);
+						if (!IsInLineMarker)
+						{
+							if (*(pOld - 1) == _T('['))
+							{
+								// remove the [ we've already added to the new buffer
+								--pNew;
+								// now add the eol char(s) to the new buffer, lenEolStr is 2 for
+								// windows, 1 for mac or linux
+								int cteol;
+								for (cteol = 0; cteol < lenEolStr; cteol++)
 								{
-									--pNew;
+									*pNew = gpApp->m_eolStr.GetChar(cteol);
+									pNew++;
+								}
+								// put the [ bracket back after the eol char(s)
+								*pNew = _T('[');
+								pNew++;
+								// now the marker will be immediately following the [ bracket
+
+							}
+							else
+							{
+								// Backslashes may initiate markers anywhere in the file - after
+								// new lines, or in the midst of text lines. when inserting eolStr,
+								// if preceding char is a space, first remove that space so there
+								// won't be any spaces dangling at ends of lines preceding the
+								// newly inserted eol char(s). I'll remove any spaces that managed
+								// to creep in, as they are not needed.
+								// BEW 13Jul11, wrapped it with a test for FALSE for the
+								// bKeepLineFinalSpace which is set or cleared above; the idea
+								// is that \v<space>versenum<space> keeps the final space and
+								// eol is added after it - to support Paratext empty USFM
+								// markup chapter or book files, exports thereof
+								if (!bKeepLineFinalSpace)
+								{
+									while (*(pNew-1) == _T(' '))
+									{
+										--pNew;
+									}
+								}
+								// now add the eol char(s) to the new buffer, lenEolStr is 2 for
+								// windows, 1 for mac or linux
+								int cteol;
+								for (cteol = 0; cteol < lenEolStr; cteol++)
+								{
+									*pNew = gpApp->m_eolStr.GetChar(cteol);
+									pNew++;
 								}
 							}
-							// now add the eol char(s) to the new buffer, lenEolStr is 2 for
-							// windows, 1 for mac or linux
-							int cteol;
-							for (cteol = 0; cteol < lenEolStr; cteol++)
-							{
-								*pNew = gpApp->m_eolStr.GetChar(cteol);
-								pNew++;
-							}
 						}
-					}
-					else if (IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) != _T(' '))
-					{
-                        // The marker is inline and there is no space preceding the marker.
-                        // We want to have a preceding space, (but not if punctuation
-                        // precedes, and not if an endmarker precedes) unless the marker is
-                        // \f or \fe, and not if fixed space ~ precedes. The following
-                        // ensures that there is a space separating non-end inLine markers
-                        // from what preceeds, providing the inLine marker is not the first
-                        // thing in the file, and providing the inLine marker is not a
-                        // footnote \f, or endnote \fe, and providing punctuation is not
-                        // preceding the space.
-                        // BEW 11Oct10, needed to remove \x from the test, because in
-                        // proper USFM markup style, \x follows a verse marker and its
-                        // trailing space, so we don't want \x to prevent putting on in if
-                        // it is absent
-                        if (spacelessPuncts.Find(text.GetChar(curMkrPos-1)) == wxNOT_FOUND &&
-							text.GetChar(curMkrPos-1) != _T('~') &&
-							text.GetChar(curMkrPos-1) != _T('*'))
+						else if (IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) != _T(' '))
 						{
-							// only do this attempt at space insertion prior to the marker
-							// provided that the character preceding the marker is not one
-							// of the punctuation characters nor ~
-							if (wholeMkr != _T("\\f")
-								&& wholeMkr != _T("\\fe"))
+							// The marker is inline and there is no space preceding the marker.
+							// We want to have a preceding space, (but not if punctuation
+							// precedes, and not if an endmarker precedes) unless the marker is
+							// \f or \fe, and not if fixed space ~ precedes. The following
+							// ensures that there is a space separating non-end inLine markers
+							// from what preceeds, providing the inLine marker is not the first
+							// thing in the file, and providing the inLine marker is not a
+							// footnote \f, or endnote \fe, and providing punctuation is not
+							// preceding the space.
+							// BEW 11Oct10, needed to remove \x from the test, because in
+							// proper USFM markup style, \x follows a verse marker and its
+							// trailing space, so we don't want \x to prevent putting on in if
+							// it is absent
+							if (spacelessPuncts.Find(text.GetChar(curMkrPos-1)) == wxNOT_FOUND &&
+								text.GetChar(curMkrPos-1) != _T('~') &&
+								text.GetChar(curMkrPos-1) != _T('*'))
 							{
-								// only insert the space provided the marker is not \f or \fe
-								*pNew = _T(' ');
-								pNew++;
+								// only do this attempt at space insertion prior to the marker
+								// provided that the character preceding the marker is not one
+								// of the punctuation characters nor ~
+							if (wholeMkr != _T("\\f")
+									&& wholeMkr != _T("\\fe"))
+								{
+									// only insert the space provided the marker is not \f or \fe
+									*pNew = _T(' ');
+									pNew++;
+								}
 							}
 						}
-					}
-					else if ((IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) == _T(' '))
-						&& (wholeMkr == _T("\\f") || wholeMkr == _T("\\fe"))
+						else if ((IsInLineMarker && curMkrPos > 0 && text.GetChar(curMkrPos-1) == _T(' '))
+							&& (wholeMkr == _T("\\f") || wholeMkr == _T("\\fe"))
 						&& (*(pOld-2) != _T('0') || *(pOld-2) != _T('1') || *(pOld-2) != _T('2') ||
 							*(pOld-2) != _T('3') || *(pOld-2) != _T('4') || *(pOld-2) != _T('5') ||
 							*(pOld-2) != _T('6') || *(pOld-2) != _T('7') || *(pOld-2) != _T('8') ||
-							*(pOld-2) != _T('9')) )
-					{
-						// a space crept in preceding \f or \fe, so back up over it,
-						// provided what precedes the space is not a digit (eg. verse number)
-						pNew--;
+								*(pOld-2) != _T('9')) )
+						{
+							// a space crept in preceding \f or \fe, so back up over it,
+							// provided what precedes the space is not a digit (eg. verse number)
+							pNew--;
+						}
 					}
+					// The above sub-blocks have added any necessary end-of-line char(s) and/or
+					// spaces. Now we parse the marker, copying it from pOld to pNew
+					itemLen = pDoc->ParseMarker(pOld);
+					for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
+					{
+						*pNew++ = *pOld++;
+					}
+					curMkrPos = (int)(pOld - pBufStart); // update value
 				}
-                // The above sub-blocks have added any necessary end-of-line char(s) and/or
-                // spaces. Now we parse the marker, copying it from pOld to pNew
-				itemLen = pDoc->ParseMarker(pOld);
-				for (ctmkr = 0; ctmkr < itemLen; ctmkr++)
-				{
-					*pNew++ = *pOld++;
-				}
+			} // end of if (IsMarker  )
+			else
+			{
+				// Process the non-marker text.
+				// just copy whatever we are pointing at and then advance
+				*pNew++ = *pOld++;
 				curMkrPos = (int)(pOld - pBufStart); // update value
 			}
-		} // end of if (IsMarker  )
-		else
-		{
-			// Process the non-marker text.
-			// just copy whatever we are pointing at and then advance
-			*pNew++ = *pOld++;
-			curMkrPos = (int)(pOld - pBufStart); // update value
-		}
-	} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
-	*pNew = (wxChar)0; // terminate the new buffer string with null char
-	text2.UngetWriteBuf();
+		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
+		*pNew = (wxChar)0; // terminate the new buffer string with null char
+	} // end of special scoping block
+	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	text = text2; // replace old string with new one
 }
 
@@ -17245,147 +17344,153 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 	const wxChar* pBuff = text.GetData();
 	wxChar* pBuffStart = (wxChar*)pBuff;
 	wxChar* pEnd = pBuffStart + nTextLength;
-
+	
 	wxString text2;
-	wxChar* pBuff2 = text2.GetWriteBuf(nTextLength + 1); // pBuff2 must be writeable
-	wxChar* pBuffStart2 = pBuff2;
-	//wxChar* pEnd2;
-	//pEnd2 = pBuffStart2 + nTextLength; // copy-to buffer can be same size
+	// whm 8Jun12 modified to use wxStringBuffer
+	// Create the wxStringBuffer in a specially scoped block. This is crucial here
+	// in this function since the wxString textStr2 is accessed directly within
+	// this function in the text = text2; statement at the end of the function.
+	{ // begin special scoped block
+		wxStringBuffer pBuff2(text2,nTextLength + 1);
+		//wxChar* pBuff2 = text2.GetWriteBuf(nTextLength + 1); // pBuff2 must be writeable
+		wxChar* pBuffStart2 = pBuff2;
+		//wxChar* pEnd2;
+		//pEnd2 = pBuffStart2 + nTextLength; // copy-to buffer can be same size
 
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	// Since we have unstructured data, we have the task of removing the temporarily
-	// inserted paragraph sfms before we output. The MFC version originally assumed
+		// inserted paragraph sfms before we output. The MFC version originally assumed
 	// that because text is unstructured data, there would be no sfms in the original,
-	// and so we wouldn't have to worry about contextually defined sfms, and every marker
-	// would be just a paragraph marker which is to be removed, and it already
-	// follows a newline (see AddParagraphMarkers() in the doc class). The MFC version
-	// couldn't trust CString because it didn't see any embedded newlines, so it copied
-	// character by character. The wx version doesn't have the same problem with wxString
-	// but we'll work with a read only and copy text to a writable buffer for speed.
-	wxChar* pOld = pBuffStart; // source
-	wxChar* pNew = pBuffStart2; // destination
-	int itemLen; // whm added 26Nov07
-	while (*pOld != (wxChar)0)
-	{
-		if (*pOld == _T('\n')) // this \n is in the buffer
+		// and so we wouldn't have to worry about contextually defined sfms, and every marker
+		// would be just a paragraph marker which is to be removed, and it already
+		// follows a newline (see AddParagraphMarkers() in the doc class). The MFC version
+		// couldn't trust CString because it didn't see any embedded newlines, so it copied
+		// character by character. The wx version doesn't have the same problem with wxString
+		// but we'll work with a read only and copy text to a writable buffer for speed.
+		wxChar* pOld = pBuffStart; // source
+		wxChar* pNew = pBuffStart2; // destination
+		int itemLen; // whm added 26Nov07
+		while (*pOld != (wxChar)0)
 		{
-			// remove gSFescapeChar if it follows the newline, and the p plus space which
-			// follows it, by skipping these three chars and continuing the copy after that
-			*pNew++ = *pOld; // copy the newline
-			pOld++; // point at whatever follows it
-			if (*pOld == gSFescapechar)
+			if (*pOld == _T('\n')) // this \n is in the buffer
 			{
-				// MFC note: we have a standard format marker, which must be a paragraph
-				// one followed by a single space, so remove it and the space by jumping it.
-				//pOld += 3;
-				// whm modified 26Nov07 The original code assumed that the only sfms used
-				// in unstructured text would be \p and incremented the pointer by 3 to
-				// parse over the \p and following space. However, some texts have things
-				// like \note markers in unstructured text (for example the Hebrew to Kazakh
-				// project. I think we should preserve whatever markers are used so I've
-				// modified the code to parse over any marker encountered. It is quite possible
-				// that users would want to export their "unstructured" documents with notes
-				// attached to them. The original code mangles markers like \note so they
-				// get the front part chopped off to "te" in the source text. Failure to
-				// properly parse over additional markers other than \p encountered in
-				// our "unstructured" text will almost certainly make for problems when the
-				// user wants to export the text, especially to RTF.
-				if (bRTFOutput)
+				// remove gSFescapeChar if it follows the newline, and the p plus space which
+				// follows it, by skipping these three chars and continuing the copy after that
+				*pNew++ = *pOld; // copy the newline
+				pOld++; // point at whatever follows it
+				if (*pOld == gSFescapechar)
 				{
-					if (IsMarkerRTF(pOld,pBuffStart))
+				// MFC note: we have a standard format marker, which must be a paragraph
+					// one followed by a single space, so remove it and the space by jumping it.
+					//pOld += 3;
+					// whm modified 26Nov07 The original code assumed that the only sfms used
+					// in unstructured text would be \p and incremented the pointer by 3 to
+					// parse over the \p and following space. However, some texts have things
+					// like \note markers in unstructured text (for example the Hebrew to Kazakh
+					// project. I think we should preserve whatever markers are used so I've
+					// modified the code to parse over any marker encountered. It is quite possible
+					// that users would want to export their "unstructured" documents with notes
+					// attached to them. The original code mangles markers like \note so they
+					// get the front part chopped off to "te" in the source text. Failure to
+				// properly parse over additional markers other than \p encountered in
+					// our "unstructured" text will almost certainly make for problems when the
+					// user wants to export the text, especially to RTF.
+					if (bRTFOutput)
 					{
-						itemLen = ParseMarkerRTF(pOld,pEnd);
-						wxString wholeMkr(pOld,itemLen);
-						// jump over the marker only if it is \p
-						if (wholeMkr == _T("\\p"))
+						if (IsMarkerRTF(pOld,pBuffStart))
 						{
-							pOld += itemLen;
-							itemLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += itemLen;
-						}
-						else
-						{
-							int ct;
-							for (ct = 0; ct < itemLen; ct++)
+							itemLen = ParseMarkerRTF(pOld,pEnd);
+							wxString wholeMkr(pOld,itemLen);
+							// jump over the marker only if it is \p
+							if (wholeMkr == _T("\\p"))
 							{
-								*pNew++ = *pOld++; // copy the marker
+								pOld += itemLen;
+								itemLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += itemLen;
 							}
-						}
-					}
-				}
-				else // not RTF output
-                {
-					//if (pDoc->IsMarker(pOld,pBuffStart)) // use the non-RTF function
-					if (pDoc->IsMarker(pOld)) // use the non-RTF function
-					{
-						itemLen = ParseMarkerRTF(pOld,pEnd);
-						wxString wholeMkr(pOld,itemLen);
-						// jump over the marker only if it is \p
-						if (wholeMkr == _T("\\p"))
-						{
-							pOld += itemLen;
-							itemLen = pDoc->ParseWhiteSpace(pOld);
-							pOld += itemLen;
-
-							// BEW added 13Dec10, since blank lines in the original file
-							// turn up as additional \p markers in m_markers, any
-							// additional \p after the first should be returned again to
-							// being newlines
-							while (*pOld == gSFescapechar && *(pOld + 1) == _T('p'))
+							else
 							{
-								// found another \p marker
-								*pNew++ = _T('\n');
-								pOld += 2;
-								while (*pOld == _T(' '))
+								int ct;
+								for (ct = 0; ct < itemLen; ct++)
 								{
-									pOld++;
+									*pNew++ = *pOld++; // copy the marker
 								}
 							}
 						}
-						else
+					}
+					else // not RTF output
+					{
+						//if (pDoc->IsMarker(pOld,pBuffStart)) // use the non-RTF function
+						if (pDoc->IsMarker(pOld)) // use the non-RTF function
 						{
-							// preserve the marker since it is not \p
-							int ct;
-							for (ct = 0; ct < itemLen; ct++)
+							itemLen = ParseMarkerRTF(pOld,pEnd);
+							wxString wholeMkr(pOld,itemLen);
+							// jump over the marker only if it is \p
+							if (wholeMkr == _T("\\p"))
 							{
-								*pNew++ = *pOld++; // copy the marker
+								pOld += itemLen;
+								itemLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += itemLen;
+
+								// BEW added 13Dec10, since blank lines in the original file
+								// turn up as additional \p markers in m_markers, any
+								// additional \p after the first should be returned again to
+								// being newlines
+								while (*pOld == gSFescapechar && *(pOld + 1) == _T('p'))
+								{
+									// found another \p marker
+									*pNew++ = _T('\n');
+									pOld += 2;
+									while (*pOld == _T(' '))
+									{
+										pOld++;
+									}
+								}
+							}
+							else
+							{
+								// preserve the marker since it is not \p
+								int ct;
+								for (ct = 0; ct < itemLen; ct++)
+								{
+									*pNew++ = *pOld++; // copy the marker
+								}
 							}
 						}
 					}
 				}
 			}
+			else
+			{
+				// just copy whatever we are pointing at and then advance
+				*pNew++ = *pOld++;
+			}
 		}
-		else
-		{
-			// just copy whatever we are pointing at and then advance
-			*pNew++ = *pOld++;
-		}
-	}
-	*pNew = (wxChar)0; // add a null at the end of the string in pBuff2
-
-	text2.UngetWriteBuf();
+		*pNew = (wxChar)0; // add a null at the end of the string in pBuff2
+	} // end of special scoping block
+	//text2.UngetWriteBuf(); // whm 8Jun12 removed - not used with wxStringBuffer
 	text = text2; // return the modified data
 }
 
 // BEW added 06Oct05 for support of free translation propagation across an export of the target text
 // and subsequent import into a new project
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return             a 1-based count of the number of words of either source text,
+/// \return             a 1-based count of the number of words of either source text, 
 ///                     or target text, in the section
-///	\param bCountInTargetText	->	TRUE if the count is to made in the target text;
+///	\param bCountInTargetText	->	TRUE if the count is to made in the target text;  
 ///	                                FALSE has it done in the source text instead
-///	\param pList			    ->	pointer to the document's m_pSourcePhrases list
+///	\param pList			    ->	pointer to the document's m_pSourcePhrases list 
 ///	                                of pSrcPhrase pointers
 ///	\param nAnchorSequNum		->	index to the CSourcePhrase in the pList list which
-///	                                is the anchor for the (considered-to-be-filtered)
+///	                                is the anchor for the (considered-to-be-filtered) 
 ///                                 \free ... \free* section - although in doc version 5
 ///                                 the free translation is stored without any wrapping
 ///                                 \free or \free* markers. Note: there is no
 ///                                 determinate relation between the number of words to
 ///                                 be counted, and the number of words in the content
 ///                                 delimited by \free and \free*)
-/// \remarks
+/// \remarks  
 /// Called only when exporting either the source text as (U)SFM plain text, or the target
 /// text as the same file type. We need to store the returned count in the exported
 /// material which occurs between the \free and \free* markers, so that if that file of
@@ -17414,7 +17519,7 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 			phrase = pSrcPhrase->m_targetStr;
 			if (phrase.IsEmpty())
 				return 0;
-			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want
+			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want 
 														 // a word list returned
 		}
 		else
@@ -17437,7 +17542,7 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 			phrase = pSrcPhrase->m_targetStr;
 			if (phrase.IsEmpty())
 				goto a;
-			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want
+			countFromPhrase = GetWordCount(phrase,NULL); // NULL because we don't want 
 														 // a word list returned
 		}
 		else
@@ -17449,7 +17554,7 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 				countFromPhrase = pSrcPhrase->m_nSrcWords;
 		}
 		nCount += countFromPhrase;
-		countFromPhrase = 0; // BEW added 8Apr10, otherwise the previous value is added
+		countFromPhrase = 0; // BEW added 8Apr10, otherwise the previous value is added 
 							 // when at a placeholder
 
 		// if we are at the m_bEndFreeTrans == TRUE location then break out
@@ -17470,20 +17575,20 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // whm Revised 10Nov05
 // BEW note 31Mar10: despite the above comment, this function is only called in
 // RebuildTargetText() and so the collection of Sstr, Gstr, Nstr currently is never used.
-//
+// 
 // BEW 1Apr10, completely rewritten, with elimination of 5 globals, and encapsulation of
 // the dialog for placement, which needs to be called if there were medial markers in the
 // retranslation, and supporting doc version 5
-//
+// 
 // BEW 11Oct10, more changes for doc version 5 to support m_follOuterPunct & inline
 // markers
-//
+// 
 // NOTE****************** there are comments in OnButtonRetranslation() before the call of
 // BuildRetranslationSourcePhraseInstances() which explain the protocols to be used for
 // supporting export of retranslation data & they impinge on what happens below.
-//
+// 
 // Here is the text of that comment: do not delete it
-//
+// 
 // **** Legacy comment -- don't delete, it documents how me need to make changes ****
 // copy the retranslation's words, one per source phrase, to the constituted sequence of
 // source phrases (including any null ones) which are to display it; but ignore any markers
@@ -17491,7 +17596,7 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // original source text's punctuation settings in the document are preserved. Export will
 // get the possibly new punctuation settings by copying m_targetStr, so we do not need to
 // alter m_precPunct and m_follPunct on the document's CSourcePhrase instances.
-//
+// 
 // *** New comment, 11Oct10, for support of new doc version 5 storage members,
 // m_follOuterPunct and the four inline markers' wxString members. The legacy approach
 // above fails to handle good punctuation handling because we need to support punctuation
@@ -17514,7 +17619,7 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // can place each marker in the place where he deems it should be - in this way, he can
 // re-establish, say, an inline endmarker between two consecutive 'following' punctuation
 // characters.
-//
+// 
 // The implication of the above rules for export determine how I need to refactor
 // the BuildRetranslationSourcePhraseInstances() function. Now it has to generate
 // the correct m_srcPhrase (ie. with punctuation in its proper place), and store
@@ -17524,7 +17629,7 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // 'medial markers' from the m_pSourcePhrase instances' involved in the
 // retranslation's span. Hence, we can leave the source text punctuations in the
 // pSrcPhrase instances in m_pSourcePhrases untouched, except for changing the
-// m_targetStr value as explained in the previous sentence.
+// m_targetStr value as explained in the previous sentence. 
 // BEW 11Oct10, changed for support of additional docV5 storage in CSourcePhrase
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 									SPList* pSrcPhrases, wxString& Tstr)
@@ -17540,7 +17645,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	//wxString Gstr; // unused, so we can remove this
 	//wxString Nstr; // ditto
 
-	// markers needed, since doc version 5 doesn't store some filtered
+	// markers needed, since doc version 5 doesn't store some filtered 
 	// stuff using them
 	wxString freeMkr(_T("\\free"));
 	wxString freeEndMkr = freeMkr + _T("*");
@@ -17558,13 +17663,13 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 							// temporarily and prefix them after the dialog closes
 	markersPrefix.Empty();
 	wxArrayString markersToPlaceArray; // accumulate marker strings here, for transfer to dialog
-	markersToPlaceArray.Empty();
+	markersToPlaceArray.Empty(); 
 	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
 	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content to be added at loop end
 
 	wxString retranstr = _("retranslation"); // make this localizable
 	wxString aSpace = _T(" ");
-	wxString markersStr;
+	wxString markersStr; 
 	wxString endMarkersStr;
 	wxString freeTransStr;
 	wxString noteStr;
@@ -17592,7 +17697,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 		pos = pos->GetNext();
 		// break out of the loop if we reach the end of the retranslation, or if we reach
 		// the beginning of an immediately following (but different) retranslation
-		if (!pSrcPhrase->m_bRetranslation || ((pSrcPhrase->m_bRetranslation &&
+		if (!pSrcPhrase->m_bRetranslation || ((pSrcPhrase->m_bRetranslation && 
 				pSrcPhrase->m_bBeginRetranslation && savePos != firstPos)))
 		{
 			break;
@@ -17653,7 +17758,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// prefix string, as we'll not show that stuff in the Place... dialog;
 				// likewise for free translation, or a note, or collected back translation
 				// on the first CSourcePhrase instance; and any content in m_markers -
-				// this, if present, must come after all that, then,
+				// this, if present, must come after all that, then, 
 				// 11Oct10 additions, if m_inlineNonbindingMarkers has content, it is
 				// added, (but m_inlinBindingMarkers content is added to the placement
 				// list as it helps for the user to see all such & handle matched
@@ -17689,7 +17794,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
                     // after the \free marker and its following space. We will store it as
                     // follows: |@nnnn@|<space> so that we can search for the number and
                     // find it quickly and remove it if we later import the exported file
-					// into a project as source text.
+					// into a project as source text. 
                     // (Note: the following call has to do its word counting in the SPList,
                     // because only there is the filtered information, if any, still hidden
                     // and therefore unable to mess up the word count.)
@@ -17748,7 +17853,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					// is; this stuff will be the first, if it exists, in Sstr, Tstr
 					// (except for any markersPrefix material which will precede it, but
 					// we attach that at the very end of the function, if its non-empty)
-					//
+					// 
 					// BEW changed 22Feb11 -- we won't commence Sstr and Tstr with
 					// markersStr here, because markersStr might have crossRefs appended;
 					// and there is no real need to show markersStr anyway because it will
@@ -17757,7 +17862,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					//Sstr = markersStr;
 					//Tstr = markersStr;
 					markersPrefix += markersStr;
-				}
+				}	
 
 				// USFM examples from UBS illustrate non-binding begin markers follow
 				// begin markers that get stored in m_markers, so do this block first
@@ -17786,7 +17891,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 				{
 					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
-					// there should always be a final space in m_inlineBindingMarkers,
+					// there should always be a final space in m_inlineBindingMarkers, 
 					// and we'll ensure it
 					iBMkrs.Trim(FALSE);
 					iBMkrs.Trim();
@@ -17812,7 +17917,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				}
 				if (!endMarkersStr.IsEmpty())
 				{
-                    // we've endmarkers we have to deal with
+                    // we've endmarkers we have to deal with 
 					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
 					{
 						// these endmarkers become medial, so append to the list for
@@ -17880,7 +17985,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 				{
 					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
-					// there should always be a final space in m_inlineBindingMarkers,
+					// there should always be a final space in m_inlineBindingMarkers, 
 					// and we'll ensure it
 					iBMkrs.Trim(FALSE);
 					iBMkrs.Trim();
@@ -17929,7 +18034,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// be placed manually using the dialog; this block handles non-first
 				// CSourcePhrase instances, as we collect the Tstr, etc within the loop...
 				unfilteredStr.Empty(); // empty our scratch string
-
+                
                 // BEW added revised comment 31MAR10: if there is medial filtered info (and
                 // there might be because it is legal to select over filtered info and
                 // create a retranslation - the medial filtered stuff that results gives no
@@ -17942,7 +18047,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
                 // listed in the Place... dialog's list, and is placeable - but it doesn't
                 // have to have its location resolved until export time - which is why we
                 // only need to worry about it in this present function
-                //
+                // 
 				// BEW 11Oct10, additions to the code below to support m_follOuterPunct
 				// and the inline markers from the 4 extra wxString members added to
 				// CSourcePhrase in order to fully support USFM markup standards
@@ -17972,7 +18077,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					entry << _T("@| ");
 					// append it after a delimiting space
 					unfilteredStr += aSpace + entry;
-
+					
 					// now the free translation string itself & endmarker
 					unfilteredStr += aSpace + freeTransStr;
 					unfilteredStr += freeEndMkr; // don't need space too
@@ -18008,7 +18113,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				}
 				// BEW 23Feb11 moved filtered info to be first above
  				unfilteredStr.Trim(FALSE); // finally, remove any LHS whitespace
-
+           
 				// insert any non-empty unfiltered material "in place" in the strings
 				// which the user will see (source & target)
 				if (!unfilteredStr.IsEmpty())
@@ -18026,7 +18131,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					markersToPlaceArray.Add(markersStr);
 					bHasInternalMarkers = TRUE;
-					Sstr += markersStr;
+					Sstr += markersStr; 
 				}
 
 				// USFM examples from UBS illustrate non-binding begin markers follow
@@ -18042,12 +18147,12 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 
 				// at this point we can't add any more to Sstr until we've rebuilt the
 				// word and its punctation and any inline binding markers & endmarkers below
-
+				
 				// inline binding beginmarker(s) are medial, so add them to Tstr
 				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 				{
 					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
-					// there should always be a final space in m_inlineBindingMarkers,
+					// there should always be a final space in m_inlineBindingMarkers, 
 					// and we'll ensure it
 					iBMkrs.Trim(FALSE);
 					iBMkrs.Trim();
@@ -18076,13 +18181,13 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				else
 				{
 					bEMkrs.Empty();
-				}
-				// any m_endMarkers material will either be medial and so need to be put
+				}				
+				// any m_endMarkers material will either be medial and so need to be put 
 				// in the list, or final (if this is the last CSourcePhrase of the
 				// retranslation, that is, if m_bEndRetranslation is TRUE)
 				if (!endMarkersStr.IsEmpty())
 				{
-                    // we've endmarkers we have to deal with
+                    // we've endmarkers we have to deal with 
 					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
 					{
 						// these endmarkers become medial, so append to the list for
@@ -18161,7 +18266,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 				{
 					wxString iBMkrs = pSrcPhrase->GetInlineBindingMarkers();
-					// there should always be a final space in m_inlineBindingMarkers,
+					// there should always be a final space in m_inlineBindingMarkers, 
 					// and we'll ensure it
 					iBMkrs.Trim(FALSE);
 					iBMkrs.Trim();
@@ -18270,7 +18375,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 		Tstr.Trim();
 	} // end of TRUE block for test: if (bHasInternalMarkers)
 
-	// now add the prefix string material not shown in the Place... dialog,
+	// now add the prefix string material not shown in the Place... dialog, 
 	// if it is not empty
 	if (!markersPrefix.IsEmpty())
 	{
@@ -18382,7 +18487,7 @@ bool DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, wxChar* pPos
 // target text and subsequent import into a new project; the function uses the
 // wxStringTokenizer class and its GetNextToken() function to count the words in str and
 // return the count; if pStrList is NULL, just the word count is returned, but if a
-// wxArrayString pointer is passed in, then it is populated with the individual words
+// wxArrayString pointer is passed in, then it is populated with the individual words 
 // BEW 31Mar10, no changes needed for support of doc version 5
 int GetWordCount(wxString& str, wxArrayString* pStrList)
 {
@@ -18419,7 +18524,7 @@ int GetWordCount(wxString& str, wxArrayString* pStrList)
 // purposes.
 int ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 													wxString& nospacePuncts)
-//
+//													
 // returns number of characters parsed over.
 //
 // From version 1.4.1 and onwards, we must choose which code we use according to the
@@ -18468,7 +18573,7 @@ int ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 		}
 		else
 		{
-			bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening
+			bHasOpeningQuote = TRUE; // FALSE is used later to stop regular opening 
                 // quote (when initial in a following word) from being interpretted as
                 // belonging to the current sourcephrase in the circumstance where there is
                 // detached non-quote punctuation being spanned in this current block. That
@@ -18526,13 +18631,13 @@ int ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 			// we found a (following) punctuation character
 			if (bStarted)
 			{
-				// we've already found at least one, so set pPunctEnd to the current
+				// we've already found at least one, so set pPunctEnd to the current 
 				// location
 				pPunctEnd = ptr + 1;
 			}
 			else
 			{
-				// we've not found one yet, so set both pointers to this location &
+				// we've not found one yet, so set both pointers to this location & 
 				// turn on the flag
 				bStarted = TRUE;
 				pPunctStart = ptr;
@@ -18617,7 +18722,7 @@ int ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 	wxChar* pBack = ptr;
 	do {
 		--pBack; // point to the previous character
-		if (pBack < pWordProper) break; // ptr did not advance in the previous while block,
+		if (pBack < pWordProper) break; // ptr did not advance in the previous while block, 
 										// so break out
 		if (pDoc->IsClosingQuote(pBack) || (nFound = nospacePuncts.Find(*pBack)) >= 0)
 		{
@@ -18657,13 +18762,13 @@ a:	if (!pDoc->IsEnd(ptr) && *ptr != gSFescapechar)
 	{
 		if (IsWhiteSpace(ptr))
 		{
-			smchunk += _T(' '); // we may as well normalize to space
+			smchunk += _T(' '); // we may as well normalize to space 
 								// while we are at it
 			ptr++; // accumulate it and advance pointer then iterate
 			goto a;
 		}
 		else
-		{
+		{	
 			// it's not white space, so what is it?
 			if (pDoc->IsClosingQuote(ptr))
 			{
@@ -18705,7 +18810,7 @@ a:	if (!pDoc->IsEnd(ptr) && *ptr != gSFescapechar)
 								goto e;
 							}
 						}
-						else // next block is where the 'final' decisions will be
+						else // next block is where the 'final' decisions will be 
                              // made (only one option iterates from within the next
                              // battery of tests)
 						{
@@ -18732,7 +18837,7 @@ e:							ptr2 = ptr;
 								ptr2++; // point beyond the white space
 
 								// skip over any additional white spaces
-								while (IsWhiteSpace(ptr2)) {ptr2++;}
+								while (IsWhiteSpace(ptr2)) {ptr2++;} 
 
 								// find out what the first non-whitespace character is
 								if (nospacePuncts.Find(*ptr2) == -1)
@@ -18807,7 +18912,7 @@ g:									followPunct += smchunk;
 									smchunk += *ptr++; // accumulate it, advance pointer
 									goto a; // and iterate
 								}
-								// if not at the end, then assume it belongs to the
+								// if not at the end, then assume it belongs to the 
 								// next word
 								goto g;
 							}
@@ -18828,14 +18933,14 @@ g:									followPunct += smchunk;
                     // this is detached punctuation belonging to the previous word, so
                     // we must accumulate it & iterate
 					bFoundDetachedRightQuote = TRUE;
-					smchunk += *ptr++; // accumulate it, and advance to the
+					smchunk += *ptr++; // accumulate it, and advance to the 
 									   // next character
 					goto a; // iterate
 				}
 			}
 			else
 			{
-				// it's not one of the possible closing quotes, so we have to stop
+				// it's not one of the possible closing quotes, so we have to stop 
 				// iterating
 b:				wxString spaceless = smchunk;
 				while (spaceless.Find(_T(' ')) != -1)

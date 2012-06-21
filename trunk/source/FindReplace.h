@@ -13,7 +13,9 @@
 /// user to specify a replacement string.
 /// Both CFindDlg and CReplaceDlg are created as a Modeless dialogs. They are created on 
 /// the heap and are displayed with Show(), not ShowModal().
-/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxScrollingDialog.
+/// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxScrollingDialog 
+/// when built with wxWidgets prior to version 2.9.x, but derived from wxDialog for version 
+/// 2.9.x and later.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef FindReplace_h
@@ -29,8 +31,14 @@
 /// checkbox, a "Special Search" button, and other options. 
 /// CFindDlg is created as a Modeless dialogs. It is created on 
 /// the heap and is displayed with Show(), not ShowModal().
-/// \derivation		The CFindDlg class is derived from wxScrollingDialog.
-class CFindDlg : public wxScrollingDialog
+/// \derivation		The CFindDlg class is derived from wxScrollingDialog when built with wxWidgets
+/// prior to version 2.9.x, but derived from wxDialog for version 2.9.x and later.
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+class CFindDlg : public wxDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
+#else
+class CFindDlg : public wxScrollingDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
+#endif
 {
 public:
 	CFindDlg();
@@ -126,8 +134,15 @@ private:
 /// user to specify a replacement string.
 /// CReplaceDlg is created as a Modeless dialogs. It is created on 
 /// the heap and is displayed with Show(), not ShowModal().
-/// \derivation		The CReplaceDlg class is derived from wxScrollingDialog.
-class CReplaceDlg : public wxScrollingDialog
+/// \derivation		The CReplaceDlg class is derived from wxScrollingDialog when built 
+/// with wxWidgets prior to version 2.9.x, but derived from wxDialog for version 2.9.x 
+/// and later.
+// whm 14Jun12 modified to use wxDialog for wxWidgets 2.9.x and later; wxScrollingDialog for pre-2.9.x
+#if wxCHECK_VERSION(2,9,0)
+class CReplaceDlg : public wxDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
+#else
+class CReplaceDlg : public wxScrollingDialog // use wxScrollingDialog instead of AIModalDialog because we use wxUpdateUIEvent
+#endif
 {
 public:
 	CReplaceDlg();

@@ -479,7 +479,7 @@ void CCaseEquivPageCommon::BuildListString(wxString& lwrCase, wxString& upprCase
 	if (len != len1)
 	{
 		// IDS_UNEQUAL_STR_LENGTHS
-		wxMessageBox(_("Sorry, the length of the upper and lower case strings are not the same. Check the project's configuration file, edit it if necessary to make the lengths identical."),_T(""),wxICON_INFORMATION);
+		wxMessageBox(_("Sorry, the length of the upper and lower case strings are not the same. Check the project's configuration file, edit it if necessary to make the lengths identical."),_T(""),wxICON_INFORMATION | wxOK);
 		return;
 	}
 	wxString endStr = _T("\n"); // wxWidgets uses only \n
@@ -823,7 +823,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			strWhich = strWhich.Format(_("Source"));
 			//IDS_CASE_EQUIVALENCES_ERROR
 			s = s.Format(_("Sorry, in the Case wizard page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
-			wxMessageBox(s,_T(""), wxICON_INFORMATION);
+			wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
 			event.Veto(); // add this to stop page change
 			return;
 		}
@@ -844,7 +844,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			strWhich = strWhich.Format(_("Target"));
 			// IDS_CASE_EQUIVALENCES_ERROR
 			s = s.Format(_("Sorry, in the Case wizard page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
-			wxMessageBox(s,_T(""), wxICON_INFORMATION);
+			wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
 			event.Veto(); // add this to stop page change
 			return;
 		}
@@ -865,7 +865,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			strWhich = strWhich.Format(_("Gloss"));
 			// IDS_CASE_EQUIVALENCES_ERROR
 			s = s.Format(_("Sorry, in the Case wizard page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
-			wxMessageBox(s, _T(""), wxICON_INFORMATION);
+			wxMessageBox(s, _T(""), wxICON_INFORMATION | wxOK);
 			event.Veto(); // add this to stop page change
 			return;
 		}
@@ -1059,7 +1059,7 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		strWhich = strWhich.Format(_("Source"));
 		//IDS_CASE_EQUIVALENCES_ERROR
 		s = s.Format(_("Sorry, in the Case tab page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
-		wxMessageBox(s,_T(""), wxICON_INFORMATION);
+		wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
 		//event.Veto(); // add this to stop page change
 		// TODO: put code here to automatically select the Case tab
 		return;
@@ -1081,7 +1081,7 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		strWhich = strWhich.Format(_("Target"));
 		// IDS_CASE_EQUIVALENCES_ERROR
 		s = s.Format(_("Sorry, in the Case tab page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
-		wxMessageBox(s,_T(""), wxICON_INFORMATION);
+		wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
 		//event.Veto(); // add this to stop page change
 		// TODO: put code here to automatically select the Case tab
 		return;
@@ -1103,7 +1103,7 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		strWhich = strWhich.Format(_("Gloss"));
 		// IDS_CASE_EQUIVALENCES_ERROR
 		s = s.Format(_("Sorry, in the Case tab page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
-		wxMessageBox(s, _T(""), wxICON_INFORMATION);
+		wxMessageBox(s, _T(""), wxICON_INFORMATION | wxOK);
 		//event.Veto(); // add this to stop page change
 		// TODO: put code here to automatically select the Case tab
 		return;
