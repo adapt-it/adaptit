@@ -203,15 +203,13 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// whm modified conditional test below to include && !__WXGTK__ after finding that
 	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
 	// link errors for "undefined reference wxGCDC::...
-	// whm 9Jun12 added && !__WXMSW__ to the following conditional code, because the
-	// wxWidgets 2.9.3 apparently does not have wxGCDC defined for Windows
-	// TODO: Test
-#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__ && !__WXMSW__
-     wxGCDC gdc( paintDC ) ;
-    wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
-#else
+	// whm 22Jun12 set all ports to use the wxDC &dc = paintDC under wxWidgets 2.9.3
+//#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__ && !__WXMSW__
+//     wxGCDC gdc( paintDC ) ;
+//    wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
+//#else
     wxDC &dc = paintDC ;
-#endif
+//#endif
 	if (!dc.IsOk())// using dc to avoid compiler warning
 	{
 		wxLogDebug(_T("canvas OnPaint() reports dc is not Ok!"));
