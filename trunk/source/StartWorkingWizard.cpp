@@ -262,7 +262,10 @@ CStartWorkingWizard::~CStartWorkingWizard() // destructor
 
 wxWizardPage* CStartWorkingWizard::GetFirstPage() 
 {
-	wxInitDialogEvent ievent = wxEVT_INIT_DIALOG;
+	// whm 22Jun12 modified to be consistent with other similar
+	// wxInitDialogEvent declarations we've used. The commented out
+	// version wouldn't compile under wxWidgets 2.9.3.
+	wxInitDialogEvent ievent; //wxInitDialogEvent ievent = wxEVT_INIT_DIALOG;
 	if (gpApp->m_bKBReady && gpApp->m_pKB != NULL)
 	{
 		// KBs are loaded, so start with the docPage
