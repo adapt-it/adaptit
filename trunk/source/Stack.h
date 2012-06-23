@@ -72,8 +72,13 @@ public:
 	bool Pop(Item item); // pop the top element into item
 	// whm added below 24May10
 	bool Contains(const Item item); // true if item is contained in the stack
+	// BEW added - probably in 2010
 	bool MyParentsAre(int nThisMany, const Item item_up1, const Item item_up2,
 						const Item item_up3);
+	// BEW added 28May12
+	void GetTop(Item item); // puts the top element's string into item, but 
+							// doesn't pop; returns empty char array (all nulls) 
+							// if stack is empty
 };
 
 #endif

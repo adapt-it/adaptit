@@ -1168,7 +1168,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		// ninth line -- 4 attributes each is possibly absent
 		// Supporting new docVersion6 storage strings (skip this block if docVersion is 5):
 		// 	m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, m_punctsPattern
-		if ( ( docVersion == 6) && 
+		if ( ( docVersion >= 6) && 
 			 (!m_lastAdaptionsPattern.IsEmpty() || !m_tgtMkrPattern.IsEmpty() || 
 			  !m_glossMkrPattern.IsEmpty() || !m_punctsPattern.IsEmpty())
 		   )

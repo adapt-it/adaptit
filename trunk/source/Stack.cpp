@@ -12,7 +12,7 @@
 /// app, these single-byte characters will be interpretted as UTF-8, and the
 /// callback functions which the XML parser uses will internally convert the
 /// byte string to UTF-16; and so the signature of these callbacks has to have
-/// a MFC CString so as to accept the UTF-16 for a unicode build. Elsewhere
+/// a wxString so as to accept the UTF-16 for a unicode build. Elsewhere
 /// in the XML module, where strings are required, I will use my CBString class.
 /// \derivation		The CStack class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
@@ -37,7 +37,6 @@
 #include "Stack.h"
 #include "Adapt_It.h"
 #include "BString.h"
-
 
 CStack::CStack()
 {
@@ -74,16 +73,28 @@ bool CStack::Pop(Item item)
 	{
 		strcpy(item,items[--top]);
 		memset(items[top],0,32);
-		/* BEW 5Jun10, bad code, it cleared the wrong cell!
-		UInt16 oldIndex = top;
-		strcpy(item,items[--top]);
-		memset(items[oldIndex],0,32);
-		*/
 		return true;
 	}
 	else
 	{
 		return false;
+	}
+}
+
+void CStack::GetTop(Item item)
+{
+	if (top > 0)
+	{
+		strcpy(item,items[--top]);
+		top++;
+	}
+	else
+	{
+		int i;
+		for (i=0; i<32; i++)
+		{
+			item[i] = '\0';
+		}
 	}
 }
 

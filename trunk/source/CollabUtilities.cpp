@@ -4723,7 +4723,7 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	// set \note, \bt, and \free as to be programmatically excluded from the export
 	textLen = textLen; // avoid warning
 	ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
-	// cause the markers set for exclusion, plus their contents, to be actually removed
+	// cause the markers set for exclusion, plus their contents, to be removed
 	// from the exported text
 	bool bRTFOutput = FALSE; // we are working with USFM marked up text
 	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);

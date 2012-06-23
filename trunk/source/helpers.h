@@ -53,7 +53,8 @@ enum AppPreferedDateTime
 	adaptItDT,
 	paratextDT,
 	oxesDT,
-	oxesDateOnly
+	oxesDateOnly,
+	forXHTML // BEW added 12Jun12
 };
 
 enum CompareUsfmTexts
@@ -137,6 +138,8 @@ bool      IsAnsiDigit(wxChar c);
 bool      IsAnsiDigitsOnly(wxString s);
 
 bool      IsAnsiLetterOrDigit(wxChar c);
+
+bool	  IsAnsiLettersOrDigitsOnly(wxString s);
 
 bool      IsValidFileName(wxString s);
 
@@ -241,6 +244,7 @@ long      SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& arra
 					  bool bStoreEmptyStringsToo = TRUE);
 wxString  ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
 				// to underscore characters, used in ReadOnlyProtection.cpp
+wxString ChangeWhitespaceToSingleSpace(wxString& rString);
 
 // the following returns the members m_markers, m_endMarkers, m_freeTrans, m_Note,
 // m_collectedBackTrans, m_filteredInfo, "as is" - the filteredInfoStr will include the

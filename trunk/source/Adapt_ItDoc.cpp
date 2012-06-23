@@ -13029,7 +13029,8 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 	// 2. ptr points to a space (return FALSE)
 	// 3. ptr points to another marker (return FALSE)
 	// 4. ptr points to a * (return TRUE)
-	// 5. ptr points to a ]
+	// 5. ptr points to a ] (return FALSE)
+	// 6. ptr points at \F or \fe and  PngOnly is the marker set being used (return TRUE)
 
 	// First, handle the PngOnly special case of \fe or \F footnote end markers
 	if (gpApp->gCurrentSfmSet == PngOnly)
@@ -16092,7 +16093,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		// from proceeding further; but we don't expect a failure in DoFileSave_Protected()
 		if (!bSavedOK)
 		{
-			gpApp->LogUserAction(_T("DoFileSave_Protected() return FALSE in DoPackDocument() at line 15,627"));
+			gpApp->LogUserAction(_T("DoFileSave_Protected() return FALSE in DoPackDocument() at line 16,022"));
 			wxCHECK_MSG(bSavedOK, FALSE, _T("DoPackDocument(): DoFileSave_Protected() failed, so packing was not done"));
 		}
 	}
@@ -21829,7 +21830,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
-		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 21,250 in Adapt_itDoc.cpp, so check was aborted"));
+		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 21,746 in Adapt_itDoc.cpp, so check was aborted"));
 		SetFilename(newName,TRUE);
 		nTotal = pApp->m_pSourcePhrases->GetCount();
 		if (nTotal == 0)
@@ -23529,7 +23530,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
-		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheckG(), its OnOpenDocument() call failed, line 22,949 in Adapt_ItDoc.cpp, so check was aborted"));
+		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheckG(), its OnOpenDocument() call failed, line 23,449 in Adapt_ItDoc.cpp, so check was aborted"));
 		SetFilename(newName,TRUE);
 		nTotal = pApp->m_pSourcePhrases->GetCount();
 		if (nTotal == 0)

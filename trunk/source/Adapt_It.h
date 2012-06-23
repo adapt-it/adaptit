@@ -281,8 +281,11 @@ class CPlaceholder;
 // forward reference for read-only support
 class ReadOnlyProtection;
 
-// forward reference for Oxes export support BEW removed 15Jun11 until we provide OXES support
-//class Usfm2Oxes;
+// forward reference for Oxes export support 
+// BEW removed 15Jun11 until we provide OXES support
+// BEW reinstated 19May12, for OXES v1 support
+//class Oxes;
+class Xhtml;
 
 // forward reference for Guesser support
 class Guesser;
@@ -3313,7 +3316,10 @@ public:
 	wxArrayInt tgtPunctsAddedArray;
 
 	// Oxes export support  BEW removed 15Jun11 until we support OXES
-	//Usfm2Oxes* m_pUsfm2Oxes; // app creator sets to NULL, and OnInit() creates the class on the heap
+	// BEW 19May12 reinstated OXES support for version 1 of OXES -- abandoned 9June12 (unfinished)
+	//Oxes* m_pOxes; // app creator sets to NULL, and OnInit() creates the class on the heap
+
+	Xhtml* m_pXhtml; // app creator sets to NULL, & OnInit() creates the class on the heap
 
 	/// BEW 25Oct11, next four used to be globals; these are for Printing Support
 	bool	m_bIsPrinting;  // TRUE when OnPreparePrinting is called, cleared only in
@@ -3957,12 +3963,8 @@ public:
 	wxString m_strGlossText; // Gloss text
 	wxString m_consCheck_msg1; // An adaptation exists. A knowledge base entry is expected, but is absent
 	wxString m_consCheck_msg2; // The knowledge base entry is %s, the document does not agree
-
-    // BEW added 17Sept10: set TRUE when an oxes export is in progress - and since it
-    // starts with a special case of a standard USFM target text export with \bt info not
-    // included, the TRUE value should be on when that export commences. Turn it off when
-    // the exported oxes file is saved to disk.
-	//bool m_bOxesExportInProgress; // BEW removed 15Jun11 until we support OXES
+ 
+	bool m_bXhtmlExportInProgress; // BEW 9Jun12
 
 	bool m_bUsePrefixExportTypeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
 										   // export type (i.e., target_text_) on export file names

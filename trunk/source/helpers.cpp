@@ -985,6 +985,25 @@ bool IsAnsiLetterOrDigit(wxChar c)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return TRUE only if s contains at least one character and all characters in s are
+///         either digits or letters.
+///			If s is empty, or contains any whitespace or other non-digit characters, this function
+///			returns false.
+/// \param	s			-> the string to be examined
+/// \remarks
+/// BEW added 24May12, 
+/// The wxWidgets function calls IsAnsiLetterOrDigit() internally
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool IsAnsiLettersOrDigitsOnly(wxString s)
+{
+	int i;
+	for (i = 0; i < (int)s.Length(); ++i) {
+		if (!IsAnsiLetterOrDigit(s[i])) return false;
+	}
+	return i > 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the string s represents a valid filename on the current platform, otherwise FALSE if
 ///			string s contains forbidden characters.
 /// \param	s			-> the string containing a path and/or file name
@@ -1418,10 +1437,10 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others
 		// BEW 4Aug11 changed the code to not test each individually, but just test if
-		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
+		// wxChar value falls in the range 0x2000 to 0x200B - which is much quicker; and
 		// treat U+2060 individually
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200B))
 		{
 			return TRUE;
 		}
@@ -2240,6 +2259,39 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 	}
 	return uniqueName;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a wxString with consecutive whitespace characters reduced to a 
+///             single space wherever the whitespace occurs
+/// \param		rString		-> the string we are reading characters from
+/// \remarks
+/// Called from: used in BuildFootnoteOrEndnoteParts() in Xhtml.cpp 
+/// Searches for whitespace, converts each such to a single space, and then calls
+/// RemoveMultipleSpaces() to reduce multiple spaces to a single space
+///////////////////////////////////////////////////////////////////////////////
+wxString ChangeWhitespaceToSingleSpace(wxString& rString)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	wxString destStr = rString;
+	wxChar aSpace = _T(' ');
+	if (!rString.IsEmpty())
+	{
+		size_t length = destStr.Len();
+		size_t i;
+		wxChar aChar;
+		for (i = 0; i < length; i++)
+		{	
+			aChar = destStr[i];
+			if (pDoc->IsWhiteSpace(&aChar))
+			{
+				destStr.SetChar(i, aSpace); 
+			}
+		}
+		destStr = RemoveMultipleSpaces(destStr);
+	}
+	return destStr;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString with any multiple spaces reduced to single spaces
@@ -3471,7 +3523,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 			{
 				// for Tstr, this or its equivalent target text punctuation will have been
-				// input already in the passed in Tstr, so we don't need to so anything
+				// input already in the passed in Tstr, so we don't need to do anything
 				// here except fix up Sstr with what it needs
 				wxString outers = pSrcPhrase->GetFollowingOuterPunct();
 				Sstr += outers;
@@ -3612,7 +3664,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	} // end of while loop
 
 	// Finally, add any final endmarkers from pMergedSrcPhrase held over till now; for
-	// Tstr, they are in the a second array, markersAtVeryEndArray, - so copy the items
+	// Tstr, they are in the second array, markersAtVeryEndArray, - so copy the items
 	// across to the array for placement instead using the placement dialog. For Sstr we
 	// have them stored already in strings and can finish off Sstr in the block below.
 	// (for the call on next line, we are not interested in the returned boolean, and
@@ -3705,7 +3757,12 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		else
 		{
 			// it's non-empty, so use it as Tstr's value
-			Tstr = pMergedSrcPhrase->m_tgtMkrPattern;
+			wxString s;
+			s = pMergedSrcPhrase->m_tgtMkrPattern;
+			// remove any initial or final whitespace, just in case there was some
+			s = s.Trim(FALSE);
+			s = s.Trim();
+			Tstr = s;
 		}
 	}
 
@@ -3714,8 +3771,11 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	if (!markersPrefix.IsEmpty())
 	{
 		markersPrefix.Trim();
-		markersPrefix += aSpace; // ensure a final space
-		Tstr = markersPrefix + Tstr;
+		if (!markersPrefix.IsEmpty())
+		{
+			markersPrefix += aSpace; // ensure a final space
+			Tstr = markersPrefix + Tstr;
+		}
 	}
 	Tstr.Trim();
 	Tstr << aSpace; // have a final space
@@ -4020,6 +4080,8 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
                 // cleared (and m_tgtMkrPattern and m_punctsPattern too), and then this and
                 // other placement dialogs would show again, if relevant -- that is, if
                 // there is a placement ambiguity requiring that they show)
+                Gstr = Gstr.Trim(FALSE);
+                Gstr = Gstr.Trim();
 				pMergedSrcPhrase->m_glossMkrPattern = Gstr;
 
 				// make sure the doc is dirty, so the user will be prompted to save it -
@@ -4039,8 +4101,11 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 	if (!markersPrefix.IsEmpty())
 	{
 		markersPrefix.Trim();
-		markersPrefix += aSpace; // ensure a final space
-		Gstr = markersPrefix + Gstr;
+		if (!markersPrefix.IsEmpty())
+		{
+			markersPrefix += aSpace; // ensure a final space
+			Gstr = markersPrefix + Gstr;
+		}
 	}
 	Gstr.Trim();
 	Gstr << aSpace; // have a final space
@@ -4639,6 +4704,22 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			nonbindingEndMkrsToPlace = pSP->GetInlineNonbindingEndMarkers();
 			markersToPlaceArray.Add(nonbindingEndMkrsToPlace);
 		}
+		// BEW 19Jun12, another scenario for ambiguity is an endmarker (such as \f*)
+		// followed by outer following punctuation (such as closing doublequote) and there
+		// was no normal punctuation to end the footnote - hence finalPuncts is empty. In
+		// this scenario bIsAmbiguousForEndmarkerPlacement is still FALSE, and if we don't
+		// add a block to test for this ambiguity situation, the code below will say there
+		// is ambiguity but markersToPlaceArray is empty, and so no placement dialog shows
+		// and the endmarker and outer punctuation just get lost. So I'm fixing this here.
+		bool bAddOuterPuncts = FALSE;
+		if (finalPuncts.IsEmpty() && !pSP->GetEndMarkers().IsEmpty() 
+			&& !pSP->GetFollowingOuterPunct().IsEmpty())
+		{
+			// this following outer punctuation hasn't been placed yet
+			bIsAmbiguousForEndmarkerPlacement = TRUE;
+			markersToPlaceArray.Add(pSP->GetEndMarkers());
+			bAddOuterPuncts = TRUE; // use this later, when it needs to be done
+		}
 
 		// build the core of Tstr, using tgtStr and starting with tgtBaseStr
 		if (!pSP->GetInlineBindingMarkers().IsEmpty())
@@ -4661,6 +4742,11 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		if (finalsLen > 0)
 		{
 			tgtStr += finalPuncts;
+		}
+		// BEW 19Jun12 added test and addition of following outer puncts
+		if (bAddOuterPuncts)
+		{
+			tgtStr += pSP->GetFollowingOuterPunct();
 		}
 		Tstr = tgtStr; // we've got any inline binding markers in place, now for the rest
 	} // end of else block for test: if (bBindingMkrsToReplace)
@@ -4739,7 +4825,11 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 				// to be placed differently - that causes the m_tgtMkrPattern string to be
 				// cleared, and then this and other placement dialogs would show again, if
 				// relevant -- that is, if there is a placement ambiguity requiring that
-				// they show)
+				// they show); trim off any whitespace before saving in the CSourcePhrase
+				// -- the dialog puts a space before and after, so we must get rid of
+				// these before saving
+				Tstr = Tstr.Trim(FALSE);
+				Tstr = Tstr.Trim();
 				pSingleSrcPhrase->m_tgtMkrPattern = Tstr;
 
 				// make sure the doc is dirty, so the user will be prompted to save it -
@@ -4749,8 +4839,12 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		}
 		else
 		{
-			// it's non-empty, so use it as Tstr's value
-			Tstr = pSingleSrcPhrase->m_tgtMkrPattern;
+			// it's non-empty, so use it as Tstr's value (first ensure there is no
+			// preceding or final whitespace)
+			wxString str = pSingleSrcPhrase->m_tgtMkrPattern;
+			str.Trim(FALSE);
+			str.Trim();
+			Tstr = str;
 		}
 	}
 
@@ -4758,8 +4852,11 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	if (!markersPrefix.IsEmpty())
 	{
 		markersPrefix.Trim();
-		markersPrefix << aSpace; // ensure a final space
-		Tstr = markersPrefix + Tstr;
+		if (!markersPrefix.IsEmpty())
+		{
+			markersPrefix << aSpace; // ensure a final space
+			Tstr = markersPrefix + Tstr;
+		}
 	}
 	Tstr.Trim(FALSE);
 	Tstr.Trim();
@@ -5493,7 +5590,6 @@ bool IsWhiteSpace(const wxChar *pChar)
 	wxChar ZWSP = (wxChar)0x200B; // ZWSP
 	wxChar THSP = (wxChar)0x2009; // THSP is "THin SPace
 	wxChar HSP = (wxChar)0x200A; // HSP is "Hair SPace" (thinner than THSP)
-	wxChar ZWJ = (wxChar)0x200D; // ZWJ is "Zero Width Joiner"
 	if (*pChar == ZWSP || *pChar == THSP || *pChar == HSP || *pChar == ZWJ)
 		return TRUE;
 #endif
@@ -5525,10 +5621,10 @@ bool IsWhiteSpace(const wxChar *pChar)
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others
 		// BEW 4Aug11 changed the code to not test each individually, but just test if
-		// wxChar value falls in the range 0x2000 to 0x200D - which is much quicker; and
+		// wxChar value falls in the range 0x2000 to 0x200B - which is much quicker; and
 		// treat U+2060 individually
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200D))
+		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200B))
 		{
 			return TRUE;
 		}
@@ -5948,6 +6044,8 @@ wxString GetUuid()
 // wants to send - so we will send date and time, but not fractions of a second, and the
 // standard for the date format separator is hyphen, and colon for the time delimiter, and
 // there should be a single T between date and time if both are present.
+// BEW changed 22May12, to make the oxesDT and oxesDateOnly ones use . as the separator,
+// and no T in between the data and time strings - as per Oxes 1.1.2 standard.
 wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 {
 	wxDateTime theDateTime = wxDateTime::Now();
@@ -5970,13 +6068,19 @@ wxString GetDateTimeNow(enum AppPreferedDateTime dt)
 	case oxesDT:
 		{
 			// I'm giving OXES local time, but this can be changed if the TE team want
-			dateTimeStr = theDateTime.Format(_T("%Y-%m-%dT%H:%M:%S")).c_str();
+			dateTimeStr = theDateTime.Format(_T("%Y.%m.%d %H.%M.%S")).c_str();
 		}
 		break;
 	case oxesDateOnly:
 		{
 			// I'm giving OXES local timezone's date, but this can be changed if the TE team want
-			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d")).c_str(); // chop off time spec
+			dateTimeStr = theDateTime.Format(_T("%Y.%m.%d")).c_str(); // chop off time spec
+		}
+		break;
+	case forXHTML:
+		{
+			// for XHTML we'll use local date and time; with space between, use Paratext's separators
+			dateTimeStr = theDateTime.Format(_T("%Y-%m-%d %H:%M:%S")).c_str();
 		}
 		break;
 	default:

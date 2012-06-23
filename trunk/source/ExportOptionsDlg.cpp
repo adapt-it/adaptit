@@ -46,7 +46,7 @@
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 // The following globals defined here are for use as extern variables in 
-// ExportOptionsDlg.cpp and the export routines in the View.
+// ExportOptionsDlg.cpp and the export routines in ExportFunctions.cpp
 wxArrayString m_exportBareMarkers;
 wxArrayString m_exportMarkerAndDescriptions;
 wxArrayInt m_exportFilterFlags;
