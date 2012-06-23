@@ -8,6 +8,8 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file containing export functions used by Adapt It.
 /// BEW 12Apr10, all needed changes for supporting doc version 5 have been done for this file
+/// BEW 23June12 added Xhtml export, and an "Export&XHTML..." menu item - the xhtml
+/// functionality is not quite finished by end of June but will be shortly
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
