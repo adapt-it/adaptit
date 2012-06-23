@@ -126,6 +126,9 @@
 // detailed report of the memory leaks:
 #ifdef __WXMSW__
 //#include "vld.h"
+// if the IDE can't find vld.h on my Dell x64, & I can't be bothered finding out why, use
+// the next line instead
+//#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
 #endif
 
 // Other includes
@@ -185,7 +188,10 @@
 //#include "Uuid_AI.h" // for testing, then comment out
 #include "NavProtectNewDoc.h"
 #include "AdminEditMenuProfile.h"
-//#include "Usfm2Oxes.h" // BEW removed 15Jun11 until we support OXES
+// BEW removed 15Jun11 until we support OXES
+// BEW reinstated 19May12, for OXES v1 support
+//#include "Oxes.h" // deprecated, remove later
+#include "Xhtml.h" // BEW 9Jun12
 #include "CorGuess.h"
 #include "SetupEditorCollaboration.h"
 #include "GetSourceTextFromEditor.h"
@@ -1588,16 +1594,17 @@ const wxString defaultProfileItems[] =
 	_T("/PROFILE:"),
 	_T("/MENU:"),
 	// whm commented out 15Jun11 as per Bruce's request. OXES support not implemented until a future date
-	//_T("MENU:itemID=\"ID_EXPORT_OXES\":itemType=\"subMenu\":itemText=\"Export &Open XML for Editing Scripture (OXES)...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
-	//_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	//_T("/PROFILE:"),
-	//_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	//_T("/PROFILE:"),
-	//_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	//_T("/PROFILE:"),
-	//_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	//_T("/PROFILE:"),
-	//_T("/MENU:"),
+	// BEW repurposed 9Jun12, for XHTML support
+	_T("MENU:itemID=\"ID_EXPORT_XHTML\":itemType=\"subMenu\":itemText=\"Export &XHTML...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
 	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge &Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -2419,7 +2426,7 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	//_T("SUB_MENU:subMenuID=\"ID_EXPORT_OXES\":subMenuLabel=\"Export &Open XML for Editing Scripture (OXES)...\":subMenuHelp=\"Export the translation text according to the OXES version 1 standard\":subMenuKind=\"wxITEM_NORMAL\":"),
+	_T("SUB_MENU:subMenuID=\"ID_EXPORT_XHTML\":subMenuLabel=\"Export &XHTML)...\":subMenuHelp=\"Export the translation text as XHTML\":subMenuKind=\"wxITEM_NORMAL\":"),
 	//_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
@@ -14605,8 +14612,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//int itemLen = ParseMarker(pBuf); // <- testing the one in helpers.cpp, it returns 2, not 3,
 									 // for *f\ (the reversed \f* marker), so it needs fixing
 
-	//m_pUsfm2Oxes = NULL; // BEW added 2Sep10 // BEW removed 15Jun11 until we need to support OXES
-	//m_bOxesExportInProgress = FALSE; // BEW removed 15Jun11, same reason
+	// BEW removed 15Jun11 until we support OXES
+	// BEW reinstated 19May12, for OXES v1 support
+	//m_pOxes = NULL;
+	//m_bOxesExportInProgress = FALSE;
+	m_pXhtml = NULL;
+	m_bXhtmlExportInProgress = FALSE;
 
 	m_pAI_MenuStructure = (AI_MenuStructure*)NULL; // whm added 8Sep10
 	m_pUserProfiles = (UserProfiles*)NULL; // whm added 8Sep10
@@ -18699,15 +18710,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// For OXES -- in 6.0.0 it isn't supported, so remove the menu item temporarily, and
 	// restore it for 6.1.0
 
+	// BEW 9Jun12 changed OXES in the following to XHTML, as we have abandoned OXES export
 	// whm 23Mar11 change: The following creates a memory leak and is risks complications for
 	// the user profiles menu routines. I've commented this out, and placed a wxMessageBox()
-	// notification to the user in CAdapt_ItView::OnExportOXES()
+	// notification to the user in CAdapt_ItView::OnExportXHTML()
 	/*
 	wxMenu* pItsMenu = NULL;
-	wxMenuItem* pHideThisOxesMenuItem = pMenuBar->FindItem(ID_EXPORT_OXES, &pItsMenu);
+	wxMenuItem* pHideThisXhtmlMenuItem = pMenuBar->FindItem(ID_EXPORT_XHTML, &pItsMenu);
 	if (pItsMenu != NULL) // whm 15Mar11 added test for NULL pointer (might happen if menu item is hidden/removed in user profiles)
 	{
-		pItsMenu->Remove(pHideThisOxesMenuItem);
+		pItsMenu->Remove(pHideThisXhtmlMenuItem);
 	}
 	*/
 // ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
@@ -20218,10 +20230,10 @@ int ii = 1;
 	// add oxes support here, the creator will call an initializing function to have oxes
 	// export support ready for whenever it is needed; m_pUsfm2Oxes is destroyed in OnExit()
 	//
-	// BEW temporarily (or permanently?) deprecated 15Jun11, until need for OXES support
-	// is clarified and there is some other app 'out there' that could benefit from AI
-	// supporting an OXES export
-	//m_pUsfm2Oxes = new Usfm2Oxes(this);
+	// BEW removed 15Jun11 until we support OXES
+	// BEW reinstated 19May12, for OXES v1 support
+	//m_pOxes = new Oxes(this);
+	m_pXhtml = new Xhtml(this); // BEW 9Jun12
 
 	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
 	m_pAdaptationsGuesser = new Guesser;
@@ -20270,7 +20282,15 @@ int ii = 1;
 
 #endif
 	// end of code for supporting Mike's DVCS work
-
+/* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
+	wxString sss;
+	sss = _T("\\f*”");
+	bool bOKay;
+	const wxChar* pConstBuff = sss.GetData();
+	wxChar* ptr = (wxChar*)pConstBuff;
+	bOKay = GetDocument()->IsMarker(ptr);
+	wxString wholeMarker = GetDocument()->GetWholeMarker(ptr);
+*/
 	//klb test
 	//bool a = ParatextIsRunning();
 
@@ -20362,8 +20382,10 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pGlossesGuesser != NULL)
 		delete m_pGlossesGuesser;
 
-	// delete the object for support of oxes  BEW removed 15Jun11 until OXES support is needed
-	//delete m_pUsfm2Oxes;
+	// BEW removed 15Jun11 until we support OXES
+	// BEW reinstated 19May12, for OXES v1 support
+	//delete m_pOxes;
+	delete m_pXhtml; // BEW 9Jun12
 
 	// delete the CNotes object
 	if (m_pNotes != NULL) // whm 11Jun12 added NULL test

@@ -926,8 +926,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_EXPORT_FREE_TRANS, CAdapt_ItView::OnUpdateExportFreeTranslations)
 	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
 	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
-	//EVT_MENU(ID_EXPORT_OXES, CAdapt_ItView::OnExportOXES) // BEW removed 15Jun11, not needed yet
-	//EVT_UPDATE_UI(ID_EXPORT_OXES, CAdapt_ItView::OnUpdateExportOXES)
+	// BEW removed 15Jun11 until we support OXES
+	// BEW reinstated 9Jun12, for XHTML support
+	EVT_MENU(ID_EXPORT_XHTML, CAdapt_ItView::OnExportXHTML)
+	EVT_UPDATE_UI(ID_EXPORT_XHTML, CAdapt_ItView::OnUpdateExportXHTML)
 	EVT_MENU(ID_MENU_IMPORT_EDITED_SOURCE_TEXT, CAdapt_ItView::OnImportEditedSourceText)
 	EVT_UPDATE_UI(ID_MENU_IMPORT_EDITED_SOURCE_TEXT, CAdapt_ItView::OnUpdateImportEditedSourceText)
 	// End of Export-Import Menu
@@ -27278,50 +27280,38 @@ void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 	DoExportSfmText(targetTextExport,bForceUTF8Conversion); // BEW changed 6Aug09
 }
 
-// OnExportOXES() is based on the view function, DoExportSfmText()
-// BEW removed 15Jun11, until OXES export support is needed
-//void CAdapt_ItView::OnExportOXES(wxCommandEvent& WXUNUSED(event))
-//{
-	// whm 23Mar11 added the following temporary message and return
-	// REMOVE CODE BELOW AFTER 6.0.0 is released and development resumes for 6.1.0
-//	wxMessageBox(_T("Export to OXES is currently unavailable. It is planned for the 6.1.0 release."));
-//	return;
-	// REMOVE CODE ABOVE AND UNCOMMENT BELOW AFTER 6.0.0 is released and development resumes for 6.1.0
+	// early part of OnExportXHTML() is based on the view function, DoExportSfmText()
+	// BEW removed 15Jun11 until we support OXES
+	// BEW reinstated 19May12, for XHTML support
+void CAdapt_ItView::OnExportXHTML(wxCommandEvent& WXUNUSED(event))
+{
+	// BEW 19May12, the following call will do some preliminary filtering of the target
+	// text USFM export, to exclude our custom markers (\free, \note, \bt and derivatives,
+	// and also \rem -- ExcludeCustomMarkersAndRemFromExport() is called internally to
+	// accomplish this, the latter is defined in ExportFunctions.cpp
+	DoExportAsXhtml(); // BEW created 9Jun12
+}
 
-//	int versionNum = 1;
-
-
-	// *** TODO ****
-	//A box to ask user for either v1 or v2 export - once the choice is available
-
-    // gbIsUnstructuredData is (currently) a global boolean -- it is set TRUE or FALSE when
-    // the adaptation document was created from the parsed in source text file; if it is
-    // TRUE here, then such data is not a candidate for an OXES export - the latter expects
-    // SFM or USFM markup
-//	DoExportAsOxes(versionNum); // BEW created 2Sep10
-
-//}
-
-// same conditions asa for OnUpdateFileExport() (the latter is for exporting the
-// translation text)
-//void CAdapt_ItView::OnUpdateExportOXES(wxUpdateUIEvent& event)
-//{
-//	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-//	if (gbVerticalEditInProgress)
-//	{
-//		event.Enable(FALSE);
-//		return;
-//	}
-//	if (pApp->m_pSourcePhrases->GetCount() > 0)
-//	{
-//		if (gbIsGlossing)
-//			event.Enable(FALSE); // don't allow target text export when glossing
-//		else
-//			event.Enable(TRUE); // not glossing, so allow target text export
-//	}
-//	else
-//		event.Enable(FALSE); // nothing to export since doc is empty
-//}
+// same conditions as for OnUpdateFileExport() (the latter is for exporting the
+// translation text) - repurposed from unfinished Oxes export by BEW on 9Jun12
+void CAdapt_ItView::OnUpdateExportXHTML(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		if (gbIsGlossing)
+			event.Enable(FALSE); // don't allow target text export when glossing
+		else
+			event.Enable(TRUE); // not glossing, so allow target text export
+	}
+	else
+		event.Enable(FALSE); // nothing to export since doc is empty
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

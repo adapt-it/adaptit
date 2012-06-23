@@ -237,7 +237,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -265,7 +265,7 @@
 				Version="6.2.2"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win64&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -891,6 +891,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Xhtml.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\XML.cpp"
 				>
 			</File>
@@ -1377,6 +1381,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\WhichFilesDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Xhtml.h"
 				>
 			</File>
 			<File

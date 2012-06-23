@@ -27,11 +27,16 @@
 #include <wx/wx.h>
 #endif
 
+#include "BString.h"
 #include <wx/list.h>
 #include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
 
+// BEW removed 15Jun11 until we support OXES
+// BEW reinstated 19May12, for OXES v1 support
+//#include "Oxes.h"
+#include "Xhtml.h" // BEW 9Jun12
 #include "Adapt_It.h"
 #include "ExportFunctions.h"
 #include "Adapt_ItDoc.h"
@@ -46,8 +51,8 @@
 #include "PlaceInternalMarkers.h"
 #include "PlaceRetranslationInternalMarkers.h"
 #include "WaitDlg.h"
-//#include "Usfm2Oxes.h" // BEW 15Jun11 removed, until OXES support needed
 #include "Stack.h"
+#include "XML.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -125,6 +130,82 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
 MapBareMkrToRTFTags rtfTagsMap;
 MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as needed
 
+// Returns the input text with all \vn num \vt marker combinations changed to \v num
+// Some places use \vn and \vt (non-USFM markers) instead of \v -- we need to correct
+// for this whenever it happens
+// Used in: DoExportAsOxes()
+// BEW created 21May12
+wxString ChangeMkrs_vn_vt_To_v(wxString text)
+{
+	wxString vnMkr = _T("\\vn "); // include space which precedes the following verse number
+	wxString vtMkr = _T("\\vt"); // the "verse text" marker
+	wxString vMkr = _T("\\v "); // include space preceding the verse number
+	wxString left; left.Empty();
+	int vnLen = vnMkr.Len();
+	int vtLen = vtMkr.Len();
+	int offset = wxNOT_FOUND;
+	offset = FindFromPos(text, vnMkr, 0);
+	if (offset == wxNOT_FOUND)
+	{
+		// if \vn is not in the SFM text, then \vt won't be either, so return the text
+		// unchanged to the caller
+		return text;
+	}
+	else
+	{
+		// The \vn and \vt markers exist in the text, so change \vn to \v, and remove all
+		// \vt markers. This function should be called before RemoveMultipleSpaces() is
+		// called, in clase the removals cause some multiple spaces.
+		left = text.Left(offset);
+		left += vMkr;
+		offset += vnLen;
+		text = text.Mid(offset); // copy from where the start of the verse num should be
+		offset = 0;
+		do {
+			offset = FindFromPos(text, vnMkr, offset);
+			if (offset == wxNOT_FOUND)
+			{
+				// we've processed the last pair, so just copy what remains (left will
+				// contain the \vt markers still, we use another loop to remove those)
+				left += text;
+				break;
+			}	
+			else
+			{
+				// we found another...
+				left += text.Left(offset);
+				left += vMkr;
+				offset += vnLen;
+				text = text.Mid(offset); // trim off the copied stuff from the start
+				offset = 0;
+			}
+		} while (offset != wxNOT_FOUND);
+		// now, find and remove all the \vt markers
+		wxString text2 = left;
+		left.Empty();
+		offset = 0;
+		do {
+			offset = FindFromPos(text2, vtMkr, offset);
+			if (offset == wxNOT_FOUND)
+			{
+				// we've processed the last pair, so just copy what remains (left will
+				// contain the \vt markers still, we use another loop to remove those)
+				left += text2;
+				break;
+			}	
+			else
+			{
+				// we found another...
+				left += text2.Left(offset);
+				offset += vtLen;
+				text2 = text2.Mid(offset); // bleed off the initial part
+				offset = 0;
+			}
+		} while (offset != wxNOT_FOUND);
+	}
+	return left;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
 /// \param  versionNum          ->  must be 1 or 2, only 1 is supported at present
@@ -141,13 +222,13 @@ MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as n
 /// depends on there being another app out there that could usefully use an AI OXES
 /// export, TE is dead in the water now since Mara project don't use it, and PT is taking
 /// over as LSDev's focus
-/*
-void DoExportAsOxes(int versionNum)
+/// BEW reinstated 19May12, for OXES v1 support
+void DoExportAsXhtml()
 {
 	// first determine whether or not the data is unstructured plain text - OXES cannot
 	// handle data not structured as scripture text (in our case, that means, "as SFM or
 	// USFM")
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument(); // <<-- so far it's unused
 	CAdapt_ItView* pView = gpApp->GetView();
 	bool bIsUnstructuredData = FALSE;
 	SPList* pList = gpApp->m_pSourcePhrases;
@@ -157,17 +238,11 @@ void DoExportAsOxes(int versionNum)
 	if (bIsUnstructuredData)
 	{
 		msg = msg.Format(_(
-"Export in OXES xml format is supported only for data originally marked up in standard format (meaning, using backslash markers).\nThe current document lacks backslash markers."));
+"Export in XHTML xml format is supported only for data originally marked up in standard format (meaning, using backslash markers).\nThe current document lacks backslash markers."));
 		wxMessageBox(msg,_("Unstructured Data"),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
-	if (versionNum > 1) 
-	{
-		msg = msg.Format(_(
-"Only version 1 is currently supported for the Open XML for Editing Scripture standard.\n The value supplied was %d"),versionNum);
-		wxMessageBox(msg,_("Invalid OXES version number"),wxICON_EXCLAMATION | wxOK);
-		return;
-	}
+
 	// check for a valid 3-letter bookCode, must be present and valid for an OXES export
 	wxString bookCode = gpApp->GetBookIDFromDoc(); // from the first CSourcePhrase instance
 	if (bookCode.IsEmpty() || bookCode == _T("OTX"))
@@ -182,13 +257,26 @@ void DoExportAsOxes(int versionNum)
 		return;
 	}
 
-	// It's SFM or USFM structured data, and the version number wanted is OXES 1, so
-	// continue processing
+	// check for a 2-letter (iso639-1) or 3-letter (iso639-3) language code. If it's an
+	// empty string, disallow the export
+	wxString langCode = gpApp->m_targetLanguageCode;
+	if (langCode.IsEmpty())
+	{
+		msg = msg.Format(_(
+"The target language's 2-letter or 3-letter code code is not set, so the export cannot be done yet. \nYou can set the right code in the Backups & Misc page of Preferences..."));
+		wxMessageBox(msg,_("No Language Code Is Set"),wxICON_WARNING);
+		return;
+	}
+		
+
+	// It's SFM or USFM structured data
 	
-	Usfm2Oxes* pToOxes = gpApp->m_pUsfm2Oxes;
+	Xhtml* pToXhtml = gpApp->m_pXhtml;
 	// set the class to build according to the version number wanted
-	pToOxes->SetOXESVersionNumber(versionNum);
-	pToOxes->SetBookID(bookCode);
+	//pToOxes->SetOXESVersionNumber(versionNum);
+	pToXhtml->SetBookID(bookCode);
+	// set the m_languageCode (public) member
+	pToXhtml->m_languageCode = gpApp->m_targetLanguageCode;
 
 	wxString filter;
 	wxString DefaultExt;
@@ -218,12 +306,12 @@ void DoExportAsOxes(int versionNum)
 	
 	// make a suitable default output filename for the export function
 	exportFilename.Remove(len-3,3); // remove the xml extension
-	exportFilename += _T("oxes"); // make it an *.oxes file type
-	// get a file Save As dialog for OXES Output
-	DefaultExt = _T("oxes");
-	filter = _("Exported OXES Documents (*.oxes)|*.oxes||"); 
+	exportFilename += _T("xhtml"); // make it an *.xhtml file type
+	// get a file Save As dialog for XHTML Output
+	DefaultExt = _T("xhtml");
+	filter = _("Exported XHTML Documents (*.xhtml)|*.xhtml||"); 
 
-    // set the default folder to be shown in the dialog, for OXES make it
+    // set the default folder to be shown in the dialog, for xhtml make it
     // m_lastTargetOutputPath which is the same as for target text
 	wxString defaultDir;
 	if (gpApp->m_lastTargetOutputPath.IsEmpty())
@@ -234,9 +322,10 @@ void DoExportAsOxes(int versionNum)
 	{
 		defaultDir = gpApp->m_lastTargetOutputPath;
 	}
+
 	// MainFrame is parent window for file dialog
 	wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
-		_("Filename and Folder For OXES Export"),
+		_("Filename and Folder For XHTML Export"),
 		defaultDir,	// empty string causes it to use the current working directory (set above)
 		exportFilename,	// default filename
 		filter,
@@ -251,9 +340,14 @@ void DoExportAsOxes(int versionNum)
 	//wxLogNull logNo; // avoid spurious messages from the system
 	
 	// we are committed to the task...
-	gpApp->m_bOxesExportInProgress = TRUE;
+	gpApp->m_bXhtmlExportInProgress = TRUE;
 
-    // get the user's desired path, & update m_lastTargetOutputPath
+	// get the user's desired path, & update m_lastTargetOutputPath; also extract the path
+	// to where the xhtml file will be saved, and the filename title (and remove any
+	// _Collab_ prefix from the title if present), and send the path and title to the XHTML
+	// component for inclusion in the title tag's metadata
+	wxString myXHTMLPath;
+	wxString myXHTMLfilename;
 	wxString exportPath = fileDlg.GetPath();
 	wxFileName fn(exportPath);
 	wxString name = fn.GetFullName();
@@ -263,6 +357,15 @@ void DoExportAsOxes(int versionNum)
 	wxASSERT(nameLen > 0 && pathLen > 0);
 
 	gpApp->m_lastTargetOutputPath = exportPath.Left(pathLen - nameLen - 1);
+	gpApp->m_pXhtml->m_myFilePath = gpApp->m_lastTargetOutputPath;
+	myXHTMLfilename = fn.GetName(); // the filename without any extension
+	int anOffset = myXHTMLfilename.Find(_T("_Collab_"));
+	if (anOffset != wxNOT_FOUND)
+	{
+		// remove up to the end of the prefix string
+		myXHTMLfilename = myXHTMLfilename.Mid(anOffset);
+	}
+	gpApp->m_pXhtml->m_myFilename = myXHTMLfilename;
 
 	// get the wxString which is the target text data -- as an export
 	wxString target;	// a buffer built from pSrcPhrase->m_targetStr strings
@@ -278,50 +381,94 @@ void DoExportAsOxes(int versionNum)
 	// document, they will be included - so we have to get rid of them later)
 	nTextLength = RebuildTargetText(target);
 
+	// remove the following markers and their text content... \free, \note, \bt and
+	// any \bt-initial custom markers, and \rem (Paratext note marker)
+	ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+
 	// Remove any collected back translations (these have no endmarker, by the way, so
 	// they are stored before \v of verses)
-	target = RemoveCollectedBacktranslations(target);
+	//target = RemoveCollectedBacktranslations(target); // BEW removed 21May12, the
+	// call of ExcludeCustomMarkersAndRemFromExport() above makes this call unneeded
+
+	bool bRTFOutput = FALSE; // we are working with USFM marked up text
+	target = ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 	// format for text oriented output
+	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(target, targetTextExport);
+
+	// If \vn <versenum> \vt <text...> markup pattern has been used, change all the \vn
+	// (verse number) markers to \vt, and remove all \t (verse text) markers
+	target = ChangeMkrs_vn_vt_To_v(target);
+
+	// change all ~ (USFM non-breaking space markers) to NBSP characters (\u00A0 or ANSI 0xA0)
+	target = ChangeTildeToNonBreakingSpace(target);
 	
+	// remove any multiple spaces
 	target = RemoveMultipleSpaces(target);
 
 	// Decompose (by chunking the (U)SFM text) and then build the OXES version 1 xml
-	target = pToOxes->DoOxesExport(target);
+	CBString myxml; myxml.Empty();
+	myxml = pToXhtml->DoXhtmlExport(target);
 
 	// save the resulting xml file in the location specified above in the File Save dialog
 	wxFile f;
 	if( !f.Open( exportPath, wxFile::write))
 	{
 		#ifdef __WXDEBUG__
-		wxLogDebug(_T("Unable to open export target text file for OXES export\n"));
+		wxLogDebug(_T("Unable to open export target text file for XHTML export\n"));
 		#endif
 		wxString msg;
 		// don't localize this, it's unlikely to ever be seen
-		msg = msg.Format(_T("Unable to open the file for exporting the target text as OXES with path:\n%s"),exportPath.c_str());
+		msg = msg.Format(_T("Unable to open the file for exporting the utf8 xhtml productions with path:\n%s"),exportPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-		gpApp->m_bOxesExportInProgress = FALSE;
+		gpApp->LogUserAction(msg);
+		gpApp->m_bXhtmlExportInProgress = FALSE;
 		return;
 	}
 	// output the final form of the string
-	#ifndef _UNICODE // ANSI
-
-		f.Write(target);
-
-	#else // Unicode
-
-		wxFontEncoding saveTgtEncoding;
-		saveTgtEncoding = gpApp->m_tgtEncoding;
-		gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
-		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
-		gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
-
-	#endif // for _UNICODE
+	DoWrite(f, myxml); // DoWrite() is a global function defined in XML.h & .cpp
 	f.Close();
-	gpApp->m_bOxesExportInProgress = FALSE;
+
+	gpApp->m_bXhtmlExportInProgress = FALSE;
+
+//#define DO_CLASS_NAMES
+#define DO_INDENT
+#define XHTML_PRETTY  // comment out when valid indenting of xhtml is wanted;
+
+#if defined(__WXDEBUG__)
+#if defined(DO_INDENT) && defined (XHTML_PRETTY)
+	gpApp->m_pXhtml->Indent_Etc_XHTML();
+#endif
+#if !defined(DO_INDENT) && !defined (XHTML_PRETTY) && defined(DO_CLASS_NAMES)
+	gpApp->m_pXhtml->Indent_Etc_XHTML();
+#endif
+#endif
 }
-*/
+
+// changes all ~ (the USFM non-breaking space marker) into \u00A0 (Unicode version) or
+// into \A0 (Regular version)
+wxString ChangeTildeToNonBreakingSpace(wxString text)
+{
+	wxChar tilde = _T('~');
+#if defined(_UNICODE)
+	wxChar nbsp = (wxChar)0x00A0;
+#else
+	wxChar nbsp = (wxChar)0xA0;
+#endif
+	size_t count = text.Len();
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		wxChar aChar = text[index];
+		if (aChar == tilde)
+		{
+			text.SetChar(index,nbsp); // could use: text[index] = nbsp; but I don't trust it
+		}
+	}
+	return text;
+}
+
 wxString RemoveCollectedBacktranslations(wxString& str)
 {
 	wxString out; out.Empty();
@@ -1309,6 +1456,20 @@ void ExcludeCustomMarkersFromExport()
 	}
 }
 
+// the following is like ExcludeCustomMarkersFromExport(), but adds exclusion of the USFM
+// \rem marker and its content from the export.
+// Usage: used in OXES export support -- see DoExportAsOxes()
+// Created: BEW 19May12
+void ExcludeCustomMarkersAndRemFromExport()
+{
+	ExcludeCustomMarkersFromExport(); // exclude \note, \free, and also \bt & friends
+	wxString rem = _T("rem"); // bareMkr for \rem
+	int index = FindMkrInMarkerInventory(rem);
+	if (index != wxNOT_FOUND)
+	{
+		m_exportFilterFlags[index] = 1;
+	}
+}
 
 // The default option (2nd param is TRUE) for the following call is almost the functional
 // equivalent to a doc version 4 test for a non-empty m_markers member. The difference is
@@ -14672,7 +14833,12 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 	// others in that section of text
 	if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote)
 	{
-/* BEW removed 15Jun11, because OXES's status is unclear, so we'll not support it until it is needed
+/* 
+		// BEW removed 15Jun11, because OXES's status is unclear, so we'll not support it 
+		// until it is needed
+		// BEW 19May12 leave it commented out, because our Oxes v1 support will not
+		// support inclusion of Adapt It notes, (probably never, but if we change our
+		// minds then reinstate this later)
 		if (gpApp->m_bOxesExportInProgress)
 		{
 			// 'numberOfChars' is not the number of characters in the note itself, but
@@ -16228,6 +16394,12 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 
+//#if defined(__WXDEBUG__)
+//		if (pSrcPhrase->m_nSequNumber == 4223)
+//		{
+//			int break_here = 1;
+//		}
+//#endif
 		if (pSrcPhrase->m_bRetranslation)
 		{
 			// in the following call, str gets assigned internal markers
@@ -17812,9 +17984,12 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					markersPrefix.Trim();
 					markersPrefix += aSpace + noteMkr;
-/* BEW 15Jun11, removed OXES support until it is needed somewhere
+/* 
+					// BEW 15Jun11, removed OXES support until it is needed somewhere
 					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
 					// word for the note stored here
+					// BEW 19May12, reinstated OXES support, but not with support of \note
+					// so leave this commented out (until such time as we changes our minds)
 					if (gpApp->m_bOxesExportInProgress)
 					{
 						// 'numberOfChars' is not the number of characters in the note itself, but
@@ -18083,9 +18258,12 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					unfilteredStr.Trim();
 					unfilteredStr += aSpace + noteMkr;
-/* BEW 15Jun11, removed OXES support until it is needed somewhere
+/* 
+					// BEW 15Jun11, removed OXES support until it is needed somewhere
 					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
 					// word for the note stored here
+					// BEW 19May12, reinstated OXES support, but not support for \note,
+					// so leave this commented out (unlesss we later change our minds)
 					if (gpApp->m_bOxesExportInProgress)
 					{
 						// 'numberOfChars' is not the number of characters in the note itself, but

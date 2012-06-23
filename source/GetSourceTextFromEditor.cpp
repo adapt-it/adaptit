@@ -376,7 +376,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	if (bTargetProjRequiredButNotFound)
 	{
 		strProjectNotSel += _T("\n   ");
-		// BEW 15Jun11 changed "Texts" to "Drafts" in line with email discussion where we
+		// BEW 16Jun11 changed "Texts" to "Drafts" in line with email discussion where we
 		// agreed to use 'draft' or 'translation draft' instead of 'translation' so as to
 		// avoid criticism for claiming to be a translation app, rather than a drafting app
 		strProjectNotSel += _("Designate a project to use for Transferring Translation Drafts");

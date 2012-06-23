@@ -50,7 +50,8 @@ void		DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion); //
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
 							  wxString exportName, wxString& Buffer);
-//void		DoExportAsOxes(int versionNum); // BEW created 2Sep10 BEW removed 15Jun11 until support for OXES is needed
+// BEW created 9Jun12
+void		DoExportAsXhtml(); 
 	
 // The following ParseWordRTF() function is the same as the legacy ParseWord() function in the Doc before
 // Bruce rewrote it for doc v 5 purposes. I've renamed it to ParseWordRTF and reclaimed it here for RTF output
@@ -149,6 +150,8 @@ void		DetermineRTFDestinationMarkerFlagsFromBuffer(wxString& textStr,
 							bool& bDocHasFreeTrans,
 							bool& bDocHasBackTrans,
 							bool& bDocHasAINotes);
+wxString	ChangeMkrs_vn_vt_To_v(wxString text); // BEW created 19May12
+wxString	ChangeTildeToNonBreakingSpace(wxString text); // BEW created 19May12
 void		CountTotalCurlyBraces(wxString outputStr, int& nOpeningBraces, int& nClosingBraces);
 int			ClearBuffer();
 wxString	IntToRoman(int n);
@@ -182,4 +185,5 @@ wxString	GetStyleNumberStrAssociatedWithMarker(wxString bareMkr,
 void		RemoveMarkersOfType(enum TextType textType, wxString& text);
 int			FindMkrInMarkerInventory(wxString mkr); // BEW added 3Aug11
 void		ExcludeCustomMarkersFromExport(); // BEW added 3Aug11
+void		ExcludeCustomMarkersAndRemFromExport(); // BEW added 19May12
 #endif //ExportFunctions_h

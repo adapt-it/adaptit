@@ -249,21 +249,21 @@ void CExportSaveAsDlg::SetExportTypeDescription(ExportSaveAsType newType)
 /////////////////////////////////////////////////////////////////////////////
 // Event Handlers
 /////////////////////////////////////////////////////////////////////////////
-void CExportSaveAsDlg::OnrdoFilterOnSelect(wxCommandEvent& event)
+void CExportSaveAsDlg::OnrdoFilterOnSelect(wxCommandEvent& WXUNUSED(event))
 {
     bExportAll = FALSE;
     bExportSelectedMarkersOnly = TRUE;
     btnFilterOptions->Enable();
 }
 
-void CExportSaveAsDlg::OnrdoFilterOffSelect(wxCommandEvent& event)
+void CExportSaveAsDlg::OnrdoFilterOffSelect(wxCommandEvent& WXUNUSED(event))
 {
     bExportAll = TRUE;
     bExportSelectedMarkersOnly = FALSE;
     btnFilterOptions->Disable();
 }
 
-void CExportSaveAsDlg::OnbtnFilterOptionsClick(wxCommandEvent& event)
+void CExportSaveAsDlg::OnbtnFilterOptionsClick(wxCommandEvent& WXUNUSED(event))
 {
 	// user clicked on Export Filter/Options button
 	CExportOptionsDlg dlg(this);
@@ -291,28 +291,28 @@ void CExportSaveAsDlg::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
-void CExportSaveAsDlg::OnbtnExportToTxtClick(wxCommandEvent& event)
+void CExportSaveAsDlg::OnbtnExportToTxtClick(wxCommandEvent& WXUNUSED(event))
 {
     m_enumSaveAsType = ExportSaveAsTXT;
     bExportToRTF = false;
     SetExportTypeDescription(m_enumSaveAsType);
 }
 
-void CExportSaveAsDlg::OnbtnExportToRtfClick(wxCommandEvent& event)
+void CExportSaveAsDlg::OnbtnExportToRtfClick(wxCommandEvent& WXUNUSED(event))
 {
     m_enumSaveAsType = ExportSaveAsRTF;
     bExportToRTF = true;
     SetExportTypeDescription(m_enumSaveAsType);
 }
 
-void CExportSaveAsDlg::OnbtnExportToXhtmlClick(wxCommandEvent& event)
+void CExportSaveAsDlg::OnbtnExportToXhtmlClick(wxCommandEvent& WXUNUSED(event))
 {
     m_enumSaveAsType = ExportSaveAsXHTML;
     bExportToRTF = false;
     SetExportTypeDescription(m_enumSaveAsType);
 }
 
-void CExportSaveAsDlg::OnbtnExportToPathwayClick(wxCommandEvent& event)
+void CExportSaveAsDlg::OnbtnExportToPathwayClick(wxCommandEvent& WXUNUSED(event))
 {
     m_enumSaveAsType = ExportSaveAsPathway;
     bExportToRTF = false;
