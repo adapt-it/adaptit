@@ -78,11 +78,6 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pUsfm2IntMap)[mt1Mkr] = (int)title_main_;
 	(*m_pUsfm2IntMap)[mt2Mkr] = (int)title_secondary_;
 	(*m_pUsfm2IntMap)[mt3Mkr] = (int)title_tertiary_;
-
-	// sectionHead_range_ this is for \mr marker, eg. "major section range: \c 1 \ms BOOK ONE \mr (Psalms 1-41) \s True happiness
-	(*m_pUsfm2IntMap)[mrMkr] = (int)sectionHead_range_;
-	// sectionHead_psalm_ this is for Hebrew Text of psalms (the title info at top of some psalms), USFM \d
-	(*m_pUsfm2IntMap)[dMkr] = (int)sectionHead_psalm_;
 	
 	// "major section: \c 1 \ms BOOK ONE \mr (Psalms 1-41) \s True happiness
 	(*m_pUsfm2IntMap)[msMkr] = (int)major_section_;  // not yet supported in xhtml
@@ -1152,40 +1147,40 @@ CBString Xhtml::BuildTitleInfo(wxString*& pText)
 			m_whichTagEnum = (XhtmlTagEnum)(*m_pUsfm2IntMap)[m_beginMkr];
 
 
-			switch (m_whichTagEnum)
-			{
 			// whichever of the \mt markers we come to first, process it and and any
 			// others which follow it in the one function, and return only having
 			// parsed beyond them all, and deal with them all
-			case title_main_: // for \mt or \mt1
+			// 
+			if (m_whichTagEnum == title_main_) // for \mt or \mt1
+			{
 				myxml = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(m_data));
 				out += myxml;
 				myxml.Empty();
 				m_beginMkr.Empty();
 				m_endMkr.Empty();
-				break;
-			case title_secondary_: // for \mt2
+			}
+			else if (m_whichTagEnum == title_secondary_) // for \mt2
+			{
 				myxml = BuildSpan(plusClass, title_secondary_, GetLanguageCode(), ConvertData(m_data));
 				out += myxml;
 				myxml.Empty();
 				m_beginMkr.Empty();
 				m_endMkr.Empty();
-				break;
-			case title_tertiary_: // for \mt3
+			}
+			else if (m_whichTagEnum ==  title_tertiary_) // for \mt3
+			{
 				myxml = BuildSpan(plusClass, title_tertiary_, GetLanguageCode(), ConvertData(m_data));
 				out += myxml;
 				myxml.Empty();
 				m_beginMkr.Empty();
 				m_endMkr.Empty();
-				break;
-		}
-			
+			}
 		// are we at the end of the \mt* markers?
 		} while (m_nextMkr == mtMkr || m_nextMkr == mt1Mkr || m_nextMkr == mt2Mkr || m_nextMkr == mt3Mkr);
 	}
 #ifdef __WXDEBUG__
 	wxString s = ToUtf16(out);
-	wxLogDebug(_T("BuildTitleInfo():   %s"), s);
+	wxLogDebug(_T("BuildTitleInfo():   %s"), s.c_str());
 #endif
 	return out;
 }
@@ -1837,7 +1832,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 
 	
 	// add what we've produced to the string to be returned to the caller
-	wxLogDebug(_T("Top Productions:   %s"), ToUtf16(myxml));
+	wxLogDebug(_T("Top Productions:   %s"), (ToUtf16(myxml)).c_str());
 	xhtmlStr += myxml;
 
 	// scratch CBString local values for use in passing arguments; for the language code,
@@ -2638,13 +2633,13 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			// unsupported markers will go thru here, and do nothing -- but we can give a wxLogDebug()
 			// to warn me
 			wxString msg;
-			msg = msg.Format(_T(" *** Not yet supported Marker (as yet):  %s    ***"), m_beginMkr);
+			msg = msg.Format(_T(" *** Not yet supported Marker (as yet):  %s    ***"), m_beginMkr.c_str());
 			wxLogDebug(msg);
 
 			// put something in the text too
 			CBString unsupportedStr;
 			wxString txtMsg;
-			txtMsg = txtMsg.Format(_T("<!-- ******** Not yet supported:  %s  ******** -->"),m_beginMkr);
+			txtMsg = txtMsg.Format(_T("<!-- ******** Not yet supported:  %s  ******** -->"),m_beginMkr.c_str());
 			unsupportedStr = ToUtf8(txtMsg);
 			xhtmlStr += m_eolStr;
 			xhtmlStr += unsupportedStr;
@@ -3082,7 +3077,7 @@ CBString Xhtml::BuildDivTag(XhtmlTagEnum key)
 	div = div.Mid(offset + length); // bleed off what we've found
 	left += attr;
 	left += div;
-	wxLogDebug(_T("BuildDivTag():   %s"), ToUtf16(left));
+	wxLogDebug(_T("BuildDivTag():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
 
@@ -3157,7 +3152,7 @@ CBString Xhtml::BuildSpan(SpanTypeEnum spanType, XhtmlTagEnum key, CBString lang
 		// append what remains
 		left += span;
 	}
-	wxLogDebug(_T("BuildSpan():   %s"), ToUtf16(left));
+	wxLogDebug(_T("BuildSpan():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
 
@@ -3187,7 +3182,7 @@ CBString Xhtml::BuildNoteTgtRefSpan(CBString langCode, CBString chvsREF)
 	left += chvsREF;
 	// append what remains
 	left += span;
-	wxLogDebug(_T("BuildNoteTgtRefSpan():   %s"), ToUtf16(left));
+	wxLogDebug(_T("BuildNoteTgtRefSpan():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
 
@@ -3229,7 +3224,7 @@ CBString Xhtml::BuildCaptionRefSpan(CBString langCode, CBString chvsREF)
 	}
 	// append what remains
 	left += span;
-	wxLogDebug(_T("BuildCaptionRefSpan():   %s"), ToUtf16(left));
+	wxLogDebug(_T("BuildCaptionRefSpan():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
 
@@ -3281,7 +3276,7 @@ CBString Xhtml::BuildCHorV(SpanTypeEnum spanType, CBString langCode, CBString co
 		// append what remains
 		left += span;
 	}
-	wxLogDebug(_T("BuildCorV():   %s"), ToUtf16(left));
+	wxLogDebug(_T("BuildCorV():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
 CBString Xhtml::InsertDaggerIntoTitleAttr(CBString templateStr)

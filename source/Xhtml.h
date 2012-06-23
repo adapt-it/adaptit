@@ -73,8 +73,6 @@ enum XhtmlTagEnum {
 	title_main_,		 // for \mt or \\mt1
 	title_secondary_,    // for \mt2
 	title_tertiary_,     // for \mt3
-	sectionHead_range_,  // Oxes label only, for USFM \mr marker, eg. \mr (Psalms 72-89) ** not yet supported in xhtml**
-	sectionHead_psalm_,  // Oxes label only, for USFM \d Hebrew Text of psalms  ** not yet supported in xhtml** 
 
 	// ***** NOTE *****
 	// The Sena 3 data uses Section_Head as the mapping from \s or \s1; but Greg Trihus's
