@@ -434,6 +434,23 @@ void DoExportAsXhtml()
 
 	gpApp->m_bXhtmlExportInProgress = FALSE;
 
+// ***************************  NOTE!  ***************************************************
+// There are 3 #defines just below. If you want to have, for debugging purposes, an
+// indented pretty-formated SECOND file (same filename but with "_IndentedXHTML" appended
+// to the filename title) output to the same folder as the one where the xhtml export goes,
+// then uncomment out DO_INDENT and XHTML_PRETTY here; and also you MUST do the same at the
+// top of Xhtml.cpp. You'll then get a second file dialog which allows you to chose the
+// exported xhtml file, and the indenting and pretty formatting will be done. The pretty
+// formatting verticall lines up <span> tags, that's all. If you just choose DO_INDENT, 
+// you only get <div> tags lined up vertically. If you do not uncomment out those two, but
+// instead uncomment out just DO_CLASS_NAMES you'll still see the extra file dialog, you
+// choose the exported xhtml file as before, but the output is just a vertical list of all
+// the distinct class attribute's stylenames -- such as Section_Head, Line1, Line2, and so
+// forth. Do this if you want to get an inventory of such names for the xhtml just
+// exported. Likewise, do the same uncommenting out at the top of Xhtml.cpp to make this
+// work. Whether you comment them out again or not, these extra jobs are only done in the
+// debug build. So they won't do anything in a release version.
+//  **************************************************************************************
 //#define DO_CLASS_NAMES
 #define DO_INDENT
 #define XHTML_PRETTY  // comment out when valid indenting of xhtml is wanted;
