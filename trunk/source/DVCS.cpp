@@ -159,8 +159,8 @@ int  call_hg ( bool bDisplayOutput )
 	result = wxExecute (str, hg_output, errors, 0);
 
 	// The only indication we get that something went wrong, is a nonzero result.  It seems to always be 255, whatever the error.
-	// It may mean that hg wasn't found, or it could be an illegal hg command.  Eventually we should suss this out a bit
-	// more, using the errors wxArrayString.
+	// It may mean that hg wasn't found, or it could be an illegal hg command.  The details will appear in a separate wx message or
+	// will land in our errors wxArrayString.  See below.
 
 	if (result)		// An error occurred
 	{	
@@ -169,7 +169,7 @@ int  call_hg ( bool bDisplayOutput )
 	}
 	else
 	{		// hg's stdout will land in our hg_output wxArrayString.  There can be a number of strings.
-			// Just concatenating them with a space between looks OK so far.  We only display a message
+			// Just concatenating them with a newline between looks OK so far.  We only display a message
 			// with the output if we've been asked to.  Otherwise the caller will handle.
 		if (bDisplayOutput) 
 		{
@@ -195,7 +195,8 @@ int  call_hg ( bool bDisplayOutput )
 			
 			wxMessageBox (_T("Error message:\n") + str1);
 		}
-		else			// there was an error, but no error message.  So we'll just do something...
+		else			// there was an error, but no error message.  Normally wx will display a message, but it's asynchronous.
+						// It should come up shortly.
 		{
 			wxMessageBox (_T("An error occurred -- further information should follow."));
 		}

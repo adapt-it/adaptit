@@ -13,6 +13,7 @@
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
+		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */; };
 		7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */; };
@@ -166,6 +167,8 @@
 		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
+		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
+		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
@@ -461,6 +464,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				27AC52F8159802C4009E7C07 /* Xhtml.h */,
+				27AC52F61598029E009E7C07 /* Xhtml.cpp */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -989,6 +994,7 @@
 				7D66132914D87232007A2C30 /* ClientServerConnection.cpp in Sources */,
 				7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */,
 				7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */,
+				27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
