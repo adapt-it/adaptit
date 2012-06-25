@@ -1488,7 +1488,8 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 {
 	int				commit_result;
 	wxCommandEvent	dummy;
-	wxDateTime		origDate = gpApp->m_revisionDate;
+	wxDateTime		localDate,
+					origDate = gpApp->m_revisionDate;
 	wxString		origOwner = gpApp->m_owner;
 
 // Do we need a check here that the file is really under version control??  More likely
@@ -1509,8 +1510,10 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	}
 	
 // Here we find the date/time and the commit count, which we'll save in the file before we do the commit.
+// We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 	
-	gpApp->m_revisionDate = wxDateTime::Now();
+	localDate = wxDateTime::Now();
+	gpApp->m_revisionDate = localDate.ToUTC (FALSE);
 	gpApp->m_commitCount += 1;					// bump the commit count
 	
 	gpApp->m_owner = gpApp->m_AIuser;			// owner must be assigned on a commit
@@ -3641,8 +3644,7 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 ///////////////////////////////////////////////////////////////////////////////
 CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 {
-	CBString	bstr;
-	bstr.Empty();
+	CBString	bstr;  bstr.Empty();
 	CBString	btemp;
 	int			i, commitCount;
 	wxString	tempStr;
@@ -3671,10 +3673,11 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add versionable schema number string
 
-	numStr = gpApp->Convert16to8(gpApp->m_owner);
-	InsertEntities(numStr);				// ensure any XML metacharacters in the owner name are escaped properly
-	bstr += "\" owner=\"" + numStr;		// add owner name
-
+// mrh - new fields with docVersion 7 and 8:
+	btemp = gpApp->Convert16to8(gpApp->m_owner);
+	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
+	bstr += "\" owner=\"" + btemp;		// add owner name
+	
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
@@ -3686,7 +3689,8 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" commitcnt=\"" + numStr;	// add revision number
 	
 	if (gpApp->m_revisionDate.IsValid()) 
-		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));		// This is failing on Windows!!!!
+		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));		
+																	// %T gives an error on Windows, so we have to spell it out!
 	else 
 		numStr = "";
 	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
@@ -3760,6 +3764,14 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" tgtname=\"";
 	btemp = gpApp->Convert16to8(gpApp->m_targetName);
 	bstr += btemp; // add name of target text's language
+
+// mrh June 2012 - not active yet
+#ifdef  testxxxx
+	btemp = gpApp->Convert16to8 (UNASSIGNED);		// source and target language codes -- not used yet
+	bstr += "\" srccode=\"" + btemp;
+	bstr += "\" tgtcode=\"" + btemp;
+#endif
+
 	bstr += "\"\r\n"; // TODO: EOL chars need adjustment for Linux and Mac???
 
 	// third line - one attribute (potentially large, containing unix strings with filter markers,
@@ -3774,7 +3786,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\"/>\r\n"; // TODO: EOL chars need adjustment for Linux and Mac??
 	return bstr;
 
-#else // regular version
+#else // non-Unicode version
 
 	// first line -- element name and 4 attributes
 	for (i = 0; i < nTabLevel; i++)
@@ -3791,11 +3803,12 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr << GetCurrentDocVersion();
 	numStr = tempStr;
 	bstr += numStr; // add versionable schema number string
-	
-	numStr = gpApp->m_owner;			// no unicode conversion needed
-	InsertEntities(numStr);				// ensure any XML metacharacters in the owner name are escaped properly
-	bstr += "\" owner=\"" + numStr;		// add owner name
 
+// mrh - new fields with docVersion 7 and 8:
+	btemp = gpApp->m_owner;				// no unicode conversion needed
+	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
+	bstr += "\" owner=\"" + btemp;		// add owner name
+	
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
@@ -3857,6 +3870,12 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" tgtname=\"";
 	btemp = gpApp->m_targetName;
 	bstr += btemp; // add name of target text's language
+
+// mrh June 2012
+	btemp = UNASSIGNED;				// source and target language codes -- not used yet
+	bstr += "\" srccode=\"" + btemp;
+	bstr += "\" tgtcode=\"" + btemp;
+	
 	bstr += "\"\r\n"; // TODO: EOL chars need adjustment for Linux and Mac??
 
 	// third line - one attribute (potentially large, containing unix strings with filter markers,

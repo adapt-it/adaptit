@@ -3081,37 +3081,34 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 
 			// mrh 20Apr12 - for docVersion 7, we look for the 3 new items:
 	
-				else if (gnDocVersion >= 7)
+				else if (gnDocVersion >= 7 && attrName == xml_owner)
 				{
-					if (attrName == xml_owner)
-					{
-						ReplaceEntities (attrValue);			// first restore any XML metacharacters
-		#ifdef _UNICODE
-						gpApp->m_owner = gpApp->Convert8to16 (attrValue);
-		#else
-						gpApp->m_owner = attrValue;
-		#endif	
-					}
+					ReplaceEntities (attrValue);			// first restore any XML metacharacters
+	#ifdef _UNICODE
+					gpApp->m_owner = gpApp->Convert8to16 (attrValue);
+	#else
+					gpApp->m_owner = attrValue;
+	#endif	
+				}
 
-					else if (attrName == xml_commitcnt)
-					{	
-						if (attrValue == "****")
-							gpApp->m_commitCount = -1;			// means not under version control yet
-						else
-							gpApp->m_commitCount = atoi(attrValue);
-					}
-					else if (attrName == xml_revdate)
-					{		
-		#ifdef _UNICODE
-						wxString	tmp = gpApp->Convert8to16(attrValue);
-		#else
-						wxString	tmp = attrValue;
-		#endif
-						const wxChar*  result = gpApp->m_revisionDate.ParseDateTime (tmp);
-						if (result == NULL)
-							gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
-					}
-				}			// (gnDocVersion >= 7)
+				else if (gnDocVersion >= 7 && attrName == xml_commitcnt)
+				{	
+					if (attrValue == "****")
+						gpApp->m_commitCount = -1;			// means not under version control yet
+					else
+						gpApp->m_commitCount = atoi(attrValue);
+				}
+				else if (gnDocVersion >= 7 && attrName == xml_revdate)
+				{		
+	#ifdef _UNICODE
+					wxString	tmp = gpApp->Convert8to16(attrValue);
+	#else
+					wxString	tmp = attrValue;
+	#endif
+					const wxChar*  result = gpApp->m_revisionDate.ParseDateTime (tmp);
+					if (result == NULL)
+						gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
+				}
 				
 				else if (attrName == xml_specialcolor)
 				{
