@@ -1022,12 +1022,12 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		{
 			// mrh 20Apr12 - it's apparently me, but now we have to check if the currently logged-in user (m_AIuser)
 			// is the same as the document's owner for version control (in m_owner).  A mismatch must disallow write
-			// permission.  But if m_owner is UNASSIGNED, anything goes.  This also happens if version control hasn't
+			// permission.  But if m_owner is NOOWNER, anything goes.  This also happens if version control hasn't
 			// been enabled for this document.
 			// Also, if we're looking at a previous revision as a trial, we need to be read-only.  The condition for
 			//  this is m_trialRevNum being non-negative.
 			
-			if ( (m_pApp->m_owner != UNASSIGNED) && (m_pApp->m_owner != m_pApp->m_AIuser) )
+			if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_AIuser) )
 			{
 #ifdef _DEBUG_ROP
 				wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but doc's owner mismatches, so returning TRUE"));

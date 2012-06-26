@@ -362,6 +362,10 @@ const char xml_srcname[] = "srcname";
 /// Attribute name used in Adapt It XML documents
 const char xml_tgtname[] = "tgtname";
 /// Attribute name used in Adapt It XML documents
+const char xml_srccode[] = "srccode";
+/// Attribute name used in Adapt It XML documents
+const char xml_tgtcode[] = "tgtcode";
+/// Attribute name used in Adapt It XML documents
 const char xml_others[] = "others";
 
 // next ones added by BEW 1Jun10 for kbv2 support
@@ -466,6 +470,10 @@ const char xml_rs[] = "RS";
 const char xml_srcnm[] = "srcName";
 /// Attribute name used in Adapt It XML KB i/o
 const char xml_tgtnm[] = "tgtName";
+/// Attribute name used in Adapt It XML KB i/o
+const char xml_srccod[] = "srcCode";
+/// Attribute name used in Adapt It XML KB i/o
+const char xml_tgtcod[] = "tgtCode";
 /// Attribute name used in Adapt It XML KB i/o
 const char xml_n[] = "n";
 /// Attribute name used in Adapt It XML KB i/o
@@ -2078,11 +2086,13 @@ public:
 
 
 	// mrh 2012-04-17 The current user of AI, introduced for version control.  This will
-	//  probably be the user name + machine name.  "****" means "unassigned, up for grabs".
+	//  probably be the user name + machine name.  "****" means "no owner, up for grabs".
 	//  We only assign this string if version control is enabled.  If a different user
 	//  opens the document, it will come up read-only.
 
-#define  UNASSIGNED  _T("****")			// a real user can't have asterisks, and must have "@"
+#define  NOOWNER	_T("****")			// a real user can't have asterisks, and must have "@"
+#define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2 
+										//  as being for private use, so this can never be a real language code
 
 	wxString	m_AIuser;				// e.g. joe bloggs@joesMachine
 
@@ -2098,7 +2108,7 @@ public:
 	wxDateTime	m_revisionDate;			// when this revision was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_AIuser must match before a commit is allowed,
-										// unless either is unassigned.
+										// unless either is "no owner".
 
 	/////////////////////////////////////////////////////////////////////////////////
     // Variable declarations moved here from the View because the wxWidgets doc/view

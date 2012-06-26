@@ -1842,7 +1842,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		// to automatically call up the CLanguageCodesDlg. If they don't exist yet, then
 		// we call up the CLanguageCodesDlg here automatically so the user can enter them 
 		// - needed for the KB Lift export.
-		if (m_pApp->m_sourceLanguageCode.IsEmpty() || m_pApp->m_targetLanguageCode.IsEmpty())
+		if ( m_pApp->m_sourceLanguageCode.IsEmpty() || m_pApp->m_targetLanguageCode.IsEmpty()
+			|| m_pApp->m_sourceLanguageCode == NOCODE || m_pApp->m_targetLanguageCode == NOCODE )
+														// mrh June 2012 - account for NOCODE as well as empty
 		{
 			wxString srcCode;
 			wxString tgtCode;
@@ -4362,6 +4364,32 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 #endif
 		InsertEntities(tempStr);
 		aStr += tempStr;
+
+		// mrh June 2012 - new fields for kbVersion 3 - not active yet
+#ifdef  testxxxx
+		if (m_pApp->m_sourceLanguageCode.IsEmpty())
+			m_pApp->m_sourceLanguageCode = NOCODE;
+		if (m_pApp->m_targetLanguageCode.IsEmpty())
+			m_pApp->m_targetLanguageCode = NOCODE;						// ensure we output something
+		aStr += "\" ";
+		aStr += xml_srccod;
+	#ifdef _UNICODE
+		tempStr = m_pApp->Convert16to8 (m_pApp->m_sourceLanguageCode);		// source language code
+	#else
+		tempStr = m_pApp->m_sourceLanguageCode;
+	#endif
+		aStr += "=\"" + tempStr;
+		
+		aStr += "\" ";
+		aStr += xml_tgtcod;
+	#ifdef _UNICODE
+		tempStr = m_pApp->Convert16to8 (m_pApp->m_targetLanguageCode);		// target language code
+	#else
+		tempStr = m_pApp->m_targetLanguageCode;
+	#endif
+		aStr += "=\"" + tempStr;
+#endif
+		
 		aStr += "\" max=\"";
 		intStr.Empty(); // needs to start empty, otherwise << will 
 						// append the string value of the int

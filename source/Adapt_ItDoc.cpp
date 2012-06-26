@@ -3681,7 +3681,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
-		tempStr << UNASSIGNED;			// this doc isn't under version control
+		tempStr << NOOWNER;			// this doc isn't under version control
 	else
 		tempStr << commitCount;			// this many commits have been done
 	
@@ -3765,11 +3765,21 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	btemp = gpApp->Convert16to8(gpApp->m_targetName);
 	bstr += btemp; // add name of target text's language
 
-// mrh June 2012 - not active yet
+// mrh June 2012 - new fields for docVersion 8 - not active yet
 #ifdef  testxxxx
-	btemp = gpApp->Convert16to8 (UNASSIGNED);		// source and target language codes -- not used yet
-	bstr += "\" srccode=\"" + btemp;
-	bstr += "\" tgtcode=\"" + btemp;
+	if (gpApp->m_sourceLanguageCode.IsEmpty())
+		gpApp->m_sourceLanguageCode = NOCODE;
+	if (gpApp->m_targetLanguageCode.IsEmpty())
+		gpApp->m_targetLanguageCode = NOCODE;		// ensure we output something
+	bstr += "\" ";
+	bstr += xml_srccode;
+	btemp = gpApp->Convert16to8 (gpApp->m_sourceLanguageCode);		// source language code
+	bstr += "=\"" + btemp;
+
+	bstr += "\" ";
+	bstr += xml_tgtcode;
+	btemp = gpApp->Convert16to8 (gpApp->m_targetLanguageCode);		// target language code
+	bstr += "=\"" + btemp;
 #endif
 
 	bstr += "\"\r\n"; // TODO: EOL chars need adjustment for Linux and Mac???
@@ -3812,7 +3822,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
-		tempStr << UNASSIGNED;			// this doc isn't under version control
+		tempStr << NOOWNER;			// this doc isn't under version control
 	else
 		tempStr << commitCount;			// this many commits have been done
 		
@@ -3871,10 +3881,18 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	btemp = gpApp->m_targetName;
 	bstr += btemp; // add name of target text's language
 
-// mrh June 2012
-	btemp = UNASSIGNED;				// source and target language codes -- not used yet
-	bstr += "\" srccode=\"" + btemp;
-	bstr += "\" tgtcode=\"" + btemp;
+	// mrh June 2012 - new fields for docVersion 8 - not active yet
+#ifdef  testxxxx
+	bstr += "\" ";
+	bstr += xml_srccode;
+	btemp = gpApp->m_sourceLanguageCode;		// source language code
+	bstr += "=\"" + btemp;
+	
+	bstr += "\" ";
+	bstr += xml_tgtcode;
+	btemp = gpApp->m_targetLanguageCode;		// target language code
+	bstr += "=\"" + btemp;
+#endif
 	
 	bstr += "\"\r\n"; // TODO: EOL chars need adjustment for Linux and Mac??
 

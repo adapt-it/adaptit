@@ -312,7 +312,7 @@ bool  commit_valid()
 {
 	CAdapt_ItApp*	pApp = &wxGetApp();
 
-	if (pApp->m_AIuser == UNASSIGNED || pApp->m_owner == UNASSIGNED)  return TRUE;
+	if (pApp->m_AIuser == NOOWNER || pApp->m_owner == NOOWNER)  return TRUE;
 	
 	if (pApp->m_AIuser != pApp->m_owner)
 	{
