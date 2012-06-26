@@ -235,7 +235,7 @@ void ChooseLanguageCode::OnOK(wxCommandEvent& event)
 		nSel = m_pListTgtCodes->GetSelection();
 		s = m_arrTargetCodes.Item(nSel);
 		// check that we are not mixing languages
-		if (m_pApp->m_targetLanguageCode.IsEmpty())
+		if (m_pApp->m_targetLanguageCode.IsEmpty() || m_pApp->m_targetLanguageCode == NOCODE)	// mrh June 2012 - account for NOCODE as well as empty
 		{
 			// the user has not set the target language's ethnologue code
 			// as yet, so all we can do is assume the data is appropriate,

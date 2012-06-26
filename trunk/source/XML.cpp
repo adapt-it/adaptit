@@ -957,8 +957,8 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 	}
 	if (bOpenOK)
 	{
-		gpApp->m_owner = UNASSIGNED;			// mrh - initial defaults.  If we read the appropriate tags, these will be replaced.
-		gpApp->m_commitCount = -1;				//  means not under version control (yet)
+		gpApp->m_owner = NOOWNER;			// mrh - initial defaults.  If we read the appropriate tags, these will be replaced.
+		gpApp->m_commitCount = -1;			//  means not under version control (yet)
 		gpApp->m_revisionDate = wxInvalidDateTime;
 
 		wxStructStat status;
@@ -7065,8 +7065,9 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 
 	// disallow the import if the ethnologue code in the <form> element does not 
 	// match the app's m_sourceLanguageCode -- we don't allow languages to be mixed
-	if (!gpApp->m_sourceLanguageCode.IsEmpty() &&
-		(gpApp->m_sourceLanguageCode != gpApp->m_LIFT_src_lang_code))
+	if (!gpApp->m_sourceLanguageCode.IsEmpty() 
+		&& (gpApp->m_sourceLanguageCode != NOCODE)			// mrh June 2012 -- account for NOCODE as well as empty
+		&& (gpApp->m_sourceLanguageCode != gpApp->m_LIFT_src_lang_code))
 	{
 		wxString msg;
 		msg = msg.Format(_T("The source language already has the code %s which does not match the code %s in the LIFT file for the source text language.\nImporting this LIFT file would mix two different languages in the one knowledge base, which is not allowed.\nThis LIFT import attempt will not be done."),
