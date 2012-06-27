@@ -417,6 +417,8 @@
 		<Unit filename="../../source/XML.h" />
 		<Unit filename="../../source/XMLErrorDlg.cpp" />
 		<Unit filename="../../source/XMLErrorDlg.h" />
+		<Unit filename="../../source/Xhtml.cpp" />
+		<Unit filename="../../source/Xhtml.h" />
 		<Unit filename="../../source/base64.cpp" />
 		<Unit filename="../../source/base64.h" />
 		<Unit filename="../../source/conschk_exists_notu_dlg.cpp" />
