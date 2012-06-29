@@ -59,8 +59,10 @@
 // uuid="theUuid", the uuids are in subfields of length 8,4,4,4,12, hyphen separated, as
 // required by LIFT format, and there will be a standoff markup file as well, with
 // metadata, linked by the uuids. Prior to 3May10, the KB was not versioned.
-#define KB_VERSION2			2 // to coincide with the introduction of docVersion 5 (at 5.3.0?)
-#define KB_VERSION1			1 // legacy KBs, from 1.0.0 to 5.2.x
+
+#define KB_VERSION3			3	// adding new fields for source and target language codes
+#define KB_VERSION2			2	// to coincide with the introduction of docVersion 5 (at 5.3.0?)
+#define KB_VERSION1			1	// legacy KBs, from 1.0.0 to 5.2.x
 
 //#define MAKEPUBLIC		// temporary, to conditionally compile access to CTargetUnit::m_uuid
 							// directly, and if undefined, by access functions - later
