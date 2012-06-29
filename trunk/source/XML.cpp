@@ -3049,6 +3049,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			// to use versions 5.2.4 or 5.2.5 will skip the parsing of the 3 new strings
 		case 6:
 		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
+		case 8:			// mrh June 2012 - docVersion 8 adds source and target language codes.
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
@@ -3163,6 +3164,21 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (gbTryingMRUOpen)
 						gpApp->m_targetName = attrValue;
 				}
+			
+			// mrh June 2012 -- docVersion 8 adds source and target language codes.  At present we only use these if we don't already
+			//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
+
+				else if (gnDocVersion >= 8 && attrName == xml_srccode)
+				{
+					if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
+						gpApp->m_sourceLanguageCode = attrValue;
+				}
+				else if (gnDocVersion >= 8 && attrName == xml_tgtcode)
+				{
+					if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
+						gpApp->m_targetLanguageCode = attrValue;
+				}
+				
 				else if (attrName == xml_others)
 				{
 					wxString buffer(attrValue);
@@ -6053,7 +6069,10 @@ bool AtKBTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			}
 		}
 		break;
+			
 		case KB_VERSION2:
+		case KB_VERSION3:
+
 		{
 			if (tag == xml_map)
 			{
@@ -6416,7 +6435,9 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 #endif // for _UNICODE #defined
 		}
 		break;
+
 		case KB_VERSION2:
+		case KB_VERSION3:
 		{
 			// put the more commonly encountered tags at the top, for speed
 #ifndef _UNICODE // ANSI version (ie. regular)
@@ -6573,6 +6594,21 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					ReplaceEntities(attrValue);
 					gpKB->m_targetLanguageName = attrValue;
 				}
+
+			// mrh June 2012 -- KB_VERSION3 adds source and target language codes.  At present we only use these if we don't already
+			//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
+				
+				else if (gnKbVersionBeingParsed >= KB_VERSION3 && attrName == xml_srccod)
+				{
+					if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
+						gpApp->m_sourceLanguageCode = attrValue;
+				}
+				else if (gnKbVersionBeingParsed >= KB_VERSION3 && attrName == xml_tgtcode)
+				{
+					if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
+						gpApp->m_targetLanguageCode = attrValue;
+				}
+				
 				else
 				{
 					// unknown attribute
@@ -6762,6 +6798,21 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					ReplaceEntities(attrValue);
 					gpKB->m_targetLanguageName = gpApp->Convert8to16(attrValue);
 				}
+				
+			// mrh June 2012 -- KB_VERSION3 adds source and target language codes.  At present we only use these if we don't already
+			//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
+				
+				else if (gnKbVersionBeingParsed >= KB_VERSION3 && attrName == xml_srccod)
+				{
+					if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
+						gpApp->m_sourceLanguageCode = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnKbVersionBeingParsed >= KB_VERSION3 && attrName == xml_tgtcode)
+				{
+					if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
+						gpApp->m_targetLanguageCode = gpApp->Convert8to16(attrValue);
+				}
+				
 				else
 				{
 					// unknown attribute
