@@ -7032,7 +7032,10 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 #ifdef __WXGTK__
 	// On Linux appName is "adaptit"
 	// Set a suitable default path for the Html Help files on Ubuntu Linux.
-	pathToHtmlHelpFiles = m_PathPrefix + _T("/share/adaptit/help"); // the path separator is added by the caller
+	if (!m_PathPrefix.IsEmpty())
+		pathToHtmlHelpFiles = m_PathPrefix + _T("/share/adaptit/help"); // the path separator is added by the caller
+	else
+		pathToHtmlHelpFiles.Empty();
 #endif //__WXGTK__
 
 #ifdef __WXMSW__
@@ -20385,7 +20388,8 @@ int CAdapt_ItApp::OnExit(void)
 	// BEW removed 15Jun11 until we support OXES
 	// BEW reinstated 19May12, for OXES v1 support
 	//delete m_pOxes;
-	delete m_pXhtml; // BEW 9Jun12
+	if (m_pXhtml != NULL) // whm 23Jun12 added NULL test
+		delete m_pXhtml; // BEW 9Jun12
 
 	// delete the CNotes object
 	if (m_pNotes != NULL) // whm 11Jun12 added NULL test
