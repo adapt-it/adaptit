@@ -21,8 +21,8 @@ fi
 cd ${LOCALSVNBASEDIR}/${LOCALREPO}
 for i in $(svn ls -R . )
 do
-  [ -f "$i" ] || continue 			# Must be a file
-  [[ "$i" =~ ${SOURCEFILEREGEX} ]] || continue	# Must be a source file
+  [ -f "$i" ] || continue 			# Ignore unless a file
+  [[ "$i" =~ ${SOURCEFILEREGEX} ]] || continue	# Ignore unless a source file
   props=$(svn -q proplist "$i" )		# Does it have properties
   if [ -z "$props" ]; then
     # Alert that it is missing
