@@ -7,7 +7,7 @@ LOCALREPO=$(basename $0 .sh)				# Directory name of local copy
 SOURCEFILEREGEX='\.c$|\.cpp$|\.h$'			# Which files are source files?
 
 # Create or update local svn checkout
-if [ -d "${LOCALSVNDIR}/${LOCALREPO}" ]; then
+if [ -d "${LOCALSVNBASEDIR}/${LOCALREPO}" ]; then
   # Update existing checked out copy
   cd ${LOCALSVNBASEDIR}/${LOCALREPO}
   svn -q update
@@ -19,8 +19,9 @@ fi
 
 # Check each source file
 cd ${LOCALSVNBASEDIR}/${LOCALREPO}
-for i in $(svn ls -R . )
+svn ls -R . | (while read i
 do
+  echo DEBUG1: $i
   [ -f "$i" ] || continue 			# Ignore unless a file
   [[ "$i" =~ ${SOURCEFILEREGEX} ]] || continue	# Ignore unless a source file
   props=$(svn -q proplist "$i" )		# Does it have properties
@@ -35,4 +36,4 @@ do
       [ "$eolstyle" == "native" ] || echo ERROR: $SVNURL/$i has eol-style $eolstyle. Fix with svn propset svn:eol-style native $i
     fi
   fi
-done
+done)
