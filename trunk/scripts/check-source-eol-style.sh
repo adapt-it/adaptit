@@ -21,7 +21,6 @@ fi
 cd ${LOCALSVNBASEDIR}/${LOCALREPO}
 svn ls -R . | (while read i
 do
-  echo DEBUG1: $i
   [ -f "$i" ] || continue 			# Ignore unless a file
   [[ "$i" =~ ${SOURCEFILEREGEX} ]] || continue	# Ignore unless a source file
   props=$(svn -q proplist "$i" )		# Does it have properties
