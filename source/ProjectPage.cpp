@@ -728,11 +728,11 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					bool bQueryForSource = FALSE;
 					bool bQueryForTarget = FALSE;
 					bool bQueryForFreeTrans = FALSE;
-					if (errProjects.find(_T("source")) != wxNOT_FOUND)
+					if ((int)errProjects.find(_T("source")) != wxNOT_FOUND)
 						bQueryForSource = TRUE;
-					if (errProjects.find(_T("target")) != wxNOT_FOUND)
+					if ((int)errProjects.find(_T("target")) != wxNOT_FOUND)
 						bQueryForTarget = TRUE;
-					if (errProjects.find(_T("freetrans")) != wxNOT_FOUND)
+					if ((int)errProjects.find(_T("freetrans")) != wxNOT_FOUND)
 						bQueryForFreeTrans = TRUE;
 					wxString caption = _("You may be able to fix this problem if you do the following...");
 					wxString message = _T("");

@@ -2366,6 +2366,149 @@ wxString RemoveMultipleSpaces(wxString& rString)
 	return destString;
 }
 
+void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
+{
+	// if the wholeMarker already exists in filterMkrStr, remove it.
+	// Assumes wholeMarker begins with backslash, and insures it ends with a delimiting space.
+	wholeMarker.Trim(TRUE); // trim right end
+	wholeMarker.Trim(FALSE); // trim left end
+	wxASSERT(!wholeMarker.IsEmpty());
+	// then add the necessary final space
+	wholeMarker += _T(' ');
+	// whm modified 8Jul12. If wholeMarker is \x , \f , or \fe remove it and any associated
+	// content markers.
+	if (wholeMarker == _T("\\x "))
+	{
+		// Remove the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
+		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_crossRefMarkerSet.GetCount();
+		int posn;
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_crossRefMarkerSet.Item(i);
+			posn = filterMkrStr.Find(marker);
+			wxASSERT(posn != wxNOT_FOUND);
+			if (posn != wxNOT_FOUND)
+				filterMkrStr.Remove(posn, marker.Length());
+		}
+	}
+	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
+	{
+		// Remove the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
+		// \fp \ft \fdc \fv \fm 
+		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_footnoteMarkerSet.GetCount();
+		int posn;
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			posn = filterMkrStr.Find(marker);
+			wxASSERT(posn != wxNOT_FOUND);
+			if (posn != wxNOT_FOUND)
+				filterMkrStr.Remove(posn, marker.Length());
+		}
+	}
+	else
+	{
+		int posn = filterMkrStr.Find(wholeMarker);
+		if (posn != -1)
+		{
+			// The wholeMarker does exist in the string, so remove it.
+			// NOTE: By removing a marker from the filter marker string we are creating a 
+			// string that can no longer be compared with other filter marker strings by
+			// means of the == or != operators. Comparison of such filter marker strings will now
+			// necessarily require a special function StringsContainSameMarkers() be used
+			// in every place where marker strings are compared.
+			filterMkrStr.Remove(posn, wholeMarker.Length());
+		}
+	}
+}
+
+void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
+{
+	// if the wholeMarker does not already exist in filterMkrStr, append it.
+	// Assumes wholeMarker begins with backslash, and insures it ends with a delimiting space.
+	wholeMarker.Trim(TRUE); // trim right end
+	wholeMarker.Trim(FALSE); // trim left end
+	wxASSERT(!wholeMarker.IsEmpty());
+	// then add the necessary final space
+	wholeMarker += _T(' ');
+	
+	if (wholeMarker == _T("\\x "))
+	{
+		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
+		// to the filterMkrStr.
+		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_crossRefMarkerSet.GetCount();
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
+			{
+				// The wholeMarker doesn't already exist in the string, so append it.
+				// NOTE: By appending a marker to the filter marker string we are creating a 
+				// string that can no longer be compared with other filter marker strings by
+				// means of the == or != operators. Comparison of such filter marker strings will now
+				// necessarily require a special function StringsContainSameMarkers() be used
+				// in every place where marker strings are compared.
+				filterMkrStr += marker;
+			}
+		}
+
+	}
+	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
+	{
+		// Add the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
+		// \fp \ft \fdc \fv \fm to the filterMkrStr.
+		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_footnoteMarkerSet.GetCount();
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
+			{
+				// The wholeMarker doesn't already exist in the string, so append it.
+				// NOTE: By appending a marker to the filter marker string we are creating a 
+				// string that can no longer be compared with other filter marker strings by
+				// means of the == or != operators. Comparison of such filter marker strings will now
+				// necessarily require a special function StringsContainSameMarkers() be used
+				// in every place where marker strings are compared.
+				filterMkrStr += marker;
+			}
+		}
+
+	}
+	else
+	{
+		if (filterMkrStr.Find(wholeMarker) == wxNOT_FOUND)
+		{
+			// The wholeMarker doesn't already exist in the string, so append it.
+			// NOTE: By appending a marker to the filter marker string we are creating a 
+			// string that can no longer be compared with other filter marker strings by
+			// means of the == or != operators. Comparison of such filter marker strings will now
+			// necessarily require a special function StringsContainSameMarkers() be used
+			// in every place where marker strings are compared.
+			filterMkrStr += wholeMarker;
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a wxString representing the absolute path of appName if found
 ///             by searching the system's PATH environment variable; otherwise

@@ -3676,7 +3676,8 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 // mrh - new fields with docVersion 7 and 8:
 	btemp = gpApp->Convert16to8(gpApp->m_owner);
 	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
-	bstr += "\" owner=\"" + btemp;		// add owner name
+	bstr += "\" owner=\"";
+	bstr += btemp; // add owner name
 	
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
@@ -3686,14 +3687,16 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 		tempStr << commitCount;			// this many commits have been done
 	
 	numStr = gpApp->Convert16to8(tempStr);
-	bstr += "\" commitcnt=\"" + numStr;	// add revision number
+	bstr += "\" commitcnt=\"";
+	bstr += numStr; // add revision number
 	
 	if (gpApp->m_revisionDate.IsValid()) 
 		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));		
 																	// %T gives an error on Windows, so we have to spell it out!
 	else 
 		numStr = "";
-	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
+	bstr += "\" revdate=\"";
+	bstr += numStr;	// add revision date, empty if we don't have one
 
 	bstr += "\" sizex=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
@@ -4107,7 +4110,19 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 					// Note: All Unknown markers that were also filtered, will also be listed
 					// in the field input string.
 					strFilterMarkersSavedInDoc = field;
-							break;
+					// whm added 9Jul12. It is possible that some documents have been saved before
+					// we corrected the filtering and unfiltering of \x, \f and \fe markers, in which
+					// case this filtered markers string field could have orphaned content markers
+					// \xo ... etc without a parent \x, and \ft .... etc without parent \f or \fe.
+					// We should clean up any orphaned content markers so that they won't make for
+					// problems in marker filtering during the session. We can assume that if \x
+					// if present in the filtered markers string field, that its content markers should
+					// also be present. If \x is absent the content markers associated with \x should
+					// also be absent. Same story for the \f and \fe markers and their associated
+					// content markers. I've written a function called CleanupFilterMarkerOrphansInString() 
+					// to do the job.
+					strFilterMarkersSavedInDoc = gpApp->CleanupFilterMarkerOrphansInString(strFilterMarkersSavedInDoc);
+					break;
 				}
 			case 5: // unknown markers string field
 				{
@@ -6447,8 +6462,13 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			{
 				// m_markers often has an initial space, which is a nuisance, so check and remove
 				// it if present (this can remain here, the change, if done, is benign)
-				if (pSrcPhrase->m_markers[0] == _T(' '))
-					pSrcPhrase->m_markers = pSrcPhrase->m_markers.Mid(1);
+				// whm modified 7Jul12. Eliminated the m_markers[0] array access. Any initial space
+				// can more reliably be removed by the using the wxString::Trim() method. The m_markers
+				// here is not likely to be empty, but to be safe we should not use m_markers[0] array
+				// access.
+				//if (pSrcPhrase->m_markers[0] == _T(' '))
+				//	pSrcPhrase->m_markers = pSrcPhrase->m_markers.Mid(1);
+				pSrcPhrase->m_markers.Trim(FALSE); // trim any space from left end
 
 				// loop across any filtered substrings in m_filteredInfo, until no more are found
 				while ((offset = FindFromPos(pSrcPhrase->GetFilteredInfo(),filterMkr,offset)) != -1)
@@ -6532,8 +6552,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                         // contentless filtered marker in the passed in string, so we need
                         // to test & if needed adjust m_filteredInfo below
 						remainderStr = pSrcPhrase->GetFilteredInfo().Mid(end); // remainder, from end of \~FILTER*
-						if (remainderStr[0] == _T(' '))
-							remainderStr = remainderStr.Mid(1); // remove an initial space if there is one
+						// whm modified 7Jul12 below to use the Trim(FALSE) method instead of using
+						// an array access of [0] which could otherwise easily result in out of range assert.
+						//if (remainderStr[0] == _T(' '))
+						//	remainderStr = remainderStr.Mid(1); // remove an initial space if there is one
+						remainderStr.Trim(FALSE);
 						offsetNextSection = end; // update, this section is to be
 												 // unfiltered (on this pass at least)
 						// tokenize the substring (using this we get its inline marker handling for free)
@@ -7383,7 +7406,8 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				markersStr.Remove(filterableMkrOffset,nOffsetToNextBit - filterableMkrOffset);
 				// for an unknown reason it does not delete the space, so I have to test and
 				// if so, delete it
-				if (markersStr[filterableMkrOffset] == _T(' '))
+				// whm modified 7Jul12 to include array access out-of-range tests
+				if (!markersStr.IsEmpty() && markersStr.Len() > (size_t)filterableMkrOffset && markersStr[filterableMkrOffset] == _T(' ')) //if (markersStr[filterableMkrOffset] == _T(' '))
 				{
 					// wxString::Remove needs 1 as second parameter otherwise it truncates
 					// remainder of string
@@ -8636,7 +8660,9 @@ bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 		// be stored in m_endMarkers, and either can have outer punctuation following it
 		return TRUE;
 	}
-	if (endMkr[0] != gSFescapechar)
+	// whm 9Jul12 added endMkr.IsEmpty() test to prevent out-of-range array access
+	// return if endMkr is empty or if its first character is not '\'
+	if (endMkr.IsEmpty() || endMkr[0] != gSFescapechar)
 		return FALSE;
 	wxString reversed = MakeReverse(endMkr);
 	if (reversed[0] != _T('*'))
@@ -18709,7 +18735,11 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 			wxString fEnd(filterMkrEnd);
 			len3 = fEnd.Length();
 			nEnd = nFound + len3;
-			if (markers[nEnd] == _T(' '))
+			// whm modified 7Jul12. To avoid an out of range array access error (which asserts in 
+			// wxidgets 2.9.3) we need to ensure that markers[nEnd] is not out of range, so I'm 
+			// adding the following two initial tests: !markers.IsEmpty() && markers.Len() > nEnd && 
+			// to the original test.
+			if (!markers.IsEmpty() && markers.Len() > (size_t)nEnd && markers[nEnd] == _T(' ')) //if (markers[nEnd] == _T(' '))
 				nEnd++; // count the following space too
 		}
 	}

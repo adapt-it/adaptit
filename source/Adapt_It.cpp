@@ -14572,6 +14572,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// markers like \ft* \fk* \fq* etc are no longer supported, similarly for cross ref markers
 	m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
 	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
+
+	// whm 8Jul12 added these wxArrayString elements
+	m_crossRefMarkerSet.Add(_T("\\x ")); // include the parent cross reference marker
+	m_crossRefMarkerSet.Add(_T("\\xo "));
+	m_crossRefMarkerSet.Add(_T("\\xk "));
+	m_crossRefMarkerSet.Add(_T("\\xq "));
+	m_crossRefMarkerSet.Add(_T("\\xt "));
+	m_crossRefMarkerSet.Add(_T("\\xot "));
+	m_crossRefMarkerSet.Add(_T("\\xnt "));
+	m_crossRefMarkerSet.Add(_T("\\xdc "));
+
+	// whm 8Jul12 added these wxArrayString elements
+	m_footnoteMarkerSet.Add(_T("\\f ")); // include the parent footnote marker
+	m_footnoteMarkerSet.Add(_T("\\fe ")); // include the parent endnote marker
+	m_footnoteMarkerSet.Add(_T("\\fr "));
+	m_footnoteMarkerSet.Add(_T("\\fk "));
+	m_footnoteMarkerSet.Add(_T("\\fq "));
+	m_footnoteMarkerSet.Add(_T("\\fqa "));
+	m_footnoteMarkerSet.Add(_T("\\fl "));
+	m_footnoteMarkerSet.Add(_T("\\fp "));
+	m_footnoteMarkerSet.Add(_T("\\ft "));
+	m_footnoteMarkerSet.Add(_T("\\fdc "));
+	m_footnoteMarkerSet.Add(_T("\\fv "));
+	m_footnoteMarkerSet.Add(_T("\\fm "));
+
 	// BEW 11Oct10, we need this fast-access string for improving punctuation support when
 	// inline markers are in the immediate context (since endmarkers for inline markers
 	// should be handled within ParseWord(), we'll have two strings
@@ -22711,10 +22736,18 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
     // tempSfmSetAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
+	
+	// whm added 7Jul12 for debugging
+	//wxLogDebug(_T("gCurrentFilterMarkers (before edit) = %s"),gpApp->gCurrentFilterMarkers.c_str());
+	
 	// Update the App's gCurrentFilterMarkers with the USFM and Filtering page's
 	// tempFilterMarkersAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gCurrentFilterMarkers = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
+	
+	// whm added 7Jul12 for debugging
+	//wxLogDebug(_T("gCurrentFilterMarkers (after edit) = %s"),gpApp->gCurrentFilterMarkers.c_str());
+	
 	// Update the global for the project sfm set with the USFM and Filtering page's
 	// tempSfmSetAfterEditProj
 	if (pUsfmFilterPageCommon != NULL)
@@ -22732,7 +22765,6 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 	// tempFilterMarkersAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->m_filterMarkersAfterEdit = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
-
 #ifdef _Trace_UnknownMarkers
 	TRACE0("In DoUsfmSetChanges BEFORE Doc's unknown markers copied from pUsfmFilterPageCommon\n");
 	TRACE1("   Doc's unknown markers = %s\n", pDoc->GetUnknownMarkerStrFromArrays(&pDoc->m_unknownMarkers, &pDoc->m_filterFlagsUnkMkrs));
@@ -31979,6 +32011,18 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if (!strValue.IsEmpty())
 			{
 				gProjectFilterMarkersForConfig = strValue;
+				// whm added 9Jul12. It is possible that some Project configuration files have 
+				// been saved before we corrected the filtering and unfiltering of \x, \f and 
+				// \fe markers, in which case this gProjectFilterMarkersForConfig could have o
+				// rphaned content markers \xo ... etc without a parent \x, and \ft .... etc 
+				// without parent \f or \fe. We should clean up any orphaned content markers so 
+				// that they won't make for problems in marker filtering during the session. We 
+				// can assume that if \x if present in the filtered markers string field, that 
+				// its content markers should also be present. If \x is absent the content 
+				// markers associated with \x should also be absent. Same story for the \f and 
+				// \fe markers and their associated content markers. I've written a function 
+				// called CleanupFilterMarkerOrphansInString() to do the job.
+				gProjectFilterMarkersForConfig = CleanupFilterMarkerOrphansInString(gProjectFilterMarkersForConfig);
 			}
 			else
 			{
@@ -38383,6 +38427,112 @@ int CAdapt_ItApp::FindArrayString(const wxString& findStr, wxArrayString* strArr
 		}
 	}
 	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the index into the array where subStr was found,
+///             otherwise -1 if the substring was not found.
+/// \param      subStr   -> a wxString representing the substring being searched for
+/// \param      strArray  <- a pointer to the wxArrayString being searched
+/// \param      atPosn   -> the index position in the string to search (after any initial space is removed)
+/// \remarks
+/// Called from: CUsfmFilterPageCommon::SetFilterFlagsInIntArray.
+/// This function does a brute force linear search through strArray looking for subStr at
+/// the atPos index in each string element of the array (typically 0 for the first position
+/// in the string element). Whitespace is removed from left end of the array string so that
+/// position 0 will be the start of non-whitespace text. If found (array element at atPosn == 
+/// subStr exactly) it returns the found element's index in the array, otherwise it returns -1.
+////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::FindArrayStringUsingSubString(const wxString& subStr, wxArrayString* strArray, int atPosn)
+{
+	int ct;
+	wxString str;
+	for (ct = 0; ct < (int)strArray->GetCount(); ct++)
+	{
+		str = strArray->Item(ct);
+		str.Trim(FALSE); // trim any whitespace from left end
+		if (str.Find(subStr) == atPosn)
+		{
+			return ct;
+		}
+	}
+	return -1;
+}
+
+wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMarkersSavedInDoc)
+{
+	// Check for existence of parent markers \x, \f and \fe in markerStr
+	wxString markerStr = strFilterMarkersSavedInDoc;
+	bool bCrossRefMkrExists = markerStr.Find(_T("\\x ")) != wxNOT_FOUND;
+	bool bFootNoteMkrExists = markerStr.Find(_T("\\f ")) != wxNOT_FOUND;
+	bool bEndNoteMkrExists = markerStr.Find(_T("\\fe ")) != wxNOT_FOUND;
+	// Add or remove markers as necessary to achieve consistency between 
+	// the \x, \f, and \fe parent markers and their associated content 
+	// markers.
+	if (bCrossRefMkrExists)
+	{
+		// \x exists in the input string
+		// ensure that the content markers also exist
+		// Note: AddFilterMarkerToString() only adds the marker if it doesn't
+		// already exist
+		AddFilterMarkerToString(markerStr, _T("\\xo "));
+		AddFilterMarkerToString(markerStr, _T("\\xk "));
+		AddFilterMarkerToString(markerStr, _T("\\xq "));
+		AddFilterMarkerToString(markerStr, _T("\\xt "));
+		AddFilterMarkerToString(markerStr, _T("\\xot "));
+		AddFilterMarkerToString(markerStr, _T("\\xnt "));
+		AddFilterMarkerToString(markerStr, _T("\\xdc "));
+	}
+	else
+	{
+		// \x doesn't exist in the input string
+		// ensure that no content markers exist either
+		RemoveFilterMarkerFromString(markerStr, _T("\\xo "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xk "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xq "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xt "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xot "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xnt "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xdc "));
+	}
+	if (bFootNoteMkrExists || bEndNoteMkrExists)
+	{
+		// if \f or \fe exists in the input string
+		// ensure that \fe or \f also exists in the input string
+		if (bFootNoteMkrExists && !bEndNoteMkrExists)
+			AddFilterMarkerToString(markerStr, _T("\\fe "));
+		if (bEndNoteMkrExists && !bFootNoteMkrExists)
+			AddFilterMarkerToString(markerStr, _T("\\f "));
+		// ensure that the content markers also exist
+		// Note: AddFilterMarkerToString() only adds the marker if it doesn't
+		// already exist
+		AddFilterMarkerToString(markerStr, _T("\\fr "));
+		AddFilterMarkerToString(markerStr, _T("\\fk "));
+		AddFilterMarkerToString(markerStr, _T("\\fq "));
+		AddFilterMarkerToString(markerStr, _T("\\fqa "));
+		AddFilterMarkerToString(markerStr, _T("\\fl "));
+		AddFilterMarkerToString(markerStr, _T("\\fp "));
+		AddFilterMarkerToString(markerStr, _T("\\ft "));
+		AddFilterMarkerToString(markerStr, _T("\\fdc "));
+		AddFilterMarkerToString(markerStr, _T("\\fv "));
+		AddFilterMarkerToString(markerStr, _T("\\fm "));
+	}
+	else
+	{
+		// Neither \f nor \fe exist in the input string
+		// ensure that no content markers exist either
+		RemoveFilterMarkerFromString(markerStr, _T("\\fr "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fk "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fq "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fqa "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fl "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fp "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\ft "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fdc "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fv "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\fm "));
+	}
+	return markerStr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
