@@ -214,6 +214,9 @@ wxString  GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum Unique
 
 wxString  RemoveMultipleSpaces(wxString& rString);
 
+void	  RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker);
+void      AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker);
+
 // whm added 6Dec11
 wxString  GetProgramLocationFromSystemPATH(wxString appName);
 wxString  GetAdaptItInstallPrefixForLinux();

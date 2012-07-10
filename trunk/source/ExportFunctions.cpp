@@ -382,6 +382,7 @@ void DoExportAsXhtml()
 	// Rebuild the AdaptItSFM text (if there are collected backtranslations in the
 	// document, they will be included - so we have to get rid of them later)
 	nTextLength = RebuildTargetText(target);
+	nTextLength = nTextLength; // whm 27Jun12 added to avoid "set but not used" compiler warning;
 
 	// remove the following markers and their text content... \free, \note, \bt and
 	// any \bt-initial custom markers, and \rem (Paratext note marker)
@@ -16723,11 +16724,6 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 		pEnd2 = pBuffer2 + nTheLen*buffSizeMultiplier;
 		if (buffSizeMultiplier == 1)
 			*pEnd2 = (wxChar)0;
-		if (wxUSE_STL)
-		{
-			int i;
-			i = 0;
-		}
 		/*
 		if (bRTFOutput)
 		{

@@ -886,7 +886,7 @@ wxString CUsfmFilterPageCommon::GetFilterMkrStrFromFilterArrays(wxArrayString* p
 	return tempStr;
 }
 
-
+/*
 void CUsfmFilterPageCommon::AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 {
 	// if the wholeMarker does not already exist in filterMkrStr, append it.
@@ -896,19 +896,76 @@ void CUsfmFilterPageCommon::AddFilterMarkerToString(wxString& filterMkrStr, wxSt
 	wxASSERT(!wholeMarker.IsEmpty());
 	// then add the necessary final space
 	wholeMarker += _T(' ');
-	if (filterMkrStr.Find(wholeMarker) == -1)
+	
+	if (wholeMarker == _T("\\x "))
 	{
-		// The wholeMarker doesn't already exist in the string, so append it.
-		// NOTE: By appending a marker to the filter marker string we are creating a 
-		// string that can no longer be compared with other filter marker strings by
-		// means of the == or != operators. Comparison of such filter marker strings will now
-		// necessarily require a special function StringsContainSameMarkers() be used
-		// in every place where marker strings are compared.
-		filterMkrStr += wholeMarker;
+		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
+		// to the filterMkrStr.
+		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_crossRefMarkerSet.GetCount();
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
+			{
+				// The wholeMarker doesn't already exist in the string, so append it.
+				// NOTE: By appending a marker to the filter marker string we are creating a 
+				// string that can no longer be compared with other filter marker strings by
+				// means of the == or != operators. Comparison of such filter marker strings will now
+				// necessarily require a special function StringsContainSameMarkers() be used
+				// in every place where marker strings are compared.
+				filterMkrStr += marker;
+			}
+		}
+
+	}
+	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
+	{
+		// Add the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
+		// \fp \ft \fdc \fv \fm to the filterMkrStr.
+		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_footnoteMarkerSet.GetCount();
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
+			{
+				// The wholeMarker doesn't already exist in the string, so append it.
+				// NOTE: By appending a marker to the filter marker string we are creating a 
+				// string that can no longer be compared with other filter marker strings by
+				// means of the == or != operators. Comparison of such filter marker strings will now
+				// necessarily require a special function StringsContainSameMarkers() be used
+				// in every place where marker strings are compared.
+				filterMkrStr += marker;
+			}
+		}
+
+	}
+	else
+	{
+		if (filterMkrStr.Find(wholeMarker) == wxNOT_FOUND)
+		{
+			// The wholeMarker doesn't already exist in the string, so append it.
+			// NOTE: By appending a marker to the filter marker string we are creating a 
+			// string that can no longer be compared with other filter marker strings by
+			// means of the == or != operators. Comparison of such filter marker strings will now
+			// necessarily require a special function StringsContainSameMarkers() be used
+			// in every place where marker strings are compared.
+			filterMkrStr += wholeMarker;
+		}
 	}
 }
+*/
 
-
+/*
 void CUsfmFilterPageCommon::RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 {
 	// if the wholeMarker already exists in filterMkrStr, remove it.
@@ -918,16 +975,121 @@ void CUsfmFilterPageCommon::RemoveFilterMarkerFromString(wxString& filterMkrStr,
 	wxASSERT(!wholeMarker.IsEmpty());
 	// then add the necessary final space
 	wholeMarker += _T(' ');
-	int posn = filterMkrStr.Find(wholeMarker);
-	if (posn != -1)
+	// whm modified 8Jul12. If wholeMarker is \x , \f , or \fe remove it and any associated
+	// content markers.
+	if (wholeMarker == _T("\\x "))
 	{
-		// The wholeMarker does exist in the string, so remove it.
-		// NOTE: By removing a marker from the filter marker string we are creating a 
-		// string that can no longer be compared with other filter marker strings by
-		// means of the == or != operators. Comparison of such filter marker strings will now
-		// necessarily require a special function StringsContainSameMarkers() be used
-		// in every place where marker strings are compared.
-		filterMkrStr.Remove(posn, wholeMarker.Length());
+		// Remove the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
+		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_crossRefMarkerSet.GetCount();
+		int posn;
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_crossRefMarkerSet.Item(i);
+			posn = filterMkrStr.Find(marker);
+			wxASSERT(posn != wxNOT_FOUND);
+			if (posn != wxNOT_FOUND)
+				filterMkrStr.Remove(posn, marker.Length());
+		}
+	}
+	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
+	{
+		// Remove the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
+		// \fp \ft \fdc \fv \fm 
+		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_footnoteMarkerSet.GetCount();
+		int posn;
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			posn = filterMkrStr.Find(marker);
+			wxASSERT(posn != wxNOT_FOUND);
+			if (posn != wxNOT_FOUND)
+				filterMkrStr.Remove(posn, marker.Length());
+		}
+	}
+	else
+	{
+		int posn = filterMkrStr.Find(wholeMarker);
+		if (posn != -1)
+		{
+			// The wholeMarker does exist in the string, so remove it.
+			// NOTE: By removing a marker from the filter marker string we are creating a 
+			// string that can no longer be compared with other filter marker strings by
+			// means of the == or != operators. Comparison of such filter marker strings will now
+			// necessarily require a special function StringsContainSameMarkers() be used
+			// in every place where marker strings are compared.
+			filterMkrStr.Remove(posn, wholeMarker.Length());
+		}
+	}
+}
+*/
+	
+void CUsfmFilterPageCommon::SetFilterFlagsInIntArray(wxArrayInt*& pArrayInt,int arrayIndex, int nValue, wxString wholeMarker)
+{
+	// if the wholeMarker already exists in filterMkrStr, remove it.
+	// Assumes wholeMarker begins with backslash, and insures it ends with a delimiting space.
+	wholeMarker.Trim(TRUE); // trim right end
+	wholeMarker.Trim(FALSE); // trim left end
+	wxASSERT(!wholeMarker.IsEmpty());
+	// then add the necessary final space
+	wholeMarker += _T(' ');
+	// whm modified 8Jul12. If wholeMarker is \x , \f , or \fe remove it and any associated
+	// content markers.
+	if (wholeMarker == _T("\\x "))
+	{
+		// Remove the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
+		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_crossRefMarkerSet.GetCount();
+		int index;
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_crossRefMarkerSet.Item(i);
+			// Find the marker's index in the pSfmMarkerAndDescriptionsDoc array. This index will be
+			// the flag index in the parallel pFilterFlagsDoc array.
+			//index = gpApp->FindArrayString(marker,pSfmMarkerAndDescriptionsDoc);
+			index = gpApp->FindArrayStringUsingSubString(marker, pSfmMarkerAndDescriptionsDoc, 0);
+			wxASSERT(index != wxNOT_FOUND);
+			(*pArrayInt)[index] = nValue; // nValue is either TRUE or FALSE
+		}
+	}
+	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
+	{
+		// Remove the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
+		// \fp \ft \fdc \fv \fm 
+		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
+		// plus all of the associated content markers; each includes the initial backslash and following
+		// space.
+		int nTot = (int)gpApp->m_footnoteMarkerSet.GetCount();
+		int index;
+		int i;
+		wxString marker;
+		for (i = 0; i < nTot; i++)
+		{
+			marker = gpApp->m_footnoteMarkerSet.Item(i);
+			// Find the marker's index in the pSfmMarkerAndDescriptionsDoc array. This index will be
+			// the flag index in the parallel pFilterFlagsDoc array.
+			index = gpApp->FindArrayStringUsingSubString(marker,pSfmMarkerAndDescriptionsDoc,0);
+			wxASSERT(index != wxNOT_FOUND);
+			(*pArrayInt)[index] = nValue; // nValue is either TRUE or FALSE
+		}
+	}
+	else
+	{
+		// for all markers other than cross references, footnotes, endnotes and their associated markers
+		(*pArrayInt)[arrayIndex] = nValue;
 	}
 }
 
@@ -1087,35 +1249,110 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutDoc(int lbItemIndex)
 		// warning should only appear when done from Edit Preferences.
 		if (pStartWorkingWizard == NULL)
 		{
+			wxString warnText;
+			wxString otherFootnoteText = _T("");
+			wxString addOtherFootnoteWarnText = _T("");
+			if (checkStr == _T("\\f") || checkStr == _T("\\fe"))
+			{
+				int nArrayIndex;
+				int nListBoxIndex = -1;
+				wxString markerAndDesc;
+				addOtherFootnoteWarnText = _T("\n   %s\n"); // in case checkStr is \f or \fe we also include \fe or \f
+				if (checkStr == _T("\\f"))
+					nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\fe "), pSfmMarkerAndDescriptionsDoc, 0);
+				else // checkStr is _T("\\fe")
+					nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\f "), pSfmMarkerAndDescriptionsDoc, 0);
+				if (nArrayIndex != wxNOT_FOUND)
+				{
+					markerAndDesc = pSfmMarkerAndDescriptionsDoc->Item(nArrayIndex);
+					nListBoxIndex = pListBoxSFMsDoc->FindString(markerAndDesc);
+				}
+				if (nListBoxIndex != wxNOT_FOUND)
+					pListBoxSFMsDoc->Check(nListBoxIndex,TRUE);
+				otherFootnoteText = pSfmMarkerAndDescriptionsDoc->Item(nArrayIndex).c_str();
+				addOtherFootnoteWarnText = addOtherFootnoteWarnText.Format(addOtherFootnoteWarnText,otherFootnoteText.c_str());
+			}
+			// IDS_FILTER_WARNING
+			if (checkStr == _T("\\f") || checkStr == _T("\\fe"))
+			{
+				// Note: In this case both footnote markers and their descriptions will be displayed.
+				warnText = warnText.Format(_("Warning: You are about to filter out the following footnote related markers:\n   %s%s\nAny text associated with these markers that was previously included in adaptations you have already done, will also be filtered out.\n\nDo you really want to filter out these markers? "), 
+					pSfmMarkerAndDescriptionsDoc->Item(actualArrayIndex).c_str(),addOtherFootnoteWarnText.c_str());
+			}
+			else
+			{
+				// Note: In this case the second %s in the .Format() statement below will be empty so
+				// only one marker will be displayed.
+				warnText = warnText.Format(_("Warning: You are about to filter out the following marker:\n   %s%s \nAny text associated with this marker that was previously included in adaptations you have already done, will also be filtered out.\n\nDo you really want to filter out this marker? "), 
+					pSfmMarkerAndDescriptionsDoc->Item(actualArrayIndex).c_str(),addOtherFootnoteWarnText.c_str());
+			}
 			if (!bFirstWarningGiven)
 			{
 				bFirstWarningGiven = TRUE;
-				wxString warnText;
-				// IDS_FILTER_WARNING
-				warnText = warnText.Format(_("Warning: You are about to filter out the following marker:\n   \"%s \"\nAny text associated with this marker that was previously included\nin adaptations you have already done, will also be filtered out.\n\nDo you really want to filter out this marker? "), 
-					pSfmMarkerAndDescriptionsDoc->Item(actualArrayIndex).c_str());
 				int response = wxMessageBox(warnText, _T(""), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 				if (response != wxYES) //if (response != IDYES)
 				{
 					// User aborted so remove the check from the checkbox
 					pListBoxSFMsDoc->Check(curSel,FALSE);
+					// if the checkStr was \f or \fe, we need to remove the check from the
+					// other type of footnote too.
+					if (checkStr == _T("\\f") || checkStr == _T("\\fe"))
+					{
+						int nArrayIndex;
+						int nListBoxIndex = -1;
+						wxString markerAndDesc;
+						if (checkStr == _T("\\f"))
+							nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\fe "), pSfmMarkerAndDescriptionsDoc, 0);
+						else // checkStr is _T("\\fe")
+							nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\f "), pSfmMarkerAndDescriptionsDoc, 0);
+						if (nArrayIndex != wxNOT_FOUND)
+						{
+							markerAndDesc = pSfmMarkerAndDescriptionsDoc->Item(nArrayIndex);
+							nListBoxIndex = pListBoxSFMsDoc->FindString(markerAndDesc);
+						}
+						if (nListBoxIndex != wxNOT_FOUND)
+							pListBoxSFMsDoc->Check(nListBoxIndex,FALSE);
+					}
 					return;
 				}
 			}
 		}
 		// update the filter flags data array
-		(*pFilterFlagsDoc)[actualArrayIndex] = TRUE;
+		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
+		SetFilterFlagsInIntArray(pFilterFlagsDoc,actualArrayIndex,TRUE,checkStr);
 
-		// add this whole marker to tempFilterMarkersAfterEditProj
+		// add this whole marker (and any associated content markers) to tempFilterMarkersAfterEditDoc
 		AddFilterMarkerToString(tempFilterMarkersAfterEditDoc, checkStr); // whm added 16Jun05
 	}
 	else
 	{
 		// checkbox was previously checked (filter out), now it is unchecked (include for adaptation)
 		// update the filter flags data array
-		(*pFilterFlagsDoc)[actualArrayIndex] = FALSE;
 		
-		// remove this whole marker from tempFilterMarkersAfterEditDoc
+		// whm modified 8Jul12. If either \f or \fe is being unchecked, also remove the check mark
+		// from the other \fe or \f marker in the pListBoxSFMsDoc
+		if (checkStr == _T("\\f") || checkStr == _T("\\fe"))
+		{
+			int nArrayIndex;
+			int nListBoxIndex = -1;
+			wxString markerAndDesc;
+			if (checkStr == _T("\\f"))
+				nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\fe "), pSfmMarkerAndDescriptionsDoc, 0);
+			else // checkStr is _T("\\fe")
+				nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\f "), pSfmMarkerAndDescriptionsDoc, 0);
+			if (nArrayIndex != wxNOT_FOUND)
+			{
+				markerAndDesc = pSfmMarkerAndDescriptionsDoc->Item(nArrayIndex);
+				nListBoxIndex = pListBoxSFMsDoc->FindString(markerAndDesc);
+			}
+			if (nListBoxIndex != wxNOT_FOUND)
+				pListBoxSFMsDoc->Check(nListBoxIndex,FALSE);
+		}
+
+		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
+		SetFilterFlagsInIntArray(pFilterFlagsDoc,actualArrayIndex,FALSE,checkStr);
+		
+		// remove this whole marker (and any associated content markers) from tempFilterMarkersAfterEditDoc
 		RemoveFilterMarkerFromString(tempFilterMarkersAfterEditDoc, checkStr); // whm added 16Jun05
 	}
 	
@@ -1252,19 +1489,62 @@ void CUsfmFilterPageCommon::DoBoxClickedIncludeOrFilterOutProj(int lbItemIndex)
 		// checked (filter out).
 		// no processing of unknown markers in Proj
 
-		// update the filter flags data array
-		(*pFilterFlagsProj)[actualArrayIndex] = TRUE;
+		// whm added 9Jul12 If user selects \f or \fe, ensure that the other type of
+		// footnote marker is also selected
+		if (checkStr == _T("\\f") || checkStr == _T("\\fe"))
+		{
+			int nArrayIndex;
+			int nListBoxIndex = -1;
+			wxString markerAndDesc;
+			if (checkStr == _T("\\f"))
+				nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\fe "), pSfmMarkerAndDescriptionsProj, 0);
+			else // checkStr is _T("\\fe")
+				nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\f "), pSfmMarkerAndDescriptionsProj, 0);
+			if (nArrayIndex != wxNOT_FOUND)
+			{
+				markerAndDesc = pSfmMarkerAndDescriptionsProj->Item(nArrayIndex);
+				nListBoxIndex = pListBoxSFMsProj->FindString(markerAndDesc);
+			}
+			if (nListBoxIndex != wxNOT_FOUND)
+				pListBoxSFMsProj->Check(nListBoxIndex,TRUE);
+		}
 
-		// add this whole marker to tempFilterMarkersAfterEditProj
+		// update the filter flags data array
+		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
+		SetFilterFlagsInIntArray(pFilterFlagsProj,actualArrayIndex,TRUE,checkStr);
+
+		// add this whole marker (and any associated content markers) to tempFilterMarkersAfterEditProj
 		AddFilterMarkerToString(tempFilterMarkersAfterEditProj, checkStr); // whm added 16Jun05
 	}
 	else
 	{
 		// checkbox was previously checked (filter out), now it is unchecked (include for adaptation)
 		// update the filter flags data array
-		(*pFilterFlagsProj)[actualArrayIndex] = TRUE;
+		
+		// whm modified 8Jul12. If either \f or \fe is being unchecked, also remove the check mark
+		// from the other \fe or \f marker in the pListBoxSFMsProj
+		if (checkStr == _T("\\f") || checkStr == _T("\\fe"))
+		{
+			int nArrayIndex;
+			int nListBoxIndex = -1;
+			wxString markerAndDesc;
+			if (checkStr == _T("\\f"))
+				nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\fe "), pSfmMarkerAndDescriptionsProj, 0);
+			else // checkStr is _T("\\fe")
+				nArrayIndex = gpApp->FindArrayStringUsingSubString(_T("\\f "), pSfmMarkerAndDescriptionsProj, 0);
+			if (nArrayIndex != wxNOT_FOUND)
+			{
+				markerAndDesc = pSfmMarkerAndDescriptionsProj->Item(nArrayIndex);
+				nListBoxIndex = pListBoxSFMsProj->FindString(markerAndDesc);
+			}
+			if (nListBoxIndex != wxNOT_FOUND)
+				pListBoxSFMsProj->Check(nListBoxIndex,FALSE);
+		}
+		
+		// whm 8Jul12 modified to set flags for this whole marker and any associated content markers
+		SetFilterFlagsInIntArray(pFilterFlagsProj,actualArrayIndex,FALSE,checkStr);
 
-		// remove this whole marker from tempFilterMarkersAfterEditProj
+		// remove this whole marker (and any associated content markers) from tempFilterMarkersAfterEditProj
 		RemoveFilterMarkerFromString(tempFilterMarkersAfterEditProj, checkStr); // whm added 16Jun05
 	}
 

@@ -2054,6 +2054,11 @@ public:
     wxString m_poetryMkrs; // USFM ones
 	wxArrayString m_unknownMarkers; // array of unknown whole markers -
 									// no end markers stored here
+	
+	// whm added these two string arrays 8Jul12 which are initialized in Adapt_It.cpp::OnInit()
+	wxArrayString m_crossRefMarkerSet;
+	wxArrayString m_footnoteMarkerSet;
+
 	wxArrayInt	m_filterFlagsUnkMkrs;
 	wxString	m_currentUnknownMarkersStr;	// whm added 31May05. Stores the current
                 // active list of any unknown whole markers in a = delimited string (that
@@ -3724,6 +3729,8 @@ public:
 	bool	EnumerateLoadableSourceTextFiles(wxArrayString& array, wxString& folderPath,
 												enum LoadabilityFilter filtered); // BEW added 6Aug10
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
+	int		FindArrayStringUsingSubString(const wxString& subStr, wxArrayString* strArray, int atPosn); // whm added 8Jul12
+	wxString CleanupFilterMarkerOrphansInString(wxString strFilterMarkersSavedInDoc);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 				enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr,
