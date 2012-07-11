@@ -23,7 +23,7 @@
 // then uncomment out DO_INDENT and XHTML_PRETTY here; and also you MUST do the same at the
 // end of the DoXthmlExport() function in ExportFunctions.cpp. You'll then get a second
 // file dialog which allows you to chose the exported xhtml file, and the indenting and
-// pretty formatting will be done. The pretty formatting verticall lines up <span>
+// pretty formatting will be done. The pretty formatting vertically lines up <span>
 // tags, that's all. If you just choose DO_INDENT, you only get <div> tags lined up
 // vertically. If you do not uncomment out those two, but instead uncomment out just
 // DO_CLASS_NAMES you'll still see the extra file dialog, you choose the exported xhtml
@@ -117,8 +117,14 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pUsfm2IntMap)[fvMkr] = (int)v_num_in_note_;
 	(*m_pUsfm2IntMap)[frMkr] = (int)REF_;
 	(*m_pUsfm2IntMap)[xoMkr] = (int)REF_;
+	(*m_pUsfm2IntMap)[ftMkr] = (int)footnote_text_;
+	(*m_pUsfm2IntMap)[fqMkr] = (int)footnote_quote_; // TE wrongly uses Alternate_Reading for this
+	(*m_pUsfm2IntMap)[fqaMkr] = (int)alt_quote_; // TE has Alternate_Reading for \fq (rather than \fqa)
+	(*m_pUsfm2IntMap)[fkMkr] = (int)footnote_referenced_text_;
 	(*m_pUsfm2IntMap)[feMkr] = (int)endnote_;
 	(*m_pUsfm2IntMap)[xMkr] = (int)crossReference_;
+	(*m_pUsfm2IntMap)[xkMkr] = (int)crossref_referenced_text_;
+	(*m_pUsfm2IntMap)[xtMkr] = (int)crossReference_target_reference_; // for \xt (we just delete \xt)
 	(*m_pUsfm2IntMap)[rqMkr] = (int)inline_crossReference_; // for \rq ... \rq*
 
 	// chapter and verse and paragraph ones
@@ -156,7 +162,7 @@ void Xhtml::SetupXhtmlApparatus()
 	// think), at least the xhtml will validate 
 	(*m_pUsfm2IntMap)[pcMkr] = (int)inscription_paragraph_;
 	(*m_pUsfm2IntMap)[scMkr] = (int)inscription_;
-	(*m_pUsfm2IntMap)[emMkr] = (int)emphasis_;
+	(*m_pUsfm2IntMap)[itMkr] = (int)emphasis_;
 	(*m_pUsfm2IntMap)[qtMkr] = (int)quoted_text_;
 	(*m_pUsfm2IntMap)[wjMkr] = (int)words_of_christ_;
 	(*m_pUsfm2IntMap)[wMkr] = (int)see_glossary_;
@@ -171,6 +177,9 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pUsfm2IntMap)[qm3Mkr] = (int)citation_line_3_;
 	
 // Next, the xhtml label names for the class attribute's string values
+	// 5Jul12, I'll use the TE-based style names for now, but where I don't know the
+	// appropriate one, I'll use Jim Albright's names from his partially completed
+	// documentation
 
 	(*m_pEnum2LabelMap)[(int)no_value_] = _T("Unknown_Marker_xxx"); // in the production, replace xxx with the marker (omit backslash)
 	(*m_pEnum2LabelMap)[(int)title_main_] = _T("Title_Main"); // USFM \mt1 or \mt
@@ -190,6 +199,9 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pEnum2LabelMap)[(int)list_item_2_] = _T("List_Item2"); // USFM \li2
 	(*m_pEnum2LabelMap)[(int)footnote_] = _T("Note_General_Paragraph"); // precede with scrFootnoteMarker \f |f*
 	(*m_pEnum2LabelMap)[(int)REF_] = _T("Note_Target_Reference"); // USFM \fr or \xo
+	(*m_pEnum2LabelMap)[(int)footnote_referenced_text_] = _T("Referenced_Text"); // \fk ...\fk*
+	(*m_pEnum2LabelMap)[(int)footnote_quote_] = _T("Alternate_Reading"); // TE wrongly assigns\fq 'footnote quote' to this style
+	(*m_pEnum2LabelMap)[(int)alt_quote_] = _T("Alternate_Reading"); // \fqa (TE doesn't seem to have it)
 	(*m_pEnum2LabelMap)[(int)endnote_] = _T("Endnote_General_Paragraph"); // precede with scrEndnoteMarker? \fe \fe*, but xrefs uses scrFootnoteMarker!
 	(*m_pEnum2LabelMap)[(int)inline_crossReference_] = _T("Note_CrossHYPHENReference_Paragraph"); // precede with scrFootnoteMarker (\rq ... \rq*)
 	(*m_pEnum2LabelMap)[(int)p_] = _T("Paragraph"); // USFM \p
@@ -204,7 +216,7 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pEnum2LabelMap)[(int)citation_line_1_] = _T("Citation_Line1"); // (USFM \qm1 or \qm) within \q1 or \q
 	(*m_pEnum2LabelMap)[(int)citation_line_2_] = _T("Citation_Line2"); // (USFM \qm2) within \q2
 	(*m_pEnum2LabelMap)[(int)citation_line_3_] = _T("Citation_Line3"); // (USFM \qm3) within \q3
-	(*m_pEnum2LabelMap)[(int)emphasis_] = _T("Emphasis"); // occurs within one of those markers, USFM has endmarker \em ... \em*
+	(*m_pEnum2LabelMap)[(int)emphasis_] = _T("Emphasis"); // occurs within one of those markers, USFM has endmarker \it ... \it*
 	(*m_pEnum2LabelMap)[(int)inscription_] = _T("Inscription"); // USFM has endmarker, \sc ... \sc*
 	(*m_pEnum2LabelMap)[(int)inscription_paragraph_] = _T("Inscription_Paragraph"); // USFM \pc
 	(*m_pEnum2LabelMap)[(int)parallel_passage_ref_] = _T("Parallel_Passage_Reference"); // USFM \r
@@ -253,7 +265,7 @@ void Xhtml::SetupXhtmlApparatus()
 	m_spanTemplate[plusClass] = "<span class=\"classAttrLabel\" lang=\"langAttrCode\">spanPCDATA</span>";
 	// next is the only nested span I've observed, it's in cross reference; UUID must be
 	// same as in hrefAttrUUID of m_anchorPCDATATemplate below; this one has 4 variables
-	m_spanTemplate[nested] = "<span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"\"><span lang=\"langAttrCode\">myPCDATA</span></span>";
+	m_spanTemplate[nested] = "<span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"+\"><span lang=\"langAttrCode\">myPCDATA</span></span>";
 	// next one is for chapter numbers (two variables)-- we could use our
 	// m_spanTemplate[plusClass] but chapters are so common that saving on one
 	// parameter in the function for filling it is worth a separate template
@@ -264,14 +276,15 @@ void Xhtml::SetupXhtmlApparatus()
 	m_spanTemplate[verseNumSpan] = "<span class=\"Verse_Number\" lang=\"langAttrCode\">vNumPCDATA</span>";
 	// footnotes and endnotes have internal structure which may require several plusClass
 	// type of spans, before these is the footnote 'first part' - it's template is the
-	// following, note there is no closing </span>:
-	m_spanTemplate[footnoteFirstPart] = "<span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"\">";
-	// for the Note_Target_Reference in footnote, endnote and 
-	// cross reference (the \x ...\x* type)
+	// following, note there is no closing </span>. Also, cross references \x .... \x*
+	// also use this one
+	m_spanTemplate[footnoteFirstPart] = "<span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"+\">";
+	// for the Note_Target_Reference in footnote, endnote and cross reference (the \x ...\x* type)
 	m_spanTemplate[targetREF] = "<span class=\"Note_Target_Reference\" lang=\"langAttrCode\">chvsREF </span>"; // note, space follows chvsREF
 	// for the caption ref, if chvsREF is an empty string, then make it an empty tag
 	m_spanTemplate[captionREF] = "<span lang=\"langAttrCode\" class=\"reference\">chvsREF</span>";
 	m_spanTemplate[captionREFempty] = "<span lang=\"langAttrCode\" class=\"reference\" />";
+	m_spanTemplate[emptySpan] = "<span lang=\"langAttrCode\" />";
 }
 
 // *******************************************************************
@@ -1217,18 +1230,8 @@ CBString Xhtml::BuildTitleInfo(wxString*& pText)
 // (2) occuring second; or in the case of endnotes, stored in order of occurrence in m_endnoteDumpArray
 //  for dumping out at the end of the book:
 // m_spanTemplate[nested] = "<span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"\"><span lang=\"langAttrCode\">myPCDATA</span></span>";
-// Note: these templates don't support footnote \fr marker, or xref \xo marker, they are
-// only suitable for \ft content, and \xt content, and title attribute is left empty.
-//
-// Note: TE, and therefore the xhtml standard for export, does not appear to support \x
-// ... \x* markup (but AI has to be able to handle it, since published USFM files are
-// likely to have such markup in them), but TE does support right-justified \rq...\rq*
-// inline crossReference markup - and the latter has no internal structure. The function
-// below does not explicitly mention \x or \x*, and therefore does not require
-// modification if it is true that the xhtml export doesn't have any tags defined for USFM
-// \x ... \x* markup spans; so if such is the case, we'll simply decline to emit any xhtml
-// in the export for any \x ... \x* material parsed over. (If a LSDev person can tell me
-// what the relevant stylenames are for the class attribute, I'll reverse this decision.)
+// Note: these templates don't support footnote-internal markers, just the commonly used
+// ones, but they can very easily extended to add support for additional markers.
 CBString Xhtml::BuildFXRefFe()
 {
 	CBString myxml;
@@ -1254,14 +1257,13 @@ CBString Xhtml::BuildFXRefFe()
 	// CBString Xhtml::BuildFootnoteMarkerSpan(CBString uuid)
 	// CBString Xhtml::BuildNested(XhtmlTagEnum key, CBString uuid, CBString langCode, CBString pcData)
 	// All three types of information take the same initial element, with the uuid in the
-	// anchor tag	
-	out = BuildFootnoteMarkerSpan(myUuid);
+	// anchor tag
+	out = BuildFootnoteMarkerSpan(myUuid); // also used for cross-references!
 	// now build the secondProduction - it depends on what kind of data we are working with
-	// *** for now, suppress emitting anything for a \x ... \x* type of cross reference
 	if (m_whichTagEnum == crossReference_)
 	{
-		out.Empty(); // *************** REMOVE THIS BLOCK WHEN/IF WE SUPPORT \x...|x* CROSS REFERENCES *******
-		return out;
+		myxml = BuildCrossReferenceParts(m_whichTagEnum, myUuid, m_data);
+		out += myxml;
 	}
 	else
 	{
@@ -1290,60 +1292,46 @@ CBString Xhtml::BuildFXRefFe()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return                 the <span element> (utf8) made from the part of the passed in
-///                         data string so far parsed (either up to \fv, or to \fqa, or the
-///                         whole lot (in which case remainderStr would be empty); for 
-///                         storage in the caller until all invocations of this function
-///                         are done and the original data param's contents have all been
-///                         consumed
-/// \param data         ->  the footnote text remaining to be parsed (less on each call)  
-/// \param remainderStr <-  the leftover bit of the data param's string which is as yet 
-///                         unparsed; it will commence with either \fv or \fqa, or it will
-///                         be empty because there was no \fv nor \fqa in the passed in data
+/// \return                 the set of <span> elements, (in utf8) made from the passed in
+///                         data string (the data string passed in is everything between
+///                         the initial \x and the final \x*)
+/// \param key              passing in crossReference_ enum value to the internally used
+///                         utf8 template
+/// \param uuid         ->  a unique string is required  (some software builds
+///                         using something like CrossRef_LUK_a, CrossRef_LUK_b, etc; 
+///                         we use uuids instead, as, I think, TE does)
+/// \param data         ->  the footnote or endnote text  
 /// \remarks
-/// Call once per footnote or endnote to collect all the relevant bits of the
-/// footnote content string (including for an \fr marker). Since TE and
-/// so xhtml must handle an embedded verse number, or embedded alternate text quote, as
-/// separate <span> elements, we return however much we've collected (after creating the
-/// appropriate <span> with it) up to the \fv which indicates a verse number follows, or up
-/// to the \fqa which indicates a stretch of quoted alternative translation text follows.
-/// Unfortunately, there is no way to predict in advance what order \fv and \fqa may have,
-/// nor whether or not they are present, nor whether they are present more than once -
-/// anything is possible. So we iterate with an outer loop as necessary. Storing the
-/// second part of an endnote in an array for dumping at the file end is handled
-/// internally as well - in that case the production sent back is just the first part
-/// (which has the class="scrFootnoteMarker" attribute) -- the latter is common to
-/// footnotes, endnotes and cross references.
+/// Call once per \x ... \x* style of cross reference, to collect all the relevant bits of the
+/// content string (including for an \xo marker). Internally there is an outer
+/// loop, and an inner loop that process text content for a given marker up to the start
+/// of the next marker, or end of buffer. The present version supports the current TE
+/// styles, but the specification for stylenames is not yet set in concrete, so this
+/// function may get some minor changes added later.
+/// The last span built herein has to be followed by a (second) closing </span> endtag.
+/// If two markers occur in sequence, such as \xt followed by \it, then the \xt would have
+/// no content - we have that generate an empty span, <span lang="xxx" /> where xxx is
+/// whatever is the relevant 2 or 3-letter language code.
 /// 
-/// Note 1: the logic of this function may change if someone tells of more class attribute
-/// values which I can support, besides \f \fr \fv and \fqa.
-/// Note 2: if only one span is built (because collection goes right to the end of the
-/// passed in string), then build the span using BuildNested() - it has a second closing
-/// </span> endtag; but if more than one is built, only the last is built from BuildNested()
-/// Note 3: TODO extend it to handle \x ... \x* style of cross refs.        ************************************ TODO
+/// Note: the logic of this function may be extended a bit if someone gets the spec
+/// set in concrete some day; we support \xt \xo \xk and \it. Rare markers not supported
+/// here because TE has no styles set for them, so we just ignore such markers but keep
+/// the text content which follows them.
 ////////////////////////////////////////////////////////////////////////////////////
-CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxString data)
+CBString Xhtml::BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxString data)
 {
-	// I'll not bother with deuterocanon, so won't search for and remove \fdc ... \fdc*,
-	// but just assume such info is not present
+    // I'll not bother with deuterocanon, and some other less often used markers
 	wxASSERT(!data.IsEmpty());
 	// create wxString markers:
-	wxString frMarker  = _T("\\fr");
-	wxString fkMarker  = _T("\\fk");
-	wxString fkEndMarker = _T("\\fk*");
-	wxString fqMarker  = _T("\\fq");
-	wxString fqaMarker = fqaMkr;
-	wxString flMarker  = _T("\\fl");
-	wxString fpMarker  = _T("\\fp");
-	wxString fvMarker  = fvMkr;
-	wxString ftMarker  = ftMkr;
-	wxString fmMarker  = _T("\\fm");
-	wxString fmEndMarker = _T("\\fm*");
+	wxString xtMarker  = _T("\\xt");
+	wxString xoMarker  = _T("\\xo");
+	wxString xkMarker  = _T("\\xk");
+	wxString itMarker  = itMkr;
 	// I'm using wxStringBuffer class. This will give me a writable pointer to the
 	// original wxString's buffer, PROVIDED wxUSE_STL is 0 (which is the wxWidgets default
 	// value) - if it is 1, then there will be a new EMPTY buffer created and no data
 	// copied to it, and then this function would fail. (I've checked wxUSE_STL is 0, it
-	// is in setup.h, line 207)
+	// is in setup.h, line 207) Although buffer is writable, I'm using it as read-only.
 	CBString aSpan; aSpan.Empty(); // use this for each <span lang="xyz"> ... </span> that we build
 	CBString production; production.Empty(); // store the xhtml production being built in here
 	wxString aSpace = _T(" ");
@@ -1363,11 +1351,508 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 	int itemLen = 0;
 	wxChar* pContent = NULL; // use this for the start of span of text being parsed over
 
+#if defined(__WXDEBUG__)
+	//if (m_curChapter == _T("17") && m_curVerse == _T("35"))
+//	if (m_curChapter == _T("1") && m_curVerse == _T("5"))
+//	{
+//		int breakpoint_here = 1;
+//	}
+#endif
+
+	// get past white space, store the caller character, get past 
+	// any whitespace which follows it
+	while (IsWhiteSpace(*ptr) && ptr < pEnd) { ptr++;}
+	// get the caller string -- we must set m_callerStr before we call 
+	// BuildFootnoteInitialPart() which uses it (The "Footnote" in the name reflects the
+	// fact that the xhtml uses srcFootnote style also for cross references, and the
+	// initial part of both footnotes and cross references is therefore identical)
+	m_callerStr = *ptr;
+	// advance over the caller
+	ptr++; // whether + or - or user-defined character
+	
 	// first, Build the initial part of the 2nd production, using template:
-	// <span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"\"> <<- a dagger will be
-	// inserted in the title attr within BuildFootnoteInitialPart()
+	// <span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"+\"> 
+	// I use + as the caller in templates, but the following function will replace that
+	// with whatever caller is in the data, which is not in the m_callerStr member
 	production = BuildFootnoteInitialPart(key, uuid); // this will be followed by one or more
 													  // simple <span> elements
+	// advance over any following whitespace
+	while (IsWhiteSpace(*ptr) && ptr < pEnd) { ptr++;}
+	pContent = ptr; // content possibly starts here
+	// If there is an xo field, ptr will now be pointing at the backslash of the \xo
+	// marker - we always want this marker's ch:vs ref, but not the marker itself
+	if (pDoc->IsMarker(ptr))
+	{
+		wxString aMarker = pDoc->GetWholeMarker(ptr);
+		if (aMarker == xoMarker)
+		{
+			// jump it
+			itemLen = xoMarker.Len();
+			ptr += itemLen;
+			itemLen = 0;
+			// now advance to next marker; but there might be none, and we must get past
+			// the ch:vs reference to the start of whatever text then follows
+			itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+			itemLen = 0;
+			// we are at where content must start to be collected, set the ptr
+			pContent = ptr;
+			contentLen = 0;
+			// parse over the REF chapter & verse string (it may end in colon too)
+			while (!IsWhiteSpace(*ptr) && ptr < pEnd) { ptr++; contentLen++;}
+			// create the number string
+			wxString s(pContent, (size_t)contentLen);
+			contentLen = 0;
+			// parse over any following white space
+			itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+			itemLen = 0;
+			// ptr is ready for kick-off of the next iteration of the
+			// outer loop
+			// Build the span for the verse number
+			aSpan = BuildNoteTgtRefSpan(GetLanguageCode(), ConvertData(s));
+			production += aSpan;
+		}
+		pContent = ptr; // default pContent to this location, which is where we may
+						// want to start collecting from, adjust below if not so
+	}
+	// ******************   the outer loop starts here   ***************************
+
+	do {
+		pContent = ptr; // default pContent to this location, which is where we may
+						// want to start collecting from, adjust below if not so
+
+		// if ptr is not at a marker, advance to the next marker and collect all material
+		// parsed over
+		if (!pDoc->IsMarker(ptr))
+		{
+            // there shouldn't be any text at pStart, but rather a marker of some kind; but
+            // just in case this assumption is not correct (the user may have declined to
+            // use an \xt marker at the start of the cross reference text) we here collect
+            // everything up to the next marker, or buffer end if there are no more markers
+			wxASSERT(pContent != NULL);
+			while (ptr < pEnd && !pDoc->IsMarker(ptr)) {ptr++; itemLen++; contentLen++;}
+			wxString s(pContent, (size_t)(ptr - pContent));
+			collectStr += s;
+			collectStr.Trim(); // trim any space off of the end
+			itemLen = 0;
+			if (ptr == pEnd)
+			{
+				if (!s.IsEmpty())
+				{
+					// make the <span> - it's just a 'simple' one
+					if (!collectStr.IsEmpty())
+					{
+						aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
+						production += aSpan;
+						aSpan.Empty();
+					}
+				}
+				else
+				{
+					// make an empty span
+					aSpan = BuildEmptySpan(GetLanguageCode());
+					production += aSpan;
+					aSpan.Empty();
+				}
+				break;
+			}
+			else
+			{
+				// we've halted at a marker after collecting some footnote text, so
+				// iteration of the inner loop is appropriate now -- so prepare
+				if (!s.IsEmpty())
+				{
+					// make the <span> - it's just a 'simple' one
+					if (!collectStr.IsEmpty())
+					{
+						aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
+						production += aSpan;
+					}
+				}
+				pContent = NULL;
+				aSpan.Empty();
+				contentLen = 0;
+				continue; // iterate immediately
+			}
+		} // end of TRUE block for test: if (!pDoc->IsMarker(ptr))
+
+        // We are at a marker, or end of the x-ref. We count the size of the next marker,
+        // but just omit it from the text collection: \xk (keyword), \xt (xref text), and
+        // so forth; but we give the text content the appropriate xhtml style label. Some
+        // of these markers, in the older USFM markup scheme, have endmarkers which
+        // potentially may occur - we'll just parse over any endmarkers we encounter (we
+        // count their size though, but we don't bother to check they match the begin
+        // marker which precedes); the newer USFM standard doesn't use endmarkers within
+        // cross references any more - which makes it safe to do this. Currently, only \xo,
+        // \xt, \xk, or \it halt our parse and section the text into a series of <span> ..
+        // </span> elements
+		do {  // while ptr has not yet reached pEnd
+
+			if (ptr < pEnd && pDoc->IsMarker(ptr))
+			{
+				wxString aMarker = pDoc->GetWholeMarker(ptr);
+
+				// the USFM data may be marked up in the old style, using endmarkers like
+				// \xt*, \xk* and so forth. If so, detect any such marker and
+				// skip it, parse over any following whitespace, then iterate the loop
+				if (pDoc->IsEndMarker(ptr, pEnd))
+				{
+					// parse over the endmarker
+					itemLen = pDoc->ParseMarker(ptr);
+					ptr += itemLen;
+					itemLen = 0;
+					// parse over following whitespace
+					itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+					itemLen = 0;
+					pContent = ptr;
+					contentLen = 0;
+					aMarker.Empty();
+					continue; // iterate
+				}
+
+				if (aMarker == xtMarker || aMarker == xkMarker || aMarker == xoMarker
+					|| aMarker == itMarker)
+				{
+                    // We've reached the end of a collection span, but we may have only
+                    // just begun to collect - we don't expect control to get into the
+					// next block, but if it does, just make a simple span of it before
+					// continuing with handling the marker we are at and its content
+					if (contentLen > 0)
+					{
+						// we do need to close off for this iteration, so make the <span>
+						wxASSERT(pContent != NULL);
+						wxString s(pContent, (size_t)(ptr - pContent));
+						if (!collectStr.IsEmpty())
+						{
+							wxChar last = collectStr.GetChar(collectStr.Len() - 1);
+							if (last != _T(' '))
+							{
+								// if collectStr doesn't end in a space, don't append the s
+								// string until we've first appended a space 
+								collectStr += aSpace;
+							}
+						}
+						collectStr += s;
+						collectStr.Trim(); // trim any space off of the end (keep control)
+
+						// now make the <span> - it's just a 'simple' one, as we've no way yet
+						// to determine otherwise
+						aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
+						production += aSpan;
+						contentLen = 0;
+						break;
+					}
+					else
+					{
+                        // There is no emitable content parsed over yet for this iteration
+                        // (contentLen is 0) but ptr is pointing at either \xo or \xt or
+                        // \xk or \it etc
+
+						// this is where the footnote-internal markers, including \it for
+						// italics (and I can add blocks for \bd etc if necessary) are
+						// processed
+						if (aMarker == xtMarker)
+						{
+							// we came to an \xt marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span
+							
+							// parse over the \ft marker
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the xref text (sub)string; note, an \it (italics)
+							// marker may follow - and so the content collected is empty;
+							// check for this and when that is the case, make an
+							// emptySpan, otherwise make a simple span with content
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+							if (contentLen == 0)
+							{
+								// a second marker follows (usually, italics \it marker),
+								// so just make an empty span
+								aSpan = BuildEmptySpan(GetLanguageCode());
+								production += aSpan;
+							}
+							else
+							{
+								// create the string
+								wxString s(pContent, (size_t)contentLen);
+								contentLen = 0;
+								// Build the span for the \xt marker -- this has no explicit style
+								aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(s));
+								production += aSpan;
+							}
+							break;
+						}
+						else if (aMarker == itMarker)
+						{
+							// we came to an \it marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span...
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the emphasis text string
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+							// create the string
+							wxString s(pContent, (size_t)contentLen);
+							contentLen = 0;
+							// Build the span for the \it marker's content
+							aSpan = BuildSpan(plusClass, emphasis_, GetLanguageCode(), ConvertData(s));
+							production += aSpan;
+							break;
+						}
+						else if (aMarker == xoMarker)
+						{
+							// we came to an \xo marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the verse number string
+							while (!IsWhiteSpace(*ptr) && ptr < pEnd) { ptr++; contentLen++;}
+							// create the number string
+							wxString s(pContent, (size_t)contentLen);
+							contentLen = 0;
+							// parse over any following white space
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							// ptr is ready for kick-off of the next iteration of the
+							// outer loop
+							// Build the span for the verse number
+							aSpan = BuildSpan(plusClass, v_num_in_note_, GetLanguageCode(), ConvertData(s));
+							production += aSpan;
+							break;
+						}
+						else if(aMarker == xkMarker)
+						{
+							// we came to an \xk marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span...
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the quoted text string
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+                            // get the content string (TE hasn't a style as far as I know, so
+                            // I'll use Jim's one)
+							wxString s(pContent, (size_t)contentLen);
+							contentLen = 0;
+							// Build the span for \xk markup
+							aSpan = BuildSpan(plusClass, crossref_referenced_text_, 
+												GetLanguageCode(), ConvertData(s));
+							production += aSpan;
+							break;
+						}
+						// note -- there may be more class attribute values -- use else if
+						// blocks here to add code for processing them, and add a test for
+						// each at the top of the block (other markers not in the test
+						// will be processed by the else block below)
+						// ***************** add more here ****************
+
+					} // end of else block for test: if (contentLen > 0)
+
+				} // end of TRUE block for test: if (aMarker == xtMarker || aMarker == xoMarker etc)
+				else
+				{
+                    // ptr is pointing neither at none of the tested-for xref internal
+                    // markers, but at some other marker; parse over the marker and ignore
+                    // it, and go on until either we arrive at another marker (in which
+                    // case we collect the data and apppend to collectStr & iterate the
+                    // inner loop), or to the end of the buffer (in which case, do the same
+                    // but then break out)
+					itemLen = pDoc->ParseMarker(ptr);
+					ptr += itemLen;
+					itemLen = 0;
+					// parse over following whitespace
+					itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+					itemLen = 0;
+					// we are at where content must start to be collected, set the ptr
+					pContent = ptr;
+					contentLen = 0;
+					// parse over whatever text is next until either end of buffer, or a
+					// marker is reached
+					while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+					// create the marker's content substring
+					wxString s(pContent, (size_t)contentLen);
+					contentLen = 0;
+					if (ptr == pEnd)
+					{
+						// ptr is at the buffer end
+						if (!collectStr.IsEmpty())
+						{
+							wxChar last = collectStr.GetChar(collectStr.Len() - 1);
+							if (last != _T(' '))
+							{
+								// if collectStr doesn't end in a space, don't append the s
+								// string until we've first appended a space 
+								collectStr += aSpace;
+							}
+						}
+						collectStr += s;
+						collectStr.Trim();
+						// now make the <span> - it's just a 'simple' one
+						aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
+						production += aSpan;
+						break;
+					}
+					else
+					{
+						// ptr has reached the next marker, finish of this bit of text and
+						// iterate the inner loop
+						if (!collectStr.IsEmpty())
+						{
+							wxChar last = collectStr.GetChar(collectStr.Len() - 1);
+							if (last != _T(' '))
+							{
+								// if collectStr doesn't end in a space, don't append the s
+								// string until we've first appended a space 
+								collectStr += aSpace;
+							}
+						}
+						collectStr += s;
+						// prepare for inner loop iteration
+						pContent = NULL;
+						aSpan.Empty();
+						// ptr is ready for kick-off of the next iteration of the inner
+						// loop - which we do now - provided ptr < pEnd, which will be
+						// the case because we've come to another marker
+					}
+				} // end of else block for test: if (aMarker == xtMarker || aMarker == xoMarker)
+
+			} // end of TRUE block for test: if (ptr < pEnd && pDoc->IsMarker(ptr))
+			else
+			{
+				// we've reached the end of the cross ref
+				wxASSERT(ptr == pEnd);
+				if (contentLen > 0)
+				{
+					// add what is just parsed over to collectStr
+					wxASSERT(pContent != NULL);
+					wxString s(pContent, (size_t)(ptr - pContent));
+					if (!collectStr.IsEmpty())
+					{
+						wxChar last = collectStr.GetChar(collectStr.Len() - 1);
+						if (last != _T(' '))
+						{
+							// if collectStr doesn't end in a space, don't append the s
+							// string until we've first appended a space 
+							collectStr += aSpace;
+						}
+					}
+					collectStr += s;
+					collectStr.Trim(); // trim any space off of the end (keep control)
+
+					// now make the <span> - it's just a 'simple' one
+					aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
+					production += aSpan;
+				}
+			} // end of else block for test: if (ptr < pEnd && pDoc->IsMarker(ptr))
+
+		} while (ptr < pEnd); // end of <span>-producing loop
+
+		// prepare for next iteration of the outer loop
+		aSpan.Empty();
+		collectStr.Empty();
+		contentLen = 0;
+		pContent = NULL;
+	} while (ptr < pEnd); // end of outer loop
+
+	// add the required final extra closing endspan
+	production += "</span>";
+
+	return production;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return                 the set of <span> elements, (in utf8) made from the passed in
+///                         data string (the data string passed in is everything between
+///                         the initial \f or \fe, and the final \f* or \fe*)
+/// \param key              passing in footnote_ or endnote_ enum value to the internally
+///                         used utf8 template
+/// \param uuid         ->  a unique string is required in two places (some software builds
+///                         using something like Footnote_LUK_a, Footnote_LUK_b, etc; we use
+///                         uuids instead, as, I think, TE does)
+/// \param data         ->  the footnote or endnote text  
+/// \remarks
+/// Call once per footnote or endnote to collect all the relevant bits of the
+/// footnote content string (including for an \fr marker). Internally there is an outer
+/// loop, and an inner loop that process text content for a given marker up to the start
+/// of the next marker, or end of buffer. The present version supports the current TE
+/// styles, but the specification for stylenames is not yet set in concrete, so this
+/// function may get some minor changes added later.
+/// The last span built herein has to be followed by a (second) closing </span> endtag.
+/// If two markers occur in sequence, such as \ft followed by \it, then the \ft would have
+/// no content - we have that generate an empty span, <span lang="xxx" /> where xxx is
+/// whatever is the relevant 2 or 3-letter language code.
+/// 
+/// Note 1: the logic of this function may be extended a bit if someone gets the spec
+/// set in concrete some day; we support \ft \fr \fv and \fq \fqa \fk and \it.
+/// Note 2: In the case of endnotes, the series of spans are stored in a string array, and
+/// dumped at the end of the xhtml to give a sort of 'endnote' behaviour. The uuids keep
+/// the in-place information connected with the relevant production in the dumped endnote
+/// productions at the end.
+////////////////////////////////////////////////////////////////////////////////////
+CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxString data)
+{
+    // I'll not bother with deuterocanon, and some other less often markers, so won't
+    // search for and remove \fdc ... \fdc*, etc, but just assume such info is not present
+    // (if present, the markers will be removed but the text kept, as if it was \ft text)
+	wxASSERT(!data.IsEmpty());
+	// create wxString markers:
+	wxString frMarker  = _T("\\fr");
+	wxString fkMarker  = _T("\\fk");
+	wxString fqMarker  = _T("\\fq");
+	wxString fqaMarker = fqaMkr;
+	wxString flMarker  = _T("\\fl");
+	wxString fpMarker  = _T("\\fp");
+	wxString fvMarker  = fvMkr;
+	wxString ftMarker  = ftMkr;
+	wxString itMarker  = itMkr;
+	wxString fmMarker  = _T("\\fm"); // rare, we'll just omit it if 
+									 // encountered, but keep the text
+	// I'm using wxStringBuffer class. This will give me a writable pointer to the
+	// original wxString's buffer, PROVIDED wxUSE_STL is 0 (which is the wxWidgets default
+	// value) - if it is 1, then there will be a new EMPTY buffer created and no data
+	// copied to it, and then this function would fail. (I've checked wxUSE_STL is 0, it
+	// is in setup.h, line 207) Although buffer is writable, I'm using it as read-only.
+	CBString aSpan; aSpan.Empty(); // use this for each <span lang="xyz"> ... </span> that we build
+	CBString production; production.Empty(); // store the xhtml production being built in here
+	wxString aSpace = _T(" ");
+	data = ChangeWhitespaceToSingleSpace(data); // normalize, so there are no internal CR, LF, etc
+	data.Trim(FALSE); // at beginning
+	data.Trim(); // at end
+
+	size_t buffLen = data.Len();
+	wxStringBuffer myBuffer(data, buffLen);
+	wxChar* pBuffStart = (wxChar*)myBuffer;
+	wxChar* ptr = pBuffStart; // our parsing pointer
+	wxChar* pEnd = ptr + buffLen;
+
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	wxString collectStr; collectStr.Empty();
+	int contentLen = 0;
+	int itemLen = 0;
+	wxChar* pContent = NULL; // use this for the start of span of text being parsed over
 
 #if defined(__WXDEBUG__)
 	//if (m_curChapter == _T("17") && m_curVerse == _T("35"))
@@ -1377,19 +1862,26 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 //	}
 #endif
 
-	// get past the initial unwanted stuff, then have a loop to produce the one or more spans
-	if (*ptr == _T('+') || *ptr == _T('-') || *ptr == _T('?'))
-	{
-		// advance over the footnote or endnote caller character
-		ptr++;
-		pContent = ptr;
-	}
+	// get past white space, store the caller character, get past 
+	// any whitespace which follows it
+	while (IsWhiteSpace(*ptr) && ptr < pEnd) { ptr++;}
+	// get the caller string -- we must set m_callerStr before we call 
+	// BuildFootnoteInitialPart() which uses it
+	m_callerStr = *ptr;
+	// advance over the caller
+	ptr++; // whether + or - or user-defined character
+	
+	// first, Build the initial part of the 2nd production, using template:
+	// <span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"+\"> 
+	// I use + as the caller in templates, but the following function will replace that
+	// with whatever caller is in the data, which is not in the m_callerStr member
+	production = BuildFootnoteInitialPart(key, uuid); // this will be followed by one or more
+													  // simple <span> elements
 	// advance over any following whitespace
 	while (IsWhiteSpace(*ptr) && ptr < pEnd) { ptr++;}
 	pContent = ptr; // content possibly starts here
 	// If there is a \fr field, ptr will now be pointing at the backslash of the \fr
-	// marker - we don't want this information, so if that is the case, advance to the
-	// start of whatever follows the ch:vs reference and it's following whitespace
+	// marker - we always want this marker's ch:vs ref, but not the marker itself
 	if (pDoc->IsMarker(ptr))
 	{
 		wxString aMarker = pDoc->GetWholeMarker(ptr);
@@ -1452,10 +1944,14 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 					{
 						aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
 						production += aSpan;
+						aSpan.Empty();
 					}
 				}
 				else
 				{
+					// make an empty span
+					aSpan = BuildEmptySpan(GetLanguageCode());
+					production += aSpan;
 					aSpan.Empty();
 				}
 				break;
@@ -1464,34 +1960,67 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 			{
 				// we've halted at a marker after collecting some footnote text, so
 				// iteration of the inner loop is appropriate now -- so prepare
+				if (!s.IsEmpty())
+				{
+					// make the <span> - it's just a 'simple' one
+					if (!collectStr.IsEmpty())
+					{
+						aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
+						production += aSpan;
+					}
+				}
 				pContent = NULL;
 				aSpan.Empty();
 				contentLen = 0;
 				continue; // iterate immediately
 			}
-		}
-		// We are at a marker, or end of the footnote. We count the size of the next
-		// marker, but just omit it from the text collection: \fk (keyword), \fq (footnote
-		// translation quotation), \fl (footnote label -- probably rarely used), \fp (footnote
-		// paragraph -- it's rare), and \ft (footnote text). Some of these, in the older USFM
-		// markup scheme, have endmarkers which potentially may occur - we'll just parse over
-		// any endmarkers we encounter (we count their size though, but we don't bother to
-		// check they match the begin marker which precedes); the newer USFM standard doesn't
-		// use endmarkers within footnotes any more - which makes it safe to do this.
-		// Currently, only \fv or \fqa or \fr halt our parse and section the text into a series
-		// of <span> .. </span> elements
-		do {
+		} // end of TRUE block for test: if (!pDoc->IsMarker(ptr))
+
+        // We are at a marker, or end of the footnote. We count the size of the next
+        // marker, but just omit it from the text collection: \fk (keyword), \fq (footnote
+        // translation quotation), \fl (footnote label -- probably rarely used), \fp
+        // (footnote paragraph -- it's rare), and \ft (footnote text), and so forth; but we
+        // give the text content the appropriate xhtml style label. Some of these markers,
+        // in the older USFM markup scheme, have endmarkers which potentially may occur -
+        // we'll just parse over any endmarkers we encounter (we count their size though,
+        // but we don't bother to check they match the begin marker which precedes); the
+        // newer USFM standard doesn't use endmarkers within footnotes any more - which
+        // makes it safe to do this. Currently, only \fr, \fv, \ft, \fq, \fqa or \fk halt
+        // our parse and section the text into a series of <span> .. </span> elements
+		do {  // while ptr has not yet reached pEnd
+
 			if (ptr < pEnd && pDoc->IsMarker(ptr))
 			{
 				wxString aMarker = pDoc->GetWholeMarker(ptr);
-				if (aMarker == fvMarker || aMarker == fqaMarker)
+
+				// the USFM data may be marked up in the old style, using endmarkers like
+				// \fq*, \fv*, \ft*, \fqa* and so forth. If so, detect any such marker and
+				// skip it, parse over any following whitespace, then iterate the loop
+				if (pDoc->IsEndMarker(ptr, pEnd))
 				{
-					// We've reached the end of a collection span, but we may have only just begun
-					// to collect - so check for contentLen zero, and if so, don't return, but
-					// instead parse over whatever of those two kinds of material follows. 
+					// parse over the endmarker
+					itemLen = pDoc->ParseMarker(ptr);
+					ptr += itemLen;
+					itemLen = 0;
+					// parse over following whitespace
+					itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+					itemLen = 0;
+					pContent = ptr;
+					contentLen = 0;
+					aMarker.Empty();
+					continue; // iterate
+				}
+
+				if (aMarker == ftMarker || aMarker == fqaMarker || aMarker == fvMarker
+					|| aMarker == itMarker || aMarker == fqMarker || aMarker == fkMarker )
+				{
+                    // We've reached the end of a collection span, but we may have only
+                    // just begun to collect - we don't expect control to get into the
+					// next block, but if it does, just make a simple span of it before
+					// continuing with handling the marker we are at and its content
 					if (contentLen > 0)
 					{
-						// we do need to shut down shop for this iteration, so make the <span>
+						// we do need to close off for this iteration, so make the <span>
 						wxASSERT(pContent != NULL);
 						wxString s(pContent, (size_t)(ptr - pContent));
 						if (!collectStr.IsEmpty())
@@ -1516,13 +2045,75 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 					}
 					else
 					{
-						// There is no emitable content parsed over yet (contentLen is 0) but
-						// ptr is pointing at either \fv or \fqa or \fr; or, we've just
-						// re-entered in order to parse over either \fv or \fqa or \fr.
+                        // There is no emitable content parsed over yet for this iteration
+                        // (contentLen is 0) but ptr is pointing at either \fv or \fq or
+                        // \fqa or \ft etc
 
-						// this is where \fqa or \fv  etc are processed (more footnote-internal 
-						// markers, if we can find out their class attribute value names from LSDev)
-						if (aMarker == fvMarker)
+						// this is where the footnote-internal markers, including \it for
+						// italics (and I can add blocks for \bd etc if necessary) are
+						// processed
+						if (aMarker == ftMarker)
+						{
+							// we came to an \ft marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span
+							
+							// parse over the \ft marker
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the footnote text (sub)string; note, an \it (italics)
+							// marker may follow - and so the content collected is empty;
+							// check for this and when that is the case, make an
+							// emptySpan, otherwise make a simple span with content
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+							if (contentLen == 0)
+							{
+								// a second marker follows (usually, italics \it marker),
+								// so just make an empty span
+								aSpan = BuildEmptySpan(GetLanguageCode());
+								production += aSpan;
+							}
+							else
+							{
+								// create the string
+								wxString s(pContent, (size_t)contentLen);
+								contentLen = 0;
+								// Build the span for the \ft marker -- this has no explicit style
+								aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(s));
+								production += aSpan;
+							}
+							break;
+						}
+						else if (aMarker == itMarker)
+						{
+							// we came to an \it marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span...
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the emphasis text string
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+							// create the string
+							wxString s(pContent, (size_t)contentLen);
+							contentLen = 0;
+							// Build the span for the \it marker's content
+							aSpan = BuildSpan(plusClass, emphasis_, GetLanguageCode(), ConvertData(s));
+							production += aSpan;
+							break;
+						}
+						else if (aMarker == fvMarker)
 						{
 							// we came to a \fv marker; so parse it's content and stop at
 							// the next marker, or at end of the buffer, and build the span
@@ -1550,11 +2141,37 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 							production += aSpan;
 							break;
 						}
-						else
+						else if(aMarker == fqMarker)
+						{
+							// we came to an \fq marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span...
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the quoted text string
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+                            // get the content string (TE uses Alternate_Reading for its
+                            // style, which is certainly wrong; Jim has Footnote_Quotation
+                            // but the TE people ignored his specification - so I'll just
+                            // use Alternate_Reading for both \fqa and \fq until this
+                            // matter is resolved)
+							wxString s(pContent, (size_t)contentLen);
+							contentLen = 0;
+							// Build the span for \fq markup
+							aSpan = BuildSpan(plusClass, alt_quote_, GetLanguageCode(), ConvertData(s));
+							production += aSpan;
+							break;
+						}
+						else if(aMarker == fqaMarker)
 						{
 							// we came to an \fqa marker; so parse it's content and stop at
 							// the next marker, or at end of the buffer, and build the span...
-							// parse over the \fqa marker
 							itemLen = pDoc->ParseMarker(ptr);
 							ptr += itemLen;
 							itemLen = 0;
@@ -1566,7 +2183,11 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 							contentLen = 0;
 							// parse over the alterative quoted text string
 							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
-							// create the alternate reading string
+                            // get the content string (TE uses Alternate_Reading for its
+                            // style, which may be wrong; Jim has Footnote_Alternate_Reading
+                            // but the TE people ignored his specification - so I'll just
+                            // use Alternate_Reading for both \fqa and \fq until this
+                            // matter is resolved)
 							wxString s(pContent, (size_t)contentLen);
 							contentLen = 0;
 							// Build the span for the \fqa alternate reading span
@@ -1574,20 +2195,51 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 							production += aSpan;
 							break;
 						}
+						else if(aMarker == fkMarker)
+						{
+							// we came to an \fk marker; so parse it's content and stop at
+							// the next marker, or at end of the buffer, and build the span...
+							itemLen = pDoc->ParseMarker(ptr);
+							ptr += itemLen;
+							itemLen = 0;
+							// parse over following whitespace
+							itemLen = pDoc->ParseOverAndIgnoreWhiteSpace(ptr, pEnd, 0); // updates ptr
+							itemLen = 0;
+							// we are at where content must start to be collected, set the ptr
+							pContent = ptr;
+							contentLen = 0;
+							// parse over the quoted text string
+							while (ptr < pEnd && !pDoc->IsMarker(ptr)) { ptr++; contentLen++;}
+                            // get the content string (TE uses Alternate_Reading for its
+                            // style, which is certainly wrong; Jim has Footnote_Quotation
+                            // but the TE people ignored his specification - so I'll just
+                            // use Alternate_Reading for both \fqa and \fq until this
+                            // matter is resolved)
+							wxString s(pContent, (size_t)contentLen);
+							contentLen = 0;
+							// Build the span for \fk markup
+							aSpan = BuildSpan(plusClass, footnote_referenced_text_, 
+												GetLanguageCode(), ConvertData(s));
+							production += aSpan;
+							break;
+						}
 						// note -- there may be more class attribute values -- use else if
-						// blocks here  and above to add code for processing them
+						// blocks here to add code for processing them, and add a test for
+						// each at the top of the block (other markers not in the test
+						// will be processed by the else block below)
 						// ***************** add more here ****************
 
 					} // end of else block for test: if (contentLen > 0)
 
-				} // end of TRUE block for test: if (aMarker == fvMarker || aMarker == fqaMarker)
+				} // end of TRUE block for test: if (aMarker == fvMarker || aMarker == fqaMarker etc)
 				else
 				{
-                    // ptr is pointing neither at \fv nor \fqa nor \fr, but at some other
-                    // marker; parse over the marker and ignore it, and go on until either
-                    // we arrive at another marker (in which case we collect the data and
-                    // apppend to collectStr & iterate the inner loop), or to the end of
-                    // the buffer (in which case, do the same but then break out)
+                    // ptr is pointing neither at none of the tested-for footnote internal
+                    // markers, but at some other marker; parse over the marker and ignore
+                    // it, and go on until either we arrive at another marker (in which
+                    // case we collect the data and apppend to collectStr & iterate the
+                    // inner loop), or to the end of the buffer (in which case, do the same
+                    // but then break out)
 					itemLen = pDoc->ParseMarker(ptr);
 					ptr += itemLen;
 					itemLen = 0;
@@ -1674,7 +2326,8 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 					aSpan = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(collectStr));
 					production += aSpan;
 				}
-			}
+			} // end of else block for test: if (ptr < pEnd && pDoc->IsMarker(ptr))
+
 		} while (ptr < pEnd); // end of <span>-producing loop
 
 		// prepare for next iteration of the outer loop
@@ -2508,9 +3161,17 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
-		case alt_quote_: // for USFM \fqa
+		case alt_quote_: // for USFM \fqa 
 			// I'm assuming USFM \fqa maps to TE's Alternate_Reading" -- see Oxes v1 documentation
 			myxml = BuildSpan(plusClass, alt_quote_, GetLanguageCode(), ConvertData(m_data));
+			xhtmlStr += myxml;
+			myxml.Empty();
+			m_beginMkr.Empty();
+			m_endMkr.Empty();
+			break;
+		case footnote_quote_: // for USFM \fq
+			// Greg Trihus says USFM \fq maps to TE's "Alternate_Reading"
+			myxml = BuildSpan(plusClass, footnote_quote_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
@@ -2610,13 +3271,26 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_endMkr.Empty();
 			break;
 		case emphasis_:
-			// we are assuming here that \em ... \em* will apply only to a short stretch
+			// we are assuming here that \it ... \it* will apply only to a short stretch
 			// of text in which there were no other markers - if there were, the
 			// emphasized span would only apply up to the begin-marker of the embedded
 			// markers, which would be a markup glitch, but not break anything in the
 			// processing. (In particular, assume no embedded footnote, no embedded \wj
 			// ... \wj* subspan.)
 			myxml = BuildSpan(plusClass, emphasis_, GetLanguageCode(), ConvertData(m_data));
+			xhtmlStr += myxml;
+			myxml.Empty();
+			m_beginMkr.Empty();
+			m_endMkr.Empty();
+			break;
+		case emphasized_text_:
+			// we are assuming here that \em ... \em* will apply only to a short stretch
+			// of text in which there were no other markers - if there were, the
+			// emphasized span would only apply up to the begin-marker of the embedded
+			// markers, which would be a markup glitch, but not break anything in the
+			// processing. (In particular, assume no embedded footnote, no embedded \wj
+			// ... \wj* subspan.)
+			myxml = BuildSpan(plusClass, emphasized_text_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
 			myxml.Empty();
 			m_beginMkr.Empty();
@@ -3178,6 +3852,7 @@ CBString Xhtml::BuildSpan(SpanTypeEnum spanType, XhtmlTagEnum key, CBString lang
 
 // next builds for:
 // <span class=\"Note_Target_Reference\" lang=\"langAttrCode\">chvsREF </span>
+// (Jim's spec uses "Footnote_Origin_reference", but TE uses the above)
 CBString Xhtml::BuildNoteTgtRefSpan(CBString langCode, CBString chvsREF)
 {
 	CBString span = "";
@@ -3203,6 +3878,28 @@ CBString Xhtml::BuildNoteTgtRefSpan(CBString langCode, CBString chvsREF)
 	// append what remains
 	left += span;
 	wxLogDebug(_T("BuildNoteTgtRefSpan():   %s"), (ToUtf16(left)).c_str());
+	return left;
+}
+
+// next builds an empty span production, template is:
+// <span lang=\"langAttrCode\" />
+CBString Xhtml::BuildEmptySpan(CBString langCode)
+{
+	CBString span = "";
+	int length;
+	int offset;
+	CBString left; left.Empty();
+	CBString paramName1;
+	span = m_spanTemplate[emptySpan];
+	paramName1 = "langAttrCode";
+	length = paramName1.GetLength();
+	offset = span.Find(paramName1); wxASSERT(offset != wxNOT_FOUND);
+	left = span.Left(offset);
+	span = span.Mid(offset + length); // bleed off what we've found
+	left += langCode;
+	// append what remains
+	left += span;
+	wxLogDebug(_T("BuildEmptySpan():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
 
@@ -3299,18 +3996,24 @@ CBString Xhtml::BuildCHorV(SpanTypeEnum spanType, CBString langCode, CBString co
 	wxLogDebug(_T("BuildCorV():   %s"), (ToUtf16(left)).c_str());
 	return left;
 }
-CBString Xhtml::InsertDaggerIntoTitleAttr(CBString templateStr)
+
+// put the data's caller character in the title="+" attribute, replacing +
+CBString Xhtml::InsertCallerIntoTitleAttr(CBString templateStr)
 {
-	// put a dagger in the title="" attribute
-	wxChar dagger = 0x2020;
-	wxString strDagger = (wxChar)dagger;
-	CBString daggerUtf8Str = ToUtf8(strDagger);
-	int offset = templateStr.Find("title=\""); // 7 chars in from where
+	// we treat the caller wxChar as a string, because when converted to utf8 it may be a
+	// sequence of two or more bytes (e.g. that would be the case for a dagger)
+	CBString symbolUtf8Str = ToUtf8(m_callerStr);
+	int offset = templateStr.Find("title=\"+"); // 7 chars in from where
 							// it was found is where we want to insert it
+							// overwriting the + there
 	if (offset != wxNOT_FOUND)
 	{
 		offset += 7;
-		templateStr.Insert(offset, daggerUtf8Str);
+		CBString left = templateStr.Left(offset);
+		CBString right = templateStr.Mid(offset + 1); // starts from char after the +
+		templateStr = left;
+		templateStr += symbolUtf8Str;
+		templateStr += right;
 	}
 	return templateStr;
 }
@@ -3318,13 +4021,19 @@ CBString Xhtml::InsertDaggerIntoTitleAttr(CBString templateStr)
 // the next two build bits for footnotes and endnotes, BuildFootnoteInitialPart()
 // builds from the following template:
 // <span class=\"classAttrLabel\" id=\"idAttrUUID\" title=\"\">
+// (With the current TE-based style names, classAttrLabel will be replaced by:
+// Note_General_Paragraph if footnote_ is passed in for key,
+// Endnote_General_Paragraph if endnote_ is passed in for key,
+// Note_CrossHYPHENRefrence_Paragraph if crossReference_ is passed in for key
 CBString Xhtml::BuildFootnoteInitialPart(XhtmlTagEnum key, CBString uuid)
 {
 	int length;
 	int offset;
 	CBString left; left.Empty();
 	CBString span = m_spanTemplate[footnoteFirstPart];
-	span = InsertDaggerIntoTitleAttr(span); // insert a dagger
+	// put the caller character into the title attribute
+	span = InsertCallerIntoTitleAttr(span);
+
 	CBString classAttrValue = GetClassLabel(key);
 	CBString paramName = "classAttrLabel";
 	length = paramName.GetLength();
@@ -3355,7 +4064,10 @@ CBString Xhtml::BuildNested(XhtmlTagEnum key, CBString uuid, CBString langCode, 
 	int offset;
 	CBString left; left.Empty();
 	CBString span = m_spanTemplate[nested];
-	span = InsertDaggerIntoTitleAttr(span); // insert a dagger
+
+	// insert the caller character into the title attribute
+	span = InsertCallerIntoTitleAttr(span);
+
 	CBString classAttrValue = GetClassLabel(key);
 	CBString paramName = "classAttrLabel";
 	length = paramName.GetLength();
