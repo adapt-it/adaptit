@@ -62,7 +62,8 @@ enum SpanTypeEnum {
 	footnoteFirstPart,
 	targetREF,
 	captionREF,
-	captionREFempty
+	captionREFempty,
+	emptySpan
 };
 // If more are added to the above, be sure to increase the array size in
 //   *****     CBString m_spanTemplate[9];  ******
@@ -94,8 +95,13 @@ enum XhtmlTagEnum {
 	alt_quote_,           // for \fqa in a footnote or endnote (see USFM footnotes) 'footnote quote alternate'
 	footnote_,           // for \f ... \f*
 	endnote_,            // for \fe ... \fe*
+	footnote_text_,		 // USFM \ft  (no style for this, it just gets ignored; same for \xt)
+	footnote_quote_,	 // for \fq  (TE wrongly uses 'Alternate_Reading' so I'll use that and for \fqa too) see alt_quote_
+	footnote_referenced_text_, // for \fk ... \fk*
+	crossref_referenced_text_, // for \xk ... \xk*
 	inline_crossReference_, // got USFM inline right-aligned \rq ... \rq* cross references (these have no internal structure)
-	crossReference_,     // for \x ... \x* <<-- TE does not appear to support these, but only inline right-aligned \rq ... \rq* ones
+	crossReference_,     // for \x ... \x*
+	crossReference_target_reference_, // for \xt (we just ignore \xt)
 	line1_,              // for \q or \q1, poetry line, level 1 
 	line2_,              // for \q2 , poetry line, level 2
 	line3_,              // for \q3 , poetry line, level 3
@@ -110,7 +116,8 @@ enum XhtmlTagEnum {
 	stanza_break_,       // for \b  stanza break in poetry
 	inscription_paragraph_, // for \pc (USFM paragraph centred)
 	inscription_,        // for \sc ... \sc*  inscription  (USFM inline markers)
-	emphasis_,           // for \em ... \em*  emphasis (USFM inline markers)
+	emphasis_,           // for \it ... \it*  emphasis (USFM inline markers) (\em \em* is Emphasized_Text)
+	emphasized_text_,	 // for \em ... \em* (USFM inline markers)
 	list_item_1_,        // for \li or \li1, list item, level 1
 	list_item_2_,        // for \li2, list item, level 2
 	quoted_text_,		 // for \qt ... \qt*, quoted text (USFM inline markers)
@@ -168,8 +175,11 @@ const wxChar rMkr[] = _T("\\r");     // parallelPassage reference mkr
 //const wxChar s4Mkr[] = _T("\\s4"); //unlikely to ever occur
 const wxChar vMkr[] = _T("\\v");     // \v support, (all \vn's will have been converted to \v and all \vt's removed)
 const wxChar cMkr[] = _T("\\c");
+const wxChar itMkr[] = _T("\\it");	 // for \it ... \it*  (italicized) ie. "Emphasis" style
 const wxChar fMkr[] = _T("\\f");     // for footnote
 const wxChar ftMkr[] = _T("\\ft");	 // footnote text \ft, also used in endnotes
+const wxChar fkMkr[] = _T("\\fk");	 // footnote referenced text \fk, also used in endnotes
+const wxChar fqMkr[] = _T("\\fq");   // for "TE alternate reading " USFM \fq 'footnote quote' in a footnote or endnote
 const wxChar fqaMkr[] = _T("\\fqa"); // for "alternate reading " USFM \fqa 'footnote quote alternate' in a footnote or endnote
 const wxChar fvMkr[] = _T("\\fv");   // for USFM \fv  a verse number within the text of the footnote or endnote
 const wxChar frMkr[] = _T("\\fr");   // for \fr in a footnote (ch:vs ref is followed by a space, every time)
@@ -177,7 +187,8 @@ const wxChar feMkr[] = _T("\\fe");   // for endnote \fe ... \fe*,
 const wxChar rqMkr[] = _T("\\rq");     // for crossReference \rq ... \rq* inline x reference, usually right-aligned in the text
 const wxChar xMkr[] = _T("\\x");     // for crossReference \x ... \x* TE does not appear to support these
 const wxChar xoMkr[] = _T("\\xo");   // for crossReference, origin reference \xo (handled same as \fr)
-const wxChar xtMkr[] = _T("\\xt");   // for crossReference, the list of refs \xt
+const wxChar xtMkr[] = _T("\\xk");   // for crossReference, keyword  \xk marker
+const wxChar xkMkr[] = _T("\\xt");   // for crossReference, the list of refs \xt
 const wxChar qMkr[] = _T("\\q");     // for poetry, level 1
 const wxChar q1Mkr[] = _T("\\q1");   // for poetry, level 1
 const wxChar q2Mkr[] = _T("\\q2");   // for poetry, level 2
@@ -200,7 +211,7 @@ const wxChar qmMkr[] = _T("\\qm");	 // for \qm "citation line, level 1"
 const wxChar qm1Mkr[] = _T("\\qm1"); // for \qml "citation line, level 1"
 const wxChar qm2Mkr[] = _T("\\qm2"); // for \qm2 "citation line, level 2"
 const wxChar qm3Mkr[] = _T("\\qm3"); // for \qm3 "citation line, level 3"
-const wxChar emMkr[] = _T("\\em");   // for \em  \em* "emphasis"
+const wxChar emMkr[] = _T("\\em");   // for \em  \em* "Emphasized_Text"
 const wxChar scMkr[] = _T("\\sc");   // for \sc  \sc* "inscription"
 const wxChar pcMkr[] = _T("\\pc");   // for \pc "inscription paragraph / USFM paragraph centred"
 const wxChar iliMkr[] = _T("\\ili"); // for \ili  "introduction list item, level 1"
@@ -312,6 +323,9 @@ private:
 			// <span class=\"Verse_Number\" lang=\"langAttrCode\">vNumPCDATA</span>
 			// is stored here when ParseMarker_Content_Endmarker() encounters a \v marker
 	wxString m_emptyStr;
+	wxString m_callerStr; // for the caller character following \f, \fe, or \x markers 
+						  // (it's either +, -, or user-defined; my templates use + and the
+						  // + gets changed to whatever is in the data, at export time)
 	wxString m_beginMkr;
 	wxString m_endMkr;
 	wxString m_data;    // for returning the content in a USFM marker, 
@@ -380,7 +394,7 @@ private:
 	CBString GetTargetLanguageName();
 	CBString GetRunningHeader(wxString* pBuffer); // pass in m_pBuffer member
 	CBString GetMachineName();
-	CBString InsertDaggerIntoTitleAttr(CBString templateStr);
+	CBString InsertCallerIntoTitleAttr(CBString templateStr);
 
 	// iterator for use with the Enum2LabelMap
 	Enum2LabelMap::iterator enumIter;
@@ -393,7 +407,7 @@ private:
 
 	// XHTML production templates
 	
-	CBString m_spanTemplate[9];
+	CBString m_spanTemplate[10];
 	CBString m_divOpenTemplate;
 	CBString m_divCloseTemplate;
 
@@ -427,12 +441,16 @@ private:
 	CBString BuildTitleInfo(wxString*& pText);
 	CBString BuildFXRefFe();
 	CBString FinishOff(int howManyEndDivs);
+	// next is for footnotes or endnotes
 	CBString BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxString data);
+	// next is for cross references of type \x ... \x*
+	CBString BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxString data);
 	// next is almost identical to BuildSpan() except I've an obligatory space after
 	// chvsREF in the template, and I'll make the class part into boilerplate text
 	CBString BuildNoteTgtRefSpan(CBString langCode, CBString chvsREF);
 	// next is for the last span, the reference span, in a caption production
 	CBString BuildCaptionRefSpan(CBString langCode, CBString chvsREF);
+	CBString BuildEmptySpan(CBString langCode);
 
 	// ----------- end of helpful BUILDER FUNCTIONS for some productions ----------------
 
