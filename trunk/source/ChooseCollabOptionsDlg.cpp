@@ -56,7 +56,7 @@ END_EVENT_TABLE()
 
 CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose How You Want To Work With This Project"),
-				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP) // whm 13Jul12 added wxSTAY_ON_TOP
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
