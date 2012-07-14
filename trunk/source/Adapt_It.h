@@ -123,7 +123,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 99).
+// 1. The appVerStr const defined below (about line 143).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
@@ -135,12 +135,12 @@ class NavProtectNewDoc; // for user navigation protection feature
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 2
-#define VERSION_BUILD_PART 2
+#define VERSION_BUILD_PART 3
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 21
-#define VERSION_DATE_MONTH 5
+#define VERSION_DATE_DAY 27
+#define VERSION_DATE_MONTH 7
 #define VERSION_DATE_YEAR 2012
-const wxString appVerStr(_T("6.2.2"));
+const wxString appVerStr(_T("6.2.3"));
 
 //#define Print_failure
 
