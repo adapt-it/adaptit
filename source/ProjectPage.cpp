@@ -110,7 +110,7 @@ IMPLEMENT_DYNAMIC_CLASS( CProjectPage, wxWizardPage )
 // event handler table
 BEGIN_EVENT_TABLE(CProjectPage, wxWizardPage)
 	EVT_INIT_DIALOG(CProjectPage::InitDialog)
-    EVT_WIZARD_PAGE_CHANGING(-1, CProjectPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
+	EVT_WIZARD_PAGE_CHANGING(-1, CProjectPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
 	EVT_WIZARD_PAGE_CHANGED(-1, CProjectPage::OnWizardPageChanged)
 	EVT_WIZARD_CANCEL(-1, CProjectPage::OnWizardCancel)
 	EVT_LISTBOX_DCLICK(IDC_LIST_NEW_AND_EXISTING, CProjectPage::OnCallWizardNext)// double click simiulates OnWizardNext
@@ -372,6 +372,7 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	// whm note: wxDesigner has the listbox style set for wxLB_HSCROLL which creates a horizontal scrollbar
 	// if contents are too wide (Windows only)
 }
+
 void CProjectPage::OnButtonWhatIsProject(wxCommandEvent& WXUNUSED(event)) 
 {
 	wxString s;

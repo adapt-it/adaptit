@@ -1,4 +1,54 @@
 ----------------------------------------------
+Version 6.2.3 release 27 July 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.2.3
+----------------------------------------------
+* Added code to ensure that the "Choose How You Want To Work
+With This Project" dialog stays on top of the start up wizard
+in the Linux version. Otherwise on Linux an accidental click
+outside of the dialog could result in the dialog being hidden
+behind the wizard and the application would seem to be 
+unresponsive because the hidden dialog was waiting for input.
+Similar code was added to the "Get Source Text from Paratext/
+Bibledit Project" dialog to prevent it from being accidentally
+hidden behind other windows.
+* The text associated with the markers \h, \h1, \h2 and \h3 is
+now unfiltered (unhidden) by default. This change is needed
+for the upcoming Xhtml export feature.
+* Improved the wording of some error messages that may appear
+when working in the "Setup Collaboration" dialog.
+The Unicode version of Adapt It on Windows and the Mac is now
+based on the 2.9.x version of the wxWidgets library. On Linux
+this change will only take effect when the Linux distributions
+contain the newer 2.9.x version of the wxWidgets library.
+
+----------------------------------------------
+Bug fixes in 6.2.3
+----------------------------------------------
+* Modified the "USFM and Filtering" tab of the Preferences
+dialog to filter or unfilter the \x ... \x* (cross reference),
+\f ... \f* (footnote) and \fe ... \fe* (endnote) markers 
+in unison with the embedded "content markers" that are 
+associated with those parent markers. This means that the 
+content markers \xo, \xk, \xq, \xt, \xot, \xnt and \xdc will
+always be filtered or unfiltered at the same time that their
+parent marker \x is filtered or unfiltered. The same behavior
+is now true for the footnote and endnote markers \f ... \f*
+and \fe ... \fe*. The "content markers" \fr, \fk, \fq, \fqa,
+\fl, \fp, \ft, \fdc, \fv, and \fm will always be filtered or
+unfiltered at the same time that their parent markers \f and
+\fe are filtered or unfiltered.
+* Both type of footnotes \f (footnote) and \fe (endnote) are
+now always filtered or unfiltered together. That is if the 
+user clicks the check box to filter (hide) the \f marker the
+checkbox next to the \fe markers will also automatically be
+checked; and if the tick is removed from the \f marker's 
+check box it will also automatically be removed from the \fe
+marker's check box. This is because both \f and \fe share
+the same "content markers" (see the above bug fix).
+
+----------------------------------------------
 Version 6.2.2 release 21 May 2012
 ----------------------------------------------
 ----------------------------------------------

@@ -34,6 +34,7 @@ public:
 	wxStaticText* pStaticTextAIProjName;
 	wxTextCtrl* pStaticAsTextCtrlNotInstalledErrorMsg;
 	wxButton* pBtnTellMeMore;
+	wxButton* pBtnOK;
 	wxString m_aiProjName;
 	wxArrayString projList;
 	bool m_bRadioSelectCollabON;

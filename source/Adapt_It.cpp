@@ -142,6 +142,7 @@
 #include "KB.h"
 #include "helpers.h"
 #include "CollabUtilities.h"
+#include "ChooseCollabOptionsDlg.h"
 #include "FontPage.h"
 #include "PhraseBox.h"
 #include "LanguagesPage.h"
@@ -588,6 +589,10 @@ extern	bool gbLegacySourceTextCopy; // defined in Adapt_ItView.cpp, to govern
 
 /// Pointer to the Start Working Wizard instance.
 CStartWorkingWizard* pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+
+/// Pointer to the ChooseCollabOptionsDlg instance
+CChooseCollabOptionsDlg* pChooseCollabOptionsDlg = (CChooseCollabOptionsDlg*)NULL;
+
 
 /// Pointer to the project page instance
 CProjectPage* pProjectPage = (CProjectPage*)NULL;

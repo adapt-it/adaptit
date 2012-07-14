@@ -81,7 +81,7 @@ END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Get Source Text from %s Project"),
-				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
