@@ -38,10 +38,15 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/wizard.h> // for wxWizard
+
 // other includes
 #include "Adapt_It.h"
 #include "ChooseCollabOptionsDlg.h"
 #include "CollabUtilities.h"
+
+/// This global is defined in Adapt_It.cpp.
+extern CChooseCollabOptionsDlg* pChooseCollabOptionsDlg; 
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseCollabOptionsDlg, AIModalDialog)
@@ -87,6 +92,10 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 
 	pBtnTellMeMore = (wxButton*)FindWindowById(ID_BUTTON_TELL_ME_MORE);
 	wxASSERT(pBtnTellMeMore != NULL);
+
+	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
+	wxASSERT(pBtnOK != NULL);
+
 }
 
 CChooseCollabOptionsDlg::~CChooseCollabOptionsDlg() // destructor
@@ -98,6 +107,8 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	
+	pChooseCollabOptionsDlg = this;
 	
 	// substitute "Paratext" or "Bibledit" for the %s in the first radio button
 	wxString tempStr;
@@ -220,6 +231,9 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	pRadioTurnCollabOFF->SetValue(m_bRadioSelectCollabOFF);
 	pRadioTurnReadOnlyON->SetValue(m_bRadioSelectReadOnlyON);
 	pStaticTextAIProjName->SetLabel(m_aiProjName);
+
+	// ensure focus is on the OK button.
+	pBtnOK->SetFocus();
 
 	pChooseCollabOptionsDlgSizer->Layout();
 	// The second radio button's label text is likely going to be truncated unless we resize the

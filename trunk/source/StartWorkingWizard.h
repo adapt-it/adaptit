@@ -29,7 +29,6 @@ class CCaseEquivPage;
 class CDocPage;
 class CUsfmFilterPageWiz;
 
-
 /// The CStartWorkingWizard class implements Adapt It's Start Working Wizard.
 /// \derivation		The CStartWorkingWizard class is derived from wxScrollingWizard 
 /// when built with wxWidgets prior to version 2.9.x, but derived from wxWizard for 
@@ -50,6 +49,7 @@ public:
 	wxSizer* pStartWorkingWizardSizer;
  	wxSizer* pWizardPageSizer;
 	void OnCancel(wxCommandEvent& event);
+	void OnActivate(wxActivateEvent& event);
 
 protected:
 

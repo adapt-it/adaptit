@@ -60,6 +60,7 @@
 #include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
 #endif
 
+#include "ChooseCollabOptionsDlg.h"
 #include "StartWorkingWizard.h"
 #include "FontPage.h"
 #include "LanguagesPage.h"
@@ -105,6 +106,9 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 /// This global is defined in Adapt_It.cpp.
 extern CStartWorkingWizard* pStartWorkingWizard;
 
+/// This global is defined in Adapt_It.cpp.
+extern CChooseCollabOptionsDlg* pChooseCollabOptionsDlg;
+
 // event handler table
 // whm 14Jun12 modified to use wxWizard for wxWidgets 2.9.x and later; wxScrollingWizard for pre-2.9.x
 #if wxCHECK_VERSION(2,9,0)
@@ -113,6 +117,7 @@ BEGIN_EVENT_TABLE(CStartWorkingWizard, wxWizard)
 BEGIN_EVENT_TABLE(CStartWorkingWizard, wxScrollingWizard)
 #endif
 	EVT_BUTTON(wxID_CANCEL, CStartWorkingWizard::OnCancel)
+	EVT_ACTIVATE(CStartWorkingWizard::OnActivate)
 END_EVENT_TABLE()
 
 
@@ -130,6 +135,9 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	// Create the wizard pages
     
 	pStartWorkingWizard = this;
+
+	pChooseCollabOptionsDlg = NULL;
+
 	// projectPage establishes its GetNext() page internally using either the gobal
 	// docPage pointer or the languagesPage pointer depending on whether the user selects 
 	// an existing project or <New Project>.
@@ -280,6 +288,21 @@ wxWizardPage* CStartWorkingWizard::GetFirstPage()
 		pProjectPage->InitDialog(ievent);
 		return pProjectPage;
 	}
+}
+
+void CStartWorkingWizard::OnActivate(wxActivateEvent& event)
+{
+	int Id;
+	Id = event.GetId();
+	if (this->GetCurrentPage() == pProjectPage)
+	{
+		if (pChooseCollabOptionsDlg != NULL)
+		{
+			pChooseCollabOptionsDlg->SetFocus();
+			pChooseCollabOptionsDlg->pBtnOK->SetFocus();
+		}
+	}
+	event.Skip();
 }
 
 void CStartWorkingWizard::OnCancel(wxCommandEvent& event)
