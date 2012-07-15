@@ -105,6 +105,9 @@ extern bool gbWizardNewProject; // for initiating a 4-page wizard
 /// This global is defined in Adapt_It.cpp
 extern wxString szProjectConfiguration;
 
+/// This global is defined in Adapt_It.cpp.
+extern CChooseCollabOptionsDlg* pChooseCollabOptionsDlg; 
+
 IMPLEMENT_DYNAMIC_CLASS( CProjectPage, wxWizardPage )
 
 // event handler table
@@ -829,6 +832,14 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					// whm changed 13Mar12. Center dialog on MainFrame - Kim's request
 					// Centering on the wizard page doesn't appear to work correctly on
 					// small screens.
+					// whm added 15Jul12. If an instance of CChooseCollabOptionsDlg is already
+					// in existence do not create another one
+					if (pChooseCollabOptionsDlg != NULL)
+					{
+						pChooseCollabOptionsDlg->Raise();
+						event.Veto();
+						return;
+					}
 					CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
 					collabOptDlg.CenterOnParent();
 					collabOptDlg.m_aiProjName = m_projectName;
