@@ -100,7 +100,8 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 
 CChooseCollabOptionsDlg::~CChooseCollabOptionsDlg() // destructor
 {
-	
+	// whm added 15Jul12 set the App's pointer to this dialog to NULL
+	pChooseCollabOptionsDlg = NULL;
 }
 
 void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
