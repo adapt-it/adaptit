@@ -292,8 +292,6 @@ wxWizardPage* CStartWorkingWizard::GetFirstPage()
 
 void CStartWorkingWizard::OnActivate(wxActivateEvent& event)
 {
-	int Id;
-	Id = event.GetId();
 	if (this->GetCurrentPage() == pProjectPage)
 	{
 		if (pChooseCollabOptionsDlg != NULL)
