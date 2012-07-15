@@ -840,6 +840,11 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						event.Veto();
 						return;
 					}
+					// whm added 15Jul12. Disable the wizard while the 3-button dialog is showing
+					// to prevent any interaction with the wizard on Linux. We enable the wizard 
+					// again when the dialog ends.
+					pStartWorkingWizard->Disable();
+
 					CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
 					collabOptDlg.CenterOnParent();
 					collabOptDlg.m_aiProjName = m_projectName;
@@ -854,6 +859,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// button was pressed, so the user can choose the same or different AI project
 						// again.
 						event.Veto();
+						pStartWorkingWizard->Enable();
 						return;
 					}
 					else
@@ -1016,6 +1022,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 							pApp->MakeMenuInitializationsAndPlatformAdjustments(collabAvailableReadOnlyOn);
 						}
 					}
+					pStartWorkingWizard->Enable(); // whm added 15Jul12
 					break;
 				}
 			default:
