@@ -757,6 +757,8 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			return;
 		}
 
+		gpApp->LogUserAction(_T("In FontPage: Next selected"));
+		
 		// if we get here the source and language name edits are valid,
 		// so we can determine which direction we're going and implement
 		// the MFC equivalent of OnWizardNext() and OnWizardBack() here
@@ -901,6 +903,8 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	}
 	else
 	{
+		gpApp->LogUserAction(_T("In FontPage: Back selected"));
+		
 		// Don't require valid font name and size data going backwards
 
 		// This block contains MFC's OnWizardBack() code:
@@ -1220,6 +1224,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 							// when it sets the alignment for the target box
 	{
 		gpApp->m_pTargetBox->SetLayoutDirection(wxLayout_RightToLeft);
+		gpApp->LogUserAction(_T("In FontPage: Target Layout RTL"));
 // whm Note: Pango overrides the following SetStyle() command
 //#ifndef __WXMSW__
 //		gpApp->m_pTargetBox->SetStyle(-1,-1,wxTextAttr(wxTEXT_ALIGNMENT_RIGHT));
@@ -1228,6 +1233,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		gpApp->m_pTargetBox->SetLayoutDirection(wxLayout_LeftToRight);
+		gpApp->LogUserAction(_T("In FontPage: Target Layout LTR"));
 // whm Note: Pango overrides the following SetStyle() command
 //#ifndef __WXMSW__
 //		gpApp->m_pTargetBox->SetStyle(-1,-1,wxTextAttr(wxTEXT_ALIGNMENT_LEFT));

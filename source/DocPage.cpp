@@ -270,6 +270,7 @@ void CDocPage::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //    // not confirmed
     //    event.Veto();
     //}
+	gpApp->LogUserAction(_T("User Cancel from DocPage of wizard"));
 }
 
 void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
@@ -289,7 +290,9 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 	{
 		if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 		{
-			wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION | wxOK);
+			wxString msg = _("You must Select a document (or <New Document>) from the list before continuing.");
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+			gpApp->LogUserAction(msg);
 			event.Veto();
 			return;
 		}
@@ -371,6 +374,7 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 			// back to the projectPage
 			wxASSERT(this == pDocPage);
 		}
+		gpApp->LogUserAction(_T("In DocPage going Back to ProjectPage"));
 		// ensure the project page is up to date
 		wxInitDialogEvent idevent;
 		pProjectPage->InitDialog(idevent);
@@ -814,6 +818,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // toolbar and controlbar looks better while waiting for the file dialog to appear
 		pApp->GetMainFrame()->Update();
 
+		pApp->LogUserAction(_T("In DocPage Finish selected: Create New Document"));
+
 		// whm modified 26Jul11 to use the pApp's m_sourceInputsFolderName if no previous
 		// m_lastSourceInputPath was stored. See similar code in the Doc's OnNewDocument().
 		// ensure that the current work folder is the project one for default
@@ -887,6 +893,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		// dialog is called when no document is active.
 		if (!bResult || pApp->m_nActiveSequNum == -1)
 		{
+			pApp->LogUserAction(_T("In DocPage: Call of OnNewDocument() failed or m_nActiveSequNum is -1"));
             // BEW added test on 21Mar07, to distinguish a failure due to a 3-letter code
             // mismatch preventing the document being constructed for the currently active
             // book folder, and any other kind of failure
@@ -952,7 +959,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	}
 	else // the user did not choose <New Document>
 	{
-        // it's an existing document that we want to open; but first we can come here with
+		pApp->LogUserAction(_T("In DocPage: Finish selected: Open Existing Document"));
+        
+		// it's an existing document that we want to open; but first we can come here with
         // an existing doc open, so we must first close it & also prompt for doc save & kb
         // save if user does not save the doc, then go on
 		CKB* pKB;
@@ -995,10 +1004,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		if (!bOK)
 		{
 			// IDS_LOAD_DOC_FAILURE
-			wxMessageBox(_(
-"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
-			_T(""), wxICON_STOP);
-			return; // wxExit(); whm modified 27May11
+			wxString msg = _(
+"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)");
+			wxMessageBox(msg, _T(""), wxICON_STOP);
+			pApp->LogUserAction(msg);
+			return; // wxExit(msg); whm modified 27May11
 		}
 
 		// put the focus in the phrase box, after any text

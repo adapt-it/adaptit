@@ -712,6 +712,7 @@ void CCaseEquivPageWiz::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //    // not confirmed
     //    event.Veto();
     //}
+	gpApp->LogUserAction(_T("In CaseEquivPage: User Cancel from wizard"));
 }
 
 void CCaseEquivPageWiz::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -804,6 +805,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	bool bMovingForward = event.GetDirection();
 	if (bMovingForward)
 	{
+		gpApp->LogUserAction(_T("In CaseEquivPage: Next selected"));
 		// Next wizard button was selected
 		//TransferDataFromWindow(); // whm removed 21Nov11
 		casePgCommon.m_strSrcEquivalences = casePgCommon.m_pEditSrcEquivalences->GetValue();
@@ -824,6 +826,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			//IDS_CASE_EQUIVALENCES_ERROR
 			s = s.Format(_("Sorry, in the Case wizard page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
 			wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
+			gpApp->LogUserAction(s);
 			event.Veto(); // add this to stop page change
 			return;
 		}
@@ -845,6 +848,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			// IDS_CASE_EQUIVALENCES_ERROR
 			s = s.Format(_("Sorry, in the Case wizard page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
 			wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
+			gpApp->LogUserAction(s);
 			event.Veto(); // add this to stop page change
 			return;
 		}
@@ -866,6 +870,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 			// IDS_CASE_EQUIVALENCES_ERROR
 			s = s.Format(_("Sorry, in the Case wizard page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
 			wxMessageBox(s, _T(""), wxICON_INFORMATION | wxOK);
+			gpApp->LogUserAction(s);
 			event.Veto(); // add this to stop page change
 			return;
 		}
@@ -900,8 +905,7 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	else
 	{
 		// Prev wizard button was selected
-		//TODO: implement anything here???
-		;
+		gpApp->LogUserAction(_T("In CaseEquivPage: Back selected"));
 	}
 }
 
@@ -1060,6 +1064,7 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		//IDS_CASE_EQUIVALENCES_ERROR
 		s = s.Format(_("Sorry, in the Case tab page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
 		wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
+		gpApp->LogUserAction(s);
 		//event.Veto(); // add this to stop page change
 		// TODO: put code here to automatically select the Case tab
 		return;
@@ -1082,6 +1087,7 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		// IDS_CASE_EQUIVALENCES_ERROR
 		s = s.Format(_("Sorry, in the Case tab page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
 		wxMessageBox(s,_T(""), wxICON_INFORMATION | wxOK);
+		gpApp->LogUserAction(s);
 		//event.Veto(); // add this to stop page change
 		// TODO: put code here to automatically select the Case tab
 		return;
@@ -1104,6 +1110,7 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		// IDS_CASE_EQUIVALENCES_ERROR
 		s = s.Format(_("Sorry, in the Case tab page, the %s list contains and error - one or more\nof the lines has only a single letter. Each line must contain a lower/upper case pair of letters."),strWhich.c_str());
 		wxMessageBox(s, _T(""), wxICON_INFORMATION | wxOK);
+		gpApp->LogUserAction(s);
 		//event.Veto(); // add this to stop page change
 		// TODO: put code here to automatically select the Case tab
 		return;

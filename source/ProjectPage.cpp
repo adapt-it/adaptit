@@ -507,6 +507,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// was initialized by SetupMarkerStrings in InitInstance.
 			pApp->gProjectFilterMarkersForConfig = pApp->gCurrentFilterMarkers;
 			
+			pApp->LogUserAction(_T("In wizard ProjectPage changing: New Project"));
+
             // Movement through wizard pages is sequential - the next page is the
             // languagesPage. The pLanguagesPage's InitDialog need to be called here just
             // before going to it
@@ -521,7 +523,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// it's an existing project, so we'll create KBs for it and show only the
 			// two-page wizard (Project Page and Doc Page)
 
-            // Roland Fumey requested that AI show a progress dialog during the project
+ 			pApp->LogUserAction(_T("In wizard ProjectPage changing: Existing Project"));
+            
+			// Roland Fumey requested that AI show a progress dialog during the project
             // loading since large KBs can take a while to create backup copies and load.
 			
 			// fill out the app's member variables for the paths etc.
@@ -560,6 +564,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					wxString msg = _T("Unable to create an Adaptations folder within the %s project folder");
 					msg = msg.Format(msg,pApp->m_curProjectName.c_str());
 					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+ 					pApp->LogUserAction(msg);
 					event.Veto();
 					return;
 				}
@@ -601,6 +606,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			if (bConfigFileChangesMade)
 			{
 				bool bOK;
+				pApp->LogUserAction(_T("In ProjectPage: GetAIProjectCollabStatus() made proj config file changes - writing proj config file"));
 				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
 				bOK = bOK; // was unused, so prevent compiler warning
 			}
@@ -859,6 +865,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						// button was pressed, so the user can choose the same or different AI project
 						// again.
 						event.Veto();
+						pApp->LogUserAction(_T("User cancelled CChooseCollabOptionsDlg"));
 						pStartWorkingWizard->Enable();
 						return;
 					}
@@ -1032,6 +1039,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					// values associated with them, therefore we assume this project has not been
 					// configured for collaboration. The legacy Adapt It wizard's DocPage will appear
 					// when control continues below.
+					pApp->LogUserAction(_T("GetAIProjectCollabStatus() returned collabProjNotConfigured"));
 					break;
 				}
 			}

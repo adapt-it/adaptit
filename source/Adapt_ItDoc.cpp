@@ -755,6 +755,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 						msg = _("The following file:\n\n%s\n\nhas a %s extension which indicates that it is not loadable as an input file for Adapt It.\n\nPlease try again or click Cancel at the file selection dialog.");
 						msg = msg.Format(msg,pathName.c_str(),fn.GetExt().c_str());
 						wxMessageBox(msg,title,wxICON_EXCLAMATION | wxOK);
+						pApp->LogUserAction(msg);
 						bGotLoadableFile = FALSE;
 					}
 					else
@@ -1278,18 +1279,26 @@ bool CAdapt_ItDoc::OnNewDocument()
 			// becomes a "normal" project configuration file in m_curProjectPath at the
 			// custom location.
 			if (pApp->m_bLockedCustomWorkFolderPath)
+			{
+				pApp->LogUserAction(_T("In OnNewDocument with custom work folder locked: writing proj config file"));
 				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			}
 			else
+			{
+				pApp->LogUserAction(_T("In OnNewDocument with custom work folder not locked: writing proj config file"));
 				bOK = pApp->WriteConfigurationFile(szAdminProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			}
 		}
 		else
 		{
+			pApp->LogUserAction(_T("In OnNewDocument with normal work folder: writing proj config file"));
 			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
 		}
 		// we don't expect a write error, but tell the developer or user if the write
 		// fails, and keep on processing
 		if (!bOK)
 		{
+			pApp->LogUserAction(_T("In OnNewDocument WriteConfigurationFile() failed"));
 			wxMessageBox(_T("Adapt_ItDoc.cpp, WriteConfigurationFile() failed, for project config file or admin project config file, in OnNewDocument() at lines 1271-77"));
 		}
 	}

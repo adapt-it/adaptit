@@ -109,6 +109,8 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	//InitDialog() is not virtual, no call needed to a base class
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	
+	// whm added 13Jul12 so that the StartWorkingWizard can detect when the
+	// ChooseCollabOptionsDlg is active
 	pChooseCollabOptionsDlg = this;
 	
 	// substitute "Paratext" or "Bibledit" for the %s in the first radio button

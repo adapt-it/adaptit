@@ -194,6 +194,7 @@ void CLanguagesPage::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //    // not confirmed
     //    event.Veto();
     //}
+	gpApp->LogUserAction(_T("In LanguagesPage: user Cancel from wizard"));
 }
 	
 void CLanguagesPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10May10
@@ -324,6 +325,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 			return;
 		}
 
+		gpApp->LogUserAction(_T("In LanguagesPage: Next selected"));
 		// if we get here the source and language name edits have values
 		// moving forward toward fontPage, assume user wants to
 		// store the dialog's values.
@@ -371,6 +373,8 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		bool bDirectoriesOK;
 		bDirectoriesOK = gpApp->SetupDirectories();  // also sets KB paths and loads KBs & Guesser
 		// needs to succeed, so wxCHECK_RET() call should be used here
+		if (!bDirectoriesOK)
+			gpApp->LogUserAction(_T("In LanguagesPage SetupDirectories() failed"));
 		wxCHECK_RET(bDirectoriesOK, _T("OnWizardPageChanging(): SetupDirectories() failed, line 367 in LanguagesPage.cpp, processing will continue & app may be in an unstable state. Save and shutdown would be wise."));
 		// SetupDirectories does not set the CWD but does set m_curAdaptionsPath
 		
@@ -385,6 +389,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 	}
 	else
 	{
+		gpApp->LogUserAction(_T("In LanguagesPage: Back selected"));
 		// moving backward toward projectPage, so we may need to
 		// undo some values
 		CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();

@@ -328,6 +328,6 @@ void CStartWorkingWizard::OnCancel(wxCommandEvent& event)
 		gpApp->m_bFictitiousReadOnlyAccess = FALSE; // ditto
 		gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 	}
-
+	gpApp->LogUserAction(_T("User Cancel from wizard"));
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
