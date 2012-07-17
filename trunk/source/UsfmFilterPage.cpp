@@ -1663,6 +1663,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 "The currently open document is marked up using the PNG 1998 Marker Set.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
 				newSet.c_str());
 				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(msg2);
 				// restore the radio button to what it was before the click
 				if (currentSet == PngOnly)
 				{
@@ -1968,6 +1969,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 "The currently open document is marked up as USFM.\nChanging to the %s is not allowed.\n(Because doing so may result in a badly formed document.)"),
 				newSet.c_str());
 				wxMessageBox(msg2, _T(""), wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(msg2);
 				// restore the radio button to what it was before the click
 				if (currentSet == UsfmOnly)
 				{
@@ -3486,6 +3488,7 @@ void CUsfmFilterPageWiz::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //    // not confirmed
     //    event.Veto();
     //}
+	gpApp->LogUserAction(_T("In UsfmFilterPage: user Cancel from wizard"));
 }
 	
 void CUsfmFilterPageWiz::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -3585,10 +3588,15 @@ void CUsfmFilterPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	bool bMovingForward = event.GetDirection();
 	if (bMovingForward)
 	{
+		gpApp->LogUserAction(_T("In UsfmFilterPage: Next Selected"));
 		// Movement through wizard pages is sequential - the next page is the docPage.
 		// The pDocPage's InitDialog need to be called here just before going to it
 		wxInitDialogEvent idevent;
 		pDocPage->InitDialog(idevent);
+	}
+	else
+	{
+		gpApp->LogUserAction(_T("In UsfmFilterPage: Back Selected"));
 	}
 }
 
@@ -3761,6 +3769,7 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 			wxString msgForIllegalJob = _(
 "Trying to change the standard format marker (SFM) set at the same time as trying to change the marker filtering settings is illegal.\nThe filtering changes will be ignored. Only the SFM set change will be done now.\nTo get the filtering changes done, return to this page after the SFM set changes are completed and then set up the filtering changes a second time.");
 			wxMessageBox(msgForIllegalJob, _T(""), wxICON_EXCLAMATION | wxOK);
+			gpApp->LogUserAction(msgForIllegalJob);
 
 			// undo the filter changes here
 			if (usfm_filterPgCommon.bDocSfmSetChanged)

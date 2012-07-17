@@ -899,6 +899,8 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 		wxString msg;
 		msg = msg.Format(_("Error, pair of hex numbers plus space longer than 9 digits: %s\n"),dataStr.c_str());
 		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+		msg += _T("In PunctCorrespPage ") + msg;
+		gpApp->LogUserAction(msg);
 		return FALSE;
 	}
 	wxString s;
@@ -918,6 +920,8 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 			wxString msg;
 			msg = msg.Format(_("Error, invalid hex digit: %s\n"),hold.c_str());
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+			msg += _T("In PunctCorrespPage ") + msg;
+			gpApp->LogUserAction(msg);
 			return FALSE;
 		}
 		else
@@ -938,6 +942,8 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 				wxString msg;
 				msg = msg.Format(_("Error, invalid hex digit: %s\n"),hold.c_str());
 				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+				msg += _T("In PunctCorrespPage ") + msg;
+				gpApp->LogUserAction(msg);
 				return FALSE;
 			}
 			else
@@ -1190,6 +1196,7 @@ void CPunctCorrespPageWiz::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //    // not confirmed
     //    event.Veto();
     //}
+	gpApp->LogUserAction(_T("In PunctCorrespPage: user Cancel from wizard"));
 }
 
 // This InitDialog is called from the DoStartWorkingWizard() function

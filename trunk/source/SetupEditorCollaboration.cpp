@@ -1628,12 +1628,15 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		msg = msg.Format(msg,m_pApp->m_CollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
 		wxMessageBox(msg,_T("Save of collaboration settings successful"),wxICON_INFORMATION | wxOK);
 		m_bCollabChangedThisDlgSession = FALSE;
+		m_pApp->LogUserAction(msg);
 	}
 	else
 	{
 		// Writing of the project config file failed for some reason. This would be unusual, so
 		// just do an English notification
-		wxMessageBox(_T("Error writing the project configuration file. Make sure it is not being used by another program and then try again."));
+		wxString msg = _T("Error writing the project configuration file. Make sure it is not being used by another program and then try again.");
+		wxMessageBox(msg);
+		m_pApp->LogUserAction(msg);
 		return FALSE;
 	}
 
