@@ -159,13 +159,14 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pUsfm2IntMap)[remMkr] = (int)remark_;
 
 	// inscriptions & other inline-markers -- in xhtml, these each get their own <span> (I
-	// think), at least the xhtml will validate 
+	// think), at least the xhtml will validate; \fig ...\fig* stuff is internally complex
 	(*m_pUsfm2IntMap)[pcMkr] = (int)inscription_paragraph_;
 	(*m_pUsfm2IntMap)[scMkr] = (int)inscription_;
 	(*m_pUsfm2IntMap)[itMkr] = (int)emphasis_;
 	(*m_pUsfm2IntMap)[qtMkr] = (int)quoted_text_;
 	(*m_pUsfm2IntMap)[wjMkr] = (int)words_of_christ_;
 	(*m_pUsfm2IntMap)[wMkr] = (int)see_glossary_;
+	(*m_pUsfm2IntMap)[figMkr] = (int)figure_; // for \fig .... \fig*
 	
 	// lists and citations
 	(*m_pUsfm2IntMap)[liMkr] = (int)list_item_1_;
@@ -235,13 +236,18 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pEnum2LabelMap)[(int)scrFootnoteMarker_] = _T("scrFootnoteMarker");
 	(*m_pEnum2LabelMap)[(int)scrIntroSection_] = _T("scrIntroSection");
 	(*m_pEnum2LabelMap)[(int)scrSection_] = _T("scrSection");
+	/* I ended up not needing to use these, but they document the style names so I'll keep them
 	(*m_pEnum2LabelMap)[(int)picture_] = _T("picture");
+	(*m_pEnum2LabelMap)[(int)pictureCaption_] = _T("pictureCaption");
+	// Note: next two are the only options USFM supports, for options 'col' & 'span' respectively
+	(*m_pEnum2LabelMap)[(int)pictureColumn_] = _T("pictureColumn");
+	(*m_pEnum2LabelMap)[(int)picturePage_] = _T("picturePage");
+	// Note: next three are additional options supported by TE, but these won't appear in
+	// a USFM export and so I'll include them here, but they'll be never used I expect
 	(*m_pEnum2LabelMap)[(int)pictureRight_] = _T("pictureRight");
 	(*m_pEnum2LabelMap)[(int)pictureLeft_] = _T("pictureLeft");
 	(*m_pEnum2LabelMap)[(int)pictureCenter_] = _T("pictureCenter");
-	(*m_pEnum2LabelMap)[(int)pictureCaption_] = _T("pictureCaption");
-	(*m_pEnum2LabelMap)[(int)pictureColumn_] = _T("pictureColumn");
-	(*m_pEnum2LabelMap)[(int)picturePage_] = _T("picturePage");
+	*/
 
 	footnoteMkr = _T("\\f");
 	endnoteMkr = _T("\\fe");
@@ -256,7 +262,8 @@ void Xhtml::SetupXhtmlApparatus()
 	m_anchorPcdataTemplate = "<a href=\"#hrefAttrUUID\"></a>"; // PCDATA of <span></span> at start of cross reference
 	// In the next one, myImgPCDATA has to first be filled out from m_imgTemplate, and
 	// then inserted here (picturePlacement can only be one of pictureLeft, pictureCenter, pictureRight)
-	m_picturePcdataTemplate = "<div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\"><span lang=\"langAttrCode\">captionPCDATA</span></div></div>";
+	m_picturePcdataTemplate = "<div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\"><span lang=\"langAttrCode\">captionPCDATA</span><span lang=\"langAttrCode\" class=\"reference\">refPCDATA</span></div></div>";
+	m_picturePcdataEmptyRefTemplate = "<div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\"><span lang=\"langAttrCode\">captionPCDATA</span><span lang=\"langAttrCode\" class=\"reference\" /></div></div>";
 	// the next is the file-initial metadata, parmeterized
 	m_metadataTemplate = "<?xml version=\"1.0\" encoding=\"utf-8\"?>NEWLINE<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">NEWLINE<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"utf-8\" lang=\"utf-8\">NEWLINE<!--NEWLINEThere are no spaces or newlines between <span> elements in this file becauseNEWLINEwhitespace is significant.  We don't want extraneous spaces appearing in theNEWLINEdisplay/printout!NEWLINE      -->NEWLINE<head>NEWLINE<title /><link rel=\"stylesheet\" href=\"myCSSStyleSheet\" type=\"text/css\" /><meta name=\"linkedFilesRootDir\" content=\"myFilePath\" /><meta name=\"description\" content=\"myDescription\" /><meta name=\"filename\" content=\"myFilename\" /></head>NEWLINE<body class=\"scrBody\">NEWLINE";
 	m_footnoteMarkerTemplate = "<span class=\"scrFootnoteMarker\">anUuidAnchor</span>";
@@ -332,7 +339,7 @@ void Xhtml::Initialize()
 	m_eolStr = ToUtf8(m_pApp->m_eolStr);
 	m_emptyStr.Empty();
 
-    // do the following only once-only data structure setups here; each time a new oxes
+    // do the following only once-only data structure setups here; each time a new xhtml
     // file is to be produced, the stuff specific to any earlier exports will need to be
     // cleared out before the new one's data is added in (using a separate function)
 	 
@@ -2346,6 +2353,7 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 // return the xml data if successful, but an empty string if there was an error
 CBString Xhtml::DoXhtmlExport(wxString& buff)
 {
+	m_nPictureNum = 0; // initialize, in case there are pictures (\fig ... \fig*) in the USFM
 	CBString xhtmlStr; xhtmlStr.Empty(); // collect the xml productions here
 	CBString myxml; myxml.Empty(); // use this for a scratch variable
 	// 	myxml += m_eolStr;  use this whenever a newline is needed (only prior to a matched
@@ -3317,6 +3325,19 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
+		case figure_:
+			// increase the picture number (1-based)
+			m_nPictureNum++;
+			// construct the picture ID (it's unique, of form "Figure-XXX-number" where
+			// XXX is the bookID code, eg. LUK, or REV, etc
+			m_strPictureID = ConstructPictureID(m_bookID, m_nPictureNum);
+			// Build the productions for a picture within the text
+			myxml = BuildPictureProductions(m_strPictureID, GetLanguageCode(), ConvertData(m_data));
+			xhtmlStr += myxml;
+			myxml.Empty();
+			m_beginMkr.Empty();
+			m_endMkr.Empty();
+			break;
 
 
 // TODO?  more cases go here ***************************************
@@ -3373,6 +3394,16 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 	return xhtmlStr;
 }
 
+CBString Xhtml::ConstructPictureID(wxString bookID, int nPictureNum)
+{
+	CBString id = "Figure-";
+	id += ConvertData(bookID);
+	id += '-';
+	char numStr[24];
+	itoa(nPictureNum, numStr, 10);
+	id += numStr;
+	return id;
+}
 
 // NOTE: BEW created 7Jun12 -- to get the Sena xhtml pretty-printed, or at least <div>
 // indented (if XHTML_PRETTY is not #defined). However, this would be a useful function for
@@ -4053,6 +4084,196 @@ CBString Xhtml::BuildFootnoteInitialPart(XhtmlTagEnum key, CBString uuid)
 	return left;
 }
 
+// return either a valid production for the picture information, or an empty string
+CBString Xhtml::BuildPictureProductions(CBString strPictureID, CBString langCode, CBString figureData)
+{
+	int length;
+	int offset;
+	CBString bar = "|";
+	CBString production; production.Empty();
+	CBString left; CBString right;
+	offset = figureData.Find(bar);
+	wxASSERT(offset != wxNOT_FOUND);
+	CBString pictureFile;
+	CBString col = "col";
+	CBString strSize;
+	CBString strCaption;
+	CBString strReference; strReference.Empty();
+	// we ignore DESCription information preceding the first bar character
+	if (offset >= 0)
+	{
+		right = figureData.Mid(offset + 1); // start from char following first bar
+		wxASSERT(!right.IsEmpty());
+
+		// first field, obligatory, is the picture filename (typically from a standard set)
+		offset = right.Find(bar);
+		pictureFile = right.Left(offset);
+		right = right.Mid(offset + 1); // next will start from char following second bar
+		wxASSERT(!right.IsEmpty());
+
+		// next field, obligatory, is the relative size -- USFM only has to options, "col"
+		// (which fits in the current column) or "span" which is page-wide across all cols
+		offset = right.Find(bar);
+		strSize = right.Left(offset);
+		right = right.Mid(offset + 1); // next will start from char following third bar (LOCation range info)
+		wxASSERT(!right.IsEmpty());
+		if (strSize = col)
+		{
+			// fit picture to current column
+			strSize = "pictureColumn";
+		}
+		else
+		{
+			// must be a page-wide picture
+			strSize = "picturePage";
+		}
+
+		// next two fields are LOC (reference range in which picture can be put) and COPY
+		// which is for copyright info (I suspect they generate this automatically from
+		// the first part of the filename for the picture, anyway, I've no examples of it
+		// being used in TE, nor by Greg Trihus in his examples, nor by Erik in Sena 3,
+		// nor by Jim Albright in his suggested styles, so I've no way to support them
+		// properly - so I'll just ignore them (I don't know what to put in class="")
+		offset = right.Find(bar);
+		right = right.Mid(offset + 1); // next will start from char following fourth bar (COPyright info)
+		wxASSERT(!right.IsEmpty());
+		offset = right.Find(bar);
+		right = right.Mid(offset + 1); // next will start from char following fifth bar (CAPtion)
+		wxASSERT(!right.IsEmpty());
+
+		// now get the caption text
+		offset = right.Find(bar);
+		strCaption = right.Left(offset);
+		right = right.Mid(offset + 1); // next will start from char following sixth bar (REFerence info)
+
+		// right now contains whatever is left, which might be an empty string, or a
+		// string with one or more spaces -- only for actual chapter/verse content do we
+		// treat the remainder as non-empty
+		while (!right.IsEmpty() && right[0] == ' ')
+		{
+			right = right.Mid(1);
+		}
+		// if there is anything left, accept it
+		if (!right.IsEmpty())
+		{
+			strReference = right;
+			length = strReference.GetLength();
+			if (strReference.GetAt(length - 1) != ' ')
+			{
+				strReference += " "; // append space if one not already there
+			}
+		}
+
+		// the fields have been parsed, now build the productions with their contents...
+		// first, do the <img> element; it's template is:
+		// <img id=\"idAttrUUID\" class=\"picture\" src=\"srcAttrURL\" alt=\"altAttrURL\" />
+		CBString imgStr = m_imgTemplate;
+		int length;
+		CBString paramName = "idAttrUUID";
+		length = paramName.GetLength();
+		offset = imgStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left = imgStr.Left(offset);
+		imgStr = imgStr.Mid(offset + length); // bleed off what we've found
+		left += strPictureID; // add the "Figure-XXX-num" ID string
+		// now find the substring to where srcAttrURL is, and append it
+		paramName = "srcAttrURL";
+		length = paramName.GetLength();
+		offset = imgStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left += imgStr.Left(offset);
+		imgStr = imgStr.Mid(offset + length); // bleed off what we've found
+		left += pictureFile;
+		// now do the alt URL
+		paramName = "altAttrURL";
+		length = paramName.GetLength();
+		offset = imgStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left += imgStr.Left(offset);
+		imgStr = imgStr.Mid(offset + length); // bleed off what we've found
+		left += pictureFile;
+		// now add what's left
+		left += imgStr;
+		// now that we have the params inserted, reuse imgStr to store the result
+		imgStr = left;
+		left.Empty();
+
+		// Next do the main part; its template is (splitting a long line into 3 parts):
+		// 
+		// <div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\">
+		// <span lang=\"langAttrCode\">captionPCDATA</span><span lang=\"langAttrCode\" 
+		// class=\"reference\">refPCDATA</span></div></div>
+		// 
+		// But if there is no reference, then the empty tag should be produced - it is:
+		// 
+		// <div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\">
+		// <span lang=\"langAttrCode\">captionPCDATA</span><span lang=\"langAttrCode\" 
+		// class=\"reference\" /></div></div>
+		CBString mainStr;
+		if (strReference.IsEmpty())
+		{
+			// create an empty tag
+			mainStr = m_picturePcdataEmptyRefTemplate;
+		}
+		else
+		{
+			// there's a reference, so do the full tag
+			mainStr = m_picturePcdataTemplate;
+		}
+		paramName = "picturePlacement";
+		length = paramName.GetLength();
+		offset = mainStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left = mainStr.Left(offset);
+		mainStr = mainStr.Mid(offset + length); // bleed off what we've found
+		left += strSize; // append the "picturePage" or "pictureColumn" strings
+		// now look for the "myImgPCDATA"
+		paramName = "myImgPCDATA";
+		length = paramName.GetLength();
+		offset = mainStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left += mainStr.Left(offset);
+		mainStr = mainStr.Mid(offset + length); // bleed off what we've found
+		left += imgStr; // append the <img> tag constructed above
+		// next look for the langAttrCode parameter, append everything up to that point
+		paramName = "langAttrCode";
+		length = paramName.GetLength();
+		offset = mainStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left += mainStr.Left(offset);
+		mainStr = mainStr.Mid(offset + length); // bleed off what we've found
+		left += langCode; // append the langCode passed in
+		// look for the param   captionPCDATA  and replace with the caption text
+		paramName = "captionPCDATA";
+		length = paramName.GetLength();
+		offset = mainStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left += mainStr.Left(offset);
+		mainStr = mainStr.Mid(offset + length); // bleed off what we've found
+		left += strCaption; // append the caption text
+		// next, the language code a second time
+		paramName = "langAttrCode";
+		length = paramName.GetLength();
+		offset = mainStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+		left += mainStr.Left(offset);
+		mainStr = mainStr.Mid(offset + length); // bleed off what we've found
+		left += langCode; // append the langCode passed in
+		// Next, if there is no reference string, then append the rest, otherwise do the
+		// search for the refPCDATA param string, replace it with strReference, add the
+		// end, and we are done
+		if (strReference.IsEmpty())
+		{
+			left += mainStr;
+		}
+		else
+		{
+			// there's a reference, so do the full tag
+			paramName = "refPCDATA";
+			length = paramName.GetLength();
+			offset = mainStr.Find(paramName); wxASSERT(offset != wxNOT_FOUND);
+			left += mainStr.Left(offset);
+			mainStr = mainStr.Mid(offset + length); // bleed off what we've found
+			left += strReference; // append the reference string
+			// append what's left
+			left += mainStr;
+		}
+		production = left;
+	}
+	return production;
+}
 
 // next builds for nested SpanTypeEnum value; this does the pair of nested spans for class
 // attribute values: Note_General_Paragraph (for \f), Endnote_General_Paragraph (for \fe), and

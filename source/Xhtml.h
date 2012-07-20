@@ -142,6 +142,7 @@ enum XhtmlTagEnum {
 	scrSection_,
 	border_, // no USFM equivalent for this, it's in TE only, so I'll not support it
 	crossHYPHENReference, // I'm guessing about the HYPHEN part, because - won't compile in a label name
+	figure_, // for \fig DESC|FILE|SIZE|LOC|COPY|CAP|REF\fig* (I've no support for LOC (ref range) or COPY (copyright))
 	picture_,
 	pictureRight_,
 	pictureLeft_,
@@ -222,6 +223,7 @@ const wxChar isMkr[] = _T("\\is");   // for \is "introduction section, level 1"
 const wxChar is1Mkr[] = _T("\\is1"); // for \is1 "introduction section, level 1"
 const wxChar is2Mkr[] = _T("\\is2"); // for \is2 "introduction section, level 2"
 const wxChar remMkr[] = _T("\\rem"); // for \rem "Paratext note"
+const wxChar figMkr[] = _T("\\fig"); // for \fig .... \fig* "picture in the text"
 
 class Xhtml : public wxEvtHandler
 {
@@ -283,6 +285,8 @@ private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
 	wxString m_bookID; // store the 3-letter book code (eg. LUK, GEN, 1CO, etc) here
 	int m_version; // initially = 1, later can be 1 or 2
+	int m_nPictureNum; // begin at 1 and increase by 1 for each successive picture
+	CBString m_strPictureID; // construct the unique id string and store here, for BuildPictureProductions()
 
 	wxString* m_pBuffer; // ptr to the (ex-class) buffer containing the (U)SFM text
 
@@ -404,6 +408,7 @@ private:
 	wxString GetVerseOrChapterString(wxString data);
 	CBString ConvertData(wxString data); // does entity replacements and converts to UTF-8
 	CBString MakeUUID();
+	CBString ConstructPictureID(wxString bookID, int nPictureNum);
 
 	// XHTML production templates
 	
@@ -414,6 +419,7 @@ private:
 	CBString m_imgTemplate;
 	CBString m_anchorPcdataTemplate;
 	CBString m_picturePcdataTemplate;
+	CBString m_picturePcdataEmptyRefTemplate;
 	CBString m_metadataTemplate;
 	CBString m_footnoteMarkerTemplate;
 
@@ -428,6 +434,8 @@ private:
 	CBString BuildCHorV(SpanTypeEnum spanType, CBString langCode, CBString corvStr);
 	// next builds for xrefNested SpanTypeEnum enum value
 	CBString BuildNested(XhtmlTagEnum key, CBString uuid, CBString langCode, CBString pcData);
+	// next, to build the productions for USFM \fig ... \fig* picture info
+	CBString BuildPictureProductions(CBString strPictureID, CBString langCode, CBString figureData);
 	// next one build the first part of footnote or endnote; the second part(s) of the
 	// footnote or endnote is/are built using BuildSpan()'s simple option, then after the
 	// last part is done, we must add an extra </span> endtag

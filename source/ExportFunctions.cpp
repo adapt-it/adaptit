@@ -410,7 +410,7 @@ void DoExportAsXhtml()
 	// remove any multiple spaces
 	target = RemoveMultipleSpaces(target);
 
-	// Decompose (by chunking the (U)SFM text) and then build the OXES version 1 xml
+	// Do the XHTML export, based on the exported USFM text
 	CBString myxml; myxml.Empty();
 	myxml = pToXhtml->DoXhtmlExport(target);
 
