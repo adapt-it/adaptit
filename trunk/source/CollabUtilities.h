@@ -98,6 +98,9 @@ class CSourcePhrase;
 /// This group of functions are used for analysis of texts in order to get an updated text
 /// to return to the external editor
 ///////////////////////////////////////////////////////////////////////////////////
+	enum			EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
+						wxString compositeProjName,wxString editor,
+						wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg);
 	wxArrayString	BreakStringBufIntoChapters(const wxString& bookString);
 	bool			DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal); // return TRUE if is complex
 	// this overload takes an array of structure& extent checksums, gets the
@@ -118,6 +121,19 @@ class CSourcePhrase;
 	wxString		GetNumberFromChapterOrVerseStr(const wxString& verseStr);
 	void			GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart, 
 												wxArrayPtrVoid& verseLinesArr);
+	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType, 
+								wxArrayString& usfmStructureAndExtentArray,
+								wxString collabCompositeProjectName,
+								wxString targetBookFullName, 
+								wxArrayString& staticBoxDescriptionArray,
+								wxArrayString& chapterList,
+								wxArrayString& statusList,
+								bool& bBookIsEmpty);
+	//void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
+	//							wxArrayString& chapterList, wxArrayString& statusList);
+	wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompositeProjectName,
+		const wxArrayString &usfmStructureAndExtentArray, int indexOfChItem, wxString bookFullName,
+		bool& bChapterIsEmpty, wxString& nonDraftedVerses);
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
 	int				FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum,
 												wxString chapterStr);

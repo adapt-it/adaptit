@@ -465,37 +465,117 @@ void CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(wxCommandEvent& WX
 		return;
 	}
 
-	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
-	// tasked with selecting the appropriate PT/BE projects for source, target, and
-	// (optionally) free translation collaboration. He does not make any selection of
-	// books in this dialog, so we can't check to see if a book exists in the PT/BE
-	// target project (as we do in the GetSourceTestFromEditor dialog).
-	// We can, however, check to see if that project does not have any books created,
-	// in which case, we disallow the choice of that PT/BE project for storing target
-	// texts.
-	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForSourceInputs,m_TempCollaborationEditor))
+	// whm added 17Jul12. Ensure that the project selected for obtaining source texts
+	// actually has some verse content in at least one book in the PT/BE project. This
+	// check helps to prevent an administrator from accidentally swapping the PT/BE
+	// projects by assigning the target PT/BE project here where a source PT/BE project
+	// should be selected, and possibly assigning the source PT/BE project where a
+	// target PT/BE projects should be selected. See similar protective code also in the 
+	// CSetupEditorCollaboration::OnBtnSelectFromListTargetProj() handler.
+	// Note: Some code for the implementation of DoProjectAnalysis() was borrowed from the 
+	// CGetSourceTextFromEditor class.
+
+	EditorProjectVerseContent projVerseContent;
+	wxString emptyBooks = _T("");
+	wxString booksWithContent = _T("");
+	wxString errorMsg = _T("");
+	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
+	// process can be disk intensive and take a significant amount of time to complete since it will
+	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents. 
+	projVerseContent = DoProjectAnalysis(collabSrcText,m_TempCollabProjectForSourceInputs,m_TempCollaborationEditor,emptyBooks,booksWithContent,errorMsg);
+	switch (projVerseContent)
 	{
-		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
-		// The book does not have at least one book in the Source project
-		wxString msg, msg1,msg2;
-		if (m_TempCollaborationEditor == _T("Paratext"))
+	case projHasVerseTextInAllBooks:
 		{
-			msg1 = msg1.Format(_("The Paratext project for obtaining source texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForSourceInputs.c_str());
-			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+			// This is the expected case. No need to warn the administrator so
+			// do nothing
+			break;
 		}
-		else if (m_TempCollaborationEditor == _T("Bibledit"))
+	case projHasNoBooksWithVerseText:
 		{
-			msg1 = msg1.Format(_("The Bibledit project for obtaining source texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForSourceInputs.c_str());
-			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+			// All books in source project are "empty" of content. Do not allow this
+			// PT/BE project to be selected for obtaining source texts, since no viable
+			// source texts can be obtained for adaptation from this project.
+			wxString msg = _("The \"%s\" project only has the following \"empty\" book(s):\n\n%s\n\nThese books may have chapter and verse markers (\\c and \\v) but the verses contain no actual source text. Adapt It cannot use \"empty\" books for obtaining source texts.");
+			msg = msg.Format(msg,m_TempCollabProjectForSourceInputs.c_str(),emptyBooks.c_str());
+			wxString msgTitle = _("No books in this project are usable as source texts!");
+			wxString msg2 = _T("\n\n");
+			msg2 += _("Please select a different %s project that Adapt It can use for obtaining source texts.");
+			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str());
+			msg += msg2;
+			wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
+			m_TempCollabProjectForSourceInputs = _T(""); // invalid project for source inputs
+			break;
 		}
-		msg = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
-		// clear out the free translation control
-		pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
-		m_TempCollabProjectForSourceInputs = _T(""); // invalid project for target exports
+	case projHasSomeBooksWithVerseTextSomeWithout:
+		{
+			// This result indicates that the source PT/BE project has one or more
+			// books that have no content other than \c n and \v n markers. This
+			// suggests that the administrator may have accidentally swapped the PT/BE
+			// projects for source and target in the collaboration setup. The string
+			// emptyBooks has a list of books that are empty of content, and the string
+			// booksWithContent has a list of books that have at least some content.
+			wxString msg = _("The \"%s\" project you selected has the following \"empty\" book(s):\n\n%s\n\nThe above book(s) may have chapter and verse markers (\\c and \\v) but the verses contain no actual source text. Please note that Adapt It cannot use such \"empty\" books for obtaining source texts.");
+			msg = msg.Format(msg,m_TempCollabProjectForSourceInputs.c_str(),emptyBooks.c_str());
+			wxString msgTitle = _("Some books in project cannot be used as source texts!");
+			wxString msg2 = _T("\n\n");
+			msg2 += _("Only the following books currently have actual verse content that Adapt It can use as source texts:\n\n%s\n\nThe user will only be able to select from books that have some verse content. If this is not what you want or expect, please set up the %s project with the books containing text that Adapt It can use for its source texts.");
+			msg2 = msg2.Format(msg2,booksWithContent.c_str(),m_TempCollaborationEditor.c_str());
+			msg += msg2;
+			wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
+			// do not clear out source control in this case as it is only a warning about selecting this
+			// PT/BE project
+			break;
+		}
+	case projHasNoChaptersOrVerses:
+		{
+			projShortName = GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs);
+			// The book does not have at least one book in the Source project
+			wxString msg,msg1,msg2,titleMsg;
+			msg1 = _("This %s project has no books created in it. It cannot be used for obtaining source texts for Adapt It. Please run %s and select the %s project.");
+			msg1 = msg1.Format(msg1,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str(),projShortName.c_str());
+			if (m_TempCollaborationEditor == _T("Paratext"))
+			{
+				msg2 = _("Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again.");
+			}
+			else if (m_TempCollaborationEditor == _T("Bibledit"))
+			{
+				msg2 = _("Then select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again.");
+			}
+			msg = msg1 + _T(' ') + msg2;
+			titleMsg = _("No chapters and verses found in project: \"%s\"");
+			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForSourceInputs.c_str());
+			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
+			m_TempCollabProjectForSourceInputs = _T(""); // invalid project for source inputs
+			break;
+		}
+	case projHasNoBooks:
+		{
+			wxString msg,titleMsg;
+			msg = _("This %s project contains no books. It cannot be used for obtaining source texts for Adapt It. Please go back to %s and import the books to be used as source texts into this project (or import them into a new %s project), then return to Adapt It and try again.");
+			msg = msg.Format(msg,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
+			titleMsg = _("No books found in project: \"%s\"");
+			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForSourceInputs.c_str());
+			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedSourceProj->ChangeValue(wxEmptyString);
+			m_TempCollabProjectForSourceInputs = _T(""); // invalid project for source inputs
+			break;
+		}
+	case processingError:
+		{
+			wxASSERT(!errorMsg.IsEmpty());
+			wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			break;
+		}
 	}
 
-	// If we get here the administrator made a selection. If the value changed mark it dirty.
+	// If the value changed mark it dirty.
 	if (saveCollabProjectForSourceInputs != m_TempCollabProjectForSourceInputs)
 		m_bCollabChangedThisDlgSession = TRUE;
 }
@@ -504,8 +584,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 {
 	// Note: For target project, we must ensure that the Paratext project is writeable
 	// use a temporary array list for the list of projects
-	wxArrayString tempListOfProjects;
 	wxString projShortName;
+	wxArrayString tempListOfProjects;
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
 	{
@@ -566,37 +646,123 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 		return;
 	}
 
-	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
-	// tasked with selecting the appropriate PT/BE projects for source, target, and
-	// (optionally) free translation collaboration. He does not make any selection of
-	// books in this dialog, so we can't check to see if a book exists in the PT/BE
-	// target project (as we do in the GetSourceTestFromEditor dialog).
-	// We can, however, check to see if that project does not have any books created,
-	// in which case, we disallow the choice of that PT/BE project for storing target
-	// texts.
-	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForTargetExports,m_TempCollaborationEditor))
+	// whm added 17Jul12. Ensure that the project selected for receiving target texts
+	// has at least some verses without content in at least one book in the PT/BE project. 
+	// This check helps to prevent an administrator from accidentally swapping the PT/BE
+	// projects by assigning the target PT/BE project here where a source PT/BE project
+	// should be selected, and possibly assigning the source PT/BE project where a
+	// target PT/BE projects should be selected. See similar protective code also in the 
+	// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj() handler.
+	// Note: Some code for the implementation of DoProjectAnalysis() was borrowed from the 
+	// CGetSourceTextFromEditor class.
+
+	EditorProjectVerseContent projVerseContent;
+	wxString emptyBooks = _T("");
+	wxString booksWithContent = _T("");
+	wxString errorMsg = _T("");
+	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
+	// process can be disk intensive and take a significant amount of time to complete since it will
+	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents. 
+	projVerseContent = DoProjectAnalysis(collabTgtText,m_TempCollabProjectForTargetExports,m_TempCollaborationEditor,emptyBooks,booksWithContent,errorMsg);
+	switch (projVerseContent)
 	{
-		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
-		// The book does not have at least one book in the Target project
-		wxString msg, msg1,msg2;
-		if (m_TempCollaborationEditor == _T("Paratext"))
+	case projHasVerseTextInAllBooks:
 		{
-			msg1 = msg1.Format(_("The Paratext project for storing target texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForTargetExports.c_str());
-			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+			// This should *not* be the case for a PT/BE target project when first set up
+			// for collaboration with Adapt It. The selected PT/BE project is possibly the
+			// project that is designed for obtaining source texts rather than one for
+			// receiving exported translation/target texts from Adapt It. Warn the administrator
+			// of this situation.
+			wxString msg = _("All books in the \"%s\" project already have verse content, so Adapt It thinks that this project may not be the one you intended for storing Adapt It's translated texts. All of the verses in the following book(s) already have text content:\n\n%s");
+			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),booksWithContent.c_str());
+			wxString msgTitle = _("No books in this project have untranslated texts!");
+			wxString msg2 = _T("\n\n");
+			msg2 += _("Are you sure you want to use the \"%s\" project for storing Adapt It's translation texts?");
+			msg2 = msg2.Format(msg2,m_TempCollabProjectForTargetExports.c_str());
+			msg += msg2;
+			int response;
+			response = wxMessageBox(msg,msgTitle,wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+			if (response == wxYES)
+			{
+				; // do nothing but continue with selection
+			}
+			else // if (response == wxNO || response || wxCANCEL)
+			{
+				// clear out the source control
+				pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
+				m_TempCollabProjectForTargetExports = _T(""); // invalid project for source inputs
+			}
+			break;
 		}
-		else if (m_TempCollaborationEditor == _T("Bibledit"))
+	case projHasNoBooksWithVerseText:
 		{
-			msg1 = msg1.Format(_("The Bibledit project for storing target texts (%s) does not yet have any books created for that project."),m_TempCollabProjectForTargetExports.c_str());
-			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+			// All books in target project are "empty" of content. This would be the
+			// expected situation for an initial setup.
+			break;
 		}
-		msg = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
-		// clear out the free translation control
-		pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
-		m_TempCollabProjectForTargetExports = _T(""); // invalid project for target exports
+	case projHasSomeBooksWithVerseTextSomeWithout:
+		{
+			// The target PT/BE project has one or more books that have no content 
+			// other than \c n and \v n markers, and that other books have verse 
+			// content. This situation is posssible and permissible. Tell the user
+			// the status of the books.
+			wxString msg = _("The following books in the \"%s\" project do not yet have any verse content:\n\n%s\n\nAdapt It will store its translations in these books as adaptation work proceeds.");
+			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),emptyBooks.c_str());
+			wxString msgTitle = _("Some books in this project have exiting translations!");
+			wxString msg2 = _T("\n\n");
+			msg2 += _("Please note that the following books in the \"%s\" project already have translations:\n\n%s\n\nAdapt It will overwrite any existing translations with new translations if you adapt all the text in books such as these that already have translations.");
+			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str(),booksWithContent.c_str());
+			msg += msg2;
+			wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
+			break;
+		}
+	case projHasNoChaptersOrVerses:
+		{
+			projShortName = GetShortNameFromProjectName(m_TempCollabProjectForTargetExports);
+			// The book does not have at least one book in the Source project
+			wxString msg,msg1,msg2,titleMsg;
+			msg1 = _("This %s project has no books created in it. It cannot be used for storing translation texts from Adapt It. Please run %s and select the %s project.");
+			msg1 = msg1.Format(msg1,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str(),projShortName.c_str());
+			if (m_TempCollaborationEditor == _T("Paratext"))
+			{
+				msg2 = _("Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again.");
+			}
+			else if (m_TempCollaborationEditor == _T("Bibledit"))
+			{
+				msg2 = _("Then select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again.");
+			}
+			msg = msg1 + _T(' ') + msg2;
+			titleMsg = _("No chapters and verses found in project: \"%s\"");
+			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForTargetExports.c_str());
+			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
+			m_TempCollabProjectForTargetExports = _T(""); // invalid project for source inputs
+			break;
+		}
+	case projHasNoBooks:
+		{
+			wxString msg,titleMsg;
+			msg = _("This %s project contains no books. It cannot be used for storing translations from Adapt It. Please go back to %s and create some empty books (with chapter and verse markers only) for this project, then return to Adapt It and try again.");
+			msg = msg.Format(msg,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
+			titleMsg = _("No books found in project \"%s\"");
+			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForTargetExports.c_str());
+			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedTargetProj->ChangeValue(wxEmptyString);
+			m_TempCollabProjectForTargetExports = _T(""); // invalid project for source inputs
+			break;
+		}
+	case processingError:
+		{
+			wxASSERT(!errorMsg.IsEmpty());
+			wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			break;
+		}
 	}
 
-	// If we get here the administrator made a selection. If the value changed mark it dirty.
+	// If the value changed mark it dirty.
 	if (saveCollabProjectForTargetExports != m_TempCollabProjectForTargetExports)
 		m_bCollabChangedThisDlgSession = TRUE;
 }
@@ -605,8 +771,8 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 {
 	// Note: For free trans project, we must ensure that the Paratext project is writeable
 	// use a temporary array list for the list of projects
-	wxArrayString tempListOfProjects;
 	wxString projShortName;
+	wxArrayString tempListOfProjects;
 	pBtnNoFreeTrans->Enable(TRUE);
 	projList.Clear();
 	if (m_TempCollaborationEditor == _T("Paratext"))
@@ -669,36 +835,122 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 		return;
 	}
 
-	// whm Note: Within the SetupEditorCollaboration dialog the administrator is only
-	// tasked with selecting the appropriate PT/BE projects for source, target, and
-	// (optionally) free translation collaboration. He does not make any selection of
-	// books in this dialog, so we can't check to see if a book exists in the PT/BE
-	// free translation project (as we do in the GetSourceTestFromEditor dialog).
-	// We can, however, check to see if that project does not have any books created,
-	// in which case, we disallow the choice of that PT/BE project for storing free
-	// translations.
-	if (!CollabProjectHasAtLeastOneBook(m_TempCollabProjectForFreeTransExports, m_TempCollaborationEditor))
+	// whm added 17Jul12. Ensure that the project selected for receiving free trans texts
+	// has at least some verses without content in at least one book in the PT/BE project. 
+	// This check helps to prevent an administrator from accidentally swapping the PT/BE
+	// projects possibly assigning the source PT/BE project where a free trans PT/BE project
+	// should be selected and vice versa. See similar protective code also in the 
+	// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj() handler.
+	// Note: Some code for the implementation of DoProjectAnalysis() was borrowed from the 
+	// CGetSourceTextFromEditor class.
+
+	EditorProjectVerseContent projVerseContent;
+	wxString emptyBooks = _T("");
+	wxString booksWithContent = _T("");
+	wxString errorMsg = _T("");
+
+	// Note: The DoProjectAnalysis() function below sets up a progress dialog because the analysis
+	// process can be disk intensive and take a significant amount of time to complete since it will
+	// fetch each book in the PT/BE project via wxExecute() command-line access and analyze its contents. 
+	projVerseContent = DoProjectAnalysis(collabFreeTransText,m_TempCollabProjectForFreeTransExports,m_TempCollaborationEditor,emptyBooks,booksWithContent,errorMsg);
+	switch (projVerseContent)
 	{
-		projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
-		// The book does not have at least one book in the Free Trans project
-		wxString msg, msg1,msg2;
-		if (m_TempCollaborationEditor == _T("Paratext"))
+	case projHasVerseTextInAllBooks:
 		{
-			msg1 = msg1.Format(_("The Paratext project for storing free translations (%s) does not yet have any books created for that project."),m_TempCollabProjectForFreeTransExports.c_str());
-			msg2 = msg2.Format(_("Please run Paratext and select the %s project. Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again."),projShortName.c_str());
+			// This should *not* be the case for a PT/BE free trans project when first set up
+			// for collaboration with Adapt It. The selected PT/BE project is possibly the
+			// project that is designed for obtaining source texts rather than one for
+			// receiving exported free trans texts from Adapt It. Warn the administrator
+			// of this situation.
+			wxString msg = _("All books in the \"%s\" project already have verse content, so Adapt It thinks that this project may not be the one you intended for storing Adapt It's free translation texts. All of the verses in the following book(s) already have text content:\n\n%s");
+			msg = msg.Format(msg,m_TempCollabProjectForFreeTransExports.c_str(),booksWithContent.c_str());
+			wxString msgTitle = _("No books in this project have untranslated texts!");
+			wxString msg2 = _T("\n\n");
+			msg2 += _("Are you sure you want to use the \"%s\" project for storing Adapt It's free translation texts?");
+			msg2 = msg2.Format(msg2,m_TempCollabProjectForFreeTransExports.c_str());
+			msg += msg2;
+			int response;
+			response = wxMessageBox(msg,msgTitle,wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+			if (response == wxYES)
+			{
+				; // do nothing but continue with selection
+			}
+			else // if (response == wxNO || response || wxCANCEL)
+			{
+				// clear out the source control
+				pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
+				m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for source inputs
+			}
+			break;
 		}
-		else if (m_TempCollaborationEditor == _T("Bibledit"))
+	case projHasNoBooksWithVerseText:
 		{
-			msg1 = msg1.Format(_("The Bibledit project for storing free translations (%s) does not yet have any books created for that project."),m_TempCollabProjectForFreeTransExports.c_str());
-			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),projShortName.c_str());
+			// All books in free trans project are "empty" of content. This would be the
+			// expected situation for an initial setup.
+			break;
 		}
-		msg = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
-		// clear out the free translation control
-		pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
-		pBtnNoFreeTrans->Disable();
-		m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for free trans exports
-		m_bTempCollaborationExpectsFreeTrans = FALSE;
+	case projHasSomeBooksWithVerseTextSomeWithout:
+		{
+			// The free trans PT/BE project has one or more books that have no content 
+			// other than \c n and \v n markers, and that other books have verse 
+			// content. This situation is posssible and permissible. Tell the user
+			// the status of the books.
+			wxString msg = _("The following books in the \"%s\" project do not yet have any verse content:\n\n%s\n\nAdapt It will store its free translations in these books as adaptation work proceeds.");
+			msg = msg.Format(msg,m_TempCollabProjectForFreeTransExports.c_str(),emptyBooks.c_str());
+			wxString msgTitle = _("Some books in this project have exiting free translations!");
+			wxString msg2 = _T("\n\n");
+			msg2 += _("Please note that the following books in the \"%s\" project already have free translations:\n\n%s\n\nAdapt It will overwrite any existing free translations with new free translations if you adapt all the text in books such as these that already have free translations.");
+			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str(),booksWithContent.c_str());
+			msg += msg2;
+			wxMessageBox(msg,msgTitle, wxICON_EXCLAMATION | wxOK);
+			break;
+		}
+	case projHasNoChaptersOrVerses:
+		{
+			projShortName = GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports);
+			// The book does not have at least one book in the Source project
+			wxString msg,msg1,msg2,titleMsg;
+			msg1 = _("This %s project has no books created in it. It cannot be used for storing free translation texts from Adapt It. Please run %s and select the %s project.");
+			msg1 = msg1.Format(msg1,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str(),projShortName.c_str());
+			if (m_TempCollaborationEditor == _T("Paratext"))
+			{
+				msg2 = _("Then select \"Create Book(s)\" from the Paratext Project menu. Choose the book(s) to be created and ensure that the \"Create with all chapter and verse numbers\" option is selected. Then return to Adapt It and try again.");
+			}
+			else if (m_TempCollaborationEditor == _T("Bibledit"))
+			{
+				msg2 = _("Then select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again.");
+			}
+			msg = msg1 + _T(' ') + msg2;
+			titleMsg = _("No chapters and verses found in project: \"%s\"");
+			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForFreeTransExports.c_str());
+			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
+			m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for source inputs
+			break;
+		}
+	case projHasNoBooks:
+		{
+			wxString msg,titleMsg;
+			msg = _("This %s project contains no books. It cannot be used for storing free translation from Adapt It. Please go back to %s and create some empty books (with chapter and verse markers only) for this project, then return to Adapt It and try again.");
+			msg = msg.Format(msg,m_TempCollaborationEditor.c_str(),m_TempCollaborationEditor.c_str());
+			titleMsg = _("No books found in project \"%s\"");
+			titleMsg = titleMsg.Format(titleMsg,m_TempCollabProjectForFreeTransExports.c_str());
+			wxMessageBox(msg,titleMsg,wxICON_EXCLAMATION | wxOK);
+			// clear out the source control
+			pTextCtrlAsStaticSelectedFreeTransProj->ChangeValue(wxEmptyString);
+			pBtnNoFreeTrans->Disable();
+			m_TempCollabProjectForFreeTransExports = _T(""); // invalid project for free trans exports
+			m_bTempCollaborationExpectsFreeTrans = FALSE;
+			break;
+		}
+	case processingError:
+		{
+			wxASSERT(!errorMsg.IsEmpty());
+			wxMessageBox(errorMsg,_T(""),wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			break;
+		}
 	}
 
 	// If we get here the administrator made a selection. If the value changed mark it dirty.

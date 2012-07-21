@@ -16,12 +16,18 @@ hidden behind other windows.
 * The text associated with the markers \h, \h1, \h2 and \h3 is
 now unfiltered (unhidden) by default. This change is needed
 for the upcoming Xhtml export feature.
-* Improved the wording of some error messages that may appear
-when working in the "Setup Collaboration" dialog.
-The Unicode version of Adapt It on Windows and the Mac is now
-based on the 2.9.x version of the wxWidgets library. On Linux
-this change will only take effect when the Linux distributions
-contain the newer 2.9.x version of the wxWidgets library.
+* The Setup Collaboration dialog now examines the contents of 
+Paratext or Bibledit projects at the time an administrator 
+selects the projects during the collaboration setup process.
+This allows Adapt It to advise the administrator if any 
+selected projects are not properly setup within Paratext or
+Bibledit before configuring them for collaboration with Adapt
+It. 
+* The Unicode version of Adapt It on Windows and the Mac is 
+now based on the 2.9.x version of the wxWidgets library. On 
+Linux this change will only take effect when the Linux 
+distributions contain the newer 2.9.x version of the wxWidgets 
+library.
 
 ----------------------------------------------
 Bug fixes in 6.2.3

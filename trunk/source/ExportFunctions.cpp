@@ -266,7 +266,7 @@ void DoExportAsXhtml()
 	{
 		msg = msg.Format(_(
 "The target language's 2-letter or 3-letter code code is not set, so the export cannot be done yet. \nYou can set the right code in the Backups & Misc page of Preferences..."));
-		wxMessageBox(msg,_("No Language Code Is Set"),wxICON_WARNING);
+		wxMessageBox(msg,_("No Language Code Is Set"),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
 		

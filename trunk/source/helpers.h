@@ -77,6 +77,16 @@ enum WhichLang {
 	targetLang
 };
 
+enum EditorProjectVerseContent
+{
+	projHasVerseTextInAllBooks,
+	projHasNoBooksWithVerseText,
+	projHasSomeBooksWithVerseTextSomeWithout,
+	projHasNoBooks,
+	projHasNoChaptersOrVerses,
+	processingError
+};
+
 ////////////////////////////////////////////
 //  helper functions
 
@@ -172,6 +182,11 @@ int       Parse_Marker(wxChar *pChar, wxChar *pEnd); // modified from the one in
 bool      Is_Marker(wxChar *pChar, wxChar *pEnd);	// modified from the one in the Doc
 
 wxString  ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t first, size_t last);
+void	  ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,
+								int& nUpperNumber);
+wxString  AbbreviateColonSeparatedVerses(const wxString str);
+bool      EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
+
 // BEW removed this version of ExtractSubstring() as it's looking like I won't need it
 //wxString ExtractSubstring(const wxString& str, int firstChar, int lastChar);
 wxString  SpanIncluding(wxString inputStr, wxString charSet);
