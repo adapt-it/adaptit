@@ -101,6 +101,7 @@ public:
 	
 	wxString m_collabEditorName;
 
+	wxArrayString m_staticBoxSourceDescriptionArray;
 	wxArrayString m_staticBoxTargetDescriptionArray;
 	wxArrayString m_staticBoxFreeTransDescriptionArray;
 
@@ -118,18 +119,12 @@ protected:
 	//bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
 	//							wxString LanguageNameTgt, wxString& aiProjectFolderName,
 	//							wxString& aiProjectFolderPath);
-	bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr);
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
 								wxArrayString& chapterList, wxArrayString& statusList);
 	void GetChapterListAndVerseStatusFromFreeTransBook(wxString freeTransBookFullName, 
 								wxArrayString& chapterList, wxArrayString& statusList);
-	wxString GetStatusOfChapter(enum CollabTextType cTextType, const wxArrayString &TargetArray,
-						int indexOfChItem, wxString targetBookFullName,wxString& nonDraftedVerses);
-	wxString AbbreviateColonSeparatedVerses(const wxString str);
 	void LoadBookNamesIntoList();
-	void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,
-								int& nUpperNumber);
 	wxString GetBareChFromLBChSelection(wxString lbChapterSelected);
 	EthnologueCodePair* MatchAIProjectUsingEthnologueCodes(wxString& editorSrcLangCode,
 								wxString& editorTgtLangCode);

@@ -116,6 +116,898 @@ extern bool gbDoingInitialSetup;
 
 //  CollabUtilities functions
 
+// whm added 18Jul12 to encapsulate two previous functions that were
+// specific to the target text and the free translation text. This function
+// works for all three text types - source, target and free trans via
+// specification in the textType parameter.
+void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType, 
+								wxArrayString& usfmStructureAndExtentArray,
+								wxString collabCompositeProjectName,
+								wxString bookFullName, 
+								wxArrayString& staticBoxDescriptionArray,
+								wxArrayString& chapterList,
+								wxArrayString& statusList,
+								bool& bBookIsEmpty)
+{
+	// Retrieves several wxArrayString lists of information about the chapters 
+	// and verses (and their status) from the PT/BE project's Scripture book
+	// represented in bookFillName. 
+	wxArrayString chapterArray;
+	wxArrayString statusArray;
+	chapterArray.Clear();
+	statusArray.Clear();
+	staticBoxDescriptionArray.Clear();
+	int ct,tot;
+	tot = usfmStructureAndExtentArray.GetCount();
+	wxString tempStr;
+	bool bChFound = FALSE;
+	bool bVsFound = FALSE;
+	bBookIsEmpty = TRUE; // initialize reference parameter
+	bool bChapterIsEmpty = FALSE; // initialize to FALSE, the GetStatusOfChapter() function below will modify this value
+	wxString projShortName = GetShortNameFromProjectName(collabCompositeProjectName);
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = gpApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	wxASSERT(pCollabInfo != NULL);
+	wxString chMkr;
+	wxString vsMkr;
+	if (pCollabInfo != NULL)
+	{
+		chMkr = _T("\\") + pCollabInfo->chapterMarker;
+		vsMkr = _T("\\") + pCollabInfo->verseMarker;
+	}
+	else
+	{
+		chMkr = _T("\\c");
+		vsMkr = _T("\\v");
+	}
+	// Check if the book lacks a \c (as might Philemon, 2 John, 3 John and Jude).
+	// If the book has no chapter we give the chapterArray a chapter 1 and indicate
+	// the status of that chapter.
+	for (ct = 0; ct < tot; ct++)
+	{
+		tempStr = usfmStructureAndExtentArray.Item(ct);
+		if (tempStr.Find(chMkr) != wxNOT_FOUND) // \c
+			bChFound = TRUE;
+		if (tempStr.Find(vsMkr) != wxNOT_FOUND) // \v
+			bVsFound = TRUE;
+	}
+	
+	if ((!bChFound && !bVsFound) || (bChFound && !bVsFound))
+	{
+		// The target book has no chapter and verse content to work with
+		chapterList = chapterArray;
+		statusList = statusArray;
+		bBookIsEmpty = TRUE;
+		return; // caller will give warning message
+	}
+
+	wxString statusOfChapter;
+	wxString nonDraftedVerses; // used to get string of non-drafted verse numbers/range below
+	
+	if (bChFound)
+	{
+		for (ct = 0; ct < tot; ct++)
+		{
+			tempStr = usfmStructureAndExtentArray.Item(ct);
+			if (tempStr.Find(chMkr) != wxNOT_FOUND) // \c
+			{
+				// we're pointing at a \c element of a string that is of the form: "\c 1:0:MD5"
+				// strip away the preceding \c and the following :0:MD5
+				
+				// Account for MD5 hash now at end of tempStr
+				int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
+				tempStr = tempStr.Mid(0,posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \c markers)
+				posColon = tempStr.Find(_T(':'),TRUE);
+				tempStr = tempStr.Mid(0,posColon); // get rid of the char count part and preceding colon
+				
+				int posChMkr;
+				posChMkr = tempStr.Find(chMkr); // \c
+				wxASSERT(posChMkr == 0);
+				posChMkr = posChMkr; // avoid warning
+				int posAfterSp = tempStr.Find(_T(' '));
+				wxASSERT(posAfterSp > 0);
+				posAfterSp ++; // to point past space
+				tempStr = tempStr.Mid(posAfterSp);
+				tempStr.Trim(FALSE);
+				tempStr.Trim(TRUE);
+
+				statusOfChapter = GetStatusOfChapter(textType,collabCompositeProjectName,
+					usfmStructureAndExtentArray,ct,bookFullName,bChapterIsEmpty,nonDraftedVerses);
+				wxString listItemStatusSuffix,listItem;
+				listItemStatusSuffix = statusOfChapter;
+				listItem.Empty();
+				listItem = bookFullName + _T(" ");
+				listItem += tempStr;
+				chapterArray.Add(listItem);
+				statusArray.Add(statusOfChapter);
+				// Store the description array info for this chapter in the m_staticBoxTargetDescriptionArray.
+				wxString emptyVsInfo;
+				// remove padding spaces for the static box description
+				tempStr.Trim(FALSE);
+				tempStr.Trim(TRUE);
+				if (textType == collabTgtText)
+				{
+					emptyVsInfo = bookFullName + _T(" ") + _("chapter") + _T(" ") + tempStr + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses have no target text:") + _T(" ") + nonDraftedVerses;
+				}
+				else if (textType == collabFreeTransText)
+				{
+					emptyVsInfo = _T(". ");
+					emptyVsInfo += _("Free translation details: ") + statusOfChapter + _T(". ") + _("The following verses have no free translations:") + _T(" ") + nonDraftedVerses;
+				} if (textType == collabSrcText)
+				{
+					emptyVsInfo = bookFullName + _T(" ") + _("chapter") + _T(" ") + tempStr + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses have no source text:") + _T(" ") + nonDraftedVerses;
+				}
+				staticBoxDescriptionArray.Add(emptyVsInfo ); // return the empty verses string via the nonDraftedVerses ref parameter
+				if (!bChapterIsEmpty)
+				{
+					bBookIsEmpty = FALSE;
+				}
+			}
+		}
+	}
+	else
+	{
+		// No chapter marker was found in the book, so just collect its verse 
+		// information using an index for the "chapter" element of -1. We use -1
+		// because GetStatusOfChapter() increments the assumed location of the \c 
+		// line/element in the array before it starts collecting verse information
+		// for that given chapter. Hence, it will actually start collecting verse
+		// information with element 0 (the first element of the 
+		// TargetTextUsfmStructureAndExtentArray)
+		statusOfChapter = GetStatusOfChapter(textType,collabCompositeProjectName,
+			usfmStructureAndExtentArray,-1,bookFullName,bChapterIsEmpty,nonDraftedVerses);
+		wxString listItemStatusSuffix,listItem;
+		listItemStatusSuffix.Empty();
+		listItem.Empty();
+		listItemStatusSuffix = statusOfChapter;
+		listItem += _T(" - ");
+		listItem += listItemStatusSuffix;
+		chapterArray.Add(_T("   ")); // arbitrary 3 spaces in first column
+		statusArray.Add(listItem);
+		// Store the description array info for this chapter in the m_staticBoxTargetDescriptionArray.
+		wxString chapterDetails;
+		if (textType == collabTgtText)
+		{
+			chapterDetails = bookFullName + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses have no target text:") + _T(" ") + nonDraftedVerses;
+		}
+		else if (textType == collabFreeTransText)
+		{
+			chapterDetails = _T(". ");
+			chapterDetails += _("Free translation details: ") + statusOfChapter + _T(". ") + _("The following verses have no free translations:") + _T(" ") + nonDraftedVerses;
+		}
+		else if (textType == collabSrcText)
+		{
+			chapterDetails = bookFullName + _T(" ") + _("details:") + _T(" ") + statusOfChapter + _T(". ") + _("The following verses have no source text:") + _T(" ") + nonDraftedVerses;
+		}
+		staticBoxDescriptionArray.Add(chapterDetails ); // return the empty verses string via the nonDraftedVerses ref parameter
+		if (!bChapterIsEmpty)
+		{
+			bBookIsEmpty = FALSE;
+		}
+	}
+	chapterList = chapterArray; // return array list via reference parameter
+	statusList = statusArray; // return array list via reference parameter
+}
+
+wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompositeProjectName,
+	const wxArrayString &usfmStructureAndExtentArray, int indexOfChItem, wxString bookFullName,
+	bool& bChapterIsEmpty, wxString& nonDraftedVerses)
+{
+	// whm 18Jul12 revised signature and moved from CGetSourceTextFromEditor class to CollabUtilities.
+	// When this function is called from GetChapterListAndVerseStatusFromBook() the
+	// indexOfChItem parameter is pointing at a \c n:nnnn line in the Array.
+	// We want to get the status of the chapter by examining each verse of that chapter to see if it 
+	// has content. For collabTgtText, the returned string will have one of these three values:
+	//    1. "All %d verses have translation text"
+	//    2. "Partly drafted (%d of a total of %d verses have translation text)"
+	//    3. "No translations (no verses of a total of %d have translation text yet)"
+	// For collabFreeTransText, the returned string will have one of these three values:
+	//    1. "All %d verses have free translations"
+	//    2. "%d of a total of %d verses have free translations"
+	//    3. "No verses of a total of %d have free translations yet"
+	// When the returned string is 2 above the reference parameter nonDraftedVerses
+	// will contain a string describing what verses/range of verses are empty, i.e. "The following 
+	// verses are empty: 12-14, 20, 21-29".
+	
+	// Scan forward in the usfmStructureAndExtentArray until we reach the next \c element. 
+	// For each \v we encounter we examine the text extent of that \v element. When a 
+	// particular \v element is empty we build a string list of verse numbers that are 
+	// empty, and collect verse counts for the number of verses which have content and 
+	// the total number of verses. These are used to construct the string return values 
+	// and the nonDraftedVerses reference parameter - so that the Select a chapter
+	// list box will display something like:
+	// Mark 3 - "Partly drafted (13 of a total of 29 verses have content)"
+	// and the nonDraftedVerses string will contain: "12-14, 20, 21-29" which can be used in the 
+	// read-only text control box at the bottom of the dialog used for providing more detailed 
+	// information about the book or chapter selected.
+
+	int nLastVerseNumber = 0;
+	int nVersesWithContent = 0;
+	int nVersesWithoutContent = 0;
+	int index = indexOfChItem;
+	int tot = (int)usfmStructureAndExtentArray.GetCount();
+	wxString tempStr;
+	wxString statusStr;
+	statusStr.Empty();
+	wxString emptyVersesStr;
+	emptyVersesStr.Empty();
+	bChapterIsEmpty = TRUE; // initialize the reference parameter; assume no content unless proven otherwise
+	wxString projShortName = GetShortNameFromProjectName(collabCompositeProjectName);
+	Collab_Project_Info_Struct* pCollabInfo;
+	pCollabInfo = gpApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+															// pApp->m_pArrayOfCollabProjects
+	wxASSERT(pCollabInfo != NULL);
+	wxString chMkr;
+	wxString vsMkr;
+	if (pCollabInfo != NULL)
+	{
+		chMkr = _T("\\") + pCollabInfo->chapterMarker;
+		vsMkr = _T("\\") + pCollabInfo->verseMarker;
+	}
+	else
+	{
+		chMkr = _T("\\c");
+		vsMkr = _T("\\v");
+	}
+	
+	if (indexOfChItem == -1)
+	{
+		// When the incoming indexOfChItem parameter is -1 it indicates that this is
+		// a book that does not have a chapter \c marker, i.e., Philemon, 2 John, 3 John, Jude
+		do
+		{
+			index++; // point to first and succeeding lines
+			if (index >= tot)
+				break;
+			tempStr = usfmStructureAndExtentArray.Item(index);
+			if (tempStr.Find(vsMkr) == 0) // \v
+			{
+				// We're at a verse, so note if it is empty.
+				// But, first get the last verse number in the tempStr. If the last verse 
+				// is a bridged verse, store the higher verse number of the bridge, otherwise 
+				// store the single verse number in nLastVerseNumber.
+				// tempStr is of the form "\v n" or possibly "\v n-m" if bridged
+				wxString str = GetNumberFromChapterOrVerseStr(tempStr);
+				if (str.Find('-',TRUE) != wxNOT_FOUND)
+				{
+					// The tempStr has a dash in it indicating it is a bridged verse, so
+					// store the higher verse number of the bridge.
+					int nLowerNumber, nUpperNumber;
+					ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+					
+					nLastVerseNumber = nUpperNumber;
+				}
+				else
+				{
+					// The tempStr is a plain number, not a bridged one, so just store
+					// the number.
+					nLastVerseNumber = wxAtoi(str);
+				}
+				// now determine if the verse is empty or not
+				int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
+				wxASSERT(posColon != wxNOT_FOUND);
+				wxString extent;
+				extent = tempStr.Mid(posColon + 1);
+				extent.Trim(FALSE);
+				extent.Trim(TRUE);
+				if (extent == _T("0"))
+				{
+					// The verse is empty so get the verse number, and add it
+					// to the emptyVersesStr
+					emptyVersesStr += GetNumberFromChapterOrVerseStr(tempStr);
+					emptyVersesStr += _T(':'); 
+					// calculate the nVersesWithoutContent value
+					if (str.Find('-',TRUE) != wxNOT_FOUND)
+					{
+						int nLowerNumber, nUpperNumber;
+						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+						nVersesWithoutContent += (nUpperNumber - nLowerNumber + 1);
+					}
+					else
+					{
+						nVersesWithoutContent++;
+					}
+				}
+				else
+				{
+					// The verse has content so calculate the number of verses to add to
+					// nVersesWithContent
+					if (str.Find('-',TRUE) != wxNOT_FOUND)
+					{
+						int nLowerNumber, nUpperNumber;
+						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+						nVersesWithContent += (nUpperNumber - nLowerNumber + 1);
+					}
+					else
+					{
+						nVersesWithContent++;
+					}
+				}
+			}
+		} while (index < tot);
+	}
+	else
+	{
+		// this book has at least one chapter \c marker
+		bool bStillInChapter = TRUE;
+		do
+		{
+			index++; // point past this chapter
+			if (index >= tot)
+				break;
+			tempStr = usfmStructureAndExtentArray.Item(index);
+			
+			if (index < tot && tempStr.Find(chMkr) == 0) // \c
+			{
+				// we've encountered a new chapter
+				bStillInChapter = FALSE;
+			}
+			else if (index >= tot)
+			{
+				bStillInChapter = FALSE;
+			}
+			else
+			{
+				if (tempStr.Find(vsMkr) == 0) // \v
+				{
+					// We're at a verse, so note if it is empty.
+					// But, first get the last verse number in the tempStr. If the last verse 
+					// is a bridged verse, store the higher verse number of the bridge, otherwise 
+					// store the single verse number in nLastVerseNumber.
+					// tempStr is of the form "\v n:nnnn" or possibly "\v n-m:nnnn" if bridged
+					
+					// testing only below - uncomment to test the if-else block below
+					//tempStr = _T("\\ v 3-5:0");
+					// testing only above
+					
+					wxString str = GetNumberFromChapterOrVerseStr(tempStr);
+					if (str.Find('-',TRUE) != wxNOT_FOUND)
+					{
+						// The tempStr has a dash in it indicating it is a bridged verse, so
+						// store the higher verse number of the bridge.
+
+						int nLowerNumber, nUpperNumber;
+						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+						
+						nLastVerseNumber = nUpperNumber;
+					}
+					else
+					{
+						// The tempStr is a plain number, not a bridged one, so just store
+						// the number.
+						nLastVerseNumber = wxAtoi(str);
+					}
+					// now determine if the verse is empty or not
+					int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
+					wxASSERT(posColon != wxNOT_FOUND);
+					tempStr = tempStr.Mid(0,posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \v markers)
+					posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
+					wxString extent;
+					extent = tempStr.Mid(posColon + 1);
+					extent.Trim(FALSE);
+					extent.Trim(TRUE);
+					if (extent == _T("0"))
+					{
+						// The verse is empty so get the verse number, and add it
+						// to the emptyVersesStr
+						emptyVersesStr += GetNumberFromChapterOrVerseStr(tempStr);
+						emptyVersesStr += _T(':');
+						// calculate the nVersesWithoutContent value
+						if (str.Find('-',TRUE) != wxNOT_FOUND)
+						{
+							int nLowerNumber, nUpperNumber;
+							ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+							nVersesWithoutContent += (nUpperNumber - nLowerNumber + 1);
+						}
+						else
+						{
+							nVersesWithoutContent++;
+						}
+					}
+					else
+					{
+						// The verse has content so calculate the number of verses to add to
+						// nVersesWithContent
+						if (str.Find('-',TRUE) != wxNOT_FOUND)
+						{
+							int nLowerNumber, nUpperNumber;
+							ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
+							nVersesWithContent += (nUpperNumber - nLowerNumber + 1);
+						}
+						else
+						{
+							nVersesWithContent++;
+						}
+					}
+				}
+			}
+		} while (index < tot  && bStillInChapter);
+	}
+	// Shorten any emptyVersesStr by indicating continuous empty verses with a dash between
+	// the starting and ending of continuously empty verses, i.e., 5-7, and format the list with
+	// comma and space between items so that the result would be something like: 
+	// "1, 3, 5-7, 10-22" which is returned via nonDraftedVerses parameter to the caller.
+	
+	// testing below
+	//wxString wxStr1 = _T("1:3:4:5:6:9:10-12:13:14:20:22:24:25:26:30:");
+	//wxString wxStr2 = _T("1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:");
+	//wxString testStr1;
+	//wxString testStr2;
+	//testStr1 = AbbreviateColonSeparatedVerses(wxStr1);
+	//testStr2 = AbbreviateColonSeparatedVerses(wxStr2);
+	// test results: testStr1 = _T("1, 3-6, 9, 10-12, 13-14, 20, 22, 24-26, 30")
+	// test results: testStr2 = _T("1-30")
+	// testing above
+	
+	if (!emptyVersesStr.IsEmpty())
+	{
+		// Handle the "partially drafted" and "empty" cases.
+		// The emptyVersesStr has content, so there are one or more empty verses in the 
+		// chapter, including the possibility that all verses have content.
+		// Return the results to the caller via emptyVersesStr parameter and the 
+		// function's return value.
+		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr);
+		if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
+		{
+			if (cTextType == collabTgtText)
+				statusStr = statusStr.Format(_("No translations (no verses of a total of %d have translation text yet)"),nLastVerseNumber);
+			else if (cTextType == collabFreeTransText)
+				statusStr = statusStr.Format(_("No verses of a total of %d have free translations yet"),nLastVerseNumber);
+			else if (cTextType == collabSrcText)
+			{
+				statusStr = statusStr.Format(_("No verses of a total of %d have source text"),nLastVerseNumber);
+			}
+			bChapterIsEmpty = TRUE; // return reference parameter value; no verses have text content so chapter is empty
+		}
+		else
+		{
+			if (cTextType == collabTgtText)
+				statusStr = statusStr.Format(_("Partly drafted (%d of a total of %d verses have translation text)"),nVersesWithContent,nLastVerseNumber);
+			else if (cTextType == collabFreeTransText)
+				statusStr = statusStr.Format(_("%d of a total of %d verses have free translations"),nVersesWithContent,nLastVerseNumber);
+			else if (cTextType == collabSrcText)
+			{
+				statusStr = statusStr.Format(_("%d of a total of %d verses have source text"),nVersesWithContent,nLastVerseNumber);
+			}
+			bChapterIsEmpty = FALSE; // return reference parameter value; one or more verses have text content so chapter is not empty
+		}
+		nonDraftedVerses = emptyVersesStr;
+	}
+	else
+	{
+		// Handle the "fully drafted" case.
+		// The emptyVersesStr has NO content, so there are no empty verses in the chapter. The
+		// emptyVersesStr ref parameter remains empty.
+		if (cTextType == collabTgtText)
+			statusStr = statusStr.Format(_("All %d verses have translation text"),nLastVerseNumber);
+		else if (cTextType == collabFreeTransText)
+			statusStr = statusStr.Format(_("All %d verses have free translations"),nLastVerseNumber);
+		else if (cTextType == collabSrcText)
+		{
+			statusStr = statusStr.Format(_("All %d verses have source text"),nLastVerseNumber);
+		}
+		nonDraftedVerses = _T("");
+		bChapterIsEmpty = FALSE; // return reference parameter value; no non-drafted verses found so chapter is not empty
+	}
+
+	return statusStr; // return the status string that becomes the list item's status in the caller
+}
+
+// whm 18Jul12 added. DoProjectAnalysis gets a list of all existing books for the given 
+// compositeProjName from the PT/BE editor. It uses the collab utility mechanism rdwrtp7.exe
+// or bibledit-rdwrt to read all the books of the project into a buffer and analyzes the
+// contents to determine which books are empty (no verse content) and which books have verse
+// text content, returning the respective lists in reference parameters emptyBooks and 
+// booksWithContent. 
+// This function was prompted by a report from one user who was confused about which Paratext
+// project to use for obtaining source texts and which to use for receiving target texts - and
+// swapped them. The apparent result was overwriting the intended source texts and possible
+// loss of some data.
+// Implementation Notes:
+// 1. Determine the first book that exists in the PT/BE project represented in the
+// m_TempCollabProjectForTargetInputs. This is done by querying the App's project
+// struct representing this selected project and determining the first book in its
+// <BooksPresent> string (consisting of 0 and 1 chars in which 1 represents an existing
+// book in the project).
+// 2. Use wxExecute() function with appropriate command line arguments to fetch the
+// book determined in 1 into a disk file and read into a memory buffer (as is done in
+// the OnLBBookSelected() handler in GetSourceFromEditor.cpp).
+// 3. Use the CollabUtilities' GetUsfmStructureAndExtent() function to get an idea of
+// the text content of the book storing the result in a TargetTextUsfmStructureAndExtentArray.
+// 4. Examine the TargetTextUsfmStructureAndExtentArray to determine whether it has
+// verse(s) that do not yet have any actual content, or whether it only has \c n chapter and \v n verse
+// markers which are empty of verse content - as would be expected for a project 
+// designated to receive translation/target texts.
+// 5. If the selected PT/BE project for obtaining source texts is empty of text content
+// warn the administrator that no useful work can be done within Adapt It - and if
+// the PT/BE projects are accidentally swapped, data loss could occur during collaboration.
+// The enum value we return in this function is one of the following:
+// 	 projHasVerseTextInAllBooks  [when 
+//   projHasNoBooksWithVerseText  [when booksWithContent ends up empty]
+//   projHasSomeBooksWithVerseTextSomeWithout  [when booksWithContent has some content and emptyBooks has
+//      some content]
+//   projHasNoChaptersOrVerses  [when CollabProjectHasAtLeastOneBook() returns FALSE]
+//   projHasNoBooks  [when the PT/BE config's booksPresentArray is empty]
+//   processingError  [when the wxExecute() failed]
+// Note: Much more data is actually skimmed from the content of the books during the scanning
+// process. This could be used to present a more complete picture of the book contents if we
+// decided to do so.
+enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
+				wxString compositeProjName,wxString editor,
+				wxString& emptyBooks,wxString& booksWithContent,wxString& errorMsg)
+{
+	// Get the names of books present in the compositeProjName project into bookNamesArray
+	wxString collabProjShortName;
+	collabProjShortName = GetShortNameFromProjectName(compositeProjName);
+	int ct, tot;
+	tot = (int)gpApp->m_pArrayOfCollabProjects->GetCount();
+	wxString tempStr;
+	Collab_Project_Info_Struct* pArrayItem;
+	pArrayItem = (Collab_Project_Info_Struct*)NULL;
+	bool bFound = FALSE;
+	for (ct = 0; ct < tot; ct++)
+	{
+		pArrayItem = (Collab_Project_Info_Struct*)(*gpApp->m_pArrayOfCollabProjects)[ct];
+		tempStr = pArrayItem->shortName;
+		if (tempStr == collabProjShortName)
+		{
+			bFound = TRUE;
+			break;
+		}
+	}
+	wxASSERT(bFound == TRUE);
+	
+	wxString booksStr;
+	if (pArrayItem != NULL && bFound)
+	{
+		booksStr = pArrayItem->booksPresentFlags;
+	}
+	wxArrayString booksPresentArray;
+	booksPresentArray = gpApp->GetBooksArrayFromBookFlagsString(booksStr);
+	int nBooksToCheck;
+	nBooksToCheck = (int)booksPresentArray.GetCount();
+	if (nBooksToCheck == 0)
+	{
+		// whm Note: The emptyBooks and booksWithContent strings will be
+		// meaningless to the caller in this situation
+		return projHasNoBooks;
+	}
+
+	if (!CollabProjectHasAtLeastOneBook(compositeProjName,editor))
+	{
+		// whm Note: The emptyBooks and booksWithContent strings will be
+		// meaningless to the caller in this situation
+		return projHasNoChaptersOrVerses;
+	}
+
+	emptyBooks = wxEmptyString;
+	booksWithContent = wxEmptyString;
+	EditorProjectVerseContent editorProjVerseContent = projHasNoBooksWithVerseText; //  the enum defaults to no books with verse text
+	
+	// Set up a progress dialog
+	wxString msgDisplayed;
+	wxString progMsg;
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	wxString progressTitle = _("Analyzing the %s project: %s");
+	progressTitle = progressTitle.Format(progressTitle,editor.c_str(),compositeProjName.c_str());
+	wxString firstBookName = booksPresentArray.Item(0);
+	const int nTotal = nBooksToCheck;
+	// Only create the progress dialog if we have data to progress
+	if (nTotal > 0)
+	{
+		progMsg = _("Analyzing book %s");
+		msgDisplayed = progMsg.Format(progMsg,firstBookName.c_str());
+		pProgDlg = gpApp->OpenNewProgressDialog(progressTitle,msgDisplayed,nTotal,500);
+		wxASSERT(pProgDlg != NULL);
+	}
+
+	// Loop through all existing books existing in the project
+	wxString m_rdwrtp7PathAndFileName;
+	wxString m_bibledit_rdwrtPathAndFileName;
+	if (editor == _T("Paratext"))
+	{
+		m_rdwrtp7PathAndFileName = GetPathToRdwrtp7(); // see CollabUtilities.cpp
+	}
+	else
+	{
+		m_bibledit_rdwrtPathAndFileName = GetPathToBeRdwrt(); // will return
+								// an empty string if BibleEdit is not installed;
+								// see CollabUtilities.cpp
+	}
+	wxString wholeBookBuffer;
+	wxArrayString usfmStructureAndExtentArray;
+	wxArrayString staticBoxDescriptionOfBook;
+	int nBookCount;
+	for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
+	{
+		// Get the PT/BE Book's text using the rdwrtp7.exe or the bibledit-rdwrt command line utility
+
+		wxString fullBookName;
+		fullBookName = booksPresentArray.Item(nBookCount);
+		wxASSERT(!fullBookName.IsEmpty());
+		wxString bookCode;
+		bookCode = gpApp->GetBookCodeFromBookName(fullBookName);
+		wxASSERT(!bookCode.IsEmpty());
+		
+		// ensure that a .temp folder exists in the m_workFolderPath
+		wxString tempFolder;
+		tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
+		if (!::wxDirExists(tempFolder))
+		{
+			::wxMkdir(tempFolder);
+		}
+
+		wxString projShortName;
+		wxASSERT(!compositeProjName.IsEmpty());
+		projShortName = GetShortNameFromProjectName(compositeProjName);
+		wxString bookNumAsStr = gpApp->GetBookNumberAsStrFromName(fullBookName);
+		
+		wxString tempFileName;
+		tempFileName = tempFolder + gpApp->PathSeparator;
+		tempFileName += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, projShortName, wxEmptyString, _T(".tmp"));
+		
+		// Build the command lines for reading the PT projects using rdwrtp7.exe
+		// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
+		
+		// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the 
+		// commandline, because within GetSourceTextFromEditor() we are using temp variables 
+		// for passing to the GetShortNameFromProjectName() function above, whereas 
+		// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs, 
+		// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App 
+		// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the 
+		// dialog is about to be closed.
+		
+		// whm 17Oct11 modified the commandline strings below to quote the source and target
+		// short project names (projShortName and targetProjShortName). This is especially
+		// important for the Bibledit projects, since we use the language name for the project
+		// name and it can contain spaces, whereas in the Paratext command line strings the
+		// short project name is used which doesn't generally contain spaces.
+		wxString commandLine,commandLineTgt,commandLineFT;
+		if (editor == _T("Paratext"))
+		{
+			// whm 17Jul12 modified. The .Contains() method is deprecated; use Find instead
+			//if (m_rdwrtp7PathAndFileName.Contains(_T("paratext")))
+			if (m_rdwrtp7PathAndFileName.Find(_T("paratext")) != wxNOT_FOUND) // whm Note: lower case "paratext" appears only on Linux where it is script name
+			{
+				// PT on linux -- need to add --rdwrtp7 as the first param to the command line
+				commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" --rdwrtp7 ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
+			}
+			else
+			{
+				// PT on Windows
+				commandLine = _T("\"") + m_rdwrtp7PathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
+			}
+		}
+		else if (editor == _T("Bibledit"))
+		{
+			commandLine = _T("\"") + m_bibledit_rdwrtPathAndFileName + _T("\"") + _T(" ") + _T("-r") + _T(" ") + _T("\"") + projShortName + _T("\"") + _T(" ") + bookCode + _T(" ") + _T("0") + _T(" ") + _T("\"") + tempFileName + _T("\"");
+		}
+		//wxLogDebug(commandLine);
+
+		// Note: Looking at the wxExecute() source code in the 2.8.11 library, it is clear that
+		// when the overloaded version of wxExecute() is used, it uses the redirection of the
+		// stdio to the arrays, and with that redirection, it doesn't show the console process
+		// window by default. It is distracting to have the DOS console window flashing even
+		// momentarily, so we will use that overloaded version of rdwrtp7.exe.
+
+		long resultExec = -1;
+		wxArrayString outputArray, errorsArray;
+		// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
+		// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+		// from/to its project data files. Defined as 0 is the normal setting.
+		// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+		// files (not using command-line interface). Defined to 1 was for testing purposes
+		// only before Teus provided the command-line utility bibledit-rdwrt.
+		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
+		{
+			// Use the wxExecute() override that takes the two wxStringArray parameters. This
+			// also redirects the output and suppresses the dos console window during execution.
+			resultExec = ::wxExecute(commandLine,outputArray,errorsArray);
+		}
+		else if (gpApp->m_bCollaboratingWithBibledit)
+		{
+			// Collaborating with Bibledit and _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 1
+			// Note: This code block will not be used in production. It was only for testing
+			// purposes.
+			wxString beProjPath = gpApp->GetBibleditProjectsDirPath();
+			wxString beProjPathSrc;
+			beProjPathSrc = beProjPath + gpApp->PathSeparator + projShortName;
+			int chNumForBEDirect = -1; // for Bibledit to get whole book
+			bool bWriteOK;
+			bWriteOK = CopyTextFromBibleditDataToTempFolder(beProjPathSrc, fullBookName, chNumForBEDirect, tempFileName, errorsArray);
+			if (bWriteOK)
+				resultExec = 0; // 0 means same as wxExecute() success
+			else // bWriteOK was FALSE
+				resultExec = 1; // 1 means same as wxExecute() ERROR, errorsArray will contain error message(s)
+		}
+
+		if (resultExec != 0)
+		{
+			// get the console output and error output, format into a string and 
+			// include it with the message to user
+			wxString outputStr,errorsStr;
+			outputStr.Empty();
+			errorsStr.Empty();
+			int ct;
+			if (resultExec != 0)
+			{
+				for (ct = 0; ct < (int)outputArray.GetCount(); ct++)
+				{
+					if (!outputStr.IsEmpty())
+						outputStr += _T(' ');
+					outputStr += outputArray.Item(ct);
+				}
+				for (ct = 0; ct < (int)errorsArray.GetCount(); ct++)
+				{
+					if (!errorsStr.IsEmpty())
+						errorsStr += _T(' ');
+					errorsStr += errorsArray.Item(ct);
+				}
+			}
+
+			wxString msg;
+			wxString concatMsgs;
+			if (!outputStr.IsEmpty())
+				concatMsgs = outputStr;
+			if (!errorsStr.IsEmpty())
+				concatMsgs += errorsStr;
+			if (editor == _T("Paratext"))
+			{
+				msg = _("Could not read data from the Paratext projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+			}
+			else if (editor == _T("Bibledit"))
+			{
+				msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
+			}
+			msg = msg.Format(msg,concatMsgs.c_str());
+			errorMsg = msg; // return the error message to the caller
+			if (pProgDlg != NULL)
+			{
+				pProgDlg->Refresh();
+				pProgDlg->Destroy();
+			}
+			return processingError;
+		}
+
+		// now read the tmp files into buffers in preparation for analyzing their chapter and
+		// verse status info (1:1:nnnn).
+		// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+		// UNICODE BOM of ef bb bf
+
+		// whm 21Sep11 Note: When grabbing the source text, we need to ensure that 
+		// an \id XXX line is at the beginning of the text, therefore the second 
+		// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+		// the bookCode. The addition of an \id XXX line will not normally be needed
+		// when grabbing whole books, but the check is made here to be safe. This
+		// call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole source
+		// text for use in analyzing the chapter status, but I believe it is also
+		// the main call that stores the text in the .temp folder which the app
+		// would use if the whole book is used for collaboration, so we should
+		// do the check here too just to be safe.
+		wholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(tempFileName,bookCode);
+		usfmStructureAndExtentArray.Clear();
+		usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
+		
+		// Note: The wholeBookBuffer will not be completely empty even
+		// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
+		// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
+		// buffer. So, we can tell better whether the book hasn't been created within Paratext
+		// by checking to see if there are any elements in the appropriate 
+		// UsfmStructureAndExtentArrays.
+		if (usfmStructureAndExtentArray.GetCount() == 0)
+		{
+			if (pProgDlg != NULL)
+			{
+				pProgDlg->Refresh();
+				pProgDlg->Destroy();
+			}
+			return projHasNoBooks;
+		}
+
+		wxArrayString chapterListFromBook;
+		wxArrayString chapterStatusFromBook;
+		bool bBookIsEmpty = FALSE; // bBookIsEmpty may be modified by GetChapterListAndVerseStatusFromBook() below
+		staticBoxDescriptionOfBook.Clear();
+		// whm 19Jul12 Note: We are currently interested in DoProjectAnalysis() whether
+		// the book we are analyzing has text content or not. Therefore the main value
+		// we examine in the call below is the nBookIsEmpty reference parameter. If it
+		// indicates the book is empty of content we add the book to our 
+		GetChapterListAndVerseStatusFromBook(textType,
+			usfmStructureAndExtentArray,
+			compositeProjName,
+			fullBookName,
+			staticBoxDescriptionOfBook,
+			chapterListFromBook,
+			chapterStatusFromBook,
+			bBookIsEmpty);
+		
+		// testing only below !!!
+		//int i;
+		//wxLogDebug(_T("staticBoxDescriptionOfBook:"));
+		//for (i = 0; i < (int)staticBoxDescriptionOfBook.GetCount(); i++)
+		//{
+		//	wxLogDebug(_T("   ")+staticBoxDescriptionOfBook.Item(i));
+		//}
+		//wxLogDebug(_T("chapterListFromBook:"));
+		//for (i = 0; i < (int)chapterListFromBook.GetCount(); i++)
+		//{
+		//	wxLogDebug(_T("   ")+chapterListFromBook.Item(i));
+		//}
+		//wxLogDebug(_T("chapterStatusFromBook:"));
+		//for (i = 0; i < (int)chapterStatusFromBook.GetCount(); i++)
+		//{
+		//	wxLogDebug(_T("   ")+chapterStatusFromBook.Item(i));
+		//}
+		// testing only above !!!
+
+		if (bBookIsEmpty)
+		{
+			if (!emptyBooks.IsEmpty())
+			{
+				// prefix with a command and space
+				emptyBooks += _T(", "); 
+			}
+			emptyBooks += fullBookName;
+		}
+		else
+		{
+			if (!booksWithContent.IsEmpty())
+			{
+				// prefix with a command and space
+				booksWithContent += _T(", "); 
+			}
+			booksWithContent += fullBookName;
+		}
+		
+		msgDisplayed = progMsg.Format(progMsg,booksPresentArray.Item(nBookCount).c_str());
+		pProgDlg->Update(nBookCount,msgDisplayed);
+	} // end of for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
+
+	if (booksWithContent.IsEmpty())
+	{
+		// No books have textual content!
+		// This result should trigger a warning in the caller when DoProjectAnalysis() is run
+		// on the PT/BE project selected for obtaining source texts, because if that project
+		// is selected no useful work can be done
+		editorProjVerseContent = projHasNoBooksWithVerseText;
+	}
+	else if (!emptyBooks.IsEmpty())
+	{
+		// Some books have textual content and some don't
+		editorProjVerseContent = projHasSomeBooksWithVerseTextSomeWithout;
+	}
+	else
+	{
+		wxASSERT(!booksWithContent.IsEmpty());
+		wxASSERT(emptyBooks.IsEmpty());
+		// All books have textual content. This is the normally expected case
+		// for PT/BE projects selected for obtaining source texts into Adapt It
+		editorProjVerseContent = projHasVerseTextInAllBooks;
+	}
+	
+	if (pProgDlg != NULL)
+	{
+		pProgDlg->Refresh();
+		pProgDlg->Destroy();
+	}
+	
+	// For Testing only!!!
+	// Return the empty books (as a string list) to the caller via the emptyBooks reference parameter
+	//emptyBooks = _T("Genesis, Ruth, Esther, Matthew, Mark, Luke, John");
+	// Return the books with content (as a string list) to the caller via the booksWithContent reference parameter
+	//booksWithContent = _T("Acts, Romans, 1 Corinthians, 2 Corinthians, Galatians, Ephesians, Philippians, Collosians, 1 Thessalonians, 2 Thessalonians, 1 Timothy, 2 Timothy, Titus, Philemon, Hebrews, James, 1 Peter, 2 Peter, 1 John, 2 John, 3 John, Jude, Revelation");
+	
+	// The enum value we return in this function is one of the following:
+	// 	 projHasVerseTextInAllBooks
+	//   projHasNoBooksWithVerseText
+	//   projHasSomeBooksWithVerseTextSomeWithout
+	//   projHasNoChaptersOrVerses [ TODO: ]
+	//   projHasNoBooks [returned directly above after analyzing the PT/BE config's booksPresentArray]
+	//   processingError [returned directly from within for loop above if wxExecute() failed]
+	return editorProjVerseContent;
+}
+
 wxString SetWorkFolderPath_For_Collaboration()
 {
 	wxString workPath;
@@ -3037,8 +3929,10 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 		utf16BomLen = 1;
 	else
 		utf16BomLen = 0;
-	wxLogDebug(_T("Total Count = %d [charCount (%d) + eolCount (%d) + charCountMarkersOnly (%d)] Compare to nBufLen = %d"),
-		charCount+eolCount+charCountMarkersOnly,charCount,eolCount,charCountMarkersOnly,nBufLen - utf16BomLen);
+	// whm note: The following wxLogDebug() call can function as a unit test for the
+	// GetUsfmStructureAndExtent() results
+	//wxLogDebug(_T("Total Count = %d [charCount (%d) + eolCount (%d) + charCountMarkersOnly (%d)] Compare to nBufLen = %d"),
+	//	charCount+eolCount+charCountMarkersOnly,charCount,eolCount,charCountMarkersOnly,nBufLen - utf16BomLen);
 	utf16BomLen = utf16BomLen; // avoid warning
 	return UsfmStructureAndExtentArray;
 }
@@ -4652,7 +5546,6 @@ void GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart,
 		}
 	} while (TRUE);
 }
-
 
 // frees from the heap the passed in array's VerseInf structs
 void DeleteAllVerseInfStructs(wxArrayPtrVoid& arr)

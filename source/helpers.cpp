@@ -498,6 +498,157 @@ wxString ExtractSubstring(const wxChar* pBufStart, const wxChar* pBufEnd, size_t
 	}
 }
 
+void ExtractVerseNumbersFromBridgedVerse(wxString tempStr,int& nLowerNumber,int& nUpperNumber)
+{
+	// whm 18Jul12 moved from GetSourceTextFromEditor sources to helpers.
+	// The incoming tempStr will have a bridged verse string in the form "3-5".
+	// We parse it and convert its lower and upper number sub-strings into int values to
+	// return to the caller via the reference int parameters.
+	int nPosDash;
+	wxString str = tempStr;
+	str.Trim(FALSE);
+	str.Trim(TRUE);
+	wxString subStrLower, subStrUpper;
+	nPosDash = str.Find('-',TRUE);
+	wxASSERT(nPosDash != wxNOT_FOUND);
+	subStrLower = str.Mid(0,nPosDash);
+	subStrLower.Trim(TRUE); // trim any whitespace at right end
+	subStrUpper = str.Mid(nPosDash+1);
+	subStrUpper.Trim(FALSE); // trim any whitespace at left end
+	nLowerNumber = wxAtoi(subStrLower);
+	nUpperNumber = wxAtoi(subStrUpper);
+}
+
+wxString AbbreviateColonSeparatedVerses(const wxString str)
+{
+	// whm 18Jul12 moved from GetSourceTextFromEditor sources to helpers.
+	// Abbreviates a colon separated list of verses that originally looks like:
+	// 1:3:4:5:6:9:10-12:13:14:20:22:24:25,26:30:
+	// changing it to this abbreviated from:
+	// 1, 3-6, 9, 10-12, 13-14, 20, 22, 24-26, 30
+	// Note: Bridged verses in the original are not combined with their contiguous 
+	// neighbors, so 9, 10-12, 13-14 does not become 9-14.
+	wxString tempStr;
+	tempStr.Empty();
+	wxStringTokenizer tokens(str,_T(":"),wxTOKEN_DEFAULT); // empty tokens are never returned
+	wxString aToken;
+	int lastVerseValue = 0;
+	int currentVerseValue = 0;
+	bool bBridgingVerses = FALSE;
+	while (tokens.HasMoreTokens())
+	{
+		aToken = tokens.GetNextToken();
+		aToken.Trim(FALSE); // FALSE means trim white space from left end
+		aToken.Trim(TRUE); // TRUE means trim white space from right end
+		int len = aToken.Length();
+		int ct;
+		bool bHasNonDigitChar = FALSE;
+		for (ct = 0; ct < len; ct++)
+		{
+			if (!wxIsdigit(aToken.GetChar(ct)) && aToken.GetChar(ct) != _T('-'))
+			{
+				// the verse has a non digit char other than a '-' char so let it stand by
+				// itself
+				bHasNonDigitChar = TRUE;
+			}
+		}
+		if (aToken.Find(_T('-')) != wxNOT_FOUND || bHasNonDigitChar)
+		{
+			// the token is a bridged verse number string, i.e., 2-3
+			// or has an unrecognized non-digit char in it, so we let 
+			// it stand by itself in the abbriviated tempStr
+			tempStr += _T(", ") + aToken;
+			bBridgingVerses = FALSE;
+		}
+		else
+		{
+			// the token is a normal verse number string
+			currentVerseValue = wxAtoi(aToken);
+			if (lastVerseValue == 0)
+			{
+				// we're at the first verse element, which will always get stored as is
+				tempStr = aToken;
+			}
+			else if (currentVerseValue - lastVerseValue == 1)
+			{
+				// the current verse is in sequence with the last verse, continue 
+				bBridgingVerses = TRUE;
+			}
+			else
+			{
+				// the currenttVerseValue and lastVerseValue are not contiguous
+				if (bBridgingVerses)
+				{
+					tempStr += _T('-');
+					tempStr << lastVerseValue;
+					tempStr += _T(", ") + aToken;
+				}
+				else
+				{
+					tempStr += _T(", ") + aToken;
+				}
+				bBridgingVerses = FALSE;
+			}
+			lastVerseValue = currentVerseValue;
+		}
+	}
+	if (bBridgingVerses)
+	{
+		// close off end verse of the bridge at the end
+		tempStr += _T('-');
+		tempStr << lastVerseValue;
+	}
+
+	return tempStr;
+}
+
+bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
+{
+	// whm 18Jul12 moved from GetSourceTextFromEditor sources to helpers.
+	// The incoming emptyVersesStr will be of the abbreviated form created by the
+	// AbbreviateColonSeparatedVerses() function, i.e., "1, 2-6, 28-29" when the
+	// chapter has been partly drafted, or "1-29" when all verses are empty. To 
+	// determine whether the empty verse range includes all verses of the chapter
+	// or not, we parse the incoming emptyVersesStr to see if it is of the later
+	// "1-29" form. There will be a single '-' character and no comma delimiters.
+	wxASSERT(!emptyVersesStr.IsEmpty());
+	bool bAllVersesAreEmpty = FALSE;
+	wxString tempStr = emptyVersesStr;
+	// whm modified 6Feb12 to correct the situation where a range such as 2-47 was
+	// being returned as TRUE, because the range didn't start at verse 1.
+	// Check if the first number in emptyVersesStr is a 1 or not. If it is not a
+	// 1, then we know that it won't include all verses of the chapter.
+	wxStringTokenizer tkz(tempStr,_T(",-")); // tokenize by commas and hyphens
+	wxString token;
+	int tokCt = 1;
+	while (tkz.HasMoreTokens())
+	{
+		token = tkz.GetNextToken();
+		token.Trim(FALSE);
+		token.Trim(TRUE);
+		if (tokCt == 1 && token != _T("1"))
+			return FALSE;
+		tokCt++;
+	}
+	
+	// Check if there is no comma in the emptyVersesStr. Lack of a comma indicates
+	// that all verses are empty
+	if (tempStr.Find(',') == wxNOT_FOUND)
+	{
+		// There is no ',' that would indicate a gap in the emptyVersesStr
+		bAllVersesAreEmpty = TRUE;
+	}
+	// Just to be sure do another test to ensure there is a '-' and only one '-'
+	// in the string.
+	if (tempStr.Find('-') != wxNOT_FOUND && tempStr.Find('-',FALSE) == tempStr.Find('-',TRUE))
+	{
+		// the position of '-' in the string is the same whether
+		// determined from the left end or the right end of the string
+		bAllVersesAreEmpty = TRUE;
+	}
+
+	return bAllVersesAreEmpty;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return             the extracted substring

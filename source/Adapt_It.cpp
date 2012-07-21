@@ -19527,7 +19527,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the heap.
 	if (bWorkFolderUserProfilesFileExists)
 	{
-		wxLogDebug(_T("The m_userProfileFileWorkFolderPath = %s"),m_userProfileFileWorkFolderPath.c_str());
+		//wxLogDebug(_T("The m_userProfileFileWorkFolderPath = %s"),m_userProfileFileWorkFolderPath.c_str());
 		// parse the xml file, and set up the data structures
 		// whm 25Aug11 Note: The AI_UserProfiles.xml file is not large enough to require
 		// a wxProgressDialog, so we send NULL through ReadPROFILES_XML().
