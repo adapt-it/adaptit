@@ -3399,6 +3399,7 @@ CBString Xhtml::ConstructPictureID(wxString bookID, int nPictureNum)
 	CBString id = "Figure-";
 	id += ConvertData(bookID);
 	id += '-';
+	// whm modified 23Jul12 to use wxItoa() (in helpers)
 	CBString numStr; //char numStr[24];
 	wxItoa(nPictureNum, numStr); //itoa(nPictureNum, numStr, 10);
 	id += numStr;
