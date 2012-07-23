@@ -1995,7 +1995,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("Free Translation Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Free Translation Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -2015,6 +2015,8 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->AddGrowableRow( 3 );
 
     item11->AddGrowableRow( 5 );
+
+    item11->AddGrowableRow( 7 );
 
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
