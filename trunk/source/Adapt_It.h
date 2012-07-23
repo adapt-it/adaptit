@@ -2623,11 +2623,14 @@ public:
 	wxString	m_targetName; // name of the target language
 	wxString	m_glossesName; // name of the glossing language (usually set by a LIFT import)
 							   // but the user can do it in KBPage of the Preferences... dlg
+	wxString	m_freeTransName; // name of the language used for doing free translations
 
-	// whm added 10May10 for KB LIFT XML Export support
+	// whm added 10May10 for KB LIFT XML Export support; also used for xhtml exports,
+	// and BEW 23July12 added m_freeTransLanguageCode to make all four text types be supported
 	wxString	m_sourceLanguageCode; // 3-letter code for the source language
 	wxString	m_targetLanguageCode; // 3-letter code for the target language
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
+	wxString	m_freeTransLanguageCode; // the 2- or 3-letter code for free translation language
 
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
 	// (these are used for getting a target text entry, if the import is redone in

@@ -46,12 +46,12 @@ wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 					 bool& bAddedSomething, bool bIncludeNote,
 					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine); // BEW created 11Oct10
 wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
-void		DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion); // BEW created 6Aug09
+void		DoExportSfmText(enum ExportType exportType); // BEW removed bForceUTF8Conversion 21July12
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
 							  wxString exportName, wxString& Buffer);
 // BEW created 9Jun12
-void		DoExportAsXhtml(); 
+void		DoExportAsXhtml(enum ExportType exportType); 
 	
 // The following ParseWordRTF() function is the same as the legacy ParseWord() function in the Doc before
 // Bruce rewrote it for doc v 5 purposes. I've renamed it to ParseWordRTF and reclaimed it here for RTF output

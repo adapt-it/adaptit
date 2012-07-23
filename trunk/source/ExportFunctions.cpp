@@ -135,7 +135,7 @@ MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as n
 // Returns the input text with all \vn num \vt marker combinations changed to \v num
 // Some places use \vn and \vt (non-USFM markers) instead of \v -- we need to correct
 // for this whenever it happens
-// Used in: DoExportAsOxes()
+// Used in: DoExportAsXhtml()
 // BEW created 21May12
 wxString ChangeMkrs_vn_vt_To_v(wxString text)
 {
@@ -210,24 +210,29 @@ wxString ChangeMkrs_vn_vt_To_v(wxString text)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                         nothing
-/// \param  versionNum          ->  must be 1 or 2, only 1 is supported at present
 /// \remarks
-/// Decomposes the standard format markup in memory produced from a target text export
-/// (but not saved to disk) to chunk it according to the expected chunking of an oxes xml
-/// file, and then for each chunk in sequence builds the relevant xml productions
-/// according to OXES version 1 standard, and returns the xml in a wxString to the caller
-/// for output to a file which the caller will have defined by showing the user a File
-/// Save dialog etc.
-/// This function is based on the view class's DoExportSfmText(), heavily edited
-/// 
-/// BEW deprecated, 15Jun11, until such time as OXES support in AI is needed - and that
-/// depends on there being another app out there that could usefully use an AI OXES
-/// export, TE is dead in the water now since Mara project don't use it, and PT is taking
-/// over as LSDev's focus
-/// BEW reinstated 19May12, for OXES v1 support
-void DoExportAsXhtml()
+/// Exports the document as USFM text, either the target text translation, the glosses
+/// treated as text, source text, or free translation text; and then filters out
+/// inappropriate markers and their content, and what remains is then passed to the
+/// DoXhtmlExport() function in the Xhtml.cpp class for the production of xhtml. The latter
+/// is saved to a folder, and Pathway support can use the export for producing various
+/// commercial media formats for electronic publishing on various types of hardware.
+/// Note: Stylenames used in the present xhtml implementation reflect Text Edit's
+/// implementation of xhtml export; and these are incomplete when compared to the data
+/// types supported by USFM (footnotes, endnotes and cross references are particular
+/// problem spots). Greg Trihus says that future xhtml export will move closer to
+/// supporting what Paratext supports. Jim Albright did some design specs, but work in TE
+/// was done in such a way that most of those have been ignored. Therefore, expect that
+/// this state of flux will require the AI team to periodically upgrade our Xhtml.h & .cpp
+/// implementation, and possibly also what pre-filtering needs to be done in
+/// DoExportAsXhtml().
+/// Note 2: the current Xhtml code handles an unsupported marker, if any such manage to
+/// creep through the filters, as an xhtml comment. It therefore doesn't appear in the
+/// data output as viewed on another device, but searching for comments will show which
+/// markers are not supported.
+void DoExportAsXhtml(enum ExportType exportType)
 {
-	// first determine whether or not the data is unstructured plain text - OXES cannot
+	// first determine whether or not the data is unstructured plain text - Xhtml cannot
 	// handle data not structured as scripture text (in our case, that means, "as SFM or
 	// USFM")
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument(); // <<-- so far it's unused
@@ -250,14 +255,16 @@ void DoExportAsXhtml()
 	if (bookCode.IsEmpty() || bookCode == _T("OTX"))
 	{
 		// not a valid bookCode, or none is defined, or it is the one for "Other Texts"
-		// and in all these cases, an OXES export is not possible
+		// and in all these cases, an Xhtml export is not possible
 		if (bookCode.IsEmpty())
 			bookCode = _T("empty");
 		msg = msg.Format(_(
-"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn OXES export is not possible in this circumstance.\nThe value obtained was %s"),bookCode.c_str());
+"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn Xhtml export is not possible in this circumstance.\nThe value obtained was %s"),bookCode.c_str());
 		wxMessageBox(msg,_("Invalid Book Code"),wxICON_EXCLAMATION | wxOK);
 		return;
 	}
+
+// *** TODO **** July 2012... support language codes for glosses, src, and free translation text  
 
 	// check for a 2-letter (iso639-1) or 3-letter (iso639-3) language code. If it's an
 	// empty string, disallow the export
@@ -536,10 +543,8 @@ wxString RemoveCollectedBacktranslations(wxString& str)
 // whm 6Aug11 revised for support for protecting inputs/outputs folder navigation
 // whm 9Dec11 revised for support of export filename prefix and/or suffix and adjusted
 // behaviors related to the prefixes/suffixes
-void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
+void DoExportSfmText(enum ExportType exportType)
 {
-	bForceUTF8Conversion = bForceUTF8Conversion; // to avoid unreferenced formal 
-												 // parameter warning
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename;
 	bool bBypassFileDialog_ProtectedNavigation = FALSE;
@@ -1269,7 +1274,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	}
 
 
-	///////////////////// DoExportSrcOrTgt ends here if RTF output ////////////////////////
+	///////////////////// DoExportSfmText() ends here if it is RTF output ////////////////////////
 
 	wxFile f;
 
@@ -1382,24 +1387,12 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		break;
 	default:
 	case targetTextExport:
-		// we must check the encoding; if it is utf-safe, send it out as UTF-8;
-		// if not, assume it's a legacy encoding and use the code page
+		// assume the encoding is utf-safe & send it out as UTF-8
 		wxFontEncoding saveTgtEncoding;
-		if (bForceUTF8Conversion)
-		{
-			saveTgtEncoding = gpApp->m_tgtEncoding;
-			gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
-			gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
-			gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
-		}
-		else // UTF-8 conversion is not being forced
-		{
-			// we now always to UTF8 output for the export
-			saveTgtEncoding = gpApp->m_tgtEncoding;
-			gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
-			gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
-			gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
-		}
+		saveTgtEncoding = gpApp->m_tgtEncoding;
+		gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
+		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
+		gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
 		break;
 	}
 	#endif // for _UNICODE

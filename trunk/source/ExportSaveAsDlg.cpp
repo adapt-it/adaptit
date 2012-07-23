@@ -196,7 +196,9 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 	// Pathway check
 	// TODO: if pathway is not installed, disable the button(?)
-	// (actually, I'm not sure about that. How do we tell people that PW is not installed?)
+	// (actually, I'm not sure about that. How do we tell people that PW is not
+	// installed?) --BEW maybe look at what Bill did to check whether Paratext or
+	// Bibledit is installed or not
 
     // export format description
     m_enumSaveAsType = ExportSaveAsTXT;
