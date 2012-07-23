@@ -106,6 +106,14 @@ int       NegHeightToPointSize(const long& height);
 #include "BString.h"
 unsigned int Btoi(CBString& digits);
 
+// The following two convenience functions added by whm 23Jul12. The wxWidgets
+// library has wxAtoi() but not a parallel function that is the equivalent of the
+// non-standard Windows/MFC function itoa(). The following two versions of wxItoa()
+// differ only in their return values, one returning the wxString equivalent of the
+// input integer, and the other returning a CBString equivalent.
+void wxItoa(int val, wxString& str);
+void wxItoa(int val, CBString& str);
+
 long      PointSizeToNegHeight(const int& pointSize); // whm 9Mar04
 
 // helper for copying LOGFONT structs
