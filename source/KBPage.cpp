@@ -225,7 +225,7 @@ void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10M
 	tempSrcLangCode = lcDlg.m_sourceLangCode;
 	tempTgtLangCode = lcDlg.m_targetLangCode;
 	tempGlsLangCode = lcDlg.m_glossLangCode;
-	// update the language code edit boxes
+    // update the language code edit boxes
 	pSrcLangCodeBox->SetValue(tempSrcLangCode);
 	pTgtLangCodeBox->SetValue(tempTgtLangCode);
 	pGlsLangCodeBox->SetValue(tempGlsLangCode);
@@ -278,6 +278,15 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	pApp->m_sourceLanguageCode = tempSrcLangCode;
 	pApp->m_targetLanguageCode = tempTgtLangCode;
 	pApp->m_glossesLanguageCode = tempGlsLangCode;
+
+	// BEW added 23July12, if the gloss or free translation language name is different,
+	// then update the app's m_glossesName or m_freeTransName
+	tempGlsName = m_pEditGlsName->GetValue();
+	if (!tempGlsName.IsEmpty() && strSaveGlsName != tempGlsName)
+	{
+		pApp->m_glossesName = tempGlsName; // Prefs will now display it when reopened,
+				// and it will be saved to basic and project config files
+	}
 }
 
 void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow

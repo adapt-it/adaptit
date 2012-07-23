@@ -27238,8 +27238,7 @@ void CAdapt_ItView::OnUpdateFileExportSource(wxUpdateUIEvent& event)
 // from the CSourcePhrase instances
 void CAdapt_ItView::OnFileExportSource(wxCommandEvent& WXUNUSED(event))
 {
-	bool bForceUTF8Conversion = TRUE; // BEW changed 08Dec06, to avoid unreliable encoding check
-	DoExportSfmText(sourceTextExport,bForceUTF8Conversion); // BEW changed 6Aug09
+	DoExportSfmText(sourceTextExport); // BEW changed 21Jul2
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -27274,10 +27273,7 @@ void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
 
 void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 {
-	bool bForceUTF8Conversion = TRUE; // BEW changed 08Dec06, as Bob's encoding
-            // checking code was unreliable, so from now on always force the conversion,
-            // and remove the Export....As UTF-8 command
-	DoExportSfmText(targetTextExport,bForceUTF8Conversion); // BEW changed 6Aug09
+	DoExportSfmText(targetTextExport); // BEW changed 21Jul12
 }
 
 	// early part of OnExportXHTML() is based on the view function, DoExportSfmText()
@@ -27289,7 +27285,7 @@ void CAdapt_ItView::OnExportXHTML(wxCommandEvent& WXUNUSED(event))
 	// text USFM export, to exclude our custom markers (\free, \note, \bt and derivatives,
 	// and also \rem -- ExcludeCustomMarkersAndRemFromExport() is called internally to
 	// accomplish this, the latter is defined in ExportFunctions.cpp
-	DoExportAsXhtml(); // BEW created 9Jun12
+	DoExportAsXhtml(targetTextExport); // BEW created 9Jun12
 }
 
 // same conditions as for OnUpdateFileExport() (the latter is for exporting the
@@ -27346,9 +27342,8 @@ void CAdapt_ItView::OnUpdateExportGlossesAsText(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	bool bForceUTF8Conversion = TRUE;
 	pApp->m_bExportingGlossesAsText = TRUE;   // set TRUE during export of glosses
-	DoExportSfmText(glossesTextExport,bForceUTF8Conversion);
+	DoExportSfmText(glossesTextExport); // BEW changed 21Jul12
 	pApp->m_bExportingGlossesAsText = FALSE;   // restore default value
 }
 
@@ -27384,9 +27379,8 @@ void CAdapt_ItView::OnUpdateExportFreeTranslations(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	bool bForceUTF8Conversion = TRUE;
 	pApp->m_bExportingFreeTranslation = TRUE; // set TRUE during export of free translations
-	DoExportSfmText(freeTransTextExport,bForceUTF8Conversion);
+	DoExportSfmText(freeTransTextExport); // BEW changed 21Jul12
 	pApp->m_bExportingFreeTranslation = FALSE; // restore default value
 }
 

@@ -11,6 +11,7 @@
 /// the ISO639-3 3-letter language codes for the source and target languages.
 /// The dialog allows the user to search for the codes by language name.
 /// \derivation		The CLanguageCodesDlg class is derived from AIModalDialog.
+/// BEW 23Jul12, extended to include support for free translation's language & lang code
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in LanguageCodesDlg.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -58,6 +59,7 @@ BEGIN_EVENT_TABLE(CLanguageCodesDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_SRC, CLanguageCodesDlg::OnUseSelectedCodeForSrcLanguage)
 	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_TGT, CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage)
 	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_GLS, CLanguageCodesDlg::OnUseSelectedCodeForGlsLanguage)
+	EVT_BUTTON(ID_BUTTON_USE_SEL_AS_FRTR, CLanguageCodesDlg::OnUseSelectedCodeForFreeTransLanguage)
 	EVT_LISTBOX(ID_LIST_LANGUAGE_CODES_NAMES, CLanguageCodesDlg::OnSelchangeListboxLanguageCodes)
 	EVT_TEXT_ENTER(ID_TEXTCTRL_SEARCH_LANG_NAME, CLanguageCodesDlg::OnEnterInSearchBox)
 END_EVENT_TABLE()
@@ -91,6 +93,9 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 	pEditGlossLangCode = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_GLS_LANG_CODE);
 	wxASSERT(pEditGlossLangCode != NULL);
 
+	pEditFreeTransLangCode = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_FRTR_LANG_CODE);
+	wxASSERT(pEditFreeTransLangCode != NULL);
+
 	pBtnFindCode = (wxButton*)FindWindowById(ID_BUTTON_FIND_CODE);
 	wxASSERT(pBtnFindCode != NULL);
 
@@ -102,6 +107,12 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 
 	pBtnUseSelectionAsTarget = (wxButton*)FindWindowById(ID_BUTTON_USE_SEL_AS_TGT);
 	wxASSERT(pBtnUseSelectionAsTarget != NULL);
+
+	pBtnUseSelectionAsGloss = (wxButton*)FindWindowById(ID_BUTTON_USE_SEL_AS_GLS);
+	wxASSERT(pBtnUseSelectionAsGloss != NULL);
+
+	pBtnUseSelectionAsFreeTrans = (wxButton*)FindWindowById(ID_BUTTON_USE_SEL_AS_FRTR);
+	wxASSERT(pBtnUseSelectionAsFreeTrans != NULL);
 
 	pStaticScrollList = (wxStaticText*)FindWindowById(ID_STATICTEXT_SCROLL_LIST);
 	wxASSERT(pStaticScrollList != NULL);
@@ -119,6 +130,14 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	m_bISO639ListFileFound = TRUE;
+
+	// BEW 23Jul12, added next five lines
+	m_associatedLanguageName.Empty();
+	m_bGlossBtnChosen = FALSE;
+	m_bFreeTransBtnChosen = FALSE;
+	m_glossesLangName.Empty();
+	m_freeTransLangName.Empty();
+
 
 	// Adapt It uses both the 2-letter iso639-1 codes and the 3-letter iso639-3 
 	// language codes concatenated together in a single UTF-8 plain text file
@@ -472,18 +491,34 @@ void CLanguageCodesDlg::OnSelchangeListboxLanguageCodes(wxCommandEvent& WXUNUSED
 
 void CLanguageCodesDlg::OnUseSelectedCodeForSrcLanguage(wxCommandEvent& WXUNUSED(event))
 {
-	pEditSourceLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	pEditSourceLangCode->ChangeValue(Get3LetterCodeFromLBItem());
+	m_associatedLanguageName.Empty();
+	m_bGlossBtnChosen = FALSE;
+	m_bFreeTransBtnChosen = FALSE;
 }
 
 void CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage(wxCommandEvent& WXUNUSED(event))
 {
 	pEditTargetLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	m_associatedLanguageName.Empty();
+	m_bGlossBtnChosen = FALSE;
+	m_bFreeTransBtnChosen = FALSE;
 }
 
 void CLanguageCodesDlg::OnUseSelectedCodeForGlsLanguage(wxCommandEvent& WXUNUSED(event))
 {
 	pEditGlossLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	m_bGlossBtnChosen = TRUE;
+	m_bFreeTransBtnChosen = FALSE;
 }
+
+void CLanguageCodesDlg::OnUseSelectedCodeForFreeTransLanguage(wxCommandEvent& WXUNUSED(event))
+{
+	pEditFreeTransLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	m_bGlossBtnChosen = FALSE;
+	m_bFreeTransBtnChosen = TRUE;
+}
+
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
@@ -494,6 +529,20 @@ void CLanguageCodesDlg::OnOK(wxCommandEvent& event)
 	m_sourceLangCode = pEditSourceLangCode->GetValue();
 	m_targetLangCode = pEditTargetLangCode->GetValue();
 	m_glossLangCode = pEditGlossLangCode->GetValue();
+
+	// BEW 23Jul12, added next line and the two tests & assignments below
+	m_freeTransLangCode = pEditFreeTransLangCode->GetValue();
+
+	// of the next two tests, only one of the booleans can be TRUE, or both will be FALSE
+	if (m_bGlossBtnChosen)
+	{
+		m_glossesLangName = m_associatedLanguageName;
+	}
+	if (m_bFreeTransBtnChosen)
+	{
+		m_freeTransLangName = m_associatedLanguageName;
+	}
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -502,6 +551,21 @@ wxString CLanguageCodesDlg::Get3LetterCodeFromLBItem()
 	m_curSel = pListBox->GetSelection();
 	wxASSERT(m_curSel != wxNOT_FOUND);
 	wxString tempStr = pListBox->GetString(m_curSel);
+
+	// BEW added 23Jul12, extract the language name also, and store it in the private
+	// member variable m_associatedLanguageName; use the latter to set either
+	// m_glossesLangName or m_freeTransLangName in OnOK() but only provided the user
+	// clicked, or his last language choice, either the button for the gloss language code
+	// or the one for the free translation language code
+	wxString strName = tempStr;
+	// there are 5 spaces between the code and the name - use that fact
+	wxString fiveSpaces = _T("     ");
+	int offset = strName.Find(fiveSpaces);
+	wxASSERT(offset != wxNOT_FOUND);
+	m_associatedLanguageName = strName.Mid(offset + fiveSpaces.Len());
+	m_associatedLanguageName.Trim(); // remove any whitespace from end
+	m_associatedLanguageName.Trim(FALSE); // & from the start, just to be sure
+	// return the language code
 	return tempStr.Mid(0,3);
 }
 
