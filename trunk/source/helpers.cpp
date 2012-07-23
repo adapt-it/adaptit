@@ -364,6 +364,34 @@ unsigned int Btoi(CBString& digits)
 	return n;
 }
 
+//////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param val	-> the int value to be converted to a wxString
+/// \param str  <- the wxString equivalent of the val
+///  helper for converting an integer to a wxString
+/////////////////////////////////////////////////////////////
+void wxItoa(int val, wxString& str)
+{
+	wxString valStr;
+	valStr << val;
+	str = valStr;
+}
+
+//////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param val	-> the int value to be converted to a CBString
+/// \param str  <- the CBString equivalent of the val
+///  helper for converting an integer to a CBString
+/////////////////////////////////////////////////////////////
+void wxItoa(int val, CBString& str)
+{
+	wxString valStr;
+	valStr << val;
+	wxCharBuffer tempBuf = valStr.mb_str(wxConvUTF8);
+	str = CBString(tempBuf);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the file at path is an XML file (has .xml or .XML extension), otherwise returns FALSE.
 /// \param	path			-> the file to be checked

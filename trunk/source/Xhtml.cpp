@@ -3399,8 +3399,8 @@ CBString Xhtml::ConstructPictureID(wxString bookID, int nPictureNum)
 	CBString id = "Figure-";
 	id += ConvertData(bookID);
 	id += '-';
-	char numStr[24];
-	itoa(nPictureNum, numStr, 10);
+	CBString numStr; //char numStr[24];
+	wxItoa(nPictureNum, numStr); //itoa(nPictureNum, numStr, 10);
 	id += numStr;
 	return id;
 }
