@@ -2512,7 +2512,7 @@ inline int CKB::GetCurrentKBVersion()
 
 inline void CKB::SetCurrentKBVersion()
 {
-	m_kbVersionCurrent = (int)KB_VERSION2; // KB_VERSION2 is defined in Adapt_ItConstants.h
+	m_kbVersionCurrent = (int)KB_VERSION3; // KB_VERSION3 is defined in Adapt_ItConstants.h
 }
 
 bool CKB::IsThisAGlossingKB() { return m_bGlossingKB; }
@@ -4366,7 +4366,6 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 		aStr += tempStr;
 
 		// mrh June 2012 - new fields for kbVersion 3 - not active yet
-#ifdef  testxxxx
 		if (m_pApp->m_sourceLanguageCode.IsEmpty())
 			m_pApp->m_sourceLanguageCode = NOCODE;
 		if (m_pApp->m_targetLanguageCode.IsEmpty())
@@ -4388,7 +4387,6 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 		tempStr = m_pApp->m_targetLanguageCode;
 	#endif
 		aStr += "=\"" + tempStr;
-#endif
 		
 		aStr += "\" max=\"";
 		intStr.Empty(); // needs to start empty, otherwise << will 
