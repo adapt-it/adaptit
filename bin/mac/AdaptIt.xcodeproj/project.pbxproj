@@ -1015,6 +1015,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WXPLATFORM)",
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
 					"wxUSE_UNICODE=1",
 					__WXMAC__,
 					"wxUSE_BASE=1",
@@ -1023,27 +1025,29 @@
 					"__WXMAC_XCODE__=1",
 					MACOS_CLASSIC,
 					"WX_PRECOMP=1",
-					"__WXDEBUG__=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Development";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_CFLAGS = "-fvisibility=hidden";
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
-					"$(inherited)",
+					"$(OTHER_CFLAGS)",
+					"-fvisibility-inlines-hidden",
 				);
 				OTHER_LDFLAGS = (
 					"-liconv",
 					"-lz",
-					"-lwx_mac_static",
+					"-lwx_osx_carbon_static",
 					"-lcurl",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/build/osx/setup/carbon/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
 				WARNING_CFLAGS = (
@@ -1052,6 +1056,9 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKITUPPER = CARBON;
+				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
 				ZERO_LINK = NO;
 			};
 			name = UnicodeDebug;
@@ -1094,6 +1101,7 @@
 					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
+				SDKROOT = macosx;
 				UNSTRIPPED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
 				USE_HEADERMAP = "";
@@ -1111,6 +1119,7 @@
 		C0E91ACA08A95435008D54AB /* UnicodeDebug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH)";
 				GCC_VERSION = 4.0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;

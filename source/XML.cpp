@@ -2948,10 +2948,11 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			case 2:
 			case 3:
 			case 4:
-			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5, 6 or 7
+			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5, 6, 7 or 8
 			case 5:
 			case 6:
 			case 7:
+			case 8:
 			{
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -3988,6 +3989,7 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		case 5:
 		case 6:
 		case 7:		// mrh 20Apr12 - added docVersion 7
+		case 8:		// mrh 24Jul12 - added docVersion 8
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
@@ -6869,6 +6871,7 @@ bool AtKBEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	{
 		case KB_VERSION1:
 		case KB_VERSION2:
+		case KB_VERSION3:		// mrh 24Jul12 - added KB_VErSION3
 		{
 			if (tag == xml_tu)
 			{

@@ -58,13 +58,14 @@
 				</ExtraCommands>
 			</Target>
 			<Environment>
-				<Variable name="WXWIN" value="/Users/erik/wxMac-2.8.10" />
+				<Variable name="WXWIN" value="/Users/mike/Development/wxWidgets-2.9.3" />
 			</Environment>
 		</Build>
 		<VirtualTargets>
 			<Add alias="All" targets="UnicodeDebug;UnicodeRelease;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-march=athlon64" />
 			<Add option="-DwxUSE_UNICODE" />
 			<Add option="-DNO_GCC_PRAGMA" />
 			<Add option="-D__WXMAC__" />
@@ -81,6 +82,7 @@
 			<Add directory="$(WXWIN)/include" />
 			<Add directory="$(WXWIN)/src/build/include" />
 			<Add directory="${BOOST_ROOT}" />
+			<Add directory="/usr/include/c++/4.2.1" />
 		</Compiler>
 		<Linker>
 			<Add option="-liconv -lz -lwx_mac_static" />
@@ -503,6 +505,8 @@
 		<Unit filename="../../res/wxwidgets02-small.svg">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="../../source/AIPrintPreviewFrame.cpp" />
+		<Unit filename="../../source/AIPrintPreviewFrame.h" />
 		<Unit filename="../../source/AIPrintout.cpp" />
 		<Unit filename="../../source/AIPrintout.h" />
 		<Unit filename="../../source/Adapt_It.cpp" />
@@ -518,8 +522,12 @@
 		<Unit filename="../../source/Adapt_It_wdr.cpp" />
 		<Unit filename="../../source/Adapt_It_wdr.h" />
 		<Unit filename="../../source/AdaptitConstants.h" />
+		<Unit filename="../../source/AdminEditMenuProfile.cpp" />
+		<Unit filename="../../source/AdminEditMenuProfile.h" />
 		<Unit filename="../../source/AdminMoveOrCopy.cpp" />
 		<Unit filename="../../source/AdminMoveOrCopy.h" />
+		<Unit filename="../../source/AssignLocationsForInputsAndOutputs.cpp" />
+		<Unit filename="../../source/AssignLocationsForInputsAndOutputs.h" />
 		<Unit filename="../../source/AutoSavingPage.cpp" />
 		<Unit filename="../../source/AutoSavingPage.h" />
 		<Unit filename="../../source/BString.cpp" />
@@ -537,20 +545,36 @@
 		<Unit filename="../../source/Ccdll.h" />
 		<Unit filename="../../source/Cell.cpp" />
 		<Unit filename="../../source/Cell.h" />
+		<Unit filename="../../source/ChooseCollabOptionsDlg.cpp" />
+		<Unit filename="../../source/ChooseCollabOptionsDlg.h" />
 		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.cpp" />
 		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.h" />
+		<Unit filename="../../source/ChooseLanguageCode.cpp" />
+		<Unit filename="../../source/ChooseLanguageCode.h" />
 		<Unit filename="../../source/ChooseLanguageDlg.cpp" />
 		<Unit filename="../../source/ChooseLanguageDlg.h" />
 		<Unit filename="../../source/ChooseTranslation.cpp" />
 		<Unit filename="../../source/ChooseTranslation.h" />
+		<Unit filename="../../source/ClientServerConnection.cpp" />
+		<Unit filename="../../source/ClientServerConnection.h" />
+		<Unit filename="../../source/CollabUtilities.cpp" />
+		<Unit filename="../../source/CollabUtilities.h" />
 		<Unit filename="../../source/CollectBacktranslations.cpp" />
 		<Unit filename="../../source/CollectBacktranslations.h" />
 		<Unit filename="../../source/ComposeBarEditBox.cpp" />
 		<Unit filename="../../source/ComposeBarEditBox.h" />
+		<Unit filename="../../source/ConsChk_Empty_noTU_Dlg.cpp" />
+		<Unit filename="../../source/ConsChk_Empty_noTU_Dlg.h" />
 		<Unit filename="../../source/ConsistencyCheckDlg.cpp" />
 		<Unit filename="../../source/ConsistencyCheckDlg.h" />
 		<Unit filename="../../source/ConsistentChanger.cpp" />
 		<Unit filename="../../source/ConsistentChanger.h" />
+		<Unit filename="../../source/CorGuess.cpp" />
+		<Unit filename="../../source/CorGuess.h" />
+		<Unit filename="../../source/CreateNewAIProjForCollab.cpp" />
+		<Unit filename="../../source/CreateNewAIProjForCollab.h" />
+		<Unit filename="../../source/DVCS.cpp" />
+		<Unit filename="../../source/DVCS.h" />
 		<Unit filename="../../source/DocPage.cpp" />
 		<Unit filename="../../source/DocPage.h" />
 		<Unit filename="../../source/EarlierTranslationDlg.cpp" />
@@ -559,6 +583,8 @@
 		<Unit filename="../../source/EditPreferencesDlg.h" />
 		<Unit filename="../../source/EditSourceTextDlg.cpp" />
 		<Unit filename="../../source/EditSourceTextDlg.h" />
+		<Unit filename="../../source/EmailReportDlg.cpp" />
+		<Unit filename="../../source/EmailReportDlg.h" />
 		<Unit filename="../../source/ExportFunctions.cpp" />
 		<Unit filename="../../source/ExportFunctions.h" />
 		<Unit filename="../../source/ExportInterlinearDlg.cpp" />
@@ -577,8 +603,14 @@
 		<Unit filename="../../source/FontPage.h" />
 		<Unit filename="../../source/FreeTrans.cpp" />
 		<Unit filename="../../source/FreeTrans.h" />
+		<Unit filename="../../source/GetSourceTextFromEditor.cpp" />
+		<Unit filename="../../source/GetSourceTextFromEditor.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
 		<Unit filename="../../source/GoToDlg.h" />
+		<Unit filename="../../source/GuesserSettingsDlg.cpp" />
+		<Unit filename="../../source/GuesserSettingsDlg.h" />
+		<Unit filename="../../source/HtmlFileViewer.cpp" />
+		<Unit filename="../../source/HtmlFileViewer.h" />
 		<Unit filename="../../source/JoinDialog.cpp" />
 		<Unit filename="../../source/JoinDialog.h" />
 		<Unit filename="../../source/KB.cpp" />
@@ -587,8 +619,12 @@
 		<Unit filename="../../source/KBEditSearch.h" />
 		<Unit filename="../../source/KBEditor.cpp" />
 		<Unit filename="../../source/KBEditor.h" />
+		<Unit filename="../../source/KBExportImportOptionsDlg.cpp" />
+		<Unit filename="../../source/KBExportImportOptionsDlg.h" />
 		<Unit filename="../../source/KBPage.cpp" />
 		<Unit filename="../../source/KBPage.h" />
+		<Unit filename="../../source/LanguageCodesDlg.cpp" />
+		<Unit filename="../../source/LanguageCodesDlg.h" />
 		<Unit filename="../../source/LanguagesPage.cpp" />
 		<Unit filename="../../source/LanguagesPage.h" />
 		<Unit filename="../../source/Layout.cpp" />
@@ -597,12 +633,16 @@
 		<Unit filename="../../source/ListDocumentsInOtherFolderDialog.h" />
 		<Unit filename="../../source/MainFrm.cpp" />
 		<Unit filename="../../source/MainFrm.h" />
+		<Unit filename="../../source/MergeUpdatedSrc.cpp" />
+		<Unit filename="../../source/MergeUpdatedSrc.h" />
 		<Unit filename="../../source/MoveDialog.cpp" />
 		<Unit filename="../../source/MoveDialog.h" />
 		<Unit filename="../../source/Mover.cpp" />
 		<Unit filename="../../source/Mover.h" />
 		<Unit filename="../../source/MyListBox.cpp" />
 		<Unit filename="../../source/MyListBox.h" />
+		<Unit filename="../../source/NavProtectNewDoc.cpp" />
+		<Unit filename="../../source/NavProtectNewDoc.h" />
 		<Unit filename="../../source/NewClassHeaderTemplate.txt" />
 		<Unit filename="../../source/NewClassImplementationTemplate.txt" />
 		<Unit filename="../../source/NewDialogHeaderTemplate.txt" />
@@ -615,6 +655,9 @@
 		<Unit filename="../../source/OpenExistingProjectDlg.h" />
 		<Unit filename="../../source/OutputFilenameDlg.cpp" />
 		<Unit filename="../../source/OutputFilenameDlg.h" />
+		<Unit filename="../../source/Pathway.cpp" />
+		<Unit filename="../../source/PeekAtFile.cpp" />
+		<Unit filename="../../source/PeekAtFile.h" />
 		<Unit filename="../../source/PhraseBox.cpp" />
 		<Unit filename="../../source/PhraseBox.h" />
 		<Unit filename="../../source/Pile.cpp" />
@@ -637,6 +680,8 @@
 		<Unit filename="../../source/ReadOnlyProtection.h" />
 		<Unit filename="../../source/RefString.cpp" />
 		<Unit filename="../../source/RefString.h" />
+		<Unit filename="../../source/RefStringMetadata.cpp" />
+		<Unit filename="../../source/RefStringMetadata.h" />
 		<Unit filename="../../source/Retranslation.cpp" />
 		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
@@ -645,6 +690,8 @@
 		<Unit filename="../../source/SetDelay.h" />
 		<Unit filename="../../source/SetEncodingDlg.cpp" />
 		<Unit filename="../../source/SetEncodingDlg.h" />
+		<Unit filename="../../source/SetupEditorCollaboration.cpp" />
+		<Unit filename="../../source/SetupEditorCollaboration.h" />
 		<Unit filename="../../source/SilConverterSelectDlg.cpp" />
 		<Unit filename="../../source/SilConverterSelectDlg.h" />
 		<Unit filename="../../source/SourcePhrase.cpp" />
@@ -669,6 +716,8 @@
 		<Unit filename="../../source/UnitsPage.h" />
 		<Unit filename="../../source/UnpackWarningDlg.cpp" />
 		<Unit filename="../../source/UnpackWarningDlg.h" />
+		<Unit filename="../../source/UsfmFilterPage.cpp" />
+		<Unit filename="../../source/UsfmFilterPage.h" />
 		<Unit filename="../../source/Uuid_AI.cpp" />
 		<Unit filename="../../source/Uuid_AI.h" />
 		<Unit filename="../../source/ViewFilteredMaterialDlg.cpp" />
@@ -687,10 +736,25 @@
 		<Unit filename="../../source/XML.h" />
 		<Unit filename="../../source/XMLErrorDlg.cpp" />
 		<Unit filename="../../source/XMLErrorDlg.h" />
+		<Unit filename="../../source/Xhtml.cpp" />
+		<Unit filename="../../source/Xhtml.h" />
+		<Unit filename="../../source/base64.cpp" />
+		<Unit filename="../../source/base64.h" />
+		<Unit filename="../../source/conschk_exists_notu_dlg.cpp" />
+		<Unit filename="../../source/conschk_exists_notu_dlg.h" />
+		<Unit filename="../../source/convauto.cpp" />
+		<Unit filename="../../source/convauto.h" />
 		<Unit filename="../../source/ecdriver.h" />
 		<Unit filename="../../source/helpers.cpp" />
 		<Unit filename="../../source/helpers.h" />
+		<Unit filename="../../source/md5.cpp" />
+		<Unit filename="../../source/md5.h" />
+		<Unit filename="../../source/scrollingdialog.cpp" />
+		<Unit filename="../../source/scrollingdialog.h" />
+		<Unit filename="../../source/scrollingwizard.cpp" />
+		<Unit filename="../../source/scrollingwizard.h" />
 		<Unit filename="../../source/tellenc.cpp" />
+		<Unit filename="../../source/tellenc.h" />
 		<Unit filename="../../xml/AI_USFM.xml" />
 		<Unit filename="../../xml/AI_USFM_full.txt" />
 		<Unit filename="../../xml/AI_USFM_full.xml" />
