@@ -3682,7 +3682,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add versionable schema number string
 
-// mrh - new fields with docVersion 7 and 8:
+// mrh - new fields with docVersion 7:
 	btemp = gpApp->Convert16to8(gpApp->m_owner);
 	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
 	bstr += "\" owner=\"";
@@ -3777,7 +3777,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	btemp = gpApp->Convert16to8(gpApp->m_targetName);
 	bstr += btemp; // add name of target text's language
 
-// mrh June 2012 - new fields for docVersion 8 - not active yet
+// mrh June 2012 - new fields for docVersion 7:
 	if (gpApp->m_sourceLanguageCode.IsEmpty())
 		gpApp->m_sourceLanguageCode = NOCODE;
 	if (gpApp->m_targetLanguageCode.IsEmpty())
@@ -3824,7 +3824,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	numStr = tempStr;
 	bstr += numStr; // add versionable schema number string
 
-// mrh - new fields with docVersion 7 and 8:
+// mrh - new fields with docVersion 7:
 	btemp = gpApp->m_owner;				// no unicode conversion needed
 	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
 	bstr += "\" owner=\"" + btemp;		// add owner name
@@ -3891,7 +3891,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	btemp = gpApp->m_targetName;
 	bstr += btemp; // add name of target text's language
 
-	// mrh June 2012 - new fields for docVersion 8 - not active yet
+	// mrh June 2012 - new fields for docVersion 7:
 	bstr += "\" ";
 	bstr += xml_srccode;
 	btemp = gpApp->m_sourceLanguageCode;		// source language code
