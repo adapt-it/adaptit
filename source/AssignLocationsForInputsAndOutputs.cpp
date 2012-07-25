@@ -107,6 +107,8 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxASSERT(pProtectTargetOutputs != NULL);
 	pProtectTargetRTFOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS);
 	wxASSERT(pProtectTargetRTFOutputs != NULL);
+	pProtectXhtmlOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_XHTML_OUTPUTS); // whm added 23Jul12
+	wxASSERT(pProtectXhtmlOutputs != NULL);
 	pProtectKBInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS);
 	wxASSERT(pProtectKBInputsAndOutputs != NULL);
 	pProtectLIFTInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS);
@@ -148,6 +150,7 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	pProtectSourceRTFOutputs->SetValue(m_pApp->m_bProtectSourceRTFOutputsFolder);
 	pProtectTargetOutputs->SetValue(m_pApp->m_bProtectTargetOutputsFolder);
 	pProtectTargetRTFOutputs->SetValue(m_pApp->m_bProtectTargetRTFOutputsFolder);
+	pProtectXhtmlOutputs->SetValue(m_pApp->m_bProtectXhtmlOutputsFolder);
 	pProtectKBInputsAndOutputs->SetValue(m_pApp->m_bProtectKbInputsAndOutputsFolder);
 	pProtectLIFTInputsAndOutputs->SetValue(m_pApp->m_bProtectLiftInputsAndOutputsFolder);
 	pProtectPackedInputsAndOutputs->SetValue(m_pApp->m_bProtectPackedInputsAndOutputsFolder);
@@ -234,6 +237,7 @@ void CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes(wxCommandEvent& 
 	pProtectSourceRTFOutputs->SetValue(TRUE);
 	pProtectTargetOutputs->SetValue(TRUE);
 	pProtectTargetRTFOutputs->SetValue(TRUE);
+	pProtectXhtmlOutputs->SetValue(TRUE); // whm added 23Jul12
 	pProtectKBInputsAndOutputs->SetValue(TRUE);
 	pProtectLIFTInputsAndOutputs->SetValue(TRUE);
 	pProtectPackedInputsAndOutputs->SetValue(TRUE);
@@ -268,6 +272,7 @@ void CAssignLocationsForInputsAndOutputs::OnUnSelectAllCheckBoxes(wxCommandEvent
 		pProtectTargetOutputs->SetValue(FALSE);
 	}
 	pProtectTargetRTFOutputs->SetValue(FALSE);
+	pProtectXhtmlOutputs->SetValue(FALSE); // whm added 23Jul12
 	pProtectKBInputsAndOutputs->SetValue(FALSE);
 	pProtectLIFTInputsAndOutputs->SetValue(FALSE);
 	pProtectPackedInputsAndOutputs->SetValue(FALSE);
@@ -327,6 +332,9 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	m_pApp->m_bProtectTargetRTFOutputsFolder = pProtectTargetRTFOutputs->GetValue();
 	if (m_pApp->m_bProtectTargetRTFOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_targetRTFOutputsFolderName + _T(':');
+	m_pApp->m_bProtectXhtmlOutputsFolder = pProtectXhtmlOutputs->GetValue();
+	if (m_pApp->m_bProtectXhtmlOutputsFolder)
+		foldersProtectedFromNavigation += m_pApp->m_xhtmlOutputsFolderName + _T(':');
 	m_pApp->m_bProtectKbInputsAndOutputsFolder = pProtectKBInputsAndOutputs->GetValue();
 	if (m_pApp->m_bProtectKbInputsAndOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_kbInputsAndOutputsFolderName + _T(':');

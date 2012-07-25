@@ -2512,11 +2512,11 @@ public:
 	/// Related Nav Protect folder: _FREETRANS_RTF_OUTPUTS
 	wxString	m_lastFreeTransRTFOutputPath;
 
-	// Use: m_lastRtfOutputPath stores the last RTF documents export path
-	// Now: 6Aug11 - no longer used in lieu of more specific m_last...RTFOutputPath
-	//      variables held in the project config files.
-	// Previously: saved in basic config file - for all types of RTF outputs.
-	//wxString	m_lastRtfOutputPath;
+	// Use: m_lastXhtmlOutputPath stores the last Xhtml documents export path
+	// Now: in version 6.2.3 saved in project config file under LastXhtmlExportPath
+	// Previously: None - new for version 6.2.3.
+	// Related Nav Protect folder: _XHTML_OUTPUTS
+	wxString	m_lastXhtmlOutputPath;
 
 
 	wxString	m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and
@@ -2796,6 +2796,12 @@ public:
 	bool		m_bProtectTargetRTFOutputsFolder;
 	wxString	m_targetRTFOutputsFolderName; // in OnInit() we set to "_TARGET_RTF_OUTPUTS"
 	wxString	m_targetRTFOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined
+	// whm added next three 23Jul12
+	bool		m_bProtectXhtmlOutputsFolder;
+	wxString	m_xhtmlOutputsFolderName; // in OnInit() we set to "_XHTML_OUTPUTS"
+	wxString	m_xhtmlOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined
 	bool		m_bProtectKbInputsAndOutputsFolder;

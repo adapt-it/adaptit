@@ -41,6 +41,7 @@ public:
 	wxCheckBox* pProtectSourceRTFOutputs;
 	wxCheckBox* pProtectTargetOutputs;
 	wxCheckBox* pProtectTargetRTFOutputs;
+	wxCheckBox* pProtectXhtmlOutputs;
 	wxCheckBox* pProtectKBInputsAndOutputs;
 	wxCheckBox* pProtectLIFTInputsAndOutputs;
 	wxCheckBox* pProtectPackedInputsAndOutputs;
