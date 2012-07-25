@@ -279,6 +279,9 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 			pEditTargetLangCode->ChangeValue(m_targetLangCode);
 		if (!m_glossLangCode.IsEmpty())
 			pEditGlossLangCode->ChangeValue(m_glossLangCode);
+		// BEW added 23Jul12
+		if (!m_freeTransLangCode.IsEmpty())
+			pEditFreeTransLangCode->ChangeValue(m_freeTransLangCode);
 	}
 }
 

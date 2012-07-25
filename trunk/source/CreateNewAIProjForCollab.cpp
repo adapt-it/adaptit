@@ -160,6 +160,19 @@ void CCreateNewAIProjForCollab::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)
 	// the LanguagePage's edit boxes (which InitDialog initialized to the current 
 	// values on the App, or which the user manually edited before pressing the 
 	// Lookup Codes button).
+	// 
+    // BEW additional comment of 25Jul12, for xhtml exports we support not just src and tgt
+    // language codes, but also language codes for glosses language, and free translation
+    // language - all four languages are independently settable. However, while all four
+    // can be set by repeated invokations of the Lookup Codes button, when setting up a new
+    // Adapt It project for use in a collaboration with Paratext or Bibledit, only the
+    // source and target languages are relevant, and so we here pick up and store only the
+    // codes for either or both of these languages. To set codes for glosses language,
+    // and/or free translation language, go to the Backups and Misc page of the Preferences
+    // -- settings made there are remembered, and all four are saved to the basic and
+    // project configuration files - whether the document is saved or not on closure -- set
+    // up a free translation language and code there, before doing this collaboration
+    // project setup, for best results
 	lcDlg.m_sourceLangCode = pTextCtrlSrcLangCode->GetValue();
 	lcDlg.m_targetLangCode = pTextCtrlTgtLangCode->GetValue();
 	int returnValue = lcDlg.ShowModal();

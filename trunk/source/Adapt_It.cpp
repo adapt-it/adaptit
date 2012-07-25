@@ -5627,28 +5627,39 @@ wxString szSourceLanguageName = _T("SourceLanguageName"); // stored in the App's
 wxString szTargetLanguageName = _T("TargetLanguageName");
 
 /// The label that identifies the following string as the project's "GlossesLanguageName".
-/// This value is written in the "Settings" part of the basic configuration file and in the
-/// "ProjectSettings" part of the project configuration file. Adapt It stores this path in
-/// the App's m_glossesName member variable.
+/// This value is written in the "Settings" part of the project & basic configuration files
+/// Adapt It stores this path in the App's m_glossesName member variable.
 wxString szGlossesLanguageName = _T("GlossesLanguageName");
+
+// BEW added 25Jul12
+/// The label that identifies the following string as the project's "FreeTranslationLanguageName".
+/// This value is written in the "Settings" part of the project & basic configuration files
+/// Adapt It stores this path in the App's m_freeTransName member variable.
+wxString szFreeTransLanguageName = _T("FreeTranslationLanguageName");
 
 // whm added following 10May10 for KB LIFT XML Export support
 /// The label that identifies the following string as the project's "SourceLanguageCode".
-/// This value is written in the "ProjectSettings" part of the project configuration file.
+/// This value is written in the "ProjectSettings" part of the project & basic configuration files.
 /// Adapt It stores this path in the App's m_sourceLanguageCode member variable.
 wxString szSourceLanguageCode = _T("SourceLanguageCode"); // stored in the App's m_sourceName
 
 // whm added following 10May10 for KB LIFT XML Export support
 /// The label that identifies the following string as the project's "TargetLanguageCode".
-/// This value is written in the "ProjectSettings" part of the project configuration file.
+/// This value is written in the "ProjectSettings" part of the project & basic configuration files.
 /// Adapt It stores this string in the App's m_targetLanguageCode member variable.
 wxString szTargetLanguageCode = _T("TargetLanguageCode");
 
 // whm added following 10May10 for KB LIFT XML Export support
 /// The label that identifies the following string as the project's "GlossesLanguageCode".
-/// This value is written in the "ProjectSettings" part of the project configuration file.
+/// This value is written in the "ProjectSettings" part of the project & basic configuration files.
 /// Adapt It stores this string in the App's m_glossesLanguageCode member variable.
 wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
+
+// BEW added 25Jul12
+/// The label that identifies the following string as the project's "FreeTranslationLanguageCode".
+/// This value is written in the "ProjectSettings" part of the project & basic configuration files.
+/// Adapt It stores this string in the App's m_freeTransLanguageCode member variable.
+wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
@@ -26906,6 +26917,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szFreeTransLanguageName << tab << m_freeTransName;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szSourceLanguageCode << tab << m_sourceLanguageCode;
 	pf->AddLine(data);
 
@@ -26915,6 +26930,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 
 	data.Empty();
 	data << szGlossesLanguageCode << tab << m_glossesLanguageCode;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szFreeTransLanguageCode << tab << m_freeTransLanguageCode;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -28307,6 +28326,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_glossesName = strValue;
 		}
+		else if (name == szFreeTransLanguageName)
+		{
+			m_freeTransName = strValue;
+		}
 		else if (name == szSourceLanguageCode)
 		{
 			m_sourceLanguageCode = strValue;
@@ -28318,6 +28341,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		else if (name == szGlossesLanguageCode)
 		{
 			m_glossesLanguageCode = strValue;
+		}
+		else if (name == szFreeTransLanguageCode)
+		{
+			m_freeTransLanguageCode = strValue;
 		}
 		else if (name == szAdaptitPath)
 		{
@@ -30469,6 +30496,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szFreeTransLanguageName << tab << m_freeTransName;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szSourceLanguageCode << tab << m_sourceLanguageCode;
 	pf->AddLine(data);
 
@@ -30478,6 +30509,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 
 	data.Empty();
 	data << szGlossesLanguageCode << tab << m_glossesLanguageCode;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szFreeTransLanguageCode << tab << m_freeTransLanguageCode;
 	pf->AddLine(data);
 
 	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
@@ -31224,6 +31259,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_glossesName = strValue;
 		}
+		else if (name == szFreeTransLanguageName)
+		{
+			m_freeTransName = strValue;
+		}
 		else if (name == szSourceLanguageCode)
 		{
 			m_sourceLanguageCode = strValue;
@@ -31235,6 +31274,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szGlossesLanguageCode)
 		{
 			m_glossesLanguageCode = strValue;
+		}
+		else if (name == szFreeTransLanguageCode)
+		{
+			m_freeTransLanguageCode = strValue;
 		}
 
 		// whm 17Feb12 added the following two from the basic config file. They are

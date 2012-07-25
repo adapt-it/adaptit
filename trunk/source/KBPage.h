@@ -53,12 +53,14 @@ public:
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* m_pEditGlsName;
+	wxTextCtrl* m_pEditFreeTransName; // BEW added 25Jul12
 	wxTextCtrl* pTextCtrlAsStaticTextBackupsKB;
 	
 	// whm added 10May10
 	wxTextCtrl*	pSrcLangCodeBox;
 	wxTextCtrl*	pTgtLangCodeBox;
 	wxTextCtrl* pGlsLangCodeBox;
+	wxTextCtrl* pFreeTransLangCodeBox; // BEW added 25Jul12
 	wxButton* pButtonLookupCodes;
 
 	wxRadioButton* pRadioAdaptBeforeGloss;
@@ -70,12 +72,15 @@ public:
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString	tempGlsName;
+	wxString	tempFreeTransName; // BEW added 25Jul12
 	wxString	strSaveSrcName;
 	wxString	strSaveTgtName;
 	wxString	strSaveGlsName;
+	wxString	strSaveFreeTransName; // BEW added 25Jul12
 	wxString	tempSrcLangCode;
 	wxString	tempTgtLangCode;
 	wxString	tempGlsLangCode;
+	wxString	tempFreeTransLangCode; // BEW added 25Jul12
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& WXUNUSED(event)); 
