@@ -14,6 +14,7 @@
 /// The interface resources are loaded by means of the BackupsAndKBPageFunc()
 /// function which was developed and is maintained by wxDesigner.
 /// \derivation		The CKBPage class is derived from wxPanel.
+/// BEW 25Jul12, added support for free translation language name and language code
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in KBPage.cpp (in order of importance): (search for "TODO")
 // 1. 
@@ -95,9 +96,11 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	tempSrcName = _T("");
 	tempTgtName = _T("");
 	tempGlsName = _T("");
+	tempFreeTransName = _T("");
 	tempSrcLangCode = _T("");
 	tempTgtLangCode = _T("");
 	tempGlsLangCode = _T("");
+	tempFreeTransLangCode = _T("");
 
 	// use wxGenericValidator for simple dialog data transfer
 	m_pEditSrcName = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_NAME);
@@ -107,6 +110,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	wxASSERT(m_pEditTgtName != NULL);
 
 	m_pEditGlsName = (wxTextCtrl*)FindWindowById(IDC_EDIT_GLS_NAME);
+	wxASSERT(m_pEditGlsName != NULL);
+
+	m_pEditFreeTransName = (wxTextCtrl*)FindWindowById(ID_EDIT_FRTR_NAME);
 	wxASSERT(m_pEditGlsName != NULL);
 
 	m_pCheckDisableAutoBkups = (wxCheckBox*)FindWindowById(IDC_CHECK_KB_BACKUP);
@@ -122,6 +128,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	wxASSERT(pTgtLangCodeBox != NULL);
 
 	pGlsLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_GLOSS_LANG_CODE); // whm added 5Dec11
+	wxASSERT(pGlsLangCodeBox != NULL);
+
+	pFreeTransLangCodeBox = (wxTextCtrl*)FindWindowById(ID_EDIT_FRTR_LANG_CODE); // whm added 5Dec11
 	wxASSERT(pGlsLangCodeBox != NULL);
 
 	pButtonLookupCodes = (wxButton*)FindWindowById(ID_BUTTON_LOOKUP_CODES); // whm added 10May10
@@ -212,9 +221,11 @@ void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10M
 	tempSrcLangCode = pSrcLangCodeBox->GetValue();
 	tempTgtLangCode = pTgtLangCodeBox->GetValue();
 	tempGlsLangCode = pGlsLangCodeBox->GetValue();
+	tempFreeTransLangCode = pFreeTransLangCodeBox->GetValue();
 	lcDlg.m_sourceLangCode = tempSrcLangCode;
 	lcDlg.m_targetLangCode = tempTgtLangCode;
 	lcDlg.m_glossLangCode = tempGlsLangCode;
+	lcDlg.m_freeTransLangCode = tempFreeTransLangCode;
 	int returnValue = lcDlg.ShowModal();
 	if (returnValue == wxID_CANCEL)
 	{
@@ -223,12 +234,34 @@ void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10M
 	}
 	// user pressed OK so update the temp variables and the edit boxes
 	tempSrcLangCode = lcDlg.m_sourceLangCode;
-	tempTgtLangCode = lcDlg.m_targetLangCode;
-	tempGlsLangCode = lcDlg.m_glossLangCode;
-    // update the language code edit boxes
 	pSrcLangCodeBox->SetValue(tempSrcLangCode);
+
+	tempTgtLangCode = lcDlg.m_targetLangCode;
 	pTgtLangCodeBox->SetValue(tempTgtLangCode);
-	pGlsLangCodeBox->SetValue(tempGlsLangCode);
+
+	if (!lcDlg.m_glossLangCode.IsEmpty())
+	{
+		tempGlsLangCode = lcDlg.m_glossLangCode;
+		pGlsLangCodeBox->SetValue(tempGlsLangCode);
+	}
+	if (!lcDlg.m_freeTransLangCode.IsEmpty())
+	{
+		tempFreeTransLangCode = lcDlg.m_freeTransLangCode;
+		pFreeTransLangCodeBox->SetValue(tempFreeTransLangCode);
+	}
+
+	// update the language names as well, but do so only for gloss or free translation
+	// being changed -- we require change of the name of the source language or target
+	// language name to be done manually in the parent dialog (so as to permit more
+	// variety of src and/or tgt language names than the iso639-3 standard supports)
+	if (!lcDlg.m_glossesLangName.IsEmpty())
+	{
+		m_pEditGlsName->SetValue(lcDlg.m_glossesLangName);
+	}
+	if (!lcDlg.m_freeTransLangName.IsEmpty())
+	{
+		m_pEditFreeTransName->SetValue(lcDlg.m_freeTransLangName);
+	}
 }
 
 
@@ -240,9 +273,10 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// is called.
 	// Validation of the language page data should be done in the caller's
 	// OnOK() method before calling CKBPage::OnOK().
+	// BEW 25Jul12 -- are the above comments now no longer relevant for the wx version??
 
 	// User pressed OK so assume user wants to store the dialog's temp... values.
-	// put the source & target language names in storage on the App
+	// put the source & target language names in storage on the App, etc
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	// get the auto backup flag's value, etc
@@ -274,10 +308,12 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	tempSrcLangCode = pSrcLangCodeBox->GetValue();
 	tempTgtLangCode = pTgtLangCodeBox->GetValue();
 	tempGlsLangCode = pGlsLangCodeBox->GetValue();
+	tempFreeTransLangCode = pFreeTransLangCodeBox->GetValue();
 	// update the lang codes values held on the App
 	pApp->m_sourceLanguageCode = tempSrcLangCode;
 	pApp->m_targetLanguageCode = tempTgtLangCode;
 	pApp->m_glossesLanguageCode = tempGlsLangCode;
+	pApp->m_freeTransLanguageCode = tempFreeTransLangCode;
 
 	// BEW added 23July12, if the gloss or free translation language name is different,
 	// then update the app's m_glossesName or m_freeTransName
@@ -285,6 +321,12 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	if (!tempGlsName.IsEmpty() && strSaveGlsName != tempGlsName)
 	{
 		pApp->m_glossesName = tempGlsName; // Prefs will now display it when reopened,
+				// and it will be saved to basic and project config files
+	}
+	tempFreeTransName = m_pEditFreeTransName->GetValue();
+	if (!tempFreeTransName.IsEmpty() && strSaveFreeTransName != tempFreeTransName)
+	{
+		pApp->m_freeTransName = tempFreeTransName; // Prefs will now display it when reopened,
 				// and it will be saved to basic and project config files
 	}
 }
@@ -303,9 +345,11 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempSrcName = pApp->m_sourceName;
 	tempTgtName = pApp->m_targetName;
 	tempGlsName = pApp->m_glossesName; // Bill & I added 6Dec11
+	tempFreeTransName = pApp->m_freeTransName; // BEW added 25Jul12
 	tempSrcLangCode = pApp->m_sourceLanguageCode;
 	tempTgtLangCode = pApp->m_targetLanguageCode;
 	tempGlsLangCode = pApp->m_glossesLanguageCode;
+	tempFreeTransLangCode = pApp->m_freeTransLanguageCode;
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
@@ -324,14 +368,17 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	m_pEditSrcName->SetValue(tempSrcName);
 	m_pEditTgtName->SetValue(tempTgtName);
 	m_pEditGlsName->SetValue(tempGlsName);
+	m_pEditFreeTransName->SetValue(tempFreeTransName);
 	pSrcLangCodeBox->SetValue(tempSrcLangCode);
 	pTgtLangCodeBox->SetValue(tempTgtLangCode);
 	pGlsLangCodeBox->SetValue(tempGlsLangCode);
+	pFreeTransLangCodeBox->SetValue(tempFreeTransLangCode);
 
 	// save names to check for any changes made by user
 	strSaveSrcName = pApp->m_sourceName;
 	strSaveTgtName = pApp->m_targetName;
 	strSaveGlsName = pApp->m_glossesName;
+	strSaveFreeTransName = pApp->m_freeTransName;
 
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.
@@ -344,7 +391,12 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);	
 	pApp->m_pDlgTgtFont->SetPointSize(pApp->m_dialogFontSize);
 	m_pEditTgtName->SetFont(*pApp->m_pDlgTgtFont);
+	// and free translations use a same font as is used for the target text
+	// (see, for example, DrawFreeTransStringsInDisplayRects() within FreeTrans.cpp)
+	m_pEditFreeTransName->SetFont(*pApp->m_pDlgTgtFont);
 
+	// gloss text uses the target text Font, unless the user has specified that glossing
+	// should be done in the nav text font -- set the font in the edit box accordingly
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
 		CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgGlossFont);	
@@ -357,7 +409,6 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 		pApp->m_pDlgGlossFont->SetPointSize(pApp->m_dialogFontSize);
 		m_pEditGlsName->SetFont(*pApp->m_pDlgGlossFont);
 	}
-
 	
 #ifdef _RTL_FLAGS
 	if (pApp->m_bSrcRTL)
@@ -372,10 +423,23 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	if (pApp->m_bTgtRTL)
 	{
 		m_pEditTgtName->SetLayoutDirection(wxLayout_RightToLeft);
+		m_pEditFreeTransName->SetLayoutDirection(wxLayout_RightToLeft);
 	}
 	else
 	{
 		m_pEditTgtName->SetLayoutDirection(wxLayout_LeftToRight);
+		m_pEditFreeTransName->SetLayoutDirection(wxLayout_LeftToRight);
+	}
+
+	// if nav text is to be shown RTL, and provided glossing uses the nav text font, then
+	// the edit box for gloss language should be RTL too
+	if (pApp->m_bNavTextRTL && gbGlossingUsesNavFont)
+	{
+		m_pEditGlsName->SetLayoutDirection(wxLayout_RightToLeft);
+	}
+	else
+	{
+		m_pEditGlsName->SetLayoutDirection(wxLayout_LeftToRight);
 	}
 #endif
 }

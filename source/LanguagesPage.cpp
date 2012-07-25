@@ -202,8 +202,22 @@ void CLanguagesPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm ad
 	// Call up CLanguageCodesDlg here so the user can enter language codes for
 	// the source and target languages which are needed for the LIFT XML lang attribute of 
 	// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
+	// 
+    // BEW additional comment of 25Jul12, for xhtml exports we support not just src and tgt
+    // language codes, but also language codes for glosses language, and free translation
+    // language - all four languages are independently settable. However, while all four
+    // can be set by repeated invokations of the Lookup Codes button, in the CLanguagesPage
+    // we are interested only in setting up a new Adapt It project, and for that task only
+    // the source and target languages are relevant, and so we pick up and store only the
+    // codes, if the user bothers to set them, for either or both of these languages. To
+    // set codes for glosses language, and/or free translation language, go later on to the
+    // Backups and Misc page of the Preferences -- settings made there are remembered, and
+	// all four are saved to the basic and project configuration files - whether the
+	// document is saved or not on closure.
+    
 	CLanguageCodesDlg lcDlg(this); // make the CLanguagesPage the parent in this case
 	lcDlg.Center();
+
 	// initialize the language code edit boxes with the values currently in
 	// the LanguagePage's edit boxes (which InitDialog initialized to the current 
 	// values on the App, or which the user manually edited before pressing the 

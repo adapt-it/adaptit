@@ -2534,6 +2534,9 @@ public:
 	wxFont*		m_pSourceFont;
 	wxFont*		m_pTargetFont;
 	wxFont*		m_pNavTextFont;
+	// NOTE: free translations are done in whatever font (and directionality) that is used
+	// for the target text; so until this fails to be satisfactory, we won't define and
+	// maintain a separate wxFont for free translations (i.e. there's no m_pFreeTransFont)
 
     // wxFontData added for wxWidgets version holds font info with get/set methods for font
     // information such as Get/SetColour(), Get/SetChosenFont() etc. A wxFontData object is

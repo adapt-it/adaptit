@@ -1860,6 +1860,11 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				// the code edit boxes
 				lcDlg.m_sourceLangCode = m_pApp->m_sourceLanguageCode;
 				lcDlg.m_targetLangCode = m_pApp->m_targetLanguageCode;
+                // BEW comment added 25Jul12, the language code dialog allows the user to
+                // setup codes for src, tgt, gloss and/or free translation languages; but
+                // here we will not pick up and store any code settings he may make for the
+                // latter two possibilities because it is only the src & tgt codes we are
+                // interested in for KB exports
 				int returnValue = lcDlg.ShowModal();
 				if (returnValue == wxID_CANCEL)
 				{
