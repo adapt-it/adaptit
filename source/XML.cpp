@@ -2952,7 +2952,6 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 			case 5:
 			case 6:
 			case 7:
-			case 8:
 			{
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -3050,7 +3049,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			// to use versions 5.2.4 or 5.2.5 will skip the parsing of the 3 new strings
 		case 6:
 		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
-		case 8:			// mrh June 2012 - docVersion 8 adds source and target language codes.
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
@@ -3169,12 +3167,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			// mrh June 2012 -- docVersion 8 adds source and target language codes.  At present we only use these if we don't already
 			//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
 
-				else if (gnDocVersion >= 8 && attrName == xml_srccode)
+				else if (gnDocVersion >= 7 && attrName == xml_srccode)
 				{
 					if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
 						gpApp->m_sourceLanguageCode = attrValue;
 				}
-				else if (gnDocVersion >= 8 && attrName == xml_tgtcode)
+				else if (gnDocVersion >= 7 && attrName == xml_tgtcode)
 				{
 					if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
 						gpApp->m_targetLanguageCode = attrValue;
@@ -3989,7 +3987,6 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		case 5:
 		case 6:
 		case 7:		// mrh 20Apr12 - added docVersion 7
-		case 8:		// mrh 24Jul12 - added docVersion 8
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
