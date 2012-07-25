@@ -15278,6 +15278,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_sourceRTFOutputsFolderName = _T("_SOURCE_RTF_OUTPUTS");
 	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
 	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
+	m_xhtmlOutputsFolderName = _T("_XHTML_OUTPUTS"); // whm added 25Jul12
 	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_OUTPUTS");
@@ -21924,6 +21925,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_sourceRTFOutputsFolderPath = curProjectPath + PathSeparator + m_sourceRTFOutputsFolderName;
 		m_targetOutputsFolderPath = curProjectPath + PathSeparator + m_targetOutputsFolderName;
 		m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
+		m_xhtmlOutputsFolderPath = curProjectPath + PathSeparator + m_xhtmlOutputsFolderName; // whm added 25Jul12
 		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 		// Note: the m_packedInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not
@@ -22108,6 +22110,24 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				{
 					pathCreationErrors += _T("   ");
 					pathCreationErrors += m_targetRTFOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
+			}
+		}
+		if (!::wxDirExists(m_xhtmlOutputsFolderPath))
+		{
+			bool bOK = ::wxMkdir(m_xhtmlOutputsFolderPath);
+			if (!bOK)
+			{
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_xhtmlOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_xhtmlOutputsFolderName;
 				}
 				bCreatedOK = FALSE;
 			}
