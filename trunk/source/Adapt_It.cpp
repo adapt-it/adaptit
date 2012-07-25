@@ -5812,6 +5812,12 @@ wxString szLastExportPath = _T("LastExportPath"); // old pre-6.x.x label for rea
 /// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastTargetRTFOutputPath member variable.
 wxString szLastTargetRTFOutputPath = _T("LastTargetRTFExportPath");
+
+/// The label that identifies the following string as the application's
+/// "LastXhtmlExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
+/// App's m_lastXhtmlOutputPath member variable.
+wxString szLastXhtmlOutputPath = _T("LastXhtmlExportPath");
 // END of Last...Path variables
 
 /// The label that identifies the following string as the project's
@@ -13371,6 +13377,7 @@ void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedS
 	m_bProtectSourceRTFOutputsFolder = FALSE;
 	m_bProtectTargetOutputsFolder = FALSE;
 	m_bProtectTargetRTFOutputsFolder = FALSE;
+	m_bProtectXhtmlOutputsFolder = FALSE; // whm added 23Jul12
 	m_bProtectKbInputsAndOutputsFolder = FALSE;
 	m_bProtectLiftInputsAndOutputsFolder = FALSE;
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
@@ -13405,6 +13412,8 @@ void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedS
 			m_bProtectTargetOutputsFolder = TRUE;
 		else if (tokenStr == m_targetRTFOutputsFolderName)
 			m_bProtectTargetRTFOutputsFolder = TRUE;
+		else if (tokenStr == m_xhtmlOutputsFolderName) // whm added 23Jul12
+			m_bProtectXhtmlOutputsFolder = TRUE;
 		else if (tokenStr == m_kbInputsAndOutputsFolderName)
 			m_bProtectKbInputsAndOutputsFolder = TRUE;
 		else if (tokenStr == m_liftInputsAndOutputsFolderName)
@@ -15021,6 +15030,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_lastGlossesRTFOutputPath = _T("");
 	m_lastFreeTransOutputPath = _T("");
 	m_lastFreeTransRTFOutputPath = _T("");
+	m_lastXhtmlOutputPath = _T("");
 	m_foldersProtectedFromNavigation = _T("");
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by
@@ -15292,6 +15302,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bProtectSourceRTFOutputsFolder = FALSE;
 	m_bProtectTargetOutputsFolder = FALSE;
 	m_bProtectTargetRTFOutputsFolder = FALSE;
+	m_bProtectXhtmlOutputsFolder = FALSE; // whm added 23Jul12
 	m_bProtectKbInputsAndOutputsFolder = FALSE;
 	m_bProtectLiftInputsAndOutputsFolder = FALSE;
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
@@ -30607,6 +30618,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szLastXhtmlOutputPath << tab << m_lastXhtmlOutputPath; // whm added 23Jul12
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
 	pf->AddLine(data);
 
@@ -31348,6 +31363,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szLastFreeTransRTFOutputPath)
 		{
 			m_lastFreeTransRTFOutputPath = strValue;
+		}
+		else if (name == szLastXhtmlOutputPath) // whm added 23Jul12
+		{
+			m_lastXhtmlOutputPath = strValue;
 		}
 		else if (name == szFoldersProtectedFromNavigation)
 		{
