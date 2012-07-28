@@ -1001,7 +1001,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		C0E91AC608A95435008D54AB /* UnicodeDebug */ = {
+		C0E91AC608A95435008D54AB /* DebugWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
@@ -1061,9 +1061,9 @@
 				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
 				ZERO_LINK = NO;
 			};
-			name = UnicodeDebug;
+			name = DebugWX2.9;
 		};
-		C0E91AC708A95435008D54AB /* UnicodeRelease */ = {
+		C0E91AC708A95435008D54AB /* ReleaseWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
@@ -1114,9 +1114,9 @@
 				);
 				WRAPPER_EXTENSION = app;
 			};
-			name = UnicodeRelease;
+			name = ReleaseWX2.9;
 		};
-		C0E91ACA08A95435008D54AB /* UnicodeDebug */ = {
+		C0E91ACA08A95435008D54AB /* DebugWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(NATIVE_ARCH)";
@@ -1128,23 +1128,167 @@
 				MACOSX_DEPLOYMENT_TARGET = "";
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				USER_HEADER_SEARCH_PATHS = "$(inherited)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = UnicodeDebug;
+			name = DebugWX2.9;
 		};
-		C0E91ACB08A95435008D54AB /* UnicodeRelease */ = {
+		C0E91ACB08A95435008D54AB /* ReleaseWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_VERSION = 4.0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				WARNING_CFLAGS = "";
 			};
-			name = UnicodeRelease;
+			name = ReleaseWX2.9;
+		};
+		C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH)";
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				PREBINDING = NO;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
+				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = UnicodeDebugWX2.8;
+		};
+		C81D46B015C3EAF00072BD3F /* UnicodeDebugWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN28)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"wxUSE_UNICODE=1",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					MACOS_CLASSIC,
+					"WX_PRECOMP=1",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = 4.0;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN28)/src/build/Development";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+					"-lcurl",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = "Adapt It";
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
+				USE_HEADERMAP = "";
+				USE_SEPARATE_HEADERMAPS = YES;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
+				ZERO_LINK = NO;
+			};
+			name = UnicodeDebugWX2.8;
+		};
+		C81D46B115C3EB250072BD3F /* UnicodeReleaseWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
+				WARNING_CFLAGS = "";
+			};
+			name = UnicodeReleaseWX2.8;
+		};
+		C81D46B215C3EB250072BD3F /* UnicodeReleaseWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(NATIVE_ARCH)";
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN28)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"wxUSE_UNICODE=1",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					MACOS_CLASSIC,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN28)/src/build/Deployment";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+					"-lcurl",
+				);
+				PRODUCT_NAME = "Adapt It";
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				UNSTRIPPED_PRODUCT = NO;
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
+				USE_HEADERMAP = "";
+				USE_SEPARATE_HEADERMAPS = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WX_PREPROCESSOR_DEFINITIONS = "";
+				ZERO_LINK = NO;
+			};
+			name = UnicodeReleaseWX2.8;
 		};
 /* End XCBuildConfiguration section */
 
@@ -1152,20 +1296,24 @@
 		C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91AC608A95435008D54AB /* UnicodeDebug */,
-				C0E91AC708A95435008D54AB /* UnicodeRelease */,
+				C0E91AC608A95435008D54AB /* DebugWX2.9 */,
+				C0E91AC708A95435008D54AB /* ReleaseWX2.9 */,
+				C81D46B015C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
+				C81D46B215C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = UnicodeRelease;
+			defaultConfigurationName = ReleaseWX2.9;
 		};
 		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91ACA08A95435008D54AB /* UnicodeDebug */,
-				C0E91ACB08A95435008D54AB /* UnicodeRelease */,
+				C0E91ACA08A95435008D54AB /* DebugWX2.9 */,
+				C0E91ACB08A95435008D54AB /* ReleaseWX2.9 */,
+				C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
+				C81D46B115C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = UnicodeRelease;
+			defaultConfigurationName = ReleaseWX2.9;
 		};
 /* End XCConfigurationList section */
 	};

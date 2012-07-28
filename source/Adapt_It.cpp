@@ -7301,7 +7301,12 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 
 	bool bLoadOK = TRUE;
 	wxLogNull nolog; // avoid spurious messages from the system
+#if WXWIN_COMPATIBILITY_2_8
 	m_pLocale = new wxLocale(longLangName, shortLangName, _T(""), TRUE, TRUE);
+// GDLC 9Jul12 Last parameter removed for 2.9.x
+#else
+	m_pLocale = new wxLocale(longLangName, shortLangName, _T(""), TRUE);
+#endif
 	if (!pathPrefix.IsEmpty())
 		m_pLocale->AddCatalogLookupPathPrefix(pathPrefix);
 	if (!m_pLocale->AddCatalog(GetAppName()))
