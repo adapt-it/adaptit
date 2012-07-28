@@ -40,11 +40,11 @@
 //#include "Oxes.h"
 #include "Xhtml.h" // BEW 9Jun12
 #include "Adapt_It.h"
+#include "helpers.h"
 #include "ExportFunctions.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "MainFrm.h"
-#include "helpers.h"
 #include "CollabUtilities.h"
 #include "Adapt_ItCanvas.h"
 #include "KB.h"
@@ -217,6 +217,7 @@ wxString ChangeMkrs_vn_vt_To_v(wxString text)
 /// DoXhtmlExport() function in the Xhtml.cpp class for the production of xhtml. The latter
 /// is saved to a folder, and Pathway support can use the export for producing various
 /// commercial media formats for electronic publishing on various types of hardware.
+/// 
 /// Note: Stylenames used in the present xhtml implementation reflect Text Edit's
 /// implementation of xhtml export; and these are incomplete when compared to the data
 /// types supported by USFM (footnotes, endnotes and cross references are particular
@@ -224,204 +225,289 @@ wxString ChangeMkrs_vn_vt_To_v(wxString text)
 /// supporting what Paratext supports. Jim Albright did some design specs, but work in TE
 /// was done in such a way that most of those have been ignored. Therefore, expect that
 /// this state of flux will require the AI team to periodically upgrade our Xhtml.h & .cpp
-/// implementation, and possibly also what pre-filtering needs to be done in
-/// DoExportAsXhtml().
+/// implementation to keep in step with what Trihus and others do, and possibly also what
+/// pre-filtering needs to be done in DoExportAsXhtml() -- this may change in time too.
+/// 
 /// Note 2: the current Xhtml code handles an unsupported marker, if any such manage to
 /// creep through the filters, as an xhtml comment. It therefore doesn't appear in the
 /// data output as viewed on another device, but searching for comments will show which
 /// markers are not supported.
-void DoExportAsXhtml(enum ExportType exportType)
+void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
+							wxString defaultDir, wxString exportFilename, wxString filter)
 {
-	// first determine whether or not the data is unstructured plain text - Xhtml cannot
+	// First determine whether or not the data is unstructured plain text - Xhtml cannot
 	// handle data not structured as scripture text (in our case, that means, "as SFM or
 	// USFM")
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument(); // <<-- so far it's unused
+	wxString msg;
+		// gpApp->m_bProtectXhtmlOutputsFolder is TRUE
+	wxString bookCode; bookCode.Empty();
+	wxString langCode; langCode.Empty();
+	wxString text;	// a buffer built from pSrcPhrase->m_targetStr strings
+					// - export the USFM to this buffer
+	text.Empty();
+	wxString DefaultExt;
+	//bool bOK = TRUE;
+	//int len = 0;
+
+	// bale out if there are no USFM markers in the export
+	if (DeclineIfUnstructuredData())
+	{	
+		return; // a suitable warning has been shown to the user
+	}
+	// bale out if there is no bookID defined, or it's invalid for a scripture export
+	if (DeclineIfNoBookCode(bookCode))
+	{	
+		return; // a suitable warning has been shown to the user
+	}
+	// bale out if there is no 2-letter or 3-letter language code defined for this
+	// language type (whether source, target, glosses, or free translation)
+	if (DeclineIfNoIso639LanguageCode(exportType, langCode))
+	{	
+		return; // a suitable warning has been shown to the user
+	}
+	// if control gets to here, we have the correct 
+	// (i)   bookID and 
+	// (ii)  language type and 
+	// (iii) language code 
+	// set up, and a language type designation passed in,
+	// so we can proceed with building the xhtml.
+	// The Xhtml class is instantiated (in OnInit() at app startup) 
+	// so start initializing it...
+	Xhtml* pToXhtml = gpApp->m_pXhtml; // pToXhtml is a handy pointer
+	pToXhtml->SetBookID(bookCode);
+	pToXhtml->m_languageCode = langCode;
+
+	// get a default file name - copy the current one for the adaptation document as the base
+	//exportFilename = gpApp->m_curOutputFilename;
+	//len = exportFilename.Length();
+	
+	// make a suitable default output filename for the export function
+	//exportFilename.Remove(len-3,3); // remove the xml extension
+	//exportFilename += _T("xhtml"); // make it an *.xhtml file type
+	// get a file Save As dialog for XHTML Output
+	DefaultExt = _T("xhtml");
+	wxString exportPath;
+
+	if (!bBypassFileDialog_ProtectedNavigation)
+	{
+		// MainFrame is parent window for file dialog
+		wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
+			_("Filename for XHTML Export"),
+			defaultDir, // passed in directory
+			exportFilename,	// passed in default filename
+			filter, //passed in filter string
+			wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
+
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			gpApp->LogUserAction(_T("Cancelled DoExportAsXhtml()"));
+			return; // user cancelled file dialog so return to what user was doing previously
+		}
+		exportPath = fileDlg.GetPath();	
+	}
+	else
+	{
+		// Set exportPath to the appropriate outputs folder for XHTML (it's _XHTML_OUTPUTS
+		// unless some earlier folder choice was used and has been stored in app's
+		// m_lastXhtmlOutputPath - in which case defaultDir points there instead)
+		exportPath = defaultDir + gpApp->PathSeparator + gpApp->m_xhtmlOutputsFolderName;
+	}
+	wxLogNull logNo; // avoid spurious messages from the system
+	
+	// we are committed to the task...
+	gpApp->m_bXhtmlExportInProgress = TRUE;
+
+    // get the user's desired path, & update m_lastTargetOutputPath; also send the path and
+    // title to the XHTML component for inclusion in the title tag's metadata
+	wxString path, fname, ext;
+	wxFileName::SplitPath(exportPath, &path, &fname, &ext);
+	gpApp->m_lastXhtmlOutputPath = path; // update the last xhtml output path string
+
+	gpApp->m_pXhtml->m_myFilePath = path;
+	gpApp->m_pXhtml->m_myFilename = fname;
+
+	// get the wxString which is the base text data -- as a USFM export
+	// (LogUserAction() calls are done internally, one for each exportType)
+	text = GetCleanExportedUSFMBaseText(exportType); // calls RebuildTargetText() etc
+
+	// normalize, by changing any \vn & \vt custom marker combinations to \v, change any
+	// non-breaking space markup to NBSP character so that our parser will parse the words
+	// as separate tokens, and remove multiple spaces
+	text = ApplyNormalizingFiltersToTheUSFMText(text);
+
+	// Convert the USFM data to XHTML
+	CBString myxml; myxml.Empty();
+	myxml = pToXhtml->DoXhtmlExport(text);
+
+	// write out the xhtml
+	if (!WriteXHTML_To_File(exportPath, myxml))
+	{
+		return; // the user has seen a warning of the failure
+	}
+#if defined(__WXDEBUG__)
+	XhtmlExport_DebuggingSupport();
+#endif
+}
+
+// components for the DoExportAsXhtml() function
+
+/// Return TRUE if the data is unstructured with USFM markers, giving a suitable warning,
+/// and the caller should then return from the xhtml export attempt; else return FALSE
+/// and the caller should continue processing
+bool DeclineIfUnstructuredData()
+{
+	wxString msg;
 	CAdapt_ItView* pView = gpApp->GetView();
-	bool bIsUnstructuredData = FALSE;
 	SPList* pList = gpApp->m_pSourcePhrases;
 	wxASSERT(pList);
-	bIsUnstructuredData = pView->IsUnstructuredData(pList);
-	wxString msg;
+	bool bIsUnstructuredData = pView->IsUnstructuredData(pList);
 	if (bIsUnstructuredData)
 	{
 		msg = msg.Format(_(
-"Export in XHTML xml format is supported only for data originally marked up in standard format (meaning, using backslash markers).\nThe current document lacks backslash markers."));
+"Export in XHTML xml format is supported only for data originally marked up in standard format (meaning, the data includes backslash markers).\nThe current document lacks backslash markers."));
 		wxMessageBox(msg,_("Unstructured Data"),wxICON_EXCLAMATION | wxOK);
-		return;
+		return TRUE;
 	}
+	return FALSE;
+}
 
-	// check for a valid 3-letter bookCode, must be present and valid for an OXES export
-	wxString bookCode = gpApp->GetBookIDFromDoc(); // from the first CSourcePhrase instance
+/// Return TRUE if the first CSourcePhrase does not have a bookID, or has an invalid bookID
+/// for scripture (such as OTX), giving a suitable warning, and the caller should then
+/// return from the xhtml export attempt; else return FALSE and the caller should continue
+/// processing
+bool DeclineIfNoBookCode(wxString& bookCode)
+{
+	wxString msg;
+	// check for a valid 3-letter bookCode, it must be present and be valid for an Xhtml export
+	bookCode = gpApp->GetBookIDFromDoc(); // get from the first CSourcePhrase instance
 	if (bookCode.IsEmpty() || bookCode == _T("OTX"))
 	{
 		// not a valid bookCode, or none is defined, or it is the one for "Other Texts"
 		// and in all these cases, an Xhtml export is not possible
 		if (bookCode.IsEmpty())
-			bookCode = _T("empty");
+		{
+			bookCode = _T("absent");
+		}
 		msg = msg.Format(_(
-"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn Xhtml export is not possible in this circumstance.\nThe value obtained was %s"),bookCode.c_str());
-		wxMessageBox(msg,_("Invalid Book Code"),wxICON_EXCLAMATION | wxOK);
-		return;
+"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn xhtml export is not possible without it. (It should be at the start of the adaptation.)\nThe book code obtained was %s"),
+		bookCode.c_str());
+		wxMessageBox(msg,_("Invalid or Absent Book Code"), wxICON_EXCLAMATION | wxOK);
+		return TRUE;
 	}
+	return FALSE;
+}
 
-// *** TODO **** July 2012... support language codes for glosses, src, and free translation text  
-
+/// Return TRUE if the appropriate iso639-1 or ios639-3 language code for the export type
+/// passed in (whether, src, tgt, glosses, or free translation) has not been defined. 
+/// Return FALSE if it exists, and caller will continue processing. Give the user an
+/// explanatory warning if the code does not exist yet.
+bool DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode)
+{
 	// check for a 2-letter (iso639-1) or 3-letter (iso639-3) language code. If it's an
-	// empty string, disallow the export
-	wxString langCode = gpApp->m_targetLanguageCode;
+	// empty string, disallow the export; tell the user where to define it if it is not
+	// yet defined
+	wxString msg;
+	switch (exportType)
+	{
+	case sourceTextExport:
+		langCode = gpApp->m_sourceLanguageCode;
+		break;
+	case glossesTextExport:
+		langCode = gpApp->m_glossesLanguageCode;
+		break;
+	case freeTransTextExport:
+		langCode = gpApp->m_freeTransLanguageCode;
+		break;
+	case targetTextExport:
+	default:
+		langCode = gpApp->m_targetLanguageCode;
+		break;
+	}
 	if (langCode.IsEmpty())
 	{
 		msg = msg.Format(_(
-"The target language's 2-letter or 3-letter code code is not set, so the export cannot be done yet. \nYou can set the right code in the Backups & Misc page of Preferences..."));
+"The language's 2-letter or 3-letter code code is not set, so the export cannot be done yet. \nYou can set the right code in the Backups & Misc page of Preferences...\nDo so now, and then try the xhtml export again."));
 		wxMessageBox(msg,_("No Language Code Is Set"),wxICON_EXCLAMATION | wxOK);
-		return;
+		return TRUE;
 	}
-		
+	return FALSE;
+}
 
-	// It's SFM or USFM structured data
-	
-	Xhtml* pToXhtml = gpApp->m_pXhtml;
-	// set the class to build according to the version number wanted
-	//pToOxes->SetOXESVersionNumber(versionNum);
-	pToXhtml->SetBookID(bookCode);
-	// set the m_languageCode (public) member
-	pToXhtml->m_languageCode = gpApp->m_targetLanguageCode;
-
-	wxString filter;
-	wxString DefaultExt;
-	wxString exportFilename;
-	bool bOK = TRUE;
-	int len = 0;
-
-	// make the working directory the "<Project Name>" one, unless there is a path in
-	// app's m_lastTargetOutputPath member 
-	
-	// get a default file name - copy the current one for the adaptation document itself
-	exportFilename = gpApp->m_curOutputFilename;
-	len = exportFilename.Length();
-	
-	// set the working directory
-	if (gpApp->m_lastTargetOutputPath.IsEmpty())
-	{
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
-	}
-	else
-	{
-		bOK = ::wxSetWorkingDirectory(gpApp->m_lastTargetOutputPath);
-		if(!bOK)
-			::wxSetWorkingDirectory(gpApp->m_curProjectPath); // ignore failures
-	}
-	// prepare to get a file save dialog...
-	
-	// make a suitable default output filename for the export function
-	exportFilename.Remove(len-3,3); // remove the xml extension
-	exportFilename += _T("xhtml"); // make it an *.xhtml file type
-	// get a file Save As dialog for XHTML Output
-	DefaultExt = _T("xhtml");
-	filter = _("Exported XHTML Documents (*.xhtml)|*.xhtml||"); 
-
-	// set the default folder to be shown in the dialog, for xhtml make it
-	// m_lastTargetOutputPath which is the same as for target text
-	wxString defaultDir;
-	if (gpApp->m_lastTargetOutputPath.IsEmpty())
-	{
-		defaultDir = gpApp->m_curProjectPath;
-	}
-	else
-	{
-		defaultDir = gpApp->m_lastTargetOutputPath;
-	}
-
-	// MainFrame is parent window for file dialog
-	wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
-		_("Filename and Folder For XHTML Export"),
-		defaultDir,	// empty string causes it to use the current working directory (set above)
-		exportFilename,	// default filename
-		filter,
-		wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-		// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
-
-	if (fileDlg.ShowModal() != wxID_OK)
-	{
-		return; // user cancelled file dialog so return to what user was doing previously
-	}
-
-	//wxLogNull logNo; // avoid spurious messages from the system
-	
-	// we are committed to the task...
-	gpApp->m_bXhtmlExportInProgress = TRUE;
-
-	// get the user's desired path, & update m_lastTargetOutputPath; also extract the path
-	// to where the xhtml file will be saved, and the filename title (and remove any
-	// _Collab_ prefix from the title if present), and send the path and title to the XHTML
-	// component for inclusion in the title tag's metadata
-	wxString myXHTMLPath;
-	wxString myXHTMLfilename;
-	wxString exportPath = fileDlg.GetPath();
-	wxFileName fn(exportPath);
-	wxString name = fn.GetFullName();
-	wxString ext = fn.GetExt();
-	int nameLen = name.Length();
-	int pathLen = exportPath.Length();
-	wxASSERT(nameLen > 0 && pathLen > 0);
-
-	gpApp->m_lastTargetOutputPath = exportPath.Left(pathLen - nameLen - 1);
-	gpApp->m_pXhtml->m_myFilePath = gpApp->m_lastTargetOutputPath;
-	myXHTMLfilename = fn.GetName(); // the filename without any extension
-	int anOffset = myXHTMLfilename.Find(_T("_Collab_"));
-	if (anOffset != wxNOT_FOUND)
-	{
-		// remove up to the end of the prefix string
-		myXHTMLfilename = myXHTMLfilename.Mid(anOffset);
-	}
-	gpApp->m_pXhtml->m_myFilename = myXHTMLfilename;
-
-	// get the wxString which is the target text data -- as an export
-	wxString target;	// a buffer built from pSrcPhrase->m_targetStr strings
-	target.Empty();
+/// Rebuild the type of text (whether src, tgt, glosses or free translation) in the form
+/// of USFM marked up scripture text, and apply certain cleanup functions to remove
+/// extraneous spaces and less than optimal formatting, and remove custom markers peculiar
+/// to Adapt It only - to get a good base USFM text to work with.
+wxString GetCleanExportedUSFMBaseText(ExportType exportType)
+{
 	int nTextLength;
+	wxString text;
+	bool bRTFOutput = FALSE; // we are working with USFM marked up text
+
 	// do the reconstruction from CSourcePhrase instances in the document...
 
-	// RebuildTargetText removes filter brackets from the source or target, exposing
-	// previously filtered material as it was before input tokenization, and also exposes
-	// new information added and filtered in the document, such as backtranslations, notes,
-	// and free translations. 
-	// Rebuild the AdaptItSFM text (if there are collected backtranslations in the
-	// document, they will be included - so we have to get rid of them later)
-	nTextLength = RebuildTargetText(target);
+    // RebuildTargetText, RebuildSourceText, etc, expose previously filtered material as it
+    // was before input tokenization, and also exposes new information added and filtered
+    // in the document, such as backtranslations, notes, and free translations.
+	// Rebuild the AdaptIt USFM text (if there are collected backtranslations in the
+	// document, they will be included - so we have to get rid of them later in the caller)
+	switch(exportType)
+	{
+	case sourceTextExport:
+		gpApp->LogUserAction(_T("Exporting XHTML from Source Text"));
+		nTextLength = RebuildSourceText(text);
+		break;
+	case glossesTextExport:
+		gpApp->LogUserAction(_T("Exporting XHTML from Glosses Text"));
+		nTextLength = RebuildGlossesText(text);
+		break;
+	case freeTransTextExport:
+		gpApp->LogUserAction(_T("Exporting XHTML from Free Translation Text"));
+		nTextLength = RebuildFreeTransText(text);
+		break;
+	default:
+	case targetTextExport:
+		gpApp->LogUserAction(_T("Exporting XHTML from Target Text"));
+		nTextLength = RebuildTargetText(text);
+		break;
+	}
 	nTextLength = nTextLength; // whm 27Jun12 added to avoid "set but not used" compiler warning;
-
 	// remove the following markers and their text content... \free, \note, \bt and
-	// any \bt-initial custom markers, and \rem (Paratext note marker)
+	// any \bt-initial custom markers, and \rem (Paratext note marker) from the string
+	// which defines the markers not to be included in the export
 	ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+	// format for text oriented output in next call, param 2 is from enum ExportType in Adapt_It.h
+	FormatMarkerBufferForOutput(text, targetTextExport);
+	return text;
+}
 
-	// Remove any collected back translations (these have no endmarker, by the way, so
-	// they are stored before \v of verses)
-	//target = RemoveCollectedBacktranslations(target); // BEW removed 21May12, the
-	// call of ExcludeCustomMarkersAndRemFromExport() above makes this call unneeded
-
-	bool bRTFOutput = FALSE; // we are working with USFM marked up text
-	target = ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-
-	// format for text oriented output
-	// in next call, param 2 is from enum ExportType in Adapt_It.h
-	FormatMarkerBufferForOutput(target, targetTextExport);
-
+/// normalize, by changing any \vn & \vt custom marker combinations to \v, change any
+/// non-breaking space markup to NBSP character so that our parser will parse the words
+/// as separate tokens, and remove multiple spaces; return the changed string
+wxString ApplyNormalizingFiltersToTheUSFMText(wxString text)
+{
 	// If \vn <versenum> \vt <text...> markup pattern has been used, change all the \vn
 	// (verse number) markers to \vt, and remove all \t (verse text) markers
-	target = ChangeMkrs_vn_vt_To_v(target);
+	text = ChangeMkrs_vn_vt_To_v(text);
 
 	// change all ~ (USFM non-breaking space markers) to NBSP characters (\u00A0 or ANSI 0xA0)
-	target = ChangeTildeToNonBreakingSpace(target);
+	text = ChangeTildeToNonBreakingSpace(text);
 	
 	// remove any multiple spaces
-	target = RemoveMultipleSpaces(target);
-
-	// Do the XHTML export, based on the exported USFM text
-	CBString myxml; myxml.Empty();
-	myxml = pToXhtml->DoXhtmlExport(target);
-
-	// save the resulting xml file in the location specified above in the File Save dialog
+	text = RemoveMultipleSpaces(text);
+	return text;
+}
+/// Open a wxFile for writing, but if it fails to open, abandon the export and warn user
+/// and return; but when opened without error, write out the xhtml to file, and close the
+/// wxFile, and clear to False the flag which tells the caller that the export is
+/// completed.
+/// Return TRUE if the writing out was successful, return FALSE if the file descriptor 
+/// could not be opened for writing.
+bool WriteXHTML_To_File(wxString exportPath, CBString& myxml)
+{
+	// save the resulting xml file in the location specified in the caller, and passed in
+	// as the exportPath parameter
 	wxFile f;
 	if( !f.Open( exportPath, wxFile::write))
 	{
@@ -430,120 +516,104 @@ void DoExportAsXhtml(enum ExportType exportType)
 		#endif
 		wxString msg;
 		// don't localize this, it's unlikely to ever be seen
-		msg = msg.Format(_T("Unable to open the file for exporting the utf8 xhtml productions with path:\n%s"),exportPath.c_str());
+		msg = msg.Format(_T("Unable to open the file for exporting the utf8 xhtml productions with path:\n%s"),
+		exportPath.c_str());
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(msg);
 		gpApp->m_bXhtmlExportInProgress = FALSE;
-		return;
+		return FALSE;
 	}
 	// output the final form of the string
 	DoWrite(f, myxml); // DoWrite() is a global function defined in XML.h & .cpp
 	f.Close();
-
 	gpApp->m_bXhtmlExportInProgress = FALSE;
 
-// ***************************  NOTE!  ***************************************************
-// There are 3 #defines just below. If you want to have, for debugging purposes, an
-// indented pretty-formated SECOND file (same filename but with "_IndentedXHTML" appended
-// to the filename title) output to the same folder as the one where the xhtml export goes,
-// then uncomment out DO_INDENT and XHTML_PRETTY here; and also you MUST do the same at the
-// top of Xhtml.cpp. You'll then get a second file dialog which allows you to chose the
-// exported xhtml file, and the indenting and pretty formatting will be done. The pretty
-// formatting verticall lines up <span> tags, that's all. If you just choose DO_INDENT, 
-// you only get <div> tags lined up vertically. If you do not uncomment out those two, but
-// instead uncomment out just DO_CLASS_NAMES you'll still see the extra file dialog, you
-// choose the exported xhtml file as before, but the output is just a vertical list of all
-// the distinct class attribute's stylenames -- such as Section_Head, Line1, Line2, and so
-// forth. Do this if you want to get an inventory of such names for the xhtml just
-// exported. Likewise, do the same uncommenting out at the top of Xhtml.cpp to make this
-// work. Whether you comment them out again or not, these extra jobs are only done in the
-// debug build. So they won't do anything in a release version.
-//  **************************************************************************************
-//#define DO_CLASS_NAMES
-#define DO_INDENT
-#define XHTML_PRETTY  // comment out when valid indenting of xhtml is wanted;
+	// whm 7Jul11 Note:
+	// For protected navigation situations AI determines the actual
+	// filename that is used for the export, and the export itself is
+	// automatically saved in the appropriate outputs folder. Since the
+	// user has no opportunity to provide a file name nor navigate to
+	// a random path, we should inform the user at this point of the 
+	// successful completion of the export, and indicate the file name 
+	// that was used and its outputs folder name and location.
+	wxFileName fn(exportPath);
+	wxString fileNameAndExtOnly = fn.GetFullName();
+	wxString pathOnly = fn.GetPath();
+
+	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
+	msg = msg.Format(msg,fileNameAndExtOnly.c_str(), pathOnly.c_str());
+	wxMessageBox(msg,_("XHTML export operation successful"),wxICON_INFORMATION | wxOK);
+	gpApp->LogUserAction(_T("XHTML export operation successful"));
+
+	return TRUE;
+}
 
 #if defined(__WXDEBUG__)
-#if defined(DO_INDENT) && defined (XHTML_PRETTY)
-	gpApp->m_pXhtml->Indent_Etc_XHTML();
-#endif
-#if !defined(DO_INDENT) && !defined (XHTML_PRETTY) && defined(DO_CLASS_NAMES)
-	gpApp->m_pXhtml->Indent_Etc_XHTML();
-#endif
-#endif
-}
-
-// changes all ~ (the USFM non-breaking space marker) into \u00A0 (Unicode version) or
-// into \A0 (Regular version)
-wxString ChangeTildeToNonBreakingSpace(wxString text)
+void XhtmlExport_DebuggingSupport()
 {
-	wxChar tilde = _T('~');
-#if defined(_UNICODE)
-	wxChar nbsp = (wxChar)0x00A0;
-#else
-	wxChar nbsp = (wxChar)0xA0;
-#endif
-	size_t count = text.Len();
-	size_t index;
-	for (index = 0; index < count; index++)
-	{
-		wxChar aChar = text[index];
-		if (aChar == tilde)
-		{
-			text.SetChar(index,nbsp); // could use: text[index] = nbsp; but I don't trust it
-		}
-	}
-	return text;
+	// ***************************  NOTE!  ***************************************************
+	// There are 3 #defines just below. If you want to have, for debugging purposes, an
+	// indented pretty-formated SECOND file (same filename but with "_IndentedXHTML" appended
+	// to the filename title) output to the same folder as the one where the xhtml export goes,
+	// then uncomment out DO_INDENT and XHTML_PRETTY here; and also you MUST do the same at the
+	// top of Xhtml.cpp. You'll then get a second file dialog which allows you to chose the
+	// exported xhtml file, and the indenting and pretty formatting will be done. The pretty
+	// formatting verticall lines up <span> tags, that's all. If you just choose DO_INDENT, 
+	// you only get <div> tags lined up vertically. If you do not uncomment out those two, but
+	// instead uncomment out just DO_CLASS_NAMES you'll still see the extra file dialog, you
+	// choose the exported xhtml file as before, but the output is just a vertical list of all
+	// the distinct class attribute's stylenames -- such as Section_Head, Line1, Line2, and so
+	// forth. Do this if you want to get an inventory of such names for the xhtml just
+	// exported. Likewise, do the same uncommenting out at the top of Xhtml.cpp to make this
+	// work. Whether you comment them out again or not, these extra jobs are only done in the
+	// debug build. So they won't do anything in a release version.
+	//  **************************************************************************************
+	//#define DO_CLASS_NAMES
+	#define DO_INDENT	// comment out when production xhtml output is wanted
+	// do not have the next one turned on unless DO_INDENT is also turned on
+	#define XHTML_PRETTY  // comment out when unpretty but valid indenting of xhtml is wanted
+
+	#if defined(__WXDEBUG__)
+	#if defined(DO_INDENT) && defined (XHTML_PRETTY)
+		gpApp->m_pXhtml->Indent_Etc_XHTML();
+	#endif
+	#if !defined(DO_INDENT) && !defined (XHTML_PRETTY) && defined(DO_CLASS_NAMES)
+		gpApp->m_pXhtml->Indent_Etc_XHTML();
+	#endif
+	#endif
 }
+#endif
+// end components for DoExportAsXhtml() function
 
-wxString RemoveCollectedBacktranslations(wxString& str)
+/// Return exportFilename unchanged if bUseSuffix is FALSE, but if the latter is TRUE then
+/// prepare a unique filename by appending date-time info and a counter as a suffix to the
+/// passed in exportFilename and return the filename so ammended
+wxString PrepareUniqueFilenameForExport(wxString exportFilename, bool bDoAlways, 
+			UniqueFileIncrementMethod enumMethod, bool bUseSuffix)
 {
-	wxString out; out.Empty();
-	wxString btMkr = _T("\\bt "); // 4 characters to search for
-	wxChar bslash = _T('\\');
-	int offset = wxNOT_FOUND;
-	offset = str.Find(btMkr);
-	if (offset == wxNOT_FOUND)
+	// (BEW comment, this could be generalized more... but this reflects Bill's earlier
+	// code - and he always used the code below with bUseSuffix having the
+	// value of gpApp->m_bUseSuffixExportDateTimeOnFilename, and enumMethod always with
+	// the value of incrementViaDate_TimeStamp (= 1), never incrementViaNextAvailableNumber)
+    // bDoAlways means always modify (Bill always gives it TRUE value), and 2 is the num 
+    // of digits to use in the number -- he assumes <= 99 is enough I expect.
+    // 
+    // Note: if bUseSuffix were passed in as FALSE, exportFilename would be passed back unchanged
+	wxString uniqueFilename = GetUniqueIncrementedFileName(exportFilename, 
+								enumMethod, bDoAlways, 2, _T("_exported_")); 
+	if (bUseSuffix)
 	{
-		return str; // there are not any \bt markers in the data
+		// Use the unique filename
+		return uniqueFilename;
 	}
-	// continue, there is at least one \bt marker in the data
-	wxString Left;
-	while (offset != wxNOT_FOUND)
-	{
-		Left = str.Left(offset);
-		str = str.Mid(offset);
-		// skip over the marker
-		str = str.Mid(4);
-		int offset2 = str.Find(bslash);
-		if (offset2 == wxNOT_FOUND)
-		{
-			// no alternative but to assume the rest is all a backtranslation that was
-			// collected and therefore we are done
-			out += Left;
-			return out;
-		}
-		else
-		{
-			// remove everything up to this marker, irrespective of whatever it is,
-			// because what precedes it is the collected backtranslation text
-			str = str.Mid(offset2);
-		}
-		out += Left;
-
-		// test for the next \bt marker
-		offset = str.Find(btMkr);
-	}
-	// handle the last bit of text
-	out += str;
-	return out;
+	return exportFilename;
 }
 
 // BEW modified 10Aug09, to support exporting of glosses or free translations as well
 // whm 6Aug11 revised for support for protecting inputs/outputs folder navigation
 // whm 9Dec11 revised for support of export filename prefix and/or suffix and adjusted
 // behaviors related to the prefixes/suffixes
-void DoExportSfmText(enum ExportType exportType)
+void DoExportAsType(enum ExportType exportType)
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxString exportFilename;
@@ -569,7 +639,10 @@ void DoExportSfmText(enum ExportType exportType)
 	{
 	case sourceTextExport:
 		{
-			expTypePrefixStr = _("new_source_text_");
+			// BEW 28July removed the "new_" part of the string, as it is misleading and
+			// serves no useful purpose
+			//expTypePrefixStr = _("new_source_text_");
+			expTypePrefixStr = _("source_text_");
 			gpApp->LogUserAction(_T("Initiated Export Source Text"));
 			s = _("Export Source Text");
 			sadlg.SetTitle(s);
@@ -655,6 +728,7 @@ void DoExportSfmText(enum ExportType exportType)
 	// navigation protection settings according to the user's selection 
 	// of SFM or RTF.
 	wxString filter;
+	wxString uniqueFilename;
 	switch(sadlg.GetSaveAsType())
 	{
 	    case ExportSaveAsRTF:
@@ -664,156 +738,98 @@ void DoExportSfmText(enum ExportType exportType)
 			// make a suitable default output filename for the export function
 			exportFilename.Remove(len-3,3); // remove the extension
 			exportFilename += _T("rtf"); // make it an *.rtf file type
+            // Prepare a unique filename from the exportFilename. This unique filename and
+            // path is used when the export is nav protected or when the user has ticked
+            // the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
+            // date-time stamp is to be suffixed to the export filename, which ensures that
+            // any existing exports are not overwritten.
+			exportFilename = PrepareUniqueFilenameForExport(exportFilename, TRUE, 
+				incrementViaDate_TimeStamp, gpApp->m_bUseSuffixExportDateTimeOnFilename);
 			filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||");
 			bRTFOutput = TRUE;
-			// Set up for Navigation Protection and determine the defaultDir for the
-			// exports
+			// determine the defaultDir path, and whether the use is to protected from
+			// doing folder navigation
 			switch (exportType)
 			{
 			case sourceTextExport:
 				gpApp->LogUserAction(_T("Export Source RTF Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectSourceRTFOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _SOURCE_RTF_OUTPUTS folder which is always a child
-					// folder of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
-				}
-				else if (gpApp->m_lastSourceRTFOutputPath.IsEmpty()
-					|| (!gpApp->m_lastSourceRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastSourceRTFOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastSourceRTFOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_sourceRTFOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastSourceRTFOutputPath,
-					// so we initialize the defaultDir to point to the m_lastSourceRTFOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastSourceRTFOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectSourceRTFOutputsFolder, gpApp->m_sourceRTFOutputsFolderPath, 
+					gpApp->m_lastSourceRTFOutputPath, defaultDir);
 				break;
 			case glossesTextExport:
 				gpApp->LogUserAction(_T("Export Glosses RTF Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectGlossRTFOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _GLOSS_RTF_OUTPUTS folder which is always a child
-					// folder of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_glossRTFOutputsFolderPath;
-				}
-				else if (gpApp->m_lastGlossesRTFOutputPath.IsEmpty()
-					|| (!gpApp->m_lastGlossesRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastGlossesRTFOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastGlossesRTFOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_glossRTFOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastGlossesRTFOutputPath,
-					// so we initialize the defaultDir to point to the m_lastGlossesRTFOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastGlossesRTFOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectGlossRTFOutputsFolder, gpApp->m_glossRTFOutputsFolderPath, 
+					gpApp->m_lastGlossesRTFOutputPath, defaultDir);
 				break;
 			case freeTransTextExport:
 				gpApp->LogUserAction(_T("Export Free Trans RTF Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectFreeTransRTFOutputsFolder)
-				{
-					// Navigation protection in effect - limit free translation exports to
-					// be saved in the _FREETRANS_RTF_OUTPUTS folder which is always a child
-					// folder of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_freeTransRTFOutputsFolderName;
-				}
-				else if (gpApp->m_lastFreeTransRTFOutputPath.IsEmpty()
-					|| (!gpApp->m_lastFreeTransRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastFreeTransRTFOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastFreeTransRTFOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_freeTransRTFOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastFreeTransRTFOutputPath,
-					// so we initialize the defaultDir to point to the m_lastFreeTransRTFOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastFreeTransRTFOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectFreeTransRTFOutputsFolder, gpApp->m_freeTransRTFOutputsFolderPath, 
+					gpApp->m_lastFreeTransRTFOutputPath, defaultDir);
 				break;
 			default:
 			case targetTextExport:
 				gpApp->LogUserAction(_T("Export Target RTF Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectTargetRTFOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _TARGET_RTF_OUTPUTS folder which is always a child
-					// folder of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_targetRTFOutputsFolderPath;
-				}
-				else if (gpApp->m_lastTargetRTFOutputPath.IsEmpty()
-					|| (!gpApp->m_lastTargetRTFOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastTargetRTFOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastTargetRTFOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_targetRTFOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastTargetRTFOutputPath,
-					// so we initialize the defaultDir to point to the m_lastTargetRTFOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastTargetRTFOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectTargetRTFOutputsFolder, gpApp->m_targetRTFOutputsFolderPath, 
+					gpApp->m_lastTargetRTFOutputPath, defaultDir);
 				break;
 			} // switch (exportType)
 			break;
 		case ExportSaveAsXHTML:
+			{
+			//////////////////////////////////////////////////////////////////////////////
+			// Export to XHTML (which type, src or tgt or glosses or free trans is handled
+			// within, as is saving to disk, so when DoExportAsXTHML() returns, return
+			// from this block also
+			/////////////////////////////////////////////////////////////////////////////
+			wxString aMsg;
+			wxString strType;
+			switch(exportType)
+			{
+			case sourceTextExport:
+				strType = _T("sourceTextExport");
+				break;
+			case targetTextExport:
+				strType = _T("targetTextExport");
+				break;
+			case glossesTextExport:
+				strType = _T("glossesTextExport");
+				break;
+			case freeTransTextExport:
+				strType = _T("freeTransTextExport");
+				break;
+			}
+			aMsg = aMsg.Format(_T("Export XHTML Text of type: %s"), strType.c_str());
+			gpApp->LogUserAction(aMsg);
+			// make a suitable default output filename for the export function
+			exportFilename.Remove(len-3,3); // remove the extension
+			exportFilename += _T("xhtml"); // make it a *.txt file type
+            // Prepare a unique filename from the exportFilename. This unique filename and
+            // path is used when the export is nav protected or when the user has ticked
+            // the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
+            // date-time stamp is to be suffixed to the export filename, which ensures that
+            // any existing exports are not overwritten.
+			exportFilename = PrepareUniqueFilenameForExport(exportFilename, TRUE, 
+				incrementViaDate_TimeStamp, gpApp->m_bUseSuffixExportDateTimeOnFilename);
+			// prepare for getting a file Save As dialog for whatever Text type is to be
+			// used for the xhtml output
+			filter = _("Exported XHTML Documents (*.xhtml)|*.xhtml||");
+			// determine the defaultDir path, and whether the use is to protected from
+			// doing folder navigation
+			bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+				gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_xhtmlOutputsFolderPath, 
+				gpApp->m_lastXhtmlOutputPath, defaultDir);
+			// produce the XHTML, storing it in a user-chosen folder, or if folder
+			// navigation is not protect, in the project's _XHTML_OUTPUTS folder, or
+			// in whatever folder path was in m_lastXhtmlOutputPath 
+			DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir, 
+				exportFilename, filter);
+			return;
+			}
+			break;
 		case ExportSaveAsPathway:
 			/////////////////////////////////////
 			// Export to XHTML / Pathway
@@ -830,175 +846,54 @@ void DoExportSfmText(enum ExportType exportType)
 			// make a suitable default output filename for the export function
 			exportFilename.Remove(len-3,3); // remove the extension
 			exportFilename += _T("txt"); // make it a *.txt file type
-			// get a file Save As dialog for Source Text Output
+            // Prepare a unique filename from the exportFilename. This unique filename and
+            // path is used when the export is nav protected or when the user has ticked
+            // the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
+            // date-time stamp is to be suffixed to the export filename, which ensures that
+            // any existing exports are not overwritten.
+			exportFilename = PrepareUniqueFilenameForExport(exportFilename, TRUE, 
+				incrementViaDate_TimeStamp, gpApp->m_bUseSuffixExportDateTimeOnFilename);
+			// prepare for getting a file Save As dialog for Source Text Output
 			filter = _("All Files (*.*)|*.*|Exported Adapt It Documents (*.txt)|*.txt||");
 						// I changed the above to allow *.txt and *.*, with the
 						// *.* one first (shows all) so it comes up as default This has the
 						// nice property that if the user types an extension in the
 						// filename, .txt won't be appended to it.
 			bRTFOutput = FALSE;
-			// Set up for Navigation Protection and determine the defaultDir for the
-			// exportsz
+			// determine the defaultDir path, and whether the use is to protected from
+			// doing folder navigation
 			switch (exportType)
 			{
 			case sourceTextExport:
 				gpApp->LogUserAction(_T("Export Source SFM Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectSourceOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _SOURCE_OUTPUTS folder which is always a child folder
-					// of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_sourceOutputsFolderPath;
-				}
-				else if (gpApp->m_lastSourceOutputPath.IsEmpty()
-					|| (!gpApp->m_lastSourceOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastSourceOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastSourceOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_sourceOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastSourceOutputPath,
-					// so we initialize the defaultDir to point to the m_lastSourceOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastSourceOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectSourceOutputsFolder, gpApp->m_sourceOutputsFolderPath, 
+					gpApp->m_lastSourceOutputPath, defaultDir);
 				break;
 			case glossesTextExport:
 				gpApp->LogUserAction(_T("Export Glosses SFM Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectGlossOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _GLOSS_OUTPUTS folder which is always a child folder
-					// of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_glossOutputsFolderPath;
-				}
-				else if (gpApp->m_lastGlossesOutputPath.IsEmpty()
-					|| (!gpApp->m_lastGlossesOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastGlossesOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastGlossesOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_glossOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastGlossesOutputPath,
-					// so we initialize the defaultDir to point to the m_lastGlossesOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastGlossesOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectGlossOutputsFolder, gpApp->m_glossOutputsFolderPath, 
+					gpApp->m_lastGlossesOutputPath, defaultDir);
 				break;
 			case freeTransTextExport:
-				gpApp->LogUserAction(_T("Export Freee Trans SFM Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectFreeTransOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _FREETRANS_RTF_OUTPUTS folder which is always a
-					// child folder of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_freeTransOutputsFolderPath;
-				}
-				else if (gpApp->m_lastFreeTransOutputPath.IsEmpty()
-					|| (!gpApp->m_lastFreeTransOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastFreeTransOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastFreeTransOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_freeTransOutputsFolderPath;
-				}
-				else
-				{	
-					// Navigation protection is OFF and we have a valid path in m_lastFreeTransOutputPath,
-					// so we initialize the defaultDir to point to the m_lastFreeTransOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastFreeTransOutputPath;
-				}
+				gpApp->LogUserAction(_T("Export Free Trans SFM Text"));
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectFreeTransOutputsFolder, gpApp->m_freeTransOutputsFolderPath, 
+					gpApp->m_lastFreeTransOutputPath, defaultDir);
 				break;
 			default:
 			case targetTextExport:
 				gpApp->LogUserAction(_T("Export Target SFM Text"));
-				// The specific special folders involved depend on whether navigation 
-				// protection is ON or OFF, and whether the m_last...Path members point
-				// to a valid path.
-				if (gpApp->m_bProtectTargetOutputsFolder)
-				{
-					// Navigation protection in effect - limit source text exports to
-					// be saved in the _TARGET_OUTPUTS folder which is always a child
-					// folder of the folder that m_curProjectPath points to.
-					bBypassFileDialog_ProtectedNavigation = TRUE;
-					defaultDir = gpApp->m_targetOutputsFolderPath;
-				}
-				else if (gpApp->m_lastTargetOutputPath.IsEmpty()
-					|| (!gpApp->m_lastTargetOutputPath.IsEmpty() && !::wxDirExists(gpApp->m_lastTargetOutputPath)))
-				{
-					// Navigation protection is OFF so we set the flag to allow the wxFileDialog 
-					// to appear. But the m_lastTargetOutputPath is either empty or, if not empty,
-					// it points to an invalid path, so we initialize the defaultDir to point to 
-					// the special protected folder, even though Navigation protection is not ON. 
-					// In this case, the user could point the export path elsewhere using the 
-					// wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_targetOutputsFolderPath;
-				}
-				else
-				{
-					// Navigation protection is OFF and we have a valid path in m_lastTargetOutputPath,
-					// so we initialize the defaultDir to point to the m_lastTargetOutputPath for the
-					// location of the export. The user could still point the export path elsewhere 
-					// in the wxFileDialog that will appear.
-					bBypassFileDialog_ProtectedNavigation = FALSE;
-					defaultDir = gpApp->m_lastTargetOutputPath;
-				}
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectTargetOutputsFolder, gpApp->m_targetOutputsFolderPath, 
+					gpApp->m_lastTargetOutputPath, defaultDir);
 				break;
 			} // switch (exportType)
 			break;
 	} // switch (sadlg.GetSaveAsType())
 
 	wxString exportPath;
-	wxString uniqueFilenameAndPath;
-	// Prepare a unique filename and path from the exportFilename. This unique filename 
-	// and path is used when the export is nav protected or when the user has ticked the
-	// checkbox at the bottom of the ExportSaveAsDlg to indicate that a date-time stamp
-	// is to be suffixed to the export filename, which ensures that any existing exports
-	// are not overwritten.
-	uniqueFilenameAndPath = GetUniqueIncrementedFileName(exportFilename,incrementViaDate_TimeStamp,TRUE,2,_T("_exported_")); // TRUE - always modify
-	if (gpApp->m_bUseSuffixExportDateTimeOnFilename)
-	{
-		// Use the unique path for exportPath
-		exportFilename = uniqueFilenameAndPath;
-	}
 	
 	// whm modified 7Jul11 to bypass the wxFileDialog when the export is protected from
 	// navigation.
@@ -1378,7 +1273,10 @@ void DoExportSfmText(enum ExportType exportType)
 		break;
 	case freeTransTextExport:
 		{
-		// the m_navtextFontEncoding should be acceptable for free translations
+		// for free translations we'll temporarily redefine the navTextFontEncoding
+		// to be UTF-8, it doesn't really matter what one we use though (in the view,
+		// the encoding used is that for the target text font) so long as the 
+		// conversion is done to UTF-8
 		wxFontEncoding saveFreeTransEncoding = gpApp->m_navtextFontEncoding;
 		gpApp->m_navtextFontEncoding = wxFONTENCODING_UTF8;
 		gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,freeTrans);
@@ -1414,6 +1312,120 @@ void DoExportSfmText(enum ExportType exportType)
 	gpApp->LogUserAction(_T("Export operation successful"));
 
 	f.Close();
+}
+
+/// Compute a default directory for displaying it's contents in a File Save dialog which
+/// may be opened. Return a boolean which is TRUE if the fixed folder for the particular
+/// path information passed in is to be protected from navigation; return FALSE is not to
+/// be protected from navigation - and when FALSE is returned, the function tries to use
+/// the last path used for that type of information if such a folder exists, but if not it
+/// defaults to the fixed folder. In either of the last two scenarios, the File Save will
+/// show later after the function returns, and the user would be free to navigate using it
+/// to anywhere he likes.
+bool GetDefaultDirectory_ProtectedNav(bool bProtectFromNavigation, wxString fixedOutputPath, 
+									  wxString lastOutputPath, wxString& defaultDir)
+{
+	bool bBypassFileDialog_ProtectedNavigation = FALSE;
+    // The specific special folders involved depend on whether navigation protection is ON
+    // or OFF, and whether the lastOutputPath member points to a valid path
+	if (bProtectFromNavigation)
+	{
+        // Navigation protection in effect - limit source text exports to be saved in the
+        // fixed output folder with a name like _XXXXX_OUTPUTS or _XXXXX_OUTPUTS_INPUTS;
+        // and it is always a child folder of the folder that m_curProjectPath points to.
+        // XXXXX represents SOURCE, or TARGET, or XHTML, or GLOSSES, etc.
+		bBypassFileDialog_ProtectedNavigation = TRUE;
+		defaultDir = fixedOutputPath;
+	}
+	else if (lastOutputPath.IsEmpty() ||
+			(!lastOutputPath.IsEmpty() && !::wxDirExists(lastOutputPath)))
+	{
+        // Navigation protection is OFF so we set the flag to allow the wxFileDialog to
+        // appear. But the lastOutputPath is either empty or, if not empty, it points to an
+        // invalid path, so we initialize the defaultDir to point to the special fixed
+        // protected folder, even though Navigation protection is not ON. In this case, the
+        // user could point the export path elsewhere using the wxFileDialog that will
+        // appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		defaultDir = fixedOutputPath;
+	}
+	else
+	{
+        // Navigation protection is OFF and we have a valid path in lastOutputPath, so we
+        // initialize the defaultDir to point to the lastOutputPath for the location of the
+        // export. The user could still point the export path elsewhere in the wxFileDialog
+        // that will appear.
+		bBypassFileDialog_ProtectedNavigation = FALSE;
+		defaultDir = lastOutputPath;
+	}
+	return bBypassFileDialog_ProtectedNavigation;
+}
+
+
+// changes all ~ (the USFM non-breaking space marker) into \u00A0 (Unicode version) or
+// into \A0 (Regular version)
+wxString ChangeTildeToNonBreakingSpace(wxString text)
+{
+	wxChar tilde = _T('~');
+#if defined(_UNICODE)
+	wxChar nbsp = (wxChar)0x00A0;
+#else
+	wxChar nbsp = (wxChar)0xA0;
+#endif
+	size_t count = text.Len();
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		wxChar aChar = text[index];
+		if (aChar == tilde)
+		{
+			text.SetChar(index,nbsp); // could use: text[index] = nbsp; but I don't trust it
+		}
+	}
+	return text;
+}
+
+wxString RemoveCollectedBacktranslations(wxString& str)
+{
+	wxString out; out.Empty();
+	wxString btMkr = _T("\\bt "); // 4 characters to search for
+	wxChar bslash = _T('\\');
+	int offset = wxNOT_FOUND;
+	offset = str.Find(btMkr);
+	if (offset == wxNOT_FOUND)
+	{
+		return str; // there are not any \bt markers in the data
+	}
+	// continue, there is at least one \bt marker in the data
+	wxString Left;
+	while (offset != wxNOT_FOUND)
+	{
+		Left = str.Left(offset);
+		str = str.Mid(offset);
+		// skip over the marker
+		str = str.Mid(4);
+		int offset2 = str.Find(bslash);
+		if (offset2 == wxNOT_FOUND)
+		{
+			// no alternative but to assume the rest is all a backtranslation that was
+			// collected and therefore we are done
+			out += Left;
+			return out;
+		}
+		else
+		{
+			// remove everything up to this marker, irrespective of whatever it is,
+			// because what precedes it is the collected backtranslation text
+			str = str.Mid(offset2);
+		}
+		out += Left;
+
+		// test for the next \bt marker
+		offset = str.Find(btMkr);
+	}
+	// handle the last bit of text
+	out += str;
+	return out;
 }
 
 // Looks in the global wxArrayString m_exportBareMarkers (the doc function,
@@ -1471,7 +1483,7 @@ void ExcludeCustomMarkersFromExport()
 
 // the following is like ExcludeCustomMarkersFromExport(), but adds exclusion of the USFM
 // \rem marker and its content from the export.
-// Usage: used in OXES export support -- see DoExportAsOxes()
+// Usage: used in XHTML export support -- see DoExportAsType()
 // Created: BEW 19May12
 void ExcludeCustomMarkersAndRemFromExport()
 {

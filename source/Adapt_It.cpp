@@ -1600,16 +1600,18 @@ const wxString defaultProfileItems[] =
 	_T("/MENU:"),
 	// whm commented out 15Jun11 as per Bruce's request. OXES support not implemented until a future date
 	// BEW repurposed 9Jun12, for XHTML support
-	_T("MENU:itemID=\"ID_EXPORT_XHTML\":itemType=\"subMenu\":itemText=\"Export &XHTML...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
-	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
-	_T("/PROFILE:"),
-	_T("/MENU:"),
+	// BEW 28July12 removed Export XHTML... menu item, it's now accessible via src, tgt,
+	// glosses or free translation exports
+	//_T("MENU:itemID=\"ID_EXPORT_XHTML\":itemType=\"subMenu\":itemText=\"Export &XHTML...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
+	//_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	//_T("/PROFILE:"),
+	//_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	//_T("/PROFILE:"),
+	//_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	//_T("/PROFILE:"),
+	//_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	//_T("/PROFILE:"),
+	//_T("/MENU:"),
 	_T("MENU:itemID=\"ID_FILE_EXPORT_KB\":itemType=\"subMenu\":itemText=\"Export Knowledge &Base...\":itemDescr=\"Export-Import menu\":adminCanChange=\"1\":"),
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -2431,8 +2433,6 @@ const wxString defaultMenuStructure[] =
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_EXPORT_FREE_TRANS\":subMenuLabel=\"Export Free Translation...\":subMenuHelp=\"Collect all the free translation sections' contents, adding standard format markers, and export\":subMenuKind=\"wxITEM_NORMAL\":"),
 	_T("/SUB_MENU:"),
-	_T("SUB_MENU:subMenuID=\"ID_EXPORT_XHTML\":subMenuLabel=\"Export &XHTML)...\":subMenuHelp=\"Export the translation text as XHTML\":subMenuKind=\"wxITEM_NORMAL\":"),
-	//_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"menuSeparator\":subMenuLabel=\"\":subMenuHelp=\"\":subMenuKind=\"wxITEM_SEPARATOR\":"),
 	_T("/SUB_MENU:"),
 	_T("SUB_MENU:subMenuID=\"ID_FILE_EXPORT_KB\":subMenuLabel=\"Export Knowledge &Base...\":subMenuHelp=\"Export knowledge base in standard format or LIFT format\":subMenuKind=\"wxITEM_NORMAL\":"),
@@ -18762,28 +18762,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	//wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
 	//wxASSERT(pMenuBar != NULL);
-
-	// ************************* TEMPORARY FOR 6.0.0 ONLY <<-- Maybe, BEW removed OXES
-	// support 15Jun15 until such time as LSDev clarify what the future of OXES is, and
-	// until we have another app which needs to support it - TE is dead in the water,
-	// since no longer does the Mara project in Tanzania use it
-
-	// For OXES -- in 6.0.0 it isn't supported, so remove the menu item temporarily, and
-	// restore it for 6.1.0
-
-	// BEW 9Jun12 changed OXES in the following to XHTML, as we have abandoned OXES export
-	// whm 23Mar11 change: The following creates a memory leak and is risks complications for
-	// the user profiles menu routines. I've commented this out, and placed a wxMessageBox()
-	// notification to the user in CAdapt_ItView::OnExportXHTML()
-	/*
-	wxMenu* pItsMenu = NULL;
-	wxMenuItem* pHideThisXhtmlMenuItem = pMenuBar->FindItem(ID_EXPORT_XHTML, &pItsMenu);
-	if (pItsMenu != NULL) // whm 15Mar11 added test for NULL pointer (might happen if menu item is hidden/removed in user profiles)
-	{
-		pItsMenu->Remove(pHideThisXhtmlMenuItem);
-	}
-	*/
-// ************************ REMOVE ABOVE 3 LINES AFTER 6.0.0 IS RELEASED *********************
 
 	// Hide the Glossing check box
 	// whm 30Aug11 Note: At startup glossing is OFF and the <no adaptation> button label

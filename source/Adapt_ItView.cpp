@@ -926,10 +926,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_EXPORT_FREE_TRANS, CAdapt_ItView::OnUpdateExportFreeTranslations)
 	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
 	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
-	// BEW removed 15Jun11 until we support OXES
-	// BEW reinstated 9Jun12, for XHTML support
-	EVT_MENU(ID_EXPORT_XHTML, CAdapt_ItView::OnExportXHTML)
-	EVT_UPDATE_UI(ID_EXPORT_XHTML, CAdapt_ItView::OnUpdateExportXHTML)
 	EVT_MENU(ID_MENU_IMPORT_EDITED_SOURCE_TEXT, CAdapt_ItView::OnImportEditedSourceText)
 	EVT_UPDATE_UI(ID_MENU_IMPORT_EDITED_SOURCE_TEXT, CAdapt_ItView::OnUpdateImportEditedSourceText)
 	// End of Export-Import Menu
@@ -27238,7 +27234,7 @@ void CAdapt_ItView::OnUpdateFileExportSource(wxUpdateUIEvent& event)
 // from the CSourcePhrase instances
 void CAdapt_ItView::OnFileExportSource(wxCommandEvent& WXUNUSED(event))
 {
-	DoExportSfmText(sourceTextExport); // BEW changed 21Jul2
+	DoExportAsType(sourceTextExport); // BEW changed 21Jul2
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -27273,40 +27269,7 @@ void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
 
 void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 {
-	DoExportSfmText(targetTextExport); // BEW changed 21Jul12
-}
-
-	// early part of OnExportXHTML() is based on the view function, DoExportSfmText()
-	// BEW removed 15Jun11 until we support OXES
-	// BEW reinstated 19May12, for XHTML support
-void CAdapt_ItView::OnExportXHTML(wxCommandEvent& WXUNUSED(event))
-{
-	// BEW 19May12, the following call will do some preliminary filtering of the target
-	// text USFM export, to exclude our custom markers (\free, \note, \bt and derivatives,
-	// and also \rem -- ExcludeCustomMarkersAndRemFromExport() is called internally to
-	// accomplish this, the latter is defined in ExportFunctions.cpp
-	DoExportAsXhtml(targetTextExport); // BEW created 9Jun12
-}
-
-// same conditions as for OnUpdateFileExport() (the latter is for exporting the
-// translation text) - repurposed from unfinished Oxes export by BEW on 9Jun12
-void CAdapt_ItView::OnUpdateExportXHTML(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	if (gbVerticalEditInProgress)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() > 0)
-	{
-		if (gbIsGlossing)
-			event.Enable(FALSE); // don't allow target text export when glossing
-		else
-			event.Enable(TRUE); // not glossing, so allow target text export
-	}
-	else
-		event.Enable(FALSE); // nothing to export since doc is empty
+	DoExportAsType(targetTextExport); // BEW changed 21Jul12
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -27343,7 +27306,7 @@ void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->m_bExportingGlossesAsText = TRUE;   // set TRUE during export of glosses
-	DoExportSfmText(glossesTextExport); // BEW changed 21Jul12
+	DoExportAsType(glossesTextExport); // BEW changed 21Jul12
 	pApp->m_bExportingGlossesAsText = FALSE;   // restore default value
 }
 
@@ -27380,7 +27343,7 @@ void CAdapt_ItView::OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->m_bExportingFreeTranslation = TRUE; // set TRUE during export of free translations
-	DoExportSfmText(freeTransTextExport); // BEW changed 21Jul12
+	DoExportAsType(freeTransTextExport); // BEW changed 21Jul12
 	pApp->m_bExportingFreeTranslation = FALSE; // restore default value
 }
 

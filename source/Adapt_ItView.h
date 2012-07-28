@@ -422,12 +422,6 @@ protected:
 	void OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event);
 	void OnFileExport(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileExport(wxUpdateUIEvent& event);
-
-	// BEW removed 15Jun11, until OXES support is needed
-	// BEW 19May12 reinstated for support of OXES v1
-	void OnExportXHTML(wxCommandEvent& WXUNUSED(event)); 
-	void OnUpdateExportXHTML(wxUpdateUIEvent& event);
-
 	void OnToolsKbEditor(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateToolsKbEditor(wxUpdateUIEvent& event);
 	void OnGoTo(wxCommandEvent& WXUNUSED(event));
