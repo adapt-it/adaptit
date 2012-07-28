@@ -65,12 +65,12 @@ enum CompareUsfmTexts
 	usfmAndTextDiffer
 };
 
-enum UniqueFileIncrementMethod
-{
-	incrementViaNextAvailableNumber,
-	incrementViaDate_TimeStamp
-};
-
+//enum UniqueFileIncrementMethod // whm moved to Adapt_It.h
+//{
+//	incrementViaNextAvailableNumber,
+//	incrementViaDate_TimeStamp
+//};
+//
 // GDLC Moved to here from AdaptIt_Doc.h to eliminate 40 compile errors
 enum WhichLang {
 	sourceLang,
