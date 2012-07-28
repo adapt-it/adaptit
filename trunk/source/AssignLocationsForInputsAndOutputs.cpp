@@ -193,7 +193,7 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	}
 
 	// whm 3Mar12 removed. The administrator now does not determine if collaboration
-	// is ON or OFF - that is now up to the user as the time that an AI project is
+	// is ON or OFF - that is now up to the user at the time that an AI project is
 	// selected at the wizard's ProjectPage.
 	/*
 	if ((m_pApp->ParatextIsInstalled() && !m_pApp->m_bCollaboratingWithParatext)

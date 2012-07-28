@@ -39,6 +39,8 @@ enum ExportType
 	freeTransTextExport
 };
 */
+class CAdapt_ItView; // forward ref
+enum UniqueFileIncrementMethod;
 
 // main export functions:
 wxString	AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase);
@@ -46,13 +48,33 @@ wxString	AppendSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPh
 					 bool& bAddedSomething, bool bIncludeNote,
 					 bool bDoCountForFreeTrans, bool bCountInTargetTextLine); // BEW created 11Oct10
 wxString	AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhrase); // BEW created 11Oct10
-void		DoExportSfmText(enum ExportType exportType); // BEW removed bForceUTF8Conversion 21July12
+void		DoExportAsType(enum ExportType exportType); // BEW removed bForceUTF8Conversion 21July12
 void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
 							  wxString exportName, wxString& Buffer);
 // BEW created 9Jun12
-void		DoExportAsXhtml(enum ExportType exportType); 
-	
+void		DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
+							wxString defaultDir, wxString exportFilename, wxString filter);
+// components defined for simplifying the code of DoExportAsXhtml()
+bool		DeclineIfUnstructuredData();
+bool		DeclineIfNoBookCode(wxString& bookCode);
+bool		DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode);
+wxString	GetCleanExportedUSFMBaseText(ExportType exportType);
+wxString	ApplyNormalizingFiltersToTheUSFMText(wxString text);
+bool		WriteXHTML_To_File(wxString exportPath, CBString& text);
+#if defined(__WXDEBUG__)
+void		XhtmlExport_DebuggingSupport(); // use only in debug mode -- and 
+					// internally has a few #defines to specify what to do
+#endif
+// next one is usable in any function where the defaultDir for a file dialog needs to be
+// computed in a protected navigation on or off support situation
+bool		GetDefaultDirectory_ProtectedNav(bool bProtectFromNavigation, 
+					wxString fixedOutputPath, wxString lastOutputPath, wxString& defaultDir);
+wxString	PrepareUniqueFilenameForExport(wxString exportFilename, bool bDoAlways,
+					UniqueFileIncrementMethod enumMethod, bool bUseSuffix);
+
+// end components for simplifying the code of DoExportAsXhtml()
+
 // The following ParseWordRTF() function is the same as the legacy ParseWord() function in the Doc before
 // Bruce rewrote it for doc v 5 purposes. I've renamed it to ParseWordRTF and reclaimed it here for RTF output
 // purposes.
