@@ -1287,6 +1287,12 @@ enum composeBarViewSwitch
 	composeBarShow
 };
 
+enum UniqueFileIncrementMethod
+{
+	incrementViaNextAvailableNumber,
+	incrementViaDate_TimeStamp
+};
+
 /// wxHashMap declaration for the MapMenuLabelStrToIdInt class - a mapped association
 /// of Menu label keys (wxString) with integers representing Menu Id int values.
 WX_DECLARE_HASH_MAP(wxString,

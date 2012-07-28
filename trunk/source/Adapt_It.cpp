@@ -3401,7 +3401,9 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 				else
 				{
 					// no mapping was found - this shouldn't happen
-					wxASSERT(FALSE);
+					wxString msg = _T("Programming Error: No mapping found for menu label %s: Check that AI_UserProfiles.xml is in sync with the defaultProfileItems[] array in the App");
+					msg = msg.Format(msg,labelStr.c_str());
+					wxASSERT_MSG(FALSE,msg);
 					;
 				}
 				pItem->itemIDint = itemId;
