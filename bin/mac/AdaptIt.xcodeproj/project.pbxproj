@@ -1001,7 +1001,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		C0E91AC608A95435008D54AB /* DebugWX2.9 */ = {
+		C0E91AC608A95435008D54AB /* CarbonDebugWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
@@ -1027,11 +1027,11 @@
 					"WX_PRECOMP=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_VERSION = 4.0;
+				GCC_VERSION = 4.2;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_CFLAGS = "-fvisibility=hidden";
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
@@ -1050,6 +1050,7 @@
 				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/build/osx/setup/carbon/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
+				VALID_ARCHS = "i386 x86_64";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -1061,9 +1062,9 @@
 				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
 				ZERO_LINK = NO;
 			};
-			name = DebugWX2.9;
+			name = CarbonDebugWX2.9;
 		};
-		C0E91AC708A95435008D54AB /* ReleaseWX2.9 */ = {
+		C0E91AC708A95435008D54AB /* CarbonReleaseWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
@@ -1076,6 +1077,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WXPLATFORM)",
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
 					"wxUSE_UNICODE=1",
 					__WXMAC__,
 					"wxUSE_BASE=1",
@@ -1086,10 +1089,11 @@
 					MACOS_CLASSIC,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = 4.2;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Deployment";
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Release";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
 					"$(OTHER_CFLAGS)",
@@ -1103,9 +1107,10 @@
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx;
 				UNSTRIPPED_PRODUCT = NO;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/build/osx/setup/carbon/include/wx .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
+				VALID_ARCHS = "i386 x86_64";
 				VERSIONING_SYSTEM = "apple-generic";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1113,10 +1118,13 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKITUPPER = CARBON;
+				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=0";
 			};
-			name = ReleaseWX2.9;
+			name = CarbonReleaseWX2.9;
 		};
-		C0E91ACA08A95435008D54AB /* DebugWX2.9 */ = {
+		C0E91ACA08A95435008D54AB /* CarbonDebugWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(NATIVE_ARCH)";
@@ -1132,9 +1140,9 @@
 				USER_HEADER_SEARCH_PATHS = "$(inherited)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = DebugWX2.9;
+			name = CarbonDebugWX2.9;
 		};
-		C0E91ACB08A95435008D54AB /* ReleaseWX2.9 */ = {
+		C0E91ACB08A95435008D54AB /* CarbonReleaseWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_VERSION = 4.0;
@@ -1144,7 +1152,7 @@
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				WARNING_CFLAGS = "";
 			};
-			name = ReleaseWX2.9;
+			name = CarbonReleaseWX2.9;
 		};
 		C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */ = {
 			isa = XCBuildConfiguration;
@@ -1296,24 +1304,24 @@
 		C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91AC608A95435008D54AB /* DebugWX2.9 */,
-				C0E91AC708A95435008D54AB /* ReleaseWX2.9 */,
+				C0E91AC608A95435008D54AB /* CarbonDebugWX2.9 */,
+				C0E91AC708A95435008D54AB /* CarbonReleaseWX2.9 */,
 				C81D46B015C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
 				C81D46B215C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = ReleaseWX2.9;
+			defaultConfigurationName = CarbonReleaseWX2.9;
 		};
 		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91ACA08A95435008D54AB /* DebugWX2.9 */,
-				C0E91ACB08A95435008D54AB /* ReleaseWX2.9 */,
+				C0E91ACA08A95435008D54AB /* CarbonDebugWX2.9 */,
+				C0E91ACB08A95435008D54AB /* CarbonReleaseWX2.9 */,
 				C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
 				C81D46B115C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = ReleaseWX2.9;
+			defaultConfigurationName = CarbonReleaseWX2.9;
 		};
 /* End XCConfigurationList section */
 	};
