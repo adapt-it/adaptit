@@ -3401,7 +3401,7 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 				else
 				{
 					// no mapping was found - this shouldn't happen
-					wxString msg = _T("Programming Error: No mapping found for menu label %s: Check that AI_UserProfiles.xml is in sync with the defaultProfileItems[] array in the App");
+					wxString msg = _T("Programming Error: No mapping found for menu label %s: Check that AI_UserProfiles.xml is in sync with the defaultProfileItems[] array in the App.\n For example, if a menu item was removed, remove the item's xml in AI_UserProfiles in the local copy in work folder, and in the adaptit > xml folder of the dev system - the latter one is crucial.");
 					msg = msg.Format(msg,labelStr.c_str());
 					wxASSERT_MSG(FALSE,msg);
 					;
@@ -3410,7 +3410,6 @@ void CAdapt_ItApp::GetAndAssignIdValuesToUserProfilesStruct(UserProfiles*& pUser
 			}
 		}
 	}
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
