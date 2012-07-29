@@ -4382,7 +4382,8 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 	#else
 		tempStr = m_pApp->m_sourceLanguageCode;
 	#endif
-		aStr += "=\"" + tempStr;
+		aStr += "=\"";
+		aStr += tempStr;
 		
 		aStr += "\" ";
 		aStr += xml_tgtcod;
@@ -4391,7 +4392,8 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 	#else
 		tempStr = m_pApp->m_targetLanguageCode;
 	#endif
-		aStr += "=\"" + tempStr;
+		aStr += "=\"";
+		aStr += tempStr;
 		
 		aStr += "\" max=\"";
 		intStr.Empty(); // needs to start empty, otherwise << will 

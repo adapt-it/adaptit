@@ -3785,12 +3785,14 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" ";
 	bstr += xml_srccode;
 	btemp = gpApp->Convert16to8 (gpApp->m_sourceLanguageCode);		// source language code
-	bstr += "=\"" + btemp;
+	bstr += "=\"";
+	bstr += btemp;
 
 	bstr += "\" ";
 	bstr += xml_tgtcode;
 	btemp = gpApp->Convert16to8 (gpApp->m_targetLanguageCode);		// target language code
-	bstr += "=\"" + btemp;
+	bstr += "=\"";
+	bstr += btemp;
 
 	bstr += "\"\r\n"; // TODO: EOL chars need adjustment for Linux and Mac???
 
