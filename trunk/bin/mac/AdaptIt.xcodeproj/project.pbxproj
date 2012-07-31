@@ -1005,6 +1005,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ONLY_ACTIVE_ARCH_PRE_XCODE_3_1)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = YES;
@@ -1012,26 +1013,28 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G4;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PFE_FILE_C_DIALECTS = "c++ objective-c++";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(WXPLATFORM)",
 					"$(WX_PREPROCESSOR_DEFINITIONS)",
-					"wxUSE_UNICODE=1",
+					"$(WXPLATFORM)",
 					__WXMAC__,
 					"wxUSE_BASE=1",
 					"_FILE_OFFSET_BITS=64",
 					_LARGE_FILES,
-					"__WXMAC_XCODE__=1",
 					MACOS_CLASSIC,
+					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
+					"wxUSE_UNICODE=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.2;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH)";
 				OTHER_CFLAGS = "-fvisibility=hidden";
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
@@ -1044,10 +1047,10 @@
 					"-lwx_osx_carbon_static",
 					"-lcurl",
 				);
-				PREBINDING = NO;
+				PREBINDING = YES;
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/build/osx/setup/carbon/include .";
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/build/osx/setup/carbon/include ${WXWIN}/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
 				VALID_ARCHS = "i386 x86_64";
@@ -1058,6 +1061,7 @@
 				);
 				WRAPPER_EXTENSION = app;
 				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKIT = carbon;
 				WXTOOLKITUPPER = CARBON;
 				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
 				ZERO_LINK = NO;
@@ -1068,7 +1072,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(NATIVE_ARCH)";
+				ARCHS = "$(ONLY_ACTIVE_ARCH_PRE_XCODE_3_1)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1077,16 +1081,16 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(WXPLATFORM)",
 					"$(WX_PREPROCESSOR_DEFINITIONS)",
-					"wxUSE_UNICODE=1",
+					"$(WXPLATFORM)",
 					__WXMAC__,
 					"wxUSE_BASE=1",
 					"_FILE_OFFSET_BITS=64",
 					_LARGE_FILES,
+					MACOS_CLASSIC,
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
-					MACOS_CLASSIC,
+					"wxUSE_UNICODE=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.2;
@@ -1094,20 +1098,23 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Release";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH)";
+				OTHER_CFLAGS = "-fvisibility=hidden";
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
+					"-fvisibility-inlines-hidden",
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
 					"-liconv",
 					"-lz",
-					"-lwx_mac_static",
+					"-lwx_osx_carbon_static",
 					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx;
 				UNSTRIPPED_PRODUCT = NO;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/build/osx/setup/carbon/include/wx .";
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/build/osx/setup/carbon/include ${WXWIN}/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
 				VALID_ARCHS = "i386 x86_64";
@@ -1119,8 +1126,9 @@
 				);
 				WRAPPER_EXTENSION = app;
 				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKIT = carbon;
 				WXTOOLKITUPPER = CARBON;
-				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=0";
+				WX_PREPROCESSOR_DEFINITIONS = "wxDEBUG_LEVEL=0";
 			};
 			name = CarbonReleaseWX2.9;
 		};
