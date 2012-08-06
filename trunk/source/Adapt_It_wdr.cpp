@@ -8970,6 +8970,53 @@ wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set
     return item0;
 }
 
+wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxRadioButton *item2 = new wxRadioButton( parent, ID_RADIOBUTTON_CURRENT_BOOKNAME, _("The text in this document is from the book: %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetToolTip( _("Click this one if the book name shown is already correct") );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxRadioButton *item3 = new wxRadioButton( parent, ID_RADIOBUTTON_DIFFERENT_BOOKNAME, _("The text in this document is from a different book. Type its name below."), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->SetToolTip( _("Click this button if the text belongs to some other book than the one named above.") );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("Type Book Name") );
+    wxStaticBoxSizer *item4 = new wxStaticBoxSizer( item5, wxVERTICAL );
+
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_BOOKNAME, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
+    item6->SetToolTip( _("Type here the name of the book for which the docoument is a part o r the whole.") );
+    item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item7->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
