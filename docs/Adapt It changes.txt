@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.2.3 release 27 July 2012
+Version 6.2.3 release 24 August 2012
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.2.3
@@ -32,6 +32,18 @@ library.
 ----------------------------------------------
 Bug fixes in 6.2.3
 ----------------------------------------------
+* Fixed a bug that caused Adapt It to lose the collaboration
+settings for the last used project under certain circumstances.
+The bug would happen if a collaboration project had been
+worked on in a previous session and at start up, the user
+clicks Cancel to close the start working wizard and then 
+clicks on the X icon of the Adapt It window frame to close
+the application. Whenever this scenario happened, the next
+time Adapt It is run and the collaboration project is selected
+the administrator's collaboration settings will have been lost
+from the project configuration file, and collaboration would
+not be possible until the administrator sets up collaboration
+again from the Administrator menu. This problem is not fixed.
 * Modified the "USFM and Filtering" tab of the Preferences
 dialog to filter or unfilter the \x ... \x* (cross reference),
 \f ... \f* (footnote) and \fe ... \fe* (endnote) markers 
