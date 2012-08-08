@@ -375,22 +375,18 @@ bool DeclineIfUnstructuredData()
 /// Return TRUE if the first CSourcePhrase does not have a bookID, or has an invalid bookID
 /// for scripture (such as OTX), giving a suitable warning, and the caller should then
 /// return from the xhtml export attempt; else return FALSE and the caller should continue
-/// processing
+/// processing. Return the bookCode, if defined, via the signature; else return an empty string
 bool DeclineIfNoBookCode(wxString& bookCode)
 {
 	wxString msg;
 	// check for a valid 3-letter bookCode, it must be present and be valid for an Xhtml export
 	bookCode = gpApp->GetBookIDFromDoc(); // get from the first CSourcePhrase instance
-	if (bookCode.IsEmpty() || bookCode == _T("OTX"))
+	if (bookCode.IsEmpty())
 	{
-		// not a valid bookCode, or none is defined, or it is the one for "Other Texts"
+		// not a valid bookCode, or none is defined
 		// and in all these cases, an Xhtml export is not possible
-		if (bookCode.IsEmpty())
-		{
-			bookCode = _T("absent");
-		}
 		msg = msg.Format(_(
-"The book code either is invalid, does not exist, or is 'OTX' (for 'other texts').\nAn xhtml export is not possible without it. (It should be at the start of the adaptation.)\nThe book code obtained was %s"),
+"The book code either is invalid, or does not exist.\nAn xhtml export is not possible without it. (It should be at the start of the adaptation.)\nThe book code obtained was %s"),
 		bookCode.c_str());
 		wxMessageBox(msg,_("Invalid or Absent Book Code"), wxICON_EXCLAMATION | wxOK);
 		return TRUE;

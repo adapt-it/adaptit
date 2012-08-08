@@ -3617,6 +3617,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	Collab_Project_Info_Struct* GetCollab_Project_Struct(wxString projShortName);
 	wxString GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, wxString beginTag, wxString endTag);
 	wxString GetBookCodeFromBookName(wxString bookName);
+	wxString GetBookNameFromBookCode(wxString bookCode);
 	int GetBookFlagIndexFromFullBookName(wxString fullBookName);
 	int GetNumberFromBookCodeForFileNaming(wxString bookStr);
 	wxString GetBookNumberAsStrFromName(wxString bookName);
@@ -3684,6 +3685,11 @@ public:
 
 
 	// end of collaboration declarations
+	
+	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion
+	// is offered) in each document that has a valid bookID. This is needed for XHTML and
+	// Pathway exports (we support only the scripture canon, not the deuterocanon)
+	wxString m_bookName_Current;
 
 	// support for saving and restoring the selection, and clearing saved selection members
 	// (the members are 3 ints, m_savedSelectionLine, m_nSavedSelectionAnchorIndex, m_savedSelectionCount)

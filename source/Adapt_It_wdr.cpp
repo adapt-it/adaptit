@@ -8974,38 +8974,65 @@ wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item2 = new wxRadioButton( parent, ID_RADIOBUTTON_CURRENT_BOOKNAME, _("The text in this document is from the book: %s"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->SetToolTip( _("Click this one if the book name shown is already correct") );
-    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_STATIC_LAST_BOOKNAME, _("The currently set book name is:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxRadioButton *item3 = new wxRadioButton( parent, ID_RADIOBUTTON_DIFFERENT_BOOKNAME, _("The text in this document is from a different book. Type its name below."), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->SetToolTip( _("Click this button if the text belongs to some other book than the one named above.") );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_OLD_BOOKNAME, wxT(""), wxDefaultPosition, wxSize(280,28), wxTE_READONLY );
+    item1->Add( item3, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("Type Book Name") );
-    wxStaticBoxSizer *item4 = new wxStaticBoxSizer( item5, wxVERTICAL );
+    item0->Add( item1, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_BOOKNAME, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item6->SetToolTip( _("Type here the name of the book for which the docoument is a part o r the whole.") );
-    item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_STATIC_TOP_MSG, _("The current document may need its book name cleared or changed."), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetFont( wxFont( 12, wxROMAN, wxITALIC, wxNORMAL ) );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Choose one of these options:") );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
 
-    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_USE_LAST_BOOKNAME, _("Use the currently set book name for this document as well"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item8->SetToolTip( _("Click this one if the document is part of same booki") );
+    item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item7->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_BOOKNAME_IS_INAPPROPRIATE, _("A book name is not meaningful for this document (clear the name)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetToolTip( _("Click this one to clear the book name to be nothing") );
+    item6->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_SUGGESTED_BOOKNAME_ACCEPTABLE, _("The book name suggested here is acceptable:  %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Click this one to change to this suggested book name") );
+    item6->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIO_DIFFERENT_BOOKNAME, _("I will type a different book name in the text box below"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Click this one, type a name in the box, and it will be used") );
+    item6->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticBox *item13 = new wxStaticBox( parent, -1, _("Type the different book name here:") );
+    wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
+
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_BOOKNAME, wxT(""), wxDefaultPosition, wxSize(-1,28), 0 );
+    item14->SetToolTip( _("Type here the name of the book for which the docoument is a part o r the whole.") );
+    item12->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item4->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9060,6 +9087,7 @@ wxMenuBar *AIMenuBarFunc()
     item2->Append( ID_EDIT_CONSISTENCY_CHECK, _("Consist&ency Check..."), _("Check all translations with those in the knowledge base for consistency") );
     item2->AppendSeparator();
     item2->Append( ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE, _("Change Punctuation or Markers Placement"), _("Clear this location's stored punctuation and markers placements so Place... dialogs can open here again") );
+    item2->Append( ID_MENU_CHANGE_BOOKNAME, _("Change Book &Name..."), wxT("") );
     item2->AppendSeparator();
     item2->Append( ID_EDIT_MOVE_NOTE_FORWARD, _("Move Note Forward\tCtrl-3"), _("Move the note forward in the document to the next word or phrase") );
     item2->Append( ID_EDIT_MOVE_NOTE_BACKWARD, _("Move Note Backward\tCtrl-2"), _("Move the note backward in the document to the previous word or phrase") );

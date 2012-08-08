@@ -78,6 +78,7 @@
 #include "Pile.h" // must precede the include for the document
 #include "Cell.h"
 #include "Layout.h"
+#include "BookNameDlg.h" // BEW added 7Aug12
 #include "Adapt_ItDoc.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
@@ -334,6 +335,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_MENU(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages)
 	EVT_UPDATE_UI(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages)
+	EVT_MENU(ID_MENU_CHANGE_BOOKNAME, CAdapt_ItDoc::OnBookNameDlg)
+	EVT_UPDATE_UI(ID_MENU_CHANGE_BOOKNAME, CAdapt_ItDoc::OnUpdateBookNameDlg)
 END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -25053,6 +25056,65 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 		}
 	}
 	return TRUE;
+}
+
+void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->LogUserAction(_T("Initiated OnBookNameDlg()"));
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	if (!pMenuBar->IsEnabled(ID_MENU_CHANGE_BOOKNAME))
+	{
+		::wxBell();
+		pApp->LogUserAction(_T("But Change Book Name... menu item disabled"));
+		return;
+	}
+
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxASSERT(pList != NULL);
+	if (pList->IsEmpty())
+	{
+		::wxBell();
+		pApp->LogUserAction(_T("Doc is empty in OnBookNameDlg()"));
+		return;
+	}
+
+// TODO   --- get the bookcode, for now, just hard code one
+	wxString bookCode = _T("MAT");
+
+	wxString titleStr = _("Set or Clear a Book Name");
+	bool bShowItCentered = TRUE;
+	CBookName dlg(
+	(wxWindow*)gpApp->GetMainFrame(),
+	&titleStr,
+	&bookCode,
+	bShowItCentered);
+	if (dlg.ShowModal() == wxID_OK)
+	{
+
+
+	}
+
+}
+
+void CAdapt_ItDoc::OnUpdateBookNameDlg(wxUpdateUIEvent& event)
+{
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+    // enable if there is a KB ready (even if only a stub), and the document loaded 
+	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
 }
 
 
