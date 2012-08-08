@@ -479,6 +479,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\BookNameDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\BString.cpp"
 				>
 			</File>
@@ -961,6 +965,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\base64.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\BookNameDlg.h"
 				>
 			</File>
 			<File

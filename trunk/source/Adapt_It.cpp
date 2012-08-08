@@ -44054,6 +44054,44 @@ wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 	return bookCode;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return		       the full Scripture book name (English, or something else 
+///                    if localized); or an empty string if no code matches the 
+///                    passed in code
+/// \param bookCode -> a wxString representing the 3-letter USFM book code for bookName
+/// \remarks
+/// Called from: 
+/// Finds the bookCode in the App's AllBookIds[] array and uses the found index as an
+/// index into the parallel AllBookNames[] array, extracting the corresponding full
+/// book name which it then returns.
+/// Created: BEW 7Aug12 to get, for the Paratext list of books and codes, return the full
+/// (English, or localized full name) corresponding to the 3-letter book code passed in
+///////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetBookNameFromBookCode(wxString bookCode)
+{
+	// The Paratext list of book codes (3-letter Ids) is located in the App's array of
+	// wxStrings called AllBookIds. The Paratext list of full book names, localizable 
+	// (English) names, is located in the App's array of wxStrings called AllBookNames.
+	wxString bookName;
+	bookName.Empty();
+	wxString theCode = bookCode;
+	theCode = theCode.MakeUpper(); // ensure it is upper case
+	wxArrayString bookIDArray(123,AllBookIds);
+	wxArrayString bookNameArray(123,AllBookNames);
+	wxASSERT(bookIDArray.GetCount() == bookNameArray.GetCount());
+	int i,arrayCt;
+	arrayCt = (int)bookIDArray.GetCount();
+	for (i = 0; i < arrayCt; i++)
+	{
+		if (theCode == bookIDArray.Item(i))
+		{
+			bookName = bookNameArray.Item(i);
+			break;
+		}
+	}
+	return bookCode;
+}
+
 int CAdapt_ItApp::GetBookFlagIndexFromFullBookName(wxString fullBookName)
 {
 	int ct;

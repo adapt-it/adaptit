@@ -464,6 +464,9 @@ public:
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 	void OnChangePunctsOrMarkersPlacement(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event);
+	void OnBookNameDlg(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateBookNameDlg(wxUpdateUIEvent& event);
+
 
   private:
     int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
