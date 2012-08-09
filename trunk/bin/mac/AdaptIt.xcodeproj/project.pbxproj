@@ -65,6 +65,9 @@
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
+		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
+		C8C3970D15D3D2670093A3CE /* Adapt_It.wdr in Resources */ = {isa = PBXBuildFile; fileRef = C8C3970915D3D2670093A3CE /* Adapt_It.wdr */; };
+		C8C3970E15D3D2670093A3CE /* NewDialogImplementationTemplate.txt in Resources */ = {isa = PBXBuildFile; fileRef = C8C3970A15D3D2670093A3CE /* NewDialogImplementationTemplate.txt */; };
 		C8DC8FF214A3331200EA1D5C /* DVCS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DC8FF114A3331200EA1D5C /* DVCS.cpp */; };
 		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
@@ -254,6 +257,10 @@
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
+		C8C3970715D3D2670093A3CE /* BookNameDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BookNameDlg.h; path = ../../source/BookNameDlg.h; sourceTree = SOURCE_ROOT; };
+		C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BookNameDlg.cpp; path = ../../source/BookNameDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8C3970915D3D2670093A3CE /* Adapt_It.wdr */ = {isa = PBXFileReference; lastKnownFileType = file; name = Adapt_It.wdr; path = ../../source/Adapt_It.wdr; sourceTree = SOURCE_ROOT; };
+		C8C3970A15D3D2670093A3CE /* NewDialogImplementationTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = NewDialogImplementationTemplate.txt; path = ../../source/NewDialogImplementationTemplate.txt; sourceTree = SOURCE_ROOT; };
 		C8DC8FF014A3331200EA1D5C /* DVCS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCS.h; path = ../../source/DVCS.h; sourceTree = SOURCE_ROOT; };
 		C8DC8FF114A3331200EA1D5C /* DVCS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCS.cpp; path = ../../source/DVCS.cpp; sourceTree = SOURCE_ROOT; };
 		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
@@ -451,6 +458,8 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
+				C8C3970915D3D2670093A3CE /* Adapt_It.wdr */,
+				C8C3970A15D3D2670093A3CE /* NewDialogImplementationTemplate.txt */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -468,6 +477,8 @@
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
 				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
+				C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */,
+				C8C3970715D3D2670093A3CE /* BookNameDlg.h */,
 				C8DC8FF014A3331200EA1D5C /* DVCS.h */,
 				C8DC8FF114A3331200EA1D5C /* DVCS.cpp */,
 				C8F82E580F3F9CAB007579B8 /* XML.h */,
@@ -851,6 +862,8 @@
 				C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */,
 				7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */,
 				C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */,
+				C8C3970D15D3D2670093A3CE /* Adapt_It.wdr in Resources */,
+				C8C3970E15D3D2670093A3CE /* NewDialogImplementationTemplate.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -995,6 +1008,7 @@
 				7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */,
 				7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */,
 				27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */,
+				C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
