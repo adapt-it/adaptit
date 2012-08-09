@@ -15226,6 +15226,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bCollaboratingWithParatext = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
 	m_bCollaboratingWithBibledit = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
 	m_bStartWorkUsingCollaboration = FALSE; // whm added 19Feb12
+
+	// edb added 7Aug12 for Pathway export support
+	m_bPathwayIsInstalled = PathwayIsInstalled();
+	m_PathwayInstallDirPath = GetPathwayInstallDirPath();
 	
 	// whm 4Apr12 modification:
 	// As of version 6.2.1 the App's m_collaborationEditor variable is stored in

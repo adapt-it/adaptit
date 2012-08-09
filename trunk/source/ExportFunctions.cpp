@@ -776,6 +776,15 @@ void DoExportAsType(enum ExportType exportType)
 			} // switch (exportType)
 			break;
 		case ExportSaveAsXHTML:
+//		case ExportSaveAsPathway:
+			/////////////////////////////////////
+			// Export to XHTML / Pathway
+			/////////////////////////////////////
+            
+			// (Note: both XHTML and Pathway exports result in the same export;
+			// the Pathway export causes Pathway's command line (pathwayb.exe) to get
+			// called on the xhtml results after the export occurs below.)
+            
 			{
 			//////////////////////////////////////////////////////////////////////////////
 			// Export to XHTML (which type, src or tgt or glosses or free trans is handled
@@ -1168,6 +1177,43 @@ void DoExportAsType(enum ExportType exportType)
 
 	///////////////////// DoExportSfmText() ends here if it is RTF output ////////////////////////
 
+	// Pathway export
+    /*
+     if (sadlg.GetSaveAsType() == ExportSaveAsPathway)
+     {
+     // Call PathwayB.exe on the exported XHTML.
+     // The full command line should look something like this:
+     //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
+     // (A description of the PathwayB parameters can be found by calling PathwayB.exe
+     // from the command prompt without any parameters.)
+     wxString aMsg = _T("Pathway export - call Pathway on XHTML");
+     gpApp->LogUserAction(aMsg);
+     
+     wxArrayString textIOArray, errorsIOArray;
+     wxString commandLine;
+     wxString exportCSS = exportFilename;
+     exportCSS.Remove(len-3,3);
+     exportCSS += _T("css");
+     // full path to PathwayB executable
+     wxString PWBatchFilename = gpApp->m_PathwayInstallDirPath + gpApp->PathSeparator + _T("PathwayB.exe");
+     commandLine = _T("\"") + PWBatchFilename + _T("\" -d \"") + defaultDir;
+     commandLine += _T("\" -if xhtml -f * -c \"") + defaultDir + gpApp->PathSeparator + exportCSS;
+     commandLine += _T("\" -i \"Scripture\" -n \"");
+     // if there is a language code specified, pass it along; if not, use a generic "MP1"
+     commandLine += ((gpApp->m_targetLanguageCode.IsEmpty()) ? _T("MP1") : gpApp->m_targetLanguageCode);
+     // show the dialog to let the user choose the format (TODO: do we want this, or just
+     // take the defaults set up by the admin?)
+     commandLine += _T("\" -s");
+     int code = wxExecute(commandLine, wxEXEC_SYNC);
+     //int code = wxExecute(commandLine,textIOArray,errorsIOArray);
+     //int code = wxShell(commandLine);
+     aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with exit code %d."),
+     commandLine.c_str(), code);
+     gpApp->LogUserAction(aMsg);
+	}
+     */
+    
+    
 	wxFile f;
 
 	if( !f.Open( exportPath, wxFile::write))

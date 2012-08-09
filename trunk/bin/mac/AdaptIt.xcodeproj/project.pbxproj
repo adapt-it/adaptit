@@ -11,6 +11,7 @@
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
+		03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C7004915D4351800FAB605 /* Pathway.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
@@ -163,6 +164,7 @@
 		0396BFC611BEA67600100CC4 /* LanguageCodesDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LanguageCodesDlg.h; path = ../../source/LanguageCodesDlg.h; sourceTree = SOURCE_ROOT; };
 		0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RefStringMetadata.cpp; path = ../../source/RefStringMetadata.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC811BEA67600100CC4 /* RefStringMetadata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RefStringMetadata.h; path = ../../source/RefStringMetadata.h; sourceTree = SOURCE_ROOT; };
+		03C7004915D4351800FAB605 /* Pathway.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pathway.cpp; path = ../../source/Pathway.cpp; sourceTree = SOURCE_ROOT; };
 		03D7A717112A2601004F6D39 /* Notes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Notes.h; path = ../../source/Notes.h; sourceTree = "<group>"; };
 		03D7A718112A2601004F6D39 /* Notes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Notes.cpp; path = ../../source/Notes.cpp; sourceTree = "<group>"; };
 		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
@@ -421,12 +423,12 @@
 		C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = XMLErrorDlg.cpp; path = ../../source/XMLErrorDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = XMLErrorDlg.h; path = ../../source/XMLErrorDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = AIWX.gif; path = ../../res/AIWX.gif; sourceTree = SOURCE_ROOT; };
-		C8F82FBA0F3FA161007579B8 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/QuickTime.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
-		C8F830AF0F3FA3EE007579B8 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
-		C8F830B30F3FA41B007579B8 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/AGL.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
-		C8F830B70F3FA455007579B8 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
-		C8F830BB0F3FA47D007579B8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
-		C8F830BF0F3FA4AA007579B8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/System.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F82FBA0F3FA161007579B8 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/QuickTime.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830AF0F3FA3EE007579B8 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830B30F3FA41B007579B8 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/AGL.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830B70F3FA455007579B8 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830BB0F3FA47D007579B8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830BF0F3FA4AA007579B8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/System.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -473,6 +475,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				03C7004915D4351800FAB605 /* Pathway.cpp */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -1009,6 +1012,7 @@
 				7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */,
 				27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */,
 				C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */,
+				03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1237,7 +1241,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
@@ -1303,7 +1307,7 @@
 					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 				UNSTRIPPED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
 				USE_HEADERMAP = "";

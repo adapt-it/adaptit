@@ -3651,6 +3651,12 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString GetFileNameForCollaboration(wxString collabPrefix, wxString bookCode,
 				wxString ptProjectShortName, wxString chapterNumStr, wxString extStr);
 
+	// edb 8Aug12 - Pathway support
+	bool m_bPathwayIsInstalled;
+	wxString m_PathwayInstallDirPath;
+	wxString GetPathwayInstallDirPath();
+	bool	PathwayIsInstalled();
+
 	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
 	//void ForceCollabSettingsFromCommandLineSwitches();
 

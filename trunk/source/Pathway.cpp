@@ -186,6 +186,7 @@ wxString CAdapt_ItApp::GetPathwayInstallDirPath()
 /// Takes the USFM from the current project and calls Pathway's command line to convert it
 /// to the desired output format.
 //////////////////////////////////////////////////////////////////////////////////////////
+/*
 void CAdapt_ItApp::OnExportThroughPathway(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->LogUserAction(_T("Export Through Pathway"));
@@ -227,6 +228,7 @@ void CAdapt_ItApp::OnExportThroughPathway(wxCommandEvent& WXUNUSED(event))
 	wxLogStatus(_T("Shell command '%s' terminated with exit code %d."),
                 commandLine.c_str(), code);
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -238,6 +240,7 @@ void CAdapt_ItApp::OnExportThroughPathway(wxCommandEvent& WXUNUSED(event))
 /// When Pathway and Paratext are installed the "Export Through Pathway" menu
 //  command is enabled, otherwise it is disabled. 
 ////////////////////////////////////////////////////////////////////////////////////////
+/*
 void CAdapt_ItApp::OnUpdateExportThroughPathway(wxUpdateUIEvent& event)
 {
 	if (m_bReadOnlyAccess)
@@ -252,3 +255,4 @@ void CAdapt_ItApp::OnUpdateExportThroughPathway(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
+*/
