@@ -338,6 +338,8 @@ const char xml_mmcap[] = "MM";
 /// Attribute name used in Adapt It XML documents
 const char xml_docversion[] = "docVersion";
 /// Attribute name used in Adapt It XML documents
+const char xml_bookName[] = "bookName";
+/// Attribute name used in Adapt It XML documents
 const char xml_owner[] = "owner";
 /// Attribute name used in Adapt It XML documents
 const char xml_commitcnt[] = "commitcnt";
