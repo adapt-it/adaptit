@@ -37841,14 +37841,34 @@ void CAdapt_ItApp::SetCurrentSourcePhraseByIndex(int Index)
 /// \return     TRUE if id is a valid book ID, otherwise FALSE
 /// \param      id   -> the book ID being tested for validity
 /// \remarks
-/// Called from: the App's AppendSourcePhrasesToCurrentDoc() and GetBookIDFromDoc().
+/// Called from: the App's AppendSourcePhrasesToCurrentDoc() (the latter is used in the
+/// Join Documents... command) and GetBookIDFromDoc().
 /// Determines if the string represented by id is a valid book ID contained in the
-/// m_pBibleBooks list of pointers to BookNamePair structs. It is valid if it is the
-/// same as a bookCode member in the list.
+/// Paratext list of codes. It is valid if it is the same as a bookCode member in the list.
 /// BEW 29Mar10, changed to accept lower, upper or mixed case for the book code
+/// BEW 8Aug12, changed to accept the full 123 list of Paratext codes, as in the
+/// AllBookIds[] array (they are not localizable, and each is upper case), as the test for
+/// validity, since we are collaborating with Paratext these days
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::IsValidBookID(wxString& id)
 {
+	wxString theCode = id;
+	theCode = theCode.MakeUpper(); // ensure it is upper case
+	wxArrayString bookIDArray(123,AllBookIds);
+	int i,arrayCt;
+	arrayCt = (int)bookIDArray.GetCount();
+	for (i = 0; i < arrayCt; i++)
+	{
+		if (theCode == bookIDArray.Item(i))
+		{
+			return TRUE; // matched a code, so return TRUE
+			break;
+		}
+	}
+	// no match, so
+	return FALSE;
+
+	/* deprecated code -- uses the books.xml list only
 	wxArrayPtrVoid* pBooks = this->m_pBibleBooks;
 	int nArraySize = pBooks->GetCount();
 	int index;
@@ -37867,6 +37887,7 @@ bool CAdapt_ItApp::IsValidBookID(wxString& id)
 		}
 	}
 	return bFoundIt != FALSE;
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -37878,6 +37899,9 @@ bool CAdapt_ItApp::IsValidBookID(wxString& id)
 /// have any "\id" marker in its m_markers member). If the \id marker exists, it examines
 /// the next word of the \id line checking there for a valid 3-letter book ID name. If a
 /// valid book ID is found it returns it, otherwise it returns a null string.
+/// BEW changed 8Aug12 to support the full 123 Paratext book codes (see AllBookIds[]
+/// array), these are all uppercase and not localizable. No actual change was needed, just
+/// changed a comment -- IsValidBookID() does the actual work of checking the Paratext list
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetBookIDFromDoc()
 {
@@ -37887,7 +37911,7 @@ wxString CAdapt_ItApp::GetBookIDFromDoc()
     // lacked an initial \id field, or if it had one, the book ID might contain a typo, so
     // we check for validity of the ID code and that it has a length of 3 (characters)
     // returning an empty string if invalid, no matter what the string may have been; or
-    // returning the code if it is a valid one
+    // returning the code if it is a valid one -- according to the Paratext list of codes
 	wxString id;
 	id.Empty();
 	SPList::Node* pos = m_pSourcePhrases->GetFirst();
@@ -37905,10 +37929,10 @@ wxString CAdapt_ItApp::GetBookIDFromDoc()
 		id.Empty();
 		return id;
 	}
-	bool bIsValid = this->IsValidBookID(id);
+	bool bIsValid = this->IsValidBookID(id); // checks the Paratext list of codes
 	if (!bIsValid)
 	{
-		// it's not one of the IDs defined in the books.xml file
+		// it's not one of the IDs defined in the AllBookIds[] array
 		id.Empty();
 		return id;
 	}
@@ -44089,7 +44113,7 @@ wxString CAdapt_ItApp::GetBookNameFromBookCode(wxString bookCode)
 			break;
 		}
 	}
-	return bookCode;
+	return bookName;
 }
 
 int CAdapt_ItApp::GetBookFlagIndexFromFullBookName(wxString fullBookName)

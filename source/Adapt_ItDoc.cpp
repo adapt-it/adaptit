@@ -25081,8 +25081,12 @@ void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-// TODO   --- get the bookcode, for now, just hard code one
-	wxString bookCode = _T("MAT");
+	// get the bookcode
+	wxString bookCode = gpApp->GetBookIDFromDoc();
+
+// ***************** TEMPORARY**********************
+// hard code an "existing" book name for testing purposes
+	gpApp->m_bookName_Current = _T("Revelation");
 
 	wxString titleStr = _("Set or Clear a Book Name");
 	bool bShowItCentered = TRUE;
@@ -25106,8 +25110,11 @@ void CAdapt_ItDoc::OnUpdateBookNameDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-    // enable if there is a KB ready (even if only a stub), and the document loaded 
-	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady)
+    // enable if there is a KB ready (even if only a stub), and the document loaded,
+	// and (this is the really important one) there is a valid bookID code in the document
+	// - valid according to the 123 item list for Paratext bookID 3-letter codes 
+	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady 
+		&& !(gpApp->GetBookIDFromDoc().IsEmpty()))
 	{
 		event.Enable(TRUE);
 	}
