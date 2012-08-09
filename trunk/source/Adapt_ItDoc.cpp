@@ -2561,10 +2561,10 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			DoWrite(f,aStr);
 		}
 	}
-	else // use chose a normal docVersion 5 xml build
+	else // use chose a normal docVersion 5 (or later) xml build
 	{
 		// this is identical to what the File / Save choice does, for building the
-		// doc's XML, for VERSION_NUMBER (currently == 5) for docVersion
+		// doc's XML, for VERSION_NUMBER (currently 5 or later) for docVersion
 		while (pos != NULL)
 		{
 			if (bShowWaitDlg)
@@ -3684,6 +3684,16 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr << GetCurrentDocVersion(); // tempStr is UTF-16
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add versionable schema number string
+
+	// BEW 9Aug12 addition: support saving the content of wxString m_bookName_Current, it
+	// could be empty, or some book name from the Paratext list, or a custom user-defined
+	// name (possibly in a vernacular); this addition is part of the docVersion7 additions
+	tempStr = gpApp->m_bookName_Current; // could be an empty string
+	btemp = gpApp->Convert16to8(tempStr);
+	InsertEntities(btemp); // escape any xml metacharacters
+	bstr += "\" bookName=\"";
+	bstr += btemp; // add the book name
+	tempStr.Empty();
 
 // mrh - new fields with docVersion 7:
 	btemp = gpApp->Convert16to8(gpApp->m_owner);
@@ -25084,9 +25094,9 @@ void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
 	// get the bookcode
 	wxString bookCode = gpApp->GetBookIDFromDoc();
 
-// ***************** TEMPORARY**********************
-// hard code an "existing" book name for testing purposes
-	gpApp->m_bookName_Current = _T("Revelation");
+	// ***************** TEMPORARY**********************
+	// hard code an "existing" book name for testing purposes
+	//gpApp->m_bookName_Current = _T("Revelation");
 
 	wxString titleStr = _("Set or Clear a Book Name");
 	bool bShowItCentered = TRUE;
@@ -25097,10 +25107,11 @@ void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
 	bShowItCentered);
 	if (dlg.ShowModal() == wxID_OK)
 	{
-
-
+		// nothing to do, if OK button clicked, the OnOK() handler updates app's member
+		// m_bookName_Current with the user's chosen book name (which could be an empty string)
 	}
-
+	// if Cancel button chosen, the book name is not changed from it's current value in
+	// the app's m_bookName_Current member
 }
 
 void CAdapt_ItDoc::OnUpdateBookNameDlg(wxUpdateUIEvent& event)

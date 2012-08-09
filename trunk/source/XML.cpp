@@ -3080,7 +3080,18 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				}
 
 			// mrh 20Apr12 - for docVersion 7, we look for the 3 new items:
+			// and BEW's 9Aug12 addition of a bookName attribute in Settings also
 	
+				else if (gnDocVersion >= 7 && attrName == xml_bookName)
+				{
+					ReplaceEntities (attrValue);			// first restore any XML metacharacters
+	#ifdef _UNICODE
+					gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
+	#else
+					gpApp->m_bookName = attrValue;
+	#endif	
+				}
+
 				else if (gnDocVersion >= 7 && attrName == xml_owner)
 				{
 					ReplaceEntities (attrValue);			// first restore any XML metacharacters
