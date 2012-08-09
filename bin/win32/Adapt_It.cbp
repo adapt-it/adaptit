@@ -371,6 +371,8 @@
 		<Unit filename="..\..\source\CorGuess.h" />
 		<Unit filename="..\..\source\CreateNewAIProjForCollab.cpp" />
 		<Unit filename="..\..\source\CreateNewAIProjForCollab.h" />
+		<Unit filename="..\..\source\DVCS.cpp" />
+		<Unit filename="..\..\source\DVCS.h" />
 		<Unit filename="..\..\source\DocPage.cpp" />
 		<Unit filename="..\..\source\DocPage.h" />
 		<Unit filename="..\..\source\EarlierTranslationDlg.cpp" />
@@ -449,6 +451,7 @@
 		<Unit filename="..\..\source\OpenExistingProjectDlg.h" />
 		<Unit filename="..\..\source\OutputFilenameDlg.cpp" />
 		<Unit filename="..\..\source\OutputFilenameDlg.h" />
+		<Unit filename="..\..\source\Pathway.cpp" />
 		<Unit filename="..\..\source\PeekAtFile.cpp" />
 		<Unit filename="..\..\source\PeekAtFile.h" />
 		<Unit filename="..\..\source\PhraseBox.cpp" />
@@ -528,6 +531,8 @@
 		<Unit filename="..\..\source\XML.h" />
 		<Unit filename="..\..\source\XMLErrorDlg.cpp" />
 		<Unit filename="..\..\source\XMLErrorDlg.h" />
+		<Unit filename="..\..\source\Xhtml.cpp" />
+		<Unit filename="..\..\source\Xhtml.h" />
 		<Unit filename="..\..\source\base64.cpp" />
 		<Unit filename="..\..\source\base64.h" />
 		<Unit filename="..\..\source\conschk_exists_notu_dlg.cpp" />

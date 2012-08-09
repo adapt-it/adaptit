@@ -735,6 +735,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Pathway.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\PeekAtFile.cpp"
 				>
 			</File>
