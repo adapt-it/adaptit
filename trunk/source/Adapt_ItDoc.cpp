@@ -1370,6 +1370,14 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more efffective
 		}
 	}
+	// wrap the DoBookName() call, because OnNewDocument() gets called before any doc
+	// is actually loaded in order to set up the doc/view framework, and we'll have a null
+	// pointer crash otherwise
+	if (pApp->m_pSourcePhrases != NULL && !pApp->m_pSourcePhrases->IsEmpty())
+	{
+		DoBookName(); // show book naming dialog if there is a valid bookID code in it
+	}
+
 	pApp->LogUserAction(_T("Return TRUE from OnNewDocument()"));
 	return TRUE;
 }
@@ -4831,6 +4839,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Opening the Document"),msgDisplayed,nTotal,500);
 	}
 
+	// force m_bookName_Current to be empty, so that if it gets a value here, the value
+	// has to have come from the doc being loaded (at the end, if still empty, we give the
+	// user a chance to set a book name)
+	gpApp->m_bookName_Current.Empty();
+
 	wxFileName fn(filename);
 
 	if (extension == _T(".xml"))
@@ -5241,6 +5254,16 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			pApp->m_pTargetBox->Hide();
 			pApp->m_pTargetBox->Enable(FALSE);
 			pApp->m_pTargetBox->SetEditable(FALSE);
+		}
+		// BEW added 9Aug12, if it's not read-only, we want to force open the Book Naming
+		// dialog if (1) m_bookName_Current is still an empty string at this time (so that
+		// old docs which lack a bookname get can get one added when opened), and (2) the
+		// document contains a valid (Paratext compatible) bookID code -- the latter
+		// constraint is built into DoBookName() so that the latter does nothing if called
+		// on a document lacking a bookID
+		if (pApp->m_bookName_Current.IsEmpty())
+		{
+			DoBookName(); // show book naming dialog if there is a valid bookID code in it
 		}
 	}
 
@@ -25068,6 +25091,18 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 	return TRUE;
 }
 
+// this one is public; it calls the private OnBookNameDlg(), but only provided there is a
+// valid bookID code in the document; if there isn't, it does nothing
+void CAdapt_ItDoc::DoBookName()
+{
+	wxString code = gpApp->GetBookIDFromDoc();
+	if (code.IsEmpty())
+		return;
+	wxCommandEvent dummyEvent;
+	OnBookNameDlg(dummyEvent);
+}
+
+// this is private
 void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();

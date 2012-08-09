@@ -446,6 +446,14 @@ public:
 	void OnFileOpen(wxCommandEvent& WXUNUSED(event));
 	void OnFileClose(wxCommandEvent& event);
 	void OnUpdateFileClose(wxUpdateUIEvent& event);
+	void OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdateUIEvent& event);
+	void OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& event);
+	void OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& event);
+	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
+	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
+	void DoBookName(); // to access the Book Naming dialog from anywhere, calls OnBookNameDlg()
+private:
 	void OnSplitDocument(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSplitDocument(wxUpdateUIEvent& event);
 	void OnJoinDocuments(wxCommandEvent& WXUNUSED(event));
@@ -456,12 +464,6 @@ public:
 	void OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFilePackDoc(wxUpdateUIEvent& event);
 	void OnUpdateFileUnpackDoc(wxUpdateUIEvent& event);
-	void OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdateUIEvent& event);
-	void OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent& event);
-	void OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& event);
-	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
-	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
 	void OnChangePunctsOrMarkersPlacement(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event);
 	void OnBookNameDlg(wxCommandEvent& WXUNUSED(event));
