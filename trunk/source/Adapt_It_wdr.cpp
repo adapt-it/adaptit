@@ -9011,7 +9011,7 @@ wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item13 = new wxStaticBox( parent, -1, _("Type the different book name here:") );
+    wxStaticBox *item13 = new wxStaticBox( parent, -1, _("The following book name is what will be used:") );
     wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
 
     wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_BOOKNAME, wxT(""), wxDefaultPosition, wxSize(-1,28), 0 );

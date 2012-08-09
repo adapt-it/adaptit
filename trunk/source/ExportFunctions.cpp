@@ -376,6 +376,7 @@ bool DeclineIfUnstructuredData()
 /// for scripture (such as OTX), giving a suitable warning, and the caller should then
 /// return from the xhtml export attempt; else return FALSE and the caller should continue
 /// processing. Return the bookCode, if defined, via the signature; else return an empty string
+/// Note: as of 8Aug12, GetBookIDFromDoc() supports the full list of 123 Paratext bookID codes.
 bool DeclineIfNoBookCode(wxString& bookCode)
 {
 	wxString msg;

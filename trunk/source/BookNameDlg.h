@@ -30,33 +30,40 @@ class CBookName : public AIModalDialog
 {
 public:
 	CBookName(
-		wxWindow* parent,
-		wxString* title,
-		wxString* pstrBookCode, 
-		bool      bShowCentered); // constructor
+		wxWindow*	parent,
+		wxString*	title,
+		wxString*	pstrBookCode, 
+		bool		bShowCentered); // constructor
 	virtual ~CBookName(); // destructor
 
 	// member variables
-	wxString	   m_lastBookName; // grabbed from app's m_bookName_Current member, and stored here
-	wxString	   m_newBookName; // empty, but if not, it will have the newly typed book name or the suggested name
+	wxString		m_currentBookName; // grabbed from app's m_bookName_Current member, and stored here
+	wxString		m_newBookName; // empty, but if not, it will have the newly typed book name or the suggested name
+	wxString		m_suggestedBookName; // get from Paratext list of book names, and show in radio button label
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
+	void OnRadioSuggestedName(wxCommandEvent& WXUNUSED(event));
+	void OnRadioInappropriateBookName(wxCommandEvent& WXUNUSED(event));
+	void OnRadioUseCurrentBookName(wxCommandEvent& WXUNUSED(event));
+	void OnRadioUseDifferentBookName(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes
-	wxSizer*	   m_pBookNameDlgSizer;
-	wxTextCtrl*    m_pTextCtrl_NewBookName; // for typing a new book name if the last checkbox option is chosen
-	wxTextCtrl*    m_pTextCtrl_LastBookName; // m_lastBookName's string is shown to user here
-	wxString	   m_checkSuggestionLabelStr; // for the "The suggested bookname, %s, is acceptable" string
-	wxCheckBox*	   m_pCheckbox_UseLastBtn;
-	wxCheckBox*	   m_pCheckbox_NotMeaningfulBtn;
-	wxCheckBox*	   m_pCheckbox_SuggestThisOneBtn;
-	wxCheckBox*	   m_pCheckbox_TypeInBoxBelowBtn;
+	wxSizer*		m_pBookNameDlgSizer;
+	wxString		m_checkSuggestionLabelStr; // for the "The suggested bookname, %s, is acceptable" string
 	bool			m_bShowItCentered;
-	wxString	   m_bookCode; // store the passed in book code here
+	wxString		m_bookCode; // store the passed in book code here
+	wxString		m_radioLabelStr; //for the suggested name one
+
+	wxRadioButton*	m_pRadioSuggestedName;
+	wxRadioButton*	m_pRadioUseCurrent;
+	wxRadioButton*	m_pRadioTypeMyOwn;
+	wxRadioButton*	m_pRadioInappropriateName;
+	wxTextCtrl*		m_pTextCtrl_CurrentBookName;
+	wxTextCtrl*		m_pTextCtrl_TypeNewBookName;
 
 	DECLARE_EVENT_TABLE()
 };
