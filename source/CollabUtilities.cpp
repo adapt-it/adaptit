@@ -2519,6 +2519,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	wxASSERT(extension[0] == _T('.')); // check it really is an extension
 	bool bWasXMLReadIn = TRUE;
 
+	// force m_bookName_Current to be empty, so that if it gets a value here, the value
+	// has to have come from the doc being loaded (at the end, if still empty, we give the
+	// user a chance to set a book name)
+	pApp->m_bookName_Current.Empty();
+
 	// get the filename
 	wxString fname = pathToDoc;
 	fname = MakeReverse(fname);
@@ -2887,6 +2892,20 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	// remove the progress dialog
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
+
+	// BEW added 9Aug12, if the app member string, m_bookName_Current, is here still an
+	// empty string, then we want to force open the BookName dialog to give the user a
+	// chance to name the book this data is from; it's then saved in the document's
+	// bookName attribute of the <Settings> tag (added for docVersion 7 and higher). If
+	// the m_bookName_Current member is not empty, we can assume it was already set
+	// correctly and so we don't open the dialog (m_bookName_Current is emptied at the
+	// start of OpenDocWithMerger() in case a previous document, which could be from a
+	// different book, was open in this session.
+	if (pApp->m_bookName_Current.IsEmpty())
+	{
+		pApp->GetDocument()->DoBookName(); // show book naming dialog if there 
+										   // is a valid bookID code in it
+	}
 	return TRUE;
 }
 
