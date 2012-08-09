@@ -179,6 +179,14 @@
 		<Unit filename="../../res/tgt12.svg" />
 		<Unit filename="../../res/unmakeaphr.bmp" />
 		<Unit filename="../../res/unmakeaphr.svg" />
+		<Unit filename="../../res/vectorized/document-new_22.cpp" />
+		<Unit filename="../../res/vectorized/document-open_22.cpp" />
+		<Unit filename="../../res/vectorized/document-print_22.cpp" />
+		<Unit filename="../../res/vectorized/document-save_22.cpp" />
+		<Unit filename="../../res/vectorized/pw_48.cpp" />
+		<Unit filename="../../res/vectorized/text-html_48.cpp" />
+		<Unit filename="../../res/vectorized/text-rtf_48.cpp" />
+		<Unit filename="../../res/vectorized/text-txt_48.cpp" />
 		<Unit filename="../../res/viewtranselsewh.bmp" />
 		<Unit filename="../../res/viewtranselsewh.svg" />
 		<Unit filename="../../res/wxWindowsLogo.bmp" />
@@ -218,6 +226,8 @@
 		<Unit filename="../../source/AutoSavingPage.h" />
 		<Unit filename="../../source/BString.cpp" />
 		<Unit filename="../../source/BString.h" />
+		<Unit filename="../../source/BookNameDlg.cpp" />
+		<Unit filename="../../source/BookNameDlg.h" />
 		<Unit filename="../../source/CCModule.cpp" />
 		<Unit filename="../../source/CCModule.h" />
 		<Unit filename="../../source/CCTabbedDialog.cpp" />
@@ -339,6 +349,7 @@
 		<Unit filename="../../source/OpenExistingProjectDlg.h" />
 		<Unit filename="../../source/OutputFilenameDlg.cpp" />
 		<Unit filename="../../source/OutputFilenameDlg.h" />
+		<Unit filename="../../source/Pathway.cpp" />
 		<Unit filename="../../source/PeekAtFile.cpp" />
 		<Unit filename="../../source/PeekAtFile.h" />
 		<Unit filename="../../source/PhraseBox.cpp" />
