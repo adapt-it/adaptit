@@ -37004,6 +37004,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 /// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
 /// OnRadioReviewing() and OnRadioDrafting()
 /// Updates the status bar message to reflect the current activity.
+/// BEW 9Aug12, shortened messages to accomodate having "BookName: xxxx" at the end
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RefreshStatusBarInfo()
 {
@@ -37022,12 +37023,14 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		if (m_bLockedCustomWorkFolderPath)
 		{
 			// a persistent custom work folder location is in effect
-			rscStr = _("[Custom Work Folder Location]  Current Project: %s");
+			//rscStr = _("[Custom Work Folder Location]  Current Project: %s");
+			rscStr = _("[Custom Location] Project: %s");
 		}
 		else
 		{
 			// a non-persistent custom work folder location is in effect
-			rscStr = _("[Temporary Work Folder Location]  Current Project: %s");
+			//rscStr = _("[Temporary Work Folder Location]  Current Project: %s");
+			rscStr = _("[Temporary Location] Project: %s");
 		}
 	}
 	else
@@ -37043,15 +37046,32 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 			rscStr = _T("[");
 			rscStr += message;
 			rscStr += _T("] ");
-			rscStr += _T("Current Project: %s");
+			//rscStr += _T("Current Project: %s");
+			rscStr += _T("Project: %s");
 		}
 		else
 		{
-			rscStr = _("[Default Work Folder Location]  Current Project: %s");
+			//rscStr = _("[Default Work Folder Location]  Current Project: %s");
+			rscStr = _("[Default Location] Project: %s");
 		}
 	}
 	wxString message;
-	message = message.Format(rscStr,gpApp->m_curProjectName.c_str());
+
+	// BEW added 9Aug12 to show book name if there is a bookID defined
+	if (m_pSourcePhrases != NULL && !m_pSourcePhrases->IsEmpty())
+	{
+		// RefreshStatusBarInfo() can be called before a doc is set up, so wrap with this
+		// protection to avoid a crash
+		if (!(GetBookIDFromDoc()).IsEmpty())
+		{
+			message += _T(" "); 
+			message += _("from Book: ");
+			message += m_bookName_Current;
+			message += _T(" "); 
+		}
+	}
+	//message = message.Format(rscStr,gpApp->m_curProjectName.c_str());
+	message += message.Format(rscStr,gpApp->m_curProjectName.c_str());
 
 	// do nothing if there is no active pile or a bad sequence number of no target box
 	bool bDocIsThere = TRUE;
@@ -37109,7 +37129,8 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		if (gpApp->m_pCurrBookNamePair != NULL && gpApp->m_nBookIndex != -1)
 		{
 			// IDS_CURFOLDER
-			mssg = mssg.Format(_("  Current Folder: %s"),
+			//mssg = mssg.Format(_("  Current Folder: %s"),
+			mssg = mssg.Format(_("  Folder: %s"),
 							gpApp->m_pCurrBookNamePair->seeName.c_str());
 			message += mssg;
 		}
@@ -37119,14 +37140,16 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 			// IDS_UNDEFINED
 			undef = _(" Undefined");
 			// IDS_CURFOLDER
-			mssg = mssg.Format(_("  Current Folder: %s"),undef.c_str());
+			//mssg = mssg.Format(_("  Current Folder: %s"),undef.c_str());
+			mssg = mssg.Format(_("  Folder: %s"),undef.c_str());
 			message += mssg;
 		}
 	}
 	else
 	{
 		// IDS_CURFOLDER
-		mssg = mssg.Format(_("  Current Folder: %s"),_("Adaptations"));
+		//mssg = mssg.Format(_("  Current Folder: %s"),_("Adaptations"));
+		mssg = mssg.Format(_("  Folder: %s"),_("Adaptations"));
 		message += mssg;
 	}
 	if (gpApp->m_bTransliterationMode)
@@ -37135,7 +37158,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		// when it is turned on
 		//IDS_USING_TRANSLIT_STATUS_MSG
 		mssg = _("!! TRANSLITERATING !!");
-		message += _T("    ") + mssg;
+		message += _T("   ") + mssg;
 	}
 	pView->StatusBarMessage(message);
 	pFrame->m_pStatusBar->Update();

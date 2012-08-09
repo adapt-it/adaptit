@@ -4077,6 +4077,12 @@ void FromDocVersion4ToDocVersionCurrent(SPList* pList, CSourcePhrase*& pSrcPhras
 {
 	gpApp->m_bDefineFreeTransByPunctuation = TRUE; // BEW 27Feb12, best we can do
 
+	if (docVersion >= 7)
+	{
+		// set an empty string as the current bookName
+		gpApp->m_bookName_Current.Empty(); 
+	}
+
 	if (pSrcPhrase->m_markers.IsEmpty())
 		return; // no conversions needed for this one
 
