@@ -251,12 +251,64 @@ void CProjectPage::OnCallWizardNext(wxCommandEvent& WXUNUSED(event))
 
 void CProjectPage::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
 {
-    //if ( wxMessageBox(_T("Do you really want to cancel?"), _T("Question"),
-    //                    wxICON_QUESTION | wxYES_NO, this) != wxYES )
-    //{
-    //    // not confirmed
-    //    event.Veto();
-    //}
+	// whm added 7Aug12. 
+	// The following corrects a serious bug that was causing project config files to
+	// loose their collaboration settings.
+	// Here is how the bug was occurring:
+	// 1. At startup AI displays the wizard's Project Page, and a previously used 
+	// project is highlighted in the list of projects. It is a project that the 
+	// administrator had previously set up for collaboration with PT/BE. The app 
+	// knows what the previously selected project's name and path was by means of 
+	// the App's m_curProjectName and m_curProjectPath variables - which are 
+	// normally stored in the basic configuration file.
+	// 2. If however, instead of advancing through the wizard, the user decides to 
+	// cancel from the ProjectPage. No project will have been explicitly selected 
+	// by the user - even though a project was highlighted in the AI project list 
+	// in ProjectPage. In such circumstances, the Next button was not selected so 
+	// no project configuration file will have been read, and no collaboration 
+	// settings for any project will have been read into the App's m_Collab... 
+	// members leaving them empty. However, the bug now surfaces because the 
+	// m_curProjectPath variable still retains the path value that was used in the 
+	// previous session.
+	// 3. If the user decides then to close the application by clicking on the x icon 
+	// in the frame's window title bar at this point, the App will start the close-down 
+	// process and eventually the app's OnExit() function is called. When the 
+	// m_curProjectPath member is not empty, the code in OnExit() is designed to write 
+	// out any project config file which m_curProjectPath is still pointing to at the 
+	// time the App is closed. This is appropriate behavior if a project had actually 
+	// been selected/opened by the user, but when the user cancels at the Project Page, 
+	// no project get's opened and all of the collaboration settings remain in their 
+	// empty default state, and of course, empty collaboration settings should not be 
+	// saved in this scenario. Rather, no project has actually been selected, so the 
+	// m_curProjectPath string should not point to any project - not even the project 
+	// used in a previous session.
+	// 
+	// The fix to this problem was to simply set the m_curProjectPath to an empty 
+	// string in the ProjectPage's OnWizardCancel() handler. Doing so prevents the 
+	// OnExit() function from attempting to save any project configuration file at the 
+	// time the application is closed - and now the emptied collaboration values don't 
+	// get stored in the project configuration file in the above scenario.
+	// Even if a user actually selects the project and advances in the wizard to show 
+	// the 3-button collaboration dialog and selects one of the three choices and 
+	// advances to the next step, i.e., the "Get Source Text From Paratext/Bibledit 
+	// Project" dialog if collaboration was chosen, or the "Select a Document" wizard 
+	// page if no collaboration or read-only options were chosen, but then hits the 
+	// Cancel button at that point - or clicks << Back from the "Select a Document" 
+	// page of the wizard to go back to the "Select a Project" page, and clicks Cancel 
+	// from there, and closes down the application, in that scenario too the "empty" 
+	// collaboration settings won't get wrongly saved to the project's configuration 
+	// file.
+	
+	// We must make sure that a project configuration file (AI-ProjectConfiguration.aic )
+	// for any highlighted project is NOT saved in this circumstance, otherwise 
+	// collaboration settings will be lost for the highlighted project in the event 
+	// the user immediately clicks on the main frame's close icon and OnExit() forces 
+	// a save of the project config file.
+	// To prevent this from happening, we should empty the m_curProjectPath member which
+	// will prevent calls of WriteConfigurationFile(..., m_curProjectPath,projectConfigFile)
+	// from happening/succeeding.
+	gpApp->m_curProjectPath.Empty();
+	gpApp->LogUserAction(_T("User cancelled from Wizard at Project Page: emptying App's m_curProjectPath"));
 }
 
 // This InitDialog is called from the DoStartWorkingWizard() function
@@ -507,7 +559,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// was initialized by SetupMarkerStrings in InitInstance.
 			pApp->gProjectFilterMarkersForConfig = pApp->gCurrentFilterMarkers;
 			
-			pApp->LogUserAction(_T("In wizard ProjectPage changing: New Project"));
+			wxString msg = _T("In wizard ProjectPage changing: Creating New Project");
+			pApp->LogUserAction(msg);
 
             // Movement through wizard pages is sequential - the next page is the
             // languagesPage. The pLanguagesPage's InitDialog need to be called here just
@@ -523,7 +576,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// it's an existing project, so we'll create KBs for it and show only the
 			// two-page wizard (Project Page and Doc Page)
 
- 			pApp->LogUserAction(_T("In wizard ProjectPage changing: Existing Project"));
+			wxString msg = _T("In wizard ProjectPage changing: Existing Project: \"%s\"");
+			msg = msg.Format(msg,m_projectName.c_str());
+ 			pApp->LogUserAction(msg);
             
 			// Roland Fumey requested that AI show a progress dialog during the project
             // loading since large KBs can take a while to create backup copies and load.

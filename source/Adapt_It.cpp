@@ -12108,6 +12108,39 @@ void CAdapt_ItApp::ForceCollabSettingsFromCommandLineSwitches()
 }
 */
 
+wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
+{
+	// Gets the collab settings from the App's values and concatenates them into
+	// a wxString for use in LogUserAction()
+	wxString settingsStr;
+	settingsStr = _T("Collab Settings:");
+	settingsStr += _T("src_proj:[");
+	settingsStr += m_CollabProjectForSourceInputs;
+	settingsStr += _T("]tgt_proj:[");
+	settingsStr += m_CollabProjectForTargetExports;
+	settingsStr += _T("]ft_proj:[");
+	settingsStr += m_CollabProjectForFreeTransExports;
+	settingsStr += _T("]ai_proj:[");
+	settingsStr += m_CollabAIProjectName;
+	settingsStr += _T("]editor:[");
+	settingsStr += m_collaborationEditor;
+	settingsStr += _T("]src_lang:[");
+	settingsStr += m_CollabSourceLangName;
+	settingsStr += _T("]tgt_lang:[");
+	settingsStr += m_CollabTargetLangName;
+	settingsStr += _T("]expects_ft:[");
+	settingsStr << (int)m_bCollaborationExpectsFreeTrans;
+	settingsStr += _T("]ch_only:[");
+	settingsStr << (int)m_bCollabByChapterOnly;
+	settingsStr += _T("]book:[");
+	settingsStr += m_CollabBookSelected;
+	settingsStr += _T("]chapter:[");
+	settingsStr += m_CollabChapterSelected;
+	settingsStr += _T("]");
+
+	return settingsStr;
+}
+
 void CAdapt_ItApp::GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
 													   wxArrayString& collabSettingsArray)
 {
@@ -32793,13 +32826,20 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 		// whm modified 10Mar10, we also don't allow the local user, if he has access to a
 		// remote project folder, to write project or basic config files on the remote
 		// machine, unless they are of the "AI-Admin..." type.
+		if (m_bReadOnlyAccess)
+			LogUserAction(_T("WriteConfigurationFile() called but bypassed due to read-only access"));
+		else if (IsURI(destinationFolder) && configFilename.Find(_T("AI-Admin")) != 0)
+			LogUserAction(_T("WriteConfigurationFile() called but bypassed due to IsURI && AI-Admin config file"));
 		return TRUE; // TRUE to only simulate successful write in WriteConfigurationFile().
 	}
 
 	// BEW added 17Aug09, to allow OnExit() to be called without having config files
 	// composed and written out when in an error state early in app setup
 	if (m_bDoNotWriteConfigFiles)
+	{
+		LogUserAction(_T("WriteConfigurationFile() called but bypassed due to m_bDoNotWriteConfigFiles"));
 		return FALSE;
+	}
 
     // WriteConfigurationFile(,,basicConfigFile) to Basic config file: called only in App's Terminate()
     // WriteConfigurationFile(,,projectConfigFile) to Project config file: called in App's OnExit(),
@@ -32818,6 +32858,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 		// BEW removed message 31Oct05; it serves no useful purpose
 		// because the user does not need to know this
 		//IDS_NO_PROJECT_PATH
+		LogUserAction(_T("WriteConfigurationFile() called but bypassed due to destinationFolder is empty"));
 		return FALSE;
 	}
 	wxString path;
@@ -32837,6 +32878,8 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	// make the working directory the "Adapt It Work" one
 	// bool bOK = ::SetCurrentDirectory(destinationFolder); // ignore failures
 	bIsOK = ::wxSetWorkingDirectory(destinationFolder);
+	if (!bIsOK)
+		LogUserAction(_T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed"));
 	wxCHECK_MSG(bIsOK, FALSE, _T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed, line 29,032 in Adapt_It.cpp"));
 
 	// open the config file for writing
@@ -32873,6 +32916,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	{
 		// assume there was no configuration file in existence yet,
 		// so nothing needs to be fixed
+		LogUserAction(_T("WriteConfigurationFile(): bypassed wxFile::Open() not successful/no config file yet"));
 		return FALSE;
 	}
 
@@ -32911,6 +32955,9 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	else
 	{
 		f.AddLine(szProjectSettings);
+		wxString settingsStr = GetCollabSettingsAsStringForLog();
+		// LogUserAction(settingsStr); // uncomment for debugging from user log file
+		wxLogDebug(settingsStr);
 		WriteProjectSettingsConfiguration(&f);
 	}
 
@@ -40011,7 +40058,7 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 			wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
 			msg = msg.Format(msg,m_curProjectName.c_str(),m_collaborationEditor.c_str());
 			wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
-			pView->CloseProject();
+			pView->CloseProject(); // calls View's OnFileCloseProject()
 		}
 	}
 	
@@ -42539,7 +42586,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 	}
 	else
 	{
-		// We are using a custom work folder path. If m_bLockedCustomWorkFolderPath if FALSE
+		// We are using a custom work folder path. If m_bLockedCustomWorkFolderPath is FALSE
 		// we are just looking at someone's project folder in a custom location and need to
 		// set up and use an admin project config file. If m_bLockedCustomWorkFolderPath is
 		// TRUE we can go ahead and use the project config file for that project's folder
@@ -42589,7 +42636,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			{
 				// none available, so force one to be written out to m_workFolderPath
 				// and then use that, and remove the one we forced after the cloning is
-				// done further below; parameter 2 in the following call forces writing
+				// done further below; parameter 3 in the following call forces writing
 				// of a project config file rather than a basic one
 				bool bWrittenOK = WriteConfigurationFile(szProjectConfiguration,basePath,projectConfigFile);
 				if (!bWrittenOK)

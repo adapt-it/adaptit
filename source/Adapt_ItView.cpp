@@ -6097,7 +6097,11 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// the handler.
 	if (event.GetId() == ID_FILE_CLOSEKB)
 	{
-		pApp->LogUserAction(_T("Close Project"));
+		pApp->LogUserAction(_T("User initiated Close Project"));
+	}
+	else
+	{
+		pApp->LogUserAction(_T("Program initiated Close Project"));
 	}
 
 	// BEW added 6Nov09 because, if recovering within the OnInit() call just after
@@ -6109,36 +6113,11 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// is returned as NULL, and so the pDoc->OnFileClose() call a little further below
 	// would fail unless we here detect a pDoc being NULL and exit immediately
 	if (pDoc == NULL)
+	{
+		wxString msg = _T("Doc == NULL, returned early from OnFileCloseProject(): m_curProjectPath = %s [not reset/emptied in OnFileCloseProject()]");
+		msg = msg.Format(msg,pApp->m_curProjectPath.c_str());
+		pApp->LogUserAction(msg);
 		return; // do nothin because no doc instance exists yet, so prevent crash
-
-	if (gbGlossingVisible)
-	{
-		// glossing is on, so we must ensure the menu toggle is turned off and the
-		// glossing checkbox removed, so this can all be done with the following call
-		OnAdvancedSeeGlosses(event);
-	}
-
-	if (pApp->m_bFreeTranslationMode)
-	{
-		// free translation mode is on, so we must first turn it off
-		wxCommandEvent event;
-		pApp->GetFreeTrans()->OnAdvancedFreeTranslationMode(event);
-	}
-
-	if (!gbIgnoreScriptureReference_Receive)
-	{
-		// scripture reference receiving is turned on, and it must be
-		// off when there is no project current
-		wxCommandEvent uevent;
-		GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(uevent); //toggle it to TRUE
-	}
-
-	if (!gbIgnoreScriptureReference_Send)
-	{
-		// scripture reference sending is turned on, and it must be
-		// off when there is no project current
-		wxCommandEvent uevent;
-		GetDocument()->OnAdvancedSendSynchronizedScrollingMessages(uevent); //toggle it to TRUE
 	}
 
 	// whm added 28Feb12
@@ -6170,6 +6149,11 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	if (pApp->m_pKB == NULL)
 	{
 		wxLogDebug(_T("m_pKB is NULL - project is already closed."));
+		// whm added 7Aug12. When the project is closed the m_curProjectPath should be an empty string.
+		wxString msg = _T("m_pKB == NULL, returned early from OnFileCloseProject(): m_curProjectPath = %s");
+		msg = msg.Format(msg,pApp->m_curProjectPath.c_str());
+		pApp->LogUserAction(msg);
+		pApp->m_curProjectPath.Empty();
 		return;
 	}
 
@@ -6179,8 +6163,40 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	if (bUserCancelled)
 	{
 		bUserCancelled = FALSE; // clear the flag to default situation
-		pApp->LogUserAction(_T("Cancelled from pDoc->OnFileClose()"));
+		wxString msg = _T("User cancelled from pDoc->OnFileClose() within OnFilecloseProject(): m_curProjectPath = %s");
+		msg = msg.Format(msg,pApp->m_curProjectPath.c_str());
+		pApp->LogUserAction(msg);
 		return;
+	}
+
+	if (gbGlossingVisible)
+	{
+		// glossing is on, so we must ensure the menu toggle is turned off and the
+		// glossing checkbox removed, so this can all be done with the following call
+		OnAdvancedSeeGlosses(event);
+	}
+
+	if (pApp->m_bFreeTranslationMode)
+	{
+		// free translation mode is on, so we must first turn it off
+		wxCommandEvent event;
+		pApp->GetFreeTrans()->OnAdvancedFreeTranslationMode(event);
+	}
+
+	if (!gbIgnoreScriptureReference_Receive)
+	{
+		// scripture reference receiving is turned on, and it must be
+		// off when there is no project current
+		wxCommandEvent uevent;
+		GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(uevent); //toggle it to TRUE
+	}
+
+	if (!gbIgnoreScriptureReference_Send)
+	{
+		// scripture reference sending is turned on, and it must be
+		// off when there is no project current
+		wxCommandEvent uevent;
+		GetDocument()->OnAdvancedSendSynchronizedScrollingMessages(uevent); //toggle it to TRUE
 	}
 
 	/* unneeded, EraseKB() (called twice below) will do this internally

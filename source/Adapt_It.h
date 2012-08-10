@@ -3662,6 +3662,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 
 	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
 													   wxArrayString& collabSettingsArray);
+	wxString GetCollabSettingsAsStringForLog();
 	bool IsAIProjectOpen();
 	bool AIProjectHasCollabDocs(wxString m_projectName);
 	bool AIProjectIsACollabProject(wxString m_projectName);
