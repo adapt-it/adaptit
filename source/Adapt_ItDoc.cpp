@@ -4893,6 +4893,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         // do if m_bWantSourcePhrasesOnly is set. Hence, we simply exit early; because all
         // we are wanting is the list of CSourcePhrase instances.
 		gpApp->LogUserAction(_T("Return TRUE early from OnOpenDocument() m_bWantSourcePhrasesOnly"));
+		ValidateNoteStorage();
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
 		return TRUE; // Added by JF.
@@ -5250,6 +5251,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			pApp->m_pTargetBox->Hide();
 			pApp->m_pTargetBox->Enable(FALSE);
 			pApp->m_pTargetBox->SetEditable(FALSE);
+		}
+		else
+		{
+			ValidateNoteStorage(); // ensure there are no bogus m_bHasNote flag values present
 		}
 	}
 
@@ -25156,5 +25161,25 @@ void CAdapt_ItDoc::OnUpdateBookNameDlg(wxUpdateUIEvent& event)
 	}
 }
 
-
+void CAdapt_ItDoc::ValidateNoteStorage()
+{
+	SPList* pList = gpApp->m_pSourcePhrases;
+	if (pList == NULL || pList->IsEmpty())
+		return;
+	SPList::Node* pos = pList->GetFirst();
+	while (pos != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		if ((pSrcPhrase->GetNote()).IsEmpty())
+		{
+			pSrcPhrase->m_bHasNote = FALSE;
+		}
+		else
+		{
+			// it has a note string, so ensure the flag is set
+			pSrcPhrase->m_bHasNote = TRUE;
+		}
+	}
+}
 

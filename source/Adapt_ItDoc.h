@@ -425,6 +425,9 @@ public:
 	virtual ~CAdapt_ItDoc();
 
 protected:
+	void			ValidateNoteStorage(); // ensure no m_bHasNote flags are TRUE but lack
+						// any note being stored there, and that every stored note has the
+						// m_bHasNote flag set TRUE -- run at start of OnOpenDocument()
 
 #ifdef CONSCHK
 	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
