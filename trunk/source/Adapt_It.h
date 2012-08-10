@@ -3835,8 +3835,8 @@ public:
 	bool	CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors);
 	void	SetupKBPathsEtc();
 	void	SetupMarkerStrings();
-	bool	StoreGlossingKB(bool bAutoBackup);
-	bool	StoreKB(bool bAutoBackup);
+	bool	StoreGlossingKB(bool bShoWaitDlg, bool bAutoBackup);
+	bool	StoreKB(bool bShoWaitDlg, bool bAutoBackup);
 	void	SubstituteKBBackup(bool bDoOnGlossingKB = FALSE);
 	void	Terminate();
 	void	UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView));

@@ -23129,7 +23129,7 @@ bool CAdapt_ItApp::LoadGlossingKB(bool bShowProgress)
 			m_pGlossingKB = new CKB(TRUE);
 
 		// store it on disk & close it
-		bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+		bool bOK = StoreGlossingKB(bShowProgress,FALSE); // first time, so we can't make a backup
 
 		// restore the saved flag values to what they were in the caller
 		gbIsGlossing = bSaveIsGlossingFlag;
@@ -23280,7 +23280,7 @@ bool CAdapt_ItApp::LoadKB(bool bShowProgress)
 		m_pKB->m_targetLanguageName = m_targetName;
 
 		// store it on disk & close it
-		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+		bool bOK = StoreKB(bShowProgress,FALSE); // first time, so we can't make a backup
 
 		// restore the saved flag values to what they were in the caller
 		gbIsGlossing = bSaveIsGlossingFlag;
@@ -23416,7 +23416,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		m_pKB->m_sourceLanguageName = m_sourceName;
 		m_pKB->m_targetLanguageName = m_targetName;
 
-		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+		bool bOK = StoreKB(TRUE, FALSE); // TRUE = show progress dialog; FALSE first time, so we can't make a backup
 		if (bOK)
 		{
 			m_bKBReady = TRUE;
@@ -23486,7 +23486,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		m_pGlossingKB = new CKB(TRUE);
 		wxASSERT(m_pGlossingKB != NULL);
 
-		bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+		bool bOK = StoreGlossingKB(TRUE,FALSE); // TRUE = show progress dialog; FALSE first time, so we can't make a backup
 		if (bOK)
 		{
 			m_bGlossingKBReady = TRUE;
@@ -23977,7 +23977,7 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 /// Stores the glossing KB data in the external xml file located in the path represented
 /// by m_curGlossingKBPath.
 ///////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
+bool CAdapt_ItApp::StoreGlossingKB(bool bShowWaitDlg, bool bAutoBackup)
 {
 	// whm Note: This StoreGlossingKB() could easily be combined with the StoreKB()
 	// routine below into a single function
@@ -24022,7 +24022,11 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	wxFileName fn(m_curGlossingKBPath);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	wxProgressDialog* pProgDlg;
-	pProgDlg = OpenNewProgressDialog(_("Saving the Glossing KB"),msgDisplayed,nTotal,500);
+	pProgDlg = (wxProgressDialog*)NULL;
+	if (bShowWaitDlg)
+	{
+		pProgDlg = OpenNewProgressDialog(_("Saving the Glossing KB"),msgDisplayed,nTotal,500);
+	}
 
 	m_pGlossingKB->DoKBSaveAsXML(f, pProgDlg, nTotal); // pProgDlg can be NULL and nTotal 0
 
@@ -24073,7 +24077,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 /// Stores the KB data in the external xml file located in the path represented
 /// by m_curKBPath.
 ///////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
+bool CAdapt_ItApp::StoreKB(bool bShowWaitDlg, bool bAutoBackup)
 {
 	if (m_bReadOnlyAccess)
 		return TRUE; // BEW 13Nov09, not an error, just suppression of a remote save
@@ -24112,7 +24116,11 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	wxFileName fn(m_curKBPath);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Saving the KB"),msgDisplayed,nTotal,500);
+	pProgDlg = (wxProgressDialog*)NULL;
+	if (bShowWaitDlg)
+	{
+		pProgDlg = gpApp->OpenNewProgressDialog(_("Saving the KB"),msgDisplayed,nTotal,500);
+	}
 
 	m_pKB->DoKBSaveAsXML(f, pProgDlg, nTotal); // pProgDlg can be NULL and nTotal 0
 
@@ -24190,7 +24198,7 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 		}
 		// no removal needed if there is not a backup present
 	}
-	bool bOK = StoreKB(bAutoBackup);
+	bool bOK = StoreKB(TRUE,bAutoBackup); // TRUE = show progress dialog
 
 	return bOK;
 }
@@ -24234,7 +24242,7 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 		}
 		// no removal needed if there is not a backup present
 	}
-	bool bOK = StoreGlossingKB(bAutoBackup);
+	bool bOK = StoreGlossingKB(TRUE,bAutoBackup); // TRUE = show progress dialog
 	return bOK;
 }
 
@@ -25206,7 +25214,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(m_pGlossingKB != NULL);
 
-			bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+			bool bOK = StoreGlossingKB(FALSE,FALSE); // FALSE = don't show progress dialog; FALSE first time, so we can't make a backup
 			if (bOK)
 			{
 				m_bGlossingKBReady = TRUE;
@@ -25250,7 +25258,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			m_pKB->m_sourceLanguageName = m_sourceName;
 			m_pKB->m_targetLanguageName = m_targetName;
 
-			bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+			bool bOK = StoreKB(FALSE,FALSE); // FALSE = don't show progress dialog; FALSE first time, so we can't make a backup
 			if (bOK)
 			{
 				m_bKBReady = TRUE;
@@ -34823,7 +34831,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			m_pKB = new CKB(FALSE);
 			m_bKBReady = TRUE;
 			wxASSERT(m_pKB);
-			bool bStoredOK = StoreKB(m_bAutoBackupKB);
+			bool bStoredOK = StoreKB(FALSE, m_bAutoBackupKB); // FALSE = don't show progress dialog
 			// unlikely to fail, so an English message hardcoded will do
 			if (!bStoredOK)
 				wxMessageBox(_T("The new empty adaptations KB did not successfully store to disk"),
@@ -34837,7 +34845,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
 		// store the filled glossing KB on disk; leave it open since the user may want to
 		// do some work or examine the glossing KB in the KB editor etc.
-		bool bOK = StoreGlossingKB(m_bAutoBackupKB);
+		bool bOK = StoreGlossingKB(FALSE, m_bAutoBackupKB); // FALSE = don't show progress dialog
 		// unlikely to fail, so an English message hardcoded will do
 		if (!bOK)
 		{
