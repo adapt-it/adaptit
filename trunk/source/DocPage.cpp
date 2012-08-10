@@ -959,7 +959,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	}
 	else // the user did not choose <New Document>
 	{
-		pApp->LogUserAction(_T("In DocPage: Finish selected: Open Existing Document"));
+		wxString msg = _T("In DocPage: Finish selected: Open Existing Document: \"%s\"");
+		msg = msg.Format(msg,m_docName.c_str());
+		pApp->LogUserAction(msg);
         
 		// it's an existing document that we want to open; but first we can come here with
         // an existing doc open, so we must first close it & also prompt for doc save & kb
