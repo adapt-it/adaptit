@@ -424,6 +424,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't
 								// automatically call it
 
+	// force m_bookName_Current to be empty -- it will stay empty unless the user chooses
+	// to manually add a book name using the GUI menu item for doing so, or if an xhtml
+	// export is done - he'll be asked for a bookname and shown the dialog for same
+	gpApp->m_bookName_Current.Empty();
+
 	// whm 26Jul11 revised. When m_lastSourceInputPath is empty, use the special folder
 	// __SOURCE_INPUTS. See similar code in DocPage.cpp::OnWizardFinish().
 	wxString dirPath;
@@ -1370,14 +1375,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more efffective
 		}
 	}
-	// wrap the DoBookName() call, because OnNewDocument() gets called before any doc
-	// is actually loaded in order to set up the doc/view framework, and we'll have a null
-	// pointer crash otherwise
-	if (pApp->m_pSourcePhrases != NULL && !pApp->m_pSourcePhrases->IsEmpty())
-	{
-		DoBookName(); // show book naming dialog if there is a valid bookID code in it
-	}
-
 	pApp->LogUserAction(_T("Return TRUE from OnNewDocument()"));
 	return TRUE;
 }
@@ -4840,8 +4837,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	}
 
 	// force m_bookName_Current to be empty, so that if it gets a value here, the value
-	// has to have come from the doc being loaded (at the end, if still empty, we give the
-	// user a chance to set a book name)
+	// has to have come from the doc being loaded
 	gpApp->m_bookName_Current.Empty();
 
 	wxFileName fn(filename);
@@ -5254,16 +5250,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			pApp->m_pTargetBox->Hide();
 			pApp->m_pTargetBox->Enable(FALSE);
 			pApp->m_pTargetBox->SetEditable(FALSE);
-		}
-		// BEW added 9Aug12, if it's not read-only, we want to force open the Book Naming
-		// dialog if (1) m_bookName_Current is still an empty string at this time (so that
-		// old docs which lack a bookname get can get one added when opened), and (2) the
-		// document contains a valid (Paratext compatible) bookID code -- the latter
-		// constraint is built into DoBookName() so that the latter does nothing if called
-		// on a document lacking a bookID
-		if (pApp->m_bookName_Current.IsEmpty())
-		{
-			DoBookName(); // show book naming dialog if there is a valid bookID code in it
 		}
 	}
 

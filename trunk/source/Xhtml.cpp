@@ -3366,30 +3366,16 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			break;
 		}
 		
-		// are we at the end of the book?
-/*  
-// ****   TODO work out how to detect this, so we can do the m_endnoteDumpArray's 
-// dump and close of with the needed </dev> endtags --  I think another book must start 
-// with an \id line, so do that way ******************************************************************** Note ****
+		// Are we at the end of the book?
+        // Our present code will not support multiple books in the one export. If we want
+        // to do that, we'll have to close off a book here and start another - and extra
+        // code would be needed here for that
 
-		if (m_nextMkr.IsEmpty())
-		{
-			// finish off the end of the book
-					
-// and don't forget to add a call to FinishOff(3) after dumping at the book end from the array
-
-// TODO
-
-
-			xhtmlStr += myxml;
-			myxml.Empty(); // clear, for next production
-		}
-*/
 	// continue looping so long as something remains in m_pBuffer to be parsed over
 	} while (!m_pBuffer->IsEmpty());
 
-	// trim any final spaces
-	xhtmlStr += FinishOff(4); // should be 4 </div> tags added, then closure for body and html
+	// trim any final spaces; do the endnote dump, and add the final closing tags
+	xhtmlStr += FinishOff(3); // should be 3 </div> tags added, then closure for body and html
 
 	return xhtmlStr;
 }
@@ -4371,7 +4357,7 @@ CBString Xhtml::BuildAnchor(CBString myUUID)
 }
 
 // puts </div></div>..., as many as the input param says, at the end of the data - should
-// be 4; also dumps endnotes if there were any squirreled away in m_endnoteDumpArray
+// be 3; also dumps endnotes if there were any squirreled away in m_endnoteDumpArray
 CBString Xhtml::FinishOff(int howManyEndDivs)
 {
 	CBString theEnd; theEnd.Empty();
@@ -4394,7 +4380,7 @@ CBString Xhtml::FinishOff(int howManyEndDivs)
 	}
 	theEnd += "</body>";
 	theEnd += m_eolStr;
-	theEnd += "<html>";
+	theEnd += "</html>";
 	return theEnd;
 }
 
