@@ -311,7 +311,7 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 		// Set exportPath to the appropriate outputs folder for XHTML (it's _XHTML_OUTPUTS
 		// unless some earlier folder choice was used and has been stored in app's
 		// m_lastXhtmlOutputPath - in which case defaultDir points there instead)
-		exportPath = defaultDir + gpApp->PathSeparator + gpApp->m_xhtmlOutputsFolderName;
+		exportPath = defaultDir + gpApp->PathSeparator + exportFilename;
 	}
 	wxLogNull logNo; // avoid spurious messages from the system
 	
@@ -776,7 +776,7 @@ void DoExportAsType(enum ExportType exportType)
 			} // switch (exportType)
 			break;
 		case ExportSaveAsXHTML:
-//		case ExportSaveAsPathway:
+		case ExportSaveAsPathway:
 			/////////////////////////////////////
 			// Export to XHTML / Pathway
 			/////////////////////////////////////
@@ -812,6 +812,7 @@ void DoExportAsType(enum ExportType exportType)
 			gpApp->LogUserAction(aMsg);
 			// make a suitable default output filename for the export function
 			exportFilename.Remove(len-3,3); // remove the extension
+            wxString exportCSS = exportFilename + _T("css");
 			exportFilename += _T("xhtml"); // make it a *.txt file type
             // Prepare a unique filename from the exportFilename. This unique filename and
             // path is used when the export is nav protected or when the user has ticked
@@ -828,21 +829,53 @@ void DoExportAsType(enum ExportType exportType)
 			bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
 				gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_xhtmlOutputsFolderPath, 
 				gpApp->m_lastXhtmlOutputPath, defaultDir);
-			// produce the XHTML, storing it in a user-chosen folder, or if folder
-			// navigation is not protect, in the project's _XHTML_OUTPUTS folder, or
-			// in whatever folder path was in m_lastXhtmlOutputPath 
-			DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir, 
-				exportFilename, filter);
-			return;
+
+            if (sadlg.GetSaveAsType() == ExportSaveAsPathway)
+            {
+                // produce the XHTML, storing it in the project's _XHTML_OUTPUTS folder, or
+                // in whatever folder path was in m_lastXhtmlOutputPath
+                bBypassFileDialog_ProtectedNavigation = true;
+                DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
+                    exportFilename, filter);
+                 // Call PathwayB.exe on the exported XHTML.
+                 // The full command line should look something like this:
+                 //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
+                 // (A description of the PathwayB parameters can be found by calling PathwayB.exe
+                 // from the command prompt without any parameters.)
+                 wxString aMsg = _T("Pathway export - call Pathway on XHTML");
+                 gpApp->LogUserAction(aMsg);
+
+                 wxArrayString textIOArray, errorsIOArray;
+                 wxString commandLine;
+                 // full path to PathwayB executable
+                 wxString PWBatchFilename = gpApp->m_PathwayInstallDirPath + gpApp->PathSeparator + _T("PathwayB.exe");
+                 commandLine = _T("\"") + PWBatchFilename + _T("\" -d \"") + defaultDir;
+				 commandLine += _T("\" -if xhtml -f \"") + defaultDir + gpApp->PathSeparator + exportFilename;
+				 commandLine += _T("\" -c \"") + defaultDir + gpApp->PathSeparator + exportCSS;
+                 commandLine += _T("\" -i \"Scripture\" -n \"");
+                 // if there is a language code specified, pass it along; if not, use a generic "MP1"
+                 commandLine += ((gpApp->m_targetLanguageCode.IsEmpty()) ? _T("MP1") : gpApp->m_targetLanguageCode);
+                 // show the dialog to let the user choose the format (TODO: do we want this, or just
+                 // take the defaults set up by the admin?)
+                 commandLine += _T("\" -s");
+                 int code = wxExecute(commandLine, wxEXEC_SYNC);
+                 //int code = wxExecute(commandLine,textIOArray,errorsIOArray);
+                 //int code = wxShell(commandLine);
+                 aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with exit code %d."),
+                 commandLine.c_str(), code);
+                 gpApp->LogUserAction(aMsg);
+                 return;
+            }
+            else // xhtml output
+            {
+                // produce the XHTML, storing it in a user-chosen folder, or if folder
+                // navigation is not protect, in the project's _XHTML_OUTPUTS folder, or
+                // in whatever folder path was in m_lastXhtmlOutputPath
+                DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
+                    exportFilename, filter);
+                return;
+            }
 			}
-			break;
-		case ExportSaveAsPathway:
-			/////////////////////////////////////
-			// Export to XHTML / Pathway
-			/////////////////////////////////////
-			// Note: both paths should result in the same export; Pathway's command line
-			// will just get called on the xhtml results if the user has selected
-			// ExportSaveAsPathway.
 			break;
 	    case ExportSaveAsTXT:
 	    default:
@@ -1177,43 +1210,6 @@ void DoExportAsType(enum ExportType exportType)
 
 	///////////////////// DoExportSfmText() ends here if it is RTF output ////////////////////////
 
-	// Pathway export
-    /*
-     if (sadlg.GetSaveAsType() == ExportSaveAsPathway)
-     {
-     // Call PathwayB.exe on the exported XHTML.
-     // The full command line should look something like this:
-     //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
-     // (A description of the PathwayB parameters can be found by calling PathwayB.exe
-     // from the command prompt without any parameters.)
-     wxString aMsg = _T("Pathway export - call Pathway on XHTML");
-     gpApp->LogUserAction(aMsg);
-     
-     wxArrayString textIOArray, errorsIOArray;
-     wxString commandLine;
-     wxString exportCSS = exportFilename;
-     exportCSS.Remove(len-3,3);
-     exportCSS += _T("css");
-     // full path to PathwayB executable
-     wxString PWBatchFilename = gpApp->m_PathwayInstallDirPath + gpApp->PathSeparator + _T("PathwayB.exe");
-     commandLine = _T("\"") + PWBatchFilename + _T("\" -d \"") + defaultDir;
-     commandLine += _T("\" -if xhtml -f * -c \"") + defaultDir + gpApp->PathSeparator + exportCSS;
-     commandLine += _T("\" -i \"Scripture\" -n \"");
-     // if there is a language code specified, pass it along; if not, use a generic "MP1"
-     commandLine += ((gpApp->m_targetLanguageCode.IsEmpty()) ? _T("MP1") : gpApp->m_targetLanguageCode);
-     // show the dialog to let the user choose the format (TODO: do we want this, or just
-     // take the defaults set up by the admin?)
-     commandLine += _T("\" -s");
-     int code = wxExecute(commandLine, wxEXEC_SYNC);
-     //int code = wxExecute(commandLine,textIOArray,errorsIOArray);
-     //int code = wxShell(commandLine);
-     aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with exit code %d."),
-     commandLine.c_str(), code);
-     gpApp->LogUserAction(aMsg);
-	}
-     */
-    
-    
 	wxFile f;
 
 	if( !f.Open( exportPath, wxFile::write))
