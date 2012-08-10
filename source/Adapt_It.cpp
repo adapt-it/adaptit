@@ -37075,13 +37075,13 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		{
 			// a persistent custom work folder location is in effect
 			//rscStr = _("[Custom Work Folder Location]  Current Project: %s");
-			rscStr = _("[Custom Location] Project: %s");
+			rscStr = _("[Custom Work Folder Location] Project: %s");
 		}
 		else
 		{
 			// a non-persistent custom work folder location is in effect
 			//rscStr = _("[Temporary Work Folder Location]  Current Project: %s");
-			rscStr = _("[Temporary Location] Project: %s");
+			rscStr = _("[Temporary Work Folder Location] Project: %s");
 		}
 	}
 	else
@@ -37103,17 +37103,18 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		else
 		{
 			//rscStr = _("[Default Work Folder Location]  Current Project: %s");
-			rscStr = _("[Default Location] Project: %s");
+			rscStr = _("[Default Work Folder Location] Project: %s");
 		}
 	}
 	wxString message;
 
-	// BEW added 9Aug12 to show book name if there is a bookID defined
+	// BEW added 9Aug12 to show book name if there is a bookID defined and also a stored
+	// book name in the document
 	if (m_pSourcePhrases != NULL && !m_pSourcePhrases->IsEmpty())
 	{
 		// RefreshStatusBarInfo() can be called before a doc is set up, so wrap with this
 		// protection to avoid a crash
-		if (!(GetBookIDFromDoc()).IsEmpty())
+		if (!(GetBookIDFromDoc()).IsEmpty() && !m_bookName_Current.IsEmpty())
 		{
 			message += _T(" "); 
 			message += _("from Book: ");
