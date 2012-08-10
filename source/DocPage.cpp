@@ -167,6 +167,8 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 	// Note: This constructor is only called when the new CDocPage statement is
 	// encountered in the App before the wizard displays. It is not called
 	// when the page changes to/from the docPage in the Wizard.
+	
+	m_pParentWizard = parent; // whm added 10Aug12
 
 	// TODO: Is the following needed for WX in light of other m_currProjectPath initializations below for WX
 	gbReachedDocPage = TRUE; // we can't set nLastWizPage to doc_page, because that would clobber the
@@ -615,6 +617,12 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 					m_pListBox->SetSelection(index, TRUE);
 					if (index > 0)
 						m_pListBox->SetFirstItem(index); // make the item visible if it would require scrolling whm added 10Mar08
+					// whm added 10Aug12 Set focus on the "Finish" button and ensure the Wizard is raised to
+					// top of z-order.
+					wxButton* pFinish = (wxButton*)m_pParentWizard->FindWindowById(wxID_FORWARD);
+					if (pFinish)
+						pFinish->SetFocus();
+					m_pParentWizard->Raise();
 				}
 			}
 		}

@@ -76,6 +76,8 @@ protected:
 
 private:
 	// other class attributes
+	
+	wxWizard* m_pParentWizard;
 
     DECLARE_DYNAMIC_CLASS( CDocPage )
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

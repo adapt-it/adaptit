@@ -2492,7 +2492,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
 	// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 	// wxProgressDialog(). Therefore we must test for NULL here.
-	if (pProgDlg != NULL)
+	if (pProgDlg != NULL && bShowWaitDlg) // whm 10Aug12 added && bShowWaitDlg test
 	{
 		pProgDlg->Update(1,msgDisplayed);
 		//::wxSafeYield();
@@ -2675,8 +2675,8 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
 	// file, so must store both KBs, since the user could have altered both since the last
 	// save
-	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
-	gpApp->StoreKB(FALSE);
+	gpApp->StoreGlossingKB(bShowWaitDlg, FALSE); // FALSE = don't want backup produced
+	gpApp->StoreKB(bShowWaitDlg, FALSE);
 
 	// remove the phrase box's entry again (this code is sensitive to whether glossing is on
 	// or not, because it is an adjustment pertaining to the phrasebox contents only, to undo
@@ -16056,7 +16056,15 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Packing Document"),msgDisplayed,nTotal,500);
+	pProgDlg = (wxProgressDialog*)NULL;
+	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
+	{
+		// whm added 10Aug12. Put up progress dialog only when the packed inputs/outputs folder
+		// is protected, i.e., don't put up the progress dialog when a file dialog will appear
+		// because the progress dialog would generally overlay the file dialog. We want the file
+		// dialog to be unobscured.
+		pProgDlg = gpApp->OpenNewProgressDialog(_("Packing Document"),msgDisplayed,nTotal,500);
+	}
 
     // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
     // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
@@ -16185,7 +16193,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// due to a processing error.
 	if (!gpApp->m_bReadOnlyAccess)
 	{
-		bSavedOK = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog
+		bSavedOK = DoFileSave_Protected(FALSE, pProgDlg); // FALSE - don't show another wait/progress dialog
 		// English error message will have been seen in the call, so just prevent the pack
 		// from proceeding further; but we don't expect a failure in DoFileSave_Protected()
 		if (!bSavedOK)
@@ -16440,7 +16448,9 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 			// this means he doesn't want the Pack Document... command to go ahead
 			gpApp->LogUserAction(_T("Cancelled from DoPackDocument() at wxFileDialog()"));
 			if (pProgDlg != NULL)
+			{
 				pProgDlg->Destroy();
+			}
 			return FALSE;
 		}
 
