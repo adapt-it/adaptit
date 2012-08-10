@@ -2377,7 +2377,14 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 	// nor \note ... \note* markers, so each should be FALSE
 	m_freeMkr = _T("\\free");
 	m_noteMkr = _T("\\note");
-	m_bContainsFreeTrans = (m_pBuffer->Find(m_freeMkr) != wxNOT_FOUND) ? TRUE : FALSE; 
+	m_bContainsFreeTrans = (m_pBuffer->Find(m_freeMkr) != wxNOT_FOUND) ? TRUE : FALSE;
+	// debug
+	//int offsetdb = m_pBuffer->Find(m_noteMkr);
+	//if (offsetdb != wxNOT_FOUND)
+	//{
+	//	wxString s = m_pBuffer->Mid(offsetdb - 20);
+	//	offsetdb = offsetdb;
+	//}
 	m_bContainsNotes = (m_pBuffer->Find(m_noteMkr) != wxNOT_FOUND) ? TRUE : FALSE;
 	wxASSERT(!m_bContainsFreeTrans);
 	wxASSERT(!m_bContainsNotes);
