@@ -120,7 +120,7 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pExportSaveAsSizer = ExportSaveAsDlgFunc(this, TRUE, TRUE);
+	pExportSaveAsSizer = ExportSaveAsDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	// edb 15June2012: This is a workaround for a difference between wxSmith and wxDesigner 2.20a.
@@ -217,7 +217,13 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// enable or disable the checkboxes as appropriate to the exporting context there.
 	
 	pExportSaveAsSizer->Layout();
-	this->Fit();
+	// The bottom of the dialog is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ExportSaveAsDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pExportSaveAsSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 	
 	//this->SetWindowStyle(wxDEFAULT_DIALOG_STYLE);
 }
