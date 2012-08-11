@@ -71,10 +71,11 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	AdminMoveOrCopy.$(OBJEXT) \
 	AssignLocationsForInputsAndOutputs.$(OBJEXT) \
 	AdminEditMenuProfile.$(OBJEXT) AutoSavingPage.$(OBJEXT) \
-	base64.$(OBJEXT) BString.$(OBJEXT) CCModule.$(OBJEXT) \
-	CCTabbedDialog.$(OBJEXT) CCTableEditDlg.$(OBJEXT) \
-	CCTableNameDlg.$(OBJEXT) CaseEquivPage.$(OBJEXT) \
-	Cell.$(OBJEXT) ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
+	base64.$(OBJEXT) BString.$(OBJEXT) BookNameDlg.$(OBJEXT) \
+	CCModule.$(OBJEXT) CCTabbedDialog.$(OBJEXT) \
+	CCTableEditDlg.$(OBJEXT) CCTableNameDlg.$(OBJEXT) \
+	CaseEquivPage.$(OBJEXT) Cell.$(OBJEXT) \
+	ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) CollabUtilities.$(OBJEXT) \
 	conschk_exists_notu_dlg.$(OBJEXT) \
 	ConsChk_Empty_noTU_Dlg.$(OBJEXT) ChooseLanguageCode.$(OBJEXT) \
@@ -101,9 +102,9 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	MoveDialog.$(OBJEXT) Mover.$(OBJEXT) MyListBox.$(OBJEXT) \
 	NavProtectNewDoc.$(OBJEXT) NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
 	OpenExistingProjectDlg.$(OBJEXT) OutputFilenameDlg.$(OBJEXT) \
-	PeekAtFile.$(OBJEXT) PhraseBox.$(OBJEXT) Pile.$(OBJEXT) \
-	Placeholder.$(OBJEXT) PlaceInternalMarkers.$(OBJEXT) \
-	PlaceInternalPunct.$(OBJEXT) \
+	Pathway.$(OBJEXT) PeekAtFile.$(OBJEXT) PhraseBox.$(OBJEXT) \
+	Pile.$(OBJEXT) Placeholder.$(OBJEXT) \
+	PlaceInternalMarkers.$(OBJEXT) PlaceInternalPunct.$(OBJEXT) \
 	PlaceRetranslationInternalMarkers.$(OBJEXT) \
 	PrintOptionsDlg.$(OBJEXT) ProjectPage.$(OBJEXT) \
 	PunctCorrespPage.$(OBJEXT) ReadOnlyProtection.$(OBJEXT) \
@@ -417,7 +418,8 @@ adaptit_SOURCES = \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
 	../../source/AdminEditMenuProfile.cpp ../../source/AutoSavingPage.cpp \
-	../../source/base64.cpp ../../source/BString.cpp ../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
+	../../source/base64.cpp ../../source/BString.cpp ../../source/BookNameDlg.cpp \
+	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
@@ -444,7 +446,7 @@ adaptit_SOURCES = \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
 	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp \
-	../../source/PeekAtFile.cpp ../../source/PhraseBox.cpp \
+	../../source/Pathway.cpp ../../source/PeekAtFile.cpp ../../source/PhraseBox.cpp \
 	../../source/Pile.cpp ../../source/Placeholder.cpp ../../source/PlaceInternalMarkers.cpp \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
@@ -568,6 +570,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AssignLocationsForInputsAndOutputs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AutoSavingPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BString.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BookNameDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCModule.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCTabbedDialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCTableEditDlg.Po@am__quote@
@@ -626,6 +629,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Notes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OpenExistingProjectDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OutputFilenameDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Pathway.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PeekAtFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PhraseBox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Pile.Po@am__quote@
@@ -877,6 +881,20 @@ BString.obj: ../../source/BString.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/BString.cpp' object='BString.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BString.obj `if test -f '../../source/BString.cpp'; then $(CYGPATH_W) '../../source/BString.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/BString.cpp'; fi`
+
+BookNameDlg.o: ../../source/BookNameDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BookNameDlg.o -MD -MP -MF $(DEPDIR)/BookNameDlg.Tpo -c -o BookNameDlg.o `test -f '../../source/BookNameDlg.cpp' || echo '$(srcdir)/'`../../source/BookNameDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BookNameDlg.Tpo $(DEPDIR)/BookNameDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/BookNameDlg.cpp' object='BookNameDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BookNameDlg.o `test -f '../../source/BookNameDlg.cpp' || echo '$(srcdir)/'`../../source/BookNameDlg.cpp
+
+BookNameDlg.obj: ../../source/BookNameDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BookNameDlg.obj -MD -MP -MF $(DEPDIR)/BookNameDlg.Tpo -c -o BookNameDlg.obj `if test -f '../../source/BookNameDlg.cpp'; then $(CYGPATH_W) '../../source/BookNameDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/BookNameDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BookNameDlg.Tpo $(DEPDIR)/BookNameDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/BookNameDlg.cpp' object='BookNameDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BookNameDlg.obj `if test -f '../../source/BookNameDlg.cpp'; then $(CYGPATH_W) '../../source/BookNameDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/BookNameDlg.cpp'; fi`
 
 CCModule.o: ../../source/CCModule.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CCModule.o -MD -MP -MF $(DEPDIR)/CCModule.Tpo -c -o CCModule.o `test -f '../../source/CCModule.cpp' || echo '$(srcdir)/'`../../source/CCModule.cpp
@@ -1731,6 +1749,20 @@ OutputFilenameDlg.obj: ../../source/OutputFilenameDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/OutputFilenameDlg.cpp' object='OutputFilenameDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o OutputFilenameDlg.obj `if test -f '../../source/OutputFilenameDlg.cpp'; then $(CYGPATH_W) '../../source/OutputFilenameDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/OutputFilenameDlg.cpp'; fi`
+
+Pathway.o: ../../source/Pathway.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Pathway.o -MD -MP -MF $(DEPDIR)/Pathway.Tpo -c -o Pathway.o `test -f '../../source/Pathway.cpp' || echo '$(srcdir)/'`../../source/Pathway.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Pathway.Tpo $(DEPDIR)/Pathway.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Pathway.cpp' object='Pathway.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Pathway.o `test -f '../../source/Pathway.cpp' || echo '$(srcdir)/'`../../source/Pathway.cpp
+
+Pathway.obj: ../../source/Pathway.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Pathway.obj -MD -MP -MF $(DEPDIR)/Pathway.Tpo -c -o Pathway.obj `if test -f '../../source/Pathway.cpp'; then $(CYGPATH_W) '../../source/Pathway.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Pathway.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Pathway.Tpo $(DEPDIR)/Pathway.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Pathway.cpp' object='Pathway.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Pathway.obj `if test -f '../../source/Pathway.cpp'; then $(CYGPATH_W) '../../source/Pathway.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Pathway.cpp'; fi`
 
 PeekAtFile.o: ../../source/PeekAtFile.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PeekAtFile.o -MD -MP -MF $(DEPDIR)/PeekAtFile.Tpo -c -o PeekAtFile.o `test -f '../../source/PeekAtFile.cpp' || echo '$(srcdir)/'`../../source/PeekAtFile.cpp
