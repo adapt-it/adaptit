@@ -3210,79 +3210,83 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxPanel *item2 = new wxPanel( parent, ID_PNLEXPORT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    item2->SetName( wxT("pnlExport") );
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxFlexGridSizer *item2 = new wxFlexGridSizer( 1, 0, 0 );
 
-    wxButton *item3 = new wxButton( parent, ID_BUTTON_CHANGE_BOOK_NAME, _("Change Book Name..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxPanel *item3 = new wxPanel( parent, ID_PNLEXPORT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    item3->SetName( wxT("pnlExport") );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item5 = new wxStaticBox( parent, -1, _("Description") );
-    wxStaticBoxSizer *item4 = new wxStaticBoxSizer( item5, wxVERTICAL );
+    wxButton *item4 = new wxButton( parent, ID_BUTTON_CHANGE_BOOK_NAME, _("Change Book Name..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_LBLEXPORTTYPEDESCRIPTION, _("lblDescription"), wxDefaultPosition, wxSize(425,-1), 0 );
-    item6->SetName( wxT("lblExportTypeDescription") );
-    item4->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticBox *item6 = new wxStaticBox( parent, -1, _("Description") );
+    wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
 
-    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_LBLEXPORTTYPEDESCRIPTION, _("lblDescription"), wxDefaultPosition, wxSize(425,-1), 0 );
+    item7->SetName( wxT("lblExportTypeDescription") );
+    item5->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item8 = new wxStaticBox( parent, -1, _("Export Filters") );
-    wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
+    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RDOFILTEROFF, _("Export &all markers and text"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item9->SetName( wxT("rdoFilterOff") );
-    item7->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticBox *item9 = new wxStaticBox( parent, -1, _("Export Filters") );
+    wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RDOFILTEROFF, _("Export &all markers and text"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item10->SetName( wxT("rdoFilterOff") );
+    item8->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxRadioButton *item11 = new wxRadioButton( parent, ID_RDOFILTERON, _("&Filter out selected markers and text:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetName( wxT("rdoFilterOn") );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item12 = new wxButton( parent, ID_BTNFILTEROPTIONS, _("&Options..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
-    item12->SetName( wxT("btnFilterOptions") );
-    item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RDOFILTERON, _("&Filter out selected markers and text:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetName( wxT("rdoFilterOn") );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item7->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item13 = new wxButton( parent, ID_BTNFILTEROPTIONS, _("&Options..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
+    item13->SetName( wxT("btnFilterOptions") );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item8->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticBox *item14 = new wxStaticBox( parent, -1, _("Export filename prefixes and suffixes:") );
-    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxVERTICAL );
+    item2->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxCheckBox *item15 = new wxCheckBox( parent, ID_CHKPROJECTNAMEPREFIX, _("Use project name prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Export filename prefixes and suffixes:") );
+    wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxVERTICAL );
 
-    wxCheckBox *item16 = new wxCheckBox( parent, ID_CHKTARGETTEXTPREFIX, _("Use export type prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item16 = new wxCheckBox( parent, ID_CHKPROJECTNAMEPREFIX, _("Use project name prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item17 = new wxCheckBox( parent, ID_CHKDATETIMESUFFIX, _("Use date-time suffix on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item17 = new wxCheckBox( parent, ID_CHKTARGETTEXTPREFIX, _("Use export type prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item18 = new wxCheckBox( parent, ID_CHKDATETIMESUFFIX, _("Use date-time suffix on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStdDialogButtonSizer *item19 = new wxStdDialogButtonSizer;
+    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStdDialogButtonSizer *item20 = new wxStdDialogButtonSizer;
     { wxButton *button = new wxButton( parent, wxID_OK );
       button->SetDefault();
-      item19->AddButton( button ); }
-    item19->AddButton( new wxButton( parent, wxID_CANCEL ) );
-    item19->Realize();
-    item18->Add( item19, 0, wxGROW|wxALL, 5 );
+      item20->AddButton( button ); }
+    item20->AddButton( new wxButton( parent, wxID_CANCEL ) );
+    item20->Realize();
+    item19->Add( item20, 0, wxGROW|wxALL, 5 );
 
-    item1->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->AddGrowableRow( 0 );
+    item2->AddGrowableRow( 0 );
 
-    item1->AddGrowableRow( 2 );
+    item2->AddGrowableRow( 2 );
 
-    item0->Add( item1, 0, wxALL, 5 );
+    item1->Add( item2, 1, wxALL, 5 );
+
+    item0->Add( item1, 1, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {
