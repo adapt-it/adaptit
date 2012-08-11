@@ -69,6 +69,7 @@ public:
 	wxRadioButton* rdoFilterOff;
 	wxRadioButton* rdoFilterOn;
 	wxButton* btnFilterOptions;
+	wxButton* pBtnChangeBookName;
 	wxCheckBox* pCheckUsePrefixExportTypeOnFilename;
 	wxCheckBox* pCheckUseSuffixExportDateTimeStamp;
 	wxCheckBox* pCheckUsePrefixExportProjNameOnFilename;
@@ -114,6 +115,7 @@ private:
 	void OnrdoFilterOnSelect(wxCommandEvent& event);
 	void OnrdoFilterOffSelect(wxCommandEvent& event);
 	void OnbtnFilterOptionsClick(wxCommandEvent& event);
+	void OnBtnChangeBookName(wxCommandEvent& event);
 	void OnbtnExportToTxtClick(wxCommandEvent& event);
 	void OnbtnExportToRtfClick(wxCommandEvent& event);
 	void OnbtnExportToXhtmlClick(wxCommandEvent& event);
