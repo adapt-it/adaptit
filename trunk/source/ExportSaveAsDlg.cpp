@@ -116,7 +116,7 @@ END_EVENT_TABLE()
 
 CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Export Document"),
-		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
