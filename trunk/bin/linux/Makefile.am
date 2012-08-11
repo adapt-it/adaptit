@@ -68,7 +68,8 @@ adaptit_SOURCES = \
 	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp \
 	../../source/AssignLocationsForInputsAndOutputs.cpp \
 	../../source/AdminEditMenuProfile.cpp ../../source/AutoSavingPage.cpp \
-	../../source/base64.cpp ../../source/BString.cpp ../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
+	../../source/base64.cpp ../../source/BString.cpp ../../source/BookNameDlg.cpp \
+	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp \
 	../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
 	../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/CollabUtilities.cpp \
@@ -95,7 +96,7 @@ adaptit_SOURCES = \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
 	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp \
-	../../source/PeekAtFile.cpp ../../source/PhraseBox.cpp \
+	../../source/Pathway.cpp ../../source/PeekAtFile.cpp ../../source/PhraseBox.cpp \
 	../../source/Pile.cpp ../../source/Placeholder.cpp ../../source/PlaceInternalMarkers.cpp \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
