@@ -3210,7 +3210,7 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
 
-    wxPanel *item1 = new wxPanel( parent, ID_PNLEXPORT, wxDefaultPosition, wxSize(-1,58), wxTAB_TRAVERSAL );
+    wxPanel *item1 = new wxPanel( parent, ID_PNLEXPORT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item1->SetName( wxT("pnlExport") );
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
