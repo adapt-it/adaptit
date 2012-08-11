@@ -3382,7 +3382,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 	} while (!m_pBuffer->IsEmpty());
 
 	// trim any final spaces; do the endnote dump, and add the final closing tags
-	xhtmlStr += FinishOff(3); // should be 3 </div> tags added, then closure for body and html
+	xhtmlStr += FinishOff(xhtmlStr); // should be about </div> tags added, then closure for body and html
 
 	return xhtmlStr;
 }
@@ -4363,10 +4363,39 @@ CBString Xhtml::BuildAnchor(CBString myUUID)
 	return left;
 }
 
-// puts </div></div>..., as many as the input param says, at the end of the data - should
-// be 3; also dumps endnotes if there were any squirreled away in m_endnoteDumpArray
-CBString Xhtml::FinishOff(int howManyEndDivs)
+// puts </div></div>..., as many as are need, at the end of the data;
+// also dumps endnotes if there were any squirreled away in m_endnoteDumpArray
+CBString Xhtml::FinishOff(CBString& strXhtml)
 {
+	// count how many <div  and how many </div  strings there are - add as many </div>
+	// endtags as are needed to complete the pairings
+	int divCount = 0;
+	int endDivCount = 0;
+	int offset = 0;
+	CBString divStr = "<div";
+	CBString endDivStr = "</div";
+	// use CBString::Find(const char* pSubStr,int nStart=0)
+	do{
+		offset = strXhtml.Find(divStr,offset);
+		if (offset != wxNOT_FOUND)
+		{
+			divCount++;
+			offset += 4;
+		}
+	} while (offset != wxNOT_FOUND);
+	offset = 0;
+	do{
+		offset = strXhtml.Find(endDivStr,offset);
+		if (offset != wxNOT_FOUND)
+		{
+			endDivCount++;
+			offset += 5;
+		}
+	} while (offset != wxNOT_FOUND);
+	int howManyEndDivs = divCount - endDivCount;
+	wxASSERT(howManyEndDivs >= 0);
+
+	// dump any endnotes that need to be dumped before we close off
 	CBString theEnd; theEnd.Empty();
 	int count = 0;
 	int i;
@@ -4380,7 +4409,7 @@ CBString Xhtml::FinishOff(int howManyEndDivs)
 			theEnd += ToUtf8(endnoteStr);
 		}
 	}
-	// finally, dump the </div> endtags, and those for <body> and <html>
+	// finally, dump the needed </div> endtags, and those for </body> and </html>
 	for (i=0; i < howManyEndDivs; i++)
 	{
 		theEnd += m_divCloseTemplate;

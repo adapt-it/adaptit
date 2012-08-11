@@ -448,7 +448,7 @@ private:
 	CBString BuildAnchor(CBString myUUID); // see comment above BuildFootnoteMarkerSpan()
 	CBString BuildTitleInfo(wxString*& pText);
 	CBString BuildFXRefFe();
-	CBString FinishOff(int howManyEndDivs);
+	CBString FinishOff(CBString& strXhtml);
 	// next is for footnotes or endnotes
 	CBString BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxString data);
 	// next is for cross references of type \x ... \x*
