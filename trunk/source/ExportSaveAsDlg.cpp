@@ -58,6 +58,7 @@
 #include "ExportSaveAsDlg.h"
 #include "ExportOptionsDlg.h"
 #include "Adapt_ItView.h"
+#include "BookNameDlg.h"
 
 #include "../res/vectorized/pw_48.cpp"
 #include "../res/vectorized/text-txt_48.cpp"
@@ -107,6 +108,7 @@ BEGIN_EVENT_TABLE(CExportSaveAsDlg,AIModalDialog)
 	EVT_BUTTON(ID_BTNEXPORTTOPATHWAY, CExportSaveAsDlg::OnbtnExportToPathwayClick)
 	EVT_BUTTON(wxID_OK, CExportSaveAsDlg::OnOK)
 	EVT_BUTTON(ID_BTNFILTEROPTIONS, CExportSaveAsDlg::OnbtnFilterOptionsClick)
+	EVT_BUTTON(ID_BUTTON_CHANGE_BOOK_NAME, CExportSaveAsDlg::OnBtnChangeBookName)
 	EVT_RADIOBUTTON(ID_RDOFILTEROFF,CExportSaveAsDlg::OnrdoFilterOffSelect)
 	EVT_RADIOBUTTON(ID_RDOFILTERON,CExportSaveAsDlg::OnrdoFilterOnSelect)
 	//*)
@@ -163,6 +165,8 @@ CExportSaveAsDlg::CExportSaveAsDlg(wxWindow* parent) // dialog constructor
 	wxASSERT(rdoFilterOn != NULL);
 	btnFilterOptions = (wxButton *)FindWindowById(ID_BTNFILTEROPTIONS);
 	wxASSERT(btnFilterOptions != NULL);
+	pBtnChangeBookName = (wxButton*)FindWindowById(ID_BUTTON_CHANGE_BOOK_NAME);
+	wxASSERT(pBtnChangeBookName != NULL);
 }
 
 CExportSaveAsDlg::~CExportSaveAsDlg(void)
@@ -209,6 +213,18 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     rdoFilterOn->SetValue(!bExportAll);
     btnFilterOptions->Enable(!bExportAll); // if there is no filter, disable the filter options button
 
+	// Hide the "Change Book Name..." button by if there is no value in the
+	// App's m_CollabBookSelected member. If the m_CollabBookSelected has a value
+	// the button will be shown so the user can optionally change the name of the
+	// book.
+	// whm Note: the App's m_CollabBookSelected member itself should not be changed in
+	// the Xhtml/Pathway export code. A different variable should be used if necessary
+	// to store the change
+	if (gpApp->m_CollabBookSelected.IsEmpty())
+	{
+		pBtnChangeBookName->Hide();
+	}
+
 	// export file naming rules checkboxes
 	pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
 	pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
@@ -224,8 +240,6 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	dlgSize = pExportSaveAsSizer->ComputeFittingWindowSize(this);
 	this->SetSize(dlgSize);
 	this->CenterOnParent();
-	
-	//this->SetWindowStyle(wxDEFAULT_DIALOG_STYLE);
 }
 
 // Update the lblExportTypeDescription text based on the specified export type
@@ -284,6 +298,32 @@ void CExportSaveAsDlg::OnbtnFilterOptionsClick(wxCommandEvent& WXUNUSED(event))
 		btnFilterOptions->Enable(!bExportAll); // if there is no filter, disable the filter options button
 	}
 }
+
+// whm 10Aug12 added handler for Change Book Name... button
+void CExportSaveAsDlg::OnBtnChangeBookName(wxCommandEvent& WXUNUSED(event))
+{
+	// user clicked on the Change Book Name... button
+	
+	// get the bookcode
+	wxString bookCode = gpApp->GetBookIDFromDoc();
+	wxString titleStr = _("Set or Clear a Book Name");
+	bool bShowItCentered = TRUE;
+	CBookName dlg(
+	this,
+	&titleStr,
+	&bookCode,
+	bShowItCentered);
+	dlg.Centre();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		// TODO: handle retrieval and use of the dialog data
+
+		// whm Note: the App's m_CollabBookSelected member itself should not be changed in
+		// the Xhtml/Pathway export code. A different variable should be used if necessary
+		// to store the change
+	}
+}
+
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
