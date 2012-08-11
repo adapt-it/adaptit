@@ -225,6 +225,11 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		pBtnChangeBookName->Hide();
 	}
 
+	btnExportToTxt->SetBackgroundColour(wxColour(189,255,189)); // light pastel green
+	btnExportToRtf->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToXhtml->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToPathway->SetBackgroundColour(wxColour(255,255,255)); // white
+
 	// export file naming rules checkboxes
 	pCheckUsePrefixExportProjNameOnFilename->SetValue(gpApp->m_bUsePrefixExportProjectNameOnFilename);
 	pCheckUsePrefixExportTypeOnFilename->SetValue(gpApp->m_bUsePrefixExportTypeOnFilename);
@@ -341,13 +346,25 @@ void CExportSaveAsDlg::OnOK(wxCommandEvent& event)
 
 void CExportSaveAsDlg::OnbtnExportToTxtClick(wxCommandEvent& WXUNUSED(event))
 {
-    m_enumSaveAsType = ExportSaveAsTXT;
+	// whm added 11Aug12 set background color of selected item to pastel green
+	btnExportToTxt->SetBackgroundColour(wxColour(189,255,189)); // light pastel green
+	btnExportToRtf->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToXhtml->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToPathway->SetBackgroundColour(wxColour(255,255,255)); // white
+    
+	m_enumSaveAsType = ExportSaveAsTXT;
     bExportToRTF = false;
     SetExportTypeDescription(m_enumSaveAsType);
 }
 
 void CExportSaveAsDlg::OnbtnExportToRtfClick(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 11Aug12 set background color of selected item to pastel green
+	btnExportToTxt->SetBackgroundColour(wxColour(255,255,255)); // light pastel green
+	btnExportToRtf->SetBackgroundColour(wxColour(189,255,189)); // white
+	btnExportToXhtml->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToPathway->SetBackgroundColour(wxColour(255,255,255)); // white
+    
     m_enumSaveAsType = ExportSaveAsRTF;
     bExportToRTF = true;
     SetExportTypeDescription(m_enumSaveAsType);
@@ -355,6 +372,12 @@ void CExportSaveAsDlg::OnbtnExportToRtfClick(wxCommandEvent& WXUNUSED(event))
 
 void CExportSaveAsDlg::OnbtnExportToXhtmlClick(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 11Aug12 set background color of selected item to pastel green
+	btnExportToTxt->SetBackgroundColour(wxColour(255,255,255)); // light pastel green
+	btnExportToRtf->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToXhtml->SetBackgroundColour(wxColour(189,255,189)); // white
+	btnExportToPathway->SetBackgroundColour(wxColour(255,255,255)); // white
+    
     m_enumSaveAsType = ExportSaveAsXHTML;
     bExportToRTF = false;
     SetExportTypeDescription(m_enumSaveAsType);
@@ -362,6 +385,12 @@ void CExportSaveAsDlg::OnbtnExportToXhtmlClick(wxCommandEvent& WXUNUSED(event))
 
 void CExportSaveAsDlg::OnbtnExportToPathwayClick(wxCommandEvent& WXUNUSED(event))
 {
+	// whm added 11Aug12 set background color of selected item to pastel green
+	btnExportToTxt->SetBackgroundColour(wxColour(255,255,255)); // light pastel green
+	btnExportToRtf->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToXhtml->SetBackgroundColour(wxColour(255,255,255)); // white
+	btnExportToPathway->SetBackgroundColour(wxColour(189,255,189)); // white
+    
     m_enumSaveAsType = ExportSaveAsPathway;
     bExportToRTF = false;
     SetExportTypeDescription(m_enumSaveAsType);
