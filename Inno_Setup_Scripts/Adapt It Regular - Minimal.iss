@@ -62,6 +62,7 @@ Source: "{#SvnBase}\setup Regular - Minimal\AI_UserProfiles.xml"; DestDir: "{app
 Source: "{#SvnBase}\setup Regular - Minimal\AI_USFM.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - Minimal\books.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - Minimal\curl-ca-bundle.crt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Regular - Minimal\aiDefault.css"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - Minimal\LICENSING.txt"; DestDir: "{app}"; Flags: ignoreversion; 
 Source: "{#SvnBase}\setup Regular - Minimal\License_CPLv05.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - Minimal\License_GPLv2.txt"; DestDir: "{app}"; Flags: ignoreversion

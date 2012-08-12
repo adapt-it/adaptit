@@ -69,6 +69,7 @@ Source: "{#SvnBase}\setup Unicode\AI_USFM.xml"; DestDir: "{app}"; Flags: ignorev
 Source: "{#SvnBase}\setup Unicode\books.xml"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\curl-ca-bundle.crt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\iso639-3codes.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SvnBase}\setup Unicode\aiDefault.css"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\KJV 1Jn 2.12-17.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Known Issues and Limitations.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\LICENSING.txt"; DestDir: "{app}"; Flags: ignoreversion; 

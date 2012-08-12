@@ -453,6 +453,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5B2E19C616324058AC10A0EA9DBB60EF"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_5BB5686243804244B6E3729AB63B9B2E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -2551,6 +2557,26 @@
             "TargetName" = "8:Give_Feedback.gif"
             "Tag" = "8:"
             "Folder" = "8:_3DC10C3653574DE391BACBF3E28ED4FB"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5B2E19C616324058AC10A0EA9DBB60EF"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\aiDefault.css"
+            "TargetName" = "8:aiDefault.css"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
