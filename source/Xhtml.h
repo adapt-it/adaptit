@@ -246,10 +246,11 @@ public:
     // file, using the <div> and </div> tags - to make it more human readable; it gives a
     // file dlg, I select the file, it loads it and does the indents, and then I save it
     // somewhere again using the file dialog
+#if defined (__WXDEBUG__)
 	void Indent_Etc_XHTML();
 	// also not for proper xhtml output, for use by IndentXHTML()
 	CBString BuildIndent(CBString& atab, int level);
-
+#endif
 private:
 
 // -----------------PRIVATE FUNCTIONS---------------------------
