@@ -3088,7 +3088,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 	#ifdef _UNICODE
 					gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
 	#else
-					gpApp->m_bookName = attrValue;
+					gpApp->m_bookName_Current = attrValue;
 	#endif	
 				}
 
