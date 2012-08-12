@@ -56,6 +56,16 @@
     #pragma implementation "CCModule.h"
 #endif
 
+// whm added 12Aug12 for builds using gcc turn off deprecated warnings since
+// the old CC code has many that can't be fixed without a major rewrite.
+// Note: This pragma should only apply to CCModule.cpp and versions of
+// gcc >= 4.2.
+#if defined(__GNUG__)
+#if wxCHECK_GCC_VERSION(4, 2)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#endif
+
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
