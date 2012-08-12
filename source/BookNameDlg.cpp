@@ -94,9 +94,32 @@ void CBookName::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	{
 		this->Centre(wxHORIZONTAL);
 	}
-	// get and show the current book name
-	m_currentBookName = gpApp->m_bookName_Current;
-	m_pTextCtrl_CurrentBookName->ChangeValue(m_currentBookName);
+	// get and show the current book name; what we show depends on whether collaboration
+	// is on
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		if (gpApp->m_bookName_Current.IsEmpty())
+		{
+			// if m_bookName_Current has no name in it, show what's in m_CollabBookSelected
+			m_currentBookName = gpApp->m_CollabBookSelected;
+		}
+		else
+		{
+			// if m_bookName_Current has a name in it, we'll honour it even in collab mode
+			m_currentBookName = gpApp->m_bookName_Current;
+		}
+	}
+	else
+	{
+		m_currentBookName = gpApp->m_bookName_Current;
+	}
+	wxString showThisName = m_currentBookName;
+	if (m_currentBookName.IsEmpty())
+	{
+		// we don't want the user to see an empty box, so show  <not named>
+		showThisName = _("<not named>");
+	}
+	m_pTextCtrl_CurrentBookName->ChangeValue(showThisName);
 	m_pTextCtrl_CurrentBookName->SetEditable(FALSE); // it's now read-only
 
 

@@ -961,6 +961,7 @@ CBString Xhtml::GetTargetLanguageName()
 	wxASSERT(!langName.IsEmpty());
 	return ToUtf8(langName);
 }
+/* no longer needed, I use GetMyBookName() instead
 CBString Xhtml::GetRunningHeader(wxString* pBuffer)
 {
 	CBString emptyStr = "";
@@ -1027,6 +1028,7 @@ CBString Xhtml::GetRunningHeader(wxString* pBuffer)
 		return ToUtf8(runningHdr);
 	}
 }
+*/
 
 CBString Xhtml::GetMachineName()
 {
@@ -2435,7 +2437,8 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 
 	CBString dateTimeNow = GetDateTime();
 	m_exporterID = GetExporterID(); // uses user account name (ie. login name), returns CBString
-	m_runningHdr = GetRunningHeader(m_pBuffer); // returns empty string if there is no \h
+	m_myBookName = GetMyBookName();
+	//m_runningHdr = GetRunningHeader(m_pBuffer); // returns empty string if there is no \h
 								// in the m_pBuffer data; else the running header CBString
 	// Our USFM parser uses these private members for returning parsed information:
 	// m_beginMkr, m_endMkr, m_data, m_nextMkr
@@ -2531,10 +2534,10 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 	myxml = BuildDivTag(scrBook_);
 	xhtmlStr += myxml;
 
-	// produce the scrBookName production, we'll have to use whatever \h holds (or empty
-	// string if \h was adapted -- it is by default filtered, so use must remember to
-	// unfilter and adapt it
-	myxml = BuildSpan(plusClass,scrBookName_,GetLanguageCode(),m_runningHdr);
+	// produce the scrBookName production, we'll have to use whatever m_myBookName holds -
+	// that will have the contents of app's wxString member m_bookName_Current, or if the
+	// latter is empty, then "Unnamed book"
+	myxml = BuildSpan(plusClass,scrBookName_,GetLanguageCode(),m_myBookName);
 	xhtmlStr += myxml;
 
 	// produce the scrBookCode production
@@ -4420,5 +4423,18 @@ CBString Xhtml::FinishOff(CBString& strXhtml)
 	return theEnd;
 }
 
+CBString Xhtml::GetMyBookName()
+{
+	CBString noName = "Unnamed book";
+	CBString aBookName = ToUtf8(m_pApp->m_bookName_Current);
+	if (aBookName.IsEmpty())
+	{
+		return noName;
+	}
+	else
+	{
+		return aBookName;
+	}
+}
 
 

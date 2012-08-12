@@ -308,25 +308,11 @@ void CExportSaveAsDlg::OnbtnFilterOptionsClick(wxCommandEvent& WXUNUSED(event))
 void CExportSaveAsDlg::OnBtnChangeBookName(wxCommandEvent& WXUNUSED(event))
 {
 	// user clicked on the Change Book Name... button
-	
-	// get the bookcode
-	wxString bookCode = gpApp->GetBookIDFromDoc();
-	wxString titleStr = _("Set or Clear a Book Name");
-	bool bShowItCentered = TRUE;
-	CBookName dlg(
-	this,
-	&titleStr,
-	&bookCode,
-	bShowItCentered);
-	dlg.Centre();
-	if (dlg.ShowModal() == wxID_OK)
-	{
-		// TODO: handle retrieval and use of the dialog data
-
-		// whm Note: the App's m_CollabBookSelected member itself should not be changed in
-		// the Xhtml/Pathway export code. A different variable should be used if necessary
-		// to store the change
-	}
+	// whm Note: the App's m_CollabBookSelected member itself should not be changed in
+	// the Xhtml/Pathway export code. A different variable should be used if necessary
+	// to store the change
+	// BEW reply to Note: the value is stored in the app's wxString member m_bookName_Current
+	gpApp->GetDocument()->DoBookName();
 }
 
 

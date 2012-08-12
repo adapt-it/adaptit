@@ -6942,9 +6942,10 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 /// \remarks
 /// Called from: the App's OnInit();
 /// Gets the path where we expect to find the AI_USFM.xml, AI_UserProfiles.xml, books.xml,
-/// curl-ca-bundle.ctr, and iso639-1codes.txt files. Adapt It reads and parses the xml
-/// files at startup and accessed the other files for certain features in the app.
-/// If the directory cannot be determined an empty string is returned.
+/// curl-ca-bundle.ctr, iso639-1codes.txt and aiDefault.css files. Adapt It reads and
+/// parses the xml files at startup and accessed the other files for certain features in
+/// the app. The css file isn't parsed, it's eventually just copied to the work folder. If
+/// the directory cannot be determined an empty string is returned.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 {

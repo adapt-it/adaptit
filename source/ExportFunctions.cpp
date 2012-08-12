@@ -277,6 +277,27 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	pToXhtml->SetBookID(bookCode);
 	pToXhtml->m_languageCode = langCode;
 
+	// get a suitable book name
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		if (gpApp->m_bookName_Current.IsEmpty())
+		{
+			// if m_bookName_Current has no name in it, show what's in m_CollabBookSelected
+			gpApp->m_bookName_Current = gpApp->m_CollabBookSelected;
+		}
+		else
+		{
+			// if m_bookName_Current has a name in it, we'll honour it even in collab mode
+			;
+		}
+	}
+	// if at this point we've not got a book name - ask the user to supply one via the
+	// book name dialog
+	if (gpApp->m_bookName_Current.IsEmpty())
+	{
+		gpApp->GetDocument()->DoBookName();
+	}
+
 	// get a default file name - copy the current one for the adaptation document as the base
 	//exportFilename = gpApp->m_curOutputFilename;
 	//len = exportFilename.Length();

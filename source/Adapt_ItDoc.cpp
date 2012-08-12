@@ -335,9 +335,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages)
 	EVT_MENU(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages)
 	EVT_UPDATE_UI(ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages)
-	EVT_MENU(ID_MENU_CHANGE_BOOKNAME, CAdapt_ItDoc::OnBookNameDlg)
-	EVT_UPDATE_UI(ID_MENU_CHANGE_BOOKNAME, CAdapt_ItDoc::OnUpdateBookNameDlg)
 END_EVENT_TABLE()
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CAdapt_ItDoc construction/destruction
@@ -424,9 +423,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 	pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't
 								// automatically call it
 
-	// force m_bookName_Current to be empty -- it will stay empty unless the user chooses
-	// to manually add a book name using the GUI menu item for doing so, or if an xhtml
-	// export is done - he'll be asked for a bookname and shown the dialog for same
+	// force m_bookName_Current to be empty -- it will stay empty unless set from what is
+	// stored in a document just loaded; or in collaboration mode by copying to it the
+	// value of the m_CollabBookSelected member; or doing an export of xhtml or for
+	// Pathway export, no book name is current and the user fills one out using the
+	// CBookName dialog which opens for that purpose
 	gpApp->m_bookName_Current.Empty();
 
 	// whm 26Jul11 revised. When m_lastSourceInputPath is empty, use the special folder
@@ -4836,8 +4837,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		pProgDlg = gpApp->OpenNewProgressDialog(_("Opening the Document"),msgDisplayed,nTotal,500);
 	}
 
-	// force m_bookName_Current to be empty, so that if it gets a value here, the value
-	// has to have come from the doc being loaded
+	// force m_bookName_Current to be empty -- it will stay empty unless set from what is
+	// stored in a document just loaded; or in collaboration mode by copying to it the
+	// value of the m_CollabBookSelected member; or doing an export of xhtml or for
+	// Pathway export, no book name is current and the user fills one out using the
+	// CBookName dialog which opens for that purpose
 	gpApp->m_bookName_Current.Empty();
 
 	wxFileName fn(filename);
@@ -25092,47 +25096,22 @@ bool CAdapt_ItDoc::SetCaseParameters(wxString& strText, bool bIsSrcText)
 	return TRUE;
 }
 
-// this one is public; it calls the private OnBookNameDlg(), but only provided there is a
-// valid bookID code in the document; if there isn't, it does nothing
+// this is public
 void CAdapt_ItDoc::DoBookName()
 {
-	wxString code = gpApp->GetBookIDFromDoc();
-	if (code.IsEmpty())
-		return;
-	wxCommandEvent dummyEvent;
-	OnBookNameDlg(dummyEvent);
-}
-
-// this is private
-void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
-{
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	pApp->LogUserAction(_T("Initiated OnBookNameDlg()"));
-	CMainFrame* pFrame = pApp->GetMainFrame();
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
-	if (!pMenuBar->IsEnabled(ID_MENU_CHANGE_BOOKNAME))
-	{
-		::wxBell();
-		pApp->LogUserAction(_T("But Change Book Name... menu item disabled"));
-		return;
-	}
-
+	pApp->LogUserAction(_T("Initiated DoBookName()"));
 	SPList* pList = pApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
 	if (pList->IsEmpty())
 	{
 		::wxBell();
-		pApp->LogUserAction(_T("Doc is empty in OnBookNameDlg()"));
+		pApp->LogUserAction(_T("Doc is empty in DoBookName()"));
 		return;
 	}
 
 	// get the bookcode
 	wxString bookCode = gpApp->GetBookIDFromDoc();
-
-	// ***************** TEMPORARY**********************
-	// hard code an "existing" book name for testing purposes
-	//gpApp->m_bookName_Current = _T("Revelation");
 
 	wxString titleStr = _("Set or Clear a Book Name");
 	bool bShowItCentered = TRUE;
@@ -25148,27 +25127,6 @@ void CAdapt_ItDoc::OnBookNameDlg(wxCommandEvent& WXUNUSED(event))
 	}
 	// if Cancel button chosen, the book name is not changed from it's current value in
 	// the app's m_bookName_Current member
-}
-
-void CAdapt_ItDoc::OnUpdateBookNameDlg(wxUpdateUIEvent& event)
-{
-	if (gbVerticalEditInProgress)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-    // enable if there is a KB ready (even if only a stub), and the document loaded,
-	// and (this is the really important one) there is a valid bookID code in the document
-	// - valid according to the 123 item list for Paratext bookID 3-letter codes 
-	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady 
-		&& !(gpApp->GetBookIDFromDoc().IsEmpty()))
-	{
-		event.Enable(TRUE);
-	}
-	else
-	{
-		event.Enable(FALSE);
-	}
 }
 
 void CAdapt_ItDoc::ValidateNoteStorage()

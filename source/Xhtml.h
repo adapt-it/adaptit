@@ -317,7 +317,9 @@ private:
 
 	CBString m_exporterID;  // set it to the login name of the user account which created the Xhtml export eg.watersb
 							// & set it at start of each DoXhtmlExport() call using GetExporterID()
-	CBString m_runningHdr;  // extract from the exported USFM text -- it's marker is \h (empty string if undefined)
+	CBString m_myBookName;  // the bookname, in collab mode usually taken from Paratext book name,
+							// otherwise it can be whatever the user specifies in the DoBookName() dialog
+	//CBString m_runningHdr;  // extract from the exported USFM text -- it's marker is \h (empty string if undefined)
 	CBString m_eolStr;      // platform specific end-of-line string, set from gpApp->m_eolStr,
 							// converted to CBString, in Initialize()
 	CBString m_chapterNumSpan; // a filled out 
@@ -395,8 +397,9 @@ private:
 	wxString ToUtf16(CBString& bstr);
 	CBString GetExporterID();
 	CBString GetDateTime();
+	CBString GetMyBookName(); // grab's what is in the app's member, m_bookName_Current
 	CBString GetTargetLanguageName();
-	CBString GetRunningHeader(wxString* pBuffer); // pass in m_pBuffer member
+	//CBString GetRunningHeader(wxString* pBuffer); // pass in m_pBuffer member
 	CBString GetMachineName();
 	CBString InsertCallerIntoTitleAttr(CBString templateStr);
 

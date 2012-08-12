@@ -2519,10 +2519,12 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	wxASSERT(extension[0] == _T('.')); // check it really is an extension
 	bool bWasXMLReadIn = TRUE;
 
-	// force m_bookName_Current to be empty, so that if it gets a value here, the value
-	// has to have come from the doc being loaded (at the end, if still empty, we give the
-	// user a chance to set a book name)
-	pApp->m_bookName_Current.Empty();
+	// force m_bookName_Current to be empty -- it will stay empty unless set from what is
+	// stored in a document just loaded; or in collaboration mode by copying to it the
+	// value of the m_CollabBookSelected member; or doing an export of xhtml or for
+	// Pathway export, no book name is current and the user fills one out using the
+	// CBookName dialog which opens for that purpose
+	gpApp->m_bookName_Current.Empty();
 
 	// get the filename
 	wxString fname = pathToDoc;
