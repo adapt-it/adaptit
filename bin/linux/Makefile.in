@@ -383,7 +383,7 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = config.rpath
 xmldir = $(pkgdatadir)
 xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
-	../../xml/books.xml
+	../../xml/books.xml ../../xml/aiDefault.css
 
 miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
