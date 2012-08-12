@@ -37,8 +37,8 @@
 // build. So they won't do anything in a release version.
 //  **************************************************************************************
 //#define DO_CLASS_NAMES
-#define DO_INDENT
-#define XHTML_PRETTY  // comment out when valid indenting of xhtml is wanted;
+//#define DO_INDENT
+//#define XHTML_PRETTY  // comment out when valid indenting of xhtml is wanted;
 					  // but leave #defined if each <span) is to be lined up
 					  // at 1 level of indent more than <div> and </div>, for
 					  // working at getting the code right and avoiding throwing
@@ -2967,7 +2967,7 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 			m_beginMkr.Empty();
 			m_endMkr.Empty();
 			break;
-		case v_: // the begin-marker was \v (verse num production has been build already)
+		case v_: // the begin-marker was \v (verse num production has been built already)
 			m_bMajorSectionJustOpened = FALSE;
 			if (!m_bFirstSectionHasBeenStarted) // got to a verse without any srcSection being done yet
 			{
@@ -3173,6 +3173,15 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 		case list_item_1_:
 			xhtmlStr += m_eolStr; // open a new line
 			myxml = BuildDivTag(list_item_1_);
+			xhtmlStr += myxml;
+			myxml = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(m_data));
+			xhtmlStr += myxml;
+			m_beginMkr.Empty();
+			m_endMkr.Empty();
+			break;
+		case list_item_2_:
+			xhtmlStr += m_eolStr; // open a new line
+			myxml = BuildDivTag(list_item_2_);
 			xhtmlStr += myxml;
 			myxml = BuildSpan(simple, no_value_, GetLanguageCode(), ConvertData(m_data));
 			xhtmlStr += myxml;
@@ -3412,7 +3421,8 @@ CBString Xhtml::ConstructPictureID(wxString bookID, int nPictureNum)
 // will be lined up under the last one -- but remember, only when debugging in order to see
 // the structure.)
 // By using #defines, I can purpose this function for different kinds of analysis of the xhtml
-void Xhtml::Indent_Etc_XHTML() // pinched from my commented out encoding converter code 
+#if defined(__WXDEBUG__) && (defined(DO_CLASS_NAMES) || defined(DO_INDENT))
+void Xhtml::Indent_Etc_XHTML() // pinched from my commented out encoding converter code
 						 // in OnInit() and repurposed
 {
 	// BEW 7Jun2012 **** DO NOT REMOVE CODE BELOW **** THIS IS VALUABLE FOR BEW ****
@@ -3764,6 +3774,7 @@ CBString Xhtml::BuildIndent(CBString& atab, int level)
 	}
 	return strIndent;
 }
+#endif
 /////////////////////////////// FOR XHTML //////////////////////////////////
 
 CBString Xhtml::MakeUUID()

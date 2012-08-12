@@ -587,9 +587,9 @@ void XhtmlExport_DebuggingSupport()
 	// debug build. So they won't do anything in a release version.
 	//  **************************************************************************************
 	//#define DO_CLASS_NAMES
-	#define DO_INDENT	// comment out when production xhtml output is wanted
+	//#define DO_INDENT	// comment out when production xhtml output is wanted
 	// do not have the next one turned on unless DO_INDENT is also turned on
-	#define XHTML_PRETTY  // comment out when unpretty but valid indenting of xhtml is wanted
+	//#define XHTML_PRETTY  // comment out when unpretty but valid indenting of xhtml is wanted
 
 	#if defined(__WXDEBUG__)
 	#if defined(DO_INDENT) && defined (XHTML_PRETTY)
