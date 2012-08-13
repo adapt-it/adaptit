@@ -59,11 +59,12 @@
 // whm added 12Aug12 for builds using gcc turn off deprecated warnings since
 // the old CC code has many that can't be fixed without a major rewrite.
 // Note: This pragma should only apply to CCModule.cpp and versions of
-// gcc >= 4.2.
+// gcc >= 4.2, but the wxCHECK_GCC_VERSION(4, 2) macro produces compile
+// errors on either the Mac or Linux for some unknown reason. The remaining
+// conditional compile directive below should be sufficient since we are using
+// at least gcc 4.2 in current builds.
 #if defined(__GNUG__)
-#if wxCHECK_GCC_VERSION(4, 2)
 	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
