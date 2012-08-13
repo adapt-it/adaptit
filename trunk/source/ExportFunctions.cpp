@@ -233,7 +233,7 @@ wxString ChangeMkrs_vn_vt_To_v(wxString text)
 /// data output as viewed on another device, but searching for comments will show which
 /// markers are not supported.
 void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
-							wxString defaultDir, wxString exportFilename, wxString filter)
+							wxString defaultDir, wxString exportFilename, wxString filter, bool bShowMessageIfSucceeded)
 {
 	// First determine whether or not the data is unstructured plain text - Xhtml cannot
 	// handle data not structured as scripture text (in our case, that means, "as SFM or
@@ -389,7 +389,7 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	myxml = pToXhtml->DoXhtmlExport(text);
 
 	// write out the xhtml
-	if (!WriteXHTML_To_File(exportPath, myxml))
+	if (!WriteXHTML_To_File(exportPath, myxml, bShowMessageIfSucceeded))
 	{
 		return; // the user has seen a warning of the failure
 	}
@@ -597,7 +597,7 @@ wxString ApplyNormalizingFiltersToTheUSFMText(wxString text)
 /// completed.
 /// Return TRUE if the writing out was successful, return FALSE if the file descriptor 
 /// could not be opened for writing.
-bool WriteXHTML_To_File(wxString exportPath, CBString& myxml)
+bool WriteXHTML_To_File(wxString exportPath, CBString& myxml, bool bShowMessageIfSucceeded)
 {
 	// save the resulting xml file in the location specified in the caller, and passed in
 	// as the exportPath parameter
@@ -635,7 +635,10 @@ bool WriteXHTML_To_File(wxString exportPath, CBString& myxml)
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(), pathOnly.c_str());
-	wxMessageBox(msg,_("XHTML export operation successful"),wxICON_INFORMATION | wxOK);
+	if (bShowMessageIfSucceeded == true)
+	{
+		wxMessageBox(msg,_("XHTML export operation successful"),wxICON_INFORMATION | wxOK);
+	}
 	gpApp->LogUserAction(_T("XHTML export operation successful"));
 
 	return TRUE;
@@ -932,7 +935,7 @@ void DoExportAsType(enum ExportType exportType)
                 // in whatever folder path was in m_lastXhtmlOutputPath
                 bBypassFileDialog_ProtectedNavigation = true;
                 DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
-                    exportFilename, filter);
+                    exportFilename, filter, false);
                  // Call PathwayB.exe on the exported XHTML.
                  // The full command line should look something like this:
                  //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
@@ -940,6 +943,27 @@ void DoExportAsType(enum ExportType exportType)
                  // from the command prompt without any parameters.)
                  wxString aMsg = _T("Pathway export - call Pathway on XHTML");
                  gpApp->LogUserAction(aMsg);
+
+				 // sanity checks -- make sure the .xhtml and .css files got exported correctly
+				 wxFile fTmp;
+				 if (!fTmp.Exists(defaultDir + gpApp->PathSeparator + exportFilename))
+				 {
+					wxString msg;
+					msg = msg.Format(_("Missing intermediate XHTML file: %s.\nThe Pathway export cannot be completed without this file."),
+						exportFilename.c_str());
+					gpApp->LogUserAction(msg);
+					wxMessageBox(msg,_T("Error: Intermediate XHTML file missing"),wxICON_EXCLAMATION | wxOK);
+					return;
+				 }
+				 if (!fTmp.Exists(defaultDir + gpApp->PathSeparator + exportCSS))
+				 {
+					wxString msg;
+					msg = msg.Format(_("Missing Stylesheet file: %s.\nThe Pathway export cannot be completed without this file."),
+						exportCSS.c_str());
+					gpApp->LogUserAction(msg);
+					wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
+					return;
+				 }
 
                  wxArrayString textIOArray, errorsIOArray;
                  wxString commandLine;
@@ -955,11 +979,20 @@ void DoExportAsType(enum ExportType exportType)
                  // take the defaults set up by the admin?)
                  commandLine += _T("\" -s");
                  int code = wxExecute(commandLine, wxEXEC_SYNC);
-                 //int code = wxExecute(commandLine,textIOArray,errorsIOArray);
-                 //int code = wxShell(commandLine);
-                 aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with exit code %d."),
-                 commandLine.c_str(), code);
-                 gpApp->LogUserAction(aMsg);
+				 if (code != 0)
+				 {
+					 // Pathway command line returned an error -- return
+					 aMsg = aMsg.Format(_T("Error: Pathway export returned with an error code:\n%d"), code);
+					 wxMessageBox(aMsg,_T("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					 aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error code %d."), commandLine.c_str(), code);
+					 gpApp->LogUserAction(aMsg);
+				 }
+				 else 
+				 {
+					 // Pathway didn't complain. Tell the user.
+					 aMsg = aMsg.Format(_T("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir);
+					 wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
+				 }
                  return;
             }
             else // xhtml output
@@ -968,7 +1001,7 @@ void DoExportAsType(enum ExportType exportType)
                 // navigation is not protect, in the project's _XHTML_OUTPUTS folder, or
                 // in whatever folder path was in m_lastXhtmlOutputPath
                 DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
-                    exportFilename, filter);
+                    exportFilename, filter, true);
                 return;
             }
 			}
