@@ -57,23 +57,25 @@ bool CAdapt_ItApp::PathwayIsInstalled()
 
 	wxLogNull logNo; // eliminate any spurious messages from the system
 	// only transition data if the Adapt_It_WX key exists in the host Windows' registry
-	wxRegKey keyPTInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\SIL\\Pathway\\PathwayDir"));
-	if (keyPTInstallDir.Exists() && keyPTInstallDir.HasValues())
+	wxRegKey keyPWInstallDir(_T("HKEY_LOCAL_MACHINE\\SOFTWARE\\SIL\\Pathway"));
+	if (keyPWInstallDir.Exists() && keyPWInstallDir.HasValues())
 	{
 		wxString dirStrValue;
 		dirStrValue.Empty();
-		if (keyPTInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
+		if (keyPWInstallDir.Open(wxRegKey::Read)) // open the key for reading only!
 		{
 			// get the folder path stored in the key, (i.e., C:\Program Files\Paratext7\)
 			// Note: the dirStrValue path ends with a backslash so we don't add one here.
-			dirStrValue = keyPTInstallDir.QueryDefaultValue();
-			if (::wxDirExists(dirStrValue))
+			if (keyPWInstallDir.QueryValue(_T("PathwayDir"), dirStrValue))
 			{
-				// Make sure the PathwayB command line executable is installed; this drives
-				// the Pathway export progress for non-.NET applications
-				if (::wxFileExists(dirStrValue + _T("PathwayB.exe")))
+				if (::wxDirExists(dirStrValue))
 				{
-					bPWInstalled = TRUE;
+					// Make sure the PathwayB command line executable is installed; this drives
+					// the Pathway export progress for non-.NET applications
+					if (::wxFileExists(dirStrValue + _T("PathwayB.exe")))
+					{
+						bPWInstalled = TRUE;
+					}
 				}
 			}
 		}

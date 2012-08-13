@@ -199,10 +199,11 @@ void CExportSaveAsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	gpApp->GetDocument()->GetMarkerInventoryFromCurrentDoc(); // populates export arrays with current doc's markers
 
 	// Pathway check
-	// TODO: if pathway is not installed, disable the button(?)
-	// (actually, I'm not sure about that. How do we tell people that PW is not
-	// installed?) --BEW maybe look at what Bill did to check whether Paratext or
-	// Bibledit is installed or not
+	// (moved to Validate() for Windows / Linux) 
+#ifdef __WXMAC__
+	// no Pathway on OSX - at least not yet
+	btnExportToPathway->Disable();
+#endif
 
     // export format description
     m_enumSaveAsType = ExportSaveAsTXT;
@@ -313,6 +314,24 @@ void CExportSaveAsDlg::OnBtnChangeBookName(wxCommandEvent& WXUNUSED(event))
 	// to store the change
 	// BEW reply to Note: the value is stored in the app's wxString member m_bookName_Current
 	gpApp->GetDocument()->DoBookName();
+}
+
+bool CExportSaveAsDlg::Validate()
+{
+	if ((gpApp->PathwayIsInstalled() == false) && (m_enumSaveAsType == ExportSaveAsPathway))
+	{
+		// Pathway isn't installed, but the user chose it. Disable Pathway, set the current
+		// output type to xhtml and tell the user they need to install Pathway.
+		wxString aMsg = _T("In order to use the Pathway export option, Pathway must installed on this computer. Please download and install Pathway from http://pathway.sil.org/download and retry this operation.");
+		wxMessageBox(aMsg,_T("Pathway Not Installed"),wxICON_HAND | wxOK);
+		btnExportToPathway->Disable();
+		wxCommandEvent evt;
+		OnbtnExportToXhtmlClick(evt);
+		return false;
+	}
+
+	// If we got here, there should be no problems closing the export dialog and continuing with the export.
+	return true;
 }
 
 

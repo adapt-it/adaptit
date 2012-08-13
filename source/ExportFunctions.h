@@ -54,14 +54,14 @@ void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath,
 							  wxString exportName, wxString& Buffer);
 // BEW created 9Jun12
 void		DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
-							wxString defaultDir, wxString exportFilename, wxString filter);
+							wxString defaultDir, wxString exportFilename, wxString filter, bool bShowMessageIfSucceeded);
 // components defined for simplifying the code of DoExportAsXhtml()
 bool		DeclineIfUnstructuredData();
 bool		DeclineIfNoBookCode(wxString& bookCode);
 bool		DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode);
 wxString	GetCleanExportedUSFMBaseText(ExportType exportType);
 wxString	ApplyNormalizingFiltersToTheUSFMText(wxString text);
-bool		WriteXHTML_To_File(wxString exportPath, CBString& text);
+bool		WriteXHTML_To_File(wxString exportPath, CBString& text, bool bShowMessageIfSucceeded);
 #if defined(__WXDEBUG__)
 void		XhtmlExport_DebuggingSupport(); // use only in debug mode -- and 
 					// internally has a few #defines to specify what to do
