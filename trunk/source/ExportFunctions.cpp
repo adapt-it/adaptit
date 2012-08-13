@@ -348,6 +348,33 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	gpApp->m_pXhtml->m_myFilePath = path;
 	gpApp->m_pXhtml->m_myFilename = fname;
 
+    // make the renamed css file, save it in the same folder as the xhtml export file is
+    // saved in (OnInit() has already determined the platform specific string to go in the
+    // m_xmlInstallPath member)
+	bool bOkay = TRUE;
+	// on windows, C:\Program Files\<installation folder>, on Linux and Mac the path is
+	// different -- see comments in OnInit() for details
+	wxString pathToAIDefaultCSS = gpApp->m_xmlInstallPath;
+	wxString cssFilename = _T("aiDefault.css"); // this name is hard coded, the original
+				// file of this name is in adaptit\xml\ and a copy has been moved to the
+				// install folder in Program Files, or equiv location on Linux or Mac
+	pathToAIDefaultCSS += gpApp->PathSeparator;
+	pathToAIDefaultCSS += cssFilename;
+	bOkay = ::wxFileExists(pathToAIDefaultCSS);
+	if (!bOkay)
+	{
+		wxString msg;
+		msg = msg.Format(_("Cascading Stylesheet file, aiDefault.css, is missing.\n The aiDefault.css file was supposed to be at: %s\nThe export cannot be done unless the file exists at that location.\n(If you can find such a file, you can manually copy it to that location, and try the export again.)"),
+			pathToAIDefaultCSS.c_str());
+		gpApp->LogUserAction(msg);
+		wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
+		return;
+	}
+	bOkay = MakeAndSaveMyCSSFile(path, fname, pathToAIDefaultCSS);
+	if (!bOkay)
+	{
+		return; // suitable error message has been shown already, and a message logged as well
+	}
 	// get the wxString which is the base text data -- as a USFM export
 	// (LogUserAction() calls are done internally, one for each exportType)
 	text = GetCleanExportedUSFMBaseText(exportType); // calls RebuildTargetText() etc
@@ -372,6 +399,54 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 }
 
 // components for the DoExportAsXhtml() function
+
+// return TRUE if a correctly named .css file was created and saved at the folder specified
+// by path param, with name fname + ".css", based on the aiDefault.css file passed in by
+// the absolute path pathToAIDefaultCSS param. Return FALSE if something went wrong -- in
+// which case the caller should abort the XHTML export with a suitable warning message to
+// the user. The caller has the responsibility of determining that the aiDefault.css file
+// specified by the pathToAIDefaultCSS parameter does actually exist at that path.
+// Called from:  DoExportAsXhtml()
+bool MakeAndSaveMyCSSFile(wxString path, wxString fname, wxString pathToAIDefaultCSS)
+{
+	wxString extension = _T(".css");
+	wxString defaultFilename = _T("aiDefault.css");
+	wxString pathForCopy = path + gpApp->PathSeparator;
+	pathForCopy += defaultFilename;
+	// make a copy of the aiDefault.css in the _XHTM_OUTPUTS folder, or wherever
+	// m_lastXhtmlOutputPath is pointing at (if user allowed that location to remain in
+	// effect) -- TRUE param means "overwrite if one exists with same name"
+	bool bOkay = wxCopyFile(pathToAIDefaultCSS, pathForCopy, TRUE);
+	if (!bOkay)
+	{
+		// we don't expect a failure here, so a message for the developer is all that is
+		// needed, not localizable
+		wxString msg;
+		msg = msg.Format(_T("wxCopyFilePath() failed in MakeAndSaveMyCSSFile for an xhtml export attempt.\n The aiDefault.css file was supposed to be at: %s\nThe path for the copy was: %s"),
+			pathToAIDefaultCSS.c_str(), pathForCopy.c_str());
+		gpApp->LogUserAction(msg);
+		wxMessageBox(msg,_T("CSS file creation: copying aiDefault.css failed"),wxICON_EXCLAMATION | wxOK);
+		return FALSE;
+	}
+	// now rename the copied aiDefault.css file to be what is needed for this export; the
+	// TRUE param means "overwrite if the new name matches the name of some other file"
+	wxString newPathAndName = path + gpApp->PathSeparator;
+	newPathAndName += fname + extension;
+	bOkay = wxRenameFile(pathForCopy, newPathAndName, TRUE);
+	if (!bOkay)
+	{
+		// we don't expect a failure here, so a message for the developer is all that is
+		// needed, not localizable
+		wxString msg;
+		msg = msg.Format(_T("wxRenameFile() failed in MakeAndSaveMyCSSFile for an xhtml export attempt.\n The aiDefault.css file was not renamed to: %s\nThe copied aiDefault.css file has been removed."),
+			newPathAndName.c_str());
+		gpApp->LogUserAction(msg);
+		wxMessageBox(msg,_T("CSS file rename failed"),wxICON_EXCLAMATION | wxOK);
+		wxRemoveFile(pathForCopy); // ignore returned boolean
+		return FALSE;
+	}
+	return TRUE;
+}
 
 /// Return TRUE if the data is unstructured with USFM markers, giving a suitable warning,
 /// and the caller should then return from the xhtml export attempt; else return FALSE
