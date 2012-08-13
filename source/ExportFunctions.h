@@ -208,4 +208,5 @@ void		RemoveMarkersOfType(enum TextType textType, wxString& text);
 int			FindMkrInMarkerInventory(wxString mkr); // BEW added 3Aug11
 void		ExcludeCustomMarkersFromExport(); // BEW added 3Aug11
 void		ExcludeCustomMarkersAndRemFromExport(); // BEW added 19May12
+bool		MakeAndSaveMyCSSFile(wxString path, wxString fname, wxString pathToAIDefaultCSS); // BEW added 13Aug2012
 #endif //ExportFunctions_h
