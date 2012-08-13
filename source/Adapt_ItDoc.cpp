@@ -1478,7 +1478,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 	wxString		strSaveCurrentDirectoryFullPath = dirPath;
 
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
-	
+	bOK = bOK; // whm added 13Aug12 to suppress gcc warning "set but not used"
 	OnCloseDocument();
 	
 	gpApp->m_bDocReopeningInProgress = TRUE;	// suppresses warning message about project folder with same name
@@ -1589,6 +1589,7 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 		test = gpApp->m_latestRevNum;
 				// this is what we just committed - we need to hang on to it so we can come back if needed,
 				//  and the following DVCS call will give us the next version back
+		 test = test; // whm added 13Aug12 to suppress gcc warning "set but not used"
 	}
 
 	trialRevNum = CallDVCS (DVCS_PREV_REVISION, 0);			// looks at the log to get the previous revision number
