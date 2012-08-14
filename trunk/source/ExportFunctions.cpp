@@ -990,7 +990,7 @@ void DoExportAsType(enum ExportType exportType)
 				 else 
 				 {
 					 // Pathway didn't complain. Tell the user.
-					 aMsg = aMsg.Format(_T("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir);
+					 aMsg = aMsg.Format(_T("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir.c_str());
 					 wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
 				 }
                  return;
