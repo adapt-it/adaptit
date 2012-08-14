@@ -5819,6 +5819,12 @@ wxString szLastTargetRTFOutputPath = _T("LastTargetRTFExportPath");
 /// part of the project configuration file. Adapt It stores this path in the
 /// App's m_lastXhtmlOutputPath member variable.
 wxString szLastXhtmlOutputPath = _T("LastXhtmlExportPath");
+
+/// The label that identifies the following string as the application's
+/// "LastPathwayExportPath". This value is written in the "ProjectSettings"
+/// part of the project configuration file. Adapt It stores this path in the
+/// App's m_lastPathwayOutputPath member variable.
+wxString szLastPathwayOutputPath = _T("LastPathwayExportPath");
 // END of Last...Path variables
 
 /// The label that identifies the following string as the project's
@@ -15074,6 +15080,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_lastFreeTransOutputPath = _T("");
 	m_lastFreeTransRTFOutputPath = _T("");
 	m_lastXhtmlOutputPath = _T("");
+	m_lastPathwayOutputPath = _T("");
 	m_foldersProtectedFromNavigation = _T("");
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by
@@ -30696,6 +30703,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szLastPathwayOutputPath << tab << m_lastPathwayOutputPath; // whm added 23Jul12
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
 	pf->AddLine(data);
 
@@ -31441,6 +31452,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szLastXhtmlOutputPath) // whm added 23Jul12
 		{
 			m_lastXhtmlOutputPath = strValue;
+		}
+		else if (name == szLastPathwayOutputPath) // whm added 23Jul12
+		{
+			m_lastPathwayOutputPath = strValue;
 		}
 		else if (name == szFoldersProtectedFromNavigation)
 		{

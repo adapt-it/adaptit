@@ -923,19 +923,22 @@ void DoExportAsType(enum ExportType exportType)
 			// prepare for getting a file Save As dialog for whatever Text type is to be
 			// used for the xhtml output
 			filter = _("Exported XHTML Documents (*.xhtml)|*.xhtml||");
-			// determine the defaultDir path, and whether the use is to protected from
-			// doing folder navigation
-			bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
-				gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_xhtmlOutputsFolderPath, 
-				gpApp->m_lastXhtmlOutputPath, defaultDir);
 
             if (sadlg.GetSaveAsType() == ExportSaveAsPathway)
             {
-                // produce the XHTML, storing it in the project's _XHTML_OUTPUTS folder, or
-                // in whatever folder path was in m_lastXhtmlOutputPath
+				// determine the defaultDir path, and whether the use is to protected from
+				// doing folder navigation
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_pathwayOutputsFolderPath, 
+					gpApp->m_lastPathwayOutputPath, defaultDir);
+				// produce the XHTML, storing it in the project's _PATHWAY_OUTPUTS folder
+				bool bTempBypass = bBypassFileDialog_ProtectedNavigation;
                 bBypassFileDialog_ProtectedNavigation = true;
                 DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
                     exportFilename, filter, false);
+				bBypassFileDialog_ProtectedNavigation = bTempBypass;
+				// update the path for the next export
+				gpApp->m_lastPathwayOutputPath = defaultDir;
                  // Call PathwayB.exe on the exported XHTML.
                  // The full command line should look something like this:
                  //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
@@ -997,7 +1000,12 @@ void DoExportAsType(enum ExportType exportType)
             }
             else // xhtml output
             {
-                // produce the XHTML, storing it in a user-chosen folder, or if folder
+				// determine the defaultDir path, and whether the use is to protected from
+				// doing folder navigation
+				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
+					gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_xhtmlOutputsFolderPath, 
+					gpApp->m_lastXhtmlOutputPath, defaultDir);
+				// produce the XHTML, storing it in a user-chosen folder, or if folder
                 // navigation is not protect, in the project's _XHTML_OUTPUTS folder, or
                 // in whatever folder path was in m_lastXhtmlOutputPath
                 DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
