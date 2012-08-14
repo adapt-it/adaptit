@@ -233,7 +233,7 @@ wxString ChangeMkrs_vn_vt_To_v(wxString text)
 /// data output as viewed on another device, but searching for comments will show which
 /// markers are not supported.
 void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
-							wxString defaultDir, wxString exportFilename, wxString filter, bool bShowMessageIfSucceeded)
+							wxString defaultDir, wxString exportFilename, wxString filter, bool bXTMLExportOnly)
 {
 	// First determine whether or not the data is unstructured plain text - Xhtml cannot
 	// handle data not structured as scripture text (in our case, that means, "as SFM or
@@ -311,9 +311,10 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 
 	if (!bBypassFileDialog_ProtectedNavigation)
 	{
+		wxString sTitle = (bXTMLExportOnly) ? _("Filename for XHTML Export") : _("Filename for Intermediate XHTML Export");
 		// MainFrame is parent window for file dialog
 		wxFileDialog fileDlg((wxWindow*)wxGetApp().GetMainFrame(), 
-			_("Filename for XHTML Export"),
+			sTitle,
 			defaultDir, // passed in directory
 			exportFilename,	// passed in default filename
 			filter, //passed in filter string
@@ -389,7 +390,7 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	myxml = pToXhtml->DoXhtmlExport(text);
 
 	// write out the xhtml
-	if (!WriteXHTML_To_File(exportPath, myxml, bShowMessageIfSucceeded))
+	if (!WriteXHTML_To_File(exportPath, myxml, bXTMLExportOnly))
 	{
 		return; // the user has seen a warning of the failure
 	}
@@ -931,12 +932,11 @@ void DoExportAsType(enum ExportType exportType)
 				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
 					gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_pathwayOutputsFolderPath, 
 					gpApp->m_lastPathwayOutputPath, defaultDir);
-				// produce the XHTML, storing it in the project's _PATHWAY_OUTPUTS folder
-				bool bTempBypass = bBypassFileDialog_ProtectedNavigation;
-                bBypassFileDialog_ProtectedNavigation = true;
+				// produce the intermediate XHTML, storing it in a user-chosen folder, or if folder
+                // navigation is not protect, in the project's _PATHWAY_OUTPUTS folder, or
+                // in whatever folder path was in m_lastPathwayOutputPath
                 DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
                     exportFilename, filter, false);
-				bBypassFileDialog_ProtectedNavigation = bTempBypass;
 				// update the path for the next export
 				gpApp->m_lastPathwayOutputPath = defaultDir;
                  // Call PathwayB.exe on the exported XHTML.
