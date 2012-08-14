@@ -930,7 +930,7 @@ void DoExportAsType(enum ExportType exportType)
 				// determine the defaultDir path, and whether the use is to protected from
 				// doing folder navigation
 				bBypassFileDialog_ProtectedNavigation = GetDefaultDirectory_ProtectedNav(
-					gpApp->m_bProtectXhtmlOutputsFolder, gpApp->m_pathwayOutputsFolderPath, 
+					gpApp->m_bProtectPathwayOutputsFolder, gpApp->m_pathwayOutputsFolderPath, 
 					gpApp->m_lastPathwayOutputPath, defaultDir);
 				// produce the intermediate XHTML, storing it in a user-chosen folder, or if folder
                 // navigation is not protect, in the project's _PATHWAY_OUTPUTS folder, or
