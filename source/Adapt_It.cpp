@@ -13418,6 +13418,7 @@ void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedS
 	m_bProtectTargetOutputsFolder = FALSE;
 	m_bProtectTargetRTFOutputsFolder = FALSE;
 	m_bProtectXhtmlOutputsFolder = FALSE; // whm added 23Jul12
+	m_bProtectPathwayOutputsFolder = FALSE; // whm added 14Aug12
 	m_bProtectKbInputsAndOutputsFolder = FALSE;
 	m_bProtectLiftInputsAndOutputsFolder = FALSE;
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
@@ -13454,6 +13455,8 @@ void CAdapt_ItApp::SetFolderProtectionFlagsFromCombinedString(wxString combinedS
 			m_bProtectTargetRTFOutputsFolder = TRUE;
 		else if (tokenStr == m_xhtmlOutputsFolderName) // whm added 23Jul12
 			m_bProtectXhtmlOutputsFolder = TRUE;
+		else if (tokenStr == m_pathwayOutputsFolderName) // whm added 14Aug12
+			m_bProtectPathwayOutputsFolder = TRUE;
 		else if (tokenStr == m_kbInputsAndOutputsFolderName)
 			m_bProtectKbInputsAndOutputsFolder = TRUE;
 		else if (tokenStr == m_liftInputsAndOutputsFolderName)
@@ -15323,6 +15326,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_targetOutputsFolderName = _T("_TARGET_OUTPUTS");
 	m_targetRTFOutputsFolderName = _T("_TARGET_RTF_OUTPUTS");
 	m_xhtmlOutputsFolderName = _T("_XHTML_OUTPUTS"); // whm added 25Jul12
+	m_pathwayOutputsFolderName = _T("_PATHWAY_OUTPUTS"); // whm added 14Aug12
 	m_reportsOutputsFolderName = _T("_REPORTS_OUTPUTS");
 	m_kbInputsAndOutputsFolderName = _T("_KB_INPUTS_OUTPUTS");
 	m_liftInputsAndOutputsFolderName = _T("_LIFT_INPUTS_OUTPUTS");
@@ -15348,6 +15352,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bProtectTargetOutputsFolder = FALSE;
 	m_bProtectTargetRTFOutputsFolder = FALSE;
 	m_bProtectXhtmlOutputsFolder = FALSE; // whm added 23Jul12
+	m_bProtectPathwayOutputsFolder = FALSE; // whm added 14Aug12
 	m_bProtectKbInputsAndOutputsFolder = FALSE;
 	m_bProtectLiftInputsAndOutputsFolder = FALSE;
 	m_bProtectPackedInputsAndOutputsFolder = FALSE;
@@ -21948,6 +21953,7 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 		m_targetOutputsFolderPath = curProjectPath + PathSeparator + m_targetOutputsFolderName;
 		m_targetRTFOutputsFolderPath = curProjectPath + PathSeparator + m_targetRTFOutputsFolderName;
 		m_xhtmlOutputsFolderPath = curProjectPath + PathSeparator + m_xhtmlOutputsFolderName; // whm added 25Jul12
+		m_pathwayOutputsFolderPath = curProjectPath + PathSeparator + m_pathwayOutputsFolderName; // whm added 14Aug12
 		m_kbInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		m_liftInputsAndOutputsFolderPath = curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 		// Note: the m_packedInputsAndOutputsFolderPath uses m_workFolderPath or m_customWorkFolderPath, not
@@ -22150,6 +22156,24 @@ bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wx
 				{
 					pathCreationErrors += _T("   ");
 					pathCreationErrors += m_xhtmlOutputsFolderName;
+				}
+				bCreatedOK = FALSE;
+			}
+		}
+		if (!::wxDirExists(m_pathwayOutputsFolderPath)) // whm added 14Aug12
+		{
+			bool bOK = ::wxMkdir(m_pathwayOutputsFolderPath);
+			if (!bOK)
+			{
+				if (!pathCreationErrors.IsEmpty())
+				{
+					pathCreationErrors += _T("\n   ");
+					pathCreationErrors += m_pathwayOutputsFolderName;
+				}
+				else
+				{
+					pathCreationErrors += _T("   ");
+					pathCreationErrors += m_pathwayOutputsFolderName;
 				}
 				bCreatedOK = FALSE;
 			}

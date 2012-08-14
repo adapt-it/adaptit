@@ -109,6 +109,8 @@ CAssignLocationsForInputsAndOutputs::CAssignLocationsForInputsAndOutputs(wxWindo
 	wxASSERT(pProtectTargetRTFOutputs != NULL);
 	pProtectXhtmlOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_XHTML_OUTPUTS); // whm added 23Jul12
 	wxASSERT(pProtectXhtmlOutputs != NULL);
+	pProtectPathwayOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_PATHWAY_OUTPUTS); // whm added 14Aug12
+	wxASSERT(pProtectPathwayOutputs != NULL);
 	pProtectKBInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS);
 	wxASSERT(pProtectKBInputsAndOutputs != NULL);
 	pProtectLIFTInputsAndOutputs = (wxCheckBox*)FindWindowById(ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS);
@@ -151,6 +153,7 @@ void CAssignLocationsForInputsAndOutputs::InitDialog(wxInitDialogEvent& WXUNUSED
 	pProtectTargetOutputs->SetValue(m_pApp->m_bProtectTargetOutputsFolder);
 	pProtectTargetRTFOutputs->SetValue(m_pApp->m_bProtectTargetRTFOutputsFolder);
 	pProtectXhtmlOutputs->SetValue(m_pApp->m_bProtectXhtmlOutputsFolder);
+	pProtectPathwayOutputs->SetValue(m_pApp->m_bProtectPathwayOutputsFolder);
 	pProtectKBInputsAndOutputs->SetValue(m_pApp->m_bProtectKbInputsAndOutputsFolder);
 	pProtectLIFTInputsAndOutputs->SetValue(m_pApp->m_bProtectLiftInputsAndOutputsFolder);
 	pProtectPackedInputsAndOutputs->SetValue(m_pApp->m_bProtectPackedInputsAndOutputsFolder);
@@ -238,6 +241,7 @@ void CAssignLocationsForInputsAndOutputs::OnSelectAllCheckBoxes(wxCommandEvent& 
 	pProtectTargetOutputs->SetValue(TRUE);
 	pProtectTargetRTFOutputs->SetValue(TRUE);
 	pProtectXhtmlOutputs->SetValue(TRUE); // whm added 23Jul12
+	pProtectPathwayOutputs->SetValue(TRUE); // whm added 14Aug12
 	pProtectKBInputsAndOutputs->SetValue(TRUE);
 	pProtectLIFTInputsAndOutputs->SetValue(TRUE);
 	pProtectPackedInputsAndOutputs->SetValue(TRUE);
@@ -273,6 +277,7 @@ void CAssignLocationsForInputsAndOutputs::OnUnSelectAllCheckBoxes(wxCommandEvent
 	}
 	pProtectTargetRTFOutputs->SetValue(FALSE);
 	pProtectXhtmlOutputs->SetValue(FALSE); // whm added 23Jul12
+	pProtectPathwayOutputs->SetValue(FALSE); // whm added 14Aug12
 	pProtectKBInputsAndOutputs->SetValue(FALSE);
 	pProtectLIFTInputsAndOutputs->SetValue(FALSE);
 	pProtectPackedInputsAndOutputs->SetValue(FALSE);
@@ -335,6 +340,9 @@ void CAssignLocationsForInputsAndOutputs::OnOK(wxCommandEvent& event)
 	m_pApp->m_bProtectXhtmlOutputsFolder = pProtectXhtmlOutputs->GetValue();
 	if (m_pApp->m_bProtectXhtmlOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_xhtmlOutputsFolderName + _T(':');
+	m_pApp->m_bProtectPathwayOutputsFolder = pProtectPathwayOutputs->GetValue(); // whm added 14Aug12
+	if (m_pApp->m_bProtectPathwayOutputsFolder)
+		foldersProtectedFromNavigation += m_pApp->m_pathwayOutputsFolderName + _T(':');
 	m_pApp->m_bProtectKbInputsAndOutputsFolder = pProtectKBInputsAndOutputs->GetValue();
 	if (m_pApp->m_bProtectKbInputsAndOutputsFolder)
 		foldersProtectedFromNavigation += m_pApp->m_kbInputsAndOutputsFolderName + _T(':');
