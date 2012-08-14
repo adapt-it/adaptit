@@ -99,7 +99,7 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	pViewFilteredMaterialDlgSizer = ViewFilteredMaterialDlgFunc(this, TRUE, TRUE);
+	pViewFilteredMaterialDlgSizer = ViewFilteredMaterialDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	bool bOK;
@@ -187,6 +187,13 @@ void CViewFilteredMaterialDlg::OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(e
 
 	pMkrTextEdit->Refresh();
 	pViewFilteredMaterialDlgSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ViewFilteredMaterialDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 #endif
 
@@ -484,6 +491,13 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		pRemoveBtn->Show(FALSE);
 	}
 	pViewFilteredMaterialDlgSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ViewFilteredMaterialDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 // event handling functions
@@ -559,6 +573,13 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	pEndMarkers->SetSelection(newMkrSelection);
 	currentMkrSelection = newMkrSelection;
 	pViewFilteredMaterialDlgSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ViewFilteredMaterialDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
 
 // BEW 5Mar10, no change required for doc version 5
@@ -752,6 +773,13 @@ void CViewFilteredMaterialDlg::OnEnChangeEditMarkerText(wxCommandEvent& WXUNUSED
 		btnTitle = _("&Save Changes"); //IDS_SAVE_FDLG_CHANGES
 		pOKButton->SetLabel(btnTitle);
 		pViewFilteredMaterialDlgSizer->Layout();
+		// The second radio button's label text is likely going to be truncated unless we resize the
+		// dialog to fit it. Note: The constructor's call of ViewFilteredMaterialDlgFunc(this, FALSE, TRUE)
+		// has its second parameter as FALSE to allow this resize here in InitDialog().
+		wxSize dlgSize;
+		dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
+		this->SetSize(dlgSize);
+		this->CenterOnParent();
 	}
 }
 
@@ -871,6 +899,13 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 	bRemovalDone = FALSE;
 	gpApp->GetDocument()->Modify(TRUE); // mark the document dirty
 	pViewFilteredMaterialDlgSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ViewFilteredMaterialDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 
 	// BEW added 16Jul09 to get loss of wedge visibly done when free trans is removed
 	gpApp->m_pLayout->Redraw();
@@ -962,4 +997,11 @@ void CViewFilteredMaterialDlg::GetAndShowMarkerDescription(int indexIntoMarkersL
 		pMkrStatusStatic->SetLabel(statusStr);
 	}
 	pViewFilteredMaterialDlgSizer->Layout();
+	// The second radio button's label text is likely going to be truncated unless we resize the
+	// dialog to fit it. Note: The constructor's call of ViewFilteredMaterialDlgFunc(this, FALSE, TRUE)
+	// has its second parameter as FALSE to allow this resize here in InitDialog().
+	wxSize dlgSize;
+	dlgSize = pViewFilteredMaterialDlgSizer->ComputeFittingWindowSize(this);
+	this->SetSize(dlgSize);
+	this->CenterOnParent();
 }
