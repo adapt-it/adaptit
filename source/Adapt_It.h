@@ -2526,6 +2526,11 @@ public:
 	// Related Nav Protect folder: _XHTML_OUTPUTS
 	wxString	m_lastXhtmlOutputPath;
 
+	// Use: m_lastPathwayOutputPath stores the last Pathway documents export path
+	// Now: in version 6.2.3 saved in project config file under LastPathwayExportPath
+	// Previously: None - new for version 6.2.3.
+	// Related Nav Protect folder: _PATHWAY_OUTPUTS
+	wxString	m_lastPathwayOutputPath;
 
 	wxString	m_foldersProtectedFromNavigation; // whm 12Jun11 added for inputs and
 												// outputs dirs that are protected from
