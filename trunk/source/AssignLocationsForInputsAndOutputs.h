@@ -42,6 +42,7 @@ public:
 	wxCheckBox* pProtectTargetOutputs;
 	wxCheckBox* pProtectTargetRTFOutputs;
 	wxCheckBox* pProtectXhtmlOutputs;
+	wxCheckBox* pProtectPathwayOutputs; // whm added 14Aug12
 	wxCheckBox* pProtectKBInputsAndOutputs;
 	wxCheckBox* pProtectLIFTInputsAndOutputs;
 	wxCheckBox* pProtectPackedInputsAndOutputs;

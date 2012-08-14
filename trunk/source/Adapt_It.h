@@ -2812,6 +2812,12 @@ public:
 	wxString	m_xhtmlOutputsFolderPath; // always a child of folder that m_curProjectPath
 										// points to; the path is defined where m_curProjectPath
 										// gets defined
+	// whm added next three 14Aug12
+	bool		m_bProtectPathwayOutputsFolder;
+	wxString	m_pathwayOutputsFolderName; // in OnInit() we set to "_PATHWAY_OUTPUTS"
+	wxString	m_pathwayOutputsFolderPath; // always a child of folder that m_curProjectPath
+										// points to; the path is defined where m_curProjectPath
+										// gets defined
 	bool		m_bProtectKbInputsAndOutputsFolder;
 	wxString	m_kbInputsAndOutputsFolderName; // in OnInit() we set to "_KB_INPUTS_OUTPUTS"
 	wxString	m_kbInputsAndOutputsFolderPath; // always a child of folder that m_curProjectPath
