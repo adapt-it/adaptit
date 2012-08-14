@@ -54,7 +54,7 @@ void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath,
 							  wxString exportName, wxString& Buffer);
 // BEW created 9Jun12
 void		DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
-							wxString defaultDir, wxString exportFilename, wxString filter, bool bShowMessageIfSucceeded);
+							wxString defaultDir, wxString exportFilename, wxString filter, bool bXTMLExportOnly);
 // components defined for simplifying the code of DoExportAsXhtml()
 bool		DeclineIfUnstructuredData();
 bool		DeclineIfNoBookCode(wxString& bookCode);
