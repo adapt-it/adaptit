@@ -8767,6 +8767,8 @@ bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 	return FALSE;
 }
 
+//#define ShowConversionItems
+
 void ConvertSPList2SPArray(SPList* pList, SPArray* pArray)
 {
 	SPList::Node* pos= pList->GetFirst();
@@ -8775,6 +8777,10 @@ void ConvertSPList2SPArray(SPList* pList, SPArray* pArray)
 		CSourcePhrase* pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
 		pArray->Add(pSrcPhrase);
+#if defined(ShowConversionItems) && defined(__WXDEBUG__)
+		wxLogDebug(_T("from SPList:  m_chapterVerse: %s   sequNum: %d   m_srcPhrase: %s"),
+			pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+#endif
 	}
 }
 

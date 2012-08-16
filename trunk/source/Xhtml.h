@@ -301,6 +301,7 @@ public:
 	wxString m_languageCode; // the iso639-1 or if not in that standard, then the iso639-3 (3-letter) code
 	wxString m_myFilePath; // the path to _TARGET_OUTPUTS where it will be saved
 	wxString m_myFilename; // extension removed, and if from collaboration mode, the "Collab_" prefix also removed
+	wxString m_directionality; // will be either _T("ltr") or _T("rtl")
 
 private:
 

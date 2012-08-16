@@ -265,10 +265,16 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	{	
 		return; // a suitable warning has been shown to the user
 	}
+
+	// need the directionality -- whether left to right or right to left
+	wxString myDirectionality; 
+	myDirectionality = GetTheLanguageDirectionality(exportType);
+
 	// if control gets to here, we have the correct 
 	// (i)   bookID and 
 	// (ii)  language type and 
 	// (iii) language code 
+	// (iv)  the directionality of the language's script
 	// set up, and a language type designation passed in,
 	// so we can proceed with building the xhtml.
 	// The Xhtml class is instantiated (in OnInit() at app startup) 
@@ -276,6 +282,7 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	Xhtml* pToXhtml = gpApp->m_pXhtml; // pToXhtml is a handy pointer
 	pToXhtml->SetBookID(bookCode);
 	pToXhtml->m_languageCode = langCode;
+	pToXhtml->m_directionality = myDirectionality;
 
 	// get a suitable book name
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
@@ -490,6 +497,63 @@ bool DeclineIfNoBookCode(wxString& bookCode)
 		return TRUE;
 	}
 	return FALSE;
+}
+
+wxString GetTheLanguageDirectionality(ExportType exportType)
+{
+	wxString strLTR = _T("ltr"); // default
+	wxString strRTL = _T("rtl");
+	wxString myDirectionality;
+	bool bIsRTL;
+	/* from Adapt_It.h
+#ifdef _RTL_FLAGS
+	// flags for RTLReading languages
+	bool		m_bSrcRTL; // true when source language reads right to left
+	bool		m_bTgtRTL; // ditto, for target language
+	bool		m_bNavTextRTL; // ditto, for navigation text
+#endif
+	*/
+#ifdef _RTL_FLAGS
+	switch (exportType)
+	{
+	case sourceTextExport:
+		bIsRTL = gpApp->m_bSrcRTL;
+		break;
+	case glossesTextExport:
+		if (gbGlossingUsesNavFont)
+		{
+			bIsRTL = gpApp->m_bNavTextRTL;
+		}
+		else
+		{
+			bIsRTL = gpApp->m_bTgtRTL;
+		}
+		break;
+	case freeTransTextExport:
+		// so far, we always use target text's font, encoding and directionality for any
+		// free translations that are done
+		bIsRTL = gpApp->m_bTgtRTL;
+		break;
+	case targetTextExport:
+		bIsRTL = gpApp->m_bTgtRTL;
+		break;
+	default:
+		bIsRTL = FALSE;
+		break;
+	}
+	if (bIsRTL)
+	{
+		myDirectionality = strRTL;
+	}
+	else
+	{
+		myDirectionality = strLTR;
+	}
+#else
+	//Regular Adapt It only supports LTR scripts
+	myDirectionality = strLTR;
+#endif
+	return myDirectionality;
 }
 
 /// Return TRUE if the appropriate iso639-1 or ios639-3 language code for the export type

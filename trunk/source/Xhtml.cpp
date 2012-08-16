@@ -265,7 +265,7 @@ void Xhtml::SetupXhtmlApparatus()
 	m_picturePcdataTemplate = "<div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\"><span lang=\"langAttrCode\">captionPCDATA</span><span lang=\"langAttrCode\" class=\"reference\">refPCDATA</span></div></div>";
 	m_picturePcdataEmptyRefTemplate = "<div class=\"picturePlacement\">myImgPCDATA<div class=\"pictureCaption\"><span lang=\"langAttrCode\">captionPCDATA</span><span lang=\"langAttrCode\" class=\"reference\" /></div></div>";
 	// the next is the file-initial metadata, parmeterized
-	m_metadataTemplate = "<?xml version=\"1.0\" encoding=\"utf-8\"?>NEWLINE<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">NEWLINE<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"utf-8\" lang=\"utf-8\">NEWLINE<!--NEWLINEThere are no spaces or newlines between <span> elements in this file becauseNEWLINEwhitespace is significant.  We don't want extraneous spaces appearing in theNEWLINEdisplay/printout!NEWLINE      -->NEWLINE<head>NEWLINE<title /><link rel=\"stylesheet\" href=\"myCSSStyleSheet\" type=\"text/css\" /><meta name=\"linkedFilesRootDir\" content=\"myFilePath\" /><meta name=\"description\" content=\"myDescription\" /><meta name=\"filename\" content=\"myFilename\" /></head>NEWLINE<body class=\"scrBody\">NEWLINE";
+	m_metadataTemplate = "<?xml version=\"1.0\" encoding=\"utf-8\"?>NEWLINE<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">NEWLINE<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"langAttrCode\" lang=\"langAttrCode\" dir=\"dirAttrValue\">NEWLINE<!--NEWLINEThere are no spaces or newlines between <span> elements in this file becauseNEWLINEwhitespace is significant.  We don't want extraneous spaces appearing in theNEWLINEdisplay/printout!NEWLINE      -->NEWLINE<head>NEWLINE<title /><link rel=\"stylesheet\" href=\"myCSSStyleSheet\" type=\"text/css\" /><meta name=\"linkedFilesRootDir\" content=\"myFilePath\" /><meta name=\"description\" content=\"myDescription\" /><meta name=\"filename\" content=\"myFilename\" /></head>NEWLINE<body class=\"scrBody\">NEWLINE";
 	m_footnoteMarkerTemplate = "<span class=\"scrFootnoteMarker\">anUuidAnchor</span>";
 
 	m_spanTemplate[simple] = "<span lang=\"langCode\">spanPCDATA</span>";
@@ -2463,6 +2463,31 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 	int offset = wxNOT_FOUND;
 	CBString left;
 	CBString metaStr = m_metadataTemplate; // do our changes on a copy thereof
+
+	// put in the language code (in two places), search for langAttrCode
+	searchStr = "langAttrCode";
+	length = searchStr.GetLength();
+	offset = metaStr.Find(searchStr); wxASSERT(offset != wxNOT_FOUND);
+	left = metaStr.Left(offset);
+	myxml += left;
+	myxml += langCode; // add the language code (first location)
+	metaStr = metaStr.Mid(offset + length); // bleed off what we've found
+	// now the second one
+	offset = metaStr.Find(searchStr); wxASSERT(offset != wxNOT_FOUND);
+	left = metaStr.Left(offset);
+	myxml += left;
+	myxml += langCode; // add the language code (second location)
+	metaStr = metaStr.Mid(offset + length); // bleed off what we've found
+
+	// put in the directionality value, either ltr or rtl
+	CBString myDirection = ToUtf8(m_directionality);
+	searchStr = "dirAttrValue";
+	length = searchStr.GetLength();
+	offset = metaStr.Find(searchStr); wxASSERT(offset != wxNOT_FOUND);
+	left = metaStr.Left(offset);
+	myxml += left;
+	myxml += myDirection; // insert the directionality value
+	metaStr = metaStr.Mid(offset + length); // bleed off what we've found
 
 	searchStr = "myCSSStyleSheet";
 	length = searchStr.GetLength();

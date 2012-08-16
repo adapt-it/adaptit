@@ -14185,7 +14185,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		//bHitMarker = FALSE;
-
+		
 		if (IsWhiteSpace(ptr))
 		{
             // advance pointer past the white space (inter-word spaces should be thrown
@@ -14739,6 +14739,33 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
 				ptr += itemLen; // advance ptr past its following whitespace
 
+#if defined(__WXDEBUG__)
+		// Import Edited Source Text is loosing an empty 2:10 in Titus test data, after an
+		// empty 2:9 which it parses correctly; 2:11 has source text & is okay
+		//if (sequNumber >= 106) // 104 is at end of 2:8 "ya."
+		//{
+			// sn == 106 should be the 2:10, but it's somehow omitted; 105 is the empty 2:9
+		//	int break_here = 1;
+		//}
+#endif
+                // BEW added 15Aug12: a \p after an empty verses marker, can cause control
+                // to come here without closing off the empty pSrcPhrase after accumulating
+                // the \p into the m_markers member of the pSrcPhrase which still has
+                // nothing in its m_key member -- so if ptr is pointing at a following \v
+                // marker, force the break here from the inner loop so that the empty
+                // verse's CSourcePhrase instance does not get 'lost' by being absorbed
+                // into the m_markers of the next verse's first CSourcePhrase instance.
+                // Otherwise iterate the inner loop
+				if (ForceAnEmptyUSFMBreakHere(tokBuffer, pSrcPhrase, ptr))
+				{
+					bEmptyUSFM = TRUE; // this protects control from entering ParseWord()
+									   // further below when we break from the inner loop
+					pSrcPhrase->m_key.Empty();
+					pSrcPhrase->m_srcPhrase.Empty();
+					pSrcPhrase->m_markers = tokBuffer;
+					pSrcPhrase->m_bFirstOfType = TRUE;
+					break;
+				}
 				continue; // iterate the inner loop to check if another marker follows
 
 			} // BEW added 11Oct10, end of else block for test for inline mrk,
@@ -15228,6 +15255,36 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	pSrcPhraseVeryLast->m_srcPhrase.Trim();
 
 	return pList->GetCount();
+}
+
+// return TRUE if we have an empty CSourcePhrase which has a verse marker and verse number (actually,
+// tokBuffer will have the verse marker and number at the time this function is called),
+// and a following \p or other marker without content (also in tokBuffer), and ptr is pointing at the
+// \v of the next verse. We can get such a situation, for example, if merging to a
+// document with some empty CSourcePhrase instances which come from Paratext empty verse
+// markers, and the data for merging has an introduced \p marker (or other contentless
+// marker) between the empty markers -- without this function, the legacy parser would
+// accumulate the preceding \v, verse number, \p, and following \v into the one
+// CSourcePhrase, effectively removing the earlier verse from the merged source text
+bool CAdapt_ItDoc::ForceAnEmptyUSFMBreakHere(wxString tokBuffer, 
+							CSourcePhrase* pSrcPhrase, wxChar* ptr)
+{
+	// the condition for returning TRUE is:
+	// 1. tokBuffer has a \v in it already AND
+	// 2. ptr points at a \v marker AND
+	// 3. m_key is still empty
+	wxString aVerseMkr = _T("\\v");
+	int offset = tokBuffer.Find(aVerseMkr);
+	int nCount = 0;
+	if (offset != wxNOT_FOUND && pSrcPhrase->m_key.IsEmpty() && IsVerseMarker(ptr, nCount))
+	{
+		if (nCount == 2 || nCount == 3)
+		{
+			// it's a verse marker, ie either \v or \vn
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
