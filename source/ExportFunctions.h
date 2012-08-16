@@ -59,6 +59,7 @@ void		DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protect
 bool		DeclineIfUnstructuredData();
 bool		DeclineIfNoBookCode(wxString& bookCode);
 bool		DeclineIfNoIso639LanguageCode(ExportType exportType, wxString& langCode);
+wxString	GetTheLanguageDirectionality(ExportType exportType);
 wxString	GetCleanExportedUSFMBaseText(ExportType exportType);
 wxString	ApplyNormalizingFiltersToTheUSFMText(wxString text);
 bool		WriteXHTML_To_File(wxString exportPath, CBString& text, bool bShowMessageIfSucceeded);

@@ -428,6 +428,8 @@ protected:
 	void			ValidateNoteStorage(); // ensure no m_bHasNote flags are TRUE but lack
 						// any note being stored there, and that every stored note has the
 						// m_bHasNote flag set TRUE -- run at start of OnOpenDocument()
+	bool			ForceAnEmptyUSFMBreakHere(wxString tokBuffer, CSourcePhrase* pSrcPhrase, 
+									wxChar* ptr); // BEW added 15Aug12
 
 #ifdef CONSCHK
 	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
