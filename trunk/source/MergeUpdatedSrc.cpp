@@ -1816,7 +1816,7 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 #ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 		wxLogDebug(_T("AreSizesDisparate() is TRUE for pOldChunk %s:%s  OLD chunk: [starts,ends] = [ %d , %d ]  NEW chunk: [ %d , %d ] "),
-			pOldChunk->strChapter, pOldChunk->strStartingVerse, pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
+			pOldChunk->strChapter.c_str(), pOldChunk->strStartingVerse.c_str(), pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
 #endif
 #endif
 		return TRUE;
@@ -1827,7 +1827,7 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 #ifdef myLogDebugCalls
 #ifdef __WXDEBUG__
 		wxLogDebug(_T("AreSizesDisparate() is FALSE, matched simple-verse chunks: for pOldChunk %s:%s  OLD = [ %d , %d ]  NEW = [ %d , %d ] "),
-			pOldChunk->strChapter, pOldChunk->strStartingVerse, pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
+			pOldChunk->strChapter.c_str(), pOldChunk->strStartingVerse.c_str(), pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
 #endif
 #endif
 	}
