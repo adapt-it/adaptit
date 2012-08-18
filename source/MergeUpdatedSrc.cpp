@@ -877,6 +877,18 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	SPArray subArrOld; // these will hold subranges of the contents of arrOld
 	SPArray subArrNew; // and arrNew, which we populated based on our analysis of
 					   // the arrOld and arrNew arrays done just above
+	// BEW added 17Aug12, to support remembering individual SfmChunk pairings - these
+	// arrays work in parallel, the one index value yields from each array the SfmChunk
+	// index which constitutes a successfully matched milestoned pair within the 
+	// GetMaxInSyncChunksPairing() function; MergeRecursively() uses these arrays to
+	// determine spans of old and new CSourcePhrase instances in paired spans, for
+	// recursive merging on a per-milestone basis, rather than merging all the milestones
+	// as a superchunk from start to end (we do this because the latter is dangerous for a
+	// SPAN_LIMIT value of 80 when the user may add hundreds of new words at the end of
+	// source text in Paratext - only a loop doing per-milestone recursive mergers is safe
+	// in such a circumstance - otherwise data at the end of the supergroup could be lost)
+	wxArrayInt arrPairingOld;
+	wxArrayInt arrPairingNew;
 
 	// get a wxLogDebug() display of the chunks and their types and ranges
 #ifdef myMilestoneDebugCalls
@@ -964,38 +976,18 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
         // be checked for all matchups with all unique words in arrNew, an order of N
         // squared operation, where N = total words (but if one or the other array is
         // markedly shorter, it isn't so bad)
-		MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum);
+        // need two dummy params (unused when processStartToEnd is passed in)
+        int oldChunkIndex = -1;
+		int newChunkIndex = -1;
+		MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum, 
+				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
+				arrPairingNew, arrOld, arrNew, oldChunkIndex, newChunkIndex);
 		// Updating m_nSequNumber values is done internally
 
         // we are done with the temporary array's of SfmChunk instances, so remove them
         // from the heap; there shouldn't be any, but just in case...
-		int iter;
-		int countStructs = pChunksOld->GetCount();
-		if (countStructs > 0)
-		{
-			for (iter = 0; iter < countStructs; iter++)
-			{
-				SfmChunk* pChunk = (SfmChunk*)pChunksOld->Item(iter);
-				if (pChunk != NULL) // whm 11Jun12 added NULL test
-					delete pChunk;
-			}
-		}
-		if (pChunksOld != NULL) // whm 11Jun12 added NULL test
-			delete pChunksOld;
-
-		countStructs = pChunksNew->GetCount();
-		if (countStructs > 0)
-		{
-			for (iter = 0; iter < countStructs; iter++)
-			{
-				SfmChunk* pChunk = (SfmChunk*)pChunksNew->Item(iter);
-				if (pChunk != NULL) // whm 11Jun12 added NULL test
-					delete pChunk;
-			}
-		}
-		if (pChunksNew != NULL) // whm 11Jun12 added NULL test
-			delete pChunksNew;
-
+		DeleteSfmChunkArray(pChunksOld);
+		DeleteSfmChunkArray(pChunksNew);
 		return;
 	} // end of TRUE block for test: if (!bSuccessful_Old && !bSuccessful_New)
 
@@ -1029,7 +1021,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			CopySubArray(arrNew, pNewChunk->startsAt, pNewChunk->endsAt, subArrNew);
 			// MergeRecursively() appends to pMergedList and updates sequ numbers, and
 			// copies changed punctuation and/or USFMs for material "in common", etc
-			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum);
+			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, arrPairingNew,
+				arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() 2 book-initial chunks: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt, defaultLimit, nStartingSequNum);
@@ -1084,7 +1078,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				CopySubArray(arrNew, pNewChunk->startsAt, pNewChunk->endsAt, subArrNew);
 				// MergeRecursively() appends to pMergedList and updates sequ numbers, and
 				// copies changed punctuation and/or USFMs for material "in common", etc
-				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum);
+				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
+						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
+						arrPairingNew, arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() 2 introduction chunks: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt, -1, nStartingSequNum);
@@ -1160,8 +1156,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                 // counts within those two chunks are disparate; if pairing gets to the end
                 // of one or both arrays, it returns TRUE
 				bPairedOK = GetMaxInSyncChunksPairing(arrOld, arrNew, pChunksOld, pChunksNew,
-									oldChunkIndex, newChunkIndex, oldLastChunkIndex, 
-									newLastChunkIndex, bDisparateSizes);
+								oldChunkIndex, newChunkIndex, oldLastChunkIndex, 
+								newLastChunkIndex, bDisparateSizes, arrPairingOld, arrPairingNew);
 			} // end of TRUE block for test: if (bInitialRefsSame)
 
 			if (bPairedOK && bInitialRefsSame)
@@ -1181,7 +1177,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// copies changed punctuation and/or USFMs for material "in common",
 					// etc; for in-sync milestoned chunk pairings, use the (small) default
 					// value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum);
+					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld, arrPairingNew,
+						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, paired: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
@@ -1215,7 +1213,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                     // numbers, and copies changed punctuation and/or USFMs for
                     // material "in common", etc; for in-sync milestoned chunk
                     // pairings, use the (small) default value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum);
+					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld, arrPairingNew,
+						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, not paired, a super-chunk: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
@@ -1346,7 +1346,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// numbers, and copies changed punctuation and/or USFMs for
 					// material "in common", etc; for in-sync milestoned chunk
 					// pairings, use the (small) default value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum);
+					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, arrPairingNew,
+						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, disparate super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
@@ -1377,7 +1379,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
 					CopySubArray(arrOld, pEndChunkOld->startsAt, pEndChunkOld->endsAt, subArrOld);
 					CopySubArray(arrNew, pEndChunkNew->startsAt, pEndChunkNew->endsAt, subArrNew);
-					MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum);
+					MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
+						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, arrPairingNew,
+						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, disparate super-chunk -- at end: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pEndChunkOld->startsAt, pEndChunkOld->endsAt, pEndChunkNew->startsAt, pEndChunkNew->endsAt, -1, nStartingSequNum);
@@ -1631,7 +1635,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// MergeRecursively() with the word-count-based limit value, which
 					// ensures safety (a word count is potentially larger than a
 					// CSourcePhrase count, because of the possibility of mergers)
-					MergeRecursively(subArrOld, subArrNew, pMergedList, dynamicLimit, nStartingSequNum);
+					MergeRecursively(subArrOld, subArrNew, pMergedList, dynamicLimit, nStartingSequNum, 
+						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, arrPairingNew,
+						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() the messy aggregates: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, dynamicLimit, nStartingSequNum);
@@ -1742,44 +1748,39 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		}
 		else
 		{
-			// this will be very inefficient and slow because all unique words in arrOld must be
-			// checked for all matchups with all unique words in arrNew, an order of N
-			// squared operation, where N = total words (but if one or the other array is
-			// markedly shorter, it isn't so bad)
-			MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum);
+            // this will be very inefficient and slow because all unique words in arrOld
+            // must be checked for all matchups with all unique words in arrNew, an order
+            // of N squared operation, where N = total words (but if one or the other array
+            // is markedly shorter, it isn't so bad)
+			MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum, 
+				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, arrPairingNew,
+				arrOld, arrNew, oldChunkIndex, newChunkIndex);
 			// Updating m_nSequNumber values is done internally
 		}
 	} // end of else block for test: if (countOldChunks > 0 && countNewChunks > 0)
     
-	// we are done with the temporary array's of SfmChunk instances, so remove them from the heap
-	int iter;
-	int countStructs = pChunksOld->GetCount();
-	if (countStructs > 0)
-	{
-		for (iter = 0; iter < countStructs; iter++)
-		{
-			SfmChunk* pChunk = (SfmChunk*)pChunksOld->Item(iter);
-			if (pChunk != NULL) // whm 11Jun12 added NULL test
-				delete pChunk;
-		}
-	}
-	if (pChunksOld != NULL) // whm 11Jun12 added NULL test
-		delete pChunksOld;
-
-	countStructs = pChunksNew->GetCount();
-	if (countStructs > 0)
-	{
-		for (iter = 0; iter < countStructs; iter++)
-		{
-			SfmChunk* pChunk = (SfmChunk*)pChunksNew->Item(iter);
-			if (pChunk != NULL) // whm 11Jun12 added NULL test
-				delete pChunk;
-		}
-	}
-	if (pChunksNew != NULL) // whm 11Jun12 added NULL test
-		delete pChunksNew;
+	// we are done with the temporary array's of SfmChunk instances, 
+	// so remove them from the heap
+	DeleteSfmChunkArray(pChunksOld);
+	DeleteSfmChunkArray(pChunksNew);
 }
 
+void DeleteSfmChunkArray(wxArrayPtrVoid* pChunksArray)
+{
+	int iter;
+	int countStructs = pChunksArray->GetCount();
+	if (countStructs > 0)
+	{
+		for (iter = 0; iter < countStructs; iter++)
+		{
+			SfmChunk* pChunk = (SfmChunk*)pChunksArray->Item(iter);
+			if (pChunk != NULL) // whm 11Jun12 added NULL test
+				delete pChunk;
+		}
+	}
+	if (pChunksArray != NULL) // whm 11Jun12 added NULL test
+		delete pChunksArray;
+}
 
 // Return TRUE only when one or both of the word counts exceeds SPAN_LIMIT, AND the ratio
 // of max count to min count exceeds 1.5; ratios exceeding 1.5 are safe if the span is
@@ -2088,6 +2089,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 	return TRUE;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
 /// \return         TRUE if one or more in-sync matchups are determined (oldEndChunk and
 ///                 newEndChunk values can then be relied upon); FALSE if no in-sync matchups
 ///                 were able to be made, or if their is a valid pairing but the pair are
@@ -2111,6 +2113,12 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 ///                             words; otherwise return TRUE -- the caller in the latter
 ///                             case will use a limit value of -1 to process the pair with
 ///                             disparate sizes safely
+/// \param arrPairingOld    <-  stores the index of the pOldChunk array's matched SfmChunk
+///                             struct of a successful pairing
+/// \param arrPairingNew    <-  stores the index of the pNewChunk array's matched SfmChunk
+///                             struct of the same successful pairing as for arrPairingOld
+///                             (these two arrays of ints work in parallel - the indices
+///                             for the pair are at the same index in each)
 /// This is the function which gathers in-sync chunks into a super-chunk in which the same
 /// chapters and verses are present - paired. That is, if pOldChunks has a chapter 2 verse
 /// 3 chunk and pNewChunks has a chapter 2 verse 3 chunk, and there were pairings up to
@@ -2144,17 +2152,23 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 /// pairings using AreSfmChunksWithSameRef() until the latter returns FALSE, and returns
 /// the indices for the last successful pairing in oldEndChunk and newEndChunk.
 /// 
-/// BEW 16Aug12 Here's how I plan to tackle the above problem. I'll define a new struct
-/// which stores the old array's start and end indices for a milestone chunk, and also the
-/// new array's start and end indices for the paired chunk; fill them out and store them in
-/// an array. Then when GetMaxInSyncChunksPairing() has gotten as many pairing as possible
-/// which are in sequence, it returns and the array of pairing indices is processed one by
-/// one in sequence - calling a variant of MergeRecursively() on each pairing, the new
-/// function I'll call: MergeRecursively_OnePairing(...args...). That should do the trick.
+/// BEW 16Aug12 Here's how I plan to tackle the above problem. I'll define two new arrays
+/// of integer which work in parallel. Each successful milestoned SfmChunk pairing will
+/// have the relevant struct's index into either pOldChunksArray or pNewChunksArray at the
+/// same index in each array. MergeRecursively() will then be able, within a loop, to get
+/// each milestoned pairing and do the recursive merging for that particular pair of
+/// chunks. This will avoid any problems which otherwise would occur because SPAN_LIMIT is
+/// not big enough to ensure that a large group of added words at the end of the source
+/// text do not get some chopped off and lost.
+//////////////////////////////////////////////////////////////////////////////////////
 bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
 						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
-						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes)
+						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes,
+						wxArrayInt& arrPairingOld, wxArrayInt& arrPairingNew)
 {
+	arrPairingOld.Clear();
+	arrPairingNew.Clear();
+
 	int oldIndex = oldStartChunk;
 	int newIndex = newStartChunk;
 	int oldChunkCount = pOldChunksArray->GetCount();
@@ -2213,6 +2227,10 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 		{
 			// they are the same reference and not disparate in size, so iterate to test
 			// the next pair...
+			// BEW 17Aug12, but first add the indices for their chunks to arrPairingOld
+			// and arrPairingNew, respectively -- MergeRecursively will use these
+			arrPairingOld.Add(oldIndex);
+			arrPairingNew.Add(newIndex);
 			
 #ifdef myMilestoneDebugCalls
 #ifdef __WXDEBUG__
@@ -2254,6 +2272,8 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() 'neither index is at end of its array', oldIndex: %d  newIndex index: %d  will iterate"),
 			oldIndex, newIndex);
 #endif
+			// prepare for next iteration by getting pointers to the potentially next
+			// successfully matchable pair, then iterate
 			pOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);
 			pNewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);
 		}
@@ -2350,8 +2370,74 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 	return count;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return         TRUE if one or more in-sync matchups are determined (oldEndChunk and
+///                 newEndChunk values can then be relied upon); FALSE if no in-sync matchups
+///                 were able to be made, or if their is a valid pairing but the pair are
+///                 disparate in size (word counts comparison -- see the bDisparateSizes
+///                 parameter for more detail)
+/// \param  arrOld          ->  ref to old CSourcePhrase instances array (ie. the Adapt It
+///                             original source text, or in collaboration mode, the source
+///                             text of the Adapt It collaborating document)
+/// \param  arrNew          ->  ref to new CSourcePhrase instances array (ie. the edited
+///                             source text being imported, in colloboration mode, this will
+///                             be coming from the Paratext or Bibledit source language project)
+/// \param  pMergedList     <-  the SPList of CSourcePhrase instances resulting from the merger
+/// \param  limit           ->  the number of CSourcePhrase instances to consider for a
+///                             limited-width span, usually of value SPAN_LIMIT (currently 80)
+///                             but can be larger, or -1 (the latter selects largest word count)
+/// \param  initialSequNum  ->  needed to supply the kick off value for the UpdateSequNumbers()
+///                             call after CSourcePhrase inventory in pMergedList has been changed
+///  **** The next 5 were added at 17Aug12 refactoring, to make the algorithm failsafe if
+///  a lot of words were manually added at the end of the edited source text **** 
+/// \param  pChunksOld      ->  the array of SfmChunk structs indexing into arrOld
+/// \param  pChunksNew      ->  the array of SfmChunk structs indexing into arrNew
+/// \param  howToProcess    ->  enum value; the legacy code will be used when processStartToEnd
+///                             is the value passed in, if processPerMilestone is passed in
+///                             then internally we loop across all the successfully paired
+///                             milestone chunks (typically verse chunks) and do the merger
+///                             recursively on each such chunk pair. This ensures safety.
+/// \param  arrPairingsOld  ->  array of integer indices which define one member of a
+///                             successfully matched SfmChunk pair                           
+/// \param  arrPairingsNew  ->  array of integer indices, acting in parallel to the one immediately
+///                             above, which defines the other SfmChunk of the matched pair
+/// \param  arrOldFull      ->  the full 'old' SPArray (not a subarray drawn from it,
+///                             because the latter is what the arrOld param is)
+/// \param  arrNewFull      ->  the full 'new' SPArray (not a subarray drawn from it,
+///                             because the latter is what the arrNew param is)
+/// \param  oldChunkIndexKickoff -> the index for the first chunk in the old (full) array
+///                             which as yet is not processed
+/// \param  newChunkIndexKickoff -> the index for the first chunk in the new (full) array
+///                             which as yet is not processed
+/// \remarks
+/// This is the function which does the recursive merging of two subpans of CSourcePhrase
+/// instances. It may be called often in the process of merging all the data.
+/// Note: Merging milestoned groups (such as verse chunks) will normally not destroy
+/// stored retranslations or free translations - but it is possible that either or both
+/// could be corrupted if the extent of one or the other extends across a milestone
+/// boundary. It's rather unlikely that a retranslation or free translation will cross a
+/// verse boundary, but we must check for the possibility. The function will, after the
+/// mergers are done, examine the pMergedList list for corrupted retranslations and/or
+/// corrupted free translations - any such are then removed from the document (the user
+/// would be required to reconstitute them manually using the normal GUI tools after the
+/// data is all imported).
+/// Note: the oldChunkIndexKickoff and newChunkIndexKickoff are indices into the full
+/// arrays in the caller - they are each one more than the indices for the last chunks of
+/// those that have already been processed. Since the GetMaxInSyncChunksPairing starts
+/// with an empty arrPairingsOld and arrPairingsNew, the latter arrays will loop using
+/// an index which commences at 0. So we have to be careful when using the loop index in
+/// this function, we make a mistake to use it without an offset to allow for what has
+/// already been process. Instead, we must add appropriate offsets if indexing into
+/// arrOldFull and arrNewFull, and the offsets are oldChunkIndexKickoff and
+/// newChunkIndexKickoff, respectively -- but this only applies when howToProcess was
+/// passed in as processPerMilestone; for the other enum value, pre-processing done in
+/// the caller makes all the needed adjustments before MergeRecursively is entered.
+//////////////////////////////////////////////////////////////////////////////////////
 void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
-						 int initialSequNum)
+		int initialSequNum,  wxArrayPtrVoid* pChunksOld, wxArrayPtrVoid* pChunksNew,
+		enum ProcessHow howToProcess, wxArrayInt& arrPairingsOld, 
+		wxArrayInt& arrPairingsNew, SPArray& arrOldFull, SPArray& arrNewFull,
+		int oldChunkIndexKickoff, int newChunkIndexKickoff)
 {
 	// set up the top level tuple, beforeSpan and commonSpan will be empty (that is, the
 	// tuple[0] and tuple[1] struct pointers will be NULL. Tuple[3] will have the whole
@@ -2364,34 +2450,162 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	bContainsFreeTranslations = pFreeTrans->IsFreeTransInArray(&arrOld); // if TRUE we will
 			// later call a free-translation-malformations-fixing function after the
 			// merger is done, to erase free translations corrupted by CSourcePhrase 
-			// replacements from arrNew 
+			// replacements from arrNew
+	// BEW added support for a per-milestone loop, to be used when there is a sequence of
+	// successfully matched SfmChunk pairs; do the legacy way in the first block, then the
+	// new code in a block further below
+	if (howToProcess == processStartToEnd)
+	{
+		// arrOld and arrNew passed in are typically subarray's of longer arrays in the caller,
+		// because arrOld and arrNew params are set by CopySubArray() calls in the caller,
+		// extracting the subarrays from arrOld and arrNew which contain the full set of
+		// old and new CSourcePhrase instances, respectively
+		int oldSPCount = arrOld.GetCount();
+		int newSPCount = arrNew.GetCount();
 
-	// arrOld and arrNew passed in are typically subarray's of longer arrays in the caller
-	int oldSPCount = arrOld.GetCount();
-	int newSPCount = arrNew.GetCount();
-
-	Subspan* tuple[3]; // an array of three pointer-to-Subspan
-	tuple[0] = NULL;
-	tuple[1] = NULL;
-	Subspan* pSubspan = new Subspan;
-#ifdef myLogDebugCalls
-#ifdef __WXDEBUG__
-	countAfterSpans++;
+		Subspan* tuple[3]; // an array of three pointer-to-Subspan
+		tuple[0] = NULL;
+		tuple[1] = NULL;
+		Subspan* pSubspan = new Subspan;
+#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+		countAfterSpans++;
 #endif
-#endif
-	tuple[2] = pSubspan;
-    // initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
-    // extents of arrOld and arrNew -- the subsequent SetEndIndices() call will limit the
-    // value, provided limit is not -1
-    // In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
-	InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
-	// update the end indices to more reasonable values, the above could bog processing down
-	SetEndIndices(arrOld, arrNew, pSubspan, limit); // SPAN_LIMIT is currently 80
+		tuple[2] = pSubspan;
+		// initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
+		// extents of arrOld and arrNew -- the subsequent SetEndIndices() call will limit the
+		// value, provided limit is not -1
+		// In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
+		InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
+		// update the end indices to more reasonable values, the above could bog processing down
+		SetEndIndices(arrOld, arrNew, pSubspan, limit); // SPAN_LIMIT is currently 80
 
-    // Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
-    // call finally returns after being recursively called possibly very many times, the
-    // merging is complete
-    RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, tuple);
+		// Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
+		// call finally returns after being recursively called possibly very many times, the
+		// merging is complete
+		RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, tuple);
+	}
+	else
+	{
+		// process on a per-milestoned pairing basis - it's safer if the user added a lot
+		// of extra words in a big group at one location in the source text
+		int pairingsCount = arrPairingsOld.GetCount();
+#if defined(__WXDEBUG__) && defined (myLogDebugCalls)
+		{
+		int anIndex;
+		// list the pairings
+		for (anIndex = 0; anIndex < pairingsCount; anIndex++)
+		{
+		int indexOldStart;
+		int indexOldEnd;
+		int indexNewStart;
+		int indexNewEnd;
+		SfmChunk* pPairedChunkOld;
+		SfmChunk* pPairedChunkNew;
+		pPairedChunkOld = (SfmChunk*)pChunksOld->Item(anIndex + oldChunkIndexKickoff);
+		indexOldStart = pPairedChunkOld->startsAt;
+		indexOldEnd   = pPairedChunkOld->endsAt;
+		pPairedChunkNew = (SfmChunk*)pChunksNew->Item(anIndex + newChunkIndexKickoff);
+		indexNewStart = pPairedChunkNew->startsAt;
+		indexNewEnd   = pPairedChunkNew->endsAt;
+			wxLogDebug(_T("\nPairings List: index = %d    OLD [ %d : %d ] <-> NEW [ %d : %d ]  (new) Verse = %d"),
+				anIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
+		}
+		}
+#endif
+
+		wxASSERT( pairingsCount == (int)arrPairingsNew.GetCount());
+		int indexOldStart;
+		int indexOldEnd;
+		int indexNewStart;
+		int indexNewEnd;
+		SfmChunk* pPairedChunkOld;
+		SfmChunk* pPairedChunkNew;
+		SPArray arrSubOld; // will contain a subarray drawn from arrOldFull
+		SPArray arrSubNew; // will contain a subarray drawn from arrNewFull
+		// use pChunk = (SfmChunk*)pChunksOld->Item(index);
+		int pairingsIndex;
+		for (pairingsIndex = 0; pairingsIndex < pairingsCount; pairingsIndex++)
+		{
+			// get the chunk of old CSourcePhrase instances
+			pPairedChunkOld = (SfmChunk*)pChunksOld->Item(pairingsIndex + oldChunkIndexKickoff);
+			indexOldStart = pPairedChunkOld->startsAt;
+			indexOldEnd   = pPairedChunkOld->endsAt;
+			CopySubArray(arrOldFull, indexOldStart, indexOldEnd, arrSubOld);
+
+			// do the same for the new CSourcePhrase instances
+			pPairedChunkNew = (SfmChunk*)pChunksNew->Item(pairingsIndex + newChunkIndexKickoff);
+			indexNewStart = pPairedChunkNew->startsAt;
+			indexNewEnd   = pPairedChunkNew->endsAt;
+			CopySubArray(arrNewFull, indexNewStart, indexNewEnd, arrSubNew);
+			// arrSubOld and arrSubNew are now populated ready for merging or copying
+
+			int oldSPCount = arrSubOld.GetCount();
+			int newSPCount = arrSubNew.GetCount();
+
+			bool bOldChunkEmpty = IsChunkEmpty(arrOldFull, indexOldStart, indexOldEnd);
+			bool bNewChunkEmpty = IsChunkEmpty(arrNewFull, indexNewStart, indexNewEnd);
+			if (bOldChunkEmpty && bNewChunkEmpty)
+			{
+				// probably an empty CSourcePhrase instance with \v and verse number in
+				// m_markers, from the old array's data, and same for the new data;
+				// just keep the old one
+#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d DO NOTHING, both empty"),
+				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
+#endif
+				wxASSERT(indexOldStart == indexOldEnd);
+				CopyToList(arrOldFull, indexOldStart, indexOldEnd, pMergedList); // makes deep copy
+			}
+			else if (bOldChunkEmpty)
+			{
+                // the CSourcePhrase instance from the old data's array is an empty one,
+                // but the equivalent from the newly edited data's array is not empty
+#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n REPLACE EMPTY OLD with NEW content, %d words"),
+				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse, newSPCount);
+#endif
+				CopyToList(arrNewFull, indexNewStart, indexNewEnd, pMergedList); // makes deep copies
+			}
+			else if (bNewChunkEmpty)
+			{
+                // the CSourcePhrase instance from the newly edited data's array is an
+                // empty one, but the equivalent from the old data's array is not empty
+                // so just copy the new CSourcePhrase instance to pMergedList, effectively
+                // removing the old array's chunk in the process
+#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n REMOVE OLD %d SrcPhrases, REPLACE with 1 empty NEW"),
+				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse, oldSPCount);
+#endif
+				wxASSERT(indexNewStart == indexNewEnd);
+				CopyToList(arrNewFull, indexNewStart, indexNewEnd, pMergedList); // makes a deep copy
+			}
+			else
+			{
+				// neither are empty, we should be safe for a recursive merger
+#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n RECURSING..."),
+				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
+#endif
+				Subspan* tuple[3]; // an array of three pointer-to-Subspan
+				tuple[0] = NULL;
+				tuple[1] = NULL;
+				Subspan* pSubspan = new Subspan;
+#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+				countAfterSpans++;
+#endif
+				tuple[2] = pSubspan;
+				// initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
+				// extents of arrSubOld and arrSubNew
+				// In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
+				InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
+
+				// Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
+				// call finally returns after being recursively called possibly a few times, the
+				// merging for this one milestoned chunk is complete
+				RecursiveTupleProcessor(arrSubOld, arrSubNew, pMergedList, limit, tuple);
+			}
+		}
+	}
 
 	// Clean up...
 	
@@ -2433,6 +2647,28 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	wxLogDebug(_T("in MergeRecursively() after EraseMalformedFreeTransSections(&arrMerged): pMergedList->GetCount() = %d"),
 		pMergedList->GetCount());
 #endif
+}
+
+// Return TRUE if the milestoned chunk is empty. Typically a milestoned chunk is a verse
+// chunk, but we won't insist on it being a verse chunk. It will be a candidate for being
+// empty if the starting index and ending index are the same (ie. the one CSourcePhrase is
+// all there is in the chunk), AND, its m_key value is an empty string. In this
+// circumstance, we must not try a recursive merger because the algorithm breaks down. We
+// instead copy the new material if the empty chunk is old array data, or replace the old chunk
+// with an empty new CSourcePhrase (typically with \v num in m_markers) if the empty chunk
+// is new array data (the replacements, of course, are done elsewhere, not here)
+bool IsChunkEmpty(SPArray arr, int indexStart, int indexEnd)
+{
+	if (indexEnd > indexStart)
+	{
+		return FALSE;
+	}
+	CSourcePhrase* pSrcPhrase = arr.Item(indexStart);
+	if (pSrcPhrase->m_key.IsEmpty())
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 // look for retranslations that have lost content at either end -- remove the adaptations
@@ -8891,7 +9127,7 @@ void CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray)
 }
 
 // Similar to the above CopySubArray(), except that the instances are deep copies, and the
-// other difference is that they are appended to the passed in SPList, and pList -- pList
+// other difference is that they are appended to the passed in SPList, pList, -- and pList
 // does not have to be empty, and the function does not empty it, it merely appends to
 // whatever is already there. (Intended use is direct copying of arrNew CSourcePhrase
 // instances from Importing Edited Source Text to arrOld, when no recursion is needed.)
