@@ -41,6 +41,11 @@ class CSourcePhrase;
 //	int newMatchPos; // index in the newSPArray at which a common word was matched
 //};
 
+enum ProcessHow {
+	processStartToEnd, // use this whenever per-milestone isn't appropriate
+	processPerMilestone 
+};
+
 enum SubspanType {
 	beforeSpan, // whatever subspan precedes those which are in common
 	commonSpan, // the in common subspan (at can be empty, in which case only the 
@@ -252,7 +257,8 @@ bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
 						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
-						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes);
+						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes, 
+						wxArrayInt& arrPairingOld, wxArrayInt& arrPairingNew);
 bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
@@ -282,10 +288,15 @@ bool	IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 bool	IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
 						int newPosEnd, wxArrayPtrVoid* pSubspansArray);
 bool	IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLoc);
+bool	IsChunkEmpty(SPArray arr, int indexStart, int indexEnd);
 bool	IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase);
 void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList);
 void	MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
-						 int initialSequNum);
+						int initialSequNum, wxArrayPtrVoid* pChunksOld, 
+						wxArrayPtrVoid* pChunksNew, enum ProcessHow howToProcess,
+						wxArrayInt& arrPairingOld, wxArrayInt& arrPairingNew,
+						SPArray& arrOldFull, SPArray& arrNewFull,
+						int oldChunkIndexKickoff, int newChunkIndexKickoff);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
 void	MergeUpdatedSrcTextCore(SPArray& oldArray, SPArray& newArray, SPList* pMergedList, int limit);
 void	RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList,
@@ -324,5 +335,6 @@ bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 bool	WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount);
+void	DeleteSfmChunkArray(wxArrayPtrVoid* pChunksArray);
 
 #endif	// mergeUpdatedSrc_h
