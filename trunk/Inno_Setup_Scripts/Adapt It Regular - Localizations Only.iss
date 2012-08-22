@@ -6,7 +6,7 @@
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It.exe"
 #define MyAppShortName "Adapt It"
-#define SvnBase "c:\dev\adaptit"
+#define SvnBase "..\..\adaptit"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
