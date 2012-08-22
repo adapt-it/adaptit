@@ -43,101 +43,98 @@
 
 // Implement window functions
 
+wxSizer *ID_ABOUT_TOP_AREA;
 wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+    ID_ABOUT_TOP_AREA = item1;
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticBitmap *item3 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 17 ), wxDefaultPosition, wxDefaultSize );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticBitmap *item3 = new wxStaticBitmap( parent, ID_ABOUT_AI_BMP, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(128,128) );
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 10 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetFont( wxFont( 18, wxSWISS, wxNORMAL, wxBOLD ) );
+    item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.0.0"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item5->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("September 30, 2011"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item9->SetToolTip( wxT("This date should be the same as the executable file") );
-    item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.2.3"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("September 24, 2012"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( wxT("This date should be the same as the executable file") );
+    item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_STATIC_UNICODE_OR_ANSI, _("This version designed for %s data"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item13 = new wxStaticText( parent, ID_STATIC_UNICODE_OR_ANSI, _("This version designed for %s data"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxLEFT, 0 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    item6->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2012, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, wxT("bruce_waters@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2012, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item15->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM, 0 );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, wxT("bill_martin@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    item15->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, wxT("bruce_waters@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("erik_brommers@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+    item17->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, wxT("bill_martin@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+    item17->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Downloads: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("erik_brommers@sil.org"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, wxT("  http://adapt-it.org/"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
+    item14->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item12->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Downloads: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Send problem or feedback reports to developers via the Help menu"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, wxT("  http://adapt-it.org/"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item12->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
+    item14->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("This version of Adapt It built with wxWidgets"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Send problem or feedback reports to developers via the Help menu"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("wxWidgets is a cross-platform GUI library"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
+    item14->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxTOP, 0 );
+
+    item6->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -147,16 +144,16 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item29 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+    item26->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item0->Add( item1, 0, wxGROW|wxALL, 0 );
+    item4->Add( item5, 0, wxGROW|wxALL, 0 );
 
     wxStaticLine *item30 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item4->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -218,7 +215,11 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item31->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item31, 0, wxALIGN_CENTER, 5 );
+    item4->Add( item31, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item50 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     item0->Add( item50, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -3216,7 +3217,7 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxPanel *item3 = new wxPanel( parent, ID_PNLEXPORT, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item3->SetName( wxT("pnlExport") );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     wxButton *item4 = new wxButton( parent, ID_BUTTON_CHANGE_BOOK_NAME, _("Change Book Name..."), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -3256,13 +3257,13 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxVERTICAL );
 
     wxCheckBox *item16 = new wxCheckBox( parent, ID_CHKPROJECTNAMEPREFIX, _("Use project name prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxCheckBox *item17 = new wxCheckBox( parent, ID_CHKTARGETTEXTPREFIX, _("Use export type prefix \"%s\" on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxCheckBox *item18 = new wxCheckBox( parent, ID_CHKDATETIMESUFFIX, _("Use date-time suffix on export filename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -3278,15 +3279,15 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item20->Realize();
     item19->Add( item20, 0, wxGROW|wxALL, 5 );
 
-    item2->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->AddGrowableRow( 0 );
 
     item2->AddGrowableRow( 2 );
 
-    item1->Add( item2, 1, wxALL, 5 );
+    item1->Add( item2, 1, wxBOTTOM, 5 );
 
-    item0->Add( item1, 1, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 1, wxALIGN_CENTER|wxALL, 0 );
 
     if (set_sizer)
     {
