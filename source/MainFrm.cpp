@@ -93,6 +93,10 @@
 #include "EmailReportDlg.h"
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
+
+// for about box
+#include "../res/vectorized/ai_128.cpp"
+
 // includes above
 
 /// This global is defined in Adapt_It.cpp
@@ -1732,6 +1736,8 @@ class AboutDlg : public AIModalDialog
 {
 public:
     AboutDlg(wxWindow *parent);
+protected:
+	wxStaticBitmap* m_pbmpAI;
 };
 
 // Implement the AboutDlg class
@@ -1748,7 +1754,6 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	// size dialog.
 	// The declaration is: AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer ).
 	CAdapt_ItApp* pApp = &wxGetApp();
-
 	// whm note: the routine below often failed to get the actual modification date
 	//wxString appCreateDate,appModDate;
 	//if (wxFileExists(pApp->m_executingAppPathName))
@@ -1779,7 +1784,9 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	versionDateStr << VERSION_DATE_DAY;
 	wxStaticText* pStaticVersDate = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_DATE);
 	pStaticVersDate->SetLabel(versionDateStr);
-
+	// set the icon for AI
+	m_pbmpAI = (wxStaticBitmap*)FindWindowById(ID_ABOUT_AI_BMP);
+	m_pbmpAI->SetBitmap(gpApp->wxGetBitmapFromMemory(adapt_it128x128_png));
 
 	// Create the version number from the defines in Adapt_It.h:
 	wxString strVersionNumber;
