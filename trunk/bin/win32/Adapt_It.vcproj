@@ -28,6 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.4&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -49,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswd&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswd&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -126,6 +127,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.4&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -148,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)/include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\msw&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(WXWIN)\lib\vc_lib\msw&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)/include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\msw&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__WINDOWS__;__WXMSW__;__WIN95__;__WIN32__;WINVER=0x0400;STRICT;CURL_STATICLIB"
 				StringPooling="false"
 				RuntimeLibrary="0"
@@ -221,6 +223,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.4&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -237,7 +240,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -257,15 +260,16 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxmsw28ud_adv.lib wxmsw28ud_html.lib wxmsw28ud_core.lib wxbase28ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
+				AdditionalDependencies="wxmsw$(WXVER)ud_adv.lib wxmsw$(WXVER)ud_html.lib wxmsw$(WXVER)ud_core.lib wxbase$(WXVER)ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
 				Version="6.2.3"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win64&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win64&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -306,6 +310,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.4&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -346,7 +351,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="wxmsw28u_adv.lib wxmsw28u_html.lib wxmsw28u_core.lib wxbase28u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
+				AdditionalDependencies="wxmsw$(WXVER)u_adv.lib wxmsw$(WXVER)u_html.lib wxmsw$(WXVER)u_core.lib wxbase$(WXVER)u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
 				Version="6.2.3"
