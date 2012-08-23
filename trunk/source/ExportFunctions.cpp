@@ -504,7 +504,9 @@ wxString GetTheLanguageDirectionality(ExportType exportType)
 	wxString strLTR = _T("ltr"); // default
 	wxString strRTL = _T("rtl");
 	wxString myDirectionality;
-	bool bIsRTL;
+	bool bIsRTL = FALSE; // initialized to FALSE to avoid warnings in non-Unicode builds
+	bIsRTL = bIsRTL; // to avoid warnings in non-Unicode builds
+	exportType = exportType; // to avoid warnings in non-Unicode builds
 	/* from Adapt_It.h
 #ifdef _RTL_FLAGS
 	// flags for RTLReading languages
