@@ -139,6 +139,7 @@ enum SfmChunkType {
 	unknownChunkType, // at initialization time & before arriving at a specific type
 	bookInitialChunk, // for data like \id line, \mt main title, secondary title, etc
 	introductionChunk, // for introductory material, markers beginning \i.... 
+	preFirstChapterChunk, // anything after book intro or introduction chunks which precedes \c 1
 	chapterPlusVerseChunk, // for stuff from the start of a chapter, to the end of first verse
 	subheadingPlusVerseChunk, // for a subheading plus the content of its following verse
 	verseChunk // for a verse (will collect any preceding \p too, since the USFM parser
@@ -255,6 +256,7 @@ bool	GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, Sub
 				wxArrayInt* pWidthsArray, bool bClosedEnd);
 bool	GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
+bool	GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
 						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
 						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes, 
