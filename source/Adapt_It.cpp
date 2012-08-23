@@ -99,36 +99,57 @@
 #include <wx/dcprint.h> // for wxPrinterDC
 #endif
 
-// The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
-// under the LGPL. The vld.h header usage is described in an article on The Code
-// Project called "Memory Leak Detection". It generates better memory leak detection
-// reporting under Visual Studio.
-//
+// The following include was originally Copyright (c) 2005 by Dan
+// Moulding, but the features of version 2.0 were implemented by
+// Arkadiy Shapkin. It is used under the GNU General Public License
+// version 2 (GPLv2).
+// 
 // Note: The Visual Leak Detector (vld) and how it works are found at:
-// http://www.codeproject.com/KB/applications/visualleakdetector.aspx
-// Note: Downloads from codeproject.com now require you set up a user account with password.
-// Its code is not compiled into the program in release versions, but vld.h need only be
-// included when memory leaks are detected by the debugger's Output report, and it is not
-// obvious what is the cause of the leak from the report.
+// http://vld.codeplex.com/
+// 
+// Note: Vld's code is not compiled into the program in release
+// versions, and vld.h need only be included when memory leaks are
+// detected by the debugger's Output report and it is not obvious what
+// is the cause of the leak from the report. Vld will pinpoint
 //
-// Steps I did to make this work with VC 8.0:
-// 1. copied vld.h and vldapi.h to the Visual Studio's VC include folder at:
-//    C:\Program Files\Microsoft Visual Studio 8\VC\include
-// 2. copied vld.lib, vldmt.lib, and vldmtdll.lib to the Visual Studio's VC lib folder at:
-//    C:\Program Files\Microsoft Visual Studio 8\VC\lib
-// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in
-//    debug builds.
-// 4. VLD in 2010 is better, much much faster, etc. http://vld.codeplex.com for the
-// download, and documentation is at http://vld.codeplex.com/documentation
-//
-// If Visual Studio reports "memory leaks detected" and the source of leak is unclear,
-// uncomment the following include, recompile, run and exit the program for a more
-// detailed report of the memory leaks:
+// How to make this work with VC 9.0:
+// 1. Download and install VLD. The installer will prompt about adding
+// its bin path (C:\...\Visual Leak Detector\bin) to the PATH
+// environment variable. Accept it or add it manually yourself. Either
+// way, you will need to log out and log back in for the addition to
+// the PATH to take effect. vld.dll and dbghelp.dll, from the bin
+// directory need to be available on the system path.
+// 
+// 2. Make sure the Visual C++ project is in Debug mode.
+// 
+// 3. Add the VLD include paths (C:\Program Files (x86)\Visual Leak
+// Detector\include) and (C:\Program Files\Visual Leak
+// Detector\include) to the Include Directories of the project. Both
+// the "Program Files (x86)" and "Program Files" paths are set in
+// Visual Studio's Include Directories even though only one will be
+// found. This makes the Visual Studio's project file work on either
+// 64-bit or 32-bit Windows OS.
+// 
+// 4. Add the VLD lib path (C:\Program Files (x86)\Visual Leak
+// Detector\lib) and (C:\Program Files\Visual Leak Detector\lib) to the
+// Additional Library Directories of the project. Both the "Program
+// Files (x86)" and "Program Files" paths are set in Visual Studio's
+// Linker Directories even though only one will be found. This makes
+// the Visual Studio's project file work on either 64-bit or 32-bit
+// Windows OS.
+// 
+// 5. Add #include <vld.h> to any of the C++ source files in the
+// project. This header will bring in vld.lib during the linking stage.
+// 
+// 6. Rebuild the project and execute the compiled program in Debug
+// mode. On program exit, VLD will print out the memory leak
+// information it detected in the Output window.
+// 
+// If Visual Studio reports "memory leaks detected" and the source of
+// leak is unclear, uncomment the following include, recompile, run and
+// exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
 //#include "vld.h"
-// if the IDE can't find vld.h on my Dell x64, & I can't be bothered finding out why, use
-// the next line instead
-//#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
 #endif
 
 // Other includes
