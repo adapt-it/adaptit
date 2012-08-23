@@ -228,11 +228,11 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item52 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item52->SetDefault();
-    item51->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
+    item51->Add( item52, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
