@@ -47,7 +47,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 // uncomment out the #define ShowConversionItems just preceding the helpers.cpp function
 // void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
 #define myLogDebugCalls
-//#define myMilestoneDebugCalls
+#define myMilestoneDebugCalls
 #define MERGE_Recursively
 
 /// This global is defined in Adapt_It.cpp.
@@ -895,7 +895,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #ifdef __WXDEBUG__
 	wxString unStr = _T("unknownChunkType");
 	wxString biStr = _T("bookInitialChunk");
-	wxString inStr = _T("introductionChunk"); 
+	wxString inStr = _T("introductionChunk");
+	wxString preFChStr = _T("preFirstChapterChunk");
 	wxString cvStr = _T("chapterPlusVerseChunk");
 	wxString svStr = _T("subheadingPlusVerseChunk");
 	wxString vsStr = _T("verseChunk");
@@ -919,6 +920,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			break;
 		case introductionChunk:
 			typeStr = inStr;
+			break;
+		case preFirstChapterChunk:
+			typeStr = preFChStr;
 			break;
 		case chapterPlusVerseChunk:
 			typeStr = cvStr;
@@ -952,6 +956,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			break;
 		case introductionChunk:
 			typeStr = inStr;
+			break;
+		case preFirstChapterChunk:
+			typeStr = preFChStr;
 			break;
 		case chapterPlusVerseChunk:
 			typeStr = cvStr;
@@ -8274,7 +8281,8 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 }
 
 // Check if the start of arr contains material belonging to stuff which is after any
-// book-initial material, but before a chapter marker, standard subheader or verse. If that
+// book-initial material, but before a chapter marker, standard subheader or verse, or
+// other markers preceding the first chapter or verse (e.g. \ms ). If that
 // is so, keep looking until that introduction material ends - either at a chapter marker
 // or if not any chapters, at the first verse marker encountered, or a subheading
 // of some kind.
@@ -8389,6 +8397,82 @@ bool GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt)
 
 	// we didn't find an end, so take it all as introduction material
 	endsAt = endIndex;
+	return TRUE;
+}
+
+// Check if the start of arr contains material belonging to stuff which is after any
+// book-initial and or introduction material, but before the first chapter marker, or if
+// none, then before the first verse.
+// Return the index values for the CSourcePhrase instances which lie at the start and end
+// of such a span and return TRUE; but if we do not succeed in delineating any
+// such span, return FALSE (and in that case, startsAt and endsAt values are undefined -
+// I'll probably set them to -1 whenever FALSE is returned)
+bool GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt)
+{
+	int count = arrP->GetCount();
+	int endIndex = count - 1;
+	int index = startsAt;
+	wxString markers;
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (count == 0 || (count > 0 && startsAt >= count))
+	{
+		startsAt = -1;
+		endsAt = -1;
+		return FALSE;
+	}
+	// loop to find the first \c, or failing that, the first \v marker -- any such
+	// CSourcePhrase instance is the first of the following section, so end at the one
+	// prior to that
+	wxString chapterMkr = _T("\\c");
+	wxString verseMkr = _T("\\v");
+	int offset = wxNOT_FOUND;
+	int lastSrcPhraseIndex;
+	while (index <= endIndex)
+	{
+		pSrcPhrase = arrP->Item(index);
+		markers = pSrcPhrase->m_markers;
+		offset = markers.Find(chapterMkr);
+		if (offset != wxNOT_FOUND)
+		{
+			// found a chapter marker
+			lastSrcPhraseIndex = index - 1;
+		}
+		else
+		{
+			offset = markers.Find(verseMkr);
+			if (offset != wxNOT_FOUND)
+			{
+				// no chapter marker, but found a verse marker instead, so the milestoned
+				// material starts there - so end of any preFirstChapter material is the
+				// preceding index
+				lastSrcPhraseIndex = index - 1;
+			}
+			else
+			{
+				index++; // check the next CSourcePhrase instance for the end
+				continue;
+			}
+		}
+		// if control gets to here, we've found either a \c or a \v, but the CSourcePhrase
+		// bearing it may have been the one at the startsAt index value -- if so, then
+		// there is nothing in the preFirstChapterChunk; but if lastSrcPhraseIndex is
+		// equal to or greater than startsAt, then this chunk has some content
+		if (lastSrcPhraseIndex < startsAt)
+		{
+			// the chunk has no content; return FALSE so that the caller won't advance
+			// the starting location
+			startsAt = -1;
+			endsAt = -1;
+			return FALSE;
+		}
+		else
+		{
+			// the chunk has content
+			endsAt = lastSrcPhraseIndex;
+			break;
+		}
+	} // end of loop:	while (index <= endIndex)
+
 	return TRUE;
 }
 
@@ -9257,6 +9341,49 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 	{
 		// don't advance, so now we need to try below for a chunk containing chapter-starting
 		// material - such as \c marker, maybe \ms and/or \mr or \r, but excluding a subheading
+		if (lastSuccessfulEndsAt != wxNOT_FOUND)
+		{
+			nStartsAt = lastSuccessfulEndsAt + 1;
+		}
+		else
+		{
+			nStartsAt = 0;
+		}
+		nEndsAt = wxNOT_FOUND; 
+	}
+
+	// now check in case there is some other material (eg. a \ms section) prior to the
+	// first chapter (or verse, if there is no chapter marker in the data)
+	bool bHasPreFirstChapterChunk = GetPreFirstChapterChunk(pInputArray, nStartsAt, nEndsAt);
+	if (bHasPreFirstChapterChunk)
+	{
+		bCannotChunkThisArray = FALSE; // there are (U)SFMs in this chunk
+
+		// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
+		SfmChunk* pSfmChunk = new SfmChunk;
+		InitializeNonVerseChunk(pSfmChunk);
+		pSfmChunk->type = preFirstChapterChunk;
+		pSfmChunk->startsAt = nStartsAt;
+		pSfmChunk->endsAt = nEndsAt;
+		pSfmChunk->bContainsText = DoesChunkContainSourceText(pInputArray, nStartsAt, nEndsAt);
+		pChunkSpecs->Add(pSfmChunk);
+
+		// consume this chunk, by advancing where we start from next
+		lastSuccessfulEndsAt = nEndsAt;
+		nStartsAt = lastSuccessfulEndsAt + 1;
+		nEndsAt = wxNOT_FOUND;
+		if (nStartsAt > endIndex)
+		{
+			// all we've got is any book initial & introduction material found earlier, plus this
+			// pre-first-chapter material (which might be rather large if there are no \c
+			// or \v in the document -- so use limit = -1)
+			return TRUE;
+		}
+	}
+	else
+	{
+		// don't advance, so now we need to try below for a chunk containing chapter-starting
+		// material - such as \c marker, etc, but excluding a subheading
 		if (lastSuccessfulEndsAt != wxNOT_FOUND)
 		{
 			nStartsAt = lastSuccessfulEndsAt + 1;

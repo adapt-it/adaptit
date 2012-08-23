@@ -480,6 +480,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\BookNameDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\BookNameDlg.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\BString.cpp"
 				>
 			</File>
@@ -573,6 +581,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\DocPage.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\DVCS.cpp"
 				>
 			</File>
 			<File
@@ -725,6 +737,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\OutputFilenameDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Pathway.cpp"
 				>
 			</File>
 			<File
@@ -885,6 +901,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\WhichFilesDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Xhtml.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Xhtml.h"
 				>
 			</File>
 			<File
@@ -1050,6 +1074,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\DocPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\DVCS.h"
 				>
 			</File>
 			<File
