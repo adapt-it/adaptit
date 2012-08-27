@@ -48,6 +48,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 // void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
 //#define myLogDebugCalls
 //#define myMilestoneDebugCalls
+//#define LOOPINDEX
 //#define MERGE_Recursively
 //#define _RECURSE_
 //#define LEFTRIGHT // displays results of extending in-common matches to left or right
@@ -1194,8 +1195,30 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		bool bPairedOK = FALSE;
 		bool bDisparateSizes = FALSE; // gets set TRUE if a matched pair of chunks differ
 									  // in word counts by more than a factor of 1.5
+		bool bDoingToTheEnd = FALSE; // we can come to a messy non-pairing section
+                  // with bGotALaterPairing (see code near loop end) either TRUE or FALSE
+                  // -- if the latter is TRUE then there are pairings after the messy bit;
+                  // if FALSE, then the messy bit extends to the doc ends in both old and
+                  // new arrays - and in this latter case, we'll want to break from the
+                  // loop after we have done the merger. However, there is some
+                  // safety-first code after the loop that ensures that any unprocessed
+                  // final new material doesn't get omitted (if it needed to be copied then
+                  // it would be copied to the end of the merged list) - but since we can
+                  // come to that code from two prior states, we must suppress such copying
+                  // if the messy bit merger was done to the very end of the arrays already
+                  // (otherwise we'd copy that final data twice). The bDoingToTheEnd flag
+                  // we will set TRUE if bFinished was FALSE and bGodALaterPairing was
+                  // FALSE, that will get us safely out of the loop with the help of a few
+                  // carefully placed tests at the loop end below.
 		while(oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
-		{	
+		{
+#if defined(__WXDEBUG__) && defined(LOOPINDEX)
+			wxLogDebug(_T("while loop indices: oldChunkIndex %d   newChunkIndex %d"),oldChunkIndex,newChunkIndex);
+			if (newChunkIndex >= 10)
+			{
+//				int break_here = 1;
+			}
+#endif
 			// we still have chunks that potentially can be matched up to each other
 			pOldChunk = (SfmChunk*)pChunksOld->Item(oldChunkIndex);
 			pNewChunk = (SfmChunk*)pChunksNew->Item(newChunkIndex);
@@ -1485,7 +1508,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// the other cases where a dynamicLimit value needs to be worked out,
 				// and we include the disparate sized chunks in the material to be
 				// handled by that recursive merge
-				bool bFinished = FALSE;
+				bool bFinished = FALSE; // initialize value
+				bDoingToTheEnd = FALSE; // initialize value
 				if (bGotALaterPairing)
 				{
 					// the oldMatchedChunk and newMatchedChunk values can be relied
@@ -1678,6 +1702,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 								oldCountOfWords, newCountOfWords);
 #endif
 					bFinished = FALSE;
+					bDoingToTheEnd = TRUE;
 				} // end of else block for test: if (bGotALaterPairing)
 
 				// do now any processing not done in the blocks above, but prepared
@@ -1699,6 +1724,16 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #endif
 					RemoveAll(&subArrOld);
 					RemoveAll(&subArrNew);
+
+					if (bDoingToTheEnd)
+					{
+						// because of the safety-first check after exiting the loop, namely
+						// the line [ newChunkIndex = newLastChunkIndex + 1; ] further below,
+						// we need a correct value for newLastChunkIndex here, so that when we
+						// break from the loop, the code following the loop will behave
+						// correctly
+						newLastChunkIndex = pEndChunkNew->endsAt;
+					}
 				}
 				// update the iterators & iterate (the kick-off point depends on
 				// whether bDisparateSizes was TRUE or FALSE; if TRUE, it is one
@@ -1715,10 +1750,12 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					oldChunkIndex, newChunkIndex);
 #endif
 				}
-				else
+				else if (!bDoingToTheEnd)
 				{
-					//normal situation, oldMatchedChunk and newMatchedChunk are to be
-					//the kick-off location for next iteration
+					// normal situation, oldMatchedChunk and newMatchedChunk are to be
+					// the kick-off location for next iteration -- we do this block only if
+					// at a preceding block we've not processed to the end of the old and
+					// new arrays, that's what !bDoingToTheEnd tells us 
 					oldChunkIndex = oldMatchedChunk;
 					newChunkIndex = newMatchedChunk;
 #if defined(__WXDEBUG__) && defined(MERGE_Recursively)
@@ -1729,6 +1766,10 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			} // end of else block for test: if (bPairedOK && bInitialRefsSame)
 			// structure ok to bracket above
 
+			if (bDoingToTheEnd)
+			{
+				break; // break out of the loop
+			}
 		} // end of loop: while (oldIndex < countOldChunks && newIndex < countNewChunks)
 
 		// Since the above loop can exit with one of the two arrays still with data, we
@@ -8153,7 +8194,7 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		return FALSE;
 	}
 	// does arr start with book-initial material, such as \id or a \mt or \h etc
-	// (this stuff is in m_titleMkrs)
+	// (this stuff is in titleMkrs)
 	pSrcPhrase = arrP->Item(index);
 	markers = pSrcPhrase->m_markers;
 	if (markers.IsEmpty())
@@ -8429,8 +8470,6 @@ bool GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		{
 			// the chunk has no content; return FALSE so that the caller won't advance
 			// the starting location
-			startsAt = -1;
-			endsAt = -1;
 			return FALSE;
 		}
 		else
