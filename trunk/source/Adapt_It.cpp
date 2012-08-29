@@ -15882,7 +15882,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// I only need to convert upper and lower case velar n, for Takia data. And I only
 	// need do this on each Takia NT book - therefore 27 times. So having it here is enough.
 	/*
-	//CBString inStr = "Þai ýieg abag ari gup tamol aýal san maýau ýipiteýanaý a."; // test string, hacked ANSI legacy Takia text
+	//CBString inStr = "Ãžai Ã½ieg abag ari gup tamol aÃ½al san maÃ½au Ã½ipiteÃ½anaÃ½ a."; // test string, hacked ANSI legacy Takia text
 	// get a file dialog to file in the wanted Takia sfm text file to inStr
 	wxString fullPath = _T("");
 	wxString takia_message = _T("Select Takia SFM file for conversion");
@@ -20205,8 +20205,8 @@ int ii = 1;
 //bool bIsLoadable = IsLoadableFile(aPath);
 //bIsLoadable = bIsLoadable;
 
-//wxString testStr =  _T("“ ‘First?! second, third’: ” fourth?");
-//wxString testStr = _T("“ ‘First?;~second’: ”"); // test fixedSpace symbol
+//wxString testStr =  _T("â€œ â€˜First?! second, thirdâ€™: â€ fourth?");
+//wxString testStr = _T("â€œ â€˜First?;~secondâ€™: â€"); // test fixedSpace symbol
 //GetView()->RemovePunctuation(GetDocument(),&testStr,1);
 
 
@@ -20354,6 +20354,9 @@ int ii = 1;
 	pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
 
 /* Nah, the "Debugger (debug)" log window collects all the wxLogDebug() returns in CodeBlocks IDE
+// BEW Mar2012, only problem is, I can't find any way to get it to show! So I'll reinstitute this for my present debugging job
+// ******* BEW 29Aug2012, In Code::Blocks, the Debugger (debug) log window is added to the Logs bar by choosing
+// Settings > Compiler & Debugger > Debugger Settings > Display Debugger's Log *******
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
     // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
 	wxFrame* pLogFrame;
@@ -20361,7 +20364,7 @@ int ii = 1;
     pLogFrame = m_pLogWindow->GetFrame();
 	pLogFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE | wxSTAY_ON_TOP);
 	//pLogFrame->SetSize( wxRect(0,900,1600,200));
-	pLogFrame->SetSize( wxRect(0,900,160,200));
+	pLogFrame->SetSize( wxRect(0,900,1000,240));
 	wxLog::SetActiveTarget(m_pLogWindow);
 #endif
 */

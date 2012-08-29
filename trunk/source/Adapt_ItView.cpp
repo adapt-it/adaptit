@@ -6121,15 +6121,15 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	}
 
 	// whm added 28Feb12
-	// when the user explicitly selects File > Close Project we want the 
+	// when the user explicitly selects File > Close Project we want the
 	// normal wizard to appear, not the GetSourceTextFromEditor dialog.
-	pApp->m_bStartWorkUsingCollaboration = FALSE; 
-	
+	pApp->m_bStartWorkUsingCollaboration = FALSE;
+
 	// whm 28Feb12 modified. With project-specific collaboration the user
 	// decides whether collaboration is ON or OFF at the ProjectPage of
 	// the wizard. When the user selects Close Project from the File menu
 	// we close the project and also turn collaboration OFF, which also
-	// is needed to remove the parenthetical information from the 
+	// is needed to remove the parenthetical information from the
 	// File > Open and File > Save labels.
 	pApp->m_bCollaboratingWithParatext = FALSE;
 	pApp->m_bCollaboratingWithBibledit = FALSE;
@@ -6372,7 +6372,7 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
 /// Disables the "Open..." item on the File menu if Vertical Editing is in progress.
-/// Enables the item if collaborating with Paratext/Bibledit. Enables the item if 
+/// Enables the item if collaborating with Paratext/Bibledit. Enables the item if
 /// the KB pointers are not NULL, and if the app's strip count is
 /// zero, otherwise it disables the menu item.
 /////////////////////////////////////////////////////////////////////////////////
@@ -13219,27 +13219,27 @@ void CAdapt_ItView::StatusBarMessage(wxString &message)
 }
 
 // whm 28Feb12 modified. This OnFileStartupWizard() handler is now called only
-// by the File > Start Working... menu item. It is no longer called by 
-// DoStartupWizardOnLaunch(). The original code in this handler that called 
+// by the File > Start Working... menu item. It is no longer called by
+// DoStartupWizardOnLaunch(). The original code in this handler that called
 // DoStartWorkingWizard() was moved to DoStartupWizardOnLaunch().
 void CAdapt_ItView::OnFileStartupWizard(wxCommandEvent& WXUNUSED(event))
 {
 	// whm Note 28Feb12
-	// when the user explicitly clicks on the File > Start Working... item we 
+	// when the user explicitly clicks on the File > Start Working... item we
 	// the App's behavior to be the following:
 	// 1. If collaboration is ON at the time File > Start Working... is selected,
 	// we want the GetSourceTextFromEditor dialog to appear so the user can select
 	// a different book and/or chapter in collaboration mode.
 	// 2. If collaboration is OFF at the time File > Start Working... is selected,
 	// we want the normal wizard to appear, not the GetSourceTextFromEditor dialog.
-	
+
 	// whm 28Feb12 moved the original code to DoStartupWizardOnLaunch() and
 	// this handler now calls DoStartupWizardOnLaunch().
 	DoStartupWizardOnLaunch();
 }
 
 void CAdapt_ItView::DoStartupWizardOnLaunch()
-{	
+{
 	// whm modified 28Feb12. Moved the code from OnFileStartupWizard() to this
 	// function. The OnFileStartupWizard() handler now calls this function instead
 	// of this function calling OnFileStartupWizard().
@@ -13539,7 +13539,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// new storage strings for preserving state are cleared here, then
 					// that will cause placement dialog for markers to appear, if there is
 					// marker placement ambiguity, in an export
-					
+
                     // The first thing to do is to check if m_lastAdaptionsPattern has
                     // previous state stored in it; and if so, we've some work to do to
                     // determine what we do next. There are two situations we must check
@@ -13574,7 +13574,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
                     // to be handled explicitly until then - when they have to be put back
                     // in the right spots in order to export correct USFM markup for the
                     // target text, or glosses-as-text export)
-					if (!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty()) 
+					if (!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 					{
 						// m_lastAdaptionsPattern is not empty, therefore it contains the
 						// m_adaptions value (& that NEVER has punctuation not stripped
@@ -13634,7 +13634,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// get the result, and fix the source phrase accordingly
 						str = dlg.m_tgtPhrase; // remember str could be a phrase, and so
 											   //contain one or more spaces
-						
+
 						// anything left in the list can be thrown away now
 						gpRemainderList->Clear();
 						gpRemainderList = (wxArrayString*)NULL; // the remainderList will be
@@ -13661,7 +13661,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// at this location again, at the appropriate time, for the user
 						// to correct his former placement error(s).)
 						wxString nopunctsForSureStr = pSrcPhrase->m_adaption;
-						RemovePunctuation(pDoc, &nopunctsForSureStr, 1); // 1 means "tgt 
+						RemovePunctuation(pDoc, &nopunctsForSureStr, 1); // 1 means "tgt
 														// text punctuation is to be used"
 						// now save state as described above
 						pSrcPhrase->m_lastAdaptionsPattern = nopunctsForSureStr;
@@ -15071,7 +15071,7 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 		wxASSERT(pCurPile != NULL);
 		pCurSrcPhrase = pCurPile->GetSrcPhrase();
 		wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
-		pCurSrcPhrase = pCurSrcPhrase; // avoid warning 
+		pCurSrcPhrase = pCurSrcPhrase; // avoid warning
 		pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell...
 					// Note: pApp->m_selectionLine might be 0 or 1, not just 0
 
@@ -20430,7 +20430,7 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 
 	// for Import to KB, we hide the Filename options in the dialog, and resize the dialog
 	// Note: this requires that the first parameter of the call of
-	// KBExportImportOptionsFunc(this, false, TRUE) in KBExportImportOptionsDlg's 
+	// KBExportImportOptionsFunc(this, false, TRUE) in KBExportImportOptionsDlg's
 	// constructor be false
 	dlg.pKBExportImportOptionsDlgSizer->Hide(pKBExpImpCheckBoxesSizer,TRUE);
 	dlg.pKBExportImportOptionsDlgSizer->Layout();
@@ -25888,7 +25888,7 @@ bailout:	pAdaptList->Clear();
             // members of pSrcPhrase correct at each location (doing it over the whole doc
             // is, of course, overkill, but it will catch anything wrong from other
             // operations and fix them too, so worth doing & it is quick/unnoticed)
-            
+
 			//int activeSequNum = pApp->m_nActiveSequNum; // set but not used
 			if (pApp->m_nActiveSequNum < 0)
 			{

@@ -1685,7 +1685,7 @@ bool CopyTextFromTempFolderToBibleditData(wxString projectPath, wxString bookNam
 		}
 		else if (bFoundFirstVerse)
 		{
-			// verseNumStr contains the chapter number that followed the \c marker
+			// chapterNumStr contains the chapter number that followed the \c marker
 			dataPath = pathToBookFolder + gpApp->PathSeparator + chapterNumStr + gpApp->PathSeparator + dataFolder;
 
 		}
@@ -5631,6 +5631,14 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, targetTextExport);
 	text = RemoveMultipleSpaces(text);
+
+	#if defined(__WXDEBUG__)
+	// last verse adaptation loss bug: get the last 200 chars and wxLogDebug them
+	wxString str;
+	int length = text.Len();
+	str = text.Mid(length - 200);
+	wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	#endif
 	return text;
 }
 
@@ -5650,6 +5658,14 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 	textLen = textLen; // avoid warning
 	FormatMarkerBufferForOutput(text, freeTransTextExport);
 	text = RemoveMultipleSpaces(text);
+
+	#if defined(__WXDEBUG__)
+	// last verse free trans loss bug: get the last 200 chars and wxLogDebug them
+	wxString str;
+	int length = text.Len();
+	str = text.Mid(length - 200);
+	wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	#endif
 	return text;
 }
 
@@ -5665,9 +5681,10 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 ///                         or some similar list (the function does not rely in any way on
 ///                         this list being the m_pSourcePhrases list from the app class, but
 ///                         normally it will be that list)
-/// \param              ->  Either makeTargetText (value is 1) or makeFreeTransText (value is
+/// \param SendBackTextType ->  Either makeTargetText (value is 1) or makeFreeTransText (value is
 ///                         2); our algorithms work almost the same for either kind of text.
-/// \param postEditText <-  the text to replace the pre-edit target text or free translation
+/// \param postEditText <-  the text to replace the pre-edit target text or free translation;
+///                         and which gets sent to the external editor's appropriate project
 /// \remarks
 /// Called from the Doc's OnFileSave().
 /// Comments below are a bit out of date -- there is only a 3-text situation, shouldn't be
@@ -6106,6 +6123,19 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
 
+	#if defined(__WXDEBUG__) && defined(WXGTK)
+	// in this block, wxLogDebug the last 5 Md5Arr lines for the postEditText from the array
+	{
+        size_t count = postEditMd5Arr.GetCount();
+        wxLogDebug(_T("MD5 Lines count:  %s"), count);
+        wxLogDebug(_T("MD5 Line, 5th last:  %s"), (postEditMd5Arr[count - 5]).c_str());
+        wxLogDebug(_T("MD5 Line, 4th last:  %s"), (postEditMd5Arr[count - 4]).c_str());
+        wxLogDebug(_T("MD5 Line, 3rd last:  %s"), (postEditMd5Arr[count - 3]).c_str());
+        wxLogDebug(_T("MD5 Line, 2nd last:  %s"), (postEditMd5Arr[count - 2]).c_str());
+        wxLogDebug(_T("MD5 Line,     last:  %s"), (postEditMd5Arr[count - 1]).c_str());
+	}
+	#endif
+
     // Now use MD5Map stucts to map the individual lines of each UsfmStructureAndExtent
     // array to the associated subspans within text variant which gave rise to the
     // UsfmStructureAndExtent array. In this way, for a given index value into the
@@ -6120,6 +6150,21 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	wxArrayPtrVoid postEditOffsetsArr;
 	postEditOffsetsArr.Alloc(countPost); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(postEditText, postEditOffsetsArr, postEditMd5Arr);
+
+	#if defined(__WXDEBUG__) && defined(WXGTK)
+	// in this block, wxLogDebug the last 5 offsets into postEditText , and display
+	// the first 16 characters at each offset
+	{
+        int index;
+        for (index = (int)countPost - 5; index < (int)countPost; index++)
+        {
+            int offset = postEditOffsetsArr[index];
+            wxString s = postEditText.Mid(offset, 16);
+            wxLogDebug(_T("MD5 Line, count = %d, 5th last offset:  %d  , first 16 Chars: %s"),
+                       countPost, offset, s.c_str());
+        }
+	}
+	#endif
 
 	size_t countFrom = fromEditorMd5Arr.GetCount();
 	wxArrayPtrVoid fromEditorOffsetsArr;
@@ -6155,7 +6200,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// something's different, so do the more complex algorithm
 
 #ifdef SHOW_INDICES_RANGE
-#ifdef __WXDEBUG__
+#if defined(__WXDEBUG__) && defined(WXGTK)
 	//int ct;
 	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
 	//{
@@ -6211,6 +6256,16 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		text = GetUpdatedText_UsfmsChanged(preEditText, postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
 					postEditOffsetsArr, fromEditorOffsetsArr);
+
+    #if defined(__WXDEBUG__) && defined(WXGTK)
+    {
+        // show the last 240 characters that are in the returned text wxString
+        int length = text.Len();
+        wxString s = text.Mid(length - 240);
+        wxLogDebug(_T("text after GetUpdatedText_UsfmsChanged(): last 240 Chars: %s"), s.c_str());
+        length = length; // put break point here
+    }
+    #endif
 	}
 
 	// whm 24Aug11 Note: we don't need to call Destroy() on the pProgdlg.
@@ -6899,7 +6954,8 @@ wxString GetUpdatedText_UsfmsChanged(
 			fromEditorArr_Index = fromEditorArr_AfterChunkIndex;
 		} // end of else block for test: if (postEditLineMkr != fromEditorLineMkr)
 
-	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
+	} // end of while loop: while (postEditArr_Index < (int)postEditMd5Arr_Count &&
+      // fromEditorArr_Index < (int)fromEditorMd5Arr_Count);
 
 	return newText;
 }

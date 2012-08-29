@@ -142,7 +142,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.2.3"));
 
-//#define Print_failure
+#define Print_failure
 
 // whm added 30Jan12 to force all platforms to use TCP based IPC - even on the Windows
 // platform rather that its usual DDE.
