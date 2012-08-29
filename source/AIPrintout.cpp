@@ -381,8 +381,8 @@ bool AIPrintout::OnPrintPage(int page)
 		internalDC_Y = pDC->DeviceToLogicalY(0);
 		//wxLogDebug(_T("*****  PAGE = %d   ********   DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
 		//	pApp->m_nCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
-		wxLogDebug(_T("\n\n          *****  PAGE = %d   ********   nFirstStrip %d  nLastStrip %d"),
-			pApp->m_nCurPage, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+		wxLogDebug(_T("\n\n          *****  PAGE = %d   ********   nFirstStrip %d  nLastStrip %d  ;  nTop %d  nBottom %d  (in logical units)"),
+			pApp->m_nCurPage, pOffsets->nFirstStrip, pOffsets->nLastStrip, pOffsets->nTop , pOffsets->nBottom);
 		//wxLogDebug(_T("overallScale  x %4.6f  y %4.6f "), overallScaleX, overallScaleY);
 #endif
 
@@ -415,7 +415,23 @@ bool AIPrintout::OnPrintPage(int page)
 
     // a simple solution to get data printed at the right device offset on pages 2 and higher
     // - it overrides some of the above settings (which don't generate correct values)
-    if (!IsPreview())
+    //if (!IsPreview())
+    // BEW changed 29Aug12 to the test below: the OR followed by the preview test ANDed with
+    // the gbIsBeingPreviewed flag ( which remains FALSE whenever a Print Preview button click
+    // is done, because it's set TRUE only for a Print Preview menu item choice - the latter's
+    // handler in the view class is where it gets set, and that is bypassed when the Print
+    // Preview command comes from within the wx printing framework's native Print dialog for
+    // the Linux platform) -- was vital. I used this flag to ensure the logical origin tweak is
+    // also done when the Print Preview button was pressed in the native Print control. That
+    // turned out to be all that was needed to stop all the pages being printed at the first
+    // page shown in print preview frame's window, and subsequent pages all being blank except
+    // for the footer. Apparently, the wrong offset was in effect, and the tweak was needed to
+    // get it right. Then everything became normal. A nice bit of serendipity, as I wasn't
+    // expecting such a trivial solution to Kim's reported bug!
+    if (!IsPreview()
+        ||
+        (IsPreview() && !gbIsBeingPreviewed)
+        )
     {
         // the following appears to be a satisfactory way for getting the Linux print to work right
         // on a 'real' page, as far as where the strips are to be on the page; it doesn't fix the
@@ -430,7 +446,7 @@ bool AIPrintout::OnPrintPage(int page)
                                           // the latter's left margin setting intact, and so the margin
                                           // setting remains correct
 #if defined(Print_failure) && defined(__WXDEBUG__)
-//        wxLogDebug(_T("Linux solution's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d "), 0, Yoffset);
+        wxLogDebug(_T("Linux solution's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d  for Page %d"), 0, Yoffset, page);
 #endif
     }
 
@@ -454,7 +470,15 @@ bool AIPrintout::OnPrintPage(int page)
                               // previous page
     CPile* pLastPile = NULL; // last pile of last strip on the page
 
-    if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
+    // BEW changed 29Aug12, make use of gbIsBeingPreviewed which is set TRUE only when
+    // print preview is entered by File > Print Preview menu item; if entered by the
+    // Print Preview button of the native Linux Print dialog, it remains FALSE
+    if ((gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
+        ||
+        (!gbCheckInclFreeTransText && (pApp->m_bIsPrintPreviewing && !gbIsBeingPreviewed)) // no free translation, but preview by native dlg button
+        ||
+        (gbCheckInclFreeTransText && (pApp->m_bIsPrintPreviewing && !gbIsBeingPreviewed)) // has free translation, but preview by native dlg button
+        )
     {
         nStripsOffset = nFirstStrip; // subtracting this from the strip index gives the
                                      // Item() index for the array stored in either
@@ -567,7 +591,7 @@ bool AIPrintout::OnPrintPage(int page)
                 }
             }
         }
-    } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
+    } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing) etc
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
     {
@@ -630,7 +654,11 @@ bool AIPrintout::OnPrintPage(int page)
         // But call the function only if not previewing, and the user has requested that
         // free translations be drawn, and that there actually are some on the page to
         // be drawn
-         if (!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !arrFTElementsArrays.IsEmpty())
+        //if (!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !arrFTElementsArrays.IsEmpty())
+        if ((!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !arrFTElementsArrays.IsEmpty())
+            ||
+            (pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !gbIsBeingPreviewed && !arrFTElementsArrays.IsEmpty())
+            )
         {
 #if defined(Print_failure) && defined(__WXDEBUG__)
         wxLogDebug(_T("OnPrintPage(): about to draw free translations: passing in currentStrip = %d , nStripsOffset  %d  arrFTElementsArrays count = %d  arrFTSubstringsArrays count = %d"),
@@ -646,7 +674,8 @@ bool AIPrintout::OnPrintPage(int page)
     // the legacy code for drawing of the free translations on preview pages - so we'll
     // continue to use it; for real pages however, this fails to print any free translations
 
-    if (gbCheckInclFreeTransText && pApp->m_bIsPrintPreviewing)
+    if ((gbCheckInclFreeTransText && pApp->m_bIsPrintPreviewing && gbIsBeingPreviewed) // for previewing by File > Print Preview menu item
+       )
     {
         // this legacy function works only for Print Preview; for print to real pages, the
         // 'interleaving' solution above works instead
@@ -955,7 +984,7 @@ bool AIPrintout::HasPage(int pageNum)
 	CAdapt_ItApp* pApp = &wxGetApp();
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-//    wxLogDebug(_T("AIPrintout HasPage() line 602 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//    wxLogDebug(_T("AIPrintout HasPage() line 968 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
@@ -964,7 +993,7 @@ bool AIPrintout::HasPage(int pageNum)
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
 	// for ease of debugging, use some local vars here
 	// BEW changed 29Nov11, because the printing framework in wxWidgets is broken
-	// -- it doesn't get the max page value, and defaults it to 9999. So the 
+	// -- it doesn't get the max page value, and defaults it to 9999. So the
 	// fix below is needed to avoid the crash described in the next comment.
 	int myMinPage;
 	int myMaxPage;
@@ -975,7 +1004,7 @@ bool AIPrintout::HasPage(int pageNum)
 	//value but disallows printing of free translations and glosses which were used
 	//in the estimation of the total number of pages, and in so doing the number for
 	//the max page becomes greater than the actual numbers of pages available, so try
-	//getting the value from the app's m_pagesList's count, which is always up to 
+	//getting the value from the app's m_pagesList's count, which is always up to
 	//date at this point
 	myMaxPage = pApp->m_pagesList.GetCount();
 	if (pageNum >= myMinPage && pageNum <= myMaxPage)
@@ -1044,7 +1073,7 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 	}
 #ifdef Print_failure
 #if defined(__WXDEBUG__) && defined(__WXGTK__)
-//    wxLogDebug(_T("AIPrintout GetPageInfo() line 677 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+//    wxLogDebug(_T("AIPrintout GetPageInfo() line 1057 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif

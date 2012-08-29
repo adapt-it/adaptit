@@ -56,7 +56,6 @@
 /// complete the definition of a new safe pointer list class called StripList.
 WX_DEFINE_LIST(StripList);
 
-
 extern CAdapt_ItApp* gpApp;
 
 extern wxRect	grectViewClient; // used in OnDraw() below
@@ -142,7 +141,7 @@ void CStrip::Draw(wxDC* pDC)
 #if defined(__WXDEBUG__) && defined(Print_failure)
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
-		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d"),
+		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d BUT THIS DRAW DOES NOTHING IN LINUX (by design)"),
 			this->m_nStrip, Left(), Top(), Width(), Height());
 	}
 #endif

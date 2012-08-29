@@ -852,6 +852,16 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
+#if defined(__WXGTK__) && defined(Print_failure)
+            {
+                CPile* pPile = GetPile();
+                int nPileIndex = pPile->GetPileIndex();
+                if (nPileIndex == 0)
+                {
+                   wxLogDebug(_T("DrawCell(): enclosingRect: TOP %d  LEFT %d  for first pile of strip"), enclosingRect.GetTop(), enclosingRect.GetLeft());
+                }
+            }
+#endif
 /*
 #if defined(__WXGTK__)
 			// a kludge to see if we can get anything printed below the strip in GTK build when printing free trans
