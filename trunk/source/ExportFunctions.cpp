@@ -232,7 +232,7 @@ wxString ChangeMkrs_vn_vt_To_v(wxString text)
 /// creep through the filters, as an xhtml comment. It therefore doesn't appear in the
 /// data output as viewed on another device, but searching for comments will show which
 /// markers are not supported.
-void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
+bool DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
 							wxString defaultDir, wxString exportFilename, wxString filter, bool bXTMLExportOnly)
 {
 	// First determine whether or not the data is unstructured plain text - Xhtml cannot
@@ -246,24 +246,25 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 					// - export the USFM to this buffer
 	text.Empty();
 	wxString DefaultExt;
+	bool bResult = false;
 	//bool bOK = TRUE;
 	//int len = 0;
 
 	// bale out if there are no USFM markers in the export
 	if (DeclineIfUnstructuredData())
 	{	
-		return; // a suitable warning has been shown to the user
+		return bResult; // a suitable warning has been shown to the user
 	}
 	// bale out if there is no bookID defined, or it's invalid for a scripture export
 	if (DeclineIfNoBookCode(bookCode))
 	{	
-		return; // a suitable warning has been shown to the user
+		return bResult; // a suitable warning has been shown to the user
 	}
 	// bale out if there is no 2-letter or 3-letter language code defined for this
 	// language type (whether source, target, glosses, or free translation)
 	if (DeclineIfNoIso639LanguageCode(exportType, langCode))
 	{	
-		return; // a suitable warning has been shown to the user
+		return bResult; // a suitable warning has been shown to the user
 	}
 
 	// need the directionality -- whether left to right or right to left
@@ -331,7 +332,7 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 		if (fileDlg.ShowModal() != wxID_OK)
 		{
 			gpApp->LogUserAction(_T("Cancelled DoExportAsXhtml()"));
-			return; // user cancelled file dialog so return to what user was doing previously
+			return bResult; // user cancelled file dialog so return to what user was doing previously
 		}
 		exportPath = fileDlg.GetPath();	
 	}
@@ -376,12 +377,12 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 			pathToAIDefaultCSS.c_str());
 		gpApp->LogUserAction(msg);
 		wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
-		return;
+		return bResult;
 	}
 	bOkay = MakeAndSaveMyCSSFile(path, fname, pathToAIDefaultCSS);
 	if (!bOkay)
 	{
-		return; // suitable error message has been shown already, and a message logged as well
+		return bResult; // suitable error message has been shown already, and a message logged as well
 	}
 	// get the wxString which is the base text data -- as a USFM export
 	// (LogUserAction() calls are done internally, one for each exportType)
@@ -399,11 +400,13 @@ void DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	// write out the xhtml
 	if (!WriteXHTML_To_File(exportPath, myxml, bXTMLExportOnly))
 	{
-		return; // the user has seen a warning of the failure
+		return bResult; // the user has seen a warning of the failure
 	}
 #if defined(__WXDEBUG__)
 	XhtmlExport_DebuggingSupport();
 #endif
+	bResult = true; // as far as we know, everything went okay
+	return bResult;
 }
 
 // components for the DoExportAsXhtml() function
@@ -1001,8 +1004,12 @@ void DoExportAsType(enum ExportType exportType)
 				// produce the intermediate XHTML, storing it in a user-chosen folder, or if folder
                 // navigation is not protect, in the project's _PATHWAY_OUTPUTS folder, or
                 // in whatever folder path was in m_lastPathwayOutputPath
-                DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
-                    exportFilename, filter, false);
+                if (DoExportAsXhtml(exportType, bBypassFileDialog_ProtectedNavigation, defaultDir,
+                    exportFilename, filter, false) == false)
+				{
+					// problem exporting to xhtml, but the user has been notified. Exit this method.
+					return;
+				}
 				// update the path for the next export
 				gpApp->m_lastPathwayOutputPath = defaultDir;
                  // Call PathwayB.exe on the exported XHTML.

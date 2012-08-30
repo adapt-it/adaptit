@@ -53,7 +53,7 @@ void		DoExportInterlinearRTF();
 void		DoExportTextToRTF(enum ExportType exportType, wxString exportPath, 
 							  wxString exportName, wxString& Buffer);
 // BEW created 9Jun12
-void		DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
+bool		DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_ProtectedNavigation,
 							wxString defaultDir, wxString exportFilename, wxString filter, bool bXTMLExportOnly);
 // components defined for simplifying the code of DoExportAsXhtml()
 bool		DeclineIfUnstructuredData();
