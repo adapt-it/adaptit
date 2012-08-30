@@ -2496,7 +2496,7 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
                     // formerly there continue unchanged, so a test would be appropriate
                     // here if it was not for the fact that above we wrap the LookAhead
                     // call in a test of the m_bDrafting flag, and so in Reviewing mode
-                    // bGodOne remains FALSE and so this current block would not be entered
+                    // bGotOne remains FALSE and so this current block would not be entered
 					if (translation == _T("<Not In KB>"))
 					{
 						pApp->m_bSaveToKB = FALSE;

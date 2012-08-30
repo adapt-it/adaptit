@@ -14,8 +14,7 @@ Similar code was added to the "Get Source Text from Paratext/
 Bibledit Project" dialog to prevent it from being accidentally
 hidden behind other windows.
 * The text associated with the markers \h, \h1, \h2 and \h3 is
-now unfiltered (unhidden) by default. This change is needed
-for the upcoming Xhtml export feature.
+now unfiltered (unhidden) by default.
 * The Setup Collaboration dialog now examines the contents of 
 Paratext or Bibledit projects at the time an administrator 
 selects the projects during the collaboration setup process.
@@ -28,10 +27,59 @@ now based on the 2.9.x version of the wxWidgets library. On
 Linux this change will only take effect when the Linux 
 distributions contain the newer 2.9.x version of the wxWidgets 
 library.
+* Additional exports are supported. Export to Pathway - provided
+Pathway is installed on the computer. Also, export as an xhtml
+file - this is the format which Pathway requires for its import
+and we have provided it as a separate export as well. Two new
+folders, _XHTML_OUTPUTS and _PATHWAY_OUTPUTS have been provided
+in the project folder for storing these new export types.
+* There is a new 'export save as' dialog provided. It is shown
+after the menu choice of exporting source, or target, or glosses,
+or free translations, has been made. The dialog has four icon
+buttons which permit selection of the export type - either as
+USFM, or RTF, or XHTML, or Pathway.
+* Support for 2-letter and 3-letter language codes within
+Adapt It has been extended to all data types - source text,
+target text (that is, your adaptations), glosses treated as
+text, and free translations. The Preferences tab "Backups and
+Misc" now has text boxes for these types, and also text boxes
+for providing a language name (needed for XHTML or Pathway
+exports), and a button for looking up the codes when necessary.
+Codes set here are available throughout the application
+whenever a code is needed.
+* Xhtml and Pathway exports need a book name in order to be
+well formed. If no book name is available, a new dialog "Set
+or Clear Book Name" will open - you can accept the suggested
+name shown there, or type one of your own in any language. If
+a book name is not appropriate for the document, an option in
+the dialog allows you to suppress supplying a book name.
+* Placement of end markers (such as \f*, or \x* and others), when
+the placement could be done either side of punctuation characters
+during an export, is handled by a dialog which opens when it 
+is needed. This functionality was broken accidently in recent 
+versions, so that the user's placements were not remembered in 
+the document. This has been fixed - each placement now is done 
+only once, subsequent exports therefore don't show the dialog.
+If the placement needs altering, put the phrase box at the
+relevant location and click the Edit menu item: "Change
+Punctuation or Markers Placement" and at the next export that
+location will show the Placement dialog again and you can then
+choose a different placement.
 
 ----------------------------------------------
 Bug fixes in 6.2.3
 ----------------------------------------------
+* The Import Edited Source Text feature sometimes would not
+work correctly - especially if a lot of new data was added at
+the end of the source text. Collaboration mode, which uses
+this feature, sometimes produced a bad result. This has been
+fixed, and the some improvements under the hood make the
+merger of externally edited source text to the existing document
+take place both quicker, and more robustly.
+* The Linux and Macintosh versions permit Print Preview to
+be chosen after the user has chosen a chapter-verse print
+range. The Linux version, however, only would show the first
+page of such a preview. This is now fixed. 
 * Fixed a bug that caused Adapt It to lose the collaboration
 settings for the last used project under certain circumstances.
 The bug would happen if a collaboration project had been
